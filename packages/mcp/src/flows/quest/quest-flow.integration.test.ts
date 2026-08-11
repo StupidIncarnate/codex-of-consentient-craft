@@ -63,7 +63,7 @@ describe('QuestFlow', () => {
         'Lists all quests in the .dungeonmaster-quests folder.',
         'Lists all registered guilds with their IDs, names, paths, and quest counts.',
         "Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report). Used by PathSeeker on resume to re-read already-committed phase artifacts.",
-        "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. Flowrider and Siegemaster call this instead of reading the spec and enumerating by hand. Pass `track` ('flowrider' | 'siegemaster') and REMAINING counts the units awaiting YOUR sign-off field, which is exactly what the signal-back completion gate refuses `done` on; 'flowrider' also narrows to the quest's runtime flows, the only set that track is measured over.",
+        "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. Flowrider, Groundstomper and Siegemaster call this instead of reading the spec and enumerating by hand. Pass `track` ('flowrider' | 'groundstomper' | 'siegemaster') — the ROLE you were dispatched as, not the sign-off field you write — and REMAINING counts the units in YOUR denominator, which is exactly what the signal-back completion gate refuses `done` on. Flowrider and Groundstomper both write flowriderSignoff but are measured over DISJOINT package kinds, so the other's name returns the complement of your work; both also narrow to the quest's runtime flows, the only set they are measured over. Pass `packageNames` too when your operation item declares any, or you read a whole-quest remainder while your own gate clears at zero.",
         "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. Blightwarden calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
         'Creates a new quest seeded with the supplied userRequest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id, but the caller MUST pass the original user request text so it is captured on the quest from the moment of creation.',
         'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | run-ward | idle. Long-polls internally up to ~25s.',
@@ -187,14 +187,17 @@ describe('QuestFlow', () => {
       });
     });
 
-    it('VALID: {get-qa-checklist} => inputSchema advertises questId, flowId AND the track enum', () => {
+    it('VALID: {get-qa-checklist} => inputSchema advertises questId, flowId, the THREE-member track enum AND packageNames', () => {
       const registrations = QuestFlow();
 
       const registration = registrations.find(({ name }) => name === 'get-qa-checklist');
 
-      // `track` reaching the published schema is what makes it callable at all: the input contract
+      // What reaches the PUBLISHED schema is what makes the tool callable at all: the input contract
       // is `.strict()`, so a caller passing a key the schema never advertised is a hard parse
-      // rejection rather than an ignored argument.
+      // rejection rather than an ignored argument. Both of the additions here are that failure
+      // measured — `groundstomper` missing from the enum left the one role that needs its own
+      // denominator unable to name itself, and `packageNames` missing left a session holding a
+      // sliced operation item reading a whole-quest remainder its own gate never computes.
       expect(registration?.inputSchema).toStrictEqual({
         type: 'object',
         properties: {
@@ -211,9 +214,15 @@ describe('QuestFlow', () => {
           },
           track: {
             type: 'string',
-            enum: ['flowrider', 'siegemaster'],
+            enum: ['flowrider', 'groundstomper', 'siegemaster'],
             description:
-              "Your verification track. Pass it and REMAINING counts the units awaiting YOUR sign-off field (flowriderSignoff / siegemasterSignoff) — the same number the signal-back completion gate will compute. 'flowrider' also narrows the flow set to the quest's runtime flows, which is the only set Flowrider is measured over. Omit it to list every flow with no track applied.",
+              "Your verification track — the ROLE you were dispatched as, not the sign-off field you write. Pass it and REMAINING counts the units in YOUR denominator still carrying no sign-off, which is exactly what the signal-back completion gate will refuse `done` on. 'flowrider' and 'groundstomper' both write flowriderSignoff but are measured over DISJOINT package kinds (groundstomper: the browser-reachable ones), so passing the other role's name returns the complement of your own work. Both also narrow the flow set to the quest's runtime flows, the only set they are measured over. Omit it to list every flow with no track applied.",
+          },
+          packageNames: {
+            type: 'array',
+            items: { type: 'string', minLength: 1 },
+            description:
+              'The package names your operation item declares, if it declares any. Pass them and REMAINING is narrowed to your slice the same way the completion gate narrows it — a per-package flowrider item owns the units whose node tags exactly its one package, and the seam item owns the glue. Omit them when your item declares none, and nothing is narrowed.',
           },
         },
         required: ['questId'],

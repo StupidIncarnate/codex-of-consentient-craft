@@ -11,11 +11,11 @@
  * });
  * // Returns: QuestSummaryFlow — one element of QuestSummary.flows[]
  *
- * `tracks` CARRIES ONLY THE TRACKS THIS FLOW IS MEASURED BY, which is why it is a list and not a
- * fixed pair. `signoffTrackEligibilityStatics` says which flow types each track's denominator
- * includes, and Flowrider's is runtime flows alone: an operational flow is verified by checking its
- * end state, never by a flow-perspective suite, so printing a Flowrider row on one would report an
- * outstanding count no Flowrider session can ever bring to zero.
+ * `tracks` CARRIES ONLY THE DENOMINATORS THIS FLOW IS MEASURED BY, which is why it is a list and not
+ * a fixed set. `signoffTrackEligibilityStatics` says which flow types each denominator includes, and
+ * the two authoring ones are runtime flows alone: an operational flow is verified by checking its
+ * end state, never by a flow-perspective suite or a browser walk, so printing their rows on one
+ * would report outstanding counts no session of either role can ever bring to zero.
  *
  * `name` and `flowType` are carried rather than left for the reader to join back to `quest.flows`,
  * because the summary's whole job is to be the one thing a reader has to load.

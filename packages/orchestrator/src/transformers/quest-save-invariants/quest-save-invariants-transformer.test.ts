@@ -1,9 +1,12 @@
 import {
   FlowEdgeStub,
   FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
+  OperationItemStub,
   QuestContractEntryStub,
   QuestContractPropertyStub,
+  QuestPackageEntryStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
@@ -94,7 +97,7 @@ describe('questSaveInvariantsTransformer', () => {
   });
 
   it.each(QUEST_STATUSES)(
-    'VALID: {currentStatus and nextStatus both %s, quest with an invariant violation} => still returns the same invariants failure (status params are unused)',
+    'VALID: {currentStatus and nextStatus both %s, quest with an invariant violation} => still returns the same invariants failure (the structural tier ignores status)',
     (status) => {
       const quest = QuestStub({
         flows: [FlowStub({ id: 'login-flow' as never }), FlowStub({ id: 'login-flow' as never })],
@@ -115,4 +118,226 @@ describe('questSaveInvariantsTransformer', () => {
       ]);
     },
   );
+
+  describe('package-relational rules at the flows_approved gate', () => {
+    it('INVALID: {-> flows_approved, node tags a package absent from packagesAffected} => returns a named Node Package Coverage check', () => {
+      const quest = QuestStub({
+        packagesAffected: [QuestPackageEntryStub({ name: 'web', location: './packages/web' })],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [FlowNodeStub({ id: 'press-warp', packages: ['cli'] })],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({
+        quest,
+        currentStatus: 'review_flows',
+        nextStatus: 'flows_approved',
+      });
+
+      expect(failures).toStrictEqual([
+        {
+          name: 'Node Package Coverage',
+          passed: false,
+          details:
+            "Node 'press-warp' in flow 'warpgate-merge' tags package 'cli', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.",
+        },
+      ]);
+    });
+
+    it('INVALID: {-> flows_approved, seam edge whose endpoints share no package} => returns a named No Unglued Seam check', () => {
+      const quest = QuestStub({
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'web', location: './packages/web' }),
+          QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [
+              FlowNodeStub({ id: 'press-warp', packages: ['web'] }),
+              FlowNodeStub({ id: 'merge-status-ok', packages: ['server'] }),
+            ],
+            edges: [
+              FlowEdgeStub({ id: 'press-to-status', from: 'press-warp', to: 'merge-status-ok' }),
+            ],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({
+        quest,
+        currentStatus: 'review_flows',
+        nextStatus: 'flows_approved',
+      });
+
+      expect(failures).toStrictEqual([
+        {
+          name: 'No Unglued Seam',
+          passed: false,
+          details:
+            "Edge 'press-to-status' in flow 'warpgate-merge' joins node 'press-warp' (packages: web) to node 'merge-status-ok' (packages: server), which share no package. An edge whose endpoints share no package is a boundary crossed with nothing spanning it — widen one endpoint to carry both packages (that endpoint IS the glue node), or insert a node between them that does.",
+        },
+      ]);
+    });
+
+    it('VALID: {no status transition, same unglued quest} => the seam rules do not bind on an ordinary write', () => {
+      const quest = QuestStub({
+        packagesAffected: [],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [
+              FlowNodeStub({ id: 'press-warp', packages: ['web'] }),
+              FlowNodeStub({ id: 'merge-status-ok', packages: ['server'] }),
+            ],
+            edges: [
+              FlowEdgeStub({ id: 'press-to-status', from: 'press-warp', to: 'merge-status-ok' }),
+            ],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({ quest, currentStatus: 'explore_flows' });
+
+      expect(failures).toStrictEqual([]);
+    });
+  });
+
+  describe('package-relational rules at the approved gate', () => {
+    it('INVALID: {-> approved, glue node whose observables cover one side only} => returns a named Observable Package Attribution check', () => {
+      const quest = QuestStub({
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'web', location: './packages/web' }),
+          QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
+        ],
+        operations: [OperationItemStub({ role: 'codeweaver', packageNames: ['web', 'server'] })],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [
+              FlowNodeStub({
+                id: 'landed-on-base',
+                packages: ['web', 'server'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'merge-banner-shown',
+                    package: 'web',
+                    type: 'ui-state',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({
+        quest,
+        currentStatus: 'review_observables',
+        nextStatus: 'approved',
+      });
+
+      expect(failures).toStrictEqual([
+        {
+          name: 'Observable Package Attribution',
+          passed: false,
+          details:
+            "Node 'landed-on-base' in flow 'warpgate-merge' tags packages web, server but its observables only cover web. Package(s) server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
+        },
+      ]);
+    });
+
+    it('INVALID: {-> approved, feature quest whose codeweaver ledger misses a package} => returns a named Codeweaver Package Coverage check', () => {
+      const quest = QuestStub({
+        questType: 'feature',
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'web', location: './packages/web' }),
+          QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
+        ],
+        operations: [OperationItemStub({ role: 'codeweaver', packageNames: ['web'] })],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [
+              FlowNodeStub({ id: 'press-warp', packages: ['web'] }),
+              FlowNodeStub({ id: 'merge-status-ok', packages: ['server'] }),
+            ],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({
+        quest,
+        currentStatus: 'review_observables',
+        nextStatus: 'approved',
+      });
+
+      expect(failures).toStrictEqual([
+        {
+          name: 'Codeweaver Package Coverage',
+          passed: false,
+          details:
+            "Package 'server' is tagged on node 'merge-status-ok' in flow 'warpgate-merge' but no codeweaver operation item declares it in packageNames. Every package the spine lands in needs an implementation item that names it, or the dependency-ordered dispatch has nothing to schedule there — add 'server' to an existing codeweaver item's packageNames, or author an item for it.",
+        },
+      ]);
+    });
+
+    it('VALID: {-> approved, bug-hunt quest with an empty ledger} => the codeweaver rule is scoped to feature quests', () => {
+      const quest = QuestStub({
+        questType: 'bug-hunt',
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
+        ],
+        operations: [],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [FlowNodeStub({ id: 'merge-status-ok', packages: ['server'] })],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({
+        quest,
+        currentStatus: 'review_observables',
+        nextStatus: 'approved',
+      });
+
+      expect(failures).toStrictEqual([]);
+    });
+
+    it('VALID: {-> approved, ledger covers the spine and every observable is attributed} => returns empty array', () => {
+      const quest = QuestStub({
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'web', location: './packages/web' }),
+          QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
+        ],
+        operations: [OperationItemStub({ role: 'codeweaver', packageNames: ['web', 'server'] })],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [
+              FlowNodeStub({
+                id: 'press-warp',
+                packages: ['web'],
+                observables: [FlowObservableStub({ id: 'warp-button-disables', package: 'web' })],
+              }),
+              FlowNodeStub({ id: 'merge-status-ok', type: 'decision', packages: ['server'] }),
+            ],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({
+        quest,
+        currentStatus: 'review_observables',
+        nextStatus: 'approved',
+      });
+
+      expect(failures).toStrictEqual([]);
+    });
+  });
 });

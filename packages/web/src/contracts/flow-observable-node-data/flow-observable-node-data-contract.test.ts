@@ -12,6 +12,7 @@ describe('flowObservableNodeDataContract', () => {
           observableId: 'login-redirects-to-dashboard',
           outcomeType,
           description: 'redirects to dashboard',
+          package: { name: 'auth-service', packageType: 'library' },
           commentCount: 0,
           nodeId: 'login-page',
         });
@@ -23,6 +24,7 @@ describe('flowObservableNodeDataContract', () => {
         observableId: 'shows-error-banner',
         outcomeType: 'ui-state',
         description: 'shows an error banner when credentials are invalid',
+        package: { name: 'auth-service', packageType: 'library' },
         commentCount: 3,
         nodeId: 'login-page',
       });
@@ -31,6 +33,7 @@ describe('flowObservableNodeDataContract', () => {
         observableId: 'shows-error-banner',
         outcomeType: 'ui-state',
         description: 'shows an error banner when credentials are invalid',
+        package: { name: 'auth-service', packageType: 'library' },
         commentCount: 3,
         nodeId: 'login-page',
       });
@@ -62,7 +65,20 @@ describe('flowObservableNodeDataContract', () => {
           observableId: 'login-redirects-to-dashboard',
           outcomeType: 'ui-state',
           description: 'redirects to dashboard',
+          package: { name: 'auth-service', packageType: 'library' },
           commentCount: 0,
+        }),
+      ).toThrow(/Required/u);
+    });
+
+    it('EMPTY: {no package} => throws, so no assertion card can render without naming its side', () => {
+      expect(() =>
+        flowObservableNodeDataContract.parse({
+          observableId: 'login-redirects-to-dashboard',
+          outcomeType: 'ui-state',
+          description: 'redirects to dashboard',
+          commentCount: 0,
+          nodeId: 'login-page',
         }),
       ).toThrow(/Required/u);
     });
@@ -74,6 +90,7 @@ describe('flowObservableNodeDataContract', () => {
         observableId: 'login-redirects-to-dashboard',
         outcomeType: 'ui-state',
         description: 'redirects to dashboard',
+        package: { name: 'auth-service', packageType: 'library' },
         commentCount: 0,
         nodeId: 'login-page',
       });
@@ -82,6 +99,7 @@ describe('flowObservableNodeDataContract', () => {
         observableId: 'login-redirects-to-dashboard',
         outcomeType: 'ui-state',
         description: 'redirects to dashboard',
+        package: { name: 'auth-service', packageType: 'library' },
         commentCount: 0,
         nodeId: 'login-page',
       });
@@ -98,6 +116,7 @@ describe('flowObservableNodeDataContract', () => {
         observableId: 'login-redirects-to-dashboard',
         outcomeType: 'ui-state',
         description: 'redirects to dashboard',
+        package: { name: 'auth-service', packageType: 'library' },
         commentCount: 0,
         nodeId: 'login-page',
         questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

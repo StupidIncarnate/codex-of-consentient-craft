@@ -98,6 +98,10 @@ export const ReconcileWatchersLayerResponder = async ({
   // instead of dropping it as dispatcher chatter. Keyed sessionId → owning workItemId;
   // dispatcher (/dumpster-launch parent) sessions never appear here.
   const workerWorkItemIdBySessionId = new Map<SessionId, QuestWorkItemId>();
+  // The quest each worker session's owning work item belongs to, captured in lockstep with the
+  // map above. The tail emits its own terminal event when it stops, and `chat-complete` is a
+  // per-quest event — a frame with no questId reaches no subscriber at all.
+  const workerQuestIdBySessionId = new Map<SessionId, QuestId>();
   for (const quest of loadedQuests) {
     const questProjectDir = guildPathByQuestId.get(quest.id);
     for (const wi of quest.workItems) {
@@ -109,6 +113,7 @@ export const ReconcileWatchersLayerResponder = async ({
       }
       if (wi.agentId === undefined && !workerWorkItemIdBySessionId.has(wi.sessionId)) {
         workerWorkItemIdBySessionId.set(wi.sessionId, wi.id);
+        workerQuestIdBySessionId.set(wi.sessionId, quest.id);
       }
     }
   }
@@ -129,10 +134,12 @@ export const ReconcileWatchersLayerResponder = async ({
     sessionsToStart.map(async (sessionId) => {
       try {
         const workerWorkItemId = workerWorkItemIdBySessionId.get(sessionId);
+        const workerQuestId = workerQuestIdBySessionId.get(sessionId);
         const handle = await orchestratorStartMonitorWatcherAdapter({
           parentSessionId: String(sessionId),
           projectDir: projectDirBySessionId.get(sessionId) ?? projectDir,
           ...(workerWorkItemId === undefined ? {} : { workerWorkItemId: String(workerWorkItemId) }),
+          ...(workerQuestId === undefined ? {} : { workerQuestId: String(workerQuestId) }),
         });
         return { sessionId, handle };
       } catch (error: unknown) {

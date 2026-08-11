@@ -9,6 +9,7 @@ import {
   QuestBlightLedgerEntryStub,
   QuestCommentStub,
   QuestNoteStub,
+  QuestPackageEntryStub,
   QuestQaLedgerEntryStub,
   QuestStub,
   SignoffStub,
@@ -153,6 +154,7 @@ describe('questModifyBroker', () => {
                 id: 'submit-form' as never,
                 label: 'Submit Form' as never,
                 type: 'state' as never,
+                packages: ['auth-service'] as never,
                 // observables key intentionally OMITTED
               },
             ],
@@ -1530,14 +1532,26 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'explore_observables',
-        packagesAffected: ['shared'],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'shared', location: './packages/shared' }),
+        ],
       });
 
       proxy.setupQuestFound({ quest });
+      proxy.setupPackageLocationResolves({
+        location: `${String(proxy.getProjectRoot())}/packages/orchestrator`,
+      });
+      proxy.setupPackageLocationResolves({
+        location: `${String(proxy.getProjectRoot())}/packages/mcp`,
+      });
 
+      const replacement = [
+        QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+        QuestPackageEntryStub({ name: 'mcp', location: './packages/mcp' }),
+      ];
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        packagesAffected: ['orchestrator', 'mcp'],
+        packagesAffected: replacement,
       });
 
       const result = await questModifyBroker({ input });
@@ -1546,7 +1560,7 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.packagesAffected).toStrictEqual(['orchestrator', 'mcp']);
+      expect(persisted.packagesAffected).toStrictEqual(replacement);
     });
 
     it('VALID: {no packagesAffected in input} => leaves the existing array unchanged', async () => {
@@ -1555,7 +1569,9 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'explore_observables',
-        packagesAffected: ['shared'],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'shared', location: './packages/shared' }),
+        ],
       });
 
       proxy.setupQuestFound({ quest });
@@ -1568,7 +1584,119 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.packagesAffected).toStrictEqual(['shared']);
+      expect(persisted.packagesAffected).toStrictEqual([
+        QuestPackageEntryStub({ name: 'shared', location: './packages/shared' }),
+      ]);
+    });
+  });
+
+  describe('packagesAffected resolution against the quest own project root', () => {
+    it("INVALID: {edit entry whose location is absent under the quest's project root} => rejects, naming the package", async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        packagesAffected: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'core', location: './packages/core', changeType: 'edit' }),
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect({ success: result.success, error: result.error }).toStrictEqual({
+        success: false,
+        error: 'Package entry validation failed',
+      });
+      expect(result.failedChecks).toStrictEqual([
+        {
+          name: 'Package Entry Resolution',
+          passed: false,
+          details:
+            "Package entry 'core' declares changeType 'edit' but its location './packages/core' does not resolve on disk. An 'edit' or 'delete' entry names a package that already exists — correct the location, or set changeType to 'new' if this quest is what creates it.",
+        },
+      ]);
+    });
+
+    it("INVALID: {new entry whose location already exists under the quest's project root} => rejects, naming the package", async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        packagesAffected: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+      proxy.setupPackageLocationResolves({
+        location: `${String(proxy.getProjectRoot())}/packages/core`,
+      });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'core',
+            location: './packages/core',
+            changeType: 'new',
+            usedBy: ['orchestrator'],
+          }),
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect({ success: result.success, error: result.error }).toStrictEqual({
+        success: false,
+        error: 'Package entry validation failed',
+      });
+      expect(result.failedChecks).toStrictEqual([
+        {
+          name: 'Package Entry Resolution',
+          passed: false,
+          details:
+            "Package entry 'core' declares changeType 'new' but its location './packages/core' already resolves on disk. A 'new' package is one this quest creates — set changeType to 'edit', or point location at the path the new package will actually live at.",
+        },
+      ]);
+    });
+
+    it("VALID: {edit entry present only under the quest's project root} => accepted, because the probe is anchored there and not on the process cwd", async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        packagesAffected: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+      // The only address fs.access answers true for. Anchored on the process cwd instead, the
+      // broker probes '<cwd>/packages/core', which answers false and fails the write.
+      proxy.setupPackageLocationResolves({
+        location: `${String(proxy.getProjectRoot())}/packages/core`,
+      });
+
+      const entry = QuestPackageEntryStub({
+        name: 'core',
+        location: './packages/core',
+        changeType: 'edit',
+      });
+      const input = ModifyQuestInputStub({ questId: 'add-auth', packagesAffected: [entry] });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.packagesAffected).toStrictEqual([entry]);
     });
   });
 

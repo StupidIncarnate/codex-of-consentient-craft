@@ -25,6 +25,10 @@ const CREATED_AT_INTERVAL_MS = 1000;
 
 type PlanningNotesInput = Record<PropertyKey, unknown>;
 type FlowInput = Record<PropertyKey, unknown>;
+// One quest.packagesAffected entry, written verbatim. This is the ONLY thing that gives a node's
+// package tag a KIND, so a seeded quest whose flows tag a name absent from here renders its chips
+// unresolved on the canvas — which is what the tag-coverage failure case looks like to a reviewer.
+type PackageEntryInput = Record<PropertyKey, unknown>;
 // One quest.contracts entry, written verbatim. Its `nodeId` is the anchor the flow-diagram detail
 // panel filters on, so a seeded contract only reaches a panel when nodeId names a node in the flow.
 type ContractEntryInput = Record<PropertyKey, unknown>;
@@ -32,6 +36,24 @@ type ContractEntryInput = Record<PropertyKey, unknown>;
 // `observableId` anchors the comment to the node card itself; setting it anchors the comment to one
 // of that node's assertion cards.
 type CommentInput = Record<PropertyKey, unknown>;
+
+// The one package every default-seeded flow node tags, declared so its chips resolve to a real kind
+// rather than painting unresolved. Deliberately NOT a name from this repo: nothing in the app may
+// recognise a package by name, and a fixture built from real names would hide it if something did.
+const DEFAULT_PACKAGE_NAME = 'auth-service';
+const DEFAULT_PACKAGES_AFFECTED: PackageEntryInput[] = [
+  {
+    name: DEFAULT_PACKAGE_NAME,
+    location: './packages/auth-service',
+    changeType: 'edit',
+    packageType: 'library',
+  },
+];
+// What a seeded codeweaver item claims when the caller names nothing. The `approved` gate refuses a
+// ledger that leaves any package tagged on the spine unclaimed, so a quest driven through that gate
+// by a test needs its plan to cover the tags its flows carry — which for the default flows is this
+// one package.
+const DEFAULT_CODEWEAVER_PACKAGE_NAMES = [DEFAULT_PACKAGE_NAME];
 
 const DEFAULT_FLOWS: FlowInput[] = [
   {
@@ -41,8 +63,8 @@ const DEFAULT_FLOWS: FlowInput[] = [
     entryPoint: 'start',
     exitPoints: ['end'],
     nodes: [
-      { id: 'start', label: 'Start', type: 'state', observables: [] },
-      { id: 'end', label: 'End', type: 'terminal', observables: [] },
+      { id: 'start', label: 'Start', type: 'state', packages: ['auth-service'], observables: [] },
+      { id: 'end', label: 'End', type: 'terminal', packages: ['auth-service'], observables: [] },
     ],
     edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
   },
@@ -67,11 +89,12 @@ const DEFAULT_FLOWS_FLOWRIDER_SIGNED: FlowInput[] = [
     entryPoint: 'start',
     exitPoints: ['end'],
     nodes: [
-      { id: 'start', label: 'Start', type: 'state', observables: [] },
+      { id: 'start', label: 'Start', type: 'state', packages: ['auth-service'], observables: [] },
       {
         id: 'end',
         label: 'End',
         type: 'terminal',
+        packages: ['auth-service'],
         observables: [],
         flowriderSignoff: {
           verdict: 'confirmed',
@@ -123,6 +146,7 @@ export const questHarness = ({
     userRequest?: string;
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
+    packagesAffected?: PackageEntryInput[];
     contracts?: ContractEntryInput[];
     comments?: CommentInput[];
     wardResults?: {
@@ -139,6 +163,7 @@ export const questHarness = ({
       status: string;
       locked?: boolean;
       wardMode?: string;
+      packageNames?: string[];
     }[];
   }) => void;
   writeUnparseableQuestFile: (params: {
@@ -170,6 +195,7 @@ export const questHarness = ({
       status: string;
       locked?: boolean;
       wardMode?: string;
+      packageNames?: string[];
     }[];
   }) => Record<PropertyKey, unknown>;
   seedInProgressWithOperations: (params: {
@@ -184,6 +210,7 @@ export const questHarness = ({
       status: string;
       locked?: boolean;
       wardMode?: string;
+      packageNames?: string[];
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
@@ -229,6 +256,7 @@ export const questHarness = ({
     userRequest = 'Build the feature',
     planningNotes,
     flows,
+    packagesAffected = DEFAULT_PACKAGES_AFFECTED,
     contracts = [],
     comments,
     wardResults = [],
@@ -260,6 +288,7 @@ export const questHarness = ({
     userRequest?: string;
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
+    packagesAffected?: PackageEntryInput[];
     contracts?: ContractEntryInput[];
     comments?: CommentInput[];
     wardResults?: {
@@ -276,6 +305,7 @@ export const questHarness = ({
       status: string;
       locked?: boolean;
       wardMode?: string;
+      packageNames?: string[];
     }[];
   }): void => {
     const seededPlanningNotes = questGateContentSeedTransformer({
@@ -343,6 +373,7 @@ export const questHarness = ({
         };
       }),
       toolingRequirements: [],
+      packagesAffected,
       contracts,
       // The key is OMITTED unless the caller seeds comments, so every quest this harness writes is
       // by default shaped exactly like a quest.json authored before the comments field existed —
@@ -358,12 +389,16 @@ export const questHarness = ({
         ...(wr.wardMode === undefined ? {} : { wardMode: wr.wardMode }),
       })),
       // Written verbatim as quest.operations — the ordered ledger the relay dispatches from.
+      // A codeweaver item with no declared packages fails the `approved` gate's coverage check
+      // against the flows above, so the default claims exactly what those flows tag.
       operations: operations.map((op) => ({
         id: op.id,
         role: op.role,
         text: op.text,
         status: op.status,
         locked: op.locked ?? false,
+        packageNames:
+          op.packageNames ?? (op.role === 'codeweaver' ? DEFAULT_CODEWEAVER_PACKAGE_NAMES : []),
         ...(op.wardMode === undefined ? {} : { wardMode: op.wardMode }),
       })),
     };
@@ -488,6 +523,7 @@ export const questHarness = ({
       status: string;
       locked?: boolean;
       wardMode?: string;
+      packageNames?: string[];
     }[];
   }): Record<PropertyKey, unknown> => ({
     id: questId,
@@ -511,6 +547,8 @@ export const questHarness = ({
       text: op.text,
       status: op.status,
       locked: op.locked ?? false,
+      packageNames:
+        op.packageNames ?? (op.role === 'codeweaver' ? DEFAULT_CODEWEAVER_PACKAGE_NAMES : []),
       ...(op.wardMode === undefined ? {} : { wardMode: op.wardMode }),
     })),
     userRequest: 'Build the feature',
@@ -526,8 +564,20 @@ export const questHarness = ({
         entryPoint: 'start',
         exitPoints: ['end'],
         nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          {
+            id: 'start',
+            label: 'Start',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'end',
+            label: 'End',
+            type: 'terminal',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
       },
@@ -560,6 +610,7 @@ export const questHarness = ({
       status: string;
       locked?: boolean;
       wardMode?: string;
+      packageNames?: string[];
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;

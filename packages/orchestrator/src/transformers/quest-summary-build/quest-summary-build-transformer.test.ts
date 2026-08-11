@@ -5,9 +5,11 @@ import {
   FlowOffMapSignoffStub,
   FlowStub,
   QuestNoteStub,
+  QuestPackageEntryStub,
   QuestStub,
   SignoffStub,
 } from '@dungeonmaster/shared/contracts';
+import { qaOffMapProbeStatics, signoffTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { questSummaryBuildTransformer } from './quest-summary-build-transformer';
 
@@ -22,6 +24,102 @@ const LOGIN_NODES = [
 const LOGIN_EDGES = [
   FlowEdgeStub({ id: 'e-success', from: 'login-page', to: 'dashboard', label: 'success' }),
 ];
+
+// The off-map probe families every flow contributes, which Siegemaster owns alone. Derived from the
+// probe statics, whose keys are pinned 1:1 with qaOffMapFamilyContract's options.
+const OFF_MAP_FAMILY_COUNT = Object.keys(qaOffMapProbeStatics.byFamily).length;
+
+// A TAGGED quest: one browser-reachable package and one that is not, which is the only condition
+// under which the flowrider/groundstomper split binds at all. Named nowhere in source — the rule is
+// `packageType`, never a package name.
+const UI_PACKAGE = 'ui-app';
+const API_PACKAGE = 'api-service';
+
+const TAGGED_PACKAGES = [
+  QuestPackageEntryStub({
+    name: UI_PACKAGE,
+    location: `./packages/${UI_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'frontend-react',
+  }),
+  QuestPackageEntryStub({
+    name: API_PACKAGE,
+    location: `./packages/${API_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'http-backend',
+  }),
+];
+
+// 1 terminal + 2 branches + 2 observables, each owned by a SINGLE-package node, split 3 backend / 2
+// frontend — plus the 7 off-map families that hang off no node. Every unit carries an unconfirmable
+// `flowriderSignoff` so `result.unconfirmable` names each one with the denominator that claimed it,
+// which is how the partition is asserted by content rather than by count.
+const WALLED = SignoffStub({
+  verdict: 'unconfirmable',
+  evidence: 'the sandbox has no browser and no reachable API',
+  question: 'Who provisions the sandbox?',
+});
+
+const TAGGED_FLOW = FlowStub({
+  id: 'checkout-flow',
+  name: 'Checkout',
+  flowType: 'runtime',
+  nodes: [
+    FlowNodeStub({
+      id: 'n-ui',
+      label: 'Cart',
+      type: 'state',
+      packages: [UI_PACKAGE],
+      observables: [
+        FlowObservableStub({
+          id: 'obs-cart',
+          type: 'ui-state',
+          description: 'the cart lists every line item',
+          package: UI_PACKAGE,
+          flowriderSignoff: WALLED,
+        }),
+      ],
+    }),
+    FlowNodeStub({
+      id: 'n-api',
+      label: 'Charge',
+      type: 'state',
+      packages: [API_PACKAGE],
+      observables: [
+        FlowObservableStub({
+          id: 'obs-charge',
+          type: 'api-call',
+          description: 'POST /api/charge returns 201',
+          package: API_PACKAGE,
+          flowriderSignoff: WALLED,
+        }),
+      ],
+    }),
+    FlowNodeStub({
+      id: 'n-done',
+      label: 'Receipt',
+      type: 'terminal',
+      packages: [API_PACKAGE],
+      flowriderSignoff: WALLED,
+    }),
+  ],
+  edges: [
+    FlowEdgeStub({
+      id: 'e-submit',
+      from: 'n-ui',
+      to: 'n-api',
+      label: 'submit',
+      flowriderSignoff: WALLED,
+    }),
+    FlowEdgeStub({
+      id: 'e-ok',
+      from: 'n-api',
+      to: 'n-done',
+      label: 'ok',
+      flowriderSignoff: WALLED,
+    }),
+  ],
+});
 
 // 7 flows carrying 19 terminals + 85 branches + 128 observables + 7x7 off-map families = 281 units.
 // Flow 0 carries the surplus: 7 terminals, 13 branches, 20 observables; every other flow carries
@@ -75,7 +173,7 @@ const SCALE_FLOWS = Array.from({ length: SCALE_FLOW_COUNT }, (_unusedFlow, flowI
 
 describe('questSummaryBuildTransformer', () => {
   describe('per-flow, per-track counts', () => {
-    it('VALID: {one runtime flow, no sign-offs} => every eligible unit is outstanding on both tracks', () => {
+    it('VALID: {one runtime flow, no sign-offs} => every eligible unit is outstanding on every denominator that measures it', () => {
       const quest = QuestStub({
         flows: [FlowStub({ nodes: LOGIN_NODES, edges: LOGIN_EDGES })],
       });
@@ -89,6 +187,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },
@@ -117,13 +216,14 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'siegemaster', confirmed: 1, unconfirmable: 0, outstanding: 8 },
           ],
         },
       ]);
     });
 
-    it('VALID: {operational flow} => carries a siegemaster row and no flowrider row', () => {
+    it('VALID: {operational flow} => carries a siegemaster row and neither authoring row', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -165,6 +265,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },
@@ -174,6 +275,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 0 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 0 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 7 },
           ],
         },
@@ -182,7 +284,7 @@ describe('questSummaryBuildTransformer', () => {
   });
 
   describe('one track signing without the other', () => {
-    it('VALID: {terminal signed by flowrider alone} => confirmed on flowrider, still outstanding on siegemaster', () => {
+    it('VALID: {terminal carrying a flowriderSignoff alone} => confirmed on every denominator over that field, still outstanding on siegemaster', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -209,13 +311,14 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+            { id: 'groundstomper', confirmed: 1, unconfirmable: 0, outstanding: 1 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },
       ]);
     });
 
-    it('VALID: {branch signed by both tracks} => confirmed on both, outstanding drops on both', () => {
+    it('VALID: {branch signed on both FIELDS} => confirmed on every denominator, outstanding drops on each', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -243,6 +346,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+            { id: 'groundstomper', confirmed: 1, unconfirmable: 0, outstanding: 1 },
             { id: 'siegemaster', confirmed: 1, unconfirmable: 0, outstanding: 8 },
           ],
         },
@@ -367,7 +471,7 @@ describe('questSummaryBuildTransformer', () => {
   });
 
   describe('the provenance exclusion', () => {
-    it('VALID: {siegemaster-added observable} => absent from flowrider counts, present in siegemaster', () => {
+    it('VALID: {siegemaster-added observable} => absent from the authoring counts, present in siegemaster', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -404,13 +508,14 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 10 },
           ],
         },
       ]);
     });
 
-    it('VALID: {flowrider-added observable} => counts for BOTH tracks, it is after neither', () => {
+    it('VALID: {flowrider-added observable} => counts for every denominator, it is after none of them', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -444,6 +549,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 3 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 3 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 10 },
           ],
         },
@@ -500,7 +606,12 @@ describe('questSummaryBuildTransformer', () => {
   });
 
   describe('unconfirmable verdicts', () => {
-    it('VALID: {terminal unconfirmable on flowrider} => surfaces the reason and the question', () => {
+    // An UNTAGGED quest (`packagesAffected` empty) leaves every node's package kind unresolvable, so
+    // both denominators over `flowriderSignoff` still own the unit and each records its own entry.
+    // That is the same over-inclusion the completion gate applies — a flowrider item AND a
+    // groundstomper item would both be refused on this unit — so the summary agreeing with it is the
+    // point. The partition test at the bottom is the tagged case, where exactly one row claims it.
+    it('VALID: {terminal unconfirmable on flowrider} => surfaces the reason and the question, once per denominator over that field', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -538,10 +649,22 @@ describe('questSummaryBuildTransformer', () => {
             question: 'Who owns adding a webServer block to playwright.config.ts?',
           }),
         },
+        {
+          id: 'login-flow:terminal:dashboard:groundstomper',
+          unitId: 'login-flow:terminal:dashboard',
+          flowId: 'login-flow',
+          kind: 'terminal',
+          track: 'groundstomper',
+          signoff: SignoffStub({
+            verdict: 'unconfirmable',
+            evidence: 'playwright.config.ts declares no webServer, so no e2e run can reach the app',
+            question: 'Who owns adding a webServer block to playwright.config.ts?',
+          }),
+        },
       ]);
     });
 
-    it('VALID: {one unit unconfirmable on both tracks} => two entries, keyed unit-crossed-with-track', () => {
+    it('VALID: {one unit unconfirmable on both FIELDS} => one entry per denominator, keyed unit-crossed-with-track', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -577,6 +700,18 @@ describe('questSummaryBuildTransformer', () => {
           flowId: 'login-flow',
           kind: 'terminal',
           track: 'flowrider',
+          signoff: SignoffStub({
+            verdict: 'unconfirmable',
+            evidence: 'no webServer is declared for the e2e run',
+            question: 'Who owns adding a webServer block?',
+          }),
+        },
+        {
+          id: 'login-flow:terminal:dashboard:groundstomper',
+          unitId: 'login-flow:terminal:dashboard',
+          flowId: 'login-flow',
+          kind: 'terminal',
+          track: 'groundstomper',
           signoff: SignoffStub({
             verdict: 'unconfirmable',
             evidence: 'no webServer is declared for the e2e run',
@@ -750,6 +885,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 0 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 0 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 7 },
           ],
         },
@@ -764,9 +900,11 @@ describe('questSummaryBuildTransformer', () => {
       const result = questSummaryBuildTransformer({ quest });
 
       // Flow 0: 7 terminals + 13 branches + 20 observables + 7 off-map = 47 siegemaster units.
-      // Flowrider drops the 7 off-map families AND the one observable Siegemaster added mid-walk,
-      // leaving 7 + 13 + 19 = 39. Flows 1-6: 2 + 12 + 18 + 7 = 39 siegemaster, 2 + 12 + 18 = 32
-      // flowrider.
+      // The two authoring denominators drop the 7 off-map families AND the one observable
+      // Siegemaster added mid-walk, leaving 7 + 13 + 19 = 39 each. Flows 1-6: 2 + 12 + 18 + 7 = 39
+      // siegemaster, 2 + 12 + 18 = 32 each authoring. This quest tags no `packagesAffected`, so no
+      // node's package kind resolves and the flowrider/groundstomper split does not bind — both
+      // carry the whole authoring set, exactly as both their gates would.
       expect(result.flows).toStrictEqual([
         {
           id: 'scale-flow-0',
@@ -774,6 +912,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 39 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 39 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 47 },
           ],
         },
@@ -783,6 +922,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 32 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 32 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 39 },
           ],
         },
@@ -792,6 +932,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 32 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 32 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 39 },
           ],
         },
@@ -801,6 +942,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 32 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 32 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 39 },
           ],
         },
@@ -810,6 +952,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 32 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 32 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 39 },
           ],
         },
@@ -819,6 +962,7 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 32 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 32 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 39 },
           ],
         },
@@ -828,29 +972,32 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 32 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 0, outstanding: 32 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 39 },
           ],
         },
       ]);
     });
 
-    it('VALID: {281 units} => siegemaster owns all 281 and flowrider owns 231', () => {
+    it('VALID: {281 units} => siegemaster owns all 281 and each authoring denominator owns 231', () => {
       const quest = QuestStub({ id: 'scale-quest', flows: SCALE_FLOWS });
 
       const result = questSummaryBuildTransformer({ quest });
 
-      const flowriderTotal = result.flows
-        .flatMap((flow) => flow.tracks)
-        .filter((track) => track.id === 'flowrider')
-        .reduce((sum, track) => sum + track.confirmed + track.unconfirmable + track.outstanding, 0);
-      const siegemasterTotal = result.flows
-        .flatMap((flow) => flow.tracks)
-        .filter((track) => track.id === 'siegemaster')
-        .reduce((sum, track) => sum + track.confirmed + track.unconfirmable + track.outstanding, 0);
+      const totalsByTrack = signoffTracksStatics.denominators.map((wanted) =>
+        result.flows
+          .flatMap((flow) => flow.tracks)
+          .filter((track) => track.id === wanted)
+          .reduce(
+            (sum, track) => sum + track.confirmed + track.unconfirmable + track.outstanding,
+            0,
+          ),
+      );
 
-      // 281 total units; Flowrider sheds the 49 off-map families and the single siegemaster-added
-      // observable, leaving 231.
-      expect([flowriderTotal, siegemasterTotal]).toStrictEqual([231, 281]);
+      // 281 total units; the authoring denominators shed the 49 off-map families and the single
+      // siegemaster-added observable, leaving 231. They agree here because nothing on this quest
+      // resolves to a package kind, which is the untagged case both their gates read the same way.
+      expect(totalsByTrack).toStrictEqual([231, 231, 281]);
     });
 
     it('VALID: {one siegemaster-added observable among 128} => it is the only drift entry', () => {
@@ -869,6 +1016,74 @@ describe('questSummaryBuildTransformer', () => {
           description: 'observable 0 on flow 0',
         },
       ]);
+    });
+  });
+
+  // Keying a row on the DENOMINATOR rather than the sign-off FIELD is what makes this section
+  // possible at all. A field-keyed summary has one `flowrider` row spanning both authoring roles, so
+  // a package narrowing there would count the browser-reachable half in no row. Keyed on the
+  // denominator, each row narrows by its own package kinds and the three of them tile the flow.
+  describe('the three rows partition a tagged flow', () => {
+    it('VALID: {frontend- and backend-tagged units} => three rows, each measured over its own package kinds', () => {
+      const quest = QuestStub({ packagesAffected: TAGGED_PACKAGES, flows: [TAGGED_FLOW] });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      // Backend: terminal n-done, branch e-ok, observable obs-charge. Frontend: branch e-submit,
+      // observable obs-cart. Siegemaster: all five plus the seven off-map families.
+      expect(result.flows).toStrictEqual([
+        {
+          id: 'checkout-flow',
+          name: 'Checkout',
+          flowType: 'runtime',
+          tracks: [
+            { id: 'flowrider', confirmed: 0, unconfirmable: 3, outstanding: 0 },
+            { id: 'groundstomper', confirmed: 0, unconfirmable: 2, outstanding: 0 },
+            { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 12 },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {every graph unit signed once} => each is claimed by exactly ONE authoring row, named unit-by-unit', () => {
+      const quest = QuestStub({ packagesAffected: TAGGED_PACKAGES, flows: [TAGGED_FLOW] });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      // Every entry here is one `flowriderSignoff` read through one denominator. No unitId repeats
+      // across the two, and no graph unit is missing from the pair — that IS the partition, asserted
+      // by content rather than by a count that two overlapping sets could also produce.
+      expect(result.unconfirmable.map((entry) => entry.id)).toStrictEqual([
+        'checkout-flow:terminal:n-done:flowrider',
+        'checkout-flow:branch:e-ok:flowrider',
+        'checkout-flow:observable:obs-charge:flowrider',
+        'checkout-flow:branch:e-submit:groundstomper',
+        'checkout-flow:observable:obs-cart:groundstomper',
+      ]);
+    });
+
+    it('VALID: {authoring totals} => sum to Siegemaster’s set minus the off-map families it owns alone', () => {
+      const quest = QuestStub({ packagesAffected: TAGGED_PACKAGES, flows: [TAGGED_FLOW] });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      const totalsByTrack = signoffTracksStatics.denominators.map((wanted) =>
+        result.flows
+          .flatMap((flow) => flow.tracks)
+          .filter((track) => track.id === wanted)
+          .reduce(
+            (sum, track) => sum + track.confirmed + track.unconfirmable + track.outstanding,
+            0,
+          ),
+      );
+      const [flowriderTotal = 0, groundstomperTotal = 0, siegemasterTotal = 0] = totalsByTrack;
+
+      // Nothing dropped and nothing double-counted: the two authoring rows tile exactly the graph
+      // units, and Siegemaster's surplus over them is precisely the off-map families.
+      expect([
+        flowriderTotal + groundstomperTotal,
+        siegemasterTotal - OFF_MAP_FAMILY_COUNT,
+      ]).toStrictEqual([5, 5]);
     });
   });
 });

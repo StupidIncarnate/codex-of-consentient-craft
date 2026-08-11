@@ -151,8 +151,13 @@ commands (unit/integration) and `--grep <regex> --pass-with-no-tests` to Playwri
 ignore it. `--pass-with-no-tests` keeps Playwright from failing a package on its own when the grep matches nothing
 there; whether that is a real failure is decided once for the whole run.
 
-**E2e skip behavior:** The e2e broker checks for `playwright.config.ts` before spawning. If absent, it returns
-`status: 'skip'` — packages without Playwright tests are skipped gracefully.
+**E2e eligibility gate:** The e2e broker first asks `architecturePackageE2eEligibleDetectBroker`
+(`@dungeonmaster/shared`) whether the package's own `src/` layout and `package.json` qualify it as
+e2e-eligible — `widgets/` plus either a React dependency or the `ink` adapter. A non-eligible package
+(most backends, CLIs, libraries) returns `status: 'skip'` without ever checking for
+`playwright.config.ts`. An **eligible** package missing `playwright.config.ts` returns `status: 'fail'`
+— that combination is a real gap, not something to skip quietly. Only an eligible package WITH the
+config proceeds to spawn Playwright.
 
 ## Architecture
 

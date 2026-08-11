@@ -22,6 +22,7 @@ import {
   FilePathStub,
   GuildIdStub,
   ModifyQuestResultStub,
+  RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import {
@@ -36,9 +37,16 @@ import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/f
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
+import { questRepoRootBrokerProxy } from '../repo-root/quest-repo-root-broker.proxy';
 import { questWithModifyLockBrokerProxy } from '../with-modify-lock/quest-with-modify-lock-broker.proxy';
+import { resolvePackageEntryFactsLayerBrokerProxy } from './resolve-package-entry-facts-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+
+// The repo every quest in this file targets. Package entry locations are repo-relative to it, so a
+// test staging one on disk names `${PROJECT_ROOT}/<location>` — the address the broker really
+// probes.
+const PROJECT_ROOT = RepoRootCwdStub({ value: '/home/testuser/my-guild' });
 
 // Auto-mock so all callers get the mocked version globally
 registerModuleMock({ module: './quest-modify-broker' });
@@ -50,6 +58,8 @@ export const questModifyBrokerProxy = (): {
   setupResolveSuccessOnce: () => void;
   setupResolveFailureOnce: () => void;
   setupContractSourceResolvesOnce: (params: { source: string }) => void;
+  setupPackageLocationResolves: (params: { location: string }) => void;
+  getProjectRoot: () => ReturnType<typeof RepoRootCwdStub>;
   setupAssertionIds: (params: {
     ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
@@ -71,6 +81,14 @@ export const questModifyBrokerProxy = (): {
   // a path to appear "existing" can override via the proxy's `resolves()` method.
   const fsAccessProxy = fsIsAccessibleAdapterProxy();
   fsAccessProxy.defaultsToNotFound();
+  // Answers the package-entry disk probes: nothing resolves and no workspace root lists siblings
+  // until a test says otherwise via setupPackageLocationResolves.
+  resolvePackageEntryFactsLayerBrokerProxy();
+  // The quest's own repo root, answered outright: the real broker would re-run the quest lookup and
+  // consume a second copy of the path/read staging setupQuestFound seeds for questModifyBroker's own
+  // lookup.
+  const repoRootProxy = questRepoRootBrokerProxy();
+  repoRootProxy.setupRepoRoot({ repoRoot: PROJECT_ROOT });
 
   // Re-apply passthrough to the actual implementation (resetAllMocks clears between tests).
   // `input` varies per call and the passthrough runs the REAL logic against whatever it
@@ -167,6 +185,16 @@ export const questModifyBrokerProxy = (): {
           : `./${source}`;
       fsAccessProxy.resolves({ filePath: FilePathStub({ value: normalized }) });
     },
+
+    // Stages fs.access to succeed for one packagesAffected entry's `location`, so the package-entry
+    // validator sees that package as present on disk — which is what an `edit` or `delete` entry
+    // asserts. The entry's `location` is repo-relative to the quest's own repo, so the address the
+    // broker probes is that location anchored on PROJECT_ROOT; pass the same absolute path here.
+    setupPackageLocationResolves: ({ location }: { location: string }): void => {
+      fsAccessProxy.resolves({ filePath: FilePathStub({ value: location }) });
+    },
+
+    getProjectRoot: (): ReturnType<typeof RepoRootCwdStub> => PROJECT_ROOT,
 
     setupAssertionIds: ({
       ids,

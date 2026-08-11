@@ -5,6 +5,7 @@ import {
   FlowObservableStub,
   DesignDecisionStub,
   QuestContractEntryStub,
+  QuestPackageEntryStub,
   OperationItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -56,6 +57,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -99,6 +101,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -133,6 +136,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [operation],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -171,6 +175,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -205,6 +210,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -246,6 +252,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -268,6 +275,58 @@ describe('questSectionFilterTransformer', () => {
       });
 
       expect(quest.flows).toStrictEqual([flow]);
+    });
+  });
+
+  describe('packagesAffected section', () => {
+    it('VALID: {sections: ["packagesAffected"]} => returns only packagesAffected populated', () => {
+      const entry = QuestPackageEntryStub();
+      const quest = QuestStub({
+        packagesAffected: [entry],
+        flows: [FlowStub()],
+        designDecisions: [DesignDecisionStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: ['packagesAffected'],
+      });
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        questType: 'feature',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        needsDesign: false,
+        designDecisions: [],
+        contracts: [],
+        operations: [],
+        toolingRequirements: [],
+        packagesAffected: [entry],
+        packageGraph: [],
+        workItems: [],
+        wardResults: [],
+        comments: [],
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        flows: [],
+      });
+    });
+
+    it('VALID: {sections: ["flows"]} => packagesAffected empties, so the renderer omits the header rather than printing entries the caller did not ask for', () => {
+      const quest = QuestStub({
+        packagesAffected: [QuestPackageEntryStub()],
+        flows: [FlowStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: ['flows'],
+      });
+
+      expect(result.packagesAffected).toStrictEqual([]);
     });
   });
 
@@ -297,6 +356,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -329,6 +389,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -365,6 +426,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [operation],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -397,6 +459,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],
@@ -429,6 +492,7 @@ describe('questSectionFilterTransformer', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         workItems: [],
         wardResults: [],
         comments: [],

@@ -16,6 +16,7 @@ export const questSectionContract = z.enum([
   'contracts',
   'operations',
   'toolingRequirements',
+  'packagesAffected',
   'workItems',
   'flows',
   'planningNotes',

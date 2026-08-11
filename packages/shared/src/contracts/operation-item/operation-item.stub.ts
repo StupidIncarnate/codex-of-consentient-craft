@@ -10,5 +10,6 @@ export const OperationItemStub = ({ ...props }: StubArgument<OperationItem> = {}
     text: 'core: config load+validate adapter',
     status: 'pending',
     locked: false,
+    packageNames: [],
     ...props,
   });

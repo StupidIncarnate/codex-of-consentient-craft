@@ -32,7 +32,11 @@ export const questHydrateStrategyStatics = {
     },
     review_flows: {
       fromStatus: 'explore_flows',
-      blueprintFields: ['designDecisions'],
+      // `packagesAffected` rides with the flows because the nodes arriving here carry package
+      // tags, and the coverage rule at `flows_approved` refuses a tag naming a package the quest
+      // never declared. Both are writable from `explore_flows`, which is the window ChaosWhisperer
+      // builds the entry list in for the same reason.
+      blueprintFields: ['designDecisions', 'packagesAffected'],
       flowsMode: 'no-observables',
     },
     flows_approved: {

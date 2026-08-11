@@ -35,6 +35,7 @@ export const agentPromptClassificationStatics = {
     'flowrider',
     'flowrider-authoring-minion',
     'flowrider-coverage-minion',
+    'groundstomper',
     'siegemaster',
     'siegemaster-walker-minion',
     'siegemaster-test-audit-minion',
@@ -54,6 +55,11 @@ export const agentPromptClassificationStatics = {
      * also close the implementation holes their testing exposes, red-first, handing on only the
      * architectural ones. */
     'flowrider',
+    /** Groundstomper — operator that owns the Playwright walk for ONE runtime flow, in one session
+     * with no minions. It resolves the e2e-eligible packages from the quest's `packagesAffected`,
+     * inventories their existing `.e2e.ts` files, and extends the suite that already covers its
+     * flow's entry route rather than standing a parallel one beside it. */
+    'groundstomper',
     /** Siegemaster — operator that manual-QAs ALL quest flows in one session via
      * `siegemaster-walker-minion` walkers against one shared dev server, then TDD-fixes what they
      * find. Widest fix authority on the quest: nothing after it runs the system. */

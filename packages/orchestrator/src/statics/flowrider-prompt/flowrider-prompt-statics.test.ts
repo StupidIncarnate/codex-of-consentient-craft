@@ -262,7 +262,7 @@ describe('flowriderPromptStatics', () => {
   it('VALID: template => bundles flows by shared surface, layer, and coupled observables', () => {
     expect({
       sharedSurface: has('**Shared surface or harness**'),
-      sharedLayer: has('**Shared layer and modality**'),
+      sharedLayer: has('**Shared layer**'),
       coupled: has('**Coupled observables**'),
       splitBig: has('**Split anything too big to hold.**'),
       parallel: has('**dispatch them in parallel**'),
@@ -319,14 +319,18 @@ describe('flowriderPromptStatics', () => {
       ),
       passATotal: has('**Pass A — structural, on 100% of claims.**'),
       passANoExcuseToSample: has('so there is no excuse to sample it'),
-      passAChecksNaming: has('obeys the\nnaming and colocation rules'),
-      passAChecksHarnessImport: has(
-        'imports its harness from the UI package rather than hand-rolling one',
+      passAChecksNaming: has('obeys the\nnaming rules'),
+      passAChecksNotAPlaywrightSpec: has(
+        'is a `.integration.test.ts` or a `.test.ts` rather than a Playwright spec',
       ),
+      passAChecksHarnessReuse: has('reuses an existing harness rather than hand-rolling one'),
       passBSemantic: has('**Pass B — semantic, by opening the file.**'),
       passBMandatoryCategories: has('MANDATORY for every one of these, no sampling'),
       passBCatchesLayerDisagreement: has(
         "every claim whose asserted layer disagrees with its unit's `checkSurface`",
+      ),
+      passBCatchesOutermostLayerOnly: has(
+        'every claim proved only at the outermost layer on a flow that reaches deeper',
       ),
       namedSample: has('**named random sample of the remainder**'),
       silentCapIsALie: has(
@@ -337,10 +341,12 @@ describe('flowriderPromptStatics', () => {
       passATotal: true,
       passANoExcuseToSample: true,
       passAChecksNaming: true,
-      passAChecksHarnessImport: true,
+      passAChecksNotAPlaywrightSpec: true,
+      passAChecksHarnessReuse: true,
       passBSemantic: true,
       passBMandatoryCategories: true,
       passBCatchesLayerDisagreement: true,
+      passBCatchesOutermostLayerOnly: true,
       namedSample: true,
       silentCapIsALie: true,
     });
@@ -605,7 +611,7 @@ describe('flowriderPromptStatics', () => {
       scopedInvocation: has('npm run ward -- -- <the files changed>'),
       noRedundantOnly: !has('--only lint,typecheck,unit,integration,e2e'),
       explainsTheDefault: has(
-        'Omitting `--only` runs all five checks, which is\nthe default you want.',
+        'Omitting `--only` runs all five checks, which is\nthe default you want, and your file set always has a Jest counterpart',
       ),
       detail: has('`npm run ward -- detail <runId>`'),
       discoveredIsNotRan: has('A "discovered" file count is\nnot a count of tests that ran'),
@@ -724,8 +730,8 @@ describe('flowriderPromptStatics', () => {
   it('VALID: template => carries the brief lines the minion prompt actually consumes', () => {
     expect({
       designDecisions: has('DESIGN DECISIONS GOVERNING THIS BUNDLE:'),
-      testids: has('TESTIDS:'),
-      testidsSavesNDiscoveryPasses: has('so N minions\n  do not each run the same discovery pass'),
+      entryPoints: has('ENTRY POINTS:'),
+      entryPointsSaveNDiscoveryPasses: has('so N minions do not each run the same discovery pass'),
       layers: has('LAYERS THIS BUNDLE CROSSES:'),
       alreadyCovered: has('ALREADY COVERED:'),
       alreadyCoveredHasExplicitNone: has(
@@ -738,8 +744,8 @@ describe('flowriderPromptStatics', () => {
       namesTheCost: has('spends its budget\n   on your homework instead of on assertions'),
     }).toStrictEqual({
       designDecisions: true,
-      testids: true,
-      testidsSavesNDiscoveryPasses: true,
+      entryPoints: true,
+      entryPointsSaveNDiscoveryPasses: true,
       layers: true,
       alreadyCovered: true,
       alreadyCoveredHasExplicitNone: true,
@@ -759,27 +765,37 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({ isAHypothesis: true, minionTraceWins: true, reportsTheMiss: true });
   });
 
-  it('VALID: template => takes no dev server and refuses to author a Playwright webServer block', () => {
+  // Every Playwright and dev-server token belongs to Groundstomper. Leaving any of them here would
+  // give a session two plausible readings of who owns the browser, and it would author both.
+  it('VALID: template => hands the browser to Groundstomper and keeps no Playwright ownership', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
     expect({
-      neverTouchesOne: has('**You never touch a dev server, and you are not given one.**'),
-      playwrightConfigOwnsIt: has(
-        "The server an e2e run needs is declared\nin the project's Playwright config (`webServer`)",
+      browserIsNotMine: has('**The browser is not yours, and neither is Playwright.**'),
+      groundstomperOwnsTheWalk: has(
+        'Groundstomper owns the browser walk — one\nsession per runtime flow that lands in a package a browser can reach, authoring the `.e2e.ts`\nfiles.',
       ),
-      testsAreBaseUrlRelative: has('your tests navigate `baseURL`-relative'),
-      siegemasterOwnsIt: has("Standing a long-lived server up by hand is Siegemaster's job"),
-      missingWebServerIsUnconfirmable: has(
-        'sign every unit it blocks `unconfirmable`, with the\nmissing piece as the evidence and the question',
+      authorsNoPlaywright: has('You author NO Playwright, you start no server, and you need none'),
+      everythingRunsUnderJest: has(
+        'everything you write runs\nunder Jest against real routes, queues and file systems',
       ),
-      neverAuthorsIt: has('Neither you nor a minion authors a `webServer`\nblock'),
-      namesTheParallelRace: has('two of them editing it is a last-write-wins race'),
+      browserClaimIsNotAHole: has(
+        "A claim you can only reach through a browser\nis Groundstomper's unit, not a hole in your suite",
+      ),
+      outputIsBelowTheBrowser: has(
+        'Your output is the flow-perspective suite for the whole quest at every layer BELOW the\nbrowser',
+      ),
+      noWebServerToken: template.indexOf('webServer'),
+      noDevServerToken: template.indexOf('dev server, and you are not given one'),
     }).toStrictEqual({
-      neverTouchesOne: true,
-      playwrightConfigOwnsIt: true,
-      testsAreBaseUrlRelative: true,
-      siegemasterOwnsIt: true,
-      missingWebServerIsUnconfirmable: true,
-      neverAuthorsIt: true,
-      namesTheParallelRace: true,
+      browserIsNotMine: true,
+      groundstomperOwnsTheWalk: true,
+      authorsNoPlaywright: true,
+      everythingRunsUnderJest: true,
+      browserClaimIsNotAHole: true,
+      outputIsBelowTheBrowser: true,
+      noWebServerToken: -1,
+      noDevServerToken: -1,
     });
   });
 
@@ -900,17 +916,21 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => declares e2e Playwright-exclusive and colocated with the entry flow', () => {
+  // The `.e2e.ts` colocation rule lives with the role that writes those files. Restating it here
+  // reads as a licence to write one.
+  it('VALID: template => carries no e2e colocation rule of its own', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
     expect({
-      exclusive: has('**e2e = Playwright exclusively'),
-      colocated: has('<ui-package>/src/flows/<route>/<feature>.e2e.ts'),
-      startsIsWhereItLives: has('Where the test STARTS is where it lives'),
-      nonPlaywrightIsIntegration: has('`.integration.test.ts`'),
+      colocationRule: template.indexOf('<ui-package>/src/flows/<route>/<feature>.e2e.ts'),
+      exclusivityRule: template.indexOf('**e2e = Playwright exclusively'),
+      startsIsWhereItLives: template.indexOf('Where the test STARTS is where it lives'),
+      stillNamesIntegration: has('`.integration.test.ts`'),
     }).toStrictEqual({
-      exclusive: true,
-      colocated: true,
-      startsIsWhereItLives: true,
-      nonPlaywrightIsIntegration: true,
+      colocationRule: -1,
+      exclusivityRule: -1,
+      startsIsWhereItLives: -1,
+      stillNamesIntegration: true,
     });
   });
 
@@ -1019,19 +1039,21 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => carves out the one ward case that needs --only', () => {
+  // Every file this role and its minions write runs under Jest, so the default invocation is always
+  // right. The DISCOVERY MISMATCH carve-out belongs to the role whose file set has no Jest counterpart.
+  it('VALID: template => keeps the default ward invocation and offers no --only carve-out', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
     expect({
-      theException: has(
-        '**The one case where you MUST narrow it: a file set with no Jest counterpart.**',
-      ),
-      namesTheSymptom: has('ward reports `DISCOVERY MISMATCH`'),
-      givesTheInvocation: has('`--only lint,typecheck,e2e -- <files>`'),
-      neverPassWithNoTests: has('Never reach for `--passWithNoTests`'),
+      alwaysHasAJestCounterpart: has('your file set always has a Jest counterpart'),
+      noNarrowingNeeded: has('so narrowing it with\n`--only` is not something this role needs'),
+      discoveryMismatch: template.indexOf('DISCOVERY MISMATCH'),
+      narrowedInvocation: template.indexOf('`--only lint,typecheck,e2e -- <files>`'),
     }).toStrictEqual({
-      theException: true,
-      namesTheSymptom: true,
-      givesTheInvocation: true,
-      neverPassWithNoTests: true,
+      alwaysHasAJestCounterpart: true,
+      noNarrowingNeeded: true,
+      discoveryMismatch: -1,
+      narrowedInvocation: -1,
     });
   });
 
@@ -1052,7 +1074,8 @@ describe('flowriderPromptStatics', () => {
       rules: /^## Rules$/mu.test(template),
       gitAndLedger: has('1. **Git is the state; the ledger is only whose turn it is**'),
       everyFlow: has('2. **Every flow is your scope**'),
-      modalityPerObservable: has('5. **Match the modality to each OBSERVABLE**'),
+      layerPerObservable: has('5. **Match the layer to each OBSERVABLE**'),
+      browserClaimIsGroundstompers: has("a claim only a\n   browser can read is Groundstomper's"),
       noSilentCaps: has('11. **No fabrication, no silent caps**'),
       trackMustBeWritten: has(
         '13. **The track must be written** — the coverage audit signs the units it settles, you sign the ones\n    you add at your own spec gate, and the outcome rides on signal-back as done|partial',
@@ -1061,7 +1084,8 @@ describe('flowriderPromptStatics', () => {
       rules: true,
       gitAndLedger: true,
       everyFlow: true,
-      modalityPerObservable: true,
+      layerPerObservable: true,
+      browserClaimIsGroundstompers: true,
       noSilentCaps: true,
       trackMustBeWritten: true,
     });

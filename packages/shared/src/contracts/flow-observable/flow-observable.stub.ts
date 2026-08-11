@@ -10,5 +10,6 @@ export const FlowObservableStub = ({
     id: 'login-redirects-to-dashboard',
     type: 'ui-state',
     description: 'redirects to dashboard',
+    package: 'auth-service',
     ...props,
   });

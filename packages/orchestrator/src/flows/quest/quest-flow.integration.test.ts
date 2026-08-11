@@ -128,10 +128,12 @@ describe('QuestFlow', () => {
       testbed.cleanup();
 
       // login-flow: 1 terminal + 1 branch + 1 observable + 7 off-map = 10 siegemaster units, of
-      // which the terminal is unconfirmable. Flowrider sheds the off-map families AND the
-      // Siegemaster-added observable, leaving the terminal (confirmed) + the branch (outstanding).
-      // deploy-lint-rule is operational, so it carries a siegemaster row alone: 1 terminal + 7
-      // off-map = 8.
+      // which the terminal is unconfirmable. The two authoring denominators shed the off-map
+      // families AND the Siegemaster-added observable, leaving the terminal (confirmed) + the branch
+      // (outstanding) each — this quest tags no `packagesAffected`, so no node's package kind
+      // resolves and the flowrider/groundstomper split does not bind, exactly as both their
+      // completion gates read it. deploy-lint-rule is operational, so it carries a siegemaster row
+      // alone: 1 terminal + 7 off-map = 8.
       expect(summary).toStrictEqual({
         questId,
         flows: [
@@ -141,6 +143,7 @@ describe('QuestFlow', () => {
             flowType: 'runtime',
             tracks: [
               { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+              { id: 'groundstomper', confirmed: 1, unconfirmable: 0, outstanding: 1 },
               { id: 'siegemaster', confirmed: 0, unconfirmable: 1, outstanding: 9 },
             ],
           },

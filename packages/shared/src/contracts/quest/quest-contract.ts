@@ -13,13 +13,14 @@ import { baseBranchNameContract } from '../base-branch-name/base-branch-name-con
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
+import { packageGraphEntryContract } from '../package-graph-entry/package-graph-entry-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 import { questBranchNameContract } from '../quest-branch-name/quest-branch-name-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
+import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
 import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
@@ -58,10 +59,16 @@ export const questContract = z.object({
     .default([])
     .describe('NPM packages needed for implementation that are not already in the project'),
   packagesAffected: z
-    .array(packageNameContract)
+    .array(questPackageEntryContract)
     .default([])
     .describe(
-      'Monorepo packages that this quest will touch. Declared by ChaosWhisperer during spec approval; context for codeweaver operation items.',
+      'One entry per package this quest will touch, authored by ChaosWhisperer alongside the flow nodes that tag them. This is the closed set every node tag, operation item and observable draws its package names from, so a name absent here is a rejection rather than a new package. Replaced whole on write — the entries are a tag list, not an id-keyed upsert set.',
+    ),
+  packageGraph: z
+    .array(packageGraphEntryContract)
+    .default([])
+    .describe(
+      "The POST-quest package dependency graph, derived from the workspace manifests crossed with packagesAffected: 'new' entries added through their usedBy[] reverse edges, 'delete' entries removed along with theirs. Stamped once at Start beside baseRef and never recomputed, so a dispatch ordering stays stable while the workspace moves. Written only by the orchestrator — it is absent from modifyQuestInputContract, so no agent can write it.",
     ),
   contracts: z
     .array(questContractEntryContract)

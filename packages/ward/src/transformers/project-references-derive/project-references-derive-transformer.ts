@@ -7,13 +7,16 @@
  */
 
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import {
+  dependencyGraphAdjacencyBuildTransformer,
+  dependencyGraphTopologicalOrderTransformer,
+} from '@dungeonmaster/shared/transformers';
 
 import type { PackageJson } from '../../contracts/package-json/package-json-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import { tsconfigReferenceContract } from '../../contracts/tsconfig-reference/tsconfig-reference-contract';
 import type { TsconfigReference } from '../../contracts/tsconfig-reference/tsconfig-reference-contract';
 import type { WorkspaceInput } from '../../contracts/workspace-input/workspace-input-contract';
-import { dependencyGraphTopologicalOrderTransformer } from '../dependency-graph-topological-order/dependency-graph-topological-order-transformer';
 import { relativePathComputeTransformer } from '../relative-path-compute/relative-path-compute-transformer';
 
 type PackageJsonName = NonNullable<PackageJson['name']>;
@@ -36,16 +39,12 @@ export const projectReferencesDeriveTransformer = ({
     }
   }
 
-  const adjacency = new Map<PackageJsonName, PackageJsonName[]>();
-  for (const [pkgName, ws] of eligibleByName.entries()) {
-    const deps: PackageJsonName[] = [];
-    for (const depName of ws.dependencyNames) {
-      if (eligibleByName.has(depName) && depName !== pkgName) {
-        deps.push(depName);
-      }
-    }
-    adjacency.set(pkgName, deps);
-  }
+  const adjacency = dependencyGraphAdjacencyBuildTransformer({
+    packages: [...eligibleByName.entries()].map(([pkgName, ws]) => ({
+      name: pkgName,
+      dependencyNames: ws.dependencyNames,
+    })),
+  });
 
   const { order, cycle } = dependencyGraphTopologicalOrderTransformer({ adjacency });
 

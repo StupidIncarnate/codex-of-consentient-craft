@@ -122,4 +122,62 @@ describe('dependencyGraphTopologicalOrderTransformer', () => {
       expect(result).toStrictEqual({ order: [pkgB, pkgD, pkgA, pkgC], cycle: null });
     });
   });
+
+  describe('real repo package graph (13 workspaces)', () => {
+    it("VALID: {this repo's actual packages/* adjacency, dependencies-first insertion order} => returns the full 6-layer order with no cycle", () => {
+      // Every edge below is a real `@dungeonmaster/*` entry from the corresponding
+      // packages/<name>/package.json's dependencies + devDependencies + peerDependencies
+      // (external deps like zod/react/typescript are not part of this graph).
+      const testing = pkg('@dungeonmaster/testing');
+      const shared = pkg('@dungeonmaster/shared');
+      const config = pkg('@dungeonmaster/config');
+      const eslintPlugin = pkg('@dungeonmaster/eslint-plugin');
+      const hooks = pkg('@dungeonmaster/hooks');
+      const tooling = pkg('@dungeonmaster/tooling');
+      const ward = pkg('@dungeonmaster/ward');
+      const web = pkg('@dungeonmaster/web');
+      const localEslint = pkg('@dungeonmaster/local-eslint');
+      const orchestrator = pkg('@dungeonmaster/orchestrator');
+      const mcp = pkg('@dungeonmaster/mcp');
+      const server = pkg('@dungeonmaster/server');
+      const cli = pkg('@dungeonmaster/cli');
+
+      const adjacency = new Map([
+        [testing, []],
+        [shared, [testing]],
+        [config, [shared, testing]],
+        [eslintPlugin, [shared, testing]],
+        [hooks, [shared, testing]],
+        [tooling, [shared, testing]],
+        [ward, [shared, testing]],
+        [web, [shared, testing]],
+        [localEslint, [eslintPlugin, shared, testing]],
+        [orchestrator, [config, shared, testing]],
+        [mcp, [eslintPlugin, orchestrator, shared, ward]],
+        [server, [orchestrator, shared, web, testing]],
+        [cli, [orchestrator, server, shared, testing]],
+      ]);
+
+      const result = dependencyGraphTopologicalOrderTransformer({ adjacency });
+
+      expect(result).toStrictEqual({
+        order: [
+          testing, // L0
+          shared, // L1 (depends on testing via devDependency — not a leaf)
+          config, // L2
+          eslintPlugin,
+          hooks,
+          tooling,
+          ward,
+          web,
+          orchestrator, // L3
+          localEslint,
+          mcp, // L4
+          server,
+          cli, // L5
+        ],
+        cycle: null,
+      });
+    });
+  });
 });

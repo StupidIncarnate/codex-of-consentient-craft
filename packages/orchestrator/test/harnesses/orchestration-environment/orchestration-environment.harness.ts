@@ -44,6 +44,7 @@ export const orchestrationEnvironmentHarness = (): {
     restore: () => void;
   };
   writeRepoRootMarker: (params: { repoRoot: GuildPath }) => void;
+  seedQuestRepoPackages: (params: { repoRoot: GuildPath; locations: readonly string[] }) => void;
   chdirInto: (params: { dir: GuildPath }) => { restore: () => void };
   makeAndChdir: (params: { dir: GuildPath }) => { restore: () => void };
   readConfigGuilds: (params: {
@@ -109,6 +110,24 @@ export const orchestrationEnvironmentHarness = (): {
       // walking up from process.cwd() resolves to this directory.
       fs.mkdirSync(repoRoot, { recursive: true });
       fs.writeFileSync(path.join(repoRoot, '.dungeonmaster.json'), '{}');
+    },
+    seedQuestRepoPackages: ({
+      repoRoot,
+      locations,
+    }: {
+      repoRoot: GuildPath;
+      locations: readonly string[];
+    }): void => {
+      // Makes this testbed dir the repo a hydrated quest targets, holding the package roots that
+      // quest declares. The `.dungeonmaster.json` marker pins cwdResolveBroker's walk-up from the
+      // guild path here rather than to some ancestor of /tmp, and each declared location is
+      // repo-relative to exactly that root — which is where questModifyBroker's write-time
+      // existence check for an 'edit' entry looks.
+      fs.mkdirSync(repoRoot, { recursive: true });
+      fs.writeFileSync(path.join(repoRoot, '.dungeonmaster.json'), '{}');
+      for (const location of locations) {
+        fs.mkdirSync(path.resolve(repoRoot, location), { recursive: true });
+      }
     },
     chdirInto: ({ dir }: { dir: GuildPath }): { restore: () => void } => {
       // questMcpCreateBroker reads process.cwd() verbatim via processCwdAdapter; chdir so the

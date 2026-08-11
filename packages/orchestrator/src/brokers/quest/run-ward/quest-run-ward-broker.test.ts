@@ -685,6 +685,69 @@ describe('questRunWardBroker', () => {
     });
   });
 
+  describe('RED — the fresh ward continuation inherits the completed item’s scope', () => {
+    it('VALID: {exitCode 1, ward op declaring flowIds and packageNames} => the pt-2 ward carries both, so the re-verify covers the same slice and not the whole quest', async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+      const runId = FileNameStub({ value: '1739625600000-eeee' });
+      const wardOp = OperationItemStub({
+        id: WARD_OP_ID,
+        role: 'ward',
+        text: 'verify build (changed)',
+        status: 'in_progress',
+        locked: true,
+        wardMode: 'changed',
+        flowIds: ['login-flow'],
+        packageNames: ['ui-app', 'api-service'],
+      });
+      const wardItem = WorkItemStub({
+        id: workItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        relatedDataItems: [`operations/${WARD_OP_ID}`],
+        wardMode: 'changed',
+      });
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupQuest({
+        quest: QuestStub({
+          id: questId,
+          status: 'in_progress',
+          operations: [wardOp],
+          workItems: [wardItem],
+        }),
+      });
+      proxy.wardExits({
+        exitCode: ExitCodeStub({ value: 1 }),
+        runId,
+        detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
+      });
+
+      await questRunWardBroker({ questId, workItemId, mode: 'changed', onLine: () => undefined });
+
+      expect(proxy.getPersistedQuest().operations).toStrictEqual([
+        OperationItemStub({ ...wardOp, status: 'complete' }),
+        OperationItemStub({
+          id: SECOND_UUID,
+          role: 'spiritmender',
+          text: `Spiritmender: fix ward (changed) failures — wardResult ${WARD_RESULT_ID}`,
+          status: 'in_progress',
+          locked: true,
+        }),
+        OperationItemStub({
+          id: THIRD_UUID,
+          role: 'ward',
+          text: 'pt 2: verify build (changed)',
+          status: 'pending',
+          locked: true,
+          wardMode: 'changed',
+          flowIds: ['login-flow'],
+          packageNames: ['ui-app', 'api-service'],
+        }),
+      ]);
+    });
+  });
+
   describe('RED — chain respects wardMode boundaries', () => {
     it('VALID: {maxRetries red full-mode ward operations, changed-mode ward fails} => full ops do not count; spiritmender + continuation still spliced', async () => {
       const questId = QuestIdStub();

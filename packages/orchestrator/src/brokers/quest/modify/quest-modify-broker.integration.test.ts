@@ -34,6 +34,10 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
       baseName: BaseNameStub({ value: 'modify-concurrent-distinct-items' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+    });
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Concurrent Distinct Items Guild' }),
@@ -80,6 +84,10 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
       baseName: BaseNameStub({ value: 'modify-concurrent-same-item' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+    });
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Concurrent Same Item Guild' }),
@@ -132,6 +140,10 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
       baseName: BaseNameStub({ value: 'modify-concurrent-preserves-earlier' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+    });
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Concurrent Preserves Earlier Guild' }),
@@ -201,6 +213,10 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
       baseName: BaseNameStub({ value: 'modify-vs-operations-update-race' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+    });
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Cross Writer Race Guild' }),

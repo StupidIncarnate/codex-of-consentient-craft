@@ -1,10 +1,13 @@
 import { FlowStub } from '../flow/flow.stub';
+import { FlowNodeStub } from '../flow-node/flow-node.stub';
 import { OperationItemStub } from '../operation-item/operation-item.stub';
+import { PackageGraphEntryStub } from '../package-graph-entry/package-graph-entry.stub';
 import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
 import { QuestBlightLedgerEntryStub } from '../quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestCommentStub } from '../quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { QuestNoteStub } from '../quest-note/quest-note.stub';
+import { QuestPackageEntryStub } from '../quest-package-entry/quest-package-entry.stub';
 import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { WardResultStub } from '../ward-result/ward-result.stub';
@@ -30,6 +33,7 @@ describe('questContract', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         contracts: [],
         flows: [FlowStub()],
         comments: [],
@@ -61,6 +65,7 @@ describe('questContract', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         contracts: [],
         flows: [FlowStub()],
         comments: [],
@@ -92,6 +97,7 @@ describe('questContract', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         contracts: [],
         flows: [FlowStub()],
         comments: [],
@@ -206,6 +212,7 @@ describe('questContract', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         contracts: [],
         flows: [FlowStub()],
         comments: [],
@@ -449,6 +456,7 @@ describe('questContract', () => {
         operations: [],
         toolingRequirements: [],
         packagesAffected: [],
+        packageGraph: [],
         contracts: [],
         flows: [FlowStub()],
         comments: [],
@@ -573,17 +581,22 @@ describe('questContract', () => {
       expect(result.questSource).toBe(undefined);
     });
 
-    it('VALID: quest with packagesAffected => parses successfully', () => {
+    it('VALID: quest with packagesAffected => parses each declared package as a full entry', () => {
+      const editEntry = QuestPackageEntryStub();
+      const newEntry = QuestPackageEntryStub({
+        name: 'token-store',
+        location: './packages/token-store',
+        changeType: 'new',
+        packageType: 'programmatic-service',
+        usedBy: ['auth-service'],
+      });
       const quest = QuestStub({
-        packagesAffected: ['@dungeonmaster/shared', '@dungeonmaster/web'],
+        packagesAffected: [editEntry, newEntry],
       });
 
       const result = questContract.parse(quest);
 
-      expect(result.packagesAffected).toStrictEqual([
-        '@dungeonmaster/shared',
-        '@dungeonmaster/web',
-      ]);
+      expect(result.packagesAffected).toStrictEqual([editEntry, newEntry]);
     });
 
     it('VALID: quest without packagesAffected field => backward compat defaults to empty array', () => {
@@ -599,6 +612,77 @@ describe('questContract', () => {
       });
 
       expect(result.packagesAffected).toStrictEqual([]);
+    });
+
+    it('INVALID: quest with a bare package name in packagesAffected => throws, the list carries entries and not strings', () => {
+      const quest = QuestStub();
+
+      expect(() => {
+        questContract.parse({
+          ...quest,
+          packagesAffected: ['auth-service'],
+        });
+      }).toThrow(/Expected object, received string/u);
+    });
+
+    it('VALID: quest with packageGraph => round-trips the derived post-quest dependency layers', () => {
+      const leaf = PackageGraphEntryStub();
+      const dependent = PackageGraphEntryStub({
+        id: 'gateway',
+        dependsOn: ['auth-service'],
+        depth: 1,
+        packageType: 'http-backend',
+      });
+      const quest = QuestStub({ packageGraph: [leaf, dependent] });
+
+      const result = questContract.parse(quest);
+
+      expect(result.packageGraph).toStrictEqual([leaf, dependent]);
+    });
+
+    it('VALID: quest without packageGraph field => defaults to empty, the shape before Start stamps it', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.packageGraph).toStrictEqual([]);
+    });
+
+    it('INVALID: quest whose flow carries a node with no packages => throws Required, so an untagged node cannot reach disk', () => {
+      const quest = QuestStub();
+
+      expect(() => {
+        questContract.parse({
+          ...quest,
+          flows: [
+            {
+              id: 'login-flow',
+              name: 'Login Flow',
+              flowType: 'runtime',
+              entryPoint: '/login',
+              exitPoints: ['/dashboard'],
+              nodes: [{ id: 'login-page', label: 'Login Page', type: 'state' }],
+              edges: [],
+            },
+          ],
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('VALID: quest whose flow carries a tagged node => parses, the same shape with the tag present', () => {
+      const node = FlowNodeStub({ packages: ['auth-service'] });
+      const quest = QuestStub({ flows: [FlowStub({ nodes: [node] })] });
+
+      const result = questContract.parse(quest);
+
+      expect(result.flows[0]?.nodes).toStrictEqual([node]);
     });
 
     it('VALID: quest with smoketestResults => parses successfully', () => {

@@ -13,6 +13,7 @@ describe('operationItemContract', () => {
         status: 'pending',
         locked: false,
         flowIds: [],
+        packageNames: [],
       });
     });
 
@@ -35,6 +36,61 @@ describe('operationItemContract', () => {
         status: 'pending',
         locked: false,
         flowIds: ['send-queued-comment-batch', 'view-persisted-comments'],
+        packageNames: [],
+      });
+    });
+
+    it('VALID: {packageNames omitted} => defaults to empty, so an item scoped to the whole quest is representable', () => {
+      const item = operationItemContract.parse({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
+      });
+
+      expect(item).toStrictEqual({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
+        locked: false,
+        flowIds: [],
+        packageNames: [],
+      });
+    });
+
+    it('VALID: {packageNames: one package} => parses the sibling of flowIds that names where the item lands', () => {
+      const item = OperationItemStub({
+        text: 'auth-service: the token store adapter',
+        packageNames: ['auth-service'],
+      });
+
+      expect(item).toStrictEqual({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        text: 'auth-service: the token store adapter',
+        status: 'pending',
+        locked: false,
+        flowIds: [],
+        packageNames: ['auth-service'],
+      });
+    });
+
+    it('VALID: {packageNames: two packages} => parses the seam item that owns the glue units', () => {
+      const item = OperationItemStub({
+        role: 'flowrider',
+        text: 'seam: auth-service <-> gateway',
+        packageNames: ['auth-service', 'gateway'],
+      });
+
+      expect(item).toStrictEqual({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'flowrider',
+        text: 'seam: auth-service <-> gateway',
+        status: 'pending',
+        locked: false,
+        flowIds: [],
+        packageNames: ['auth-service', 'gateway'],
       });
     });
 
@@ -55,6 +111,7 @@ describe('operationItemContract', () => {
         status: 'in_progress',
         locked: true,
         flowIds: [],
+        packageNames: [],
         wardMode: 'changed',
       });
     });
@@ -72,6 +129,7 @@ describe('operationItemContract', () => {
         status: 'complete',
         locked: false,
         flowIds: [],
+        packageNames: [],
       });
     });
   });
@@ -109,6 +167,12 @@ describe('operationItemContract', () => {
       expect(() => {
         return OperationItemStub({ wardMode: 'partial-run' as never });
       }).toThrow(/invalid_enum_value/u);
+    });
+
+    it('EMPTY: {packageNames: [""]} => throws validation error', () => {
+      expect(() => {
+        return OperationItemStub({ packageNames: [''] });
+      }).toThrow(/too_small/u);
     });
   });
 });

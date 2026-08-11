@@ -128,15 +128,15 @@ describe('flowriderAuthoringMinionStatics', () => {
   // deletion was supposed to leave alone still work — abandoning those is silent lost coverage.
   it('VALID: template => picks the verification mode per observable, never per flow', () => {
     expect({
-      perObservable: has('**Mode C is chosen per OBSERVABLE, never per flow.**'),
+      perObservable: has('**Mode B is chosen per OBSERVABLE, never per flow.**'),
       flowTypeIsNotAVerdict: has(
         'A flow whose `flowType` is `operational` is\ntelling you where its centre of gravity sits — it is NOT telling you every observable on it is a\npredicate.',
       ),
       namesTheUiStateCase: has(
-        'An operational flow routinely carries `ui-state` observables asserting that the surfaces\na deletion was supposed to leave alone still work',
+        'An operational flow routinely carries `api-call` and `db-query` observables asserting\nthat the surfaces a deletion was supposed to leave alone still answer',
       ),
       readsTheOwnType: has("Read every observable's own `type`"),
-      noFlowLevelLabel: has('never let a flow-level label decide for a whole\nflow'),
+      noFlowLevelLabel: has('never let a flow-level label\ndecide for a whole flow'),
     }).toStrictEqual({
       perObservable: true,
       flowTypeIsNotAVerdict: true,
@@ -164,7 +164,7 @@ describe('flowriderAuthoringMinionStatics', () => {
         '**A branchy flow is a JOURNEY** — one test per path, driven entry to terminal',
       ),
       journeyRendersPerSurface: has(
-        'Rendered as **e2e for a web surface** and as **integration for a non-web one**',
+        "Rendered as **integration**, driven at the layer the path's claims live on",
       ),
       matrixIsIntegration: has(
         '**A set of independent input combinations is a MATRIX** — one parameterized test over the\n  combinations rather than N hand-written near-duplicates. A matrix is **integration**.',
@@ -208,19 +208,31 @@ describe('flowriderAuthoringMinionStatics', () => {
     });
   });
 
-  // A browser-storage observable has no home unless a mode claims it, and the lifecycle half of the
-  // claim (mount, reload, navigation) is only observable through a real page.
-  it('VALID: template => routes browser-storage lifecycle observables into the Playwright mode', () => {
+  // A browser-only claim has no mode here on purpose: Groundstomper walks it. Saying so explicitly
+  // is what stops a minion improvising a Playwright spec for a `ui-state` observable it cannot own.
+  it('VALID: template => hands every browser-only claim to Groundstomper and offers two modes, not three', () => {
     expect({
-      modeAClaimsCacheState: has(
-        '`cache-state` observables whose claim involves a page\nlifecycle (mount, reload, navigation, a second tab)',
+      twoModes: has('The two coverage modes below combine freely within one flow'),
+      browserClaimIsNotMine: has('**A claim only a browser can observe is NOT yours**'),
+      namesTheClaimTypes: has(
+        'a `ui-state` observable, a `cache-state`\nclaim about a page lifecycle (mount, reload, navigation, a second tab), the browser side of an\n`api-call`',
       ),
-      modeBClaimsPersistence: has('### Mode B: Server, queue, CLI, or persistence'),
-      modeCClaimsPredicates: has('### Mode C: Verification of a predicate'),
+      groundstomperWalksThem: has(
+        'Groundstomper walks those in Playwright, one session per runtime flow, and they are not\nin your denominator.',
+      ),
+      reportsTheSeam: has('Name each one in `GOTCHAS` so the operator can see the seam'),
+      modeAClaimsPersistence: has('### Mode A: Server, queue, CLI, or persistence'),
+      modeBClaimsPredicates: has('### Mode B: Verification of a predicate'),
+      noBrowserMode: !has('### Mode A: Browser-driven'),
     }).toStrictEqual({
-      modeAClaimsCacheState: true,
-      modeBClaimsPersistence: true,
-      modeCClaimsPredicates: true,
+      twoModes: true,
+      browserClaimIsNotMine: true,
+      namesTheClaimTypes: true,
+      groundstomperWalksThem: true,
+      reportsTheSeam: true,
+      modeAClaimsPersistence: true,
+      modeBClaimsPredicates: true,
+      noBrowserMode: true,
     });
   });
 
@@ -506,32 +518,34 @@ describe('flowriderAuthoringMinionStatics', () => {
     });
   });
 
-  it('VALID: template => reads testids off the brief before rediscovering them', () => {
+  it('VALID: template => reads entry points off the brief before rediscovering them', () => {
     expect({
-      usesTheBriefLine: has("Your brief's TESTIDS line lists the ones your observables name"),
+      usesTheBriefLine: has(
+        "Your brief's ENTRY POINTS line names the routes, commands and module entry points your\nobservables reach",
+      ),
       fallsBackToTheCode: has(
-        'if it is\n  missing one, read the implementation for the real value rather than guessing at it',
+        'if it is missing one, read the implementation for the real value rather than\nguessing at it',
       ),
     }).toStrictEqual({ usesTheBriefLine: true, fallsBackToTheCode: true });
   });
 
-  it('VALID: template => keeps Playwright harness imports inside the UI package', () => {
+  // A minion improvising a Playwright spec would land it in a package it never resolved, against a
+  // config its siblings share. Both halves are Groundstomper's, so both are stated as prohibitions.
+  it('VALID: template => authors no Playwright and never edits the Playwright config', () => {
     expect({
-      harnessImport: has(
-        "Import `{ test, expect, wireHarnessLifecycle }` and harnesses from the UI package's\n  `test/harnesses/`, NOT from `@dungeonmaster/testing/e2e`",
+      authorsNoPlaywright: has('**You author no Playwright and you start no server.**'),
+      e2eBelongsToGroundstomper: has("A `.e2e.ts` file is Groundstomper's output,\nnot yours"),
+      configIsSharedScaffolding: has(
+        'the Playwright config is install-time scaffolding your siblings share — an edit there\nraces theirs',
       ),
-      baseUrlRelative: has('Navigate with `baseURL`-relative paths'),
-      colocated: has('<ui-package>/src/flows/<route>/<feature>.e2e.ts'),
-      neverEditsThePlaywrightConfig: has('do NOT edit the Playwright config'),
-      missingWebServerIsReportedAsBlocked: has(
-        'stop and report\nit under `BLOCKED BY MISSING INFRASTRUCTURE`, naming exactly what is missing and which units it\nblocks',
-      ),
+      noUiPackagePlaceholder: !has('<ui-package>/src/flows/<route>/<feature>.e2e.ts'),
+      noHarnessImportRule: !has('NOT from `@dungeonmaster/testing/e2e`'),
     }).toStrictEqual({
-      harnessImport: true,
-      baseUrlRelative: true,
-      colocated: true,
-      neverEditsThePlaywrightConfig: true,
-      missingWebServerIsReportedAsBlocked: true,
+      authorsNoPlaywright: true,
+      e2eBelongsToGroundstomper: true,
+      configIsSharedScaffolding: true,
+      noUiPackagePlaceholder: true,
+      noHarnessImportRule: true,
     });
   });
 
@@ -568,27 +582,26 @@ describe('flowriderAuthoringMinionStatics', () => {
     expect(has('`success: true` for a work item id that matches nothing at all')).toBe(true);
   });
 
-  // A file set of only e2e + harness files leaves the `unit` check discovering tests but processing
-  // none, which ward reports as DISCOVERY MISMATCH — a red that is not a defect.
-  it('VALID: template => carves out the one ward case that needs --only', () => {
+  // Every file this minion writes runs under Jest, so the default invocation is always right and
+  // there is no narrowing case. The DISCOVERY MISMATCH carve-out belongs to the role whose file set
+  // genuinely has no Jest counterpart.
+  it('VALID: template => keeps the default ward invocation and offers no --only carve-out', () => {
     expect({
-      theException: has(
-        '**The one case where you MUST narrow it: a file set with no Jest counterpart.**',
+      everyFileHasAJestCounterpart: has(
+        'Every file you write has a Jest counterpart, so the default is the right invocation and there is no\nnarrowing case to reach for.',
       ),
-      namesTheSymptom: has('ward reports `DISCOVERY MISMATCH`'),
-      namesWhatItMeans: has('a red that means "this check had nothing to do here"'),
-      givesTheInvocation: has('`--only lint,typecheck,e2e -- <files>`'),
-      neverPassWithNoTests: has('never reach for `--passWithNoTests`'),
+      neverPassWithNoTests: has('Never reach for `--passWithNoTests`'),
       defaultIsStillAllFive: has(
         'Omitting `--only` runs all five checks (lint,\ntypecheck, unit, integration, e2e), which is what you want by default.',
       ),
+      noDiscoveryMismatchCarveOut: !has('DISCOVERY MISMATCH'),
+      noNarrowedInvocation: !has('`--only lint,typecheck,e2e -- <files>`'),
     }).toStrictEqual({
-      theException: true,
-      namesTheSymptom: true,
-      namesWhatItMeans: true,
-      givesTheInvocation: true,
+      everyFileHasAJestCounterpart: true,
       neverPassWithNoTests: true,
       defaultIsStillAllFive: true,
+      noDiscoveryMismatchCarveOut: true,
+      noNarrowedInvocation: true,
     });
   });
 

@@ -19,6 +19,21 @@
  * "leave it alone". questItemDeepMergeTransformer reads an update value of `null` as "remove this key" rather than
  * storing it, so the persisted quest only ever sees the key present or absent. Making the persisted contracts nullable
  * too would invent a third state — a stored `null` — that no reader distinguishes from absent.
+ *
+ * The package fields are threaded through the flow shapes DELIBERATELY, not by accident of reuse.
+ * Only the top object is `.strict()`; the flow/node/observable unions are `.extend().partial()`
+ * objects, which STRIP an unrecognised key instead of rejecting it — the behaviour
+ * `questFlowAdditiveOnlyViolationsTransformer` relies on. A node's `packages` therefore has to reach
+ * this contract through `flowNodeContract` itself, and an observable's `package` has to be declared
+ * here, or the field is silently dropped on every write and the persisted quest never sees it.
+ * Threading them makes the tags SURVIVE; it does not make them mandatory, because a node missing
+ * `packages` is shape-identical to a patch that simply left them alone. That rule binds on the save
+ * side.
+ *
+ * An observable's `package` is `.optional()` here while the persisted `flowObservableContract`
+ * requires it: on a node tagged with exactly one package the save resolves it from the node, so the
+ * author has nothing to state. `quest.packageGraph` is deliberately ABSENT — it is derived at Start
+ * through `questOperationsUpdateBroker`, which bypasses this allowlist, and no agent writes it.
  */
 import { z } from 'zod';
 
@@ -43,6 +58,7 @@ import { questCommentIdContract } from '../quest-comment-id/quest-comment-id-con
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
+import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
 import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { signoffContract } from '../signoff/signoff-contract';
@@ -54,6 +70,11 @@ import { workItemForUpsertContract } from '../work-item-for-upsert/work-item-for
 const deleteMarker = z.literal(true);
 
 const fullFlowObservable = flowObservableContract.extend({
+  package: packageNameContract
+    .optional()
+    .describe(
+      'The package this observable is read in. Omit it when the owning node tags exactly one package — the save resolves it from the node. On a node tagging more than one there is nothing to inherit and the omission is refused, so state which side of the seam this one sits on.',
+    ),
   flowriderSignoff: signoffContract.nullish(),
   siegemasterSignoff: signoffContract.nullish(),
   _delete: z.boolean().optional(),
@@ -64,6 +85,11 @@ const deletableObservableContract = z.union([
   z.object({ id: observableIdContract, _delete: deleteMarker }),
 ]);
 
+// `packages` arrives on this shape from flowNodeContract itself, so a tag written on a node
+// SURVIVES parsing instead of being stripped. It does not make the tag mandatory: an untagged node
+// simply falls out of this branch into the `.partial()` one below, which is shape-identical to a
+// legitimate patch. The coverage rule is enforced on the save side, where the merged node is parsed
+// through flowNodeContract, and by the save-invariants tier that names the offending node.
 const fullFlowNode = flowNodeContract.extend({
   observables: z.array(deletableObservableContract).optional(),
   flowriderSignoff: signoffContract.nullish(),
@@ -175,9 +201,9 @@ export const modifyQuestInputContract = z
       )
       .optional(),
     packagesAffected: z
-      .array(packageNameContract)
+      .array(questPackageEntryContract)
       .describe(
-        'Monorepo packages the quest will touch. Replaces the whole list on write (not an id-keyed upsert). ChaosWhisperer sets it during explore_observables.',
+        'One entry per package the quest will touch. Replaces the whole list on write (not an id-keyed upsert), so send every package each time. This is the closed set the `packages` tag on each flow node must draw from — tag a node with a name absent here and the write is refused, so add the entry in the SAME modify-quest call as the tag.',
       )
       .optional(),
     flows: z

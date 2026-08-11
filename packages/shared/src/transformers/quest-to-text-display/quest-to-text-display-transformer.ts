@@ -111,6 +111,35 @@ export const questToTextDisplayTransformer = ({
     }
   }
 
+  // The closed set every node tag, operation item and observable draws its package names from.
+  // Rendered as its own section rather than inline on each item that references it: an entry is a
+  // three-field record (location, change type, kind) and repeating it per reference would scale the
+  // render by the ledger and the graph instead of by the package count. `usedBy` is printed only
+  // for a `new` package, where it is the only source of reverse edges the dependency graph has.
+  if (isQuestSectionInStageGuard({ section: 'packagesAffected', stage })) {
+    parts.push(contentTextContract.parse(''));
+    parts.push(contentTextContract.parse(SYM.sectionHeaders.packagesAffected));
+    parts.push(contentTextContract.parse(''));
+    if (quest.packagesAffected.length === 0) {
+      parts.push(contentTextContract.parse(SYM.none));
+    } else {
+      for (const entry of quest.packagesAffected) {
+        parts.push(
+          contentTextContract.parse(
+            `${String(entry.name)} ${SYM.emDash} ${entry.changeType}, ${entry.packageType} [${String(entry.location)}]`,
+          ),
+        );
+        if (entry.usedBy !== undefined && entry.usedBy.length > 0) {
+          parts.push(
+            contentTextContract.parse(
+              `${SYM.indent}Used by: ${entry.usedBy.map((name) => String(name)).join(', ')}`,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   if (isQuestSectionInStageGuard({ section: 'flows', stage })) {
     for (const flow of quest.flows) {
       parts.push(contentTextContract.parse(''));
@@ -146,9 +175,18 @@ export const questToTextDisplayTransformer = ({
           operation.flowIds.length === 0
             ? ''
             : ` [flows: ${operation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}]`;
+        // The second scope axis, rendered beside the first: `flowIds` says where on the spine an
+        // item sits, `packageNames` says where on disk it lands, and a reader reconciling the ledger
+        // against the slicing needs both on one line. Names only — the kind and change type of each
+        // package belong to `packagesAffected`, and repeating them per item would scale this section
+        // by the ledger length instead of by the package count.
+        const packagesPart =
+          operation.packageNames.length === 0
+            ? ''
+            : ` [packages: ${operation.packageNames.map((name) => String(name)).join(', ')}]`;
         parts.push(
           contentTextContract.parse(
-            `#${String(operation.id)}: [${operation.role}${wardModePart}] ${String(operation.text)} ${SYM.emDash} ${operation.status}${lockedPart}${flowsPart}`,
+            `#${String(operation.id)}: [${operation.role}${wardModePart}] ${String(operation.text)} ${SYM.emDash} ${operation.status}${lockedPart}${flowsPart}${packagesPart}`,
           ),
         );
       }

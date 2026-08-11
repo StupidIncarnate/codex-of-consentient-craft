@@ -383,4 +383,62 @@ describe('httpEdgesLayerBroker', () => {
       expect(result).toStrictEqual([]);
     });
   });
+
+  describe('a set of matching packages, never a hardcoded singleton', () => {
+    it('VALID: {two frontend packages: web and tui} => broker files from BOTH are scanned and paired', () => {
+      const proxy = httpEdgesLayerBrokerProxy();
+      const tuiListBrokerPath = AbsoluteFilePathStub({
+        value: '/repo/packages/tui/src/brokers/quest/list/quest-list-broker.ts',
+      });
+
+      proxy.setup({
+        serverStaticsSource: SERVER_STATICS,
+        webStaticsSource: WEB_STATICS,
+        flowFiles: [
+          {
+            path: QUEST_FLOW_PATH,
+            source: ContentTextStub({
+              value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
+            }),
+          },
+        ],
+        brokerFiles: [
+          {
+            path: QUEST_LIST_BROKER_PATH,
+            source: ContentTextStub({
+              value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
+            }),
+          },
+          {
+            path: tuiListBrokerPath,
+            source: ContentTextStub({
+              value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.guilds });',
+            }),
+          },
+        ],
+        frontendPackageNames: ['web', 'tui'],
+      });
+
+      const result = httpEdgesLayerBroker({ projectRoot: PROJECT_ROOT });
+
+      expect(result).toStrictEqual([
+        {
+          method: 'GET',
+          urlPattern: '/api/quests',
+          serverFlowFile: QUEST_FLOW_PATH,
+          serverResponderFile: null,
+          webBrokerFile: QUEST_LIST_BROKER_PATH,
+          paired: true,
+        },
+        {
+          method: 'GET',
+          urlPattern: '/api/guilds',
+          serverFlowFile: null,
+          serverResponderFile: null,
+          webBrokerFile: tuiListBrokerPath,
+          paired: false,
+        },
+      ]);
+    });
+  });
 });

@@ -573,4 +573,140 @@ describe('questFlowAdditiveOnlyViolationsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
   });
+
+  describe('package tags are frozen past approval', () => {
+    it('INVALID: {node patch carrying only id and packages} => refuses the retag and says dispatch slicing was computed from the old tags', () => {
+      const existingNode = FlowNodeStub({ id: 'press-warp', packages: ['web'] });
+      const existingFlow = FlowStub({ id: 'warpgate-merge', nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          { id: 'warpgate-merge', nodes: [{ id: 'press-warp', packages: ['web', 'server'] }] },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+        "Node package retag not allowed in status 'in_progress' (attempted to write 'packages' on node 'press-warp' in flow 'warpgate-merge') — package tags are frozen at approval because dispatch slicing is computed from them, so a mid-flight retag silently invalidates the scope every session in the relay was given",
+      ]);
+    });
+
+    it('INVALID: {the batched sign-off shape the coverage minion writes, carrying packages} => the freeze rule AND the sign-off rule both name the field', () => {
+      const existingNode = FlowNodeStub({ id: 'press-warp', packages: ['web'] });
+      const existingFlow = FlowStub({ id: 'warpgate-merge', nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'press-warp',
+                flowriderSignoff: SignoffStub(),
+                packages: ['server'],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+        "Node package retag not allowed in status 'in_progress' (attempted to write 'packages' on node 'press-warp' in flow 'warpgate-merge') — package tags are frozen at approval because dispatch slicing is computed from them, so a mid-flight retag silently invalidates the scope every session in the relay was given",
+        "Node edit alongside a sign-off not allowed in status 'in_progress' (attempted to write field 'packages' on node 'press-warp' in flow 'warpgate-merge' in the same patch as a sign-off) — a sign-off patch may carry only 'id' and the sign-off fields",
+      ]);
+    });
+
+    it('VALID: {full-node patch restating the tag the node already carries} => not a retag, returns empty array', () => {
+      const existingNode = FlowNodeStub({ id: 'press-warp', packages: ['web'] });
+      const existingFlow = FlowStub({ id: 'warpgate-merge', nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          { id: 'warpgate-merge', nodes: [{ id: 'press-warp', packages: ['web'] }] },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {node patch adding an observable and no packages key} => returns empty array', () => {
+      const existingNode = FlowNodeStub({ id: 'press-warp', packages: ['web'] });
+      const existingFlow = FlowStub({ id: 'warpgate-merge', nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'press-warp',
+                observables: [
+                  { id: 'warp-button-disables', type: 'ui-state', description: 'disables' },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {a brand-new node authored with its packages tag} => allowed, it has no prior tag to invalidate', () => {
+      const existingNode = FlowNodeStub({ id: 'press-warp', packages: ['web'] });
+      const existingFlow = FlowStub({ id: 'warpgate-merge', nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'merge-status-ok',
+                label: 'Merge status OK',
+                type: 'state',
+                packages: ['server'],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+  });
 });

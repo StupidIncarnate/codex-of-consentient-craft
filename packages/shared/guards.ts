@@ -68,3 +68,4 @@ export * from './src/guards/react-in-deps/react-in-deps-guard';
 export * from './src/guards/startup-references-argv/startup-references-argv-guard';
 export * from './src/guards/flow-returns-tool-registration/flow-returns-tool-registration-guard';
 export * from './src/guards/startup-exports-async-namespace/startup-exports-async-namespace-guard';
+export * from './src/guards/is-package-e2e-eligible/is-package-e2e-eligible-guard';

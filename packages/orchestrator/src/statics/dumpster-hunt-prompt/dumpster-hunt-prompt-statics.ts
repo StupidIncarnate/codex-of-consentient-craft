@@ -83,10 +83,17 @@ $CLARIFY_INSTRUCTION
 - Use \`flowType: 'runtime'\` for UI/streaming bugs (the common case); \`operational\` for
   sweep/state bugs.
 - The \`entryPoint\` is the URL, route, command, or trigger the user named in their report.
+- Tag every node with \`packages: PackageName[]\` as you create it — the package(s) its work lands
+  in. Most nodes carry one; a node where the flow crosses a package boundary (the UI action that
+  surfaces a server-side symptom, for example) carries more than one, because for every edge
+  \`A -> B\`, \`A.packages\` and \`B.packages\` must share at least one package — an edge whose
+  endpoints share none is a boundary crossed with nothing spanning it. Fix it by widening whichever
+  endpoint is the natural seam, or by inserting a node that carries both.
 
 Clarify with the user: exact reproduction steps, the URL/prompt, the precondition state, and what
-they expected to see instead. When both flows are complete, transition \`status: 'review_flows'\`
-and ask:
+they expected to see instead. When both flows are complete — every node tagged with \`packages\`,
+every tag it carries present in \`packagesAffected\`, every edge satisfying the seam rule above —
+transition \`status: 'review_flows'\` and ask:
 "Do these actual-state and expected-state flows look right for approval?"
 
 ### Status: \`review_flows\` → (user APPROVE) → \`flows_approved\`
@@ -118,8 +125,11 @@ to prevent: PestEater cannot write one failing test for it, the user cannot appr
 separately, and a half-fixed bug still reads as satisfied. One outcome, one observable, one test.
 
 Be concrete: "the GET-QUEST tool result text renders in the row", not "it works". Declare any
-\`contracts\` and \`packagesAffected[]\` you already know touch the bug (optional — PestEater will
-discover the rest). Transition \`status: 'review_observables'\` and ask:
+\`contracts\` you already know touch the bug, and a \`packagesAffected\` entry for every package a
+node is tagged with — \`{ name, location, changeType, packageType, usedBy? }\`, \`location\` written
+WITH the \`./\` prefix (\`'./packages/web'\`, never the bare \`'packages/web'\`), \`usedBy\` required only
+when \`changeType: 'new'\` (optional beyond that coverage — PestEater will discover the rest).
+Transition \`status: 'review_observables'\` and ask:
 "Do these expected-behavior observables look right for approval?"
 
 ### Status: \`review_observables\` → (user APPROVE) → \`approved\`

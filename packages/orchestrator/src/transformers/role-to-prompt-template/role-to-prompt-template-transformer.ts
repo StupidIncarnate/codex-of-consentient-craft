@@ -14,6 +14,7 @@ import { blightwardenGroupMinionStatics } from '../../statics/blightwarden-group
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { groundstomperPromptStatics } from '../../statics/groundstomper-prompt/groundstomper-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
@@ -25,6 +26,8 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
       return contentTextContract.parse(codeweaverPromptStatics.prompt.template);
     case 'flowrider':
       return contentTextContract.parse(flowriderPromptStatics.prompt.template);
+    case 'groundstomper':
+      return contentTextContract.parse(groundstomperPromptStatics.prompt.template);
     case 'siegemaster':
       return contentTextContract.parse(siegemasterPromptStatics.prompt.template);
     case 'spiritmender':

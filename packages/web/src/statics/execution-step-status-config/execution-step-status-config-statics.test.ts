@@ -24,6 +24,7 @@ describe('executionStepStatusConfigStatics', () => {
         ward: 'warning',
         spiritmender: 'primary',
         flowrider: 'primary',
+        groundstomper: 'primary',
         siegemaster: 'primary',
         'blightwarden-group-minion': 'primary',
         'blightwarden-crosscut-minion': 'primary',

@@ -217,7 +217,9 @@ is produced the next time someone runs `npm run init`.
       narrowing `--only` to the checks that actually apply — `npm run ward -- --only
       lint,typecheck,unit -- <files>` — not by widening the scope or adding flags. Contract /
       guard / transformer files usually only have `unit`; flow / startup have `unit` +
-      `integration`; `e2e` only applies under `packages/web`. Say in the commit which checks you
+      `integration`; `e2e` only applies to e2e-eligible packages (`packageType` is
+      `frontend-react` or `frontend-ink` — see `architecturePackageE2eEligibleDetectBroker` in
+      `@dungeonmaster/shared`), not a hardcoded package name. Say in the commit which checks you
       ran and why.
 
 ## Never Edit Infrastructure Files

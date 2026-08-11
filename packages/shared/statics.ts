@@ -54,3 +54,8 @@ export * from './src/statics/quest-stage-mapping/quest-stage-mapping-statics';
 // Base branch candidates — the local branch names Start probes when resolving the base branch a
 // quest forks from, consumed by baseBranchNameContract to build its enum.
 export * from './src/statics/base-branch/base-branch-statics';
+
+// The two verification track lists — the sign-off FIELDS a unit carries and the DENOMINATORS
+// measured over them — consumed by signoffTrackContract and signoffDenominatorTrackContract to
+// build their enums, and by every test that enumerates either list.
+export * from './src/statics/signoff-tracks/signoff-tracks-statics';

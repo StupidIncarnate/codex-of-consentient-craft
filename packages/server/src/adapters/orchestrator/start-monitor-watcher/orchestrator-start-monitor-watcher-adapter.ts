@@ -23,5 +23,8 @@ export const orchestratorStartMonitorWatcherAdapter = async ({
   // a sessionId but no agentId). Forwarded so the worker's main-session output routes to
   // its execution row instead of being dropped as /dumpster-launch dispatcher chatter.
   workerWorkItemId?: string;
+  // The quest owning that work item. Forwarded so the tail's own terminal event carries a
+  // questId the server's per-quest subscription filter can route on.
+  workerQuestId?: string;
 }): Promise<{ stop: () => void }> =>
   StartOrchestrator.startMonitorWatcher({ parentSessionId, projectDir, ...workerParams });

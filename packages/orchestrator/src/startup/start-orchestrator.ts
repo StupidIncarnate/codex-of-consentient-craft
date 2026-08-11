@@ -45,7 +45,6 @@ import type {
   QuestWorkItemId,
   RateLimitsSnapshot,
   SessionId,
-  SignoffTrack,
   UrlSlug,
 } from '@dungeonmaster/shared/contracts';
 
@@ -75,6 +74,7 @@ import { QuestFlow } from '../flows/quest/quest-flow';
 import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
 import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
+import type { signoffTrackEligibilityStatics } from '../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
 // Bootstrap the cross-guild execution-queue runner on module load. Idempotent.
 ExecutionQueueFlow.bootstrap();
@@ -212,15 +212,20 @@ export const StartOrchestrator = {
     questId,
     flowId,
     track,
+    packageNames,
   }: {
     questId: string;
     flowId?: string;
-    track?: SignoffTrack;
+    // The three DENOMINATOR tracks, not the two sign-off fields — Groundstomper is measured over
+    // the browser-reachable package kinds alone and would read Flowrider's numbers otherwise.
+    track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
+    packageNames?: string[];
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getQaChecklist>>> =>
     QuestFlow.getQaChecklist({
       questId,
       ...(flowId !== undefined && { flowId }),
       ...(track !== undefined && { track }),
+      ...(packageNames !== undefined && { packageNames }),
     }),
 
   getBlightChecklist: async ({
@@ -481,6 +486,8 @@ export const StartOrchestrator = {
     // a sessionId but no agentId). Routes its main-session output to the work item's row
     // instead of dropping it as /dumpster-launch dispatcher chatter.
     workerWorkItemId?: string;
+    // The quest owning that work item — routes the tail's own terminal event.
+    workerQuestId?: string;
   }): Promise<{ stop: () => void }> =>
     QuestFlow.startMonitorWatcher({ parentSessionId, projectDir, ...workerParams }),
 };

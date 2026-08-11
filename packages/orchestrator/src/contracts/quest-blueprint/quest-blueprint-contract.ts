@@ -34,6 +34,7 @@ export const questBlueprintContract = questContract
     contracts: true,
     toolingRequirements: true,
     operations: true,
+    packagesAffected: true,
   })
   .extend({
     targetStatus: questStatusContract.optional(),

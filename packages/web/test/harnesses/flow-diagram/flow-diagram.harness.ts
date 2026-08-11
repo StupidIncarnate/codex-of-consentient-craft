@@ -55,6 +55,35 @@ const ZOOM_MATCH_EPSILON = 0.01;
 export const FLOW_DIAGRAM_OPEN_PAGE_LABEL = 'Open Page';
 export const FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE = 'The page renders the diagram canvas';
 
+// The two packages the seeded quest declares. Deliberately NOT names from this repo: nothing in the
+// app may recognise a package by name, and a fixture built from `web`/`server` would hide it if
+// something did. The kinds are what the chip colours come from.
+export const FLOW_DIAGRAM_UI_PACKAGE = 'storefront-ui';
+export const FLOW_DIAGRAM_API_PACKAGE = 'orders-api';
+const DIAGRAM_PACKAGES_AFFECTED = [
+  {
+    name: FLOW_DIAGRAM_UI_PACKAGE,
+    location: './packages/storefront-ui',
+    changeType: 'edit',
+    packageType: 'frontend-react',
+  },
+  {
+    name: FLOW_DIAGRAM_API_PACKAGE,
+    location: './packages/orders-api',
+    changeType: 'edit',
+    packageType: 'http-backend',
+  },
+];
+
+// The GLUE node: `view-detail` is tagged with BOTH packages, and its two assertions sit one on each
+// side. It is the case the chip row exists for — a card spanning a package boundary has to show two
+// chips on the canvas, because that is what the reviewer signs off at the review_flows gate.
+export const FLOW_DIAGRAM_GLUE_NODE_LABEL =
+  'Yes — the detail panel renders the full node detail and the page settles into its terminal state where the reviewer can read every observable and contract without any further navigation';
+export const FLOW_DIAGRAM_GLUE_UI_OBSERVABLE = 'The detail panel shows the full node detail';
+export const FLOW_DIAGRAM_GLUE_API_OBSERVABLE =
+  'The detail endpoint answers 200 with the node body';
+
 // A branching flow (action -> decision -> two sibling terminals) so FlowsLayerWidget renders
 // the ReactFlowDiagramWidget (it only renders when nodes.length > 0) and elk has a real graph
 // to lay out, exercising the geometry observables this e2e owns. The two terminals sit on the
@@ -75,11 +104,13 @@ const DIAGRAM_FLOW = {
       id: 'open-page',
       label: FLOW_DIAGRAM_OPEN_PAGE_LABEL,
       type: 'action',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
       observables: [
         {
           id: 'b1000000-0000-4000-8000-000000000001',
           type: 'ui-state',
           description: FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE,
+          package: FLOW_DIAGRAM_UI_PACKAGE,
         },
       ],
     },
@@ -88,18 +119,26 @@ const DIAGRAM_FLOW = {
       label:
         'Has detail to show — the reviewer can drill into this node observables and contracts, but the flow first decides whether any detail exists for this node at all before it branches to a terminal',
       type: 'decision',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
       observables: [],
     },
     {
       id: 'view-detail',
-      label:
-        'Yes — the detail panel renders the full node detail and the page settles into its terminal state where the reviewer can read every observable and contract without any further navigation',
+      label: FLOW_DIAGRAM_GLUE_NODE_LABEL,
       type: 'terminal',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE, FLOW_DIAGRAM_API_PACKAGE],
       observables: [
         {
           id: 'b1000000-0000-4000-8000-000000000002',
           type: 'ui-state',
-          description: 'The detail panel shows the full node detail',
+          description: FLOW_DIAGRAM_GLUE_UI_OBSERVABLE,
+          package: FLOW_DIAGRAM_UI_PACKAGE,
+        },
+        {
+          id: 'b1000000-0000-4000-8000-000000000003',
+          type: 'api-call',
+          description: FLOW_DIAGRAM_GLUE_API_OBSERVABLE,
+          package: FLOW_DIAGRAM_API_PACKAGE,
         },
       ],
     },
@@ -108,6 +147,7 @@ const DIAGRAM_FLOW = {
       label:
         'No — there is no detail available here, so the flow terminates right away and the reviewer is left on the canvas with the empty-state message instead of a populated detail panel',
       type: 'terminal',
+      packages: [FLOW_DIAGRAM_API_PACKAGE],
       observables: [],
     },
   ],
@@ -146,9 +186,27 @@ const SECOND_DIAGRAM_FLOW = {
   entryPoint: 'review-start',
   exitPoints: ['review-done'],
   nodes: [
-    { id: 'review-start', label: SECOND_FLOW_FIRST_NODE_LABEL, type: 'action', observables: [] },
-    { id: 'review-check', label: 'Looks Good?', type: 'decision', observables: [] },
-    { id: 'review-done', label: 'Approved', type: 'terminal', observables: [] },
+    {
+      id: 'review-start',
+      label: SECOND_FLOW_FIRST_NODE_LABEL,
+      type: 'action',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
+      observables: [],
+    },
+    {
+      id: 'review-check',
+      label: 'Looks Good?',
+      type: 'decision',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
+      observables: [],
+    },
+    {
+      id: 'review-done',
+      label: 'Approved',
+      type: 'terminal',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
+      observables: [],
+    },
   ],
   edges: [
     { id: 'review-start-to-check', from: 'review-start', to: 'review-check' },
@@ -177,33 +235,45 @@ const LARGE_DIAGRAM_FLOW = {
       id: 'large-entry',
       label: LARGE_FLOW_FIRST_NODE_LABEL,
       type: 'action',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
       observables: Array.from({ length: 7 }, (_unused, i) => ({
         id: `entry-assertion-${i + 1}`,
         type: 'ui-state',
         description: `entry assertion ${i + 1} renders its outcome row and stays readable`,
+        package: FLOW_DIAGRAM_UI_PACKAGE,
       })),
     },
     {
       id: 'large-step-a',
       label: 'Stage A',
       type: 'state',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
       observables: Array.from({ length: 7 }, (_unused, i) => ({
         id: `a-assertion-${i + 1}`,
         type: 'ui-state',
         description: `stage A assertion ${i + 1} renders its outcome row and stays readable`,
+        package: FLOW_DIAGRAM_UI_PACKAGE,
       })),
     },
     {
       id: 'large-step-b',
       label: 'Stage B',
       type: 'state',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
       observables: Array.from({ length: 7 }, (_unused, i) => ({
         id: `b-assertion-${i + 1}`,
         type: 'ui-state',
         description: `stage B assertion ${i + 1} renders its outcome row and stays readable`,
+        package: FLOW_DIAGRAM_UI_PACKAGE,
       })),
     },
-    { id: 'large-end', label: 'Large Graph Exit', type: 'terminal', observables: [] },
+    {
+      id: 'large-end',
+      label: 'Large Graph Exit',
+      type: 'terminal',
+      packages: [FLOW_DIAGRAM_UI_PACKAGE],
+      observables: [],
+    },
   ],
   edges: [
     { id: 'large-entry-to-a', from: 'large-entry', to: 'large-step-a' },
@@ -265,6 +335,7 @@ export const flowDiagramHarness = ({
   assertionNodeRendered: (params: { text: string }) => Promise<boolean>;
   hasExpectedAssertionCount: () => Promise<boolean>;
   assertionNodesBranchRightOfFlowNodes: () => Promise<boolean>;
+  noCardOverlapsAnother: () => Promise<boolean>;
   clickPaneBackground: () => Promise<void>;
   nativeControlsPresentButHidden: () => Promise<boolean>;
   customControlsVisible: () => Promise<boolean>;
@@ -357,6 +428,9 @@ export const flowDiagramHarness = ({
           },
         ],
         flows: [DIAGRAM_FLOW, SECOND_DIAGRAM_FLOW, LARGE_DIAGRAM_FLOW],
+        // Without these entries every chip on the canvas paints unresolved: a tag's KIND is only
+        // knowable from the quest's own declaration.
+        packagesAffected: DIAGRAM_PACKAGES_AFFECTED,
       });
 
       const urlSlug = String(guild.urlSlug ?? guild.name)
@@ -591,6 +665,36 @@ export const flowDiagramHarness = ({
         const hasParentToLeft = flowBoxes.some((f) => f.x + f.w <= obs.x + FRAMING_EPSILON_PX);
         return !overlapsFlowNode && hasParentToLeft;
       });
+    },
+
+    // EVERY card on the canvas against every other — flow cards, assertion cards and portal
+    // stand-ins in one set. ELK lays out non-overlapping rectangles from an ESTIMATED height, so a
+    // card that grew a row the estimate does not reserve renders taller than its box and covers its
+    // neighbour. nodesDoNotOverlap() only compares flow cards to flow cards and stays green through
+    // exactly that failure, because the assertion column is what a taller card lands on first.
+    noCardOverlapsAnother: async (): Promise<boolean> => {
+      const cards = page.locator(
+        '[data-testid="FLOW_NODE"], [data-testid="FLOW_OBSERVABLE_NODE"], [data-testid="FLOW_PORTAL_NODE"]',
+      );
+      const count = await cards.count();
+      const boxes = await Promise.all(
+        Array.from({ length: count }, async (_unused, index) => {
+          const box = await cards.nth(index).boundingBox();
+          if (box === null) {
+            throw new Error(`canvas card at index ${index} has no bounding box`);
+          }
+          return { x: box.x, y: box.y, w: box.width, h: box.height };
+        }),
+      );
+      const overlapping = boxes.some((a, i) =>
+        boxes.some((b, j) => {
+          if (i >= j) {
+            return false;
+          }
+          return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        }),
+      );
+      return !overlapping;
     },
 
     // The real React Flow pane is `.react-flow__pane` (no testid). Clicking it must deselect

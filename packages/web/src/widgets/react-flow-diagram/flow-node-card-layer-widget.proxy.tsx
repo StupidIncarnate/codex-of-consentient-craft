@@ -12,6 +12,9 @@ interface FlowNodeCardLayerWidgetProxyResult {
   isSelected: () => boolean;
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
+  getPackageChipNames: () => HTMLElement['textContent'][];
+  getPackageChipColors: () => HTMLElement['textContent'][];
+  getPackageChipTypes: () => HTMLElement['textContent'][];
 }
 
 export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResult => {
@@ -29,6 +32,25 @@ export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResu
     // with the comment count badge below.
     getBadge: (): HTMLElement | null => screen.queryByTestId('FLOW_NODE_BADGE'),
     getCommentBadge: (): HTMLElement | null => screen.queryByTestId('COMMENT_COUNT_BADGE'),
+    // Read from INSIDE the FLOW_NODE_PACKAGES row rather than by chip testid alone, so a chip that
+    // escaped the row (and therefore the height ELK reserved for it) is not counted as rendered.
+    getPackageChipNames: (): HTMLElement['textContent'][] =>
+      Array.from(
+        screen
+          .queryByTestId('FLOW_NODE_PACKAGES')
+          ?.querySelectorAll('[data-testid="FLOW_NODE_PACKAGE_CHIP"]') ?? [],
+      ).map((chip) => chip.textContent),
+    // The palette token each chip resolved for its package's KIND, read off `data-package-accent`
+    // rather than the applied CSS: jsdom rewrites a hex to `rgb(...)`, so a style read would be
+    // comparing two notations of the same colour.
+    getPackageChipColors: (): HTMLElement['textContent'][] =>
+      screen
+        .queryAllByTestId('FLOW_NODE_PACKAGE_CHIP')
+        .map((chip) => chip.getAttribute('data-package-accent')),
+    getPackageChipTypes: (): HTMLElement['textContent'][] =>
+      screen
+        .queryAllByTestId('FLOW_NODE_PACKAGE_CHIP')
+        .map((chip) => chip.getAttribute('data-package-type')),
     getAccentStyle: (): HTMLElement['style'] | null => {
       const card = screen.queryByTestId('FLOW_NODE');
       return card ? card.style : null;

@@ -10,6 +10,7 @@ export const ReactFlowNodeDataStub = ({
     nodeId: 'login-page',
     label: 'Login Page',
     nodeType: 'state',
+    packages: [{ name: 'auth-service', packageType: 'library' }],
     contractCount: 0,
     commentCount: 0,
     ...props,

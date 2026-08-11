@@ -22,9 +22,12 @@ import type {
   FlowNodeId,
   FlowObservable,
   ObservableId,
+  PackageName,
+  PackageType,
   QuestComment,
   QuestContractEntry,
   QuestId,
+  QuestPackageEntry,
 } from '@dungeonmaster/shared/contracts';
 
 import { elkLayoutAdapter } from '../../adapters/elk/layout/elk-layout-adapter';
@@ -71,6 +74,13 @@ export interface ReactFlowDiagramWidgetProps {
    * review this record captures is most worth reading.
    */
   comments?: readonly QuestComment[];
+  /**
+   * The quest's own declared packages — the ONLY source for a tag's kind. Names are resolved
+   * against this list rather than recognised, because the same spec runs in repos whose packages
+   * this app has never seen and a repo may hold several UI packages. A tag with no entry here is
+   * painted unresolved, which is the coverage rule's failure case rather than a colour to guess at.
+   */
+  packagesAffected?: readonly QuestPackageEntry[];
 }
 
 // The floor under "fill the container". A short window leaves the spec panel very little after the
@@ -113,12 +123,14 @@ const { colors } = emberDepthsThemeStatics;
 // to stay identical to keep its measurement.
 const NO_CONTRACTS: readonly QuestContractEntry[] = [];
 const NO_COMMENTS: readonly QuestComment[] = [];
+const NO_PACKAGES_AFFECTED: readonly QuestPackageEntry[] = [];
 
 export const ReactFlowDiagramWidget = ({
   flow,
   contracts = NO_CONTRACTS,
   commentQuestId,
   comments = NO_COMMENTS,
+  packagesAffected = NO_PACKAGES_AFFECTED,
 }: ReactFlowDiagramWidgetProps): React.JSX.Element | null => {
   // The flow the canvas is painting, held apart from the `flow` PROP: it is the last one ELK
   // actually laid out, swapped in together with its positions and routes. An agent editing the spec
@@ -250,16 +262,36 @@ export const ReactFlowDiagramWidget = ({
       });
     const zeroCommentCount = commentCountContract.parse(0);
 
+    // A tag's KIND is only knowable from the quest's own declaration, so it is resolved here once
+    // per layout rather than by each card. Nothing keys off the package NAME: this same diagram
+    // renders quests from repos whose packages it has never seen, and a repo may hold several UI
+    // packages that must all read alike.
+    const packageTypeByName = new Map<PackageName, PackageType>(
+      packagesAffected.map((entry) => [entry.name, entry.packageType]),
+    );
+
     const flowNodes = laidOutFlow.nodes.map((n) => {
       const { labelEstimate } = elkLayoutStatics;
       const labelLines = Math.max(
         1,
         Math.ceil(String(n.label).length / labelEstimate.charsPerLine),
       );
+      // The SAME package-row estimate elkLayoutAdapter reserved the box with, so the card React
+      // Flow paints before its own measurement lands matches the rectangle ELK laid out for it.
+      const packageChipChars = n.packages.reduce(
+        (sum, packageName) =>
+          sum + String(packageName).length + labelEstimate.packageRow.chipOverheadChars,
+        0,
+      );
+      const packageLines = Math.max(
+        1,
+        Math.ceil(packageChipChars / labelEstimate.packageRow.charsPerLine),
+      );
       const cardHeight =
         labelEstimate.chromeHeight +
         labelLines * labelEstimate.lineHeight +
         labelEstimate.badgeHeight +
+        packageLines * labelEstimate.packageRow.lineHeight +
         labelEstimate.buffer;
       return {
         id: String(n.id),
@@ -273,6 +305,16 @@ export const ReactFlowDiagramWidget = ({
           nodeId: n.id,
           label: n.label,
           nodeType: n.type,
+          // One chip per tag, each carrying the kind resolved above. An unmatched name keeps its
+          // chip and drops the kind, so the card paints it unresolved rather than silently omitting
+          // a package the node claims to land in.
+          packages: n.packages.map((packageName) => {
+            const packageType = packageTypeByName.get(packageName);
+            return {
+              name: packageName,
+              ...(packageType === undefined ? {} : { packageType }),
+            };
+          }),
           // Badge counts the contracts anchored to this node — the same nodeId match the detail
           // panel uses. Contract arrays are small, so a per-node filter is fine.
           contractCount: contractCountContract.parse(
@@ -294,6 +336,7 @@ export const ReactFlowDiagramWidget = ({
       const columnX = base.x + elkLayoutStatics.node.width + observable.gap;
       let cursorY = 0;
       return n.observables.map((obs) => {
+        const obsPackageType = packageTypeByName.get(obs.package);
         const obsLines = Math.max(
           1,
           Math.ceil(String(obs.description).length / observable.labelEstimate.charsPerLine),
@@ -318,6 +361,13 @@ export const ReactFlowDiagramWidget = ({
             nodeId: n.id,
             outcomeType: obs.type,
             description: obs.description,
+            // The ONE side of the seam this criterion is read on. Resolved through the same map as
+            // the parent card's chips, so a node and its assertions can never disagree about a
+            // package's kind.
+            package: {
+              name: obs.package,
+              ...(obsPackageType === undefined ? {} : { packageType: obsPackageType }),
+            },
             commentCount: observableCommentCounts.get(n.id)?.get(obs.id) ?? zeroCommentCount,
           }),
         };
@@ -351,7 +401,15 @@ export const ReactFlowDiagramWidget = ({
     });
 
     return [...flowNodes, ...observableNodes, ...portalNodes];
-  }, [laidOutFlow, positions, contracts, comments, commentQuestId, selectedCardNodeId]);
+  }, [
+    laidOutFlow,
+    positions,
+    contracts,
+    comments,
+    commentQuestId,
+    packagesAffected,
+    selectedCardNodeId,
+  ]);
 
   // Memoized for the same reason as `nodes`: a fresh edge array on every render re-adopts every
   // edge, and an edge re-adopted while its endpoints are still unmeasured is dropped.

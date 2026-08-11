@@ -3,7 +3,7 @@
  *
  * USAGE:
  * questStatusInputAllowlistStatics.explore_flows.allowedFields;
- * // Returns: ['title', 'flows', 'designDecisions', 'comments', 'status']
+ * // Returns: ['title', 'flows', 'designDecisions', 'packagesAffected', 'comments', 'status']
  * questStatusInputAllowlistStatics.explore_observables.allowedFields;
  * // Includes 'operations' — ChaosWhisperer authors the implementation plan items there. No other
  * // status allows `operations`, so an execution agent's modify-quest{operations} at in_progress is
@@ -60,16 +60,24 @@ export const questStatusInputAllowlistStatics = {
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
+  // `packagesAffected` opens here, one gate earlier than the observables phase, because a node's
+  // `packages` tag is authored WITH the node and must draw from a name this list already holds.
+  // Without it Chaos cannot state the entry and the tag in one call, and the tag is refused for
+  // naming a package the quest never declared.
   explore_flows: {
-    allowedFields: ['title', 'flows', 'designDecisions', 'comments', 'status'],
+    allowedFields: ['title', 'flows', 'designDecisions', 'packagesAffected', 'comments', 'status'],
     flowsRule: 'no-observables',
     allowedPlanningNotesFields: [],
   },
+  // `packagesAffected` joins the back-edge for the same reason it joins `explore_flows`: the user
+  // rejecting flows sends Chaos back to RETAG nodes, and a retag that reaches for a package not yet
+  // declared needs the entry to land in the same call. Omitting it here breaks the reject loop
+  // exactly when it matters.
   review_flows: {
     allowedFields: ['comments', 'status'],
     backTransitionFields: {
       toStatus: 'explore_flows',
-      fields: ['flows', 'designDecisions'],
+      fields: ['flows', 'designDecisions', 'packagesAffected'],
     },
     flowsRule: 'no-observables',
     allowedPlanningNotesFields: [],

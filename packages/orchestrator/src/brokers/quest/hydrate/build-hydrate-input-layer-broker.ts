@@ -45,6 +45,8 @@ export const buildHydrateInputLayerBroker = ({
           return { ...acc, toolingRequirements: blueprint.toolingRequirements };
         case 'operations':
           return { ...acc, operations: blueprint.operations };
+        case 'packagesAffected':
+          return { ...acc, packagesAffected: blueprint.packagesAffected };
         default:
           return acc;
       }

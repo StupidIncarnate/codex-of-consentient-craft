@@ -71,7 +71,7 @@ export const commandRunLayerSingleBrokerProxy = (): {
       pruneProxy.setupEmpty({ rootPath });
     },
     setupE2eOnlySkip: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
-      e2eProxy.setupNoPlaywrightConfig({ projectFolder });
+      e2eProxy.setupNotE2eEligible({ projectFolder });
       saveProxy.setupSuccess({ rootPath, runId });
       pruneProxy.setupEmpty({ rootPath });
     },

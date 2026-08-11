@@ -10,10 +10,10 @@ import { checkRunE2eBrokerProxy } from './check-run-e2e-broker.proxy';
 
 describe('checkRunE2eBroker', () => {
   describe('skip', () => {
-    it('VALID: {no playwright.config.ts} => returns skip result', async () => {
+    it('VALID: {not e2e-eligible} => returns skip result', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunE2eBrokerProxy();
-      proxy.setupNoPlaywrightConfig({ projectFolder });
+      proxy.setupNotE2eEligible({ projectFolder });
 
       const result = await checkRunE2eBroker({
         projectFolder,
@@ -28,8 +28,35 @@ describe('checkRunE2eBroker', () => {
           testFailures: [],
           rawOutput: RawOutputStub({
             stdout: '',
-            stderr: 'no playwright.config.ts',
+            stderr: 'not e2e-eligible (packageType is not frontend-react or frontend-ink)',
             exitCode: 0,
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('eligible but missing playwright.config.ts', () => {
+    it('VALID: {e2e-eligible package, no playwright.config.ts} => returns fail result, not skip', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupEligibleMissingConfig({ projectFolder });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'e2e-eligible package is missing playwright.config.ts',
+            exitCode: 1,
           }),
         }),
       );

@@ -6,6 +6,7 @@ const SPEC_SECTIONS = [
   'designDecisions',
   'contracts',
   'toolingRequirements',
+  'packagesAffected',
   'operations',
   'workItems',
 ];
@@ -20,12 +21,17 @@ describe('questStageToSectionsTransformer', () => {
       expect(result).toStrictEqual(SPEC_SECTIONS);
     });
 
-    it('VALID: {stage: "planning"} => returns planningNotes, operations, contracts', () => {
+    it('VALID: {stage: "planning"} => returns planningNotes, operations, contracts and packagesAffected', () => {
       const result = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'planning' }),
       });
 
-      expect(result).toStrictEqual(['planningNotes', 'operations', 'contracts']);
+      expect(result).toStrictEqual([
+        'planningNotes',
+        'operations',
+        'contracts',
+        'packagesAffected',
+      ]);
     });
 
     it('VALID: {stage: "implementation"} => returns every section, so plan-vs-reality is diagnosable', () => {
@@ -38,6 +44,7 @@ describe('questStageToSectionsTransformer', () => {
         'designDecisions',
         'contracts',
         'toolingRequirements',
+        'packagesAffected',
         'operations',
         'workItems',
         'planningNotes',

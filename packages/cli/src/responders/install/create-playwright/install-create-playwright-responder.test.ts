@@ -2,6 +2,31 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstallCreatePlaywrightResponderProxy } from './install-create-playwright-responder.proxy';
 
 describe('InstallCreatePlaywrightResponder', () => {
+  describe('not e2e-eligible', () => {
+    it('VALID: {target project has no widgets/react or ink signals} => skips without writing', async () => {
+      const proxy = InstallCreatePlaywrightResponderProxy();
+
+      proxy.setupNotE2eEligible({ targetProjectRoot: '/project' });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/cli',
+        success: true,
+        action: 'skipped',
+        message:
+          'target project is not e2e-eligible (packageType is not frontend-react or frontend-ink)',
+      });
+
+      expect(proxy.getWrittenFiles()).toStrictEqual([]);
+    });
+  });
+
   describe('existing config', () => {
     it('VALID: {playwright.config.ts exists} => returns skipped without writing', async () => {
       const proxy = InstallCreatePlaywrightResponderProxy();

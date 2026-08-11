@@ -24,7 +24,14 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedPlanningNotesFields: [],
       },
       explore_flows: {
-        allowedFields: ['title', 'flows', 'designDecisions', 'comments', 'status'],
+        allowedFields: [
+          'title',
+          'flows',
+          'designDecisions',
+          'packagesAffected',
+          'comments',
+          'status',
+        ],
         flowsRule: 'no-observables',
         allowedPlanningNotesFields: [],
       },
@@ -32,7 +39,7 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedFields: ['comments', 'status'],
         backTransitionFields: {
           toStatus: 'explore_flows',
-          fields: ['flows', 'designDecisions'],
+          fields: ['flows', 'designDecisions', 'packagesAffected'],
         },
         flowsRule: 'no-observables',
         allowedPlanningNotesFields: [],
@@ -213,6 +220,26 @@ describe('questStatusInputAllowlistStatics', () => {
 
   it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports)", () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
+  });
+
+  describe("'packagesAffected' allowlist during flow authoring (tags are written with the node)", () => {
+    it("VALID: {status: explore_flows} => allowedFields includes 'packagesAffected', so a node tag and its entry land in one call", () => {
+      expect(questStatusInputAllowlistStatics.explore_flows.allowedFields).toStrictEqual([
+        'title',
+        'flows',
+        'designDecisions',
+        'packagesAffected',
+        'comments',
+        'status',
+      ]);
+    });
+
+    it("VALID: {status: review_flows} => backTransitionFields carries 'packagesAffected' back to explore_flows, so the reject loop can retag", () => {
+      expect(questStatusInputAllowlistStatics.review_flows.backTransitionFields).toStrictEqual({
+        toStatus: 'explore_flows',
+        fields: ['flows', 'designDecisions', 'packagesAffected'],
+      });
+    });
   });
 
   describe("'status' allowlist at the terminal statuses (the merge edge)", () => {

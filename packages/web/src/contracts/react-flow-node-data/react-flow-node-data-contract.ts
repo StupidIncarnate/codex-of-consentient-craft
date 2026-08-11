@@ -2,7 +2,7 @@
  * PURPOSE: Defines the data shape for a React Flow node in the flow graph visualizer
  *
  * USAGE:
- * reactFlowNodeDataContract.parse({ nodeId: 'login-page', label: 'Login Page', nodeType: 'state', contractCount: 2, commentCount: 0 });
+ * reactFlowNodeDataContract.parse({ nodeId: 'login-page', label: 'Login Page', nodeType: 'state', packages: [{ name: 'auth-service', packageType: 'library' }], contractCount: 2, commentCount: 0 });
  * // Returns: ReactFlowNodeData with branded fields
  */
 
@@ -17,11 +17,19 @@ import {
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
 import { contractCountContract } from '../contract-count/contract-count-contract';
+import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
 export const reactFlowNodeDataContract = z.object({
   nodeId: flowNodeIdContract,
   label: z.string().min(1).brand<'FlowNodeLabel'>(),
   nodeType: flowNodeTypeContract,
+  // Where this node's work lands, painted on the card itself rather than behind a click: this is
+  // what the reviewer signs off at the review_flows gate, and a node carrying more than one entry is
+  // a seam — the card has to SHOW both sides for that to be reviewable at a glance. Mirrors the
+  // persisted flowNodeContract's `.min(1)`, so a card can never render with no tag; each entry
+  // carries the kind resolved against the quest's packagesAffected, because nothing may colour off
+  // a package name.
+  packages: z.array(reactFlowPackageChipContract).min(1),
   contractCount: contractCountContract,
   // How many comments this card already carries. Gated INDEPENDENTLY of questId/flowId below:
   // COMMENT_COUNT_BADGE reports the existing comment record and renders in every quest status,

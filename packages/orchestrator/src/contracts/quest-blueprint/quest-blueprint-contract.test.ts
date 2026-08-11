@@ -14,6 +14,7 @@ describe('questBlueprintContract', () => {
         contracts: [],
         toolingRequirements: [],
         operations: [],
+        packagesAffected: [],
         skipRoles: [],
         rolePromptOverrides: {},
       });
@@ -30,6 +31,7 @@ describe('questBlueprintContract', () => {
         contracts: [],
         toolingRequirements: [],
         operations: [],
+        packagesAffected: [],
         skipRoles: [],
         targetStatus: 'flows_approved',
         rolePromptOverrides: {},
@@ -47,6 +49,7 @@ describe('questBlueprintContract', () => {
         contracts: [],
         toolingRequirements: [],
         operations: [],
+        packagesAffected: [],
         skipRoles: ['ward'],
         rolePromptOverrides: {},
       });
@@ -65,6 +68,7 @@ describe('questBlueprintContract', () => {
         contracts: [],
         toolingRequirements: [],
         operations: [],
+        packagesAffected: [],
         skipRoles: [],
         fixedQuestId: '00000000-0000-0000-0000-000000000000',
         rolePromptOverrides: {},

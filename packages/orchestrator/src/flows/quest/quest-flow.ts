@@ -114,11 +114,13 @@ export const QuestFlow = {
     questId,
     flowId,
     track,
+    packageNames,
   }: GetQaChecklistParams): Promise<GetQaChecklistResult> =>
     QuestGetQaChecklistResponder({
       questId,
       ...(flowId !== undefined && { flowId }),
       ...(track !== undefined && { track }),
+      ...(packageNames !== undefined && { packageNames }),
     }),
 
   getBlightChecklist: async ({
@@ -191,10 +193,12 @@ export const QuestFlow = {
     parentSessionId,
     projectDir,
     workerWorkItemId,
+    workerQuestId,
   }: StartMonitorWatcherParams): Promise<StartMonitorWatcherResult> =>
     QuestMonitorWatcherStartResponder({
       parentSessionId,
       projectDir,
       ...(workerWorkItemId === undefined ? {} : { workerWorkItemId }),
+      ...(workerQuestId === undefined ? {} : { workerQuestId }),
     }),
 };

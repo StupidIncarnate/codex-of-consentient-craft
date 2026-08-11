@@ -2,6 +2,7 @@ import {
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
+  QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
   RelatedDataItemStub,
@@ -27,7 +28,7 @@ describe('agentPromptGetBroker', () => {
       const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        packagesAffected: ['orchestrator'],
+        packagesAffected: [QuestPackageEntryStub({ name: 'orchestrator' })],
         workItems: [workItem],
       });
       proxy.setupQuestFound({ quest });

@@ -96,6 +96,10 @@ describe('questHydrateBroker', () => {
       baseName: BaseNameStub({ value: 'hydrate-minimal-in-progress' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+    });
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Smoketest Minimal Guild' }),
@@ -137,6 +141,10 @@ describe('questHydrateBroker', () => {
       baseName: BaseNameStub({ value: 'hydrate-verify-tail' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+    });
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Verify Tail Guild' }),

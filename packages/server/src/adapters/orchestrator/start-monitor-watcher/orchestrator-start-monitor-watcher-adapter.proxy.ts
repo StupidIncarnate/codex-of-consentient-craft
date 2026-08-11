@@ -12,6 +12,7 @@ export const orchestratorStartMonitorWatcherAdapterProxy = (): {
     workerWorkItemId: string;
   }) => boolean;
   startedWithoutWorkerWorkItemId: (params: { parentSessionId: string }) => boolean;
+  startedWithWorkerQuestId: (params: { parentSessionId: string; workerQuestId: string }) => boolean;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.startMonitorWatcher });
   const stopState = { called: false };
@@ -44,5 +45,14 @@ export const orchestratorStartMonitorWatcherAdapterProxy = (): {
       mock
         .callsMatching([{ parentSessionId }])
         .some((call) => (call[0] as StartWatcherParams).workerWorkItemId === undefined),
+    // The tail's stop-time terminal event is a per-quest wire event, so a worker session started
+    // without its owning questId emits a frame no subscriber receives.
+    startedWithWorkerQuestId: ({
+      parentSessionId,
+      workerQuestId,
+    }: {
+      parentSessionId: string;
+      workerQuestId: string;
+    }): boolean => mock.callsMatching([{ parentSessionId, workerQuestId }]).length > 0,
   };
 };

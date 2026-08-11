@@ -1,8 +1,8 @@
 /**
  * PURPOSE: The orchestrator's ONLY runtime writer for the quest operations ledger. Applies an
- * operations mutation — and any accompanying workItems or git-context (branchName, baseBranch,
- * worktreePath, baseRef) write — in ONE atomic read-modify-write persist, then re-derives quest
- * status through the operation-aware transformer.
+ * operations mutation — and any accompanying workItems, git-context (branchName, baseBranch,
+ * worktreePath, baseRef) or packageGraph write — in ONE atomic read-modify-write persist, then
+ * re-derives quest status through the operation-aware transformer.
  *
  * USAGE:
  * await questOperationsUpdateBroker({
@@ -54,6 +54,7 @@ export const questOperationsUpdateBroker = async ({
     branchName?: NonNullable<Quest['branchName']>;
     baseBranch?: NonNullable<Quest['baseBranch']>;
     worktreePath?: NonNullable<Quest['worktreePath']>;
+    packageGraph?: Quest['packageGraph'];
   } | null;
 }): Promise<{ quest: Quest } | null> =>
   questWithModifyLockBroker({
@@ -84,11 +85,16 @@ export const questOperationsUpdateBroker = async ({
       const nextBranchName = changes.branchName ?? quest.branchName;
       const nextBaseBranch = changes.baseBranch ?? quest.baseBranch;
       const nextWorktreePath = changes.worktreePath ?? quest.worktreePath;
+      // The derived package dependency graph rides the same persist for the same reason as the git
+      // context: the relay seeded in this write is ordered from it, so a crash between two writes
+      // would leave a dependency-ordered ledger beside no graph to justify it.
+      const nextPackageGraph = changes.packageGraph ?? quest.packageGraph;
 
       const mutated = questContract.parse({
         ...quest,
         operations: nextOperations,
         workItems: nextWorkItems,
+        packageGraph: nextPackageGraph,
         ...(nextBaseRef === undefined ? {} : { baseRef: nextBaseRef }),
         ...(nextBranchName === undefined ? {} : { branchName: nextBranchName }),
         ...(nextBaseBranch === undefined ? {} : { baseBranch: nextBaseBranch }),

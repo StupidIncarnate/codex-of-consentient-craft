@@ -5,17 +5,18 @@
  * patch the ledger, because agents never write the ledger at all):
  *
  * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`. For a
- *   `flowrider` or `siegemaster` item, or a `blightwarden` item, this is GATED: the responder
- *   recomputes the signalling role's own scope — the flow graph's verification units measured
- *   against THAT role's sign-off track (`flowriderSignoff` / `siegemasterSignoff`), or the quest
- *   diff's blight checklist (blightwarden, via questGetBlightChecklistBroker) — and refuses `done`
- *   (by throwing, so the agent sees why) while any unit carries no sign-off on that track / no
- *   entry in `quest.planningNotes.blightLedger` respectively. Completion is a computed fact rather
- *   than the agent's recollection of its own pass. The two sign-off tracks are INDEPENDENT: neither
- *   reads the other's field, so one unit can be outstanding for one track and settled for the
- *   other. Both verdicts clear a unit — `confirmed` and `unconfirmable` alike — as does every
- *   blight disposition, so the gate is always satisfiable honestly; it refuses absence, not
- *   honesty.
+ *   `flowrider`, `groundstomper` or `siegemaster` item, or a `blightwarden` item, this is GATED: the
+ *   responder recomputes the signalling role's own scope — the flow graph's verification units
+ *   measured against THAT role's sign-off track (`flowriderSignoff` / `siegemasterSignoff`), or the
+ *   quest diff's blight checklist (blightwarden, via questGetBlightChecklistBroker) — and refuses
+ *   `done` (by throwing, so the agent sees why) while any unit carries no sign-off on that track /
+ *   no entry in `quest.planningNotes.blightLedger` respectively. Completion is a computed fact
+ *   rather than the agent's recollection of its own pass. The two sign-off FIELDS are INDEPENDENT:
+ *   neither reads the other's, so one unit can be outstanding for one and settled for the other —
+ *   and the three DENOMINATORS over them are disjoint, Flowrider and Groundstomper splitting
+ *   `flowriderSignoff` by package kind. Both verdicts clear a unit — `confirmed` and
+ *   `unconfirmable` alike — as does every blight disposition, so the gate is always satisfiable
+ *   honestly; it refuses absence, not honesty.
  * - `operationStatus: 'partial'` → the linked operation item is marked `complete` AND a
  *   "pt N: {text}" continuation item (same role, locked flag preserved) is appended immediately
  *   after it — duplicate-on-partial keeps the strict 1:1 operation-item↔work-item invariant and an
@@ -70,6 +71,7 @@ import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-u
 import { blightCoverageOutstandingTransformer } from '../../../transformers/blight-coverage-outstanding/blight-coverage-outstanding-transformer';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
+import { signoffTrackEligibilityStatics } from '../../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 
 // How many outstanding unit ids to name inline before deferring to get-qa-checklist / the blight
@@ -128,19 +130,19 @@ export const QuestHandleSignalBackResponder = async ({
   // COMPLETION GATE — runs BEFORE any mutation, so a refused `done` leaves the work item and its
   // operation item exactly as they were and the session can carry on and signal again.
   //
-  // `done` from a flowrider or siegemaster item means "every verification unit in my scope carries
-  // MY track's sign-off"; `done` from a blightwarden item means "every changed-file/concern unit on
-  // this quest diff has been dealt with". A session's memory of its own coverage is precisely what
-  // fails: a pass walks part of its scope across a long serial run and reports done. Both claims are
-  // therefore recomputed here — the flow graph read against the signalling role's own sign-off field
-  // for the two verification tracks, the git diff (via questGetBlightChecklistBroker) + blightLedger
-  // for blightwarden.
+  // `done` from a flowrider, groundstomper or siegemaster item means "every verification unit in my
+  // scope carries MY track's sign-off"; `done` from a blightwarden item means "every
+  // changed-file/concern unit on this quest diff has been dealt with". A session's memory of its own
+  // coverage is precisely what fails: a pass walks part of its scope across a long serial run and
+  // reports done. Both claims are therefore recomputed here — the flow graph read against the
+  // signalling role's own sign-off field for the three verification denominators, the git diff (via
+  // questGetBlightChecklistBroker) + blightLedger for blightwarden.
   //
-  // ONE call covers BOTH verification tracks. `signoffOutstandingTransformer` keys on the linked
-  // item's role internally (flowrider → `flowriderSignoff`, siegemaster → `siegemasterSignoff`,
-  // every other role → nothing outstanding), so a second per-track branch here would only restate
-  // what it already decides — and the two tracks are independent, so the same unit can be
-  // outstanding for one and settled for the other.
+  // ONE call covers ALL THREE verification denominators. `signoffOutstandingTransformer` keys on the
+  // linked item's role internally (flowrider and groundstomper → `flowriderSignoff` over disjoint
+  // package kinds, siegemaster → `siegemasterSignoff`, every other role → nothing outstanding), so a
+  // second per-track branch here would only restate what it already decides — and the denominators
+  // are independent, so the same unit can be outstanding for one and settled for another.
   //
   // Both sign-off verdicts clear a unit — `confirmed` and `unconfirmable` alike — as does every
   // blight disposition, `gap` and `recorded` included, so the gate is always satisfiable honestly;
@@ -176,16 +178,31 @@ export const QuestHandleSignalBackResponder = async ({
       const outstanding = [...signoffOutstanding, ...blightOutstanding];
 
       if (outstanding.length > 0) {
-        // The signalling role IS the track: the list above was measured against that role's own
-        // sign-off field and nothing else, so the remedy can name the exact field to write.
-        const track = linkedOperation.role === 'flowrider' ? 'flowrider' : 'siegemaster';
+        // The signalling role IS the DENOMINATOR track, and `signoffTrackEligibilityStatics` is what
+        // maps that to the ONE field it writes. Two lookups, not one: the tool call has to name the
+        // denominator (there are three) so the session reads back the set this gate just measured,
+        // while the remedy has to name the field (there are two) so it writes to the right column.
+        // Groundstomper is where they differ — it writes `flowriderSignoff` over the package kinds
+        // Flowrider does NOT measure, so naming `flowrider` in the tool call would hand it the exact
+        // complement of its own remainder.
+        const track =
+          linkedOperation.role === 'groundstomper' || linkedOperation.role === 'siegemaster'
+            ? linkedOperation.role
+            : 'flowrider';
+        const { signoffField } = signoffTrackEligibilityStatics.byTrack[track];
+        // The item's own slice rides along, because the gate narrowed by it and the tool will not
+        // unless it is asked to. A reproduction call missing it reads the whole quest.
+        const packageArg =
+          linkedOperation.packageNames.length === 0
+            ? ''
+            : `, packageNames: [${linkedOperation.packageNames.map((name) => `'${String(name)}'`).join(', ')}]`;
         const checklistTool = isBlightwarden
           ? 'get-blight-checklist'
-          : `get-qa-checklist({ track: '${track}' })`;
+          : `get-qa-checklist({ track: '${track}'${packageArg} })`;
 
         const headline = isBlightwarden
           ? `signal-back refused: operationStatus 'done' means every review unit on this quest diff carries a disposition, and ${String(outstanding.length)} still carry none.`
-          : `signal-back refused: operationStatus 'done' means every verification unit in your scope carries YOUR OWN track's sign-off (\`${track}Signoff\`), and ${String(outstanding.length)} still carry none. The other track is measured separately and is never read here, so its sign-offs cannot settle yours.`;
+          : `signal-back refused: operationStatus 'done' means every verification unit in your scope carries YOUR OWN track's sign-off (\`${signoffField}\`), and ${String(outstanding.length)} still carry none. The other track is measured separately and is never read here, so its sign-offs cannot settle yours. Read the same list back with ${checklistTool}.`;
 
         const remedy = isBlightwarden
           ? [
@@ -193,7 +210,7 @@ export const QuestHandleSignalBackResponder = async ({
               "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
             ]
           : [
-              `  1. Write a \`${track}Signoff\` on each remaining unit via modify-quest — \`confirmed\` with \`evidence\` (a test file:line plus what makes that test fail, or the value you measured off the running system), or \`unconfirmable\` with \`evidence\` of what you tried and why it was out of reach plus a \`question\` someone else can pick up. BOTH verdicts clear this gate; what it refuses is the ABSENCE of a sign-off, never an honest one.`,
+              `  1. Write a \`${signoffField}\` on each remaining unit via modify-quest — \`confirmed\` with \`evidence\` (a test file:line plus what makes that test fail, or the value you measured off the running system), or \`unconfirmable\` with \`evidence\` of what you tried and why it was out of reach plus a \`question\` someone else can pick up. BOTH verdicts clear this gate; what it refuses is the ABSENCE of a sign-off, never an honest one.`,
               '     BATCH the writes: ONE modify-quest call carrying many sign-offs, never one call per unit.',
               "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
               '     A unit you genuinely cannot close is `unconfirmable`, not pt work — pt-chaining a permanently unprovable unit only burns the chain to its maxAttempts and blocks the quest.',
@@ -291,15 +308,17 @@ export const QuestHandleSignalBackResponder = async ({
           ? budgets.codeweaver.maxAttempts
           : role === 'flowrider'
             ? budgets.flowrider.maxAttempts
-            : role === 'siegemaster'
-              ? budgets.siegemaster.maxAttempts
-              : role === 'blightwarden'
-                ? budgets.blightwarden.maxAttempts
-                : role === 'pesteater'
-                  ? budgets.pesteater.maxAttempts
-                  : role === 'warpgate'
-                    ? budgets.warpgate.maxAttempts
-                    : budgets.spiritmender.maxAttempts;
+            : role === 'groundstomper'
+              ? budgets.groundstomper.maxAttempts
+              : role === 'siegemaster'
+                ? budgets.siegemaster.maxAttempts
+                : role === 'blightwarden'
+                  ? budgets.blightwarden.maxAttempts
+                  : role === 'pesteater'
+                    ? budgets.pesteater.maxAttempts
+                    : role === 'warpgate'
+                      ? budgets.warpgate.maxAttempts
+                      : budgets.spiritmender.maxAttempts;
       })();
       // The pt budget gates `partial` only. An environment wall always appends its continuation:
       // the quest blocks either way, and withholding the append would leave the operation with no
@@ -314,8 +333,11 @@ export const QuestHandleSignalBackResponder = async ({
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
-      // `flowIds` rides along with the role and lock: a flow-scoped item (flowrider/siegemaster)
-      // whose continuation lost its flows would hand the fresh session no scope at all.
+      // `flowIds` AND `packageNames` ride along with the role and lock. Both carry scope: a
+      // flow-scoped item (siegemaster/groundstomper) whose continuation lost its flows, or a
+      // package-sliced item (codeweaver/flowrider) whose continuation lost its packages, hands the
+      // fresh session no slice at all — so it silently works the whole quest instead of the
+      // remainder the `partial` was about.
       const continuation = operationItemContract.parse({
         id: crypto.randomUUID(),
         role: linkedOperation.role,
@@ -323,6 +345,7 @@ export const QuestHandleSignalBackResponder = async ({
         status: 'pending',
         locked: linkedOperation.locked,
         flowIds: linkedOperation.flowIds,
+        packageNames: linkedOperation.packageNames,
         ...(linkedOperation.wardMode === undefined ? {} : { wardMode: linkedOperation.wardMode }),
       });
 

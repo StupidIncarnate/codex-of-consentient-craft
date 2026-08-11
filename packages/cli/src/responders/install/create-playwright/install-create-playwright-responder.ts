@@ -1,9 +1,12 @@
 /**
- * PURPOSE: Writes a minimal playwright.config.ts into the target project so `.e2e.ts` tests run, or skips if one exists
+ * PURPOSE: Writes a minimal playwright.config.ts into the target project so `.e2e.ts` tests run —
+ * skipping when a config already exists, or when the target project is not e2e-eligible
+ * (packageType is neither frontend-react nor frontend-ink), since Playwright has nothing to drive
+ * against a backend/CLI/library target.
  *
  * USAGE:
  * const result = await InstallCreatePlaywrightResponder({ context });
- * // Creates playwright.config.ts or skips if already present
+ * // Creates playwright.config.ts, or skips (already present, or target isn't e2e-eligible)
  */
 
 import {
@@ -12,7 +15,9 @@ import {
   installMessageContract,
   packageNameContract,
   fileContentsContract,
+  absoluteFilePathContract,
 } from '@dungeonmaster/shared/contracts';
+import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 import { pathJoinAdapter, fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { playwrightConfigTemplateStatics } from '../../../statics/playwright-config-template/playwright-config-template-statics';
@@ -25,6 +30,20 @@ export const InstallCreatePlaywrightResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
+  const packageRoot = absoluteFilePathContract.parse(String(context.targetProjectRoot));
+  const e2eEligible = await architecturePackageE2eEligibleDetectBroker({ packageRoot });
+
+  if (!e2eEligible) {
+    return {
+      packageName: packageNameContract.parse(PACKAGE_NAME),
+      success: true,
+      action: 'skipped',
+      message: installMessageContract.parse(
+        'target project is not e2e-eligible (packageType is not frontend-react or frontend-ink)',
+      ),
+    };
+  }
+
   const configPath = pathJoinAdapter({
     paths: [context.targetProjectRoot, CONFIG_FILENAME],
   });

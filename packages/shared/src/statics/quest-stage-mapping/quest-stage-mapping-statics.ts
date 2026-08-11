@@ -22,11 +22,15 @@ export const questStageMappingStatics = {
       'designDecisions',
       'contracts',
       'toolingRequirements',
+      'packagesAffected',
       'operations',
       'workItems',
     ],
-    // The cheap ledger-only read, for a reviewer that needs the plan and not the spine.
-    planning: ['planningNotes', 'operations', 'contracts'],
+    // The cheap ledger-only read, for a reviewer that needs the plan and not the spine. It still
+    // carries `packagesAffected`, because every stage that renders `operations` renders each item's
+    // `[packages: …]` names, and a name with no entry to resolve it to a location and a kind is the
+    // write-only string list the entry shape replaced.
+    planning: ['planningNotes', 'operations', 'contracts', 'packagesAffected'],
     // The full picture, for diagnosing plan-vs-reality: a plan without the flows it targets is not
     // diagnosable, and an item Chaos linked to no flow leaves the whole spine as the only reference.
     implementation: [
@@ -34,6 +38,7 @@ export const questStageMappingStatics = {
       'designDecisions',
       'contracts',
       'toolingRequirements',
+      'packagesAffected',
       'operations',
       'workItems',
       'planningNotes',

@@ -30,7 +30,19 @@ describe('smoketestBlueprintsStatics', () => {
       text: 'Smoketest: implement the single-flow signal emitter',
       status: 'pending',
       locked: false,
+      packageNames: ['orchestrator'],
     });
+  });
+
+  it('VALID: {minimal.packagesAffected} => declares the one package every node tags, as a repo-relative edit', () => {
+    expect(smoketestBlueprintsStatics.minimal.packagesAffected).toStrictEqual([
+      {
+        name: 'orchestrator',
+        location: './packages/orchestrator',
+        changeType: 'edit',
+        packageType: 'programmatic-service',
+      },
+    ]);
   });
 
   it('VALID: {minimal.flows} => every terminal flow node has at least one observable', () => {

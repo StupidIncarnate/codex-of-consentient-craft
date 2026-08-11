@@ -12,6 +12,7 @@ export const roleToModelStatics = {
   bughunt: 'opus',
   tavernkeeper: 'opus',
   flowrider: 'opus',
+  groundstomper: 'opus',
   siegemaster: 'opus',
   codeweaver: 'opus',
   spiritmender: 'sonnet',

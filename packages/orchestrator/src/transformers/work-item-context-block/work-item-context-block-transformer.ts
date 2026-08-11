@@ -18,6 +18,7 @@ import {
   type PromptText,
 } from '../../contracts/prompt-text/prompt-text-contract';
 import { workItemContextBlockStatics } from '../../statics/work-item-context-block/work-item-context-block-statics';
+import { questPackageEntriesToTextTransformer } from '../quest-package-entries-to-text/quest-package-entries-to-text-transformer';
 
 export const workItemContextBlockTransformer = ({
   quest,
@@ -39,7 +40,17 @@ export const workItemContextBlockTransformer = ({
   ];
 
   if (quest.packagesAffected.length > 0) {
-    lines.push(`${labels.packagesAffected} ${quest.packagesAffected.join(', ')}`);
+    lines.push(
+      `${labels.packagesAffected} ${String(questPackageEntriesToTextTransformer({ entries: quest.packagesAffected }))}`,
+    );
+  }
+
+  // The work item's OWN slice, narrower than the quest-wide list above and the reason this block
+  // exists at all: it is the only place a session is told which of the affected packages are its.
+  if (workItem.packageNames !== undefined && workItem.packageNames.length > 0) {
+    lines.push(
+      `${labels.packageNames} ${workItem.packageNames.map((name) => String(name)).join(', ')}`,
+    );
   }
 
   if (workItem.wardMode !== undefined) {

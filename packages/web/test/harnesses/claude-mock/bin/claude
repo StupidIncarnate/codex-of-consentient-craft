@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const http = require('http');
+const { randomUUID } = require('crypto');
 
 const queueDir = process.env.FAKE_CLAUDE_QUEUE_DIR;
 
@@ -117,7 +118,29 @@ const response = JSON.parse(raw);
 // Remove the consumed file from the queue
 fs.unlinkSync(claimedPath);
 
-const lines = response.lines || [];
+// Real Claude CLI stamps a `uuid` on EVERY line it emits, and writes that same uuid onto the
+// transcript line it persists for that message (see the line-shape cheat sheet in
+// packages/orchestrator/CLAUDE.md). That uuid is the chat pipeline's only dedup key: the
+// orchestrator's parse-*-stream-entry transformers key each ChatEntry on `<line.uuid>:<index>`
+// and fall back to a RANDOM uuid when the line carries none, and the web binding upserts entries
+// into a Map keyed by that uuid. One message is legitimately read by several readers at once — the
+// spawn's own stdout, its post-exit main-session tail, and the quest-driven session watcher all
+// carry the same line — so a line without a uuid renders once PER READER instead of once.
+// Stamping here (before both the stdout write and the JSONL write, so both carry the same value)
+// is the same rule followup.harness.ts states for every line it writes.
+const stampLineUuid = (line) => {
+    try {
+        const parsed = JSON.parse(line);
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return line;
+        if (typeof parsed.uuid === 'string' && parsed.uuid.length > 0) return line;
+        return JSON.stringify({ ...parsed, uuid: randomUUID() });
+    } catch {
+        // Unparseable lines are emitted verbatim — the orchestrator's plain-text fallback owns them.
+        return line;
+    }
+};
+
+const lines = (response.lines || []).map(stampLineUuid);
 const exitCode = response.exitCode ?? 0;
 const delayMs = response.delayMs ?? 10;
 const sessionId = response.sessionId || null;
@@ -209,11 +232,15 @@ function writeJsonlSessionFile() {
     // Build JSONL entries using same data structures as stream-json stubs
     const entries = [];
 
-    // Add user message entry (same shape as real Claude JSONL)
+    // Add user message entry (same shape as real Claude JSONL). It carries a uuid for the same
+    // reason every queued line does: this file is tailed by more than one reader at a time, and an
+    // unstamped line is keyed on a fresh random uuid by each of them, so the user's own message
+    // renders once per tail.
     if (userMessage) {
         entries.push(JSON.stringify({
             type: 'user',
             message: {role: 'user', content: userMessage},
+            uuid: randomUUID(),
         }));
     }
 

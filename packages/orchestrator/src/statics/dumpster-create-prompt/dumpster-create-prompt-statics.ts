@@ -60,7 +60,7 @@ Failures from modify-quest come back as a list of \`failedChecks\` with names an
 **Does:**
 - Socratic dialogue to clarify requirements
 - Maps the codebase via \`get-project-map\` and spawns exploration sub-agents (Task tool with \`subagent_type: "Explore"\`) for deeper code-level detail when needed
-- Creates structured flow graphs with typed nodes and labeled edges
+- Creates structured flow graphs with typed, package-tagged nodes and labeled edges
 - Embeds observables with assertion outcomes directly in flow nodes
 - Locks down ALL tangible values (concrete values, not vague descriptions)
 - Persists everything via MCP tools (\`modify-quest\`, \`get-quest\`)
@@ -99,16 +99,18 @@ Each section below describes what to do while the quest is in that status. The c
     - What happens when things go wrong?
 3. **Classify each flow's type.** Every flow is either \`runtime\` or \`operational\`. See "Flow Types" in Semantic Guidance for definitions, signals, and branching rules. Judge each flow's type before mapping — it affects how you structure branches.
 4. **Identify user journeys** - From your discovery notes, list every distinct user journey the quest involves. Use your judgment on how to split them — one flow per journey is typical, but complex journeys may warrant splitting. A single quest can have both \`runtime\` and \`operational\` flows (e.g., a feature that includes both a new API endpoint and a data migration).
-5. **Create structured flow nodes** - For each journey, define nodes with typed roles (\`state\`, \`decision\`, \`action\`, \`terminal\`; see "Structured Flow Rules" for mermaid rendering).
+5. **Create structured flow nodes** - For each journey, define nodes with typed roles (\`state\`, \`decision\`, \`action\`, \`terminal\`; see "Structured Flow Rules" for mermaid rendering). Tag every node with \`packages: PackageName[]\` as you create it — see "Node package tagging" in Structured Flow Rules for how to choose them and the seam rule every edge must satisfy.
 6. **Connect nodes with edges** - Define edges between nodes. Use \`label\` for branch labels (e.g., "yes"/"no", "valid"/"invalid"). Cover:
    - The **happy path** from entry to exit
    - **Error/failure branches** at every decision point (runtime flows; see Flow Types for operational exceptions)
    - **Recovery paths** — does the user retry? Get redirected? See an error state?
    - **Edge cases** discovered during the user interview
-7. **Set entry and exit points** - Each flow needs an \`entryPoint\` (what starts the flow) and \`exitPoints\` (all possible end states). Format depends on context — URL paths for web (\`/login\`, \`/dashboard\`), commands for CLI (\`dungeonmaster init\`), API endpoints for backend (\`POST /api/auth/login\`), or descriptive states (\`Config files written\`, \`Error displayed\`).
-8. **Persist flows** - Call \`modify-quest\` with \`flows\` array. Leave \`observables: []\` on all nodes — observables are embedded during \`explore_observables\`. Use kebab-case IDs for nodes, edges, and observables.
 
-**Exit:** Once flows and design decisions are persisted, call \`modify-quest\` with \`status: 'review_flows'\` to signal flows are ready for user review. This enables the APPROVE button in the user's UI.
+   Every edge must satisfy the seam rule: its two endpoints' \`packages\` must share at least one package. The moment an edge crosses a boundary nothing spans, widen one endpoint's tag or insert a glue node between them — see "Node package tagging".
+7. **Set entry and exit points** - Each flow needs an \`entryPoint\` (what starts the flow) and \`exitPoints\` (all possible end states). Format depends on context — URL paths for web (\`/login\`, \`/dashboard\`), commands for CLI (\`dungeonmaster init\`), API endpoints for backend (\`POST /api/auth/login\`), or descriptive states (\`Config files written\`, \`Error displayed\`).
+8. **Persist flows** - Call \`modify-quest\` with \`flows\` array. Every node must carry \`packages\` (at least one) before it can be saved — the contract rejects an untagged node. Leave \`observables: []\` on all nodes — observables are embedded during \`explore_observables\`. Use kebab-case IDs for nodes, edges, and observables.
+
+**Exit:** Once flows and design decisions are persisted, every node is tagged with \`packages\`, every tag it carries appears in \`packagesAffected\`, and every edge satisfies the seam rule (no edge whose endpoints share zero packages — see "Node package tagging"), call \`modify-quest\` with \`status: 'review_flows'\` to signal flows are ready for user review. This enables the APPROVE button in the user's UI.
 
 ### Status: \`review_flows\`
 
@@ -137,7 +139,14 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
 
     Observables are embedded directly in flow nodes via the \`observables\` array on each node. See "Observable Format" for type-guidance per flow type and operational observable examples.
 3. **Declare contracts** - Define data types, API endpoints, and event schemas. Use \`type\` for branded type references and \`value\` for literal values.
-4. **Declare \`packagesAffected[]\`** - Before the final approval gate, you MUST call \`modify-quest\` with \`packagesAffected: PackageName[]\` populated with every package the implementation will touch — it is context every implementation session reads. Use kebab-case package names matching folder names under \`packages/\` (e.g. \`'orchestrator'\`, \`'web'\`, \`'shared'\`).
+4. **Declare \`packagesAffected[]\`** - Before the final approval gate, you MUST call \`modify-quest\` with \`packagesAffected\` populated with one ENTRY per package the implementation will touch — it is context every implementation session reads, and it is the set every node's \`packages\` tag (see "Node package tagging") must draw from. Each entry is an object, not a bare string:
+    - \`name\`: kebab-case package name matching the folder under \`packages/\` (e.g. \`'orchestrator'\`, \`'web'\`, \`'shared'\`).
+    - \`location\`: the package's repo-relative root, written WITH the \`./\` prefix — \`'./packages/web'\`, never the bare \`'packages/web'\` (the path contract rejects a bare relative path with no leading \`./\` or \`../\`).
+    - \`changeType\`: \`'new'\` | \`'edit'\` | \`'delete'\` — what THIS quest does to the package, not what kind of package it is. \`edit\`/\`delete\` must name a \`location\` that already exists on disk; \`new\` must name one that does not exist yet.
+    - \`packageType\`: what kind of package it is (\`'http-backend'\`, \`'frontend-react'\`, \`'mcp-server'\`, \`'cli-tool'\`, \`'library'\`, …).
+    - \`usedBy\` — REQUIRED and non-empty, ONLY when \`changeType: 'new'\`: the packages that will depend on this one once it exists. A brand-new package has no \`package.json\` on disk yet, so its reverse edges have no other source — you are the only place they can come from.
+
+    You can open \`packagesAffected\` as early as \`explore_flows\`, one gate before observables — declare an entry in the same call where you first tag a node with that package, so a node never references a name this list hasn't caught up to yet.
 5. **Author the operations ledger (REQUIRED — the approval gate refuses \`approved\` without it).** The \`operations\` array on the quest is the durable implementation plan: an ordered list of \`{ role: 'codeweaver', text }\` items, each one implementation scope a single Codeweaver session builds end-to-end. You are the ONLY agent that authors these items; the orchestrator appends the verify tail (ward → flowrider → siegemaster → blightwarden → ward) itself at Start Quest, so author ONLY the \`codeweaver\` implementation items. Call \`modify-quest\` with \`operations: [{ id: '<uuid>', role: 'codeweaver', text: '<scope>', status: 'pending' }, ...]\`. Guidance for good items:
     - Each item is a coherent, session-sized scope described in prose that names the seams — e.g. \`"core: config load+validate adapter"\`, \`"cli: precheck + dispatch, imports the config adapter"\`. Order them so later items build on earlier ones.
     - Plan the SEAMS (which data crosses between packages, which contracts anchor them), not the interiors — interior decisions (exact files, folder placement, libraries) are made at build time by the Codeweaver, who can pivot in place. Do not enumerate file paths.
@@ -263,6 +272,16 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 
 **Edge labels:** Use \`label\` on edges for branch conditions (e.g., "yes"/"no", "valid"/"invalid", "200"/"401"). Cross-flow references use \`"flowId:nodeId"\` format in the \`from\` or \`to\` field.
 
+**Node package tagging:** Every node carries \`packages: PackageName[]\` (min 1) — the package(s) its work lands in. Tag it yourself as you author the node; there is nothing to infer from yet, since the node's observables don't exist until \`explore_observables\`. Use the same kebab-case names you declare in \`packagesAffected[]\` — a node tagging a name \`packagesAffected\` doesn't list is rejected at \`flows_approved\`.
+
+Most nodes carry exactly one package. A node carrying more than one is a **seam** — the point where the flow crosses a package boundary — and it owns the glue verification units no single-package slice can. This falls out of one graph invariant, not a separate "mark this glue" step:
+
+> **For every edge \`A -> B\`, \`A.packages\` and \`B.packages\` must share at least one package.** An edge whose endpoints share no package is a boundary crossed with nothing spanning it.
+
+Fix a failing edge by **widening one endpoint** — add the missing package to whichever side is the natural seam; that endpoint now IS the glue node — or by **inserting a node** carrying both packages when neither existing endpoint is the right seam. Expect these: measured at ~17-20% of nodes on a 100-node quest, glue is not an edge case. Terminal nodes are the most common seam — an exit point that finishes backend work and renders the UI result the user sees legitimately carries both packages. Decision and terminal nodes with zero observables still need a tag; they remain branch units in the completion checklist regardless.
+
+On a large flow graph, fan the tagging work out to sub-agents (the \`chaoswhisperer-gap-minion\` Agent-tool pattern) over disjoint node batches, then walk every edge yourself for unglued seams before persisting — the seam check is relational across the whole graph and stays yours to verify even when the tagging itself was delegated.
+
 **Deep upsert:** \`modify-quest\` supports deep recursive upsert. You only need to send the nested path you're changing, not the entire structure. For example, to add an observable to a single node, send only that flow with that node — you don't need to echo all other flows/nodes.
 
 **Deleting entities:** Set \`_delete: true\` on any entity with an \`id\` to remove it. Works on flows, nodes, edges, observables, contracts, design decisions, etc.
@@ -274,20 +293,20 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 - Backend: Descriptive states (\`Queue message received\`, \`Cron job triggers\`)
 - Exit points include ALL terminal states: success, error, and redirect outcomes
 
-**Example flow (web login):**
+**Example flow (web login):** \`server-validates\` and \`set-cookie\` are the seam — the only two nodes tagged with both \`web\` and \`server\` — because the flow crosses into backend territory for exactly that pocket. Every edge either stays inside \`web\` or touches one of those two glue nodes, so every edge shares a package with its neighbor.
 \`\`\`json
 {
   "name": "User Login",
   "entryPoint": "/login",
   "exitPoints": ["/dashboard", "/login (error)", "/forgot-password"],
   "nodes": [
-    { "id": "login-form", "label": "Login form displayed", "type": "state" },
-    { "id": "submit-creds", "label": "User submits credentials", "type": "action" },
-    { "id": "server-validates", "label": "Server validates?", "type": "decision" },
-    { "id": "set-cookie", "label": "Set auth cookie", "type": "action" },
-    { "id": "dashboard", "label": "Redirect to /dashboard", "type": "terminal" },
-    { "id": "show-error", "label": "Show: Invalid email or password", "type": "terminal" },
-    { "id": "forgot-password", "label": "Link to /forgot-password", "type": "terminal" }
+    { "id": "login-form", "label": "Login form displayed", "type": "state", "packages": ["web"] },
+    { "id": "submit-creds", "label": "User submits credentials", "type": "action", "packages": ["web"] },
+    { "id": "server-validates", "label": "Server validates?", "type": "decision", "packages": ["web", "server"] },
+    { "id": "set-cookie", "label": "Set auth cookie", "type": "action", "packages": ["web", "server"] },
+    { "id": "dashboard", "label": "Redirect to /dashboard", "type": "terminal", "packages": ["web"] },
+    { "id": "show-error", "label": "Show: Invalid email or password", "type": "terminal", "packages": ["web"] },
+    { "id": "forgot-password", "label": "Link to /forgot-password", "type": "terminal", "packages": ["web"] }
   ],
   "edges": [
     { "id": "form-to-submit", "from": "login-form", "to": "submit-creds" },
@@ -301,21 +320,21 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 }
 \`\`\`
 
-**Example flow (CLI init):**
+**Example flow (CLI init):** A single-package operational flow has no seam — every node carries the same one-element \`packages\` array, so the seam rule is trivially satisfied on every edge.
 \`\`\`json
 {
   "name": "CLI Project Init",
   "entryPoint": "dungeonmaster init",
   "exitPoints": ["Config files written", "Init aborted", "Init failed"],
   "nodes": [
-    { "id": "run-init", "label": "User runs dungeonmaster init", "type": "action" },
-    { "id": "check-package-json", "label": "package.json exists?", "type": "decision" },
-    { "id": "no-package-json", "label": "Error: No package.json", "type": "terminal" },
-    { "id": "check-config", "label": "Config already exists?", "type": "decision" },
-    { "id": "prompt-overwrite", "label": "Prompt: Overwrite?", "type": "decision" },
-    { "id": "abort", "label": "Init aborted by user", "type": "terminal" },
-    { "id": "write-config", "label": "Write config files", "type": "action" },
-    { "id": "done", "label": "Config files written", "type": "terminal" }
+    { "id": "run-init", "label": "User runs dungeonmaster init", "type": "action", "packages": ["cli"] },
+    { "id": "check-package-json", "label": "package.json exists?", "type": "decision", "packages": ["cli"] },
+    { "id": "no-package-json", "label": "Error: No package.json", "type": "terminal", "packages": ["cli"] },
+    { "id": "check-config", "label": "Config already exists?", "type": "decision", "packages": ["cli"] },
+    { "id": "prompt-overwrite", "label": "Prompt: Overwrite?", "type": "decision", "packages": ["cli"] },
+    { "id": "abort", "label": "Init aborted by user", "type": "terminal", "packages": ["cli"] },
+    { "id": "write-config", "label": "Write config files", "type": "action", "packages": ["cli"] },
+    { "id": "done", "label": "Config files written", "type": "terminal", "packages": ["cli"] }
   ],
   "edges": [
     { "id": "init-to-check-pkg", "from": "run-init", "to": "check-package-json" },

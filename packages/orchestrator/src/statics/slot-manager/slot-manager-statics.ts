@@ -18,6 +18,9 @@ export const slotManagerStatics = {
   flowrider: {
     maxAttempts: 3,
   },
+  groundstomper: {
+    maxAttempts: 3,
+  },
   siegemaster: {
     maxAttempts: 3,
   },
@@ -30,9 +33,9 @@ export const slotManagerStatics = {
   spiritmender: {
     maxAttempts: 3,
   },
-  // warpgate needs its own key: the pt-budget ladder's final `else` hands any role it does not
-  // name spiritmender's budget, so a role without a key here is silently mis-budgeted rather
-  // than erroring.
+  // Every dispatched role needs its own key: the pt-budget ladder's final `else` hands any role it
+  // does not name spiritmender's budget, so a role without a key here is silently mis-budgeted
+  // rather than erroring.
   warpgate: {
     maxAttempts: 3,
   },

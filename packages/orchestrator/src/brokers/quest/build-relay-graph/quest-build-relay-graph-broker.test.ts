@@ -1,6 +1,9 @@
 import {
+  FlowNodeStub,
   FlowStub,
   OperationItemStub,
+  PackageGraphEntryStub,
+  QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
   WorkItemStub,
@@ -10,20 +13,39 @@ import { questBuildRelayGraphBroker } from './quest-build-relay-graph-broker';
 import { questBuildRelayGraphBrokerProxy } from './quest-build-relay-graph-broker.proxy';
 import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 
+const UUIDS = [
+  '00000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000002',
+  '00000000-0000-4000-8000-000000000003',
+  '00000000-0000-4000-8000-000000000004',
+  '00000000-0000-4000-8000-000000000005',
+  '00000000-0000-4000-8000-000000000006',
+  '00000000-0000-4000-8000-000000000007',
+  '00000000-0000-4000-8000-000000000008',
+  '00000000-0000-4000-8000-000000000009',
+  '00000000-0000-4000-8000-000000000010',
+  '00000000-0000-4000-8000-000000000011',
+  '00000000-0000-4000-8000-000000000012',
+] as const;
+
+const WEB_PACKAGE = QuestPackageEntryStub({
+  name: 'web',
+  location: './packages/web',
+  changeType: 'edit',
+  packageType: 'frontend-react',
+});
+const SERVER_PACKAGE = QuestPackageEntryStub({
+  name: 'server',
+  location: './packages/server',
+  changeType: 'edit',
+  packageType: 'http-backend',
+});
+
 describe('questBuildRelayGraphBroker', () => {
   describe('feature quest', () => {
-    it('VALID: {feature quest with Chaos-authored codeweaver op} => appends 5-item verify tail, first codeweaver op in_progress with ONE linked work item', async () => {
+    it('VALID: {feature quest with Chaos-authored codeweaver op} => appends the verify tail, first codeweaver op in_progress with ONE linked work item', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
 
       const planOp = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -64,7 +86,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000002',
             role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+            text: 'Flowrider: author the flow-perspective test suites below the browser',
             status: 'pending',
             locked: true,
             flowIds: ['login-flow'],
@@ -109,16 +131,7 @@ describe('questBuildRelayGraphBroker', () => {
 
     it('VALID: {feature quest with no pending implementation op} => first actionable is the ward(changed) tail item, work item is command with wardMode', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
 
       const planOp = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -157,18 +170,9 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {feature quest with two flows} => ONE whole-quest flowrider item, and ONE siegemaster item PER FLOW so each flow gets its own pt budget and completion gate', async () => {
+    it('VALID: {feature quest with two untagged flows} => ONE whole-quest flowrider item, and ONE siegemaster item PER FLOW so each flow gets its own pt budget and completion gate', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
 
       const codeweaverOp = OperationItemStub({
         id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
@@ -200,7 +204,7 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+          text: 'Flowrider: author the flow-perspective test suites below the browser',
           flowIds: ['send-comment', 'view-comments'],
         },
         {
@@ -222,20 +226,9 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {feature quest with 2 runtime + 1 operational flow} => flowrider carries ONLY the 2 runtime ids, siegemaster gets one item PER FLOW including the operational one', async () => {
+    it('VALID: {feature quest with 2 runtime + 1 operational untagged flow} => flowrider carries ONLY the 2 runtime ids, siegemaster gets one item PER FLOW including the operational one', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
-          '00000000-0000-4000-8000-000000000007',
-          '00000000-0000-4000-8000-000000000008',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
 
       const codeweaverOp = OperationItemStub({
         id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
@@ -272,7 +265,7 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+          text: 'Flowrider: author the flow-perspective test suites below the browser',
           flowIds: ['send-comment', 'view-comments'],
         },
         {
@@ -304,17 +297,7 @@ describe('questBuildRelayGraphBroker', () => {
     // from the quest's runtime flows rather than from this list.
     it('EMPTY: {feature quest whose every flow is operational} => flowrider item exists with EMPTY flowIds, siegemaster still gets one item per operational flow', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
-          '00000000-0000-4000-8000-000000000007',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
 
       const codeweaverOp = OperationItemStub({
         id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
@@ -354,7 +337,7 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+          text: 'Flowrider: author the flow-perspective test suites below the browser',
           flowIds: [],
         },
         {
@@ -378,16 +361,7 @@ describe('questBuildRelayGraphBroker', () => {
 
     it("EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so the off-map `hostile-input` and `perf` probe families — this quest's only security and performance coverage — keep an owner", async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
 
       const codeweaverOp = OperationItemStub({
         id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
@@ -413,7 +387,7 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+          text: 'Flowrider: author the flow-perspective test suites below the browser',
           flowIds: [],
         },
         {
@@ -431,19 +405,215 @@ describe('questBuildRelayGraphBroker', () => {
     });
   });
 
+  describe('package-sliced dispatch', () => {
+    it('VALID: {tagged nodes across two runtime flows} => one flowrider item per package PLUS a seam item, one groundstomper item per e2e-eligible flow, siegemaster unchanged at one per flow', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const codeweaverOp = OperationItemStub({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        role: 'codeweaver',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        operations: [codeweaverOp],
+        packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['server'] }),
+              FlowNodeStub({ id: 'press-warp', label: 'Press warp', packages: ['web', 'server'] }),
+            ],
+          }),
+          FlowStub({
+            id: 'sweep-rows',
+            name: 'Sweep rows',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'batch', label: 'Batch', packages: ['server'] })],
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.map(({ role, text, flowIds, packageNames }) => ({
+          role,
+          text,
+          flowIds,
+          packageNames,
+        })),
+      ).toStrictEqual([
+        {
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          flowIds: [],
+          packageNames: [],
+        },
+        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [], packageNames: [] },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: web',
+          flowIds: ['send-comment'],
+          packageNames: ['web'],
+        },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
+          flowIds: ['send-comment', 'sweep-rows'],
+          packageNames: ['server'],
+        },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suites below the browser — seam: web + server',
+          flowIds: ['send-comment'],
+          packageNames: ['web', 'server'],
+        },
+        {
+          role: 'groundstomper',
+          text: 'Groundstomper: author the browser walk for this flow — flow: send-comment',
+          flowIds: ['send-comment'],
+          packageNames: ['web'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: send-comment',
+          flowIds: ['send-comment'],
+          packageNames: [],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: sweep-rows',
+          flowIds: ['sweep-rows'],
+          packageNames: [],
+        },
+        {
+          role: 'blightwarden',
+          text: 'Blightwarden: cross-cutting audit across the whole diff',
+          flowIds: [],
+          packageNames: [],
+        },
+        { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [], packageNames: [] },
+      ]);
+    });
+
+    it('EMPTY: {a runtime flow whose only tagged package is an http-backend} => NO groundstomper item is seeded, because a browser can reach nothing on it', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const codeweaverOp = OperationItemStub({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        role: 'codeweaver',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        operations: [codeweaverOp],
+        packagesAffected: [SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'sweep-rows',
+            name: 'Sweep rows',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'batch', label: 'Batch', packages: ['server'] })],
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(result.operations.map(({ role }) => role)).toStrictEqual([
+        'codeweaver',
+        'ward',
+        'flowrider',
+        'siegemaster',
+        'blightwarden',
+        'ward',
+      ]);
+    });
+  });
+
+  describe('codeweaver dependency ordering', () => {
+    it('VALID: {codeweaver ops authored top-down with a packageGraph stamped} => the ledger comes back dependencies-first and the LEAF op is the one marked in_progress', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const webOp = OperationItemStub({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        role: 'codeweaver',
+        text: 'web: render the comment box',
+        status: 'pending',
+        packageNames: ['web'],
+      });
+      const serverOp = OperationItemStub({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        role: 'codeweaver',
+        text: 'server: expose the comment route',
+        status: 'pending',
+        packageNames: ['server'],
+      });
+      const quest = QuestStub({
+        operations: [webOp, serverOp],
+        packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE],
+        packageGraph: [
+          PackageGraphEntryStub({
+            id: 'server',
+            dependsOn: [],
+            depth: 0,
+            packageType: 'http-backend',
+            changeType: 'edit',
+          }),
+          PackageGraphEntryStub({
+            id: 'web',
+            dependsOn: ['server'],
+            depth: 1,
+            packageType: 'frontend-react',
+            changeType: 'edit',
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.slice(0, 2).map(({ id, text, status }) => ({ id, text, status })),
+      ).toStrictEqual([
+        {
+          id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          text: 'server: expose the comment route',
+          status: 'in_progress',
+        },
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          text: 'web: render the comment box',
+          status: 'pending',
+        },
+      ]);
+      expect(result.workItems.map(({ relatedDataItems }) => relatedDataItems)).toStrictEqual([
+        ['operations/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],
+      ]);
+    });
+  });
+
   describe('intake plan items forced complete', () => {
     it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress} => both forced complete, codeweaver op is the first actionable', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
 
       const forgottenPlanOp = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -494,19 +664,23 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('bug-hunt quest', () => {
-    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress + 3-item verify tail, first work item is pesteater', async () => {
+    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress + 3-item verify tail carrying NO groundstomper, first work item is pesteater', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
+      proxy.setupUuids({ ids: UUIDS });
+
+      const quest = QuestStub({
+        questType: 'bug-hunt',
+        operations: [],
+        packagesAffected: [WEB_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'repro-crash',
+            name: 'Repro crash',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] })],
+          }),
         ],
       });
-
-      const quest = QuestStub({ questType: 'bug-hunt', operations: [] });
 
       const result = await questBuildRelayGraphBroker({
         quest,
@@ -619,15 +793,7 @@ describe('questBuildRelayGraphBroker', () => {
   describe('baseRef stamping', () => {
     it('VALID: {quest.baseRef unset, HEAD readable} => stamps baseRef from gitHeadShaAdapter, in the same result as the seeded operations + first work item', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
       proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
 
       const quest = QuestStub({ questType: 'bug-hunt', operations: [] });
@@ -688,15 +854,7 @@ describe('questBuildRelayGraphBroker', () => {
 
     it('VALID: {quest.baseRef already set} => a re-call (e.g. a re-Start) does NOT overwrite it, even when HEAD resolves to a different sha', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
       // Staged so the assertion below proves the adapter's answer is never consulted on this path
       // — a broken short-circuit would surface this NEW sha instead of the original.
       proxy.setupHeadSha({ sha: 'b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2' });
@@ -718,15 +876,7 @@ describe('questBuildRelayGraphBroker', () => {
 
     it('EMPTY: {quest.baseRef unset, HEAD unreadable} => seeding still completes with the full operations ledger + work item, baseRef stays undefined, no throw', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({
-        ids: [
-          '00000000-0000-4000-8000-000000000001',
-          '00000000-0000-4000-8000-000000000002',
-          '00000000-0000-4000-8000-000000000003',
-          '00000000-0000-4000-8000-000000000004',
-          '00000000-0000-4000-8000-000000000005',
-        ],
-      });
+      proxy.setupUuids({ ids: UUIDS });
       proxy.setupHeadShaUnavailable();
 
       const quest = QuestStub({ questType: 'bug-hunt', operations: [] });

@@ -358,10 +358,13 @@ Each is `{ verdict, evidence, question?, workItemId, at }` and each `verdict` is
 - **`unconfirmable`** — genuinely unable to settle it after real effort. `evidence` says what was tried; a `question`
   is REQUIRED and the contract refuses the verdict without one.
 
-**A unit is done when BOTH tracks have signed it.** Both verdicts CLEAR the gate; what the gate refuses is the ABSENCE
-of a sign-off. The two denominators differ, and the difference is DATA in `signoffTrackEligibilityStatics` rather than
-role branches in the gate: Flowrider's excludes the off-map families (Siegemaster's charter — breakage classes a flow
-graph cannot draw) and excludes observables whose `addedBy` is `siegemaster` (a role that runs strictly after it).
+**A unit is done when BOTH sign-off FIELDS have been written.** Both verdicts CLEAR the gate; what the gate refuses is
+the ABSENCE of a sign-off. There are TWO fields (`signoffTrackContract`) and THREE denominators over them
+(`signoffDenominatorTrackContract`), and every difference between the denominators is DATA in
+`signoffTrackEligibilityStatics` rather than role branches in the gate: the authoring ones exclude the off-map families
+(Siegemaster's charter — breakage classes a flow graph cannot draw) and exclude observables whose `addedBy` is
+`siegemaster` (a role that runs strictly after them), and Flowrider and Groundstomper split `flowriderSignoff` between
+them by `packageTypes` — disjoint, and their union is Siegemaster's.
 
 **A measured defect is a NEW observable, not a third verdict.** An observable is a positive expectation; "send it
 `bleh` and the server crashes instead of returning 400" is the INVERSE expectation, so it is ADDED to the flow through
@@ -378,8 +381,12 @@ carry ONLY `id` plus the sign-off field: a transformer rejects anything else on 
 against a unit id that does not already exist. One call per unit is refused by policy, not by the schema — a 45-unit
 flow signed singly is 45 quest writes, 45 outbox appends and 45 browser refetches of a growing file.
 
-`get-qa-checklist` takes a `track` param. With `track: 'flowrider'` and no `flowId` it returns RUNTIME flows only, and
-its `remainingItemIds` is the per-track sign-off difference — the same set the completion gate recomputes.
+`get-qa-checklist` takes a `track` param and an optional `packageNames`. **`track` names the DENOMINATOR — the role you
+were dispatched as — not the field you write**, so a Groundstomper session passes `groundstomper` even though it writes
+`flowriderSignoff`; passing the sibling's name returns the exact complement of its own units. With either authoring
+track and no `flowId` it returns RUNTIME flows only, and its `remainingItemIds` is the per-track sign-off difference
+over the declared slice — the same set the completion gate recomputes, which is why the gate's refusal quotes the call
+verbatim.
 
 ### The reset lever
 

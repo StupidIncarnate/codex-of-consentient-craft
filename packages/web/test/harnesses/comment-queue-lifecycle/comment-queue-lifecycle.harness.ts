@@ -64,10 +64,12 @@ const LIFECYCLE_FLOW = {
       id: LIFECYCLE_FIRST_NODE_ID,
       label: LIFECYCLE_FIRST_NODE_LABEL,
       type: 'action',
+      packages: ['auth-service'],
       observables: [
         {
           id: LIFECYCLE_OBSERVABLE_ID,
           type: 'ui-state',
+          package: 'auth-service',
           description: LIFECYCLE_OBSERVABLE_TEXT,
         },
       ],
@@ -76,9 +78,16 @@ const LIFECYCLE_FLOW = {
       id: LIFECYCLE_SECOND_NODE_ID,
       label: LIFECYCLE_SECOND_NODE_LABEL,
       type: 'action',
+      packages: ['auth-service'],
       observables: [],
     },
-    { id: 'queue-restored', label: 'Queue Restored', type: 'terminal', observables: [] },
+    {
+      id: 'queue-restored',
+      label: 'Queue Restored',
+      type: 'terminal',
+      packages: ['auth-service'],
+      observables: [],
+    },
   ],
   edges: [
     { id: 'first-to-second', from: LIFECYCLE_FIRST_NODE_ID, to: LIFECYCLE_SECOND_NODE_ID },

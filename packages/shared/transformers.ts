@@ -100,3 +100,10 @@ export * from './src/transformers/role-to-config-index/role-to-config-index-tran
 export * from './src/transformers/resolve-ward-floor-name/resolve-ward-floor-name-transformer';
 export * from './src/transformers/ward-aware-config-index/ward-aware-config-index-transformer';
 export * from './src/transformers/work-items-in-dispatch-order/work-items-in-dispatch-order-transformer';
+
+// Package Dependency Graph (shared by ward's tsconfig project-references derivation and the
+// orchestrator's quest-time package dependency tree — see packages/*/CLAUDE.md for consumers)
+export * from './src/transformers/dependency-graph-find-cycle-path/dependency-graph-find-cycle-path-transformer';
+export * from './src/transformers/dependency-graph-topological-order/dependency-graph-topological-order-transformer';
+export * from './src/transformers/package-json-dependency-names/package-json-dependency-names-transformer';
+export * from './src/transformers/dependency-graph-adjacency-build/dependency-graph-adjacency-build-transformer';

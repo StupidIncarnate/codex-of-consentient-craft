@@ -1,9 +1,14 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
 
 const JSON_INDENT_SPACES = 2;
+
+// The DENOMINATOR tuple, three names over two sign-off fields — the list the tool has to accept for
+// every dispatched role to be able to name itself.
+const DENOMINATOR_TRACKS = signoffTracksStatics.denominators;
 
 describe('QaChecklistLayerResponder', () => {
   describe('successful checklist', () => {
@@ -53,7 +58,7 @@ describe('QaChecklistLayerResponder', () => {
       });
     });
 
-    it.each(['flowrider', 'siegemaster'])(
+    it.each(DENOMINATOR_TRACKS)(
       'VALID: {questId, track: %s} => forwards track to the orchestrator',
       async (track) => {
         const proxy = QaChecklistLayerResponderProxy();
@@ -85,14 +90,58 @@ describe('QaChecklistLayerResponder', () => {
         flowId: 'login-flow',
       });
     });
+
+    // A groundstomper session holds a per-flow item whose `packageNames` are the browser-reachable
+    // packages that flow touches, and its gate narrows by them. The tool has to carry both or the
+    // number it prints is not the number the gate refuses on.
+    it('VALID: {questId, track: groundstomper, packageNames} => forwards both to the orchestrator', async () => {
+      const proxy = QaChecklistLayerResponderProxy();
+      proxy.setupReturns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+      });
+
+      await QaChecklistLayerResponder({
+        args: { questId: 'add-auth', track: 'groundstomper', packageNames: ['ui-app'] },
+      });
+
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        track: 'groundstomper',
+        packageNames: ['ui-app'],
+      });
+    });
+
+    it('VALID: {questId, no packageNames} => omits packageNames from the call', async () => {
+      const proxy = QaChecklistLayerResponderProxy();
+      proxy.setupReturns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+      });
+
+      await QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'flowrider' } });
+
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        track: 'flowrider',
+      });
+    });
   });
 
   describe('track validation', () => {
-    it('INVALID: {track: "blightwarden"} => throws on the shared sign-off track enum', async () => {
+    it('INVALID: {track: "blightwarden"} => throws on the shared denominator track enum', async () => {
       QaChecklistLayerResponderProxy();
 
       await expect(
         QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'blightwarden' } }),
+      ).rejects.toThrow(/invalid_enum_value/u);
+    });
+
+    it('INVALID: {track: "flowriderSignoff"} => throws, the sign-off FIELD name is not a track name', async () => {
+      QaChecklistLayerResponderProxy();
+
+      await expect(
+        QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'flowriderSignoff' } }),
       ).rejects.toThrow(/invalid_enum_value/u);
     });
   });

@@ -58,6 +58,9 @@ describe('QuestGetSummaryResponder', () => {
 
       const result = await proxy.callResponder({ questId: quest.id });
 
+      // One `flowriderSignoff`, two entries: this quest tags no `packagesAffected`, so no node's
+      // package kind resolves and both denominators over that field still own the unit. Each entry
+      // is keyed unit-crossed-with-track, so the two never collide.
       expect(result.unconfirmable).toStrictEqual([
         {
           id: 'login-flow:terminal:dashboard:flowrider',
@@ -65,6 +68,18 @@ describe('QuestGetSummaryResponder', () => {
           flowId: 'login-flow',
           kind: 'terminal',
           track: 'flowrider',
+          signoff: SignoffStub({
+            verdict: 'unconfirmable',
+            evidence: 'playwright.config.ts declares no webServer for this project',
+            question: 'Who owns adding a webServer block to playwright.config.ts?',
+          }),
+        },
+        {
+          id: 'login-flow:terminal:dashboard:groundstomper',
+          unitId: 'login-flow:terminal:dashboard',
+          flowId: 'login-flow',
+          kind: 'terminal',
+          track: 'groundstomper',
           signoff: SignoffStub({
             verdict: 'unconfirmable',
             evidence: 'playwright.config.ts declares no webServer for this project',

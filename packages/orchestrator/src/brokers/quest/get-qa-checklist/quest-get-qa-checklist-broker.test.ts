@@ -1,14 +1,84 @@
 import {
+  FlowEdgeStub,
   FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
+  OperationItemStub,
   QuestIdStub,
+  QuestPackageEntryStub,
   QuestQaLedgerEntryStub,
   QuestStub,
   SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
 import { questGetQaChecklistBroker } from './quest-get-qa-checklist-broker';
 import { questGetQaChecklistBrokerProxy } from './quest-get-qa-checklist-broker.proxy';
+
+// A tagged quest: `ui-app` resolves to a browser-reachable kind and `api-service` does not, which is
+// the axis that splits the two authoring denominators. Named nowhere in source — the rule is
+// `packageType`, never a package name.
+const UI_PACKAGE = 'ui-app';
+const API_PACKAGE = 'api-service';
+
+const TAGGED_PACKAGES = [
+  QuestPackageEntryStub({
+    name: UI_PACKAGE,
+    location: `./packages/${UI_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'frontend-react',
+  }),
+  QuestPackageEntryStub({
+    name: API_PACKAGE,
+    location: `./packages/${API_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'http-backend',
+  }),
+];
+
+// One runtime flow whose units split 3 backend / 2 frontend: terminal `n-done` and branch `e-ok`
+// leave backend nodes, branch `e-submit` leaves the frontend one, and each node carries one
+// observable. Nothing is signed, so every unit is outstanding on whichever denominator owns it.
+const TAGGED_FLOW = FlowStub({
+  id: 'checkout-flow',
+  name: 'Checkout',
+  flowType: 'runtime',
+  nodes: [
+    FlowNodeStub({
+      id: 'n-ui',
+      label: 'Cart',
+      packages: [UI_PACKAGE],
+      observables: [
+        FlowObservableStub({
+          id: 'obs-cart',
+          type: 'ui-state',
+          description: 'the cart lists every line item',
+          package: UI_PACKAGE,
+        }),
+      ],
+    }),
+    FlowNodeStub({
+      id: 'n-api',
+      label: 'Charge',
+      packages: [API_PACKAGE],
+      observables: [
+        FlowObservableStub({
+          id: 'obs-charge',
+          type: 'api-call',
+          description: 'POST /api/charge returns 201',
+          package: API_PACKAGE,
+        }),
+      ],
+    }),
+    FlowNodeStub({ id: 'n-done', label: 'Receipt', packages: [API_PACKAGE] }),
+  ],
+  edges: [
+    FlowEdgeStub({ id: 'e-submit', from: 'n-ui', to: 'n-api', label: 'submit' }),
+    FlowEdgeStub({ id: 'e-ok', from: 'n-api', to: 'n-done', label: 'ok' }),
+  ],
+});
+
+const TAGGED_QUEST = QuestStub({ packagesAffected: TAGGED_PACKAGES, flows: [TAGGED_FLOW] });
 
 describe('questGetQaChecklistBroker', () => {
   describe('enumerating a quest', () => {
@@ -82,7 +152,15 @@ describe('questGetQaChecklistBroker', () => {
           FlowStub({
             id: 'first-flow',
             name: 'First Flow',
-            nodes: [{ id: 'a-node', label: 'A node', type: 'state', observables: [] }],
+            nodes: [
+              {
+                id: 'a-node',
+                label: 'A node',
+                type: 'state',
+                packages: ['auth-service'],
+                observables: [],
+              },
+            ],
             edges: [],
           }),
         ],
@@ -113,7 +191,15 @@ describe('questGetQaChecklistBroker', () => {
           FlowStub({
             id: 'first-flow',
             name: 'First Flow',
-            nodes: [{ id: 'a-node', label: 'A node', type: 'state', observables: [] }],
+            nodes: [
+              {
+                id: 'a-node',
+                label: 'A node',
+                type: 'state',
+                packages: ['auth-service'],
+                observables: [],
+              },
+            ],
             edges: [],
           }),
         ],
@@ -373,6 +459,95 @@ describe('questGetQaChecklistBroker', () => {
         'walk-flow:off-map:hostile-input',
         'walk-flow:off-map:perf',
       ]);
+    });
+  });
+
+  // The number a session reads and the number its gate refuses on MUST be the same number. They are
+  // computed by different call chains — this broker for the tool, `signoffOutstandingTransformer`
+  // for signal-back — and a divergence is indistinguishable from a hallucinating gate. Groundstomper
+  // is where it would show first: it writes `flowriderSignoff`, so a tool keyed on the sign-off
+  // FIELD hands it Flowrider's package kinds, which are the exact complement of its own.
+  describe('the checklist number equals the completion gate number', () => {
+    it("VALID: {track: 'groundstomper', its own packageNames} => tool and gate name the SAME browser-reachable units", async () => {
+      const proxy = questGetQaChecklistBrokerProxy();
+      proxy.setupQuestFound({ quest: TAGGED_QUEST });
+      const groundstomperItem = OperationItemStub({
+        role: 'groundstomper',
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['checkout-flow'],
+        packageNames: [UI_PACKAGE],
+      });
+
+      const checklists = await questGetQaChecklistBroker({
+        questId: QuestIdStub({ value: TAGGED_QUEST.id }),
+        track: 'groundstomper',
+        packageNames: [UI_PACKAGE] as never,
+      });
+
+      const gateOutstanding = signoffOutstandingTransformer({
+        quest: TAGGED_QUEST,
+        operationItem: groundstomperItem,
+      });
+
+      // The branch LEAVING the frontend node and the observable ON it — and nothing backend, and no
+      // off-map family.
+      expect([checklists[0]?.remainingItemIds, gateOutstanding]).toStrictEqual([
+        ['checkout-flow:branch:e-submit', 'checkout-flow:observable:obs-cart'],
+        ['checkout-flow:branch:e-submit', 'checkout-flow:observable:obs-cart'],
+      ]);
+    });
+
+    it("VALID: {track: 'flowrider', its own packageNames} => tool and gate name the SAME units, and they are the complement", async () => {
+      const proxy = questGetQaChecklistBrokerProxy();
+      proxy.setupQuestFound({ quest: TAGGED_QUEST });
+      const flowriderItem = OperationItemStub({
+        role: 'flowrider',
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['checkout-flow'],
+        packageNames: [API_PACKAGE],
+      });
+
+      const checklists = await questGetQaChecklistBroker({
+        questId: QuestIdStub({ value: TAGGED_QUEST.id }),
+        track: 'flowrider',
+        packageNames: [API_PACKAGE] as never,
+      });
+
+      const gateOutstanding = signoffOutstandingTransformer({
+        quest: TAGGED_QUEST,
+        operationItem: flowriderItem,
+      });
+
+      expect([checklists[0]?.remainingItemIds, gateOutstanding]).toStrictEqual([
+        [
+          'checkout-flow:terminal:n-done',
+          'checkout-flow:branch:e-ok',
+          'checkout-flow:observable:obs-charge',
+        ],
+        [
+          'checkout-flow:terminal:n-done',
+          'checkout-flow:branch:e-ok',
+          'checkout-flow:observable:obs-charge',
+        ],
+      ]);
+    });
+
+    it("VALID: {track: 'groundstomper' handed FLOWRIDER's slice} => the tool answers the other role's set, which is why the name matters", async () => {
+      const proxy = questGetQaChecklistBrokerProxy();
+      proxy.setupQuestFound({ quest: TAGGED_QUEST });
+
+      const checklists = await questGetQaChecklistBroker({
+        questId: QuestIdStub({ value: TAGGED_QUEST.id }),
+        track: 'flowrider',
+        packageNames: [UI_PACKAGE] as never,
+      });
+
+      // `flowrider` sheds every frontend unit by KIND before the slice is applied, so naming the
+      // wrong track leaves a groundstomper session reading zero and signalling `done` against a gate
+      // that would refuse two.
+      expect(checklists[0]?.remainingItemIds).toStrictEqual([]);
     });
   });
 

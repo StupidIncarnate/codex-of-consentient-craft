@@ -53,6 +53,7 @@ describe('questCreateBroker', () => {
       designDecisions: [],
       toolingRequirements: [],
       packagesAffected: [],
+      packageGraph: [],
       contracts: [],
       flows: [],
       comments: [],
@@ -68,6 +69,7 @@ describe('questCreateBroker', () => {
       status: 'in_progress',
       locked: true,
       flowIds: [],
+      packageNames: [],
     });
   });
 

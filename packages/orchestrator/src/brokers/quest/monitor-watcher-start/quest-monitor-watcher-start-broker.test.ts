@@ -44,6 +44,91 @@ describe('questMonitorWatcherStartBroker', () => {
     });
   });
 
+  // A tail is a delivery identity, and chat-output naming a chatProcessId is what arms the web
+  // composer's running indicator. Only a chat-complete naming that SAME id disarms it, so a tail
+  // that emitted output and then vanished silently leaves the composer on STOP forever.
+  describe('stop-time terminal event', () => {
+    it('VALID: {worker session, stop()} => emits one chat-complete naming the tail chatProcessId, its session, its work item and its quest', async () => {
+      const proxy = questMonitorWatcherStartBrokerProxy();
+      proxy.setupHomeDir({ path: '/home/user' });
+
+      const parentSessionId = '88888888-8888-8888-8888-888888888888';
+      const workerWorkItemId = String(WorkItemStub().id);
+      const workerQuestId = String(QuestIdStub({ value: 'ffffffff-1111-2222-3333-444444444444' }));
+
+      const emitted: EmitParam[] = [];
+
+      const handle = await questMonitorWatcherStartBroker({
+        parentSessionId,
+        projectDir: '/home/user/p',
+        workerWorkItemId,
+        workerQuestId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+      });
+
+      handle.stop();
+
+      expect(emitted).toStrictEqual([
+        {
+          type: 'chat-complete',
+          processId: `proc-worker-${parentSessionId}`,
+          payload: {
+            chatProcessId: `proc-worker-${parentSessionId}`,
+            sessionId: SessionIdStub({ value: parentSessionId }),
+            questId: QuestIdStub({ value: workerQuestId }),
+            workItemId: WorkItemStub().id,
+          },
+        },
+      ]);
+    });
+
+    it('VALID: {worker session, stop() twice} => emits the terminal exactly once', async () => {
+      const proxy = questMonitorWatcherStartBrokerProxy();
+      proxy.setupHomeDir({ path: '/home/user' });
+
+      const parentSessionId = '99999999-9999-9999-9999-999999999999';
+      const emitted: EmitParam[] = [];
+
+      const handle = await questMonitorWatcherStartBroker({
+        parentSessionId,
+        projectDir: '/home/user/p',
+        workerWorkItemId: String(WorkItemStub().id),
+        workerQuestId: String(QuestIdStub({ value: 'ffffffff-5555-6666-7777-888888888888' })),
+        emit: (call) => {
+          emitted.push(call);
+        },
+      });
+
+      handle.stop();
+      handle.stop();
+
+      expect(emitted.map((call) => call.type)).toStrictEqual(['chat-complete']);
+    });
+
+    // A /dumpster-launch dispatcher session tails sub-agents belonging to several quests at once,
+    // so there is no single questId a per-quest terminal could honestly name.
+    it('EMPTY: {dispatcher session (no workerWorkItemId/workerQuestId), stop()} => emits nothing', async () => {
+      const proxy = questMonitorWatcherStartBrokerProxy();
+      proxy.setupHomeDir({ path: '/home/user' });
+
+      const emitted: EmitParam[] = [];
+
+      const handle = await questMonitorWatcherStartBroker({
+        parentSessionId: 'aaaaaaaa-9999-9999-9999-999999999999',
+        projectDir: '/home/user/p',
+        emit: (call) => {
+          emitted.push(call);
+        },
+      });
+
+      handle.stop();
+
+      expect(emitted).toStrictEqual([]);
+    });
+  });
+
   describe('chat-output emit payload', () => {
     it('VALID: {sub-agent JSONL emits entries} => chat-output payload stamps sessionId=parentSessionId so the web binding bucket matches wi.sessionId', async () => {
       const proxy = questMonitorWatcherStartBrokerProxy();

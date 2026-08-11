@@ -23,6 +23,13 @@
  * exclusions included. Omit the track and it falls back to the flow-wide ledger difference, which
  * is what a reader with no track in hand (a human, a whole-quest listing) is actually asking for.
  *
+ * PASS THE PACKAGE SCOPE TOO, or the count over-reports. `packagesAffected` is what resolves a
+ * node's tags to the package KINDS the named track measures, and `packageNames` is the operation
+ * item's own slice — Flowrider's tail seed fans out to one item per package plus a seam item, and a
+ * session reading a whole-quest remainder while its gate clears at zero is exactly the number that
+ * makes an operator stop believing the checklist. Both are omitted by a caller holding no quest and
+ * no item, and then nothing is narrowed.
+ *
  * NO MODEL IS IN THIS LOOP, and that is the entire point. A session asked to enumerate a
  * 45-observable flow summarises, drops the tail, or paraphrases the wording; this walks the data
  * and cannot. Ids are derived from the graph rather than minted, so re-running against an unchanged
@@ -43,9 +50,10 @@
 import { qaChecklistContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import type {
   Flow,
+  PackageName,
   QaChecklist,
+  QuestPackageEntry,
   QuestQaLedgerEntry,
-  SignoffTrack,
 } from '@dungeonmaster/shared/contracts';
 import {
   qaCheckSurfaceStatics,
@@ -53,6 +61,7 @@ import {
   qaOffMapProbeStatics,
 } from '@dungeonmaster/shared/statics';
 
+import type { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
 import { qaWalkPathsTransformer } from '../qa-walk-paths/qa-walk-paths-transformer';
 import { signoffFlowOutstandingTransformer } from '../signoff-flow-outstanding/signoff-flow-outstanding-transformer';
@@ -61,10 +70,18 @@ export const qaChecklistBuildTransformer = ({
   flow,
   ledger = [],
   track,
+  packagesAffected = [],
+  packageNames = [],
 }: {
   flow: Flow;
   ledger?: readonly QuestQaLedgerEntry[];
-  track?: SignoffTrack;
+  // Keyed on the ELIGIBILITY statics rather than `signoffTrackContract`, because there are three
+  // denominators over two sign-off fields and `groundstomper` is one of them. Indexing the same
+  // lookup the gate indexes is the compile-time pin that a new track cannot reach this surface
+  // without a denominator to measure it against.
+  track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
+  packagesAffected?: readonly QuestPackageEntry[];
+  packageNames?: readonly PackageName[];
 }): QaChecklist => {
   // The unit's own fields (anchors, source text, sign-offs) are spread in and `qaChecklistItem`'s
   // schema strips whatever it does not declare, so this file adds exactly the two rendered fields.
@@ -118,6 +135,6 @@ export const qaChecklistBuildTransformer = ({
     remainingItemIds:
       track === undefined
         ? items.filter((item) => !dispositionedIds.has(String(item.id))).map((item) => item.id)
-        : signoffFlowOutstandingTransformer({ flow, track }),
+        : signoffFlowOutstandingTransformer({ flow, track, packagesAffected, packageNames }),
   });
 };

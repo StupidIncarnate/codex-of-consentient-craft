@@ -10,6 +10,7 @@ import {
   QuestCommentStub,
   QuestContractEntryStub,
   QuestIdStub,
+  QuestPackageEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -122,6 +123,201 @@ describe('ReactFlowDiagramWidget', () => {
     });
   });
 
+  // The package tags are what the reviewer signs off at the review_flows gate, so the canvas has to
+  // paint them WITHOUT a click, and it has to paint the KIND resolved from the quest's own
+  // packagesAffected — never anything recognised from the package's name.
+  describe('package tags on the canvas', () => {
+    it('VALID: {single-package node and a two-package seam node} => each card carries one chip per tag, so the seam shows both sides', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const uiNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'open-page' }),
+        label: 'Open Page',
+        type: 'action',
+        packages: ['storefront-ui'],
+        observables: [],
+      });
+      const seamNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'press-warp' }),
+        label: 'Press Warp',
+        type: 'terminal',
+        packages: ['storefront-ui', 'orders-api'],
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [uiNode, seamNode], edges: [] });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'open-page', x: 0, y: 0 },
+          { id: 'press-warp', x: 0, y: 400 },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            packagesAffected={[
+              QuestPackageEntryStub({ name: 'storefront-ui', packageType: 'frontend-react' }),
+              QuestPackageEntryStub({ name: 'orders-api', packageType: 'http-backend' }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.getPackageChipsOnNode({ nodeId: 'open-page' })).toStrictEqual(['storefront-ui']);
+      expect(proxy.getPackageChipsOnNode({ nodeId: 'press-warp' })).toStrictEqual([
+        'storefront-ui',
+        'orders-api',
+      ]);
+    });
+
+    it('VALID: {packagesAffected declares each kind} => each chip carries the kind resolved from the quest, not from its name', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const seamNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'press-warp' }),
+        label: 'Press Warp',
+        type: 'action',
+        packages: ['storefront-ui', 'orders-api'],
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [seamNode], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            packagesAffected={[
+              QuestPackageEntryStub({ name: 'storefront-ui', packageType: 'frontend-react' }),
+              QuestPackageEntryStub({ name: 'orders-api', packageType: 'http-backend' }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.getPackageChipTypesOnNode({ nodeId: 'press-warp' })).toStrictEqual([
+        'frontend-react',
+        'http-backend',
+      ]);
+    });
+
+    // Same two names, opposite kinds. Nothing may recognise `storefront-ui` as a UI package: the
+    // declaration is the only source, so swapping it swaps what the canvas paints.
+    it('VALID: {the same names declared with swapped kinds} => the chips follow the declaration, proving no name is recognised', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const seamNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'press-warp' }),
+        label: 'Press Warp',
+        type: 'action',
+        packages: ['storefront-ui', 'orders-api'],
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [seamNode], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            packagesAffected={[
+              QuestPackageEntryStub({ name: 'storefront-ui', packageType: 'http-backend' }),
+              QuestPackageEntryStub({ name: 'orders-api', packageType: 'frontend-react' }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.getPackageChipTypesOnNode({ nodeId: 'press-warp' })).toStrictEqual([
+        'http-backend',
+        'frontend-react',
+      ]);
+    });
+
+    it('EMPTY: {node tags a package absent from packagesAffected} => the chip still renders, carrying no resolved kind', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'press-warp' }),
+        label: 'Press Warp',
+        type: 'action',
+        packages: ['never-declared'],
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} packagesAffected={[]} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.getPackageChipsOnNode({ nodeId: 'press-warp' })).toStrictEqual([
+        'never-declared',
+      ]);
+      expect(proxy.getPackageChipTypesOnNode({ nodeId: 'press-warp' })).toStrictEqual([null]);
+    });
+
+    // A seam node's assertion cards are the only surface that says WHICH side each criterion is
+    // read on, so both sides must appear in the column.
+    it('VALID: {seam node whose two observables sit on opposite packages} => each assertion card names its own side', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const seamNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'press-warp' }),
+        label: 'Press Warp',
+        type: 'terminal',
+        packages: ['storefront-ui', 'orders-api'],
+        observables: [
+          FlowObservableStub({
+            id: 'button-shows-merged',
+            description: 'the merge button reads MERGED',
+            package: 'storefront-ui',
+          }),
+          FlowObservableStub({
+            id: 'branch-is-landed',
+            description: 'the branch is landed on base',
+            package: 'orders-api',
+          }),
+        ],
+      });
+      const flow = FlowStub({ nodes: [seamNode], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            packagesAffected={[
+              QuestPackageEntryStub({ name: 'storefront-ui', packageType: 'frontend-react' }),
+              QuestPackageEntryStub({ name: 'orders-api', packageType: 'http-backend' }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.getObservablePackageNames()).toStrictEqual(['storefront-ui', 'orders-api']);
+    });
+  });
+
   // React Flow paints every node `visibility: hidden` until its own ResizeObserver measurement
   // lands, and it throws that measurement away whenever a render hands it a fresh node object —
   // which this widget does on every render. A measurement discarded in the same React batch it
@@ -152,11 +348,55 @@ describe('ReactFlowDiagramWidget', () => {
         expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
       });
 
-      // 'Login Page' is 10 chars => 1 wrapped line => 40 chrome + 16 line + 22 badge + 12 buffer.
-      // 'redirects to dashboard' is 22 chars => 1 wrapped line => 30 chrome + 15 line + 10 buffer.
+      // 'Login Page' is 10 chars => 1 wrapped line => 40 chrome + 16 line + 22 badge + 12 buffer,
+      // plus the chip row: one 'auth-service' tag is 12 + 5 overhead = 17 chars => 1 row => 22.
+      // 'redirects to dashboard' is 22 chars => 1 wrapped line => 52 chrome + 15 line + 10 buffer.
       expect(proxy.getInitialBoxes()).toStrictEqual([
-        ['login-page', '240', '90'],
-        ['obs:login-page:redirects', '220', '55'],
+        ['login-page', '240', '112'],
+        ['obs:login-page:redirects', '220', '77'],
+      ]);
+    });
+
+    // The chip row is a REAL row, so it has to be in the box every card arrives with — that box is
+    // the rectangle ELK laid the graph out against, and a seam node reserving a single-package box
+    // is exactly how a card grows over the row beneath it.
+    it('VALID: {seam node beside a single-package node with the same label} => the seam reserves a taller box for its extra chip rows', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const singleNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'one-package' }),
+        label: 'Same Label',
+        type: 'state',
+        packages: ['storefront-ui'],
+        observables: [],
+      });
+      const seamNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'four-packages' }),
+        label: 'Same Label',
+        type: 'state',
+        packages: ['storefront-ui', 'orders-api', 'shared-kit', 'billing-service'],
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [singleNode, seamNode], edges: [] });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'one-package', x: 0, y: 0 },
+          { id: 'four-packages', x: 0, y: 400 },
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      // 'Same Label' is 10 chars => 1 line => 40 + 16 + 22 + 12 = 90 before the chip row.
+      // One 'storefront-ui' tag = 13 + 5 = 18 chars => 1 row => 22 => 112.
+      // Four tags = 18 + 15 + 15 + 20 = 68 chars => ceil(68 / 22) = 4 rows => 88 => 178.
+      expect(proxy.getInitialBoxes()).toStrictEqual([
+        ['one-package', '240', '112'],
+        ['four-packages', '240', '178'],
       ]);
     });
 
@@ -189,10 +429,12 @@ describe('ReactFlowDiagramWidget', () => {
         expect(screen.queryByTestId('FLOW_PORTAL_NODE')).toBeInTheDocument();
       });
 
-      // 'Run Compile flow' is 16 chars => 1 line => 40 + 16 + 22 + 12. The portal's
-      // '↗ compile-flow → compile-entry' is 30 chars => 2 lines => 40 + 32 + 12 (no badge).
+      // 'Run Compile flow' is 16 chars => 1 line => 40 + 16 + 22 + 12, plus a 22px chip row for its
+      // one tag. The portal's '↗ compile-flow → compile-entry' is 30 chars => 2 lines => 40 + 32 +
+      // 12 — no badge and no chip row, because a portal stands in for a node in ANOTHER flow and
+      // carries no tags of its own.
       expect(proxy.getInitialBoxes()).toStrictEqual([
-        ['run-compile', '240', '90'],
+        ['run-compile', '240', '112'],
         ['compile-flow:compile-entry', '240', '84'],
       ]);
     });

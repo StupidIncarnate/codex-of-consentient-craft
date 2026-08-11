@@ -1,4 +1,4 @@
-import { signoffTrackContract } from '../signoff-track/signoff-track-contract';
+import { signoffDenominatorTrackContract } from '../signoff-denominator-track/signoff-denominator-track-contract';
 import { questSummaryTrackCountsContract } from './quest-summary-track-counts-contract';
 import { QuestSummaryTrackCountsStub } from './quest-summary-track-counts.stub';
 
@@ -13,8 +13,8 @@ describe('questSummaryTrackCountsContract', () => {
       });
     });
 
-    it.each(signoffTrackContract.options)(
-      'VALID: {id: %s} => every verification track is a legal id',
+    it.each(signoffDenominatorTrackContract.options)(
+      'VALID: {id: %s} => every denominator track is a legal id, groundstomper included',
       (track) => {
         expect(QuestSummaryTrackCountsStub({ id: track }).id).toBe(track);
       },

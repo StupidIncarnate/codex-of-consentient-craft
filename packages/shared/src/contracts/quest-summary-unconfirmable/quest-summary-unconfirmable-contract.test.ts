@@ -1,5 +1,5 @@
 import { SignoffStub } from '../signoff/signoff.stub';
-import { signoffTrackContract } from '../signoff-track/signoff-track-contract';
+import { signoffDenominatorTrackContract } from '../signoff-denominator-track/signoff-denominator-track-contract';
 import { questSummaryUnconfirmableContract } from './quest-summary-unconfirmable-contract';
 import { QuestSummaryUnconfirmableStub } from './quest-summary-unconfirmable.stub';
 
@@ -21,8 +21,8 @@ describe('questSummaryUnconfirmableContract', () => {
       });
     });
 
-    it.each(signoffTrackContract.options)(
-      'VALID: {track: %s} => either track can record an unconfirmable',
+    it.each(signoffDenominatorTrackContract.options)(
+      'VALID: {track: %s} => every denominator track can record an unconfirmable, groundstomper included',
       (track) => {
         expect(QuestSummaryUnconfirmableStub({ track }).track).toBe(track);
       },

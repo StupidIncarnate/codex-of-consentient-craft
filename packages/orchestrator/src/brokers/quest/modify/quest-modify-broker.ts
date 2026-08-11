@@ -46,12 +46,15 @@ import { questContractSourceResolutionTransformer } from '../../../transformers/
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
+import { questPackageEntryViolationsTransformer } from '../../../transformers/quest-package-entry-violations/quest-package-entry-violations-transformer';
 import { questResolvedCommentsTransformer } from '../../../transformers/quest-resolved-comments/quest-resolved-comments-transformer';
 import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
+import { questRepoRootBroker } from '../repo-root/quest-repo-root-broker';
 import { questWithModifyLockBroker } from '../with-modify-lock/quest-with-modify-lock-broker';
+import { resolvePackageEntryFactsLayerBroker } from './resolve-package-entry-facts-layer-broker';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -168,8 +171,10 @@ export const questModifyBroker = async ({
         }
 
         if (validated.packagesAffected !== undefined) {
-          // packagesAffected is a plain string-brand array (no id), so it replaces the
-          // whole list rather than upserting by id like the object arrays above.
+          // The entries carry no `id`, so there is no merge key to upsert on — the whole list is
+          // replaced. That is also the semantics the field wants: it is a TAG LIST, the closed set
+          // every node tag and operation item draws its names from, and a caller dropping a package
+          // from the quest must be able to say so by omitting it.
           quest.packagesAffected = validated.packagesAffected;
         }
 
@@ -384,6 +389,48 @@ export const questModifyBroker = async ({
               success: false,
               error: 'Contract source path resolution failed',
               failedChecks: sourceFailedChecks,
+            });
+          }
+        }
+
+        // Package entries are judged against DISK, which no contract can do for itself: an 'edit' or
+        // 'delete' must name a package that already exists, a 'new' one must not, and deleting a
+        // package that something still imports would leave the post-quest dependency graph with a
+        // dangling edge. Scoped to the entries this call WRITES, for the same reason the contract
+        // branch above is: re-resolving a list the caller did not touch surfaces stale disk state.
+        if (validated.packagesAffected !== undefined) {
+          // Locations are repo-relative to the repo THIS quest targets, which the guild names —
+          // never to whatever directory the orchestrator process was launched from. A quest driving
+          // a sibling repo declares that repo's packages, and resolving them anywhere else turns
+          // every one of them into a phantom.
+          const projectRoot = await questRepoRootBroker({ questId: validated.questId });
+          const { existingLocations, dependentsByPackage, stampedEntries } =
+            await resolvePackageEntryFactsLayerBroker({
+              entries: quest.packagesAffected,
+              projectRoot,
+            });
+          // The DETECTOR owns `packageType` for a package that already exists — an author declaring
+          // one is guessing, and everything downstream (e2e eligibility, the groundstomper fan-out,
+          // the dependency graph) reads this field as if it were measured. Only a 'new' entry keeps
+          // what it declared, because there is nothing on disk to measure.
+          quest.packagesAffected = stampedEntries;
+          const packageEntryOffenders = questPackageEntryViolationsTransformer({
+            entries: stampedEntries,
+            existingLocations,
+            dependentsByPackage,
+          });
+          if (packageEntryOffenders.length > 0) {
+            const packageEntryChecks: VerifyQuestCheck[] = packageEntryOffenders.map((message) =>
+              verifyQuestCheckContract.parse({
+                name: 'Package Entry Resolution',
+                passed: false,
+                details: String(message),
+              }),
+            );
+            return modifyQuestResultContract.parse({
+              success: false,
+              error: 'Package entry validation failed',
+              failedChecks: packageEntryChecks,
             });
           }
         }

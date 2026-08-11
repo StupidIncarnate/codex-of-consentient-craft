@@ -12,7 +12,7 @@
  * in the Agent dispatch, not in `$ARGUMENTS` — is the only quest context it gets. It returns the
  * five-part evidence contract per observable so the operator can verify its claims by reading files.
  *
- * The evidence contract, the modality table and the false-green catalogue are NOT restated here —
+ * The evidence contract, the layer guidance and the false-green catalogue are NOT restated here —
  * they are interpolated from `flowEvidenceContractStatics`, the same block the operator judges
  * against, so the authoring checklist and the reject list cannot drift apart.
  *
@@ -90,7 +90,7 @@ ${flowEvidenceContractStatics.authoringMarkdown}
 ## Step 1: Load Standards (BLOCKING — do this FIRST)
 
 - \`get-architecture\` — folder types, import rules, forbidden folders
-- \`get-testing-patterns\` — **always call.** Test structure, assertion rules, integration and e2e
+- \`get-testing-patterns\` — **always call.** Test structure, assertion rules, integration test
   patterns. This repo forbids \`toEqual\`/\`toMatchObject\`/\`toContain\`/\`toBeTruthy\` and bans
   \`beforeEach\`/\`afterEach\` and \`jest.mock\`; you will produce unusable tests without it.
 - \`get-syntax-rules\` — file naming, exports, conventions
@@ -138,20 +138,18 @@ in \`GOTCHAS\`, because the operator needs it for the whole-quest seam check tha
 
 Then assign each observable to the layer that can actually prove it, using its \`checkSurface\` from
 the checklist and the modality guidance above.
-The three coverage modes below combine freely within one flow; they are not labels you assign once.
+The two coverage modes below combine freely within one flow; they are not labels you assign once.
 
 For each layer, coverage is either **already there** (verify it actually covers this flow's path,
 then move on) or **yours to add**. Name which, per layer.
 
-### Mode A: Browser-driven
+**A claim only a browser can observe is NOT yours** — a \`ui-state\` observable, a \`cache-state\`
+claim about a page lifecycle (mount, reload, navigation, a second tab), the browser side of an
+\`api-call\`. Groundstomper walks those in Playwright, one session per runtime flow, and they are not
+in your denominator. Name each one in \`GOTCHAS\` so the operator can see the seam, and author the
+layer underneath it that IS yours.
 
-**Use for:** \`ui-state\` observables, \`cache-state\` observables whose claim involves a page
-lifecycle (mount, reload, navigation, a second tab), and the browser side of an \`api-call\`.
-
-**Modality:** Playwright E2E. Walk each path from entry to terminal in a real browser. Each decision
-branch is a test case. Each observable on the path is an assertion.
-
-### Mode B: Server, queue, CLI, or persistence
+### Mode A: Server, queue, CLI, or persistence
 
 **Use for:** \`api-call\` claims about what a route answered, \`db-query\`, \`process-state\`, and any
 server-side state change.
@@ -163,7 +161,7 @@ the consumer out-of-process, your test must too.
 
 **Required even when the flow also has a UI**, and it is the layer minions skip most.
 
-### Mode C: Verification of a predicate
+### Mode B: Verification of a predicate
 
 **Use for:** \`custom\` observables that state a predicate rather than a behaviour — a grep that must
 return an exact match count, a file that must exist, a code comment that must be present, a process
@@ -172,12 +170,12 @@ that must not be running.
 **Modality: VERIFICATION, not a test suite.** Run the predicate exactly as written and record the
 real result. You author no test for these and walk no edges.
 
-**Mode C is chosen per OBSERVABLE, never per flow.** A flow whose \`flowType\` is \`operational\` is
+**Mode B is chosen per OBSERVABLE, never per flow.** A flow whose \`flowType\` is \`operational\` is
 telling you where its centre of gravity sits — it is NOT telling you every observable on it is a
-predicate. An operational flow routinely carries \`ui-state\` observables asserting that the surfaces
-a deletion was supposed to leave alone still work, and those need Mode A exactly like any other
-browser claim. Read every observable's own \`type\`; never let a flow-level label decide for a whole
-flow.
+predicate. An operational flow routinely carries \`api-call\` and \`db-query\` observables asserting
+that the surfaces a deletion was supposed to leave alone still answer, and those need Mode A exactly
+like any other server-side claim. Read every observable's own \`type\`; never let a flow-level label
+decide for a whole flow.
 
 **Two more rules compose on top of that, and they answer different questions — never treat them as
 alternatives.** JOURNEY-vs-MATRIX chooses the test SHAPE: how many tests there are and what each one
@@ -185,7 +183,7 @@ walks. \`checkSurface\` chooses the LAYER: where each assertion inside that shap
 from.
 
 - **A branchy flow is a JOURNEY** — one test per path, driven entry to terminal, every decision node
-  forking the walk. Rendered as **e2e for a web surface** and as **integration for a non-web one**.
+  forking the walk. Rendered as **integration**, driven at the layer the path's claims live on.
 - **A set of independent input combinations is a MATRIX** — one parameterized test over the
   combinations rather than N hand-written near-duplicates. A matrix is **integration**.
 
@@ -218,34 +216,18 @@ asserting something already covered — go back to Step 2. Where red-first is im
 behaviour already works, prove the test bites by **mutation**: break the production line it guards,
 run it, capture the red, then revert and confirm \`git diff\` on that file is empty.
 
-### Mode A specifics (Playwright)
-
-**Playwright owns the dev server; it lives only for the run, and you never touch it.** The project's
-Playwright config declares it in \`webServer\`; Playwright brings it up for the run and tears it down
-at the end. Do NOT start a server by hand, and do NOT edit the Playwright config — it is install-time
-scaffolding shared by every bundle, and your siblings are running right now, so an edit there races
-theirs.
-
-If the config declares no \`webServer\` and your bundle genuinely needs a served app, stop and report
-it under \`BLOCKED BY MISSING INFRASTRUCTURE\`, naming exactly what is missing and which units it
-blocks. That is missing infrastructure, not something to improvise around.
-
-- One \`.e2e.ts\` per flow, **colocated in that flow's folder of the UI package**:
-  \`<ui-package>/src/flows/<route>/<feature>.e2e.ts\`. Where the test starts (its \`page.goto\` target)
-  is where the file lives, even when it bridges two UIs.
-- Import \`{ test, expect, wireHarnessLifecycle }\` and harnesses from the UI package's
-  \`test/harnesses/\`, NOT from \`@dungeonmaster/testing/e2e\`.
-- Navigate with \`baseURL\`-relative paths — \`page.goto(flow.entryPoint)\` — never a hard-coded
-  absolute URL; the harness sets \`baseURL\` to the port it actually bound.
-- Select via \`data-testid\`. Your brief's TESTIDS line lists the ones your observables name; if it is
-  missing one, read the implementation for the real value rather than guessing at it.
-
-### Mode B specifics (integration)
+### Mode A specifics (integration)
 
 Codeweaver's integration tests prove a SEAM holds. Yours proves the FLOW holds — entry to every
 terminal, every branch, in one walk. Extend toward full-path coverage rather than adding a second
 suite that drifts. Use real systems; the glue includes the client library's behaviour against the
 real broker.
+
+**You author no Playwright and you start no server.** A \`.e2e.ts\` file is Groundstomper's output,
+not yours, and the Playwright config is install-time scaffolding your siblings share — an edit there
+races theirs. Your brief's ENTRY POINTS line names the routes, commands and module entry points your
+observables reach; if it is missing one, read the implementation for the real value rather than
+guessing at it.
 
 **Exit Criteria:** Every path, branch, and observable in your bundle authored, each with a witnessed
 red or a mutation proof.
@@ -268,12 +250,8 @@ npm run ward -- -- <the files you changed>
 Everything after the second \`--\` is the file list. Omitting \`--only\` runs all five checks (lint,
 typecheck, unit, integration, e2e), which is what you want by default.
 
-**The one case where you MUST narrow it: a file set with no Jest counterpart.** When everything you
-touched is e2e and harness files, the \`unit\` check discovers test files but processes none of
-yours, and ward reports \`DISCOVERY MISMATCH\` — a red that means "this check had nothing to do here",
-not "your code is broken". Pass the checks that actually apply
-(\`--only lint,typecheck,e2e -- <files>\`) and say on your \`WARD:\` line which you ran and why. Do
-not chase the mismatch, and never reach for \`--passWithNoTests\`.
+Every file you write has a Jest counterpart, so the default is the right invocation and there is no
+narrowing case to reach for. Never reach for \`--passWithNoTests\`.
 
 Never \`cd\` into a package. Never sleep-poll. **Never run the bare full \`npm run ward\`** — it
 auto-backgrounds and will hang your turn.

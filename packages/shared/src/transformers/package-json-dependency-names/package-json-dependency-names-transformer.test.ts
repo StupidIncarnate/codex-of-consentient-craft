@@ -1,15 +1,10 @@
-import { PackageJsonStub } from '../../contracts/package-json/package-json.stub';
 import { packageJsonDependencyNamesTransformer } from './package-json-dependency-names-transformer';
 
 describe('packageJsonDependencyNamesTransformer()', () => {
   describe('empty dependencies', () => {
     it('EMPTY: {no dep fields} => returns empty array', () => {
       const result = packageJsonDependencyNamesTransformer({
-        packageJson: PackageJsonStub({
-          dependencies: undefined,
-          devDependencies: undefined,
-          peerDependencies: undefined,
-        }),
+        packageJson: {},
       });
 
       expect(result).toStrictEqual([]);
@@ -19,11 +14,9 @@ describe('packageJsonDependencyNamesTransformer()', () => {
   describe('single dep field', () => {
     it('VALID: {dependencies only} => returns dependency names', () => {
       const result = packageJsonDependencyNamesTransformer({
-        packageJson: PackageJsonStub({
+        packageJson: {
           dependencies: { '@dm/shared': '*' },
-          devDependencies: undefined,
-          peerDependencies: undefined,
-        }),
+        },
       });
 
       expect(result).toStrictEqual(['@dm/shared']);
@@ -31,11 +24,9 @@ describe('packageJsonDependencyNamesTransformer()', () => {
 
     it('VALID: {devDependencies only} => returns devDependency names', () => {
       const result = packageJsonDependencyNamesTransformer({
-        packageJson: PackageJsonStub({
-          dependencies: undefined,
+        packageJson: {
           devDependencies: { typescript: '^5.0.0' },
-          peerDependencies: undefined,
-        }),
+        },
       });
 
       expect(result).toStrictEqual(['typescript']);
@@ -43,11 +34,9 @@ describe('packageJsonDependencyNamesTransformer()', () => {
 
     it('VALID: {peerDependencies only} => returns peerDependency names', () => {
       const result = packageJsonDependencyNamesTransformer({
-        packageJson: PackageJsonStub({
-          dependencies: undefined,
-          devDependencies: undefined,
+        packageJson: {
           peerDependencies: { react: '^18.0.0' },
-        }),
+        },
       });
 
       expect(result).toStrictEqual(['react']);
@@ -57,11 +46,11 @@ describe('packageJsonDependencyNamesTransformer()', () => {
   describe('multiple dep fields', () => {
     it('VALID: {deps in all three fields} => returns union of all names without duplicates', () => {
       const result = packageJsonDependencyNamesTransformer({
-        packageJson: PackageJsonStub({
+        packageJson: {
           dependencies: { '@dm/shared': '*' },
           devDependencies: { typescript: '^5.0.0', '@dm/shared': '*' },
           peerDependencies: { react: '^18.0.0' },
-        }),
+        },
       });
 
       expect(result).toStrictEqual(['@dm/shared', 'typescript', 'react']);
@@ -69,11 +58,10 @@ describe('packageJsonDependencyNamesTransformer()', () => {
 
     it('VALID: {same name in deps and devDeps} => returns name once (deduplication)', () => {
       const result = packageJsonDependencyNamesTransformer({
-        packageJson: PackageJsonStub({
+        packageJson: {
           dependencies: { zod: '^3.0.0' },
           devDependencies: { zod: '^3.0.0' },
-          peerDependencies: undefined,
-        }),
+        },
       });
 
       expect(result).toStrictEqual(['zod']);

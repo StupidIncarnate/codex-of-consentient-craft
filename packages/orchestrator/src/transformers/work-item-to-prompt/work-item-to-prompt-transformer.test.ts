@@ -3,6 +3,7 @@ import {
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
+  QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
   RelatedDataItemStub,
@@ -52,7 +53,9 @@ const BUDGET_FLOW_IDS = [
   'execution-panel-floor-view',
   'queue-page-play-pause',
 ];
-const BUDGET_PACKAGES_AFFECTED = ['orchestrator', 'server', 'web', 'mcp', 'shared'];
+const BUDGET_PACKAGES_AFFECTED = ['orchestrator', 'server', 'web', 'mcp', 'shared'].map((name) =>
+  QuestPackageEntryStub({ name, location: `./packages/${name}` }),
+);
 const BUDGET_USER_REQUEST =
   'Let a reviewer leave comments on a flow-diagram box and send them as one batch.'.padEnd(
     1530,
@@ -387,6 +390,200 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('VALID: {codeweaver operation with packageNames} => renders the reading order, flagged as not a boundary', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8882-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8882-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'shared: the comment data model',
+        status: 'pending',
+        packageNames: ['shared', 'server'],
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] shared: the comment data model',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
+        '',
+        'Packages your operation item lands in: shared, server',
+        '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('VALID: {flowrider operation with packageNames} => renders the list as the coverage slice, not a reading order', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8883-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8883-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'flowrider',
+        text: 'author the suites',
+        status: 'pending',
+        packageNames: ['server'],
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'flowrider',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'flowrider' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [flowrider] author the suites',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [flowrider] author the suites  <-- YOUR OPERATION ITEM',
+        '',
+        'Your packages: server',
+        '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        flowriderPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('EDGE: {operation with empty packageNames} => omits the packages block entirely', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8884-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8884-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'shared: the comment data model',
+        status: 'pending',
+        packageNames: [],
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] shared: the comment data model',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('VALID: {quest with packagesAffected entries} => renders each entry with its changeType and packageType', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8885-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8885-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'shared: the comment data model',
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: questId,
+        operations: [operation],
+        workItems: [workItem],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            changeType: 'edit',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'groundstomp',
+            location: './packages/groundstomp',
+            changeType: 'new',
+            packageType: 'programmatic-service',
+            usedBy: ['orchestrator'],
+          }),
+        ],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] shared: the comment data model',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
+        '',
+        'Packages affected (whole quest): web (edit, frontend-react), groundstomp (new, programmatic-service)',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',

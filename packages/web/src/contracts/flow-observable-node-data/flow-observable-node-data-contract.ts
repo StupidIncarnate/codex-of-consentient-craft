@@ -5,7 +5,7 @@
  * without opening a panel.
  *
  * USAGE:
- * flowObservableNodeDataContract.parse({ observableId: 'login-redirects', outcomeType: 'ui-state', description: 'redirects to dashboard', commentCount: 0, nodeId: 'login-page' });
+ * flowObservableNodeDataContract.parse({ observableId: 'login-redirects', outcomeType: 'ui-state', description: 'redirects to dashboard', package: { name: 'auth-service', packageType: 'library' }, commentCount: 0, nodeId: 'login-page' });
  * // Returns: FlowObservableNodeData with branded fields
  */
 
@@ -20,11 +20,17 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
+import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
 export const flowObservableNodeDataContract = z.object({
   observableId: observableIdContract,
   outcomeType: outcomeTypeContract,
   description: z.string().brand<'FlowObservableNodeDescription'>(),
+  // Singular where the parent card's is plural, and painted on the same row as the type tag: a
+  // glue node's card names both packages, and its assertion cards are the only surface that says
+  // WHICH side each criterion is read on. Without it a two-package card leaves the reviewer unable
+  // to tell whether both sides were actually asserted.
+  package: reactFlowPackageChipContract,
   // How many comments this card already carries. Gated INDEPENDENTLY of questId/flowId below — see
   // reactFlowNodeDataContract's commentCount field for the full rationale: the compose affordance
   // and the existing-comment record must never share one visibility flag.

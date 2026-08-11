@@ -68,7 +68,7 @@ describe('commandRunLayerSingleBroker', () => {
       ]);
     });
 
-    it('VALID: {e2e skips, no playwright config} => shows skip label on stderr', async () => {
+    it('VALID: {e2e skips, package not e2e-eligible} => shows skip label on stderr', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = commandRunLayerSingleBrokerProxy();
       proxy.setupE2eOnlySkip({ projectFolder });

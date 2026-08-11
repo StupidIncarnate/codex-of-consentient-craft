@@ -1,6 +1,7 @@
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';
 import { FlowObservableNodeDataStub } from '../../contracts/flow-observable-node-data/flow-observable-node-data.stub';
+import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
 import { FlowObservableNodeLayerWidgetProxy } from './flow-observable-node-layer-widget.proxy';
 
@@ -31,6 +32,56 @@ describe('FlowObservableNodeLayerWidget', () => {
 
       expect(proxy.getType()?.textContent).toBe('api-call');
       expect(proxy.getDescription()?.textContent).toBe('POSTs credentials to /auth/login');
+    });
+  });
+
+  describe('resolved package', () => {
+    it('VALID: {package storefront-ui} => FLOW_OBSERVABLE_NODE_PACKAGE names the one side this criterion is read on', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      const data = FlowObservableNodeDataStub({
+        package: { name: 'storefront-ui', packageType: 'frontend-react' },
+      });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.getPackage()?.textContent).toBe('storefront-ui');
+    });
+
+    // The card's reserved ELK height counts ONE tag row. A package chip that fell onto a row of its
+    // own grows the card past the box ELK laid out and the assertion column below overlaps — which
+    // no jsdom style assertion can see, so the DOM relationship is what gets pinned here.
+    it('VALID: {assertion card rendered} => the package chip shares the outcome-type tag row', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      const data = FlowObservableNodeDataStub({
+        outcomeType: 'process-state',
+        package: { name: 'orders-api', packageType: 'http-backend' },
+      });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.packageSharesRowWithType()).toBe(true);
+    });
+
+    it('VALID: {package kind http-backend} => the chip paints in the service token and carries its kind', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      const data = FlowObservableNodeDataStub({
+        package: { name: 'orders-api', packageType: 'http-backend' },
+      });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.getPackageColor()).toBe(packageTypeStyleStatics.accent['http-backend']);
+      expect(proxy.getPackageType()).toBe('http-backend');
+    });
+
+    it('VALID: {package with no resolved kind} => the chip paints unresolved and carries no data-package-type', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      const data = FlowObservableNodeDataStub({ package: { name: 'never-declared' } });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.getPackageColor()).toBe(packageTypeStyleStatics.unresolved);
+      expect(proxy.getPackageType()).toBe(null);
     });
   });
 

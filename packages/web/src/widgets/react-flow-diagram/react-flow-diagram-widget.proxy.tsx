@@ -44,6 +44,9 @@ interface ReactFlowDiagramWidgetProxyResult {
   hasCommentsSection: () => boolean;
   getPanelCommentTexts: () => HTMLElement['textContent'][];
   getInitialBoxes: () => HTMLElement['textContent'][][];
+  getPackageChipsOnNode: (params: { nodeId: string }) => HTMLElement['textContent'][];
+  getPackageChipTypesOnNode: (params: { nodeId: string }) => HTMLElement['textContent'][];
+  getObservablePackageNames: () => HTMLElement['textContent'][];
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
@@ -155,6 +158,31 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
           element.getAttribute('data-initial-height'),
         ],
       ),
+    // The chips on ONE named card, in order. Scoped to the card because a whole-canvas chip list
+    // cannot say WHICH node carries two — and "this node is the seam" is the claim the row exists
+    // to make.
+    getPackageChipsOnNode: ({ nodeId }: { nodeId: string }): HTMLElement['textContent'][] => {
+      const wrapper = screen
+        .getByTestId('REACT_FLOW_PANE')
+        .querySelector(`[data-node-id="${nodeId}"]`);
+      if (!wrapper) throw new Error(`Node wrapper not found for id: ${nodeId}`);
+      return Array.from(wrapper.querySelectorAll('[data-testid="FLOW_NODE_PACKAGE_CHIP"]')).map(
+        (chip) => chip.textContent,
+      );
+    },
+    // The resolved KIND behind each chip on one card, so a test proves the colour was derived from
+    // the quest's own declaration rather than from the package's name.
+    getPackageChipTypesOnNode: ({ nodeId }: { nodeId: string }): HTMLElement['textContent'][] => {
+      const wrapper = screen
+        .getByTestId('REACT_FLOW_PANE')
+        .querySelector(`[data-node-id="${nodeId}"]`);
+      if (!wrapper) throw new Error(`Node wrapper not found for id: ${nodeId}`);
+      return Array.from(wrapper.querySelectorAll('[data-testid="FLOW_NODE_PACKAGE_CHIP"]')).map(
+        (chip) => chip.getAttribute('data-package-type'),
+      );
+    },
+    getObservablePackageNames: (): HTMLElement['textContent'][] =>
+      screen.queryAllByTestId('FLOW_OBSERVABLE_NODE_PACKAGE').map((element) => element.textContent),
     hasCommentsSection: (): boolean => screen.queryByTestId('FLOW_DETAIL_PANEL_COMMENTS') !== null,
     getPanelCommentTexts: (): HTMLElement['textContent'][] =>
       screen

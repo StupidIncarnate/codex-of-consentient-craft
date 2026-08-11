@@ -261,6 +261,9 @@ export const questRunWardBroker = async ({
         operations: quest.operations,
         item: linkedOperation,
       });
+      // `flowIds` AND `packageNames` ride along: they are the completed ward item's declared scope,
+      // and a continuation that drops either re-verifies something wider (or narrower) than the run
+      // it is replacing.
       const freshWardOp = operationItemContract.parse({
         id: crypto.randomUUID(),
         role: 'ward',
@@ -268,6 +271,7 @@ export const questRunWardBroker = async ({
         status: 'pending',
         locked: true,
         flowIds: linkedOperation.flowIds,
+        packageNames: linkedOperation.packageNames,
         wardMode: mode,
       });
 

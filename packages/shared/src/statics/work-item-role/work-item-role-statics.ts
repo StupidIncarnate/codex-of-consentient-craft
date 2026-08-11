@@ -41,7 +41,9 @@
  * - `codeweaver` — implementation relay worker; one session per codeweaver operation item.
  * - `ward` — the only non-agent role (spawnerType 'command'); a quality gate run.
  * - `spiritmender` — inserted after a red ward to repair it.
- * - `flowrider` — verify operator that authors the flow-perspective test suites.
+ * - `flowrider` — verify operator that authors the flow-perspective test suites below the browser.
+ * - `groundstomper` — verify operator that authors the Playwright e2e walk; one item per runtime
+ *   flow that touches an e2e-eligible package.
  * - `siegemaster` — verify operator that hand-walks each flow; one item per flow.
  * - `blightwarden` — verify operator running the whole-diff standards audit.
  * - `blightwarden-group-minion` / `blightwarden-crosscut-minion` — blightwarden's sub-agents.
@@ -60,6 +62,7 @@ export const workItemRoleStatics = {
     'ward',
     'spiritmender',
     'flowrider',
+    'groundstomper',
     'siegemaster',
     'blightwarden-group-minion',
     'blightwarden-crosscut-minion',

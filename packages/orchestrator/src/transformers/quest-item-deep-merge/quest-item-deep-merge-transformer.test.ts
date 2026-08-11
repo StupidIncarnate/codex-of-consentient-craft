@@ -282,6 +282,7 @@ describe('questItemDeepMergeTransformer', () => {
         {
           id: 'obs-1',
           type: 'ui-state',
+          package: 'auth-service',
           description: 'new description',
           designRef: 'design/dashboard.png',
           addedBy: 'spec',
@@ -476,6 +477,7 @@ describe('questItemDeepMergeTransformer', () => {
         {
           id: 'obs-1',
           type: 'ui-state',
+          package: 'auth-service',
           description: 'redirects to dashboard',
           addedBy: 'spec',
           siegemasterSignoff,
@@ -541,6 +543,7 @@ describe('questItemDeepMergeTransformer', () => {
         {
           id: 'obs-1',
           type: 'ui-state',
+          package: 'auth-service',
           description: 'redirects to dashboard',
           addedBy: 'spec',
           flowriderSignoff,
@@ -569,6 +572,7 @@ describe('questItemDeepMergeTransformer', () => {
         {
           id: 'obs-1',
           type: 'ui-state',
+          package: 'auth-service',
           description: 'new description',
           addedBy: 'spec',
         },

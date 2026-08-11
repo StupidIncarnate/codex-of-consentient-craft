@@ -67,15 +67,41 @@ const buildFlow = ({ includeBeta }: { includeBeta: boolean }) => {
       id: SEND_NODE_ALPHA_ID,
       label: SEND_NODE_ALPHA_LABEL,
       type: 'action',
+      packages: ['auth-service'],
       observables: [
-        { id: SEND_OBSERVABLE_ID, type: 'ui-state', description: SEND_OBSERVABLE_TEXT },
+        {
+          id: SEND_OBSERVABLE_ID,
+          type: 'ui-state',
+          package: 'auth-service',
+          description: SEND_OBSERVABLE_TEXT,
+        },
       ],
     },
     ...(includeBeta
-      ? [{ id: SEND_NODE_BETA_ID, label: SEND_NODE_BETA_LABEL, type: 'action', observables: [] }]
+      ? [
+          {
+            id: SEND_NODE_BETA_ID,
+            label: SEND_NODE_BETA_LABEL,
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ]
       : []),
-    { id: SEND_NODE_GAMMA_ID, label: SEND_NODE_GAMMA_LABEL, type: 'action', observables: [] },
-    { id: 'send-terminal', label: 'Send Terminal', type: 'terminal', observables: [] },
+    {
+      id: SEND_NODE_GAMMA_ID,
+      label: SEND_NODE_GAMMA_LABEL,
+      type: 'action',
+      packages: ['auth-service'],
+      observables: [],
+    },
+    {
+      id: 'send-terminal',
+      label: 'Send Terminal',
+      type: 'terminal',
+      packages: ['auth-service'],
+      observables: [],
+    },
   ];
   const chain = includeBeta
     ? [SEND_NODE_ALPHA_ID, SEND_NODE_BETA_ID, SEND_NODE_GAMMA_ID, 'send-terminal']
@@ -215,6 +241,14 @@ export const commentQueueSendHarness = ({
       .getByTestId('FLOW_OBSERVABLE_NODE')
       .nth(FULL_OBSERVABLE_COUNT - 1)
       .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    // Frame the WHOLE graph before any card is driven. The diagram loads top-anchored on the entry
+    // node, so a card further down the spine can sit past the canvas edge — and a React Flow canvas
+    // pans instead of scrolling, so Playwright cannot bring it back. Worse, its comment popover
+    // anchors on a reference the canvas is clipping, which floating-ui answers by painting the
+    // dropdown `visibility: hidden` — a queued comment that exists and cannot be read. Fitting the
+    // view is what a reviewer does before working a card, and it keeps this harness independent of
+    // how tall the cards happen to be.
+    await page.getByTestId('FIT_VIEW_BUTTON').click();
   };
 
   const seedWorkItems = () => [

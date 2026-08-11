@@ -51,7 +51,7 @@ describe('buildHydrateInputLayerBroker', () => {
   });
 
   describe('blueprint field forwarding', () => {
-    it('VALID: {toStatus: review_flows} => includes flows (stripped) + designDecisions', () => {
+    it('VALID: {toStatus: review_flows} => includes flows (stripped) + designDecisions + packagesAffected', () => {
       buildHydrateInputLayerBrokerProxy();
       const blueprint = QuestBlueprintStub();
 
@@ -65,6 +65,7 @@ describe('buildHydrateInputLayerBroker', () => {
         questId: QUEST_ID,
         status: 'review_flows',
         designDecisions: blueprint.designDecisions,
+        packagesAffected: blueprint.packagesAffected,
         flows: blueprint.flows,
       });
     });

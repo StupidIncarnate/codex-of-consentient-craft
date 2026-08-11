@@ -1,9 +1,11 @@
 /**
  * PURPOSE: Proxy for OrchestrationStartResponder — composes the child broker/state proxies so the
  * responder AND the brokers it drives (questBuildRelayGraphBroker, questOperationsUpdateBroker,
- * questModifyBroker) run REAL with only the fs adapters mocked. PrepareQuestWorktreeLayerResponder
- * is mocked directly (`registerMock({ fn: PrepareQuestWorktreeLayerResponder })`) rather than
- * composed for real: it spawns `git` several times, walks the filesystem, and runs a build, and
+ * questModifyBroker) run REAL with only the fs adapters mocked. Both start layers —
+ * PrepareQuestWorktreeLayerResponder and PrepareQuestPackageGraphLayerResponder — are mocked
+ * directly (`registerMock({ fn: ... })`) rather than
+ * composed for real: the first spawns `git` several times, walks the filesystem, and runs a build,
+ * the second reads a manifest per declared package, and
  * staging all of that here would collide with this proxy's own `spawn`/`readdir` mocks (see
  * run-chat-layer-broker.proxy.ts and chat-spawn-broker.proxy.ts for the same precedent of mocking
  * a non-adapter broker/responder in a composing proxy). Its own full git/fs/build coverage lives
@@ -43,6 +45,8 @@ import { questOperationsUpdateBrokerProxy } from '../../../brokers/quest/operati
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
 import { OrchestrationStartResponder } from './orchestration-start-responder';
+import { PrepareQuestPackageGraphLayerResponder } from './prepare-quest-package-graph-layer-responder';
+import { PrepareQuestPackageGraphLayerResponderProxy } from './prepare-quest-package-graph-layer-responder.proxy';
 import { PrepareQuestWorktreeLayerResponder } from './prepare-quest-worktree-layer-responder';
 import { PrepareQuestWorktreeLayerResponderProxy } from './prepare-quest-worktree-layer-responder.proxy';
 
@@ -50,6 +54,10 @@ type Quest = ReturnType<typeof QuestStub>;
 type Parsed = ReturnType<typeof questContract.parse>;
 type GitContext = Exclude<
   Awaited<ReturnType<typeof PrepareQuestWorktreeLayerResponder>>,
+  undefined
+>;
+type PackageGraph = Exclude<
+  Awaited<ReturnType<typeof PrepareQuestPackageGraphLayerResponder>>,
   undefined
 >;
 
@@ -98,6 +106,7 @@ export const OrchestrationStartResponderProxy = (): {
   setupWorktreePrepared: (params: { gitContext: GitContext }) => void;
   setupWorktreeSkipped: () => void;
   setupWorktreeFails: (params: { error: Error }) => void;
+  setupPackageGraphDerived: (params: { packageGraph: PackageGraph }) => void;
   getPersistedStatuses: () => readonly Parsed['status'][];
   getPersistedQuestAt: (params: { index: number }) => Parsed;
 } => {
@@ -126,6 +135,15 @@ export const OrchestrationStartResponderProxy = (): {
   PrepareQuestWorktreeLayerResponderProxy();
   const worktreeMock = registerMock({ fn: PrepareQuestWorktreeLayerResponder });
   worktreeMock.calledWith([]).resolves(DEFAULT_GIT_CONTEXT);
+
+  // Same treatment, same reason: the package-graph layer issues one manifest read per declared
+  // package, and staging those here would collide with this proxy's own quest.json read staging.
+  // Its default is "nothing to stamp" — the shape for a quest declaring no packages — so every
+  // existing test keeps its single atomic persist. Its own coverage lives in
+  // prepare-quest-package-graph-layer-responder.test.ts.
+  PrepareQuestPackageGraphLayerResponderProxy();
+  const packageGraphMock = registerMock({ fn: PrepareQuestPackageGraphLayerResponder });
+  packageGraphMock.calledWith([]).resolves(undefined);
 
   // The queue-entry guild lookup at the end of a successful Start: one more find-quest-path fs
   // round (for the guildId), then the guild-config read guildGetBroker performs.
@@ -226,6 +244,11 @@ export const OrchestrationStartResponderProxy = (): {
     // WorktreePrepareError) — the responder must reject too, having persisted nothing.
     setupWorktreeFails: ({ error }: { error: Error }): void => {
       worktreeMock.onceFor([]).rejects(error);
+    },
+
+    // The quest declares packages and carries no graph yet, so the layer returns entries to stamp.
+    setupPackageGraphDerived: ({ packageGraph }: { packageGraph: PackageGraph }): void => {
+      packageGraphMock.onceFor([]).resolves(packageGraph);
     },
 
     getPersistedStatuses: (): readonly Parsed['status'][] =>

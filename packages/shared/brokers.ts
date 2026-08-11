@@ -19,6 +19,9 @@ export * from './src/brokers/architecture/package-inventory/architecture-package
 // Architecture Package Type Detect
 export * from './src/brokers/architecture/package-type-detect/architecture-package-type-detect-broker';
 
+// Architecture Package E2E Eligible Detect
+export * from './src/brokers/architecture/package-e2e-eligible-detect/architecture-package-e2e-eligible-detect-broker';
+
 // Architecture Boot Tree
 export * from './src/brokers/architecture/boot-tree/architecture-boot-tree-broker';
 

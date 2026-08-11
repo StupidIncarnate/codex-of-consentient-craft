@@ -12,6 +12,7 @@ describe('workItemRoleStatics', () => {
         'ward',
         'spiritmender',
         'flowrider',
+        'groundstomper',
         'siegemaster',
         'blightwarden-group-minion',
         'blightwarden-crosscut-minion',
@@ -55,6 +56,22 @@ describe('workItemRoleStatics', () => {
     );
 
     expect(nonChatPostQuestChatRoles).toStrictEqual([]);
+  });
+
+  it('VALID: groundstomper => is not a chat role, not excluded from status derivation, and not post-quest chat', () => {
+    const groundstomperIndex = workItemRoleStatics.names.indexOf('groundstomper');
+    const role = workItemRoleStatics.names[groundstomperIndex];
+    const isChatRole = workItemRoleStatics.chat.some((chatRole) => chatRole === role);
+    const isExcludedRole = workItemRoleStatics.excludedFromStatusDerivation.some(
+      (excludedRole) => excludedRole === role,
+    );
+    const isPostQuestChatRole = workItemRoleStatics.postQuestChat.some(
+      (postQuestChatRole) => postQuestChatRole === role,
+    );
+
+    expect(isChatRole).toBe(false);
+    expect(isExcludedRole).toBe(false);
+    expect(isPostQuestChatRole).toBe(false);
   });
 
   it('VALID: warpgate => is not a chat role, not excluded from status derivation, and not post-quest chat', () => {

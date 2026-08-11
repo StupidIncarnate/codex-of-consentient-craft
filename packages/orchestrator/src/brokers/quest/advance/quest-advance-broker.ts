@@ -70,6 +70,12 @@ export const questAdvanceBroker = async ({
         maxAttempts: 1,
         createdAt: new Date().toISOString(),
         ...(nextOperation.wardMode === undefined ? {} : { wardMode: nextOperation.wardMode }),
+        // The item's package slice travels with the session it is dispatched to. Omitted when the
+        // operation declares none, which means "scoped to the whole quest" — writing an empty array
+        // onto every work item would say the opposite while costing file size on every re-parse.
+        ...(nextOperation.packageNames.length === 0
+          ? {}
+          : { packageNames: nextOperation.packageNames }),
       });
 
       return {

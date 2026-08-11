@@ -75,6 +75,12 @@ describe('ReconcileWatchersLayerResponder', () => {
       }),
     ).toBe(true);
     expect(
+      proxy.startWatcherProxy.startedWithWorkerQuestId({
+        parentSessionId: workerSessionId,
+        workerQuestId: String(questId),
+      }),
+    ).toBe(true);
+    expect(
       proxy.startWatcherProxy.startedWithoutWorkerWorkItemId({
         parentSessionId: dispatcherSessionId,
       }),
@@ -209,6 +215,16 @@ describe('ReconcileWatchersLayerResponder', () => {
           proxy.startWatcherProxy.startedWithWorkerWorkItemId({
             parentSessionId: followupSessionId,
             workerWorkItemId: followupWorkItemId,
+          }),
+        ).toBe(true);
+        // The follow-up tail and the tavernkeeper spawn deliver ONE turn under two process
+        // identities, and only the spawn's ends. Without the questId the tail's own terminal
+        // event reaches no subscriber, so the drain that arrives after the turn ended re-arms
+        // the composer and it holds STOP forever.
+        expect(
+          proxy.startWatcherProxy.startedWithWorkerQuestId({
+            parentSessionId: followupSessionId,
+            workerQuestId: String(questId),
           }),
         ).toBe(true);
       },

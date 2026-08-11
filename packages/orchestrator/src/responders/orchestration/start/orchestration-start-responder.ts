@@ -1,12 +1,13 @@
 /**
  * PURPOSE: Validates a quest is startable, prepares its git worktree (base-branch detection, the
  * name-collision check, and worktree creation — skipped once the quest already records one),
- * promotes chat work items, seeds the operations relay (the quest type's implementation operation
- * items plus the fixed verify tail) with ONE work item for the first actionable operation item,
- * and transitions the quest approved → in_progress so the dispatch loop picks it up. The git
- * context and the relay seed land on the same atomic persist, so a quest never reaches in_progress
- * with a worktree recorded but no ledger, or the reverse. Enqueues the quest and returns a
- * synthetic processId for backwards compatibility with callers.
+ * promotes chat work items, derives the post-quest package dependency graph, seeds the operations
+ * relay (the quest type's implementation operation items plus the fixed verify tail) with ONE work
+ * item for the first actionable operation item, and transitions the quest approved → in_progress so
+ * the dispatch loop picks it up. The git context, the package graph and the relay seed land on the
+ * same atomic persist, so a quest never reaches in_progress with a worktree recorded but no ledger,
+ * or a dependency-ordered ledger beside no graph. Enqueues the quest and returns a synthetic
+ * processId for backwards compatibility with callers.
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
@@ -39,6 +40,7 @@ import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-u
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
+import { PrepareQuestPackageGraphLayerResponder } from './prepare-quest-package-graph-layer-responder';
 import { PrepareQuestWorktreeLayerResponder } from './prepare-quest-worktree-layer-responder';
 
 export const OrchestrationStartResponder = async ({
@@ -65,6 +67,11 @@ export const OrchestrationStartResponder = async ({
   }
 
   const gitContext = await PrepareQuestWorktreeLayerResponder({ quest });
+  // Sequenced after the git lifecycle, not run beside it: every throw in there must leave the quest
+  // exactly as it arrived, and manifest reads issued in parallel would be work done for a Start
+  // that never happens. Its own idempotency guard is the packageGraph equivalent of
+  // hasExistingRelay below — stamped once, never recomputed while the workspace moves on.
+  const packageGraph = await PrepareQuestPackageGraphLayerResponder({ quest });
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
@@ -100,8 +107,18 @@ export const OrchestrationStartResponder = async ({
   // its own PURPOSE). Handing it the pre-stamped quest makes it short-circuit on the fork point
   // the worktree was actually created from, instead of spawning a second `git rev-parse HEAD`
   // against the SERVER PROCESS cwd and recording the wrong commit.
+  //
+  // The freshly derived packageGraph rides the same hand-off: the relay builder orders the
+  // codeweaver items off it, so handing over the pre-stamped quest is what makes the ledger it
+  // returns and the graph persisted beside it describe the same layering.
+  const relayOverrides = {
+    ...(gitContext ?? {}),
+    ...(packageGraph === undefined ? {} : { packageGraph }),
+  };
   const questForRelay =
-    gitContext === undefined ? quest : questContract.parse({ ...quest, ...gitContext });
+    Object.keys(relayOverrides).length === 0
+      ? quest
+      : questContract.parse({ ...quest, ...relayOverrides });
   const promotedChanged = promotedChatItems.some((wi, index) => wi !== quest.workItems[index]);
 
   if (!hasExistingRelay) {
@@ -121,17 +138,17 @@ export const OrchestrationStartResponder = async ({
         operations: relay.operations,
         workItems: [...promotedChatItems, ...relay.workItems],
         ...(relay.baseRef === undefined ? {} : { baseRef: relay.baseRef }),
-        ...(gitContext ?? {}),
+        ...relayOverrides,
       }),
     });
-  } else if (promotedChanged || gitContext !== undefined) {
+  } else if (promotedChanged || Object.keys(relayOverrides).length > 0) {
     // A quest seeded by an earlier Start (hasExistingRelay) but predating this feature carries no
-    // worktree — it must still get its git context recorded even when no chat item changed.
+    // worktree and no package graph — both must still be recorded even when no chat item changed.
     await questOperationsUpdateBroker({
       questId,
       update: () => ({
         workItems: promotedChatItems,
-        ...(gitContext ?? {}),
+        ...relayOverrides,
       }),
     });
   }

@@ -47,7 +47,9 @@ import { isBlightwardenMinionRoleGuard } from '../../guards/is-blightwarden-mini
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
 import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
+import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
+import { questPackageEntriesToTextTransformer } from '../quest-package-entries-to-text/quest-package-entries-to-text-transformer';
 import { roleToPromptTemplateTransformer } from '../role-to-prompt-template/role-to-prompt-template-transformer';
 
 export const workItemToPromptTransformer = ({
@@ -202,6 +204,30 @@ export const workItemToPromptTransformer = ({
     );
   }
 
+  // The packages this item lands in. This block is the highest-leverage line in the whole
+  // substitution: without it every session re-derives its own landing site with `discover` and
+  // `get-project-map` calls its siblings already made. It reads two ways, and the difference is why
+  // it is worth two lines. For a role `signoffTrackEligibilityStatics.byTrack` defines a denominator
+  // for, the list IS the coverage slice the completion gate measures — read from the statics rather
+  // than a hand-written role list so a track added there cannot silently fall through to the
+  // advisory wording. For every other role it is a pre-work reading order, binding nothing.
+  const isPackageCoverageRole = Object.keys(signoffTrackEligibilityStatics.byTrack).includes(
+    workItem.role,
+  );
+  if (linkedOperation.packageNames.length > 0) {
+    parts.push(
+      contentTextContract.parse(''),
+      contentTextContract.parse(
+        `${isPackageCoverageRole ? 'Your packages' : 'Packages your operation item lands in'}: ${linkedOperation.packageNames.map((name) => String(name)).join(', ')}`,
+      ),
+      contentTextContract.parse(
+        isPackageCoverageRole
+          ? '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)'
+          : '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)',
+      ),
+    );
+  }
+
   // Siegemaster only. Flowrider never starts a server — Playwright's own `webServer` config owns
   // the one its e2e run needs — so these lines would be dead context for it.
   if (workItem.role === 'siegemaster' && devServer !== undefined) {
@@ -251,7 +277,7 @@ export const workItemToPromptTransformer = ({
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(
-        `Packages affected (whole quest): ${quest.packagesAffected.map((name) => String(name)).join(', ')}`,
+        `Packages affected (whole quest): ${String(questPackageEntriesToTextTransformer({ entries: quest.packagesAffected }))}`,
       ),
     );
   }

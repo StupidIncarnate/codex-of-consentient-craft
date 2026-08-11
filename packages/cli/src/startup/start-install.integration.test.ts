@@ -22,12 +22,15 @@ describe('StartInstall', () => {
 
       testbed.cleanup();
 
+      // The bare testbed (no src/widgets, no react dependency) is not e2e-eligible, so
+      // create-playwright skips instead of writing a config — devDependencies/tsconfig/jest are
+      // unaffected by that gate.
       expect(result).toStrictEqual({
         packageName: '@dungeonmaster/cli',
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);

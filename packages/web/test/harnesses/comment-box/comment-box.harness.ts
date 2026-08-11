@@ -118,23 +118,33 @@ const COMMENT_FLOW = {
       id: COMMENT_BOX_NODE_ID,
       label: COMMENT_BOX_NODE_LABEL,
       type: 'action',
+      packages: ['auth-service'],
       observables: [
         {
           id: COMMENT_BOX_OBSERVABLE_ID,
           type: 'ui-state',
+          package: 'auth-service',
           description: COMMENT_BOX_OBSERVABLE_TEXT,
         },
       ],
     },
-    { id: 'looks-right', label: 'Looks Right?', type: 'decision', observables: [] },
+    {
+      id: 'looks-right',
+      label: 'Looks Right?',
+      type: 'decision',
+      packages: ['auth-service'],
+      observables: [],
+    },
     {
       id: COMMENT_BOX_SECOND_NODE_ID,
       label: 'Accept Spec',
       type: 'terminal',
+      packages: ['auth-service'],
       observables: [
         {
           id: COMMENT_BOX_SECOND_OBSERVABLE_ID,
           type: 'ui-state',
+          package: 'auth-service',
           description: COMMENT_BOX_SECOND_OBSERVABLE_TEXT,
         },
       ],
@@ -167,9 +177,16 @@ const COMMENT_SECOND_FLOW = {
       id: 'dispatch-spec',
       label: COMMENT_BOX_SECOND_FLOW_NODE_LABEL,
       type: 'action',
+      packages: ['auth-service'],
       observables: [],
     },
-    { id: 'dispatch-done', label: 'Dispatch Done', type: 'terminal', observables: [] },
+    {
+      id: 'dispatch-done',
+      label: 'Dispatch Done',
+      type: 'terminal',
+      packages: ['auth-service'],
+      observables: [],
+    },
   ],
   edges: [{ id: 'dispatch-to-done', from: 'dispatch-spec', to: 'dispatch-done' }],
 };

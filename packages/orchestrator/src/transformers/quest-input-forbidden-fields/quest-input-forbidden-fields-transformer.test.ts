@@ -5,6 +5,7 @@ import {
   FlowStub,
   OperationItemStub,
   PlanningBlightReportStub,
+  QuestPackageEntryStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -470,7 +471,10 @@ describe('questInputForbiddenFieldsTransformer', () => {
   describe('packagesAffected field allowlist', () => {
     it('VALID: {explore_observables + packagesAffected} => returns empty array', () => {
       const input = ModifyQuestInputStub({
-        packagesAffected: ['orchestrator', 'web'] as never,
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+          QuestPackageEntryStub({ name: 'web', location: './packages/web' }),
+        ],
       });
       const currentQuest = QuestStub({ status: 'explore_observables' });
 
@@ -485,7 +489,9 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
     it('VALID: {flows_approved + packagesAffected} => returns empty array', () => {
       const input = ModifyQuestInputStub({
-        packagesAffected: ['shared'] as never,
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'shared', location: './packages/shared' }),
+        ],
       });
       const currentQuest = QuestStub({ status: 'flows_approved' });
 
@@ -500,7 +506,9 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
     it('VALID: {in_progress + packagesAffected} => allowed, a repair can pull in a package the spec never listed', () => {
       const input = ModifyQuestInputStub({
-        packagesAffected: ['orchestrator'] as never,
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+        ],
       });
       const currentQuest = QuestStub({ status: 'in_progress' });
 
@@ -511,6 +519,56 @@ describe('questInputForbiddenFieldsTransformer', () => {
       });
 
       expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {explore_flows + packagesAffected + flows} => allowed, a node tag and the entry it names land in one call', () => {
+      const input = ModifyQuestInputStub({
+        packagesAffected: [QuestPackageEntryStub({ name: 'web', location: './packages/web' })],
+        flows: [FlowStub({ id: 'login-flow' as never })],
+      });
+      const currentQuest = QuestStub({ status: 'explore_flows' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'explore_flows',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {review_flows -> explore_flows + packagesAffected} => permitted on the back transition, so a retag can declare the package it reaches for', () => {
+      const input = ModifyQuestInputStub({
+        packagesAffected: [QuestPackageEntryStub({ name: 'web', location: './packages/web' })],
+        status: 'explore_flows',
+      });
+      const currentQuest = QuestStub({ status: 'review_flows' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'review_flows',
+        nextStatus: 'explore_flows',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('INVALID: {review_flows + packagesAffected without back transition} => rejects packagesAffected', () => {
+      const input = ModifyQuestInputStub({
+        packagesAffected: [QuestPackageEntryStub({ name: 'web', location: './packages/web' })],
+      });
+      const currentQuest = QuestStub({ status: 'review_flows' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'review_flows',
+      });
+
+      expect(offenders.map((o) => String(o))).toStrictEqual([
+        "Field 'packagesAffected' not allowed in status 'review_flows'",
+      ]);
     });
   });
 });

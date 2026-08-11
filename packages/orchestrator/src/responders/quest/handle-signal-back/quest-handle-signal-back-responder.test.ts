@@ -1,18 +1,20 @@
 import {
   BlightChecklistStub,
   BlockedReasonStub,
+  FlowEdgeStub,
   FlowNodeStub,
   FlowOffMapSignoffStub,
   FlowStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
+  QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
   SignoffStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
+import { qaOffMapProbeStatics, textDisplaySymbolsStatics } from '@dungeonmaster/shared/statics';
 
 import { blightwardenMinionRolesStatics } from '../../../statics/blightwarden-minion-roles/blightwarden-minion-roles-statics';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
@@ -56,6 +58,36 @@ const UNBOUNDED_PT_ROLES = [
 // qaOffMapFamilyContract's options, so a new family moves this count instead of reddening the test.
 const OFF_MAP_FAMILIES = Object.keys(qaOffMapProbeStatics.byFamily);
 const OFF_MAP_FAMILY_COUNT = OFF_MAP_FAMILIES.length;
+
+type SignoffVerdict = ReturnType<typeof SignoffStub>['verdict'];
+
+// The verdicts a sign-off can carry. `textDisplaySymbolsStatics.signoffVerdictMarks` is keyed 1:1
+// with signoffVerdictContract's options and its colocated test pins that, so it is the honest source
+// a test file can reach (enforce-contract-usage-in-tests allows stubs only).
+const SIGNOFF_VERDICTS = Object.keys(
+  textDisplaySymbolsStatics.signoffVerdictMarks,
+) as SignoffVerdict[];
+
+// The two packages the groundstomper gate tests below tag their nodes with. `ui-app` resolves to a
+// browser-reachable kind and `api-service` does not, which is the axis that decides whether a
+// groundstomper item is gated on a unit at all. Named nowhere in source — the rule is `packageType`,
+// never a package name.
+const UI_PACKAGE = 'ui-app';
+const API_PACKAGE = 'api-service';
+const PACKAGES_AFFECTED = [
+  QuestPackageEntryStub({
+    name: UI_PACKAGE,
+    location: `./packages/${UI_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'frontend-react',
+  }),
+  QuestPackageEntryStub({
+    name: API_PACKAGE,
+    location: `./packages/${API_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'http-backend',
+  }),
+];
 
 describe('QuestHandleSignalBackResponder', () => {
   describe('signal failures surface (never silently drop the signal)', () => {
@@ -923,6 +955,413 @@ describe('QuestHandleSignalBackResponder', () => {
     });
   });
 
+  describe('completion gate — a groundstomper item is gated on the units a browser can reach, over the SAME `flowriderSignoff` field', () => {
+    it("ERROR: {groundstomper item, one unsigned frontend-tagged unit, 'done'} => refused, and the remedy names `flowriderSignoff` — the field Groundstomper actually writes", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          packagesAffected: PACKAGES_AFFECTED,
+          flows: [
+            FlowStub({
+              id: 'login-flow',
+              flowType: 'runtime',
+              nodes: [
+                FlowNodeStub({ id: 'dashboard', label: 'Dashboard', packages: [UI_PACKAGE] }),
+              ],
+              edges: [],
+            }),
+          ],
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'groundstomper',
+              status: 'in_progress',
+              locked: true,
+              flowIds: ['login-flow'],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'groundstomper',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        /signal-back refused: operationStatus 'done'.*`flowriderSignoff`.*1 still carry none.*Outstanding units:.*- login-flow:terminal:dashboard.*Write a `flowriderSignoff` on each remaining unit/su,
+      );
+    });
+
+    // The refusal has to hand back a call that REPRODUCES the list it just measured. Naming the
+    // sign-off field there would send a groundstomper session to `track: 'flowrider'`, whose package
+    // kinds are the exact complement of its own — it would read zero, signal `done` again, and be
+    // refused again on the same unit with no way to see it. The item's own slice rides along for the
+    // same reason: the gate narrowed by it and the tool will not unless asked.
+    it("ERROR: {groundstomper item declaring packageNames, 'done'} => the refusal names get-qa-checklist with the DENOMINATOR track and that slice", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          packagesAffected: PACKAGES_AFFECTED,
+          flows: [
+            FlowStub({
+              id: 'login-flow',
+              flowType: 'runtime',
+              nodes: [
+                FlowNodeStub({ id: 'dashboard', label: 'Dashboard', packages: [UI_PACKAGE] }),
+              ],
+              edges: [],
+            }),
+          ],
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'groundstomper',
+              status: 'in_progress',
+              locked: true,
+              flowIds: ['login-flow'],
+              packageNames: [UI_PACKAGE],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'groundstomper',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        /Read the same list back with get-qa-checklist\(\{ track: 'groundstomper', packageNames: \['ui-app'\] \}\)\./u,
+      );
+    });
+
+    it("ERROR: {groundstomper item declaring NO packageNames, 'done'} => the reproduction call carries the track alone", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          packagesAffected: PACKAGES_AFFECTED,
+          flows: [
+            FlowStub({
+              id: 'login-flow',
+              flowType: 'runtime',
+              nodes: [
+                FlowNodeStub({ id: 'dashboard', label: 'Dashboard', packages: [UI_PACKAGE] }),
+              ],
+              edges: [],
+            }),
+          ],
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'groundstomper',
+              status: 'in_progress',
+              locked: true,
+              flowIds: ['login-flow'],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'groundstomper',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        /Read the same list back with get-qa-checklist\(\{ track: 'groundstomper' \}\)\./u,
+      );
+    });
+
+    it("VALID: {the SAME unsigned unit tagged to a package no browser can reach, groundstomper 'done'} => accepted, because that unit is Flowrider's", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const backendFlow = FlowStub({
+        id: 'login-flow',
+        flowType: 'runtime',
+        nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard', packages: [API_PACKAGE] })],
+        edges: [],
+      });
+      const stompOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'groundstomper',
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['login-flow'],
+      });
+      const quest = QuestStub({
+        packagesAffected: PACKAGES_AFFECTED,
+        flows: [backendFlow],
+        operations: [stompOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'groundstomper',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        packagesAffected: PACKAGES_AFFECTED,
+        flows: [backendFlow],
+        operations: [OperationItemStub({ ...stompOp, status: 'complete' })],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'groundstomper',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it("VALID: {flowrider item, an unsigned FRONTEND-tagged unit, 'done'} => accepted, because Groundstomper owns the browser-reachable slice", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const frontendFlow = FlowStub({
+        id: 'login-flow',
+        flowType: 'runtime',
+        nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard', packages: [UI_PACKAGE] })],
+        edges: [],
+      });
+      const flowOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'flowrider',
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['login-flow'],
+      });
+      const quest = QuestStub({
+        packagesAffected: PACKAGES_AFFECTED,
+        flows: [frontendFlow],
+        operations: [flowOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'flowrider',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        packagesAffected: PACKAGES_AFFECTED,
+        flows: [frontendFlow],
+        operations: [OperationItemStub({ ...flowOp, status: 'complete' })],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'flowrider',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it.each(SIGNOFF_VERDICTS)(
+      "VALID: {groundstomper item, the frontend unit carries a flowriderSignoff verdict: %s, 'done'} => accepted, because the gate refuses ABSENCE and not honesty",
+      async (verdict) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+        const signedFlow = FlowStub({
+          id: 'login-flow',
+          flowType: 'runtime',
+          nodes: [
+            FlowNodeStub({
+              id: 'dashboard',
+              label: 'Dashboard',
+              packages: [UI_PACKAGE],
+              flowriderSignoff: SignoffStub({
+                verdict,
+                evidence:
+                  'packages/ui-app/src/flows/login/login.e2e.ts:31 — reds when the dashboard route is removed',
+                question: 'does the dashboard need a seeded session before it can render at all?',
+              }),
+            }),
+          ],
+          edges: [],
+        });
+        const stompOp = OperationItemStub({
+          id: OP1_ID,
+          role: 'groundstomper',
+          status: 'in_progress',
+          locked: true,
+          flowIds: ['login-flow'],
+        });
+        const quest = QuestStub({
+          packagesAffected: PACKAGES_AFFECTED,
+          flows: [signedFlow],
+          operations: [stompOp],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'groundstomper',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        });
+        const questAfterOutcome = QuestStub({
+          status: 'complete',
+          packagesAffected: PACKAGES_AFFECTED,
+          flows: [signedFlow],
+          operations: [OperationItemStub({ ...stompOp, status: 'complete' })],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'groundstomper',
+              status: 'complete',
+              relatedDataItems: [`operations/${OP1_ID}`],
+              completedAt: FIXED_TIMESTAMP,
+              actualSignal: 'complete',
+            }),
+          ],
+          updatedAt: FIXED_TIMESTAMP,
+        });
+        proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+        const result = await QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        });
+
+        expect(result).toStrictEqual({ success: true });
+      },
+    );
+
+    it("ERROR: {groundstomper item, a zero-observable DECISION node's branch tagged frontend, 'done'} => refused on the branch unit, which no observable-keyed slicer would have carried", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          packagesAffected: PACKAGES_AFFECTED,
+          flows: [
+            FlowStub({
+              id: 'login-flow',
+              flowType: 'runtime',
+              nodes: [
+                FlowNodeStub({
+                  id: 'has-session',
+                  label: 'Has session',
+                  type: 'decision',
+                  packages: [UI_PACKAGE],
+                }),
+                FlowNodeStub({
+                  id: 'dashboard',
+                  label: 'Dashboard',
+                  packages: [UI_PACKAGE],
+                  flowriderSignoff: SignoffStub(),
+                }),
+              ],
+              edges: [
+                FlowEdgeStub({
+                  id: 'session-valid',
+                  from: 'has-session',
+                  to: 'dashboard',
+                  label: 'session valid',
+                }),
+              ],
+            }),
+          ],
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'groundstomper',
+              status: 'in_progress',
+              locked: true,
+              flowIds: ['login-flow'],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'groundstomper',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        /signal-back refused: operationStatus 'done'.*1 still carry none.*- login-flow:branch:session-valid/su,
+      );
+    });
+  });
+
   describe('the two tracks are gated independently on the SAME units', () => {
     it("ERROR: {every unit carries a flowriderSignoff only, siegemaster 'done'} => refused, because flowrider's column never settles siegemaster's", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
@@ -1587,6 +2026,79 @@ describe('QuestHandleSignalBackResponder', () => {
       ]);
     });
 
+    it("VALID: {package-sliced codeweaver item, 'partial'} => continuation carries the same packageNames so the fresh session keeps its slice instead of working the whole quest", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const sliceText = 'ui-app: comment composer widget + binding';
+      const quest = QuestStub({
+        packagesAffected: PACKAGES_AFFECTED,
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: sliceText,
+            status: 'in_progress',
+            locked: false,
+            packageNames: [UI_PACKAGE, API_PACKAGE],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const completedItem = WorkItemStub({
+        id: itemId,
+        role: 'codeweaver',
+        status: 'complete',
+        relatedDataItems: [`operations/${OP1_ID}`],
+        completedAt: FIXED_TIMESTAMP,
+        actualSignal: 'complete',
+      });
+      const op1Complete = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: sliceText,
+        status: 'complete',
+        locked: false,
+        packageNames: [UI_PACKAGE, API_PACKAGE],
+      });
+      const continuation = OperationItemStub({
+        id: CONTINUATION_UUID,
+        role: 'codeweaver',
+        text: `pt 2: ${sliceText}`,
+        status: 'pending',
+        locked: false,
+        packageNames: [UI_PACKAGE, API_PACKAGE],
+      });
+      const questAfterOutcome = QuestStub({
+        packagesAffected: PACKAGES_AFFECTED,
+        operations: [op1Complete, continuation],
+        workItems: [completedItem],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getPersistedQuestAt({ index: 0 }).operations).toStrictEqual([
+        op1Complete,
+        continuation,
+      ]);
+    });
+
     it("VALID: {'partial' on a 'pt 2: <base>' item} => continuation is 'pt 3: <base>' inserted right after it", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
@@ -2112,6 +2624,78 @@ describe('QuestHandleSignalBackResponder', () => {
           { text: 'Ward gate', status: 'pending' },
         ],
       });
+    });
+
+    it("VALID: {package-sliced groundstomper item, 'blocked'} => the wall's continuation keeps both flowIds and packageNames, so the resume re-dispatches this slice and not the whole quest", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const blockedReason = BlockedReasonStub({
+        value: 'the Playwright browser binary is not installed in this environment',
+      });
+      const stompText = 'Groundstomper: walk the login flow — flow: login-flow';
+      const stompOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'groundstomper',
+        text: stompText,
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['login-flow'],
+        packageNames: [UI_PACKAGE],
+      });
+      const quest = QuestStub({
+        packagesAffected: PACKAGES_AFFECTED,
+        operations: [stompOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'groundstomper',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const op1Complete = OperationItemStub({ ...stompOp, status: 'complete' });
+      const continuation = OperationItemStub({
+        id: CONTINUATION_UUID,
+        role: 'groundstomper',
+        text: `pt 2: ${stompText}`,
+        status: 'pending',
+        locked: true,
+        flowIds: ['login-flow'],
+        packageNames: [UI_PACKAGE],
+      });
+      const questAfterOutcome = QuestStub({
+        packagesAffected: PACKAGES_AFFECTED,
+        operations: [op1Complete, continuation],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'groundstomper',
+            status: 'failed',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+            errorMessage: 'the Playwright browser binary is not installed in this environment',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalBlocked({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'blocked',
+        blockedReason,
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getPersistedQuestAt({ index: 0 }).operations).toStrictEqual([
+        op1Complete,
+        continuation,
+      ]);
     });
 
     it.each(PT_BUDGET_ROLES)(

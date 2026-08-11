@@ -146,6 +146,121 @@ describe('questAdvanceBroker', () => {
         }),
       );
     });
+
+    it('VALID: {pending op declaring packageNames} => copies the package slice onto the work item it creates', async () => {
+      const proxy = questAdvanceBrokerProxy();
+      proxy.setupUuids({ ids: ['99999999-9999-4999-8999-999999999999'] });
+
+      const scopedOp = OperationItemStub({
+        id: '11111111-1111-4111-8111-111111111111',
+        role: 'flowrider',
+        text: 'author the suites',
+        status: 'pending',
+        packageNames: ['web', 'server'],
+      });
+
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        operations: [scopedOp],
+        workItems: [],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(persisted).toStrictEqual(
+        QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({
+              id: '11111111-1111-4111-8111-111111111111',
+              role: 'flowrider',
+              text: 'author the suites',
+              status: 'in_progress',
+              packageNames: ['web', 'server'],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: '99999999-9999-4999-8999-999999999999' }),
+              role: 'flowrider',
+              status: 'pending',
+              spawnerType: 'agent',
+              relatedDataItems: ['operations/11111111-1111-4111-8111-111111111111'],
+              dependsOn: [],
+              packageNames: ['web', 'server'],
+              createdAt: '2024-01-15T10:00:00.000Z',
+            }),
+          ],
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
+    });
+
+    it('EMPTY: {pending op declaring no packageNames} => the work item carries no packageNames key at all', async () => {
+      const proxy = questAdvanceBrokerProxy();
+      proxy.setupUuids({ ids: ['99999999-9999-4999-8999-999999999999'] });
+
+      const unscopedOp = OperationItemStub({
+        id: '11111111-1111-4111-8111-111111111111',
+        role: 'codeweaver',
+        text: 'the whole spec',
+        status: 'pending',
+        packageNames: [],
+      });
+
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        operations: [unscopedOp],
+        workItems: [],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(persisted).toStrictEqual(
+        QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({
+              id: '11111111-1111-4111-8111-111111111111',
+              role: 'codeweaver',
+              text: 'the whole spec',
+              status: 'in_progress',
+              packageNames: [],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: '99999999-9999-4999-8999-999999999999' }),
+              role: 'codeweaver',
+              status: 'pending',
+              spawnerType: 'agent',
+              relatedDataItems: ['operations/11111111-1111-4111-8111-111111111111'],
+              dependsOn: [],
+              createdAt: '2024-01-15T10:00:00.000Z',
+            }),
+          ],
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
+    });
   });
 
   describe('strict 1:1 operation-item↔work-item invariant', () => {

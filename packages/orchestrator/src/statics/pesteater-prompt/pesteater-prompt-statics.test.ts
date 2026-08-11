@@ -93,9 +93,9 @@ describe('pesteaterPromptStatics', () => {
     );
   });
 
-  it('VALID: template => points UI-symptom e2e tests at colocated web flow .e2e.ts files', () => {
+  it('VALID: template => resolves the UI package from packageType, as a set, never from the diff', () => {
     const needle =
-      "- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: `<ui-package>/src/flows/**/*.e2e.ts` (use the actual package from packagesAffected / the diff — a repo may have several UI packages).";
+      "- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: `<ui-package>/src/flows/**/*.e2e.ts`. Resolve `<ui-package>` from `packagesAffected`: the UI packages are EVERY entry whose `packageType` is `frontend-react` or `frontend-ink`, and that `location` is the path to write under. Treat it as a SET — a repo may have several, and when it does, pick the one carrying the flow you are reproducing rather than assuming there is only one.";
     const { template } = pesteaterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

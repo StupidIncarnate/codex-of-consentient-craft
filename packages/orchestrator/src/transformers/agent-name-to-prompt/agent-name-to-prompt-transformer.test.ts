@@ -9,6 +9,7 @@ import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codewea
 import { flowriderCoverageMinionStatics } from '../../statics/flowrider-coverage-minion/flowrider-coverage-minion-statics';
 import { flowriderAuthoringMinionStatics } from '../../statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { groundstomperPromptStatics } from '../../statics/groundstomper-prompt/groundstomper-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterWalkerMinionStatics } from '../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
@@ -74,6 +75,18 @@ describe('agentNameToPromptTransformer', () => {
       name: 'flowrider',
       model: 'opus',
       prompt: flowriderPromptStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "groundstomper"} => returns groundstomper prompt data on opus', () => {
+    const agent = AgentPromptNameStub({ value: 'groundstomper' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'groundstomper',
+      model: 'opus',
+      prompt: groundstomperPromptStatics.prompt.template,
     });
   });
 

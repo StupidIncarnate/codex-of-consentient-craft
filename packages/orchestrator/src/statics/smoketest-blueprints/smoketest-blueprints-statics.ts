@@ -56,6 +56,14 @@ export const smoketestBlueprintsStatics = {
       },
     ],
     toolingRequirements: [],
+    packagesAffected: [
+      {
+        name: 'orchestrator',
+        location: './packages/orchestrator',
+        changeType: 'edit',
+        packageType: 'programmatic-service',
+      },
+    ],
     flows: [
       {
         id: 'smoketest-signal-flow',
@@ -68,16 +76,19 @@ export const smoketestBlueprintsStatics = {
             id: 'dispatch-agent',
             label: 'Orchestrator dispatches agent with override prompt',
             type: 'action',
+            packages: ['orchestrator'],
             observables: [],
           },
           {
             id: 'emit-signal',
             label: 'Agent emits signal-back',
             type: 'terminal',
+            packages: ['orchestrator'],
             observables: [
               {
                 id: 'smoketest-signal-received',
                 type: 'log-output',
+                package: 'orchestrator',
                 description:
                   'Agent stream includes exactly one mcp__dungeonmaster__signal-back tool-use with the scripted signal',
               },
@@ -100,6 +111,7 @@ export const smoketestBlueprintsStatics = {
         text: 'Smoketest: implement the single-flow signal emitter',
         status: 'pending',
         locked: false,
+        packageNames: ['orchestrator'],
       },
     ],
     skipRoles: ['ward'],

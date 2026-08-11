@@ -98,4 +98,59 @@ describe('dumpsterHuntPromptStatics', () => {
       expect(template.indexOf('embed ONE\nobservable')).toBe(-1);
     });
   });
+
+  describe('node package tagging', () => {
+    it('VALID: template => instructs tagging every node with packages as it is created', () => {
+      const needle = 'Tag every node with `packages: PackageName[]` as you create it';
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => states the seam-rule invariant for every edge A -> B', () => {
+      const needle =
+        '`A -> B`, `A.packages` and `B.packages` must share at least one package — an edge whose\n  endpoints share none is a boundary crossed with nothing spanning it.';
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => instructs fixing a failing edge by widening an endpoint or inserting a node', () => {
+      const needle =
+        'Fix it by widening whichever\n  endpoint is the natural seam, or by inserting a node that carries both.';
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => explore_flows completion requires every node tagged, tags present in packagesAffected, and no unglued seams', () => {
+      const needle =
+        "When both flows are complete — every node tagged with `packages`,\nevery tag it carries present in `packagesAffected`, every edge satisfying the seam rule above —\ntransition `status: 'review_flows'`";
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => does not instruct inferring node packages from observable types', () => {
+      const { template } = dumpsterHuntPromptStatics.prompt;
+
+      expect(template.indexOf("we'll infer it for you")).toBe(-1);
+      expect(template.indexOf('automatically infer')).toBe(-1);
+    });
+  });
+
+  describe('packagesAffected entry object shape', () => {
+    it('VALID: template => packagesAffected entries use the object shape with the ./ location prefix', () => {
+      const needle =
+        "a `packagesAffected` entry for every package a\nnode is tagged with — `{ name, location, changeType, packageType, usedBy? }`, `location` written\nWITH the `./` prefix (`'./packages/web'`, never the bare `'packages/web'`), `usedBy` required only\nwhen `changeType: 'new'`";
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+  });
 });

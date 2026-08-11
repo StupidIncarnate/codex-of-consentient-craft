@@ -7,6 +7,7 @@ import { FlowOffMapSignoffStub } from '../../contracts/flow-off-map-signoff/flow
 import { OperationItemStub } from '../../contracts/operation-item/operation-item.stub';
 import { QuestContractEntryStub } from '../../contracts/quest-contract-entry/quest-contract-entry.stub';
 import { QuestNoteStub } from '../../contracts/quest-note/quest-note.stub';
+import { QuestPackageEntryStub } from '../../contracts/quest-package-entry/quest-package-entry.stub';
 import { SignoffStub } from '../../contracts/signoff/signoff.stub';
 import { ToolingRequirementStub } from '../../contracts/tooling-requirement/tooling-requirement.stub';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
@@ -156,6 +157,73 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).toMatch(/^#pg-driver: "PostgreSQL Driver" \(pg\)$/mu);
       expect(result).toMatch(/^ {2}Reason: DB access$/mu);
       expect(result).toMatch(/^ {2}Used by: #obs-one$/mu);
+    });
+  });
+
+  describe('packages affected', () => {
+    it('EMPTY: {quest: no packages declared} => shows (none), because an empty tag list is a real answer a reader has to see', () => {
+      const quest = QuestStub({ packagesAffected: [] });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(/^## Packages Affected\n\n\(none\)$/mu);
+    });
+
+    it('VALID: {an edit entry} => renders the name, what the quest does to it, its kind and its root', () => {
+      const quest = QuestStub({
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'ui-app' as never,
+            location: './packages/ui-app' as never,
+            changeType: 'edit',
+            packageType: 'frontend-react',
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(/^ui-app — edit, frontend-react \[\.\/packages\/ui-app\]$/mu);
+    });
+
+    it("VALID: {a 'new' entry carrying usedBy} => renders its consumers, the only reverse edges a package with no manifest has", () => {
+      const quest = QuestStub({
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'groundstomp' as never,
+            location: './packages/groundstomp' as never,
+            changeType: 'new',
+            packageType: 'programmatic-service',
+            usedBy: ['ui-app' as never, 'api-service' as never],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(
+        /^groundstomp — new, programmatic-service \[\.\/packages\/groundstomp\]$/mu,
+      );
+      expect(result).toMatch(/^ {2}Used by: ui-app, api-service$/mu);
+    });
+
+    it('EMPTY: {an entry whose usedBy is an empty list} => renders no Used by line at all', () => {
+      const quest = QuestStub({
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'core-lib' as never,
+            location: './packages/core-lib' as never,
+            changeType: 'edit',
+            packageType: 'library',
+            usedBy: [],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+      const usedByLines = result.split('\n').filter((line) => line.startsWith('  Used by: '));
+
+      expect(usedByLines).toStrictEqual([]);
     });
   });
 
@@ -377,6 +445,10 @@ describe('questToTextDisplayTransformer', () => {
           '',
           '(none)',
           '',
+          '## Packages Affected',
+          '',
+          '(none)',
+          '',
           '## Flow: #login-flow \u2014 "Login Flow"',
           'Entry: login-page | Exits: /dashboard',
           '',
@@ -440,6 +512,67 @@ describe('questToTextDisplayTransformer', () => {
         /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[ward \(changed\)\] ward gate — in_progress \[locked\]$/mu,
       );
     });
+
+    it('VALID: {operation with packageNames} => renders the packages part after the flows part', () => {
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            role: 'flowrider',
+            text: 'author the suites' as never,
+            status: 'pending',
+            flowIds: ['send-comment'],
+            packageNames: ['web', 'server'],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(
+        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[flowrider\] author the suites — pending \[flows: #send-comment\] \[packages: web, server\]$/mu,
+      );
+    });
+
+    it('VALID: {operation with packageNames and no flowIds} => renders the packages part alone', () => {
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            role: 'codeweaver',
+            text: 'shared: the entry contract' as never,
+            status: 'pending',
+            packageNames: ['shared'],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(
+        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[codeweaver\] shared: the entry contract — pending \[packages: shared\]$/mu,
+      );
+    });
+
+    it('EMPTY: {operation with empty packageNames} => renders no packages part at all', () => {
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            role: 'codeweaver',
+            text: 'shared: the entry contract' as never,
+            status: 'pending',
+            packageNames: [],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(
+        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[codeweaver\] shared: the entry contract — pending$/mu,
+      );
+    });
   });
 
   describe('quest notes', () => {
@@ -493,6 +626,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Packages Affected',
         '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);
@@ -510,6 +644,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Packages Affected',
         '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);
@@ -523,7 +658,12 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest, stage: 'planning' });
       const headers = result.split('\n').filter((line) => line.startsWith('## '));
 
-      expect(headers).toStrictEqual(['## Contracts', '## Operations', '## Quest Notes']);
+      expect(headers).toStrictEqual([
+        '## Contracts',
+        '## Packages Affected',
+        '## Operations',
+        '## Quest Notes',
+      ]);
     });
   });
 
@@ -540,6 +680,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Packages Affected',
         '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);
@@ -551,7 +692,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest, stage: 'planning' });
       const headers = result.split('\n').filter((line) => line.startsWith('## '));
 
-      expect(headers).toStrictEqual(['## Contracts', '## Operations']);
+      expect(headers).toStrictEqual(['## Contracts', '## Packages Affected', '## Operations']);
     });
 
     it('VALID: {stage: implementation} => renders exactly the implementation sections', () => {
@@ -564,6 +705,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Packages Affected',
         '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);
@@ -579,6 +721,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Packages Affected',
         '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);

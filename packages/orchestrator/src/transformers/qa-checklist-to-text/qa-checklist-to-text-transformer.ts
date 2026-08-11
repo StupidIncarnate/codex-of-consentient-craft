@@ -24,15 +24,20 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, QaChecklist, SignoffTrack } from '@dungeonmaster/shared/contracts';
+import type { ContentText, QaChecklist } from '@dungeonmaster/shared/contracts';
 import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
+
+import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
 export const qaChecklistToTextTransformer = ({
   checklist,
   track,
 }: {
   checklist: QaChecklist;
-  track?: SignoffTrack;
+  // The DENOMINATOR track, of which there are three, not the sign-off FIELD, of which there are
+  // two — Groundstomper is measured separately from Flowrider and writes the same field, so the
+  // caption below names the field it looks up rather than the track it was handed.
+  track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
 }): ContentText => {
   const remaining = new Set(checklist.remainingItemIds.map(String));
   const byKind = {
@@ -50,14 +55,16 @@ export const qaChecklistToTextTransformer = ({
     ),
   ];
 
+  const signoffField =
+    track === undefined ? undefined : signoffTrackEligibilityStatics.byTrack[track].signoffField;
   const remainingCaption =
-    track === undefined
+    signoffField === undefined
       ? 'no sign-off yet on the track you are signing'
-      : `awaiting your \`${track}Signoff\``;
+      : `awaiting your \`${signoffField}\``;
   const unitsCaption =
-    track === undefined
+    signoffField === undefined
       ? '## UNITS — [ ] outstanding on your track, [x] already settled on it'
-      : `## UNITS — [ ] awaiting your \`${track}Signoff\`, [x] already settled on the ${track} track`;
+      : `## UNITS — [ ] awaiting your \`${signoffField}\`, [x] already settled on the ${String(track)} track`;
 
   const header = [
     `# QA CHECKLIST — flow \`${String(checklist.flowId)}\` "${String(checklist.flowName)}"`,

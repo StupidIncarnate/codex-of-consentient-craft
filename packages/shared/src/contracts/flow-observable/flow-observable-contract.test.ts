@@ -11,6 +11,7 @@ describe('flowObservableContract', () => {
         id: 'login-redirects-to-dashboard',
         type: 'ui-state',
         description: 'redirects to dashboard',
+        package: 'auth-service',
         addedBy: 'spec',
       });
     });
@@ -33,8 +34,44 @@ describe('flowObservableContract', () => {
         id: 'login-redirects-to-dashboard',
         type: 'api-call',
         description: 'sends auth token to server',
+        package: 'auth-service',
         addedBy: 'spec',
       });
+    });
+  });
+
+  describe('package attribution', () => {
+    it('VALID: {package: the other side of a seam} => round-trips the explicit side rather than the node default', () => {
+      const observable = FlowObservableStub({ package: 'gateway' });
+
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'ui-state',
+        description: 'redirects to dashboard',
+        package: 'gateway',
+        addedBy: 'spec',
+      });
+    });
+
+    it('INVALID: {package omitted} => throws Required on the persisted shape, where the modify-quest input accepts the absence', () => {
+      expect(() => {
+        flowObservableContract.parse({
+          id: 'login-redirects-to-dashboard',
+          type: 'ui-state',
+          description: 'redirects to dashboard',
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('EMPTY: {package: ""} => throws validation error', () => {
+      expect(() => {
+        flowObservableContract.parse({
+          id: 'login-redirects-to-dashboard',
+          type: 'ui-state',
+          description: 'redirects to dashboard',
+          package: '',
+        });
+      }).toThrow(/too_small/u);
     });
   });
 
@@ -44,12 +81,14 @@ describe('flowObservableContract', () => {
         id: 'login-redirects-to-dashboard',
         type: 'ui-state',
         description: 'redirects to dashboard',
+        package: 'auth-service',
       });
 
       expect(observable).toStrictEqual({
         id: 'login-redirects-to-dashboard',
         type: 'ui-state',
         description: 'redirects to dashboard',
+        package: 'auth-service',
         addedBy: 'spec',
       });
     });
@@ -61,6 +100,7 @@ describe('flowObservableContract', () => {
         id: 'login-redirects-to-dashboard',
         type: 'ui-state',
         description: 'redirects to dashboard',
+        package: 'auth-service',
         addedBy: 'siegemaster',
       });
     });
@@ -74,6 +114,7 @@ describe('flowObservableContract', () => {
         id: 'login-redirects-to-dashboard',
         type: 'ui-state',
         description: 'redirects to dashboard',
+        package: 'auth-service',
         addedBy: 'spec',
         flowriderSignoff: {
           verdict: 'confirmed',
@@ -99,6 +140,7 @@ describe('flowObservableContract', () => {
         id: 'login-redirects-to-dashboard',
         type: 'ui-state',
         description: 'redirects to dashboard',
+        package: 'auth-service',
         addedBy: 'spec',
         flowriderSignoff: {
           verdict: 'confirmed',
@@ -124,6 +166,7 @@ describe('flowObservableContract', () => {
           id: 'Bad',
           type: 'ui-state',
           description: 'test',
+          package: 'auth-service',
         });
       }).toThrow(/invalid_string/u);
     });
@@ -134,6 +177,7 @@ describe('flowObservableContract', () => {
           id: 'valid-id',
           type: 'invalid',
           description: 'test',
+          package: 'auth-service',
         });
       }).toThrow(/Invalid enum value/u);
     });
@@ -144,6 +188,7 @@ describe('flowObservableContract', () => {
           id: 'valid-id',
           type: 'ui-state',
           description: 'test',
+          package: 'auth-service',
           addedBy: 'blightwarden',
         });
       }).toThrow(/Invalid enum value/u);

@@ -1,4 +1,5 @@
 import {
+  architecturePackageE2eEligibleDetectBrokerProxy,
   childProcessSpawnCaptureAdapterProxy,
   fsExistsSyncAdapterProxy,
   netFreePortAdapterProxy,
@@ -26,12 +27,14 @@ export const checkRunE2eBrokerProxy = (): {
   setupPassWithJsonReport: (params: { projectFolder: ProjectFolder; jsonContent: string }) => void;
   setupFail: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
   setupFailWithEmptyOutput: (params: { projectFolder: ProjectFolder }) => void;
-  setupNoPlaywrightConfig: (params: { projectFolder: ProjectFolder }) => void;
+  setupNotE2eEligible: (params: { projectFolder: ProjectFolder }) => void;
+  setupEligibleMissingConfig: (params: { projectFolder: ProjectFolder }) => void;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
+  const eligibleProxy = architecturePackageE2eEligibleDetectBrokerProxy();
   const freePortProxy = netFreePortAdapterProxy();
   // e2e discovery has exactly one static pattern (checkCommandsStatics.e2e.discoverPatterns),
   // unlike unit/integration which loop over a dozen. The pattern is known, so key on it exactly.
@@ -64,11 +67,20 @@ export const checkRunE2eBrokerProxy = (): {
     return command;
   };
 
+  const markEligible = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+    eligibleProxy.setupPackage({
+      packageRoot: String(projectFolder.path),
+      srcDirNames: ['widgets'],
+      packageJsonContent: JSON.stringify({ dependencies: { react: '18.2.0' } }),
+    });
+  };
+
   const setupPlaywrightConfigExists = ({
     projectFolder,
   }: {
     projectFolder: ProjectFolder;
   }): void => {
+    markEligible({ projectFolder });
     existsProxy.returns({
       filePath: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
       result: true,
@@ -153,7 +165,19 @@ export const checkRunE2eBrokerProxy = (): {
       });
     },
 
-    setupNoPlaywrightConfig: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+    setupNotE2eEligible: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+      eligibleProxy.setupPackage({
+        packageRoot: String(projectFolder.path),
+        srcDirNames: ['brokers'],
+      });
+      existsProxy.returns({
+        filePath: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
+        result: false,
+      });
+    },
+
+    setupEligibleMissingConfig: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+      markEligible({ projectFolder });
       existsProxy.returns({
         filePath: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
         result: false,

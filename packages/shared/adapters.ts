@@ -18,6 +18,7 @@ export * from './src/adapters/fs/readdir-with-types/fs-readdir-with-types-adapte
 export * from './src/adapters/path/basename/path-basename-adapter';
 export * from './src/adapters/path/dirname/path-dirname-adapter';
 export * from './src/adapters/path/join/path-join-adapter';
+export * from './src/adapters/path/resolve/path-resolve-adapter';
 
 // OS Adapters
 export * from './src/adapters/os/homedir/os-homedir-adapter';

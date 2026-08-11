@@ -215,6 +215,7 @@ export const QuestSpecPanelWidget = ({
             flows={quest.flows}
             contracts={quest.contracts}
             comments={quest.comments}
+            packagesAffected={quest.packagesAffected}
             {...(commentQuestId === undefined ? {} : { commentQuestId })}
           />
         </Box>

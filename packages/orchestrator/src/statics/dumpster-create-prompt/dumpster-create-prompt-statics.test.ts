@@ -291,4 +291,155 @@ describe('dumpsterCreatePromptStatics', () => {
 
     expect(foundSlice).toBe(needle);
   });
+
+  describe('node package tagging', () => {
+    it('VALID: prompt template => instructs tagging every node with packages as it is created', () => {
+      const needle =
+        'Tag every node with `packages: PackageName[]` as you create it — see "Node package tagging" in Structured Flow Rules for how to choose them and the seam rule every edge must satisfy.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => requires every edge to satisfy the seam rule', () => {
+      const needle =
+        "Every edge must satisfy the seam rule: its two endpoints' `packages` must share at least one package.";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => rejects an untagged node at persist time', () => {
+      const needle =
+        'Every node must carry `packages` (at least one) before it can be saved — the contract rejects an untagged node.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => explore_flows exit criteria require every node tagged, every tag in packagesAffected, and no unglued seams', () => {
+      const needle =
+        '**Exit:** Once flows and design decisions are persisted, every node is tagged with `packages`, every tag it carries appears in `packagesAffected`, and every edge satisfies the seam rule (no edge whose endpoints share zero packages — see "Node package tagging"), call `modify-quest` with `status: \'review_flows\'`';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => states the seam-rule invariant for every edge A -> B', () => {
+      const needle =
+        '**For every edge `A -> B`, `A.packages` and `B.packages` must share at least one package.** An edge whose endpoints share no package is a boundary crossed with nothing spanning it.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => instructs fixing a failing edge by widening an endpoint or inserting a glue node', () => {
+      const needle =
+        'Fix a failing edge by **widening one endpoint** — add the missing package to whichever side is the natural seam; that endpoint now IS the glue node — or by **inserting a node** carrying both packages when neither existing endpoint is the right seam.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => permits fanning node tagging out to the chaoswhisperer-gap-minion sub-agent pattern', () => {
+      const needle =
+        'On a large flow graph, fan the tagging work out to sub-agents (the `chaoswhisperer-gap-minion` Agent-tool pattern) over disjoint node batches';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => does not instruct inferring node packages from observable types', () => {
+      const { template } = dumpsterCreatePromptStatics.prompt;
+
+      expect(template.indexOf("we'll infer it for you")).toBe(-1);
+      expect(template.indexOf('automatically infer')).toBe(-1);
+    });
+
+    it('VALID: prompt template => the "does NOT map observables to file paths" boundary is unchanged and not contradicted', () => {
+      const needle =
+        '**Does NOT:**\n- Map observables to file paths (Codeweavers decide files at build time)\n- Write actual code\n- Read files directly (exploration sub-agents only)\n- Define file names, folder structure, or code organization\n- Write raw mermaid diagrams (mermaid is auto-generated from structured nodes/edges)';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: web login example flow => tags every node with packages and marks the two glue nodes with both web and server', () => {
+      const needle =
+        '{ "id": "server-validates", "label": "Server validates?", "type": "decision", "packages": ["web", "server"] },\n    { "id": "set-cookie", "label": "Set auth cookie", "type": "action", "packages": ["web", "server"] },';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: CLI init example flow => tags every node with the single cli package', () => {
+      const needle =
+        'A single-package operational flow has no seam — every node carries the same one-element `packages` array, so the seam rule is trivially satisfied on every edge.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+
+  describe('packagesAffected entry object shape', () => {
+    it('VALID: prompt template => packagesAffected entries are objects, not bare strings', () => {
+      const needle =
+        '4. **Declare `packagesAffected[]`** - Before the final approval gate, you MUST call `modify-quest` with `packagesAffected` populated with one ENTRY per package the implementation will touch — it is context every implementation session reads, and it is the set every node\'s `packages` tag (see "Node package tagging") must draw from. Each entry is an object, not a bare string:';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => location must be written with the ./ prefix, never bare', () => {
+      const needle =
+        "`location`: the package's repo-relative root, written WITH the `./` prefix — `'./packages/web'`, never the bare `'packages/web'` (the path contract rejects a bare relative path with no leading `./` or `../`).";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => usedBy is required and non-empty only when changeType is new', () => {
+      const needle =
+        "`usedBy` — REQUIRED and non-empty, ONLY when `changeType: 'new'`: the packages that will depend on this one once it exists. A brand-new package has no `package.json` on disk yet, so its reverse edges have no other source — you are the only place they can come from.";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => packagesAffected can open as early as explore_flows', () => {
+      const needle =
+        'You can open `packagesAffected` as early as `explore_flows`, one gate before observables';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
 });

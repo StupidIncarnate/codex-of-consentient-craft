@@ -12,6 +12,7 @@ describe('flowNodeContract', () => {
         id: 'login-page',
         label: 'Login Page',
         type: 'state',
+        packages: ['auth-service'],
         observables: [],
       });
     });
@@ -46,9 +47,74 @@ describe('flowNodeContract', () => {
         id: 'start',
         label: 'Start',
         type: 'state',
+        packages: ['auth-service'],
       });
 
       expect(result.observables).toStrictEqual([]);
+    });
+  });
+
+  describe('package tags', () => {
+    it('VALID: {packages: one name} => parses a node whose landing site is a single package', () => {
+      const node = FlowNodeStub({ packages: ['gateway'] });
+
+      expect(node.packages).toStrictEqual(['gateway']);
+    });
+
+    it('VALID: {packages: two names} => parses a seam node, which is what a glue node looks like', () => {
+      const node = FlowNodeStub({ packages: ['auth-service', 'gateway'] });
+
+      expect(node).toStrictEqual({
+        id: 'login-page',
+        label: 'Login Page',
+        type: 'state',
+        packages: ['auth-service', 'gateway'],
+        observables: [],
+      });
+    });
+
+    it('VALID: {type: decision, no observables} => still carries a tag, because a branch unit has no observable to route by', () => {
+      const node = FlowNodeStub({ type: 'decision', packages: ['gateway'], observables: [] });
+
+      expect(node).toStrictEqual({
+        id: 'login-page',
+        label: 'Login Page',
+        type: 'decision',
+        packages: ['gateway'],
+        observables: [],
+      });
+    });
+
+    it('INVALID: {packages omitted} => throws Required, an untagged node has no landing site', () => {
+      expect(() => {
+        flowNodeContract.parse({
+          id: 'start',
+          label: 'Start',
+          type: 'state',
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('EMPTY: {packages: []} => throws, the field is min(1) rather than a defaulted empty array', () => {
+      expect(() => {
+        flowNodeContract.parse({
+          id: 'start',
+          label: 'Start',
+          type: 'state',
+          packages: [],
+        });
+      }).toThrow(/Array must contain at least 1 element/u);
+    });
+
+    it('EMPTY: {packages: [""]} => throws validation error', () => {
+      expect(() => {
+        flowNodeContract.parse({
+          id: 'start',
+          label: 'Start',
+          type: 'state',
+          packages: [''],
+        });
+      }).toThrow(/too_small/u);
     });
   });
 
@@ -60,6 +126,7 @@ describe('flowNodeContract', () => {
         id: 'login-page',
         label: 'Login Page',
         type: 'state',
+        packages: ['auth-service'],
         observables: [],
         flowriderSignoff: {
           verdict: 'confirmed',
@@ -85,6 +152,7 @@ describe('flowNodeContract', () => {
         id: 'login-page',
         label: 'Login Page',
         type: 'state',
+        packages: ['auth-service'],
         observables: [],
         flowriderSignoff: {
           verdict: 'confirmed',
@@ -110,6 +178,7 @@ describe('flowNodeContract', () => {
           id: 'Bad-Id',
           label: 'Bad Node',
           type: 'state',
+          packages: ['auth-service'],
         });
       }).toThrow(/invalid_string/u);
     });
@@ -120,6 +189,7 @@ describe('flowNodeContract', () => {
           id: 'start',
           label: '',
           type: 'state',
+          packages: ['auth-service'],
         });
       }).toThrow(/too_small/u);
     });
@@ -130,6 +200,7 @@ describe('flowNodeContract', () => {
           id: 'start',
           label: 'Start',
           type: 'invalid',
+          packages: ['auth-service'],
         });
       }).toThrow(/Invalid enum value/u);
     });

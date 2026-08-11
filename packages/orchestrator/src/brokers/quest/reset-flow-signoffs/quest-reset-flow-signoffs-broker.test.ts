@@ -212,10 +212,12 @@ describe('questResetFlowSignoffsBroker', () => {
               status: 'in_progress',
               locked: true,
               flowIds: ['login-flow'],
+              packageNames: [],
             },
           ],
           toolingRequirements: [],
           packagesAffected: [],
+          packageGraph: [],
           contracts: [],
           flows: [
             {
@@ -229,10 +231,12 @@ describe('questResetFlowSignoffsBroker', () => {
                   id: 'login-page',
                   label: 'Login Page',
                   type: 'state',
+                  packages: ['auth-service'],
                   observables: [
                     {
                       id: 'login-redirects-to-dashboard',
                       type: 'ui-state',
+                      package: 'auth-service',
                       description: 'redirects to dashboard',
                       addedBy: 'spec',
                       flowriderSignoff: FLOWRIDER_SIGNOFF,
@@ -240,7 +244,13 @@ describe('questResetFlowSignoffsBroker', () => {
                   ],
                   flowriderSignoff: FLOWRIDER_SIGNOFF,
                 },
-                { id: 'dashboard', label: 'Dashboard', type: 'state', observables: [] },
+                {
+                  id: 'dashboard',
+                  label: 'Dashboard',
+                  type: 'state',
+                  packages: ['auth-service'],
+                  observables: [],
+                },
               ],
               edges: [
                 {

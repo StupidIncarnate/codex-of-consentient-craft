@@ -12,6 +12,7 @@ describe('reactFlowNodeDataContract', () => {
           nodeId: 'login-page',
           label: 'Login Page',
           nodeType,
+          packages: [{ name: 'auth-service', packageType: 'library' }],
           contractCount: 0,
           commentCount: 0,
         });
@@ -23,6 +24,7 @@ describe('reactFlowNodeDataContract', () => {
         nodeId: 'checkout-page',
         label: 'Checkout Page',
         nodeType: 'state',
+        packages: [{ name: 'auth-service', packageType: 'library' }],
         contractCount: 5,
         commentCount: 2,
       });
@@ -31,6 +33,7 @@ describe('reactFlowNodeDataContract', () => {
         nodeId: 'checkout-page',
         label: 'Checkout Page',
         nodeType: 'state',
+        packages: [{ name: 'auth-service', packageType: 'library' }],
         contractCount: 5,
         commentCount: 2,
       });
@@ -55,6 +58,60 @@ describe('reactFlowNodeDataContract', () => {
         /Number must be greater than or equal to 0/u,
       );
     });
+
+    it('EMPTY: {packages: []} => throws, so no card can render without naming where it lands', () => {
+      expect(() => ReactFlowNodeDataStub({ packages: [] })).toThrow(
+        /Array must contain at least 1 element/u,
+      );
+    });
+
+    it('EMPTY: {no packages} => throws for the missing required tag list', () => {
+      expect(() =>
+        reactFlowNodeDataContract.parse({
+          nodeId: 'login-page',
+          label: 'Login Page',
+          nodeType: 'state',
+          contractCount: 0,
+          commentCount: 0,
+        }),
+      ).toThrow(/Required/u);
+    });
+  });
+
+  describe('package tags', () => {
+    it('VALID: {two packages} => a seam node keeps both tags in authored order', () => {
+      const result = ReactFlowNodeDataStub({
+        packages: [
+          { name: 'storefront-ui', packageType: 'frontend-react' },
+          { name: 'orders-api', packageType: 'http-backend' },
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        nodeId: 'login-page',
+        label: 'Login Page',
+        nodeType: 'state',
+        packages: [
+          { name: 'storefront-ui', packageType: 'frontend-react' },
+          { name: 'orders-api', packageType: 'http-backend' },
+        ],
+        contractCount: 0,
+        commentCount: 0,
+      });
+    });
+
+    it('VALID: {package with no packageType} => an undeclared tag parses and stays kindless', () => {
+      const result = ReactFlowNodeDataStub({ packages: [{ name: 'orders-api' }] });
+
+      expect(result).toStrictEqual({
+        nodeId: 'login-page',
+        label: 'Login Page',
+        nodeType: 'state',
+        packages: [{ name: 'orders-api' }],
+        contractCount: 0,
+        commentCount: 0,
+      });
+    });
   });
 
   describe('comment anchor fields', () => {
@@ -63,6 +120,7 @@ describe('reactFlowNodeDataContract', () => {
         nodeId: 'login-page',
         label: 'Login Page',
         nodeType: 'state',
+        packages: [{ name: 'auth-service', packageType: 'library' }],
         contractCount: 0,
         commentCount: 0,
       });
@@ -71,6 +129,7 @@ describe('reactFlowNodeDataContract', () => {
         nodeId: 'login-page',
         label: 'Login Page',
         nodeType: 'state',
+        packages: [{ name: 'auth-service', packageType: 'library' }],
         contractCount: 0,
         commentCount: 0,
       });
@@ -86,6 +145,7 @@ describe('reactFlowNodeDataContract', () => {
         nodeId: 'login-page',
         label: 'Login Page',
         nodeType: 'state',
+        packages: [{ name: 'auth-service', packageType: 'library' }],
         contractCount: 0,
         commentCount: 0,
         questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

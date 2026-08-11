@@ -193,6 +193,52 @@ describe('workItemContract', () => {
       });
     });
 
+    it('VALID: {packageNames copied from the operation item} => parses and keeps the slice', () => {
+      const item = WorkItemStub({
+        role: 'flowrider',
+        packageNames: ['web', 'server'],
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'flowrider',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        packageNames: ['web', 'server'],
+      });
+    });
+
+    it('EMPTY: {no packageNames} => the key is absent rather than defaulted to an empty array', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
     it('VALID: without optional arrays => defaults to empty arrays', () => {
       const result = workItemContract.parse({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -346,6 +392,19 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           createdAt: '2024-01-15T10:00:00.000Z',
           agentId: '',
+        });
+      }).toThrow(/too_small|String must contain at least 1/u);
+    });
+
+    it('INVALID: {empty packageNames member} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          packageNames: [''],
         });
       }).toThrow(/too_small|String must contain at least 1/u);
     });

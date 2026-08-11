@@ -16,6 +16,7 @@ import type { ReactFlowNodeData } from '../../contracts/react-flow-node-data/rea
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
+import { packageChipAccentTransformer } from '../../transformers/package-chip-accent/package-chip-accent-transformer';
 import { CommentPopoverWidget } from '../comment-popover/comment-popover-widget';
 
 export interface FlowNodeCardLayerWidgetProps {
@@ -37,11 +38,24 @@ const NODE_TYPE_ICONS: Record<FlowNodeType, typeof IconDiamond> = {
 
 const { colors } = emberDepthsThemeStatics;
 
+// Chips are OUTLINED rather than filled, matching the flow-type badge and the assertion card's
+// outcome tag. A filled chip at this size reads as a status pill, and a card carrying two of them
+// would out-shout the label the reader is actually scanning.
+const PACKAGE_CHIP_STYLE = {
+  border: '1px solid',
+  borderRadius: 3,
+  background: colors['bg-raised'],
+  fontSize: 9,
+  padding: '0px 4px',
+  letterSpacing: '0.5px',
+  whiteSpace: 'nowrap' as const,
+};
+
 export const FlowNodeCardLayerWidget = ({
   data,
   selected,
 }: FlowNodeCardLayerWidgetProps): React.JSX.Element => {
-  const { nodeType, label, contractCount, commentCount, nodeId, questId, flowId } = data;
+  const { nodeType, label, packages, contractCount, commentCount, nodeId, questId, flowId } = data;
   const accentColor = flowNodeStyleStatics.accent[nodeType];
   const TypeIcon = NODE_TYPE_ICONS[nodeType];
 
@@ -122,6 +136,35 @@ export const FlowNodeCardLayerWidget = ({
           {String(commentCount)}
         </div>
       ) : null}
+      {/* One chip per package this node lands in, ON the card rather than behind a click: this is
+          what the reviewer signs off at the review_flows gate, and a node carrying two chips is
+          visibly a seam. Colour comes from the resolved KIND — never the name — so a repo with
+          several UI packages paints them all alike. ELK reserves this row's height via
+          labelEstimate.packageRow; a chip row added without that term overlaps the row below. */}
+      <div
+        data-testid="FLOW_NODE_PACKAGES"
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}
+      >
+        {packages.map((pkg) => {
+          const accent = packageChipAccentTransformer(
+            pkg.packageType === undefined ? {} : { packageType: pkg.packageType },
+          );
+          return (
+            <span
+              key={String(pkg.name)}
+              data-testid="FLOW_NODE_PACKAGE_CHIP"
+              {...(pkg.packageType === undefined ? {} : { 'data-package-type': pkg.packageType })}
+              // The resolved token, stated as data rather than only as CSS: a browser reports the
+              // applied colour as `rgb(...)` and jsdom rewrites it too, so an assertion against the
+              // palette would be comparing two different notations.
+              data-package-accent={accent}
+              style={{ ...PACKAGE_CHIP_STYLE, borderColor: accent, color: accent }}
+            >
+              {pkg.name}
+            </span>
+          );
+        })}
+      </div>
       {/* questId and flowId ride in on the node data only while the comment compose controls are
           allowed for this quest, so their absence is what leaves the card with no comment button. */}
       {questId === undefined || flowId === undefined ? null : (

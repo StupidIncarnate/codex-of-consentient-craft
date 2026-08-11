@@ -1,7 +1,9 @@
 /**
  * PURPOSE: Builds a responder-annotation Map for an http-backend package — for each route
  * registered under the package, emits a `[METHOD url]` suffix on the responder line plus
- * `← packages/web (brokerName)` child lines for every consuming web broker (fan-in).
+ * `← packages/<consuming-package> (brokerName)` child lines for every consuming frontend broker
+ * (fan-in). The consuming package name is resolved per edge via architectureBackRefBroker, never
+ * assumed.
  *
  * USAGE:
  * const annotations = httpEdgesToAnnotationsLayerBroker({

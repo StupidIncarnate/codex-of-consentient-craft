@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 import { agentIdContract } from '../agent-id/agent-id-contract';
 import { fileNameContract } from '../file-name/file-name-contract';
+import { packageNameContract } from '../package-name/package-name-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
@@ -54,6 +55,12 @@ export const workItemContract = z.object({
       'Set by orphan recovery when it flips a crashed in_progress item back to pending while KEEPING sessionId: dispatch must resume that Claude session (claude --resume) instead of fresh-spawning, so work in the orphaned session is preserved',
     ),
   wardMode: z.enum(['changed', 'full']).optional(),
+  packageNames: z
+    .array(packageNameContract)
+    .optional()
+    .describe(
+      'Copied from the linked operation item when advance creates this item, so the dispatched session is handed its package slice with the rest of its identity rather than having to resolve the operations ref to find it. Optional and omitted when empty, exactly as `wardMode` is: work items are the most numerous array on a quest, and a `.default([])` would materialise an empty array onto every one of them on every re-parse. The operation item is the authority — this is a copy taken at dispatch.',
+    ),
   smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
   smoketestExpectedSignal: streamSignalKindContract.optional(),
   actualSignal: streamSignalKindContract.optional(),

@@ -38,17 +38,27 @@ export const elkLayoutAdapter = async ({
   const elk = new ELK();
 
   const nodeChildren = nodes.map((n) => {
-    // Reserve a box tall enough for the node's FULL wrapped label so stacked rows never
-    // overlap. charsPerLine is deliberately low (over-counts wrapped lines), making the
-    // reserved height an upper bound on the rendered card height. The contract badge height is
-    // reserved unconditionally — the badge (contract count) is rendered by the card from data
-    // this layout never sees, so over-reserving keeps the box an upper bound.
+    // Reserve a box tall enough for the node's FULL wrapped label AND its package chip row so
+    // stacked rows never overlap. charsPerLine is deliberately low on both terms (over-counts
+    // wrapped lines), making the reserved height an upper bound on the rendered card height. The
+    // contract badge height is reserved unconditionally — the badge (contract count) is rendered by
+    // the card from data this layout never sees, so over-reserving keeps the box an upper bound.
     const { labelEstimate, observable } = elkLayoutStatics;
     const lines = Math.max(1, Math.ceil(String(n.label).length / labelEstimate.charsPerLine));
+    const packageChipChars = n.packages.reduce(
+      (sum, packageName) =>
+        sum + String(packageName).length + labelEstimate.packageRow.chipOverheadChars,
+      0,
+    );
+    const packageLines = Math.max(
+      1,
+      Math.ceil(packageChipChars / labelEstimate.packageRow.charsPerLine),
+    );
     const cardHeight =
       labelEstimate.chromeHeight +
       lines * labelEstimate.lineHeight +
       labelEstimate.badgeHeight +
+      packageLines * labelEstimate.packageRow.lineHeight +
       labelEstimate.buffer;
     // Assertion cards branch into a column to the right of the card; reserve the column's full
     // height so it never overlaps a lower node. Each card's height is estimated from its

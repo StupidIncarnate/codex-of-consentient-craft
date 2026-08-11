@@ -10,6 +10,7 @@ export const FlowObservableNodeDataStub = ({
     observableId: 'login-redirects-to-dashboard',
     outcomeType: 'ui-state',
     description: 'redirects to dashboard',
+    package: { name: 'auth-service', packageType: 'library' },
     commentCount: 0,
     nodeId: 'login-page',
     ...props,

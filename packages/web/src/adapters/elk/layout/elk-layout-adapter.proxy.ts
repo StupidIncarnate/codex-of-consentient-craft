@@ -11,12 +11,25 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 const elkGraphChildIdContract = z.string().min(1).brand<'ElkGraphChildId'>();
 type ElkGraphChildId = z.infer<typeof elkGraphChildIdContract>;
 
+// The reserved rectangle the adapter asks ELK to lay each child out inside. Branded so the
+// accessor below hands back a typed box rather than raw numbers; at runtime these are plain px.
+const elkGraphChildBoxSchema = z.object({
+  id: elkGraphChildIdContract,
+  width: z.number().brand<'ElkGraphChildWidth'>(),
+  height: z.number().brand<'ElkGraphChildHeight'>(),
+});
+type ElkGraphChildBox = z.infer<typeof elkGraphChildBoxSchema>;
+
 const capturedGraphSchema = z.object({
   children: z.array(z.object({ id: elkGraphChildIdContract })).default([]),
+});
+const capturedBoxGraphSchema = z.object({
+  children: z.array(elkGraphChildBoxSchema).default([]),
 });
 // The layout call is `layout(graph)` — one positional arg. Parsing the whole args tuple lets the
 // accessor destructure a typed graph instead of indexing `[0]` off the mock's `any` call record.
 const capturedCallSchema = z.tuple([capturedGraphSchema]);
+const capturedBoxCallSchema = z.tuple([capturedBoxGraphSchema]);
 
 export const elkLayoutAdapterProxy = (): {
   returnsPositions: ({
@@ -36,6 +49,7 @@ export const elkLayoutAdapterProxy = (): {
   returnsNoChildren: () => void;
   throws: ({ error }: { error: Error }) => void;
   getGraphChildIds: () => readonly (readonly ElkGraphChildId[])[];
+  getGraphChildBoxes: () => readonly (readonly ElkGraphChildBox[])[];
 } => {
   const mockLayout = jest.fn();
   const layoutHandle: MockHandle = registerMock({ fn: mockLayout });
@@ -81,6 +95,14 @@ export const elkLayoutAdapterProxy = (): {
       layoutHandle.callsMatching([]).map((call) => {
         const [graph] = capturedCallSchema.parse(call);
         return graph.children.map((c) => c.id);
+      }),
+    // The RESERVED rectangle per child, which is the only thing standing between a taller card and
+    // the row beneath it: ELK lays out non-overlapping boxes, so a card that renders taller than
+    // the box asked for here overlaps its neighbour and no unit test of the card alone can see it.
+    getGraphChildBoxes: (): readonly (readonly ElkGraphChildBox[])[] =>
+      layoutHandle.callsMatching([]).map((call) => {
+        const [graph] = capturedBoxCallSchema.parse(call);
+        return graph.children;
       }),
   };
 };

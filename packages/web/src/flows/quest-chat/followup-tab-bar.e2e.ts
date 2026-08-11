@@ -183,6 +183,22 @@ test.describe('FOLLOW-UP tab bar structure', () => {
         .filter({ hasText: 'And what fixed it on retry?' })
         .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING }),
     ).toBeVisible();
+
+    // ONE rendered message per message SENT. A tavernkeeper turn's transcript is read by several
+    // readers of the same session JSONL at once — the spawn's own stdout, its post-exit
+    // main-session tail, and the quest-driven session watcher — and the only thing collapsing
+    // those copies is that every reader keys the entry on the stream line's own uuid. A second
+    // copy here is therefore a reader whose lines were keyed on something else, which a person
+    // reading this tab sees as their own question typed twice. Counted explicitly because
+    // `toBeVisible` retries until it passes: it reports green on a transcript whose duplicate
+    // simply had not landed yet, and green is exactly what the duplicate looks like on arrival.
+    expect(
+      await page
+        .getByTestId('CHAT_MESSAGE')
+        .filter({ hasText: 'And what fixed it on retry?' })
+        .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING })
+        .count(),
+    ).toBe(1);
   });
 
   // branch fc-tab-yes (tab-open -> "yes" -> switch-existing-tab), driven through the FOLLOW-UP
@@ -223,11 +239,22 @@ test.describe('FOLLOW-UP tab bar structure', () => {
   });
 
   // followup-tab-survives-status-change: the tab is gated on HAVING BEEN OPENED, never on quest
-  // status. A blocked quest moving to merging removes the post-quest bar (merging is not
-  // followup-chatable) but must not touch the already-open tab or its transcript — this is the
-  // only surface `followup-rejection-shown-in-tab` can later be observed on, since a tab that
-  // closed on status change would take the error text down with it.
-  test('VALID: {FOLLOW-UP tab open with a sent message, quest moves blocked -> merging} => tab stays first with its transcript intact while the post-quest bar disappears', async ({
+  // status. A blocked quest moving to abandoned removes the post-quest bar (abandoned is neither
+  // followup-chatable nor mergeable) but must not touch the already-open tab or its transcript —
+  // this is the only surface `followup-rejection-shown-in-tab` can later be observed on, since a
+  // tab that closed on status change would take the error text down with it. That sibling spec
+  // drives `abandoned` too, as one of the statuses it derives a rejection case for, so the two
+  // agree on which move a reader can actually make out from under an open tab.
+  //
+  // `abandoned` is the move this case can hold still at. It is a legal transition from `blocked`
+  // (`questStatusTransitionsStatics.blocked`) and it is one of the statuses
+  // `work-items-to-quest-status-transformer` returns unchanged, so no later write can move it.
+  // That matters here because this case sends a real follow-up message: the tavernkeeper's own
+  // `onComplete` marks its work item complete, and a work-item write with no explicit status
+  // re-derives the quest's. A status that derives onward (`merging` becomes `merged` once the
+  // work items are terminal and the ledger is drained) would take the bar's FOLLOW-UP segment
+  // back with it, since `merged` IS followup-chatable.
+  test('VALID: {FOLLOW-UP tab open with a sent message, quest moves blocked -> abandoned} => tab stays first with its transcript intact while the post-quest bar disappears', async ({
     page,
     request,
   }) => {
@@ -261,8 +288,8 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     await followup.switchToFollowupTab();
 
     // Precondition write only — the quest's status is not the control under test here (that is
-    // warpgate's own route); this merely sets up the state the tab must survive.
-    await quests.patchQuestStatus({ questId: String(questId), status: 'merging' });
+    // the title bar's ABANDON control); this merely sets up the state the tab must survive.
+    await quests.patchQuestStatus({ questId: String(questId), status: 'abandoned' });
 
     // Read the bar's DISAPPEARANCE from the EXECUTION tab too. Asserting its absence while the
     // FOLLOW-UP tab is active would pass even with the bar fully intact, since the execution

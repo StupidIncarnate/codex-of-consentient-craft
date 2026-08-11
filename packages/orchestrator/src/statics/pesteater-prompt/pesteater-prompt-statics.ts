@@ -84,7 +84,7 @@ symptom.
 
 Write (or strengthen) a test that asserts the **user-visible invariant** from Gate 1 — not an
 intermediate cause. Choose the test type by symptom shape:
-- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: \`<ui-package>/src/flows/**/*.e2e.ts\` (use the actual package from packagesAffected / the diff — a repo may have several UI packages).
+- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: \`<ui-package>/src/flows/**/*.e2e.ts\`. Resolve \`<ui-package>\` from \`packagesAffected\`: the UI packages are EVERY entry whose \`packageType\` is \`frontend-react\` or \`frontend-ink\`, and that \`location\` is the path to write under. Treat it as a SET — a repo may have several, and when it does, pick the one carrying the flow you are reproducing rather than assuming there is only one.
 - A transformer/contract you can drive directly → a unit test alongside the implementation.
 - Default to e2e for any "I don't see X in the UI" report.
 

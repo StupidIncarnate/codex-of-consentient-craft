@@ -40,10 +40,12 @@ const SUMMARY_FLOWS = [
         id: 'start',
         label: 'Start',
         type: 'state',
+        packages: ['auth-service'],
         observables: [
           {
             id: 'crash-on-bleh',
             type: 'api-call',
+            package: 'auth-service',
             description: DRIFT_OBSERVABLE_TEXT,
             addedBy: 'siegemaster',
           },
@@ -53,6 +55,7 @@ const SUMMARY_FLOWS = [
         id: 'done',
         label: 'Done',
         type: 'terminal',
+        packages: ['auth-service'],
         observables: [],
         flowriderSignoff: {
           verdict: 'confirmed',

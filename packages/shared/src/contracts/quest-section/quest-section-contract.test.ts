@@ -27,6 +27,12 @@ describe('questSectionContract', () => {
       expect(result).toBe('toolingRequirements');
     });
 
+    it('VALID: {value: "packagesAffected"} => parses successfully', () => {
+      const result = questSectionContract.parse(QuestSectionStub({ value: 'packagesAffected' }));
+
+      expect(result).toBe('packagesAffected');
+    });
+
     it('VALID: {value: "workItems"} => parses successfully', () => {
       const result = questSectionContract.parse(QuestSectionStub({ value: 'workItems' }));
 

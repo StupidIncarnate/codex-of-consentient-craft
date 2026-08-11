@@ -3,6 +3,7 @@ import {
   BaseBranchNameStub,
   GuildIdStub,
   OperationItemStub,
+  PackageGraphEntryStub,
   QuestBranchNameStub,
   QuestIdStub,
   QuestStub,
@@ -50,12 +51,16 @@ const PROCESS_ID = `proc-${SEEDED_UUIDS[0]}`;
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
 // Feature quests seed NO implementation ops at Start (Chaos authored the codeweaver items at spec
-// time), so the verify tail consumes uuids 1..6 and the first work item consumes the next one. The
-// flowrider gets ONE whole-quest item carrying every flow id QuestStub declares; siegemaster gets
-// one item PER FLOW (QuestStub declares one, so the tail length is unchanged); every other tail
-// item carries none.
+// time), so the verify tail consumes one uuid per SEEDED item and the first work item consumes the
+// next one. QuestStub declares one flow with no tagged nodes and no packagesAffected, which is what
+// makes the mapping below 1:1 per surviving entry: flowrider falls back to ONE whole-quest item
+// carrying every runtime flow id, siegemaster gets one item per flow (there is one), and
+// groundstomper gets NONE — nothing on that flow lands in a package a browser can reach.
 const QUEST_STUB_FLOW_ID = 'login-flow';
-const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail.map((entry, index) => ({
+const FEATURE_TAIL_SEEDED = questTypeRegistryStatics.feature.relayTail.filter(
+  (entry) => entry.role !== 'groundstomper',
+);
+const FEATURE_TAIL_EXPECTED = FEATURE_TAIL_SEEDED.map((entry, index) => ({
   id: SEEDED_UUIDS[index + 1],
   role: entry.role,
   // Siegemaster fans out to one item per flow, each suffixed with the flow it owns. QuestStub
@@ -64,6 +69,7 @@ const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail.map((en
   status: 'pending',
   locked: true,
   flowIds: entry.role === 'flowrider' || entry.role === 'siegemaster' ? [QUEST_STUB_FLOW_ID] : [],
+  packageNames: [],
   ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
 }));
 const FEATURE_WORK_ITEM_UUID = SEEDED_UUIDS[FEATURE_TAIL_EXPECTED.length + 1];
@@ -80,6 +86,7 @@ const BUG_HUNT_OPS_EXPECTED = [
     status: index === 0 ? 'in_progress' : 'pending',
     locked: true,
     flowIds: [],
+    packageNames: [],
   })),
   ...questTypeRegistryStatics['bug-hunt'].relayTail.map((seed, index) => ({
     id: SEEDED_UUIDS[index + 1 + BUG_HUNT_IMPLEMENTATION_COUNT],
@@ -88,6 +95,7 @@ const BUG_HUNT_OPS_EXPECTED = [
     status: 'pending',
     locked: true,
     flowIds: [],
+    packageNames: [],
     ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
   })),
 ];
@@ -113,6 +121,23 @@ const BASE_BRANCH = BaseBranchNameStub({ value: 'main' });
 const BASE_REF = QuestStub({
   baseRef: '1234567890abcdef1234567890abcdef12345678' as never,
 }).baseRef!;
+
+const DERIVED_PACKAGE_GRAPH = [
+  PackageGraphEntryStub({
+    id: 'shared',
+    dependsOn: [],
+    depth: 0,
+    packageType: 'library',
+    changeType: 'edit',
+  }),
+  PackageGraphEntryStub({
+    id: 'server',
+    dependsOn: ['shared'],
+    depth: 1,
+    packageType: 'http-backend',
+    changeType: 'edit',
+  }),
+];
 
 describe('OrchestrationStartResponder', () => {
   describe('quest lookup + startable gate', () => {
@@ -214,6 +239,82 @@ describe('OrchestrationStartResponder', () => {
         'No local main or master branch found',
       );
       expect(proxy.getPersistedStatuses()).toStrictEqual([]);
+    });
+  });
+
+  describe('package graph stamping', () => {
+    it('VALID: {PrepareQuestPackageGraphLayerResponder resolves entries} => they land on the same atomic persist as the seeded relay, before the status flip', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+      proxy.setupPackageGraphDerived({ packageGraph: DERIVED_PACKAGE_GRAPH });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect({ status: persisted.status, packageGraph: persisted.packageGraph }).toStrictEqual({
+        status: 'approved',
+        packageGraph: DERIVED_PACKAGE_GRAPH,
+      });
+    });
+
+    it('VALID: {quest already carrying a packageGraph, so the layer derives nothing} => the stamped graph survives the Start untouched', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        packageGraph: DERIVED_PACKAGE_GRAPH,
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect(persisted.packageGraph).toStrictEqual(DERIVED_PACKAGE_GRAPH);
+    });
+
+    it('VALID: {prior tail seeded, no packageGraph recorded} => the promotion-only persist still records the derived graph', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const wardOp = OperationItemStub({
+        id: WARD_OP_UUID,
+        role: 'ward',
+        text: 'Ward gate (changed files)',
+        status: 'pending',
+        locked: true,
+        flowIds: [],
+        wardMode: 'changed',
+      });
+      const chatItem = WorkItemStub({
+        id: CHAT_ITEM_UUID,
+        role: 'chaoswhisperer',
+        status: 'complete',
+        completedAt: FIXED_TIMESTAMP,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        operations: [wardOp],
+        workItems: [chatItem],
+        branchName: EXISTING_BRANCH_NAME,
+        worktreePath: EXISTING_WORKTREE_PATH,
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+      proxy.setupWorktreeSkipped();
+      proxy.setupPackageGraphDerived({ packageGraph: DERIVED_PACKAGE_GRAPH });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect({
+        operations: persisted.operations,
+        packageGraph: persisted.packageGraph,
+      }).toStrictEqual({ operations: [wardOp], packageGraph: DERIVED_PACKAGE_GRAPH });
     });
   });
 

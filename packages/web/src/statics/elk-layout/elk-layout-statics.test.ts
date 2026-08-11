@@ -11,6 +11,11 @@ describe('elkLayoutStatics', () => {
         lineHeight: 16,
         chromeHeight: 40,
         badgeHeight: 22,
+        packageRow: {
+          charsPerLine: 22,
+          chipOverheadChars: 5,
+          lineHeight: 22,
+        },
         buffer: 12,
       },
       observable: {
@@ -20,7 +25,7 @@ describe('elkLayoutStatics', () => {
         labelEstimate: {
           charsPerLine: 26,
           lineHeight: 15,
-          chromeHeight: 30,
+          chromeHeight: 52,
           buffer: 10,
         },
       },

@@ -18,17 +18,29 @@ export const elkLayoutStatics = {
   node: {
     width: 240,
   },
-  // The FLOW_NODE card shows its FULL label (wrapped, never clamped), so its height varies with
-  // the label length. ELK must reserve each node's real height or stacked rows overlap. Rather
-  // than measure the DOM, height is estimated from the label: a deliberately LOW charsPerLine
+  // The FLOW_NODE card shows its FULL label (wrapped, never clamped) AND a wrapping row of package
+  // chips, so its height varies with both. ELK must reserve each node's real height or stacked rows
+  // overlap. Rather than measure the DOM, height is estimated: a deliberately LOW charsPerLine
   // (well under the ~29 a 240px monospace line actually fits) over-counts wrapped lines so the
   // reserved box is always >= the rendered card. The reserved card height is:
-  //   chromeHeight + ceil(labelLength / charsPerLine) * lineHeight + badgeHeight + buffer
+  //   chromeHeight + ceil(labelLength / charsPerLine) * lineHeight
+  //     + badgeHeight + packageRowLines * packageRow.lineHeight + buffer
   labelEstimate: {
     charsPerLine: 18,
     lineHeight: 16,
     chromeHeight: 40,
     badgeHeight: 22,
+    // The FLOW_NODE_PACKAGES chip row, reserved by the same over-counting trick as the label but in
+    // chip units. Each chip costs its name's length plus `chipOverheadChars` for its padding and the
+    // gap to its neighbour, and `charsPerLine` is set well under the ~35 characters a 240px card
+    // really fits, so the inflated per-chip cost also absorbs what greedy wrapping wastes at the end
+    // of a line. A seam node carries two or more chips here, which is precisely the case that
+    // overlaps its lower neighbour if this term is left out.
+    packageRow: {
+      charsPerLine: 22,
+      chipOverheadChars: 5,
+      lineHeight: 22,
+    },
     buffer: 12,
   },
   // Assertion (observable) cards branch off to the RIGHT of each flow node, stacked into a column,
@@ -39,6 +51,9 @@ export const elkLayoutStatics = {
   // estimated card height is: chromeHeight + ceil(descriptionLength / charsPerLine) * lineHeight
   // + buffer; the column height is the sum of card heights plus rowGaps. ELK reserves
   // max(flowCardHeight, columnHeight) for the node so the column never overlaps a lower node.
+  // chromeHeight covers the card padding plus the tag row, which carries the outcome-type tag AND
+  // the resolved package chip — two tags on a 220px card wrap to a second line for the longer
+  // names, so a full extra row is reserved rather than the one the single tag needed.
   observable: {
     width: 220,
     gap: 56,
@@ -46,7 +61,7 @@ export const elkLayoutStatics = {
     labelEstimate: {
       charsPerLine: 26,
       lineHeight: 15,
-      chromeHeight: 30,
+      chromeHeight: 52,
       buffer: 10,
     },
   },

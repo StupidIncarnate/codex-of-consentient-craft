@@ -7,6 +7,7 @@ import { CommentCountStub } from '../../contracts/comment-count/comment-count.st
 import { ContractCountStub } from '../../contracts/contract-count/contract-count.stub';
 import { ReactFlowNodeDataStub } from '../../contracts/react-flow-node-data/react-flow-node-data.stub';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
+import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeCardLayerWidgetProxy } from './flow-node-card-layer-widget.proxy';
 
@@ -140,6 +141,119 @@ describe('FlowNodeCardLayerWidget', () => {
       });
 
       expect(screen.queryByTestId('FLOW_NODE_BADGE')).toBe(null);
+    });
+  });
+
+  describe('package chip row', () => {
+    it('VALID: {one package} => FLOW_NODE_PACKAGES renders exactly one chip naming it', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        packages: [{ name: 'storefront-ui', packageType: 'frontend-react' }],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getPackageChipNames()).toStrictEqual(['storefront-ui']);
+    });
+
+    // The whole point of the row: a node spanning a package boundary has to SHOW both sides on the
+    // card, because the reviewer signs the seam off from the diagram and never opens a panel to do
+    // it. A single-chip check passes on a card that silently drops the second tag.
+    it('VALID: {two packages} => a glue node renders TWO chips, one per package, in authored order', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'press-warp' }),
+        label: 'Press Warp',
+        nodeType: 'action',
+        packages: [
+          { name: 'storefront-ui', packageType: 'frontend-react' },
+          { name: 'orders-api', packageType: 'http-backend' },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="action" />,
+      });
+
+      expect(proxy.getPackageChipNames()).toStrictEqual(['storefront-ui', 'orders-api']);
+    });
+
+    it('VALID: {three packages} => one chip per package with no collapsing or truncation', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        packages: [
+          { name: 'storefront-ui', packageType: 'frontend-react' },
+          { name: 'orders-api', packageType: 'http-backend' },
+          { name: 'shared-kit', packageType: 'library' },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getPackageChipNames()).toStrictEqual([
+        'storefront-ui',
+        'orders-api',
+        'shared-kit',
+      ]);
+    });
+  });
+
+  describe('chip colour by package kind', () => {
+    // Two DIFFERENTLY-NAMED UI packages must paint identically, and a service beside them must not.
+    // That is the no-hardcode rule expressed as a rendering claim: nothing may recognise a name.
+    it('VALID: {two differently-named frontend-react packages beside an http-backend} => both UI chips share the e2e-eligible token and the service chip does not', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        packages: [
+          { name: 'storefront-ui', packageType: 'frontend-react' },
+          { name: 'admin-console', packageType: 'frontend-react' },
+          { name: 'orders-api', packageType: 'http-backend' },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getPackageChipColors()).toStrictEqual([
+        packageTypeStyleStatics.accent['frontend-react'],
+        packageTypeStyleStatics.accent['frontend-react'],
+        packageTypeStyleStatics.accent['http-backend'],
+      ]);
+    });
+
+    it('VALID: {library package} => the chip carries its kind as data-package-type', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        packages: [{ name: 'shared-kit', packageType: 'library' }],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getPackageChipTypes()).toStrictEqual(['library']);
+    });
+
+    // A tag naming a package the quest never declared is the coverage rule's failure case, so the
+    // card paints it as unresolved rather than borrowing a kind's colour and reading as legitimate.
+    it('VALID: {package with no resolved kind} => the chip paints in the unresolved token and carries no data-package-type', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({ packages: [{ name: 'never-declared' }] });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getPackageChipColors()).toStrictEqual([packageTypeStyleStatics.unresolved]);
+      expect(proxy.getPackageChipTypes()).toStrictEqual([null]);
     });
   });
 

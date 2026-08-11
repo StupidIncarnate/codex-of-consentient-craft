@@ -18,6 +18,7 @@ import { z } from 'zod';
 
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
+import { packageNameContract } from '../package-name/package-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 
 export const operationItemContract = z.object({
@@ -55,6 +56,25 @@ export const operationItemContract = z.object({
         "its final state, which is Siegemaster's question — and it is ADVISORY: that gate " +
         'computes its own denominator from every runtime flow on the quest rather than from this ' +
         'list, so an item declaring none is still gated.',
+    ),
+  packageNames: z
+    .array(packageNameContract)
+    .default([])
+    .describe(
+      'The packages this item lands in, each one an entry in `quest.packagesAffected`. On an ' +
+        'implementation item it BINDS nothing: it is a pre-work declaration that orders the ' +
+        'ledger dependencies-first and tells the session which packages to read before it ' +
+        'searches, and a session that has to touch a package it did not declare still may — the ' +
+        'same non-binding reading `flowIds` carries for most roles. On a verification item it IS ' +
+        "the COVERAGE SLICE, routed by the unit's owning NODE and never by an observable — " +
+        'terminal and branch units have no observable to read a package from. On a `flowrider` ' +
+        'item the slices PARTITION the quest: an item naming ONE package owns the units whose ' +
+        'node tags that package and nothing else, and the seam item, naming the union of the ' +
+        'glue packages, owns the units whose node tags two or more — so every unit has exactly ' +
+        'one owner and each pt budget covers a scope one session can hold. On a `groundstomper` ' +
+        'item they are the browser-reachable packages of its one flow, and it owns every unit ' +
+        'whose node tags any of them, glue included. An item declaring none is scoped to the ' +
+        'whole quest and is never narrowed by this field.',
     ),
 });
 

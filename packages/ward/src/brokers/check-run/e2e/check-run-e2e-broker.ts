@@ -3,7 +3,8 @@
  *
  * USAGE:
  * const result = await checkRunE2eBroker({ projectFolder: ProjectFolderStub(), fileList: [] });
- * // Returns ProjectResult with parsed Playwright test failures, or skip if no playwright.config.ts
+ * // Returns ProjectResult with parsed Playwright test failures, skip if the package is not
+ * // e2e-eligible, or fail if it's eligible but missing playwright.config.ts
  */
 
 import {
@@ -11,6 +12,7 @@ import {
   fsExistsSyncAdapter,
   netFreePortAdapter,
 } from '@dungeonmaster/shared/adapters';
+import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 
 import { netKillPortAdapter } from '../../../adapters/net/kill-port/net-kill-port-adapter';
 import {
@@ -50,8 +52,12 @@ export const checkRunE2eBroker = async ({
   fileList: GitRelativePath[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
-  const configPath = filePathContract.parse(`${projectFolder.path}/playwright.config.ts`);
-  if (!fsExistsSyncAdapter({ filePath: configPath })) {
+  const packageRoot = absoluteFilePathContract.parse(projectFolder.path);
+  const e2eEligible = await architecturePackageE2eEligibleDetectBroker({ packageRoot });
+
+  if (!e2eEligible) {
+    // Not a frontend-react/frontend-ink package — no Playwright suite is expected here, so a
+    // missing (or even present) playwright.config.ts is not this broker's concern.
     return projectResultContract.parse({
       projectFolder,
       status: 'skip',
@@ -60,8 +66,26 @@ export const checkRunE2eBroker = async ({
       filesCount: 0,
       rawOutput: rawOutputContract.parse({
         stdout: '',
-        stderr: 'no playwright.config.ts',
+        stderr: 'not e2e-eligible (packageType is not frontend-react or frontend-ink)',
         exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
+
+  const configPath = filePathContract.parse(`${projectFolder.path}/playwright.config.ts`);
+  if (!fsExistsSyncAdapter({ filePath: configPath })) {
+    // Eligible per its own widgets/react (or ink) signals but missing the config Playwright needs
+    // to run — a real gap, not something to skip quietly.
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'fail',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'e2e-eligible package is missing playwright.config.ts',
+        exitCode: exitCodeContract.parse(1),
       }),
     });
   }

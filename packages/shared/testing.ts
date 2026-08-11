@@ -15,6 +15,7 @@ export * from './src/adapters/fs/readdir-with-types/fs-readdir-with-types-adapte
 export * from './src/adapters/path/basename/path-basename-adapter.proxy';
 export * from './src/adapters/path/dirname/path-dirname-adapter.proxy';
 export * from './src/adapters/path/join/path-join-adapter.proxy';
+export * from './src/adapters/path/resolve/path-resolve-adapter.proxy';
 export * from './src/adapters/os/homedir/os-homedir-adapter.proxy';
 export * from './src/adapters/os/user-homedir/os-user-homedir-adapter.proxy';
 export * from './src/adapters/process/cwd/process-cwd-adapter.proxy';
@@ -31,6 +32,7 @@ export * from './src/brokers/architecture/overview/architecture-overview-broker.
 export * from './src/brokers/architecture/project-map/architecture-project-map-broker.proxy';
 export * from './src/brokers/architecture/package-inventory/architecture-package-inventory-broker.proxy';
 export * from './src/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
+export * from './src/brokers/architecture/package-e2e-eligible-detect/architecture-package-e2e-eligible-detect-broker.proxy';
 export * from './src/brokers/architecture/boot-tree/architecture-boot-tree-broker.proxy';
 export * from './src/brokers/install/check/install-check-broker.proxy';
 export * from './src/brokers/config-root/find/config-root-find-broker.proxy';

@@ -16,10 +16,12 @@ export const QuestMonitorWatcherStartResponder = async ({
   parentSessionId,
   projectDir,
   workerWorkItemId,
+  workerQuestId,
 }: {
   parentSessionId: string;
   projectDir: string;
   workerWorkItemId?: string;
+  workerQuestId?: string;
 }): Promise<{ stop: () => void }> =>
   questMonitorWatcherStartBroker({
     parentSessionId,
@@ -28,4 +30,5 @@ export const QuestMonitorWatcherStartResponder = async ({
       orchestrationEventsState.emit({ type, processId, payload });
     },
     ...(workerWorkItemId === undefined ? {} : { workerWorkItemId }),
+    ...(workerQuestId === undefined ? {} : { workerQuestId }),
   });

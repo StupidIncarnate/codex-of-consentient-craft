@@ -6,15 +6,9 @@
  * `baseRef` (the commit the quest's review diff is measured from) so review roles never lose track
  * of it once the default branch absorbs the quest's own commits.
  *
- * Flowrider gets ONE whole-quest operation item carrying every RUNTIME flow id in `flowIds`, and
- * that single session fans its own work out across those flows internally — authoring test suites is
- * parallel-safe. Operational flows are not Flowrider's: they are one-time task sequences whose
- * verification is Siegemaster checking the final state by hand, and removed functionality no longer
- * happening is not something a test asserts.
- *
- * Siegemaster gets ONE ITEM PER FLOW, of BOTH flow types. Its work is strictly serial (one dev
- * server, one reset lever), so a whole-quest item put every flow behind one session's context and
- * one pt budget. Per-flow items give each flow its own budget and its own completion gate.
+ * HOW one tail seed becomes N items is data on the registry entry (`fanOutBy`), read by
+ * `relayTailFanOutTransformer` — this broker mints whatever slices come back and matches on no role
+ * name at all. Codeweaver items are then reordered dependencies-first off `quest.packageGraph`.
  *
  * USAGE:
  * const { operations, workItems, baseRef } = await questBuildRelayGraphBroker({ quest, priorWorkItemIds, now });
@@ -48,6 +42,8 @@ import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
 import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import { operationsCodeweaverOrderTransformer } from '../../../transformers/operations-codeweaver-order/operations-codeweaver-order-transformer';
+import { relayTailFanOutTransformer } from '../../../transformers/relay-tail-fan-out/relay-tail-fan-out-transformer';
 
 type GitBaseRef = NonNullable<Quest['baseRef']>;
 
@@ -91,19 +87,9 @@ export const questBuildRelayGraphBroker = async ({
     }),
   );
 
-  // Tail seeds expand in registry order. Most roles serve the whole diff and set no `flowIds`.
-  //
-  // `flowrider` stays ONE whole-quest item over the RUNTIME flows: authoring test suites is
-  // parallel-safe, so its session fans out to minions that run concurrently and the whole spine fits
-  // one pass.
-  //
-  // `siegemaster` fans out to ONE ITEM PER FLOW, runtime and operational alike — an operational
-  // flow's final state is checked by hand, which is Siegemaster's question. Its work is strictly
-  // serial (one dev server, one reset lever), so a whole-quest item put every flow behind a single
-  // session's context AND a single pt budget of `slotManagerStatics.siegemaster.maxAttempts`.
-  // Per-flow items give each flow its own budget — the pt chain keys on role + base text, and the
-  // text carries the flow id — and scope the completion gate to a checklist one session can
-  // actually finish.
+  // Tail seeds expand in registry order, and HOW one seed becomes N items is the registry's own
+  // `fanOutBy` rather than a role-name chain here: this broker mints items and never learns which
+  // role it is holding. `relayTailFanOutTransformer` owns every slicing rule.
   const tailOps = registry.relayTail.flatMap((entry) => {
     const seed = {
       role: entry.role,
@@ -112,52 +98,25 @@ export const questBuildRelayGraphBroker = async ({
       ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
     };
 
-    if (entry.role === 'siegemaster') {
-      // A flow-less quest still gets exactly one item. Its off-map probe families — hostile-input
-      // and perf among them — are the only place this quest's security and performance are ever
-      // established, and they are properties of the built system rather than of any drawn flow.
-      // Dropping the role because no flow exists would leave those unowned.
-      if (quest.flows.length === 0) {
-        return [
-          operationItemContract.parse({ ...seed, id: crypto.randomUUID(), text: entry.text }),
-        ];
-      }
-      return quest.flows.map((flow) =>
-        operationItemContract.parse({
-          ...seed,
-          id: crypto.randomUUID(),
-          text: `${entry.text} — flow: ${String(flow.id)}`,
-          flowIds: [flow.id],
-        }),
-      );
-    }
-
-    return [
+    return relayTailFanOutTransformer({ entry, quest }).map((slice) =>
       operationItemContract.parse({
         ...seed,
         id: crypto.randomUUID(),
-        text: entry.text,
-        // Flowrider's scope is RUNTIME flows only. An operational flow is a one-time task sequence
-        // — a refactor sweep, an infra setup — verified by Siegemaster checking the final state,
-        // and there is no test that asserts removed functionality no longer happens.
-        //
-        // This list is ADVISORY for flowrider, not its denominator. The Phase-2 completion gate
-        // computes its own denominator from `quest.flows.filter((flow) => flow.flowType ===
-        // 'runtime')` rather than from `flowIds`, precisely so an all-operational quest — whose
-        // flowrider item carries an EMPTY list — is still gated. For `siegemaster` above, by
-        // contrast, `flowIds` IS the coverage scope.
-        ...(entry.role === 'flowrider'
-          ? {
-              flowIds: quest.flows
-                .filter((flow) => flow.flowType === 'runtime')
-                .map((flow) => flow.id),
-            }
-          : {}),
+        text: slice.text,
+        flowIds: slice.flowIds,
+        packageNames: slice.packageNames,
       }),
-    ];
+    );
   });
 
-  const operations = [...settledExisting, ...implementationOps, ...tailOps];
+  // Dependencies first, ties in the order Chaos authored them. A pure reorder of the codeweaver
+  // items alone, applied before the ledger is assembled so the tail is never touched.
+  const orderedExisting = operationsCodeweaverOrderTransformer({
+    operations: settledExisting,
+    packageGraph: quest.packageGraph,
+  });
+
+  const operations = [...orderedExisting, ...implementationOps, ...tailOps];
 
   const firstActionable = operations.find((operation) => operation.status === 'pending');
   if (firstActionable === undefined) {

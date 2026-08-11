@@ -204,11 +204,13 @@ describe('QuestFlow', () => {
 
       restore();
 
-      // login-flow is runtime, so both tracks measure it. Units: 1 terminal (dashboard, the only
-      // node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7 off-map
-      // families. Flowrider sheds the off-map families AND the siegemaster-added observable,
-      // leaving terminal (confirmed) + branch (outstanding). Siegemaster keeps all 10, of which
-      // the terminal is unconfirmable and the other 9 are outstanding.
+      // login-flow is runtime, so all three denominators measure it. Units: 1 terminal (dashboard,
+      // the only node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7
+      // off-map families. The two authoring denominators shed the off-map families AND the
+      // siegemaster-added observable, leaving terminal (confirmed) + branch (outstanding) each —
+      // this quest tags no `packagesAffected`, so no node's package kind resolves and the
+      // flowrider/groundstomper split does not bind. Siegemaster keeps all 10, of which the terminal
+      // is unconfirmable and the other 9 are outstanding.
       expect(response.status).toBe(200);
       expect(harness.toPlain(body)).toStrictEqual({
         questId,
@@ -219,6 +221,7 @@ describe('QuestFlow', () => {
             flowType: 'runtime',
             tracks: [
               { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+              { id: 'groundstomper', confirmed: 1, unconfirmable: 0, outstanding: 1 },
               { id: 'siegemaster', confirmed: 0, unconfirmable: 1, outstanding: 9 },
             ],
           },

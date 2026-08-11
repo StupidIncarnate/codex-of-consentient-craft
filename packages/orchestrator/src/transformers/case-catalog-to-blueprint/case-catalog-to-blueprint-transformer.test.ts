@@ -54,6 +54,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
           status: 'pending',
           locked: false,
           flowIds: [],
+          packageNames: [],
         },
         {
           id: '00000000-0000-4000-8000-0000000000a2',
@@ -62,6 +63,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
           status: 'pending',
           locked: false,
           flowIds: [],
+          packageNames: [],
         },
         {
           id: '00000000-0000-4000-8000-0000000000a3',
@@ -70,6 +72,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
           status: 'pending',
           locked: false,
           flowIds: [],
+          packageNames: [],
         },
       ]);
     });

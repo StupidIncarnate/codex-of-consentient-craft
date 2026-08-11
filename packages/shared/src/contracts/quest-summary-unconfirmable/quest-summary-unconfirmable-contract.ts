@@ -29,8 +29,14 @@
  * are the point of the entry, but `workItemId` and `at` are what make it routable — who to ask and
  * when they hit the wall — and re-declaring the fields here would let the two shapes drift.
  *
- * `id` IS THE UNIT CROSSED WITH THE TRACK because the two tracks sign independently: one unit can be
- * unconfirmable on both, for different reasons, and a unit-only id would collide.
+ * `id` IS THE UNIT CROSSED WITH THE TRACK because the tracks measure independently: one unit can be
+ * unconfirmable on more than one, for different reasons, and a unit-only id would collide.
+ *
+ * `track` IS THE DENOMINATOR TRACK, NOT THE SIGN-OFF FIELD. Which role hit the wall is what a reader
+ * needs in order to route the question, and Flowrider and Groundstomper both write
+ * `flowriderSignoff` — so naming the field would leave "who could not confirm this" ambiguous
+ * between a suite author and a browser walker whose remedies have nothing in common. Their
+ * `packageTypes` are disjoint, so no single unit is ever attributed to both.
  */
 
 import { z } from 'zod';
@@ -39,7 +45,7 @@ import { flowIdContract } from '../flow-id/flow-id-contract';
 import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';
 import { qaChecklistKindContract } from '../qa-checklist-kind/qa-checklist-kind-contract';
 import { signoffContract } from '../signoff/signoff-contract';
-import { signoffTrackContract } from '../signoff-track/signoff-track-contract';
+import { signoffDenominatorTrackContract } from '../signoff-denominator-track/signoff-denominator-track-contract';
 
 export const questSummaryUnconfirmableContract = z.object({
   id: z
@@ -50,7 +56,7 @@ export const questSummaryUnconfirmableContract = z.object({
   unitId: qaChecklistItemIdContract,
   flowId: flowIdContract,
   kind: qaChecklistKindContract,
-  track: signoffTrackContract,
+  track: signoffDenominatorTrackContract,
   signoff: signoffContract.describe(
     'The sign-off verbatim. `evidence` is why confirmation was out of reach and `question` is what someone else would have to answer to close it; both are required on this verdict.',
   ),

@@ -4,13 +4,13 @@ import { wardAwareConfigIndexTransformer } from './ward-aware-config-index-trans
 
 describe('wardAwareConfigIndexTransformer', () => {
   describe('ward work items', () => {
-    it('VALID: {role: ward, wardMode: full} => returns 12 (FLOOR BOSS)', () => {
+    it('VALID: {role: ward, wardMode: full} => returns 13 (FLOOR BOSS)', () => {
       const workItem = WorkItemStub({ role: 'ward', wardMode: 'full', dependsOn: [] });
       const allItemMap = new Map([[workItem.id, workItem]]);
 
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
 
-      expect(result).toBe(12);
+      expect(result).toBe(13);
     });
 
     it('VALID: {role: ward, wardMode: changed} => returns 5 (MINI BOSS)', () => {
@@ -40,6 +40,15 @@ describe('wardAwareConfigIndexTransformer', () => {
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
 
       expect(result).toBe(7);
+    });
+
+    it('VALID: {role: groundstomper} => returns 8 (PROVING GROUNDS, straight after GLUEWORKS)', () => {
+      const workItem = WorkItemStub({ role: 'groundstomper' });
+      const allItemMap = new Map([[workItem.id, workItem]]);
+
+      const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
+
+      expect(result).toBe(8);
     });
 
     it('VALID: {role: bughunt} => returns 2 (HOMEBASE entrance, like the other intake roles)', () => {

@@ -8,6 +8,7 @@ export const FlowNodeStub = ({ ...props }: StubArgument<FlowNode> = {}): FlowNod
     id: 'login-page',
     label: 'Login Page',
     type: 'state',
+    packages: ['auth-service'],
     observables: [],
     ...props,
   });

@@ -16,6 +16,7 @@ import type {
   QuestComment,
   QuestContractEntry,
   QuestId,
+  QuestPackageEntry,
 } from '@dungeonmaster/shared/contracts';
 
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
@@ -101,6 +102,11 @@ export interface FlowsLayerWidgetProps {
    * compose ones.
    */
   comments?: readonly QuestComment[];
+  /**
+   * The quest's declared packages, forwarded to the diagram as the only source for a node tag's
+   * kind. Never inspected here — a name means nothing without the entry that declares it.
+   */
+  packagesAffected?: readonly QuestPackageEntry[];
 }
 
 export const FlowsLayerWidget = ({
@@ -108,6 +114,7 @@ export const FlowsLayerWidget = ({
   contracts,
   commentQuestId,
   comments,
+  packagesAffected,
 }: FlowsLayerWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -218,6 +225,7 @@ export const FlowsLayerWidget = ({
                 {...(contracts === undefined ? {} : { contracts })}
                 {...(commentQuestId === undefined ? {} : { commentQuestId })}
                 {...(comments === undefined ? {} : { comments })}
+                {...(packagesAffected === undefined ? {} : { packagesAffected })}
               />
             </Box>
           ) : null}

@@ -32,6 +32,7 @@ export const textDisplaySymbolsStatics = {
     designDecisions: '## Design Decisions',
     contracts: '## Contracts',
     tooling: '## Tooling',
+    packagesAffected: '## Packages Affected',
     operations: '## Operations',
     questNotes: '## Quest Notes',
   },

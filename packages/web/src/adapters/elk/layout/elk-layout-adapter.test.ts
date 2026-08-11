@@ -156,6 +156,43 @@ describe('elkLayoutAdapter', () => {
       );
     });
 
+    // ELK reserves each card a non-overlapping rectangle from this estimate, and the card is pinned
+    // to node.width with border-box — so the chip row has to be IN the reserved height or a seam
+    // node's card grows over the row below it. Two nodes with the SAME label isolate the chip row as
+    // the only difference between the two boxes.
+    it('VALID: {seam node and single-package node sharing a label} => the seam node reserves extra height for its chip rows', async () => {
+      const proxy = elkLayoutAdapterProxy();
+      const singleNode = FlowNodeStub({
+        id: 'one-package',
+        label: 'Same Label',
+        packages: ['storefront-ui'],
+      });
+      const seamNode = FlowNodeStub({
+        id: 'four-packages',
+        label: 'Same Label',
+        packages: ['storefront-ui', 'orders-api', 'shared-kit', 'billing-service'],
+      });
+
+      proxy.returnsPositions({
+        children: [
+          { id: 'one-package', x: 0, y: 0 },
+          { id: 'four-packages', x: 0, y: 400 },
+        ],
+      });
+
+      await elkLayoutAdapter({ nodes: [singleNode, seamNode], edges: [] });
+
+      // 'Same Label' is 10 chars => 1 line => 40 chrome + 16 line + 22 badge + 12 buffer = 90.
+      // One 'storefront-ui' tag = 13 + 5 = 18 chars => 1 chip row => 22 => 112.
+      // Four tags = 18 + 15 + 15 + 20 = 68 chars => ceil(68 / 22) = 4 chip rows => 88 => 178.
+      expect(proxy.getGraphChildBoxes()).toStrictEqual([
+        [
+          { id: 'one-package', width: 240, height: 112 },
+          { id: 'four-packages', width: 240, height: 178 },
+        ],
+      ]);
+    });
+
     it('EDGE: {child has undefined x and y} => position defaults to {x: 0, y: 0}', async () => {
       const proxy = elkLayoutAdapterProxy();
       const node = FlowNodeStub({ id: 'login-page' });

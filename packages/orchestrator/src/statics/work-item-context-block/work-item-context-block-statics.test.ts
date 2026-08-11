@@ -10,6 +10,7 @@ describe('workItemContextBlockStatics', () => {
         workItemId: '- workItemId:',
         role: '- role:',
         packagesAffected: '- packagesAffected:',
+        packageNames: '- packageNames:',
         wardMode: '- wardMode:',
       },
     });

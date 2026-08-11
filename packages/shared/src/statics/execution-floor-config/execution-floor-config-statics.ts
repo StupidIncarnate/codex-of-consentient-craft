@@ -16,6 +16,7 @@ export const executionFloorConfigStatics = {
     { name: 'MINI BOSS', role: 'ward', wardPosition: 'first', type: 'floor' },
     { name: 'INFIRMARY', role: 'spiritmender', type: 'floor' },
     { name: 'GLUEWORKS', role: 'flowrider', type: 'floor' },
+    { name: 'PROVING GROUNDS', role: 'groundstomper', type: 'floor' },
     { name: 'ARENA', role: 'siegemaster', type: 'floor' },
     { name: 'QUARANTINE: WARDENS', role: 'blightwarden-group-minion', type: 'floor' },
     { name: 'QUARANTINE: WARDENS', role: 'blightwarden-crosscut-minion', type: 'floor' },

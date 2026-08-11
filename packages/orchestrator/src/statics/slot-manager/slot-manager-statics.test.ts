@@ -1,4 +1,14 @@
+import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
+
 import { slotManagerStatics } from './slot-manager-statics';
+
+// Every role a pt continuation can be appended for: the shared role tuple minus the chat intake
+// roles (no ledger continuation), minus `ward` (bounded by maxRetries, keyed on wardMode), and
+// minus the parent-summoned minions (no operation item of their own).
+const BUDGETED_ROLES = workItemRoleStatics.names
+  .filter((role) => !workItemRoleStatics.chat.some((chatRole) => chatRole === role))
+  .filter((role) => role !== 'ward')
+  .filter((role) => !role.endsWith('-minion'));
 
 describe('slotManagerStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
@@ -7,6 +17,9 @@ describe('slotManagerStatics', () => {
         maxAttempts: 3,
       },
       flowrider: {
+        maxAttempts: 3,
+      },
+      groundstomper: {
         maxAttempts: 3,
       },
       siegemaster: {
@@ -32,4 +45,16 @@ describe('slotManagerStatics', () => {
       },
     });
   });
+
+  // The pt-budget ladder's final `else` hands any role it does not name spiritmender's budget, so a
+  // dispatched role with no key here is silently mis-budgeted rather than erroring. Deriving the
+  // required set from the shared role tuple is what turns that into a failing test.
+  it.each(BUDGETED_ROLES)(
+    'VALID: {role: %s} => carries its own pt-chain budget rather than falling through to spiritmender’s',
+    (role) => {
+      const budgets = new Map(Object.entries(slotManagerStatics));
+
+      expect(budgets.get(role)).toStrictEqual({ maxAttempts: 3 });
+    },
+  );
 });

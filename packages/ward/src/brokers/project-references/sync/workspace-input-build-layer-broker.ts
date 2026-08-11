@@ -7,13 +7,13 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
   workspaceInputContract,
   type WorkspaceInput,
 } from '../../../contracts/workspace-input/workspace-input-contract';
-import { packageJsonDependencyNamesTransformer } from '../../../transformers/package-json-dependency-names/package-json-dependency-names-transformer';
 import { readTsconfigSafeLayerBroker } from './read-tsconfig-safe-layer-broker';
 import { readPackageJsonSafeLayerBroker } from './read-package-json-safe-layer-broker';
 

@@ -6,10 +6,24 @@ import {
   FlowStub,
   SignoffStub,
 } from '@dungeonmaster/shared/contracts';
-import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
+import { qaOffMapProbeStatics, textDisplaySymbolsStatics } from '@dungeonmaster/shared/statics';
 
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { signoffFlowOutstandingTransformer } from './signoff-flow-outstanding-transformer';
+
+type SignoffTrack = keyof typeof signoffTrackEligibilityStatics.byTrack;
+type SignoffVerdict = ReturnType<typeof SignoffStub>['verdict'];
+
+// Every denominator this transformer can be asked for, straight off the statics it reads — a fourth
+// track lands in these matrices automatically instead of being silently skipped.
+const TRACKS = Object.keys(signoffTrackEligibilityStatics.byTrack) as SignoffTrack[];
+
+// The verdicts a sign-off can carry. `textDisplaySymbolsStatics.signoffVerdictMarks` is keyed 1:1
+// with signoffVerdictContract's options and its colocated test pins that, so it is the honest source
+// a test file can reach (enforce-contract-usage-in-tests allows stubs only).
+const SIGNOFF_VERDICTS = Object.keys(
+  textDisplaySymbolsStatics.signoffVerdictMarks,
+) as SignoffVerdict[];
 
 // The off-map probe families every flow decomposes into. Derived from the probe statics, whose
 // colocated test pins its keys 1:1 with qaOffMapFamilyContract's options — a test file cannot import
@@ -183,11 +197,113 @@ describe('signoffFlowOutstandingTransformer', () => {
     );
   });
 
+  describe('the sign-off FIELD each track is measured against', () => {
+    it.each(TRACKS)(
+      'VALID: {track: %s, one unsigned terminal} => the terminal is outstanding, so every denominator binds on it',
+      (track) => {
+        const flow = FlowStub({
+          id: 'login-flow',
+          flowType: 'runtime',
+          nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard' })],
+          edges: [],
+        });
+        // Off-map is Siegemaster's charter alone, so the tail is present exactly for the tracks
+        // whose own unitKinds list names it — derived, never a per-track literal.
+        const expectedOffMap = signoffTrackEligibilityStatics.byTrack[track].unitKinds
+          .filter((kind) => kind === 'off-map')
+          .flatMap(() => OFF_MAP_FAMILIES.map((family) => `login-flow:off-map:${family}`));
+
+        expect(signoffFlowOutstandingTransformer({ flow, track })).toStrictEqual([
+          'login-flow:terminal:dashboard',
+          ...expectedOffMap,
+        ]);
+      },
+    );
+
+    it('VALID: {groundstomper, terminal carries flowriderSignoff} => cleared, because Groundstomper writes that same field', () => {
+      const flow = FlowStub({
+        id: 'login-flow',
+        flowType: 'runtime',
+        nodes: [
+          FlowNodeStub({ id: 'dashboard', label: 'Dashboard', flowriderSignoff: SignoffStub() }),
+        ],
+        edges: [],
+      });
+
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([]);
+    });
+
+    it('VALID: {groundstomper, terminal carries siegemasterSignoff only} => still outstanding, because the other field never settles it', () => {
+      const flow = FlowStub({
+        id: 'login-flow',
+        flowType: 'runtime',
+        nodes: [
+          FlowNodeStub({ id: 'dashboard', label: 'Dashboard', siegemasterSignoff: SignoffStub() }),
+        ],
+        edges: [],
+      });
+
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([
+        'login-flow:terminal:dashboard',
+      ]);
+    });
+
+    it.each(SIGNOFF_VERDICTS)(
+      'VALID: {groundstomper, flowriderSignoff verdict: %s} => cleared, because the gate refuses ABSENCE and not honesty',
+      (verdict) => {
+        const flow = FlowStub({
+          id: 'login-flow',
+          flowType: 'runtime',
+          nodes: [
+            FlowNodeStub({
+              id: 'dashboard',
+              label: 'Dashboard',
+              flowriderSignoff: SignoffStub({
+                verdict,
+                evidence: 'the Playwright walk stops at the dashboard route, which never renders',
+                question: 'does the dashboard need a seeded session before it can render at all?',
+              }),
+            }),
+          ],
+          edges: [],
+        });
+
+        expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual(
+          [],
+        );
+      },
+    );
+
+    it('VALID: {groundstomper, an observable addedBy siegemaster} => excluded, exactly as it is for flowrider', () => {
+      const flow = FlowStub({
+        id: 'login-flow',
+        flowType: 'runtime',
+        nodes: [
+          FlowNodeStub({
+            id: 'dashboard',
+            label: 'Dashboard',
+            flowriderSignoff: SignoffStub(),
+            observables: [FlowObservableStub({ id: 'late-observable', addedBy: 'siegemaster' })],
+          }),
+        ],
+        edges: [],
+      });
+
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([]);
+    });
+  });
+
   describe('nothing to measure', () => {
     it('EMPTY: {node-less, edge-less flow} => flowrider has zero units, because off-map is not its charter', () => {
       const flow = FlowStub({ id: 'login-flow', flowType: 'runtime', nodes: [], edges: [] });
 
       expect(signoffFlowOutstandingTransformer({ flow, track: 'flowrider' })).toStrictEqual([]);
+    });
+
+    it('EMPTY: {node-less, edge-less flow} => groundstomper has zero units too, because off-map is not its charter either', () => {
+      const flow = FlowStub({ id: 'login-flow', flowType: 'runtime', nodes: [], edges: [] });
+
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([]);
     });
 
     it('EMPTY: {node-less, edge-less flow} => siegemaster still owns every off-map family', () => {

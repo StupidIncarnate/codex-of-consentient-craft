@@ -1,7 +1,9 @@
 /**
- * PURPOSE: Scans server flow files and web broker files to produce paired HTTP edge records,
- * joining on (method, urlPattern) after resolving statics member-expression references to
- * literal path strings via regex heuristics.
+ * PURPOSE: Scans every http-backend package's flow files and every frontend package's broker
+ * files to produce paired HTTP edge records, joining on (method, urlPattern) after resolving
+ * statics member-expression references to literal path strings via regex heuristics. Packages are
+ * grouped by packageType (resolvePackageGroupsLayerBroker), never by name, so a repo with several
+ * backend or UI packages gets every one of them scanned.
  *
  * USAGE:
  * const edges = httpEdgesLayerBroker({
@@ -23,120 +25,141 @@ import { namedImportsToPathMapTransformer } from '../../../transformers/named-im
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { serverRouteCallsExtractTransformer } from '../../../transformers/server-route-calls-extract/server-route-calls-extract-transformer';
 import { webFetchCallsExtractTransformer } from '../../../transformers/web-fetch-calls-extract/web-fetch-calls-extract-transformer';
-import { staticsPathResolveTransformer } from '../../../transformers/statics-path-resolve/statics-path-resolve-transformer';
 import { listTsFilesLayerBroker } from './list-ts-files-layer-broker';
 import { readFileLayerBroker } from './read-file-layer-broker';
-
-const SERVER_FLOWS_REL = 'packages/server/src/flows';
-const SERVER_STATICS_REL = 'packages/server/src/statics/api-routes/api-routes-statics.ts';
-const WEB_BROKERS_REL = 'packages/web/src/brokers';
-const WEB_STATICS_REL = 'packages/web/src/statics/web-config/web-config-statics.ts';
+import { resolvePackageGroupsLayerBroker } from './resolve-package-groups-layer-broker';
+import { resolveStaticsFirstMatchLayerBroker } from './resolve-statics-first-match-layer-broker';
 
 export const httpEdgesLayerBroker = ({
   projectRoot,
 }: {
   projectRoot: AbsoluteFilePath;
 }): HttpEdge[] => {
-  const root = String(projectRoot);
+  const { httpBackendRoots, frontendRoots } = resolvePackageGroupsLayerBroker({ projectRoot });
 
-  // Load statics source files for reference resolution
-  const serverStaticsPath = absoluteFilePathContract.parse(`${root}/${SERVER_STATICS_REL}`);
-  const webStaticsPath = absoluteFilePathContract.parse(`${root}/${WEB_STATICS_REL}`);
+  // Load every http-backend package's api-routes statics source and every frontend package's
+  // web-config statics source — a repo may run several of either.
+  const serverStaticsSources: ContentText[] = [];
+  for (const backendRoot of httpBackendRoots) {
+    const source = readFileLayerBroker({
+      filePath: absoluteFilePathContract.parse(
+        `${backendRoot}/src/statics/api-routes/api-routes-statics.ts`,
+      ),
+    });
+    if (source !== undefined) {
+      serverStaticsSources.push(source);
+    }
+  }
 
-  const serverStaticsSource = readFileLayerBroker({ filePath: serverStaticsPath });
-  const webStaticsSource = readFileLayerBroker({ filePath: webStaticsPath });
+  const webStaticsSources: ContentText[] = [];
+  for (const frontendRoot of frontendRoots) {
+    const source = readFileLayerBroker({
+      filePath: absoluteFilePathContract.parse(
+        `${frontendRoot}/src/statics/web-config/web-config-statics.ts`,
+      ),
+    });
+    if (source !== undefined) {
+      webStaticsSources.push(source);
+    }
+  }
 
-  // Collect server-side routes from all flow files
+  // Collect server-side routes from every http-backend package's flow files
   const serverEntries: {
     method: ContentText;
     urlPattern: ContentText;
     flowFile: AbsoluteFilePath;
     responderFile: AbsoluteFilePath | null;
   }[] = [];
-  const flowsDir = absoluteFilePathContract.parse(`${root}/${SERVER_FLOWS_REL}`);
-  const flowFiles = listTsFilesLayerBroker({ dirPath: flowsDir });
 
-  for (const flowFile of flowFiles) {
-    if (!isNonTestFileGuard({ filePath: flowFile })) {
-      continue;
-    }
-    const source = readFileLayerBroker({ filePath: flowFile });
-    if (source === undefined) {
-      continue;
-    }
-    const importMap = namedImportsToPathMapTransformer({ source });
-    const callSites = serverRouteCallsExtractTransformer({ source });
-    for (const site of callSites) {
-      const rawArg = String(site.rawArg);
-      let urlPattern: ContentText = contentTextContract.parse(rawArg);
-      if (rawArg.startsWith('apiRoutesStatics.') && serverStaticsSource !== undefined) {
-        const resolved = staticsPathResolveTransformer({
-          source: serverStaticsSource,
-          dotPath: site.rawArg,
-        });
-        if (resolved === null) {
-          continue;
-        }
-        urlPattern = resolved;
+  for (const backendRoot of httpBackendRoots) {
+    const flowsDir = absoluteFilePathContract.parse(`${backendRoot}/src/flows`);
+    const flowFiles = listTsFilesLayerBroker({ dirPath: flowsDir });
+
+    for (const flowFile of flowFiles) {
+      if (!isNonTestFileGuard({ filePath: flowFile })) {
+        continue;
       }
+      const source = readFileLayerBroker({ filePath: flowFile });
+      if (source === undefined) {
+        continue;
+      }
+      const importMap = namedImportsToPathMapTransformer({ source });
+      const callSites = serverRouteCallsExtractTransformer({ source });
+      for (const site of callSites) {
+        const rawArg = String(site.rawArg);
+        let urlPattern: ContentText = contentTextContract.parse(rawArg);
+        if (rawArg.startsWith('apiRoutesStatics.')) {
+          const resolved = resolveStaticsFirstMatchLayerBroker({
+            sources: serverStaticsSources,
+            dotPath: site.rawArg,
+          });
+          if (resolved === null) {
+            continue;
+          }
+          urlPattern = resolved;
+        }
 
-      let responderFile: AbsoluteFilePath | null = null;
-      if (site.responderName !== null) {
-        // Find the import path for the responder name (Map keys are branded ContentText, so
-        // we iterate to compare by string value).
-        let importPath: ContentText | null = null;
-        for (const [name, path] of importMap) {
-          if (String(name) === String(site.responderName)) {
-            importPath = path;
-            break;
+        let responderFile: AbsoluteFilePath | null = null;
+        if (site.responderName !== null) {
+          // Find the import path for the responder name (Map keys are branded ContentText, so
+          // we iterate to compare by string value).
+          let importPath: ContentText | null = null;
+          for (const [name, path] of importMap) {
+            if (String(name) === String(site.responderName)) {
+              importPath = path;
+              break;
+            }
+          }
+          if (importPath !== null) {
+            responderFile = relativeImportResolveTransformer({
+              sourceFile: flowFile,
+              importPath,
+            });
           }
         }
-        if (importPath !== null) {
-          responderFile = relativeImportResolveTransformer({
-            sourceFile: flowFile,
-            importPath,
-          });
-        }
-      }
 
-      serverEntries.push({ method: site.method, urlPattern, flowFile, responderFile });
+        serverEntries.push({ method: site.method, urlPattern, flowFile, responderFile });
+      }
     }
   }
 
-  // Collect web-side fetch calls from all web broker files
+  // Collect web-side fetch calls from every frontend package's broker files
   const webEntries: {
     method: ContentText;
     urlPattern: ContentText;
     brokerFile: AbsoluteFilePath;
   }[] = [];
-  const brokersDir = absoluteFilePathContract.parse(`${root}/${WEB_BROKERS_REL}`);
-  const brokerFiles = listTsFilesLayerBroker({ dirPath: brokersDir });
 
-  for (const brokerFile of brokerFiles) {
-    if (!isNonTestFileGuard({ filePath: brokerFile })) {
-      continue;
-    }
-    const source = readFileLayerBroker({ filePath: brokerFile });
-    if (source === undefined) {
-      continue;
-    }
-    const callSites = webFetchCallsExtractTransformer({ source });
-    for (const site of callSites) {
-      const rawArg = String(site.rawArg);
-      let urlPattern: ContentText = contentTextContract.parse(rawArg);
-      if (rawArg.startsWith('webConfigStatics.') && webStaticsSource !== undefined) {
-        // Strip any trailing .replace(...) — the statics ref ends before the first .replace
-        const staticsRef = rawArg.split('.replace')[0] ?? rawArg;
-        const resolved = staticsPathResolveTransformer({
-          source: webStaticsSource,
-          dotPath: contentTextContract.parse(staticsRef),
-        });
-        if (resolved === null) {
-          continue;
-        }
-        urlPattern = resolved;
+  for (const frontendRoot of frontendRoots) {
+    const brokersDir = absoluteFilePathContract.parse(`${frontendRoot}/src/brokers`);
+    const brokerFiles = listTsFilesLayerBroker({ dirPath: brokersDir });
+
+    for (const brokerFile of brokerFiles) {
+      if (!isNonTestFileGuard({ filePath: brokerFile })) {
+        continue;
       }
-      webEntries.push({ method: site.method, urlPattern, brokerFile });
+      const source = readFileLayerBroker({ filePath: brokerFile });
+      if (source === undefined) {
+        continue;
+      }
+      const callSites = webFetchCallsExtractTransformer({ source });
+      for (const site of callSites) {
+        const rawArg = String(site.rawArg);
+        let urlPattern: ContentText = contentTextContract.parse(rawArg);
+        if (rawArg.startsWith('webConfigStatics.')) {
+          // Strip any trailing .replace(...) — the statics ref ends before the first .replace
+          const staticsRef = rawArg.split('.replace')[0] ?? rawArg;
+          const resolved = resolveStaticsFirstMatchLayerBroker({
+            sources: webStaticsSources,
+            dotPath: contentTextContract.parse(staticsRef),
+          });
+          if (resolved === null) {
+            continue;
+          }
+          urlPattern = resolved;
+        }
+        webEntries.push({ method: site.method, urlPattern, brokerFile });
+      }
     }
   }
 

@@ -478,7 +478,9 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 
 ### 3. E2E Tests
 
-E2E runs Playwright. Skips entirely if no `playwright.config.ts` exists in the package.
+E2E runs Playwright. Skips entirely if the package is not e2e-eligible (`packageType` isn't
+`frontend-react` or `frontend-ink`). An e2e-eligible package missing `playwright.config.ts` fails
+instead of skipping.
 E2E does NOT filter passthrough files by type — it passes them directly to Playwright.
 Only `packages/testing` has a `playwright.config.ts` in this repo.
 
@@ -487,7 +489,7 @@ Only `packages/testing` has a `playwright.config.ts` in this repo.
 - Playwright config auto-starts server + web dev servers on rotating test ports
 - Ensure no conflicting instances are running
 
-#### 3a. Package without playwright.config.ts
+#### 3a. Package that is not e2e-eligible
 
 ```bash
 npm run ward -- --only e2e -- packages/ward
@@ -859,7 +861,7 @@ npm run ward -- --only test -- packages/ward/src/transformers/cli-args-parse/cli
 
 - unit: `PASS  1 files` (file matches unit filter)
 - integration: `skip` (file filtered out — not `.integration.test.ts`)
-- e2e: `skip` (no playwright.config.ts)
+- e2e: `skip` (not e2e-eligible)
 - Summary: only `unit:` line
 
 **Should NOT see:**
@@ -940,7 +942,7 @@ npm run ward -- --only test -- packages/ward
 **Expected:**
 
 - unit, integration, e2e all run
-- e2e shows `skip` (no playwright.config.ts)
+- e2e shows `skip` (not e2e-eligible)
 - Summary: `unit:` and `integration:` lines. e2e omitted.
 
 **Should NOT see:**

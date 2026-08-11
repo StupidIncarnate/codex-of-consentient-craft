@@ -285,6 +285,18 @@ starts no watcher for those quests and the panel stays empty for the whole conve
   `subagents/agent-<id>.jsonl` files, `chatSubagentTailBroker` instances spin up against
   each one at `'beginning'`.
 
+**Every delivery identity owes a terminal event.** A `chat-output` frame naming a `chatProcessId`
+is what arms the web composer's running indicator, and only a `chat-complete` naming that SAME id
+disarms it. One chat turn is delivered under TWO identities — the spawn's own `chat-<uuid>` (stdout
+plus its post-exit main-session tail) and this watcher's `proc-worker-<sessionId>` over the session
+JSONL that same child writes — and the spawn's `chat-complete` speaks only for itself. So
+`questMonitorWatcherStartBroker.stop()` emits a `chat-complete` for its own tail id, once. Without
+it, the drain that lands after the turn ended re-arms the indicator with nothing left to clear it,
+and the follow-up composer holds STOP forever. The emit is scoped to a WORKER tail
+(`workerWorkItemId` + `workerQuestId`, supplied by `reconcile-watchers-layer-responder`): a
+`chat-complete` is a per-quest wire event, and a `/dumpster-launch` dispatcher session tails
+sub-agents belonging to several quests at once, so no single questId would be honest there.
+
 The legacy `chat-start-responder` still composes its own tail lifecycle for the surviving
 spawn paths, with the same `fsWatchTailAdapter` semantics.
 
@@ -332,7 +344,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
   `packages/orchestrator/src/statics/`: the relay roles (`codeweaver-prompt-statics.ts`,
-  `flowrider-prompt-statics.ts`, `siegemaster-prompt-statics.ts`,
+  `flowrider-prompt-statics.ts`, `groundstomper-prompt-statics.ts`, `siegemaster-prompt-statics.ts`,
   `blightwarden-prompt-statics.ts`, `spiritmender-prompt-statics.ts`, `pesteater-prompt-statics.ts`) plus the minions a
   parent summons via the Agent tool (`codeweaver-piece-minion-statics.ts`,
   `flowrider-authoring-minion-statics.ts`, `siegemaster-walker-minion-statics.ts`, `blightwarden-group-minion-statics.ts`,
@@ -385,7 +397,8 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │   The operations ledger drives the order. For a feature quest the sequence is:
   ├─ codeweaver ──── one session per codeweaver op item ChaosWhisperer authored; implementation + unit tests
   ├─ ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
-  ├─ flowrider ──── one session for ALL quest flows; authors their flow-perspective test suites
+  ├─ flowrider ──── one session for ALL quest flows; authors their test suites below the browser
+  ├─ groundstomper ─ one session per runtime flow reaching an e2e-eligible package; authors its Playwright walk
   ├─ siegemaster ── ONE SESSION PER FLOW; orchestrates manual QA of that flow via walker minions
   ├─ blightwarden ── one session; whole-diff audit via blightwarden-group-minion + blightwarden-crosscut-minion (fixes inline)
   ├─ ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
@@ -534,7 +547,8 @@ Consumers read different parts:
 - **User** reads given/when/then as a human-readable acceptance criteria checklist
 - **ChaosWhisperer** reads observables while authoring the `{ role: 'codeweaver', text }` operation items (the
   implementation plan) during the spec phase
-- **Flowrider** uses the full observable to author the flow-perspective test suite (integration or e2e)
+- **Flowrider** uses the full observable to author the flow-perspective test suite below the browser (integration)
+- **Groundstomper** uses the full observable to author the Playwright walk for the flow it owns
 - **Siegemaster** uses the full observable to manually QA the flow and review the suite's coverage
 
 ## Quest Stages
@@ -557,14 +571,15 @@ reads the registry entry for `quest.questType`:
 
 - **`feature`** (`/dumpster-create`): `initialWorkItemRole` = `chaoswhisperer`. `startImplementationOps` is empty —
   ChaosWhisperer authors the `codeweaver` operation items at spec time. `relayTail` = `ward(changed) → flowrider →
-  siegemaster → blightwarden → ward(full)` — four fixed items plus one `siegemaster` item per quest flow (or one, on
+  groundstomper → siegemaster → blightwarden → ward(full)` — four fixed items plus one `siegemaster` item per quest flow (or one, on
   a flow-less quest); the `flowrider` item carries every quest flow id (see "Operations Ledger & Work Items" above).
 - **`bug-hunt`** (`/dumpster-hunt`): `initialWorkItemRole` = `bughunt`, so `create-quest` seeds a `bughunt` intake
   operation item + work item exactly as `feature` seeds a `chaoswhisperer` one. That work item is where the intake
   session's `sessionId` lands, which is what gives the browser chat panel a session to hook onto during the hunt.
   `bughunt` is a CHAT role (`workItemRoleStatics.chat`) and is DISTINCT from `pesteater`, the implementation op Start
   Quest seeds. `startImplementationOps` = a single `pesteater` item (orchestrator-seeded, not intake-authored);
-  `relayTail` = `ward(changed) → blightwarden → ward(full)` (no flowrider/siegemaster).
+  `relayTail` = `ward(changed) → blightwarden → ward(full)` (no flowrider/groundstomper/siegemaster —
+  `pesteater-prompt-statics` already directs PestEater to write the reproducing e2e itself).
   Bug-hunt reuses the flow/observable spec lifecycle — the bug is captured as two flows (the actual-state reproduction
   path ending at the symptom, and the expected-state path ending at the correct behavior), with the expected behavior
   an observable PestEater turns into a failing test.
@@ -583,7 +598,7 @@ than spawning a successor that hits the same wall. The other failure concept is 
 the quest. Quest status is then derived from work-item + operation state.
 
 The relay role set per quest type is `questTypeRegistryStatics[type].roles`. The `agentRoleContract` enumerates the
-Claude-dispatched agent roles (codeweaver, spiritmender, flowrider, siegemaster, blightwarden, the two
+Claude-dispatched agent roles (codeweaver, spiritmender, flowrider, groundstomper, siegemaster, blightwarden, the two
 `blightwarden-*-minion`s, pesteater); the broader `workItemRoleContract` (shared) adds the command/interactive roles
 (`ward`, `chaoswhisperer`, `glyphsmith`, `bughunt`) an operation item may carry. The three interactive ones are the
 `workItemRoleStatics.chat` tuple, and `isChatWorkItemRoleGuard` is the one predicate every call site uses to match
@@ -596,6 +611,7 @@ them — adding a chat role means adding it to that tuple, not to another `||` c
 | codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)         | complete (done / partial / blocked) | none                                                        |
 | ward           | `/dumpster-launch` via `run-ward` MCP tool (command)               | exit code (green / red)             | none (broker writes wardResults + item status)              |
 | flowrider      | `/dumpster-launch` via Task() (one session for every RUNTIME flow) | complete (done / partial / blocked) | `flowriderSignoff` per unit (written by `flowrider-coverage-minion`; the operator signs what it adds) |
+| groundstomper  | `/dumpster-launch` via Task() (ONE SESSION PER e2e-eligible RUNTIME FLOW; no minions) | complete (done / partial / blocked) | `flowriderSignoff` per unit, over the browser-reachable package kinds |
 | siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW)               | complete (done / partial / blocked) | `siegemasterSignoff` per unit, plus `planningNotes.questNotes` |
 | blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                   | complete (done / partial / blocked) | `planningNotes.blightLedger` (per-unit dispositions)        |
 | spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)               | complete (done / partial / blocked) | none                                                        |
@@ -607,7 +623,7 @@ them — adding a chat role means adding it to that tuple, not to another `||` c
 continuation so a FRESH ward run re-verifies the new state; the chain converges when a run comes back green (see
 "Failure handling" for the spiritmender splice that runs between them).
 
-`flowrider`, `siegemaster`, and `blightwarden` are **operators**, NOT fixpoint roles: they signal on remaining scope —
+`flowrider`, `groundstomper`, `siegemaster`, and `blightwarden` are **operators**, NOT fixpoint roles: they signal on remaining scope —
 `done` once every unit in scope is settled on that role's own track, `partial` only for a named remainder. Writing a
 test, walking a path, or landing a fix does not by itself earn another pass.
 
@@ -615,10 +631,15 @@ For all three that claim is not taken on trust. A flow decomposes into atomic **
 (`get-qa-checklist` — every terminal, labelled branch, observable, and the seven off-map probe families), and each unit
 carries TWO independent top-level sign-offs: `flowriderSignoff` (is it proven by a test?) and `siegemasterSignoff`
 (does it hold when a human drives the real system?). Each is `{ verdict, evidence, question?, workItemId, at }` with
-`verdict` one of `confirmed | unconfirmable`; a unit is done when BOTH tracks have signed it. `get-qa-checklist` takes
-a `track` param, and its `remainingItemIds` is that track's sign-off difference — with `track: 'flowrider'` and no
-`flowId` it returns RUNTIME flows only, because an operational flow's end state is hand-checked rather than asserted by
-a suite. `blightwarden`'s diff decomposes into atomic **review units** (`get-blight-checklist` — every changed file
+`verdict` one of `confirmed | unconfirmable`; a unit is done when BOTH fields have been signed. `get-qa-checklist` takes
+a `track` param and an optional `packageNames`, and its `remainingItemIds` is that track's sign-off difference over that
+slice. **`track` is the DENOMINATOR, not the field** — `signoffDenominatorTrackContract` carries three names
+(`flowrider | groundstomper | siegemaster`) over the two fields `signoffTrackContract` carries, because Flowrider and
+Groundstomper both write `flowriderSignoff` over disjoint `packageTypes`. Passing the sibling's name returns the exact
+complement of your own work. With either authoring track and no `flowId` it returns RUNTIME flows only, because an
+operational flow's end state is hand-checked rather than asserted by a suite. Pass `packageNames` when your operation
+item declares any, or you read a whole-quest remainder while your own gate clears at zero — the refusal message names
+the exact reproducing call, slice included. `blightwarden`'s diff decomposes into atomic **review units** (`get-blight-checklist` — every changed file
 crossed with each of four concerns: `craft`, `perf`, `dedup`, `integrity`, measured from the quest's pinned `baseRef`),
 each unit getting a disposition in `quest.planningNotes.blightLedger`. Either way `signal-back` recomputes the
 outstanding set and **refuses `done` while any unit is unsigned / undispositioned** (see "Signal System"). Completion
@@ -642,13 +663,17 @@ attempt.
 
 Each locked (verify-tail) role's pt chain is bounded by `slotManagerStatics.<role>.maxAttempts` (ward by
 `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest instead of looping. A chain is keyed on role +
-base text. `flowrider` and `blightwarden` each hold exactly one item and therefore one budget; `siegemaster` holds one
+base text. `flowrider` and `blightwarden` each hold exactly one item and therefore one budget; `groundstomper` and
+`siegemaster` each hold one
 item PER FLOW, and because each carries the flow id in its text, each flow gets its own budget. The continuation
-copies the item's `flowIds` so the fresh session keeps that scope. See "Signal System" + "Failure handling".
+copies the item's `flowIds` AND its `packageNames` so the fresh session keeps that scope — a continuation that lost
+either would silently work the whole quest instead of the remainder. See "Signal System" + "Failure handling".
 
 ### Minions (parent-summoned sub-agents)
 
-Blightwarden, Codeweaver, Flowrider, and Siegemaster fan their single session out to sub-agent minions summoned via
+Groundstomper runs alone — a browser walk is one path at a time against one served app, so there is nothing to fan
+out and the session that authors a case is the one that watched it go red. Blightwarden, Codeweaver, Flowrider, and
+Siegemaster fan their single session out to sub-agent minions summoned via
 the Agent tool (the `blightwarden-group-minion`, `blightwarden-crosscut-minion`, `blightwarden-deadcode-minion`,
 `codeweaver-piece-minion`, `flowrider-authoring-minion`, `flowrider-coverage-minion`, `siegemaster-walker-minion` names in
 `agentPromptClassificationStatics`).
@@ -689,7 +714,9 @@ rejected). The live handler is `quest-handle-signal-back-responder.ts`, which ap
    so the agent can act. Nothing is persisted, so the session simply carries on and signals again. **Both verdicts
    clear a unit** (`confirmed` and `unconfirmable` alike), so the gate is always satisfiable honestly; it refuses
    ABSENCE, not honesty. The two tracks are independent: signing one never advances the other, and each denominator is
-   defined by `signoffTrackEligibilityStatics` — Flowrider's excludes the off-map families and anything
+   defined by `signoffTrackEligibilityStatics`, which is keyed by ROLE rather than by sign-off field: Flowrider and
+   Groundstomper both write `flowriderSignoff` over DISJOINT `packageTypes`, so neither settles the other's units.
+   Flowrider's denominator excludes the off-map families and anything
    `addedBy: 'siegemaster'`. A siegemaster item declaring no `flowIds` is never gated, which keeps a flow-less quest
    and any pre-gate item completable. A quest with no pinned `baseRef` (so no diff can be computed) is likewise never
    gated on the blightwarden branch.
@@ -782,12 +809,12 @@ from `.dungeonmaster.json` for `role === 'siegemaster'` ONLY, and `workItemToPro
 - **Siegemaster starts one by hand and owns it** from Gate 5 to Gate 10, because hands-on walking cannot lean on a
   `webServer` that is torn down when an e2e run ends. It is also the single writer of the seed/reset lever, since the
   lever defines every walker's precondition. Teardown is a scoped kill (port + cwd), never a blanket one.
-- **Flowrider is given no dev server and needs none.** It never starts one: the server an e2e run needs is declared in
-  the project's Playwright config (`webServer`), brought up for the run and torn down with it, and its tests navigate
-  `baseURL`-relative so no URL reaches the test. The one thing the values could have bought — authoring a `webServer`
-  block into a config that lacks one — is install-time scaffolding rather than a test, is shared by every bundle, and
-  races when Flowrider's minions run in parallel. A missing `webServer` makes every unit it blocks `unconfirmable` on
-  the Flowrider track, not something Flowrider or a minion writes.
+- **Flowrider and Groundstomper are given no dev server and need none.** Groundstomper's Playwright run brings its own
+  up from the project's config (`webServer`) and tears it down with the run, and its tests navigate `baseURL`-relative
+  so no URL reaches the test; Flowrider never touches a browser at all. The one thing the values could have bought —
+  authoring a `webServer` block into a config that lacks one — is install-time scaffolding rather than a test, shared
+  by every flow on the quest, and the sibling groundstomper items work against the same tree. A missing `webServer`
+  makes every unit it blocks `unconfirmable` on the Flowrider track, not something any of these sessions writes.
 
 Operational flows run no server.
 
@@ -905,7 +932,7 @@ sub-agents call in parallel against the same MCP stdio child.
 | blightwarden-crosscut-minion   | Blightwarden via the Agent tool (alone, second) | Runs ONCE, after every `blightwarden-group-minion` has returned, over the WHOLE diff — catches cross-pair duplication and blast radius no single group can see. Fixes freely (no siblings running to collide with). Does NOT write `planningNotes.blightLedger` — reports its findings to the parent |
 | blightwarden-deadcode-minion   | Blightwarden via the Agent tool (alone, last) | Runs ONCE, THIRD, over the WHOLE diff, because every earlier fix can itself orphan something. Whether an export still has a consumer is a property of the whole import graph, which is why dead code is no per-file concern and owns no checklist unit. Must show the exact search behind every claimed orphan |
 
-The relay roles that DO own a work item (`codeweaver`, `flowrider`, `siegemaster`, `blightwarden`,
+The relay roles that DO own a work item (`codeweaver`, `flowrider`, `groundstomper`, `siegemaster`, `blightwarden`,
 `spiritmender`, `pesteater`) fetch their prompt the same way, calling `get-agent-prompt({agent, questId, workItemId})`
 — see "Agent Roles".
 

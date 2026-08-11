@@ -6,7 +6,15 @@ describe('qaWalkPathsTransformer', () => {
   describe('linear graphs', () => {
     it('VALID: {single node, no edges} => one path of that node alone', () => {
       const flow = FlowStub({
-        nodes: [{ id: 'only-node', label: 'Only', type: 'state', observables: [] }],
+        nodes: [
+          {
+            id: 'only-node',
+            label: 'Only',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ],
         edges: [],
       });
 
@@ -18,9 +26,27 @@ describe('qaWalkPathsTransformer', () => {
     it('VALID: {three-node chain} => one path through all three in drive order', () => {
       const flow = FlowStub({
         nodes: [
-          { id: 'start-here', label: 'Start', type: 'action', observables: [] },
-          { id: 'middle-step', label: 'Middle', type: 'action', observables: [] },
-          { id: 'end-here', label: 'End', type: 'state', observables: [] },
+          {
+            id: 'start-here',
+            label: 'Start',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'middle-step',
+            label: 'Middle',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'end-here',
+            label: 'End',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [
           { id: 'start-to-middle', from: 'start-here', to: 'middle-step' },
@@ -42,9 +68,27 @@ describe('qaWalkPathsTransformer', () => {
     it('VALID: {one decision, two labelled branches} => two paths carrying their own branch label', () => {
       const flow = FlowStub({
         nodes: [
-          { id: 'decide-here', label: 'Valid?', type: 'decision', observables: [] },
-          { id: 'yes-terminal', label: 'Accepted', type: 'state', observables: [] },
-          { id: 'no-terminal', label: 'Rejected', type: 'state', observables: [] },
+          {
+            id: 'decide-here',
+            label: 'Valid?',
+            type: 'decision',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'yes-terminal',
+            label: 'Accepted',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'no-terminal',
+            label: 'Rejected',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [
           { id: 'decide-yes', from: 'decide-here', to: 'yes-terminal', label: 'valid' },
@@ -61,11 +105,41 @@ describe('qaWalkPathsTransformer', () => {
     it('VALID: {nested decisions} => every leaf produces its own path with the labels accumulated in order', () => {
       const flow = FlowStub({
         nodes: [
-          { id: 'first-gate', label: 'First?', type: 'decision', observables: [] },
-          { id: 'second-gate', label: 'Second?', type: 'decision', observables: [] },
-          { id: 'early-exit', label: 'Early exit', type: 'state', observables: [] },
-          { id: 'deep-yes', label: 'Deep yes', type: 'state', observables: [] },
-          { id: 'deep-no', label: 'Deep no', type: 'state', observables: [] },
+          {
+            id: 'first-gate',
+            label: 'First?',
+            type: 'decision',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'second-gate',
+            label: 'Second?',
+            type: 'decision',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'early-exit',
+            label: 'Early exit',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'deep-yes',
+            label: 'Deep yes',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'deep-no',
+            label: 'Deep no',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [
           { id: 'first-no', from: 'first-gate', to: 'early-exit', label: 'no' },
@@ -93,8 +167,20 @@ describe('qaWalkPathsTransformer', () => {
     it('VALID: {unlabelled edge} => contributes no branch label, because an unlabelled edge is sequence not a decision', () => {
       const flow = FlowStub({
         nodes: [
-          { id: 'start-here', label: 'Start', type: 'action', observables: [] },
-          { id: 'end-here', label: 'End', type: 'state', observables: [] },
+          {
+            id: 'start-here',
+            label: 'Start',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'end-here',
+            label: 'End',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [{ id: 'start-to-end', from: 'start-here', to: 'end-here' }],
       });
@@ -107,10 +193,34 @@ describe('qaWalkPathsTransformer', () => {
     it('VALID: {loop back to an earlier node} => enumeration terminates and the loop adds no extra path', () => {
       const flow = FlowStub({
         nodes: [
-          { id: 'type-text', label: 'Type text', type: 'action', observables: [] },
-          { id: 'key-pressed', label: 'Which key?', type: 'decision', observables: [] },
-          { id: 'insert-newline', label: 'Newline inserted', type: 'action', observables: [] },
-          { id: 'text-queued', label: 'Queued', type: 'state', observables: [] },
+          {
+            id: 'type-text',
+            label: 'Type text',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'key-pressed',
+            label: 'Which key?',
+            type: 'decision',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'insert-newline',
+            label: 'Newline inserted',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'text-queued',
+            label: 'Queued',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [
           { id: 'type-to-key', from: 'type-text', to: 'key-pressed' },
@@ -137,8 +247,20 @@ describe('qaWalkPathsTransformer', () => {
     it('EDGE: {two-node cycle with no entry node} => falls back to the first declared node and still terminates', () => {
       const flow = FlowStub({
         nodes: [
-          { id: 'node-one', label: 'One', type: 'state', observables: [] },
-          { id: 'node-two', label: 'Two', type: 'state', observables: [] },
+          {
+            id: 'node-one',
+            label: 'One',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'node-two',
+            label: 'Two',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [
           { id: 'one-to-two', from: 'node-one', to: 'node-two' },
@@ -155,7 +277,15 @@ describe('qaWalkPathsTransformer', () => {
   describe('edges leaving the flow', () => {
     it('VALID: {cross-flow target} => path ends with exitsFlow true', () => {
       const flow = FlowStub({
-        nodes: [{ id: 'start-here', label: 'Start', type: 'action', observables: [] }],
+        nodes: [
+          {
+            id: 'start-here',
+            label: 'Start',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ],
         edges: [
           { id: 'jump-out', from: 'start-here', to: 'other-flow:some-node', label: 'hands off' },
         ],
@@ -168,7 +298,15 @@ describe('qaWalkPathsTransformer', () => {
 
     it('VALID: {edge to an id no node declares} => path ends with exitsFlow true rather than being dropped', () => {
       const flow = FlowStub({
-        nodes: [{ id: 'start-here', label: 'Start', type: 'action', observables: [] }],
+        nodes: [
+          {
+            id: 'start-here',
+            label: 'Start',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ],
         edges: [{ id: 'dangling-edge', from: 'start-here', to: 'never-declared' }],
       });
 
@@ -182,9 +320,27 @@ describe('qaWalkPathsTransformer', () => {
     it('VALID: {two disconnected entries} => a path from each', () => {
       const flow = FlowStub({
         nodes: [
-          { id: 'entry-one', label: 'Entry one', type: 'action', observables: [] },
-          { id: 'entry-two', label: 'Entry two', type: 'action', observables: [] },
-          { id: 'end-one', label: 'End one', type: 'state', observables: [] },
+          {
+            id: 'entry-one',
+            label: 'Entry one',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'entry-two',
+            label: 'Entry two',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'end-one',
+            label: 'End one',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [{ id: 'one-to-end', from: 'entry-one', to: 'end-one' }],
       });

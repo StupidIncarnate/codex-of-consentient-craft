@@ -18,6 +18,7 @@ import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codewea
 import { flowriderCoverageMinionStatics } from '../../statics/flowrider-coverage-minion/flowrider-coverage-minion-statics';
 import { flowriderAuthoringMinionStatics } from '../../statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { groundstomperPromptStatics } from '../../statics/groundstomper-prompt/groundstomper-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterWalkerMinionStatics } from '../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
 import { siegemasterTestAuditMinionStatics } from '../../statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
@@ -72,6 +73,12 @@ export const agentNameToPromptTransformer = ({
         name: 'flowrider-coverage-minion',
         model: 'sonnet',
         prompt: flowriderCoverageMinionStatics.prompt.template,
+      });
+    case 'groundstomper':
+      return agentPromptResultContract.parse({
+        name: 'groundstomper',
+        model: 'opus',
+        prompt: groundstomperPromptStatics.prompt.template,
       });
     case 'siegemaster':
       return agentPromptResultContract.parse({

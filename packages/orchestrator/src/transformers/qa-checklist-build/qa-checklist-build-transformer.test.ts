@@ -14,15 +14,18 @@ describe('qaChecklistBuildTransformer', () => {
             id: 'render-comment-badge',
             label: 'Box renders badge',
             type: 'action',
+            packages: ['auth-service'],
             observables: [
               {
                 id: 'check-badge-count-text',
                 type: 'ui-state',
+                package: 'auth-service',
                 description: 'COMMENT_COUNT_BADGE reads 2 on a box carrying two persisted comments',
               },
               {
                 id: 'check-observable-badge',
                 type: 'ui-state',
+                package: 'auth-service',
                 description:
                   'a FLOW_OBSERVABLE_NODE carrying one comment renders a badge reading 1',
               },
@@ -66,8 +69,14 @@ describe('qaChecklistBuildTransformer', () => {
             id: 'a-node',
             label: 'A node',
             type: 'state',
+            packages: ['auth-service'],
             observables: [
-              { id: 'check-invariant', type: 'custom', description: 'the count and order held' },
+              {
+                id: 'check-invariant',
+                type: 'custom',
+                package: 'auth-service',
+                description: 'the count and order held',
+              },
             ],
           },
         ],
@@ -88,7 +97,10 @@ describe('qaChecklistBuildTransformer', () => {
             id: 'a-node',
             label: 'A node',
             type: 'state',
-            observables: [{ id: 'check-nothing', type: 'ui-state', description: '' }],
+            packages: ['auth-service'],
+            observables: [
+              { id: 'check-nothing', type: 'ui-state', package: 'auth-service', description: '' },
+            ],
           },
         ],
         edges: [],
@@ -108,8 +120,20 @@ describe('qaChecklistBuildTransformer', () => {
       const flow = FlowStub({
         id: 'a-flow',
         nodes: [
-          { id: 'start-here', label: 'Start', type: 'action', observables: [] },
-          { id: 'end-here', label: 'The end state', type: 'state', observables: [] },
+          {
+            id: 'start-here',
+            label: 'Start',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'end-here',
+            label: 'The end state',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
         ],
         edges: [{ id: 'start-to-end', from: 'start-here', to: 'end-here' }],
       });
@@ -134,9 +158,21 @@ describe('qaChecklistBuildTransformer', () => {
       const flow = FlowStub({
         id: 'a-flow',
         nodes: [
-          { id: 'decide-here', label: 'Valid?', type: 'decision', observables: [] },
-          { id: 'yes-end', label: 'Yes', type: 'state', observables: [] },
-          { id: 'no-end', label: 'No', type: 'state', observables: [] },
+          {
+            id: 'decide-here',
+            label: 'Valid?',
+            type: 'decision',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'yes-end',
+            label: 'Yes',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          { id: 'no-end', label: 'No', type: 'state', packages: ['auth-service'], observables: [] },
         ],
         edges: [
           { id: 'decide-yes', from: 'decide-here', to: 'yes-end', label: 'valid' },
@@ -193,7 +229,15 @@ describe('qaChecklistBuildTransformer', () => {
     it('VALID: {empty ledger} => every unit is remaining', () => {
       const flow = FlowStub({
         id: 'a-flow',
-        nodes: [{ id: 'a-node', label: 'A node', type: 'state', observables: [] }],
+        nodes: [
+          {
+            id: 'a-node',
+            label: 'A node',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ],
         edges: [],
       });
       const result = qaChecklistBuildTransformer({ flow });
@@ -204,7 +248,15 @@ describe('qaChecklistBuildTransformer', () => {
     it('VALID: {ledger covering one unit} => that unit drops out of remaining', () => {
       const flow = FlowStub({
         id: 'a-flow',
-        nodes: [{ id: 'a-node', label: 'A node', type: 'state', observables: [] }],
+        nodes: [
+          {
+            id: 'a-node',
+            label: 'A node',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ],
         edges: [],
       });
 
@@ -227,7 +279,15 @@ describe('qaChecklistBuildTransformer', () => {
     it('VALID: {ledger entry for a different flow} => clears nothing here, because ids embed their own flow', () => {
       const flow = FlowStub({
         id: 'a-flow',
-        nodes: [{ id: 'a-node', label: 'A node', type: 'state', observables: [] }],
+        nodes: [
+          {
+            id: 'a-node',
+            label: 'A node',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ],
         edges: [],
       });
 
@@ -270,7 +330,15 @@ describe('qaChecklistBuildTransformer', () => {
             id: 'a-node',
             label: 'A node',
             type: 'state',
-            observables: [{ id: 'check-thing', type: 'db-query', description: 'a row exists' }],
+            packages: ['auth-service'],
+            observables: [
+              {
+                id: 'check-thing',
+                type: 'db-query',
+                package: 'auth-service',
+                description: 'a row exists',
+              },
+            ],
           },
         ],
         edges: [],
@@ -310,9 +378,21 @@ describe('qaChecklistBuildTransformer', () => {
       const flow = FlowStub({
         id: 'a-flow',
         nodes: [
-          { id: 'decide-here', label: 'Valid?', type: 'decision', observables: [] },
-          { id: 'yes-end', label: 'Yes', type: 'state', observables: [] },
-          { id: 'no-end', label: 'No', type: 'state', observables: [] },
+          {
+            id: 'decide-here',
+            label: 'Valid?',
+            type: 'decision',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          {
+            id: 'yes-end',
+            label: 'Yes',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+          { id: 'no-end', label: 'No', type: 'state', packages: ['auth-service'], observables: [] },
         ],
         edges: [
           { id: 'decide-yes', from: 'decide-here', to: 'yes-end', label: 'valid' },

@@ -101,6 +101,35 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
+    it('VALID: dumpsterCreate.body => packagesAffected entries use the object shape, not bare strings', () => {
+      const needle = 'Each entry is an object, not a bare string:';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => contains the node package tagging instruction from the chaos prompt', () => {
+      const needle =
+        'Tag every node with `packages: PackageName[]` as you create it — see "Node package tagging"';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => contains the seam-rule invariant for every edge A -> B', () => {
+      const needle =
+        '**For every edge `A -> B`, `A.packages` and `B.packages` must share at least one package.**';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
     it('VALID: dumpsterCreate.body => no longer contains the three-step wrapper trailer line', () => {
       const removedNeedle = 'Continue the spec conversation per the chaoswhisperer prompt.';
       const { body } = slashCommandsStatics.dumpsterCreate;
@@ -165,6 +194,23 @@ describe('slashCommandsStatics', () => {
 
     it('VALID: dumpsterHunt.body => instructs create-quest with questType bug-hunt', () => {
       const needle = "questType: 'bug-hunt'";
+      const { body } = slashCommandsStatics.dumpsterHunt;
+      const foundIndex = body.indexOf(needle);
+
+      expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: dumpsterHunt.body => contains the node package tagging instruction from the bug-hunt prompt', () => {
+      const needle = 'Tag every node with `packages: PackageName[]` as you create it';
+      const { body } = slashCommandsStatics.dumpsterHunt;
+      const foundIndex = body.indexOf(needle);
+
+      expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: dumpsterHunt.body => packagesAffected entries use the object shape with the ./ location prefix', () => {
+      const needle =
+        "`location` written\nWITH the `./` prefix (`'./packages/web'`, never the bare `'packages/web'`)";
       const { body } = slashCommandsStatics.dumpsterHunt;
       const foundIndex = body.indexOf(needle);
 

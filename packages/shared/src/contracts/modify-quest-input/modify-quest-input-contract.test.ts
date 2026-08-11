@@ -1,3 +1,5 @@
+import { flowNodeContract } from '../flow-node/flow-node-contract';
+import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { QuestNoteStub } from '../quest-note/quest-note.stub';
 import { SignoffStub } from '../signoff/signoff.stub';
 import { modifyQuestInputContract } from './modify-quest-input-contract';
@@ -207,6 +209,7 @@ describe('modifyQuestInputContract', () => {
           status: 'pending',
           locked: false,
           flowIds: [],
+          packageNames: [],
         },
       ],
     });
@@ -362,15 +365,269 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
-  it('VALID: {packagesAffected} => parses successfully', () => {
+  it('VALID: {packagesAffected as entries} => parses each declared package through to the output', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',
-      packagesAffected: ['orchestrator', 'web', 'shared'],
+      packagesAffected: [
+        {
+          name: 'auth-service',
+          location: './packages/auth-service',
+          changeType: 'edit',
+          packageType: 'library',
+        },
+        {
+          name: 'token-store',
+          location: './packages/token-store',
+          changeType: 'new',
+          packageType: 'programmatic-service',
+          usedBy: ['auth-service'],
+        },
+      ],
     });
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      packagesAffected: ['orchestrator', 'web', 'shared'],
+      packagesAffected: [
+        {
+          name: 'auth-service',
+          location: './packages/auth-service',
+          changeType: 'edit',
+          packageType: 'library',
+        },
+        {
+          name: 'token-store',
+          location: './packages/token-store',
+          changeType: 'new',
+          packageType: 'programmatic-service',
+          usedBy: ['auth-service'],
+        },
+      ],
+    });
+  });
+
+  it('INVALID: {packagesAffected as bare names} => throws, the list carries entries and not strings', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        packagesAffected: ['orchestrator', 'web', 'shared'] as never,
+      });
+    }).toThrow(/Expected object, received string/u);
+  });
+
+  // The flow/node/observable unions are .extend().partial() objects, which STRIP an unrecognised
+  // key rather than rejecting it. These four cases are the only proof that the package fields reach
+  // the parsed output at all instead of vanishing on every write.
+  it('VALID: {flows with a full new node carrying packages} => keeps the tag rather than stripping it', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'press-warp',
+              label: 'Press Warp',
+              type: 'action',
+              packages: ['auth-service', 'gateway'],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'press-warp',
+              label: 'Press Warp',
+              type: 'action',
+              packages: ['auth-service', 'gateway'],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {flows patch retagging an existing node} => keeps packages on the partial branch too', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [{ id: 'login-flow', nodes: [{ id: 'press-warp', packages: ['gateway'] }] }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [{ id: 'login-flow', nodes: [{ id: 'press-warp', packages: ['gateway'] }] }],
+    });
+  });
+
+  // An untagged node cannot be refused HERE: dropping `packages` makes the object fall out of the
+  // full branch and into `.partial().required({ id: true })`, which is indistinguishable from a
+  // legitimate patch. The coverage rule therefore has to bind on the save side, where the merged
+  // node is parsed through flowNodeContract — which is what the second assertion pins.
+  it('EDGE: {node with label and type but no packages} => matches the partial branch here while flowNodeContract refuses the same node', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [{ id: 'press-warp', label: 'Press Warp', type: 'action' }],
+          edges: [],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [{ id: 'press-warp', label: 'Press Warp', type: 'action' }],
+          edges: [],
+        },
+      ],
+    });
+
+    expect(() => {
+      return flowNodeContract.parse({ id: 'press-warp', label: 'Press Warp', type: 'action' });
+    }).toThrow(/Required/u);
+  });
+
+  it('VALID: {observable carrying an explicit package} => keeps the resolved side of the seam', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'press-warp',
+              observables: [{ id: 'login-redirects-to-dashboard', package: 'gateway' }],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'press-warp',
+              observables: [{ id: 'login-redirects-to-dashboard', package: 'gateway' }],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  // The asymmetry the resolve-on-save rule rests on: this contract accepts an observable with no
+  // package because a single-package node fills it in, while the persisted contract refuses it.
+  it('VALID: {observable with no package} => accepted here, where flowObservableContract refuses the same shape', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'press-warp',
+              observables: [
+                {
+                  id: 'login-redirects-to-dashboard',
+                  type: 'ui-state',
+                  description: 'redirects to dashboard',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'press-warp',
+              observables: [
+                {
+                  id: 'login-redirects-to-dashboard',
+                  type: 'ui-state',
+                  description: 'redirects to dashboard',
+                  addedBy: 'spec',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(() => {
+      return flowObservableContract.parse({
+        id: 'login-redirects-to-dashboard',
+        type: 'ui-state',
+        description: 'redirects to dashboard',
+      });
+    }).toThrow(/Required/u);
+  });
+
+  it('INVALID: {packageGraph} => throws Unrecognized key, the derived graph is never agent-written', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        packageGraph: [
+          {
+            id: 'auth-service',
+            dependsOn: [],
+            depth: 0,
+            packageType: 'library',
+            changeType: 'edit',
+          },
+        ],
+      } as never);
+    }).toThrow(/Unrecognized key/u);
+  });
+
+  it('VALID: {operations carrying packageNames} => keeps the slice the item is scoped to', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      operations: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          text: 'auth-service: the token store adapter',
+          status: 'pending',
+          packageNames: ['auth-service'],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      operations: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          text: 'auth-service: the token store adapter',
+          status: 'pending',
+          locked: false,
+          flowIds: [],
+          packageNames: ['auth-service'],
+        },
+      ],
     });
   });
 
