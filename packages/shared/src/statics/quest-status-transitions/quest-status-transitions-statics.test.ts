@@ -29,10 +29,13 @@ describe('questStatusTransitionsStatics', () => {
         'design_approved',
         'in_progress',
         'blocked',
+        'merging',
         'abandoned',
       ],
-      blocked: ['in_progress', 'abandoned', 'paused'],
-      complete: [],
+      blocked: ['blocked', 'in_progress', 'abandoned', 'paused', 'merging'],
+      merging: ['merging', 'merged', 'blocked', 'paused', 'abandoned'],
+      complete: ['merging'],
+      merged: [],
       abandoned: [],
     });
   });
@@ -111,12 +114,32 @@ describe('questStatusTransitionsStatics', () => {
       ]);
     });
 
-    it('VALID: blocked transitions => exact [in_progress, abandoned, paused]', () => {
+    it('VALID: blocked transitions => exact [blocked, in_progress, abandoned, paused, merging]', () => {
       expect(questStatusTransitionsStatics.blocked).toStrictEqual([
+        'blocked',
         'in_progress',
         'abandoned',
         'paused',
+        'merging',
       ]);
+    });
+
+    it('VALID: merging transitions => exact [merging, merged, blocked, paused, abandoned]', () => {
+      expect(questStatusTransitionsStatics.merging).toStrictEqual([
+        'merging',
+        'merged',
+        'blocked',
+        'paused',
+        'abandoned',
+      ]);
+    });
+
+    it('VALID: merged transitions => exact [] (terminal, nothing transitions out)', () => {
+      expect(questStatusTransitionsStatics.merged).toStrictEqual([]);
+    });
+
+    it('VALID: complete transitions => exact [merging] (a finished quest can only go on to merge)', () => {
+      expect(questStatusTransitionsStatics.complete).toStrictEqual(['merging']);
     });
   });
 
@@ -136,6 +159,7 @@ describe('questStatusTransitionsStatics', () => {
         'design_approved',
         'in_progress',
         'blocked',
+        'merging',
         'abandoned',
       ]);
     });

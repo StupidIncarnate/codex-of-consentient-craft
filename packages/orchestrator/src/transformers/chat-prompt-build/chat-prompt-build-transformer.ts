@@ -13,6 +13,7 @@ import type { PromptText } from '../../contracts/prompt-text/prompt-text-contrac
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { dumpsterHuntPromptStatics } from '../../statics/dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
+import { tavernkeeperPromptStatics } from '../../statics/tavernkeeper-prompt/tavernkeeper-prompt-statics';
 
 export const chatPromptBuildTransformer = ({
   role,
@@ -31,7 +32,10 @@ export const chatPromptBuildTransformer = ({
 
   // The two spec-intake roles share a prompt shape: a $QUEST_BOOTSTRAP block selected by whether
   // the quest was pre-created, and a $CLARIFY_INSTRUCTION block selected by execution context.
-  // Glyphsmith has neither, so it is the null arm — its template is filled by $ARGUMENTS alone.
+  // Glyphsmith and Tavernkeeper have neither, so they fall into the null arm below and are
+  // selected explicitly by role — each fills its own flat template ($ARGUMENTS + $QUEST_ID only)
+  // from its own statics module. Every chat role names its own template; a role outside the chat
+  // roster has no chat prompt at all and throws rather than silently inheriting one.
   const intakeStatics =
     role === 'chaoswhisperer'
       ? dumpsterCreatePromptStatics
@@ -39,7 +43,19 @@ export const chatPromptBuildTransformer = ({
         ? dumpsterHuntPromptStatics
         : null;
 
-  const statics = intakeStatics ?? glyphsmithPromptStatics;
+  const statics =
+    intakeStatics ??
+    (role === 'glyphsmith'
+      ? glyphsmithPromptStatics
+      : role === 'tavernkeeper'
+        ? tavernkeeperPromptStatics
+        : null);
+
+  if (statics === null) {
+    throw new Error(
+      `chatPromptBuildTransformer has no template for role '${role}' — only chat roles have chat prompts`,
+    );
+  }
 
   // Function replacement, not a string one: `message` is the user's raw text and can contain a `$`
   // sequence (`$&`, `` $` ``, `$'`) that a string replacement expands against the match — `` $` ``

@@ -1,5 +1,6 @@
 import {
   GuildIdStub,
+  ProcessIdStub,
   QuestIdStub,
   QuestStatusStub,
   QuestStub,
@@ -13,25 +14,28 @@ import { questPauseBrokerProxy } from './quest-pause-broker.proxy';
 const buildProcessControls = ({
   questIdMatch,
   kill,
+  processIds,
 }: {
   questIdMatch?: ReturnType<typeof QuestIdStub>;
   kill?: jest.Mock;
+  processIds?: readonly ReturnType<typeof ProcessIdStub>[];
 } = {}): {
-  findByQuestId: jest.Mock;
+  findAllByQuestId: jest.Mock;
   kill: jest.Mock;
 } => {
   const killMock = kill ?? jest.fn();
-  const findByQuestId =
+  const ids = processIds ?? [ProcessIdStub({ value: 'proc-match' })];
+  const findAllByQuestId =
     questIdMatch === undefined
-      ? jest.fn().mockReturnValue(undefined)
+      ? jest.fn().mockReturnValue([])
       : jest
           .fn()
           .mockImplementation(({ questId }: { questId: ReturnType<typeof QuestIdStub> }) =>
             questId === questIdMatch
-              ? { processId: 'proc-match', questId: questIdMatch, kill: killMock }
-              : undefined,
+              ? ids.map((processId) => ({ processId, questId: questIdMatch, kill: killMock }))
+              : [],
           );
-  return { findByQuestId, kill: killMock };
+  return { findAllByQuestId, kill: killMock };
 };
 
 describe('questPauseBroker', () => {
@@ -129,6 +133,68 @@ describe('questPauseBroker', () => {
       });
 
       expect(processControls.kill.mock.calls).toStrictEqual([[{ processId: 'proc-match' }]]);
+    });
+
+    it('VALID: {quest at merging with a registered child} => kill invoked once with that processId, and the same persist stamps paused/merging', async () => {
+      const proxy = questPauseBrokerProxy();
+      proxy.setupPassthrough();
+      const questId = QuestIdStub({ value: 'pause-merging-kill' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({ id: questId, status: 'merging' });
+      proxy.setupQuestFound({ quest });
+      const kill = jest.fn();
+      const processControls = buildProcessControls({ questIdMatch: questId, kill });
+
+      const result = await questPauseBroker({
+        questId,
+        guildId,
+        previousStatus: QuestStatusStub({ value: 'merging' }),
+        processControls,
+      });
+
+      expect(result).toStrictEqual({ paused: true });
+      expect(processControls.kill.mock.calls).toStrictEqual([[{ processId: 'proc-match' }]]);
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect({ status: persisted.status, pausedAtStatus: persisted.pausedAtStatus }).toStrictEqual({
+        status: 'paused',
+        pausedAtStatus: 'merging',
+      });
+    });
+
+    it('VALID: {quest with a no-op Start registration AND a live agent child} => kills BOTH, not just the first', async () => {
+      // Start Quest registers a quest-level entry whose kill is a no-op, and it is registered
+      // FIRST, so it sits earliest in the registry. A pause that stops at the first match kills
+      // that no-op and leaves the real agent child running against the worktree.
+      const proxy = questPauseBrokerProxy();
+      proxy.setupPassthrough();
+      const questId = QuestIdStub({ value: 'pause-two-registrations' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({ id: questId, status: 'merging' });
+      proxy.setupQuestFound({ quest });
+      const kill = jest.fn();
+      const processControls = buildProcessControls({
+        questIdMatch: questId,
+        kill,
+        processIds: [
+          ProcessIdStub({ value: 'proc-start-noop' }),
+          ProcessIdStub({ value: 'proc-warpgate-child' }),
+        ],
+      });
+
+      const result = await questPauseBroker({
+        questId,
+        guildId,
+        previousStatus: QuestStatusStub({ value: 'merging' }),
+        processControls,
+      });
+
+      expect(result).toStrictEqual({ paused: true });
+      expect(processControls.kill.mock.calls).toStrictEqual([
+        [{ processId: 'proc-start-noop' }],
+        [{ processId: 'proc-warpgate-child' }],
+      ]);
     });
 
     it('VALID: {no registered process} => kill never invoked, pause still succeeds', async () => {

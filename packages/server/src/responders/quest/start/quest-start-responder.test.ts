@@ -1,3 +1,4 @@
+import { BaseBranchNotFoundError, QuestBranchNameTakenError } from '@dungeonmaster/orchestrator';
 import { ProcessIdStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { QuestStartResponderProxy } from './quest-start-responder.proxy';
@@ -119,6 +120,41 @@ describe('QuestStartResponder', () => {
       expect(result).toStrictEqual({
         status: 500,
         data: { error: 'Quest start failed' },
+      });
+    });
+  });
+
+  describe('git-lifecycle rejections', () => {
+    it('INVALID: {adapter rejects with BaseBranchNotFoundError} => returns 400 with the exact error message', async () => {
+      const proxy = QuestStartResponderProxy();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      proxy.setupQuest({ quest });
+      proxy.setupStartQuestRejects({ questId, error: new BaseBranchNotFoundError() });
+
+      const result = await proxy.callResponder({ params: { questId } });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'No local main or master branch found' },
+      });
+    });
+
+    it('INVALID: {adapter rejects with QuestBranchNameTakenError} => returns 400 with the exact taken branch name', async () => {
+      const proxy = QuestStartResponderProxy();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      proxy.setupQuest({ quest });
+      proxy.setupStartQuestRejects({
+        questId,
+        error: new QuestBranchNameTakenError({ branchName: 'quest/add-auth-7bc217a1' }),
+      });
+
+      const result = await proxy.callResponder({ params: { questId } });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'quest/add-auth-7bc217a1 already exists — name is in use by other work' },
       });
     });
   });

@@ -2,6 +2,7 @@ import { installTestbedCreateBroker } from './install-testbed-create-broker';
 import { installTestbedCreateBrokerProxy } from './install-testbed-create-broker.proxy';
 import { BaseNameStub } from '../../../contracts/base-name/base-name.stub';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { RelativePathStub } from '../../../contracts/relative-path/relative-path.stub';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 
@@ -51,12 +52,30 @@ describe('installTestbedCreateBroker', () => {
         cleanup: expect.any(Function),
         writeFile: expect.any(Function),
         readFile: expect.any(Function),
+        listDir: expect.any(Function),
         getClaudeSettings: expect.any(Function),
         getMcpConfig: expect.any(Function),
         getDungeonmasterConfig: expect.any(Function),
         getEslintConfig: expect.any(Function),
         runInitCommand: expect.any(Function),
       });
+    });
+  });
+
+  describe('listDir', () => {
+    it('EMPTY: {relativePath: does not exist} => returns null', () => {
+      installTestbedCreateBrokerProxy();
+
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-listdir' }),
+      });
+
+      const result = testbed.listDir({
+        relativePath: RelativePathStub({ value: 'no-such-dir' }),
+      });
+      testbed.cleanup();
+
+      expect(result).toBe(null);
     });
   });
 

@@ -19,6 +19,7 @@ const PAUSEABLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.st
   'design_approved',
   'in_progress',
   'blocked',
+  'merging',
 ]);
 
 describe('isQuestPauseableQuestStatusGuard', () => {

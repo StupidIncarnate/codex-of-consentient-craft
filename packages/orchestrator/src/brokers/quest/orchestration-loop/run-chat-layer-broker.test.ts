@@ -1,10 +1,9 @@
 import {
-  FilePathStub,
+  AbsoluteFilePathStub,
   GuildIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
-  RepoRootCwdStub,
   SessionIdStub,
   UserInputStub,
   WorkItemStub,
@@ -30,7 +29,6 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
           guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
@@ -53,7 +51,6 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Design the login page' }),
           guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
@@ -77,7 +74,6 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
           guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
@@ -105,7 +101,6 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
           guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
@@ -135,7 +130,6 @@ describe('runChatLayerBroker', () => {
       await runChatLayerBroker({
         questId,
         workItem,
-        startPath: FilePathStub({ value: '/project/src' }),
         userMessage,
         guildId: GuildIdStub(),
         onAgentEntry: jest.fn(),
@@ -160,7 +154,7 @@ describe('runChatLayerBroker', () => {
       ]);
     });
 
-    it('VALID: {cwdResolveBroker resolves repo root} => passes resolved RepoRootCwd as cwd to spawn', async () => {
+    it('VALID: {quest records a worktreePath} => the agent is launched with that worktree path as cwd', async () => {
       const proxy = runChatLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const workItem = WorkItemStub({
@@ -168,15 +162,18 @@ describe('runChatLayerBroker', () => {
         role: 'chaoswhisperer',
         status: 'in_progress',
       });
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', workItems: [workItem] });
-      const resolvedRepoRoot = RepoRootCwdStub({ value: '/resolved/repo/root' });
-      proxy.setupCwdResolveSuccess({ repoRoot: resolvedRepoRoot });
-      proxy.setupQuestFound({ quest });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        workItems: [workItem],
+        worktreePath,
+      });
+      proxy.setupWorktreeFound({ quest });
 
       await runChatLayerBroker({
         questId,
         workItem,
-        startPath: FilePathStub({ value: '/resolved/repo/root/packages/foo' }),
         userMessage: UserInputStub({ value: 'Help me build auth' }),
         guildId: GuildIdStub(),
         onAgentEntry: jest.fn(),
@@ -184,7 +181,7 @@ describe('runChatLayerBroker', () => {
 
       const spawnedCwd = proxy.getSpawnedCwd();
 
-      expect(spawnedCwd).toBe(resolvedRepoRoot);
+      expect(spawnedCwd).toBe(worktreePath);
     });
 
     it('VALID: {agent emits line} => onAgentEntry callback receives workItem.id as questWorkItemId so responder can stamp questId+workItemId on chat-output payload', async () => {
@@ -210,7 +207,6 @@ describe('runChatLayerBroker', () => {
       await runChatLayerBroker({
         questId,
         workItem,
-        startPath: FilePathStub({ value: '/project/src' }),
         guildId: GuildIdStub(),
         userMessage: UserInputStub({ value: 'Help me build auth' }),
         onAgentEntry,
@@ -225,31 +221,41 @@ describe('runChatLayerBroker', () => {
       expect(stampedPayloads).toStrictEqual([{ questId, questWorkItemId: workItemId }]);
     });
 
-    it('EDGE: {cwdResolveBroker rejects} => falls back to parsing startPath via repoRootCwdContract and uses it as cwd', async () => {
+    it("ERROR: {quest's recorded worktree is missing} => the work item is marked failed carrying the path in its errorMessage, and the error propagates", async () => {
       const proxy = runChatLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
+      const workItemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const workItem = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        id: workItemId,
         role: 'chaoswhisperer',
         status: 'in_progress',
       });
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', workItems: [workItem] });
-      const fallbackPath = '/standalone/project/src';
-      proxy.setupCwdResolveReject({ error: new Error('no .dungeonmaster.json ancestor') });
-      proxy.setupQuestFound({ quest });
-
-      await runChatLayerBroker({
-        questId,
-        workItem,
-        startPath: FilePathStub({ value: fallbackPath }),
-        userMessage: UserInputStub({ value: 'Help me build auth' }),
-        guildId: GuildIdStub(),
-        onAgentEntry: jest.fn(),
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        workItems: [workItem],
+        worktreePath,
       });
+      proxy.setupWorktreeMissing({ quest });
 
-      const spawnedCwd = proxy.getSpawnedCwd();
+      await expect(
+        runChatLayerBroker({
+          questId,
+          workItem,
+          userMessage: UserInputStub({ value: 'Help me build auth' }),
+          guildId: GuildIdStub(),
+          onAgentEntry: jest.fn(),
+        }),
+      ).rejects.toThrow(/\/repo\/worktrees\/add-auth/u);
 
-      expect(spawnedCwd).toBe(RepoRootCwdStub({ value: fallbackPath }));
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+      const errorMessage = proxy.getLastPersistedWorkItemErrorMessage({ workItemId });
+
+      expect(status).toBe('failed');
+      expect(errorMessage).toBe(
+        'Cannot start chat for quest add-auth: worktree not found: /repo/worktrees/add-auth',
+      );
     });
   });
 });

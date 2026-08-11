@@ -1,26 +1,22 @@
 import type {
-  ExitCodeStub,
+  AbsoluteFilePath,
   QuestId,
   QuestStub as QuestStubType,
   RepoRootCwd,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 import {
-  GuildStub,
-  GuildIdStub,
+  ExitCodeStub,
   QuestStub,
+  RepoRootCwdStub,
   WorkItemStub,
-  filePathContract,
-  repoRootCwdContract,
 } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
 import { chatStreamProcessHandleBrokerProxy } from '../stream-process-handle/chat-stream-process-handle-broker.proxy';
-import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
+import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
 import { resolveChatQuestLayerBrokerProxy } from './resolve-chat-quest-layer-broker.proxy';
 
@@ -29,11 +25,14 @@ type Quest = ReturnType<typeof QuestStubType>;
 
 type AgentLaunchProxy = ReturnType<typeof agentLaunchBrokerProxy>;
 
-// guildGetBroker resolves at most twice per test: once directly in chatSpawnBroker, and
-// once more from the post-exit main-session tail whenever a spawn's stdout extracts a
-// sessionId. Three one-shot answers leaves headroom without meaning anything beyond "more
-// than the two real call sites this file exercises."
-const GUILD_LOOKUP_STAGING_COUNT = 3;
+// crypto.randomUUID is mocked sticky to this value below (and questUserAddBroker mints the
+// new quest's id from the same call), so this is the questId chatSpawnBroker's cwd
+// resolution looks up immediately after a chaoswhisperer-new spawn creates a quest.
+const CREATED_QUEST_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+
+// Legacy (no-worktreePath) quests resolve their cwd from the guild's repo root. The actual
+// value is opaque to every scenario below except the ones that assert on it directly.
+const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/home/user/my-guild' });
 
 export const chatSpawnBrokerProxy = (): {
   setupNewSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
@@ -51,13 +50,26 @@ export const chatSpawnBrokerProxy = (): {
   }) => void;
   setupQuestNotFound: () => void;
   setupInvalidStatus: (params: { quest: Quest }) => void;
-  refreshGuildConfig: () => void;
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => SpyOnHandle;
-  setupCwdResolveSuccess: (params: { cwd: string }) => void;
-  setupCwdResolveReject: (params: { error: Error }) => void;
+  setupResumeWithWorktree: (params: {
+    questId: QuestId;
+    sessionId: SessionId;
+    worktreePath: AbsoluteFilePath;
+  }) => void;
+  setupResumeWithMissingWorktree: (params: {
+    questId: QuestId;
+    sessionId: SessionId;
+    worktreePath: AbsoluteFilePath;
+  }) => void;
+  setupResumeWithRepoRoot: (params: {
+    questId: QuestId;
+    sessionId: SessionId;
+    repoRoot: RepoRootCwd;
+  }) => void;
   getSpawnedOptions: () => unknown;
+  getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
   // Delegated to agentLaunchBrokerProxy so callers (e.g. chat-start-responder tests) can
   // seed the post-exit main-session-tail mocks the launcher's onComplete starts. The
@@ -66,9 +78,6 @@ export const chatSpawnBrokerProxy = (): {
   setupMainTailLines: AgentLaunchProxy['setupMainTailLines'];
   triggerMainTailChange: AgentLaunchProxy['triggerMainTailChange'];
 } => {
-  // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
-  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
-  cwdResolveBrokerProxy();
   // chatSpawnBroker delegates spawn lifecycle to agentLaunchBroker; loading its proxy
   // wires up the transitive agent-spawn-unified + chat-stream-process-handle + main-tail
   // mocks the launcher composes around.
@@ -80,46 +89,13 @@ export const chatSpawnBrokerProxy = (): {
   // chatSpawnBroker resolves the quest + chat work item via resolveChatQuestLayerBroker;
   // loading its proxy wires up questGetBroker + questUserAddBroker mocks the layer uses.
   const resolveProxy = resolveChatQuestLayerBrokerProxy();
-  const guildProxy = guildGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
+  // chatSpawnBroker reads the resolved quest's cwd via questCwdResolveBroker; loading its
+  // proxy wires up the questGetBroker/questRepoRootBroker/fsIsAccessibleAdapter mocks that
+  // decide the 'worktree' | 'repo-root' | 'missing-worktree' outcome.
+  const cwdProxy = questCwdResolveBrokerProxy();
 
-  const defaultGuildId = GuildIdStub();
-  const defaultGuild = GuildStub({ id: defaultGuildId });
-  // Every test in this file spawns against the same fixed default guild (refreshGuildConfig()
-  // re-seeds the SAME object, never a different path), so cwdResolveBroker's only ever-called
-  // address is this guild's own path — keyed once here and reused by every setup method below.
-  const guildStartPath = filePathContract.parse(defaultGuild.path);
-
-  // chat-spawn-broker walks up from the guild path to the repo root via cwdResolveBroker.
-  // Default answer mirrors the guild's own path, so tests that never call
-  // setupCwdResolveSuccess/Reject still see a resolved cwd matching guild.path.
-  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
-  cwdResolveMock
-    .calledWith([{ startPath: guildStartPath, kind: 'repo-root' }])
-    .resolves(repoRootCwdContract.parse(String(guildStartPath)));
-
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
-    .calledWith([])
-    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-
-  const setupGuild = (): void => {
-    // Resolve guildGetBroker directly to defaultGuild instead of routing through the real
-    // guildConfigReadBroker/guildConfigWriteBroker fs simulation. That simulation stages its
-    // own sticky, zero-argument mock of `dungeonmasterHomeFindBroker`
-    // (guild-config-read-broker.proxy.ts) — the SAME zero-arg function
-    // resolveChatQuestLayerBroker's quest lookup (questFindQuestPathBroker, via the shared
-    // `dungeonmasterHomeFindBrokerProxy`) expects to run for REAL, mocked only at its
-    // osHomedir/pathJoin leaves. `dungeonmasterHomeFindBroker` takes no identifying argument,
-    // so the two composers can't be told apart by address — whichever stages last wins for
-    // EVERY caller in the test, not just its own. Bypassing the guild fs simulation here
-    // sidesteps that collision entirely; see GUILD_LOOKUP_STAGING_COUNT for why this stages
-    // more than once.
-    Array.from({ length: GUILD_LOOKUP_STAGING_COUNT }).forEach(() => {
-      guildProxy.setupDirectGuild({ guild: defaultGuild });
-    });
-  };
-
-  setupGuild();
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(CREATED_QUEST_ID);
 
   return {
     setupNewSession: ({
@@ -130,7 +106,15 @@ export const chatSpawnBrokerProxy = (): {
       stdoutLines?: readonly string[];
     }): void => {
       // questUserAddBroker default mock (loaded transitively via resolveProxy) handles
-      // quest creation. The launcher's spawn mock receives the stdout lines + exit code.
+      // quest creation — it never calls questGetBroker itself, so the ONLY quest lookup a
+      // chaoswhisperer-new spawn triggers is chatSpawnBroker's own cwd resolution
+      // immediately after, against the quest id the sticky randomUUID mock mints. Default
+      // that quest to the legacy (no-worktreePath) path.
+      cwdProxy.setupLegacyQuest({
+        quest: QuestStub({ id: CREATED_QUEST_ID }),
+        repoRoot: DEFAULT_REPO_ROOT,
+      });
+      // The launcher's spawn mock receives the stdout lines + exit code.
       launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -156,12 +140,25 @@ export const chatSpawnBrokerProxy = (): {
         role: 'chaoswhisperer',
         ...(sessionId === undefined ? {} : { sessionId }),
       });
-      resolveProxy.setupQuestFound({
-        quest: QuestStub({
-          ...(questId === undefined ? {} : { id: questId, folder: questId }),
-          workItems: [chaosItem],
-        }),
+      const quest = QuestStub({
+        ...(questId === undefined ? {} : { id: questId, folder: questId }),
+        workItems: [chaosItem],
       });
+      // resolveChatQuestLayerBroker's resume branch requires a questId (it falls through to
+      // the create branch without one, never calling questGetBroker at all) — staging this
+      // quest's lookup when questId is omitted would queue dead entries on the shared
+      // pathJoin/readFile mocks that a later, unrelated real call could wrongly consume.
+      // The quest chatSpawnBroker's cwd resolution asks about in the create-fallback case is
+      // the freshly-minted CREATED_QUEST_ID, not this method's own `quest`.
+      if (questId === undefined) {
+        cwdProxy.setupLegacyQuest({
+          quest: QuestStub({ id: CREATED_QUEST_ID }),
+          repoRoot: DEFAULT_REPO_ROOT,
+        });
+      } else {
+        resolveProxy.setupQuestFound({ quest });
+        cwdProxy.setupLegacyQuest({ quest, repoRoot: DEFAULT_REPO_ROOT });
+      }
       launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -194,6 +191,7 @@ export const chatSpawnBrokerProxy = (): {
             workItems: [...quest.workItems, WorkItemStub({ role: 'glyphsmith' })],
           });
       resolveProxy.setupQuestFound({ quest: seededQuest });
+      cwdProxy.setupLegacyQuest({ quest: seededQuest, repoRoot: DEFAULT_REPO_ROOT });
       launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -206,10 +204,6 @@ export const chatSpawnBrokerProxy = (): {
 
     setupInvalidStatus: ({ quest }: { quest: Quest }): void => {
       resolveProxy.setupQuestFound({ quest });
-    },
-
-    refreshGuildConfig: (): void => {
-      setupGuild();
     },
 
     setupSessionLinkQuest: ({ quest }: { quest: Quest }): void => {
@@ -228,17 +222,66 @@ export const chatSpawnBrokerProxy = (): {
       return handle;
     },
 
-    setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {
-      cwdResolveMock
-        .calledWith([{ startPath: guildStartPath, kind: 'repo-root' }])
-        .resolves(repoRootCwdContract.parse(cwd));
+    setupResumeWithWorktree: ({
+      questId,
+      sessionId,
+      worktreePath,
+    }: {
+      questId: QuestId;
+      sessionId: SessionId;
+      worktreePath: AbsoluteFilePath;
+    }): void => {
+      const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
+      const quest = QuestStub({
+        id: questId,
+        folder: questId,
+        workItems: [chaosItem],
+        worktreePath,
+      });
+      resolveProxy.setupQuestFound({ quest });
+      cwdProxy.setupWorktreePresent({ quest });
+      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
     },
 
-    setupCwdResolveReject: ({ error }: { error: Error }): void => {
-      cwdResolveMock.calledWith([{ startPath: guildStartPath, kind: 'repo-root' }]).throws(error);
+    setupResumeWithMissingWorktree: ({
+      questId,
+      sessionId,
+      worktreePath,
+    }: {
+      questId: QuestId;
+      sessionId: SessionId;
+      worktreePath: AbsoluteFilePath;
+    }): void => {
+      const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
+      const quest = QuestStub({
+        id: questId,
+        folder: questId,
+        workItems: [chaosItem],
+        worktreePath,
+      });
+      resolveProxy.setupQuestFound({ quest });
+      cwdProxy.setupWorktreeMissing({ quest });
+    },
+
+    setupResumeWithRepoRoot: ({
+      questId,
+      sessionId,
+      repoRoot,
+    }: {
+      questId: QuestId;
+      sessionId: SessionId;
+      repoRoot: RepoRootCwd;
+    }): void => {
+      const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
+      const quest = QuestStub({ id: questId, folder: questId, workItems: [chaosItem] });
+      resolveProxy.setupQuestFound({ quest });
+      cwdProxy.setupLegacyQuest({ quest, repoRoot });
+      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
     },
 
     getSpawnedOptions: (): unknown => launchProxy.getSpawnedOptions(),
+
+    getSpawnedArgs: (): unknown => launchProxy.getSpawnedArgs(),
 
     getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
 

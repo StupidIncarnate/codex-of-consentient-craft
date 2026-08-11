@@ -296,6 +296,238 @@ describe('ChatReplayResponder', () => {
     });
   });
 
+  describe('quest-scoped cwd resolution', () => {
+    it('VALID: {session linked to a quest that records a worktreePath} => the replay reads the session directory derived from that worktree path', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-worktree' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-worktree' });
+      const guild = GuildStub({ id: guildId });
+      const linkedWorkItem = WorkItemStub({
+        role: 'chaoswhisperer',
+        sessionId,
+        status: 'complete',
+      });
+      const quest = QuestStub({ workItems: [linkedWorkItem] });
+      const worktreePath = '/home/user/worktrees/quest-abc12345';
+
+      // Quest lookup runs FIRST in the responder. Stage it before the chatHistoryReplayBroker
+      // stubs, which now resolve their JSONL directory through questCwdResolveBroker BEFORE
+      // touching any JSONL.
+      const questsPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath,
+      });
+      proxy.setupQuestDirectories({
+        files: [FileNameStub({ value: quest.folder })],
+      });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({
+          value: `${questsPath}/${quest.folder}/quest.json`,
+        }),
+      });
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(quest),
+      });
+
+      proxy.setupQuestWorktree({ questId: quest.id, worktreePath });
+      // homeDir MUST be '/home/user' here, matching guildConfigReadBrokerProxy's own internal
+      // default: setupGuild's guildProxy.setupConfig() unconditionally stages an os.homedir()
+      // answer even though guildGetBroker is never actually invoked on this (worktree) branch —
+      // a phantom entry that would otherwise sit ahead of ours in the shared one-shot queue and
+      // get picked up by chatHistoryReplayBroker's own (real) os.homedir() call instead.
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/user',
+      });
+      // fsReadJsonlAdapterProxy addresses by the exact worktree-derived path — if the responder
+      // stopped spreading questId into the chatHistoryReplayBroker call, the broker would fall
+      // back to the guild-path walk-up instead, miss this staged address, and no chat-output
+      // event would ever fire.
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","uuid":"worktree-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"worktree reply"}]}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      const events = eventCapture.getEmittedEvents();
+      const chatOutputEvent = events.find((e) => e.type === 'chat-output');
+
+      expect(chatOutputEvent).toStrictEqual({
+        type: 'chat-output',
+        processId: chatProcessId,
+        payload: {
+          chatProcessId,
+          sessionId,
+          questId: quest.id,
+          workItemId: linkedWorkItem.id,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'worktree reply',
+              source: 'session',
+              uuid: 'worktree-line-uuid:0',
+              timestamp: '2025-01-01T00:00:01Z',
+            },
+          ],
+        },
+      });
+    });
+
+    it('VALID: {orphan session with no linked quest} => the replay still reads the guild-path-derived directory', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-orphan-guild-path' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-orphan-guild' });
+      const guild = GuildStub({ id: guildId });
+
+      // Quest list comes back EMPTY — sessionId belongs to no quest workItem, so the responder
+      // calls chatHistoryReplayBroker with NO questId and the broker keeps the guild-path
+      // walk-up. No questCwdResolveBroker staging needed — that branch is never reached.
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/testuser',
+      });
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","uuid":"guild-path-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"guild path reply"}]}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      const events = eventCapture.getEmittedEvents();
+      const chatOutputEvent = events.find((e) => e.type === 'chat-output');
+
+      expect(chatOutputEvent).toStrictEqual({
+        type: 'chat-output',
+        processId: chatProcessId,
+        payload: {
+          chatProcessId,
+          sessionId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'guild path reply',
+              source: 'session',
+              uuid: 'guild-path-line-uuid:0',
+              timestamp: '2025-01-01T00:00:01Z',
+            },
+          ],
+        },
+      });
+    });
+
+    it('ERROR: {session linked to a quest whose recorded worktree is missing} => the responder rejects with a message naming the absolute path', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const sessionId = SessionIdStub({ value: 'session-worktree-missing' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-worktree-missing' });
+      const linkedWorkItem = WorkItemStub({
+        role: 'chaoswhisperer',
+        sessionId,
+        status: 'complete',
+      });
+      const quest = QuestStub({ workItems: [linkedWorkItem] });
+      const worktreePath = '/home/testuser/worktrees/quest-missing-99';
+
+      const questsPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath,
+      });
+      proxy.setupQuestDirectories({
+        files: [FileNameStub({ value: quest.folder })],
+      });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({
+          value: `${questsPath}/${quest.folder}/quest.json`,
+        }),
+      });
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(quest),
+      });
+
+      // The broker throws BEFORE ever computing a JSONL path — no setupGuild/setupMainSession
+      // staged, matching the "must throw before touching any JSONL" contract.
+      proxy.setupQuestWorktreeMissing({ questId: quest.id, worktreePath });
+
+      await expect(proxy.callResponder({ sessionId, guildId, chatProcessId })).rejects.toThrow(
+        /Cannot replay chat history for quest .*: worktree not found: \/home\/testuser\/worktrees\/quest-missing-99/u,
+      );
+    });
+
+    it('VALID: {session linked to a quest whose recorded worktree is missing} => no chat-history-complete event is emitted', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-worktree-missing-no-complete' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-worktree-missing-no-complete' });
+      const linkedWorkItem = WorkItemStub({
+        role: 'chaoswhisperer',
+        sessionId,
+        status: 'complete',
+      });
+      const quest = QuestStub({ workItems: [linkedWorkItem] });
+      const worktreePath = '/home/testuser/worktrees/quest-missing-77';
+
+      const questsPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath,
+      });
+      proxy.setupQuestDirectories({
+        files: [FileNameStub({ value: quest.folder })],
+      });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({
+          value: `${questsPath}/${quest.folder}/quest.json`,
+        }),
+      });
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(quest),
+      });
+
+      proxy.setupQuestWorktreeMissing({ questId: quest.id, worktreePath });
+
+      await expect(proxy.callResponder({ sessionId, guildId, chatProcessId })).rejects.toThrow(
+        /Cannot replay chat history for quest .*: worktree not found: \/home\/testuser\/worktrees\/quest-missing-77/u,
+      );
+
+      const events = eventCapture.getEmittedEvents();
+      const completeEvents = events.filter((e) => e.type === 'chat-history-complete');
+
+      expect(completeEvents).toStrictEqual([]);
+    });
+  });
+
   describe('generated process id', () => {
     it('VALID: {no chatProcessId} => generates replay process id', async () => {
       const proxy = ChatReplayResponderProxy();

@@ -135,6 +135,9 @@ describe('ReconcileWatchersLayerResponder', () => {
   });
 
   describe('terminal quests', () => {
+    // Covers the finished-quest-with-no-post-quest-session case: the summary carries no
+    // activeSessionId, so the pre-filter still excludes it and no quest.json is ever loaded for it.
+    // This is the reason the pre-filter still exists.
     it.each(['complete', 'abandoned'] as const)(
       'EMPTY: {quest status: %s} => starts no tail even though a work item carries a sessionId',
       async (status) => {
@@ -157,5 +160,101 @@ describe('ReconcileWatchersLayerResponder', () => {
         expect(result).toStrictEqual({ started: 0, stopped: 0 });
       },
     );
+
+    it.each(['complete', 'merged'] as const)(
+      'VALID: {quest status: %s carrying an in_progress tavernkeeper item with a sessionId} => starts a tail for that session',
+      async (status) => {
+        const proxy = ReconcileWatchersLayerResponderProxy();
+
+        const questId = QuestIdStub({ value: 'terminal-quest-with-followup' });
+        const followupSessionId = '77777777-7777-7777-7777-777777777777';
+        const followupWorkItemId = '88888888-8888-8888-8888-888888888888';
+
+        const guild = GuildListItemStub();
+        proxy.guildsProxy.returns({ guilds: [guild] });
+        proxy.questsProxy.returns({
+          guildId: guild.id,
+          quests: [
+            QuestListItemStub({
+              id: questId,
+              status,
+              activeSessionId: SessionIdStub({ value: followupSessionId }),
+            }),
+          ],
+        });
+        proxy.loadQuestProxy.returns({
+          questId,
+          quest: QuestStub({
+            id: questId,
+            status,
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: followupWorkItemId }),
+                role: 'tavernkeeper',
+                status: 'in_progress',
+                sessionId: SessionIdStub({ value: followupSessionId }),
+              }),
+            ],
+          }),
+        });
+        proxy.startWatcherProxy.resolves({ parentSessionId: followupSessionId });
+
+        const result = await ReconcileWatchersLayerResponder({
+          watchers: new Map(),
+          projectDir: '/repo',
+        });
+
+        expect(result).toStrictEqual({ started: 1, stopped: 0 });
+        expect(
+          proxy.startWatcherProxy.startedWithWorkerWorkItemId({
+            parentSessionId: followupSessionId,
+            workerWorkItemId: followupWorkItemId,
+          }),
+        ).toBe(true);
+      },
+    );
+
+    it('EMPTY: {quest status: merged, activeSessionId present but its tavernkeeper item is complete} => starts no tail', async () => {
+      const proxy = ReconcileWatchersLayerResponderProxy();
+
+      const questId = QuestIdStub({ value: 'terminal-quest-idle-followup' });
+      const followupSessionId = '99999999-9999-9999-9999-999999999999';
+      const followupWorkItemId = '10101010-1010-1010-1010-101010101010';
+
+      const guild = GuildListItemStub();
+      proxy.guildsProxy.returns({ guilds: [guild] });
+      proxy.questsProxy.returns({
+        guildId: guild.id,
+        quests: [
+          QuestListItemStub({
+            id: questId,
+            status: 'merged',
+            activeSessionId: SessionIdStub({ value: followupSessionId }),
+          }),
+        ],
+      });
+      proxy.loadQuestProxy.returns({
+        questId,
+        quest: QuestStub({
+          id: questId,
+          status: 'merged',
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: followupWorkItemId }),
+              role: 'tavernkeeper',
+              status: 'complete',
+              sessionId: SessionIdStub({ value: followupSessionId }),
+            }),
+          ],
+        }),
+      });
+
+      const result = await ReconcileWatchersLayerResponder({
+        watchers: new Map(),
+        projectDir: '/repo',
+      });
+
+      expect(result).toStrictEqual({ started: 0, stopped: 0 });
+    });
   });
 });

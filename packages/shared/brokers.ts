@@ -64,6 +64,8 @@ export * from './src/brokers/locations/claude-settings-path-find/locations-claud
 export * from './src/brokers/locations/outbox-path-find/locations-outbox-path-find-broker';
 export * from './src/brokers/locations/ward-local-run-path-find/locations-ward-local-run-path-find-broker';
 export * from './src/brokers/locations/node-modules-bin-path-find/locations-node-modules-bin-path-find-broker';
+export * from './src/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker';
+export * from './src/brokers/locations/worktree-path-find/locations-worktree-path-find-broker';
 export * from './src/brokers/locations/eslint-config-path-find/locations-eslint-config-path-find-broker';
 export * from './src/brokers/locations/tsconfig-path-find/locations-tsconfig-path-find-broker';
 export * from './src/brokers/locations/hook-config-path-find/locations-hook-config-path-find-broker';

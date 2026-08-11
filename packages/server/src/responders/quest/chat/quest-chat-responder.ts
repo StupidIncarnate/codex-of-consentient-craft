@@ -8,6 +8,7 @@
 
 import {
   isChatWorkItemRoleGuard,
+  isPostQuestChatWorkItemRoleGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
@@ -69,10 +70,15 @@ export const QuestChatResponder = async ({
       await orchestratorResumeQuestAdapter({ questId });
     }
 
-    // Prefer the chat work item (chaoswhisperer/glyphsmith/bughunt) sessionId over generic active
-    // session. The chat input always resumes the most-recent chat thread the user has been talking to.
+    // The main composer resumes the thread it owns — spec intake (chaoswhisperer) or design
+    // (glyphsmith/bughunt) — never the post-quest follow-up thread (tavernkeeper), which has its
+    // own composer in its own tab talking to its own route. That thread is deliberately invisible
+    // here. Chat work items never reach a terminal status, so this keys on role, never on status.
     const chatItem = quest.workItems.find(
-      (wi) => isChatWorkItemRoleGuard({ role: wi.role }) && wi.sessionId,
+      (wi) =>
+        isChatWorkItemRoleGuard({ role: wi.role }) &&
+        !isPostQuestChatWorkItemRoleGuard({ role: wi.role }) &&
+        wi.sessionId,
     );
     const resolvedSessionId = chatItem?.sessionId;
 

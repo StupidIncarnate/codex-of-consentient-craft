@@ -18,5 +18,5 @@ export const questPauseBroker = async ({
 }): Promise<{ paused: boolean }> =>
   fetchPostAdapter<{ paused: boolean }>({
     url: webConfigStatics.api.routes.questPause.replace(':questId', questId),
-    body: {},
+    body: undefined,
   });

@@ -23,6 +23,93 @@ Each entry follows this shape:
 
 ---
 
+## 2026-08-09 — The orphan-reset sweep undid a signal-back it never saw (resume-execution-row-runs-again)
+
+**Branch / worktree:** `queue-mergings`
+**Failing spec:** `packages/web/src/flows/quest-chat/resume-execution-row-runs-again.e2e.ts:45` — failed at line 163
+in `dispatch.waitForQuest`: `Operations: [chaoswhisperer complete, codeweaver in_progress]; workItems:
+[chaoswhisperer complete, codeweaver failed]; questStatus: blocked`.
+
+**Symptom:** "the codeweaver work item failed and the quest blocked" — only ever in a full run, never alone.
+
+**Root cause (PRODUCT BUG).** `questMonitorWatcherStartBroker` fires `questOrphanResetBroker` every time the
+quest-driven watcher reactor first sees a parent sessionId on an active work item — which, on the Node dispatch path,
+is the sessionId the dispatcher itself stamped moments earlier, so the sweep always races the dispatch that triggered
+it. The sweep decided which items were orphaned from a `guildListBroker` + `questListBroker` walk taken OUTSIDE the
+per-questId modify lock, then blind-wrote that verdict. Every quest read goes through `questFindQuestPathBroker`,
+which readdirs `<home>/guilds/*/quests/*` and JSON-parses EVERY quest.json, and `guildRemoveBroker` removes a guild
+from config WITHOUT deleting its quest files — so the e2e suite's per-spec `cleanGuilds()` grows that walk
+monotonically across a run. Deep enough into a run the walk outlives a whole dispatch: it saw the item `in_progress`,
+and by the time it wrote, the child had signalled back and the item was `complete`. The write set it to `pending` and
+cleared `sessionId`/`agentId`/`startedAt`, so the row's `completedAt` + `actualSignal: complete` survived on a
+non-terminal item and its operation stayed `complete`. The dispatcher then re-dispatched — FRESH, because the
+sessionId was gone — and each retry found the spec's single queued fake-CLI response already consumed, exited 1
+without signalling, and burned an orphan-recovery reset. Three of those and `questBlockOnFailureBroker` marked the
+item `failed` and the quest `blocked`.
+
+**Evidence:** the fake CLI's `invocations.jsonl` for the guild cwd held one `--resume <retained sessionId>` spawn
+followed by four fresh `get-agent-prompt` spawns of the same workItemId; server stderr held four
+`Fake Claude CLI: queue is empty` + four `codeweaver child ... exited with code 1`; the quest.json left behind carried
+`startedAt` LATER than `completedAt` on a `failed` item; and a 30 ms poll of quest.json caught the revert directly —
+`complete` at +2.105 s, then `pending` with `sessionId`/`startedAt` gone at +2.243 s, `retryCount` still 0.
+
+**Fix location:** `packages/orchestrator/src/brokers/quest/orphan-reset/quest-orphan-reset-broker.ts` — the walk is now
+only a candidate filter; which items are actually reset is re-derived from the quest loaded INSIDE its own modify lock
+via `questOperationsUpdateBroker`, which persists nothing when the fresh read shows nothing orphaned. Regression test:
+`quest-orphan-reset-broker.test.ts` → "decides from the quest as loaded for the write, not from the discovery walk",
+which hands the walk a stale `in_progress` snapshot and the loader a `complete` one and asserts zero writes.
+
+`packages/web/test/harnesses/dispatch/dispatch.harness.ts` gained an optional `agentLineDelayMs` on `queueScript`, and
+the spec passes 400. At the 10 ms default a whole dispatch lands in ~30 ms, so the RUNNING half of the spec's
+transition was a state narrower than one WS round trip plus one React paint. It had been passing only because the
+orphan-reset stomp kept re-dispatching the item, which held the row non-DONE for seconds; removing the stomp exposed
+the real window. The assertions are untouched — the fixture now makes the state they assert actually exist.
+
+**Negative results / dead ends:**
+
+- **"The fake-Claude queue is a run-wide FIFO another spec drained."** No — it is scoped per spawn cwd
+  (`claude-queue/__by_cwd__/<encoded guild path>`) and every spec has a distinct guild path. The invocation ledger
+  proved this spec's own first spawn consumed its own entry; the later spawns were the ones that starved.
+- **`questFindByWorkItemIdBroker`'s process-lifetime `workItemId -> questId` cache.** Correctly ruled out for THIS
+  failure — it only tags outgoing chat-output WS frames and cannot fail a work item (confirmed by running the whole
+  `quest-chat` directory green). **But the wider attribution here was wrong, and is corrected:** that broker is not the
+  map that answers. `packages/server/src/responders/server/init/server-init-responder.ts:519` holds its OWN
+  process-lifetime `workItemQuestIdCache`, consults it at :587, and only calls down to the broker on a miss, re-caching
+  the result itself at :591 — so after the first walk both are warm and the broker's copy is read essentially never.
+  The id-collision symptom (spec B's frames stamped with spec A's questId, browser drops them, transcript silently
+  empty) is produced by the SERVER's map; fixing the broker moves it not at all. The broker's cache has since been
+  DELETED as a redundant second cache behind a cache, which restores symmetry with `questFindBySessionIdBroker` — that
+  removal is a tidy-up, not a fix for this class of flake. Production is immune either way: work item ids are
+  `crypto.randomUUID()` with no clone path, so recurrence requires a hand-written fixture. The real hazard is fixture
+  hygiene, and it is broad — `e2e00000-0000-4000-8000-000000000001` is shared by 23 spec files,
+  `00000000-0000-4000-8000-0000000000c1` by 10, and `...0000000000b1` by 3 after one was moved off it.
+- **Leaked dispatch-state / a leftover playing dispatcher.** Ruled out: the quest is written `paused`, which the
+  dispatch scan filters out, so nothing can touch it until this spec's own RESUME.
+- **A lost update between two per-questId mutexes.** A real defect at the time — `questModifyBroker` and
+  `questOperationsUpdateBroker` held SEPARATE `Map<QuestId, Promise<void>>` singletons and did not serialize against
+  each other — but not this failure: the reverted item's field set matched `questOrphanResetBroker`'s
+  `sessionId`/`agentId`/`startedAt` clear exactly. Both writers now queue behind the single
+  `brokers/quest/with-modify-lock/quest-with-modify-lock-broker.ts` mutex, pinned by
+  `quest-modify-broker.integration.test.ts` → "concurrent questModifyBroker planningNotes write and
+  questOperationsUpdateBroker branchName write".
+
+**Reproducer:** the accumulation is the whole trigger, so seed it rather than running the suite for four minutes.
+Create `<E2E_TEST_HOME>/guilds/<uuid>/quests/<uuid>/quest.json` (`{"id":"<same uuid>","folder":"<same uuid>",
+"title":"orphan","status":"complete"}`) 600 times across 200 guild dirs, plus empty `claude-queue/` and `ward-queue/`
+dirs, then:
+
+```bash
+E2E_TEST_HOME=<seeded home> DUNGEONMASTER_PORT=5857 npx playwright test \
+  --config=packages/web/playwright.config.ts --repeat-each=10 --retries=0 --reporter=line \
+  resume-execution-row-runs-again
+# Pre-fix: 9/10 fail, every one of them `questStatus: blocked` with 4 `queue is empty` spawns.
+# Post-fix: 0 `queue is empty` spawns and 0 blocked quests.
+```
+
+An empty home passes 25/25 either way — the seeded home IS the reproducer.
+
+---
+
 ## 2026-07-30 — A paused Node dispatcher kept dispatching AND kept mutating quests (operations-ward-recovery, execution-panel-active-row-collapse)
 
 **Branch / worktree:** `remove-pathseeker-flow-retweak`
@@ -861,5 +948,6 @@ checked. Each entry below has a direct link to the entry above.
 | A spec sees quest state it never asked for while `GET /api/orchestration/dispatch` reads `paused`: extra ledger rows before `playAndDrive`, or a seeded `in_progress` work item that reads `PENDING` | "A paused Node dispatcher kept dispatching AND kept mutating quests" — `questGetNextStepBroker` long-polls for seconds and every retry scan both returns dispatchable work AND writes (orphan recovery / advance self-heal). A play flag read only BEFORE the poll cannot stop either half; the poll needs `shouldKeepPolling` and the dispatch needs a re-read after the await                                        |
 | `FLOW_NODE` / `FLOW_OBSERVABLE_NODE` `waitFor visible` times out with "locator resolved to hidden", diagram canvas paints empty                                                                      | "Flow diagram renders blank: React Flow measurement discarded in the batch it landed in" — nodes are in the DOM at correct ELK positions but `visibility: hidden` forever. Any React Flow node handed over without `initialWidth`/`initialHeight` is one discarded measurement away from this                                                                                                                          |
 | `npm run ward` says `e2e: PASS` but `packages/web/test-results/` holds `-retry1` directories                                                                                                         | False green. `playwright.config.ts` sets `retries: 1` unconditionally. Re-run the named specs with `--retries=0` before believing a green e2e                                                                                                                                                                                                                                                                          |
+| A work item that already signalled back reads non-terminal again — `completedAt` + `actualSignal: complete` sitting on a `pending`/`failed` item, `startedAt` LATER than `completedAt`, `sessionId` gone — and its quest ends `blocked` after N empty-queue re-dispatches | "The orphan-reset sweep undid a signal-back it never saw" — `questOrphanResetBroker` decided from a whole-home walk taken outside the modify lock. Anything deciding a quest write from a read that is not inside `questOperationsUpdateBroker`'s own callback is exposed to the same widening window, because `questFindQuestPathBroker` re-parses every quest.json in the home and `cleanGuilds()` never deletes them |
 
 When you fix a flake not yet in this catalog, add a new symptom row.

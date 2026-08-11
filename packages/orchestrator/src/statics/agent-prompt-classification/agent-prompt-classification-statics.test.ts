@@ -20,6 +20,7 @@ describe('agentPromptClassificationStatics', () => {
           'blightwarden-crosscut-minion',
           'blightwarden-deadcode-minion',
           'pesteater',
+          'warpgate',
         ],
         roleNames: [
           'codeweaver',
@@ -30,6 +31,7 @@ describe('agentPromptClassificationStatics', () => {
           'blightwarden-crosscut-minion',
           'blightwarden',
           'pesteater',
+          'warpgate',
         ],
         minionNames: [
           'chaoswhisperer-gap-minion',

@@ -13,14 +13,18 @@ const STATUS_KEYS = Object.keys(questStatusMetadataStatics.statuses) as readonly
 
 // Mirrors the transformer's preserved-status guards: pre-execution spec lifecycle
 // (isPreExecution), explicit user pause (isUserPaused), deliberate abandon (terminal but not
-// completed successfully), and explicit block (isQuestBlocked).
+// completed successfully), explicit block (isQuestBlocked), and a completed merge. `merged` is
+// terminal AND completedSuccessfully — the same combination `complete` carries — so no metadata
+// flag distinguishes it; the transformer preserves it via a plain literal comparison, and this
+// derivation adds the matching literal check rather than a flag.
 const PRESERVED_STATUSES = STATUS_KEYS.filter((status) => {
   const metadata = questStatusMetadataStatics.statuses[status];
   return (
     metadata.isPreExecution ||
     metadata.isUserPaused ||
     metadata.isQuestBlocked ||
-    (metadata.isTerminal && !metadata.isCompletedSuccessfully)
+    (metadata.isTerminal && !metadata.isCompletedSuccessfully) ||
+    status === 'merged'
   );
 });
 
@@ -43,6 +47,139 @@ describe('workItemsToQuestStatusTransformer', () => {
         expect(result).toBe(status);
       },
     );
+  });
+
+  describe('currentStatus: merging — outcomes map to merging/merged, not in_progress/complete', () => {
+    it('VALID: {currentStatus: "merging", warpgate item in_progress, operation in_progress} => merging', () => {
+      const activeItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'warpgate',
+        status: 'in_progress',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [activeItem],
+        operations: [OperationItemStub({ role: 'warpgate', status: 'in_progress' })],
+        currentStatus: 'merging',
+      });
+
+      expect(result).toBe('merging');
+    });
+
+    it('VALID: {currentStatus: "merging", all items terminal, ledger drained} => merged', () => {
+      const mergedItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'warpgate',
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [mergedItem],
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+            role: 'warpgate',
+            status: 'complete',
+          }),
+        ],
+        currentStatus: 'merging',
+      });
+
+      expect(result).toBe('merged');
+    });
+
+    it('VALID: {currentStatus: "merging", all items terminal, one operation still pending} => merging (advance window)', () => {
+      const mergedItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'warpgate',
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [mergedItem],
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+            role: 'warpgate',
+            status: 'complete',
+          }),
+          OperationItemStub({
+            id: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
+            role: 'warpgate',
+            status: 'pending',
+          }),
+        ],
+        currentStatus: 'merging',
+      });
+
+      expect(result).toBe('merging');
+    });
+
+    it('VALID: {currentStatus: "merging", unresolved sink failure, ledger drained} => blocked (a failed merge still blocks)', () => {
+      const completeId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const completeItem = WorkItemStub({ id: completeId, role: 'warpgate', status: 'complete' });
+      const failedSink = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        role: 'warpgate',
+        status: 'failed',
+        dependsOn: [completeId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [completeItem, failedSink],
+        operations: [OperationItemStub({ role: 'warpgate', status: 'complete' })],
+        currentStatus: 'merging',
+      });
+
+      expect(result).toBe('blocked');
+    });
+
+    // Regression guard: a quest that was `blocked` when the user pressed Merge still carries the
+    // failed sink work item that blocked it. That failure is precisely what the user chose to merge
+    // past, so it must not pin the quest short of `merged` — only a failed `warpgate` item does.
+    it("VALID: {currentStatus: 'merging', a failed sink work item from the earlier block, warpgate item complete, all operations complete} => merged", () => {
+      const failedSinkId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const failedSink = WorkItemStub({ id: failedSinkId, status: 'failed' });
+      const warpgateItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        role: 'warpgate',
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [failedSink, warpgateItem],
+        operations: [OperationItemStub({ role: 'warpgate', status: 'complete' })],
+        currentStatus: 'merging',
+      });
+
+      expect(result).toBe('merged');
+    });
+
+    // Pins that the sink-failure-blocks behaviour is untouched OUTSIDE `merging` — the narrowing is
+    // scoped to the one status a merge runs at, not a blanket exemption for every sink failure.
+    it("VALID: {currentStatus: 'in_progress', unresolved sink failure, all operations complete} => blocked", () => {
+      const completeId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const completeItem = WorkItemStub({ id: completeId, status: 'complete' });
+      const failedSink = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        status: 'failed',
+        dependsOn: [completeId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [completeItem, failedSink],
+        operations: [OperationItemStub({ status: 'complete' })],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('blocked');
+    });
   });
 
   describe('all work items terminal — ledger decides the outcome', () => {
@@ -310,6 +447,68 @@ describe('workItemsToQuestStatusTransformer', () => {
       });
 
       expect(result).toBe('in_progress');
+    });
+
+    it('VALID: {currentStatus: "complete", pending tavernkeeper item appended} => complete (follow-up chat does not re-open a finished quest)', () => {
+      const completeItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'complete',
+      });
+      const tavernkeeperItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        role: 'tavernkeeper',
+        status: 'pending',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [completeItem, tavernkeeperItem],
+        operations: [OperationItemStub({ status: 'complete' })],
+        currentStatus: 'complete',
+      });
+
+      expect(result).toBe('complete');
+    });
+
+    it('VALID: {currentStatus: "complete", pending warpgate item appended} => in_progress (a merge is real dispatched work, so the exclusion is scoped not blanket)', () => {
+      const completeId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const completeItem = WorkItemStub({ id: completeId, status: 'complete' });
+      const warpgateItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        role: 'warpgate',
+        status: 'pending',
+        dependsOn: [completeId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [completeItem, warpgateItem],
+        operations: [OperationItemStub({ status: 'complete' })],
+        currentStatus: 'complete',
+      });
+
+      expect(result).toBe('in_progress');
+    });
+
+    it('VALID: {currentStatus: "merged", pending tavernkeeper item appended} => merged (never derived away from)', () => {
+      const mergedWorkItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'warpgate',
+        status: 'complete',
+      });
+      const tavernkeeperItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        role: 'tavernkeeper',
+        status: 'pending',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [mergedWorkItem, tavernkeeperItem],
+        operations: [OperationItemStub({ role: 'warpgate', status: 'complete' })],
+        currentStatus: 'merged',
+      });
+
+      expect(result).toBe('merged');
     });
   });
 });

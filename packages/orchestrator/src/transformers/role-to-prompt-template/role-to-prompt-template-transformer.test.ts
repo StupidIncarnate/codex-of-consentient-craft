@@ -66,6 +66,14 @@ describe('roleToPromptTemplateTransformer', () => {
 
       expect(result.length).toBeGreaterThan(0);
     });
+
+    it('VALID: {role: warpgate} => returns warpgate prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'warpgate' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
   });
 
   describe('pathseeker family is not a valid agent role', () => {

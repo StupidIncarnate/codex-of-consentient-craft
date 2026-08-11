@@ -1,6 +1,9 @@
 import {
+  AbsoluteFilePathStub,
+  BaseBranchNameStub,
   GuildIdStub,
   OperationItemStub,
+  QuestBranchNameStub,
   QuestIdStub,
   QuestStub,
   WorkItemStub,
@@ -99,6 +102,18 @@ const CW_OP_ONE_UUID = 'c1c1c1c1-58cc-4372-a567-0e02b2c3d479';
 const CW_OP_TWO_UUID = 'c2c2c2c2-58cc-4372-a567-0e02b2c3d479';
 const WARD_OP_UUID = 'dddd0000-58cc-4372-a567-0e02b2c3d479';
 
+// A quest whose ledger tail is already seeded predates or postdates this feature independently
+// of whether it also has a worktree recorded — the idempotency describe block below models an
+// already-Started quest, which already carries both.
+const EXISTING_BRANCH_NAME = QuestBranchNameStub({ value: 'quest/add-auth-f47ac10b' });
+const EXISTING_WORKTREE_PATH = AbsoluteFilePathStub({
+  value: '/repo/worktrees/add-auth-f47ac10b',
+});
+const BASE_BRANCH = BaseBranchNameStub({ value: 'main' });
+const BASE_REF = QuestStub({
+  baseRef: '1234567890abcdef1234567890abcdef12345678' as never,
+}).baseRef!;
+
 describe('OrchestrationStartResponder', () => {
   describe('quest lookup + startable gate', () => {
     it('ERROR: {questId not found} => throws quest not found error', async () => {
@@ -152,6 +167,54 @@ describe('OrchestrationStartResponder', () => {
         expect(proxy.getPersistedStatuses()).toStrictEqual([status, 'in_progress']);
       },
     );
+  });
+
+  describe('git worktree lifecycle', () => {
+    it('VALID: {PrepareQuestWorktreeLayerResponder resolves a git context} => it lands on the same atomic persist as the seeded relay, before the status flip', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+      proxy.setupWorktreePrepared({
+        gitContext: {
+          branchName: EXISTING_BRANCH_NAME,
+          baseBranch: BASE_BRANCH,
+          worktreePath: EXISTING_WORKTREE_PATH,
+          baseRef: BASE_REF,
+        },
+      });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect({
+        status: persisted.status,
+        branchName: persisted.branchName,
+        baseBranch: persisted.baseBranch,
+        worktreePath: persisted.worktreePath,
+        baseRef: persisted.baseRef,
+      }).toStrictEqual({
+        status: 'approved',
+        branchName: EXISTING_BRANCH_NAME,
+        baseBranch: BASE_BRANCH,
+        worktreePath: EXISTING_WORKTREE_PATH,
+        baseRef: BASE_REF,
+      });
+    });
+
+    it('ERROR: {PrepareQuestWorktreeLayerResponder rejects} => the responder rejects and nothing was persisted', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+      proxy.setupWorktreeFails({ error: new Error('No local main or master branch found') });
+
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(
+        'No local main or master branch found',
+      );
+      expect(proxy.getPersistedStatuses()).toStrictEqual([]);
+    });
   });
 
   describe('feature relay seed (one atomic operations persist)', () => {
@@ -407,9 +470,12 @@ describe('OrchestrationStartResponder', () => {
         status: 'approved',
         operations: [chaosOp, wardOp],
         workItems: [chatItem],
+        branchName: EXISTING_BRANCH_NAME,
+        worktreePath: EXISTING_WORKTREE_PATH,
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStartSkipsOperationsPersist({ quest });
+      proxy.setupWorktreeSkipped();
 
       await proxy.callResponder({ questId });
 
@@ -448,9 +514,12 @@ describe('OrchestrationStartResponder', () => {
         status: 'approved',
         operations: [chaosOp, wardOp],
         workItems: [chatItem],
+        branchName: EXISTING_BRANCH_NAME,
+        worktreePath: EXISTING_WORKTREE_PATH,
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
+      proxy.setupWorktreeSkipped();
 
       await proxy.callResponder({ questId });
 
@@ -488,9 +557,12 @@ describe('OrchestrationStartResponder', () => {
         status: 'approved',
         operations: [chaosOp, wardOp],
         workItems: [chatItem],
+        branchName: EXISTING_BRANCH_NAME,
+        worktreePath: EXISTING_WORKTREE_PATH,
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
+      proxy.setupWorktreeSkipped();
 
       await proxy.callResponder({ questId });
 
@@ -499,6 +571,66 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.workItems).toStrictEqual([
         { ...chatItem, status: 'complete', completedAt: FIXED_TIMESTAMP },
       ]);
+    });
+
+    it('VALID: {prior tail seeded, no worktree recorded (legacy quest)} => the git context is still persisted', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosOp = OperationItemStub({
+        id: CHAOS_OP_UUID,
+        role: 'chaoswhisperer',
+        text: 'Plan the quest',
+        status: 'complete',
+        locked: true,
+        flowIds: [],
+      });
+      const wardOp = OperationItemStub({
+        id: WARD_OP_UUID,
+        role: 'ward',
+        text: 'Ward gate (changed files)',
+        status: 'pending',
+        locked: true,
+        flowIds: [],
+        wardMode: 'changed',
+      });
+      const chatItem = WorkItemStub({
+        id: CHAT_ITEM_UUID,
+        role: 'chaoswhisperer',
+        status: 'complete',
+        completedAt: FIXED_TIMESTAMP,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        operations: [chaosOp, wardOp],
+        workItems: [chatItem],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+      proxy.setupWorktreePrepared({
+        gitContext: {
+          branchName: EXISTING_BRANCH_NAME,
+          baseBranch: BASE_BRANCH,
+          worktreePath: EXISTING_WORKTREE_PATH,
+          baseRef: BASE_REF,
+        },
+      });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect(proxy.getPersistedStatuses()).toStrictEqual(['approved', 'in_progress']);
+      expect({
+        branchName: persisted.branchName,
+        baseBranch: persisted.baseBranch,
+        worktreePath: persisted.worktreePath,
+        baseRef: persisted.baseRef,
+      }).toStrictEqual({
+        branchName: EXISTING_BRANCH_NAME,
+        baseBranch: BASE_BRANCH,
+        worktreePath: EXISTING_WORKTREE_PATH,
+        baseRef: BASE_REF,
+      });
     });
   });
 

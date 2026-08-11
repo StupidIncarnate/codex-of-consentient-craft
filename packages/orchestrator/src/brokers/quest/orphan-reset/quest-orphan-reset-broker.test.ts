@@ -69,30 +69,51 @@ describe('questOrphanResetBroker', () => {
       expect(result).toStrictEqual({ orphansReset: 1 });
     });
 
-    it('VALID: {two quests each with one orphan} => returns orphansReset: 2', async () => {
+    it('VALID: {one quest with two orphans, one quest with none} => returns orphansReset: 2 and writes both resets', async () => {
       const proxy = questOrphanResetBrokerProxy();
       const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000003' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
-      const questA = QuestStub({
+      // Two orphans on the quest that HAS them, and a second quest alongside it whose items
+      // are all at rest: the count is per reset work item, and the sweep spans every quest in
+      // the guild rather than stopping at the first one.
+      const questWithOrphans = QuestStub({
         id: QuestIdStub({ value: 'q-orphan-a' }),
+        folder: QuestIdStub({ value: 'q-orphan-a' }),
         status: 'in_progress',
-        workItems: [WorkItemStub({ status: 'in_progress' })],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '44444444-4444-4444-4444-000000000001' }),
+            status: 'in_progress',
+          }),
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '44444444-4444-4444-4444-000000000002' }),
+            status: 'in_progress',
+          }),
+        ],
       });
-      const questB = QuestStub({
+      const questAtRest = QuestStub({
         id: QuestIdStub({ value: 'q-orphan-b' }),
+        folder: QuestIdStub({ value: 'q-orphan-b' }),
         status: 'in_progress',
-        workItems: [WorkItemStub({ status: 'in_progress' })],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '44444444-4444-4444-4444-000000000003' }),
+            status: 'pending',
+          }),
+        ],
       });
       proxy.setupGuildsAndQuests({
         guildItems: [guildItem],
-        questsByGuildId: [{ guildId, quests: [questA, questB] }],
+        questsByGuildId: [{ guildId, quests: [questWithOrphans, questAtRest] }],
       });
-      proxy.setupModifyForQuest({ quest: questA });
-      proxy.setupModifyForQuest({ quest: questB });
+      proxy.setupModifyForQuest({ quest: questWithOrphans });
 
       const result = await questOrphanResetBroker();
 
       expect(result).toStrictEqual({ orphansReset: 2 });
+      expect(
+        proxy.getLastPersistedQuest().workItems.map((workItem) => workItem.status),
+      ).toStrictEqual(['pending', 'pending']);
     });
   });
 
@@ -138,6 +159,56 @@ describe('questOrphanResetBroker', () => {
         ...orphanWithoutClearedFields,
         status: 'pending',
       });
+    });
+  });
+
+  describe('decides from the quest as loaded for the write, not from the discovery walk', () => {
+    it('VALID: {walk sees the work item in_progress, quest on disk has it complete} => nothing is reset and nothing is written', async () => {
+      // The guild/quest walk reads every quest.json under the dungeonmaster home, so on a busy
+      // home it can take longer than a whole dispatch: the item it saw `in_progress` has since
+      // been stamped with its session, signalled back and gone `complete`. Writing the walk's
+      // verdict puts that finished item back to `pending` with its session cleared, and the
+      // dispatcher re-runs a session that already signalled.
+      const proxy = questOrphanResetBrokerProxy();
+      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000008' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-stale-walk' });
+      const workItemId = QuestWorkItemIdStub({ value: '55555555-5555-4555-8555-000000000001' });
+
+      const staleQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'in_progress',
+            sessionId: SessionIdStub({ value: 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4' }),
+          }),
+        ],
+      });
+      const questOnDisk = QuestStub({
+        id: questId,
+        folder: staleQuest.folder,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'complete',
+            sessionId: SessionIdStub({ value: 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4' }),
+          }),
+        ],
+      });
+
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [staleQuest] }],
+      });
+      proxy.setupModifyForQuest({ quest: questOnDisk });
+
+      const result = await questOrphanResetBroker();
+
+      expect(result).toStrictEqual({ orphansReset: 0 });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
   });
 

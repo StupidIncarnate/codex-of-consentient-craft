@@ -19,6 +19,7 @@ describe('executionStepStatusConfigStatics', () => {
         chaoswhisperer: 'primary',
         glyphsmith: 'primary',
         bughunt: 'primary',
+        tavernkeeper: 'primary',
         codeweaver: 'primary',
         ward: 'warning',
         spiritmender: 'primary',
@@ -28,6 +29,7 @@ describe('executionStepStatusConfigStatics', () => {
         'blightwarden-crosscut-minion': 'primary',
         blightwarden: 'primary',
         pesteater: 'primary',
+        warpgate: 'primary',
       },
       statusConfig: {
         queued: { label: 'QUEUED', color: 'text-dim', symbol: '···' },

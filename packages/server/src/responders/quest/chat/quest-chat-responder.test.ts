@@ -92,6 +92,88 @@ describe('QuestChatResponder', () => {
     });
   });
 
+  describe('post-quest chat item exclusion', () => {
+    it('VALID: {tavernkeeper item first with sessionId, chaoswhisperer item second with sessionId} => resumes the chaoswhisperer sessionId', async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-tavernkeeper-and-chaoswhisperer' });
+      const tavernkeeperSessionId = SessionIdStub({ value: 'session-tavernkeeper' });
+      const chaoswhispererSessionId = SessionIdStub({ value: 'session-chaoswhisperer' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-chaoswhisperer' });
+      const quest = QuestStub({
+        id: questId,
+        workItems: [
+          WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId }),
+          WorkItemStub({ role: 'chaoswhisperer', sessionId: chaoswhispererSessionId }),
+        ],
+      });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({
+        questId,
+        guildId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/tavernkeeper-and-chaoswhisperer' }),
+      });
+      proxy.setupStartChat({ guildId, chatProcessId });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'continue the spec chat' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-chaoswhisperer' },
+      });
+
+      // The main composer's selector must skip the tavernkeeper item (first in workItems) and
+      // resume the chaoswhisperer session it actually owns — a bare first-match selector would
+      // pick tavernkeeper's sessionId instead.
+      expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: 'continue the spec chat',
+        sessionId: chaoswhispererSessionId,
+      });
+    });
+
+    it('VALID: {only chat item carrying a sessionId is tavernkeeper} => starts a fresh chat with no sessionId', async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-only-tavernkeeper' });
+      const tavernkeeperSessionId = SessionIdStub({ value: 'session-only-tavernkeeper' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-fresh-tavernkeeper' });
+      const quest = QuestStub({
+        id: questId,
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({
+        questId,
+        guildId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/only-tavernkeeper' }),
+      });
+      proxy.setupStartChat({ guildId, chatProcessId });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'new spec question' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-fresh-tavernkeeper' },
+      });
+
+      // No non-post-quest chat item carries a sessionId, so start-chat gets no sessionId key at
+      // all — not an undefined value.
+      expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: 'new spec question',
+      });
+    });
+  });
+
   describe('no active chat session', () => {
     it('EDGE: {quest exists but no work item has sessionId} => still delegates to chat-start (no error), returns 200', async () => {
       const proxy = QuestChatResponderProxy();

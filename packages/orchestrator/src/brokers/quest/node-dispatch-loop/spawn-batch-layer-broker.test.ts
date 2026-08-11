@@ -1,9 +1,4 @@
-import {
-  AdapterResultStub,
-  GuildIdStub,
-  QuestIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub, QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
@@ -19,7 +14,6 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -57,7 +51,6 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub({ role: 'codeweaver' });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -84,7 +77,6 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub({ model: 'haiku' as never });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -111,7 +103,6 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -132,7 +123,7 @@ describe('spawnBatchLayerBroker', () => {
       ]);
     });
 
-    it('VALID: {two instructions on the same quest} => resolves the guild context once', async () => {
+    it('VALID: {two instructions on the same quest} => resolves the quest cwd once', async () => {
       const proxy = spawnBatchLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const first = SpawnInstructionStub({ questId });
@@ -143,7 +134,6 @@ describe('spawnBatchLayerBroker', () => {
       });
       proxy.setupQuestContext({
         questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 4 });
@@ -152,7 +142,7 @@ describe('spawnBatchLayerBroker', () => {
 
       await spawnBatchLayerBroker({ agents: [first, second] });
 
-      expect(proxy.getFindQuestPathCalls()).toStrictEqual([{ questId }]);
+      expect(proxy.getCwdResolveCalls()).toStrictEqual([{ questId }]);
     });
   });
 
@@ -166,7 +156,6 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub({ resumeSessionId, resumePrompt });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -198,7 +187,6 @@ describe('spawnBatchLayerBroker', () => {
       });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -227,7 +215,6 @@ describe('spawnBatchLayerBroker', () => {
       });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -256,7 +243,6 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 1 });
@@ -284,7 +270,6 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
@@ -300,10 +285,66 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildId: GuildIdStub(),
         guildPath: '/home/user/my-project',
       });
       proxy.setupModifyRejectsOnce({ error: new Error('quest.json locked') });
+
+      const result = await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(result).toStrictEqual(AdapterResultStub());
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
+    });
+  });
+
+  describe('worktree resolution', () => {
+    it("VALID: {quest records a worktreePath} => the spawned child's cwd is that worktree path", async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const instruction = SpawnInstructionStub();
+      const worktreePath = '/repo/worktrees/add-auth-a1b2c3d4';
+      proxy.setupQuestWorktree({ questId: instruction.questId, worktreePath });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(proxy.getSpawnedCwd()).toBe(worktreePath);
+    });
+
+    it("VALID: {warpgate instruction, quest records a worktreePath} => the warpgate child's cwd is that worktree path", async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const instruction = SpawnInstructionStub({ role: 'warpgate' });
+      const worktreePath = '/repo/worktrees/warpgate-merge-a1b2c3d4';
+      proxy.setupQuestWorktree({ questId: instruction.questId, worktreePath });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(proxy.getSpawnedCwd()).toBe(worktreePath);
+    });
+
+    it("VALID: {quest records no worktreePath} => the spawned child's cwd is the resolved repo root", async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const instruction = SpawnInstructionStub();
+      proxy.setupQuestContext({
+        questId: instruction.questId,
+        guildPath: '/home/user/my-project',
+      });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(proxy.getSpawnedCwd()).toBe('/home/user/my-project');
+    });
+
+    it("VALID: {quest's recorded worktree is missing} => no spawn happens for that quest and the batch does not reject", async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const instruction = SpawnInstructionStub();
+      proxy.setupQuestWorktreeMissing({
+        questId: instruction.questId,
+        worktreePath: '/repo/worktrees/add-auth-a1b2c3d4',
+      });
 
       const result = await spawnBatchLayerBroker({ agents: [instruction] });
 

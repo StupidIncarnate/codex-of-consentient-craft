@@ -11,9 +11,13 @@ import { isAnyAgentRunningQuestStatusGuard } from '@dungeonmaster/shared/guards'
 
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
+import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
+import { worktreeEnsureQuestBranchBroker } from '../../worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
 import { questActiveQuestsBroker } from '../active-quests/quest-active-quests-broker';
 import { questAdvanceBroker } from '../advance/quest-advance-broker';
+import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questGetBroker } from '../get/quest-get-broker';
+import { blockOnMissingWorktreeLayerBroker } from './block-on-missing-worktree-layer-broker';
 import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-quest-layer-broker';
 import { questHasIncompleteWorkLayerBroker } from './quest-has-incomplete-work-layer-broker';
 import { recoverOrphanedWorkItemsLayerBroker } from './recover-orphaned-work-items-layer-broker';
@@ -48,6 +52,19 @@ export const scanOnceLayerBroker = async ({
   }
   const { quest } = entry;
 
+  // The quest's own recorded worktree, not a guild-path-derived fallback. A `repo-root`
+  // resolution (no worktreePath — a legacy pre-worktree quest) falls straight through: it is
+  // meant to run from the repo root checkout. A `missing-worktree` resolution has no such
+  // fallback — the tree the quest itself created and then lost is not something the dispatcher
+  // can route around, and continuing would dispatch this quest's agents into the repo root
+  // checkout, which is a DIFFERENT branch's source. Block and stop scanning this quest.
+  const cwdResolution = await questCwdResolveBroker({ questId: quest.id });
+  if (cwdResolution.kind === 'missing-worktree') {
+    await blockOnMissingWorktreeLayerBroker({ quest, worktreePath: cwdResolution.worktreePath });
+    activeQuest.clear();
+    return null;
+  }
+
   // Resolution order when the FIFO quest has incomplete work but nothing dispatchable:
   //   1. compute directly — a ready work item exists.
   //   2. orphan recovery — an in_progress item whose agent died is flipped back to pending
@@ -57,25 +74,23 @@ export const scanOnceLayerBroker = async ({
   //      ledger has an actionable operation item: a server stop between the signal handler's
   //      atomic persist and questAdvanceBroker left the relay without its next work item.
   //      Advance creates it (idempotent, strict-1:1 guarded), then recompute from a fresh read.
-  const direct = computeNextStepFromQuestLayerBroker({ quest });
-  if (direct !== null) {
-    activeQuest.setActive({ questId: quest.id });
-    return direct;
+  let step = computeNextStepFromQuestLayerBroker({ quest });
+
+  if (step === null) {
+    const recovery = await recoverOrphanedWorkItemsLayerBroker({ quest });
+
+    // Recovery escalated an exhausted orphan and the quest is now `blocked`. The status filter that
+    // admitted this quest ran BEFORE that write, so nothing below would notice — and both remaining
+    // steps would act on a halted quest: advance would mint (and this scan would dispatch) the next
+    // operation item's work item, and the recovered copy still reads `pending` for items the block
+    // just drained to `skipped`. Stop here; the user's resume is what restarts dispatch.
+    if (recovery.blocked) {
+      activeQuest.clear();
+      return null;
+    }
+
+    step = computeNextStepFromQuestLayerBroker({ quest: recovery.quest });
   }
-
-  const recovery = await recoverOrphanedWorkItemsLayerBroker({ quest });
-
-  // Recovery escalated an exhausted orphan and the quest is now `blocked`. The status filter that
-  // admitted this quest ran BEFORE that write, so nothing below would notice — and both remaining
-  // steps would act on a halted quest: advance would mint (and this scan would dispatch) the next
-  // operation item's work item, and the recovered copy still reads `pending` for items the block
-  // just drained to `skipped`. Stop here; the user's resume is what restarts dispatch.
-  if (recovery.blocked) {
-    activeQuest.clear();
-    return null;
-  }
-
-  let step = computeNextStepFromQuestLayerBroker({ quest: recovery.quest });
 
   if (step === null) {
     await questAdvanceBroker({ questId: quest.id });
@@ -86,6 +101,21 @@ export const scanOnceLayerBroker = async ({
       refreshed.success && refreshed.quest
         ? computeNextStepFromQuestLayerBroker({ quest: refreshed.quest })
         : null;
+  }
+
+  // The dispatcher's turn at the one shared restore step, and the reason the two step-returning
+  // exits above are a single one: it fires only when a step is really about to be handed back.
+  // Mirroring the other two triggers verbatim (right after the missing-worktree gate) would put a
+  // `git rev-parse` on EVERY scan iteration — the MCP long poll scans roughly twice a second for
+  // up to 25s per get-next-step call — and could re-checkout a worktree while an agent is still
+  // live inside it. Here it runs once per real dispatch and never on an idle spin, and it lands
+  // before any agent is spawned, so a drifted worktree can never carry that agent's commits.
+  if (step !== null) {
+    await worktreeEnsureQuestBranchBroker({
+      quest,
+      cwdResolution,
+      trigger: questResumeTriggerContract.parse('dispatch-scan'),
+    });
   }
 
   activeQuest.setActive({ questId: quest.id });

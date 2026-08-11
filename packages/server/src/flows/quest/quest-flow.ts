@@ -14,8 +14,10 @@ import { QuestChatResponder } from '../../responders/quest/chat/quest-chat-respo
 import { QuestClarifyResponder } from '../../responders/quest/clarify/quest-clarify-responder';
 import { QuestCommentBatchResponder } from '../../responders/quest/comment-batch/quest-comment-batch-responder';
 import { QuestFindBySessionResponder } from '../../responders/quest/find-by-session/quest-find-by-session-responder';
+import { QuestFollowupResponder } from '../../responders/quest/followup/quest-followup-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { QuestMergeResponder } from '../../responders/quest/merge/quest-merge-responder';
 import { QuestNewResponder } from '../../responders/quest/new/quest-new-responder';
 import { QuestsQueueResponder } from '../../responders/quests/queue/quests-queue-responder';
 import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-abandon-responder';
@@ -108,6 +110,11 @@ export const QuestFlow = (): Hono => {
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 
+  app.post(apiRoutesStatics.quests.merge, async (c) => {
+    const result = await QuestMergeResponder({ params: { questId: c.req.param('questId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
   app.delete(apiRoutesStatics.quests.delete, async (c) => {
     const result = await QuestDeleteResponder({
       params: { questId: c.req.param('questId') },
@@ -128,6 +135,18 @@ export const QuestFlow = (): Hono => {
     const result = await QuestChatResponder({
       params: { questId: c.req.param('questId') },
       body: await c.req.json(),
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.followup, async (c) => {
+    // A body that is not JSON at all still has to reach the responder's own 400, so the parse
+    // failure degrades to an empty object rather than throwing out of the route handler (mirrors
+    // the comments route above and the signal-back route below).
+    const body: unknown = await c.req.json().catch(() => ({}));
+    const result = await QuestFollowupResponder({
+      params: { questId: c.req.param('questId') },
+      body,
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

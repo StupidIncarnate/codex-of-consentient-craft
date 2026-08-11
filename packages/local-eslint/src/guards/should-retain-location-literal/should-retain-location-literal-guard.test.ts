@@ -36,6 +36,48 @@ describe('shouldRetainLocationLiteralGuard', () => {
     });
   });
 
+  describe('excludedLiterals (dropped by exact value)', () => {
+    it('EDGE: "node_modules" (length 12, clears the threshold) with it excluded => returns false', () => {
+      expect(
+        shouldRetainLocationLiteralGuard({
+          literal: 'node_modules',
+          minRetainedLength: 8,
+          excludedLiterals: ['node_modules'],
+        }),
+      ).toBe(false);
+    });
+
+    it('EDGE: "node_modules/.bin" contains "/" but is not the excluded value => returns true', () => {
+      expect(
+        shouldRetainLocationLiteralGuard({
+          literal: 'node_modules/.bin',
+          minRetainedLength: 8,
+          excludedLiterals: ['node_modules'],
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: "node_modules" with an empty exclusion list => returns true', () => {
+      expect(
+        shouldRetainLocationLiteralGuard({
+          literal: 'node_modules',
+          minRetainedLength: 8,
+          excludedLiterals: [],
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: ".mcp.json" not in the exclusion list => returns true', () => {
+      expect(
+        shouldRetainLocationLiteralGuard({
+          literal: '.mcp.json',
+          minRetainedLength: 8,
+          excludedLiterals: ['node_modules'],
+        }),
+      ).toBe(true);
+    });
+  });
+
   describe('plain words (filtered by length)', () => {
     it('EDGE: "design" (length 6) with threshold 8 => returns false', () => {
       expect(shouldRetainLocationLiteralGuard({ literal: 'design', minRetainedLength: 8 })).toBe(

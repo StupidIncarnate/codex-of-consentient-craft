@@ -85,7 +85,10 @@ const STATUS_COLOR_MAP = new Map<QuestStatus, (typeof colors)[keyof typeof color
   ['approved', colors['loot-rare']],
   ['design_approved', colors['loot-rare']],
   ['in_progress', colors.primary],
+  ['paused', colors.warning],
+  ['merging', colors.primary],
   ['complete', colors.success],
+  ['merged', colors.success],
   ['blocked', colors.danger],
   ['abandoned', colors['text-dim']],
 ]);

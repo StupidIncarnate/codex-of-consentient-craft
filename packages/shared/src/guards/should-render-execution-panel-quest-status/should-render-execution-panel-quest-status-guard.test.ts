@@ -7,7 +7,7 @@ const STATUSES = Object.keys(
 
 const RENDER_EXECUTION_PANEL_STATUSES: ReadonlySet<
   keyof typeof questStatusMetadataStatics.statuses
-> = new Set(['in_progress', 'paused', 'blocked', 'complete', 'abandoned']);
+> = new Set(['in_progress', 'paused', 'blocked', 'complete', 'merging', 'merged', 'abandoned']);
 
 describe('shouldRenderExecutionPanelQuestStatusGuard', () => {
   describe('state matrix', () => {

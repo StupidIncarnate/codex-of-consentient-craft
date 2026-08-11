@@ -66,6 +66,7 @@ import { ChatStopAllFlow } from '../flows/chat-stop-all/chat-stop-all-flow';
 import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-start-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flow';
+import { FollowupChatStartFlow } from '../flows/followup-chat-start/followup-chat-start-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationDispatchFlow } from '../flows/orchestration-dispatch/orchestration-dispatch-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
@@ -153,6 +154,9 @@ export const StartOrchestrator = {
     questId: QuestId;
   }): Promise<{ resumed: boolean; restoredStatus: QuestStatus }> =>
     OrchestrationFlow.resume({ questId }),
+
+  mergeQuest: async ({ questId }: { questId: QuestId }): Promise<{ merging: boolean }> =>
+    OrchestrationFlow.merge({ questId }),
 
   abandonQuest: async ({ questId }: { questId: QuestId }): Promise<{ abandoned: boolean }> =>
     OrchestrationFlow.abandon({ questId }),
@@ -331,6 +335,19 @@ export const StartOrchestrator = {
     guildId: GuildId;
     message: string;
   }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
+
+  // Follow-up chat methods — the FOLLOW-UP tab's post-quest conversation with the tavernkeeper.
+  // Same quest-scoped chat shape as startDesignChat, but resumes the single tavernkeeper work
+  // item across every message instead of minting a fresh chat item per turn.
+  startFollowupChat: async ({
+    questId,
+    guildId,
+    message,
+  }: {
+    questId: QuestId;
+    guildId: GuildId;
+    message: string;
+  }): Promise<{ chatProcessId: ProcessId }> => FollowupChatStartFlow({ questId, guildId, message }),
 
   // Agent prompt methods
   getAgentPrompt: async ({

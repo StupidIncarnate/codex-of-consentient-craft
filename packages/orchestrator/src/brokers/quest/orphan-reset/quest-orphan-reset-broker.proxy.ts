@@ -4,7 +4,7 @@ import { registerModuleMock, requireActual } from '@dungeonmaster/testing/regist
 
 import { guildListBrokerProxy } from '../../guild/list/guild-list-broker.proxy';
 import { questListBrokerProxy } from '../list/quest-list-broker.proxy';
-import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { questOperationsUpdateBrokerProxy } from '../operations-update/quest-operations-update-broker.proxy';
 import { questOrphanResetBroker } from './quest-orphan-reset-broker';
 
 registerModuleMock({ module: './quest-orphan-reset-broker' });
@@ -22,7 +22,7 @@ export const questOrphanResetBrokerProxy = (): {
 } => {
   const guildListProxy = guildListBrokerProxy();
   const questListProxy = questListBrokerProxy();
-  const modifyProxy = questModifyBrokerProxy();
+  const updateProxy = questOperationsUpdateBrokerProxy();
 
   const mocked = questOrphanResetBroker as jest.MockedFunction<typeof questOrphanResetBroker>;
   const realMod = requireActual<{ questOrphanResetBroker: typeof questOrphanResetBroker }>({
@@ -44,11 +44,11 @@ export const questOrphanResetBrokerProxy = (): {
       }
     },
     setupModifyForQuest: ({ quest }: { quest: Quest }): void => {
-      modifyProxy.setupQuestFound({ quest });
+      updateProxy.setupQuestFound({ quest });
     },
-    getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
+    getAllPersistedContents: (): readonly unknown[] => updateProxy.getAllPersistedContents(),
     getLastPersistedQuest: (): Quest => {
-      const persisted = modifyProxy.getAllPersistedContents();
+      const persisted = updateProxy.getAllPersistedContents();
       const last = persisted[persisted.length - 1];
       return questContract.parse(JSON.parse(String(last)));
     },

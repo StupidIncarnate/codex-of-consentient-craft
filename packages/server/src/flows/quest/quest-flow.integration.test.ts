@@ -335,6 +335,62 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('POST /api/quests/:questId/merge', () => {
+    it('VALID: {questId without matching quest} => delegates to QuestMergeResponder and returns 400 quest-not-found', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/merge`, {
+        method: 'POST',
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'Quest not found',
+      });
+    });
+  });
+
+  describe('POST /api/quests/:questId/followup', () => {
+    it('VALID: {questId without matching quest} => delegates to QuestFollowupResponder and returns 500 quest-not-found', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/followup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'What happened here?' }),
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: `Quest with id "${questId}" not found in any guild`,
+      });
+    });
+
+    // Mirrors the comments route's non-JSON-body test above and the signal-back route's below:
+    // quest-flow.ts degrades a body that is not JSON at all to an empty object
+    // (`.catch(() => ({}))`) so the responder's own validation produces the 400, rather than an
+    // unhandled parse error escaping the route handler as Hono's generic, non-JSON
+    // "Internal Server Error" 500.
+    it('INVALID: {non-JSON body} => reaches the responder 400 rather than throwing out of the route', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/followup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'not json at all',
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'message is required' });
+    });
+  });
+
   describe('POST /api/quests/:questId/signal-back (env-gated)', () => {
     it('INVALID: {E2E_SIGNAL_BACK_HTTP=1, body missing workItemId} => 400 route registered, responder validates before the orchestrator call', async () => {
       process.env.E2E_SIGNAL_BACK_HTTP = '1';

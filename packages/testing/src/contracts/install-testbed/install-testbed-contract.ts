@@ -12,6 +12,7 @@ import type { FileContent } from '../file-content/file-content-contract';
 import type { ExitCode } from '../exit-code/exit-code-contract';
 import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { DungeonmasterConfig } from '../dungeonmaster-config/dungeonmaster-config-contract';
+import type { FileName } from '../file-name/file-name-contract';
 
 export const installTestbedContract = z.object({
   guildPath: z.string().brand<'GuildPath'>(),
@@ -30,6 +31,7 @@ export type InstallTestbed = InstallTestbedData & {
     content: FileContent;
   }) => void;
   readFile: ({ relativePath }: { relativePath: RelativePath }) => FileContent | null;
+  listDir: ({ relativePath }: { relativePath: RelativePath }) => readonly FileName[] | null;
   getClaudeSettings: () => unknown;
   getMcpConfig: () => unknown;
   getDungeonmasterConfig: () => DungeonmasterConfig | null;

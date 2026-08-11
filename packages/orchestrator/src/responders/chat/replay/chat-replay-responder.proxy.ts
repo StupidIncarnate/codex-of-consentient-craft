@@ -26,6 +26,10 @@ export const ChatReplayResponderProxy = (): {
   setupQuestDirectories: ReturnType<typeof questListBrokerProxy>['setupQuestDirectories'];
   setupQuestFilePath: ReturnType<typeof questListBrokerProxy>['setupQuestFilePath'];
   setupQuestFile: ReturnType<typeof questListBrokerProxy>['setupQuestFile'];
+  setupQuestWorktree: ReturnType<typeof chatHistoryReplayBrokerProxy>['setupQuestWorktree'];
+  setupQuestWorktreeMissing: ReturnType<
+    typeof chatHistoryReplayBrokerProxy
+  >['setupQuestWorktreeMissing'];
   setupEventCapture: () => {
     getEmittedEvents: () => readonly {
       type: OrchestrationEventType;
@@ -53,6 +57,8 @@ export const ChatReplayResponderProxy = (): {
     setupQuestDirectories: questListProxy.setupQuestDirectories,
     setupQuestFilePath: questListProxy.setupQuestFilePath,
     setupQuestFile: questListProxy.setupQuestFile,
+    setupQuestWorktree: historyProxy.setupQuestWorktree,
+    setupQuestWorktreeMissing: historyProxy.setupQuestWorktreeMissing,
     setupEventCapture: () => {
       const emittedEvents: {
         type: OrchestrationEventType;

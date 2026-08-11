@@ -1,12 +1,17 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
+  AbsoluteFilePathStub,
+  BaseBranchNameStub,
+  ErrorMessageStub,
   FileContentsStub,
+  FileNameStub,
   FlowNodeStub,
   FlowOffMapSignoffStub,
   FlowStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestBlightLedgerEntryStub,
+  QuestBranchNameStub,
   QuestStub,
   QuestWorkItemIdStub,
   RepoRelativePathStub,
@@ -16,8 +21,10 @@ import {
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
+import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
 import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQuestHarness } from '../../../../test/harnesses/orchestration-quest/orchestration-quest.harness';
+import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
 // The off-map probe families every flow decomposes into — Siegemaster's charter alone, absent from
 // Flowrider's denominator. Derived from the probe statics, whose colocated test pins its keys 1:1
@@ -856,4 +863,137 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       expect(operation?.status).toBe('complete');
     }, 30_000);
   });
+});
+
+// warpgate-merge:observable:worktree-survives-merge — "the quest's worktree directory and the
+// quest/<slug>-<id8> branch both still exist after the merge, since follow-up on a merged quest
+// spawns with the worktree as cwd." The actual git merge into base runs INSIDE the warpgate agent
+// session, following its own prompt — no code in this repo performs it, so there is nothing to
+// drive here that would prove the merge itself. What IS testable, and is exactly what this
+// observable's design decision calls for, is the NEGATIVE claim: the merge-COMPLETION route (this
+// responder, driven with the same signal-back a real warpgate session sends once its work has
+// landed) never deletes the worktree directory or the quest branch on its way to settling the
+// quest at `merged`. A mocked fs cannot observe an absence of deletion — this drives a REAL git
+// repo + REAL `git worktree add` (never mocked) and re-checks both with real fs/git afterward.
+describe('QuestHandleSignalBackResponder (integration) — warpgate merge completion leaves the worktree and branch on disk', () => {
+  const envHarness = orchestrationEnvironmentHarness();
+  const questHelper = orchestrationQuestHarness();
+  const git = gitWorktreeFixtureHarness();
+
+  it("VALID: {merging quest with a real worktree + branch, warpgate work item signals done} => quest.json derives to 'merged', the worktree directory still exists, and the quest branch still resolves", async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'sb-warpgate-worktree' }),
+    });
+    envHarness.setupHome({ tempDir: testbed.guildPath });
+
+    const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    await git.initRepoWithPackages({
+      repoPath,
+      initialBranchName: FileNameStub({ value: 'main' }),
+      packageNames: [FileNameStub({ value: 'shared' })],
+    });
+
+    const worktreePath = AbsoluteFilePathStub({
+      value: `${testbed.guildPath}/worktrees/warpgate-survives-a1b2c3d4`,
+    });
+    const branchName = QuestBranchNameStub({ value: 'quest/warpgate-survives-a1b2c3d4' });
+    await gitWorktreeAddAdapter({
+      cwd: repoPath,
+      worktreePath,
+      branchName,
+      baseBranch: BaseBranchNameStub({ value: 'main' }),
+    });
+
+    const warpgateOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f7' });
+    const warpgateWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+    await questHelper.seedInProgressRelay({
+      questId,
+      status: 'merging',
+      worktreePath,
+      branchName,
+      operations: [
+        OperationItemStub({
+          id: warpgateOpId,
+          role: 'warpgate',
+          text: 'Merge the quest branch home',
+          status: 'in_progress',
+          locked: true,
+        }),
+      ],
+      workItems: [
+        WorkItemStub({
+          id: warpgateWorkItemId,
+          role: 'warpgate',
+          status: 'in_progress',
+          spawnerType: 'agent',
+          relatedDataItems: [`operations/${String(warpgateOpId)}`],
+          dependsOn: [],
+          createdAt: new Date().toISOString(),
+        }),
+      ],
+    });
+
+    const worktreeExistedBefore = git.pathExists({ absolutePath: worktreePath });
+    const branchShaBefore = await git.gitRevParseOrNull({
+      repoPath,
+      ref: ErrorMessageStub({ value: String(branchName) }),
+    });
+
+    const result = await QuestHandleSignalBackResponder({
+      questId,
+      workItemId: warpgateWorkItemId,
+      signal: 'complete',
+      operationItemId: warpgateOpId,
+      operationStatus: 'done',
+    });
+
+    const afterQuest = await questHelper.reload({ questId });
+    const warpgateOperation = afterQuest.operations.find((op) => op.id === warpgateOpId);
+    const warpgateWorkItem = afterQuest.workItems.find((item) => item.id === warpgateWorkItemId);
+    const worktreeExistsAfter = git.pathExists({ absolutePath: worktreePath });
+    const branchShaAfter = await git.gitRevParseOrNull({
+      repoPath,
+      ref: ErrorMessageStub({ value: String(branchName) }),
+    });
+
+    testbed.cleanup();
+
+    // FAILS IF the completion route ever removes the worktree directory or the quest branch on
+    // its way to `merged` — worktreeExistsAfter would flip false, or branchShaAfter would flip
+    // null / a different sha. worktreeExistedBefore/branchShaBefore being real (not vacuous)
+    // is proven by the mutation witness recorded in this task's artifact: a temporary
+    // `git worktree remove --force` + `git branch -D` spliced onto this same completion route
+    // turned both fields red before being reverted.
+    expect({
+      responderResult: result,
+      questStatus: afterQuest.status,
+      // warpgate-merge:observable:warpgate-signals-done — the {signal:'complete',
+      // operationStatus:'done'} call a finished warpgate session sends marks ITS OWN operation
+      // item complete and terminalizes its work item. Read directly rather than inferred from
+      // `merged`: the derived status is what the ledger drained TO, so a responder that settled
+      // the quest without ever completing this item would have to be caught here.
+      warpgateOperationStatus: warpgateOperation?.status,
+      warpgateWorkItemStatus: warpgateWorkItem?.status,
+      warpgateWorkItemSignal: warpgateWorkItem?.actualSignal,
+      worktreeExistedBefore,
+      worktreeExistsAfter,
+      branchResolvedBefore: branchShaBefore !== null,
+      branchResolvedAfter: branchShaAfter !== null,
+      branchShaUnchanged: branchShaBefore === branchShaAfter,
+    }).toStrictEqual({
+      responderResult: { success: true },
+      questStatus: 'merged',
+      warpgateOperationStatus: 'complete',
+      warpgateWorkItemStatus: 'complete',
+      warpgateWorkItemSignal: 'complete',
+      worktreeExistedBefore: true,
+      worktreeExistsAfter: true,
+      branchResolvedBefore: true,
+      branchResolvedAfter: true,
+      branchShaUnchanged: true,
+    });
+  }, 30_000);
 });

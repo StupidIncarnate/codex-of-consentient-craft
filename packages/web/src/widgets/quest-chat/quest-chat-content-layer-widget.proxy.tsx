@@ -13,6 +13,7 @@ import { useCommentQueueSweepBindingProxy } from '../../bindings/use-comment-que
 import { useOrchestrationModeBindingProxy } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding.proxy';
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { questAbandonBrokerProxy } from '../../brokers/quest/abandon/quest-abandon-broker.proxy';
+import { questMergeBrokerProxy } from '../../brokers/quest/merge/quest-merge-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questNewBrokerProxy } from '../../brokers/quest/new/quest-new-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
@@ -59,6 +60,17 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getNewQuestRequestCount: () => RequestCount;
   getNewQuestRequestBodies: () => Promise<unknown[]>;
   selectQuestType: (params: { label: string }) => Promise<void>;
+  setupFollowup: (params: { chatProcessId: ProcessId }) => void;
+  setupFollowupRejected: (params: { error: string }) => void;
+  setupMerge: (params: { merging: boolean }) => void;
+  getFollowupRequestBody: () => unknown;
+  getFollowupRequestCount: () => RequestCount;
+  getMergeRequestCount: () => RequestCount;
+  clickFollowupButton: () => Promise<void>;
+  clickMergeButton: () => Promise<void>;
+  typeFollowupMessage: (params: { text: string }) => Promise<void>;
+  clickFollowupSend: () => Promise<void>;
+  hasAbandonButton: () => boolean;
 } => {
   // Created BEFORE the chat binding proxy: both compose webSocketChannelStateProxy, whose WebSocket
   // spy is addressed on the same url, so the LAST registration owns the created socket. The chat
@@ -81,7 +93,8 @@ export const QuestChatContentLayerWidgetProxy = (): {
   questStartBrokerProxy();
   setupAutoScrollContainer();
   setupChatEntryList();
-  ExecutionPanelWidgetProxy();
+  const executionPanel = ExecutionPanelWidgetProxy();
+  const merge = questMergeBrokerProxy();
   FormDropdownWidgetProxy();
   DumpsterCommandBannerWidgetProxy();
   DumpsterRaccoonWidgetProxy();
@@ -138,5 +151,30 @@ export const QuestChatContentLayerWidgetProxy = (): {
     getChatRequestCount: () => binding.getChatRequestCount(),
     getClarifyRequestCount: () => binding.getClarifyRequestCount(),
     getPauseRequestCount: () => binding.getPauseRequestCount(),
+    setupFollowup: ({ chatProcessId }) => {
+      binding.setupFollowup({ chatProcessId });
+    },
+    setupFollowupRejected: ({ error }) => {
+      binding.setupFollowupRejected({ error });
+    },
+    setupMerge: ({ merging }) => {
+      merge.setupMerge({ merging });
+    },
+    getFollowupRequestBody: () => binding.getFollowupRequestBody(),
+    getFollowupRequestCount: () => binding.getFollowupRequestCount(),
+    getMergeRequestCount: () => merge.getRequestCount(),
+    clickFollowupButton: async () => {
+      await executionPanel.clickFollowupButton();
+    },
+    clickMergeButton: async () => {
+      await executionPanel.clickMergeButton();
+    },
+    typeFollowupMessage: async ({ text }) => {
+      await executionPanel.typeFollowupMessage({ text });
+    },
+    clickFollowupSend: async () => {
+      await executionPanel.clickFollowupSend();
+    },
+    hasAbandonButton: () => executionPanel.hasAbandonButton(),
   };
 };

@@ -1,3 +1,5 @@
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
+
 import { questGateSectionsStatics } from './quest-gate-sections-statics';
 
 describe('questGateSectionsStatics', () => {
@@ -19,8 +21,18 @@ describe('questGateSectionsStatics', () => {
         paused: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
         blocked: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
         complete: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
+        merging: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
+        merged: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
         abandoned: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
       },
     });
+  });
+
+  it('VALID: sections => carries an entry for every quest status', () => {
+    // Object.keys(...) here is the deliberate exception: this test's whole subject is key
+    // coverage, and the values themselves are already pinned exhaustively above.
+    expect(Object.keys(questGateSectionsStatics.sections).sort()).toStrictEqual(
+      Object.keys(questStatusMetadataStatics.statuses).sort(),
+    );
   });
 });

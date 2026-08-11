@@ -110,30 +110,35 @@ describe('questFindByWorkItemIdBroker', () => {
     });
   });
 
-  describe('caching', () => {
-    it('VALID: {second call for same workItemId} => returns cached questId without re-walking guilds', async () => {
+  describe('re-reads on every call', () => {
+    it('VALID: {work item present, then gone from the quest} => second call re-reads and returns null instead of the stale first answer', async () => {
       const proxy = questFindByWorkItemIdBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-000000000005' });
-      const questId = QuestIdStub({ value: 'q-cache' });
-      const workItemId = QuestWorkItemIdStub({ value: '77777777-7777-7777-7777-000000000005' });
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-000000000006' });
+      const questId = QuestIdStub({ value: 'q-stale' });
+      const workItemId = QuestWorkItemIdStub({ value: '88888888-8888-8888-8888-000000000006' });
 
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
-      const workItem = WorkItemStub({ id: workItemId });
-      const quest = QuestStub({ id: questId, workItems: [workItem] });
+      const questWithWorkItem = QuestStub({
+        id: questId,
+        workItems: [WorkItemStub({ id: workItemId })],
+      });
+      const questWithoutWorkItem = QuestStub({ id: questId, workItems: [] });
 
-      // Only one direct listing is queued. If the cache misses on second call, the broker
-      // would fall through to a real fs-driven path with no proxy setup left and throw.
-      proxy.setupGuildsAndQuests({
+      proxy.setupGuildsAndQuestsOnce({
         guildItems: [guildItem],
-        questsByGuildId: [{ guildId, quests: [quest] }],
+        questsByGuildId: [{ guildId, quests: [questWithWorkItem] }],
+      });
+      proxy.setupGuildsAndQuestsOnce({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [questWithoutWorkItem] }],
       });
 
       const first = await questFindByWorkItemIdBroker({ workItemId });
       const second = await questFindByWorkItemIdBroker({ workItemId });
 
       expect(first).toBe(questId);
-      expect(second).toBe(questId);
+      expect(second).toBe(null);
     });
   });
 });

@@ -214,6 +214,10 @@ export const questOrchestrationLoopBroker = async ({
   const [roleName, roleItemsRaw] = firstEntry;
   let roleItems = roleItemsRaw;
 
+  // A chat role only ever runs from a real user message. The resume and startup-recovery paths
+  // enter this loop with no `userMessage` at all, so without this guard a lingering tavernkeeper
+  // item would launch a follow-up agent with no question to answer — burning a session and
+  // writing a transcript nobody asked for.
   if (isChatWorkItemRoleGuard({ role: roleName }) && userMessage === undefined) {
     return result;
   }
@@ -262,7 +266,6 @@ export const questOrchestrationLoopBroker = async ({
     await runChatLayerBroker({
       questId,
       workItem: firstItem,
-      startPath,
       guildId,
       ...(userMessage === undefined ? {} : { userMessage }),
       onAgentEntry,

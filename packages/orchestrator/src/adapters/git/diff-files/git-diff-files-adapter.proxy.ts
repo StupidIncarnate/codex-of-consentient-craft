@@ -7,6 +7,7 @@ export const gitDiffFilesAdapterProxy = (): {
   setupDiffOutput: (params: { output: string }) => void;
   setupFailure: (params: { output: string }) => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedCwd: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
 
@@ -30,5 +31,7 @@ export const gitDiffFilesAdapterProxy = (): {
     },
 
     getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs({ command: GIT_COMMAND }),
+
+    getSpawnedCwd: (): unknown => captureProxy.getSpawnedCwd({ command: GIT_COMMAND }),
   };
 };

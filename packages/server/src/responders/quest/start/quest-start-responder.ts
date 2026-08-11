@@ -6,6 +6,7 @@
  * // Returns { status: 200, data: { processId } } or { status: 400/500, data: { error } }
  */
 
+import { BaseBranchNotFoundError, QuestBranchNameTakenError } from '@dungeonmaster/orchestrator';
 import { isStartableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
@@ -60,6 +61,12 @@ export const QuestStartResponder = async ({
       data: { processId },
     });
   } catch (error: unknown) {
+    if (error instanceof BaseBranchNotFoundError || error instanceof QuestBranchNameTakenError) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: error.message },
+      });
+    }
     const message = error instanceof Error ? error.message : 'Failed to start quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,

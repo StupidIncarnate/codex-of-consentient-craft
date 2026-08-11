@@ -19,6 +19,8 @@ describe('locationsStatics', () => {
           'eslint.config.cjs',
         ],
         nodeModulesBin: 'node_modules/.bin',
+        nodeModules: 'node_modules',
+        worktreesDir: 'worktrees',
         dungeonmasterQuests: '.dungeonmaster-quests',
         wardLocalDir: '.ward',
       },

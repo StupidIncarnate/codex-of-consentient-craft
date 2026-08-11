@@ -1,12 +1,13 @@
 /**
  * PURPOSE: Dispatches one spawn-agents batch by spawning headless Claude CLI children — one per
- * SpawnInstruction, all in parallel. Resolves each quest's guild cwd once, pre-stamps each work
- * item `in_progress` BEFORE spawning (the MCP-side identity stamp is skipped for top-level
- * sessions, and the stamp is what keeps a concurrently-polling /dumpster-launch from
- * double-dispatching the item), then hands each instruction to `spawnOneAgentLayerBroker`, which
- * owns the spawn, the sessionId stamp, and the API-overload retry. Terminal work-item status is
- * owned by the child's own signal-back MCP call; a child that dies silently is reclaimed by orphan
- * recovery on a later scan.
+ * SpawnInstruction, all in parallel. Resolves each quest's cwd once via `questCwdResolveBroker`
+ * (the quest's own worktree, or the legacy repo root for a quest recorded before worktrees
+ * existed), pre-stamps each work item `in_progress` BEFORE spawning (the MCP-side identity stamp
+ * is skipped for top-level sessions, and the stamp is what keeps a concurrently-polling
+ * /dumpster-launch from double-dispatching the item), then hands each instruction to
+ * `spawnOneAgentLayerBroker`, which owns the spawn, the sessionId stamp, and the API-overload
+ * retry. Terminal work-item status is owned by the child's own signal-back MCP call; a child that
+ * dies silently is reclaimed by orphan recovery on a later scan.
  *
  * USAGE:
  * await spawnBatchLayerBroker({ agents: step.agents, registerProcess });
@@ -14,24 +15,18 @@
  */
 
 import type {
+  AbsoluteFilePath,
   AdapterResult,
-  GuildId,
   ModifyQuestInput,
   ProcessId,
   QuestId,
   QuestWorkItemId,
   RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
-import {
-  adapterResultContract,
-  filePathContract,
-  repoRootCwdContract,
-} from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
-import { guildGetBroker } from '../../guild/get/guild-get-broker';
-import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
+import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { spawnOneAgentLayerBroker } from './spawn-one-agent-layer-broker';
 
@@ -55,22 +50,22 @@ export const spawnBatchLayerBroker = async ({
 }): Promise<AdapterResult> => {
   const ok = adapterResultContract.parse({ success: true });
 
-  // Resolve guild cwd once per quest, not once per instruction.
+  // Resolve each quest's cwd once, not once per instruction. A quest resolves to either a usable
+  // cwd (its own worktree, or the legacy repo-root fallback) or a recorded-but-missing worktree
+  // path — the latter carries no usable cwd, so the per-instruction guard below refuses to spawn.
   const uniqueQuestIds = [...new Set(agents.map((instruction) => instruction.questId))];
-  const contextByQuestId = new Map<QuestId, { guildId: GuildId; cwd: RepoRootCwd }>();
+  const contextByQuestId = new Map<
+    QuestId,
+    { cwd: RepoRootCwd } | { worktreePath: AbsoluteFilePath }
+  >();
   await Promise.all(
     uniqueQuestIds.map(async (questId) => {
-      const { guildId } = await questFindQuestPathBroker({ questId });
-      const guild = await guildGetBroker({ guildId });
-      const startPath = filePathContract.parse(guild.path);
-      const cwd = await (async (): Promise<RepoRootCwd> => {
-        try {
-          return await cwdResolveBroker({ startPath, kind: 'repo-root' });
-        } catch {
-          return repoRootCwdContract.parse(guild.path);
-        }
-      })();
-      contextByQuestId.set(questId, { guildId, cwd });
+      const resolution = await questCwdResolveBroker({ questId });
+      if (resolution.kind === 'missing-worktree') {
+        contextByQuestId.set(questId, { worktreePath: resolution.worktreePath });
+        return;
+      }
+      contextByQuestId.set(questId, { cwd: resolution.cwd });
     }),
   );
 
@@ -79,7 +74,12 @@ export const spawnBatchLayerBroker = async ({
       try {
         const context = contextByQuestId.get(instruction.questId);
         if (context === undefined) {
-          throw new Error(`no guild context resolved for quest ${instruction.questId}`);
+          throw new Error(`no cwd resolved for quest ${instruction.questId}`);
+        }
+        if ('worktreePath' in context) {
+          throw new Error(
+            `worktree not found for quest ${instruction.questId}: ${context.worktreePath}`,
+          );
         }
 
         // Pre-stamp BEFORE spawning: marks the item taken (so a concurrent get-next-step scan

@@ -26,13 +26,16 @@
  * This callback is therefore the ONLY route ward output has to a UI, for minutes at a time. Callers
  * with genuinely nowhere to send it pass `() => undefined` explicitly. See
  * `packages/shared/CLAUDE.md` → "Streaming Adapters".
+ *
+ * Ward runs inside the quest's own worktree (or the legacy repo root for a quest recorded before
+ * worktrees existed) — the same tree its changed-file set has to describe, since a `--changed`
+ * run diffs against the quest's `baseRef` inside that tree.
  */
 
 import {
   childProcessSpawnStreamLinesAdapter,
   fsMkdirAdapter,
   pathJoinAdapter,
-  processCwdAdapter,
 } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
@@ -59,6 +62,7 @@ import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-
 import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
 import { questAdvanceBroker } from '../advance/quest-advance-broker';
 import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
+import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
@@ -76,7 +80,17 @@ export const questRunWardBroker = async ({
   mode: 'changed' | 'full';
   onLine: (line: string) => void;
 }): Promise<QuestRunWardResult> => {
-  const startPath = absoluteFilePathContract.parse(processCwdAdapter());
+  // Resolve the quest's cwd BEFORE any spawn or stamp. A quest whose recorded worktree is
+  // missing is a guard, not a routine path — the dispatch scan blocks the quest before ward is
+  // ever selected for it, so reaching this branch means something removed the worktree out from
+  // under an already-dispatched item.
+  const resolution = await questCwdResolveBroker({ questId });
+  if (resolution.kind === 'missing-worktree') {
+    throw new Error(
+      `Cannot run ward for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
+    );
+  }
+  const startPath = absoluteFilePathContract.parse(resolution.cwd);
 
   const { questPath } = await questFindQuestPathBroker({ questId });
 

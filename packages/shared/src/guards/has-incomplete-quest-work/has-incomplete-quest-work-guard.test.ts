@@ -1,5 +1,6 @@
 import { OperationItemStub } from '../../contracts/operation-item/operation-item.stub';
 import { WorkItemStub } from '../../contracts/work-item/work-item.stub';
+import { workItemRoleStatics } from '../../statics/work-item-role/work-item-role-statics';
 import { workItemStatusMetadataStatics } from '../../statics/work-item-status-metadata/work-item-status-metadata-statics';
 import { hasIncompleteQuestWorkGuard } from './has-incomplete-quest-work-guard';
 
@@ -15,6 +16,8 @@ const TERMINAL_STATUSES = new Set(
 
 const DRAINED_LEDGER = [OperationItemStub({ status: 'complete' })];
 
+const CHAT_ROLES = workItemRoleStatics.chat;
+
 describe('hasIncompleteQuestWorkGuard', () => {
   describe('work-item half', () => {
     it.each(WORK_ITEM_STATUSES)(
@@ -26,6 +29,20 @@ describe('hasIncompleteQuestWorkGuard', () => {
         });
 
         expect(result).toBe(!TERMINAL_STATUSES.has(status));
+      },
+    );
+  });
+
+  describe('chat-role half', () => {
+    it.each(CHAT_ROLES)(
+      'VALID: {workItem role: %s, status: in_progress, ledger drained} => false — the dispatcher never picks up a chat-role item, so it is not "incomplete work" the resume responder should play the Node dispatcher for',
+      (role) => {
+        const result = hasIncompleteQuestWorkGuard({
+          workItems: [WorkItemStub({ role, status: 'in_progress' })],
+          operations: DRAINED_LEDGER,
+        });
+
+        expect(result).toBe(false);
       },
     );
   });

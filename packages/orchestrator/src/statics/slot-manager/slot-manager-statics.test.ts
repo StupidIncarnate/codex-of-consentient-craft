@@ -21,6 +21,9 @@ describe('slotManagerStatics', () => {
       spiritmender: {
         maxAttempts: 3,
       },
+      warpgate: {
+        maxAttempts: 3,
+      },
       ward: {
         maxRetries: 3,
       },

@@ -17,6 +17,7 @@ import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
+import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 
 export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): ContentText => {
   switch (role) {
@@ -36,6 +37,8 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
       return contentTextContract.parse(blightwardenPromptStatics.prompt.template);
     case 'pesteater':
       return contentTextContract.parse(pesteaterPromptStatics.prompt.template);
+    case 'warpgate':
+      return contentTextContract.parse(warpgatePromptStatics.prompt.template);
     default: {
       const exhaustiveCheck: never = role;
       throw new Error(`Unknown role: ${String(exhaustiveCheck)}`);

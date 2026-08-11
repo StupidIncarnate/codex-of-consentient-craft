@@ -994,4 +994,63 @@ describe('questRunWardBroker', () => {
       );
     });
   });
+
+  describe('worktree resolution', () => {
+    it('VALID: {quest records a worktreePath} => ward is spawned with that path as cwd', async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+      const runId = FileNameStub({ value: '1739625600000-a3f1' });
+      const worktreePath = '/repo/worktrees/add-auth-a1b2c3d4';
+      const wardOp = OperationItemStub({
+        id: WARD_OP_ID,
+        role: 'ward',
+        text: 'verify build (changed)',
+        status: 'in_progress',
+        locked: true,
+        wardMode: 'changed',
+      });
+      const wardItem = WorkItemStub({
+        id: workItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        relatedDataItems: [`operations/${WARD_OP_ID}`],
+        wardMode: 'changed',
+      });
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupQuest({
+        quest: QuestStub({
+          id: questId,
+          status: 'in_progress',
+          operations: [wardOp],
+          workItems: [wardItem],
+        }),
+      });
+      proxy.setupQuestWorktree({ worktreePath });
+      proxy.wardExits({
+        exitCode: ExitCodeStub({ value: 0 }),
+        runId,
+        detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
+      });
+
+      await questRunWardBroker({ questId, workItemId, mode: 'changed', onLine: () => undefined });
+
+      expect(proxy.getSpawnedWardCwd()).toBe(worktreePath);
+    });
+
+    it("ERROR: {quest's recorded worktree is missing} => throws naming the path and spawns nothing", async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+      const worktreePath = '/repo/worktrees/add-auth-a1b2c3d4';
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupQuestWorktreeMissing({ worktreePath });
+
+      await expect(
+        questRunWardBroker({ questId, workItemId, mode: 'changed', onLine: () => undefined }),
+      ).rejects.toThrow(new RegExp(`worktree not found: ${worktreePath}`, 'u'));
+
+      expect(proxy.getSpawnedWardArgs()).toBe(undefined);
+      expect(proxy.getPersistedWorkItemStatusesInWriteOrder({ workItemId })).toStrictEqual([]);
+    });
+  });
 });

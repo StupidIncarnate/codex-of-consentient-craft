@@ -123,6 +123,22 @@ describe('questStatusContract', () => {
       expect(result).toBe('complete');
     });
 
+    it('VALID: merging => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'merging' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('merging');
+    });
+
+    it('VALID: merged => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'merged' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('merged');
+    });
+
     it('VALID: abandoned => parses successfully', () => {
       const status = QuestStatusStub({ value: 'abandoned' });
 

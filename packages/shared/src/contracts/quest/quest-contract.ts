@@ -8,18 +8,22 @@
 
 import { z } from 'zod';
 
+import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
+import { baseBranchNameContract } from '../base-branch-name/base-branch-name-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
+import { questBranchNameContract } from '../quest-branch-name/quest-branch-name-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { questTitleContract } from '../quest-title/quest-title-contract';
 import { questTypeContract } from '../quest-type/quest-type-contract';
 import { smoketestCaseResultContract } from '../smoketest-case-result/smoketest-case-result-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
@@ -29,7 +33,7 @@ import { workItemContract } from '../work-item/work-item-contract';
 export const questContract = z.object({
   id: z.string().min(1).brand<'QuestId'>(),
   folder: z.string().min(1).brand<'QuestFolder'>(),
-  title: z.string().min(1).brand<'QuestTitle'>(),
+  title: questTitleContract,
   status: questStatusContract,
   questType: questTypeContract
     .default('feature')
@@ -100,7 +104,22 @@ export const questContract = z.object({
     .brand<'GitBaseRef'>()
     .optional()
     .describe(
-      "The commit the quest's review diff is measured from, stamped when the relay is seeded. It exists because `git diff <default-branch>...HEAD` silently returns the wrong file set once the default branch absorbs the quest's own implementation commits.",
+      "The fork-point sha the quest's branch was created from, stamped from the worktree's own creation point rather than the server process cwd. It stays the base the review diff is measured from, so the blightwarden diff remains stable as the base branch moves ahead with other work.",
+    ),
+  branchName: questBranchNameContract
+    .optional()
+    .describe(
+      "The branch the quest's work lives on, written once at Start and never changed. Every later dispatch, ward run and chat spawned for the quest targets this branch.",
+    ),
+  baseBranch: baseBranchNameContract
+    .optional()
+    .describe(
+      'The local branch the quest forked from and will merge back into, resolved by probing main then master at Start.',
+    ),
+  worktreePath: absoluteFilePathContract
+    .optional()
+    .describe(
+      "Absolute path to the quest's worktree; the cwd for every agent, ward run and chat spawned for this quest.",
     ),
   workItems: z
     .array(workItemContract)

@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Shared pause logic — kills any registered orchestration subprocess for a quest, resets its in-flight work items to pending, and flips quest status to paused with the pre-pause status captured in pausedAtStatus.
+ * PURPOSE: Shared pause logic — kills every registered orchestration subprocess for a quest, resets its in-flight work items to pending, and flips quest status to paused with the pre-pause status captured in pausedAtStatus. A quest carries more than one registration at once (Start's quest-level entry alongside each spawned agent's), so stopping at the first one leaves a live agent behind on a quest the user has paused.
  *
  * USAGE:
  * const result = await questPauseBroker({
  *   questId,
  *   guildId,
  *   previousStatus: 'in_progress',
- *   processControls: { findByQuestId, kill },
+ *   processControls: { findAllByQuestId, kill },
  * });
  * // Returns { paused: true } on a successful pause, { paused: false } when the quest is missing or the modify call fails.
  *
@@ -36,12 +36,15 @@ export const questPauseBroker = async ({
   guildId?: GuildId;
   previousStatus: QuestStatus;
   processControls: {
-    findByQuestId: ({ questId }: { questId: QuestId }) => { processId: ProcessId } | undefined;
+    findAllByQuestId: ({ questId }: { questId: QuestId }) => { processId: ProcessId }[];
     kill: ({ processId }: { processId: ProcessId }) => void;
   };
 }): Promise<{ paused: boolean }> => {
-  const existingProcess = processControls.findByQuestId({ questId });
-  if (existingProcess) {
+  // EVERY registration for the quest, not the first one. Start Quest registers a quest-level
+  // entry whose kill is a no-op, and it is registered before anything is spawned — so a lookup
+  // that stops at the first match kills that no-op and leaves the real agent child running
+  // against the worktree while the quest reads `paused`.
+  for (const existingProcess of processControls.findAllByQuestId({ questId })) {
     processControls.kill({ processId: existingProcess.processId });
   }
 

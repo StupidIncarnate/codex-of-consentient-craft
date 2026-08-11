@@ -14,6 +14,7 @@ const RECOVERABLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.
     'explore_observables',
     'explore_design',
     'in_progress',
+    'merging',
   ],
 );
 

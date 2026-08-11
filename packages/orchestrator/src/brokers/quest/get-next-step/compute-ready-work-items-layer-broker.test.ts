@@ -1,4 +1,5 @@
 import { QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
 
 import { computeReadyWorkItemsLayerBroker } from './compute-ready-work-items-layer-broker';
 import { computeReadyWorkItemsLayerBrokerProxy } from './compute-ready-work-items-layer-broker.proxy';
@@ -127,5 +128,54 @@ describe('computeReadyWorkItemsLayerBroker', () => {
     const result = computeReadyWorkItemsLayerBroker({ workItems: [failed, dependent] });
 
     expect(result).toStrictEqual([dependent]);
+  });
+
+  it.each(workItemRoleStatics.chat)(
+    'VALID: {role: %s pending, chat role} => excluded from the ready set',
+    (role) => {
+      computeReadyWorkItemsLayerBrokerProxy();
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'aaa88888-1111-4222-9333-444444444444' }),
+        role,
+        status: 'pending',
+      });
+
+      const result = computeReadyWorkItemsLayerBroker({ workItems: [item] });
+
+      expect(result).toStrictEqual([]);
+    },
+  );
+
+  it('VALID: {pending tavernkeeper item alongside pending warpgate item, no deps} => returns only the warpgate item', () => {
+    computeReadyWorkItemsLayerBrokerProxy();
+    const tavernkeeperItem = WorkItemStub({
+      id: QuestWorkItemIdStub({ value: 'aaa99999-1111-4222-9333-444444444444' }),
+      role: 'tavernkeeper',
+      status: 'pending',
+    });
+    const warpgateItem = WorkItemStub({
+      id: QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+      role: 'warpgate',
+      status: 'pending',
+    });
+
+    const result = computeReadyWorkItemsLayerBroker({
+      workItems: [tavernkeeperItem, warpgateItem],
+    });
+
+    expect(result).toStrictEqual([warpgateItem]);
+  });
+
+  it('VALID: {codeweaver pending, non-chat role} => still returned', () => {
+    computeReadyWorkItemsLayerBrokerProxy();
+    const item = WorkItemStub({
+      id: QuestWorkItemIdStub({ value: 'aaabbbbb-1111-4222-9333-444444444444' }),
+      role: 'codeweaver',
+      status: 'pending',
+    });
+
+    const result = computeReadyWorkItemsLayerBroker({ workItems: [item] });
+
+    expect(result).toStrictEqual([item]);
   });
 });

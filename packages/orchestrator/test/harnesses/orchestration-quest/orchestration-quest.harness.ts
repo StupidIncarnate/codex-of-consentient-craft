@@ -68,6 +68,9 @@ type QuestComment = ReturnType<typeof QuestCommentStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type GitBaseRef = NonNullable<Quest['baseRef']>;
 type PlanningNotes = Quest['planningNotes'];
+type QuestStatus = Quest['status'];
+type WorktreePath = NonNullable<Quest['worktreePath']>;
+type BranchName = NonNullable<Quest['branchName']>;
 
 export const orchestrationQuestHarness = (): {
   afterEach: () => Promise<void>;
@@ -94,6 +97,14 @@ export const orchestrationQuestHarness = (): {
     // recompute outstanding verification units from the flow graph and the sign-offs carried on
     // it — omitted, flows stay whatever create-quest seeded (empty).
     flows?: readonly Flow[];
+    // Overrides the hardcoded 'in_progress' — present for tests seeding a quest already at
+    // `merging` (the warpgate-merge completion path), omitted everywhere else.
+    status?: QuestStatus;
+    // Present only for tests exercising a quest's recorded git context (worktreePath/branchName)
+    // against a REAL worktree + branch on disk — omitted, both fields stay whatever create-quest
+    // seeded (unset).
+    worktreePath?: WorktreePath;
+    branchName?: BranchName;
   }) => Promise<void>;
   // Real `git init` + one commit at repoPath (an integration testbed dir, NOT this repo), so the
   // blightwarden completion gate's `questGetBlightChecklistBroker` has a real commit to diff
@@ -155,6 +166,9 @@ export const orchestrationQuestHarness = (): {
     baseRef,
     planningNotes,
     flows,
+    status = 'in_progress',
+    worktreePath,
+    branchName,
   }: {
     questId: QuestId;
     operations: readonly OperationItem[];
@@ -162,6 +176,9 @@ export const orchestrationQuestHarness = (): {
     baseRef?: GitBaseRef;
     planningNotes?: PlanningNotes;
     flows?: readonly Flow[];
+    status?: QuestStatus;
+    worktreePath?: WorktreePath;
+    branchName?: BranchName;
   }): Promise<void> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
     const questFilePath = filePathContract.parse(
@@ -171,12 +188,14 @@ export const orchestrationQuestHarness = (): {
 
     const seededQuest = {
       ...loadedQuest,
-      status: 'in_progress' as typeof loadedQuest.status,
+      status,
       operations: [...operations],
       workItems: [...workItems],
       ...(baseRef === undefined ? {} : { baseRef }),
       ...(planningNotes === undefined ? {} : { planningNotes }),
       ...(flows === undefined ? {} : { flows: [...flows] }),
+      ...(worktreePath === undefined ? {} : { worktreePath }),
+      ...(branchName === undefined ? {} : { branchName }),
       updatedAt: new Date().toISOString() as typeof loadedQuest.updatedAt,
     };
 

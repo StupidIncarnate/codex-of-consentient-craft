@@ -86,6 +86,47 @@ describe('locationLiteralKeyPathsTransformer', () => {
     });
   });
 
+  describe('filter: excludedLiterals', () => {
+    it('EDGE: "node_modules" (length 12) is dropped when named in excludedLiterals', () => {
+      const result = locationLiteralKeyPathsTransformer({
+        source: { nodeModules: 'node_modules' },
+        rootName: 'locationsStatics.repoRoot',
+        minRetainedLength: 8,
+        excludedLiterals: ['node_modules'],
+      });
+
+      expect(result.has(PathSegmentStub({ value: 'node_modules' }))).toBe(false);
+    });
+
+    it('EDGE: "node_modules/.bin" is retained while "node_modules" is excluded', () => {
+      const result = locationLiteralKeyPathsTransformer({
+        source: { nodeModules: 'node_modules', nodeModulesBin: 'node_modules/.bin' },
+        rootName: 'locationsStatics.repoRoot',
+        minRetainedLength: 8,
+        excludedLiterals: ['node_modules'],
+      });
+
+      expect(Array.from(result.entries())).toStrictEqual([
+        [
+          PathSegmentStub({ value: 'node_modules/.bin' }),
+          'locationsStatics.repoRoot.nodeModulesBin',
+        ],
+      ]);
+    });
+
+    it('VALID: "node_modules" is retained when excludedLiterals is omitted', () => {
+      const result = locationLiteralKeyPathsTransformer({
+        source: { nodeModules: 'node_modules' },
+        rootName: 'locationsStatics.repoRoot',
+        minRetainedLength: 8,
+      });
+
+      expect(result.get(PathSegmentStub({ value: 'node_modules' }))).toBe(
+        'locationsStatics.repoRoot.nodeModules',
+      );
+    });
+  });
+
   describe('filter: dot/slash always retained', () => {
     it('EDGE: "guild.json" (length 10, contains dot) is retained even with high threshold', () => {
       const result = locationLiteralKeyPathsTransformer({

@@ -7,6 +7,12 @@ describe('locationLiteralStatics', () => {
     });
   });
 
+  describe('excludedLiterals', () => {
+    it('VALID: excludedLiterals => equals the non-path-meaning list in declared order', () => {
+      expect(locationLiteralStatics.excludedLiterals).toStrictEqual(['node_modules']);
+    });
+  });
+
   describe('allowlistPathSubstrings', () => {
     it('VALID: allowlistPathSubstrings => equals the canonical reader list in declared order', () => {
       expect(locationLiteralStatics.allowlistPathSubstrings).toStrictEqual([

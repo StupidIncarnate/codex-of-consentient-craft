@@ -14,6 +14,10 @@ export const questFindByWorkItemIdBrokerProxy = (): {
     guildItems: readonly GuildListItem[];
     questsByGuildId: readonly { guildId: GuildListItem['id']; quests: readonly Quest[] }[];
   }) => void;
+  setupGuildsAndQuestsOnce: (params: {
+    guildItems: readonly GuildListItem[];
+    questsByGuildId: readonly { guildId: GuildListItem['id']; quests: readonly Quest[] }[];
+  }) => void;
   setupNoGuilds: () => void;
 } => {
   const guildListProxy = guildListBrokerProxy();
@@ -41,6 +45,21 @@ export const questFindByWorkItemIdBrokerProxy = (): {
       guildListProxy.setupDirectListing({ items: guildItems });
       for (const { guildId, quests } of questsByGuildId) {
         questListProxy.setupDirectList({ guildId, quests });
+      }
+    },
+    // One home-state per call, consumed in staging order. Reach for this over
+    // setupGuildsAndQuests when the test drives the broker twice and the SECOND walk must see a
+    // DIFFERENT home than the first (a work item that has since left its quest).
+    setupGuildsAndQuestsOnce: ({
+      guildItems,
+      questsByGuildId,
+    }: {
+      guildItems: readonly GuildListItem[];
+      questsByGuildId: readonly { guildId: GuildListItem['id']; quests: readonly Quest[] }[];
+    }): void => {
+      guildListProxy.setupDirectListing({ items: guildItems });
+      for (const { guildId, quests } of questsByGuildId) {
+        questListProxy.setupDirectListOnce({ guildId, quests });
       }
     },
     setupNoGuilds: (): void => {

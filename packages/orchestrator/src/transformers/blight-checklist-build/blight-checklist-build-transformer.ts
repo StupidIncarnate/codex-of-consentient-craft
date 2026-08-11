@@ -107,6 +107,26 @@ export const blightChecklistBuildTransformer = ({
       continue;
     }
 
+    const hasKnownTestOrProxyMarker =
+      filePath.endsWith('.integration.test.ts') ||
+      filePath.endsWith('.test.tsx') ||
+      filePath.endsWith('.test.ts') ||
+      filePath.endsWith('.proxy.tsx') ||
+      filePath.endsWith('.proxy.ts') ||
+      filePath.endsWith('.stub.ts');
+
+    // The generic strip-and-reconstruct branch below assumes the stripped extension is exactly
+    // `.ts`/`.tsx` (it re-appends one of those to resolve the group's implPath), which only holds
+    // for TypeScript source files. A bare dotfile like `.gitignore` has no extension to strip — its
+    // "extension" IS the whole name — so stripping it would either empty the path (a leading dot
+    // with nothing before it) or reconstruct a nonexistent `<name>.ts`. Anything that isn't a known
+    // test/proxy/stub companion and isn't itself `.ts`/`.tsx` reviews as its own self-paired unit,
+    // the same way `.e2e.ts`/`.harness.ts` do.
+    if (!hasKnownTestOrProxyMarker && !filePath.endsWith('.ts') && !filePath.endsWith('.tsx')) {
+      selfPairedFiles.push(file);
+      continue;
+    }
+
     const base = repoRelativePathContract.parse(
       filePath.endsWith('.integration.test.ts')
         ? filePath.slice(0, -'.integration.test.ts'.length)

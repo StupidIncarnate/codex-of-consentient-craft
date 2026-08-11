@@ -32,9 +32,13 @@ export * from './src/guards/is-design-phase-quest-status/is-design-phase-quest-s
 export * from './src/guards/should-render-execution-panel-quest-status/should-render-execution-panel-quest-status-guard';
 export * from './src/guards/should-show-begin-quest-modal-quest-status/should-show-begin-quest-modal-quest-status-guard';
 export * from './src/guards/is-before-spec-approved-quest-status/is-before-spec-approved-quest-status-guard';
+export * from './src/guards/is-followup-chatable-quest-status/is-followup-chatable-quest-status-guard';
+export * from './src/guards/is-mergeable-quest-status/is-mergeable-quest-status-guard';
+export * from './src/guards/should-render-status-banner-quest-status/should-render-status-banner-quest-status-guard';
 
 // Quest Chat Session Guards
 export * from './src/guards/is-chat-work-item-role/is-chat-work-item-role-guard';
+export * from './src/guards/is-post-quest-chat-work-item-role/is-post-quest-chat-work-item-role-guard';
 
 // Work Item Dependency Graph Guards
 export * from './src/guards/has-incomplete-quest-work/has-incomplete-quest-work-guard';

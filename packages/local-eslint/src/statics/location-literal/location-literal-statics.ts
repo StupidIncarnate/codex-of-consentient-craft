@@ -12,6 +12,12 @@ export const locationLiteralStatics = {
   // Length threshold below which non-dot/non-slash literals are dropped from the banned set
   // (filters generic single words like 'design', 'guilds', 'projects', 'subagents').
   minRetainedLiteralLength: 8,
+  // Literals dropped from the banned set by exact value, regardless of length. These clear the
+  // length filter but carry a second, non-path meaning that the rule cannot distinguish from a
+  // path: 'node_modules' is the `folderConfigStatics.allowedImports` sentinel for "this folder
+  // type may import external packages", a tsconfig/glob `exclude` entry, and the substring ward
+  // tests tsc output lines against — none of which resolve a directory.
+  excludedLiterals: ['node_modules'],
   // Path substrings whose files may contain raw location literals (the canonical readers).
   allowlistPathSubstrings: [
     // The statics module that owns the literals.

@@ -26,6 +26,7 @@ describe('installTestbedContract', () => {
         cleanup: expect.any(Function),
         writeFile: expect.any(Function),
         readFile: expect.any(Function),
+        listDir: expect.any(Function),
         getClaudeSettings: expect.any(Function),
         getMcpConfig: expect.any(Function),
         getDungeonmasterConfig: expect.any(Function),

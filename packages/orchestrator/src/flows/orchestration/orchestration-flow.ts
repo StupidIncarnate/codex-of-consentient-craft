@@ -11,6 +11,7 @@ import { ChatStopAllResponder } from '../../responders/chat/stop-all/chat-stop-a
 import { OrchestrationAbandonResponder } from '../../responders/orchestration/abandon/orchestration-abandon-responder';
 import { OrchestrationDeleteResponder } from '../../responders/orchestration/delete/orchestration-delete-responder';
 import { OrchestrationGetStatusResponder } from '../../responders/orchestration/get-status/orchestration-get-status-responder';
+import { OrchestrationMergeResponder } from '../../responders/orchestration/merge/orchestration-merge-responder';
 import { OrchestrationPauseResponder } from '../../responders/orchestration/pause/orchestration-pause-responder';
 import { OrchestrationResumeResponder } from '../../responders/orchestration/resume/orchestration-resume-responder';
 import { OrchestrationStartResponder } from '../../responders/orchestration/start/orchestration-start-responder';
@@ -27,6 +28,9 @@ type ResumeResult = Awaited<ReturnType<typeof OrchestrationResumeResponder>>;
 
 type AbandonParams = Parameters<typeof OrchestrationAbandonResponder>[0];
 type AbandonResult = Awaited<ReturnType<typeof OrchestrationAbandonResponder>>;
+
+type MergeParams = Parameters<typeof OrchestrationMergeResponder>[0];
+type MergeResult = Awaited<ReturnType<typeof OrchestrationMergeResponder>>;
 
 type DeleteParams = Parameters<typeof OrchestrationDeleteResponder>[0];
 type DeleteResult = Awaited<ReturnType<typeof OrchestrationDeleteResponder>>;
@@ -49,6 +53,9 @@ export const OrchestrationFlow = {
 
   abandon: async ({ questId }: AbandonParams): Promise<AbandonResult> =>
     OrchestrationAbandonResponder({ questId }),
+
+  merge: async ({ questId }: MergeParams): Promise<MergeResult> =>
+    OrchestrationMergeResponder({ questId }),
 
   delete: async ({ questId, guildId }: DeleteParams): Promise<DeleteResult> =>
     OrchestrationDeleteResponder({ questId, guildId }),

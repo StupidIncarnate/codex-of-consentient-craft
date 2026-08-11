@@ -43,6 +43,7 @@ export const agentPromptClassificationStatics = {
     'blightwarden-crosscut-minion',
     'blightwarden-deadcode-minion',
     'pesteater',
+    'warpgate',
   ],
   roleNames: [
     'codeweaver',
@@ -68,6 +69,11 @@ export const agentPromptClassificationStatics = {
     /** Blightwarden synthesizer — runs after its minions, judges their fixes, cleans up. */
     'blightwarden',
     'pesteater',
+    /** Warpgate — merge relay worker, dispatched from the ledger like any other role; lands the
+     * quest branch on the base branch. `tavernkeeper` is deliberately absent from this list (and
+     * from `promptNames`/`minionNames`) — chat roles are served by the chat prompt path, not by
+     * `get-agent-prompt`. */
+    'warpgate',
   ],
   minionNames: [
     'chaoswhisperer-gap-minion',

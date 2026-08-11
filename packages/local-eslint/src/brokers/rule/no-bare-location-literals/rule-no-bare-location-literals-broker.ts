@@ -21,6 +21,7 @@ const bannedLiteralKeyPaths = locationLiteralKeyPathsTransformer({
   source: locationsStatics,
   rootName: 'locationsStatics',
   minRetainedLength: locationLiteralStatics.minRetainedLiteralLength,
+  excludedLiterals: locationLiteralStatics.excludedLiterals,
 });
 
 export const ruleNoBareLocationLiteralsBroker = (): EslintRule => ({

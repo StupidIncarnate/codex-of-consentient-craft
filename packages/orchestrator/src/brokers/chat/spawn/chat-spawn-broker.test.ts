@@ -1,4 +1,5 @@
 import {
+  AbsoluteFilePathStub,
   GuildIdStub,
   RepoRootCwdStub,
   SessionIdStub,
@@ -842,49 +843,82 @@ describe('chatSpawnBroker', () => {
   });
 
   describe('cwd resolution', () => {
-    it('VALID: {cwdResolveBroker resolves repo-root above guild path} => spawns with resolved repo-root cwd', async () => {
+    it('VALID: {quest records a worktreePath} => the chat child is launched with that worktree path as cwd', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
-      const resolvedRepoRoot = RepoRootCwdStub({ value: '/home/user/repo-root' });
+      const sessionId = SessionIdStub({ value: 'resume-with-worktree' });
+      const questId = QuestIdStub({ value: 'quest-with-worktree' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest-with-worktree',
+      });
 
-      proxy.setupCwdResolveSuccess({ cwd: resolvedRepoRoot });
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupResumeWithWorktree({ questId, sessionId, worktreePath });
 
       await chatSpawnBroker({
         role,
         guildId,
-        message: 'Help me build auth',
+        questId,
+        sessionId,
+        message: 'Continue working',
         onEntries: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
 
-      const spawnedCwd = proxy.getSpawnedCwd();
-
-      expect(spawnedCwd).toBe(resolvedRepoRoot);
+      expect(proxy.getSpawnedCwd()).toBe(worktreePath);
     });
 
-    it('ERROR: {cwdResolveBroker throws} => falls back to repoRootCwdContract.parse(guild.path) for cwd', async () => {
+    it('VALID: {quest records no worktreePath} => the chat child is launched with the resolved repo root as cwd', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionId = SessionIdStub({ value: 'resume-no-worktree' });
+      const questId = QuestIdStub({ value: 'quest-no-worktree' });
+      const resolvedRepoRoot = RepoRootCwdStub({ value: '/home/user/repo-root' });
 
-      proxy.setupCwdResolveReject({ error: new Error('no .dungeonmaster.json ancestor') });
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupResumeWithRepoRoot({ questId, sessionId, repoRoot: resolvedRepoRoot });
 
       await chatSpawnBroker({
         role,
         guildId,
-        message: 'Help me build auth',
+        questId,
+        sessionId,
+        message: 'Continue working',
         onEntries: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
 
-      const spawnedCwd = proxy.getSpawnedCwd();
+      expect(proxy.getSpawnedCwd()).toBe(resolvedRepoRoot);
+    });
 
-      expect(spawnedCwd).toBe(RepoRootCwdStub({ value: '/home/user/my-guild' }));
+    it("ERROR: {quest's recorded worktree is missing} => rejects with a message naming the absolute path, and no child is launched", async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionId = SessionIdStub({ value: 'resume-missing-worktree' });
+      const questId = QuestIdStub({ value: 'quest-missing-worktree' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest-missing-worktree',
+      });
+
+      proxy.setupResumeWithMissingWorktree({ questId, sessionId, worktreePath });
+
+      await expect(
+        chatSpawnBroker({
+          role,
+          guildId,
+          questId,
+          sessionId,
+          message: 'Continue working',
+          onEntries: jest.fn(),
+          onComplete: jest.fn(),
+          registerProcess: jest.fn(),
+        }),
+      ).rejects.toThrow(/\/repo\/worktrees\/quest-missing-worktree/u);
+
+      expect(proxy.getSpawnedCwd()).toBe(undefined);
     });
   });
 

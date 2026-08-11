@@ -1,10 +1,16 @@
 /**
  * PURPOSE: Proxy for OrchestrationStartResponder — composes the child broker/state proxies so the
  * responder AND the brokers it drives (questBuildRelayGraphBroker, questOperationsUpdateBroker,
- * questModifyBroker) run REAL with only the fs adapters mocked. crypto.randomUUID is queued with
- * fixed ids so the processId, the relay operation-item ids, and the first-work-item id are
- * deterministic; Date.prototype.toISOString is pinned to '2024-01-15T10:00:00.000Z' by the
- * composed persist/outbox proxies so every timestamp the responder stamps is deterministic too.
+ * questModifyBroker) run REAL with only the fs adapters mocked. PrepareQuestWorktreeLayerResponder
+ * is mocked directly (`registerMock({ fn: PrepareQuestWorktreeLayerResponder })`) rather than
+ * composed for real: it spawns `git` several times, walks the filesystem, and runs a build, and
+ * staging all of that here would collide with this proxy's own `spawn`/`readdir` mocks (see
+ * run-chat-layer-broker.proxy.ts and chat-spawn-broker.proxy.ts for the same precedent of mocking
+ * a non-adapter broker/responder in a composing proxy). Its own full git/fs/build coverage lives
+ * in prepare-quest-worktree-layer-responder.test.ts. crypto.randomUUID is queued with fixed ids so
+ * the processId, the relay operation-item ids, and the first-work-item id are deterministic;
+ * Date.prototype.toISOString is pinned to '2024-01-15T10:00:00.000Z' by the composed
+ * persist/outbox proxies so every timestamp the responder stamps is deterministic too.
  *
  * USAGE:
  * const proxy = OrchestrationStartResponderProxy();
@@ -13,16 +19,20 @@
  * proxy.getPersistedQuestAt({ index: 0 }); // the relay seed's single atomic operations persist
  */
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import {
+  AbsoluteFilePathStub,
+  BaseBranchNameStub,
   FileContentsStub,
   FileNameStub,
   FilePathStub,
   GuildConfigStub,
   GuildIdStub,
   GuildStub,
+  QuestBranchNameStub,
+  QuestStub,
   questContract,
 } from '@dungeonmaster/shared/contracts';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { questBuildRelayGraphBrokerProxy } from '../../../brokers/quest/build-relay-graph/quest-build-relay-graph-broker.proxy';
@@ -33,9 +43,33 @@ import { questOperationsUpdateBrokerProxy } from '../../../brokers/quest/operati
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
 import { OrchestrationStartResponder } from './orchestration-start-responder';
+import { PrepareQuestWorktreeLayerResponder } from './prepare-quest-worktree-layer-responder';
+import { PrepareQuestWorktreeLayerResponderProxy } from './prepare-quest-worktree-layer-responder.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 type Parsed = ReturnType<typeof questContract.parse>;
+type GitContext = Exclude<
+  Awaited<ReturnType<typeof PrepareQuestWorktreeLayerResponder>>,
+  undefined
+>;
+
+// Fixed, deterministic default so every existing test that doesn't care about the git lifecycle
+// keeps passing without staging it explicitly. QuestStub is the only way to obtain a properly
+// branded GitBaseRef (there is no standalone gitBaseRefContract to parse against directly); the
+// guard below reads it back without a non-null assertion.
+const questWithBaseRef = QuestStub({
+  baseRef: '1234567890abcdef1234567890abcdef12345678' as never,
+});
+if (questWithBaseRef.baseRef === undefined) {
+  throw new Error('QuestStub did not brand the seeded baseRef');
+}
+
+const DEFAULT_GIT_CONTEXT: GitContext = {
+  branchName: QuestBranchNameStub({ value: 'quest/add-auth-f47ac10b' }),
+  baseBranch: BaseBranchNameStub({ value: 'main' }),
+  worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-f47ac10b' }),
+  baseRef: questWithBaseRef.baseRef,
+};
 
 // uuid consumption order per Start: call 1 is the processId, then questBuildRelayGraphBroker
 // consumes one id per seeded implementation operation item, one per verify-tail item, and one for
@@ -61,6 +95,9 @@ export const OrchestrationStartResponderProxy = (): {
   setupStart: (params: { quest: Quest }) => void;
   setupStartSkipsOperationsPersist: (params: { quest: Quest }) => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
+  setupWorktreePrepared: (params: { gitContext: GitContext }) => void;
+  setupWorktreeSkipped: () => void;
+  setupWorktreeFails: (params: { error: Error }) => void;
   getPersistedStatuses: () => readonly Parsed['status'][];
   getPersistedQuestAt: (params: { index: number }) => Parsed;
 } => {
@@ -79,6 +116,16 @@ export const OrchestrationStartResponderProxy = (): {
   queueProxy.setupEmpty();
   const processesProxy = orchestrationProcessesStateProxy();
   processesProxy.setupEmpty();
+
+  // PrepareQuestWorktreeLayerResponder is mocked directly (see the header comment) rather than
+  // composed for real. Wired to satisfy enforce-proxy-child-creation; the registerMock below
+  // replaces the responder entirely so this child proxy's own git/fs/build mocks never fire.
+  // Every existing test gets a successful, deterministic git context by default;
+  // setupWorktreePrepared/setupWorktreeSkipped/setupWorktreeFails below override it with a live
+  // one-shot, which outranks this sticky default.
+  PrepareQuestWorktreeLayerResponderProxy();
+  const worktreeMock = registerMock({ fn: PrepareQuestWorktreeLayerResponder });
+  worktreeMock.calledWith([]).resolves(DEFAULT_GIT_CONTEXT);
 
   // The queue-entry guild lookup at the end of a successful Start: one more find-quest-path fs
   // round (for the guildId), then the guild-config read guildGetBroker performs.
@@ -160,6 +207,25 @@ export const OrchestrationStartResponderProxy = (): {
       getProxy.setupQuestFound({ quest });
       opsProxy.setupQuestFound({ quest });
       modifyProxy.setupResolveFailureOnce();
+    },
+
+    // Overrides the default git context for tests asserting exactly what the layer returned lands
+    // on the atomic persist.
+    setupWorktreePrepared: ({ gitContext }: { gitContext: GitContext }): void => {
+      worktreeMock.onceFor([]).resolves(gitContext);
+    },
+
+    // The quest already carries a full git lifecycle (or the ledger tail is already seeded and
+    // predates this feature with a worktree of its own) — the layer's idempotent skip resolves
+    // undefined, spawning nothing.
+    setupWorktreeSkipped: (): void => {
+      worktreeMock.onceFor([]).resolves(undefined);
+    },
+
+    // The layer rejects (BaseBranchNotFoundError, QuestBranchNameTakenError, or a propagated
+    // WorktreePrepareError) — the responder must reject too, having persisted nothing.
+    setupWorktreeFails: ({ error }: { error: Error }): void => {
+      worktreeMock.onceFor([]).rejects(error);
     },
 
     getPersistedStatuses: (): readonly Parsed['status'][] =>

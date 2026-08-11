@@ -12,6 +12,7 @@ export const questResumeBrokerProxy = (): {
   setupResume: (params: { restoredStatus: QuestStatus }) => void;
   setupError: () => void;
   getRequestCount: () => RequestCount;
+  getRequestBodies: () => Promise<unknown[]>;
 } => {
   fetchPostAdapterProxy();
 
@@ -30,5 +31,9 @@ export const questResumeBrokerProxy = (): {
       endpoint.networkError();
     },
     getRequestCount: (): RequestCount => endpoint.getRequestCount(),
+    // What each received request actually carried, so a test can prove the POST is bodyless rather
+    // than only that it happened. A bodyless request has no JSON to parse and is recorded as its
+    // parse error; a `{}` on the wire records as `{}`, which is what this distinguishes.
+    getRequestBodies: async (): Promise<unknown[]> => endpoint.getRequestBodies(),
   };
 };

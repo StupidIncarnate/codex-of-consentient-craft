@@ -7,6 +7,7 @@ const STATUSES = Object.keys(
 
 const TERMINAL_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.statuses> = new Set([
   'complete',
+  'merged',
   'abandoned',
 ]);
 

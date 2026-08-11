@@ -18,5 +18,5 @@ export const questAbandonBroker = async ({
 }): Promise<{ abandoned: boolean }> =>
   fetchPostAdapter<{ abandoned: boolean }>({
     url: webConfigStatics.api.routes.questAbandon.replace(':questId', questId),
-    body: {},
+    body: undefined,
   });

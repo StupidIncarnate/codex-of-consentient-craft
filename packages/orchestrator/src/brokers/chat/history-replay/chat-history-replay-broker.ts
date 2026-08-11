@@ -40,6 +40,7 @@ import type {
   ArrayIndex,
   ChatEntry,
   GuildId,
+  QuestId,
   SessionId,
   StreamJsonLine,
 } from '@dungeonmaster/shared/contracts';
@@ -63,12 +64,14 @@ import { chatLineProcessTransformer } from '../../../transformers/chat-line-proc
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
+import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { scopeSubagentFilesToDescendantsLayerBroker } from './scope-subagent-files-to-descendants-layer-broker';
 
 export const chatHistoryReplayBroker = async ({
   sessionId,
   agentId: filterAgentId,
   guildId,
+  questId,
   onEntries,
 }: {
   sessionId: SessionId;
@@ -79,19 +82,37 @@ export const chatHistoryReplayBroker = async ({
   // session-view path).
   agentId?: AgentId;
   guildId: GuildId;
+  // When set, the session's JSONL directory is resolved through the quest's own recorded cwd
+  // (questCwdResolveBroker) instead of walking up from the guild path — chat sessions now spawn
+  // with the quest's worktree as cwd, so Claude CLI encodes the JSONL path from that worktree,
+  // not the guild path. Left undefined for a session with no linked quest (e.g. the raw
+  // session-view path replayed by `chat-replay-responder`'s orphan branch) — there is no
+  // quest-recorded worktree to prefer for that case, so it keeps the guild-path walk-up below.
+  questId?: QuestId;
   onEntries: (params: { entries: ChatEntry[] }) => void;
 }): Promise<AdapterResult> => {
   const result = adapterResultContract.parse({ success: true });
-  const guild = await guildGetBroker({ guildId });
-  // Walk up from the guild path to the repo root (directory containing `.dungeonmaster.json`)
-  // because Claude CLI encodes its session JSONL filename from the SPAWN cwd, not the guild
-  // path. For the smoketests guild whose path is `<repo>/.dungeonmaster-dev`, the agent is
-  // spawned at the repo root by `agent-spawn-by-role-broker`, so the JSONL lives under
-  // `~/.claude/projects/-home-...-codex-of-consentient-craft/`, not `...--dungeonmaster-dev/`.
-  // Falls back to the guild path when no `.dungeonmaster.json` ancestor exists (standalone
-  // projects / e2e isolated /tmp dirs) — those agents spawn at the guild path itself.
-  const guildStartPath = filePathContract.parse(guild.path);
   const resolvedProjectPath = await (async () => {
+    if (questId !== undefined) {
+      const resolution = await questCwdResolveBroker({ questId });
+      if (resolution.kind === 'missing-worktree') {
+        throw new Error(
+          `Cannot replay chat history for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
+        );
+      }
+      return absoluteFilePathContract.parse(resolution.cwd);
+    }
+    // No quest is linked to this session — there is no quest-recorded worktree to prefer, so
+    // walk up from the guild path to the repo root (directory containing `.dungeonmaster.json`)
+    // the same way a legacy (no-worktree) quest resolves. Because Claude CLI encodes its
+    // session JSONL filename from the SPAWN cwd, not the guild path: for the smoketests guild
+    // whose path is `<repo>/.dungeonmaster-dev`, the agent is spawned at the repo root by
+    // `agent-spawn-by-role-broker`, so the JSONL lives under
+    // `~/.claude/projects/-home-...-codex-of-consentient-craft/`, not `...--dungeonmaster-dev/`.
+    // Falls back to the guild path when no `.dungeonmaster.json` ancestor exists (standalone
+    // projects / e2e isolated /tmp dirs) — those agents spawn at the guild path itself.
+    const guild = await guildGetBroker({ guildId });
+    const guildStartPath = filePathContract.parse(guild.path);
     try {
       const repoRootCwd = await cwdResolveBroker({
         startPath: guildStartPath,

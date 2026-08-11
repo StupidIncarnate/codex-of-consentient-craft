@@ -6,6 +6,7 @@ import {
   GuildConfigStub,
   GuildIdStub,
   GuildStub,
+  QuestIdStub,
   SessionIdStub,
   TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
@@ -334,6 +335,130 @@ describe('chatHistoryReplayBroker', () => {
           },
         ],
       ]);
+    });
+  });
+
+  describe('quest-scoped cwd resolution', () => {
+    it('VALID: {quest records a worktreePath} => replay reads the session directory derived from that worktree path', async () => {
+      // Anchors #transcript-replays-after-reload: chat sessions now spawn with the quest's
+      // worktree as cwd, so Claude CLI writes the session JSONL under the worktree-encoded
+      // directory, not the guild-path-derived one. `setupQuestWorktree` stages the JSONL read
+      // ONLY at the worktree-derived path (fsReadJsonlAdapterProxy addresses by exact
+      // filePath), so if the broker fell back to the guild-path walk-up instead of using
+      // questCwdResolveBroker, the read would miss its address and reject — the assertion that
+      // the broker used the worktree path is implicit in the entry emission succeeding at all.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questId = QuestIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb64f1' });
+      const sessionId = SessionIdStub({ value: 'test-session-quest-worktree' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupQuestWorktree({ questId, worktreePath: '/home/user/worktrees/quest-abc12345' });
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","uuid":"worktree-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"worktree reply"}]}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        questId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'worktree reply',
+            source: 'session',
+            uuid: 'worktree-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {quest records no worktreePath} => replay reads the repo-root-derived directory as before', async () => {
+      // A legacy (pre-worktree) quest still carries a questId, but questCwdResolveBroker
+      // resolves it to `kind: 'repo-root'` — the same directory shape the guild-path walk-up
+      // used to produce, now reached through the quest's own resolution instead.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questId = QuestIdStub({ value: '9c6c0e5a-6b8a-4a53-8f8a-6a5f6f6a6a5f' });
+      const sessionId = SessionIdStub({ value: 'test-session-quest-repo-root' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupQuestRepoRoot({ questId, repoRoot: '/home/user/my-repo-root' });
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","uuid":"repo-root-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"repo root reply"}]}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        questId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'repo root reply',
+            source: 'session',
+            uuid: 'repo-root-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
+          },
+        ],
+      ]);
+    });
+
+    it("ERROR: {quest's recorded worktree is missing on disk} => throws naming the absolute path instead of replaying an empty transcript", async () => {
+      // The failure mode this quest exists to prevent: a missing worktree must be LOUD (a
+      // thrown error naming the path), never a silently empty transcript rendered under a
+      // spinner. No setupMainSession is staged — the broker must throw before ever computing a
+      // JSONL path to read.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questId = QuestIdStub({ value: 'b2f6a9f0-0a5a-4a2a-9a6a-6a6a6a6a6a6a' });
+      const sessionId = SessionIdStub({ value: 'test-session-quest-worktree-missing' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupQuestWorktreeMissing({
+        questId,
+        worktreePath: '/home/user/worktrees/quest-missing99',
+      });
+
+      await expect(
+        chatHistoryReplayBroker({
+          sessionId,
+          guildId,
+          questId,
+          onEntries: (): void => {},
+        }),
+      ).rejects.toThrow(
+        /Cannot replay chat history for quest .*: worktree not found: \/home\/user\/worktrees\/quest-missing99/u,
+      );
     });
   });
 

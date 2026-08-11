@@ -5,6 +5,7 @@ import {
   GuildPathStub,
   ModifyQuestInputStub,
   QuestBlightLedgerEntryStub,
+  QuestBranchNameStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
@@ -13,6 +14,7 @@ import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orch
 import { guildAddBroker } from '../../guild/add/guild-add-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questHydrateBroker } from '../hydrate/quest-hydrate-broker';
+import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 import { questModifyBroker } from './quest-modify-broker';
 
 // GAP: the safety argument for parallel blightwarden minion writes is "questModifyBroker
@@ -116,7 +118,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     const persisted = loaded.quest!.planningNotes.blightLedger;
 
     // Exactly one entry for the shared itemId, and it is the LAST submission this test made —
-    // deterministic, because withQuestModifyLockLayerBroker's mutex registers each concurrent
+    // deterministic, because questWithModifyLockBroker's mutex registers each concurrent
     // caller's queue slot SYNCHRONOUSLY while `Promise.all`/`.map()` iterates (before any caller
     // reaches its first real await), so the read-modify-write turns run strictly FIFO in that
     // same submission order. A real cross-process lost update would show up here as either zero
@@ -183,5 +185,59 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     );
 
     expect(persisted).toStrictEqual(expected);
+  });
+});
+
+// Both brokers are whole-file read-modify-writers of the SAME quest.json: questModifyBroker owns
+// the agent/spec surface, questOperationsUpdateBroker owns the runtime ledger. They only stay
+// non-clobbering while they queue behind ONE per-questId mutex. Two mutex maps means neither
+// waits for the other, both read the same bytes, and whichever persists second overwrites the
+// other's field — a lost update on the ledger with no error anywhere.
+describe('questModifyBroker vs questOperationsUpdateBroker (integration — real disk, one shared mutex)', () => {
+  const envHarness = orchestrationEnvironmentHarness();
+
+  it('VALID: {concurrent questModifyBroker planningNotes write and questOperationsUpdateBroker branchName write} => both fields survive on real disk, neither writer clobbers the other', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'modify-vs-operations-update-race' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'Cross Writer Race Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
+    const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
+
+    const ledgerEntry = QuestBlightLedgerEntryStub({
+      itemId:
+        'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:integrity' as never,
+    });
+    const branchName = QuestBranchNameStub({ value: 'quest/cross-writer-race' });
+
+    const [modifyResult] = await Promise.all([
+      questModifyBroker({
+        input: ModifyQuestInputStub({
+          questId,
+          planningNotes: { blightLedger: [ledgerEntry] },
+        }),
+      }),
+      questOperationsUpdateBroker({
+        questId,
+        update: () => ({ branchName }),
+      }),
+    ]);
+
+    const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+
+    restore();
+    testbed.cleanup();
+
+    expect(modifyResult.success).toBe(true);
+    // The ledger write is questModifyBroker's; the branch name is questOperationsUpdateBroker's.
+    // Under two separate mutex maps exactly one of these two assertions fails, depending on which
+    // writer's persist landed last.
+    expect(loaded.quest!.planningNotes.blightLedger).toStrictEqual([ledgerEntry]);
+    expect(loaded.quest!.branchName).toBe(branchName);
   });
 });

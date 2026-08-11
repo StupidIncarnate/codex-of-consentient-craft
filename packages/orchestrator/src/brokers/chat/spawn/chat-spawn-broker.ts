@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Spawns a Claude CLI chat process for a chat role (ChaosWhisperer, BugHunt, or Glyphsmith) with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
+ * PURPOSE: Spawns a Claude CLI chat process for a chat role (ChaosWhisperer, BugHunt, Glyphsmith, or Tavernkeeper) with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
  *
  * USAGE:
  * const { chatProcessId, handle } = await chatSpawnBroker({
@@ -14,11 +14,7 @@
  * // `handle` exposes stop() + initialDrains() for chat lifecycle composition.
  */
 
-import {
-  filePathContract,
-  repoRootCwdContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { sessionIdContract } from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntry,
   GuildId,
@@ -30,7 +26,6 @@ import type {
   SessionId,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
@@ -38,7 +33,7 @@ import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-bu
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
 import type { chatStreamProcessHandleBroker } from '../stream-process-handle/chat-stream-process-handle-broker';
-import { guildGetBroker } from '../../guild/get/guild-get-broker';
+import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
 import { resolveChatQuestLayerBroker } from './resolve-chat-quest-layer-broker';
 
@@ -104,8 +99,6 @@ export const chatSpawnBroker = async ({
     );
   }
 
-  const guild = await guildGetBroker({ guildId });
-
   const {
     questId: resolvedQuestId,
     workItemId: chatWorkItemId,
@@ -126,17 +119,19 @@ export const chatSpawnBroker = async ({
     ...(sessionId ? { sessionId } : {}),
   });
 
-  // Walk up from the guild path to the repo root (directory containing `.dungeonmaster.json`)
-  // so the spawned Claude CLI's cwd lets `.mcp.json` resolve its relative command. Falls back
-  // to the guild path when no `.dungeonmaster.json` ancestor exists (standalone projects).
-  const guildStartPath = filePathContract.parse(guild.path);
-  const repoRootCwd = await (async () => {
-    try {
-      return await cwdResolveBroker({ startPath: guildStartPath, kind: 'repo-root' });
-    } catch {
-      return repoRootCwdContract.parse(guild.path);
-    }
-  })();
+  // The quest's worktree is itself a full checkout containing `.dungeonmaster.json` and
+  // `.mcp.json`, so the spawned Claude CLI resolves them there while the conversation sees
+  // the quest branch's own code, not master's. A quest with no recorded worktree (legacy,
+  // pre-worktree-lifecycle) resolves to the repo root instead.
+  const cwdResolution = await questCwdResolveBroker({ questId: resolvedQuestId });
+
+  if (cwdResolution.kind === 'missing-worktree') {
+    throw new Error(
+      `Cannot start chat for quest ${resolvedQuestId}: worktree not found: ${cwdResolution.worktreePath}`,
+    );
+  }
+
+  const repoRootCwd = cwdResolution.cwd;
 
   const launchResult = agentLaunchBroker({
     guildId,

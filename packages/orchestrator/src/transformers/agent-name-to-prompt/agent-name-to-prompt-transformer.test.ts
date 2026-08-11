@@ -13,6 +13,7 @@ import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater
 import { siegemasterWalkerMinionStatics } from '../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
+import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
 describe('agentNameToPromptTransformer', () => {
@@ -181,6 +182,18 @@ describe('agentNameToPromptTransformer', () => {
       name: 'pesteater',
       model: 'opus',
       prompt: pesteaterPromptStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "warpgate"} => returns warpgate prompt data on opus', () => {
+    const agent = AgentPromptNameStub({ value: 'warpgate' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'warpgate',
+      model: 'opus',
+      prompt: warpgatePromptStatics.prompt.template,
     });
   });
 

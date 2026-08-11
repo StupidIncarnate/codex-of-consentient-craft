@@ -52,6 +52,33 @@ describe('devLogGenericEventFormatTransformer', () => {
     expect(result).toBe('');
   });
 
+  it('EDGE: {chat-complete payload from a spawn that never reached its init line} => omits the null parts instead of throwing', () => {
+    const result = devLogGenericEventFormatTransformer({
+      payload: {
+        chatProcessId: 'chat-22c37b1c-5c12-4fc1-82ae-52d3692ed58f',
+        exitCode: 1,
+        sessionId: null,
+        questId: 'fc000003-0000-4000-8000-000000000003',
+        workItemId: 'f1fada6c-0000-4000-8000-000000000001',
+      },
+    });
+
+    expect(result).toBe('proc:22c37b1c  quest:fc000003');
+  });
+
+  it('EDGE: {phase, slotIndex and role all null} => omits each null part', () => {
+    const result = devLogGenericEventFormatTransformer({
+      payload: {
+        processId: 'proc-abc12345-1111-2222-3333-444444444444',
+        phase: null,
+        role: null,
+        slotIndex: null,
+      },
+    });
+
+    expect(result).toBe('proc:abc12345');
+  });
+
   it('VALID: {smoketest-shaped payload with caseResult} => ignores smoketest-specific fields', () => {
     const result = devLogGenericEventFormatTransformer({
       payload: {
