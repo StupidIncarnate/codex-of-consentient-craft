@@ -49,6 +49,10 @@ ${synchronousAgentRule}
 signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'blocked', blockedReason: 'git commit is denied in this dispatched session (no approver); add Bash(git commit:*) to .claude/settings.json permissions.allow' })
 \`\`\`
 
+**A wall does not cancel the scope it leaves reachable**, and it marks your work item \`failed\` — a red row, not a clean handoff. Finish and record everything still reachable, THEN pick the status.
+
+**"No session of my role could pass" is a claim about a FRESH session.** Per-session state is not global: each dispatch is its own process with its own MCP child, so a stale server or a module loaded before your fix landed is a wall for THIS session only. A wall a re-dispatch clears is \`partial\`.
+
 Commit whatever you finished first, exactly as you would for \`partial\` — a blocked quest still hands its work forward through git.`,
 
   minionMarkdown: `${heading}

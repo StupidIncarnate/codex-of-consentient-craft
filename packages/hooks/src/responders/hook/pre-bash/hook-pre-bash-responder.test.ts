@@ -18,6 +18,7 @@ describe('HookPreBashResponder', () => {
       expect(result).toStrictEqual({
         shouldBlock: false,
         updatedCommand: 'npm run ward',
+        updatedTimeout: 600_000,
       });
     });
 
@@ -33,6 +34,22 @@ describe('HookPreBashResponder', () => {
       expect(result).toStrictEqual({
         shouldBlock: false,
         updatedCommand: 'npm run ward -- --only lint',
+        updatedTimeout: 600_000,
+      });
+    });
+
+    it('VALID: {command: "npm run ward | tail -20", timeout: 900000} => strips pipe and leaves the sufficient timeout alone', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward | tail -20', timeout: 900_000 },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+        updatedCommand: 'npm run ward',
       });
     });
   });
@@ -174,6 +191,7 @@ describe('HookPreBashResponder', () => {
       expect(result).toStrictEqual({
         shouldBlock: false,
         updatedCommand: 'npm run ward',
+        updatedTimeout: 600_000,
       });
     });
   });
@@ -204,6 +222,7 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: false,
+        updatedCommand: 'dungeonmaster-ward',
         updatedTimeout: 600_000,
       });
     });
@@ -235,6 +254,7 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: false,
+        updatedCommand: 'npm run ward',
         updatedTimeout: 600_000,
       });
     });
@@ -250,6 +270,7 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: false,
+        updatedCommand: 'npm run ward -- --only unit',
         updatedTimeout: 600_000,
       });
     });
@@ -339,6 +360,7 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: false,
+        updatedCommand: 'npm run ward',
         updatedTimeout: 600_000,
       });
     });

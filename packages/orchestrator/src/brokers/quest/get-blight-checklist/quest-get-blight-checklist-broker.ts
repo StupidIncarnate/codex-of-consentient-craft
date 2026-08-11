@@ -1,10 +1,12 @@
 /**
  * PURPOSE: Returns the deterministic blight checklist for a quest's diff — every changed file
- * crossed with every BlightConcern, measured from `quest.baseRef` inside the quest's own
- * worktree, plus which of those units still carry no disposition in the quest's blight ledger.
- * The diff must run inside the quest's own tree because the quest's commits exist only on its
- * branch — computed from the repo root's checkout (which stays on the base branch) the same diff
- * finds none of them and comes back empty or describing unrelated work.
+ * crossed with every BlightConcern, measured from `quest.baseRef` in whatever checkout
+ * `questCwdResolveBroker` says this quest lives in, plus which of those units still carry no
+ * disposition in the quest's blight ledger. A worktree quest MUST be measured inside its own tree:
+ * its commits exist only on its branch, and the repo root stays on the base branch, so the same
+ * diff run there finds none of them. A quest that predates worktrees carries no `worktreePath` and
+ * resolves to the repo root — which is correct for it, because the repo root checkout IS where its
+ * branch is; the fallback is load-bearing, not a degraded path.
  *
  * USAGE:
  * const checklist = await questGetBlightChecklistBroker({ questId });

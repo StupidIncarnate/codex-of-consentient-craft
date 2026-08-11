@@ -40,6 +40,7 @@ describe('HookPreBashFlow', () => {
             hookEventName: 'PreToolUse',
             updatedInput: {
               command: 'npm run ward -- --only unit',
+              timeout: 600_000,
             },
           },
         }),
@@ -66,7 +67,11 @@ describe('HookPreBashFlow', () => {
       });
     });
 
-    it('VALID: {inputData: ward command with low timeout} => returns exitCode 0 with updatedInput timeout in stdout', () => {
+    // Claude Code treats `updatedInput` as a REPLACEMENT for the whole tool input, not a patch: a
+    // payload carrying only `timeout` fails Bash's own schema validation and the tool call is
+    // rejected outright with "The required parameter `command` is missing". So a timeout-only
+    // decision still has to echo the command back verbatim.
+    it('VALID: {inputData: ward command with low timeout} => updatedInput carries the command alongside the raised timeout', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
@@ -83,14 +88,14 @@ describe('HookPreBashFlow', () => {
         stdout: JSON.stringify({
           hookSpecificOutput: {
             hookEventName: 'PreToolUse',
-            updatedInput: { timeout: 600_000 },
+            updatedInput: { command: 'npm run ward', timeout: 600_000 },
           },
         }),
         stderr: '',
       });
     });
 
-    it('VALID: {inputData: ward command with no timeout} => returns exitCode 0 with updatedInput timeout in stdout', () => {
+    it('VALID: {inputData: ward command with no timeout} => updatedInput carries the command alongside the raised timeout', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
@@ -107,7 +112,10 @@ describe('HookPreBashFlow', () => {
         stdout: JSON.stringify({
           hookSpecificOutput: {
             hookEventName: 'PreToolUse',
-            updatedInput: { timeout: 600_000 },
+            updatedInput: {
+              command: 'npm run ward -- --only unit -- packages/hooks',
+              timeout: 600_000,
+            },
           },
         }),
         stderr: '',

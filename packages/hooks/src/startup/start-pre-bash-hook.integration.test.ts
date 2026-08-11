@@ -137,7 +137,7 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "dungeonmaster-ward", no timeout} => returns exit code 0 with updatedInput timeout', async () => {
+    it('VALID: {command: "dungeonmaster-ward", no timeout} => returns exit code 0 with updatedInput command + timeout', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'dungeonmaster-ward' },
@@ -150,7 +150,7 @@ describe('pre-bash-hook', () => {
         stdout: JSON.stringify({
           hookSpecificOutput: {
             hookEventName: 'PreToolUse',
-            updatedInput: { timeout: 600_000 },
+            updatedInput: { command: 'dungeonmaster-ward', timeout: 600_000 },
           },
         }),
         stderr: '',
@@ -189,7 +189,7 @@ describe('pre-bash-hook', () => {
   });
 
   describe('ward timeout enforcement', () => {
-    it('VALID: {command: "npm run ward", timeout: 120000} => returns updatedInput with timeout 600000', async () => {
+    it('VALID: {command: "npm run ward", timeout: 120000} => returns updatedInput with the command and timeout 600000', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npm run ward', timeout: 120_000 },
@@ -202,7 +202,7 @@ describe('pre-bash-hook', () => {
         stdout: JSON.stringify({
           hookSpecificOutput: {
             hookEventName: 'PreToolUse',
-            updatedInput: { timeout: 600_000 },
+            updatedInput: { command: 'npm run ward', timeout: 600_000 },
           },
         }),
         stderr: '',

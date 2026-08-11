@@ -19,15 +19,17 @@ export const HookPreBashFlow = ({ inputData }: { inputData: string }): ExecResul
       input: parsed as Parameters<typeof HookPreBashResponder>[0]['input'],
     });
 
-    if (result.updatedCommand || result.updatedTimeout) {
+    // Gated on `updatedCommand`, never on `updatedTimeout` alone. Claude Code REPLACES the tool
+    // input with `updatedInput` instead of merging it, so an object without `command` fails Bash's
+    // own schema and the harness kills the call with "The required parameter `command` is missing" —
+    // an agent then sees a hard tool error on a command the hook meant to wave through. Emitting
+    // nothing is the safe degradation; the responder is what guarantees a command is always there to
+    // emit.
+    if (result.updatedCommand) {
       const updatedInput: {
-        command?: typeof result.updatedCommand;
+        command: typeof result.updatedCommand;
         timeout?: typeof result.updatedTimeout;
-      } = {};
-
-      if (result.updatedCommand) {
-        updatedInput.command = result.updatedCommand;
-      }
+      } = { command: result.updatedCommand };
 
       if (result.updatedTimeout) {
         updatedInput.timeout = result.updatedTimeout;

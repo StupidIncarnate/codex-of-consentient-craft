@@ -127,21 +127,31 @@ export const blightChecklistBuildTransformer = ({
       continue;
     }
 
-    const base = repoRelativePathContract.parse(
-      filePath.endsWith('.integration.test.ts')
-        ? filePath.slice(0, -'.integration.test.ts'.length)
-        : filePath.endsWith('.test.tsx')
-          ? filePath.slice(0, -'.test.tsx'.length)
-          : filePath.endsWith('.test.ts')
-            ? filePath.slice(0, -'.test.ts'.length)
-            : filePath.endsWith('.proxy.tsx')
-              ? filePath.slice(0, -'.proxy.tsx'.length)
-              : filePath.endsWith('.proxy.ts')
-                ? filePath.slice(0, -'.proxy.ts'.length)
-                : filePath.endsWith('.stub.ts')
-                  ? `${filePath.slice(0, -'.stub.ts'.length)}-contract`
-                  : filePath.replace(/\.[^./]+$/u, ''),
-    );
+    const strippedBase = filePath.endsWith('.integration.test.ts')
+      ? filePath.slice(0, -'.integration.test.ts'.length)
+      : filePath.endsWith('.test.tsx')
+        ? filePath.slice(0, -'.test.tsx'.length)
+        : filePath.endsWith('.test.ts')
+          ? filePath.slice(0, -'.test.ts'.length)
+          : filePath.endsWith('.proxy.tsx')
+            ? filePath.slice(0, -'.proxy.tsx'.length)
+            : filePath.endsWith('.proxy.ts')
+              ? filePath.slice(0, -'.proxy.ts'.length)
+              : filePath.endsWith('.stub.ts')
+                ? `${filePath.slice(0, -'.stub.ts'.length)}-contract`
+                : filePath.replace(/\.[^./]+$/u, '');
+
+    // Every marker above can in principle consume the whole name — a path that IS its own extension
+    // (`.ts`) strips to nothing, the same way a bare dotfile does. An empty base fails
+    // `repoRelativePathContract`, and because this loop feeds the ENTIRE checklist, one such file
+    // takes the whole review surface down rather than degrading. Guard on what the strip PRODUCED
+    // rather than on the extension shapes that can produce it, so a future marker cannot reopen this.
+    if (strippedBase === '') {
+      selfPairedFiles.push(file);
+      continue;
+    }
+
+    const base = repoRelativePathContract.parse(strippedBase);
 
     const filesInGroup = groups.get(base) ?? ([] as RepoRelativePath[]);
     filesInGroup.push(file);

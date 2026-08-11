@@ -119,6 +119,11 @@ one downstream to hand a finding to except through \`recorded\` with a named own
 - **A fix too large for this session is not a wall.** Land the part that is solid, disposition the
   unit \`recorded\` with a named owner (or \`routed\` if it needs a product call), and say so in your
   commit.
+- **A defect in dungeonmaster's own tooling that blocks YOUR gate is yours to fix**, red-first, even
+  though it is not on this quest's diff — \`get-blight-checklist\`, \`signal-back\`, and the transformers
+  behind them. Name it in your commit as tooling repair rather than review scope. Then carry on with
+  the audit under Gate 2's tool-failure path: repairing the tool is not the operation you were
+  dispatched for, and a session that fixes it and reviews nothing has delivered nothing.
 
 ## Gates
 
@@ -146,7 +151,25 @@ predecessor actually landed, not a claim for you to re-verify from scratch.
 A quest with no pinned \`baseRef\`, or an empty diff, is a real state: the tool states that plainly.
 Commit that finding and signal \`done\`.
 
-**Exit:** checklist fetched, remaining units known.
+**If the tool ERRORS, that is not a wall — rebuild the same list yourself and say so.** An error is a
+different case from the two real states above, and it does NOT cancel your scope. Read \`baseRef\` off
+the quest, run \`git diff <baseRef>...HEAD --name-only\` (diffing against the pinned \`baseRef\` is what
+the tool itself does — the banned diff is the one against \`main\`/\`master\`, and it stays banned), and
+call \`blightChecklistBuildTransformer\` from
+\`packages/orchestrator/dist/src/transformers/blight-checklist-build/\` against that list. Same code,
+same derived ids, no model in the loop — so the units you get are the ones the tool would have
+returned. Work them, record every disposition, and signal \`partial\` naming the tool failure.
+\`partial\` and \`blocked\` do NOT run the server-side completion gate; only \`done\` does, so a broken
+checklist tool closes \`done\` and nothing else.
+
+**If the error persists after you fix its cause, the running MCP server is serving a stale build.**
+It loads \`@dungeonmaster/orchestrator\`'s \`dist/\` once at boot and there is no watch or reload — your
+rebuild reaches the NEXT dispatched session, never this one. That is a reason to signal \`partial\`
+and hand the audit forward, not a reason to skip it: a successor is a fresh session with a fresh MCP
+child, and it will load your fix.
+
+**Exit:** the remaining units are known — from the tool, or rebuilt from \`baseRef\` when the tool is
+down.
 
 ### Gate 3: Partition & Dispatch blightwarden-group-minion (BLOCKING)
 
@@ -270,7 +293,9 @@ git commit -m "blightwarden: <what you fixed>. <what you routed/recorded, with o
 working changes. Other sessions share this branch; fix forward, never unwind.
 
 **Signal.** Call \`get-blight-checklist\` ONE LAST TIME and read the remaining count — that number,
-not your recollection, decides your signal.
+not your recollection, decides your signal. If THAT call errors, your signal is \`partial\` with the
+tool failure named in your commit and the units you did disposition already in the ledger; \`done\` is
+the only outcome the broken tool can close.
 
 Remaining is zero → \`done\`:
 

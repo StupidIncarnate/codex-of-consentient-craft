@@ -279,6 +279,26 @@ describe('blightChecklistBuildTransformer', () => {
           "craft — .gitignore's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
+
+    // The `.ts`/`.tsx` precheck above admits a path whose WHOLE name is the extension, and stripping
+    // that yields the same empty string a bare dotfile used to. One changed file of this shape takes
+    // the entire checklist down, so the group base is guarded on what it actually produces rather
+    // than on the extension shape that happened to produce it.
+    it.each(['.ts', '.tsx'])(
+      'VALID: {%s changed — the whole name IS the extension} => self-paired, never an empty group base',
+      (path) => {
+        const extensionOnlyPath = RepoRelativePathStub({ value: path });
+        const { baseRef } = BlightChecklistStub();
+
+        const result = blightChecklistBuildTransformer({
+          changedFiles: [extensionOnlyPath],
+          baseRef,
+        });
+
+        expect(result.items[0]?.implPath).toBe(path);
+        expect(result.items[0]?.pairedFiles).toStrictEqual([]);
+      },
+    );
   });
 
   describe('exclusion: non-reviewable source', () => {

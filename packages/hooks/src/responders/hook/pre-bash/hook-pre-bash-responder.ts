@@ -53,14 +53,21 @@ export const HookPreBashResponder = ({
     });
   }
 
+  // Both update branches below need this, and only a ward command ever reaches either of them.
+  const needsWardTimeoutFloor = !timeout || timeout < wardTimeoutStatics.minimumTimeout;
+
   const isPiped = isWardPipedCommandGuard({ command });
 
   if (isPiped) {
     const strippedCommand = stripWardPipeCommandTransformer({ command });
 
+    // The floor applies here too. Stripping the pipe is the ONLY thing this branch used to do, so a
+    // piped ward run — the form agents reach for most — kept whatever short timeout it arrived with
+    // and the floor never protected the runs it exists for.
     return hookPreEditResponderResultContract.parse({
       shouldBlock: false,
       updatedCommand: strippedCommand,
+      ...(needsWardTimeoutFloor && { updatedTimeout: wardTimeoutStatics.minimumTimeout }),
     });
   }
 
@@ -84,9 +91,13 @@ export const HookPreBashResponder = ({
 
   const isWard = isWardCommandGuard({ command });
 
-  if (isWard && (!timeout || timeout < wardTimeoutStatics.minimumTimeout)) {
+  if (isWard && needsWardTimeoutFloor) {
+    // The command is echoed back UNCHANGED on purpose: Claude Code treats `updatedInput` as a
+    // replacement for the whole tool input rather than a patch, so a result carrying only a timeout
+    // renders as a Bash input with no `command` and the harness rejects the call outright.
     return hookPreEditResponderResultContract.parse({
       shouldBlock: false,
+      updatedCommand: command,
       updatedTimeout: wardTimeoutStatics.minimumTimeout,
     });
   }
