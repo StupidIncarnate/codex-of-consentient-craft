@@ -127,8 +127,16 @@ export const questMonitorWatcherStartBroker = async ({
     sessionFilePath: filePathContract.parse(String(sessionFilePath)),
     activeQuestIdGetter: (): QuestId | null => null,
     chatProcessId,
+    // A sub-agent that carries no work item of its own — a parent-summoned minion, or a
+    // Task-dispatched agent in the window before `get-agent-prompt` stamps it — still belongs to
+    // the work item whose session spawned it. Falling back to that owner is what lets the relay
+    // name a quest for the emit; without it the frame is attributable to nobody, and a frame with
+    // no owner cannot be delivered to one quest's subscribers rather than all of them.
+    // A /dumpster-launch dispatcher session has no main work item, so it stays null there: that
+    // session serves several quests at once, and guessing one of them would move the misrouting
+    // rather than remove it.
     workItemIdForAgent: ({ agentId }: { agentId: AgentId }): QuestWorkItemId | null =>
-      agentIdToWorkItemId.get(agentId) ?? null,
+      agentIdToWorkItemId.get(agentId) ?? mainSessionWorkItemId ?? null,
     emit: ({
       chatProcessId: emittedChatProcessId,
       entries,

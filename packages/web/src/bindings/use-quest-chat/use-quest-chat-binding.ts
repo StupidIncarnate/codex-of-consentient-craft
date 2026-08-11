@@ -214,10 +214,13 @@ export const useQuestChatBinding = ({
 
     const chatOutputSub = rxjsFilterAdapter({
       source: webSocketChannelState.chatOutput$(),
-      // Accept payloads tagged with the current questId, AND payloads with no questId
-      // at all (the /dumpster-create monitor-session path emits chat-output without a
-      // questId or workItemId — see server-init-responder's fallback broadcast).
-      predicate: (p) => p.questId === questIdRef.current || p.questId === undefined,
+      // Only payloads addressed to the quest this binding is bound to. One browser tab per
+      // quest shares a guild's server, so an untagged frame accepted here is another
+      // quest's transcript rendering in this one's panel — and, because any accepted frame
+      // arms `streamingFromOutput`, a quest sitting on an approval gate reporting itself as
+      // streaming. The server resolves the owning quest before it delivers, so a frame that
+      // reaches a quest subscription always carries its id.
+      predicate: (p) => p.questId === questIdRef.current,
     }).subscribe((payload): void => {
       const activeQuestId = questIdRef.current;
       if (!activeQuestId) return;

@@ -32,7 +32,7 @@ describe('questStatusTransitionsStatics', () => {
         'merging',
         'abandoned',
       ],
-      blocked: ['in_progress', 'abandoned', 'paused', 'merging'],
+      blocked: ['blocked', 'in_progress', 'abandoned', 'paused', 'merging'],
       merging: ['merging', 'merged', 'blocked', 'paused', 'abandoned'],
       complete: ['merging'],
       merged: [],
@@ -114,8 +114,9 @@ describe('questStatusTransitionsStatics', () => {
       ]);
     });
 
-    it('VALID: blocked transitions => exact [in_progress, abandoned, paused, merging]', () => {
+    it('VALID: blocked transitions => exact [blocked, in_progress, abandoned, paused, merging]', () => {
       expect(questStatusTransitionsStatics.blocked).toStrictEqual([
+        'blocked',
         'in_progress',
         'abandoned',
         'paused',

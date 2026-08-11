@@ -143,6 +143,25 @@ The relay loop explicitly skips `quest-modified` and `quest-created` — those a
 
 **Do NOT** add quest mutation events to the in-memory relay. All quest mutations go through the file outbox for cross-process support.
 
+### A per-quest event reaches subscribers of ONE quest, or nobody
+
+Every `PER_QUEST_EVENT_TYPES` frame is delivered only to clients whose subscription matches its
+`payload.questId`. There is no "deliver it to everyone and let the browser sort it out" arm, and
+adding one back is how two tabs on the same guild end up showing each other's transcripts: the
+browsers share a server, not a socket, so the server is the only place the scoping can happen.
+
+The quest-driven watchers emit chat-output tagged with a `workItemId` but no `questId` — one watcher
+can serve work items across several quests, so there is no single id to stamp at the source.
+`workItemQuestIdCache` (`server-init-responder`) closes that gap, filled from the quest loads the
+server already performs: every `subscribe-quest` and every outbox `quest-modified`. The outbox fires
+on the persist that mints a work item, so the mapping lands before that work item's agent can write
+a line.
+
+Resolution is deliberately **synchronous**. Holding a frame for an async lookup delivers the opening
+lines of a transcript after later ones, and makes delivery order depend on cache warmth. A frame the
+cache cannot answer for is therefore not delivered on this path — `subscribe-quest`'s replay reads
+the same lines back off disk, so the reader loses nothing.
+
 ## Dual-Homedir Pattern
 
 The server uses two different homedir adapters for two distinct storage locations:

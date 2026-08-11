@@ -622,6 +622,133 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  describe('event subscription unresolved-questId isolation', () => {
+    it('VALID: {chat-output whose questId cannot be resolved} => reaches NO subscribed client', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questIdX = QuestIdStub({ value: 'quest-unresolved-X' });
+      const questIdY = QuestIdStub({ value: 'quest-unresolved-Y' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdX, workItems: [] }) });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdY, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendA = jest.fn();
+      const sendB = jest.fn();
+      const clientA = WsClientStub({ send: sendA });
+      const clientB = WsClientStub({ send: sendB });
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateConnection({ client: clientB });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
+        ws: clientA,
+      });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdY }),
+        ws: clientB,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendA.mockClear();
+      sendB.mockClear();
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-unresolved' }),
+        payload: { chatProcessId: 'proc-monitor-unresolved', entries: [] },
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const aFrames = sendA.mock.calls.filter((c) =>
+        String(c[0]).includes('proc-monitor-unresolved'),
+      );
+      const bFrames = sendB.mock.calls.filter((c) =>
+        String(c[0]).includes('proc-monitor-unresolved'),
+      );
+
+      expect({ aFrames, bFrames }).toStrictEqual({ aFrames: [], bFrames: [] });
+    });
+
+    it('VALID: {chat-output carrying only a workItemId} => reaches only the owning quest subscriber, stamped with its questId', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questIdX = QuestIdStub({ value: 'quest-lookup-X' });
+      const questIdY = QuestIdStub({ value: 'quest-lookup-Y' });
+      const workItemId = QuestWorkItemIdStub({ value: '5d53ad7f-49e9-4e6c-8d6a-8ccea8120b13' });
+      // Quest X owns the work item, so subscribing to X is what teaches the relay which
+      // quest a workItemId-only payload belongs to.
+      proxy.setupLoadQuestSuccess({
+        quest: QuestStub({
+          id: questIdX,
+          workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver' })],
+        }),
+      });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdY, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendA = jest.fn();
+      const sendB = jest.fn();
+      const clientA = WsClientStub({ send: sendA });
+      const clientB = WsClientStub({ send: sendB });
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateConnection({ client: clientB });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
+        ws: clientA,
+      });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdY }),
+        ws: clientB,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendA.mockClear();
+      sendB.mockClear();
+
+      // The payload names a work item but no quest — the shape every quest-driven watcher
+      // emit has. It must land on X's subscriber, stamped, and nowhere else.
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-lookup' }),
+        payload: { chatProcessId: 'cp-lookup', workItemId, entries: [] },
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const aSummary = sendA.mock.calls
+        .map((c) => JSON.parse(String(c[0])) as Record<PropertyKey, unknown>)
+        .filter(
+          (m) =>
+            (m.payload as Record<PropertyKey, unknown> | undefined)?.chatProcessId === 'cp-lookup',
+        )
+        .map((frame) => ({
+          type: frame.type,
+          payloadQuestId: (frame.payload as Record<PropertyKey, unknown>).questId,
+          payloadWorkItemId: (frame.payload as Record<PropertyKey, unknown>).workItemId,
+        }));
+      const bFrames = sendB.mock.calls.filter((c) => String(c[0]).includes('cp-lookup'));
+
+      expect({ aSummary, bFrames }).toStrictEqual({
+        aSummary: [
+          {
+            type: 'chat-output',
+            payloadQuestId: questIdX,
+            payloadWorkItemId: workItemId,
+          },
+        ],
+        bFrames: [],
+      });
+    });
+  });
+
   describe('global event broadcast', () => {
     it('VALID: {phase-change event} => fans out to every connected client (subscribed or not)', async () => {
       const proxy = ServerInitResponderProxy();
