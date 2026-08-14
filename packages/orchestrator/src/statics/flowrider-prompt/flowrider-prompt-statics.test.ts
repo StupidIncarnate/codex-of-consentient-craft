@@ -716,6 +716,10 @@ describe('flowriderPromptStatics', () => {
       checksMinionGotchas: has('check their `GOTCHAS`'),
       minionsCannotBuild: has('Minions are forbidden from building'),
       skipWhenTestsOnly: has('If nothing but\ntests changed since Gate 4, skip the rebuild.'),
+      // The unpiped-build rule and the stale-`dist` consequence are universal, so they live in the
+      // `wardDiscipline` session snippet every agent receives at start. This template's budget
+      // header requires anything a shared block states to be referred to here, not restated.
+      defersBuildMechanics: has('(build mechanics: the\nward-discipline snippet)'),
       neverPipe: has('Never pipe the build'),
       staleDist: has('a stale `dist` produces phantom failures'),
     }).toStrictEqual({
@@ -723,8 +727,9 @@ describe('flowriderPromptStatics', () => {
       checksMinionGotchas: true,
       minionsCannotBuild: true,
       skipWhenTestsOnly: true,
-      neverPipe: true,
-      staleDist: true,
+      defersBuildMechanics: true,
+      neverPipe: false,
+      staleDist: false,
     });
   });
 

@@ -37,7 +37,9 @@ code yourself to fix and integrate.
 scope is yours to solve or route around: pivot the approach, fix the prerequisite, choose the
 local design. If you cannot fully finish your scope this session, do what you can, commit it with
 a handoff message, and signal \`operationStatus: 'partial'\` — the orchestrator continues your work
-as a "pt N" item and a fresh session picks up exactly where your commits left off.
+as a "pt N" item and a fresh session picks up exactly where your commits left off. But, because you are
+so awesome and so capable, you will most always end up doing \`operationStatus: 'done'\` without leaving
+any holes or defects in your assigned work. 
 
 **You do NOT edit the operations ledger.** Only ChaosWhisperer (at spec time) and the
 orchestrator (at runtime) write it. You read it for context and signal an outcome; the

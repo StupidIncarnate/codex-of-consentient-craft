@@ -11,7 +11,8 @@
 
 import { useState } from 'react';
 
-import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
+import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -49,7 +50,12 @@ export interface ChatEntryListWidgetProps {
   showEndStreamingIndicator?: boolean;
   swapTrailingEmptyThinkingForIndicator?: boolean;
   collapseToTail?: boolean;
+  // Forwarded untouched to the expandables this list renders: the list itself has no header of its
+  // own, so it adds nothing to the offset — it only carries what its host already pinned.
+  stickyTop?: CssPixels;
 }
+
+const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
 
 export const ChatEntryListWidget = ({
   entries,
@@ -59,6 +65,7 @@ export const ChatEntryListWidget = ({
   showEndStreamingIndicator = false,
   swapTrailingEmptyThinkingForIndicator = false,
   collapseToTail = false,
+  stickyTop = STICKY_TOP_ROOT,
 }: ChatEntryListWidgetProps): React.JSX.Element => {
   const [showAllEarlier, setShowAllEarlier] = useState(false);
   const groupedEntries = collectSubagentChainsTransformer({ entries });
@@ -88,7 +95,9 @@ export const ChatEntryListWidget = ({
 
     if (group.kind === 'subagent-chain') {
       renderUnits.push({
-        element: <SubagentChainWidget key={`chain-${String(i)}`} group={group} />,
+        element: (
+          <SubagentChainWidget key={`chain-${String(i)}`} group={group} stickyTop={stickyTop} />
+        ),
         isAnchor: true,
         isSubagentChain: true,
       });
@@ -126,6 +135,7 @@ export const ChatEntryListWidget = ({
         element: (
           <ToolRowWidget
             key={`tool-${String(i)}`}
+            stickyTop={stickyTop}
             toolUse={mergedItem.toolUse as ToolUseEntry}
             {...(mergedItem.toolResult === null
               ? {}

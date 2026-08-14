@@ -47,6 +47,55 @@ describe('architectureOverviewBroker', () => {
     });
   });
 
+  describe('file header PURPOSE documentation', () => {
+    it('VALID: {} => includes the PURPOSE section with what it must and must not carry', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(/^### File Header PURPOSE$/mu);
+      expect(result).toMatch(
+        /^A file header's `PURPOSE:` line carries what the code cannot state about itself — why the file exists, and when to reach for THIS one rather than its nearest sibling\. It must NOT restate the return shape, the throwing behaviour, the parameters, what a contract validates, or the file's own name; all of that is derivable from the file, so prose restating it can only drift\.$/mu,
+      );
+    });
+
+    it('VALID: {} => states PURPOSE is written last and points at get-syntax-rules', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^Write `PURPOSE` LAST, after the implementation it summarizes\. A PURPOSE written before the body describes intent, and intent and implementation diverge silently in the same authoring pass\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*Get the full rule:\*\* Use `get-syntax-rules` tool for the MUST\/MUST NOT lists and worked examples from this repo \("What Belongs in PURPOSE"\)\.$/mu,
+      );
+    });
+  });
+
+  describe('present-tense documentation rule', () => {
+    it('VALID: {} => bans historical framing across every documentation surface', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(/^### Present-Tense Documentation$/mu);
+      expect(result).toMatch(
+        /^Documentation states what the code does NOW\. This binds code comments, JSDoc, `PURPOSE` lines, test descriptions, and CLAUDE\.md files alike — never "used to do", "previously", "historically", or "before the X fix"\. Git is the history\.$/mu,
+      );
+    });
+
+    it('VALID: {} => requires present-tense rationale and comment removal', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^When the current design needs rationale, state that rationale in present tense \("keys on toolUseId because…"\) rather than as a contrast with an implementation that no longer exists\. When you remove code, remove every comment that refers to what you removed\.$/mu,
+      );
+    });
+  });
+
   describe('layer files documentation', () => {
     it('VALID: {} => includes layer files section', () => {
       architectureOverviewBrokerProxy();

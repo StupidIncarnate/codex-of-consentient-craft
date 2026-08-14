@@ -75,6 +75,9 @@ describe('InstallFlow', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
             },
             {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
+            {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
           ],
@@ -98,6 +101,9 @@ describe('InstallFlow', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],

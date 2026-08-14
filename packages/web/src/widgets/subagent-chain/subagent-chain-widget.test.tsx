@@ -5,6 +5,7 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
+  CssPixelsStub,
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
@@ -814,6 +815,77 @@ describe('SubagentChainWidget', () => {
         '~217 est',
         '+1.9k context',
       ]);
+    });
+  });
+
+  describe('sticky header', () => {
+    it('VALID: {no stickyTop} => open chain pins flush to the panel it is rendered straight into', () => {
+      SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub();
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect([header.style.position, header.style.top, header.style.zIndex]).toStrictEqual([
+        'sticky',
+        '0px',
+        '100',
+      ]);
+    });
+
+    it('VALID: {stickyTop: 23} => open chain pins below the execution row header it sits inside', () => {
+      SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub();
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} stickyTop={CssPixelsStub({ value: 23 })} />,
+      });
+
+      const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect([header.style.position, header.style.top, header.style.zIndex]).toStrictEqual([
+        'sticky',
+        '23px',
+        '77',
+      ]);
+    });
+
+    // A closed chain is one line with nothing of its own to scroll past, and its header is
+    // transparent — pinning it would let the entries below read straight through the bar.
+    it('VALID: {collapsed} => header stops pinning and drops its fill', async () => {
+      const proxy = SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub();
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      await proxy.clickHeader();
+
+      const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect([header.style.position, header.style.backgroundColor]).toStrictEqual(['', '']);
+    });
+
+    it('VALID: {stickyTop: 23} => tool rows inside the chain clear BOTH headers above them', () => {
+      SubagentChainWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read', toolUseId: 'use_1' });
+      const toolResult = AssistantToolResultChatEntryStub({ toolName: 'use_1' });
+      const group = SubagentChainGroupStub({
+        innerGroups: [SingleGroupStub({ entry: toolUse }), SingleGroupStub({ entry: toolResult })],
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} stickyTop={CssPixelsStub({ value: 23 })} />,
+      });
+
+      const toolHeader = screen.getByTestId('TOOL_ROW_HEADER');
+
+      // 23 (execution row) + 31 (this chain) — the running total, not this chain's height alone.
+      expect([toolHeader.style.top, toolHeader.style.zIndex]).toStrictEqual(['54px', '46']);
     });
   });
 });

@@ -14,12 +14,15 @@
 import { Box, Text, UnstyledButton } from '@mantine/core';
 import { useState } from 'react';
 
-import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
+import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { formatToolInputTransformer } from '../../transformers/format-tool-input/format-tool-input-transformer';
+import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { toolDisplayLabelTransformer } from '../../transformers/tool-display-label/tool-display-label-transformer';
 import { toolRowSummaryTransformer } from '../../transformers/tool-row-summary/tool-row-summary-transformer';
 import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
@@ -40,7 +43,13 @@ export interface ToolRowWidgetProps {
   // Holds the row open for as long as it is true, not merely on the first render: the caller
   // raises it while this is the call in flight and drops it when the result lands.
   defaultExpanded?: boolean;
+  // Where this row's header pins once it is open — the combined height of every expandable header
+  // it is nested inside. Rows rendered straight into a scroll panel take the default and pin flush
+  // to its top.
+  stickyTop?: CssPixels;
 }
+
+const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
 
 const CHEVRON_EXPANDED = '\u25BE';
 const CHEVRON_COLLAPSED = '\u25B8';
@@ -57,6 +66,7 @@ export const ToolRowWidget = ({
   isLoading,
   resultTokenBadgeLabel,
   defaultExpanded,
+  stickyTop = STICKY_TOP_ROOT,
 }: ToolRowWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   // The stream owns the disclosure until the reader takes it: `defaultExpanded` holds only
@@ -148,6 +158,20 @@ export const ToolRowWidget = ({
           gap: 6,
           padding: '4px 8px',
           cursor: 'pointer',
+          // Declared unconditionally rather than only while open, because on a CLOSED row it is
+          // already inert: sticky travel is bounded by the containing block, and a closed row's
+          // box IS this header, so there is nowhere for it to travel to. The other two values are
+          // what the row already rendered — the fill repeats the parent's own `bg-raised` (it is
+          // what showed through the transparent header before) and the height is what the single
+          // line lays out to. So a closed row is unchanged, and an open one pins with an exact
+          // height for the headers nested under it to offset against. The fill is load-bearing
+          // once open: without it the detail scrolling underneath reads through the pinned bar.
+          position: 'sticky',
+          top: Number(stickyTop),
+          zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop })),
+          height: stickyHeaderStatics.heights.toolRow,
+          boxSizing: 'border-box',
+          backgroundColor: colors['bg-raised'],
         }}
       >
         <Text

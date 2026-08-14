@@ -345,12 +345,19 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
   `packages/orchestrator/src/statics/`: the relay roles (`codeweaver-prompt-statics.ts`,
   `flowrider-prompt-statics.ts`, `groundstomper-prompt-statics.ts`, `siegemaster-prompt-statics.ts`,
-  `blightwarden-prompt-statics.ts`, `spiritmender-prompt-statics.ts`, `pesteater-prompt-statics.ts`) plus the minions a
+  `blightwarden-prompt-statics.ts`, `spiritmender-prompt-statics.ts`, `pesteater-prompt-statics.ts`,
+  `warpgate-prompt-statics.ts`) plus the minions a
   parent summons via the Agent tool (`codeweaver-piece-minion-statics.ts`,
-  `flowrider-authoring-minion-statics.ts`, `siegemaster-walker-minion-statics.ts`, `blightwarden-group-minion-statics.ts`,
-  `blightwarden-crosscut-minion-statics.ts`, `chaoswhisperer-gap-minion-statics.ts`). The valid names are the
+  `flowrider-authoring-minion-statics.ts`, `flowrider-coverage-minion-statics.ts`,
+  `siegemaster-walker-minion-statics.ts`, `siegemaster-test-audit-minion-statics.ts`,
+  `blightwarden-group-minion-statics.ts`, `blightwarden-crosscut-minion-statics.ts`,
+  `blightwarden-deadcode-minion-statics.ts`, `chaoswhisperer-gap-minion-statics.ts`). The valid names are the
   `agentPromptNameContract` enum; `agentPromptClassificationStatics` classifies which are parent-summoned minions vs
-  orchestrator-dispatched relay roles. There are no `.claude/agents/*.md` files for these agents. A relay work-item role
+  orchestrator-dispatched relay roles, and `agentNameToPromptTransformer` is the exhaustive switch that maps each name
+  to its statics + model — a `never` check there is what fails the build when a name is added without a prompt.
+  `tavernkeeper-prompt-statics.ts` is deliberately absent from all three: the follow-up chat is served by the chat
+  prompt path (`chatPromptBuildTransformer`), not by `get-agent-prompt`. There are no `.claude/agents/*.md` files for
+  these agents. A relay work-item role
   calls `get-agent-prompt({agent, questId, workItemId})` — the responder resolves the work item's linked operation item
   (its `operations/<id>` ref) and interpolates its scope into the returned prompt; a parent-summoned minion calls
   `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and is briefed inline by its parent.
@@ -606,23 +613,67 @@ the quest. Quest status is then derived from work-item + operation state.
 
 The relay role set per quest type is `questTypeRegistryStatics[type].roles`. The `agentRoleContract` enumerates the
 Claude-dispatched agent roles (codeweaver, spiritmender, flowrider, groundstomper, siegemaster, blightwarden, the two
-`blightwarden-*-minion`s, pesteater); the broader `workItemRoleContract` (shared) adds the command/interactive roles
-(`ward`, `chaoswhisperer`, `glyphsmith`, `bughunt`) an operation item may carry. The three interactive ones are the
-`workItemRoleStatics.chat` tuple, and `isChatWorkItemRoleGuard` is the one predicate every call site uses to match
-them — adding a chat role means adding it to that tuple, not to another `||` chain.
+`blightwarden-*-minion`s, pesteater, warpgate); the broader `workItemRoleContract` (shared) adds the command role
+(`ward`) and the four interactive CHAT roles (`chaoswhisperer`, `glyphsmith`, `bughunt`, `tavernkeeper`) a work item may
+carry. Those four ARE the `workItemRoleStatics.chat` tuple, and `isChatWorkItemRoleGuard` is the one predicate every
+call site uses to match them — adding a chat role means adding it to that tuple, not to another `||` chain.
 
-| Role           | Dispatched By                                                      | Operation outcome                   | Ledger writes (modify-quest)                                |
-|----------------|--------------------------------------------------------------------|-------------------------------------|-------------------------------------------------------------|
-| ChaosWhisperer | `/dumpster-create` (interactive)                                   | N/A (spec)                          | full spec surface + authors codeweaver op items             |
-| Glyphsmith     | startDesignChat (interactive)                                      | N/A (design)                        | status                                                      |
-| codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)         | complete (done / partial / blocked) | none                                                        |
-| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)               | exit code (green / red)             | none (broker writes wardResults + item status)              |
-| flowrider      | `/dumpster-launch` via Task() (one session for every RUNTIME flow) | complete (done / partial / blocked) | `flowriderSignoff` per unit (written by `flowrider-coverage-minion`; the operator signs what it adds) |
-| groundstomper  | `/dumpster-launch` via Task() (ONE SESSION PER e2e-eligible RUNTIME FLOW; no minions) | complete (done / partial / blocked) | `flowriderSignoff` per unit, over the browser-reachable package kinds |
-| siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW)               | complete (done / partial / blocked) | `siegemasterSignoff` per unit, plus `planningNotes.questNotes` |
-| blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                   | complete (done / partial / blocked) | `planningNotes.blightLedger` (per-unit dispositions)        |
-| spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)               | complete (done / partial / blocked) | none                                                        |
-| pesteater      | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself) | complete (done / partial / blocked) | none                                                        |
+`tavernkeeper` — the post-quest follow-up conversation — is a chat role with two narrower subsets it alone occupies, and
+both exist to stop it from being mistaken for the intake thread:
+
+- `workItemRoleStatics.postQuestChat` — it has its own composer in the FOLLOW-UP tab, so any selector reaching for
+  "the chat thread the MAIN composer resumes" must subtract this subset or it picks up the follow-up instead.
+- `workItemRoleStatics.excludedFromStatusDerivation` — `workItemsToQuestStatusTransformer` ignores its work items,
+  because a tavernkeeper item is created AFTER the quest terminated and asking a question must not flip a finished quest
+  back to reading as running.
+
+It owns a work item but never an operation item: the follow-up chat spawns outside the operations ledger entirely.
+
+| Role           | Dispatched By                                                                         | Operation outcome                   | Ledger writes (modify-quest)                                                                          |
+|----------------|---------------------------------------------------------------------------------------|-------------------------------------|-------------------------------------------------------------------------------------------------------|
+| ChaosWhisperer | `/dumpster-create` (interactive)                                                      | N/A (spec)                          | full spec surface + authors codeweaver op items                                                       |
+| Glyphsmith     | startDesignChat (interactive)                                                         | N/A (design)                        | status                                                                                                |
+| Tavernkeeper   | follow-up chat (interactive, AFTER the quest ends)                                    | N/A (chat; no operation item)       | none                                                                                                  |
+| codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)                            | complete (done / partial / blocked) | none                                                                                                  |
+| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)                                  | exit code (green / red)             | none (broker writes wardResults + item status)                                                        |
+| flowrider      | `/dumpster-launch` via Task() (one session for every RUNTIME flow)                    | complete (done / partial / blocked) | `flowriderSignoff` per unit (written by `flowrider-coverage-minion`; the operator signs what it adds) |
+| groundstomper  | `/dumpster-launch` via Task() (ONE SESSION PER e2e-eligible RUNTIME FLOW; no minions) | complete (done / partial / blocked) | `flowriderSignoff` per unit, over the browser-reachable package kinds                                 |
+| siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW)                                  | complete (done / partial / blocked) | `siegemasterSignoff` per unit, plus `planningNotes.questNotes`                                        |
+| blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                                      | complete (done / partial / blocked) | `planningNotes.blightLedger` (per-unit dispositions)                                                  |
+| spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)                                  | complete (done / partial / blocked) | none                                                                                                  |
+| pesteater      | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)                    | complete (done / partial / blocked) | none                                                                                                  |
+| warpgate       | dispatched like any relay role, but its item is appended at MERGE time (see below)    | complete (done / partial / blocked) | none                                                                                                  |
+
+### Warpgate — the one ledger item appended after the relay has drained
+
+Every other operation item is authored at spec time (ChaosWhisperer's codeweaver items) or seeded at Start
+(`questBuildRelayGraphBroker` reading `questTypeRegistryStatics`). Warpgate is neither: `OrchestrationMergeResponder`
+appends it when the user presses "Teleport with Booty (Merge)" on a quest that is already `complete` or `blocked`
+(`isMergeableQuestStatusGuard`). Because its text has no home in the registry, it lives in `warpgateOperationStatics`.
+Once appended it dispatches exactly like any other relay role — `get-next-step` → Task ()/headless child →
+`get-agent-prompt` → `signal-back`.
+
+Four things about that append are load-bearing, and all four live inside `questOperationsUpdateBroker`'s per-quest lock:
+
+- **Status flips to `merging` BEFORE the append.** The ops-update broker re-derives quest status on every write from
+  whatever it reads off disk; from `complete`, a pending warpgate item would derive `in_progress` — neither a legal
+  transition out of `complete` nor what a merge means.
+- **The operation is minted WITH its work item**, so `questAdvanceBroker`'s strict-1:1 resume guard (which skips a
+  pending operation that already has a linked work item) can never mint a second one for it.
+- **`dependsOn: []`, deliberately unchained.** A merge is a fresh top-level dispatch on a finished quest, not the next
+  relay step — and on a blocked quest the trailing work items are `skipped`, which does NOT satisfy `dependsOn`, so a
+  chained merge item would never become ready.
+- **Every non-complete operation item is force-completed first.** A blocked quest arrives with items still
+  `pending`/`in_progress` (the block drained the WORK items to `skipped`, but an operation item has no skipped state).
+  Left alone they would keep the quest deriving `merging` forever instead of settling at `merged`, and would let the
+  dispatch scan's advance self-heal mint an abandoned relay item into the worktree the moment the merge finishes.
+
+It is `locked: true`, which enrolls it in the `slotManagerStatics.warpgate.maxAttempts` pt budget — the only bound on an
+agent that never converges on its own. A double-click on Teleport is two POSTs that both clear the mergeable-status gate
+before either writes, so the update callback refuses a second warpgate operation from inside the lock; without that
+guard N clicks mint N merge agents against the one worktree. The responder also kills any running follow-up chat
+(`isPostQuestChatWorkItemRoleGuard`) before writing anything, because tavernkeeper spawns outside the ledger and nothing
+else would stop it sharing the worktree warpgate is about to take.
 
 ### The pt-N verify fixpoint
 
@@ -683,8 +734,9 @@ Groundstomper runs alone — a browser walk is one path at a time against one se
 out and the session that authors a case is the one that watched it go red. Blightwarden, Codeweaver, Flowrider, and
 Siegemaster fan their single session out to sub-agent minions summoned via
 the Agent tool (the `blightwarden-group-minion`, `blightwarden-crosscut-minion`, `blightwarden-deadcode-minion`,
-`codeweaver-piece-minion`, `flowrider-authoring-minion`, `flowrider-coverage-minion`, `siegemaster-walker-minion` names in
-`agentPromptClassificationStatics`).
+`codeweaver-piece-minion`, `flowrider-authoring-minion`, `flowrider-coverage-minion`, `siegemaster-walker-minion`,
+`siegemaster-test-audit-minion` names in `agentPromptClassificationStatics.minionNames`, plus
+`chaoswhisperer-gap-minion` which ChaosWhisperer summons during spec).
 Minions are NOT work items and NOT operation items: they call `get-agent-prompt` with no `workItemId`, are briefed
 inline by their parent, and never signal back — that parallelism lives inside the parent's turn, observable under the
 parent's chain via wire-level toolUseId correlation. Blightwarden dispatches one `blightwarden-group-minion` per group
@@ -945,8 +997,15 @@ sub-agents call in parallel against the same MCP stdio child.
 | blightwarden-deadcode-minion   | Blightwarden via the Agent tool (alone, last) | Runs ONCE, THIRD, over the WHOLE diff, because every earlier fix can itself orphan something. Whether an export still has a consumer is a property of the whole import graph, which is why dead code is no per-file concern and owns no checklist unit. Must show the exact search behind every claimed orphan |
 
 The relay roles that DO own a work item (`codeweaver`, `flowrider`, `groundstomper`, `siegemaster`, `blightwarden`,
-`spiritmender`, `pesteater`) fetch their prompt the same way, calling `get-agent-prompt({agent, questId, workItemId})`
-— see "Agent Roles".
+`spiritmender`, `pesteater`, `warpgate`) fetch their prompt the same way, calling
+`get-agent-prompt({agent, questId, workItemId})` — see "Agent Roles". `agentPromptGetBroker` THROWS on a role name that
+arrives without a `workItemId`, so the split is enforced from both ends: a role cannot fetch as if it were a minion, and
+a minion that passed one would be held by `subagentStopNeedsBlockGuard` until it signalled on its parent's item.
+
+`blightwarden-group-minion` and `blightwarden-crosscut-minion` appear in BOTH `minionNames` and `roleNames` — they are
+summoned by the blightwarden parent like any other minion, yet are also valid work-item roles. `minionNames` therefore
+means "may fetch WITHOUT a workItemId", not "is not a role". The other seven minions are minion-only: adding one of them
+to `roleNames` would widen `agentRoleContract` with a role no operation item can ever hold.
 
 ## Importing the barrel in a unit test leaks real timers
 

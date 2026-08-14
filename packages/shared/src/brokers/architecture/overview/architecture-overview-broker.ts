@@ -428,6 +428,20 @@ export const UserCreateResponder = async ({req, res}: {
 - ✅ File names in kebab-case
 - ✅ Metadata comments (PURPOSE/USAGE) at top of implementation files
 
+### File Header PURPOSE
+
+A file header's \`PURPOSE:\` line carries what the code cannot state about itself — why the file exists, and when to reach for THIS one rather than its nearest sibling. It must NOT restate the return shape, the throwing behaviour, the parameters, what a contract validates, or the file's own name; all of that is derivable from the file, so prose restating it can only drift.
+
+Write \`PURPOSE\` LAST, after the implementation it summarizes. A PURPOSE written before the body describes intent, and intent and implementation diverge silently in the same authoring pass.
+
+**Get the full rule:** Use \`get-syntax-rules\` tool for the MUST/MUST NOT lists and worked examples from this repo ("What Belongs in PURPOSE").
+
+### Present-Tense Documentation
+
+Documentation states what the code does NOW. This binds code comments, JSDoc, \`PURPOSE\` lines, test descriptions, and CLAUDE.md files alike — never "used to do", "previously", "historically", or "before the X fix". Git is the history.
+
+When the current design needs rationale, state that rationale in present tense ("keys on toolUseId because…") rather than as a contrast with an implementation that no longer exists. When you remove code, remove every comment that refers to what you removed.
+
 ### Testing Architecture
 
 **Mock only at I/O boundaries:**

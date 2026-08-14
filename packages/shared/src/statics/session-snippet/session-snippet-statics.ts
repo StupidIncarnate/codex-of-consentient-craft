@@ -165,7 +165,23 @@ npm run ward -- --only lint,typecheck,unit -- packages/hooks  # Combo
 
 \`npm run ward -- detail <runId>\` for full error output and jest diffs.
 
-**Zero tolerance:** Never assume failures are pre-existing. Every failure must be investigated and fixed. Ward must be fully green.`,
+**Zero tolerance:** Never assume a failure is pre-existing — investigate and fix every one. Whether a FULL run is yours to make green depends on your role; see the ward-discipline snippet.`,
+
+  wardDiscipline: `## Ward Invocation Discipline
+
+Applies to every ward run, in any repo, by any agent.
+
+**Build first, unpiped.** Ward resolves cross-package types through each package's \`dist/\`, so a stale build surfaces as phantom TS2339 "property X does not exist" on correct code. Run \`npm run build\` as its OWN command and confirm it exits 0 — piping it (\`npm run build | tail -3 && npm run ward\`) discards the exit code and feeds a failed build silently into ward.
+
+**Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
+
+**Pick ONE mode, never both.** Foreground: call Bash without \`run_in_background\` and let it block, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). Background: \`run_in_background: true\`, then wait for the task-notification and read the output once. NEVER \`sleep N && tail\` loops or re-reading a partial output file — that races the real completion event. (A \`pgrep -f "<term>"\` poll loop matches its OWN command line, so it never exits and burns the whole timeout.)
+
+**Run it ONCE.** Choose the right flags the first time; never re-run the same checks a second way, or follow a scoped run with a full one.
+
+**A skip on a scoped run is not a regression.** Jest's \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — narrow \`--only\` instead of widening scope.
+
+**Who owns a FULL run.** An agent working directly for the user makes \`npm run ward\` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role is the opposite: it NEVER runs the full sweep — its Operating Rules override this snippet, and the dispatcher's own \`run-ward\` item is the regression pass.`,
 
   packages: null,
 } as const;

@@ -385,11 +385,10 @@ afterwards, \`addedBy\` links the added one to this pass, and only the runtime o
 
 ### Gate 8: Verify with Ward
 
-**If you or any minion changed a file outside the test tree, rebuild first** — \`npm run build\` as its
-own command, confirming it exits 0. Minions are forbidden from building, so an implementation fix of
-theirs is sitting in source with a stale \`dist\` behind it; check their \`GOTCHAS\`. If nothing but
-tests changed since Gate 4, skip the rebuild. Never pipe the build — piping discards the exit code,
-and a stale \`dist\` produces phantom failures.
+**If you or any minion changed a file outside the test tree, rebuild first** (build mechanics: the
+ward-discipline snippet). Minions are forbidden from building, so an implementation fix of theirs is
+sitting in source with a stale \`dist\` behind it; check their \`GOTCHAS\`. If nothing but
+tests changed since Gate 4, skip the rebuild.
 
 Scope it to the files you and your minions changed, per the operating rules above:
 
@@ -439,18 +438,14 @@ Context wherever this prompt writes QUEST_ID / WORK_ITEM_ID / OPERATION_ITEM_ID.
 Signal \`done\` when Gate 7 passes — \`remainingItemIds\` is empty for your slice and every
 accepted artifact met the evidence contract. **Authoring tests is your job; doing your job is not a
 reason to hand yourself back.** You are the fresh-eyes reviewer of your minions' work; there is no
-outside reviewer to wait for:
-
-\`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })
-\`\`\`
+outside reviewer to wait for.
 
 Signal \`partial\` **only when real scope remains**, exactly the remainder Gate 7 defines. It costs a
 pt-chain attempt, so name that remainder in your commit and your successor starts there
 instead of re-deriving your pass:
 
 \`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'partial' })
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' | 'partial' })
 \`\`\`
 
 ## Flowrider-Authoring-Minion Delegation Protocol

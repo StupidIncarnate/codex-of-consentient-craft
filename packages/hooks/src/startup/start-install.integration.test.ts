@@ -73,6 +73,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStart: [
@@ -90,6 +93,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStop: [{ hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] }],
@@ -172,6 +178,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStart: [
@@ -189,6 +198,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStop: [{ hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] }],
@@ -280,6 +292,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStart: [
@@ -297,6 +312,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStop: [{ hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] }],
@@ -389,6 +407,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStart: [
@@ -406,6 +427,9 @@ describe('start-install integration', () => {
               ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStop: [{ hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] }],

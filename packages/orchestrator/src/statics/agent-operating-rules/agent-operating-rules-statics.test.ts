@@ -50,6 +50,30 @@ describe('agentOperatingRulesStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: markdown => names the ward snippet it overrides, so the conflict resolves explicitly', () => {
+    const needle =
+      'This rule OVERRIDES the `<dungeonmaster-ward>` snippet you were handed at session start: its "make it fully green" line is written for an agent working directly for the user, and you are not one.';
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: markdown => keeps the universal ward mechanics by reference instead of restating them', () => {
+    const needle =
+      'the build-first, one-mode and run-once mechanics in the `<dungeonmaster-ward-discipline>` snippet apply to you unchanged';
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
   it('VALID: markdown => forbids a bare-directory ward scope and requires explicit file paths', () => {
     const needle =
       'Those `<paths>` MUST be explicit FILE paths (`-- <file1> <file2>`), NEVER a bare directory (`-- packages/<pkg>`)';

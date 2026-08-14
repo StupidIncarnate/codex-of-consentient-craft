@@ -9,7 +9,8 @@
 import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
-import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
+import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntryGroup,
   SingleGroup,
@@ -19,11 +20,13 @@ import { contextTokenCountContract } from '../../contracts/context-token-count/c
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
 import { computeMergedItemTailIndexTransformer } from '../../transformers/compute-merged-item-tail-index/compute-merged-item-tail-index-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
+import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { ShowEarlierToggleWidget } from '../show-earlier-toggle/show-earlier-toggle-widget';
 import { ToolRowWidget } from '../tool-row/tool-row-widget';
@@ -32,10 +35,17 @@ type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 
 export interface SubagentChainWidgetProps {
   group: ChatEntryGroup;
+  // Where this chain's header pins once it is open — the combined height of every expandable header
+  // it is nested inside. Chains rendered straight into a scroll panel take the default and pin flush
+  // to its top.
+  stickyTop?: CssPixels;
 }
+
+const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
 
 export const SubagentChainWidget = ({
   group,
+  stickyTop = STICKY_TOP_ROOT,
 }: SubagentChainWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
   const [expanded, setExpanded] = useState(true);
@@ -44,6 +54,13 @@ export const SubagentChainWidget = ({
   if (group.kind !== 'subagent-chain') return null;
 
   const chevron = expanded ? '▾' : '▸';
+
+  // Everything inside this chain pins below this chain's own header. Passing the running total down
+  // rather than a depth count is what lets a level stack correctly without knowing what it is nested
+  // in — a tool row adds nothing of its own, a nested chain adds another header's worth.
+  const innerStickyTop = cssPixelsContract.parse(
+    Number(stickyTop) + stickyHeaderStatics.heights.subagentChain,
+  );
 
   const formattedTokens =
     group.contextTokens === null
@@ -72,6 +89,21 @@ export const SubagentChainWidget = ({
           padding: '6px 10px',
           cursor: 'pointer',
           userSelect: 'none',
+          // Pinned only while open, so a collapsed chain — already one line — keeps the layout it
+          // had. The fill is load-bearing: this header is transparent by default, and the entries
+          // scrolling beneath it would otherwise read straight through the pinned bar. `bg-surface`
+          // is an exact match inside an expanded execution row and a raised band in the chat panel,
+          // where the surface behind is `bg-deep`.
+          ...(expanded
+            ? {
+                position: 'sticky' as const,
+                top: Number(stickyTop),
+                zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop })),
+                height: stickyHeaderStatics.heights.subagentChain,
+                boxSizing: 'border-box' as const,
+                backgroundColor: colors['bg-surface'],
+              }
+            : {}),
         }}
       >
         <Text
@@ -82,11 +114,25 @@ export const SubagentChainWidget = ({
             color: colors['loot-rare'],
             padding: '1px 4px',
             borderRadius: 2,
+            flexShrink: 0,
           }}
         >
           {chevron} SUB-AGENT
         </Text>
-        <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
+        {/* Held to one line so the header's height is the constant the offsets below it are built
+            on. A description long enough to wrap would push a pinned bar to two lines and every
+            header nested under it would pin into the gap. */}
+        <Text
+          ff="monospace"
+          size="xs"
+          style={{
+            color: colors['text-dim'],
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           &quot;{group.description}&quot; ({entrySuffix})
         </Text>
       </Box>
@@ -149,6 +195,7 @@ export const SubagentChainWidget = ({
                 return (
                   <ToolRowWidget
                     key={`inner-${String(index)}`}
+                    stickyTop={innerStickyTop}
                     toolUse={toolUseEntry as Extract<typeof toolUseEntry, { type: 'tool_use' }>}
                     {...(item.toolResult === null
                       ? {}
@@ -187,7 +234,11 @@ export const SubagentChainWidget = ({
           {group.innerGroups
             .filter((ig): ig is SubagentChainGroup => ig.kind === 'subagent-chain')
             .map((nested, index) => (
-              <SubagentChainWidget key={`nested-chain-${String(index)}`} group={nested} />
+              <SubagentChainWidget
+                key={`nested-chain-${String(index)}`}
+                group={nested}
+                stickyTop={innerStickyTop}
+              />
             ))}
           {group.taskNotification === null ? null : (
             <ChatMessageWidget entry={group.taskNotification} />

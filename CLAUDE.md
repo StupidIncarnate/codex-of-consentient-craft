@@ -1,11 +1,9 @@
 # Project Guidelines
 
-**Critical:** DO NOT run anything in /tmp if you're trying to test eslint effects. That folder is outside the repo and
-thus won't trigger eslint at all.
-
-**Do NOT use `~/tmp` for scratch files** — it has permission issues. Use `<repoRoot>/tmp` instead (already present at
-the root of this repo). This keeps scratch files inside the repo's permission scope and, for eslint work, inside the
-folder that actually triggers the linter.
+**Critical: scratch files go in `<repoRoot>/tmp`, never `~/tmp`.** `~/tmp` has permission issues and sits outside the
+repo, so eslint never fires on anything in it — an eslint experiment run there proves nothing. `<repoRoot>/tmp` already
+exists at the root of this repo and keeps scratch files inside both the permission scope and the linted tree. Temp dirs
+that *tests* create are the exception — those belong in the OS `/tmp`, via `installTestbedCreateBroker`.
 
 **Handoff and design docs go in `<repoRoot>/scrolls/`.** Anything written for a human or a future session to pick up —
 cross-session handoffs, dogfood runbooks, design proposals, the `scrolls/design/`
@@ -13,20 +11,6 @@ prototype app — belongs there, and is committed with the repo.
 
 **Claude Code plan mode writes to `~/.claude/plans/`, outside the repo, uncommitted.** Keep it that way. A plan-mode
 plan file goes to `~/.claude/plans/`; a plan or handoff asked for "in the repo" goes to `scrolls/`.
-
-**Critical:** Do not document historical state. CLAUDE.md files, code comments, JSDoc, and
-test descriptions should describe what the code does NOW — never "used to do", "previously",
-"historically", or "before the X fix". Git is the history. If the current design needs
-rationale, state the rationale in present tense ("keys on toolUseId because…") not as a
-contrast with a deleted implementation. When you remove code, remove every comment that
-refers to what was removed.
-
-**Critical:** A file header's `PURPOSE:` line carries what the code cannot state about itself —
-why the file exists, and when to reach for THIS one rather than its nearest sibling. It must NOT
-restate the return shape, the throwing behaviour, the parameters, what a contract validates, or
-the file's own name; all of that is derivable from the file, so prose restating it can only drift.
-Write `PURPOSE` LAST, after the implementation it summarizes. Full rule, with worked examples from
-this repo, in the `get-syntax-rules` MCP tool ("What Belongs in PURPOSE").
 
 ## What This Repo Is
 
@@ -47,11 +31,11 @@ All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json`
 
 **Three scenarios:**
 
-| Scenario | Launched via | Home | Port source |
-|---|---|---|---|
-| Dogfood prod in this repo | `npm run prod` | `<repo>/.dungeonmaster/` (repo-local so Claude Code Read/Grep can reach quest files) | `dungeonmaster.port` from `.dungeonmaster.json` |
-| Dogfood dev in this repo | `npm run dev` | `<repo>/.dungeonmaster-dev/` (isolated smoke-test queue) | `devServer.port` from `.dungeonmaster.json` |
-| End-user install | `dungeonmaster start` | `~/.dungeonmaster` (shared user-global queue across every repo they launch from) | `dungeonmaster.port` from their `.dungeonmaster.json`, or `environmentStatics.defaultPort` (3737) |
+| Scenario                  | Launched via          | Home                                                                                 | Port source                                                                                       |
+|---------------------------|-----------------------|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| Dogfood prod in this repo | `npm run prod`        | `<repo>/.dungeonmaster/` (repo-local so Claude Code Read/Grep can reach quest files) | `dungeonmaster.port` from `.dungeonmaster.json`                                                   |
+| Dogfood dev in this repo  | `npm run dev`         | `<repo>/.dungeonmaster-dev/` (isolated smoke-test queue)                             | `devServer.port` from `.dungeonmaster.json`                                                       |
+| End-user install          | `dungeonmaster start` | `~/.dungeonmaster` (shared user-global queue across every repo they launch from)     | `dungeonmaster.port` from their `.dungeonmaster.json`, or `environmentStatics.defaultPort` (3737) |
 
 **Env var surface** (programmatic overrides — not set via files):
 
@@ -84,7 +68,7 @@ See `playbook/smoke-testing.md` for manual verification steps.
 **Testing**: Jest mocks auto-reset via `@dungeonmaster/testing` - no manual cleanup needed
 
 **Integration Tests with File System**: Use `installTestbedCreateBroker` from `@dungeonmaster/testing` for isolated temp
-directories. Never write test files directly to the repo.
+directories under the OS `/tmp`. Never write test files into the repo — not even `<repoRoot>/tmp`.
 
 ```typescript
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
@@ -147,52 +131,16 @@ is produced the next time someone runs `npm run init`.
 
 **Ward is a root-level monorepo script.** These rules apply to ALL agents, including sub-agents in worktrees.
 
-1. **ALWAYS `npm run build` before ward.** Ward resolves cross-package types and imports through each
-   package's `dist/`. A stale build surfaces as TS2339 "property X does not exist" on cross-package APIs
-   even when the source is correct — e.g. a fix that added `StartOrchestrator.resumeQuest` in the
-   orchestrator package will break the server package's typecheck until the orchestrator's `dist/` is
-   rebuilt. Build FIRST, then ward:
-   ```bash
-   npm run build
-   npm run ward [arguments]
-   ```
-   This applies to scoped ward too (`npm run ward -- --only unit -- packages/X`). The build is
-   fast (~7s); the time lost to re-diagnosing a stale-dist failure is much larger.
+The **mechanics** of invoking ward — build first and unpiped, never `cd` into a package, pick ONE of
+foreground/background and never the hybrid, `timeout: 600000`, run it once, and why a `No tests found` /
+`DISCOVERY MISMATCH` on a scoped run is a skip rather than a regression — live in the
+`<dungeonmaster-ward-discipline>` session snippet (`sessionSnippetStatics.wardDiscipline`), which every session and
+every sub-agent receives at start, in this repo and in every repo `dungeonmaster init` has touched. Fix them THERE, not
+here; a copy in this file would drift from the one the agents actually read.
 
-   **Run the build as its own command and check its exit code.** Never pipe it
-   (`npm run build | tail -3 && npm run ward`) — piping discards the build's exit code, so a
-   partial or failed build passes silently into ward. A stale `@dungeonmaster/testing` dist means
-   every proxy runs against an older mocking dispatcher than the source it was written for, which
-   produces phantom RUNTIME test failures indistinguishable from real mocking bugs. Confirm the
-   build exits 0 before trusting any ward result.
+What stays below is the part that is a judgment call rather than a command-line mechanic.
 
-2. **NEVER `cd` into a package to run ward.** Ward runs from the repo root. To scope to a package, pass paths after
-   `--`:
-   ```bash
-   # ✅ CORRECT
-   npm run ward -- --only unit -- packages/orchestrator
-   # ❌ WRONG - do not cd into the package
-   cd packages/orchestrator && npm run ward
-   ```
-
-3. **NEVER sleep-poll for results.** Pick ONE of two modes and stick with it:
-   - **Foreground** — call Bash without `run_in_background`; it blocks until the command finishes (use
-     `timeout: 600000` so ward has room to complete).
-   - **Background** — call Bash with `run_in_background: true` and wait for the task-notification to
-     fire; then read the output file once.
-
-   Do NOT combine them: no `sleep N && tail ...` loops, no "spawn in background then poll the output
-   file while waiting." That pattern wastes wall-clock, burns context on partial output, and races
-   with the real completion event.
-
-4. **Run ward ONCE, not redundantly.** Pick the right flags and run it once. Do not run the same checks multiple ways
-   (e.g., `--onlyTests "name"` AND `-- path/to/file.test.ts` separately). Do not run scoped ward per-package and then
-   full ward again.
-
-5. **Always use `timeout: 600000`** on all ward Bash calls. Ward takes 3-4 minutes across the monorepo; the default
-   2-minute timeout kills it.
-
-6. **When the user asks for full ward (`npm run ward`) to pass, YOU OWN EVERY FAILURE.** Not just the
+1. **When the user asks for full ward (`npm run ward`) to pass, YOU OWN EVERY FAILURE.** Not just the
    failures you think your changes caused — every single red test, lint error, and typecheck error. This
    is non-negotiable:
 
@@ -207,20 +155,15 @@ is produced the next time someone runs `npm run init`.
    product decisions, surface that to the user BEFORE stopping — don't just report "out of scope" and
    walk away from a red ward.
 
-7. **A "No tests found" or DISCOVERY MISMATCH on a scoped run is usually not a regression.**
-    - Jest's `No tests found` banner on a file-scoped `--findRelatedTests` run is converted to
-      `status: 'skip'` when file-scoped; full runs still fail loudly. **Never reach for
-      `--passWithNoTests`** — that flag is a protection against a genuinely missing-tests
-      misconfiguration, and disabling it hides the real case.
-    - `DISCOVERY MISMATCH` on a scoped run means the check type you asked for has no counterpart
-      for those files (e.g. two plain `.test.ts` files and no `.integration.test.ts`). Fix by
-      narrowing `--only` to the checks that actually apply — `npm run ward -- --only
-      lint,typecheck,unit -- <files>` — not by widening the scope or adding flags. Contract /
-      guard / transformer files usually only have `unit`; flow / startup have `unit` +
-      `integration`; `e2e` only applies to e2e-eligible packages (`packageType` is
-      `frontend-react` or `frontend-ink` — see `architecturePackageE2eEligibleDetectBroker` in
-      `@dungeonmaster/shared`), not a hardcoded package name. Say in the commit which checks you
-      ran and why.
+2. **Which checks apply to a given file is repo-specific — narrow `--only`, never widen scope.**
+   That a scoped-run skip is not a regression is in the ward-discipline snippet; what that snippet cannot know is THIS
+   repo's folder-type → check-type mapping. Contract / guard / transformer files usually only have `unit`; flow /
+   startup have `unit` + `integration`; `e2e` only applies to e2e-eligible packages (`packageType` is `frontend-react`
+   or `frontend-ink` — see
+   `architecturePackageE2eEligibleDetectBroker` in `@dungeonmaster/shared`), not a hardcoded package name. So a
+   `DISCOVERY MISMATCH` is answered by narrowing to the checks that actually apply —
+   `npm run ward -- --only lint,typecheck,unit -- <files>` — not by widening the scope or adding flags. Say in the
+   commit which checks you ran and why.
 
 ## Never Edit Infrastructure Files
 

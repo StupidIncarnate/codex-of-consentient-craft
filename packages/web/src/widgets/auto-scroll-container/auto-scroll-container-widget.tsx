@@ -1,8 +1,13 @@
 /**
- * PURPOSE: Scrollable container that auto-scrolls to the bottom when content grows, pausing while the user scrolls up and resuming when they return to the bottom
+ * PURPOSE: Scrollable container that auto-scrolls to the bottom when content grows, pausing while
+ * the user scrolls up and resuming when they return to the bottom. This is the scrollport every
+ * expandable header inside it pins against, which is why a TOP inset belongs on `contentStyle` and
+ * never on `style`: a sticky child pins to the scrollport's content edge, so a `padding-top` here
+ * holds every pinned header that far down while the transcript keeps scrolling through the strip
+ * above it. Side and bottom padding have no such effect and can go on either.
  *
  * USAGE:
- * <AutoScrollContainerWidget style={{ flex: 1, padding: 16 }} contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+ * <AutoScrollContainerWidget style={{ flex: 1, padding: '0 16px 16px' }} contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 16 }}>
  *   {messages}
  * </AutoScrollContainerWidget>
  */

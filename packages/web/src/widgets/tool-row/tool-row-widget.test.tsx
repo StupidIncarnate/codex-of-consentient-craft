@@ -6,6 +6,7 @@ import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/f
 import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
+  CssPixelsStub,
 } from '@dungeonmaster/shared/contracts';
 import type { ToolRowWidgetProps } from './tool-row-widget';
 import { ToolRowWidget } from './tool-row-widget';
@@ -642,6 +643,68 @@ describe('ToolRowWidget', () => {
       );
 
       expect(childTestIds).toStrictEqual(['TOOL_ROW_HEADER']);
+    });
+  });
+
+  describe('sticky header', () => {
+    it('VALID: {no stickyTop} => header pins flush to the panel it is rendered straight into', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      const header = screen.getByTestId('TOOL_ROW_HEADER');
+
+      expect([header.style.position, header.style.top, header.style.zIndex]).toStrictEqual([
+        'sticky',
+        '0px',
+        '100',
+      ]);
+    });
+
+    it('VALID: {stickyTop: 54} => header pins below the row and chain it is nested in, one band down', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            defaultExpanded={true}
+            stickyTop={CssPixelsStub({ value: 54 })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('TOOL_ROW_HEADER');
+
+      expect([header.style.position, header.style.top, header.style.zIndex]).toStrictEqual([
+        'sticky',
+        '54px',
+        '46',
+      ]);
+    });
+
+    // The offsets below this row are built on this number, so it is declared rather than left to
+    // whatever the content lays out to — and the fill is what stops the open detail scrolling
+    // underneath from reading through the pinned bar.
+    it('VALID: {expanded} => header declares its measured height and an opaque fill', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      const header = screen.getByTestId('TOOL_ROW_HEADER');
+
+      expect([
+        header.style.height,
+        header.style.boxSizing,
+        header.style.backgroundColor,
+      ]).toStrictEqual(['25px', 'border-box', 'rgb(42, 26, 20)']);
     });
   });
 });

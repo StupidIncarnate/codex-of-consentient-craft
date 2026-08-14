@@ -48,6 +48,9 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
           },
           {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+          },
+          {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
           },
         ],
@@ -71,6 +74,9 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
           },
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
           },
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
@@ -133,6 +139,9 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       );
       expect(result.SessionStart[4]?.hooks[0]?.command).toBe('dungeonmaster-session-snippet ward');
       expect(result.SessionStart[5]?.hooks[0]?.command).toBe(
+        'dungeonmaster-session-snippet wardDiscipline',
+      );
+      expect(result.SessionStart[6]?.hooks[0]?.command).toBe(
         'dungeonmaster-session-snippet packages',
       );
     });

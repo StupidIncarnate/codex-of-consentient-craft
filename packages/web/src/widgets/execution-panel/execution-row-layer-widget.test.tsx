@@ -1221,4 +1221,76 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.queryByTestId('execution-row-signals')).toBe(null);
     });
   });
+
+  describe('sticky header', () => {
+    // A closed row is one line plus its subtitle, and its header is transparent when closed —
+    // pinning it would let the subtitle and the rows below read straight through the bar.
+    it('VALID: {collapsed} => header does not pin', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} />,
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+
+      expect([header.style.position, header.style.top]).toStrictEqual(['', '']);
+    });
+
+    it('VALID: {expanded} => header pins flush to the execution panel with the top band', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('execution-row-header'));
+
+      const header = screen.getByTestId('execution-row-header');
+
+      expect([
+        header.style.position,
+        header.style.top,
+        header.style.zIndex,
+        header.style.height,
+        header.style.boxSizing,
+      ]).toStrictEqual(['sticky', '0px', '100', '23px', 'border-box']);
+    });
+
+    // The row is the outermost expandable in the panel, so everything it opens onto has to clear
+    // the row header before it pins — otherwise a chain header slides over the row's own.
+    it('VALID: {expanded with subagent entries} => chain inside the row pins below the row header', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              TaskToolUseChatEntryStub({ agentId: 'agent-001' }),
+              AssistantTextChatEntryStub({
+                content: 'Sub-agent working...',
+                source: 'subagent',
+                agentId: 'agent-001',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      const chainHeader = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect([
+        chainHeader.style.position,
+        chainHeader.style.top,
+        chainHeader.style.zIndex,
+      ]).toStrictEqual(['sticky', '23px', '77']);
+    });
+  });
 });

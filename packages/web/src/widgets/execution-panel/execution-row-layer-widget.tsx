@@ -18,7 +18,8 @@ import type {
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
+import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -27,9 +28,11 @@ import type { ExecutionStepStatus } from '../../contracts/execution-step-status/
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
+import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
 import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
+import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
@@ -89,6 +92,13 @@ const EXPANDED_MARGIN_VERTICAL = 4;
 const CHEVRON_EXPANDED = '\u25BE';
 const CHEVRON_COLLAPSED = '\u25B8';
 const DOTS = '\u00B7\u00B7\u00B7';
+
+// This row is the outermost expandable in the execution panel's scroll area, so its header pins
+// flush to the top and everything it contains pins below that header's own height.
+const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
+const STICKY_TOP_INSIDE_ROW: CssPixels = cssPixelsContract.parse(
+  stickyHeaderStatics.heights.executionRow,
+);
 
 export const ExecutionRowLayerWidget = ({
   order,
@@ -192,6 +202,20 @@ export const ExecutionRowLayerWidget = ({
           cursor: isExpandable ? 'pointer' : 'default',
           borderRadius: ROW_MARGIN_BOTTOM,
           backgroundColor: expanded ? colors['bg-raised'] : 'transparent',
+          // Pinned only while open — that is both when there is a transcript long enough to lose
+          // the header off the top, and when the `bg-raised` fill above is present to keep the
+          // entries scrolling underneath from reading through it. A collapsed row is one line with
+          // nothing of its own to scroll past, and pinning a transparent bar would let the rows
+          // below it show through.
+          ...(expanded
+            ? {
+                position: 'sticky' as const,
+                top: Number(STICKY_TOP_ROOT),
+                zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop: STICKY_TOP_ROOT })),
+                height: stickyHeaderStatics.heights.executionRow,
+                boxSizing: 'border-box' as const,
+              }
+            : {}),
         }}
       >
         <Text
@@ -413,6 +437,7 @@ export const ExecutionRowLayerWidget = ({
               roleLabel={role}
               swapTrailingEmptyThinkingForIndicator={true}
               collapseToTail={true}
+              stickyTop={STICKY_TOP_INSIDE_ROW}
             />
           ) : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}

@@ -48,6 +48,7 @@ const raccoonPixels = raccoonWizardPixelsStatics.pixels.map((p) =>
 );
 
 const CHAT_MESSAGES_AREA_TEST_ID = testIdContract.parse('CHAT_MESSAGES_AREA');
+const CHAT_INSET = 16;
 
 export const ChatPanelWidget = ({
   entries,
@@ -113,10 +114,20 @@ export const ChatPanelWidget = ({
         />
       </Box>
 
+      {/* The top inset rides on the CONTENT, not on the scrollport. Sticky children — a sub-agent
+          chain's header, a tool row's — pin to the scrollport's content edge, so a `padding-top`
+          here would hold every pinned header that far down while the transcript kept scrolling
+          through the strip above it. On the content it scrolls away with the first message
+          instead, which is what the reader expects it to do. */}
       <AutoScrollContainerWidget
         testId={CHAT_MESSAGES_AREA_TEST_ID}
-        style={{ flex: 1, padding: 16 }}
-        contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+        style={{ flex: 1, padding: `0 ${String(CHAT_INSET)}px ${String(CHAT_INSET)}px` }}
+        contentStyle={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          paddingTop: CHAT_INSET,
+        }}
       >
         <ChatEntryListWidget
           entries={entries}
