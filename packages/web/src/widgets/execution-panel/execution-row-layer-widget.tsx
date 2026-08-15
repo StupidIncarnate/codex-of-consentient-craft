@@ -21,6 +21,7 @@ import type {
 
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
+import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -33,6 +34,7 @@ import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-s
 import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
 import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
+import { mergeCommandOutputEntriesTransformer } from '../../transformers/merge-command-output-entries/merge-command-output-entries-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { RiftcarverResultDetailLayerWidget } from './riftcarver-result-detail-layer-widget';
@@ -130,6 +132,14 @@ export const ExecutionRowLayerWidget = ({
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const hasEntries = entries !== undefined && entries.length > 0;
+  // A COMMAND row (ward, riftcarver) streams raw program output one entry per LINE, so it is
+  // rejoined into one block per run before rendering and rendered verbatim rather than as markdown.
+  // Both are gated on the role rather than sniffed from content: an agent's consecutive text
+  // entries are genuinely separate messages, and its markdown is genuinely markdown.
+  const isCommandRow = isCommandWorkItemRoleGuard({ role });
+  const displayEntries = isCommandRow
+    ? mergeCommandOutputEntriesTransformer({ entries: entries ?? [] })
+    : (entries ?? []);
   const [expanded, setExpanded] = useState(
     (status === ('in_progress' as ExecutionStepStatus) && hasEntries) ||
       (autoExpand === true && hasEntries),
@@ -436,12 +446,13 @@ export const ExecutionRowLayerWidget = ({
           ) : null}
           {entries && entries.length > 0 ? (
             <ChatEntryListWidget
-              entries={entries}
+              entries={displayEntries}
               isStreaming={isStreaming ?? false}
               roleLabel={role}
               swapTrailingEmptyThinkingForIndicator={true}
               collapseToTail={true}
               stickyTop={STICKY_TOP_INSIDE_ROW}
+              isCommandOutput={isCommandRow}
             />
           ) : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}

@@ -53,6 +53,10 @@ export interface ChatEntryListWidgetProps {
   // Forwarded untouched to the expandables this list renders: the list itself has no header of its
   // own, so it adds nothing to the offset — it only carries what its host already pinned.
   stickyTop?: CssPixels;
+  // Set by a COMMAND work item's row (ward, riftcarver). Its text entries are raw program output,
+  // not agent-authored markdown, so they render verbatim — npm's `> pkg build` script echo is a
+  // blockquote to a markdown parser, and a build log is full of backticks and asterisks besides.
+  isCommandOutput?: boolean;
 }
 
 const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
@@ -66,6 +70,7 @@ export const ChatEntryListWidget = ({
   swapTrailingEmptyThinkingForIndicator = false,
   collapseToTail = false,
   stickyTop = STICKY_TOP_ROOT,
+  isCommandOutput = false,
 }: ChatEntryListWidgetProps): React.JSX.Element => {
   const [showAllEarlier, setShowAllEarlier] = useState(false);
   const groupedEntries = collectSubagentChainsTransformer({ entries });
@@ -156,6 +161,7 @@ export const ChatEntryListWidget = ({
           <ChatMessageWidget
             key={`single-${String(i)}`}
             entry={entry}
+            isCommandOutput={isCommandOutput}
             {...(roleLabel === undefined ? {} : { roleLabel })}
             {...(annotation?.tokenBadgeLabel === undefined || annotation.tokenBadgeLabel === null
               ? {}

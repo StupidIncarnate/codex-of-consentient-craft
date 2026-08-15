@@ -1358,4 +1358,83 @@ describe('ExecutionRowLayerWidget', () => {
       ]).toStrictEqual(['sticky', '23px', '77']);
     });
   });
+
+  // A command work item streams one entry per LINE, and the renderer draws one labelled, bordered
+  // block per entry — so a build printed a role header above every single line, blank lines
+  // included. These assert the BLOCK COUNT, not just the text: a check that the lines are present
+  // passes on the arrangement that puts each one in its own header.
+  describe('command output rendering', () => {
+    it('VALID: {riftcarver row, three output lines} => renders ONE message block carrying all three lines, not three', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            role={ExecutionRoleStub({ value: 'riftcarver' })}
+            autoExpand={true}
+            entries={[
+              AssistantTextChatEntryStub({ content: '— build pass 1/3 —' }),
+              AssistantTextChatEntryStub({ content: '' }),
+              AssistantTextChatEntryStub({ content: '— build green on pass 1/3 —' }),
+            ]}
+          />
+        ),
+      });
+
+      const blocks = screen.getAllByTestId('CHAT_MESSAGE');
+
+      expect(blocks.map((block) => block.textContent)).toStrictEqual([
+        'RIFTCARVER— build pass 1/3 —\n\n— build green on pass 1/3 —',
+      ]);
+    });
+
+    it('VALID: {riftcarver row, npm script echo line} => renders it verbatim rather than as a markdown blockquote', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            role={ExecutionRoleStub({ value: 'riftcarver' })}
+            autoExpand={true}
+            entries={[
+              AssistantTextChatEntryStub({ content: '> @dungeonmaster/testing@0.1.0 build' }),
+            ]}
+          />
+        ),
+      });
+
+      const block = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(block.textContent).toBe('RIFTCARVER> @dungeonmaster/testing@0.1.0 build');
+    });
+
+    // The counterpart to the case above, and the reason merging is gated on the ROLE: an agent's
+    // consecutive text entries are genuinely separate messages. This row still collapses to its
+    // tail (`collapseToTail`), so the proof of no-merge is that the one visible block carries the
+    // LAST message alone — a merged row would read 'CODEWEAVERfirst\nsecond\nthird'.
+    it('VALID: {codeweaver row, three text entries} => does NOT join them, leaving the tail message standing alone', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            role={ExecutionRoleStub({ value: 'codeweaver' })}
+            autoExpand={true}
+            entries={[
+              AssistantTextChatEntryStub({ content: 'first' }),
+              AssistantTextChatEntryStub({ content: 'second' }),
+              AssistantTextChatEntryStub({ content: 'third' }),
+            ]}
+          />
+        ),
+      });
+
+      const blocks = screen.getAllByTestId('CHAT_MESSAGE');
+
+      expect(blocks.map((block) => block.textContent)).toStrictEqual(['CODEWEAVERthird']);
+    });
+  });
 });

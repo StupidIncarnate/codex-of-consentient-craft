@@ -33,6 +33,10 @@ export interface ChatMessageWidgetProps {
   tokenBadgeLabel?: FormattedTokenLabel;
   resultTokenBadgeLabel?: FormattedTokenLabel;
   roleLabel?: ExecutionRole;
+  // Raw program output from a COMMAND work item, which is not agent-authored markdown and must not
+  // be parsed as any. npm's `> pkg build` script echo renders as a BLOCKQUOTE otherwise, and a
+  // build log is full of backticks, asterisks and hashes that mean nothing but themselves.
+  isCommandOutput?: boolean;
 }
 
 const BORDER_WIDTH = '2px solid';
@@ -45,6 +49,7 @@ export const ChatMessageWidget = ({
   tokenBadgeLabel,
   resultTokenBadgeLabel,
   roleLabel,
+  isCommandOutput = false,
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const isSubagent = 'source' in entry && entry.source === 'subagent';
@@ -258,7 +263,17 @@ export const ChatMessageWidget = ({
             </Text>
           ) : null}
         </Text>
-        <MarkdownTextWidget content={markdownSourceContract.parse(entry.content)} />
+        {isCommandOutput ? (
+          <Text
+            ff="monospace"
+            size="xs"
+            style={{ color: colors.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+          >
+            {entry.content}
+          </Text>
+        ) : (
+          <MarkdownTextWidget content={markdownSourceContract.parse(entry.content)} />
+        )}
         {tokenBadgeElement}
       </Box>
     );
