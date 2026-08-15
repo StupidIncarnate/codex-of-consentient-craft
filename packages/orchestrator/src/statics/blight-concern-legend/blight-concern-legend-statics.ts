@@ -12,9 +12,9 @@
  * diff's checklist affordable to read.
  *
  * Keys must stay 1:1 with `blightConcernContract`'s options (`craft`, `perf`, `dedup`,
- * `integrity`). A statics file may only import statics/, so it cannot import the contract to
- * cross-check its own keys — this literal, and its colocated test, are the coverage assertion. Keep
- * it hand-synced with blight-concern-contract.ts if that enum ever changes.
+ * `integrity`, `test-cases`). A statics file may only import statics/, so it cannot import the
+ * contract to cross-check its own keys — this literal, and its colocated test, are the coverage
+ * assertion. Keep it hand-synced with blight-concern-contract.ts if that enum ever changes.
  */
 
 export const blightConcernLegendStatics = {
@@ -25,5 +25,7 @@ export const blightConcernLegendStatics = {
     dedup: 'semantic duplication, within-diff and against existing repo code',
     integrity:
       'code that typechecks but MEANS something different to its consumers, plus stubs, fixtures, or `.default(...)` papering over a break',
+    'test-cases':
+      'every branch this commit added has a test case at all — the narrower question a diff answers on its own, not whether a spec observable is proven, which is the Flowrider track',
   },
 } as const;

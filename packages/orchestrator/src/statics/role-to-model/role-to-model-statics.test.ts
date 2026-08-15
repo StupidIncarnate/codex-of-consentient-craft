@@ -12,9 +12,7 @@ describe('roleToModelStatics', () => {
       siegemaster: 'opus',
       codeweaver: 'opus',
       spiritmender: 'sonnet',
-      'blightwarden-group-minion': 'sonnet',
-      'blightwarden-crosscut-minion': 'sonnet',
-      blightwarden: 'sonnet',
+      blightscout: 'sonnet',
       pesteater: 'opus',
       warpgate: 'opus',
     });

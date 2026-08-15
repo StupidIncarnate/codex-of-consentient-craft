@@ -1,8 +1,7 @@
 /**
  * PURPOSE: Hand-crafted minimal-but-valid quest blueprint literal that satisfies every gate along
- * the hydrator's walk to in_progress — including the `approved` gate's ">=1 codeweaver operation
- * item" requirement — so the relay seeds a codeweaver -> verify-tail work-item chain for
- * orchestration smoketests.
+ * the hydrator's walk to in_progress, and pins the implementation ledger to ONE codeweaver item so
+ * the orchestration scenarios' per-role scripts stay one-signal-deep.
  *
  * USAGE:
  * const blueprint = questBlueprintContract.parse(smoketestBlueprintsStatics.minimal);
@@ -16,10 +15,15 @@
  * which expects mutable `StubArgument<QuestBlueprint>` — can accept it without readonly conflicts.
  * statics/ cannot import the zod contract, so `quest-hydrate-broker.integration.test.ts` is the
  * place that parses this literal through `questBlueprintContract` (via `QuestBlueprintStub`) and
- * will fail if any gate requirement drifts. The `operations` array stands in for the codeweaver
- * implementation items ChaosWhisperer authors during explore_observables; the hydrator appends the
- * fixed verify tail (flowrider, siegemaster, blightwarden — ward is skipped here) at
- * in_progress.
+ * will fail if any gate requirement drifts. The `operations` array is NOT walked through
+ * modify-quest — the ledger is off that allowlist at every status — it is written by
+ * `questHydrateBroker`'s direct persist, where an authored implementation item REPLACES the item
+ * the flows would otherwise derive for the same role; the hydrator appends the
+ * fixed verify tail (flowrider, siegemaster — ward is skipped here) at in_progress. Groundstomper
+ * is also part of the tail but fans to zero items, because the quest's only package
+ * (`orchestrator`) is not e2e-eligible. There is no blightscout item in the seeded tail at all: the
+ * signal-back handler appends one after every committing session, so the scouts this blueprint runs
+ * are minted mid-relay rather than seeded here.
  */
 
 export const smoketestBlueprintsStatics = {
@@ -41,7 +45,15 @@ export const smoketestBlueprintsStatics = {
         id: 'smoketest-placeholder',
         name: 'SmoketestPlaceholder',
         kind: 'data',
-        status: 'new',
+        // `existing`, because the file at `source` below is committed in this repo — the repo
+        // every smoketest quest targets, since `smoketestEnsureGuildBroker` resolves the guild
+        // whose path walks up to the same repo root as the dungeonmaster home. `questModifyBroker`'s
+        // `Contract Source Resolution` check anchors the path on that project root, so a blueprint
+        // declaring `new` over a committed file is a status-vs-disk mismatch and the hydrator is
+        // refused at the `explore_observables` step. An integration test hydrating this blueprint
+        // into a testbed repo must therefore seed the file too — `seedQuestRepoPackages({ sources })`
+        // does that, the same way it seeds each declared package location.
+        status: 'existing',
         source:
           'packages/orchestrator/src/contracts/smoketest-placeholder/smoketest-placeholder-contract.ts',
         nodeId: 'emit-signal',

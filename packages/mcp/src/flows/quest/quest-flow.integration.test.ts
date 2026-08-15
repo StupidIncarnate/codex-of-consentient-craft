@@ -64,7 +64,7 @@ describe('QuestFlow', () => {
         'Lists all registered guilds with their IDs, names, paths, and quest counts.',
         "Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report). Used by PathSeeker on resume to re-read already-committed phase artifacts.",
         "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. Flowrider, Groundstomper and Siegemaster call this instead of reading the spec and enumerating by hand. Pass `track` ('flowrider' | 'groundstomper' | 'siegemaster') — the ROLE you were dispatched as, not the sign-off field you write — and REMAINING counts the units in YOUR denominator, which is exactly what the signal-back completion gate refuses `done` on. Flowrider and Groundstomper both write flowriderSignoff but are measured over DISJOINT package kinds, so the other's name returns the complement of your work; both also narrow to the quest's runtime flows, the only set they are measured over. Pass `packageNames` too when your operation item declares any, or you read a whole-quest remainder while your own gate clears at zero.",
-        "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. Blightwarden calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
+        "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. Blightscout calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
         'Creates a new quest seeded with the supplied userRequest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id, but the caller MUST pass the original user request text so it is captured on the quest from the moment of creation.',
         'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | run-ward | idle. Long-polls internally up to ~25s.',
         'Runs `npm run ward` synchronously in changed or full mode and persists the result onto the named work item. Blocks until ward exits.',
@@ -104,8 +104,11 @@ describe('QuestFlow', () => {
       const registration = registrations.find(({ name }) => name === 'get-blight-checklist');
 
       // The exact match proves the registration wired the get-blight-checklist input contract
-      // (not some other contract, and not a hand-written stand-in schema) through zodToJsonSchema:
-      // questId is the only property, required, and the object rejects unknown keys.
+      // (not some other contract, and not a hand-written stand-in schema) through zodToJsonSchema.
+      // `scope` reaching the PUBLISHED schema is what makes the tool usable by the role it exists
+      // for: the contract is `.strict()`, Blightscout's prompt directs it to pass `scope: 'commit'`
+      // on every call, and the signal-back completion gate quotes that same call back to it on a
+      // refusal — so a schema without the property rejects every one of those calls outright.
       expect(registration?.inputSchema).toStrictEqual({
         type: 'object',
         properties: {
@@ -113,6 +116,12 @@ describe('QuestFlow', () => {
             type: 'string',
             minLength: 1,
             description: 'The ID of the quest to enumerate the blight review surface for',
+          },
+          scope: {
+            type: 'string',
+            enum: ['quest', 'commit'],
+            description:
+              "Which diff to enumerate. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's output, which is what a Blightscout item is dispatched against and what its signal-back completion gate recomputes. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched.",
           },
         },
         required: ['questId'],

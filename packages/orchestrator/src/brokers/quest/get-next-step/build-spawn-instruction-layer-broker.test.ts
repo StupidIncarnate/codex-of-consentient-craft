@@ -6,6 +6,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { buildSpawnInstructionLayerBroker } from './build-spawn-instruction-layer-broker';
 import { buildSpawnInstructionLayerBrokerProxy } from './build-spawn-instruction-layer-broker.proxy';
 
@@ -148,7 +149,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
           'codeweaver',
           'flowrider',
           'siegemaster',
-          'blightwarden',
+          'blightscout',
           'spiritmender',
           'pesteater',
         ] as const
@@ -162,10 +163,70 @@ describe('buildSpawnInstructionLayerBroker', () => {
         { role: 'codeweaver', resumeSessionId: sessionId },
         { role: 'flowrider', resumeSessionId: sessionId },
         { role: 'siegemaster', resumeSessionId: sessionId },
-        { role: 'blightwarden', resumeSessionId: sessionId },
+        { role: 'blightscout', resumeSessionId: sessionId },
         { role: 'spiritmender', resumeSessionId: sessionId },
         { role: 'pesteater', resumeSessionId: sessionId },
       ]);
+    });
+  });
+
+  describe('smoketest prompt override', () => {
+    it('VALID: {workItem carrying smoketestPromptOverride} => taskPrompt IS the canned script, not the interpolated role prompt', () => {
+      buildSpawnInstructionLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'quest-smoketest-override' });
+      const workItemId = QuestWorkItemIdStub({
+        value: '58a837a1-7e08-41b5-bf02-d32a57122660',
+      });
+      const override = PromptTextStub({
+        value:
+          'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'pending',
+        smoketestPromptOverride: override,
+      });
+
+      const result = buildSpawnInstructionLayerBroker({ questId, workItem });
+
+      expect(result).toStrictEqual({
+        questId,
+        role: 'codeweaver',
+        workItemId,
+        taskPrompt: override,
+      });
+    });
+
+    it('VALID: {workItem carrying smoketestPromptOverride AND a retained sessionId} => the canned script wins on the resume path too', () => {
+      buildSpawnInstructionLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'quest-smoketest-override-resume' });
+      const workItemId = QuestWorkItemIdStub({
+        value: '58a837a1-7e08-41b5-bf02-d32a57122661',
+      });
+      const sessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
+      const override = PromptTextStub({
+        value:
+          'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'flowrider',
+        status: 'pending',
+        sessionId,
+        smoketestPromptOverride: override,
+      });
+
+      const result = buildSpawnInstructionLayerBroker({ questId, workItem });
+
+      expect(result).toStrictEqual({
+        questId,
+        role: 'flowrider',
+        workItemId,
+        taskPrompt: override,
+        resumeSessionId: sessionId,
+        resumePrompt: override,
+      });
     });
   });
 

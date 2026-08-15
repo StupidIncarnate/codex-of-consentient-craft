@@ -228,12 +228,17 @@ export const StartOrchestrator = {
       ...(packageNames !== undefined && { packageNames }),
     }),
 
+  // `scope` rides all the way out to the MCP tool because Blightscout is dispatched against ONE
+  // COMMIT and its completion gate recomputes the remainder with `scope: 'commit'` — a session that
+  // could not name the same scope would read a different denominator than the one grading it.
   getBlightChecklist: async ({
     questId,
+    scope,
   }: {
     questId: string;
+    scope?: 'quest' | 'commit';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getBlightChecklist>>> =>
-    QuestFlow.getBlightChecklist({ questId }),
+    QuestFlow.getBlightChecklist({ questId, ...(scope !== undefined && { scope }) }),
 
   // MCP-driven reset-flow-signoffs — clears Siegemaster's sign-offs across ONE flow so the walk
   // can be redone honestly after a fix. Flowrider's track is never touched.

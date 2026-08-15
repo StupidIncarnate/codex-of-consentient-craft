@@ -84,6 +84,8 @@ const blightConcernDescriptions = {
     '{file} introduces no semantic duplication, within this diff or against existing repo code',
   integrity:
     "{file}'s changed exports still MEAN to their consumers what they did, and no stub, fixture, or `.default(...)` papers over a break",
+  'test-cases':
+    '{file} has a test case for every branch this commit added to it — not whether a spec observable is proven, which is the Flowrider track, but whether the conditional written here was written with a case at all',
 };
 
 export const blightChecklistBuildTransformer = ({

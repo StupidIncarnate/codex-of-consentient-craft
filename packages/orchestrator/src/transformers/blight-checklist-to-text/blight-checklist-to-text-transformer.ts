@@ -22,8 +22,8 @@
  * it against every file on a large diff would cost more than the units themselves; stated once per
  * concern actually present, the whole diff renders in a small fraction of what re-deriving the
  * same ask per file costs. The `paired:` file LIST is dropped in favor of a `(+N paired)` count on
- * the heading — the minions doing the actual review receive their real file lists in the parent's
- * brief, not from this checklist, so the list here was pure repetition with no reader.
+ * the heading — the reviewing agent already has the diff itself, so repeating the paired file list
+ * here was pure repetition with no reader.
  *
  * Even after compaction a pathological diff (thousands of changed files) could still overflow, so
  * `blightChecklistLimitsStatics.maxUnits` caps how many units this render shows, prioritizing
@@ -37,11 +37,9 @@
  * what a predecessor actually landed on this diff, rather than reconstructing it from prose in a
  * commit body.
  *
- * Files are sectioned by owning package, and each section states how many dispatch groups its files
- * become, because the reader of this text is the operator deciding how many minions to summon. It
- * costs one line per package — small enough to sit inside the same budget — and it is the only way
- * the operator can honour the package boundary without reading a package name out of a path, which
- * would assume a layout this tool has to work without.
+ * Files are sectioned by owning package — it costs one line per package, small enough to sit
+ * inside the same budget — and it is the only way to state the package boundary without reading a
+ * package name out of a path, which would assume a layout this tool has to work without.
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -53,9 +51,6 @@ import type {
 
 import { blightChecklistLimitsStatics } from '../../statics/blight-checklist-limits/blight-checklist-limits-statics';
 import { blightConcernLegendStatics } from '../../statics/blight-concern-legend/blight-concern-legend-statics';
-import { blightPartitionStatics } from '../../statics/blight-partition/blight-partition-statics';
-import { blightPartitionGroupsTransformer } from '../blight-partition-groups/blight-partition-groups-transformer';
-import type { BlightPartitionGroup } from '../blight-partition-groups/blight-partition-groups-transformer';
 
 export const blightChecklistToTextTransformer = ({
   checklist,
@@ -105,7 +100,7 @@ export const blightChecklistToTextTransformer = ({
     `REMAINING (no disposition in quest.planningNotes.blightLedger): ${checklist.remainingItemIds.length} of ${checklist.items.length}`,
     '',
     "A unit's itemId is <implPath>:<concern> — the file heading plus the concern name.",
-    'Files sit under the package that owns them, and one dispatch group never spans two sections.',
+    'Files sit under the package that owns them.',
     '',
     'This list IS the definition of done for this diff — every file × concern crossing needs its',
     'own disposition, and the REMAINING count above decides the completion signal, not recollection.',
@@ -126,18 +121,25 @@ export const blightChecklistToTextTransformer = ({
     ? ` — TRUNCATED at the ${String(blightChecklistLimitsStatics.maxUnits)}-unit cap; showing REMAINING units first. This list is INCOMPLETE — call get-blight-checklist again after dispositioning these to see the rest.`
     : '';
 
-  // The partition is what the section headings report, so the render states a group count it did
-  // not invent: the operator reads how many minions a package's files become from the same cut the
-  // checklist was sliced by, and never re-chunks a list the tool already chunked.
-  const sections = new Map<BlightChecklistItem['packageName'], BlightPartitionGroup[]>();
-  for (const partitionGroup of blightPartitionGroupsTransformer({ items: renderedItems })) {
-    const section = sections.get(partitionGroup.packageName) ?? [];
-    section.push(partitionGroup);
-    sections.set(partitionGroup.packageName, section);
+  // Sections are ordered by first-seen declared package, with files under no declared package
+  // trailing — matching the residual placement blightChecklistItemContract documents for a path
+  // outside every declared package.
+  const declaredPackages = new Set<Exclude<BlightChecklistItem['packageName'], undefined>>();
+  let hasUndeclaredPackage = false;
+  for (const group of groups.values()) {
+    if (group.packageName === undefined) {
+      hasUndeclaredPackage = true;
+    } else {
+      declaredPackages.add(group.packageName);
+    }
   }
+  const packageOrder: BlightChecklistItem['packageName'][] = [
+    ...declaredPackages,
+    ...(hasUndeclaredPackage ? [undefined] : []),
+  ];
 
-  const unitBlock = [...sections.entries()]
-    .map(([packageName, section]) => {
+  const unitBlock = packageOrder
+    .map((packageName) => {
       // Bounded by the package count (a handful) times the file count, and it keeps every file's
       // paired-count and disposition lines reading from the one map that already holds them.
       const fileEntries = [...groups.entries()].filter(
@@ -147,7 +149,7 @@ export const blightChecklistToTextTransformer = ({
         packageName === undefined ? 'NO DECLARED PACKAGE' : `PACKAGE: ${String(packageName)}`;
       return [
         '',
-        `## ${ownerLabel} — ${String(fileEntries.length)} file(s), ${String(section.length)} group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
+        `## ${ownerLabel} — ${String(fileEntries.length)} file(s)`,
         ...fileEntries.map(([implPath, group]) => {
           const dispositioned = group.items.filter((item) => !remaining.has(String(item.id)));
           const stillRemaining = group.items.filter((item) => remaining.has(String(item.id)));

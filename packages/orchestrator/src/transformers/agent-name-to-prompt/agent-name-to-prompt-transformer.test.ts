@@ -1,8 +1,5 @@
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
-import { blightwardenCrosscutMinionStatics } from '../../statics/blightwarden-crosscut-minion/blightwarden-crosscut-minion-statics';
-import { blightwardenDeadcodeMinionStatics } from '../../statics/blightwarden-deadcode-minion/blightwarden-deadcode-minion-statics';
-import { blightwardenGroupMinionStatics } from '../../statics/blightwarden-group-minion/blightwarden-group-minion-statics';
-import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
+import { blightscoutPromptStatics } from '../../statics/blightscout-prompt/blightscout-prompt-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPieceMinionStatics } from '../../statics/codeweaver-piece-minion/codeweaver-piece-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
@@ -138,51 +135,15 @@ describe('agentNameToPromptTransformer', () => {
     });
   });
 
-  it('VALID: {agent: "blightwarden"} => returns blightwarden prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'blightwarden' });
+  it('VALID: {agent: "blightscout"} => returns blightscout prompt data on sonnet', () => {
+    const agent = AgentPromptNameStub({ value: 'blightscout' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'blightwarden',
+      name: 'blightscout',
       model: 'sonnet',
-      prompt: blightwardenPromptStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "blightwarden-group-minion"} => returns blightwarden-group-minion prompt data on sonnet', () => {
-    const agent = AgentPromptNameStub({ value: 'blightwarden-group-minion' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'blightwarden-group-minion',
-      model: 'sonnet',
-      prompt: blightwardenGroupMinionStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "blightwarden-crosscut-minion"} => returns blightwarden-crosscut-minion prompt data on sonnet', () => {
-    const agent = AgentPromptNameStub({ value: 'blightwarden-crosscut-minion' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'blightwarden-crosscut-minion',
-      model: 'sonnet',
-      prompt: blightwardenCrosscutMinionStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "blightwarden-deadcode-minion"} => returns blightwarden-deadcode-minion prompt data on sonnet', () => {
-    const agent = AgentPromptNameStub({ value: 'blightwarden-deadcode-minion' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'blightwarden-deadcode-minion',
-      model: 'sonnet',
-      prompt: blightwardenDeadcodeMinionStatics.prompt.template,
+      prompt: blightscoutPromptStatics.prompt.template,
     });
   });
 

@@ -19,9 +19,7 @@ import { agentPromptClassificationStatics } from '../../statics/agent-prompt-cla
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
 import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
-import { blightwardenCrosscutMinionStatics } from '../../statics/blightwarden-crosscut-minion/blightwarden-crosscut-minion-statics';
-import { blightwardenGroupMinionStatics } from '../../statics/blightwarden-group-minion/blightwarden-group-minion-statics';
-import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
+import { blightscoutPromptStatics } from '../../statics/blightscout-prompt/blightscout-prompt-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPieceMinionStatics } from '../../statics/codeweaver-piece-minion/codeweaver-piece-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
@@ -145,45 +143,7 @@ describe('workItemToPromptTransformer', () => {
     });
   });
 
-  describe('blightwarden minion roles and pesteater (minimal substitution)', () => {
-    it('VALID: {agent + role: blightwarden-group-minion} => substitutes Quest ID + Work Item ID', () => {
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-6666-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'blightwarden-group-minion' });
-      const quest = QuestStub({ id: questId, workItems: [workItem] });
-
-      const result = workItemToPromptTransformer({
-        quest,
-        workItem,
-        agentName: AgentPromptNameStub({ value: 'blightwarden-group-minion' }),
-      });
-
-      const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
-
-      expect(result.prompt).toBe(
-        blightwardenGroupMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-    });
-
-    it('VALID: {agent + role: blightwarden-crosscut-minion} => substitutes Quest ID + Work Item ID', () => {
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-6666-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'blightwarden-crosscut-minion' });
-      const quest = QuestStub({ id: questId, workItems: [workItem] });
-
-      const result = workItemToPromptTransformer({
-        quest,
-        workItem,
-        agentName: AgentPromptNameStub({ value: 'blightwarden-crosscut-minion' }),
-      });
-
-      const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
-
-      expect(result.prompt).toBe(
-        blightwardenCrosscutMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-    });
-
+  describe('pesteater (minimal substitution)', () => {
     it('VALID: {agent + role: pesteater} => substitutes Quest ID + Work Item ID (reads quest itself, no operations ref)', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-6666-4222-9333-444444444444' });
@@ -677,19 +637,19 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    it('VALID: {role: blightwarden, one linked operation} => substitutes exact operation-relay $ARGUMENTS', () => {
+    it('VALID: {role: blightscout, one linked operation} => substitutes exact operation-relay $ARGUMENTS', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7777-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-7777-4222-9333-444444444444' });
       const operation = OperationItemStub({
         id: operationId,
-        role: 'blightwarden',
-        text: 'judge minion reports and clean up',
+        role: 'blightscout',
+        text: 'review the last commit and clean up',
         status: 'pending',
       });
       const workItem = WorkItemStub({
         id: workItemId,
-        role: 'blightwarden',
+        role: 'blightscout',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
@@ -697,24 +657,24 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'blightwarden' }),
+        agentName: AgentPromptNameStub({ value: 'blightscout' }),
       });
 
       const expectedArgs = [
         `Quest ID: ${String(questId)}`,
         `Work Item ID: ${String(workItemId)}`,
         `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [blightwarden] judge minion reports and clean up',
+        'Your operation item: [blightscout] review the last commit and clean up',
         '',
         'Operations ledger (in order):',
-        '1. [ ] [blightwarden] judge minion reports and clean up  <-- YOUR OPERATION ITEM',
+        '1. [ ] [blightscout] review the last commit and clean up  <-- YOUR OPERATION ITEM',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
-        blightwardenPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        blightscoutPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
 

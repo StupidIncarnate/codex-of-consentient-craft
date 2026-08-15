@@ -45,8 +45,11 @@
  * - `groundstomper` — verify operator that authors the Playwright e2e walk; one item per runtime
  *   flow that touches an e2e-eligible package.
  * - `siegemaster` — verify operator that hand-walks each flow; one item per flow.
- * - `blightwarden` — verify operator running the whole-diff standards audit.
- * - `blightwarden-group-minion` / `blightwarden-crosscut-minion` — blightwarden's sub-agents.
+ * - `blightscout` — the standards review, scoped to ONE commit and appended after every role that
+ *   commits, rather than one whole-diff audit at the end. It runs alone and summons nothing: the
+ *   surface it reviews is a single session's output, so there is no partition to fan out. Replaces
+ *   `blightwarden` and its three minions, whose group/crosscut partitioning existed only because a
+ *   170-file diff had to be cut into 29 groups.
  * - `pesteater` — bug-hunt implementation: writes a failing test first, then fixes it.
  * - `warpgate` — merges the quest branch home into the base branch. NOT chat: it is dispatched from
  *   the operations ledger like any relay role, and it is real work with a real failure mode.
@@ -64,9 +67,7 @@ export const workItemRoleStatics = {
     'flowrider',
     'groundstomper',
     'siegemaster',
-    'blightwarden-group-minion',
-    'blightwarden-crosscut-minion',
-    'blightwarden',
+    'blightscout',
     'pesteater',
     'warpgate',
   ],

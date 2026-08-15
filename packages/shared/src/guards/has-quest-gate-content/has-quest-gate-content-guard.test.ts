@@ -50,7 +50,7 @@ describe('hasQuestGateContentGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('VALID: {bug-hunt quest with empty operations ledger, nextStatus: approved} => returns true (requirement is feature-only)', () => {
+    it('VALID: {bug-hunt quest with flows, empty operations ledger, nextStatus: approved} => returns true', () => {
       const quest = QuestStub({ questType: 'bug-hunt', flows: [FlowStub()], operations: [] });
       const nextStatus = QuestStatusStub({ value: 'approved' });
 
@@ -59,16 +59,16 @@ describe('hasQuestGateContentGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('INVALID: {quest with empty operations ledger, nextStatus: approved} => returns false', () => {
+    it('VALID: {quest with flows, empty operations ledger, nextStatus: approved} => returns true', () => {
       const quest = QuestStub({ flows: [FlowStub()], operations: [] });
       const nextStatus = QuestStatusStub({ value: 'approved' });
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
-    it('INVALID: {quest with operations but no codeweaver item, nextStatus: approved} => returns false', () => {
+    it('VALID: {quest with flows, operations with no codeweaver item, nextStatus: approved} => returns true', () => {
       const quest = QuestStub({
         flows: [FlowStub()],
         operations: [
@@ -79,7 +79,7 @@ describe('hasQuestGateContentGuard', () => {
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it('VALID: {plan item + codeweaver items on ledger, nextStatus: approved} => returns true', () => {

@@ -1,5 +1,12 @@
 import { smoketestScenariosStatics } from './smoketest-scenarios-statics';
 
+// The scout script is sized per COMMITTING SESSION, not per ledger seed — scouts are appended by
+// the signal-back handler after each codeweaver / flowrider / siegemaster session, so the count
+// moves with the blueprint's derived fan-out and the list is over-provisioned on purpose. Derived
+// from the static itself so the two never disagree; the assertions below pin the CONTENT (every
+// entry is `signalDone`) and that this role is scripted at all.
+const SCOUT_SCRIPT = smoketestScenariosStatics.orchHappyPath.scripts.blightscout;
+
 describe('smoketestScenariosStatics', () => {
   it('VALID: {orchHappyPath} => scripts every relay role and asserts a complete quest status', () => {
     expect({
@@ -11,15 +18,23 @@ describe('smoketestScenariosStatics', () => {
     }).toStrictEqual({
       caseId: 'orch-happy-path',
       name: 'Orchestration: feature relay converges to complete',
-      scriptRoles: ['blightwarden', 'codeweaver', 'flowrider', 'siegemaster'],
+      scriptRoles: ['blightscout', 'codeweaver', 'flowrider', 'siegemaster'],
       scripts: {
         codeweaver: ['signalDone'],
         flowrider: ['signalDone'],
         siegemaster: ['signalDone'],
-        blightwarden: ['signalDone'],
+        blightscout: SCOUT_SCRIPT,
       },
       assertions: [{ kind: 'quest-status', expected: 'complete' }],
     });
+  });
+
+  // Every committing session earns exactly one scout, and the relay only advances when each one
+  // signals `done` — a scripted `signalPartial` there would chain a review onto a review. Pinning
+  // the content (rather than just the length) is what stops that.
+  it('VALID: {blightscout script} => every entry is signalDone, over more entries than the relay can need', () => {
+    expect(SCOUT_SCRIPT.filter((prompt) => prompt !== 'signalDone')).toStrictEqual([]);
+    expect(SCOUT_SCRIPT.length).toBeGreaterThan(3);
   });
 
   it('VALID: {orchCodeweaverPartial} => codeweaver scripts partial-then-done and asserts two codeweaver work items', () => {
@@ -35,7 +50,7 @@ describe('smoketestScenariosStatics', () => {
         codeweaver: ['signalPartial', 'signalDone'],
         flowrider: ['signalDone'],
         siegemaster: ['signalDone'],
-        blightwarden: ['signalDone'],
+        blightscout: SCOUT_SCRIPT,
       },
       assertions: [
         { kind: 'quest-status', expected: 'complete' },
@@ -44,17 +59,17 @@ describe('smoketestScenariosStatics', () => {
     });
   });
 
-  it('VALID: {orchReachesBlightwarden} => asserts complete plus at least one blightwarden work item', () => {
+  it('VALID: {orchReachesBlightscout} => asserts complete plus at least one blightscout work item', () => {
     expect({
-      caseId: smoketestScenariosStatics.orchReachesBlightwarden.caseId,
-      name: smoketestScenariosStatics.orchReachesBlightwarden.name,
-      assertions: smoketestScenariosStatics.orchReachesBlightwarden.assertions,
+      caseId: smoketestScenariosStatics.orchReachesBlightscout.caseId,
+      name: smoketestScenariosStatics.orchReachesBlightscout.name,
+      assertions: smoketestScenariosStatics.orchReachesBlightscout.assertions,
     }).toStrictEqual({
-      caseId: 'orch-reaches-blightwarden',
-      name: 'Orchestration: relay reaches the blightwarden audit role',
+      caseId: 'orch-reaches-blightscout',
+      name: 'Orchestration: relay reaches the blightscout audit role',
       assertions: [
         { kind: 'quest-status', expected: 'complete' },
-        { kind: 'work-item-role-count', role: 'blightwarden', minCount: 1 },
+        { kind: 'work-item-role-count', role: 'blightscout', minCount: 1 },
       ],
     });
   });
@@ -82,7 +97,7 @@ describe('smoketestScenariosStatics', () => {
     expect(caseIds).toStrictEqual([
       'orch-codeweaver-partial',
       'orch-happy-path',
-      'orch-reaches-blightwarden',
+      'orch-reaches-blightscout',
       'orch-reaches-flowrider',
     ]);
   });

@@ -14,7 +14,15 @@
  *   flows_approved  No Unglued Seam             every edge's endpoints share a package
  *   approved        Observable Package Attribution  every observable sits on a side its node tags,
  *                                               and a seam node's observables cover both sides
- *   approved        Codeweaver Package Coverage the ledger claims every package the spine lands in
+ *   approved        Contract Source Coverage    every authored contract's source sits under a
+ *                                               declared package
+ *
+ * `Contract Source Coverage` replaced `Codeweaver Package Coverage`, which asked whether the
+ * AUTHORED ledger claimed every package the spine lands in. There is no authored ledger any more:
+ * the codeweaver items are DERIVED at Start from the node tags and the contract source paths, so
+ * package coverage is definitional rather than checkable. What is still checkable — and is now the
+ * one generator input nothing else enforces — is that each contract's `source` resolves somewhere,
+ * since `questContractEntryContract` requires the field but validates nothing about the path.
  *
  * These deliberately do NOT go through `hasQuestGateContentGuard`. That guard expresses only
  * at-least-one-item-with-key=value, and its rejection is the detail-free `Missing required content
@@ -27,7 +35,7 @@ import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage, VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 
-import { questCodeweaverPackageCoverageViolationsTransformer } from '../quest-codeweaver-package-coverage-violations/quest-codeweaver-package-coverage-violations-transformer';
+import { questContractSourceCoverageViolationsTransformer } from '../quest-contract-source-coverage-violations/quest-contract-source-coverage-violations-transformer';
 import { questNodePackageCoverageViolationsTransformer } from '../quest-node-package-coverage-violations/quest-node-package-coverage-violations-transformer';
 import { questObservableAttributionViolationsTransformer } from '../quest-observable-attribution-violations/quest-observable-attribution-violations-transformer';
 import { questUngluedSeamEdgesTransformer } from '../quest-unglued-seam-edges/quest-unglued-seam-edges-transformer';
@@ -70,14 +78,16 @@ export const questSaveInvariantsTransformer = ({
       offenders: questObservableAttributionViolationsTransformer({ flows: quest.flows }),
     });
 
-    // Scoped to feature quests: a bug-hunt's implementation op is the orchestrator-seeded pesteater
-    // item, which does not exist until Start, so at this gate there is no ledger to measure.
+    // Scoped to feature quests: only a feature quest derives one codeweaver item per package, so
+    // only there does an unresolvable contract source cost a whole foundation scope. A bug-hunt's
+    // single orchestrator-seeded pesteater item covers the quest whatever its contracts say, and
+    // refusing one for a path that routes nothing would be a gate with no consequence behind it.
     if (quest.questType === 'feature') {
       relational.push({
-        name: 'Codeweaver Package Coverage',
-        offenders: questCodeweaverPackageCoverageViolationsTransformer({
-          flows: quest.flows,
-          operations: quest.operations,
+        name: 'Contract Source Coverage',
+        offenders: questContractSourceCoverageViolationsTransformer({
+          contracts: quest.contracts,
+          packagesAffected: quest.packagesAffected,
         }),
       });
     }

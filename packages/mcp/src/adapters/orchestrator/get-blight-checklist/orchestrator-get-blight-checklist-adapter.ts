@@ -2,15 +2,17 @@
  * PURPOSE: Adapter for StartOrchestrator.getBlightChecklist that wraps the orchestrator package
  *
  * USAGE:
- * const checklist = await orchestratorGetBlightChecklistAdapter({ questId });
- * // Returns the quest's whole-diff blight review checklist, rendered as text
+ * const checklist = await orchestratorGetBlightChecklistAdapter({ questId, scope: 'commit' });
+ * // Returns the blight review checklist for that scope, rendered as text
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 export const orchestratorGetBlightChecklistAdapter = async ({
   questId,
+  scope,
 }: {
   questId: string;
+  scope?: 'quest' | 'commit';
 }): Promise<Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>> =>
-  StartOrchestrator.getBlightChecklist({ questId });
+  StartOrchestrator.getBlightChecklist({ questId, ...(scope !== undefined && { scope }) });

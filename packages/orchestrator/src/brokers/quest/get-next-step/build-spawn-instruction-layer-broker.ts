@@ -19,6 +19,18 @@
  * `taskPrompt` stays the FRESH variant either way: the MCP/Task dispatcher cannot resume and always
  * re-dispatches from it.
  *
+ * A `smoketestPromptOverride` on the work item REPLACES BOTH prompts, and `taskPrompt` is the one
+ * that matters most: a smoketest work item is freshly minted and carries no `sessionId`, so the
+ * fresh branch is the branch every scripted agent is actually dispatched down. This is the only
+ * point where that canned script can reach the child — both dispatchers, the MCP/Task loop and the
+ * Node headless spawner, read their prompt from the SpawnInstruction, and a scripted agent never
+ * calls `get-agent-prompt`, so nothing downstream could substitute it. Overriding `resumePrompt`
+ * alone leaves the whole suite dispatching REAL role sessions against the working tree: the
+ * scripted child gets the interpolated codeweaver brief, reads the repo and starts editing it, and
+ * the run reports on work nobody asked for. It wins on the resume path too, because the resume
+ * variant opens by telling the agent it was cut off and must re-establish state, which would derail
+ * a one-signal script into arbitrary work.
+ *
  * USAGE:
  * const instruction = buildSpawnInstructionLayerBroker({ questId, workItem });
  * // Returns: SpawnInstruction — ready to embed in a NextStep spawn-agents response
@@ -42,24 +54,29 @@ export const buildSpawnInstructionLayerBroker = ({
 }): SpawnInstruction => {
   const role: AgentRole = agentRoleContract.parse(workItem.role);
   const canResume = workItem.sessionId !== undefined && workItem.agentId === undefined;
+  const override = workItem.smoketestPromptOverride;
   return {
     questId,
     role,
     workItemId: workItem.id,
-    taskPrompt: agentTaskPromptTransformer({
-      role,
-      workItemId: workItem.id,
-      questId,
-    }),
+    taskPrompt:
+      override ??
+      agentTaskPromptTransformer({
+        role,
+        workItemId: workItem.id,
+        questId,
+      }),
     ...(canResume
       ? {
           resumeSessionId: workItem.sessionId,
-          resumePrompt: agentTaskPromptTransformer({
-            role,
-            workItemId: workItem.id,
-            questId,
-            resume: true,
-          }),
+          resumePrompt:
+            override ??
+            agentTaskPromptTransformer({
+              role,
+              workItemId: workItem.id,
+              questId,
+              resume: true,
+            }),
         }
       : {}),
   };

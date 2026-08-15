@@ -125,8 +125,9 @@ export const QuestFlow = {
 
   getBlightChecklist: async ({
     questId,
+    scope,
   }: GetBlightChecklistParams): Promise<GetBlightChecklistResult> =>
-    QuestGetBlightChecklistResponder({ questId }),
+    QuestGetBlightChecklistResponder({ questId, ...(scope !== undefined && { scope }) }),
 
   resetFlowSignoffs: async ({
     questId,

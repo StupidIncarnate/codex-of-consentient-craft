@@ -18,8 +18,7 @@ const TRANSITION_CASES = WALK_PATH.map((toStatus) => {
 const GATE_CASES = Object.entries(questGateContentRequirementsStatics.gates)
   .filter(([gate]) => WALK_PATH.some((s) => s === gate))
   .flatMap(([gate, requirements]) =>
-    requirements.map((requirement) => {
-      const requirementField = typeof requirement === 'string' ? requirement : requirement.field;
+    requirements.map((requirementField: string) => {
       const idx = WALK_PATH.findIndex((s) => s === gate);
       const priorSteps = WALK_PATH.slice(0, idx + 1);
       const covered = priorSteps.some((toStatus) => {

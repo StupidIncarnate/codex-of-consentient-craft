@@ -173,7 +173,7 @@ export const modifyQuestInputContract = z
         ]),
       )
       .describe(
-        'Operation items to upsert onto the quest operations ledger. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing item; { id, _delete: true } to remove one (locked items cannot be deleted). Writable only by ChaosWhisperer at explore_observables — execution agents signal outcomes instead of writing the ledger',
+        "NOT WRITABLE BY ANY AGENT, at any quest status — `operations` is absent from every entry in questStatusInputAllowlistStatics, so a call carrying it is refused before any mutation runs. The implementation ledger is DERIVED at Start from the flow nodes' `packages` tags and the contracts' `source` paths, and mutated at runtime only by questOperationsUpdateBroker, which bypasses this input path entirely. Shape the ledger by tagging nodes and sourcing contracts accurately; execution agents signal outcomes rather than writing it",
       )
       .optional(),
     toolingRequirements: z

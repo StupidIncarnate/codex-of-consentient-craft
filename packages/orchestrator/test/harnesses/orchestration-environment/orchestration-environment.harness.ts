@@ -44,7 +44,11 @@ export const orchestrationEnvironmentHarness = (): {
     restore: () => void;
   };
   writeRepoRootMarker: (params: { repoRoot: GuildPath }) => void;
-  seedQuestRepoPackages: (params: { repoRoot: GuildPath; locations: readonly string[] }) => void;
+  seedQuestRepoPackages: (params: {
+    repoRoot: GuildPath;
+    locations: readonly string[];
+    sources?: readonly string[];
+  }) => void;
   chdirInto: (params: { dir: GuildPath }) => { restore: () => void };
   makeAndChdir: (params: { dir: GuildPath }) => { restore: () => void };
   readConfigGuilds: (params: {
@@ -114,9 +118,11 @@ export const orchestrationEnvironmentHarness = (): {
     seedQuestRepoPackages: ({
       repoRoot,
       locations,
+      sources = [],
     }: {
       repoRoot: GuildPath;
       locations: readonly string[];
+      sources?: readonly string[];
     }): void => {
       // Makes this testbed dir the repo a hydrated quest targets, holding the package roots that
       // quest declares. The `.dungeonmaster.json` marker pins cwdResolveBroker's walk-up from the
@@ -127,6 +133,15 @@ export const orchestrationEnvironmentHarness = (): {
       fs.writeFileSync(path.join(repoRoot, '.dungeonmaster.json'), '{}');
       for (const location of locations) {
         fs.mkdirSync(path.resolve(repoRoot, location), { recursive: true });
+      }
+      // `sources` are contract source paths the blueprint declares as already existing. They are
+      // anchored on the same root for the same reason the locations are: questModifyBroker's
+      // Contract Source Resolution check probes `<projectRoot>/<source>`, so a blueprint carrying
+      // `status: 'existing'` is only honest in a testbed repo that actually holds the file.
+      for (const source of sources) {
+        const sourcePath = path.resolve(repoRoot, source);
+        fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+        fs.writeFileSync(sourcePath, '');
       }
     },
     chdirInto: ({ dir }: { dir: GuildPath }): { restore: () => void } => {

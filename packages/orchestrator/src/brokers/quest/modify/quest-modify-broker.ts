@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Upserts data into an existing quest (operations, toolingRequirements, contracts, flows, designDecisions, planningNotes)
+ * PURPOSE: Upserts data into an existing quest (toolingRequirements, contracts, flows, designDecisions, planningNotes)
  *
  * USAGE:
  * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', flows: [...] }) });
@@ -20,7 +20,7 @@
  *   unserialized writers would also collide on that one `quest.json.tmp`.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { pathJoinAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
 import {
   fileContentsContract,
   filePathContract,
@@ -122,41 +122,11 @@ export const questModifyBroker = async ({
           });
         }
 
-        if (validated.operations) {
-          // Locked operation items (the plan item + the orchestrator-seeded verify tail) cannot
-          // be deleted through the agent path — only Chaos's own unlocked implementation items
-          // are hers to remove.
-          const lockedIds = new Set(
-            quest.operations
-              .filter((operation) => operation.locked)
-              .map((operation) => String(operation.id)),
-          );
-          const lockedDeleteOffenders = validated.operations.filter(
-            (operation) =>
-              '_delete' in operation &&
-              operation._delete === true &&
-              lockedIds.has(String(operation.id)),
-          );
-          if (lockedDeleteOffenders.length > 0) {
-            const lockedChecks: VerifyQuestCheck[] = lockedDeleteOffenders.map((offender) =>
-              verifyQuestCheckContract.parse({
-                name: 'Locked Operation Item',
-                passed: false,
-                details: `Operation item '${String(offender.id)}' is locked and cannot be deleted`,
-              }),
-            );
-            return modifyQuestResultContract.parse({
-              success: false,
-              error: 'Locked operation items cannot be deleted',
-              failedChecks: lockedChecks,
-            });
-          }
-
-          quest.operations = questArrayUpsertTransformer({
-            existing: quest.operations,
-            updates: validated.operations as typeof quest.operations,
-          });
-        }
+        // `operations` has no upsert branch here: the Tier 2 allowlist check above already
+        // rejects it at every status (the implementation ledger is DERIVED at Start, never
+        // authored), so `validated.operations` can never be defined at this point. The
+        // orchestrator's own runtime ledger writes go through questOperationsUpdateBroker,
+        // which bypasses this broker and its allowlist entirely.
 
         if (validated.toolingRequirements) {
           quest.toolingRequirements = questArrayUpsertTransformer({
@@ -373,97 +343,104 @@ export const questModifyBroker = async ({
           });
         }
 
-        // Resolve contract source paths against disk and reject status-vs-disk mismatches.
-        // Scoped to the contracts being WRITTEN in this call (validated.contracts) — running
-        // it against quest.contracts on every modify-quest call would re-validate paths the
-        // caller did not touch, which is both wasteful and surfaces stale state from a prior
-        // disk change (e.g., a contract path that became invalid after a refactor).
-        if (validated.contracts !== undefined) {
-          const writtenContracts = quest.contracts.filter((entry) =>
-            (validated.contracts ?? []).some(
-              (incoming) => String(incoming.id) === String(entry.id),
-            ),
-          );
-          // Agents write contract sources as bare-repo-relative (e.g., `packages/web/...`).
-          // The strict filePathContract union demands absolute or `./`-prefixed relative; prepend
-          // `./` so a bare path matches relativeFilePathContract. fs.access then resolves the
-          // `./`-relative path against cwd at the I/O layer.
-          const sourceExistenceChecks = await Promise.all(
-            writtenContracts.map(async (entry) => {
-              const sourceStr = String(entry.source);
-              const normalized =
-                sourceStr.startsWith('/') ||
-                sourceStr.startsWith('./') ||
-                sourceStr.startsWith('../')
-                  ? sourceStr
-                  : `./${sourceStr}`;
-              const filePath = filePathContract.parse(normalized);
-              const exists = await fsIsAccessibleAdapter({ filePath });
-              return { source: sourceStr, exists };
-            }),
-          );
-          const resolvedSources = new Set<unknown>(
-            sourceExistenceChecks.filter((c) => c.exists).map((c) => c.source),
-          );
-          const sourceMismatchOffenders = questContractSourceResolutionTransformer({
-            contracts: writtenContracts,
-            resolvedSources,
-          });
-          if (sourceMismatchOffenders.length > 0) {
-            const sourceFailedChecks: VerifyQuestCheck[] = sourceMismatchOffenders.map((message) =>
-              verifyQuestCheckContract.parse({
-                name: 'Contract Source Resolution',
-                passed: false,
-                details: String(message),
-              }),
-            );
-            return modifyQuestResultContract.parse({
-              success: false,
-              error: 'Contract source path resolution failed',
-              failedChecks: sourceFailedChecks,
-            });
-          }
-        }
-
-        // Package entries are judged against DISK, which no contract can do for itself: an 'edit' or
-        // 'delete' must name a package that already exists, a 'new' one must not, and deleting a
-        // package that something still imports would leave the post-quest dependency graph with a
-        // dangling edge. Scoped to the entries this call WRITES, for the same reason the contract
-        // branch above is: re-resolving a list the caller did not touch surfaces stale disk state.
-        if (validated.packagesAffected !== undefined) {
-          // Locations are repo-relative to the repo THIS quest targets, which the guild names —
-          // never to whatever directory the orchestrator process was launched from. A quest driving
-          // a sibling repo declares that repo's packages, and resolving them anywhere else turns
-          // every one of them into a phantom.
+        // Both checks below judge a DECLARED, repo-relative path against disk, so both anchor on
+        // the repo THIS quest targets — which the guild names, never whatever directory the
+        // orchestrator process happens to have been launched from. A quest driving a sibling repo
+        // declares that repo's contract sources and its package locations alike, and resolving
+        // either one anywhere else turns every path in it into a phantom. One lookup serves both.
+        if (validated.contracts !== undefined || validated.packagesAffected !== undefined) {
           const projectRoot = await questRepoRootBroker({ questId: validated.questId });
-          const { existingLocations, dependentsByPackage, stampedEntries } =
-            await resolvePackageEntryFactsLayerBroker({
-              entries: quest.packagesAffected,
-              projectRoot,
-            });
-          // The DETECTOR owns `packageType` for a package that already exists — an author declaring
-          // one is guessing, and everything downstream (e2e eligibility, the groundstomper fan-out,
-          // the dependency graph) reads this field as if it were measured. Only a 'new' entry keeps
-          // what it declared, because there is nothing on disk to measure.
-          quest.packagesAffected = stampedEntries;
-          const packageEntryOffenders = questPackageEntryViolationsTransformer({
-            entries: stampedEntries,
-            existingLocations,
-            dependentsByPackage,
-          });
-          if (packageEntryOffenders.length > 0) {
-            const packageEntryChecks: VerifyQuestCheck[] = packageEntryOffenders.map((message) =>
-              verifyQuestCheckContract.parse({
-                name: 'Package Entry Resolution',
-                passed: false,
-                details: String(message),
+
+          // Resolve contract source paths against disk and reject status-vs-disk mismatches.
+          // Scoped to the contracts being WRITTEN in this call (validated.contracts) — running
+          // it against quest.contracts on every modify-quest call would re-validate paths the
+          // caller did not touch, which is both wasteful and surfaces stale state from a prior
+          // disk change (e.g., a contract path that became invalid after a refactor).
+          if (validated.contracts !== undefined) {
+            const writtenContracts = quest.contracts.filter((entry) =>
+              (validated.contracts ?? []).some(
+                (incoming) => String(incoming.id) === String(entry.id),
+              ),
+            );
+            // pathResolveAdapter rather than pathJoinAdapter, the same call the package-entry probe
+            // below makes for the same reason: agents write sources bare-repo-relative
+            // (`packages/web/...`), which the strict filePathContract union rejects, and join would
+            // both normalise a leading `./` away and leave the value relative. Resolve always yields
+            // an absolute path under `projectRoot`, and leaves an already-absolute source alone — so
+            // the address probed and the declared string kept as the transformer's key describe one
+            // file. `resolvedSources` is keyed on the DECLARED string because that is what the
+            // offender message must echo back to the author.
+            const sourceExistenceChecks = await Promise.all(
+              writtenContracts.map(async (entry) => {
+                const sourceStr = String(entry.source);
+                const filePath = filePathContract.parse(
+                  pathResolveAdapter({ paths: [String(projectRoot), sourceStr] }),
+                );
+                const exists = await fsIsAccessibleAdapter({ filePath });
+                return { source: sourceStr, exists };
               }),
             );
-            return modifyQuestResultContract.parse({
-              success: false,
-              error: 'Package entry validation failed',
-              failedChecks: packageEntryChecks,
+            const resolvedSources = new Set<unknown>(
+              sourceExistenceChecks.filter((c) => c.exists).map((c) => c.source),
+            );
+            const sourceMismatchOffenders = questContractSourceResolutionTransformer({
+              contracts: writtenContracts,
+              resolvedSources,
             });
+            if (sourceMismatchOffenders.length > 0) {
+              const sourceFailedChecks: VerifyQuestCheck[] = sourceMismatchOffenders.map(
+                (message) =>
+                  verifyQuestCheckContract.parse({
+                    name: 'Contract Source Resolution',
+                    passed: false,
+                    details: String(message),
+                  }),
+              );
+              return modifyQuestResultContract.parse({
+                success: false,
+                error: 'Contract source path resolution failed',
+                failedChecks: sourceFailedChecks,
+              });
+            }
+          }
+
+          // Package entries are judged against DISK, which no contract can do for itself: an 'edit'
+          // or 'delete' must name a package that already exists, a 'new' one must not, and deleting
+          // a package that something still imports would leave the post-quest dependency graph with
+          // a dangling edge. Scoped to the entries this call WRITES, for the same reason the
+          // contract branch above is: re-resolving a list the caller did not touch surfaces stale
+          // disk state.
+          if (validated.packagesAffected !== undefined) {
+            const { existingLocations, dependentsByPackage, stampedEntries } =
+              await resolvePackageEntryFactsLayerBroker({
+                entries: quest.packagesAffected,
+                projectRoot,
+              });
+            // The DETECTOR owns `packageType` for a package that already exists — an author
+            // declaring one is guessing, and everything downstream (e2e eligibility, the
+            // groundstomper fan-out, the dependency graph) reads this field as if it were measured.
+            // Only a 'new' entry keeps what it declared, because there is nothing on disk to
+            // measure.
+            quest.packagesAffected = stampedEntries;
+            const packageEntryOffenders = questPackageEntryViolationsTransformer({
+              entries: stampedEntries,
+              existingLocations,
+              dependentsByPackage,
+            });
+            if (packageEntryOffenders.length > 0) {
+              const packageEntryChecks: VerifyQuestCheck[] = packageEntryOffenders.map((message) =>
+                verifyQuestCheckContract.parse({
+                  name: 'Package Entry Resolution',
+                  passed: false,
+                  details: String(message),
+                }),
+              );
+              return modifyQuestResultContract.parse({
+                success: false,
+                error: 'Package entry validation failed',
+                failedChecks: packageEntryChecks,
+              });
+            }
           }
         }
 

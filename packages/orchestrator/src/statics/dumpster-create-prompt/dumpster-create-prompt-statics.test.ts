@@ -63,9 +63,9 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => requires authoring the operations ledger before approval', () => {
+  it('VALID: prompt template => forbids writing operations at any status, since the implementation ledger is derived rather than authored', () => {
     const needle =
-      '**Author the operations ledger (REQUIRED — the approval gate refuses `approved` without it).**';
+      '- NEVER write `operations`. You do not author the implementation ledger and there is no call that would let you: `operations` is not on the modify-quest allowlist at any status you occupy.';
     const { template } = dumpsterCreatePromptStatics.prompt;
     const foundIndex = template.indexOf(needle);
     const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -73,64 +73,14 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => documents ChaosWhisperer as the only agent that authors operation items', () => {
-    const needle = 'You are the ONLY agent that authors these items';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
-
-    expect(foundSlice).toBe(needle);
-  });
-
-  it('VALID: prompt template => forbids authoring the operations ledger before flows are approved', () => {
-    const needle = '- NEVER author the operations ledger before flows are approved.';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
-
-    expect(foundSlice).toBe(needle);
-  });
-
-  it('VALID: prompt template => requires reconciling the operations ledger before every review_observables transition', () => {
+  it('VALID: prompt template => requires re-checking the two derived-ledger inputs (node tags, contract sources) as the last explore_observables step', () => {
     const needle =
-      '**Reconcile the operations ledger against the spec as it stands right now.** This is the LAST thing you do before every transition to `review_observables`';
+      '**Re-check the two derived-ledger inputs, LAST, against the spec as it stands right now.**';
     const { template } = dumpsterCreatePromptStatics.prompt;
     const foundIndex = template.indexOf(needle);
     const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
 
     expect(foundSlice).toBe(needle);
-  });
-
-  it('VALID: prompt template => requires stating ledger freshness when asking for observable approval', () => {
-    const needle =
-      'Never present a ledger you have not re-checked since the last thing the user said.';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
-
-    expect(foundSlice).toBe(needle);
-  });
-
-  it('VALID: prompt template => instructs setting flowIds as a non-binding pointer, not an assignment', () => {
-    const needle =
-      '**Set `flowIds` on each item: the flows that item lands on.** This is a NON-BINDING pointer, not an assignment';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
-
-    expect(foundSlice).toBe(needle);
-  });
-
-  it('VALID: prompt template => permits an empty flowIds on a foundational item and many-to-many mapping', () => {
-    const { template } = dumpsterCreatePromptStatics.prompt;
-
-    expect(template.indexOf('Flows and items are many-to-many in BOTH directions')).toBeGreaterThan(
-      -1,
-    );
-    expect(template.indexOf('carries `flowIds: []`')).toBeGreaterThan(-1);
-    expect(
-      template.indexOf('Items are units of construction; flows are units of behavior.'),
-    ).toBeGreaterThan(-1);
   });
 
   it('VALID: prompt template => no longer instructs the unadvertised format param on get-quest', () => {
@@ -139,14 +89,12 @@ describe('dumpsterCreatePromptStatics', () => {
     // The advertised get-quest schema is generated from the shared contract, which has no `format`.
     expect(template.indexOf("format: 'text'")).toBe(-1);
     expect(
-      template.indexOf(
-        'AND the `operations` ledger — so one call covers both the spine and the plan',
-      ),
+      template.indexOf('so one call covers the whole spine, including the step-13 re-check'),
     ).toBeGreaterThan(-1);
   });
 
-  it('VALID: prompt template => documents operations can only be written during explore_observables', () => {
-    const needle = '`operations` can only be written during `explore_observables`';
+  it('VALID: prompt template => documents operations is not writable at any status, since the ledger is derived rather than authored', () => {
+    const needle = '`operations` is not writable at ANY status you occupy';
     const { template } = dumpsterCreatePromptStatics.prompt;
     const foundIndex = template.indexOf(needle);
     const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -486,14 +434,15 @@ describe('dumpsterCreatePromptStatics', () => {
     });
   });
 
-  // The `approved` gate refuses the transition unless the union of every codeweaver item's
-  // `packageNames` covers every node-tagged package. The ledger step is the only instruction the
-  // authoring agent ever reads, so a step that never names the field makes that gate unsatisfiable
-  // on a first attempt and leaves the rejection string as the author's only guidance.
-  describe('codeweaver item packageNames', () => {
-    it('VALID: prompt template => instructs setting packageNames on each ledger item and says the gate is on it', () => {
+  // The implementation ledger is no longer authored by ChaosWhisperer at spec time — the
+  // orchestrator DERIVES it at Start from the flow nodes' `packages` tags and the contracts'
+  // `source` paths (one codeweaver item per (package, flow) cell plus a foundation item per
+  // package). There is no `packageNames`/`flowIds` gate for ChaosWhisperer to satisfy anymore;
+  // its remaining job is keeping those two derived-from inputs accurate.
+  describe('derived implementation ledger', () => {
+    it('VALID: prompt template => explains the ledger is derived from node package tags and contract source paths at Start', () => {
       const needle =
-        '**Set `packageNames` on each item: the packages that item builds in.** Unlike `flowIds`, this one is GATED. At `approved` the union of `packageNames` across every codeweaver item must cover every package tagged on a flow node, and the transition is refused BY NAME for any package the ledger leaves unclaimed.';
+        'At Start the orchestrator DERIVES the implementation ledger from the node tags and contract sources — one codeweaver item per (package, flow) cell plus a foundation item per package, ordered dependencies-first — appends the verify tail after it, and Codeweaver sessions relay through the items one at a time.';
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -501,9 +450,9 @@ describe('dumpsterCreatePromptStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: prompt template => draws packageNames from the same closed set the node tags draw from', () => {
+    it('VALID: prompt template => tells the user how the derived ledger will slice the work before the observables approval gate', () => {
       const needle =
-        'Draw the names from `packagesAffected` — the same closed set every node tag draws from.';
+        '**Say how the work will be sliced** - The user does not see an implementation plan at this gate, because there is not one yet: the ledger is derived at Start.';
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -511,9 +460,9 @@ describe('dumpsterCreatePromptStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: prompt template => permits overlapping packageNames and refuses only an unclaimed package', () => {
+    it('VALID: prompt template => names the two derived-ledger inputs ChaosWhisperer is responsible for keeping accurate', () => {
       const needle =
-        'Overlap is fine and expected: a foundational item legitimately claims several packages, and two items may claim the same one. What the gate refuses is a package NO item claims.';
+        '**Make the two inputs the implementation ledger is derived from correct.** You do not author that ledger — the orchestrator computes it at Start — but it is computed from YOUR spec, so its quality is entirely yours:';
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -521,9 +470,13 @@ describe('dumpsterCreatePromptStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: prompt template => states packageNames is a pre-work declaration, not a boundary', () => {
+    // A contract's `source` is one path and a contract is one-to-many, so a property whose real
+    // file sits in another package needs its own. Without that, the whole contract routes to the
+    // package its own path names — and for a deliverable no observable mentions, the contract was
+    // the only carrier, so nobody ever sees it.
+    it('VALID: prompt template => tells the author a property may carry its own source when the contract spans packages, and why', () => {
       const needle =
-        'Like `flowIds`, it is a pre-work declaration and not a boundary — a Codeweaver may touch another package once it is in the work.';
+        "**A contract's `source` is one path, but a contract is often one-to-many:** when one of its properties describes a file in a DIFFERENT package, give that property its own `source` — otherwise the whole contract routes to the package its own path names, and a property whose file lives elsewhere reaches no session at all.";
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -531,19 +484,9 @@ describe('dumpsterCreatePromptStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: prompt template => the modify-quest call shape shows packageNames alongside flowIds', () => {
+    it('VALID: prompt template => says a seam node lands in BOTH packages’ cells, so a missing tag loses that half', () => {
       const needle =
-        "`operations: [{ id: '<uuid>', role: 'codeweaver', text: '<scope>', status: 'pending', flowIds: [...], packageNames: [...] }, ...]`";
-      const { template } = dumpsterCreatePromptStatics.prompt;
-      const foundIndex = template.indexOf(needle);
-      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
-
-      expect(foundSlice).toBe(needle);
-    });
-
-    it('VALID: prompt template => the step-13 reconcile checklist asks whether packageNames still covers every node tag', () => {
-      const needle =
-        "**Does the union of every codeweaver item's `packageNames` still cover every package tagged on a node?** A node retagged, widened, or added since you authored the ledger can introduce a package no item claims, and `approved` refuses that by name. Walk the node tags, not the items, or you will only find the packages you already thought of.";
+        "A node tagging TWO packages lands in BOTH their cells — a seam has two halves and each side builds its own, in build-order — so a package you leave off a seam node loses its half of that node entirely, and the observables you attributed to it reach no session's scope.";
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -630,16 +573,6 @@ describe('dumpsterCreatePromptStatics', () => {
 
       expect(template.indexOf('Siegemaster Playwright')).toBe(-1);
       expect(template.indexOf('tells Siegemaster to run Playwright')).toBe(-1);
-    });
-
-    it('VALID: prompt template => names groundstomper in the verify tail the orchestrator appends', () => {
-      const needle =
-        'the orchestrator appends the verify tail (ward → flowrider → groundstomper → siegemaster → blightwarden → ward) itself at Start Quest';
-      const { template } = dumpsterCreatePromptStatics.prompt;
-      const foundIndex = template.indexOf(needle);
-      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
-
-      expect(foundSlice).toBe(needle);
     });
   });
 });

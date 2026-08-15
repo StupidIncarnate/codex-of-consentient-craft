@@ -67,27 +67,42 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
       timeout: PANEL_TIMEOUT,
     });
 
+    // Two scripted outcomes, because siegemaster is a COMMITTING role: signal-back appends a
+    // blightscout review of the commit it just landed, and the dispatcher spawns that too. Driving
+    // the relay all the way to that scout's completion is what makes the invocation list below a
+    // settled fact rather than a snapshot taken mid-relay — read after only the first work item
+    // completes, the scout's spawn races the assertion and the list is 1 or 2 entries by timing.
     await dispatch.playAndDrive({
       questId: String(questId),
-      script: [{ role: 'siegemaster', outcome: 'done' }],
+      script: [
+        { role: 'siegemaster', outcome: 'done' },
+        { role: 'blightscout', outcome: 'done' },
+      ],
     });
 
-    await dispatch.waitForQuest({
+    const settled = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(
           (wi) => String(wi.id) === FIRST_WORK_ITEM_ID && wi.status === 'complete',
-        ),
+        ) && quest.workItems.some((wi) => wi.role === 'blightscout' && wi.status === 'complete'),
     });
+    const scoutWorkItemId = String(settled.workItems.find((wi) => wi.role === 'blightscout')?.id);
 
-    // THE PROOF, read off the real child's argv: exactly one spawn, and it carried
+    // THE PROOF, read off the real children's argv: the FIRST spawn carried
     // `--resume <the retained sessionId>` plus the RESUME-variant prompt (not the fresh
-    // get-agent-prompt one). A fresh spawn records `resumeSessionId: null`.
+    // get-agent-prompt one). The scout that follows it is a fresh spawn — `resumeSessionId: null`,
+    // which is also what a clobbering fresh spawn of the siegemaster would have recorded, so
+    // asserting both entries keeps the contrast visible in one list.
     expect(dispatch.readClaudeInvocations()).toStrictEqual([
       {
         resumeSessionId: RETAINED_SESSION_ID,
         prompt: `You were CUT OFF mid-work on this item — your session was killed, not paused cleanly. The context above therefore stops abruptly and your LAST ACTION MAY NEVER HAVE COMPLETED: an edit may not have been written, a command may have died mid-run, a commit may not exist. Do not treat your own context as a record of what landed.\n\nRE-ESTABLISH THE CURRENT STATE FIRST, before doing any new work:\n1. Run \`git status\` and \`git log --oneline -5\` — what is actually committed, and what is still uncommitted?\n2. Re-read the files you believe you edited, and confirm the change is really on disk.\n3. Re-run whatever you were in the middle of verifying (a test, a ward run, a browser step) instead of trusting the remembered result.\n\nOnly once you know the real state: finish the remaining scope of your operation item, commit a prose handoff, then call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${FIRST_WORK_ITEM_ID}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).\n\nIf you have no usable context above, call mcp__dungeonmaster__get-agent-prompt({\n  agent: "siegemaster",\n  workItemId: "${FIRST_WORK_ITEM_ID}",\n  questId: "${String(questId)}"\n}) and follow its instructions from the top.`,
+      },
+      {
+        resumeSessionId: null,
+        prompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightscout",\n  workItemId: "${scoutWorkItemId}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${scoutWorkItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
       },
     ]);
   });
@@ -114,24 +129,35 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
       firstWorkItemId: FIRST_WORK_ITEM_ID,
     });
 
+    // Codeweaver is a COMMITTING role too, so its signal-back appends a blightscout review and the
+    // dispatcher spawns that second child. Both are scripted and both are waited for, so the
+    // invocation list is settled rather than a mid-relay snapshot.
     await dispatch.playAndDrive({
       questId: String(questId),
-      script: [{ role: 'codeweaver', outcome: 'done' }],
+      script: [
+        { role: 'codeweaver', outcome: 'done' },
+        { role: 'blightscout', outcome: 'done' },
+      ],
     });
 
-    await dispatch.waitForQuest({
+    const settled = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(
           (wi) => String(wi.id) === FIRST_WORK_ITEM_ID && wi.status === 'complete',
-        ),
+        ) && quest.workItems.some((wi) => wi.role === 'blightscout' && wi.status === 'complete'),
     });
+    const scoutWorkItemId = String(settled.workItems.find((wi) => wi.role === 'blightscout')?.id);
 
     expect(dispatch.readClaudeInvocations()).toStrictEqual([
       {
         resumeSessionId: null,
         prompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${FIRST_WORK_ITEM_ID}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${FIRST_WORK_ITEM_ID}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+      },
+      {
+        resumeSessionId: null,
+        prompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightscout",\n  workItemId: "${scoutWorkItemId}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${scoutWorkItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
       },
     ]);
   });

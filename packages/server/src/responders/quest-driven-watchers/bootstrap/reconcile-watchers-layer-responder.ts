@@ -93,7 +93,7 @@ export const ReconcileWatchersLayerResponder = async ({
   const projectDirBySessionId = new Map<SessionId, GuildPath>();
   // Sessions whose active work item carries a sessionId but NO agentId are top-level
   // node-dispatch workers (spawn-batch stamps sessionId, never agentId; /dumpster-launch
-  // get-agent-prompt stamps BOTH). Their own agent (codeweaver/blightwarden/…) writes the
+  // get-agent-prompt stamps BOTH). Their own agent (codeweaver/blightscout/…) writes the
   // MAIN session JSONL, so the watcher must route that content to the work item's row
   // instead of dropping it as dispatcher chatter. Keyed sessionId → owning workItemId;
   // dispatcher (/dumpster-launch parent) sessions never appear here.

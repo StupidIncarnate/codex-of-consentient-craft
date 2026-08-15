@@ -35,28 +35,12 @@ describe('agentRoleContract', () => {
       expect(result).toBe('siegemaster');
     });
 
-    it('VALID: blightwarden-group-minion => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden-group-minion' });
+    it('VALID: blightscout => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'blightscout' });
 
       const result = agentRoleContract.parse(role);
 
-      expect(result).toBe('blightwarden-group-minion');
-    });
-
-    it('VALID: blightwarden-crosscut-minion => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden-crosscut-minion' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-crosscut-minion');
-    });
-
-    it('VALID: blightwarden => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden');
+      expect(result).toBe('blightscout');
     });
 
     it('VALID: pesteater => parses successfully', () => {

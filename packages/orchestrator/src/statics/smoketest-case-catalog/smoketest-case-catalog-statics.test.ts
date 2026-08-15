@@ -55,7 +55,7 @@ describe('smoketestCaseCatalogStatics', () => {
       [
         'orch-codeweaver-partial',
         'orch-happy-path',
-        'orch-reaches-blightwarden',
+        'orch-reaches-blightscout',
         'orch-reaches-flowrider',
       ].sort(),
     );

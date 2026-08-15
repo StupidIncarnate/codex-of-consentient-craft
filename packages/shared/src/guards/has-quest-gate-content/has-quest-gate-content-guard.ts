@@ -1,11 +1,18 @@
 /**
- * PURPOSE: Validates that a quest has the required non-empty content for a gate transition, supporting dot-path requirements
+ * PURPOSE: Validates that a quest has the required non-empty content for a gate transition, reading
+ * the dot-path requirements `questGateContentRequirementsStatics` lists per target status
  *
  * USAGE:
  * hasQuestGateContentGuard({ quest, nextStatus: 'flows_approved' });
  * // Returns true if quest.flows.length > 0, false otherwise
- * hasQuestGateContentGuard({ quest, nextStatus: 'approved' });
- * // Returns true if quest.flows is non-empty AND quest.operations contains at least one role:codeweaver item
+ *
+ * This used to also support an object requirement — { field, contains: { key, value }, questTypes } —
+ * whose only user was `approved` demanding an operations ledger with at least one role:codeweaver
+ * item. That demand is gone: the codeweaver items are DERIVED at Start from the node tags and the
+ * contract source paths, so there is no authored ledger at `approved` to measure. With no object
+ * requirement left in the statics, TypeScript narrowed the branch to `never` and the code could not
+ * compile — which is the type system correctly reporting dead weight rather than a regression to
+ * work around. Reintroduce the object form together with a requirement that needs it, not before.
  */
 
 import type { Quest } from '../../contracts/quest/quest-contract';
@@ -31,8 +38,7 @@ export const hasQuestGateContentGuard = ({
 
   const requiredFields = gates[nextStatus as keyof typeof gates];
 
-  return requiredFields.every((requirement) => {
-    const path = typeof requirement === 'string' ? requirement : requirement.field;
+  return requiredFields.every((path) => {
     const segments = path.split('.');
     let current: unknown = quest;
 
@@ -41,24 +47,6 @@ export const hasQuestGateContentGuard = ({
         return false;
       }
       current = Reflect.get(current, segment);
-    }
-
-    if (typeof requirement !== 'string') {
-      if (
-        'questTypes' in requirement &&
-        !requirement.questTypes.some((t) => t === quest.questType)
-      ) {
-        return true;
-      }
-      if (!Array.isArray(current)) {
-        return false;
-      }
-      return current.some((item: unknown) => {
-        if (item === null || item === undefined || typeof item !== 'object') {
-          return false;
-        }
-        return Reflect.get(item, requirement.contains.key) === requirement.contains.value;
-      });
     }
 
     if (current === null || current === undefined) {

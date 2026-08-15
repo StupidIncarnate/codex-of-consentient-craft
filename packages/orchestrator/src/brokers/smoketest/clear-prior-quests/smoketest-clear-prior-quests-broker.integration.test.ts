@@ -21,6 +21,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const { guildId } = await smoketestEnsureGuildBroker();
@@ -79,6 +80,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const { guildId } = await smoketestEnsureGuildBroker();
@@ -119,6 +121,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const { guildId } = await smoketestEnsureGuildBroker();

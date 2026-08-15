@@ -33,10 +33,19 @@
 
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
+import { smoketestPlaceholdersStatics } from '../smoketest-placeholders/smoketest-placeholders-statics';
 import { smoketestProbeArgsStatics } from '../smoketest-probe-args/smoketest-probe-args-statics';
 
 const SERVER = mcpToolsStatics.server.name;
 const SIGNAL = `mcp__${SERVER}__signal-back`;
+
+// `signal-back` REQUIRES questId + workItemId. A scripted agent's whole context is its one-line
+// prompt — it never calls `get-agent-prompt`, which is the only thing that would otherwise tell it
+// which work item it is — so a call omitting them is rejected by the tool and the agent has nothing
+// to recover from. Every canned prompt below therefore carries the placeholders, resolved to live
+// ids at stamp/enqueue time. Without this the whole relay stalls on the first agent, orphan recovery
+// spends its three resets re-dispatching a session that cannot possibly signal, and the quest blocks.
+const SIGNAL_IDS = `"questId": "${smoketestPlaceholdersStatics.questId}", "workItemId": "${smoketestPlaceholdersStatics.workItemId}"`;
 
 const probePromptEntries = mcpToolsStatics.tools.names.flatMap((toolName) => {
   const spec = smoketestProbeArgsStatics[toolName];
@@ -44,25 +53,25 @@ const probePromptEntries = mcpToolsStatics.tools.names.flatMap((toolName) => {
     return [];
   }
   if (spec.mode === 'signal-only') {
-    const prompt = `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
+    const prompt = `Do exactly one thing and nothing else: Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
     return [[toolName, prompt] as const];
   }
   const fullToolName = `mcp__${SERVER}__${toolName}`;
   const argsJson = JSON.stringify(spec.args);
-  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}. 2) If the tool call errors, report the error and stop without signaling. If the tool call succeeds, call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
+  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}. 2) If the tool call errors, report the error and stop without signaling. If the tool call succeeds, call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
   return [[toolName, prompt] as const];
 });
 
 const probePrompts = Object.fromEntries(probePromptEntries);
 
 export const smoketestPromptsStatics = {
-  signalComplete: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "summary": "smoketest-complete" }. Do not output anything else.`,
-  signalDone: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.`,
-  signalPartial: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "operationStatus": "partial" }. Do not output anything else.`,
+  signalComplete: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete", "summary": "smoketest-complete" }. Do not output anything else.`,
+  signalDone: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete", "operationStatus": "done" }. Do not output anything else.`,
+  signalPartial: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete", "operationStatus": "partial" }. Do not output anything else.`,
 
   ...probePrompts,
 
-  siegeVerifyDevServer: `Do exactly two things and nothing else: 1) fetch GET http://dungeonmaster.localhost:4751/ and verify it returns 200. 2) Call "${SIGNAL}" with { "signal": "complete", "summary": "dev-server-verified" }. Do not output anything else.`,
+  siegeVerifyDevServer: `Do exactly two things and nothing else: 1) fetch GET http://dungeonmaster.localhost:4751/ and verify it returns 200. 2) Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete", "summary": "dev-server-verified" }. Do not output anything else.`,
 } as const;
 
 export type SmoketestPromptName = keyof typeof smoketestPromptsStatics;

@@ -5,10 +5,11 @@
  * questStatusInputAllowlistStatics.explore_flows.allowedFields;
  * // Returns: ['title', 'flows', 'designDecisions', 'packagesAffected', 'comments', 'status']
  * questStatusInputAllowlistStatics.explore_observables.allowedFields;
- * // Includes 'operations' — ChaosWhisperer authors the implementation plan items there. No other
- * // status allows `operations`, so an execution agent's modify-quest{operations} at in_progress is
- * // rejected — the orchestrator's own runtime ledger writes go through questOperationsUpdateBroker,
- * // which bypasses this gate entirely.
+ * // Never includes 'operations' — no status does. The implementation ledger is DERIVED at Start
+ * // (questBuildRelayGraphBroker) from the flow nodes' `packages` tags and the contracts' `source`
+ * // paths, not authored by any agent, so `operations` sits nowhere on this allowlist and every
+ * // modify-quest{operations} write is rejected regardless of status. The orchestrator's own runtime
+ * // ledger writes go through questOperationsUpdateBroker, which bypasses this gate entirely.
  *
  * Entry shape:
  * - allowedFields: top-level input fields always permitted for this status
@@ -89,7 +90,6 @@ export const questStatusInputAllowlistStatics = {
       'contracts',
       'toolingRequirements',
       'packagesAffected',
-      'operations',
       'comments',
       'status',
     ],
@@ -103,7 +103,6 @@ export const questStatusInputAllowlistStatics = {
       'contracts',
       'toolingRequirements',
       'packagesAffected',
-      'operations',
       'comments',
       'status',
     ],
@@ -114,14 +113,7 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['comments', 'status'],
     backTransitionFields: {
       toStatus: 'explore_observables',
-      fields: [
-        'flows',
-        'designDecisions',
-        'contracts',
-        'toolingRequirements',
-        'packagesAffected',
-        'operations',
-      ],
+      fields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements', 'packagesAffected'],
     },
     flowsRule: 'full',
     allowedPlanningNotesFields: [],

@@ -836,7 +836,7 @@ describe('ChatMessageWidget', () => {
       expect(message.textContent).toBe('SIEGEMASTERresponse');
     });
 
-    it('VALID: {roleLabel: blightwarden} => renders BLIGHTWARDEN label', () => {
+    it('VALID: {roleLabel: blightscout} => renders BLIGHTSCOUT label', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
@@ -844,14 +844,14 @@ describe('ChatMessageWidget', () => {
         ui: (
           <ChatMessageWidget
             entry={entry}
-            roleLabel={ExecutionRoleStub({ value: 'blightwarden' })}
+            roleLabel={ExecutionRoleStub({ value: 'blightscout' })}
           />
         ),
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toBe('BLIGHTWARDENresponse');
+      expect(message.textContent).toBe('BLIGHTSCOUTresponse');
     });
 
     it('VALID: {no roleLabel} => defaults to CHAOSWHISPERER', () => {

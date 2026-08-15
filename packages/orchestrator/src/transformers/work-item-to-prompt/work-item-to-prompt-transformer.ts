@@ -43,12 +43,12 @@ import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
-import { isBlightwardenMinionRoleGuard } from '../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
 import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
+import { codeweaverScopeBlockTransformer } from '../codeweaver-scope-block/codeweaver-scope-block-transformer';
 import { questPackageEntriesToTextTransformer } from '../quest-package-entries-to-text/quest-package-entries-to-text-transformer';
 import { roleToPromptTemplateTransformer } from '../role-to-prompt-template/role-to-prompt-template-transformer';
 
@@ -80,10 +80,11 @@ export const workItemToPromptTransformer = ({
     };
   }
 
-  // Blightwarden minions own their work items (role path) but are report-only finders that read
-  // the diff + quest themselves. PestEater reads the bug report from the quest itself. Both get
-  // the minimal substitution.
-  if (isBlightwardenMinionRoleGuard({ role: workItem.role }) || workItem.role === 'pesteater') {
+  // PestEater reads the bug report off the quest itself, so it gets the minimal substitution. The
+  // blightwarden minions used to share this branch — they were report-only finders that read the
+  // diff themselves — and that whole family is gone: `blightscout` takes the full relay path below,
+  // because it needs its operation item to resolve the commit range it reviews.
+  if (workItem.role === 'pesteater') {
     const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
     return {
       prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => minionArguments)),
@@ -238,6 +239,14 @@ export const workItemToPromptTransformer = ({
             : '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
       ),
     );
+  }
+
+  // Codeweaver only, and the reason its operation item can afford to be a bare label. The ledger
+  // stores the cell key; the SCOPE — nodes, verbatim observables, contracts, the seams it sits on —
+  // is rendered here from the quest as it stands at dispatch, so an observable a mid-quest session
+  // ADDS reaches every codeweaver dispatched after it. Baked into `text` at Start it would not.
+  if (workItem.role === 'codeweaver') {
+    parts.push(...codeweaverScopeBlockTransformer({ quest, operationItem: linkedOperation }));
   }
 
   // Siegemaster only. Neither authoring role starts a server — Groundstomper's e2e run brings one

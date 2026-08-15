@@ -33,7 +33,7 @@ describe('computeReadyWorkItemsLayerBroker', () => {
     const done = WorkItemStub({ id: doneId, role: 'codeweaver', status: 'complete' });
     const ready = WorkItemStub({
       id: readyId,
-      role: 'blightwarden',
+      role: 'blightscout',
       status: 'pending',
       dependsOn: [doneId],
     });
@@ -58,7 +58,7 @@ describe('computeReadyWorkItemsLayerBroker', () => {
     });
     const blocked = WorkItemStub({
       id: blockedId,
-      role: 'blightwarden',
+      role: 'blightscout',
       status: 'pending',
       dependsOn: [blockingId],
     });
@@ -120,7 +120,7 @@ describe('computeReadyWorkItemsLayerBroker', () => {
     const failed = WorkItemStub({ id: failedId, role: 'codeweaver', status: 'failed' });
     const dependent = WorkItemStub({
       id: dependentId,
-      role: 'blightwarden',
+      role: 'blightscout',
       status: 'pending',
       dependsOn: [failedId],
     });

@@ -81,9 +81,23 @@ export const questHydrateBroker = async ({
     const relay = await questBuildRelayGraphBroker({ quest, priorWorkItemIds: [], now });
     const skipRoles = new Set(blueprint.skipRoles);
 
+    // A blueprint that authors its own implementation ledger REPLACES the derived per-cell items
+    // for the roles it names, rather than adding to them. Derivation reads the flows, and a bundled
+    // suite's one-item-per-case ledger is not in them — keeping both would leave the quest holding
+    // items no scripted work item ever links to, which the advance self-heal would then dispatch as
+    // real sessions mid-smoketest.
+    const authoredRoles = new Set(blueprint.operations.map((operation) => operation.role));
+    const ledger =
+      blueprint.operations.length === 0
+        ? relay.operations
+        : [
+            ...blueprint.operations,
+            ...relay.operations.filter((operation) => !authoredRoles.has(operation.role)),
+          ];
+
     // Re-derive the first actionable item AFTER filtering — the builder may have marked a
     // now-skipped role's item in_progress.
-    const operations = relay.operations
+    const operations = ledger
       .filter((operation) => !skipRoles.has(operation.role))
       .map((operation) =>
         operation.status === 'in_progress' && operation.role !== 'chaoswhisperer'

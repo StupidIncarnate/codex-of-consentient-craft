@@ -130,16 +130,6 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterCreate.body => carries the codeweaver packageNames instruction the approved gate measures', () => {
-      const needle =
-        '**Set `packageNames` on each item: the packages that item builds in.** Unlike `flowIds`, this one is GATED.';
-      const { body } = slashCommandsStatics.dumpsterCreate;
-      const foundIndex = body.indexOf(needle);
-      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
-
-      expect(foundSlice).toBe(needle);
-    });
-
     it('VALID: dumpsterCreate.body => carries the observable package field with its resolve-on-save rule', () => {
       const needle = '**Omit it when that node tags exactly one package**';
       const { body } = slashCommandsStatics.dumpsterCreate;
@@ -149,8 +139,9 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterCreate.body => names groundstomper in the verify tail and never routes Playwright to Siegemaster', () => {
-      const needle = 'ward → flowrider → groundstomper → siegemaster → blightwarden → ward';
+    it('VALID: dumpsterCreate.body => assigns Playwright ownership to Groundstomper alone, never Siegemaster', () => {
+      const needle =
+        'Groundstomper owns Playwright and only Playwright; Flowrider owns the integration and unit suites below the browser.';
       const { body } = slashCommandsStatics.dumpsterCreate;
       const foundIndex = body.indexOf(needle);
 

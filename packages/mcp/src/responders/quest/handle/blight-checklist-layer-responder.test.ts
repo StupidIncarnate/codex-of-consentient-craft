@@ -39,6 +39,24 @@ describe('BlightChecklistLayerResponder', () => {
         questId: 'add-auth',
       });
     });
+
+    // The refusal message the signal-back gate hands a Blightscout session names this exact call.
+    // Rejecting it, or accepting it and dropping the value, leaves the role reading a whole-quest
+    // diff while it is graded on one commit.
+    it("VALID: {questId, scope: 'commit'} => forwards the scope, so the session reads the diff its gate measures", async () => {
+      const proxy = BlightChecklistLayerResponderProxy();
+      proxy.setupReturns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+      });
+
+      await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'commit' } });
+
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        scope: 'commit',
+      });
+    });
   });
 
   describe('unsuccessful checklist', () => {

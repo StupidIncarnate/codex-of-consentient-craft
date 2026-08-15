@@ -9,8 +9,11 @@
 // `maxAttempts` on a role = the pt-continuation chain budget for its LOCKED (verify-tail)
 // operation items: each `operationStatus: 'partial'` outcome completes the current item and
 // appends a "pt N" continuation; once the chain reaches maxAttempts the quest blocks instead of
-// looping. It gates LOCKED items only — a Chaos-authored (unlocked) codeweaver item's chain is
-// deliberately unbounded, because the flows are the acceptance target and the work has to land.
+// looping. It gates LOCKED items only — a codeweaver item is minted UNLOCKED precisely so its chain
+// stays unbounded, because the flows are the acceptance target and the work has to land. That is
+// why `codeweaver` still has a key here despite never being gated by it: the ladder's final `else`
+// hands an unnamed role spiritmender's budget, so the key documents the role rather than budgeting
+// it, and removing it would silently start bounding codeweaver the day an item is minted locked.
 export const slotManagerStatics = {
   codeweaver: {
     maxAttempts: 3,
@@ -24,7 +27,7 @@ export const slotManagerStatics = {
   siegemaster: {
     maxAttempts: 3,
   },
-  blightwarden: {
+  blightscout: {
     maxAttempts: 3,
   },
   pesteater: {

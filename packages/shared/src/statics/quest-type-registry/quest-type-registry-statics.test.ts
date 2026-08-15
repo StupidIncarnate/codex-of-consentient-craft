@@ -11,7 +11,14 @@ describe('questTypeRegistryStatics', () => {
       feature: {
         intakeSlashCommandFileName: 'dumpster-create.md',
         initialWorkItemRole: 'chaoswhisperer',
-        startImplementationOps: [],
+        startImplementationOps: [
+          {
+            role: 'codeweaver',
+            text: 'Codeweaver: build this slice',
+            fanOutBy: 'implementation',
+            locked: false,
+          },
+        ],
         relayTail: [
           { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
           {
@@ -29,7 +36,6 @@ describe('questTypeRegistryStatics', () => {
             text: 'Siegemaster: manual-QA this flow and review its test suite',
             fanOutBy: 'flow',
           },
-          { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },
           { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
         ],
         roles: [
@@ -38,7 +44,7 @@ describe('questTypeRegistryStatics', () => {
           'flowrider',
           'groundstomper',
           'siegemaster',
-          'blightwarden',
+          'blightscout',
           'spiritmender',
         ],
       },
@@ -53,10 +59,9 @@ describe('questTypeRegistryStatics', () => {
         ],
         relayTail: [
           { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
-          { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },
           { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
         ],
-        roles: ['pesteater', 'ward', 'blightwarden', 'spiritmender'],
+        roles: ['pesteater', 'ward', 'blightscout', 'spiritmender'],
       },
     });
   });

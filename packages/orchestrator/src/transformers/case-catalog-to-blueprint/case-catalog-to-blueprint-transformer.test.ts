@@ -186,7 +186,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
       }).toStrictEqual({
         title: 'Smoketest: Signals',
         userRequest: 'Emit a scripted signal-back once per case',
-        skipRoles: ['ward', 'flowrider', 'siegemaster', 'blightwarden'],
+        skipRoles: ['ward', 'flowrider', 'siegemaster', 'blightscout'],
       });
     });
   });

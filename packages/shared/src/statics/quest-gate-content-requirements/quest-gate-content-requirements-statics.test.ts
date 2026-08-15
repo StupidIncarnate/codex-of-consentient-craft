@@ -5,14 +5,7 @@ describe('questGateContentRequirementsStatics', () => {
     expect(questGateContentRequirementsStatics).toStrictEqual({
       gates: {
         flows_approved: ['flows'],
-        approved: [
-          'flows',
-          {
-            field: 'operations',
-            contains: { key: 'role', value: 'codeweaver' },
-            questTypes: ['feature'],
-          },
-        ],
+        approved: ['flows'],
         design_approved: ['flows'],
       },
     });

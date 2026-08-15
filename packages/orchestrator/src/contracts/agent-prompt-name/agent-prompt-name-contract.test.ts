@@ -42,28 +42,12 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('siegemaster');
   });
 
-  it('VALID: {value: "blightwarden"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden' });
+  it('VALID: {value: "blightscout"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'blightscout' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('blightwarden');
-  });
-
-  it('VALID: {value: "blightwarden-group-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-group-minion' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('blightwarden-group-minion');
-  });
-
-  it('VALID: {value: "blightwarden-crosscut-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-crosscut-minion' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('blightwarden-crosscut-minion');
+    expect(result).toBe('blightscout');
   });
 
   it('VALID: {value: "pesteater"} => parses successfully', () => {
@@ -119,6 +103,30 @@ describe('agentPromptNameContract', () => {
   it('INVALID: {value: "lawbringer-minion"} => throws validation error (removed role)', () => {
     expect(() => {
       agentPromptNameContract.parse('lawbringer-minion');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "blightwarden"} => throws validation error (removed role)', () => {
+    expect(() => {
+      agentPromptNameContract.parse('blightwarden');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "blightwarden-group-minion"} => throws validation error (removed role)', () => {
+    expect(() => {
+      agentPromptNameContract.parse('blightwarden-group-minion');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "blightwarden-crosscut-minion"} => throws validation error (removed role)', () => {
+    expect(() => {
+      agentPromptNameContract.parse('blightwarden-crosscut-minion');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "blightwarden-deadcode-minion"} => throws validation error (removed role)', () => {
+    expect(() => {
+      agentPromptNameContract.parse('blightwarden-deadcode-minion');
     }).toThrow(/Invalid enum value/u);
   });
 

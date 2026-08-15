@@ -68,8 +68,8 @@ const SIEGE_WORK_ITEM = WorkItemStub({
 
 const BLIGHT_OPERATION = OperationItemStub({
   id: BLIGHT_OP_ID,
-  role: 'blightwarden',
-  text: 'Blightwarden: whole-diff audit',
+  role: 'blightscout',
+  text: 'Blightscout: whole-diff audit',
   status: 'in_progress',
   locked: true,
   flowIds: ['login-flow'],
@@ -77,7 +77,7 @@ const BLIGHT_OPERATION = OperationItemStub({
 
 const BLIGHT_WORK_ITEM = WorkItemStub({
   id: BLIGHT_WORK_ITEM_ID,
-  role: 'blightwarden',
+  role: 'blightscout',
   status: 'in_progress',
   relatedDataItems: [`operations/${String(BLIGHT_OP_ID)}`],
 });
@@ -412,7 +412,7 @@ describe('questResetFlowSignoffsBroker', () => {
       expect(proxy.getPersistedQuests()).toStrictEqual([]);
     });
 
-    it('INVALID: {a blightwarden work item asks for a reset} => rejects, only siegemaster owns this track', async () => {
+    it('INVALID: {a blightscout work item asks for a reset} => rejects, only siegemaster owns this track', async () => {
       const proxy = questResetFlowSignoffsBrokerProxy();
       proxy.setupQuestFound({
         quest: QuestStub({
@@ -431,7 +431,7 @@ describe('questResetFlowSignoffsBroker', () => {
           reason: RESET_REASON,
         }),
       ).rejects.toThrow(
-        /^reset-flow-signoffs: only a siegemaster work item may reset a walk — work item bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb is linked to a blightwarden operation item \(00000000-0000-4000-8000-000000000002\)$/u,
+        /^reset-flow-signoffs: only a siegemaster work item may reset a walk — work item bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb is linked to a blightscout operation item \(00000000-0000-4000-8000-000000000002\)$/u,
       );
 
       expect(proxy.getPersistedQuests()).toStrictEqual([]);

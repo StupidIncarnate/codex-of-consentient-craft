@@ -123,7 +123,7 @@ describe('questGetNextStepBroker', () => {
       expect(setActive).toHaveBeenCalledWith({ questId });
     });
 
-    it('VALID: {ready codeweaver + ready blightwarden with no deps} => returns only the first one (single agent rule)', async () => {
+    it('VALID: {ready codeweaver + ready blightscout with no deps} => returns only the first one (single agent rule)', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
@@ -135,7 +135,7 @@ describe('questGetNextStepBroker', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({ id: cwId, role: 'codeweaver', status: 'pending' }),
-          WorkItemStub({ id: bwId, role: 'blightwarden', status: 'pending' }),
+          WorkItemStub({ id: bwId, role: 'blightscout', status: 'pending' }),
         ],
       });
       proxy.setupGuildsAndQuests({
@@ -162,7 +162,7 @@ describe('questGetNextStepBroker', () => {
       });
     });
 
-    it('VALID: {ready blightwarden} => single spawn-agents', async () => {
+    it('VALID: {ready blightscout} => single spawn-agents', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
@@ -171,7 +171,7 @@ describe('questGetNextStepBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        workItems: [WorkItemStub({ id: bwId, role: 'blightwarden', status: 'pending' })],
+        workItems: [WorkItemStub({ id: bwId, role: 'blightscout', status: 'pending' })],
       });
       proxy.setupGuildsAndQuests({
         guildItems: [guildItem],
@@ -189,9 +189,9 @@ describe('questGetNextStepBroker', () => {
         agents: [
           {
             questId,
-            role: 'blightwarden',
+            role: 'blightscout',
             workItemId: bwId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightwarden",\n  workItemId: "${bwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${bwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightscout",\n  workItemId: "${bwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${bwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
           },
         ],
       });
@@ -417,7 +417,7 @@ describe('questGetNextStepBroker', () => {
           WorkItemStub({ id: orphanId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: blockedId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [orphanId],
           }),
@@ -468,7 +468,7 @@ describe('questGetNextStepBroker', () => {
           WorkItemStub({ id: doneId, role: 'codeweaver', status: 'complete' }),
           WorkItemStub({
             id: readyId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [doneId],
           }),
@@ -490,9 +490,9 @@ describe('questGetNextStepBroker', () => {
         agents: [
           {
             questId,
-            role: 'blightwarden',
+            role: 'blightscout',
             workItemId: readyId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightwarden",\n  workItemId: "${readyId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightscout",\n  workItemId: "${readyId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
           },
         ],
       });

@@ -21,7 +21,7 @@
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { BlightChecklist, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -33,8 +33,13 @@ import { questLoadBroker } from '../load/quest-load-broker';
 
 export const questGetBlightChecklistBroker = async ({
   questId,
+  scope = 'quest',
 }: {
   questId: QuestId;
+  // `commit` measures the LAST COMMIT alone — one session's output, which is Blightscout's whole
+  // surface. `quest` keeps the original `baseRef`-to-HEAD reading for any caller that wants the
+  // full review surface.
+  scope?: 'quest' | 'commit';
 }): Promise<BlightChecklist | null> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
@@ -57,13 +62,23 @@ export const questGetBlightChecklistBroker = async ({
     );
   }
 
-  const changedFiles = await gitDiffFilesAdapter({ cwd: resolution.cwd, baseRef });
+  // `HEAD~1` is one session's output, because every relay prompt enforces one commit per session.
+  // Two degenerate cases are handled by the ledger rather than by persisted bookkeeping: a session
+  // that committed NOTHING lands its scout on the previous commit, whose units already carry
+  // dispositions, so `remainingItemIds` comes back empty and the scout signals `done` immediately;
+  // and a file re-touched by a later commit is re-listed and re-dispositioned, since the ledger
+  // REPLACES on `itemId` rather than appending. That self-correction is why no scout has to
+  // remember where the last one stopped.
+  const measuredFrom =
+    scope === 'commit' ? questContract.shape.baseRef.unwrap().parse('HEAD~1') : baseRef;
+
+  const changedFiles = await gitDiffFilesAdapter({ cwd: resolution.cwd, baseRef: measuredFrom });
 
   return blightChecklistBuildTransformer({
     changedFiles,
     ledger: quest.planningNotes.blightLedger,
     packagesAffected: quest.packagesAffected,
     projectRoot: resolution.cwd,
-    baseRef,
+    baseRef: measuredFrom,
   });
 };

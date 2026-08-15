@@ -37,6 +37,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const guild = await guildAddBroker({
@@ -87,6 +88,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const guild = await guildAddBroker({
@@ -143,6 +145,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const guild = await guildAddBroker({
@@ -216,6 +219,7 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const guild = await guildAddBroker({

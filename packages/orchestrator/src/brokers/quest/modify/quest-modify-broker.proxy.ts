@@ -15,7 +15,7 @@
  * passthrough-by-default behaviour.
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { pathJoinAdapterProxy, pathResolveAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   FileContentsStub,
   FileNameStub,
@@ -71,6 +71,10 @@ export const questModifyBrokerProxy = (): {
   // uuid by default; tests that assert on the stamped id queue deterministic values via setupAssertionIds.
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
   const pathJoinProxy = pathJoinAdapterProxy();
+  // Left on its real `path.resolve` passthrough: anchoring a declared contract source on the quest's
+  // own project root is the behaviour under test, so the broker computes the probed address for real
+  // and setupContractSourceResolvesOnce names the absolute result it expects it to reach.
+  pathResolveAdapterProxy();
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
@@ -170,20 +174,15 @@ export const questModifyBrokerProxy = (): {
       modifyMock.onceFor([]).resolves(ModifyQuestResultStub({ success: false }));
     },
 
-    // Stages fs.access to succeed for one contract's normalized source path, so the
+    // Stages fs.access to succeed for one contract's source path, so the
     // contract-source-resolution validator sees THAT source as "exists on disk." Use this
     // for tests that exercise `status: 'existing'` or `status: 'modified'` contracts, or
-    // that intentionally trigger a `status: 'new'`-with-existing-path rejection. `source`
-    // must be the same bare/relative string the test's input contract entry carries — the
-    // broker normalizes it (prefixes `./` unless already absolute or relative) before
-    // calling fsIsAccessibleAdapter, so this mirrors that normalization to describe the
-    // real call.
+    // that intentionally trigger a `status: 'new'`-with-existing-path rejection. A contract's
+    // `source` is repo-relative to the quest's OWN repo, so the address the broker probes is
+    // that source anchored on PROJECT_ROOT; pass the same absolute path here — exactly as
+    // setupPackageLocationResolves takes a location's absolute address.
     setupContractSourceResolvesOnce: ({ source }: { source: string }): void => {
-      const normalized =
-        source.startsWith('/') || source.startsWith('./') || source.startsWith('../')
-          ? source
-          : `./${source}`;
-      fsAccessProxy.resolves({ filePath: FilePathStub({ value: normalized }) });
+      fsAccessProxy.resolves({ filePath: FilePathStub({ value: source }) });
     },
 
     // Stages fs.access to succeed for one packagesAffected entry's `location`, so the package-entry

@@ -25,7 +25,7 @@ describe('slotManagerStatics', () => {
       siegemaster: {
         maxAttempts: 3,
       },
-      blightwarden: {
+      blightscout: {
         maxAttempts: 3,
       },
       pesteater: {

@@ -31,6 +31,37 @@ describe('codeweaverPromptStatics', () => {
     expect(template.indexOf('### Gate 10')).toBe(-1);
   });
 
+  // The seams block reports where the OTHER half of a shared node stands, read off the ledger, and
+  // the gate has to stay honest about all three answers. A blanket "verify it exists in committed
+  // code and repair it if it does not" was unsatisfiable for the side that runs FIRST: the other
+  // session had not run, so the only way to satisfy it was to build a package the item never
+  // declared.
+  it('VALID: prompt template => Gate 2.5 branches on the seam marker instead of demanding every half already exist', () => {
+    const { template } = codeweaverPromptStatics.prompt;
+    const needle = '### Gate 2.5: Read the Seams Block (BLOCKING)';
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(
+      template.indexOf(
+        '- **ALREADY BUILT** — that session has run and committed. Check every observable under it against',
+      ),
+    ).toBeGreaterThan(template.indexOf(needle));
+    expect(
+      template.indexOf(
+        '- **NOT BUILT YET** — that session has not run. Those observables are NOT yours: building them puts',
+      ),
+    ).toBeGreaterThan(template.indexOf(needle));
+    expect(
+      template.indexOf(
+        '- **NO SESSION OWNS IT** — the ledger holds no cell for that package on this flow.',
+      ),
+    ).toBeGreaterThan(template.indexOf(needle));
+  });
+
   it('VALID: prompt template => turn-discipline and framing precede the gates', () => {
     const { template } = codeweaverPromptStatics.prompt;
 
@@ -400,12 +431,14 @@ describe('codeweaverPromptStatics', () => {
     expect(template.indexOf('**The flow graph is the north star.**')).toBeGreaterThan(-1);
     expect(template.indexOf('**Git is the authority log.**')).toBeGreaterThan(-1);
     expect(
-      template.indexOf('The operations ledger is a bucket tracker, and it is approximate.'),
+      template.indexOf(
+        '**The operations ledger is DERIVED from the spec, and its scope is exact.**',
+      ),
     ).toBeGreaterThan(-1);
   });
 
-  it('VALID: prompt template => treats an imperfect bucket partition as expected, not an error', () => {
-    const needle = '**This is expected, not an error state.**';
+  it('VALID: prompt template => treats the derived partition as exact but not necessarily complete', () => {
+    const needle = '**Exact is not the same as complete.**';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

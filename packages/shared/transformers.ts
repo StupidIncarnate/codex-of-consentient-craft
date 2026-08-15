@@ -111,3 +111,8 @@ export * from './src/transformers/dependency-graph-adjacency-build/dependency-gr
 // Package Kinds (the browser-reachability rules, and how a quest entry's stamped kind set is read)
 export * from './src/transformers/package-browser-type/package-browser-type-transformer';
 export * from './src/transformers/quest-package-entry-kinds/quest-package-entry-kinds-transformer';
+
+// Path -> owning package, by longest declared `location` prefix. Shared by the contract-source
+// coverage gate and the derived codeweaver ledger, which must agree on where a path lands or a
+// contract refused by the gate would be one the generator silently dropped.
+export * from './src/transformers/package-for-path/package-for-path-transformer';

@@ -15,10 +15,10 @@ describe('executionRoleContract', () => {
       expect(result).toBe('ward');
     });
 
-    it('VALID: {value: "blightwarden"} => parses blightwarden role', () => {
-      const result = executionRoleContract.parse('blightwarden');
+    it('VALID: {value: "blightscout"} => parses blightscout role', () => {
+      const result = executionRoleContract.parse('blightscout');
 
-      expect(result).toBe('blightwarden');
+      expect(result).toBe('blightscout');
     });
 
     it('VALID: {value: "pesteater"} => parses pesteater role', () => {

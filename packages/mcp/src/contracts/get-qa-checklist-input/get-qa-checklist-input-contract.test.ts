@@ -102,9 +102,9 @@ describe('getQaChecklistInputContract', () => {
       );
     });
 
-    it('INVALID: {track: "blightwarden"} => throws, because blightwarden signs no verification unit', () => {
+    it('INVALID: {track: "blightscout"} => throws, because blightscout signs no verification unit', () => {
       expect(() =>
-        getQaChecklistInputContract.parse({ questId: 'add-auth', track: 'blightwarden' } as never),
+        getQaChecklistInputContract.parse({ questId: 'add-auth', track: 'blightscout' } as never),
       ).toThrow(/invalid_enum_value/u);
     });
 

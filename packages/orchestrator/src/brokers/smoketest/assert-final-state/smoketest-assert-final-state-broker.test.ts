@@ -114,7 +114,7 @@ describe('smoketestAssertFinalStateBroker', () => {
             actualSignal: 'complete',
           }),
           // Items without expected signal are ignored
-          WorkItemStub({ id: WI_3, role: 'blightwarden', status: 'complete' }),
+          WorkItemStub({ id: WI_3, role: 'blightscout', status: 'complete' }),
         ],
       });
 

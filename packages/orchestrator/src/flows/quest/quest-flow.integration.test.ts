@@ -14,6 +14,7 @@ import {
   ModifyQuestInputStub,
   OperationItemIdStub,
   OperationItemStub,
+  QuestContractEntryStub,
   QuestNoteStub,
   QuestPackageEntryStub,
   QuestWorkItemIdStub,
@@ -26,6 +27,7 @@ import {
 import { CommentBatchResponder } from '../../responders/comment/batch/comment-batch-responder';
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { blightscoutOperationStatics } from '../../statics/blightscout-operation/blightscout-operation-statics';
 import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-statics';
 import { QuestFlow } from './quest-flow';
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
@@ -543,8 +545,8 @@ describe('QuestFlow', () => {
       await questHelper.seedInProgressRelay({
         questId,
         status: 'review_observables',
-        // The ledger claims BOTH packages, so Codeweaver Package Coverage — the sibling rule that
-        // binds at this same gate — has nothing to report and the attribution failure stands alone.
+        // No contract is authored, so Contract Source Coverage — the sibling rule that binds at
+        // this same gate — has nothing to report and the attribution failure stands alone.
         operations: [
           OperationItemStub({
             id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa1' }),
@@ -629,9 +631,9 @@ describe('QuestFlow', () => {
       });
     }, 30_000);
 
-    it("INVALID: {codeweaver ledger claiming only one of the two packages the spine lands in} => refused as 'Codeweaver Package Coverage' naming the package and a node that witnesses it", async () => {
+    it("INVALID: {authored contract whose source sits under no declared package} => refused as 'Contract Source Coverage' naming the contract and its unroutable source", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-codeweaver-coverage' }),
+        baseName: BaseNameStub({ value: 'qf-gate-contract-source' }),
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -640,17 +642,19 @@ describe('QuestFlow', () => {
       await questHelper.seedInProgressRelay({
         questId,
         status: 'review_observables',
-        operations: [
-          OperationItemStub({
-            id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa2' }),
-            role: 'codeweaver',
-            text: 'Build the WARP button',
-            status: 'pending',
-            locked: false,
-            packageNames: ['web'],
+        operations: [],
+        workItems: [],
+        // `orchestrator` is deliberately absent from packagesAffected below, so this source
+        // resolves to no package and the foundation item it should mint at Start never exists.
+        contracts: [
+          QuestContractEntryStub({
+            id: 'merge-status',
+            name: 'MergeStatus',
+            status: 'new',
+            source: 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts',
+            nodeId: 'merge-status-ok',
           }),
         ],
-        workItems: [],
         packagesAffected: [
           QuestPackageEntryStub({
             name: 'web',
@@ -727,21 +731,22 @@ describe('QuestFlow', () => {
         error: 'Save invariants failed',
         failedChecks: [
           {
-            name: 'Codeweaver Package Coverage',
+            name: 'Contract Source Coverage',
             passed: false,
             details:
-              "Package 'server' is tagged on node 'merge-status-ok' in flow 'warpgate-merge' but no codeweaver operation item declares it in packageNames. Every package the spine lands in needs an implementation item that names it, or the dependency-ordered dispatch has nothing to schedule there — add 'server' to an existing codeweaver item's packageNames, or author an item for it.",
+              "Contract 'MergeStatus' declares source 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
           },
         ],
         statusOnDisk: 'review_observables',
       });
     }, 30_000);
 
-    // The same spine, the same ledger, the same declared packages as the refusal above — only
-    // `questType` differs. Codeweaver Package Coverage is scoped `questTypes: ['feature']` because
-    // a bug-hunt's implementation op is the orchestrator-seeded pesteater item, which does not
-    // exist until Start, so at this gate there is no ledger to measure.
-    it('VALID: {bug-hunt quest whose ledger claims only one of the two packages} => the codeweaver rule does not bind and the gate admits it', async () => {
+    // The same spine, the same unroutable contract source, the same declared packages as the
+    // refusal above — only `questType` differs. Contract Source Coverage is scoped to feature
+    // quests because only a feature quest derives one codeweaver item per package; a bug-hunt's
+    // single orchestrator-seeded pesteater item covers the quest whatever its contracts say, so
+    // refusing here would be a gate with no consequence behind it.
+    it('VALID: {bug-hunt quest whose contract source resolves nowhere} => the contract-source rule does not bind and the gate admits it', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-gate-bug-hunt-exempt' }),
       });
@@ -753,17 +758,17 @@ describe('QuestFlow', () => {
         questId,
         status: 'review_observables',
         questType: 'bug-hunt',
-        operations: [
-          OperationItemStub({
-            id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa3' }),
-            role: 'codeweaver',
-            text: 'Build the WARP button',
-            status: 'pending',
-            locked: false,
-            packageNames: ['web'],
+        operations: [],
+        workItems: [],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'merge-status',
+            name: 'MergeStatus',
+            status: 'new',
+            source: 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts',
+            nodeId: 'merge-status-ok',
           }),
         ],
-        workItems: [],
         packagesAffected: [
           QuestPackageEntryStub({
             name: 'web',
@@ -1271,7 +1276,11 @@ describe('QuestFlow', () => {
   // real filesystem. These drive QuestFlow end-to-end (not mocked) — the seam the broker unit tests
   // mock.
   describe('operations relay — advance on done', () => {
-    it('VALID: {codeweaver signals complete/done} => operation completes, advance creates the flowrider work item, and get-next-step dispatches it', async () => {
+    // The review lands NEXT TO the work, not behind the whole quest: the signal-back handler mints
+    // a blightscout operation AND its work item in the same persist, so the very next thing
+    // get-next-step dispatches is the review of the commit codeweaver just made — the seeded
+    // flowrider item waits its turn behind it.
+    it('VALID: {codeweaver signals complete/done} => operation completes, the appended blightscout work item is what get-next-step dispatches, and flowrider stays pending', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-relay-done' }),
       });
@@ -1322,6 +1331,8 @@ describe('QuestFlow', () => {
       });
 
       const afterAdvance = await QuestGetResponder({ questId });
+      const scoutOperation = afterAdvance.quest!.operations.find((op) => op.role === 'blightscout');
+      const scoutWorkItem = afterAdvance.quest!.workItems.find((wi) => wi.role === 'blightscout');
       const flowWorkItem = afterAdvance.quest!.workItems.find((wi) => wi.role === 'flowrider');
       const nextStep = await QuestFlow.getNextStep();
 
@@ -1335,17 +1346,31 @@ describe('QuestFlow', () => {
         })),
         cwWorkItemStatus: afterAdvance.quest!.workItems.find((wi) => wi.id === cwWorkItemId)
           ?.status,
-        flowWorkItemStatus: flowWorkItem?.status,
-        flowWorkItemLink: flowWorkItem?.relatedDataItems,
+        scoutText: String(scoutOperation?.text),
+        scoutWorkItemStatus: scoutWorkItem?.status,
+        scoutWorkItemLink: scoutWorkItem?.relatedDataItems,
+        scoutDependsOn: scoutWorkItem?.dependsOn,
+        // The seeded flowrider item has NO work item yet — advance skipped it because the scout is
+        // the first pending operation and already carries one (the strict-1:1 resume guard).
+        flowWorkItem,
       }).toStrictEqual({
         questStatus: 'in_progress',
         operations: [
           { role: 'codeweaver', status: 'complete' },
-          { role: 'flowrider', status: 'in_progress' },
+          { role: 'blightscout', status: 'pending' },
+          { role: 'flowrider', status: 'pending' },
         ],
         cwWorkItemStatus: 'complete',
-        flowWorkItemStatus: 'pending',
-        flowWorkItemLink: [`operations/${String(flowOpId)}`],
+        // The review names the item whose session made the commit, so it keys its own pt chain and
+        // carries its own budget — one budget per COMMIT, not one per quest.
+        scoutText: blightscoutOperationStatics.textTemplate.replace(
+          blightscoutOperationStatics.placeholders.reviewedOperation,
+          `codeweaver ${String(cwOpId)}`,
+        ),
+        scoutWorkItemStatus: 'pending',
+        scoutWorkItemLink: [`operations/${String(scoutOperation!.id)}`],
+        scoutDependsOn: [cwWorkItemId],
+        flowWorkItem: undefined,
       });
 
       expect(nextStep).toStrictEqual({
@@ -1353,9 +1378,9 @@ describe('QuestFlow', () => {
         agents: [
           {
             questId,
-            role: 'flowrider',
-            workItemId: flowWorkItem!.id,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${String(flowWorkItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+            role: 'blightscout',
+            workItemId: scoutWorkItem!.id,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightscout",\n  workItemId: "${String(scoutWorkItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(scoutWorkItem!.id)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
           },
         ],
       });
@@ -1414,7 +1439,7 @@ describe('QuestFlow', () => {
       });
 
       const afterPartial = await QuestGetResponder({ questId });
-      const ptOp = afterPartial.quest!.operations.find((op) => String(op.text).startsWith('pt 2:'));
+      const scoutOperation = afterPartial.quest!.operations.find((op) => op.role === 'blightscout');
       const freshWorkItem = afterPartial.quest!.workItems.find((wi) => wi.id !== cwWorkItemId);
 
       testbed.cleanup();
@@ -1426,21 +1451,36 @@ describe('QuestFlow', () => {
           status: op.status,
           text: String(op.text),
         })),
+        // The partial's OWN continuation is still work waiting to be dispatched — it has no work
+        // item yet, so codeweaver still owns exactly the one session that just ended.
         codeweaverWorkItemCount: afterPartial.quest!.workItems.filter(
           (wi) => wi.role === 'codeweaver',
         ).length,
+        freshWorkItemRole: freshWorkItem?.role,
         freshWorkItemStatus: freshWorkItem?.status,
         freshWorkItemLink: freshWorkItem?.relatedDataItems,
       }).toStrictEqual({
         questStatus: 'in_progress',
+        // The scout sits BETWEEN the completed item and its own pt continuation. Its scope is
+        // HEAD~1...HEAD, so running the continuation first would move HEAD~1 onto the
+        // continuation's commit and leave this partial session's commit unreviewed forever.
         operations: [
           { role: 'codeweaver', status: 'complete', text: 'build core' },
-          { role: 'codeweaver', status: 'in_progress', text: 'pt 2: build core' },
+          {
+            role: 'blightscout',
+            status: 'pending',
+            text: blightscoutOperationStatics.textTemplate.replace(
+              blightscoutOperationStatics.placeholders.reviewedOperation,
+              `codeweaver ${String(cwOpId)}`,
+            ),
+          },
+          { role: 'codeweaver', status: 'pending', text: 'pt 2: build core' },
           { role: 'flowrider', status: 'pending', text: 'verify flows' },
         ],
-        codeweaverWorkItemCount: 2,
+        codeweaverWorkItemCount: 1,
+        freshWorkItemRole: 'blightscout',
         freshWorkItemStatus: 'pending',
-        freshWorkItemLink: [`operations/${String(ptOp!.id)}`],
+        freshWorkItemLink: [`operations/${String(scoutOperation!.id)}`],
       });
     }, 30_000);
   });
@@ -1552,15 +1592,15 @@ describe('QuestFlow', () => {
     }, 30_000);
   });
 
-  // blightwarden was converted from a whole-diff `pt N` fixpoint role into an OPERATOR with a
+  // blightscout was converted from a whole-diff `pt N` fixpoint role into an OPERATOR with a
   // server-computed completion gate (`quest-handle-signal-back-responder.ts`). The gate itself —
   // refusing/admitting `done` against a real `git diff` — is proven end-to-end in
   // `quest-handle-signal-back-responder.integration.test.ts`, colocated with the responder it
   // gates. These three describes prove the surrounding RELAY behaviour QuestFlow owns: `partial`
   // bypassing the gate entirely, the pt-chain budget blocking the quest instead of looping
-  // forever, and `done` advancing to the fixed ward tail rather than back to blightwarden.
-  describe('operations relay — blightwarden operator: partial bypasses the completion gate', () => {
-    it('VALID: {blightwarden signals complete/partial with real outstanding units} => no throw, operation completes, and a pt N continuation carries the same role + locked flag', async () => {
+  // forever, and `done` advancing to the fixed ward tail rather than back to blightscout.
+  describe('operations relay — blightscout operator: partial bypasses the completion gate', () => {
+    it('VALID: {blightscout signals complete/partial with real outstanding units} => no throw, operation completes, and a pt N continuation carries the same role + locked flag', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-blight-partial' }),
       });
@@ -1583,7 +1623,7 @@ describe('QuestFlow', () => {
         ],
       });
 
-      const baseText = 'Blightwarden: cross-cutting audit across the whole diff';
+      const baseText = 'Blightscout: cross-cutting audit across the whole diff';
       const blightOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e1' });
       const blightWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
@@ -1596,7 +1636,7 @@ describe('QuestFlow', () => {
         operations: [
           OperationItemStub({
             id: blightOpId,
-            role: 'blightwarden',
+            role: 'blightscout',
             text: baseText,
             status: 'in_progress',
             locked: true,
@@ -1605,7 +1645,7 @@ describe('QuestFlow', () => {
         workItems: [
           WorkItemStub({
             id: blightWorkItemId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'in_progress',
             spawnerType: 'agent',
             relatedDataItems: [`operations/${String(blightOpId)}`],
@@ -1638,8 +1678,8 @@ describe('QuestFlow', () => {
         freshWorkItemStatus: freshWorkItem?.status,
       }).toStrictEqual({
         operations: [
-          { role: 'blightwarden', status: 'complete', locked: true, text: baseText },
-          { role: 'blightwarden', status: 'in_progress', locked: true, text: `pt 2: ${baseText}` },
+          { role: 'blightscout', status: 'complete', locked: true, text: baseText },
+          { role: 'blightscout', status: 'in_progress', locked: true, text: `pt 2: ${baseText}` },
         ],
         freshWorkItemStatus: 'pending',
       });
@@ -1649,12 +1689,12 @@ describe('QuestFlow', () => {
     }, 30_000);
   });
 
-  describe('operations relay — blightwarden operator: pt budget exhaustion blocks the quest', () => {
-    it('VALID: {blightwarden partial at chainLength === slotManagerStatics.blightwarden.maxAttempts} => operation completes, NO further pt continuation is appended, and the quest blocks', async () => {
+  describe('operations relay — blightscout operator: pt budget exhaustion blocks the quest', () => {
+    it('VALID: {blightscout partial at chainLength === slotManagerStatics.blightscout.maxAttempts} => operation completes, NO further pt continuation is appended, and the quest blocks', async () => {
       // Read the real budget rather than assuming it — the chain built below must match it
       // exactly (maxAttempts - 1 prior complete passes + the live session at the edge) for the
       // block branch to fire instead of another continuation.
-      expect(slotManagerStatics.blightwarden.maxAttempts).toBe(3);
+      expect(slotManagerStatics.blightscout.maxAttempts).toBe(3);
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-blight-budget' }),
@@ -1663,14 +1703,14 @@ describe('QuestFlow', () => {
 
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-      const baseText = 'Blightwarden: cross-cutting audit across the whole diff';
+      const baseText = 'Blightscout: cross-cutting audit across the whole diff';
       const op1Id = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e2' });
       const op2Id = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e3' });
       const op3Id = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e4' });
       const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e9' });
       const op3WorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
-      // Mirrors the real relay tail (blightwarden is always followed by ward(full)): a still-
+      // Mirrors the real relay tail (blightscout is always followed by ward(full)): a still-
       // `pending` operation after the exhausted chain is what keeps
       // workItemsToQuestStatusTransformer from deriving `complete` on the interim persist (a
       // drained ledger + a lone terminal work item) before questBlockOnFailureBroker gets a
@@ -1680,21 +1720,21 @@ describe('QuestFlow', () => {
         operations: [
           OperationItemStub({
             id: op1Id,
-            role: 'blightwarden',
+            role: 'blightscout',
             text: baseText,
             status: 'complete',
             locked: true,
           }),
           OperationItemStub({
             id: op2Id,
-            role: 'blightwarden',
+            role: 'blightscout',
             text: `pt 2: ${baseText}`,
             status: 'complete',
             locked: true,
           }),
           OperationItemStub({
             id: op3Id,
-            role: 'blightwarden',
+            role: 'blightscout',
             text: `pt 3: ${baseText}`,
             status: 'in_progress',
             locked: true,
@@ -1711,7 +1751,7 @@ describe('QuestFlow', () => {
         workItems: [
           WorkItemStub({
             id: op3WorkItemId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'in_progress',
             spawnerType: 'agent',
             relatedDataItems: [`operations/${String(op3Id)}`],
@@ -1746,21 +1786,21 @@ describe('QuestFlow', () => {
       }).toStrictEqual({
         questStatus: 'blocked',
         operations: [
-          { role: 'blightwarden', status: 'complete', text: baseText },
-          { role: 'blightwarden', status: 'complete', text: `pt 2: ${baseText}` },
-          { role: 'blightwarden', status: 'complete', text: `pt 3: ${baseText}` },
+          { role: 'blightscout', status: 'complete', text: baseText },
+          { role: 'blightscout', status: 'complete', text: `pt 2: ${baseText}` },
+          { role: 'blightscout', status: 'complete', text: `pt 3: ${baseText}` },
           { role: 'ward', status: 'pending', text: 'Ward gate (full monorepo)' },
         ],
         op3WorkItemStatus: 'complete',
-        // Advance never runs on this path — a fresh blightwarden pass would hit the same spent
+        // Advance never runs on this path — a fresh blightscout pass would hit the same spent
         // budget, so no work item is minted for the still-pending ward tail item either.
         workItemCount: 1,
       });
     }, 30_000);
   });
 
-  describe('operations relay — blightwarden operator: done advances to the fixed ward tail', () => {
-    it('VALID: {blightwarden signals complete/done} => operation completes, advance creates the ward(full) work item, and get-next-step dispatches run-ward — never another blightwarden pass', async () => {
+  describe('operations relay — blightscout operator: done advances to the fixed ward tail', () => {
+    it('VALID: {blightscout signals complete/done} => operation completes, advance creates the ward(full) work item, and get-next-step dispatches run-ward — never another blightscout pass', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-blight-relay' }),
       });
@@ -1780,8 +1820,8 @@ describe('QuestFlow', () => {
         operations: [
           OperationItemStub({
             id: blightOpId,
-            role: 'blightwarden',
-            text: 'Blightwarden: cross-cutting audit across the whole diff',
+            role: 'blightscout',
+            text: 'Blightscout: cross-cutting audit across the whole diff',
             status: 'in_progress',
             locked: true,
           }),
@@ -1797,7 +1837,7 @@ describe('QuestFlow', () => {
         workItems: [
           WorkItemStub({
             id: blightWorkItemId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'in_progress',
             spawnerType: 'agent',
             relatedDataItems: [`operations/${String(blightOpId)}`],
@@ -1828,7 +1868,7 @@ describe('QuestFlow', () => {
         wardWorkItemLink: wardWorkItem?.relatedDataItems,
       }).toStrictEqual({
         operations: [
-          { role: 'blightwarden', status: 'complete' },
+          { role: 'blightscout', status: 'complete' },
           { role: 'ward', status: 'in_progress' },
         ],
         blightWorkItemStatus: 'complete',

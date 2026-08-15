@@ -61,7 +61,7 @@ export const smoketestCaseCatalogStatics = {
   orchestration: [
     smoketestScenariosStatics.orchHappyPath,
     smoketestScenariosStatics.orchCodeweaverPartial,
-    smoketestScenariosStatics.orchReachesBlightwarden,
+    smoketestScenariosStatics.orchReachesBlightscout,
     smoketestScenariosStatics.orchReachesFlowrider,
   ],
 } as const;

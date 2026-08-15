@@ -28,15 +28,22 @@
 
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { FlowId, OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
+import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import type { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
+import { questContractSourceOwnerTransformer } from '../quest-contract-source-owner/quest-contract-source-owner-transformer';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
-type RelayTail =
-  (typeof questTypeRegistryStatics)[keyof typeof questTypeRegistryStatics]['relayTail'];
+type RegistryEntry = (typeof questTypeRegistryStatics)[keyof typeof questTypeRegistryStatics];
 
-type RelayTailEntry = RelayTail extends readonly (infer Entry)[] ? Entry : never;
+// BOTH seed lists, not just the tail: `startImplementationOps` now carries a `fanOutBy` too — the
+// feature quest's codeweaver seed expands into the derived per-cell ledger through this same
+// transformer, so the seeding broker mints implementation items and tail items with one call shape
+// and still learns no role name.
+type SeedList = RegistryEntry['relayTail'] | RegistryEntry['startImplementationOps'];
+
+type RelayTailEntry = SeedList extends readonly (infer Entry)[] ? Entry : never;
 
 export type RelayTailSlice = Pick<OperationItem, 'text' | 'flowIds' | 'packageNames'>;
 
@@ -65,6 +72,173 @@ export const relayTailFanOutTransformer = ({
       flowIds: [flow.id],
       packageNames: [],
     }));
+  }
+
+  if (fanOutBy === 'implementation') {
+    // Tier rank per KIND, read off the statics tuple's own index. This is the PRIMARY sort key and
+    // it outranks `packageGraph` depth deliberately: depth is Kahn's order over the workspace
+    // manifests, and across an HTTP seam that is inverted. Measured in this repo — `server` depends
+    // on `web` because it serves the built bundle, so depth ranks the browser package AHEAD of the
+    // backend whose routes it calls.
+    const rankByKind = new Map(
+      packageBuildOrderStatics.tiers.flatMap((tier, tierIndex) =>
+        tier.map((kind) => [kind, tierIndex] as const),
+      ),
+    );
+    const unrankedTier = packageBuildOrderStatics.tiers.length;
+
+    // A package is ranked on its whole KIND SET at its EARLIEST tier, never on the detector's single
+    // winning label: a package that serves HTTP and also renders widgets is depended upon as a
+    // backend, so it must be built before the frontends calling it rather than alongside them.
+    const rankByPackage = new Map(
+      quest.packagesAffected.map((affected) => {
+        const ranks = questPackageEntryKindsTransformer({ entry: affected }).flatMap((kind) => {
+          const rank = rankByKind.get(kind);
+          return rank === undefined ? [] : [rank];
+        });
+        return [
+          String(affected.name),
+          ranks.length === 0 ? unrankedTier : Math.min(...ranks),
+        ] as const;
+      }),
+    );
+
+    // Depth breaks ties WITHIN a tier, where the manifests are telling the truth — two libraries,
+    // one importing the other. A quest with no graph stamped yet ranks every package equal here and
+    // falls through to the name tiebreak, which keeps the output deterministic either way.
+    const depthByPackage = new Map(
+      quest.packageGraph.map((graphEntry) => [String(graphEntry.id), graphEntry.depth]),
+    );
+
+    // One cell per (package, flow), over BOTH flow types. The verification `package` branch below
+    // filters to `runtime` because an operational flow has nothing repeatable for a suite to
+    // assert — but an operational flow is still implementation work, and filtering here would
+    // delete an init/migration flow's entire scope from the ledger with nothing failing to say so.
+    const cellFlowsByPackage = new Map<unknown, FlowId[]>();
+    const packageNamesByKey = new Map<unknown, PackageName>();
+    for (const flow of quest.flows) {
+      for (const node of flow.nodes) {
+        // Membership is "this package TAGS this node", never "owns it". A glue node therefore
+        // appears in BOTH sides' cells, which is correct — a seam has two halves and each side
+        // builds its own. Every item stays single-package; only the node is shared.
+        //
+        // Awarding the node to one owner instead lost work whenever that node was the OTHER side's
+        // ONLY node in the flow: no cell was minted for it at all, so its observables reached no
+        // session's "Must satisfy" list and surfaced only in the owner's seam block — which asks a
+        // session to verify a package its own item does not declare.
+        for (const name of node.packages) {
+          const key = String(name);
+          packageNamesByKey.set(key, name);
+          const flowIds = cellFlowsByPackage.get(key) ?? [];
+          if (!flowIds.some((flowId) => String(flowId) === String(flow.id))) {
+            flowIds.push(flow.id);
+          }
+          cellFlowsByPackage.set(key, flowIds);
+        }
+      }
+    }
+
+    // The FOUNDATION half, and the only reason a package with zero tagged nodes gets an item at
+    // all. On the quest that motivated this, `shared` tagged no node and owned nine contracts —
+    // the status enum, the transitions table, the role roster — so a partition read off node tags
+    // alone would have derived no shared scope whatsoever.
+    const foundationPackages = new Map<unknown, PackageName>();
+    for (const contract of quest.contracts) {
+      // An `existing` contract is reference material the spec points at, not work this quest does,
+      // so it mints nothing. `questContractSourceCoverageViolationsTransformer` refuses an
+      // unresolvable source at `approved` on exactly the same split, and through the SAME resolver
+      // below — a divergence there would refuse work that routes, or pass work that does not.
+      if (contract.status === 'existing') {
+        continue;
+      }
+      // SEVERAL packages, not one: a property may carry its own `source`, which is how one
+      // contract delivers into more than one package. Reading the contract's own path alone sent
+      // every property to a single session, and a property whose file lives elsewhere then reached
+      // nobody — the contract being, for a deliverable no observable mentions, its only carrier.
+      const owners = [
+        questContractSourceOwnerTransformer({
+          contract,
+          packagesAffected: quest.packagesAffected,
+        }),
+        ...contract.properties.map((property) =>
+          questContractSourceOwnerTransformer({
+            contract,
+            property,
+            packagesAffected: quest.packagesAffected,
+          }),
+        ),
+      ];
+      for (const owner of owners) {
+        if (owner !== undefined) {
+          foundationPackages.set(String(owner), owner);
+          packageNamesByKey.set(String(owner), owner);
+        }
+      }
+    }
+
+    const flowIndexById = new Map(quest.flows.map((flow, index) => [String(flow.id), index]));
+
+    const ordered = [
+      ...[...foundationPackages.values()].map((name) => ({
+        name,
+        // A foundation item carries NO flow, and that reads correctly downstream: the codeweaver
+        // prompt already treats an empty flow list as "foundation the whole spec rests on".
+        flowIds: [] as FlowId[],
+        isFoundation: true,
+        flowIndex: -1,
+      })),
+      ...[...cellFlowsByPackage.entries()].flatMap(([key, flowIds]) => {
+        const name = packageNamesByKey.get(key);
+        return name === undefined
+          ? []
+          : flowIds.map((flowId) => ({
+              name,
+              flowIds: [flowId],
+              isFoundation: false,
+              flowIndex: flowIndexById.get(String(flowId)) ?? 0,
+            }));
+      }),
+    ].sort((left, right) => {
+      const leftRank = rankByPackage.get(String(left.name)) ?? unrankedTier;
+      const rightRank = rankByPackage.get(String(right.name)) ?? unrankedTier;
+      if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+      }
+      const depthDelta =
+        (depthByPackage.get(String(left.name)) ?? 0) -
+        (depthByPackage.get(String(right.name)) ?? 0);
+      if (depthDelta !== 0) {
+        return depthDelta;
+      }
+      const nameDelta = String(left.name).localeCompare(String(right.name));
+      if (nameDelta !== 0) {
+        return nameDelta;
+      }
+      // Within one package, its contracts land before the flows built on top of them, and its flow
+      // cells follow the order the flows are declared in.
+      return left.isFoundation === right.isFoundation
+        ? left.flowIndex - right.flowIndex
+        : Number(right.isFoundation) - Number(left.isFoundation);
+    });
+
+    if (ordered.length > 0) {
+      return ordered.map((cell) => ({
+        // The text is a LABEL, not the scope. What the session must satisfy — the nodes, the
+        // verbatim observables, the contracts — is rendered live at dispatch by
+        // `workItemToPromptTransformer`, because a scope baked in here is a snapshot: an observable
+        // a mid-quest session ADDS to a flow would be invisible to every item minted before it.
+        text: textContract.parse(
+          `${entry.text} — ${String(cell.name)}: ${cell.isFoundation ? 'foundation' : String(cell.flowIds[0])}`,
+        ),
+        flowIds: cell.flowIds,
+        packageNames: [cell.name],
+      }));
+    }
+
+    // No node tags a package and no contract resolves to one — a quest drawn with no flows and no
+    // authored contracts. One whole-quest item keeps the role owned rather than seeding a relay
+    // with no implementation in it at all.
+    return [{ text: textContract.parse(entry.text), flowIds: [], packageNames: [] }];
   }
 
   if (fanOutBy === 'package') {

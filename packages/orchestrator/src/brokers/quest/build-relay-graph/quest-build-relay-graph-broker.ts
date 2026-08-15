@@ -93,16 +93,34 @@ export const questBuildRelayGraphBroker = async ({
     }
   }
 
-  const implementationOps = registry.startImplementationOps.map((seed) =>
-    operationItemContract.parse({
-      id: crypto.randomUUID(),
-      role: seed.role,
-      text: seed.text,
-      status: 'pending',
-      locked: true,
-      packageNames: [...spinePackages.values()],
-    }),
-  );
+  // Implementation seeds expand through the SAME `fanOutBy` transformer the tail uses, so a feature
+  // quest's one codeweaver seed becomes the derived per-cell ledger and bug-hunt's pesteater seed —
+  // which declares no `fanOutBy` — still becomes exactly one item.
+  //
+  // `locked` defaults true and codeweaver sets it false: locking is what enrols an item in its
+  // role's `slotManagerStatics` pt budget, and a codeweaver chain must stay unbounded because the
+  // flows are the acceptance target. Deletion protection no longer depends on it — `operations` is
+  // off the modify-quest allowlist entirely.
+  const implementationOps = registry.startImplementationOps.flatMap((seed) => {
+    const locked = 'locked' in seed ? seed.locked : true;
+
+    return relayTailFanOutTransformer({ entry: seed, quest }).map((slice) =>
+      operationItemContract.parse({
+        id: crypto.randomUUID(),
+        role: seed.role,
+        text: slice.text,
+        status: 'pending',
+        locked,
+        flowIds: slice.flowIds,
+        // A slice that names its own packages IS the scope. The spine fallback is for a seed that
+        // fans out to one whole-quest item (bug-hunt's pesteater): no author declared anything, so
+        // the node tags are the only statement of where the work lands, and an item seeded without
+        // them reaches its session declaring no packages at all.
+        packageNames:
+          slice.packageNames.length > 0 ? slice.packageNames : [...spinePackages.values()],
+      }),
+    );
+  });
 
   // Tail seeds expand in registry order, and HOW one seed becomes N items is the registry's own
   // `fanOutBy` rather than a role-name chain here: this broker mints items and never learns which

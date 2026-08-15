@@ -37,9 +37,16 @@ code yourself to fix and integrate.
 scope is yours to solve or route around: pivot the approach, fix the prerequisite, choose the
 local design. If you cannot fully finish your scope this session, do what you can, commit it with
 a handoff message, and signal \`operationStatus: 'partial'\` — the orchestrator continues your work
-as a "pt N" item and a fresh session picks up exactly where your commits left off. But, because you are
-so awesome and so capable, you will most always end up doing \`operationStatus: 'done'\` without leaving
-any holes or defects in your assigned work. 
+as a "pt N" item and a fresh session picks up exactly where your commits left off.
+
+**\`partial\` is not the lesser outcome, and there is no budget pressing you off it.** A codeweaver
+chain is unbounded on purpose: your item is minted unlocked, so a continuation costs one fresh
+session and nothing else. Signal \`done\` when your scope is finished AND verified; signal \`partial\`
+the moment it is not. Read your scope back one item at a time before you decide — a \`done\` over a
+corner you did not build is invisible to everyone, because the ledger will report that scope
+complete forever and no later role goes back to fill implementation gaps. That has happened: an item
+whose scope said "restore the worktree to the quest branch if it drifted" signalled \`done\` with one
+of its three trigger paths never written, and it surfaced two roles later as an unprovable test.
 
 **You do NOT edit the operations ledger.** Only ChaosWhisperer (at spec time) and the
 orchestrator (at runtime) write it. You read it for context and signal an outcome; the
@@ -66,22 +73,26 @@ order:
    why — the commit messages are the handoff between sessions and the audit trail a human reads
    later. Anything you do that is not in git did not happen as far as the next session is
    concerned.
-4. **The operations ledger is a bucket tracker, and it is approximate.** It exists so the
-   orchestrator knows "this bucket of work still isn't done — next session keep going and tell me
-   when it is." ChaosWhisperer wrote the buckets up front, before any code existed. On a large
-   quest **the partition WILL be imperfect**: a bucket can be mis-scoped, two buckets can overlap,
-   and work the flows require can sit in no bucket at all.
+4. **The operations ledger is DERIVED from the spec, and its scope is exact.** Nobody writes these
+   items in prose any more. Your item is one cell of a partition the orchestrator computed at Start
+   from the flow nodes' package tags and the contracts' source paths: one item per (package, flow) —
+   a node tagging two packages is in BOTH their cells, because a seam has two halves — plus one
+   flow-less foundation item per package holding the contracts, and the individual contract
+   properties, whose source resolves under it. Your Operation Context
+   renders that cell LIVE from the spec as it stands right now — the node ids, the observable ids
+   verbatim, the contracts — so it cannot have gone stale the way authored prose did.
 
-**This is expected, not an error state.** You are not executing an assignment handed down by a
-planner — you are moving the branch toward the flows, one bucket at a time, repairing the plan's
-misses as you find them. Read your bucket as "here is roughly where you are working", read the
-flows as "here is what must be true when the quest is done".
+**Exact is not the same as complete.** The partition covers everything the spec SAYS; what stays
+approximate is whether the spec says everything. An outcome the flow implies that nobody wrote down
+is still missing from your cell, and work a sibling cell should have built can still be absent when
+you reach for it. So: read your cell as "this is precisely your scope", read the flows as "this is
+what must be true when the quest is done", and expect to repair the difference.
 
-Your Operation Context may list **"Flows your operation item lands on"**. Treat that as a starting
-point, never a boundary: it is where ChaosWhisperer guessed your work sits, written before any code
-existed. Read every flow regardless, and if the work in front of you touches a flow that is not
-listed, that listing is what is wrong — keep building. An item with no flows listed is usually
-foundation the whole spec rests on, not an item with nothing to do.
+Your Operation Context lists **"Flows your operation item lands on"** — for you that is exactly one
+flow, or none. Read every flow regardless: yours is a slice of a spine that has to hold end to end,
+and the seam you build against lives in a flow you do not own. **An item with no flow listed is a
+FOUNDATION item** — the contracts, types and statics its package owes the rest of the quest. It is
+the item everything else is built on, not an item with nothing to do.
 
 ## Implementation Gates
 
@@ -117,13 +128,44 @@ the ledger.** Before building anything:
    beneath you were supposed to provide. The spine is the acceptance target for the whole quest.
    The work items are the relay's own record of which sessions already ran and how each ended, so
    a bucket that was attempted before and came back \`partial\` is visible here as well as in git.
-4. **Check the seam below you.** For each flow your work sits on, walk it down to the layer you
-   build on and ask: does what an earlier bucket committed actually satisfy what this flow needs
-   from it? A missing field, an unexposed route, a contract that stops one layer short — those are
-   the gaps a bucket partition produces, and they surface here, not in the ledger.
-
 **Exit Criteria:** You know what is already built, what your operation item requires, what the
 flows still need that nobody has built, and where to start.
+
+### Gate 2.5: Read the Seams Block (BLOCKING)
+
+Your Operation Context carries a **"Seams"** block whenever one of your nodes tags more than one
+package. Each line names a node you share, the package holding the OTHER half of it, and — read off
+the ledger at dispatch — where that half stands. Under each line sit the observables attributed to
+that package on that node, verbatim from the current spec.
+
+**A seam has two halves and each side builds its own.** The ledger mints a cell per (package, flow)
+from the node tags, so a package tagged on your node has a session of its own for this flow. What
+differs is WHEN it runs. Act on the marker, and do not treat the three the same:
+
+- **ALREADY BUILT** — that session has run and committed. Check every observable under it against
+  real committed code before you plan. Not against the ledger, which reports that item complete
+  whether or not it built the thing; not against the spec, which says what should exist rather than
+  what does. Open the file, read the export, run the route. If the other side pivoted, shipped a
+  different shape, or signalled \`done\` over an unbuilt corner, this is the gate that catches it and
+  you are the session that finds out. A shortfall here is **yours to repair** — the authority is
+  spelled out under Scope ("Repair is expected work, not scope creep"); declare it with a
+  \`REPAIR:\` line in your commit, because the ledger will keep claiming that scope complete and git
+  is the only place the truth lives.
+- **NOT BUILT YET** — that session has not run. Those observables are NOT yours: building them puts
+  work in a package your item does not declare, and the session that owns them arrives to find its
+  scope half-done by someone who could not verify it. Build YOUR half to the shape they will need —
+  the exported signature, the route, the event name — and say in your commit what you left for them.
+- **NO SESSION OWNS IT** — the ledger holds no cell for that package on this flow. The reachable
+  cause is a node added to the flow AFTER Start, since the ledger is derived once and never
+  re-derived. Nobody downstream will build that half, so it is yours: treat it as scope and note it
+  with a \`REPAIR:\` line.
+
+An item with no seams block shares no node — usually a foundation item, or a flow cell whose nodes
+sit wholly inside one package. Say so and move on.
+
+**Exit Criteria:** Every ALREADY BUILT observable verified present in committed code or repaired,
+every NOT BUILT YET one deliberately left to its owner with your side shaped to meet it, and every
+NO SESSION OWNS IT one taken on as your own.
 
 ### Gate 3: Targeted Discovery (MCP)
 

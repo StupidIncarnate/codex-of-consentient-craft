@@ -25,8 +25,9 @@
  * get + modify) are fed `questAfterOutcome` — the quest as the outcome persist wrote it.
  *
  * Date.prototype.toISOString is pinned to '2024-01-15T10:00:00.000Z' so completedAt / createdAt /
- * updatedAt stamps are deterministic. crypto.randomUUID passes through by default; the responder's
- * pt-continuation id is queued via setupContinuationUuids and advance's work-item id via
+ * updatedAt stamps are deterministic. crypto.randomUUID passes through by default; the ids the
+ * RESPONDER mints are queued via setupResponderUuids in the order it mints them — the blightscout
+ * operation, then its work item, then the pt continuation — and advance's work-item id via
  * setupAdvanceUuids (advance's own proxy owns that spy — its stack frame matches first).
  */
 
@@ -69,7 +70,7 @@ export const QuestHandleSignalBackResponderProxy = (): {
     checklist: Checklist | null;
   }) => void;
   getBlightChecklistCallArgs: () => readonly unknown[];
-  setupContinuationUuids: (params: {
+  setupResponderUuids: (params: {
     ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
   setupAdvanceUuids: (params: {
@@ -105,9 +106,10 @@ export const QuestHandleSignalBackResponderProxy = (): {
   });
   mockedChecklist.mockImplementation(realChecklistMod.questGetBlightChecklistBroker);
 
-  // The pt-continuation operation-item id is minted in the responder's own update callback, so the
-  // dispatch stack matches this proxy's handle (advance's id is minted in quest-advance-broker
-  // frames and routes to the advance proxy's spy instead). Passthrough keeps unasserted ids real.
+  // The blightscout operation id, its work-item id, and the pt-continuation operation id are all
+  // minted in the responder's own update callback, so the dispatch stack matches this proxy's handle
+  // (advance's id is minted in quest-advance-broker frames and routes to the advance proxy's spy
+  // instead). Passthrough keeps unasserted ids real.
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
   // Pins completedAt (responder callback), createdAt (advance callback), and updatedAt (both
   // persists AND the block path's questModifyBroker persist, which the operations-update proxy's
@@ -160,7 +162,7 @@ export const QuestHandleSignalBackResponderProxy = (): {
       blockProxy.setupQuestFound({ quest: questAfterOutcome });
     },
 
-    // Throw-path blightwarden gate tests: only the responder's own get read is staged — no
+    // Throw-path blightscout gate tests: only the responder's own get read is staged — no
     // mutation is ever expected. `checklist: null` covers the unpinned-baseRef case.
     setupQuestWithBlightChecklist: ({
       quest,
@@ -173,7 +175,7 @@ export const QuestHandleSignalBackResponderProxy = (): {
       mockedChecklist.mockResolvedValueOnce(checklist);
     },
 
-    // Full non-blocking flow with the gate's blightwarden branch wired: get + the outcome persist
+    // Full non-blocking flow with the gate's blightscout branch wired: get + the outcome persist
     // (reads `quest`) + advance (reads `questAfterOutcome`) — same as setupSignalFlow, plus the
     // checklist broker's mocked return value. `checklist: null` covers the unpinned-baseRef case.
     setupSignalFlowWithBlightChecklist: ({
@@ -191,13 +193,13 @@ export const QuestHandleSignalBackResponderProxy = (): {
       mockedChecklist.mockResolvedValueOnce(checklist);
     },
 
-    // Proves the gate is role-gated: a non-blightwarden signal must never invoke the checklist
+    // Proves the gate is role-gated: a non-blightscout signal must never invoke the checklist
     // broker at all (that's what stops a git diff running on every siegemaster/codeweaver signal).
     // Raw call args, not a count — the test derives .length itself (ban-primitives forbids a raw
     // number return type here).
     getBlightChecklistCallArgs: (): readonly unknown[] => mockedChecklist.mock.calls,
 
-    setupContinuationUuids: ({
+    setupResponderUuids: ({
       ids,
     }: {
       ids: readonly `${string}-${string}-${string}-${string}-${string}`[];

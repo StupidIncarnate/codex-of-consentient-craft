@@ -21,6 +21,7 @@ import type {
   FlowStub,
   OperationItemStub,
   QuestCommentStub,
+  QuestContractEntryStub,
   QuestPackageEntryStub,
   QuestStub,
   RepoRelativePath,
@@ -67,6 +68,7 @@ type WorkItem = ReturnType<typeof WorkItemStub>;
 type Flow = ReturnType<typeof FlowStub>;
 type QuestComment = ReturnType<typeof QuestCommentStub>;
 type QuestPackageEntry = ReturnType<typeof QuestPackageEntryStub>;
+type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type GitBaseRef = NonNullable<Quest['baseRef']>;
 type PlanningNotes = Quest['planningNotes'];
@@ -89,9 +91,9 @@ export const orchestrationQuestHarness = (): {
     questId: QuestId;
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
-    // Present only for tests exercising the blightwarden completion gate, which recomputes
-    // outstanding review units from a real `git diff baseRef...HEAD` — omitted, quest.baseRef
-    // stays whatever create-quest seeded (unset).
+    // Present only for tests exercising the blightscout completion gate, which recomputes
+    // outstanding review units from a real `git diff HEAD~1...HEAD` — omitted, quest.baseRef
+    // stays whatever create-quest seeded (unset), and the gate does not bind.
     baseRef?: GitBaseRef;
     // Present only for tests seeding quest.planningNotes.blightLedger / qaLedger dispositions
     // ahead of a signal-back — omitted, planningNotes stays whatever create-quest seeded.
@@ -104,8 +106,12 @@ export const orchestrationQuestHarness = (): {
     // each node's `packages` tag against this declared list — omitted, packagesAffected stays
     // whatever create-quest seeded (empty).
     packagesAffected?: readonly QuestPackageEntry[];
+    // Present only for tests exercising Contract Source Coverage, which resolves each authored
+    // contract's `source` against the declared package locations — omitted, contracts stay
+    // whatever create-quest seeded (empty).
+    contracts?: readonly QuestContractEntry[];
     // Present only for tests that need a `bug-hunt` spine: QuestUserAddResponder always creates a
-    // `feature` quest, and the codeweaver-coverage invariant is scoped to feature quests alone.
+    // `feature` quest, and the contract-source invariant is scoped to feature quests alone.
     questType?: QuestType;
     // Overrides the hardcoded 'in_progress' — present for tests seeding a quest already at
     // `merging` (the warpgate-merge completion path) or parked at a spec gate the transition under
@@ -118,7 +124,7 @@ export const orchestrationQuestHarness = (): {
     branchName?: BranchName;
   }) => Promise<void>;
   // Real `git init` + one commit at repoPath (an integration testbed dir, NOT this repo), so the
-  // blightwarden completion gate's `questGetBlightChecklistBroker` has a real commit to diff
+  // blightscout completion gate's `questGetBlightChecklistBroker` has a real commit to diff
   // against. Returns the new commit's sha as the quest's baseRef. `-c user.*`/`-c
   // commit.gpgsign=false` scope identity + signing to this one invocation so the test never
   // depends on (or mutates) the developer's real git config.
@@ -178,6 +184,7 @@ export const orchestrationQuestHarness = (): {
     planningNotes,
     flows,
     packagesAffected,
+    contracts,
     questType,
     status = 'in_progress',
     worktreePath,
@@ -190,6 +197,7 @@ export const orchestrationQuestHarness = (): {
     planningNotes?: PlanningNotes;
     flows?: readonly Flow[];
     packagesAffected?: readonly QuestPackageEntry[];
+    contracts?: readonly QuestContractEntry[];
     questType?: QuestType;
     status?: QuestStatus;
     worktreePath?: WorktreePath;
@@ -210,6 +218,7 @@ export const orchestrationQuestHarness = (): {
       ...(planningNotes === undefined ? {} : { planningNotes }),
       ...(flows === undefined ? {} : { flows: [...flows] }),
       ...(packagesAffected === undefined ? {} : { packagesAffected: [...packagesAffected] }),
+      ...(contracts === undefined ? {} : { contracts: [...contracts] }),
       ...(questType === undefined ? {} : { questType }),
       ...(worktreePath === undefined ? {} : { worktreePath }),
       ...(branchName === undefined ? {} : { branchName }),

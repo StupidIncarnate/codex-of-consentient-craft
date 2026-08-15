@@ -35,6 +35,34 @@ describe('questContractPropertyContract', () => {
       });
     });
 
+    it('VALID: {source} => parses the per-property file path a contract spanning packages needs', () => {
+      const property = QuestContractPropertyStub({
+        name: 'questGateSectionsStatics.sections',
+        type: 'GateSectionMap',
+        description: 'Sixteen literal keys read by index with a QuestStatus',
+        source: 'packages/web/src/statics/quest-gate-sections/quest-gate-sections-statics.ts',
+      });
+
+      expect(property).toStrictEqual({
+        name: 'questGateSectionsStatics.sections',
+        type: 'GateSectionMap',
+        description: 'Sixteen literal keys read by index with a QuestStatus',
+        source: 'packages/web/src/statics/quest-gate-sections/quest-gate-sections-statics.ts',
+      });
+    });
+
+    it('INVALID: {source: ""} => throws validation error', () => {
+      const parseEmptySource = (): unknown =>
+        questContractPropertyContract.parse({
+          name: 'validName',
+          type: 'ValidType',
+          description: 'Some description',
+          source: '',
+        });
+
+      expect(parseEmptySource).toThrow(/too_small/u);
+    });
+
     it('VALID: {nested properties} => parses recursive property 2 levels deep', () => {
       const property = QuestContractPropertyStub({
         name: 'address',

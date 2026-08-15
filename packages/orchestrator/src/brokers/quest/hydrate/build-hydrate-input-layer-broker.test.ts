@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { buildHydrateInputLayerBroker } from './build-hydrate-input-layer-broker';
@@ -70,9 +70,14 @@ describe('buildHydrateInputLayerBroker', () => {
       });
     });
 
-    it('VALID: {toStatus: explore_observables} => includes contracts + toolingRequirements + operations', () => {
+    // `operations` is deliberately absent: the ledger is off the modify-quest allowlist at every
+    // status, so a walk step naming it would be refused outright. A blueprint's authored ledger
+    // reaches the quest through questHydrateBroker's direct persist instead.
+    it('VALID: {toStatus: explore_observables} => includes contracts + toolingRequirements and never the operations ledger', () => {
       buildHydrateInputLayerBrokerProxy();
-      const blueprint = QuestBlueprintStub();
+      const blueprint = QuestBlueprintStub({
+        operations: [OperationItemStub({ role: 'codeweaver', text: 'Build the settings widget' })],
+      });
 
       const result = buildHydrateInputLayerBroker({
         blueprint,
@@ -85,7 +90,6 @@ describe('buildHydrateInputLayerBroker', () => {
         status: 'explore_observables',
         contracts: blueprint.contracts,
         toolingRequirements: blueprint.toolingRequirements,
-        operations: blueprint.operations,
       });
     });
   });

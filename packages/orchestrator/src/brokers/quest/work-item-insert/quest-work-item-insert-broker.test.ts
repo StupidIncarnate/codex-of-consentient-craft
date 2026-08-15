@@ -50,7 +50,7 @@ describe('questWorkItemInsertBroker', () => {
       });
       const downstreamItem = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
-        role: 'blightwarden',
+        role: 'blightscout',
         status: 'pending',
         dependsOn: [oldItemId],
       });

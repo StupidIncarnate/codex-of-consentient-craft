@@ -43,30 +43,6 @@ describe('roleToPromptTemplateTransformer', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {role: blightwarden-group-minion} => returns blightwarden-group-minion prompt template', () => {
-      const result = roleToPromptTemplateTransformer({
-        role: AgentRoleStub({ value: 'blightwarden-group-minion' }),
-      });
-
-      expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('VALID: {role: blightwarden-crosscut-minion} => returns blightwarden-crosscut-minion prompt template', () => {
-      const result = roleToPromptTemplateTransformer({
-        role: AgentRoleStub({ value: 'blightwarden-crosscut-minion' }),
-      });
-
-      expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('VALID: {role: blightwarden} => returns blightwarden prompt template', () => {
-      const result = roleToPromptTemplateTransformer({
-        role: AgentRoleStub({ value: 'blightwarden' }),
-      });
-
-      expect(result.length).toBeGreaterThan(0);
-    });
-
     it('VALID: {role: pesteater} => returns pesteater prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'pesteater' }),

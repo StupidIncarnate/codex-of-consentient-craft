@@ -8,7 +8,6 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { blightChecklistLimitsStatics } from '../../statics/blight-checklist-limits/blight-checklist-limits-statics';
 import { blightConcernLegendStatics } from '../../statics/blight-concern-legend/blight-concern-legend-statics';
-import { blightPartitionStatics } from '../../statics/blight-partition/blight-partition-statics';
 import { blightChecklistBuildTransformer } from '../blight-checklist-build/blight-checklist-build-transformer';
 import { blightChecklistToTextTransformer } from './blight-checklist-to-text-transformer';
 
@@ -339,7 +338,7 @@ describe('blightChecklistToTextTransformer', () => {
   });
 
   describe('concern legend', () => {
-    it('VALID: {craft and perf present} => the legend lists only those two concerns, not all four', () => {
+    it('VALID: {craft and perf present} => the legend lists only those two concerns, not all five', () => {
       const lines = blightChecklistToTextTransformer({
         checklist: BlightChecklistStub({
           items: [
@@ -391,7 +390,7 @@ describe('blightChecklistToTextTransformer', () => {
       expect(lines.filter((line) => line.startsWith('## '))).toStrictEqual([
         '## CONCERN LEGEND (concerns present on this diff)',
         '## UNITS — [ ] no disposition yet, [x] already dispositioned in quest.planningNotes.blightLedger',
-        `## NO DECLARED PACKAGE — 1 file(s), 1 group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
+        '## NO DECLARED PACKAGE — 1 file(s)',
       ]);
     });
   });
@@ -428,33 +427,11 @@ describe('blightChecklistToTextTransformer', () => {
       }).split('\n');
 
       expect(lines.filter((line) => /^(?:## PACKAGE|### )/u.test(line))).toStrictEqual([
-        `## PACKAGE: web — 2 file(s), 1 group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
+        '## PACKAGE: web — 2 file(s)',
         '### packages/web/a.tsx  (+0 paired)',
         '### packages/web/b.tsx  (+0 paired)',
-        `## PACKAGE: server — 1 file(s), 1 group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
+        '## PACKAGE: server — 1 file(s)',
         '### packages/server/s.ts  (+0 paired)',
-      ]);
-    });
-
-    it('VALID: {a package holding one file more than the size cap} => its section states the group count the cap produces', () => {
-      const overCapFileCount = blightPartitionStatics.targetFilesPerGroup + 1;
-      const lines = blightChecklistToTextTransformer({
-        checklist: BlightChecklistStub({
-          items: Array.from({ length: overCapFileCount }, (_, index) =>
-            BlightChecklistItemStub({
-              id: `packages/web/f-${String(index)}.tsx:craft`,
-              implPath: `packages/web/f-${String(index)}.tsx`,
-              concern: 'craft',
-              packageName: 'web',
-              pairedFiles: [],
-            }),
-          ),
-          remainingItemIds: [],
-        }),
-      }).split('\n');
-
-      expect(lines.filter((line) => line.startsWith('## PACKAGE'))).toStrictEqual([
-        `## PACKAGE: web — ${String(overCapFileCount)} file(s), 2 group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
       ]);
     });
 
@@ -481,18 +458,18 @@ describe('blightChecklistToTextTransformer', () => {
       }).split('\n');
 
       expect(lines.filter((line) => /^## (?:PACKAGE|NO DECLARED)/u.test(line))).toStrictEqual([
-        `## PACKAGE: web — 1 file(s), 1 group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
-        `## NO DECLARED PACKAGE — 1 file(s), 1 group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
+        '## PACKAGE: web — 1 file(s)',
+        '## NO DECLARED PACKAGE — 1 file(s)',
       ]);
     });
 
-    it('VALID: {any checklist} => the header states that a dispatch group never spans two sections', () => {
+    it('VALID: {any checklist} => the header states files sit under the package that owns them', () => {
       const lines = blightChecklistToTextTransformer({
         checklist: BlightChecklistStub({ items: [], remainingItemIds: [] }),
       }).split('\n');
 
       expect(lines.find((line) => line.startsWith('Files sit under'))).toBe(
-        'Files sit under the package that owns them, and one dispatch group never spans two sections.',
+        'Files sit under the package that owns them.',
       );
     });
   });
@@ -640,9 +617,9 @@ describe('blightChecklistToTextTransformer', () => {
   });
 
   describe('truncation — a diff past the unit cap', () => {
-    it('VALID: {240 dispositioned units + 1,000 remaining units, past blightChecklistLimitsStatics.maxUnits} => renders a loud truncation notice, keeps the full REMAINING header count, and shows every remaining file plus only as many dispositioned files as fit the cap', () => {
+    it('VALID: {300 dispositioned units + 1,000 remaining units, past blightChecklistLimitsStatics.maxUnits} => renders a loud truncation notice, keeps the full REMAINING header count, and shows every remaining file plus only as many dispositioned files as fit the cap', () => {
       const { baseRef } = BlightChecklistStub();
-      const remainFileCount = 250;
+      const remainFileCount = 200;
       const dispFileCount = 60;
 
       const remainFiles = Array.from({ length: remainFileCount }, (_, index) => {

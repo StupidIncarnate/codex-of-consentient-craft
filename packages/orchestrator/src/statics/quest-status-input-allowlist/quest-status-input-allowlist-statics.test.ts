@@ -51,7 +51,6 @@ describe('questStatusInputAllowlistStatics', () => {
           'contracts',
           'toolingRequirements',
           'packagesAffected',
-          'operations',
           'comments',
           'status',
         ],
@@ -65,7 +64,6 @@ describe('questStatusInputAllowlistStatics', () => {
           'contracts',
           'toolingRequirements',
           'packagesAffected',
-          'operations',
           'comments',
           'status',
         ],
@@ -82,7 +80,6 @@ describe('questStatusInputAllowlistStatics', () => {
             'contracts',
             'toolingRequirements',
             'packagesAffected',
-            'operations',
           ],
         },
         flowsRule: 'full',
@@ -177,30 +174,34 @@ describe('questStatusInputAllowlistStatics', () => {
     );
   });
 
-  it("VALID: explore_observables => allowedFields includes 'operations' (ChaosWhisperer authors the implementation plan items there)", () => {
+  it("VALID: explore_observables => allowedFields does not include 'operations' (the implementation ledger is derived at Start, never authored)", () => {
     expect(questStatusInputAllowlistStatics.explore_observables.allowedFields).toStrictEqual([
       'flows',
       'designDecisions',
       'contracts',
       'toolingRequirements',
       'packagesAffected',
-      'operations',
       'comments',
       'status',
     ]);
   });
 
-  it("VALID: review_observables => backTransitionFields carries 'operations' back to explore_observables", () => {
+  it("VALID: flows_approved => allowedFields does not include 'operations' (the implementation ledger is derived at Start, never authored)", () => {
+    expect(questStatusInputAllowlistStatics.flows_approved.allowedFields).toStrictEqual([
+      'flows',
+      'designDecisions',
+      'contracts',
+      'toolingRequirements',
+      'packagesAffected',
+      'comments',
+      'status',
+    ]);
+  });
+
+  it("VALID: review_observables => backTransitionFields does not carry 'operations' back to explore_observables (no status ever permits writing it)", () => {
     expect(questStatusInputAllowlistStatics.review_observables.backTransitionFields).toStrictEqual({
       toStatus: 'explore_observables',
-      fields: [
-        'flows',
-        'designDecisions',
-        'contracts',
-        'toolingRequirements',
-        'packagesAffected',
-        'operations',
-      ],
+      fields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements', 'packagesAffected'],
     });
   });
 

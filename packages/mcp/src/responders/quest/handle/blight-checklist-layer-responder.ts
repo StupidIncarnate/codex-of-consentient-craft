@@ -23,10 +23,13 @@ export const BlightChecklistLayerResponder = async ({
 }: {
   args: Record<string, unknown>;
 }): Promise<ToolResponse> => {
-  const { questId } = getBlightChecklistInputContract.parse(args);
+  const { questId, scope } = getBlightChecklistInputContract.parse(args);
 
   try {
-    const checklist = await orchestratorGetBlightChecklistAdapter({ questId });
+    const checklist = await orchestratorGetBlightChecklistAdapter({
+      questId,
+      ...(scope !== undefined && { scope }),
+    });
 
     // The checklist is already rendered text. JSON-stringifying it would escape every newline and
     // roughly double a payload whose whole value is being cheap enough to read per session.

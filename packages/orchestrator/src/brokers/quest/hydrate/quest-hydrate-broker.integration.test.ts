@@ -99,6 +99,7 @@ describe('questHydrateBroker', () => {
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const guild = await guildAddBroker({
@@ -115,10 +116,12 @@ describe('questHydrateBroker', () => {
     restore();
     testbed.cleanup();
 
-    // The forced-complete intake plan item, the Chaos-authored codeweaver item (advance marked it
-    // in_progress), then the fixed verify tail as pending operation items — ward is skipped via the
-    // blueprint's skipRoles. The relay creates ONE work item for the first actionable (codeweaver)
-    // operation item; the verify tail lives only on the ledger until the relay reaches it.
+    // The codeweaver item (advance marked it in_progress) leads, reordered dependencies-first ahead
+    // of the forced-complete intake item, then the fixed verify tail as pending operation items —
+    // ward is skipped via the blueprint's skipRoles. The relay creates ONE work item for the first
+    // actionable (codeweaver) operation item; the verify tail lives only on the ledger until the
+    // relay reaches it. There is NO blight-review item here: `blightscout` is appended by the
+    // signal-back handler after every committing session, never seeded at Start.
     expect({
       success: loaded.success,
       status: loaded.quest?.status,
@@ -129,8 +132,8 @@ describe('questHydrateBroker', () => {
     }).toStrictEqual({
       success: true,
       status: 'in_progress',
-      operationRoles: ['chaoswhisperer', 'codeweaver', 'flowrider', 'siegemaster', 'blightwarden'],
-      operationStatuses: ['complete', 'in_progress', 'pending', 'pending', 'pending'],
+      operationRoles: ['codeweaver', 'chaoswhisperer', 'flowrider', 'siegemaster'],
+      operationStatuses: ['in_progress', 'complete', 'pending', 'pending'],
       workItemRoles: ['codeweaver'],
       workItemStatuses: ['pending'],
     });
@@ -144,6 +147,7 @@ describe('questHydrateBroker', () => {
     envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
     });
 
     const guild = await guildAddBroker({
@@ -159,7 +163,7 @@ describe('questHydrateBroker', () => {
 
     // The verify tail is seeded as LOCKED operation items (the intake plan item is also locked, so
     // filter it out by role). Ward is skipped for the minimal blueprint. No minion/ward WORK items
-    // exist — blightwarden/codeweaver summon their minions as sub-agents, not work items.
+    // exist — codeweaver and the operator roles summon their minions as sub-agents, not work items.
     const lockedTailRoles = operations
       .filter((op) => op.locked)
       .filter((op) => op.role !== 'chaoswhisperer')
@@ -176,7 +180,7 @@ describe('questHydrateBroker', () => {
       wardOpCount,
       workItemRoles: workItems.map((wi) => wi.role),
     }).toStrictEqual({
-      lockedTailRoles: ['flowrider', 'siegemaster', 'blightwarden'],
+      lockedTailRoles: ['flowrider', 'siegemaster'],
       minionItems: [],
       wardOpCount: 0,
       workItemRoles: ['codeweaver'],

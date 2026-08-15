@@ -1,12 +1,16 @@
 import {
   FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
+  OperationItemStub,
+  QuestContractEntryStub,
   QuestPackageEntryStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
 import { relayTailFanOutTransformer } from './relay-tail-fan-out-transformer';
+import { codeweaverScopeBlockTransformer } from '../codeweaver-scope-block/codeweaver-scope-block-transformer';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
 // Read off the registry rather than retyped, so a text edit there fails these by assertion instead
@@ -14,6 +18,7 @@ import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-elig
 // fixed-length tuple, so each index is precisely typed and never `undefined`.
 const [WARD_ENTRY, FLOWRIDER_ENTRY, GROUNDSTOMPER_ENTRY, SIEGEMASTER_ENTRY] =
   questTypeRegistryStatics.feature.relayTail;
+const [CODEWEAVER_ENTRY] = questTypeRegistryStatics.feature.startImplementationOps;
 
 const WEB_PACKAGE = QuestPackageEntryStub({
   name: 'web',
@@ -102,6 +107,192 @@ describe('relayTailFanOutTransformer', () => {
           text: 'Siegemaster: manual-QA this flow and review its test suite',
           flowIds: [],
           packageNames: [],
+        },
+      ]);
+    });
+  });
+
+  describe("fanOutBy: 'implementation'", () => {
+    // Cell membership is "this package TAGS a node in this flow". Awarding a glue node to a single
+    // owner minted no cell for the other side whenever that node was its ONLY node in the flow —
+    // measured on a real quest as four observables reaching no session's scope at all.
+    it('VALID: {a glue node that is the consumer’s ONLY node in the flow} => BOTH packages get a cell for that flow', () => {
+      const quest = QuestStub({
+        packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'quest-start-worktree',
+            name: 'Quest start worktree',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({
+                id: 'stamp-git-context',
+                label: 'Stamp git context',
+                packages: ['server'],
+              }),
+              FlowNodeStub({
+                id: 'quest-running',
+                label: 'Quest running',
+                packages: ['server', 'web'],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: CODEWEAVER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Codeweaver: build this slice — server: quest-start-worktree',
+          flowIds: ['quest-start-worktree'],
+          packageNames: ['server'],
+        },
+        {
+          text: 'Codeweaver: build this slice — web: quest-start-worktree',
+          flowIds: ['quest-start-worktree'],
+          packageNames: ['web'],
+        },
+      ]);
+    });
+
+    // The reason the cell matters, asserted end to end: an observable that reaches no "Must satisfy"
+    // block reaches nobody. Its only other appearance is the OTHER side's seam block, which asks a
+    // session to verify a package its item does not declare.
+    it('VALID: {both halves of a glue node’s observables} => each reaches the Must satisfy block of its own package’s cell', () => {
+      const quest = QuestStub({
+        packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'quest-start-worktree',
+            name: 'Quest start worktree',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({
+                id: 'quest-running',
+                label: 'Quest running',
+                packages: ['server', 'web'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'worktree-created',
+                    type: 'file-exists',
+                    description: 'the worktree directory exists on disk',
+                    package: 'server',
+                  }),
+                  FlowObservableStub({
+                    id: 'execution-panel-live',
+                    type: 'ui-state',
+                    description: 'the execution panel streams the running quest',
+                    package: 'web',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const mustSatisfy = relayTailFanOutTransformer({ entry: CODEWEAVER_ENTRY, quest }).flatMap(
+        (slice) =>
+          codeweaverScopeBlockTransformer({
+            quest,
+            operationItem: OperationItemStub({
+              text: slice.text,
+              flowIds: slice.flowIds,
+              packageNames: slice.packageNames,
+            }),
+          })
+            .map(String)
+            .filter((line) => /^ {2}- \S+ \[[a-z-]+\] on #/u.test(line))
+            .map((line) => `${String(slice.packageNames[0])} ${line}`),
+      );
+
+      expect(mustSatisfy).toStrictEqual([
+        'server   - worktree-created [file-exists] on #quest-running: "the worktree directory exists on disk"',
+        'web   - execution-panel-live [ui-state] on #quest-running: "the execution panel streams the running quest"',
+      ]);
+    });
+
+    // A contract's `source` is one-to-one, but a contract is one-to-many. This one is anchored in
+    // server and its second property's real file lives in web; routing the whole contract by the
+    // contract's own path hands both properties to server and no web session ever sees the second.
+    it('VALID: {a contract property declaring its own source in another package} => that package gets a foundation item too', () => {
+      const quest = QuestStub({
+        packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
+        flows: [],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'status-keyed-statics-fanout',
+            name: 'StatusKeyedStaticsFanout',
+            kind: 'data',
+            status: 'modified',
+            source:
+              'packages/server/src/statics/quest-hydrate-strategy/quest-hydrate-strategy-statics.ts',
+            nodeId: 'warpgate-row',
+            properties: [
+              {
+                name: 'questHydrateStrategyStatics.strategies',
+                type: 'HydrateStrategyMap',
+                description: 'Both new statuses need an entry or the key-set equality test fails',
+              },
+              {
+                name: 'questGateSectionsStatics.sections',
+                type: 'GateSectionMap',
+                description: 'Sixteen literal keys read by index with a QuestStatus',
+                source:
+                  'packages/web/src/statics/quest-gate-sections/quest-gate-sections-statics.ts',
+              },
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: CODEWEAVER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Codeweaver: build this slice — server: foundation',
+          flowIds: [],
+          packageNames: ['server'],
+        },
+        {
+          text: 'Codeweaver: build this slice — web: foundation',
+          flowIds: [],
+          packageNames: ['web'],
+        },
+      ]);
+    });
+
+    it("VALID: {a property with no source of its own} => it inherits the contract's, minting only that one foundation item", () => {
+      const quest = QuestStub({
+        packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
+        flows: [],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'session-token',
+            name: 'SessionToken',
+            kind: 'data',
+            status: 'new',
+            source: 'packages/server/src/contracts/session-token/session-token-contract.ts',
+            nodeId: 'submit-credentials',
+            properties: [
+              {
+                name: 'value',
+                type: 'SessionTokenValue',
+                description: 'The signed token, opaque to the browser',
+              },
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: CODEWEAVER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Codeweaver: build this slice — server: foundation',
+          flowIds: [],
+          packageNames: ['server'],
         },
       ]);
     });

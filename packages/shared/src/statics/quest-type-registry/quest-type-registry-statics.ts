@@ -8,12 +8,13 @@
  * // Returns the verify-tail operation-item seeds questBuildRelayGraphBroker appends at Start.
  *
  * This is DATA only (statics may import statics, never brokers). `startImplementationOps` are the
- * implementation operation items the orchestrator seeds at Start for types whose plan is NOT
- * authored by an intake agent (bug-hunt's pesteater); feature quests leave it empty because
- * ChaosWhisperer authors the codeweaver operation items at spec time. `relayTail` is the fixed
- * verify/review chain appended after the implementation items — every entry becomes a locked
- * pending operation item. Adding a new quest type = one entry here + the type added to
- * questTypeContract.
+ * implementation operation items the orchestrator seeds at Start. BOTH quest types now use it:
+ * bug-hunt seeds its pesteater item, and feature seeds a codeweaver item that fans out into one
+ * slice per (package, flow) cell plus a foundation item per package. ChaosWhisperer no longer
+ * authors the ledger at all — `operations` has left its modify-quest allowlist, and the partition
+ * is DERIVED from the flow nodes' package tags and the contracts' source paths instead. `relayTail`
+ * is the fixed verify chain appended after the implementation items. Adding a new quest type = one
+ * entry here + the type added to questTypeContract.
  *
  * `fanOutBy` is how ONE seed becomes N operation items, expressed as data so the relay's expansion
  * reads a field instead of matching role names:
@@ -23,10 +24,16 @@
  *   flows land nowhere a browser can reach seeds none at all.
  * - `package` — one item per package the quest's node tags name, plus one seam item for the units
  *   whose node spans more than one.
+ * - `implementation` — one item per (package, flow) cell across BOTH flow types, plus one flow-less
+ *   foundation item per package holding the contracts whose `source` resolves to it. Ordered by
+ *   package KIND tier, then manifest depth. This is the derived codeweaver ledger.
  *
  * An entry that OMITS the field seeds exactly one item, which is why it is absent rather than
- * carrying a fourth "none" member: the shape mirrors `wardMode`, read at the seed site with an
- * `in` check.
+ * carrying a "none" member: the shape mirrors `wardMode`, read at the seed site with an `in` check.
+ * `locked` is read the same way and defaults TRUE. Codeweaver sets it false on purpose: `locked` is
+ * what enrols an item in its role's `slotManagerStatics` pt budget, and a codeweaver chain must stay
+ * unbounded because the flows are the acceptance target and the work has to land. Nothing can delete
+ * an unlocked item any more either — `operations` is off the modify-quest allowlist entirely.
  *
  * Role and slash-command-filename strings are cross-checked against workItemRoleContract and
  * slashCommandsStatics in the colocated test so they cannot drift.
@@ -36,7 +43,16 @@ export const questTypeRegistryStatics = {
   feature: {
     intakeSlashCommandFileName: 'dumpster-create.md',
     initialWorkItemRole: 'chaoswhisperer',
-    startImplementationOps: [],
+    startImplementationOps: [
+      {
+        role: 'codeweaver',
+        // Fanned out into one item per (package, flow) cell plus a foundation item per package.
+        // `locked: false` keeps the pt chain unbounded — see the `locked` note above.
+        text: 'Codeweaver: build this slice',
+        fanOutBy: 'implementation',
+        locked: false,
+      },
+    ],
     relayTail: [
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
       {
@@ -63,7 +79,8 @@ export const questTypeRegistryStatics = {
         text: 'Siegemaster: manual-QA this flow and review its test suite',
         fanOutBy: 'flow',
       },
-      { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },
+      // No blightwarden item: the standards review is `blightscout`, appended by the signal-back
+      // handler after EVERY committing item rather than run once over the whole diff here.
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
     roles: [
@@ -72,7 +89,7 @@ export const questTypeRegistryStatics = {
       'flowrider',
       'groundstomper',
       'siegemaster',
-      'blightwarden',
+      'blightscout',
       'spiritmender',
     ],
   },
@@ -87,9 +104,8 @@ export const questTypeRegistryStatics = {
     ],
     relayTail: [
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
-      { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
-    roles: ['pesteater', 'ward', 'blightwarden', 'spiritmender'],
+    roles: ['pesteater', 'ward', 'blightscout', 'spiritmender'],
   },
 } as const;

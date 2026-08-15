@@ -283,6 +283,10 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
         { id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete' },
       ],
       operations: [],
+      // Empty `flows` is what leaves the gate unmet: `questGateContentRequirementsStatics.approved`
+      // requires flows and nothing else, so an empty ledger alone would render APPROVE enabled and
+      // this case would stop testing a disabled control at all.
+      flows: [],
     });
 
     await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });

@@ -32,6 +32,23 @@ describe('orchestratorGetBlightChecklistAdapter', () => {
     });
   });
 
+  describe('single commit diff', () => {
+    it("VALID: {questId, scope: 'commit'} => forwards the scope, which is the whole surface a Blightscout item is dispatched against", async () => {
+      const proxy = orchestratorGetBlightChecklistAdapterProxy();
+      proxy.returns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+      });
+
+      await orchestratorGetBlightChecklistAdapter({ questId: 'add-auth', scope: 'commit' });
+
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        scope: 'commit',
+      });
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => rejects with error', async () => {
       const proxy = orchestratorGetBlightChecklistAdapterProxy();

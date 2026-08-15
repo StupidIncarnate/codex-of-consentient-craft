@@ -3,12 +3,16 @@
  * delegating to questGetBlightChecklistBroker
  *
  * USAGE:
- * const result = await QuestGetBlightChecklistResponder({ questId: 'add-auth' });
+ * const result = await QuestGetBlightChecklistResponder({ questId: 'add-auth', scope: 'commit' });
  * // Returns { success: true, data: '<rendered checklist>' }
  *
  * A quest with no pinned `baseRef`, or a diff with zero changed files, returns a plain statement
- * of that rather than an error — both are real states a Blightwarden session needs to be able to
+ * of that rather than an error — both are real states a Blightscout session needs to be able to
  * act on, and turning either into a failure would push the session toward inventing scope.
+ *
+ * `scope` is carried rather than fixed here because the caller decides which diff it is graded on:
+ * a Blightscout session and the signal-back completion gate that measures it must both read the
+ * SAME `commit` scope, or the session reads a denominator no gate is enforcing.
  */
 
 import {
@@ -27,12 +31,17 @@ export type QuestGetBlightChecklistResponderResult =
 
 export const QuestGetBlightChecklistResponder = async ({
   questId,
+  scope,
 }: {
   questId: string;
+  scope?: 'quest' | 'commit';
 }): Promise<QuestGetBlightChecklistResponderResult> => {
   try {
     const parsedQuestId = questIdContract.parse(questId);
-    const checklist = await questGetBlightChecklistBroker({ questId: parsedQuestId });
+    const checklist = await questGetBlightChecklistBroker({
+      questId: parsedQuestId,
+      ...(scope !== undefined && { scope }),
+    });
 
     if (checklist === null) {
       return {

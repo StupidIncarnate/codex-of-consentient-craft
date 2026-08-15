@@ -3,8 +3,14 @@ import { BlightConcernStub } from './blight-concern.stub';
 
 describe('blightConcernContract', () => {
   describe('enum membership', () => {
-    it('VALID: {options} => exposes exactly the four concern families', () => {
-      expect(blightConcernContract.options).toStrictEqual(['craft', 'perf', 'dedup', 'integrity']);
+    it('VALID: {options} => exposes exactly the five concern families', () => {
+      expect(blightConcernContract.options).toStrictEqual([
+        'craft',
+        'perf',
+        'dedup',
+        'integrity',
+        'test-cases',
+      ]);
     });
 
     it.each(blightConcernContract.options)(

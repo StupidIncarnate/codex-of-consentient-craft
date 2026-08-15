@@ -2,6 +2,7 @@ import {
   GuildIdStub,
   ProcessIdStub,
   QuestIdStub,
+  QuestWorkItemIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -30,6 +31,49 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
     expect(updated?.smoketestPromptOverride).toBe(
       `Call get-quest with questId=${String(QUEST_ID)}.`,
     );
+  });
+
+  // Resolved per ITEM, off the item's own id — unlike the other three, which are run-wide. It is
+  // the one token nothing else could supply: signal-back requires it and a scripted agent's whole
+  // context is its one-line prompt.
+  it('VALID: {workItem with {{workItemId}} placeholder} => substitutes that item OWN id', () => {
+    const wi = WorkItemStub({
+      smoketestPromptOverride: PromptTextStub({
+        value: 'signal-back {"workItemId":"{{workItemId}}"}',
+      }),
+    });
+
+    const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
+      workItems: [wi],
+      questId: QUEST_ID,
+      guildId: GUILD_ID,
+      processId: PROCESS_ID,
+    });
+
+    expect(updated?.smoketestPromptOverride).toBe(`signal-back {"workItemId":"${String(wi.id)}"}`);
+  });
+
+  it('VALID: {two work items sharing one {{workItemId}} prompt} => each resolves to its OWN id, never the first', () => {
+    const first = WorkItemStub({
+      id: QuestWorkItemIdStub({ value: '11111111-1111-4111-8111-111111111111' }),
+      smoketestPromptOverride: PromptTextStub({ value: 'wi={{workItemId}}' }),
+    });
+    const second = WorkItemStub({
+      id: QuestWorkItemIdStub({ value: '22222222-2222-4222-8222-222222222222' }),
+      smoketestPromptOverride: PromptTextStub({ value: 'wi={{workItemId}}' }),
+    });
+
+    const updated = smoketestSubstituteWorkItemPlaceholdersTransformer({
+      workItems: [first, second],
+      questId: QUEST_ID,
+      guildId: GUILD_ID,
+      processId: PROCESS_ID,
+    });
+
+    expect(updated.map((wi) => wi.smoketestPromptOverride)).toStrictEqual([
+      'wi=11111111-1111-4111-8111-111111111111',
+      'wi=22222222-2222-4222-8222-222222222222',
+    ]);
   });
 
   it('VALID: {workItem with {{guildId}} placeholder} => substitutes live guildId', () => {

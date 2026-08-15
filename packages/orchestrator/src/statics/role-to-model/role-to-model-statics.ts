@@ -16,9 +16,9 @@ export const roleToModelStatics = {
   siegemaster: 'opus',
   codeweaver: 'opus',
   spiritmender: 'sonnet',
-  'blightwarden-group-minion': 'sonnet',
-  'blightwarden-crosscut-minion': 'sonnet',
-  blightwarden: 'sonnet',
+  // One commit, five narrow concerns, no delegation — sonnet-sized, and it runs after nearly every
+  // other item, so the model choice here is the one with the highest multiplier on a quest's cost.
+  blightscout: 'sonnet',
   pesteater: 'opus',
   warpgate: 'opus',
 } as const;

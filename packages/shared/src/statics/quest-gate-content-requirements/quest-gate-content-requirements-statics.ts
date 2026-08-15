@@ -5,26 +5,27 @@
  * questGateContentRequirementsStatics.gates.flows_approved;
  * // Returns ['flows'] - the quest fields that must be non-empty to transition to flows_approved
  *
- * A requirement is either a dot-path string (field must exist; arrays must be non-empty) or an
- * object form { field, contains: { key, value }, questTypes? } (field must be a non-empty array
- * with at least one entry whose [key] === value; when questTypes is present the requirement only
- * applies to quests of those types). The object form is how `approved` demands an operations
- * ledger containing at least one role:codeweaver implementation item — feature-only, because a
- * bug-hunt's operation items (the pesteater chain) are seeded by the orchestrator at Start, not
- * authored at spec time.
+ * A requirement is a dot-path string: the field must exist, and an array field must be non-empty.
+ *
+ * `approved` used to carry a second, richer form — { field, contains: { key, value }, questTypes } —
+ * demanding an operations ledger with at least one role:codeweaver item, because ChaosWhisperer
+ * authored that ledger at spec time. It no longer does: the codeweaver items are DERIVED at Start
+ * from the flow nodes' package tags and the contracts' source paths (`fanOutBy: 'implementation'`),
+ * exactly as a bug-hunt's pesteater item always was. Coverage is definitional now rather than
+ * checked, so the gate has nothing to demand — a quest that clears `flows_approved` already carries
+ * every input the generator reads. `hasQuestGateContentGuard` lost the object branch with it, since
+ * nothing was left to type it.
+ *
+ * What DID stay checkable moved to `questSaveInvariantsTransformer` as `Contract Source Coverage`:
+ * a contract's `source` must resolve to a declared package, or the foundation item it should have
+ * minted never exists. That check names the offender, which this guard structurally cannot — its
+ * rejection is the detail-free `Missing required content for transition to <status>`.
  */
 
 export const questGateContentRequirementsStatics = {
   gates: {
     flows_approved: ['flows'],
-    approved: [
-      'flows',
-      {
-        field: 'operations',
-        contains: { key: 'role', value: 'codeweaver' },
-        questTypes: ['feature'],
-      },
-    ],
+    approved: ['flows'],
     design_approved: ['flows'],
   },
 } as const;

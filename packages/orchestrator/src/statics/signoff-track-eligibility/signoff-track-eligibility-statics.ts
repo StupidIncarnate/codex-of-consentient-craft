@@ -90,9 +90,12 @@
  *
  * 5. PROVENANCE. A role that runs strictly AFTER a track cannot produce work that track was able to
  *    sign. The relay order is derived from `questTypeRegistryStatics.feature`: the intake role is
- *    `chaoswhisperer`, which also authors the `codeweaver` operation items at spec time
- *    (`startImplementationOps` is empty for a feature quest), and `relayTail` runs
- *    ward → flowrider → groundstomper → siegemaster → blightwarden → ward.
+ *    `chaoswhisperer`, and `startImplementationOps` seeds ONE `codeweaver` item carrying
+ *    `fanOutBy: 'implementation'` — the derived per-(package, flow) ledger `relayTailFanOutTransformer`
+ *    expands at Start, not a plan ChaosWhisperer authors. `relayTail` runs
+ *    ward → flowrider → groundstomper → siegemaster → ward; the standards review (`blightscout`) is
+ *    appended by the signal-back handler after every committing role rather than seeded here, so it
+ *    never appears in this registry-derived order at all.
  *    `questBuildRelayGraphBroker` concatenates them as
  *    `[...settledExisting, ...implementationOps, ...tailOps]`, giving:
  *

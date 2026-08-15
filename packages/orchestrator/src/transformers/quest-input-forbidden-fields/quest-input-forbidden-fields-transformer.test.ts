@@ -400,8 +400,8 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
   });
 
-  describe('operations field allowlist', () => {
-    it('VALID: {explore_observables + operations} => returns empty array', () => {
+  describe('operations field allowlist (never writable — the implementation ledger is derived at Start, not authored)', () => {
+    it('INVALID: {explore_observables + operations} => rejects operations (the ledger is derived from node packages tags and contract source paths, not authored here)', () => {
       const input = ModifyQuestInputStub({
         operations: [OperationItemStub()],
       });
@@ -413,7 +413,26 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'explore_observables',
       });
 
-      expect(offenders).toStrictEqual([]);
+      expect(offenders.map((o) => String(o))).toStrictEqual([
+        "Field 'operations' not allowed in status 'explore_observables'",
+      ]);
+    });
+
+    it('INVALID: {flows_approved + operations} => rejects operations (the ledger is derived from node packages tags and contract source paths, not authored here)', () => {
+      const input = ModifyQuestInputStub({
+        operations: [OperationItemStub()],
+      });
+      const currentQuest = QuestStub({ status: 'flows_approved' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'flows_approved',
+      });
+
+      expect(offenders.map((o) => String(o))).toStrictEqual([
+        "Field 'operations' not allowed in status 'flows_approved'",
+      ]);
     });
 
     it('INVALID: {in_progress + operations} => rejects operations (execution agents signal outcomes instead of writing the ledger)', () => {
@@ -433,7 +452,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       ]);
     });
 
-    it('VALID: {review_observables -> explore_observables + operations} => permits operations on back transition', () => {
+    it('INVALID: {review_observables -> explore_observables + operations} => rejects operations even on the back transition (no status ever permits it)', () => {
       const input = ModifyQuestInputStub({
         operations: [OperationItemStub()],
         status: 'explore_observables',
@@ -447,7 +466,9 @@ describe('questInputForbiddenFieldsTransformer', () => {
         nextStatus: 'explore_observables',
       });
 
-      expect(offenders).toStrictEqual([]);
+      expect(offenders.map((o) => String(o))).toStrictEqual([
+        "Field 'operations' not allowed in status 'review_observables'",
+      ]);
     });
 
     it('INVALID: {review_observables + operations without back transition} => rejects operations', () => {

@@ -37,7 +37,7 @@ describe('questBlockOnFailureBroker', () => {
           }),
           WorkItemStub({
             id: pendingTwoId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [pendingOneId],
           }),
@@ -80,7 +80,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: pendingId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -123,7 +123,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: pendingId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -169,7 +169,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: pendingId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -224,7 +224,7 @@ describe('questBlockOnFailureBroker', () => {
           }),
           WorkItemStub({
             id: pendingTwoId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [pendingOneId],
           }),
@@ -273,7 +273,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'failed' }),
           WorkItemStub({
             id: pendingId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -313,7 +313,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'failed' }),
           WorkItemStub({
             id: skippedId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'skipped',
             dependsOn: [failedId],
           }),
@@ -346,7 +346,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: pendingId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -376,7 +376,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'failed' }),
           WorkItemStub({
             id: pendingId,
-            role: 'blightwarden',
+            role: 'blightscout',
             status: 'skipped',
             dependsOn: [failedId],
           }),
@@ -414,7 +414,7 @@ describe('questBlockOnFailureBroker', () => {
         id: 'test-quest',
         folder: '001-test-quest',
         status: 'blocked',
-        workItems: [WorkItemStub({ id: carrierId, role: 'blightwarden', status: 'skipped' })],
+        workItems: [WorkItemStub({ id: carrierId, role: 'blightscout', status: 'skipped' })],
       });
 
       proxy.setupQuestFound({ quest });

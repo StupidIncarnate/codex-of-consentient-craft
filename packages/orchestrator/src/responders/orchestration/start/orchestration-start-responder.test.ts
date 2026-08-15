@@ -50,18 +50,35 @@ const PROCESS_ID = `proc-${SEEDED_UUIDS[0]}`;
 // Every Date#toISOString is pinned by the composed persist/outbox proxies.
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
-// Feature quests seed NO implementation ops at Start (Chaos authored the codeweaver items at spec
-// time), so the verify tail consumes one uuid per SEEDED item and the first work item consumes the
-// next one. QuestStub declares one flow with no tagged nodes and no packagesAffected, which is what
-// makes the mapping below 1:1 per surviving entry: flowrider falls back to ONE whole-quest item
+// Feature quests seed implementation ops at Start as well: the ONE codeweaver seed carries
+// `fanOutBy: 'implementation'`, so the derived per-cell ledger is minted here rather than authored
+// at spec time. QuestStub declares one flow with no tagged nodes, no packagesAffected and no
+// contracts, so there is no (package, flow) cell and no foundation package to derive — the fan-out
+// falls back to ONE whole-quest item. Implementation items consume uuids first, then the verify
+// tail, then the single first work item.
+const QUEST_STUB_FLOW_ID = 'login-flow';
+const FEATURE_IMPLEMENTATION_EXPECTED = questTypeRegistryStatics.feature.startImplementationOps.map(
+  (seed, index) => ({
+    id: SEEDED_UUIDS[index + 1],
+    role: seed.role,
+    text: seed.text,
+    status: 'pending',
+    // Codeweaver mints UNLOCKED so its pt chain stays unbounded — the flows are the acceptance
+    // target, so the work has to land however many passes it takes.
+    locked: seed.locked,
+    flowIds: [],
+    packageNames: [],
+  }),
+);
+const FEATURE_IMPLEMENTATION_COUNT = FEATURE_IMPLEMENTATION_EXPECTED.length;
+// The verify tail's 1:1 mapping per surviving entry: flowrider falls back to ONE whole-quest item
 // carrying every runtime flow id, siegemaster gets one item per flow (there is one), and
 // groundstomper gets NONE — nothing on that flow lands in a package a browser can reach.
-const QUEST_STUB_FLOW_ID = 'login-flow';
 const FEATURE_TAIL_SEEDED = questTypeRegistryStatics.feature.relayTail.filter(
   (entry) => entry.role !== 'groundstomper',
 );
 const FEATURE_TAIL_EXPECTED = FEATURE_TAIL_SEEDED.map((entry, index) => ({
-  id: SEEDED_UUIDS[index + 1],
+  id: SEEDED_UUIDS[index + 1 + FEATURE_IMPLEMENTATION_COUNT],
   role: entry.role,
   // Siegemaster fans out to one item per flow, each suffixed with the flow it owns. QuestStub
   // declares exactly one flow, so the tail keeps its 1:1 shape here and only the text differs.
@@ -72,7 +89,8 @@ const FEATURE_TAIL_EXPECTED = FEATURE_TAIL_SEEDED.map((entry, index) => ({
   packageNames: [],
   ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
 }));
-const FEATURE_WORK_ITEM_UUID = SEEDED_UUIDS[FEATURE_TAIL_EXPECTED.length + 1];
+const FEATURE_WORK_ITEM_UUID =
+  SEEDED_UUIDS[FEATURE_IMPLEMENTATION_COUNT + FEATURE_TAIL_EXPECTED.length + 1];
 
 // Bug-hunt quests seed the registry's implementation ops first (uuids 1..N), then the tail. The
 // first implementation op is the overall-first pending op, so the relay flips it in_progress.
@@ -364,6 +382,7 @@ describe('OrchestrationStartResponder', () => {
         chaosOp,
         { ...cwOpOne, status: 'in_progress' },
         cwOpTwo,
+        ...FEATURE_IMPLEMENTATION_EXPECTED,
         ...FEATURE_TAIL_EXPECTED,
       ]);
     });
@@ -535,6 +554,7 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.operations).toStrictEqual([
         { ...chaosOp, status: 'complete' },
         { ...cwOp, status: 'in_progress' },
+        ...FEATURE_IMPLEMENTATION_EXPECTED,
         ...FEATURE_TAIL_EXPECTED,
       ]);
     });

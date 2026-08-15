@@ -274,7 +274,7 @@ describe('QuestSpecPanelWidget', () => {
       expect(approveButton?.style.pointerEvents).toBe('auto');
     });
 
-    it('VALID: {status: review_observables, flows: [flow], no codeweaver operation} => APPROVE is disabled (feature quests need a codeweaver operation item)', () => {
+    it('VALID: {status: review_observables, flows: [flow], no codeweaver operation} => APPROVE is enabled (the approved gate only requires flows)', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_observables',
@@ -295,8 +295,8 @@ describe('QuestSpecPanelWidget', () => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
-      expect(approveButton?.style.opacity).toBe('0.4');
-      expect(approveButton?.style.pointerEvents).toBe('none');
+      expect(approveButton?.style.opacity).toBe('1');
+      expect(approveButton?.style.pointerEvents).toBe('auto');
     });
 
     it('VALID: {status: review_observables, flows: []} => APPROVE is disabled', () => {

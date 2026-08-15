@@ -60,6 +60,14 @@ describe('blightChecklistBuildTransformer', () => {
           label:
             "integrity — foo-broker.ts's changed exports still MEAN to their consumers what they did, and no stub, fixture, or `.default(...)` papers over a break",
         },
+        {
+          id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:test-cases',
+          implPath,
+          concern: 'test-cases',
+          pairedFiles: [proxyPath, testPath],
+          label:
+            'test-cases — foo-broker.ts has a test case for every branch this commit added to it — not whether a spec observable is proven, which is the Flowrider track, but whether the conditional written here was written with a case at all',
+        },
       ]);
     });
   });
@@ -155,6 +163,7 @@ describe('blightChecklistBuildTransformer', () => {
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:perf',
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:dedup',
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:integrity',
+        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:test-cases',
       ]);
     });
 
@@ -340,6 +349,7 @@ describe('blightChecklistBuildTransformer', () => {
       });
 
       expect(result.items.map((item) => item.packageName)).toStrictEqual([
+        'orchestrator',
         'orchestrator',
         'orchestrator',
         'orchestrator',
@@ -535,6 +545,7 @@ describe('blightChecklistBuildTransformer', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
       ]);
     });
 
@@ -628,6 +639,7 @@ describe('blightChecklistBuildTransformer', () => {
         'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
+        'packages/orchestrator/src/guards/foo/foo-guard.ts:test-cases',
       ]);
     });
 
@@ -652,6 +664,7 @@ describe('blightChecklistBuildTransformer', () => {
         'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
+        'packages/orchestrator/src/guards/foo/foo-guard.ts:test-cases',
       ]);
     });
 
@@ -708,11 +721,13 @@ describe('blightChecklistBuildTransformer', () => {
           'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
           'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
           'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:test-cases',
         ],
         remainingItemIds: [
           'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
           'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
           'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:test-cases',
         ],
       });
     });
@@ -741,6 +756,8 @@ describe('blightChecklistBuildTransformer', () => {
         fileA,
         fileA,
         fileA,
+        fileA,
+        fileB,
         fileB,
         fileB,
         fileB,

@@ -1,3 +1,5 @@
+import { packageBuildOrderStatics } from '../../statics/package-build-order/package-build-order-statics';
+
 import { packageTypeContract } from './package-type-contract';
 import { PackageTypeStub } from './package-type.stub';
 
@@ -89,4 +91,26 @@ describe('packageTypeContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
   });
+});
+
+// This lives here, not in package-build-order-statics.test.ts, because packageBuildOrderStatics
+// is DATA (statics may only import statics), so its colocated test cannot import
+// packageTypeContract to walk the enum live — enforce-contract-usage-in-tests blocks a statics
+// test from importing a contract, and enforce-import-dependencies blocks a statics file from
+// importing one. A contract test can import both its own contract and statics, so only here can
+// the assertion iterate packageTypeContract's live options instead of a pinned literal list —
+// catching a kind added to the enum that never got a tier, which would otherwise rank last in
+// operationsCodeweaverOrderTransformer and schedule its package's session after every consumer of
+// it.
+describe('cross-check against packageBuildOrderStatics', () => {
+  it.each(packageTypeContract.unwrap().options)(
+    'VALID: {packageType: %s} => has exactly one tier in packageBuildOrderStatics',
+    (packageType) => {
+      const tierCount = packageBuildOrderStatics.tiers.filter((tier) =>
+        tier.some((kind) => kind === packageType),
+      ).length;
+
+      expect(tierCount).toBe(1);
+    },
+  );
 });

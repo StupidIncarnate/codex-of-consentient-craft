@@ -99,7 +99,7 @@ describe('questResumeRearmWorkItemsTransformer', () => {
       const workItems = [
         WorkItemStub({
           id: WORK_ITEM_ID,
-          role: 'blightwarden',
+          role: 'blightscout',
           status: 'queued',
           relatedDataItems: [`operations/${OPEN_OPERATION_ID}`],
         }),

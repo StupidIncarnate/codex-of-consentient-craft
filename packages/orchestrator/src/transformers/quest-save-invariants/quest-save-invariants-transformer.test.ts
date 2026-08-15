@@ -250,14 +250,22 @@ describe('questSaveInvariantsTransformer', () => {
       ]);
     });
 
-    it('INVALID: {-> approved, feature quest whose codeweaver ledger misses a package} => returns a named Codeweaver Package Coverage check', () => {
+    it('INVALID: {-> approved, feature quest whose contract source sits under no declared package} => returns a named Contract Source Coverage check', () => {
       const quest = QuestStub({
         questType: 'feature',
         packagesAffected: [
           QuestPackageEntryStub({ name: 'web', location: './packages/web' }),
           QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
         ],
-        operations: [OperationItemStub({ role: 'codeweaver', packageNames: ['web'] })],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'merge-status',
+            name: 'MergeStatus',
+            status: 'new',
+            source: 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts',
+            nodeId: 'merge-status-ok',
+          }),
+        ],
         flows: [
           FlowStub({
             id: 'warpgate-merge',
@@ -277,21 +285,62 @@ describe('questSaveInvariantsTransformer', () => {
 
       expect(failures).toStrictEqual([
         {
-          name: 'Codeweaver Package Coverage',
+          name: 'Contract Source Coverage',
           passed: false,
           details:
-            "Package 'server' is tagged on node 'merge-status-ok' in flow 'warpgate-merge' but no codeweaver operation item declares it in packageNames. Every package the spine lands in needs an implementation item that names it, or the dependency-ordered dispatch has nothing to schedule there — add 'server' to an existing codeweaver item's packageNames, or author an item for it.",
+            "Contract 'MergeStatus' declares source 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
         },
       ]);
     });
 
-    it('VALID: {-> approved, bug-hunt quest with an empty ledger} => the codeweaver rule is scoped to feature quests', () => {
+    it("VALID: {-> approved, feature quest whose contract is status 'existing'} => reference material is never refused", () => {
+      const quest = QuestStub({
+        questType: 'feature',
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
+        ],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'merge-status',
+            name: 'MergeStatus',
+            status: 'existing',
+            source: 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts',
+            nodeId: 'merge-status-ok',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            nodes: [FlowNodeStub({ id: 'merge-status-ok', packages: ['server'] })],
+          }),
+        ],
+      });
+
+      const failures = questSaveInvariantsTransformer({
+        quest,
+        currentStatus: 'review_observables',
+        nextStatus: 'approved',
+      });
+
+      expect(failures).toStrictEqual([]);
+    });
+
+    it('VALID: {-> approved, bug-hunt quest whose contract source resolves nowhere} => the contract-source rule is scoped to feature quests', () => {
       const quest = QuestStub({
         questType: 'bug-hunt',
         packagesAffected: [
           QuestPackageEntryStub({ name: 'server', location: './packages/server' }),
         ],
         operations: [],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'merge-status',
+            name: 'MergeStatus',
+            status: 'new',
+            source: 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts',
+            nodeId: 'merge-status-ok',
+          }),
+        ],
         flows: [
           FlowStub({
             id: 'warpgate-merge',

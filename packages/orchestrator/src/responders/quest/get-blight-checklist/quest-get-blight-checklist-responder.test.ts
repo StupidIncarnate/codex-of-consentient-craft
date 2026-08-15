@@ -29,6 +29,33 @@ describe('QuestGetBlightChecklistResponder', () => {
     });
   });
 
+  describe('scope', () => {
+    // The MCP tool advertises `scope`, Blightscout's prompt mandates `commit`, and the signal-back
+    // gate recomputes with `commit`. This responder is the pass-through in the middle: dropping the
+    // value here would silently answer a whole-quest diff to a one-commit question.
+    it("VALID: {scope: 'commit'} => the diff is measured from HEAD~1, not the pinned baseRef", async () => {
+      const proxy = QuestGetBlightChecklistResponderProxy();
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await proxy.callResponder({ questId: quest.id, scope: 'commit' });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'HEAD~1...HEAD', '--name-only']);
+    });
+
+    it('VALID: {scope omitted} => the diff is measured from the pinned baseRef', async () => {
+      const proxy = QuestGetBlightChecklistResponderProxy();
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await proxy.callResponder({ questId: quest.id });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'a1b2c3d4...HEAD', '--name-only']);
+    });
+  });
+
   describe('no pinned base', () => {
     it('EMPTY: {no baseRef} => states there is no diff to scope, not an error', async () => {
       const proxy = QuestGetBlightChecklistResponderProxy();

@@ -46,9 +46,11 @@ export const questHydrateStrategyStatics = {
     },
     explore_observables: {
       fromStatus: 'flows_approved',
-      // `operations` lands here — the same window ChaosWhisperer authors the implementation
-      // plan items in, so the `approved` gate (>=1 codeweaver item) passes on the next hop.
-      blueprintFields: ['contracts', 'toolingRequirements', 'operations'],
+      // `operations` is NOT here, and cannot be: the ledger is off the modify-quest allowlist at
+      // every status, so a walk step naming it is rejected outright. A blueprint's authored ledger
+      // reaches the quest through `questHydrateBroker`'s direct persist instead, alongside the
+      // relay it derives.
+      blueprintFields: ['contracts', 'toolingRequirements'],
       flowsMode: 'exclude',
     },
     review_observables: {

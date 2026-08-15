@@ -3,9 +3,10 @@
  * crypto.randomUUID (operation + work item ids), which is pinned with a queue of fixed ids, and
  * gitHeadShaAdapter (the baseRef stamp), which defaults to "HEAD unreadable" so parent proxies
  * that don't care about baseRef (quest-hydrate-broker, orchestration-start-responder) keep working
- * without describing this call themselves. Also exposes a statics override that empties the
- * feature relay tail so the defensive "no actionable operation" branch is reachable (both real
- * quest types always append a non-empty tail).
+ * without describing this call themselves. Also exposes statics overrides that empty the feature
+ * registry entry's TWO seed sources — `relayTail` and `startImplementationOps` — because the
+ * defensive "no actionable operation" branch needs BOTH empty to be reachable: every real quest
+ * type seeds at least one pending implementation item even when its tail is gone.
  *
  * USAGE:
  * const proxy = questBuildRelayGraphBrokerProxy();
@@ -13,6 +14,7 @@
  * proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' }); // opt in to the stamp
  * // ...call questBuildRelayGraphBroker...
  * proxy.setupEmptyFeatureRelayTail(); // then restoreFeatureRelayTail() inline in the test
+ * proxy.setupEmptyFeatureStartImplementationOps(); // then restoreFeatureStartImplementationOps()
  */
 
 import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
@@ -27,11 +29,14 @@ export const questBuildRelayGraphBrokerProxy = (): {
   }) => void;
   setupEmptyFeatureRelayTail: () => void;
   restoreFeatureRelayTail: () => void;
+  setupEmptyFeatureStartImplementationOps: () => void;
+  restoreFeatureStartImplementationOps: () => void;
   setupHeadSha: (params: { sha: string }) => void;
   setupHeadShaUnavailable: () => void;
 } => {
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
   const originalRelayTail = questTypeRegistryStatics.feature.relayTail;
+  const originalStartImplementationOps = questTypeRegistryStatics.feature.startImplementationOps;
   // cwd's actual value is inert here — gitHeadShaAdapterProxy's mocked spawn matches on the `git`
   // command alone, not on cwd — but processCwdAdapter shares one global mock across every proxy
   // that composes it, so this broker's own call still needs a deterministic default.
@@ -60,6 +65,16 @@ export const questBuildRelayGraphBrokerProxy = (): {
 
     restoreFeatureRelayTail: (): void => {
       Object.assign(questTypeRegistryStatics.feature, { relayTail: originalRelayTail });
+    },
+
+    setupEmptyFeatureStartImplementationOps: (): void => {
+      Object.assign(questTypeRegistryStatics.feature, { startImplementationOps: [] });
+    },
+
+    restoreFeatureStartImplementationOps: (): void => {
+      Object.assign(questTypeRegistryStatics.feature, {
+        startImplementationOps: originalStartImplementationOps,
+      });
     },
 
     setupHeadSha: ({ sha }: { sha: string }): void => {

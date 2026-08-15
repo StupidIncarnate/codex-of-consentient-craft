@@ -21,6 +21,7 @@ export const QuestGetBlightChecklistResponderProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   setupDiff: (params: { files: readonly string[] }) => void;
+  getGitDiffArgs: () => unknown;
 } => {
   const brokerProxy = questGetBlightChecklistBrokerProxy();
 
@@ -38,5 +39,7 @@ export const QuestGetBlightChecklistResponderProxy = (): {
     setupDiff: ({ files }: { files: readonly string[] }): void => {
       brokerProxy.setupDiff({ files });
     },
+
+    getGitDiffArgs: (): unknown => brokerProxy.getGitDiffArgs(),
   };
 };

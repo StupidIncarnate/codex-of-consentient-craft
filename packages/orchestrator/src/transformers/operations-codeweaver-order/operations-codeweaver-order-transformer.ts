@@ -14,6 +14,7 @@
  */
 
 import type { OperationItem, Quest } from '@dungeonmaster/shared/contracts';
+import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 
 export const operationsCodeweaverOrderTransformer = ({
   operations,
@@ -23,6 +24,25 @@ export const operationsCodeweaverOrderTransformer = ({
   packageGraph: Quest['packageGraph'];
 }): OperationItem[] => {
   const depthByPackage = new Map(packageGraph.map((entry) => [String(entry.id), entry.depth]));
+
+  // The KIND tier outranks the manifest depth, for the reason `packageBuildOrderStatics` documents:
+  // depth is inverted across an HTTP seam, and in this repo it puts `web` ahead of the `server`
+  // whose routes it calls. Read off `packageGraph[].packageType`, which is the detector's single
+  // winning LABEL — the derived ledger ranks on the whole kind SET instead, and the two can differ
+  // for a package that is honestly two kinds. That only matters here, on a HAND-AUTHORED ledger,
+  // which no feature quest produces any more; a derived ledger arrives already ordered and never
+  // reaches this sort.
+  const tierByKind = new Map(
+    packageBuildOrderStatics.tiers.flatMap((tier, tierIndex) =>
+      tier.map((kind) => [kind, tierIndex] as const),
+    ),
+  );
+  const unrankedTier = packageBuildOrderStatics.tiers.length;
+  const tierByPackage = new Map(
+    packageGraph.map(
+      (entry) => [String(entry.id), tierByKind.get(entry.packageType) ?? unrankedTier] as const,
+    ),
+  );
 
   // An item declaring no package, or naming one the graph does not carry, ranks at infinity and
   // sorts last. When EVERY item ranks there — a quest with no graph stamped yet — they all tie and
@@ -34,6 +54,12 @@ export const operationsCodeweaverOrderTransformer = ({
           {
             item,
             order,
+            tier: Math.min(
+              ...item.packageNames.map(
+                (name) => tierByPackage.get(String(name)) ?? Number.POSITIVE_INFINITY,
+              ),
+              Number.POSITIVE_INFINITY,
+            ),
             depth: Math.min(
               ...item.packageNames.map(
                 (name) => depthByPackage.get(String(name)) ?? Number.POSITIVE_INFINITY,
@@ -46,10 +72,16 @@ export const operationsCodeweaverOrderTransformer = ({
   );
 
   // Compared for equality before subtracting: two infinities subtract to NaN, and a NaN comparator
-  // makes the sort's result implementation-defined.
-  const reordered = [...ranked].sort((left, right) =>
-    left.depth === right.depth ? left.order - right.order : left.depth - right.depth,
-  );
+  // makes the sort's result implementation-defined. An item declaring no package, or naming one the
+  // graph does not carry, ranks at infinity on BOTH keys and sorts last; when every item ranks there
+  // they all tie and the stable `order` tiebreak returns the authored order unchanged, which is what
+  // makes this safe to run over any ledger.
+  const reordered = [...ranked].sort((left, right) => {
+    if (left.tier !== right.tier) {
+      return left.tier - right.tier;
+    }
+    return left.depth === right.depth ? left.order - right.order : left.depth - right.depth;
+  });
 
   const replacementByPosition = new Map(
     ranked.map((entry, index) => [entry.order, reordered[index]?.item ?? entry.item]),

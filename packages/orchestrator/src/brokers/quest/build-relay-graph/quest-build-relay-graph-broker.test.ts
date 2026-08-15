@@ -3,6 +3,7 @@ import {
   FlowStub,
   OperationItemStub,
   PackageGraphEntryStub,
+  QuestContractEntryStub,
   QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -49,22 +50,11 @@ const CLI_PACKAGE = QuestPackageEntryStub({
 
 describe('questBuildRelayGraphBroker', () => {
   describe('feature quest', () => {
-    it('VALID: {feature quest with Chaos-authored codeweaver op} => appends the verify tail, first codeweaver op in_progress with ONE linked work item', async () => {
+    it('VALID: {feature quest with no packagesAffected/flow tags/contracts} => the derived codeweaver fallback item is first actionable, and the verify tail is ward → flowrider → siegemaster → ward with no blightwarden entry', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const planOp = OperationItemStub({
-        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        role: 'chaoswhisperer',
-        text: 'Author spec + implementation plan',
-        status: 'complete',
-      });
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
-      const quest = QuestStub({ operations: [planOp, codeweaverOp] });
+      const quest = QuestStub();
       const priorId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
 
       const result = await questBuildRelayGraphBroker({
@@ -75,14 +65,14 @@ describe('questBuildRelayGraphBroker', () => {
 
       expect(result).toStrictEqual({
         operations: [
-          planOp,
-          OperationItemStub({
-            id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-            role: 'codeweaver',
-            status: 'in_progress',
-          }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
+            text: 'Codeweaver: build this slice',
+            status: 'in_progress',
+            locked: false,
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000002',
             role: 'ward',
             text: 'Ward gate (changed files)',
             status: 'pending',
@@ -90,7 +80,7 @@ describe('questBuildRelayGraphBroker', () => {
             wardMode: 'changed',
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000002',
+            id: '00000000-0000-4000-8000-000000000003',
             role: 'flowrider',
             text: 'Flowrider: author the flow-perspective test suites below the browser',
             status: 'pending',
@@ -98,19 +88,12 @@ describe('questBuildRelayGraphBroker', () => {
             flowIds: ['login-flow'],
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000003',
+            id: '00000000-0000-4000-8000-000000000004',
             role: 'siegemaster',
             text: 'Siegemaster: manual-QA this flow and review its test suite — flow: login-flow',
             status: 'pending',
             locked: true,
             flowIds: ['login-flow'],
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000004',
-            role: 'blightwarden',
-            text: 'Blightwarden: cross-cutting audit across the whole diff',
-            status: 'pending',
-            locked: true,
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000005',
@@ -127,7 +110,7 @@ describe('questBuildRelayGraphBroker', () => {
             role: 'codeweaver',
             status: 'pending',
             spawnerType: 'agent',
-            relatedDataItems: ['operations/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],
+            relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
             dependsOn: [priorId],
             createdAt: '2024-01-15T10:00:00.000Z',
           }),
@@ -135,58 +118,11 @@ describe('questBuildRelayGraphBroker', () => {
       });
     });
 
-    it('VALID: {feature quest with no pending implementation op} => first actionable is the ward(changed) tail item, work item is command with wardMode', async () => {
+    it('VALID: {feature quest with two untagged flows, no packagesAffected} => the derived codeweaver item is the whole-quest fallback, flowrider gets ONE whole-quest item, and siegemaster gets one item PER FLOW so each flow gets its own pt budget and completion gate', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const planOp = OperationItemStub({
-        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        role: 'chaoswhisperer',
-        text: 'Author spec + implementation plan',
-        status: 'complete',
-      });
-      const quest = QuestStub({ operations: [planOp] });
-      const priorId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-
-      const result = await questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [priorId],
-        now: IsoTimestampStub(),
-      });
-
-      expect(result.operations.map(({ id, status }) => ({ id, status }))).toStrictEqual([
-        { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', status: 'complete' },
-        { id: '00000000-0000-4000-8000-000000000001', status: 'in_progress' },
-        { id: '00000000-0000-4000-8000-000000000002', status: 'pending' },
-        { id: '00000000-0000-4000-8000-000000000003', status: 'pending' },
-        { id: '00000000-0000-4000-8000-000000000004', status: 'pending' },
-        { id: '00000000-0000-4000-8000-000000000005', status: 'pending' },
-      ]);
-      expect(result.workItems).toStrictEqual([
-        WorkItemStub({
-          id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000006' }),
-          role: 'ward',
-          status: 'pending',
-          spawnerType: 'command',
-          relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
-          dependsOn: [priorId],
-          wardMode: 'changed',
-          createdAt: '2024-01-15T10:00:00.000Z',
-        }),
-      ]);
-    });
-
-    it('VALID: {feature quest with two untagged flows} => ONE whole-quest flowrider item, and ONE siegemaster item PER FLOW so each flow gets its own pt budget and completion gate', async () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
       const quest = QuestStub({
-        operations: [codeweaverOp],
         flows: [
           FlowStub({ id: 'send-comment', name: 'Send comment' }),
           FlowStub({ id: 'view-comments', name: 'View comments' }),
@@ -204,7 +140,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'codeweaver',
-          text: 'core: config load+validate adapter',
+          text: 'Codeweaver: build this slice',
           flowIds: [],
         },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
@@ -223,11 +159,6 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Siegemaster: manual-QA this flow and review its test suite — flow: view-comments',
           flowIds: ['view-comments'],
         },
-        {
-          role: 'blightwarden',
-          text: 'Blightwarden: cross-cutting audit across the whole diff',
-          flowIds: [],
-        },
         { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
       ]);
     });
@@ -236,13 +167,7 @@ describe('questBuildRelayGraphBroker', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
       const quest = QuestStub({
-        operations: [codeweaverOp],
         flows: [
           FlowStub({ id: 'send-comment', name: 'Send comment', flowType: 'runtime' }),
           FlowStub({ id: 'view-comments', name: 'View comments', flowType: 'runtime' }),
@@ -265,7 +190,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'codeweaver',
-          text: 'core: config load+validate adapter',
+          text: 'Codeweaver: build this slice',
           flowIds: [],
         },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
@@ -289,11 +214,6 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
           flowIds: ['register-lint-rule'],
         },
-        {
-          role: 'blightwarden',
-          text: 'Blightwarden: cross-cutting audit across the whole diff',
-          flowIds: [],
-        },
         { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
       ]);
     });
@@ -305,13 +225,7 @@ describe('questBuildRelayGraphBroker', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
       const quest = QuestStub({
-        operations: [codeweaverOp],
         flows: [
           FlowStub({
             id: 'register-lint-rule',
@@ -337,7 +251,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'codeweaver',
-          text: 'core: config load+validate adapter',
+          text: 'Codeweaver: build this slice',
           flowIds: [],
         },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
@@ -356,11 +270,6 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Siegemaster: manual-QA this flow and review its test suite — flow: sweep-legacy-imports',
           flowIds: ['sweep-legacy-imports'],
         },
-        {
-          role: 'blightwarden',
-          text: 'Blightwarden: cross-cutting audit across the whole diff',
-          flowIds: [],
-        },
         { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
       ]);
     });
@@ -369,12 +278,7 @@ describe('questBuildRelayGraphBroker', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
-      const quest = QuestStub({ operations: [codeweaverOp], flows: [] });
+      const quest = QuestStub({ flows: [] });
 
       const result = await questBuildRelayGraphBroker({
         quest,
@@ -387,7 +291,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'codeweaver',
-          text: 'core: config load+validate adapter',
+          text: 'Codeweaver: build this slice',
           flowIds: [],
         },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
@@ -401,12 +305,131 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Siegemaster: manual-QA this flow and review its test suite',
           flowIds: [],
         },
-        {
-          role: 'blightwarden',
-          text: 'Blightwarden: cross-cutting audit across the whole diff',
-          flowIds: [],
-        },
         { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
+      ]);
+    });
+  });
+
+  describe('derived codeweaver implementation ops', () => {
+    it('VALID: {two packages each tagged by one node in one flow, plus a foundation contract} => one codeweaver item per (package, flow) cell plus one foundation item, package-tier ranked with the foundation item ahead of its package’s flow cell', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'session-token',
+            name: 'SessionToken',
+            status: 'new',
+            source: 'packages/server/src/contracts/session-token/session-token-contract.ts',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'auth-flow',
+            name: 'Auth flow',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({
+                id: 'submit-credentials',
+                label: 'Submit credentials',
+                packages: ['server'],
+              }),
+              FlowNodeStub({
+                id: 'redirect-to-dashboard',
+                label: 'Redirect to dashboard',
+                packages: ['web'],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations
+          .filter((operation) => operation.role === 'codeweaver')
+          .map(({ text, status, locked, flowIds, packageNames }) => ({
+            text,
+            status,
+            locked,
+            flowIds,
+            packageNames,
+          })),
+      ).toStrictEqual([
+        {
+          text: 'Codeweaver: build this slice — server: foundation',
+          status: 'in_progress',
+          locked: false,
+          flowIds: [],
+          packageNames: ['server'],
+        },
+        {
+          text: 'Codeweaver: build this slice — server: auth-flow',
+          status: 'pending',
+          locked: false,
+          flowIds: ['auth-flow'],
+          packageNames: ['server'],
+        },
+        {
+          text: 'Codeweaver: build this slice — web: auth-flow',
+          status: 'pending',
+          locked: false,
+          flowIds: ['auth-flow'],
+          packageNames: ['web'],
+        },
+      ]);
+    });
+
+    it('VALID: {one package tagged by a node on each of two flows} => the same package gets one codeweaver item per flow, ordered by flow declaration order', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const quest = QuestStub({
+        packagesAffected: [SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'flow-a',
+            name: 'Flow A',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'step-a', label: 'Step A', packages: ['server'] })],
+          }),
+          FlowStub({
+            id: 'flow-b',
+            name: 'Flow B',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'step-b', label: 'Step B', packages: ['server'] })],
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations
+          .filter((operation) => operation.role === 'codeweaver')
+          .map(({ text, flowIds, packageNames }) => ({ text, flowIds, packageNames })),
+      ).toStrictEqual([
+        {
+          text: 'Codeweaver: build this slice — server: flow-a',
+          flowIds: ['flow-a'],
+          packageNames: ['server'],
+        },
+        {
+          text: 'Codeweaver: build this slice — server: flow-b',
+          flowIds: ['flow-b'],
+          packageNames: ['server'],
+        },
       ]);
     });
   });
@@ -416,13 +439,7 @@ describe('questBuildRelayGraphBroker', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
       const quest = QuestStub({
-        operations: [codeweaverOp],
         packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE, CLI_PACKAGE],
         flows: [
           FlowStub({
@@ -453,20 +470,18 @@ describe('questBuildRelayGraphBroker', () => {
         now: IsoTimestampStub(),
       });
 
+      // codeweaver items are the derived-implementation-ops concern (see the describe block above);
+      // filtered out here so this test stays scoped to flowrider/groundstomper/siegemaster fan-out.
       expect(
-        result.operations.map(({ role, text, flowIds, packageNames }) => ({
-          role,
-          text,
-          flowIds,
-          packageNames,
-        })),
+        result.operations
+          .filter((operation) => operation.role !== 'codeweaver')
+          .map(({ role, text, flowIds, packageNames }) => ({
+            role,
+            text,
+            flowIds,
+            packageNames,
+          })),
       ).toStrictEqual([
-        {
-          role: 'codeweaver',
-          text: 'core: config load+validate adapter',
-          flowIds: [],
-          packageNames: [],
-        },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [], packageNames: [] },
         {
           role: 'flowrider',
@@ -504,12 +519,6 @@ describe('questBuildRelayGraphBroker', () => {
           flowIds: ['sweep-rows'],
           packageNames: [],
         },
-        {
-          role: 'blightwarden',
-          text: 'Blightwarden: cross-cutting audit across the whole diff',
-          flowIds: [],
-          packageNames: [],
-        },
         { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [], packageNames: [] },
       ]);
     });
@@ -518,13 +527,7 @@ describe('questBuildRelayGraphBroker', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
       const quest = QuestStub({
-        operations: [codeweaverOp],
         packagesAffected: [SERVER_PACKAGE],
         flows: [
           FlowStub({
@@ -542,27 +545,18 @@ describe('questBuildRelayGraphBroker', () => {
         now: IsoTimestampStub(),
       });
 
-      expect(result.operations.map(({ role }) => role)).toStrictEqual([
-        'codeweaver',
-        'ward',
-        'flowrider',
-        'siegemaster',
-        'blightwarden',
-        'ward',
-      ]);
+      expect(
+        result.operations
+          .filter((operation) => operation.role !== 'codeweaver')
+          .map(({ role }) => role),
+      ).toStrictEqual(['ward', 'flowrider', 'siegemaster', 'ward']);
     });
 
     it('EMPTY: {a runtime flow whose only tagged package is a frontend-react} => NO flowrider item is seeded, because every unit on it is the browser track’s', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
-      const codeweaverOp = OperationItemStub({
-        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        role: 'codeweaver',
-        status: 'pending',
-      });
       const quest = QuestStub({
-        operations: [codeweaverOp],
         packagesAffected: [WEB_PACKAGE],
         flows: [
           FlowStub({
@@ -580,14 +574,11 @@ describe('questBuildRelayGraphBroker', () => {
         now: IsoTimestampStub(),
       });
 
-      expect(result.operations.map(({ role }) => role)).toStrictEqual([
-        'codeweaver',
-        'ward',
-        'groundstomper',
-        'siegemaster',
-        'blightwarden',
-        'ward',
-      ]);
+      expect(
+        result.operations
+          .filter((operation) => operation.role !== 'codeweaver')
+          .map(({ role }) => role),
+      ).toStrictEqual(['ward', 'groundstomper', 'siegemaster', 'ward']);
     });
   });
 
@@ -711,7 +702,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('bug-hunt quest', () => {
-    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress carrying the node tags + 3-item verify tail carrying NO groundstomper, first work item is pesteater', async () => {
+    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress carrying the node tags + 2-item verify tail, first work item is pesteater', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -755,13 +746,6 @@ describe('questBuildRelayGraphBroker', () => {
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
-            role: 'blightwarden',
-            text: 'Blightwarden: cross-cutting audit across the whole diff',
-            status: 'pending',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000004',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -771,7 +755,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000004' }),
             role: 'pesteater',
             status: 'pending',
             spawnerType: 'agent',
@@ -821,7 +805,6 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         { role: 'pesteater', packageNames: ['web', 'server', 'cli'] },
         { role: 'ward', packageNames: [] },
-        { role: 'blightwarden', packageNames: [] },
         { role: 'ward', packageNames: [] },
       ]);
     });
@@ -852,15 +835,15 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         { role: 'pesteater', status: 'in_progress', packageNames: [] },
         { role: 'ward', status: 'pending', packageNames: [] },
-        { role: 'blightwarden', status: 'pending', packageNames: [] },
         { role: 'ward', status: 'pending', packageNames: [] },
       ]);
     });
   });
 
-  describe('no actionable operation', () => {
-    it('EMPTY: {every op complete after settling, empty relay tail} => operations unchanged, workItems []', async () => {
+  describe('empty relay tail', () => {
+    it('VALID: {every prior op complete, empty relay tail} => the derived codeweaver item is still seeded and becomes the sole actionable operation', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
       const completeOp = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         role: 'codeweaver',
@@ -879,13 +862,32 @@ describe('questBuildRelayGraphBroker', () => {
       proxy.restoreFeatureRelayTail();
 
       expect(result).toStrictEqual({
-        operations: [completeOp],
-        workItems: [],
+        operations: [
+          completeOp,
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000001',
+            text: 'Codeweaver: build this slice',
+            status: 'in_progress',
+            locked: false,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000002' }),
+            role: 'codeweaver',
+            status: 'pending',
+            spawnerType: 'agent',
+            relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+        ],
       });
     });
 
-    it('VALID: {every op complete after settling, empty relay tail, quest.baseRef unset, HEAD readable} => baseRef is still stamped on the no-work-item early-return path', async () => {
+    it('VALID: {every prior op complete, empty relay tail, quest.baseRef unset, HEAD readable} => baseRef is stamped alongside the derived codeweaver item’s work item', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
       proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
       const completeOp = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -902,6 +904,86 @@ describe('questBuildRelayGraphBroker', () => {
         now: IsoTimestampStub(),
       });
 
+      proxy.restoreFeatureRelayTail();
+
+      expect(result).toStrictEqual({
+        operations: [
+          completeOp,
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000001',
+            text: 'Codeweaver: build this slice',
+            status: 'in_progress',
+            locked: false,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000002' }),
+            role: 'codeweaver',
+            status: 'pending',
+            spawnerType: 'agent',
+            relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+        ],
+        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
+      });
+    });
+  });
+
+  describe('no actionable operation', () => {
+    // The defensive branch. Emptying the relay tail alone no longer reaches it: both quest types
+    // seed at least one pending implementation item, so the derived codeweaver item would still be
+    // actionable. With BOTH seed sources empty and every prior op complete there is nothing pending
+    // at all, and the broker returns the ledger with NO work item rather than minting one for
+    // undefined.
+    it('EMPTY: {every prior op complete, empty relay tail AND empty startImplementationOps} => returns the ledger unchanged with no work item', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+      const completeOp = OperationItemStub({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        role: 'codeweaver',
+        status: 'complete',
+      });
+      const quest = QuestStub({ operations: [completeOp] });
+
+      proxy.setupEmptyFeatureRelayTail();
+      proxy.setupEmptyFeatureStartImplementationOps();
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      proxy.restoreFeatureStartImplementationOps();
+      proxy.restoreFeatureRelayTail();
+
+      expect(result).toStrictEqual({ operations: [completeOp], workItems: [] });
+    });
+
+    it('EMPTY: {no actionable operation, quest.baseRef unset, HEAD readable} => baseRef is still stamped alongside the empty work-item list', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+      proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
+      const completeOp = OperationItemStub({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        role: 'codeweaver',
+        status: 'complete',
+      });
+      const quest = QuestStub({ operations: [completeOp] });
+
+      proxy.setupEmptyFeatureRelayTail();
+      proxy.setupEmptyFeatureStartImplementationOps();
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      proxy.restoreFeatureStartImplementationOps();
       proxy.restoreFeatureRelayTail();
 
       expect(result).toStrictEqual({
@@ -945,13 +1027,6 @@ describe('questBuildRelayGraphBroker', () => {
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
-            role: 'blightwarden',
-            text: 'Blightwarden: cross-cutting audit across the whole diff',
-            status: 'pending',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000004',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -961,7 +1036,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000004' }),
             role: 'pesteater',
             status: 'pending',
             spawnerType: 'agent',
@@ -1028,13 +1103,6 @@ describe('questBuildRelayGraphBroker', () => {
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
-            role: 'blightwarden',
-            text: 'Blightwarden: cross-cutting audit across the whole diff',
-            status: 'pending',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000004',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -1044,7 +1112,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000004' }),
             role: 'pesteater',
             status: 'pending',
             spawnerType: 'agent',

@@ -75,6 +75,37 @@ describe('questGetBlightChecklistBroker', () => {
 
       expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'deadbeef...HEAD', '--name-only']);
     });
+
+    // Blightscout is dispatched against ONE COMMIT, and its signal-back completion gate calls this
+    // broker with exactly this scope. If the two ever measured different diffs, the session would
+    // disposition a set nobody grades and be refused on a set it never saw.
+    it("VALID: {scope: 'commit'} => the git adapter measures HEAD~1, not the quest baseRef", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'commit',
+      });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'HEAD~1...HEAD', '--name-only']);
+    });
+
+    it("VALID: {scope: 'quest'} => the git adapter measures the pinned baseRef, same as omitting scope", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'quest',
+      });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'deadbeef...HEAD', '--name-only']);
+    });
   });
 
   describe("the quest's own package declarations reach the units", () => {

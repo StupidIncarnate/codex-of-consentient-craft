@@ -129,11 +129,11 @@ describe('QaChecklistLayerResponder', () => {
   });
 
   describe('track validation', () => {
-    it('INVALID: {track: "blightwarden"} => throws on the shared denominator track enum', async () => {
+    it('INVALID: {track: "blightscout"} => throws on the shared denominator track enum', async () => {
       QaChecklistLayerResponderProxy();
 
       await expect(
-        QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'blightwarden' } }),
+        QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'blightscout' } }),
       ).rejects.toThrow(/invalid_enum_value/u);
     });
 
