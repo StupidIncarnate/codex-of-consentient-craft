@@ -21,7 +21,7 @@ const HEAD_SHA = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
 
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 // The broker proxy pins crypto.randomUUID to a sequence. Each ChatEntry the responder builds takes
-// the next id, so the seven carve lines consume ids 0 through 6.
+// the next id, so the nine carve lines consume ids 0 through 8.
 const ENTRY_UUIDS = [
   'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0',
   'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f001',
@@ -30,6 +30,8 @@ const ENTRY_UUIDS = [
   'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f004',
   'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f005',
   'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f006',
+  'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f007',
+  'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f008',
 ];
 
 describe('QuestRunRiftcarverResponder', () => {
@@ -161,10 +163,28 @@ describe('QuestRunRiftcarverResponder', () => {
         uuid: ENTRY_UUIDS[6],
         timestamp: FIXED_TIMESTAMP,
       },
+      {
+        role: 'assistant',
+        type: 'text',
+        content: '— build green on pass 1/3 —',
+        uuid: ENTRY_UUIDS[7],
+        timestamp: FIXED_TIMESTAMP,
+      },
+      // The verdict line reaches the bus like any other, so the row a user is watching live carries
+      // the outcome without them opening quest.json.
+      {
+        role: 'assistant',
+        type: 'text',
+        content: `— CARVED: ${BRANCH_NAME} at ${HEAD_SHA} —`,
+        uuid: ENTRY_UUIDS[8],
+        timestamp: FIXED_TIMESTAMP,
+      },
     ]);
     // One emit per line, each routed to the carve work item — the execution panel groups rows by
     // exactly this id, so a drift here renders the carve output detached from its own row.
     expect(emits.getProcessIds()).toStrictEqual([
+      CARVE_WORK_ITEM_ID,
+      CARVE_WORK_ITEM_ID,
       CARVE_WORK_ITEM_ID,
       CARVE_WORK_ITEM_ID,
       CARVE_WORK_ITEM_ID,

@@ -331,7 +331,13 @@ export const questRunRiftcarverBroker = async ({
       ? carve.error.message
       : String(carve.error);
 
-  if (!carve.ok) {
+  // Every carve ends on a verdict line, green included. Only the red one used to, which left a
+  // green log trailing off on whatever the last package printed — and a first build pass emits
+  // hundreds of TS6305 lines before the second one clears, so "ends in errors" is what a GREEN
+  // carve looks like to a reader. The outcome then existed only in quest.json.
+  if (carve.ok) {
+    stream.emit(`— CARVED: ${carve.branchName} at ${carve.baseRef} —`);
+  } else {
     stream.emit(`— FAILED at ${carve.failedStep}: ${failureText} —`);
   }
 

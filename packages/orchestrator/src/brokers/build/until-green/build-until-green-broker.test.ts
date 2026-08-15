@@ -124,6 +124,7 @@ describe('buildUntilGreenBroker', () => {
         '— build pass 1/3 —',
         'tsc -b packages/shared',
         'Build succeeded in 4.2s',
+        '— build green on pass 1/3 —',
       ]);
     });
 
@@ -150,6 +151,7 @@ describe('buildUntilGreenBroker', () => {
         'TS6305: Output file has not been built from source file',
         '— build pass 2/3 —',
         'Build succeeded',
+        '— build green on pass 2/3 —',
       ]);
     });
 

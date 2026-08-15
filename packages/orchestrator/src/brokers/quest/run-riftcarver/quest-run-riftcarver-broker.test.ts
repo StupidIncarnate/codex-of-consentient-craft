@@ -185,6 +185,8 @@ describe('questRunRiftcarverBroker', () => {
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
         'Build succeeded',
+        '— build green on pass 1/3 —',
+        `— CARVED: ${BRANCH_NAME} at ${HEAD_SHA} —`,
       ]);
     });
 
@@ -267,6 +269,8 @@ describe('questRunRiftcarverBroker', () => {
             `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
             '— build pass 1/3 —',
             'Build succeeded',
+            '— build green on pass 1/3 —',
+            `— CARVED: ${BRANCH_NAME} at ${HEAD_SHA} —`,
           ].join('\n'),
         },
       ]);
@@ -443,6 +447,8 @@ describe('questRunRiftcarverBroker', () => {
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
         'Build succeeded',
+        '— build green on pass 1/3 —',
+        `— CARVED: ${BRANCH_NAME} at ${HEAD_SHA} —`,
       ]);
     });
   });
@@ -1172,6 +1178,8 @@ describe('questRunRiftcarverBroker', () => {
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
         'Build succeeded',
+        '— build green on pass 1/3 —',
+        `— CARVED: ${BRANCH_NAME} at ${RECORDED_BASE_REF} —`,
       ]);
       expect(proxy.getPersistedQuest().baseRef).toBe(RECORDED_BASE_REF);
     });
@@ -1391,6 +1399,8 @@ describe('questRunRiftcarverBroker', () => {
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
         'Build succeeded',
+        '— build green on pass 1/3 —',
+        `— CARVED: ${BRANCH_NAME} at ${RECORDED_BASE_REF} —`,
       ]);
     });
 
