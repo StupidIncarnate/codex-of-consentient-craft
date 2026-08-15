@@ -6,8 +6,8 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "build:clean": "npm run build:clean --workspaces",
+    "build": "node scripts/build-workspaces.mjs",
+    "build:clean": "rm -rf packages/*/dist && npm run build",
     "test": "dungeonmaster-ward --only test",
     "lint": "dungeonmaster-ward --only lint",
     "typecheck": "dungeonmaster-ward --only typecheck",
