@@ -1412,6 +1412,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
       worktreePath,
       branchName,
       baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
     });
 
     const warpgateOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f7' });

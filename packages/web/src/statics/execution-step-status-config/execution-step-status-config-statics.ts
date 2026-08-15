@@ -12,6 +12,7 @@ export const executionStepStatusConfigStatics = {
     glyphsmith: 'primary',
     bughunt: 'primary',
     tavernkeeper: 'primary',
+    riftcarver: 'loot-rare',
     codeweaver: 'primary',
     ward: 'warning',
     spiritmender: 'primary',

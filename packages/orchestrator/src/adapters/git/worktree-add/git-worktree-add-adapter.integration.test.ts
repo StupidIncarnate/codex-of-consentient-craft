@@ -45,6 +45,7 @@ describe('gitWorktreeAddAdapter (integration) — real worktree isolation for ag
       worktreePath,
       branchName,
       baseBranch,
+      mode: 'create-branch',
     });
 
     // Stands in for "the agent edits a file" — the real path this proves is the worktree's git
@@ -89,7 +90,13 @@ describe('gitWorktreeAddAdapter (integration) — real worktree isolation for ag
     const branchName = QuestBranchNameStub({ value: 'quest/commit-99990000' });
     const baseBranch = BaseBranchNameStub({ value: 'main' });
 
-    await gitWorktreeAddAdapter({ cwd: repoPath, worktreePath, branchName, baseBranch });
+    await gitWorktreeAddAdapter({
+      cwd: repoPath,
+      worktreePath,
+      branchName,
+      baseBranch,
+      mode: 'create-branch',
+    });
 
     const baseBranchShaBeforeCommit = await git.gitRevParseOrNull({
       repoPath,

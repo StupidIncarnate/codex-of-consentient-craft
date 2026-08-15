@@ -1,33 +1,31 @@
 /**
  * PURPOSE: Builds the Start-Quest relay seed for a quest: appends the quest type's implementation
- * operation items (bug-hunt's pesteater, scoped to the union of the flow nodes' package tags since
- * no author was there to declare it; feature quests already carry Chaos-authored codeweaver
- * items) plus the fixed verify tail to the operations ledger, creates ONE work item for the first
- * actionable (pending) operation item so the dispatch loop has something to pick up, and stamps
- * `baseRef` (the commit the quest's review diff is measured from) so review roles never lose track
- * of it once the default branch absorbs the quest's own commits.
+ * operation items — every one of them DERIVED here rather than authored at spec time, scoped to the
+ * union of the flow nodes' package tags since no author was there to declare it — plus the fixed
+ * verify tail to the operations ledger, and creates ONE work item for the
+ * first actionable (pending) operation item so the dispatch loop has something to pick up. Runs at
+ * Start, before any worktree exists, so it stamps no `baseRef` — riftcarver, the head-of-relay
+ * command role that creates the worktree, is the sole writer of that field, reading it from the
+ * worktree's own HEAD once the worktree is real rather than from wherever this process's cwd
+ * happens to be checked out.
  *
  * HOW one tail seed becomes N items is data on the registry entry (`fanOutBy`), read by
  * `relayTailFanOutTransformer` — this broker mints whatever slices come back and matches on no role
  * name at all. Codeweaver items are then reordered dependencies-first off `quest.packageGraph`.
  *
  * USAGE:
- * const { operations, workItems, baseRef } = await questBuildRelayGraphBroker({ quest, priorWorkItemIds, now });
+ * const { operations, workItems } = questBuildRelayGraphBroker({ quest, priorWorkItemIds, now });
  * // operations = FULL replacement ledger (plan items completed + tail appended, first actionable
- * //   marked in_progress); workItems = the single first work item, linked operations/<id>; baseRef
- * //   is the NEW value to stamp (present only when quest.baseRef was unset and HEAD was readable —
- * //   omit means "leave quest.baseRef exactly as it is").
- * // Persist all three via questOperationsUpdateBroker (NOT questModifyBroker — this writes the ledger).
+ * //   marked in_progress); workItems = the single first work item, linked operations/<id>.
+ * // Persist both via questOperationsUpdateBroker (NOT questModifyBroker — this writes the ledger).
  *
  * WHEN-TO-USE: Once per Start Quest transition, from OrchestrationStartResponder, after checking
  *   the tail has not already been appended (idempotency lives in the responder). Re-calling this
- *   broker directly on an already-seeded quest (e.g. quest-hydrate-broker) is also safe: baseRef is
- *   only ever computed once, from the first call that sees it unset.
+ *   broker directly on an already-seeded quest (e.g. quest-hydrate-broker) is also safe — it is a
+ *   pure function of its inputs.
  */
 
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import {
-  absoluteFilePathContract,
   operationItemContract,
   questWorkItemIdContract,
   workItemContract,
@@ -39,17 +37,14 @@ import type {
   QuestWorkItemId,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
+import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
-import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { operationsCodeweaverOrderTransformer } from '../../../transformers/operations-codeweaver-order/operations-codeweaver-order-transformer';
 import { relayTailFanOutTransformer } from '../../../transformers/relay-tail-fan-out/relay-tail-fan-out-transformer';
 
-type GitBaseRef = NonNullable<Quest['baseRef']>;
-
-export const questBuildRelayGraphBroker = async ({
+export const questBuildRelayGraphBroker = ({
   quest,
   priorWorkItemIds,
   now,
@@ -57,17 +52,7 @@ export const questBuildRelayGraphBroker = async ({
   quest: Quest;
   priorWorkItemIds: QuestWorkItemId[];
   now: IsoTimestamp;
-}): Promise<{ operations: OperationItem[]; workItems: WorkItem[]; baseRef?: GitBaseRef }> => {
-  // Stamp only when unset — a re-Start (or any direct re-call) must never move the base to include
-  // the quest's own implementation commits, which is the exact defect baseRef exists to fix. When
-  // it IS unset, reading HEAD is I/O (the adapter spawns `git`), so it only runs on that path; a
-  // git failure resolves to null here, degrading to "no base" rather than throwing — seeding must
-  // still succeed even when the base can't be pinned.
-  const baseRef: GitBaseRef | undefined =
-    quest.baseRef ??
-    (await gitHeadShaAdapter({ cwd: absoluteFilePathContract.parse(processCwdAdapter()) })) ??
-    undefined;
-
+}): { operations: OperationItem[]; workItems: WorkItem[] } => {
   const registry = questTypeRegistryStatics[quest.questType];
 
   // Intake plan items (every chat role — chaoswhisperer/glyphsmith/bughunt) are done by the time
@@ -116,8 +101,18 @@ export const questBuildRelayGraphBroker = async ({
         // fans out to one whole-quest item (bug-hunt's pesteater): no author declared anything, so
         // the node tags are the only statement of where the work lands, and an item seeded without
         // them reaches its session declaring no packages at all.
+        //
+        // A COMMAND role is excluded from that fallback: `packageNames` exists to narrow an agent's
+        // search to its slice, and the dispatcher runs a command itself with no prompt to narrow.
+        // Inheriting the whole spine there would write a scope onto the ledger that nothing reads
+        // and that claims riftcarver builds only the packages the flows happen to tag — when what
+        // it actually prepares is the entire worktree.
         packageNames:
-          slice.packageNames.length > 0 ? slice.packageNames : [...spinePackages.values()],
+          slice.packageNames.length > 0
+            ? slice.packageNames
+            : isCommandWorkItemRoleGuard({ role: seed.role })
+              ? []
+              : [...spinePackages.values()],
       }),
     );
   });
@@ -155,14 +150,14 @@ export const questBuildRelayGraphBroker = async ({
 
   const firstActionable = operations.find((operation) => operation.status === 'pending');
   if (firstActionable === undefined) {
-    return { operations, workItems: [], ...(baseRef === undefined ? {} : { baseRef }) };
+    return { operations, workItems: [] };
   }
 
   const firstWorkItem = workItemContract.parse({
     id: questWorkItemIdContract.parse(crypto.randomUUID()),
     role: firstActionable.role,
     status: 'pending',
-    spawnerType: firstActionable.role === 'ward' ? 'command' : 'agent',
+    spawnerType: isCommandWorkItemRoleGuard({ role: firstActionable.role }) ? 'command' : 'agent',
     relatedDataItems: [`operations/${String(firstActionable.id)}`],
     dependsOn: priorWorkItemIds,
     maxAttempts: 1,
@@ -177,6 +172,5 @@ export const questBuildRelayGraphBroker = async ({
         : operation,
     ),
     workItems: [firstWorkItem],
-    ...(baseRef === undefined ? {} : { baseRef }),
   };
 };

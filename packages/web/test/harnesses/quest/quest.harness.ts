@@ -6,7 +6,7 @@
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
  * quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 import type { APIRequestContext } from '@playwright/test';
@@ -15,7 +15,9 @@ import {
   addQuestResultContract,
   type QuestId,
   type FilePath,
+  type WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
+import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { questFlowObservableSeedTransformer } from '@dungeonmaster/testing/transformers/quest-flow-observable-seed';
 import { questGateContentSeedTransformer } from '@dungeonmaster/testing/transformers/quest-gate-content-seed';
@@ -36,6 +38,10 @@ type ContractEntryInput = Record<PropertyKey, unknown>;
 // `observableId` anchors the comment to the node card itself; setting it anchors the comment to one
 // of that node's assertion cards.
 type CommentInput = Record<PropertyKey, unknown>;
+// A quest.json exactly as the SERVER wrote it, read back to be edited in place rather than rebuilt.
+// Deliberately opaque: the point of `rewindQuestStatus` is that every key it does not name survives
+// untouched, so naming any of them here would invite a caller to reach for one.
+type PersistedQuestInput = Record<PropertyKey, unknown>;
 
 // The one package every default-seeded flow node tags, declared so its chips resolve to a real kind
 // rather than painting unresolved. Deliberately NOT a name from this repo: nothing in the app may
@@ -177,6 +183,7 @@ export const questHarness = ({
     detail: Record<PropertyKey, unknown>;
   }) => void;
   patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
+  rewindQuestStatus: (params: { questFilePath: string; status: string }) => void;
   questFolderExists: (params: { questFilePath: string }) => boolean;
   buildQuestJson: (params: {
     questId: string;
@@ -494,6 +501,31 @@ export const questHarness = ({
     });
   };
 
+  // Rewrites ONLY the `status` field of an existing quest.json, leaving every other byte — the
+  // seeded operations ledger, the work items, the package graph — exactly as the SERVER wrote it,
+  // then appends the same quest-modified outbox line questPersistBroker would so the watcher
+  // reconciles immediately. Reach for this over writeQuestFile whenever the state under test is one
+  // the server produced and the fixture only needs to move the quest back across a gate:
+  // writeQuestFile rebuilds a quest from its own defaults, so round-tripping a server-written quest
+  // through it silently drops everything its parameter list does not name.
+  const rewindQuestStatus = ({
+    questFilePath,
+    status,
+  }: {
+    questFilePath: string;
+    status: string;
+  }): void => {
+    const persisted = JSON.parse(readFileSync(questFilePath, 'utf8')) as PersistedQuestInput;
+
+    writeFileSync(questFilePath, JSON.stringify({ ...persisted, status }, null, JSON_INDENT));
+
+    const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
+    appendFileSync(
+      `${dungeonmasterHome}/event-outbox.jsonl`,
+      `${JSON.stringify({ questId: String(persisted.id), timestamp: new Date().toISOString() })}\n`,
+    );
+  };
+
   // The quest folder is the directory holding quest.json — i.e. dirname(questFilePath),
   // which resolves to <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/. The
   // backend delete removes this folder recursively, so a UI delete should leave it absent.
@@ -641,7 +673,9 @@ export const questHarness = ({
           id: firstWorkItemId,
           role: firstOp.role,
           status: firstWorkItemStatus,
-          spawnerType: firstOp.role === 'ward' ? 'command' : 'agent',
+          spawnerType: isCommandWorkItemRoleGuard({ role: firstOp.role as WorkItemRole })
+            ? 'command'
+            : 'agent',
           relatedDataItems: [`operations/${firstOp.id}`],
           ...(firstWorkItemSessionId === undefined ? {} : { sessionId: firstWorkItemSessionId }),
           ...(firstOp.wardMode === undefined ? {} : { wardMode: firstOp.wardMode }),
@@ -656,6 +690,7 @@ export const questHarness = ({
     writeUnparseableQuestFile,
     writeWardResultDetail,
     patchQuestStatus,
+    rewindQuestStatus,
     questFolderExists,
     buildQuestJson,
     seedInProgressWithOperations,

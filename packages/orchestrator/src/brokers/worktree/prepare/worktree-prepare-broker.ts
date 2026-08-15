@@ -1,12 +1,27 @@
 /**
- * PURPOSE: Runs every step that must succeed before a quest branch's worktree is fit to dispatch
- * agents into — creation, the fork-point stamp, node_modules, and the preflight build — as one
- * awaited chain, and rolls the worktree back through `worktreeDiscardBroker` on any step's failure.
- * Nothing is written to `quest.json` until this resolves, so a worktree left behind after a failed
- * prepare would make the next Start hit the name-taken refusal and the quest could never start again
- * — the rollback is what makes retry possible. Reads the fork-point sha immediately after creation,
- * before node_modules or the build can touch the tree, because that is the one moment the worktree's
- * HEAD is guaranteed to equal the base branch tip the quest forked from.
+ * PURPOSE: Carves the quest's worktree and stamps its fork point — nothing else. The sha is read in
+ * the same breath as creation, before node_modules or a build can touch the tree, because that is
+ * the one moment a NEWLY created worktree's HEAD is guaranteed to equal the base branch tip the
+ * quest forked from; recomputing it later would fold the quest's own commits into whatever measures
+ * against it. (A caller re-carving a quest that already recorded a `baseRef` keeps its own record —
+ * see quest-run-riftcarver-broker — so the sha returned here is a first-carve value, not an
+ * authority that overrides one.)
+ *
+ * Whether the branch is MINTED or ATTACHED is decided by probing git, never by trusting a record:
+ * a branch that resolves right now already holds the quest's commits, so the worktree is checked
+ * out against it (after a prune clears any registration git still holds for a directory someone
+ * deleted). This is what makes a re-carve possible at all — a `-b` create against a branch the
+ * first attempt already made refuses, and the quest would be locked out permanently. Deciding
+ * OWNERSHIP is not this broker's job: the caller's collision check is what refuses a name some
+ * other work owns, and by the time it delegates here an existing branch is the quest's own.
+ *
+ * Rollback belongs here and nowhere further down the lifecycle. This step's failure leaves a branch
+ * and a directory that a later attempt would collide with, so discarding them is what makes the
+ * retry possible — whereas a half-mirrored or half-built tree is exactly what a spiritmender needs
+ * to repair, so the steps that follow keep theirs. Two cases roll nothing back: a failed
+ * `git worktree add` (git registered no path, so removing one would manufacture a second, unrelated
+ * error) and an ATTACHED branch (the discard deletes the branch, and this one holds commits this
+ * call did not create).
  *
  * USAGE:
  * const { baseRef } = await worktreePrepareBroker({
@@ -14,7 +29,6 @@
  *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
  *   branchName: QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' }),
  *   baseBranch: BaseBranchNameStub({ value: 'main' }),
- *   buildCommand: 'npm run build',
  * });
  * // Rejects with WorktreePrepareError, naming the failing step, on any failure
  */
@@ -27,13 +41,13 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 
 import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
+import { gitVerifyRefAdapter } from '../../../adapters/git/verify-ref/git-verify-ref-adapter';
 import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
+import { gitWorktreePruneAdapter } from '../../../adapters/git/worktree-prune/git-worktree-prune-adapter';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
 import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-step/worktree-prepare-step-statics';
 import { worktreeFailureDetailTransformer } from '../../../transformers/worktree-failure-detail/worktree-failure-detail-transformer';
 import { worktreeDiscardBroker } from '../discard/worktree-discard-broker';
-import { worktreePopulateNodeModulesBroker } from '../populate-node-modules/worktree-populate-node-modules-broker';
-import { buildUntilGreenLayerBroker } from './build-until-green-layer-broker';
 
 type GitBaseRef = NonNullable<Quest['baseRef']>;
 
@@ -44,83 +58,71 @@ export const worktreePrepareBroker = async ({
   worktreePath,
   branchName,
   baseBranch,
-  buildCommand,
 }: {
   repoRoot: AbsoluteFilePath;
   worktreePath: AbsoluteFilePath;
   branchName: QuestBranchName;
   baseBranch: BaseBranchName;
-  buildCommand: string;
 }): Promise<{ baseRef: GitBaseRef }> => {
+  // The REAL probe, not the quest record: git is the only authority on whether this branch exists
+  // right now, and the answer decides the mode below.
+  const branchExists = await gitVerifyRefAdapter({ cwd: repoRoot, ref: branchName });
+
+  // A directory deleted out from under a worktree leaves git's registration behind, and both the
+  // add and the branch stay refused until it is dropped. Only the attach path can meet that state.
+  const pruned = branchExists ? await gitWorktreePruneAdapter({ cwd: repoRoot }) : null;
+
   const addResult = await gitWorktreeAddAdapter({
     cwd: repoRoot,
     worktreePath,
     branchName,
     baseBranch,
+    mode: branchExists ? 'attach-existing' : 'create-branch',
   });
 
   if (addResult.exitCode !== 0) {
     // Nothing was created, so there is nothing to roll back — calling `git worktree remove` on a
-    // path git never registered would manufacture a second, unrelated error.
+    // path git never registered would manufacture a second, unrelated error. A prune that also
+    // failed rides along, since it is the likeliest reason an attach was refused.
     throw new WorktreePrepareError({
       step: STEPS.create,
-      detail: worktreeFailureDetailTransformer({ worktreePath, cause: addResult.output }),
+      detail: worktreeFailureDetailTransformer({
+        worktreePath,
+        cause: String(addResult.output),
+        ...(pruned === null || pruned.exitCode === 0 ? {} : { cleanupOutput: pruned.output }),
+      }),
     });
   }
 
   const baseRef = await gitHeadShaAdapter({ cwd: worktreePath });
 
-  if (baseRef === null) {
-    const { discarded, output } = await worktreeDiscardBroker({
-      repoRoot,
-      worktreePath,
-      branchName,
-    });
+  if (baseRef !== null) {
+    return { baseRef };
+  }
+
+  // An ATTACHED branch is not this call's to destroy: `worktreeDiscardBroker` deletes the branch,
+  // and this one already holds the quest's commits. Report and leave it standing.
+  if (branchExists) {
     throw new WorktreePrepareError({
       step: STEPS.create,
       detail: worktreeFailureDetailTransformer({
         worktreePath,
         cause: 'fork-point sha could not be read',
-        ...(discarded ? {} : { cleanupOutput: output }),
       }),
     });
   }
 
-  try {
-    await worktreePopulateNodeModulesBroker({ repoRoot, worktreePath });
-  } catch (error) {
-    const { discarded, output } = await worktreeDiscardBroker({
-      repoRoot,
+  const { discarded, output } = await worktreeDiscardBroker({
+    repoRoot,
+    worktreePath,
+    branchName,
+  });
+  throw new WorktreePrepareError({
+    step: STEPS.create,
+    detail: worktreeFailureDetailTransformer({
       worktreePath,
-      branchName,
-    });
-    throw new WorktreePrepareError({
-      step: STEPS.nodeModules,
-      detail: worktreeFailureDetailTransformer({
-        worktreePath,
-        cause: error instanceof Error ? error.message : String(error),
-        ...(discarded ? {} : { cleanupOutput: output }),
-      }),
-    });
-  }
-
-  const buildResult = await buildUntilGreenLayerBroker({ buildCommand, cwd: worktreePath });
-
-  if (!buildResult.success) {
-    const { discarded, output } = await worktreeDiscardBroker({
-      repoRoot,
-      worktreePath,
-      branchName,
-    });
-    throw new WorktreePrepareError({
-      step: STEPS.build,
-      detail: worktreeFailureDetailTransformer({
-        worktreePath,
-        cause: buildResult.output,
-        ...(discarded ? {} : { cleanupOutput: output }),
-      }),
-    });
-  }
-
-  return { baseRef };
+      cause: 'fork-point sha could not be read',
+      ...(discarded ? {} : { cleanupOutput: output }),
+    }),
+  });
 };

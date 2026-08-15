@@ -248,5 +248,26 @@ describe('buildSpawnInstructionLayerBroker', () => {
         /Invalid enum value/u,
       );
     });
+
+    // The other member of `workItemRoleStatics.command`, and the reason
+    // computeNextStepFromQuestLayerBroker returns a carve under its own step type before it ever
+    // builds a batch: reaching here at all is a crash, not a mis-dispatch.
+    it('INVALID: {workItem with role riftcarver} => agentRoleContract.parse throws', () => {
+      buildSpawnInstructionLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'quest-riftcarver-as-agent' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'cccccccc-1111-4222-9333-444444444444',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'riftcarver',
+        status: 'pending',
+        spawnerType: 'command',
+      });
+
+      expect(() => buildSpawnInstructionLayerBroker({ questId, workItem })).toThrow(
+        /Invalid enum value/u,
+      );
+    });
   });
 });

@@ -16,13 +16,27 @@ starting, and expect these:
 - `packages/orchestrator/src/statics/smoketest-probe-args/smoketest-probe-args-statics.ts` — its
   test asserts `Object.keys(probeArgs).sort()` equals the sorted tool names, so a missing probe
   entry is a hard fail.
-- `TOOLS_EXEMPT_FROM_SIZE_CAP` in `flows/mcp-server/mcp-server-flow.integration.test.ts`, when the
-  tool's response exceeds the size cap.
+- `TOOLS_EXEMPT_FROM_SIZE_CAP` in `flows/mcp-server/mcp-server-flow.integration.test.ts`. The
+  size-capped set is `mcpToolsStatics.tools.names` MINUS this list, and every tool in it is invoked
+  with `{}`, so **a tool with required input belongs here too** — not only one whose response
+  exceeds the cap. A `.strict()` contract rejects `{}` and the assertion `expect(response.error)
+  .toBe(undefined)` fails.
 - `brokers/settings/permissions-add/settings-permissions-add-broker.test.ts` — **seven** separate
-  copies of the expected allow-list, plus an **eighth** in
-  `flows/install/install-flow.integration.test.ts`.
+  copies of the expected allow-list, an **eighth** in
+  `flows/install/install-flow.integration.test.ts`, and a **ninth** in
+  `transformers/mcp-permissions-creator/mcp-permissions-creator-transformer.test.ts` (whose test
+  NAME also carries the tool count).
 - `flows/quest/quest-flow.integration.test.ts` — **four** parallel hardcoded arrays (names, handler
   types, descriptions, schema types) that have to stay index-aligned with each other.
+- `packages/server/src/statics/dispatcher-mcp-tools/dispatcher-mcp-tools-statics.ts` — only when
+  `/dumpster-launch` itself calls the tool for orchestration control. Listing it there keeps the
+  dispatcher's own tool-call chatter out of the web chat panel.
+
+**A tool handled inline in `responders/quest/handle/quest-handle-responder.ts` costs cyclomatic
+complexity**, and that function sits AT the ceiling (`complexity: max 50`). A branch with a
+`try/catch` and a ternary costs 3 and fails lint. Add the tool as a colocated
+`<tool>-layer-responder.ts` registered in that file's `layerResponders` map instead — a map entry
+costs nothing.
 
 ## What MCP Sees from the Calling Claude Code
 

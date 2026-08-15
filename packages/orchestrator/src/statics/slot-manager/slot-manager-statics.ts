@@ -48,6 +48,14 @@ export const slotManagerStatics = {
     // spiritmender + fresh-ward pair.
     maxRetries: 3,
   },
+  riftcarver: {
+    // Red-carve chain budget: the count of riftcarver operation items since the last GREEN
+    // riftcarver. Only the repairable failures (node_modules, build) spend it — a git-state or
+    // permission failure blocks on the spot, whatever the budget says. `maxRetries` rather than
+    // `maxAttempts` because, exactly like ward, the chain is counted from the ledger's own
+    // role-filtered history rather than from one item's pt continuations.
+    maxRetries: 3,
+  },
   orphanRecovery: {
     // Give-up budget for re-dispatching a crashed/killed (orphaned) agent session. Each
     // recovery flips the item back to pending (resume marker + retained sessionId) and bumps

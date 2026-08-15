@@ -136,6 +136,11 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-run-ward-not-in-mcp-suite',
     note: 'run-ward spawns a real ward subprocess — not safe to exercise from inside the smoketest harness.',
   },
+  'run-riftcarver': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-run-riftcarver-not-in-mcp-suite',
+    note: 'run-riftcarver creates a real git branch and worktree, mirrors node_modules and runs the preflight build — minutes of real filesystem and git mutation against the guild repo, which the smoketest harness has no way to unwind. Its lifecycle belongs to the orchestration suite.',
+  },
   'get-server-config': {
     mode: 'call',
     args: {},

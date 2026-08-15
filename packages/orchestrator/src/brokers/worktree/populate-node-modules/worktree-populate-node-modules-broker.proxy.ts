@@ -33,10 +33,16 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     packageName: string;
     error: Error;
   }) => void;
+  setupRootTargetAlreadyPopulated: (params: { worktreePath: AbsoluteFilePath }) => void;
+  setupPackageTargetAlreadyPopulated: (params: {
+    worktreePath: AbsoluteFilePath;
+    packageName: string;
+  }) => void;
   getAllSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
 } => {
   // The layer runs REAL from this proxy's point of view — it is not an I/O boundary — so the
-  // I/O it eventually reaches (readdir/readlink/symlink/mkdir) is what actually gets staged here.
+  // I/O it eventually reaches (readdir/readlink/symlink/mkdir/access) is what actually gets staged
+  // here.
   const layerProxy = populateOneRootLayerBrokerProxy();
   const isAccessibleProxy = fsIsAccessibleAdapterProxy();
   // Wired to satisfy enforce-proxy-child-creation and left unstaged: this proxy computes every
@@ -129,6 +135,37 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
       layerProxy.setupMkdirThrows({
         filepath: FilePathStub({ value: `${worktreePath}/packages/${packageName}/node_modules` }),
         error,
+      });
+    },
+
+    // The worktree's OWN root node_modules is already mirrored — the shape a `pt N` attempt finds
+    // after an earlier attempt got the root done and died partway through the packages.
+    setupRootTargetAlreadyPopulated: ({
+      worktreePath,
+    }: {
+      worktreePath: AbsoluteFilePath;
+    }): void => {
+      layerProxy.setupTargetNodeModulesOnDisk({
+        targetRoot: worktreePath,
+        entries: [
+          { name: 'zod', isDir: false, isSymlink: true },
+          { name: '@dungeonmaster', isDir: true, isSymlink: false },
+        ],
+      });
+    },
+
+    // One workspace package inside the worktree is already mirrored while its siblings are not —
+    // including the case where a spiritmender npm-installed it by hand between attempts.
+    setupPackageTargetAlreadyPopulated: ({
+      worktreePath,
+      packageName,
+    }: {
+      worktreePath: AbsoluteFilePath;
+      packageName: string;
+    }): void => {
+      layerProxy.setupTargetNodeModulesOnDisk({
+        targetRoot: AbsoluteFilePathStub({ value: `${worktreePath}/packages/${packageName}` }),
+        entries: [{ name: 'react-router-dom', isDir: false, isSymlink: true }],
       });
     },
 

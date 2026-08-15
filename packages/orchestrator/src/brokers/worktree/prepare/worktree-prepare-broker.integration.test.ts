@@ -13,15 +13,15 @@ import { worktreePrepareBroker } from './worktree-prepare-broker';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
 // Real git + real fs throughout — no adapter is mocked. `worktreePrepareBroker` composes
-// gitWorktreeAddAdapter, gitHeadShaAdapter, worktreePopulateNodeModulesBroker, and
-// buildUntilGreenLayerBroker; the existing worktree-prepare-broker.test.ts proves each of those
-// was CALLED WITH the right args, never that the real filesystem/git state it produces is correct.
-// These four tests drive the actual broker against a throwaway repo built by
-// gitWorktreeFixtureHarness and read the resulting git/fs state back.
-describe('worktreePrepareBroker (integration) — real git worktree + node_modules + build', () => {
+// gitWorktreeAddAdapter and gitHeadShaAdapter; the existing worktree-prepare-broker.test.ts proves
+// each of those was CALLED WITH the right args, never that the real git state it produces is
+// correct. These three tests drive the actual broker against a throwaway repo built by
+// gitWorktreeFixtureHarness and read the resulting git/fs state back. The node_modules mirror and
+// the preflight build have their own integration suites beside their own brokers.
+describe('worktreePrepareBroker (integration) — real git worktree creation', () => {
   const git = gitWorktreeFixtureHarness();
 
-  it('VALID: {new worktree off a real 2-package, 2-branch repo, converging build script} => the worktree directory, quest branch, workspace links, third-party deps, bin shims, and built dist all exist for real', async () => {
+  it('VALID: {new worktree off a real 2-branch repo} => the worktree directory and quest branch exist for real, both pinned at the base branch tip', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'wpb-success' }),
     });
@@ -43,18 +43,6 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
       message: ErrorMessageStub({ value: 'advance main past develop' }),
     });
 
-    git.writeWorkspaceNodeModulesFixture({
-      repoPath,
-      workspacePackages: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
-      hoistedDep: {
-        packageName: FileNameStub({ value: 'web' }),
-        depName: FileNameStub({ value: 'react-router-dom' }),
-      },
-    });
-    const { buildCommand } = git.writeConvergingBuildScript({
-      scriptDir: AbsoluteFilePathStub({ value: `${testbed.guildPath}-build-scripts` }),
-    });
-
     const worktreePath = AbsoluteFilePathStub({
       value: `${testbed.guildPath}/worktrees/add-auth-11112222`,
     });
@@ -66,7 +54,6 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
       worktreePath,
       branchName,
       baseBranch,
-      buildCommand,
     });
 
     const questBranchSha = await git.gitRevParseOrNull({
@@ -77,37 +64,6 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
     const worktreeDirExists = git.pathExists({ absolutePath: worktreePath });
     const worktreePackagesDirExists = git.pathExists({
       absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/packages` }),
-    });
-    const sharedLinkRealpath = git.realpathOf({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/node_modules/@dungeonmaster/shared`,
-      }),
-    });
-    const webLinkRealpath = git.realpathOf({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/node_modules/@dungeonmaster/web`,
-      }),
-    });
-    const zodPackageJsonExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/node_modules/zod/package.json`,
-      }),
-    });
-    const jestShimExecutable = git.isExecutableFile({
-      absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/node_modules/.bin/jest` }),
-    });
-    const hoistedDepExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/packages/web/node_modules/react-router-dom/package.json`,
-      }),
-    });
-    const sharedDistExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/packages/shared/dist/contracts.js`,
-      }),
-    });
-    const webDistExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/packages/web/dist/index.html` }),
     });
     const worktreeListOutput = await git.gitWorktreeListOutput({ repoPath });
     const worktreeListMentionsPath = worktreeListOutput.includes(String(worktreePath));
@@ -121,13 +77,6 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
       worktreeHeadBranch,
       worktreeDirExists,
       worktreePackagesDirExists,
-      sharedLinkRealpath,
-      webLinkRealpath,
-      zodPackageJsonExists,
-      jestShimExecutable,
-      hoistedDepExists,
-      sharedDistExists,
-      webDistExists,
       worktreeListMentionsPath,
     }).toStrictEqual({
       baseRef: mainTipSha,
@@ -136,13 +85,6 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
       worktreeHeadBranch: branchName,
       worktreeDirExists: true,
       worktreePackagesDirExists: true,
-      sharedLinkRealpath: `${worktreePath}/packages/shared`,
-      webLinkRealpath: `${worktreePath}/packages/web`,
-      zodPackageJsonExists: true,
-      jestShimExecutable: true,
-      hoistedDepExists: true,
-      sharedDistExists: true,
-      webDistExists: true,
       worktreeListMentionsPath: true,
     });
   }, 30_000);
@@ -172,18 +114,6 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
       }),
     });
 
-    git.writeWorkspaceNodeModulesFixture({
-      repoPath,
-      workspacePackages: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
-      hoistedDep: {
-        packageName: FileNameStub({ value: 'web' }),
-        depName: FileNameStub({ value: 'react-router-dom' }),
-      },
-    });
-    const { buildCommand } = git.writeConvergingBuildScript({
-      scriptDir: AbsoluteFilePathStub({ value: `${testbed.guildPath}-build-scripts` }),
-    });
-
     const worktreePath = AbsoluteFilePathStub({
       value: `${testbed.guildPath}/worktrees/no-leak-33334444`,
     });
@@ -195,7 +125,6 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
       worktreePath,
       branchName,
       baseBranch,
-      buildCommand,
     });
 
     const worktreeReadme = git.readTextFile({
@@ -211,69 +140,13 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
     });
   }, 30_000);
 
-  it('ERROR: {build command always fails} => the worktree directory and quest branch are both rolled back, and git worktree list no longer mentions the path', async () => {
+  // The recovery case, against real git: the quest's branch already exists (a previous carve made
+  // it and holds the quest's commits) but no worktree is checked out against it — the state left
+  // behind when someone deletes the worktree directory between attempts. `-b` refuses this outright
+  // with "already exists", which is what used to lock the quest out permanently.
+  it('VALID: {quest branch already exists with no worktree} => attaches a real worktree to it without moving its tip', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wpb-rollback' }),
-    });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
-
-    await git.initRepoWithPackages({
-      repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
-    });
-    git.writeWorkspaceNodeModulesFixture({
-      repoPath,
-      workspacePackages: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
-      hoistedDep: {
-        packageName: FileNameStub({ value: 'web' }),
-        depName: FileNameStub({ value: 'react-router-dom' }),
-      },
-    });
-    const { buildCommand } = git.writeFailingBuildScript({
-      scriptDir: AbsoluteFilePathStub({ value: `${testbed.guildPath}-build-scripts` }),
-    });
-
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/rollback-66667777`,
-    });
-    const branchName = QuestBranchNameStub({ value: 'quest/rollback-66667777' });
-    const baseBranch = BaseBranchNameStub({ value: 'main' });
-
-    const thrown: unknown = await worktreePrepareBroker({
-      repoRoot: repoPath,
-      worktreePath,
-      branchName,
-      baseBranch,
-      buildCommand,
-    }).catch((error: unknown) => error);
-
-    const worktreeDirExists = git.pathExists({ absolutePath: worktreePath });
-    const branchStillExists = await git.gitRevParseOrNull({
-      repoPath,
-      ref: ErrorMessageStub({ value: branchName }),
-    });
-    const worktreeListOutput = await git.gitWorktreeListOutput({ repoPath });
-    const worktreeListMentionsPath = worktreeListOutput.includes(String(worktreePath));
-
-    testbed.cleanup();
-
-    expect({
-      errorName: (thrown as Error).name,
-      worktreeDirExists,
-      branchStillExists,
-      worktreeListMentionsPath,
-    }).toStrictEqual({
-      errorName: 'WorktreePrepareError',
-      worktreeDirExists: false,
-      branchStillExists: null,
-      worktreeListMentionsPath: false,
-    });
-  }, 30_000);
-
-  it('ERROR: {branch name already taken by other work} => the existing branch tip is unchanged by the rejected prepare call', async () => {
-    const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wpb-name-taken' }),
+      baseName: BaseNameStub({ value: 'wpb-reattach' }),
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 
@@ -283,13 +156,19 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
       packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
     });
 
-    const branchName = QuestBranchNameStub({ value: 'quest/taken-88889999' });
+    const branchName = QuestBranchNameStub({ value: 'quest/reattach-88889999' });
     const baseBranch = BaseBranchNameStub({ value: 'main' });
-    // A branch of this exact name is already owned by other work — created independently of
-    // this prepare call, the way a second Start for the same slug would find it.
     await git.createBranchAt({
       repoPath,
-      branchName: FileNameStub({ value: 'quest/taken-88889999' }),
+      branchName: FileNameStub({ value: 'quest/reattach-88889999' }),
+    });
+    // main moves on AFTER the quest branch was cut, so a `-b`-style re-fork would visibly land on a
+    // different sha than the branch's own tip — which is what makes the assertion below meaningful.
+    await git.commitFile({
+      repoPath,
+      relativePath: RepoRelativePathStub({ value: 'README.md' }),
+      content: FileContentsStub({ value: '# fixture repo\nmain advanced past the quest branch\n' }),
+      message: ErrorMessageStub({ value: 'advance main past the quest branch' }),
     });
     const existingBranchShaBefore = await git.gitRevParseOrNull({
       repoPath,
@@ -297,30 +176,35 @@ describe('worktreePrepareBroker (integration) — real git worktree + node_modul
     });
 
     const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/taken-88889999`,
+      value: `${testbed.guildPath}/worktrees/reattach-88889999`,
     });
 
-    const thrown: unknown = await worktreePrepareBroker({
+    const { baseRef } = await worktreePrepareBroker({
       repoRoot: repoPath,
       worktreePath,
       branchName,
       baseBranch,
-      buildCommand: 'true',
-    }).catch((error: unknown) => error);
+    });
 
     const existingBranchShaAfter = await git.gitRevParseOrNull({
       repoPath,
       ref: ErrorMessageStub({ value: branchName }),
     });
+    const worktreeHeadBranch = await git.gitCurrentBranchName({ repoPath: worktreePath });
+    const worktreeDirExists = git.pathExists({ absolutePath: worktreePath });
 
     testbed.cleanup();
 
     expect({
-      errorName: (thrown as Error).name,
+      baseRef,
       existingBranchShaAfter,
+      worktreeHeadBranch,
+      worktreeDirExists,
     }).toStrictEqual({
-      errorName: 'WorktreePrepareError',
+      baseRef: existingBranchShaBefore,
       existingBranchShaAfter: existingBranchShaBefore,
+      worktreeHeadBranch: branchName,
+      worktreeDirExists: true,
     });
   }, 30_000);
 });

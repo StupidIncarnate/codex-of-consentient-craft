@@ -48,8 +48,9 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
 
   // quest-start-worktree:observable:bad-status-leaves-quest — "quest.json status field is
   // unchanged from its pre-request value, and quest.json contains no branchName, baseBranch or
-  // worktreePath key". The status guard fires before PrepareQuestWorktreeLayerResponder is ever
-  // called, so this describe block never touches git.
+  // worktreePath key". Start writes no git context at any status, so the second half holds for the
+  // startable counter-case below too; what these cases pin is that a refused Start writes NOTHING
+  // AT ALL, not even the relay seed.
   describe('reject-not-startable leaves quest.json exactly as it was', () => {
     it.each(NON_STARTABLE_STATUSES)(
       'ERROR: {status: %s} => rejects and quest.json is byte-identical before and after',
@@ -133,12 +134,14 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
   });
 
   // quest-start-worktree:observable:name-taken-leaves-existing-branch — "`git rev-parse
-  // quest/<slug>-<id8>` resolves to the same commit sha before and after the rejected request".
-  // Governed by design decision `start-errors-on-existing-branch`: the point is not merely that
-  // an error is raised, it's that the pre-existing branch (owned by other work) is left EXACTLY
-  // as it was — not advanced, not adopted, not deleted.
-  describe('reject-name-taken leaves the pre-existing branch exactly as it was', () => {
-    it('ERROR: {a branch already owns the exact name Quest Start would compute, pinned at an earlier commit than the advanced base} => rejects QuestBranchNameTakenError and the branch sha is unchanged before and after', async () => {
+  // quest/<slug>-<id8>` resolves to the same commit sha before and after the request". Governed by
+  // design decision `start-errors-on-existing-branch`: a branch owned by other work is left EXACTLY
+  // as it was — not advanced, not adopted, not deleted. Start holds that trivially because it runs
+  // no git at all; the branch collision is riftcarver's to detect, from the relay, against the same
+  // real repo. Driven end-to-end against REAL git rather than a mock precisely so "Start ran no git"
+  // is measured on disk instead of on a spy.
+  describe('Start leaves the repository untouched and seeds the carve onto the relay', () => {
+    it('VALID: {a branch already owns the exact name the carve will compute, pinned at an earlier commit than the advanced base} => Start succeeds, the branch sha is unchanged, and no worktree exists on disk', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'osr-name-taken' }),
       });
@@ -181,25 +184,45 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
         ref: ErrorMessageStub({ value: TAKEN_BRANCH_NAME_STRING }),
       });
 
-      const thrown: unknown = await OrchestrationStartResponder({ questId }).catch(
-        (error: unknown) => error,
-      );
+      await OrchestrationStartResponder({ questId });
 
       const existingBranchShaAfter = await git.gitRevParseOrNull({
         repoPath,
         ref: ErrorMessageStub({ value: TAKEN_BRANCH_NAME_STRING }),
       });
+      const worktreesDirExists = git.pathExists({
+        absolutePath: AbsoluteFilePathStub({ value: `${testbed.guildPath}/worktrees` }),
+      });
+      const after = await questHelper.reload({ questId });
 
       testbed.cleanup();
 
       expect({
-        errorName: (thrown as Error).name,
-        errorMessage: (thrown as Error).message,
+        status: after.status,
+        // Sliced rather than indexed: the seeded ledger's HEAD is the invariant, and a slice states
+        // "there is a first item and it is this" in one value instead of reading undefined as a pass.
+        headOfRelay: after.operations
+          .slice(0, 1)
+          .map((operation) => ({ role: operation.role, status: operation.status })),
+        gitKeysAfter: {
+          branchName: after.branchName,
+          baseBranch: after.baseBranch,
+          worktreePath: after.worktreePath,
+          baseRef: after.baseRef,
+        },
+        worktreesDirExists,
         existingBranchShaBefore,
         existingBranchShaAfter,
       }).toStrictEqual({
-        errorName: 'QuestBranchNameTakenError',
-        errorMessage: `${TAKEN_BRANCH_NAME_STRING} already exists — name is in use by other work`,
+        status: 'in_progress',
+        headOfRelay: [{ role: 'riftcarver', status: 'in_progress' }],
+        gitKeysAfter: {
+          branchName: undefined,
+          baseBranch: undefined,
+          worktreePath: undefined,
+          baseRef: undefined,
+        },
+        worktreesDirExists: false,
         existingBranchShaBefore: baseRef,
         existingBranchShaAfter: baseRef,
       });

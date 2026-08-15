@@ -1,7 +1,13 @@
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  ErrorMessageStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
 import { worktreePopulateNodeModulesBrokerProxy } from './worktree-populate-node-modules-broker.proxy';
+
+type StreamedLine = ReturnType<typeof ErrorMessageStub>;
 
 describe('worktreePopulateNodeModulesBroker', () => {
   describe('workspace package carries its own node_modules', () => {
@@ -16,7 +22,11 @@ describe('worktreePopulateNodeModulesBroker', () => {
         thirdPartyEntry: 'react-router-dom',
       });
 
-      const result = await worktreePopulateNodeModulesBroker({ repoRoot, worktreePath });
+      const result = await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllSymlinks()).toStrictEqual([
@@ -44,7 +54,11 @@ describe('worktreePopulateNodeModulesBroker', () => {
         packageName: 'orchestrator',
       });
 
-      const result = await worktreePopulateNodeModulesBroker({ repoRoot, worktreePath });
+      const result = await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllSymlinks()).toStrictEqual([
@@ -63,7 +77,11 @@ describe('worktreePopulateNodeModulesBroker', () => {
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
       proxy.setupNoWorkspaceLinks({ repoRoot, worktreePath, thirdPartyEntry: 'zod' });
 
-      const result = await worktreePopulateNodeModulesBroker({ repoRoot, worktreePath });
+      const result = await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllSymlinks()).toStrictEqual([
@@ -81,7 +99,11 @@ describe('worktreePopulateNodeModulesBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
-      const result = await worktreePopulateNodeModulesBroker({ repoRoot, worktreePath });
+      const result = await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllSymlinks()).toStrictEqual([]);
@@ -98,9 +120,9 @@ describe('worktreePopulateNodeModulesBroker', () => {
         error: new Error('EACCES: permission denied'),
       });
 
-      await expect(worktreePopulateNodeModulesBroker({ repoRoot, worktreePath })).rejects.toThrow(
-        /^EACCES: permission denied$/u,
-      );
+      await expect(
+        worktreePopulateNodeModulesBroker({ repoRoot, worktreePath, onLine: () => undefined }),
+      ).rejects.toThrow(/^EACCES: permission denied$/u);
     });
   });
 
@@ -116,9 +138,138 @@ describe('worktreePopulateNodeModulesBroker', () => {
         error: new Error('EACCES: permission denied'),
       });
 
-      await expect(worktreePopulateNodeModulesBroker({ repoRoot, worktreePath })).rejects.toThrow(
-        /^EACCES: permission denied$/u,
-      );
+      await expect(
+        worktreePopulateNodeModulesBroker({ repoRoot, worktreePath, onLine: () => undefined }),
+      ).rejects.toThrow(/^EACCES: permission denied$/u);
+    });
+  });
+
+  describe('live streaming', () => {
+    it('VALID: {fresh worktree with one workspace package} => onLine receives one mirroring line per root, root first', async () => {
+      const proxy = worktreePopulateNodeModulesBrokerProxy();
+      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const streamed: StreamedLine[] = [];
+      proxy.setupWorkspacePackageWithNodeModules({
+        repoRoot,
+        worktreePath,
+        packageName: 'web',
+        thirdPartyEntry: 'react-router-dom',
+      });
+
+      await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      });
+
+      expect(streamed).toStrictEqual([
+        '— mirroring node_modules: /repo/worktrees/quest-slug-a1b2c3d4 —',
+        '— mirroring node_modules: /repo/worktrees/quest-slug-a1b2c3d4/packages/web —',
+      ]);
+    });
+  });
+
+  describe('resumed after a partial mirror', () => {
+    it('VALID: {root already populated, its workspace package not} => links ONLY the package entry and emits a skip line for the root', async () => {
+      const proxy = worktreePopulateNodeModulesBrokerProxy();
+      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const streamed: StreamedLine[] = [];
+      proxy.setupWorkspacePackageWithNodeModules({
+        repoRoot,
+        worktreePath,
+        packageName: 'web',
+        thirdPartyEntry: 'react-router-dom',
+      });
+      proxy.setupRootTargetAlreadyPopulated({ worktreePath });
+
+      const result = await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllSymlinks()).toStrictEqual([
+        {
+          target: '/repo/packages/web/node_modules/react-router-dom',
+          linkPath:
+            '/repo/worktrees/quest-slug-a1b2c3d4/packages/web/node_modules/react-router-dom',
+        },
+      ]);
+      expect(streamed).toStrictEqual([
+        '— skip /repo/worktrees/quest-slug-a1b2c3d4 (node_modules already populated) —',
+        '— mirroring node_modules: /repo/worktrees/quest-slug-a1b2c3d4/packages/web —',
+      ]);
+    });
+
+    it('VALID: {workspace package already populated, root not} => links ONLY the root entry and emits a skip line for the package', async () => {
+      const proxy = worktreePopulateNodeModulesBrokerProxy();
+      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const streamed: StreamedLine[] = [];
+      proxy.setupWorkspacePackageWithNodeModules({
+        repoRoot,
+        worktreePath,
+        packageName: 'web',
+        thirdPartyEntry: 'react-router-dom',
+      });
+      proxy.setupPackageTargetAlreadyPopulated({ worktreePath, packageName: 'web' });
+
+      const result = await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllSymlinks()).toStrictEqual([
+        {
+          target: '../../packages/web',
+          linkPath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster/web',
+        },
+      ]);
+      expect(streamed).toStrictEqual([
+        '— mirroring node_modules: /repo/worktrees/quest-slug-a1b2c3d4 —',
+        '— skip /repo/worktrees/quest-slug-a1b2c3d4/packages/web (node_modules already populated) —',
+      ]);
+    });
+
+    it('VALID: {both root and its workspace package already populated} => writes ZERO symlinks and emits a skip line for each', async () => {
+      const proxy = worktreePopulateNodeModulesBrokerProxy();
+      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const streamed: StreamedLine[] = [];
+      proxy.setupWorkspacePackageWithNodeModules({
+        repoRoot,
+        worktreePath,
+        packageName: 'web',
+        thirdPartyEntry: 'react-router-dom',
+      });
+      proxy.setupRootTargetAlreadyPopulated({ worktreePath });
+      proxy.setupPackageTargetAlreadyPopulated({ worktreePath, packageName: 'web' });
+
+      const result = await worktreePopulateNodeModulesBroker({
+        repoRoot,
+        worktreePath,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllSymlinks()).toStrictEqual([]);
+      expect(streamed).toStrictEqual([
+        '— skip /repo/worktrees/quest-slug-a1b2c3d4 (node_modules already populated) —',
+        '— skip /repo/worktrees/quest-slug-a1b2c3d4/packages/web (node_modules already populated) —',
+      ]);
     });
   });
 });

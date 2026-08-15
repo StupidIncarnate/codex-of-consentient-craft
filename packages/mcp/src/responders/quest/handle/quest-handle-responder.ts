@@ -25,6 +25,7 @@ import { BlightChecklistLayerResponder } from './blight-checklist-layer-responde
 import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
 import { ResetFlowSignoffsLayerResponder } from './reset-flow-signoffs-layer-responder';
+import { RunRiftcarverLayerResponder } from './run-riftcarver-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { toolNameContract } from '../../../contracts/tool-name/tool-name-contract';
@@ -54,6 +55,7 @@ const layerResponders = new Map<
   [toolNameContract.parse('get-blight-checklist'), BlightChecklistLayerResponder],
   [toolNameContract.parse('reset-flow-signoffs'), ResetFlowSignoffsLayerResponder],
   [toolNameContract.parse('get-quest-summary'), QuestSummaryLayerResponder],
+  [toolNameContract.parse('run-riftcarver'), RunRiftcarverLayerResponder],
 ]);
 
 export const QuestHandleResponder = async ({

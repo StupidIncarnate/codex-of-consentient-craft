@@ -5,6 +5,7 @@ import {
   ContractNameStub,
   ErrorMessageStub,
   ObservableIdStub,
+  RiftcarverResultStub,
   WardResultStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -844,6 +845,70 @@ describe('ExecutionRowLayerWidget', () => {
       await userEvent.click(header);
 
       expect(screen.queryByTestId('execution-row-ward-result')).toBe(null);
+    });
+  });
+
+  describe('riftcarver results rendering', () => {
+    it('VALID: {riftcarverResults with exitCode 0} => renders riftcarver exit code with outcome', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            riftcarverResults={[RiftcarverResultStub({ exitCode: 0 as never, outcome: 'green' })]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const riftcarverResultEl = screen.getByTestId('execution-row-riftcarver-result');
+
+      expect(riftcarverResultEl.textContent).toBe('Riftcarver exit code: 0 (green)');
+    });
+
+    it('VALID: {riftcarverResults with exitCode 1 and outcome "repairable"} => renders exit code and outcome', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            riftcarverResults={[
+              RiftcarverResultStub({ exitCode: 1 as never, outcome: 'repairable' }),
+            ]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const riftcarverResultEl = screen.getByTestId('execution-row-riftcarver-result');
+
+      expect(riftcarverResultEl.textContent).toBe('Riftcarver exit code: 1 (repairable)');
+    });
+
+    it('EMPTY: {no riftcarverResults} => does not render riftcarver result elements', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-riftcarver-result')).toBe(null);
     });
   });
 

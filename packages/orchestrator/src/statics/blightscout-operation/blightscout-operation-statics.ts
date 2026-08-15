@@ -34,8 +34,9 @@
  *
  * Membership is exactly "this role's session ends in a commit of its own":
  *
- * - `ward` is absent because it is `spawnerType: 'command'` — a quality-gate run, not a session,
- *   and it writes no code.
+ * - Every COMMAND role (`workItemRoleStatics.command` — `ward`, `riftcarver`) is absent because it
+ *   is `spawnerType: 'command'`: a gate run or a workspace-preparation sequence the dispatcher
+ *   executes itself, not a session, and neither writes code a scout could review.
  * - Every CHAT role (`workItemRoleStatics.chat`) is absent for the same reason: an intake or
  *   follow-up conversation produces a spec, not a commit.
  * - `warpgate` is absent because its commit is a MERGE of commits every earlier scout already

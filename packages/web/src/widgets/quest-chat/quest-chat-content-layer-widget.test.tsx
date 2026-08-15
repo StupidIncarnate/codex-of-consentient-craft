@@ -1109,6 +1109,49 @@ describe('QuestChatContentLayerWidget', () => {
     });
   });
 
+  describe('Begin Quest double-click guard', () => {
+    it('EDGE: {click Begin Quest twice before the first POST resolves} => POSTs quest-start exactly once', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupStart({ processId: 'proc-begin-double-click' });
+      const guildId = GuildIdStub({ value: 'aaaaaaa9-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-begin-double-click', status: 'approved' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-begin-double-click' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_APPROVED_MODAL_TITLE');
+      await proxy.clickBeginQuest();
+      await proxy.clickBeginQuest();
+
+      await waitFor(() => {
+        expect(proxy.getStartRequestCount()).toBe(1);
+      });
+
+      expect(proxy.getStartRequestCount()).toBe(1);
+    });
+  });
+
   describe('quest load failure surface', () => {
     it('ERROR: {quest-load-failed for this quest} => renders the parse reason instead of the awaiting surface', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();

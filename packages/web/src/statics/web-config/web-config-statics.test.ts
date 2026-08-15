@@ -12,6 +12,7 @@ describe('webConfigStatics', () => {
           questsQueue: '/api/quests/queue',
           questById: '/api/quests/:questId',
           questWardDetail: '/api/quests/:questId/ward-results/:wardResultId',
+          questRiftcarverDetail: '/api/quests/:questId/riftcarver-results/:riftcarverResultId',
           questSummary: '/api/quests/:questId/summary',
           guildSessions: '/api/guilds/:guildId/sessions',
           sessionChatHistory: '/api/sessions/:sessionId/chat/history',

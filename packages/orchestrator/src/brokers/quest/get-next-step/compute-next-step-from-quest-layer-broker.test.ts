@@ -99,6 +99,61 @@ describe('computeNextStepFromQuestLayerBroker', () => {
     });
   });
 
+  // buildSpawnInstructionLayerBroker parses agentRoleContract and THROWS for a non-agent role, so
+  // a riftcarver item reaching the batch below is a crash rather than a mis-dispatch. This branch
+  // is what guarantees it never gets there.
+  it('VALID: {ready riftcarver item alongside a ready codeweaver} => returns run-riftcarver alone, never a spawn instruction', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-riftcarver' });
+    const carveId = QuestWorkItemIdStub({ value: 'ccc11111-1111-4222-9333-444444444444' });
+    const cwId = QuestWorkItemIdStub({ value: 'ccc22222-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        WorkItemStub({ id: cwId, role: 'codeweaver', status: 'pending' }),
+        WorkItemStub({
+          id: carveId,
+          role: 'riftcarver',
+          status: 'pending',
+          spawnerType: 'command',
+        }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'run-riftcarver',
+      questId,
+      workItemId: carveId,
+    });
+  });
+
+  it('VALID: {ready riftcarver item alone} => returns run-riftcarver with no mode key', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-riftcarver-solo' });
+    const carveId = QuestWorkItemIdStub({ value: 'ccc33333-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        WorkItemStub({
+          id: carveId,
+          role: 'riftcarver',
+          status: 'pending',
+          spawnerType: 'command',
+        }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'run-riftcarver',
+      questId,
+      workItemId: carveId,
+    });
+  });
+
   it('VALID: {ready codeweaver only} => returns spawn-agents with one codeweaver', () => {
     computeNextStepFromQuestLayerBrokerProxy();
     const questId = QuestIdStub({ value: 'q-cw' });

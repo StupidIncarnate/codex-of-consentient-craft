@@ -14,6 +14,7 @@ import type {
   ErrorMessage,
   ObservableId,
   QuestId,
+  RiftcarverResult,
   WardResult,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
@@ -34,6 +35,7 @@ import { durationDisplayTransformer } from '../../transformers/duration-display/
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
+import { RiftcarverResultDetailLayerWidget } from './riftcarver-result-detail-layer-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
 
@@ -58,6 +60,7 @@ export interface ExecutionRowLayerWidgetProps {
   inputContracts?: ContractName[];
   outputContracts?: ContractName[];
   wardResults?: WardResult[];
+  riftcarverResults?: RiftcarverResult[];
   actualSignal?: WorkItem['actualSignal'];
   questId?: QuestId;
 }
@@ -121,6 +124,7 @@ export const ExecutionRowLayerWidget = ({
   inputContracts,
   outputContracts,
   wardResults,
+  riftcarverResults,
   actualSignal,
   questId,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
@@ -473,6 +477,28 @@ export const ExecutionRowLayerWidget = ({
                   </Text>
                   {questId === undefined ? null : (
                     <WardResultDetailLayerWidget questId={questId} wardResult={wr} />
+                  )}
+                </Box>
+              ))
+            : null}
+          {riftcarverResults && riftcarverResults.length > 0
+            ? riftcarverResults.map((rr) => (
+                <Box
+                  key={rr.id}
+                  data-testid="execution-row-riftcarver-result"
+                  style={{ marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM }}
+                >
+                  <Text
+                    ff="monospace"
+                    style={{
+                      fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                      color: rr.exitCode === 0 ? colors.success : colors.danger,
+                    }}
+                  >
+                    Riftcarver exit code: {String(rr.exitCode)} ({rr.outcome})
+                  </Text>
+                  {questId === undefined ? null : (
+                    <RiftcarverResultDetailLayerWidget questId={questId} riftcarverResult={rr} />
                   )}
                 </Box>
               ))

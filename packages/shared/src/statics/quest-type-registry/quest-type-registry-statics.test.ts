@@ -13,6 +13,10 @@ describe('questTypeRegistryStatics', () => {
         initialWorkItemRole: 'chaoswhisperer',
         startImplementationOps: [
           {
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          },
+          {
             role: 'codeweaver',
             text: 'Codeweaver: build this slice',
             fanOutBy: 'implementation',
@@ -39,6 +43,7 @@ describe('questTypeRegistryStatics', () => {
           { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
         ],
         roles: [
+          'riftcarver',
           'codeweaver',
           'ward',
           'flowrider',
@@ -53,6 +58,10 @@ describe('questTypeRegistryStatics', () => {
         initialWorkItemRole: 'bughunt',
         startImplementationOps: [
           {
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          },
+          {
             role: 'pesteater',
             text: 'PestEater: reproduce the bug with a failing test first, then fix it',
           },
@@ -61,7 +70,7 @@ describe('questTypeRegistryStatics', () => {
           { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
           { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
         ],
-        roles: ['pesteater', 'ward', 'blightscout', 'spiritmender'],
+        roles: ['riftcarver', 'pesteater', 'ward', 'blightscout', 'spiritmender'],
       },
     });
   });
@@ -115,6 +124,37 @@ describe('questTypeRegistryStatics', () => {
 
     expect(declaresFanOut).toStrictEqual([]);
   });
+
+  // Nothing the relay dispatches has a workspace to run in until riftcarver has carved one, so its
+  // position is an invariant of every quest type rather than a property of either one.
+  it.each(QUEST_TYPES)(
+    'VALID: {questType: %s} => seeds riftcarver as the FIRST implementation operation',
+    (questType) => {
+      const implRoles = questTypeRegistryStatics[questType].startImplementationOps.map(
+        (seed) => seed.role,
+      );
+
+      expect(implRoles[0]).toBe('riftcarver');
+    },
+  );
+
+  // No `fanOutBy` => exactly one item; no `locked` => it defaults TRUE, which is what enrols the
+  // carve in its pt budget so a repair loop that cannot converge halts instead of running forever.
+  it.each(QUEST_TYPES)(
+    'VALID: {questType: %s} => the riftcarver seed declares neither fanOutBy nor locked',
+    (questType) => {
+      const riftcarverSeeds = questTypeRegistryStatics[questType].startImplementationOps.filter(
+        (seed) => seed.role === 'riftcarver',
+      );
+
+      expect(
+        riftcarverSeeds.map((seed) => ({
+          declaresFanOut: 'fanOutBy' in seed,
+          declaresLocked: 'locked' in seed,
+        })),
+      ).toStrictEqual([{ declaresFanOut: false, declaresLocked: false }]);
+    },
+  );
 
   // PestEater writes the reproducing e2e itself, so a bug-hunt groundstomper item would own scope
   // that is already claimed — and its relay carries neither operator role for one to sit between.

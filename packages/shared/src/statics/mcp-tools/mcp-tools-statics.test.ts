@@ -30,6 +30,7 @@ describe('mcpToolsStatics', () => {
           'create-quest',
           'get-next-step',
           'run-ward',
+          'run-riftcarver',
           'get-server-config',
           'reset-flow-signoffs',
           'get-quest-summary',

@@ -8,6 +8,7 @@ import { QuestCommentStub } from '../quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { QuestNoteStub } from '../quest-note/quest-note.stub';
 import { QuestPackageEntryStub } from '../quest-package-entry/quest-package-entry.stub';
+import { RiftcarverResultStub } from '../riftcarver-result/riftcarver-result.stub';
 import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { WardResultStub } from '../ward-result/ward-result.stub';
@@ -41,6 +42,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        riftcarverResults: [],
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
@@ -73,6 +75,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        riftcarverResults: [],
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
@@ -105,6 +108,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        riftcarverResults: [],
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
@@ -222,6 +226,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        riftcarverResults: [],
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
@@ -276,6 +281,53 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.wardResults).toStrictEqual([wardResult]);
+    });
+
+    it('VALID: quest with riftcarverResults => parses successfully', () => {
+      const riftcarverResult = RiftcarverResultStub();
+      const quest = QuestStub({
+        riftcarverResults: [riftcarverResult],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.riftcarverResults).toStrictEqual([riftcarverResult]);
+    });
+
+    it('VALID: quest with two riftcarverResults => keeps both attempts rather than the last one', () => {
+      const failedAttempt = RiftcarverResultStub({
+        id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+        exitCode: 1,
+        failedStep: 'build',
+        outcome: 'repairable',
+      });
+      const repairedAttempt = RiftcarverResultStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        exitCode: 0,
+        outcome: 'green',
+      });
+      const quest = QuestStub({
+        riftcarverResults: [failedAttempt, repairedAttempt],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.riftcarverResults).toStrictEqual([failedAttempt, repairedAttempt]);
+    });
+
+    it('VALID: quest without riftcarverResults field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.riftcarverResults).toStrictEqual([]);
     });
 
     it('VALID: quest without workItems field => backward compat defaults to empty array', () => {
@@ -464,6 +516,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        riftcarverResults: [],
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
         branchName: 'quest/add-auth-7bc217a1',
         baseBranch: 'main',

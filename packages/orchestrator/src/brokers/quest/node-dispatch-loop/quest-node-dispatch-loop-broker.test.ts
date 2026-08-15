@@ -14,6 +14,7 @@ describe('questNodeDispatchLoopBroker', () => {
       const result = await questNodeDispatchLoopBroker({
         isPlaying: (): boolean => false,
         onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -34,7 +35,11 @@ describe('questNodeDispatchLoopBroker', () => {
         .mockReturnValueOnce(true)
         .mockReturnValue(false);
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying,
+        onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
+      });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying }]);
@@ -63,7 +68,11 @@ describe('questNodeDispatchLoopBroker', () => {
       });
       const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying,
+        onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
+      });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getRunWardCalls()).toStrictEqual([]);
@@ -76,7 +85,11 @@ describe('questNodeDispatchLoopBroker', () => {
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents }) });
       const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying,
+        onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
+      });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
@@ -91,6 +104,7 @@ describe('questNodeDispatchLoopBroker', () => {
       const result = await questNodeDispatchLoopBroker({
         isPlaying: (): boolean => true,
         onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -119,6 +133,7 @@ describe('questNodeDispatchLoopBroker', () => {
       const result = await questNodeDispatchLoopBroker({
         isPlaying: (): boolean => true,
         onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -134,6 +149,82 @@ describe('questNodeDispatchLoopBroker', () => {
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
     });
 
+    it('VALID: {run-riftcarver step then idle} => runs the carve with questId/workItemId then recurses to idle', async () => {
+      const proxy = questNodeDispatchLoopBrokerProxy();
+      const carveStep = NextStepStub({
+        type: 'run-riftcarver',
+        questId: 'add-auth',
+        workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+      } as never);
+      proxy.queueStep({ step: carveStep });
+
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => true,
+        onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
+      });
+
+      expect(result).toStrictEqual(AdapterResultStub());
+      expect(proxy.getRunRiftcarverCalls()).toStrictEqual([
+        {
+          questId: 'add-auth',
+          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+          // No `mode`: a carve reads its scope off the quest, where ward has to be told which slice.
+          onLine: expect.any(Function),
+        },
+      ]);
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
+      expect(proxy.getRunWardCalls()).toStrictEqual([]);
+    });
+
+    // A riftcarver work item is `spawnerType: 'command'` with no sessionId, so no JSONL watcher can
+    // ever tail it. Asserting the LINES that arrive — not that a callback was handed over — is the
+    // only assertion that fails when the wiring silently streams nothing.
+    it('VALID: {carve streams three lines} => onRiftcarverLine receives each line verbatim, keyed on the step questId and workItemId', async () => {
+      const proxy = questNodeDispatchLoopBrokerProxy();
+      proxy.queueStep({
+        step: NextStepStub({
+          type: 'run-riftcarver',
+          questId: 'add-auth',
+          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+        } as never),
+      });
+      proxy.setupCarveOutput({
+        lines: [
+          '— git worktree add /repo/worktrees/add-auth-a1b2c3d4 (branch quest/add-auth-a1b2c3d4) —',
+          '— skip @dungeonmaster/web (already populated) —',
+          'Build succeeded',
+        ],
+      });
+      const received: unknown[] = [];
+
+      await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => true,
+        onWardLine: () => undefined,
+        onRiftcarverLine: (params): void => {
+          received.push(params);
+        },
+      });
+
+      expect(received).toStrictEqual([
+        {
+          questId: 'add-auth',
+          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+          line: '— git worktree add /repo/worktrees/add-auth-a1b2c3d4 (branch quest/add-auth-a1b2c3d4) —',
+        },
+        {
+          questId: 'add-auth',
+          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+          line: '— skip @dungeonmaster/web (already populated) —',
+        },
+        {
+          questId: 'add-auth',
+          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+          line: 'Build succeeded',
+        },
+      ]);
+    });
+
     it('VALID: {spawn-agents step then idle} => spawns the batch then recurses to idle', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
       const agents = [SpawnInstructionStub(), SpawnInstructionStub({ role: 'blightscout' })];
@@ -144,6 +235,7 @@ describe('questNodeDispatchLoopBroker', () => {
       const result = await questNodeDispatchLoopBroker({
         isPlaying,
         onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -162,6 +254,7 @@ describe('questNodeDispatchLoopBroker', () => {
       await questNodeDispatchLoopBroker({
         isPlaying,
         onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
         registerProcess,
       });
 
@@ -179,6 +272,7 @@ describe('questNodeDispatchLoopBroker', () => {
       await questNodeDispatchLoopBroker({
         isPlaying,
         onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
         unregisterProcess,
       });
 
@@ -196,6 +290,7 @@ describe('questNodeDispatchLoopBroker', () => {
       await questNodeDispatchLoopBroker({
         isPlaying,
         onWardLine: () => undefined,
+        onRiftcarverLine: () => undefined,
       });
 
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([

@@ -39,7 +39,7 @@ import {
   type Quest,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
+import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
@@ -91,9 +91,13 @@ export const workItemToPromptTransformer = ({
     };
   }
 
-  if (workItem.role === 'ward') {
+  // Every COMMAND role, not `ward` alone. A command work item is run by the dispatcher itself and
+  // has no prompt to fetch; matching the whole subset is what makes the refusal say so, instead of
+  // letting the role fall through to `agentNameToPromptTransformer` and die on an agent name that
+  // was never meant to exist.
+  if (isCommandWorkItemRoleGuard({ role: workItem.role })) {
     throw new Error(
-      `workItemToPromptTransformer: ward work items are dispatched via the run-ward MCP tool, not via get-agent-prompt`,
+      `workItemToPromptTransformer: ${workItem.role} work items are dispatched as commands by the orchestrator, not via get-agent-prompt`,
     );
   }
 

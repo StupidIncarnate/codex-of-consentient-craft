@@ -42,6 +42,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       worktreePath,
       branchName,
       baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
     });
     await git.checkoutBranch({ repoPath: worktreePath, branchName: strayBranch });
 
@@ -96,6 +97,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       worktreePath,
       branchName,
       baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
     });
     await git.checkoutBranch({ repoPath: worktreePath, branchName: strayBranch });
 
@@ -149,6 +151,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       worktreePath,
       branchName,
       baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
     });
     await git.checkoutBranch({ repoPath: worktreePath, branchName: strayBranch });
 

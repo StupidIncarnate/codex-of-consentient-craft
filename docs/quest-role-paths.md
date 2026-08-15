@@ -17,17 +17,23 @@ documented in `packages/orchestrator/CLAUDE.md`. This doc focuses on orchestrati
 ## The model in one paragraph
 
 A quest carries a small, ordered **`operations` ledger** (`quest.operations: OperationItem[]`) — the
-durable plan-and-status record. The orchestrator runs a **reactive relay**: it works the ledger one
-work-item session at a time. `questAdvanceBroker` finds the first `pending` operation item, creates
-exactly ONE work item for it (marking the operation `in_progress` in the same atomic write), and the
-dispatch scan spawns that work item's agent. When the agent finishes it calls `signal-back`; the
-orchestrator marks the operation `complete` and calls `questAdvanceBroker` again to create the next
-work item. There is **no failure concept except a ward exit-code red**, and **no recovery-first
-routing, no PathSeeker, no replan, no pre-built work-item chain.** "Sad" paths are not failures: an
-agent that can't finish its scope signals `partial` and the orchestrator continues its work as a
-fresh `pt N` session; a ward red appends a spiritmender fix and re-wards; a server crash resumes the
-orphaned session. The **sole** path to `blocked` (needs-human) is `quest-block-on-failure-broker`,
-reached only when a bounded loop is spent.
+durable plan-and-status record. Its FIRST item, on every quest type, is a **`riftcarver`**: the
+command role that carves the quest branch, its worktree and the preflight build, so the workspace
+every later role runs in is forged when the quest is next in line rather than the moment its spec is
+approved. The orchestrator runs a **reactive relay**: it works the ledger one work-item session at a
+time. `questAdvanceBroker` finds the first `pending` operation item, creates exactly ONE work item
+for it (marking the operation `in_progress` in the same atomic write), and the dispatch scan spawns
+that work item's agent — or, when the role is in `workItemRoleStatics.command`, runs the command
+itself. When the agent finishes it calls `signal-back`; the orchestrator marks the operation
+`complete` and calls `questAdvanceBroker` again to create the next work item. The failure concepts
+are the **two command roles' exit codes** — a `riftcarver` red and a `ward` red — plus an agent's
+self-reported environment wall; there is **no recovery-first routing, no PathSeeker, no replan, no
+pre-built work-item chain.** Most "sad" paths are not failures: an agent that can't finish its scope
+signals `partial` and the orchestrator continues its work as a fresh `pt N` session; a ward red
+appends a spiritmender fix and re-wards; a repairable riftcarver red does the same and re-carves; a
+server crash resumes the orphaned session. The **sole** path to `blocked` (needs-human) is
+`quest-block-on-failure-broker`, reached when a bounded loop is spent, when an agent reports an
+environment wall, or when a riftcarver hits a git-state or permission failure.
 
 ---
 
@@ -51,8 +57,9 @@ reached only when a bounded loop is spent.
 - **Work item (`quest.workItems[]`)** — one agent *session* (`sessionId` / `agentId` / transcript).
   **Strict 1:1 invariant: every work item links to exactly one operation item via
   `relatedDataItems: ['operations/<id>']`, and each operation item is worked by exactly ONE work item
-  over its life** — never re-linked, never status-reverted. Ward work items additionally carry a
-  `wardResults/<id>` ref.
+  over its life** — never re-linked, never status-reverted. A COMMAND work item additionally carries
+  its own result ref — `wardResults/<id>` for ward, `riftcarverResults/<id>` for riftcarver — which
+  is the only route the execution panel has to that run's persisted log.
 - **Relay** — the sequential progression of work-item sessions through the ledger, one active work
   item at a time.
 - **Duplicate-on-partial** — when an agent signals `operationStatus: 'partial'`, the orchestrator
@@ -100,13 +107,19 @@ items at Start Quest (locked, except the feature `codeweaver` seed — see below
 
 | Type       | Intake                              | Implementation ops                                                        | Verify tail (appended at Start, all locked)                     |
 |------------|-------------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------------------|
-| `feature`  | `/dumpster-create` (ChaosWhisperer) | **DERIVED** `codeweaver` items — one `fanOutBy: 'implementation'` seed, never authored | `ward(changed) → flowrider → groundstomper → siegemaster → ward(full)` |
-| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | orchestrator-seeded `pesteater` (`initialWorkItemRole` is null)           | `ward(changed) → ward(full)`                     |
+| `feature`  | `/dumpster-create` (ChaosWhisperer) | `riftcarver` (always the first entry, exactly one item) then **DERIVED** `codeweaver` items — one `fanOutBy: 'implementation'` seed, never authored | `ward(changed) → flowrider → groundstomper → siegemaster → ward(full)` |
+| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | `riftcarver` (always the first entry, exactly one item) then orchestrator-seeded `pesteater` | `ward(changed) → ward(full)`                     |
+
+`riftcarver` heads `startImplementationOps` for **both** types, and neither seed carries a `fanOutBy`,
+so each mints exactly one item. Nothing on the ledger can run before it: every later role works
+inside the worktree it creates.
 
 So the full feature relay is:
 
 ```
-chaoswhisperer (plan item)   → codeweaver ×N (DERIVED at Start, not authored)
+chaoswhisperer (plan item)
+  → riftcarver (branch + worktree + node_modules mirror + preflight build)
+  → codeweaver ×N (DERIVED at Start, not authored)
   → ward(changed)
   → flowrider ×N (one per package it owns + one seam item, bundled to minions)
   → groundstomper ×N (one per runtime flow a browser can reach)
@@ -117,7 +130,8 @@ chaoswhisperer (plan item)   → codeweaver ×N (DERIVED at Start, not authored)
 and the full bug-hunt relay is:
 
 ```
-pesteater
+riftcarver
+  → pesteater
   → ward(changed) → ward(full)
 ```
 
@@ -125,9 +139,10 @@ Neither tail seeds a blight-review item. `blightscout` — the one-commit standa
 `blightwarden` — is APPENDED by `QuestHandleSignalBackResponder` after every session above that commits, never seeded
 once here. Eligibility is membership in `blightscoutOperationStatics.committingRoles` (`codeweaver`, `flowrider`,
 `groundstomper`, `siegemaster`, `pesteater`, `spiritmender`); `blightscout` itself is absent from that list, which is
-what makes the append terminate at one review per committing session. So a real feature run dispatches
-`codeweaver → blightscout → … → ward(changed) → flowrider → blightscout → …`, and a bug-hunt run dispatches
-`pesteater → blightscout → ward(changed) → ward(full)`.
+what makes the append terminate at one review per committing session. `riftcarver` is absent from it too — it is a
+COMMAND role that writes no code, so nothing follows it but the work it enabled. So a real feature run dispatches
+`riftcarver → codeweaver → blightscout → … → ward(changed) → flowrider → blightscout → …`, and a bug-hunt run
+dispatches `riftcarver → pesteater → blightscout → ward(changed) → ward(full)`.
 
 `flowrider` is an **operator** role that owns test coverage BELOW the browser, and its one registry tail entry fans
 out BY PACKAGE (`relayTailFanOutTransformer`, `fanOutBy: 'package'`): one operation item per package the quest's
@@ -168,8 +183,8 @@ primary driver.**
 | Surface                          | Dispatcher                     | What it does                                                                                                                                        |
 |----------------------------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | Web UI `/queue` page play button | **Node/UI mode (primary)**     | The server-side Node dispatch runner loops `get-next-step` in-process and spawns headless `claude -p` children (one per SpawnInstruction).           |
-| `/dumpster-launch` slash command | **MCP mode**                   | A brainless loop in the user's own Claude session: `get-next-step()` → `Task()` for agents / `run-ward` MCP tool for ward → await → repeat.          |
-| Web UI "Start Quest" button      | —                              | Calls `OrchestrationStartResponder`: seeds the relay and flips status `approved → in_progress`. **Spawns nothing** — the active dispatcher picks it up. |
+| `/dumpster-launch` slash command | **MCP mode**                   | A brainless loop in the user's own Claude session: `get-next-step()` → `Task()` for agents / `run-ward` or `run-riftcarver` MCP tool for a command role → await → repeat. |
+| Web UI "Start Quest" button      | —                              | Calls `OrchestrationStartResponder`: seeds the relay and flips status `approved → in_progress`. **Spawns nothing and touches no git** — pure `quest.json` bookkeeping, so the POST answers in milliseconds and the active dispatcher picks the quest up. |
 
 The two modes are mutually exclusive via `<dungeonmasterHome>/dispatch-state.json`. `get-next-step`
 long-polls internally (~25s) before returning `{ type: 'idle' }` when nothing is ready.
@@ -197,7 +212,7 @@ driven by the operations relay.
 | `created`                                       | `create-quest`                            | Intake agent's first action; seeds the plan operation item (see below)      |
 | `explore_flows` … `review_observables`          | ChaosWhisperer (via `modify-quest`)       | The only roles that set status directly                                     |
 | `flows_approved`, `approved`, `design_approved` | **User** (APPROVE button)                 | The approval gates; each requires non-empty `flows` — nothing else         |
-| `in_progress`                                   | `start-quest` / Start Quest button        | Spec locked; the relay is seeded and dispatch begins                        |
+| `in_progress`                                   | `start-quest` / Start Quest button        | Spec locked; the relay is seeded and dispatch begins. Start is pure `quest.json` bookkeeping — it spawns nothing and touches no git, so the panel swap is immediate; the branch, worktree, `node_modules` mirror and preflight build belong to the `riftcarver` item it seeds at the head of the ledger |
 | `complete`, `blocked`                           | Derived / set by the orchestrator         | `complete` derived by `workItemsToQuestStatusTransformer`; `blocked` set only by `quest-block-on-failure-broker` |
 | `paused`, `abandoned`                           | User                                      | Not derived over — owned by the user                                        |
 
@@ -226,13 +241,22 @@ Trace one feature quest end to end.
    only requires non-empty `flows`.
 
 3. **User approves** → **Start Quest** (`OrchestrationStartResponder`):
+   - Start is **pure `quest.json` bookkeeping**: the startable gate, the package dependency graph
+     (one `package.json` read per declared package plus Kahn's order — milliseconds), the relay seed,
+     then the status flip and the queue entry. It spawns no child and runs no git, which is what
+     keeps the POST at millisecond scale and lets the WebSocket-driven panel swap land instantly.
    - `questBuildRelayGraphBroker` force-completes any non-complete intake (`chaoswhisperer` /
      `glyphsmith`) operation item, then mints `startImplementationOps` + the fixed verify tail as
      pending operation items (locked, except the `codeweaver` seed itself — see below) and creates ONE
-     work item for the first actionable (`pending`) operation item — the first `codeweaver` — linked
-     `operations/<id>`, depending on the completed chat work items.
-   - **This is where the codeweaver items are born.** `startImplementationOps` for a feature quest is
-     ONE seed, `{ role: 'codeweaver', fanOutBy: 'implementation', locked: false }`. `questBuildRelayGraphBroker`
+     work item for the first actionable (`pending`) operation item — the `riftcarver`, minted
+     `spawnerType: 'command'` off `isCommandWorkItemRoleGuard` — linked `operations/<id>`, depending
+     on the completed chat work items.
+   - It stamps **no `baseRef`**. Start runs before any worktree exists, so the only HEAD it could read
+     is the server process's own checkout; `riftcarver` is the sole writer of that field and reads it
+     from the worktree's own HEAD once the worktree is real.
+   - **This is also where the codeweaver items are born.** `startImplementationOps` for a feature
+     quest is TWO seeds — the `riftcarver` above, then
+     `{ role: 'codeweaver', fanOutBy: 'implementation', locked: false }`. `questBuildRelayGraphBroker`
      runs it through `relayTailFanOutTransformer`, which expands it into one item per (package, flow)
      cell across both flow types, plus one flow-less **foundation** item per package holding the
      contracts — and the individual contract PROPERTIES, each of which may carry its own `source` —
@@ -250,19 +274,27 @@ Trace one feature quest end to end.
      `in_progress`. Both the seed and the transition are idempotent (a re-Start detects the already-
      appended locked ward tail and skips straight to the transition).
 
-4. **The dispatch loop** picks up that codeweaver work item. The agent reads its operation item + git
-   + the ledger, verifies it's the right next step, builds, commits a prose handoff, and signals
+4. **The dispatch loop** picks up the riftcarver work item and runs it as `run-riftcarver`
+   (`spawnerType: 'command'`) via `quest-run-riftcarver-broker`: detect the base branch, `git worktree
+   add`, pin `baseRef` from the new tree's HEAD, mirror `node_modules` for the repo root and every
+   workspace root, then run the preflight build to convergence. Every line streams live to the
+   execution row and is persisted to `<questFolder>/riftcarver-results/<id>.log`. On green the
+   operation completes and advance dispatches the first `codeweaver`; on a red it routes by failure
+   class (see the riftcarver path below).
+
+5. **The dispatch loop** picks up that first codeweaver work item. The agent reads its operation item
+   + git + the ledger, verifies it's the right next step, builds, commits a prose handoff, and signals
    `complete` carrying `operationItemId` + `operationStatus: 'done'`.
 
-5. **`QuestHandleSignalBackResponder`**, in ONE atomic `questOperationsUpdateBroker` write, marks the
+6. **`QuestHandleSignalBackResponder`**, in ONE atomic `questOperationsUpdateBroker` write, marks the
    work item terminal (`complete`) + the linked operation item `complete`, then calls
    `questAdvanceBroker` → the next `pending` operation item (the next `codeweaver`) gets its work item.
    Repeat until all codeweaver items are complete.
 
-6. **Ward operation items** are dispatched as `run-ward` (`spawnerType: 'command'`) and handled by
+7. **Ward operation items** are dispatched as `run-ward` (`spawnerType: 'command'`) and handled by
    `quest-run-ward-broker` (see the ward path below).
 
-7. **Verify roles** run in tail order — `flowrider`, `groundstomper`, then `siegemaster`. All
+8. **Verify roles** run in tail order — `flowrider`, `groundstomper`, then `siegemaster`. All
    three are
    **operators**: `flowrider` runs one session per package slice below the browser, `groundstomper` one per
    browser-reachable runtime flow, each signalling `done` once every unit in
@@ -293,17 +325,35 @@ that stopped between an operation `complete` and the advance still progresses on
 2. **Strict-1:1 resume guard:** if that pending item already has ANY linked work item, do NOTHING
    (its session is live, or orphan recovery will resume it). No duplicate work item is ever possible —
    across double signals, re-entrant scans, and restarts.
-3. Else create ONE work item for the operation's `role` (`spawnerType: 'command'` for `ward`, else
-   `agent`; copying `wardMode`), linked `operations/<id>`, depending on the most-recent
+3. Else create ONE work item for the operation's `role` (`spawnerType: 'command'` when
+   `isCommandWorkItemRoleGuard` matches — `workItemRoleStatics.command` is `['ward', 'riftcarver']` —
+   else `agent`; copying `wardMode`), linked `operations/<id>`, depending on the most-recent
    dependency-satisfying work item (a linear chain used for dispatch ordering), and mark the operation
    `in_progress`.
+
+That guard is the SINGLE predicate deciding both `spawnerType` and "is this Claude's to run", and it
+is data rather than a `role === 'ward'` ternary for a reason: a dispatch site that missed the second
+member would hand a riftcarver work item to `build-spawn-instruction-layer-broker`, which parses
+`agentRoleContract` and throws on a name it does not enumerate. `agentRoleContract` deliberately does
+NOT list `riftcarver`.
 
 ### Dispatch selection
 
 `compute-next-step-from-quest-layer-broker` + `select-batch-layer-broker` return **one session at a
-time**: a ready `ward` item is dispatched alone as `run-ward`; otherwise the single first ready work
-item is returned as `spawn-agents`. Because advance only ever creates one work item and it depends on
-the last terminal item, there is at most one dispatchable work item at any moment.
+time**: a ready COMMAND item is dispatched alone — a `riftcarver` as `run-riftcarver`, a `ward` as
+`run-ward` — and only what is left is batched, so the single first ready work item is returned as
+`spawn-agents`. Each command owns the whole tree for the length of its run (riftcarver creates the
+workspace, ward grades it), so batching one alongside an agent would let that agent edit the tree
+mid-run. Because advance only ever creates one work item and it depends on the last terminal item,
+there is at most one dispatchable work item at any moment.
+
+**The missing-worktree halt exempts riftcarver, and only riftcarver.** `scan-once-layer-broker`
+blocks a quest whose recorded `worktreePath` does not resolve, because dispatching any other role
+would run it against the repo-root checkout. The carve is the role that OWNS creating that path — its
+own done-check reads a recorded-but-missing directory as "not done" and re-creates it — so halting
+ahead of it would leave the quest permanently blocked by the one step that could have repaired it.
+The exemption keys on the step already computed (`run-riftcarver`), never on quest status, so only
+the work actually about to be dispatched earns the pass.
 
 ### Status derivation (`workItemsToQuestStatusTransformer`)
 
@@ -329,8 +379,9 @@ Runs inside `questOperationsUpdateBroker` on every ledger write (this is where t
 
 Every execution role signals with the sole signal kind `complete`; the outcome rides on the call as
 `operationStatus: 'done' | 'partial' | 'blocked'` and the orchestrator applies it server-side (authoritative — an agent
-cannot forget to patch the ledger, because agents never write the ledger). Ward is the one role whose terminal state
-comes from an exit code, not a signal.
+cannot forget to patch the ledger, because agents never write the ledger). The two COMMAND roles —
+`riftcarver` and `ward`, the members of `workItemRoleStatics.command` — are the ones whose terminal state comes from an
+exit code rather than a signal; neither is a Claude session, so neither has a signal to give.
 
 `blocked` is available to EVERY role in the tables below and behaves identically for all of them, so it is documented
 once in § (d) rather than repeated per role: the operation item completes and gets a
@@ -483,22 +534,49 @@ session that found it.
 
 ### Command
 
-| Role       | Terminal by | Happy (green, exit 0)                                   | Sad (red, exit ≠ 0)                                                                                          |
-|------------|-------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| **Ward**   | exit code   | `quest-run-ward-broker` marks the ward work item `complete` + the ward operation item `complete`, advance → next role | work item `failed`, ward operation item `complete`, then appends a **spiritmender** operation item + a **fresh ward** operation item (`pt N`, same `wardMode`) AFTER it, advance → the spiritmender runs next (never a ward back-to-back), then the fresh ward re-verifies |
+Two roles are commands rather than agents — `workItemRoleStatics.command` is `['ward', 'riftcarver']`,
+and `isCommandWorkItemRoleGuard` is the one predicate every dispatch site reads. A command work item
+is `spawnerType: 'command'` with no `sessionId`, so no JSONL watcher can ever tail it: each broker
+takes a **required `onLine`** and that callback is the only route its output has to a UI, for minutes
+at a time. Each also persists a per-run history file under the quest folder and back-links it onto the
+work item — ward its structured detail blob at `ward-results/<id>.json` via a `wardResults/<id>` ref,
+riftcarver the streamed text verbatim at `riftcarver-results/<id>.log` via a `riftcarverResults/<id>`
+ref. That ref is the only route the execution panel has to the detail.
+
+| Role           | Terminal by | Happy (green, exit 0)                                   | Sad (red, exit ≠ 0)                                                                                          |
+|----------------|-------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| **Riftcarver** | exit code   | `quest-run-riftcarver-broker` marks the carve work item `complete` + the riftcarver operation item `complete`, advance → the first `codeweaver` (feature) or `pesteater` (bug-hunt) | routed by FAILURE CLASS, not by one rule: `repairable` (node_modules / build) with budget left → work item `failed` (`errorMessage: riftcarver_<step>_failed`), operation `complete`, then a **spiritmender** + a **fresh `pt N` riftcarver** spliced after it; `repairable` with the budget spent, `git-state` (base_branch / create), or a permission-denied error at ANY step → `quest-block-on-failure-broker` |
+| **Ward**       | exit code   | `quest-run-ward-broker` marks the ward work item `complete` + the ward operation item `complete`, advance → next role | work item `failed`, ward operation item `complete`, then appends a **spiritmender** operation item + a **fresh ward** operation item (`pt N`, same `wardMode`) AFTER it, advance → the spiritmender runs next (never a ward back-to-back), then the fresh ward re-verifies |
+
+**Riftcarver's steps and their classes.** `create` and `base_branch` are `git-state`; `node_modules`
+and `build` are `repairable`. A `git-state` red BLOCKS deliberately rather than repairing, because
+there is no worktree to dispatch a spiritmender into and the only checkout left is the repo root — the
+one place no agent may ever be sent. A permission-denied error overrides whatever class the step
+carries and blocks too: no fresh session of any role can talk an operator's filesystem out of saying
+no, so spending a spiritmender pass on it only burns the budget before halting anyway. The repairable
+chain is bounded by `slotManagerStatics.riftcarver.maxRetries`, counted as the riftcarver operation
+items since the last GREEN riftcarver — the same shape as ward's `maxRetries`, and a `maxRetries` key
+rather than the pt-ladder's `maxAttempts` for the same reason ward's is: the chain is counted off the
+ledger's role-filtered history, not off one item's continuations. Full walkthrough in § (b2).
+
+**Riftcarver is re-entrant by design — every step owns a done-check.** Because the repairable route is
+`riftcarver → spiritmender → riftcarver (pt N)`, the broker is re-entered against a partially built
+workspace as a matter of ROUTINE. See RIFT-1 and RIFT-2 under "Invariants" for the contract that
+holds it together.
 
 ### Recovery
 
 | Role             | Locked? | Happy (`done`)                                          | Sad (`partial`)                                                             |
 |------------------|---------|--------------------------------------------------------|-----------------------------------------------------------------------------|
-| **Spiritmender** | Yes     | fixes build/lint/type/test errors; advance → the fresh ward re-runs | `pt N` continuation → fresh spiritmender pass (bounded by `slotManagerStatics.spiritmender.maxAttempts`) |
+| **Spiritmender** | Yes     | fixes build/lint/type/test errors; advance → the fresh command re-runs (the `pt N` ward after a ward red, the `pt N` riftcarver after a repairable carve red) | `pt N` continuation → fresh spiritmender pass (bounded by `slotManagerStatics.spiritmender.maxAttempts`) |
 
 ---
 
 ## The sad paths in detail
 
-(a)– (c) are not failure signals: they keep the quest `in_progress` and move it forward. (d) is the one agent-emitted
-halt — reserved for a wall no session of that role could pass.
+(a)– (c) are not failure signals: they keep the quest `in_progress` and move it forward. (b2) is the one that can go
+either way, because a carve red is routed by the CLASS of the step that failed. (d) is the one agent-emitted halt —
+reserved for a wall no session of that role could pass.
 
 ### (a) partial → pt N (duplicate-on-partial) — `QuestHandleSignalBackResponder`
 
@@ -518,8 +596,38 @@ A red ward marks its work item `failed` and its ward operation item `complete`, 
 Advance dispatches the spiritmender next, then the fresh ward re-runs. The red chain is **bounded**:
 the broker counts the ward operation items of this `wardMode` since the last GREEN ward of the same
 mode; once that count reaches `slotManagerStatics.ward.maxRetries`, it calls
-`quest-block-on-failure-broker` instead of appending another fix loop. A red ward is the only failure the orchestrator
-detects on an agent's behalf; § (d) is the one an agent reports itself.
+`quest-block-on-failure-broker` instead of appending another fix loop. A ward red and a riftcarver red (§ (b2)) are the
+failures the orchestrator detects on an agent's behalf; § (d) is the one an agent reports itself.
+
+### (b2) riftcarver red → routed by failure class — `quest-run-riftcarver-broker`
+
+A carve red is routed by the CLASS of the step that failed, off `worktreePrepareStepStatics.classifications` — keyed by
+the step's own VALUE, the thing `WorktreePrepareError` carries, so a caught error routes without a second key to
+translate through. Only one of the classes is repairable, and only that one earns a spiritmender. The whole outcome — the work item's terminal status, the operation completing, the `riftcarverResults` ref, the work
+item's `riftcarverResults/<id>` back-link, and any splice — lands in ONE `questOperationsUpdateBroker` write, so a
+crash is all-or-nothing.
+
+| Class | Steps | What happens |
+|---|---|---|
+| `repairable`, budget left | `node_modules`, `build` | work item `failed` with `errorMessage: riftcarver_<step>_failed`, operation `complete`, a **spiritmender** operation item plus a fresh **`pt N` riftcarver** spliced immediately after it — the fresh carve copying the completed item's `flowIds` and `packageNames` — then advance → the spiritmender runs next, in the quest's own worktree |
+| `repairable`, budget spent | same | `quest-block-on-failure-broker` |
+| `git-state` | `create`, `base_branch` | work item `failed` carrying git's own words verbatim, operation `complete`, then `quest-block-on-failure-broker` — **never a repo-root agent** |
+| permission-denied, ANY step | any | same as `git-state`, whatever the step's own class says |
+
+Three things about that routing are load-bearing:
+
+- **The spiritmender has somewhere to work.** `{ branchName, baseBranch, worktreePath, baseRef }` is persisted the
+  moment the git steps finish and BEFORE `node_modules` or the build runs, so a repair dispatched after either of
+  those fails lands in a real worktree — and the `pt N` carve behind it skips the git steps it can see are done.
+- **The error message is written for whoever can act on it.** A repairable red hands the spiritmender a
+  machine-readable step name; a git-state or permission red hands the USER git's own text, because nothing downstream
+  can act on it and the failed execution row is where they read it.
+- **The spiritmender's operation text names the failing step AND the riftcarver result id.**
+  `operationPtChainTransformer` keys a chain on role + base text, so naming the attempt is what buys it its own pt
+  budget instead of sharing one with every other repair on the quest.
+
+Riftcarver stays OUT of `blightscoutOperationStatics.committingRoles` alongside ward: it writes no code, so no
+standards review is appended after it.
 
 ### (c) orphan → resume — `recover-orphaned-work-items-layer-broker`
 
@@ -609,7 +717,7 @@ Roles learn to reach for this via `agentOperatingRulesStatics` Rule 5, embedded 
 
 `quest-block-on-failure-broker` is the **sole** path to `blocked`. It marks the failed work item
 `failed`, drains every still-`pending` work item to `skipped`, and sets quest status `blocked`. It is reached from a
-spent bounded loop or from an agent-reported environment wall:
+spent bounded loop, from an agent-reported environment wall, or from a carve failure no session could repair:
 
 1. **Ward retry exhausted** — `quest-run-ward-broker`, when the red-ward chain of a `wardMode` reaches
    `ward.maxRetries` since the last green of that mode.
@@ -620,6 +728,11 @@ spent bounded loop or from an agent-reported environment wall:
 4. **Environment wall reported** — `QuestHandleSignalBackResponder`, on `operationStatus: 'blocked'`
    (§ (d)). Unlike 1–3 this halts on the FIRST occurrence rather than a spent budget, because the budget could only be
    spent on sessions that provably cannot succeed.
+5. **Riftcarver git-state or permission failure** — `quest-run-riftcarver-broker` (§ (b2)), when the carve dies at a
+   `git-state` step (`create` / `base_branch`) or on a permission-denied error at ANY step. Like 4 this halts on the
+   FIRST occurrence: a quest with no worktree has only the repo-root checkout left, and dispatching an agent there is
+   the outcome this block exists to prevent. The same broker ALSO reaches this path through 1's shape — a
+   `repairable` chain that reaches `riftcarver.maxRetries` since the last green carve.
 
 There is no PathSeeker and no replan. A `blocked` quest is not dispatched: the scan filters on
 `isAnyAgentRunningQuestStatusGuard` (`== in_progress`), so a `blocked` quest is skipped and dispatch
@@ -657,7 +770,8 @@ dispatchable while the wreckage is still in place.
   `operations/<id>` ref (seeded by `quest-create-broker`, `questBuildRelayGraphBroker`, and
   `questAdvanceBroker`).
 - **REL-3 — One session at a time.** `select-batch-layer-broker` returns the single first ready work
-  item; a ready ward item dispatches alone via `run-ward`.
+  item; a ready COMMAND item dispatches alone under its own step type — `run-riftcarver` for a carve,
+  `run-ward` for a gate — never batched beside an agent.
 - **REL-4 — Advance is atomic + idempotent.** Work-item-terminal + operation-`complete` + optional
   `pt N` land in ONE `questOperationsUpdateBroker` persist, so a crash is all-or-nothing. Advance is
   called from both the signal handler AND the scan self-heal, and is safe from both.
@@ -681,6 +795,55 @@ dispatchable while the wreckage is still in place.
   unchanged; only a sign-off shrinks them.
 - **REL-7 — Idempotent signal.** A redelivered signal for an already-terminal work item is a no-op
   (no second `pt N`, no second advance side effect).
+
+### Riftcarver
+
+- **RIFT-1 — Every step is re-entrant.** The repairable route is `riftcarver → spiritmender →
+  riftcarver (pt N)`, so the broker is re-entered against a PARTIALLY BUILT workspace as a matter of
+  routine, not as an edge case. Therefore **every step begins with a done-check that inspects the
+  REAL WORLD and skips itself when already satisfied — a step added without one is a bug, not a
+  simplification.** Three rules qualify it:
+  - **The done-check reads DISK or git, never `quest.json` alone.** A recorded `worktreePath` is a
+    claim; a reachable directory whose HEAD is still the recorded branch is proof. The spiritmender
+    that ran between the two attempts may have deleted, moved, repaired or `npm install`ed things the
+    ledger knows nothing about. So: the base branch is re-verified with `gitVerifyRefAdapter` rather
+    than trusted; the worktree is checked with `fsIsAccessibleAdapter` AND `gitCurrentBranchAdapter`;
+    a recorded path that is GONE reads as not-done and is RE-CREATED (attaching to the branch without
+    `-b`, after a `git worktree prune`, when the branch itself survived) rather than blocking; the
+    `node_modules` mirror done-checks PER ROOT inside `populate-one-root-layer-broker`, because an
+    attempt may have mirrored six roots of nine before dying. Every skip emits its own `— skip … —`
+    line, so the streamed output IS the evidence the contract held.
+  - **The BUILD is the one deliberate exception and has NO done-check.** Re-running it is precisely
+    how the spiritmender's fix gets verified — the build is the verdict, not a side effect. A marker
+    file "optimising" it away would let a `pt N` report green off the previous attempt's result.
+  - **The collision check is skipped on a re-entry, deliberately.** It guards the FIRST carve against
+    a name some other work owns. On a `pt N` the quest already records the branch — it is the quest's
+    OWN — so re-running the check would refuse the continuation against work attempt 1 did and lock
+    the quest out permanently. This is the step that breaks first if a done-check is dropped.
+- **RIFT-2 — `baseRef` is written exactly once, ever.** It is read from the new worktree's HEAD in
+  the same breath as creation, before `node_modules` or the build can touch the tree, and NEVER
+  recomputed once recorded — not even when the worktree is re-created and its fresh HEAD reads back a
+  different sha. Moving it after commits have landed folds the quest's own work into the review base,
+  the exact defect `baseRef` exists to fix. Riftcarver is its SOLE writer: `questBuildRelayGraphBroker`
+  stamps none, because Start runs before any worktree exists and the only HEAD available there is the
+  server process's own checkout.
+- **RIFT-3 — Routed by class, never by one rule.** `worktreePrepareStepStatics.classifications`,
+  keyed by step VALUE, sends `create` / `base_branch` to a block and `node_modules` / `build` to the
+  spiritmender loop; `isPermissionDeniedErrorGuard` is checked FIRST and overrides both. **No agent is
+  ever dispatched while the quest's only checkout is the repo root.**
+- **RIFT-4 — Bounded.** The repairable chain is the count of riftcarver operation items since the last
+  GREEN riftcarver, bounded by `slotManagerStatics.riftcarver.maxRetries`; exceeding it blocks instead
+  of splicing another repair.
+- **RIFT-5 — Every attempt keeps its own history.** Each run writes its OWN
+  `riftcarver-results/<uuid>.log` and appends its OWN `riftcarverResults` ref plus a
+  `riftcarverResults/<id>` back-link on its work item, so a pt chain leaves N files and N refs rather
+  than one overwritten file. That ref is the only route the execution panel has to the detail.
+- **RIFT-6 — It streams, and the stream and the file agree.** `onLine` is REQUIRED (a command work
+  item has no `sessionId`, so no JSONL watcher can tail it). Both the live panel and the persisted log
+  are fed from one funnel, so they carry the same text in the same order.
+- **RIFT-7 — Start creates no workspace.** `OrchestrationStartResponder` spawns nothing and runs no
+  git; the seeded ledger's first operation item is `role: 'riftcarver'` with a linked work item
+  carrying `spawnerType: 'command'`.
 
 ### Ward
 
@@ -711,7 +874,8 @@ dispatchable while the wreckage is still in place.
 ### Block
 
 - **BLK-1 — Sole block owner.** `quest-block-on-failure-broker` is the only writer of `blocked`,
-  reached only from ward-retry exhaustion, pt-N-chain exhaustion, or orphan-recovery exhaustion.
+  reached from ward-retry exhaustion, pt-N-chain exhaustion, orphan-recovery exhaustion, an
+  agent-reported environment wall, or a riftcarver git-state / permission failure.
 - **BLK-2 — A blocked quest is not dispatched.** The scan filters on `in_progress`, so a `blocked`
   quest is skipped and dispatch halts; the user resumes it explicitly.
 - **BLK-3 — A block ends its own scan.** When recovery escalates, `scan-once-layer-broker` returns
@@ -726,8 +890,9 @@ dispatchable while the wreckage is still in place.
 
 - **C-1 — `dependsOn` references resolve** to existing work items in the same quest.
 - **C-2 — The graph is a DAG** (no cycles).
-- **C-3 — `relatedDataItems` reference valid collections** — `operations`, `wardResults`, `flows` —
-  and existing ids.
+- **C-3 — `relatedDataItems` reference valid collections** — `operations`, `wardResults`,
+  `riftcarverResults`, `flows` (the exact set `relatedDataItemContract`'s regex admits) — and existing
+  ids.
 - **C-4 — Chat roles set status only within their phase** (ChaosWhisperer: `created` →
   `review_observables`; Glyphsmith: `approved` → `design_approved`).
 
@@ -740,11 +905,15 @@ dispatchable while the wreckage is still in place.
    ChaosWhisperer authors flows/observables/contracts/packagesAffected — never operations
    created → … → review_observables
 [USER] APPROVE observables (gate requires non-empty flows only) → approved
-[USER] Start Quest → questBuildRelayGraphBroker DERIVES the codeweaver items (fanOutBy: 'implementation')
-        + mints the verify tail (locked, pending), force-completes the plan item,
-        creates the first codeweaver work item
-        approved → in_progress
+[USER] Start Quest → questBuildRelayGraphBroker seeds the riftcarver head item, DERIVES the codeweaver
+        items (fanOutBy: 'implementation') + mints the verify tail (locked, pending),
+        force-completes the plan item, creates the first work item — the riftcarver
+        approved → in_progress   (milliseconds: no spawn, no git, no build)
 [DISPATCHER] Node/UI play button (or /dumpster-launch)
+   ▼ riftcarver       [run-riftcarver]  → green → advance     (base branch → git worktree add → pin
+                                                               baseRef → mirror node_modules → preflight
+                                                               build; streams live, log persisted to
+                                                               riftcarver-results/<id>.log)
    ▼ codeweaver ×N (one session each)   → done → advance
    ▼ ward (changed)   [run-ward]        → green → advance
    ▼ flowrider (one per package slice)  → done → advance     (bundles flows to authoring minions, then
@@ -764,7 +933,10 @@ types and their relay tails"), and the signal-back handler appends one operation
 EVERY session above that commits, ahead of any `pt N` continuation. Reading the diagram honestly means inserting a
 `blightscout` step after each `codeweaver`, `flowrider`, `groundstomper`, `siegemaster` and `spiritmender` session.
 
-Sad-path insertions (all keep the quest `in_progress`): a codeweaver `partial` inserts a `pt N`
-codeweaver; a red ward inserts `spiritmender → fresh ward`; a verify role `partial` inserts a `pt N`
-of that role; a server crash resumes the in-flight session. Only an exhausted bounded loop
-(ward-retry, locked pt-N chain, or orphan recovery) reaches `blocked`.
+Sad-path insertions that keep the quest `in_progress`: a codeweaver `partial` inserts a `pt N`
+codeweaver; a red ward inserts `spiritmender → fresh ward`; a REPAIRABLE riftcarver red (node_modules
+or build) inserts `spiritmender → pt N riftcarver`, and the pt N skips the git steps it can see are
+already done while re-running the build; a verify role `partial` inserts a `pt N` of that role; a
+server crash resumes the in-flight session. The routes that reach `blocked` are an exhausted bounded
+loop (ward-retry, riftcarver-retry, locked pt-N chain, or orphan recovery), an agent-reported
+environment wall, and a riftcarver `git-state` or permission failure.

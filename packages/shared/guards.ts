@@ -40,6 +40,9 @@ export * from './src/guards/should-render-status-banner-quest-status/should-rend
 export * from './src/guards/is-chat-work-item-role/is-chat-work-item-role-guard';
 export * from './src/guards/is-post-quest-chat-work-item-role/is-post-quest-chat-work-item-role-guard';
 
+// Work Item Spawner Guards
+export * from './src/guards/is-command-work-item-role/is-command-work-item-role-guard';
+
 // Work Item Dependency Graph Guards
 export * from './src/guards/has-incomplete-quest-work/has-incomplete-quest-work-guard';
 

@@ -6,6 +6,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  RiftcarverResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -548,6 +549,120 @@ describe('questOperationsUpdateBroker', () => {
         // Proves the four git-context fields landed in ONE persist, not a trailing write.
         expect(proxy.getAllPersistedQuests()).toStrictEqual([expectedQuest]);
       });
+    });
+  });
+
+  describe('riftcarverResults', () => {
+    it('VALID: {update returns {riftcarverResults, operations, workItems}} => all three land in ONE persist', async () => {
+      const proxy = questOperationsUpdateBrokerProxy();
+      const carveOp = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'riftcarver',
+        status: 'in_progress',
+      });
+      const carveItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479' }),
+        role: 'riftcarver',
+        status: 'in_progress',
+        spawnerType: 'command',
+        relatedDataItems: [`operations/a1b2c3d4-58cc-4372-a567-0e02b2c3d479`],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        operations: [carveOp],
+        workItems: [carveItem],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const riftcarverResult = RiftcarverResultStub({
+        id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+        outcome: 'green',
+      });
+      const completedOp = OperationItemStub({ ...carveOp, status: 'complete' });
+      const completedItem = WorkItemStub({
+        ...carveItem,
+        status: 'complete',
+        relatedDataItems: [
+          `operations/a1b2c3d4-58cc-4372-a567-0e02b2c3d479`,
+          `riftcarverResults/b2c3d4e5-f6a7-8901-bcde-f23456789012`,
+        ],
+      });
+
+      await questOperationsUpdateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        update: () => ({
+          operations: [completedOp],
+          workItems: [completedItem],
+          riftcarverResults: [riftcarverResult],
+        }),
+      });
+
+      const expectedQuest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'complete',
+        operations: [completedOp],
+        workItems: [completedItem],
+        riftcarverResults: [riftcarverResult],
+        updatedAt: '2024-01-15T10:00:00.000Z',
+      });
+
+      expect(proxy.getLastPersistedQuest()).toStrictEqual(expectedQuest);
+      // The ref, the back-link and the ledger mutation are one write — there is no window where
+      // the log file on disk has no ref pointing at it.
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([expectedQuest]);
+    });
+
+    it('VALID: {update omits riftcarverResults, quest already has one} => preserves the existing attempt history', async () => {
+      const proxy = questOperationsUpdateBrokerProxy();
+      const pendingOp = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        status: 'pending',
+      });
+      const firstAttempt = RiftcarverResultStub({
+        id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+        exitCode: 1,
+        failedStep: 'build',
+        outcome: 'repairable',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        operations: [pendingOp],
+        riftcarverResults: [firstAttempt],
+      });
+      proxy.setupQuestFound({ quest });
+
+      await questOperationsUpdateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        update: () => ({
+          operations: [
+            OperationItemStub({
+              id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+              status: 'in_progress',
+            }),
+          ],
+        }),
+      });
+
+      expect(proxy.getLastPersistedQuest()).toStrictEqual(
+        QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({
+              id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+              status: 'in_progress',
+            }),
+          ],
+          riftcarverResults: [firstAttempt],
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
     });
   });
 

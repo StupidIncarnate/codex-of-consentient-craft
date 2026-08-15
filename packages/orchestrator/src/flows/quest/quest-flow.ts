@@ -16,6 +16,7 @@
  * const created = await QuestFlow.mcpCreate({ userRequest });
  * const next = await QuestFlow.getNextStep();
  * const wardResult = await QuestFlow.runWard({ questId, workItemId, mode });
+ * const riftcarverResult = await QuestFlow.runRiftcarver({ questId, workItemId });
  * const config = QuestFlow.getServerConfig();
  */
 
@@ -37,6 +38,7 @@ import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monitor-watcher-start/quest-monitor-watcher-start-responder';
 import { QuestResetFlowSignoffsResponder } from '../../responders/quest/reset-flow-signoffs/quest-reset-flow-signoffs-responder';
+import { QuestRunRiftcarverResponder } from '../../responders/quest/run-riftcarver/quest-run-riftcarver-responder';
 import { QuestRunWardResponder } from '../../responders/quest/run-ward/quest-run-ward-responder';
 
 type AddParams = Parameters<typeof QuestUserAddResponder>[0];
@@ -79,6 +81,9 @@ type GetNextStepResult = Awaited<ReturnType<typeof QuestGetNextStepResponder>>;
 
 type RunWardParams = Parameters<typeof QuestRunWardResponder>[0];
 type RunWardResult = Awaited<ReturnType<typeof QuestRunWardResponder>>;
+
+type RunRiftcarverParams = Parameters<typeof QuestRunRiftcarverResponder>[0];
+type RunRiftcarverResult = Awaited<ReturnType<typeof QuestRunRiftcarverResponder>>;
 
 type HandleSignalBackParams = Parameters<typeof QuestHandleSignalBackResponder>[0];
 type HandleSignalBackResult = Awaited<ReturnType<typeof QuestHandleSignalBackResponder>>;
@@ -162,6 +167,12 @@ export const QuestFlow = {
 
   runWard: async ({ questId, workItemId, mode }: RunWardParams): Promise<RunWardResult> =>
     QuestRunWardResponder({ questId, workItemId, mode }),
+
+  runRiftcarver: async ({
+    questId,
+    workItemId,
+  }: RunRiftcarverParams): Promise<RunRiftcarverResult> =>
+    QuestRunRiftcarverResponder({ questId, workItemId }),
 
   handleSignalBack: async ({
     questId,

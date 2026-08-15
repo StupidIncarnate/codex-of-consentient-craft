@@ -119,6 +119,20 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('GET /api/quests/:questId/riftcarver-results/:riftcarverResultId', () => {
+    it('VALID: {questId without matching quest} => delegates to QuestRiftcarverDetailResponder and returns 404', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+      const riftcarverResultId = '22222222-2222-4222-8222-222222222222';
+
+      const response = await app.request(
+        `/api/quests/${questId}/riftcarver-results/${riftcarverResultId}`,
+      );
+
+      expect(response.status).toBe(404);
+    });
+  });
+
   // The summary is COMPUTED from the persisted flow graph, not stored — so the only way to prove
   // the route returns real numbers (rather than an empty envelope that happens to be 200) is to
   // drive a real HTTP request against a real quest.json whose graph the counts can be derived from

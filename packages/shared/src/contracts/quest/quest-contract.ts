@@ -26,6 +26,7 @@ import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { questTitleContract } from '../quest-title/quest-title-contract';
 import { questTypeContract } from '../quest-type/quest-type-contract';
+import { riftcarverResultContract } from '../riftcarver-result/riftcarver-result-contract';
 import { smoketestCaseResultContract } from '../smoketest-case-result/smoketest-case-result-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
@@ -136,6 +137,12 @@ export const questContract = z.object({
     .array(wardResultContract)
     .default([])
     .describe('Ward failure outputs referenced by spiritmender work items via relatedDataItems'),
+  riftcarverResults: z
+    .array(riftcarverResultContract)
+    .default([])
+    .describe(
+      "One entry per riftcarver attempt, referenced by that attempt's work item via relatedDataItems. Each attempt appends its own ref and writes its own riftcarver-results/{id}.log, so a repaired carve leaves the whole pt chain's history rather than overwriting the attempt that failed.",
+    ),
   planningNotes: z
     .object({
       blightReports: z.array(planningBlightReportContract).default([]),

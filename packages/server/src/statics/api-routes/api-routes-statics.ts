@@ -27,6 +27,7 @@ export const apiRoutesStatics = {
     merge: '/api/quests/:questId/merge',
     delete: '/api/quests/:questId',
     wardDetail: '/api/quests/:questId/ward-results/:wardResultId',
+    riftcarverDetail: '/api/quests/:questId/riftcarver-results/:riftcarverResultId',
     summary: '/api/quests/:questId/summary',
     signalBack: '/api/quests/:questId/signal-back',
   },

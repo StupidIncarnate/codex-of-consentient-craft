@@ -40,6 +40,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
       worktreePath,
       branchName,
       baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
     });
 
     // Simulate drift: the worktree ends up checked out on a branch other than its own quest
@@ -88,6 +89,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
       worktreePath,
       branchName,
       baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
     });
 
     const dirtyContent = FileContentsStub({

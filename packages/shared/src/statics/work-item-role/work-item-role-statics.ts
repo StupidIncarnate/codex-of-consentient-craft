@@ -9,6 +9,8 @@
  * // Returns the full role tuple workItemRoleContract builds its enum from.
  * workItemRoleStatics.chat;
  * // Returns the chat-role subset isChatWorkItemRoleGuard matches on.
+ * workItemRoleStatics.command;
+ * // Returns the command-role subset isCommandWorkItemRoleGuard matches on.
  * workItemRoleStatics.excludedFromStatusDerivation;
  * // Returns the role subset workItemsToQuestStatusTransformer ignores when deriving quest status.
  * workItemRoleStatics.postQuestChat;
@@ -22,6 +24,13 @@
  * `excludedFromStatusDerivation` names the roles whose work items `workItemsToQuestStatusTransformer`
  * ignores. It is scoped to the one role that needs it — a work item created after the quest already
  * terminated must not flip a finished quest back to running just because someone asked it a question.
+ *
+ * `command` names the roles a dispatcher runs as a COMMAND rather than handing to Claude — the
+ * subset `isCommandWorkItemRoleGuard` matches, and the single input that decides a work item's
+ * `spawnerType` (`command` for a member, `agent` for everything else). It is the reason that
+ * decision is data: a role added here becomes a command everywhere at once, where a `role === 'ward'`
+ * ternary has to be found and edited at every dispatch site, and a site that is missed hands the new
+ * role to `agentRoleContract`, which throws on a name it does not enumerate.
  *
  * `postQuestChat` names the chat roles whose conversation is NOT the thread the quest's main
  * composer resumes — they have their own composer, in the FOLLOW-UP tab. A selector looking for
@@ -38,8 +47,12 @@
  *   composer in the FOLLOW-UP tab. Alone among the roles it is also excluded from quest status
  *   derivation, because its item is created after the quest terminated and asking a question must
  *   not make a finished quest read as running again.
+ * - `riftcarver` — carves the quest branch, its worktree and the preflight build at the HEAD of the
+ *   relay, so that workspace is forged when the quest is next in line rather than the moment its
+ *   spec is approved. A member of `command`: it runs a deterministic git/npm sequence, so a
+ *   dispatcher executes it directly and no Claude session is spawned for it.
  * - `codeweaver` — implementation relay worker; one session per codeweaver operation item.
- * - `ward` — the only non-agent role (spawnerType 'command'); a quality gate run.
+ * - `ward` — a quality gate run. Like `riftcarver` a member of `command` rather than an agent role.
  * - `spiritmender` — inserted after a red ward to repair it.
  * - `flowrider` — verify operator that authors the flow-perspective test suites below the browser.
  * - `groundstomper` — verify operator that authors the Playwright e2e walk; one item per runtime
@@ -61,6 +74,7 @@ export const workItemRoleStatics = {
     'glyphsmith',
     'bughunt',
     'tavernkeeper',
+    'riftcarver',
     'codeweaver',
     'ward',
     'spiritmender',
@@ -72,6 +86,7 @@ export const workItemRoleStatics = {
     'warpgate',
   ],
   chat: ['chaoswhisperer', 'glyphsmith', 'bughunt', 'tavernkeeper'],
+  command: ['ward', 'riftcarver'],
   excludedFromStatusDerivation: ['tavernkeeper'],
   postQuestChat: ['tavernkeeper'],
 } as const;

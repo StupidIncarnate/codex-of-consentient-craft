@@ -6,6 +6,7 @@ import {
   OperationItemStub,
   QuestStub,
   QuestWorkItemIdStub,
+  RiftcarverResultStub,
   SessionIdStub,
   TaskToolUseChatEntryStub,
   WardResultStub,
@@ -441,6 +442,93 @@ describe('ExecutionPanelWidget', () => {
       expect(screen.getByTestId('execution-row-ward-result').textContent).toBe(
         'Ward exit code: 1 (changed)',
       );
+    });
+  });
+
+  describe('riftcarver results', () => {
+    it('VALID: {riftcarver work item with riftcarverResults ref} => resolves the ref through a real questContract.parse and shows riftcarver exit code and outcome in expanded content', async () => {
+      ExecutionPanelWidgetProxy();
+      const riftcarverResult = RiftcarverResultStub({
+        id: 'c0000000-0000-0000-0000-000000000001',
+        exitCode: 1,
+        outcome: 'repairable',
+      });
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'riftcarver',
+            status: 'failed',
+            relatedDataItems: [
+              `operations/${OP_ID_1}`,
+              'riftcarverResults/c0000000-0000-0000-0000-000000000001',
+            ],
+          }),
+        ],
+        riftcarverResults: [riftcarverResult],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const riftcarverRowHeader = screen
+        .getAllByTestId('execution-row-layer-widget')[0]!
+        .querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(riftcarverRowHeader);
+
+      expect(screen.getByTestId('execution-row-riftcarver-result').textContent).toBe(
+        'Riftcarver exit code: 1 (repairable)',
+      );
+    });
+
+    it('EMPTY: {riftcarver work item whose ref does not resolve to any riftcarverResults entry} => renders no riftcarver result element', async () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'riftcarver',
+            status: 'in_progress',
+            relatedDataItems: [
+              `operations/${OP_ID_1}`,
+              'riftcarverResults/d0000000-0000-0000-0000-000000000099',
+            ],
+          }),
+        ],
+        riftcarverResults: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const riftcarverRowHeader = screen
+        .getAllByTestId('execution-row-layer-widget')[0]!
+        .querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(riftcarverRowHeader);
+
+      expect(screen.queryByTestId('execution-row-riftcarver-result')).toBe(null);
     });
   });
 

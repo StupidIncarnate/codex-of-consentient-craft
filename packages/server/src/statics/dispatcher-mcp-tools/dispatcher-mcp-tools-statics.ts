@@ -9,7 +9,12 @@
 export const dispatcherMcpToolsStatics = {
   names: [
     'mcp__dungeonmaster__get-next-step',
+    // Both COMMAND roles belong here for the same reason: the dispatcher runs them itself, in the
+    // parent session, so their tool-call line is orchestration control rather than anything a
+    // reader wants in the chat panel. Their OUTPUT still reaches the panel — it arrives as
+    // chat-output keyed on the work item, which is a different path from this filter.
     'mcp__dungeonmaster__run-ward',
+    'mcp__dungeonmaster__run-riftcarver',
     'mcp__dungeonmaster__signal-back',
   ] as const,
 } as const;

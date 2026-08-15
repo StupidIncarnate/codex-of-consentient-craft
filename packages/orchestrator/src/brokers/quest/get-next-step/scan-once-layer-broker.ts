@@ -52,19 +52,6 @@ export const scanOnceLayerBroker = async ({
   }
   const { quest } = entry;
 
-  // The quest's own recorded worktree, not a guild-path-derived fallback. A `repo-root`
-  // resolution (no worktreePath — a legacy pre-worktree quest) falls straight through: it is
-  // meant to run from the repo root checkout. A `missing-worktree` resolution has no such
-  // fallback — the tree the quest itself created and then lost is not something the dispatcher
-  // can route around, and continuing would dispatch this quest's agents into the repo root
-  // checkout, which is a DIFFERENT branch's source. Block and stop scanning this quest.
-  const cwdResolution = await questCwdResolveBroker({ questId: quest.id });
-  if (cwdResolution.kind === 'missing-worktree') {
-    await blockOnMissingWorktreeLayerBroker({ quest, worktreePath: cwdResolution.worktreePath });
-    activeQuest.clear();
-    return null;
-  }
-
   // Resolution order when the FIFO quest has incomplete work but nothing dispatchable:
   //   1. compute directly — a ready work item exists.
   //   2. orphan recovery — an in_progress item whose agent died is flipped back to pending
@@ -74,6 +61,9 @@ export const scanOnceLayerBroker = async ({
   //      ledger has an actionable operation item: a server stop between the signal handler's
   //      atomic persist and questAdvanceBroker left the relay without its next work item.
   //      Advance creates it (idempotent, strict-1:1 guarded), then recompute from a fresh read.
+  // All three run BEFORE the worktree gate below, because that gate's answer depends on which step
+  // this quest actually lands on, and a null step is not yet an answer — it is the input to the two
+  // resolutions underneath it.
   let step = computeNextStepFromQuestLayerBroker({ quest });
 
   if (step === null) {
@@ -103,13 +93,40 @@ export const scanOnceLayerBroker = async ({
         : null;
   }
 
+  // The quest's own recorded worktree, not a guild-path-derived fallback. A `repo-root`
+  // resolution (no worktreePath — a legacy pre-worktree quest) falls straight through: it is
+  // meant to run from the repo root checkout. A `missing-worktree` resolution has no such
+  // fallback — the tree the quest itself created and then lost is not something the dispatcher
+  // can route around, and continuing would dispatch this quest's agents into the repo root
+  // checkout, which is a DIFFERENT branch's source. Block and stop scanning this quest.
+  //
+  // THE GATE RUNS LAST, on the FULLY RESOLVED step, and that placement is load-bearing twice over.
+  // It is what lets riftcarver through: riftcarver is the role that OWNS creating this worktree and
+  // its own done-check treats a recorded-but-missing path as "not done" and re-creates it, so
+  // halting ahead of it would make that recovery unreachable and leave the quest permanently
+  // blocked by the one step that could have fixed it. And a `pt N` carve whose work item was never
+  // minted (a crash between the previous carve's ledger write and its advance call) arrives here as
+  // a NULL step, so a gate placed above the self-heal would block before the self-heal could mint
+  // that work item — and every resume would re-run the identical sequence. Nothing above this point
+  // dispatches anything: orphan recovery only flips an `in_progress` work item back to `pending`,
+  // and advance only mints a work item on the ledger. Both are safe to have run for a quest that
+  // then blocks here. Every role other than riftcarver still trips the halt exactly as before.
+  const cwdResolution = await questCwdResolveBroker({ questId: quest.id });
+  if (cwdResolution.kind === 'missing-worktree' && step?.type !== 'run-riftcarver') {
+    await blockOnMissingWorktreeLayerBroker({ quest, worktreePath: cwdResolution.worktreePath });
+    activeQuest.clear();
+    return null;
+  }
+
   // The dispatcher's turn at the one shared restore step, and the reason the two step-returning
   // exits above are a single one: it fires only when a step is really about to be handed back.
-  // Mirroring the other two triggers verbatim (right after the missing-worktree gate) would put a
-  // `git rev-parse` on EVERY scan iteration — the MCP long poll scans roughly twice a second for
-  // up to 25s per get-next-step call — and could re-checkout a worktree while an agent is still
-  // live inside it. Here it runs once per real dispatch and never on an idle spin, and it lands
-  // before any agent is spawned, so a drifted worktree can never carry that agent's commits.
+  // Running it unconditionally — the shape the user-resume and startup-recovery triggers take,
+  // because each of those fires once per pickup — would put a `git rev-parse` on EVERY scan
+  // iteration here, and the MCP long poll scans roughly twice a second for up to 25s per
+  // get-next-step call; it could also re-checkout a worktree while an agent is still live inside
+  // it. Guarded by a non-null step it runs once per real dispatch and never on an idle spin, and
+  // it lands before any agent is spawned, so a drifted worktree can never carry that agent's
+  // commits.
   if (step !== null) {
     await worktreeEnsureQuestBranchBroker({
       quest,

@@ -147,6 +147,63 @@ describe('questAdvanceBroker', () => {
       );
     });
 
+    // The second member of `workItemRoleStatics.command`. An `agent` spawnerType here would send
+    // the carve down the Task/headless-child path, where agentRoleContract throws on the name.
+    it('VALID: {pending riftcarver op at the head of the ledger} => command work item with no wardMode and dependsOn []', async () => {
+      const proxy = questAdvanceBrokerProxy();
+      proxy.setupUuids({ ids: ['99999999-9999-4999-8999-999999999999'] });
+
+      const carveOp = OperationItemStub({
+        id: '44444444-4444-4444-8444-444444444444',
+        role: 'riftcarver',
+        text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+        status: 'pending',
+      });
+
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        operations: [carveOp],
+        workItems: [],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(persisted).toStrictEqual(
+        QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({
+              id: '44444444-4444-4444-8444-444444444444',
+              role: 'riftcarver',
+              text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: '99999999-9999-4999-8999-999999999999' }),
+              role: 'riftcarver',
+              status: 'pending',
+              spawnerType: 'command',
+              relatedDataItems: ['operations/44444444-4444-4444-8444-444444444444'],
+              dependsOn: [],
+              createdAt: '2024-01-15T10:00:00.000Z',
+            }),
+          ],
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
+    });
+
     it('VALID: {pending op declaring packageNames} => copies the package slice onto the work item it creates', async () => {
       const proxy = questAdvanceBrokerProxy();
       proxy.setupUuids({ ids: ['99999999-9999-4999-8999-999999999999'] });

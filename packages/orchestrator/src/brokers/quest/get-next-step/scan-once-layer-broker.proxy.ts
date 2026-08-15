@@ -41,6 +41,10 @@ export const scanOnceLayerBrokerProxy = (): {
   setupNoGuilds: () => void;
   setupModifyForQuest: (params: { quest: Quest }) => void;
   setupSelfHeal: (params: { staleQuest: Quest; refreshedQuest: Quest }) => void;
+  // Pins the id questAdvanceBroker mints its work item with, so a self-heal test can assert the
+  // item the ledger really gained IS the one the refreshed read hands back as the step — rather
+  // than only that both happen to be riftcarver-shaped.
+  setupAdvanceUuids: ReturnType<typeof questAdvanceBrokerProxy>['setupUuids'];
   setupWorktreeMissing: (params: { quest: Quest; worktreePath: AbsoluteFilePath }) => void;
   // The POSITIVE counterpart to setupWorktreeMissing above: overrides the sticky repo-root
   // default (registered by setupGuildsAndQuests for every quest) with a `kind: 'worktree'`
@@ -209,6 +213,7 @@ export const scanOnceLayerBrokerProxy = (): {
       advanceProxy.setupQuestFound({ quest: staleQuest });
       getProxy.setupQuestFound({ quest: refreshedQuest });
     },
+    setupAdvanceUuids: advanceProxy.setupUuids,
     getAllPersistedContents: advanceProxy.getAllPersistedContents,
     getLastPersistedQuest: advanceProxy.getLastPersistedQuest,
     // Lets a test prove that an escalated (budget-exhausted) orphan blocked the quest AND that

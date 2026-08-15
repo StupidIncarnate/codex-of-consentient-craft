@@ -19,9 +19,7 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { questNodeDispatchLoopBroker } from '../../../brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker';
-import { chatOutputEmitPayloadContract } from '../../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
-import { slotIndexContract } from '@dungeonmaster/shared/contracts';
-import { wardLineToChatEntryTransformer } from '../../../transformers/ward-line-to-chat-entry/ward-line-to-chat-entry-transformer';
+import { commandChatOutputEmitTransformer } from '../../../transformers/command-chat-output-emit/command-chat-output-emit-transformer';
 import { questNodeDispatchRunnerBroker } from '../../../brokers/quest/node-dispatch-runner/quest-node-dispatch-runner-broker';
 import type { NodeDispatchRunnerController } from '../../../contracts/node-dispatch-runner/node-dispatch-runner-contract';
 import { orchestrationDispatchState } from '../../../state/orchestration-dispatch/orchestration-dispatch-state';
@@ -57,24 +55,19 @@ export const OrchestrationDispatchBootstrapResponder = (): AdapterResult => {
     runLoop: async (): Promise<AdapterResult> =>
       questNodeDispatchLoopBroker({
         isPlaying: (): boolean => orchestrationDispatchState.getIsPlaying(),
-        // Ward has no sessionId, so the JSONL watcher can never tail it — this is the only route
-        // its output has to the workspace. Key the chat process on the work item so the execution
-        // panel groups the lines under the ward row.
+        // Neither command role has a sessionId, so the JSONL watcher can never tail either — these
+        // two callbacks are the only route their output has to the workspace. Both build the event
+        // through the same transformer, which keys the chat process on the work item so the
+        // execution panel groups the lines under that role's row.
         onWardLine: ({ questId, workItemId, line }): void => {
-          const chatProcessId = processIdContract.parse(String(workItemId));
-          orchestrationEventsState.emit({
-            type: 'chat-output',
-            processId: chatProcessId,
-            payload: chatOutputEmitPayloadContract.parse({
-              processId: chatProcessId,
-              chatProcessId,
-              // Ward runs serially, one work item at a time — slot 0 is its only slot.
-              slotIndex: slotIndexContract.parse(0),
-              entries: [wardLineToChatEntryTransformer({ line })],
-              questId,
-              workItemId,
-            }),
-          });
+          orchestrationEventsState.emit(
+            commandChatOutputEmitTransformer({ questId, workItemId, line }),
+          );
+        },
+        onRiftcarverLine: ({ questId, workItemId, line }): void => {
+          orchestrationEventsState.emit(
+            commandChatOutputEmitTransformer({ questId, workItemId, line }),
+          );
         },
         registerProcess: ({ processId, questId, questWorkItemId, kill }): void => {
           orchestrationProcessesState.register({

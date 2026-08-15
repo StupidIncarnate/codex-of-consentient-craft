@@ -1,6 +1,5 @@
 import {
   AbsoluteFilePathStub,
-  BaseBranchNameStub,
   GuildIdStub,
   OperationItemStub,
   PackageGraphEntryStub,
@@ -63,9 +62,11 @@ const FEATURE_IMPLEMENTATION_EXPECTED = questTypeRegistryStatics.feature.startIm
     role: seed.role,
     text: seed.text,
     status: 'pending',
-    // Codeweaver mints UNLOCKED so its pt chain stays unbounded — the flows are the acceptance
-    // target, so the work has to land however many passes it takes.
-    locked: seed.locked,
+    // Read the same way the seed broker reads it: `locked` defaults TRUE and a seed opts out by
+    // declaring it. Codeweaver is the one that does, so its pt chain stays unbounded — the flows are
+    // the acceptance target, so the work has to land however many passes it takes. Riftcarver
+    // declares nothing and therefore locks, which is what enrols it in its retry budget.
+    locked: 'locked' in seed ? seed.locked : true,
     flowIds: [],
     packageNames: [],
   }),
@@ -128,17 +129,17 @@ const CW_OP_ONE_UUID = 'c1c1c1c1-58cc-4372-a567-0e02b2c3d479';
 const CW_OP_TWO_UUID = 'c2c2c2c2-58cc-4372-a567-0e02b2c3d479';
 const WARD_OP_UUID = 'dddd0000-58cc-4372-a567-0e02b2c3d479';
 
-// A quest whose ledger tail is already seeded predates or postdates this feature independently
-// of whether it also has a worktree recorded — the idempotency describe block below models an
-// already-Started quest, which already carries both.
+// The git context an already-carved quest carries. The idempotency describe block below models a
+// quest a previous Start already seeded and a previous riftcarver already carved, so its quest.json
+// holds both — Start reads neither and writes neither.
 const EXISTING_BRANCH_NAME = QuestBranchNameStub({ value: 'quest/add-auth-f47ac10b' });
 const EXISTING_WORKTREE_PATH = AbsoluteFilePathStub({
   value: '/repo/worktrees/add-auth-f47ac10b',
 });
-const BASE_BRANCH = BaseBranchNameStub({ value: 'main' });
-const BASE_REF = QuestStub({
-  baseRef: '1234567890abcdef1234567890abcdef12345678' as never,
-}).baseRef!;
+
+// The riftcarver seed's text, restated from questTypeRegistryStatics (whose colocated test pins the
+// exact wording) so the regression assertion below reads as one literal object.
+const RIFTCARVER_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight build';
 
 const DERIVED_PACKAGE_GRAPH = [
   PackageGraphEntryStub({
@@ -212,51 +213,95 @@ describe('OrchestrationStartResponder', () => {
     );
   });
 
-  describe('git worktree lifecycle', () => {
-    it('VALID: {PrepareQuestWorktreeLayerResponder resolves a git context} => it lands on the same atomic persist as the seeded relay, before the status flip', async () => {
+  // The defect this block exists for: Begin Quest used to sit pending for minutes because the POST
+  // ran `git worktree add`, mirrored node_modules and built the tree before it persisted anything,
+  // so the WS `quest-modified` event that swaps the panel could not fire until all of it finished.
+  // Every one of those steps is the riftcarver operation item this seeds at the head of the relay,
+  // and the two assertions below are what would have caught the defect: nothing is spawned, and the
+  // work that used to be spawned is on the ledger instead.
+  describe('Start is a pure ledger transition — it spawns nothing and touches no git', () => {
+    it('VALID: {approved feature quest} => spawns ZERO child processes: no git, no npm, nothing', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
-      proxy.setupWorktreePrepared({
-        gitContext: {
-          branchName: EXISTING_BRANCH_NAME,
-          baseBranch: BASE_BRANCH,
-          worktreePath: EXISTING_WORKTREE_PATH,
-          baseRef: BASE_REF,
-        },
+
+      await proxy.callResponder({ questId });
+
+      expect(proxy.getSpawnedCommands()).toStrictEqual([]);
+    });
+
+    it('VALID: {approved feature quest, empty ledger} => the seeded relay OPENS with the riftcarver operation item, already in_progress', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect(persisted.operations[0]).toStrictEqual({
+        id: SEEDED_UUIDS[1],
+        role: 'riftcarver',
+        text: RIFTCARVER_TEXT,
+        status: 'in_progress',
+        locked: true,
+        flowIds: [],
+        packageNames: [],
       });
+    });
+
+    it('VALID: {approved feature quest, empty ledger} => the ONE seeded work item is the riftcarver command linked to that operation item', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getPersistedQuestAt({ index: 0 });
+
+      // `spawnerType: 'command'` is the load-bearing field: it routes this item to the dispatcher's
+      // own run path (questRunRiftcarverBroker), which is what streams the carve into the execution
+      // row instead of leaving the panel to render nothing while a POST blocks.
+      expect(persisted.workItems).toStrictEqual([
+        {
+          id: FEATURE_WORK_ITEM_UUID,
+          role: 'riftcarver',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [`operations/${SEEDED_UUIDS[1]}`],
+          dependsOn: [],
+          attempt: 0,
+          maxAttempts: 1,
+          retryCount: 0,
+          createdAt: FIXED_TIMESTAMP,
+        },
+      ]);
+    });
+
+    it('VALID: {approved feature quest} => quest.json carries no branchName, baseBranch, worktreePath or baseRef after Start', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupStart({ quest });
 
       await proxy.callResponder({ questId });
 
       const persisted = proxy.getPersistedQuestAt({ index: 0 });
 
       expect({
-        status: persisted.status,
         branchName: persisted.branchName,
         baseBranch: persisted.baseBranch,
         worktreePath: persisted.worktreePath,
         baseRef: persisted.baseRef,
       }).toStrictEqual({
-        status: 'approved',
-        branchName: EXISTING_BRANCH_NAME,
-        baseBranch: BASE_BRANCH,
-        worktreePath: EXISTING_WORKTREE_PATH,
-        baseRef: BASE_REF,
+        branchName: undefined,
+        baseBranch: undefined,
+        worktreePath: undefined,
+        baseRef: undefined,
       });
-    });
-
-    it('ERROR: {PrepareQuestWorktreeLayerResponder rejects} => the responder rejects and nothing was persisted', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'approved' });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupStart({ quest });
-      proxy.setupWorktreeFails({ error: new Error('No local main or master branch found') });
-
-      await expect(proxy.callResponder({ questId })).rejects.toThrow(
-        'No local main or master branch found',
-      );
-      expect(proxy.getPersistedStatuses()).toStrictEqual([]);
     });
   });
 
@@ -322,7 +367,6 @@ describe('OrchestrationStartResponder', () => {
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
-      proxy.setupWorktreeSkipped();
       proxy.setupPackageGraphDerived({ packageGraph: DERIVED_PACKAGE_GRAPH });
 
       await proxy.callResponder({ questId });
@@ -596,7 +640,6 @@ describe('OrchestrationStartResponder', () => {
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStartSkipsOperationsPersist({ quest });
-      proxy.setupWorktreeSkipped();
 
       await proxy.callResponder({ questId });
 
@@ -640,7 +683,6 @@ describe('OrchestrationStartResponder', () => {
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
-      proxy.setupWorktreeSkipped();
 
       await proxy.callResponder({ questId });
 
@@ -683,7 +725,6 @@ describe('OrchestrationStartResponder', () => {
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
-      proxy.setupWorktreeSkipped();
 
       await proxy.callResponder({ questId });
 
@@ -692,66 +733,6 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.workItems).toStrictEqual([
         { ...chatItem, status: 'complete', completedAt: FIXED_TIMESTAMP },
       ]);
-    });
-
-    it('VALID: {prior tail seeded, no worktree recorded (legacy quest)} => the git context is still persisted', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosOp = OperationItemStub({
-        id: CHAOS_OP_UUID,
-        role: 'chaoswhisperer',
-        text: 'Plan the quest',
-        status: 'complete',
-        locked: true,
-        flowIds: [],
-      });
-      const wardOp = OperationItemStub({
-        id: WARD_OP_UUID,
-        role: 'ward',
-        text: 'Ward gate (changed files)',
-        status: 'pending',
-        locked: true,
-        flowIds: [],
-        wardMode: 'changed',
-      });
-      const chatItem = WorkItemStub({
-        id: CHAT_ITEM_UUID,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        completedAt: FIXED_TIMESTAMP,
-      });
-      const quest = QuestStub({
-        id: questId,
-        status: 'approved',
-        operations: [chaosOp, wardOp],
-        workItems: [chatItem],
-      });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupStart({ quest });
-      proxy.setupWorktreePrepared({
-        gitContext: {
-          branchName: EXISTING_BRANCH_NAME,
-          baseBranch: BASE_BRANCH,
-          worktreePath: EXISTING_WORKTREE_PATH,
-          baseRef: BASE_REF,
-        },
-      });
-
-      await proxy.callResponder({ questId });
-
-      const persisted = proxy.getPersistedQuestAt({ index: 0 });
-
-      expect(proxy.getPersistedStatuses()).toStrictEqual(['approved', 'in_progress']);
-      expect({
-        branchName: persisted.branchName,
-        baseBranch: persisted.baseBranch,
-        worktreePath: persisted.worktreePath,
-        baseRef: persisted.baseRef,
-      }).toStrictEqual({
-        branchName: EXISTING_BRANCH_NAME,
-        baseBranch: BASE_BRANCH,
-        worktreePath: EXISTING_WORKTREE_PATH,
-        baseRef: BASE_REF,
-      });
     });
   });
 
@@ -769,7 +750,12 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.operations).toStrictEqual(BUG_HUNT_OPS_EXPECTED);
     });
 
-    it('VALID: {approved bug-hunt quest, empty operations} => first work item is pesteater linked to the implementation op', async () => {
+    // Riftcarver heads `startImplementationOps` for EVERY quest type, so the first work item a
+    // bug-hunt Start mints is the workspace-preparation command, not pesteater — the branch, the
+    // worktree and the preflight build have to exist before any agent is dispatched into them.
+    // `spawnerType: 'command'` is the assertion that matters here: it is what routes this item to
+    // the dispatcher's own run path instead of a Claude spawn.
+    it('VALID: {approved bug-hunt quest, empty operations} => first work item is the riftcarver command linked to the implementation op', async () => {
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({ id: questId, status: 'approved', questType: 'bug-hunt' });
       const proxy = OrchestrationStartResponderProxy();
@@ -782,9 +768,9 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.workItems).toStrictEqual([
         {
           id: BUG_HUNT_WORK_ITEM_UUID,
-          role: 'pesteater',
+          role: 'riftcarver',
           status: 'pending',
-          spawnerType: 'agent',
+          spawnerType: 'command',
           relatedDataItems: [`operations/${SEEDED_UUIDS[1]}`],
           dependsOn: [],
           attempt: 0,

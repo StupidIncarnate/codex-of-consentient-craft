@@ -370,6 +370,211 @@ describe('scanOnceLayerBroker', () => {
     });
   });
 
+  // The halt above exists because no OTHER role can rebuild a lost worktree. Riftcarver can — its
+  // own done-check reads the missing path as "not done" and re-creates it — so halting ahead of it
+  // would leave the quest permanently blocked by the one step that could have fixed it. The pair
+  // below differs in exactly one value, the ready item's role, so a regression that drops either
+  // half of the asymmetry fails here.
+  describe('missing worktree: riftcarver passes the halt, every other role still trips it', () => {
+    it('VALID: {recorded worktree missing, ready riftcarver item} => returns run-riftcarver and blocks nothing', async () => {
+      const proxy = scanOnceLayerBrokerProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-scan-missing-worktree-riftcarver' });
+      const carveId = QuestWorkItemIdStub({ value: 'aab11111-1111-4222-9333-444444444444' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest-carve-again-a1b2c3d4',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        workItems: [
+          WorkItemStub({
+            id: carveId,
+            role: 'riftcarver',
+            status: 'pending',
+            spawnerType: 'command',
+          }),
+        ],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      proxy.setupWorktreeMissing({ quest, worktreePath });
+      const clear = jest.fn();
+      const setActive = jest.fn();
+      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+      const result = await scanOnceLayerBroker({ activeQuest });
+
+      expect({
+        result,
+        blockCalls: proxy.getBlockCalls(),
+        // A `missing-worktree` resolution has no tree to check a branch out in, so the shared
+        // restore step runs no git at all before the carve is handed back.
+        spawnedArgs: proxy.getRestoreSpawnedArgs(),
+        clearCallCount: clear.mock.calls.length,
+        setActiveCalls: setActive.mock.calls,
+      }).toStrictEqual({
+        result: { type: 'run-riftcarver', questId, workItemId: carveId },
+        blockCalls: [],
+        spawnedArgs: [],
+        clearCallCount: 0,
+        setActiveCalls: [[{ questId }]],
+      });
+    });
+
+    // The window the gate's PLACEMENT closes, not the role check: a crash between the previous
+    // carve's ledger write and its advance call leaves the `pt N` riftcarver operation item with no
+    // work item, so the scan computes a NULL step. A gate above the self-heal blocks on that null,
+    // pre-empting the very advance that would have minted the carve — and every resume repeats it.
+    it('VALID: {pending pt N riftcarver op with NO work item, recorded worktree gone} => the self-heal mints the carve and the scan dispatches it instead of blocking', async () => {
+      const proxy = scanOnceLayerBrokerProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-scan-carve-self-heal' });
+      const mendedId = QuestWorkItemIdStub({ value: 'baa11111-1111-4222-9333-444444444444' });
+      const carveUuid = 'baa22222-1111-4222-9333-444444444444';
+      const carveId = QuestWorkItemIdStub({ value: carveUuid });
+      const operationId = OperationItemIdStub({ value: 'dddd4444-58cc-4372-a567-0e02b2c3d479' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest-carve-self-heal-a1b2c3d4',
+      });
+
+      const staleQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        operations: [OperationItemStub({ id: operationId, role: 'riftcarver', status: 'pending' })],
+        workItems: [WorkItemStub({ id: mendedId, role: 'spiritmender', status: 'complete' })],
+      });
+      const refreshedQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        operations: [
+          OperationItemStub({ id: operationId, role: 'riftcarver', status: 'in_progress' }),
+        ],
+        workItems: [
+          WorkItemStub({ id: mendedId, role: 'spiritmender', status: 'complete' }),
+          WorkItemStub({
+            id: carveId,
+            role: 'riftcarver',
+            status: 'pending',
+            spawnerType: 'command',
+            dependsOn: [mendedId],
+            relatedDataItems: [`operations/${operationId}` as never],
+          }),
+        ],
+      });
+
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [staleQuest] }],
+      });
+      proxy.setupSelfHeal({ staleQuest, refreshedQuest });
+      // Pinning advance's id is what makes "the work item advance minted is the one returned" a
+      // real assertion rather than two independently-shaped riftcarver items agreeing by accident.
+      proxy.setupAdvanceUuids({ ids: [carveUuid] });
+      proxy.setupWorktreeMissing({ quest: staleQuest, worktreePath });
+      const clear = jest.fn();
+      const setActive = jest.fn();
+      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+      const result = await scanOnceLayerBroker({ activeQuest });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect({
+        step: result,
+        blockCalls: proxy.getBlockCalls(),
+        persistedWorkItems: persisted.workItems.map((item) => ({
+          id: item.id,
+          role: item.role,
+          status: item.status,
+          spawnerType: item.spawnerType,
+          relatedDataItems: item.relatedDataItems,
+        })),
+        persistedOperationStatuses: persisted.operations.map((operation) => operation.status),
+        clearCallCount: clear.mock.calls.length,
+        setActiveCalls: setActive.mock.calls,
+      }).toStrictEqual({
+        step: { type: 'run-riftcarver', questId, workItemId: carveId },
+        blockCalls: [],
+        persistedWorkItems: [
+          {
+            id: mendedId,
+            role: 'spiritmender',
+            status: 'complete',
+            spawnerType: 'agent',
+            relatedDataItems: [],
+          },
+          {
+            // Byte-identical to the step's workItemId above: the ledger gained exactly the item
+            // the scan then handed back for dispatch.
+            id: carveId,
+            role: 'riftcarver',
+            status: 'pending',
+            spawnerType: 'command',
+            relatedDataItems: [`operations/${operationId}`],
+          },
+        ],
+        persistedOperationStatuses: ['in_progress'],
+        clearCallCount: 0,
+        setActiveCalls: [[{ questId }]],
+      });
+    });
+
+    it('VALID: {same missing worktree, ready codeweaver item instead} => returns null and blocks the quest naming the path', async () => {
+      const proxy = scanOnceLayerBrokerProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-scan-missing-worktree-codeweaver' });
+      const cwId = QuestWorkItemIdStub({ value: 'aab22222-1111-4222-9333-444444444444' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest-carve-again-a1b2c3d4',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        workItems: [WorkItemStub({ id: cwId, role: 'codeweaver', status: 'pending' })],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      proxy.setupWorktreeMissing({ quest, worktreePath });
+      const clear = jest.fn();
+      const setActive = jest.fn();
+      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+      const result = await scanOnceLayerBroker({ activeQuest });
+
+      expect({
+        result,
+        blockCalls: proxy.getBlockCalls(),
+        spawnedArgs: proxy.getRestoreSpawnedArgs(),
+        clearCallCount: clear.mock.calls.length,
+        setActiveCalls: setActive.mock.calls,
+      }).toStrictEqual({
+        result: null,
+        blockCalls: [
+          {
+            questId,
+            failedWorkItemId: cwId,
+            reason: `Worktree not found: ${worktreePath}`,
+          },
+        ],
+        spawnedArgs: [],
+        clearCallCount: 1,
+        setActiveCalls: [],
+      });
+    });
+  });
+
   it('VALID: {quest with no recorded worktreePath (legacy)} => the scan proceeds and returns its normal step', async () => {
     const proxy = scanOnceLayerBrokerProxy();
     const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });

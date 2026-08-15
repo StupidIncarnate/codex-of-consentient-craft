@@ -2,7 +2,7 @@ import { QuestFlow } from './quest-flow';
 
 describe('QuestFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 15 registrations with correct tool names', () => {
+    it('VALID: returns 16 registrations with correct tool names', () => {
       const registrations = QuestFlow();
 
       const names = registrations.map(({ name }) => name);
@@ -20,6 +20,7 @@ describe('QuestFlow', () => {
         'create-quest',
         'get-next-step',
         'run-ward',
+        'run-riftcarver',
         'get-server-config',
         'reset-flow-signoffs',
         'get-quest-summary',
@@ -32,6 +33,7 @@ describe('QuestFlow', () => {
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
       expect(handlerTypes).toStrictEqual([
+        'function',
         'function',
         'function',
         'function',
@@ -68,6 +70,7 @@ describe('QuestFlow', () => {
         'Creates a new quest seeded with the supplied userRequest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id, but the caller MUST pass the original user request text so it is captured on the quest from the moment of creation.',
         'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | run-ward | idle. Long-polls internally up to ~25s.',
         'Runs `npm run ward` synchronously in changed or full mode and persists the result onto the named work item. Blocks until ward exits.',
+        "Carves a quest its workspace: detects the base branch, creates the quest branch and git worktree, mirrors node_modules into it, and runs the preflight build to convergence — then persists the streamed log and applies the outcome to the ledger. Riftcarver is the FIRST item of every new quest's relay, so /dumpster-launch reaches it before any agent runs. It BLOCKS for minutes while the workspace is forged; AWAIT it and do not call get-next-step again until it returns. There is no mode — a carve has only one scope.",
         'Returns the dungeonmaster server config { baseUrl, port } so slash commands can point the browser at the running server.',
         "Clears Siegemaster's walk sign-offs across ONE flow so the walk can be redone honestly: every observable, node, edge and off-map probe family on that flow loses its `siegemasterSignoff`. Flowrider's track is never touched. Call this after fixing a defect the walk exposed — the sign-offs already written measured a system that has changed underneath them. The flow must be declared by the calling work item's operation item, and a `walk-reset` note carrying your reason and the cleared count is appended to quest.planningNotes.questNotes.",
         'Returns what ACTUALLY happened on a quest, which `get-quest` and a status do not answer: per-flow, per-track sign-off coverage (confirmed / unconfirmable / outstanding); every observable added AFTER the user approved the spec, with the role that added it; every `unconfirmable` verdict with its evidence AND the question that would close it AND the work item that raised it; and the durable `questNotes` grouped by kind, open questions first. A quest reaches `complete` when both tracks have SIGNED every unit — and `unconfirmable` signs a unit exactly as `confirmed` does — so a green quest can carry real holes, real unapproved scope and real unanswered questions, and this is the only surface that shows them. Call it when picking up a quest someone else worked, before a review, or before deciding what is left to do.',
@@ -80,6 +83,7 @@ describe('QuestFlow', () => {
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
       expect(schemaTypes).toStrictEqual([
+        'object',
         'object',
         'object',
         'object',
@@ -167,6 +171,36 @@ describe('QuestFlow', () => {
           },
         },
         required: ['questId', 'workItemId', 'flowId', 'reason'],
+        additionalProperties: false,
+        $schema: 'http://json-schema.org/draft-07/schema#',
+      });
+    });
+
+    it('VALID: {run-riftcarver} => inputSchema advertises questId and workItemId, and NO mode', () => {
+      const registrations = QuestFlow();
+
+      const registration = registrations.find(({ name }) => name === 'run-riftcarver');
+
+      // The absence of `mode` is the load-bearing half. The contract is `.strict()`, so a
+      // /dumpster-launch loop that copied the run-ward call shape and passed a mode would be a hard
+      // parse rejection rather than an ignored argument — and a rejection on the FIRST item of every
+      // new quest's relay stalls the whole dispatcher.
+      expect(registration?.inputSchema).toStrictEqual({
+        type: 'object',
+        properties: {
+          questId: {
+            type: 'string',
+            minLength: 1,
+            description: 'Quest whose branch, worktree and preflight build are carved',
+          },
+          workItemId: {
+            type: 'string',
+            format: 'uuid',
+            description:
+              'Work item the carve is being executed for — echo `result.workItemId` from the get-next-step step verbatim',
+          },
+        },
+        required: ['questId', 'workItemId'],
         additionalProperties: false,
         $schema: 'http://json-schema.org/draft-07/schema#',
       });

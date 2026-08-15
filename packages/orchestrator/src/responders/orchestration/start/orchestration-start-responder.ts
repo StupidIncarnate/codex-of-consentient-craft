@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Validates a quest is startable, prepares its git worktree (base-branch detection, the
- * name-collision check, and worktree creation — skipped once the quest already records one),
- * promotes chat work items, derives the post-quest package dependency graph, seeds the operations
- * relay (the quest type's implementation operation items plus the fixed verify tail) with ONE work
- * item for the first actionable operation item, and transitions the quest approved → in_progress so
- * the dispatch loop picks it up. The git context, the package graph and the relay seed land on the
- * same atomic persist, so a quest never reaches in_progress with a worktree recorded but no ledger,
- * or a dependency-ordered ledger beside no graph. Enqueues the quest and returns a synthetic
- * processId for backwards compatibility with callers.
+ * PURPOSE: The Start Quest transition, in strict order: the startable gate, the package dependency
+ * graph, the relay seed, then approved → in_progress and the queue entry. The ordering is the whole
+ * point — the ledger the dispatch loop scans has to exist before the status that makes the quest
+ * scannable, and the graph has to exist before the seed, whose derived codeweaver items are ordered
+ * off it. Reach for this over questModifyBroker for anything crossing into execution: a bare status
+ * write lands an in_progress quest with an empty relay, which the dispatch scan reads as a quest
+ * with nothing left to do.
+ *
+ * Everything here is bookkeeping over quest.json, so the POST answers in milliseconds. The branch,
+ * the worktree, the node_modules mirror and the preflight build belong to the `riftcarver` operation
+ * item this seeds at the HEAD of the relay, where they stream live into the execution panel and run
+ * only once the quest is actually next in line.
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
@@ -41,7 +44,6 @@ import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { PrepareQuestPackageGraphLayerResponder } from './prepare-quest-package-graph-layer-responder';
-import { PrepareQuestWorktreeLayerResponder } from './prepare-quest-worktree-layer-responder';
 
 export const OrchestrationStartResponder = async ({
   questId,
@@ -66,11 +68,11 @@ export const OrchestrationStartResponder = async ({
     );
   }
 
-  const gitContext = await PrepareQuestWorktreeLayerResponder({ quest });
-  // Sequenced after the git lifecycle, not run beside it: every throw in there must leave the quest
-  // exactly as it arrived, and manifest reads issued in parallel would be work done for a Start
-  // that never happens. Its own idempotency guard is the packageGraph equivalent of
-  // hasExistingRelay below — stamped once, never recomputed while the workspace moves on.
+  // Sequenced after the startable gate, never before it: a manifest read issued for a Start that
+  // the gate then refuses is work done for nothing. The layer reads one `package.json` per declared
+  // package and runs Kahn's order over them — milliseconds, so it stays inside the POST. Its own
+  // idempotency guard is the packageGraph equivalent of hasExistingRelay below: stamped once, never
+  // recomputed while the workspace moves on.
   const packageGraph = await PrepareQuestPackageGraphLayerResponder({ quest });
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
@@ -102,19 +104,10 @@ export const OrchestrationStartResponder = async ({
 
   const now = isoTimestampContract.parse(new Date().toISOString());
 
-  // Hand the relay builder a quest that already carries the git context: it computes baseRef as
-  // `quest.baseRef ?? gitHeadShaAdapter(processCwdAdapter())`, and only ever computes it once (see
-  // its own PURPOSE). Handing it the pre-stamped quest makes it short-circuit on the fork point
-  // the worktree was actually created from, instead of spawning a second `git rev-parse HEAD`
-  // against the SERVER PROCESS cwd and recording the wrong commit.
-  //
-  // The freshly derived packageGraph rides the same hand-off: the relay builder orders the
-  // codeweaver items off it, so handing over the pre-stamped quest is what makes the ledger it
-  // returns and the graph persisted beside it describe the same layering.
-  const relayOverrides = {
-    ...(gitContext ?? {}),
-    ...(packageGraph === undefined ? {} : { packageGraph }),
-  };
+  // Hand the relay builder a quest that already carries the freshly derived packageGraph: it orders
+  // the derived codeweaver items off that graph, so pre-stamping the quest is what makes the ledger
+  // it returns and the graph persisted beside it describe the same layering.
+  const relayOverrides = packageGraph === undefined ? {} : { packageGraph };
   const questForRelay =
     Object.keys(relayOverrides).length === 0
       ? quest
@@ -125,8 +118,8 @@ export const OrchestrationStartResponder = async ({
     // Seed the relay BEFORE the status transition: a crash between the two leaves the quest
     // still `approved` (startable), and the hasExistingRelay check above makes the re-Start
     // skip straight to the transition. The update broker persists operations + the promoted
-    // chat items + the git context + the first work item in ONE atomic write.
-    const relay = await questBuildRelayGraphBroker({
+    // chat items + the package graph + the first work item in ONE atomic write.
+    const relay = questBuildRelayGraphBroker({
       quest: questForRelay,
       priorWorkItemIds: chatItemIds,
       now,
@@ -137,13 +130,12 @@ export const OrchestrationStartResponder = async ({
       update: () => ({
         operations: relay.operations,
         workItems: [...promotedChatItems, ...relay.workItems],
-        ...(relay.baseRef === undefined ? {} : { baseRef: relay.baseRef }),
         ...relayOverrides,
       }),
     });
   } else if (promotedChanged || Object.keys(relayOverrides).length > 0) {
-    // A quest seeded by an earlier Start (hasExistingRelay) but predating this feature carries no
-    // worktree and no package graph — both must still be recorded even when no chat item changed.
+    // A quest whose ledger an earlier Start already seeded (hasExistingRelay) can still be missing
+    // the package graph — it must be recorded even when no chat item changed.
     await questOperationsUpdateBroker({
       questId,
       update: () => ({

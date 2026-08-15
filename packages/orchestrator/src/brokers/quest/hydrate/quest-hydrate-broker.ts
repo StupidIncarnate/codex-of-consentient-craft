@@ -18,7 +18,14 @@ import {
   questWorkItemIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestId, QuestSource, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  QuestId,
+  QuestSource,
+  QuestStatus,
+  WorkItemRole,
+} from '@dungeonmaster/shared/contracts';
+import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
@@ -31,6 +38,8 @@ import { questPersistBroker } from '../persist/quest-persist-broker';
 import { buildHydrateInputLayerBroker } from './build-hydrate-input-layer-broker';
 
 const JSON_INDENT_SPACES = 2;
+
+const RIFTCARVER_ROLE: WorkItemRole = 'riftcarver';
 
 export const questHydrateBroker = async ({
   blueprint,
@@ -78,15 +87,24 @@ export const questHydrateBroker = async ({
     const quest = await questLoadBroker({ questFilePath });
     const now = isoTimestampContract.parse(new Date().toISOString());
 
-    const relay = await questBuildRelayGraphBroker({ quest, priorWorkItemIds: [], now });
-    const skipRoles = new Set(blueprint.skipRoles);
-
+    const relay = questBuildRelayGraphBroker({ quest, priorWorkItemIds: [], now });
     // A blueprint that authors its own implementation ledger REPLACES the derived per-cell items
     // for the roles it names, rather than adding to them. Derivation reads the flows, and a bundled
     // suite's one-item-per-case ledger is not in them — keeping both would leave the quest holding
     // items no scripted work item ever links to, which the advance self-heal would then dispatch as
     // real sessions mid-smoketest.
     const authoredRoles = new Set(blueprint.operations.map((operation) => operation.role));
+
+    // Hydrate fabricates a quest directly at `in_progress`: it never runs Start, so the quest has no
+    // branch, no worktree and no preflight build, and no scripted scenario expects one. `riftcarver`
+    // is the item that would create all three, so it is dropped unless a blueprint authored one
+    // itself. Without this default the FIRST thing every hydrated quest dispatches is a real
+    // `git worktree add` + node_modules mirror + build against the developer's own checkout — which
+    // is precisely the work hydrate exists to skip.
+    const skipRoles = new Set<WorkItemRole>([
+      ...blueprint.skipRoles,
+      ...(authoredRoles.has(RIFTCARVER_ROLE) ? [] : [RIFTCARVER_ROLE]),
+    ]);
     const ledger =
       blueprint.operations.length === 0
         ? relay.operations
@@ -113,7 +131,9 @@ export const questHydrateBroker = async ({
             id: questWorkItemIdContract.parse(crypto.randomUUID()),
             role: firstActionable.role,
             status: 'pending',
-            spawnerType: firstActionable.role === 'ward' ? 'command' : 'agent',
+            spawnerType: isCommandWorkItemRoleGuard({ role: firstActionable.role })
+              ? 'command'
+              : 'agent',
             relatedDataItems: [`operations/${String(firstActionable.id)}`],
             dependsOn: [],
             maxAttempts: 1,

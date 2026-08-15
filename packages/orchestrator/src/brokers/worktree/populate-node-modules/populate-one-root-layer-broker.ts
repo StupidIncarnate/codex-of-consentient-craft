@@ -6,13 +6,22 @@
  * packages stay shared rather than duplicated. Reach for the parent broker instead unless you are
  * populating a single known root — this layer deliberately knows nothing about which roots exist.
  *
+ * Re-entrant by design: the riftcarver that drives it is dispatched again after a spiritmender, so
+ * this root may already be mirrored. The done-check reads the TARGET directory on disk rather than
+ * any record, and demands entries rather than mere existence, because an attempt that died right
+ * after `fsMkdirAdapter` leaves an empty directory that would otherwise read as finished. The
+ * SOURCE walk runs on both branches: the roots handed back are derived from the source's links, so
+ * skipping it would leave a resumed run with nothing to iterate.
+ *
  * USAGE:
  * const { workspacePackageRoots } = await populateOneRootLayerBroker({
  *   sourceRoot: AbsoluteFilePathStub({ value: '/repo' }),
  *   targetRoot: AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' }),
+ *   onLine: (line) => emit(line),
  * });
  * // workspacePackageRoots: [{ sourceRoot: '/repo/packages/orchestrator',
  * //                          targetRoot: '/repo/worktrees/quest-slug-a1b2c3d4/packages/orchestrator' }, ...]
+ * // onLine sees exactly one line for this root — either the mirroring line or the skip line
  */
 
 import {
@@ -27,6 +36,7 @@ import {
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
 
+import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-adapter';
 import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 
@@ -40,15 +50,42 @@ export type WorktreeRootPair = Readonly<{
 export const populateOneRootLayerBroker = async ({
   sourceRoot,
   targetRoot,
+  onLine,
 }: {
   sourceRoot: AbsoluteFilePath;
   targetRoot: AbsoluteFilePath;
+  // Required, never optional — see packages/shared/CLAUDE.md, "Streaming Adapters". Mirroring a
+  // monorepo's node_modules takes minutes, so a caller that cannot stream must say so out loud
+  // with `() => undefined`.
+  onLine: (line: string) => void;
 }): Promise<{ workspacePackageRoots: readonly WorktreeRootPair[] }> => {
   const sourceNodeModules = locationsNodeModulesPathFindBroker({ rootPath: sourceRoot });
   const targetNodeModules = locationsNodeModulesPathFindBroker({ rootPath: targetRoot });
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(targetNodeModules) });
+  // The done-check reads DISK, not a record: a directory with entries in it is proof, and the
+  // spiritmender that ran between two riftcarver attempts may have npm-installed or deleted things
+  // no ledger knows about. Existence alone is not enough — `fsMkdirAdapter` leaves an EMPTY
+  // node_modules behind the moment it runs, so an attempt that died right after the mkdir would
+  // otherwise look done and mirror nothing.
+  const targetExists = await fsIsAccessibleAdapter({
+    filePath: filePathContract.parse(targetNodeModules),
+  });
+  const alreadyPopulated =
+    targetExists && fsReaddirWithTypesAdapter({ dirPath: targetNodeModules }).length > 0;
 
+  onLine(
+    alreadyPopulated
+      ? `— skip ${targetRoot} (node_modules already populated) —`
+      : `— mirroring node_modules: ${targetRoot} —`,
+  );
+
+  if (!alreadyPopulated) {
+    await fsMkdirAdapter({ filepath: filePathContract.parse(targetNodeModules) });
+  }
+
+  // The SOURCE walk runs either way. `workspacePackageRoots` is derived entirely from the source
+  // side's links plus path arithmetic, so a skipped root still hands the parent the roots to visit
+  // next — skipping the walk instead would leave a resumed run with nothing to iterate.
   const entries = fsReaddirWithTypesAdapter({ dirPath: sourceNodeModules });
 
   const perEntry = await Promise.all(
@@ -57,14 +94,18 @@ export const populateOneRootLayerBroker = async ({
       const entryTargetPath = pathJoinAdapter({ paths: [targetNodeModules, entry.name] });
 
       if (!entry.isDirectory() || !entry.name.startsWith(NPM_SCOPE_PREFIX)) {
-        await fsSymlinkAdapter({ target: entrySourcePath, linkPath: entryTargetPath });
+        if (!alreadyPopulated) {
+          await fsSymlinkAdapter({ target: entrySourcePath, linkPath: entryTargetPath });
+        }
         return [];
       }
 
       // A scope directory becomes a REAL directory whose children are linked one by one. Linking
       // the scope itself would resolve its relative children back to the source checkout, which is
       // exactly the divergence this whole mechanism exists to prevent.
-      await fsMkdirAdapter({ filepath: entryTargetPath });
+      if (!alreadyPopulated) {
+        await fsMkdirAdapter({ filepath: entryTargetPath });
+      }
 
       const scopeChildren = fsReaddirWithTypesAdapter({
         dirPath: absoluteFilePathContract.parse(entrySourcePath),
@@ -81,10 +122,12 @@ export const populateOneRootLayerBroker = async ({
           const isRelative =
             storedTarget !== null && !absoluteFilePathContract.safeParse(storedTarget).success;
 
-          await fsSymlinkAdapter({
-            target: isRelative ? storedTarget : childSourcePath,
-            linkPath: childTargetPath,
-          });
+          if (!alreadyPopulated) {
+            await fsSymlinkAdapter({
+              target: isRelative ? storedTarget : childSourcePath,
+              linkPath: childTargetPath,
+            });
+          }
 
           if (!isRelative) {
             return null;

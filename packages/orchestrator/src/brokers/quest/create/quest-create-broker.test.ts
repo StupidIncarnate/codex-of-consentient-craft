@@ -60,6 +60,7 @@ describe('questCreateBroker', () => {
       needsDesign: false,
       workItems: [],
       wardResults: [],
+      riftcarverResults: [],
       planningNotes: { blightLedger: [], blightReports: [], qaLedger: [], questNotes: [] },
     });
     expect(planOpId).toMatch(UUID_PATTERN);

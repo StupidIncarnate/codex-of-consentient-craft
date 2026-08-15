@@ -12,7 +12,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
+import { mcpToolResultStatics, workItemRoleStatics } from '@dungeonmaster/shared/statics';
 
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
@@ -164,19 +164,30 @@ describe('workItemToPromptTransformer', () => {
     });
   });
 
-  describe('ward role (dispatched via run-ward, not get-agent-prompt)', () => {
-    it('ERROR: {workItem.role: ward} => throws run-ward dispatch error', () => {
-      const workItem = WorkItemStub({ role: 'ward' });
-      const quest = QuestStub({ workItems: [workItem] });
+  describe('command roles (run by the dispatcher, never served by get-agent-prompt)', () => {
+    // Derived from the command tuple rather than listing roles here: a hardcoded case list is what
+    // let a new command role reach agentNameToPromptTransformer and die on an agent name that was
+    // never meant to exist.
+    it.each(workItemRoleStatics.command)(
+      'ERROR: {workItem.role: %s} => throws naming that role as command-dispatched',
+      (role) => {
+        const workItem = WorkItemStub({ role });
+        const quest = QuestStub({ workItems: [workItem] });
 
-      expect(() =>
-        workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
-        }),
-      ).toThrow(/ward work items are dispatched via the run-ward MCP tool/u);
-    });
+        expect(() =>
+          workItemToPromptTransformer({
+            quest,
+            workItem,
+            agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          }),
+        ).toThrow(
+          new RegExp(
+            `${role} work items are dispatched as commands by the orchestrator, not via get-agent-prompt`,
+            'u',
+          ),
+        );
+      },
+    );
   });
 
   describe('chat roles (chaoswhisperer/glyphsmith are not served by get-agent-prompt)', () => {

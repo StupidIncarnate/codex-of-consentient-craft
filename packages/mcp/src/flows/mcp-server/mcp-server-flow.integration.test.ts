@@ -1887,6 +1887,7 @@ describe('McpServerFlow', () => {
       'get-blight-checklist',
       'get-agent-prompt',
       'run-ward',
+      'run-riftcarver',
       'ask-user-question',
       'reset-flow-signoffs',
       'get-quest-summary',

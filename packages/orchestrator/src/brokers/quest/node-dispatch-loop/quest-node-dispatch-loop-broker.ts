@@ -2,7 +2,7 @@
  * PURPOSE: The Node-run orchestration loop — drives the SAME get-next-step state machine that
  * /dumpster-launch polls, but dispatches by spawning headless Claude CLI children instead of
  * Task() sub-agents. One recursion per dispatch decision: spawn-agents → spawn the batch and
- * await exits; run-ward → run ward synchronously; idle → return control to the runner (which
+ * await exits; run-ward / run-riftcarver → run that command synchronously; idle → return control to the runner (which
  * re-kicks on wake events — no sleep-polling). isPlaying() is read TWICE per iteration — before
  * the scan and again after it, because the scan long-polls and can return work that only appeared
  * after a pause. That pair is the graceful pause point: in-flight children finish, nothing new
@@ -13,10 +13,11 @@
  * // Resolves when paused or when the state machine reports idle
  *
  * WHY isPlaying is a parameter: brokers cannot import state/ — the bootstrap responder supplies
- * the real orchestrationDispatchState facade; tests inject a stub. `onWardLine` is a parameter for
- * the same reason, and is REQUIRED: ward is the one work item nothing else can stream (no
- * sessionId, so the JSONL watcher cannot see it), so dropping this callback means minutes of a
- * dead panel with nothing at the call site to show for it.
+ * the real orchestrationDispatchState facade; tests inject a stub. `onWardLine` and
+ * `onRiftcarverLine` are parameters for the same reason, and both are REQUIRED: a command work item
+ * carries no sessionId, so the JSONL watcher can never tail it, and these callbacks are the only
+ * route their output has to a UI. Dropping either means minutes of a dead panel with nothing at the
+ * call site to show for it — a carve stalls the panel for longer than a ward run ever does.
  */
 
 import type {
@@ -30,6 +31,7 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
 import { questGetNextStepBroker } from '../get-next-step/quest-get-next-step-broker';
+import { questRunRiftcarverBroker } from '../run-riftcarver/quest-run-riftcarver-broker';
 import { questRunWardBroker } from '../run-ward/quest-run-ward-broker';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 
@@ -43,9 +45,15 @@ export const questNodeDispatchLoopBroker = async ({
   registerProcess,
   unregisterProcess,
   onWardLine,
+  onRiftcarverLine,
 }: {
   isPlaying: () => boolean;
   onWardLine: (params: { questId: QuestId; workItemId: QuestWorkItemId; line: string }) => void;
+  onRiftcarverLine: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    line: string;
+  }) => void;
   registerProcess?: (params: {
     processId: ProcessId;
     questId: QuestId;
@@ -84,7 +92,20 @@ export const questNodeDispatchLoopBroker = async ({
     return ok;
   }
 
-  if (step.type === 'run-ward') {
+  if (step.type === 'run-riftcarver') {
+    const carveQuestId = step.questId;
+    const carveWorkItemId = step.workItemId;
+    // The carve owns its own ledger outcome — it marks the work item in_progress, applies the
+    // result and calls advance-or-block itself — so the loop awaits it and then recurses, exactly
+    // as it does for ward.
+    await questRunRiftcarverBroker({
+      questId: carveQuestId,
+      workItemId: carveWorkItemId,
+      onLine: (line: string): void => {
+        onRiftcarverLine({ questId: carveQuestId, workItemId: carveWorkItemId, line });
+      },
+    });
+  } else if (step.type === 'run-ward') {
     const wardQuestId = step.questId;
     const wardWorkItemId = step.workItemId;
     await questRunWardBroker({
@@ -109,6 +130,7 @@ export const questNodeDispatchLoopBroker = async ({
   return questNodeDispatchLoopBroker({
     isPlaying,
     onWardLine,
+    onRiftcarverLine,
     ...(registerProcess === undefined ? {} : { registerProcess }),
     ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
   });

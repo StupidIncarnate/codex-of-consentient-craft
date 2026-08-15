@@ -19,6 +19,7 @@ import { ResetFlowSignoffsLayerResponderProxy } from './reset-flow-signoffs-laye
 import { orchestratorGetServerConfigAdapterProxy } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
 import { orchestratorRunWardAdapterProxy } from '../../../adapters/orchestrator/run-ward/orchestrator-run-ward-adapter.proxy';
+import { RunRiftcarverLayerResponderProxy } from './run-riftcarver-layer-responder.proxy';
 import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
 import { orchestratorGetQuestStatusBrokerProxy } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
@@ -41,6 +42,7 @@ import {
   QuestRunWardResultStub,
   QuestGetServerConfigResultStub,
 } from '@dungeonmaster/orchestrator/testing';
+import type { QuestRunRiftcarverResultStub } from '@dungeonmaster/orchestrator/testing';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
@@ -52,6 +54,7 @@ type ResetFlowSignoffsResult = Awaited<ReturnType<typeof StartOrchestrator.reset
 type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQuestSummary>>;
 type NextStep = ReturnType<typeof NextStepStub>;
 type QuestRunWardResult = ReturnType<typeof QuestRunWardResultStub>;
+type QuestRunRiftcarverResult = ReturnType<typeof QuestRunRiftcarverResultStub>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
 type QuestWorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
@@ -121,10 +124,21 @@ export const QuestHandleResponderProxy = (): {
     workItemId: QuestWorkItemId;
     error: Error;
   }) => void;
+  setupRunRiftcarverReturns: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    result: QuestRunRiftcarverResult;
+  }) => void;
+  setupRunRiftcarverThrows: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    error: Error;
+  }) => void;
   setupGetServerConfigReturns: (params: { result: QuestGetServerConfigResult }) => void;
   setupGetServerConfigThrows: (params: { error: Error }) => void;
   buildIdleNextStep: () => NextStep;
   buildRunWardResult: () => QuestRunWardResult;
+  buildRunRiftcarverResult: () => QuestRunRiftcarverResult;
   buildServerConfig: () => QuestGetServerConfigResult;
   getLastModifyInput: (params: { questId: string }) => unknown;
   getLastGetPlanningNotesInput: (params: { questId: string }) => unknown;
@@ -154,6 +168,7 @@ export const QuestHandleResponderProxy = (): {
   const createQuestProxy = orchestratorCreateQuestAdapterProxy();
   const getNextStepProxy = orchestratorGetNextStepAdapterProxy();
   const runWardProxy = orchestratorRunWardAdapterProxy();
+  const runRiftcarverProxy = RunRiftcarverLayerResponderProxy();
   const getServerConfigProxy = orchestratorGetServerConfigAdapterProxy();
 
   return {
@@ -398,6 +413,30 @@ export const QuestHandleResponderProxy = (): {
       runWardProxy.throws({ questId, workItemId, error });
     },
 
+    setupRunRiftcarverReturns: ({
+      questId,
+      workItemId,
+      result,
+    }: {
+      questId: QuestId;
+      workItemId: QuestWorkItemId;
+      result: QuestRunRiftcarverResult;
+    }): void => {
+      runRiftcarverProxy.setupReturns({ questId, workItemId, result });
+    },
+
+    setupRunRiftcarverThrows: ({
+      questId,
+      workItemId,
+      error,
+    }: {
+      questId: QuestId;
+      workItemId: QuestWorkItemId;
+      error: Error;
+    }): void => {
+      runRiftcarverProxy.setupThrows({ questId, workItemId, error });
+    },
+
     setupGetServerConfigReturns: ({ result }: { result: QuestGetServerConfigResult }): void => {
       getServerConfigProxy.returns({ result });
     },
@@ -409,6 +448,8 @@ export const QuestHandleResponderProxy = (): {
     buildIdleNextStep: (): NextStep => NextStepStub({ type: 'idle' }),
 
     buildRunWardResult: (): QuestRunWardResult => QuestRunWardResultStub(),
+
+    buildRunRiftcarverResult: (): QuestRunRiftcarverResult => runRiftcarverProxy.buildResult(),
 
     buildServerConfig: (): QuestGetServerConfigResult => QuestGetServerConfigResultStub(),
 

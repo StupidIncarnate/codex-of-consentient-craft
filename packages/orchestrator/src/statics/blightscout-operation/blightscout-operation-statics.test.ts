@@ -69,12 +69,15 @@ describe('blightscoutOperationStatics', () => {
     ).toStrictEqual([]);
   });
 
-  it('VALID: {every work-item role} => the ones earning no review are the chat roles, ward, warpgate, and blightscout itself', () => {
+  it('VALID: {every work-item role} => the ones earning no review are the chat roles, both command roles, warpgate, and blightscout itself', () => {
     expect(ROLES_EARNING_NO_REVIEW).toStrictEqual([
       'chaoswhisperer',
       'glyphsmith',
       'bughunt',
       'tavernkeeper',
+      // Both COMMAND roles. `riftcarver` carves a workspace and `ward` grades one; neither writes a
+      // line of code, so there is no commit for a scout to review.
+      'riftcarver',
       'ward',
       'blightscout',
       'warpgate',

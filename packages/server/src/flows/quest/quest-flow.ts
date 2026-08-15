@@ -25,6 +25,7 @@ import { QuestDeleteResponder } from '../../responders/quest/delete/quest-delete
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
 import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
+import { QuestRiftcarverDetailResponder } from '../../responders/quest/riftcarver-detail/quest-riftcarver-detail-responder';
 import { QuestSignalBackResponder } from '../../responders/quest/signal-back/quest-signal-back-responder';
 import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
 import { QuestSummaryResponder } from '../../responders/quest/summary/quest-summary-responder';
@@ -70,6 +71,16 @@ export const QuestFlow = (): Hono => {
       params: {
         questId: c.req.param('questId'),
         wardResultId: c.req.param('wardResultId'),
+      },
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.get(apiRoutesStatics.quests.riftcarverDetail, async (c) => {
+    const result = await QuestRiftcarverDetailResponder({
+      params: {
+        questId: c.req.param('questId'),
+        riftcarverResultId: c.req.param('riftcarverResultId'),
       },
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);

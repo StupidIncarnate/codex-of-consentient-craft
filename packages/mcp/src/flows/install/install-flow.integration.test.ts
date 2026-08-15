@@ -86,6 +86,7 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__create-quest',
                 'mcp__dungeonmaster__get-next-step',
                 'mcp__dungeonmaster__run-ward',
+                'mcp__dungeonmaster__run-riftcarver',
                 'mcp__dungeonmaster__get-server-config',
                 'mcp__dungeonmaster__reset-flow-signoffs',
                 'mcp__dungeonmaster__get-quest-summary',

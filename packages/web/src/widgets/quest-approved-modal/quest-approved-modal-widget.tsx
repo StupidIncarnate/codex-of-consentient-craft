@@ -1,8 +1,12 @@
 /**
- * PURPOSE: Displays a modal when a quest is approved, offering two choices: keep chatting or begin execution
+ * PURPOSE: Displays a modal when a quest is approved, offering two choices: keep chatting or begin
+ * execution. `beginQuestPending` disables only the Begin Quest button, never Keep Chatting — the
+ * caller holds this modal open across the questStartBroker call rather than closing it on click, so
+ * the disabled button IS the immediate feedback and the reader can still bail out via Keep Chatting
+ * while the POST is in flight.
  *
  * USAGE:
- * <QuestApprovedModalWidget opened={true} onKeepChatting={fn} onBeginQuest={fn} />
+ * <QuestApprovedModalWidget opened={true} beginQuestPending={false} onKeepChatting={fn} onBeginQuest={fn} />
  * // Renders dungeon-themed modal with two action buttons
  */
 
@@ -19,12 +23,14 @@ const GHOST_VARIANT = 'ghost' as ButtonVariant;
 
 export interface QuestApprovedModalWidgetProps {
   opened: boolean;
+  beginQuestPending: boolean;
   onKeepChatting: () => void;
   onBeginQuest: () => void;
 }
 
 export const QuestApprovedModalWidget = ({
   opened,
+  beginQuestPending,
   onKeepChatting,
   onBeginQuest,
 }: QuestApprovedModalWidgetProps): React.JSX.Element => {
@@ -59,7 +65,11 @@ export const QuestApprovedModalWidget = ({
         </Text>
 
         <Stack gap="xs" w="100%">
-          <PixelBtnWidget label={BEGIN_QUEST_LABEL} onClick={onBeginQuest} />
+          <PixelBtnWidget
+            label={BEGIN_QUEST_LABEL}
+            onClick={onBeginQuest}
+            disabled={beginQuestPending}
+          />
           <PixelBtnWidget
             label={KEEP_CHATTING_LABEL}
             variant={GHOST_VARIANT}

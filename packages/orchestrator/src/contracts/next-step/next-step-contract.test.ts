@@ -120,6 +120,54 @@ describe('nextStepContract', () => {
     });
   });
 
+  describe('run-riftcarver variant', () => {
+    it('VALID: {type: run-riftcarver, questId, workItemId} => parses successfully', () => {
+      const questId = QuestIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
+
+      const result = nextStepContract.parse({
+        type: 'run-riftcarver',
+        questId,
+        workItemId,
+      });
+
+      expect(result).toStrictEqual({
+        type: 'run-riftcarver',
+        questId,
+        workItemId,
+      });
+    });
+
+    // A carve has one job and reads its scope off the quest, so a `mode` handed to it is a caller
+    // confusing it with ward. Zod strips the unknown key rather than carrying it onto the wire.
+    it('EDGE: {type: run-riftcarver, mode: full} => strips the ward-only mode key', () => {
+      const questId = QuestIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
+
+      const result = nextStepContract.parse({
+        type: 'run-riftcarver',
+        questId,
+        workItemId,
+        mode: 'full',
+      });
+
+      expect(result).toStrictEqual({
+        type: 'run-riftcarver',
+        questId,
+        workItemId,
+      });
+    });
+
+    it('INVALID: {type: run-riftcarver, missing workItemId} => throws Required', () => {
+      expect(() =>
+        nextStepContract.parse({
+          type: 'run-riftcarver',
+          questId: QuestIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' }),
+        }),
+      ).toThrow(/Required/u);
+    });
+  });
+
   describe('invalid inputs', () => {
     it('INVALID: {type: unknown} => throws discriminator error', () => {
       expect(() => nextStepContract.parse({ type: 'unknown' })).toThrow(

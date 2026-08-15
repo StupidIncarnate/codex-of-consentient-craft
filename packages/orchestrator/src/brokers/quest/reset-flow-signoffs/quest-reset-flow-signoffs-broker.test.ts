@@ -282,6 +282,7 @@ describe('questResetFlowSignoffsBroker', () => {
             },
           ],
           wardResults: [],
+          riftcarverResults: [],
           planningNotes: {
             blightReports: [],
             qaLedger: [],

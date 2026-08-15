@@ -69,6 +69,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import {
   isChatWorkItemRoleGuard,
+  isCommandWorkItemRoleGuard,
   isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
@@ -317,7 +318,12 @@ export const QuestHandleSignalBackResponder = async ({
       });
       const maxAttempts = ((): typeof slotManagerStatics.codeweaver.maxAttempts | undefined => {
         const role: OperationItem['role'] = linkedOperation.role;
-        if (isChatWorkItemRoleGuard({ role }) || role === 'ward') {
+        // A COMMAND role never reaches this ladder honestly: it is terminal by exit code and never
+        // calls signal-back, and its retry chain is counted by its own broker against
+        // `slotManagerStatics.<role>.maxRetries`. Matching the whole command subset rather than
+        // `ward` alone is what keeps a later command role out of the ladder's final `else`, which
+        // would otherwise hand it spiritmender's budget.
+        if (isChatWorkItemRoleGuard({ role }) || isCommandWorkItemRoleGuard({ role })) {
           return undefined;
         }
         const budgets = slotManagerStatics;

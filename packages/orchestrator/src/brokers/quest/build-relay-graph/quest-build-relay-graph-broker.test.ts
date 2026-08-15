@@ -9,10 +9,15 @@ import {
   QuestWorkItemIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
 import { questBuildRelayGraphBroker } from './quest-build-relay-graph-broker';
 import { questBuildRelayGraphBrokerProxy } from './quest-build-relay-graph-broker.proxy';
 import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
+
+type QuestTypeKey = keyof typeof questTypeRegistryStatics;
+
+const QUEST_TYPES = Object.keys(questTypeRegistryStatics) as readonly QuestTypeKey[];
 
 const UUIDS = [
   '00000000-0000-4000-8000-000000000001',
@@ -50,14 +55,14 @@ const CLI_PACKAGE = QuestPackageEntryStub({
 
 describe('questBuildRelayGraphBroker', () => {
   describe('feature quest', () => {
-    it('VALID: {feature quest with no packagesAffected/flow tags/contracts} => the derived codeweaver fallback item is first actionable, and the verify tail is ward → flowrider → siegemaster → ward with no blightwarden entry', async () => {
+    it('VALID: {feature quest with no packagesAffected/flow tags/contracts} => riftcarver is first actionable, the derived codeweaver fallback item seeds pending behind it, and the verify tail is ward → flowrider → siegemaster → ward with no blightwarden entry', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
       const quest = QuestStub();
       const priorId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [priorId],
         now: IsoTimestampStub(),
@@ -67,12 +72,20 @@ describe('questBuildRelayGraphBroker', () => {
         operations: [
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
-            text: 'Codeweaver: build this slice',
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
             status: 'in_progress',
-            locked: false,
+            locked: true,
+            packageNames: [],
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000002',
+            text: 'Codeweaver: build this slice',
+            status: 'pending',
+            locked: false,
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000003',
             role: 'ward',
             text: 'Ward gate (changed files)',
             status: 'pending',
@@ -80,7 +93,7 @@ describe('questBuildRelayGraphBroker', () => {
             wardMode: 'changed',
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000003',
+            id: '00000000-0000-4000-8000-000000000004',
             role: 'flowrider',
             text: 'Flowrider: author the flow-perspective test suites below the browser',
             status: 'pending',
@@ -88,7 +101,7 @@ describe('questBuildRelayGraphBroker', () => {
             flowIds: ['login-flow'],
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000004',
+            id: '00000000-0000-4000-8000-000000000005',
             role: 'siegemaster',
             text: 'Siegemaster: manual-QA this flow and review its test suite — flow: login-flow',
             status: 'pending',
@@ -96,7 +109,7 @@ describe('questBuildRelayGraphBroker', () => {
             flowIds: ['login-flow'],
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000005',
+            id: '00000000-0000-4000-8000-000000000006',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -106,10 +119,10 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000006' }),
-            role: 'codeweaver',
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000007' }),
+            role: 'riftcarver',
             status: 'pending',
-            spawnerType: 'agent',
+            spawnerType: 'command',
             relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
             dependsOn: [priorId],
             createdAt: '2024-01-15T10:00:00.000Z',
@@ -118,7 +131,7 @@ describe('questBuildRelayGraphBroker', () => {
       });
     });
 
-    it('VALID: {feature quest with two untagged flows, no packagesAffected} => the derived codeweaver item is the whole-quest fallback, flowrider gets ONE whole-quest item, and siegemaster gets one item PER FLOW so each flow gets its own pt budget and completion gate', async () => {
+    it('VALID: {feature quest with two untagged flows, no packagesAffected} => the derived codeweaver item is the whole-quest fallback, flowrider gets ONE whole-quest item, and siegemaster gets one item PER FLOW so each flow gets its own pt budget and completion gate', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -129,7 +142,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -138,6 +151,11 @@ describe('questBuildRelayGraphBroker', () => {
       expect(
         result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
       ).toStrictEqual([
+        {
+          role: 'riftcarver',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          flowIds: [],
+        },
         {
           role: 'codeweaver',
           text: 'Codeweaver: build this slice',
@@ -163,7 +181,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {feature quest with 2 runtime + 1 operational untagged flow} => flowrider carries ONLY the 2 runtime ids, siegemaster gets one item PER FLOW including the operational one', async () => {
+    it('VALID: {feature quest with 2 runtime + 1 operational untagged flow} => flowrider carries ONLY the 2 runtime ids, siegemaster gets one item PER FLOW including the operational one', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -179,7 +197,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -188,6 +206,11 @@ describe('questBuildRelayGraphBroker', () => {
       expect(
         result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
       ).toStrictEqual([
+        {
+          role: 'riftcarver',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          flowIds: [],
+        },
         {
           role: 'codeweaver',
           text: 'Codeweaver: build this slice',
@@ -221,7 +244,7 @@ describe('questBuildRelayGraphBroker', () => {
     // The ungated-quest hole: flowrider's `flowIds` is ADVISORY, so an all-operational quest still
     // gets a flowrider item — with an EMPTY list — and the Phase-2 gate derives its own denominator
     // from the quest's runtime flows rather than from this list.
-    it('EMPTY: {feature quest whose every flow is operational} => flowrider item exists with EMPTY flowIds, siegemaster still gets one item per operational flow', async () => {
+    it('EMPTY: {feature quest whose every flow is operational} => flowrider item exists with EMPTY flowIds, siegemaster still gets one item per operational flow', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -240,7 +263,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -249,6 +272,11 @@ describe('questBuildRelayGraphBroker', () => {
       expect(
         result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
       ).toStrictEqual([
+        {
+          role: 'riftcarver',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          flowIds: [],
+        },
         {
           role: 'codeweaver',
           text: 'Codeweaver: build this slice',
@@ -274,13 +302,13 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it("EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so the off-map `hostile-input` and `perf` probe families — this quest's only security and performance coverage — keep an owner", async () => {
+    it("EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so the off-map `hostile-input` and `perf` probe families — this quest's only security and performance coverage — keep an owner", () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
       const quest = QuestStub({ flows: [] });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -289,6 +317,11 @@ describe('questBuildRelayGraphBroker', () => {
       expect(
         result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
       ).toStrictEqual([
+        {
+          role: 'riftcarver',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          flowIds: [],
+        },
         {
           role: 'codeweaver',
           text: 'Codeweaver: build this slice',
@@ -311,7 +344,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('derived codeweaver implementation ops', () => {
-    it('VALID: {two packages each tagged by one node in one flow, plus a foundation contract} => one codeweaver item per (package, flow) cell plus one foundation item, package-tier ranked with the foundation item ahead of its package’s flow cell', async () => {
+    it('VALID: {two packages each tagged by one node in one flow, plus a foundation contract} => one codeweaver item per (package, flow) cell plus one foundation item, package-tier ranked with the foundation item ahead of its package’s flow cell', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -346,7 +379,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -365,7 +398,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           text: 'Codeweaver: build this slice — server: foundation',
-          status: 'in_progress',
+          status: 'pending',
           locked: false,
           flowIds: [],
           packageNames: ['server'],
@@ -387,7 +420,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {one package tagged by a node on each of two flows} => the same package gets one codeweaver item per flow, ordered by flow declaration order', async () => {
+    it('VALID: {one package tagged by a node on each of two flows} => the same package gets one codeweaver item per flow, ordered by flow declaration order', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -409,7 +442,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -435,7 +468,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('package-sliced dispatch', () => {
-    it('VALID: {tagged nodes across two runtime flows} => one flowrider item per package it owns PLUS a seam item, none for the frontend package, one groundstomper item per e2e-eligible flow, siegemaster unchanged at one per flow', async () => {
+    it('VALID: {tagged nodes across two runtime flows} => one flowrider item per package it owns PLUS a seam item, none for the frontend package, one groundstomper item per e2e-eligible flow, siegemaster unchanged at one per flow', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -464,7 +497,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -482,6 +515,12 @@ describe('questBuildRelayGraphBroker', () => {
             packageNames,
           })),
       ).toStrictEqual([
+        {
+          role: 'riftcarver',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          flowIds: [],
+          packageNames: [],
+        },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [], packageNames: [] },
         {
           role: 'flowrider',
@@ -523,7 +562,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('EMPTY: {a runtime flow whose only tagged package is an http-backend} => NO groundstomper item is seeded, because a browser can reach nothing on it', async () => {
+    it('EMPTY: {a runtime flow whose only tagged package is an http-backend} => NO groundstomper item is seeded, because a browser can reach nothing on it', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -539,7 +578,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -549,10 +588,10 @@ describe('questBuildRelayGraphBroker', () => {
         result.operations
           .filter((operation) => operation.role !== 'codeweaver')
           .map(({ role }) => role),
-      ).toStrictEqual(['ward', 'flowrider', 'siegemaster', 'ward']);
+      ).toStrictEqual(['riftcarver', 'ward', 'flowrider', 'siegemaster', 'ward']);
     });
 
-    it('EMPTY: {a runtime flow whose only tagged package is a frontend-react} => NO flowrider item is seeded, because every unit on it is the browser track’s', async () => {
+    it('EMPTY: {a runtime flow whose only tagged package is a frontend-react} => NO flowrider item is seeded, because every unit on it is the browser track’s', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -568,7 +607,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -578,12 +617,12 @@ describe('questBuildRelayGraphBroker', () => {
         result.operations
           .filter((operation) => operation.role !== 'codeweaver')
           .map(({ role }) => role),
-      ).toStrictEqual(['ward', 'groundstomper', 'siegemaster', 'ward']);
+      ).toStrictEqual(['riftcarver', 'ward', 'groundstomper', 'siegemaster', 'ward']);
     });
   });
 
   describe('codeweaver dependency ordering', () => {
-    it('VALID: {codeweaver ops authored top-down with a packageGraph stamped} => the ledger comes back dependencies-first and the LEAF op is the one marked in_progress', async () => {
+    it('VALID: {codeweaver ops authored top-down with a packageGraph stamped} => the ledger comes back dependencies-first and the LEAF op is the one marked in_progress', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -622,7 +661,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -649,7 +688,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('intake plan items forced complete', () => {
-    it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress} => both forced complete, codeweaver op is the first actionable', async () => {
+    it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress} => both forced complete, codeweaver op is the first actionable', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -674,7 +713,7 @@ describe('questBuildRelayGraphBroker', () => {
         operations: [forgottenPlanOp, forgottenDesignOp, codeweaverOp],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -689,6 +728,7 @@ describe('questBuildRelayGraphBroker', () => {
         { id: '00000000-0000-4000-8000-000000000003', status: 'pending' },
         { id: '00000000-0000-4000-8000-000000000004', status: 'pending' },
         { id: '00000000-0000-4000-8000-000000000005', status: 'pending' },
+        { id: '00000000-0000-4000-8000-000000000006', status: 'pending' },
       ]);
       expect(
         result.workItems.map(({ role, relatedDataItems }) => ({ role, relatedDataItems })),
@@ -702,7 +742,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('bug-hunt quest', () => {
-    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress carrying the node tags + 2-item verify tail, first work item is pesteater', async () => {
+    it('VALID: {bug-hunt quest, empty operations} => riftcarver is first actionable and its work item is a command spawner; pesteater seeds pending carrying the node tags, ahead of the 2-item verify tail', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -720,7 +760,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -730,14 +770,22 @@ describe('questBuildRelayGraphBroker', () => {
         operations: [
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            status: 'in_progress',
+            locked: true,
+            packageNames: [],
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000002',
             role: 'pesteater',
             text: 'PestEater: reproduce the bug with a failing test first, then fix it',
-            status: 'in_progress',
+            status: 'pending',
             locked: true,
             packageNames: ['web'],
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000002',
+            id: '00000000-0000-4000-8000-000000000003',
             role: 'ward',
             text: 'Ward gate (changed files)',
             status: 'pending',
@@ -745,7 +793,7 @@ describe('questBuildRelayGraphBroker', () => {
             wardMode: 'changed',
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000003',
+            id: '00000000-0000-4000-8000-000000000004',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -755,10 +803,10 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000004' }),
-            role: 'pesteater',
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
+            role: 'riftcarver',
             status: 'pending',
-            spawnerType: 'agent',
+            spawnerType: 'command',
             relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
@@ -767,7 +815,7 @@ describe('questBuildRelayGraphBroker', () => {
       });
     });
 
-    it('VALID: {node tags spread across two flows, one package repeated} => the seeded pesteater item carries the UNION of the node tags, first-tagged order, once each', async () => {
+    it('VALID: {node tags spread across two flows, one package repeated} => the seeded pesteater item carries the UNION of the node tags, first-tagged order, once each', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -794,7 +842,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -803,13 +851,14 @@ describe('questBuildRelayGraphBroker', () => {
       expect(
         result.operations.map(({ role, packageNames }) => ({ role, packageNames })),
       ).toStrictEqual([
+        { role: 'riftcarver', packageNames: [] },
         { role: 'pesteater', packageNames: ['web', 'server', 'cli'] },
         { role: 'ward', packageNames: [] },
         { role: 'ward', packageNames: [] },
       ]);
     });
 
-    it('EMPTY: {bug-hunt quest with no flows to tag} => the pesteater item still seeds, declaring no packages', async () => {
+    it('EMPTY: {bug-hunt quest with no flows to tag} => the pesteater item still seeds, declaring no packages', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -820,7 +869,7 @@ describe('questBuildRelayGraphBroker', () => {
         flows: [],
       });
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -833,7 +882,8 @@ describe('questBuildRelayGraphBroker', () => {
           packageNames,
         })),
       ).toStrictEqual([
-        { role: 'pesteater', status: 'in_progress', packageNames: [] },
+        { role: 'riftcarver', status: 'in_progress', packageNames: [] },
+        { role: 'pesteater', status: 'pending', packageNames: [] },
         { role: 'ward', status: 'pending', packageNames: [] },
         { role: 'ward', status: 'pending', packageNames: [] },
       ]);
@@ -841,7 +891,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('empty relay tail', () => {
-    it('VALID: {every prior op complete, empty relay tail} => the derived codeweaver item is still seeded and becomes the sole actionable operation', async () => {
+    it('VALID: {every prior op complete, empty relay tail} => riftcarver seeds first and becomes the sole actionable operation, with the derived codeweaver item still seeded pending behind it', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
       const completeOp = OperationItemStub({
@@ -853,7 +903,7 @@ describe('questBuildRelayGraphBroker', () => {
 
       proxy.setupEmptyFeatureRelayTail();
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -866,68 +916,30 @@ describe('questBuildRelayGraphBroker', () => {
           completeOp,
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
-            text: 'Codeweaver: build this slice',
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
             status: 'in_progress',
-            locked: false,
+            locked: true,
+            packageNames: [],
           }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000002' }),
-            role: 'codeweaver',
-            status: 'pending',
-            spawnerType: 'agent',
-            relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-        ],
-      });
-    });
-
-    it('VALID: {every prior op complete, empty relay tail, quest.baseRef unset, HEAD readable} => baseRef is stamped alongside the derived codeweaver item’s work item', async () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-      proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
-      const completeOp = OperationItemStub({
-        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        role: 'codeweaver',
-        status: 'complete',
-      });
-      const quest = QuestStub({ operations: [completeOp] });
-
-      proxy.setupEmptyFeatureRelayTail();
-
-      const result = await questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [],
-        now: IsoTimestampStub(),
-      });
-
-      proxy.restoreFeatureRelayTail();
-
-      expect(result).toStrictEqual({
-        operations: [
-          completeOp,
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000001',
+            id: '00000000-0000-4000-8000-000000000002',
             text: 'Codeweaver: build this slice',
-            status: 'in_progress',
+            status: 'pending',
             locked: false,
           }),
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000002' }),
-            role: 'codeweaver',
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000003' }),
+            role: 'riftcarver',
             status: 'pending',
-            spawnerType: 'agent',
+            spawnerType: 'command',
             relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
           }),
         ],
-        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
       });
     });
   });
@@ -938,7 +950,7 @@ describe('questBuildRelayGraphBroker', () => {
     // actionable. With BOTH seed sources empty and every prior op complete there is nothing pending
     // at all, and the broker returns the ledger with NO work item rather than minting one for
     // undefined.
-    it('EMPTY: {every prior op complete, empty relay tail AND empty startImplementationOps} => returns the ledger unchanged with no work item', async () => {
+    it('EMPTY: {every prior op complete, empty relay tail AND empty startImplementationOps} => returns the ledger unchanged with no work item', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
       const completeOp = OperationItemStub({
@@ -951,7 +963,7 @@ describe('questBuildRelayGraphBroker', () => {
       proxy.setupEmptyFeatureRelayTail();
       proxy.setupEmptyFeatureStartImplementationOps();
 
-      const result = await questBuildRelayGraphBroker({
+      const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -962,166 +974,56 @@ describe('questBuildRelayGraphBroker', () => {
 
       expect(result).toStrictEqual({ operations: [completeOp], workItems: [] });
     });
-
-    it('EMPTY: {no actionable operation, quest.baseRef unset, HEAD readable} => baseRef is still stamped alongside the empty work-item list', async () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-      proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
-      const completeOp = OperationItemStub({
-        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        role: 'codeweaver',
-        status: 'complete',
-      });
-      const quest = QuestStub({ operations: [completeOp] });
-
-      proxy.setupEmptyFeatureRelayTail();
-      proxy.setupEmptyFeatureStartImplementationOps();
-
-      const result = await questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [],
-        now: IsoTimestampStub(),
-      });
-
-      proxy.restoreFeatureStartImplementationOps();
-      proxy.restoreFeatureRelayTail();
-
-      expect(result).toStrictEqual({
-        operations: [completeOp],
-        workItems: [],
-        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
-      });
-    });
   });
 
-  describe('baseRef stamping', () => {
-    it('VALID: {quest.baseRef unset, HEAD readable} => stamps baseRef from gitHeadShaAdapter, in the same result as the seeded operations + first work item', async () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-      proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
+  describe('riftcarver seeded first', () => {
+    // Riftcarver is prepended to `startImplementationOps` for BOTH quest types (see
+    // quest-type-registry-statics), so this holds however the rest of the seed differs — the same
+    // body proves it for each one. It runs BEFORE any worktree exists, which is exactly why it
+    // carries no baseRef and no package scope: `packageNames` narrows an AGENT's search, and a
+    // command dispatcher has no prompt to narrow.
+    it.each(QUEST_TYPES)(
+      'VALID: {%s quest, Start Quest seed} => riftcarver is the first operation item, locked, scoped to no packages, and its work item is a command spawner',
+      (questType) => {
+        const proxy = questBuildRelayGraphBrokerProxy();
+        proxy.setupUuids({ ids: UUIDS });
 
-      const quest = QuestStub({ questType: 'bug-hunt', operations: [] });
+        const quest = QuestStub({ questType, operations: [] });
 
-      const result = await questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [],
-        now: IsoTimestampStub(),
-      });
+        const result = questBuildRelayGraphBroker({
+          quest,
+          priorWorkItemIds: [],
+          now: IsoTimestampStub(),
+        });
 
-      expect(result).toStrictEqual({
-        operations: [
+        expect(result.operations[0]).toStrictEqual(
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
-            role: 'pesteater',
-            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
             status: 'in_progress',
             locked: true,
+            packageNames: [],
           }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000002',
-            role: 'ward',
-            text: 'Ward gate (changed files)',
-            status: 'pending',
-            locked: true,
-            wardMode: 'changed',
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000003',
-            role: 'ward',
-            text: 'Ward gate (full monorepo)',
-            status: 'pending',
-            locked: true,
-            wardMode: 'full',
-          }),
-        ],
-        workItems: [
+        );
+        // The work item's own uuid is minted AFTER every operation item, one uuid per item, off
+        // the SAME fixed UUIDS queue staged above — so it is always the queue entry sitting right
+        // after however many operation items this quest type seeded, however many that turns out
+        // to be for feature vs bug-hunt.
+        expect(result.workItems).toStrictEqual([
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000004' }),
-            role: 'pesteater',
+            id: QuestWorkItemIdStub({
+              value: String(UUIDS[result.operations.length]),
+            }),
+            role: 'riftcarver',
             status: 'pending',
-            spawnerType: 'agent',
+            spawnerType: 'command',
             relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
           }),
-        ],
-        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
-      });
-    });
-
-    it('VALID: {quest.baseRef already set} => a re-call (e.g. a re-Start) does NOT overwrite it, even when HEAD resolves to a different sha', async () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-      // Staged so the assertion below proves the adapter's answer is never consulted on this path
-      // — a broken short-circuit would surface this NEW sha instead of the original.
-      proxy.setupHeadSha({ sha: 'b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2' });
-
-      const quest = QuestStub({
-        questType: 'bug-hunt',
-        operations: [],
-        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
-      });
-
-      const result = await questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [],
-        now: IsoTimestampStub(),
-      });
-
-      expect(result.baseRef).toBe('a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1');
-    });
-
-    it('EMPTY: {quest.baseRef unset, HEAD unreadable} => seeding still completes with the full operations ledger + work item, baseRef stays undefined, no throw', async () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-      proxy.setupHeadShaUnavailable();
-
-      const quest = QuestStub({ questType: 'bug-hunt', operations: [] });
-
-      const result = await questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [],
-        now: IsoTimestampStub(),
-      });
-
-      expect(result).toStrictEqual({
-        operations: [
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000001',
-            role: 'pesteater',
-            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
-            status: 'in_progress',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000002',
-            role: 'ward',
-            text: 'Ward gate (changed files)',
-            status: 'pending',
-            locked: true,
-            wardMode: 'changed',
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000003',
-            role: 'ward',
-            text: 'Ward gate (full monorepo)',
-            status: 'pending',
-            locked: true,
-            wardMode: 'full',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000004' }),
-            role: 'pesteater',
-            status: 'pending',
-            spawnerType: 'agent',
-            relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-        ],
-      });
-    });
+        ]);
+      },
+    );
   });
 });

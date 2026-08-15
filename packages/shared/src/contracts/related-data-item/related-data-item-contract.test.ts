@@ -29,6 +29,14 @@ describe('relatedDataItemContract', () => {
       expect(item).toBe('operations/f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
+    it('VALID: riftcarverResults reference => parses successfully', () => {
+      const item = RelatedDataItemStub({
+        value: 'riftcarverResults/b2c3d4e5-f6a7-8901-bcde-f23456789012',
+      });
+
+      expect(item).toBe('riftcarverResults/b2c3d4e5-f6a7-8901-bcde-f23456789012');
+    });
+
     it('VALID: flows reference => parses successfully', () => {
       const item = RelatedDataItemStub({ value: 'flows/login-flow' });
 

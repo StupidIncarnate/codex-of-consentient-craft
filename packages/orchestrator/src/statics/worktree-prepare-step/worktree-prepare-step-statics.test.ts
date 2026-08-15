@@ -5,9 +5,42 @@ describe('worktreePrepareStepStatics', () => {
     expect(worktreePrepareStepStatics).toStrictEqual({
       steps: {
         create: 'create',
+        baseBranch: 'base_branch',
         nodeModules: 'node_modules',
         build: 'build',
       },
+      classifications: {
+        create: 'git-state',
+        base_branch: 'git-state',
+        node_modules: 'repairable',
+        build: 'repairable',
+      },
+    });
+  });
+
+  describe('classifications are keyed by the step VALUE', () => {
+    it('VALID: {steps.build} => indexes straight into classifications', () => {
+      expect(
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.build],
+      ).toBe('repairable');
+    });
+
+    it('VALID: {steps.nodeModules} => indexes straight into classifications', () => {
+      expect(
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.nodeModules],
+      ).toBe('repairable');
+    });
+
+    it('VALID: {steps.create} => indexes straight into classifications', () => {
+      expect(
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.create],
+      ).toBe('git-state');
+    });
+
+    it('VALID: {steps.baseBranch} => indexes straight into classifications', () => {
+      expect(
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.baseBranch],
+      ).toBe('git-state');
     });
   });
 });

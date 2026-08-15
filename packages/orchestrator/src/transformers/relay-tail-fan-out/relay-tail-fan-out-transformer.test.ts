@@ -14,11 +14,27 @@ import { codeweaverScopeBlockTransformer } from '../codeweaver-scope-block/codew
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
 // Read off the registry rather than retyped, so a text edit there fails these by assertion instead
-// of leaving them asserting a string the relay no longer seeds. `as const` makes relayTail a
-// fixed-length tuple, so each index is precisely typed and never `undefined`.
-const [WARD_ENTRY, FLOWRIDER_ENTRY, GROUNDSTOMPER_ENTRY, SIEGEMASTER_ENTRY] =
-  questTypeRegistryStatics.feature.relayTail;
-const [CODEWEAVER_ENTRY] = questTypeRegistryStatics.feature.startImplementationOps;
+// of leaving them asserting a string the relay no longer seeds. Selected by ROLE rather than by
+// position: a positional pick (`relayTail[0]`, `startImplementationOps[0]`) silently starts pointing
+// at a different seed the moment the registry gains, loses, or reorders an entry ahead of it — which
+// is exactly what happened when `riftcarver` became the new head of `startImplementationOps`. The
+// trailing `!` is safe: each predicate matches exactly one seed in the registry, and
+// `noUncheckedIndexedAccess` has no way to know that from the predicate alone.
+const WARD_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
+  (entry) => entry.role === 'ward' && entry.wardMode === 'changed',
+)!;
+const FLOWRIDER_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
+  (entry) => entry.role === 'flowrider',
+)!;
+const GROUNDSTOMPER_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
+  (entry) => entry.role === 'groundstomper',
+)!;
+const SIEGEMASTER_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
+  (entry) => entry.role === 'siegemaster',
+)!;
+const CODEWEAVER_ENTRY = questTypeRegistryStatics.feature.startImplementationOps.find(
+  (entry) => entry.role === 'codeweaver',
+)!;
 
 const WEB_PACKAGE = QuestPackageEntryStub({
   name: 'web',

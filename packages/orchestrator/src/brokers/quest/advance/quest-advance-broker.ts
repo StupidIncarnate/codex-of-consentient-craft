@@ -24,7 +24,10 @@ import {
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
-import { satisfiesDependencyWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import {
+  isCommandWorkItemRoleGuard,
+  satisfiesDependencyWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 
@@ -64,7 +67,10 @@ export const questAdvanceBroker = async ({
         id: questWorkItemIdContract.parse(crypto.randomUUID()),
         role: nextOperation.role,
         status: 'pending',
-        spawnerType: nextOperation.role === 'ward' ? 'command' : 'agent',
+        // `spawnerType` is read off the command-role subset rather than a role name, so a role
+        // added to `workItemRoleStatics.command` becomes a command here without an edit — a missed
+        // edit would hand it to agentRoleContract, which throws on a name it does not enumerate.
+        spawnerType: isCommandWorkItemRoleGuard({ role: nextOperation.role }) ? 'command' : 'agent',
         relatedDataItems: [operationRef],
         dependsOn: lastSatisfying === undefined ? [] : [lastSatisfying.id],
         maxAttempts: 1,

@@ -10,11 +10,9 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 const GUILD_PATH = '/tmp/dm-e2e-bughunt-begin-transition';
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 10_000;
-const RESPONSE_TIMEOUT = 30_000;
-const IN_PROGRESS_TIMEOUT = 30_000;
-const TOAST_TIMEOUT = 10_000;
+const RESPONSE_TIMEOUT = 5_000;
+const IN_PROGRESS_TIMEOUT = 10_000;
 const HTTP_OK = 200;
-const HTTP_BAD_REQUEST = 400;
 
 // A bug-hunt quest is born from `/dumpster-hunt` with its intake already on the ledger:
 // questCreateBroker reads questTypeRegistryStatics['bug-hunt'].initialWorkItemRole ('bughunt') and
@@ -25,10 +23,12 @@ const BUGHUNT_OP_ID = '00000000-0000-4000-8000-0000000000d1';
 const BUGHUNT_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-0000000000d2';
 const BUGHUNT_OP_TEXT = 'Author spec + implementation plan';
 
-// DERIVED from the registry, never spelled out: a hardcoded ['bughunt','pesteater','ward','ward']
-// still passes if questBuildRelayGraphBroker seeds a list it matched by role name rather than one
-// it read off the quest's own type. Bug-hunt's startImplementationOps is a single `pesteater` seed
-// (no fanOutBy, so it fans to exactly one item) and its relayTail is ward(changed) -> ward(full).
+// DERIVED from the registry, never spelled out: a hardcoded
+// ['bughunt','riftcarver','pesteater','ward','ward'] still passes if questBuildRelayGraphBroker
+// seeds a list it matched by role name rather than one it read off the quest's own type. Bug-hunt's
+// startImplementationOps is the `riftcarver` carve followed by a single `pesteater` seed (neither
+// carries fanOutBy, so each fans to exactly one item) and its relayTail is ward(changed) ->
+// ward(full).
 const BUG_HUNT_REGISTRY = questTypeRegistryStatics['bug-hunt'];
 const EXPECTED_BUG_HUNT_LEDGER_ROLES = [
   String(BUG_HUNT_REGISTRY.initialWorkItemRole),
@@ -40,6 +40,14 @@ const EXPECTED_BUG_HUNT_LEDGER_ROLES = [
 const FEATURE_ONLY_ROLES = questTypeRegistryStatics.feature.relayTail
   .map((seed) => String(seed.role))
   .filter((role) => !EXPECTED_BUG_HUNT_LEDGER_ROLES.includes(role));
+// The relay seeds ONE work item — for the first actionable operation item, which is the carve at
+// the head of the ledger — alongside the intake item already on the quest. Derived from the same
+// registry entry so a quest type that changes what it puts first is picked up here rather than
+// asserted against a name typed in by hand.
+const EXPECTED_BUG_HUNT_WORK_ITEM_ROLES = [
+  String(BUG_HUNT_REGISTRY.initialWorkItemRole),
+  String(BUG_HUNT_REGISTRY.startImplementationOps[0].role),
+];
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
@@ -121,10 +129,10 @@ test.describe('Bug-hunt Begin Quest transition', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // The RESPONSE, not just the request. A 400 here is the reported symptom, and a
-    // waitForRequest-only assertion passes on the run that produced it — the request is sent either
-    // way. POST /start is synchronous over the whole git lifecycle (worktree add, node_modules
-    // mirror, build), so this wait is deliberately long.
+    // The RESPONSE, not just the request. A non-200 here is what the reported symptom looked like,
+    // and a waitForRequest-only assertion passes on the run that produced it — the request is sent
+    // either way. POST /start is pure quest.json bookkeeping (the branch, the worktree and the
+    // preflight build belong to the riftcarver item it seeds), so it answers in milliseconds.
     const startResponsePromise = page.waitForResponse(
       (res) =>
         res.request().method() === 'POST' && res.url().includes(`/api/quests/${questId}/start`),
@@ -168,7 +176,9 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     // The seeded relay is the BUG-HUNT one, read off questTypeRegistryStatics['bug-hunt'] rather
     // than the feature tail. Asserted as the whole ordered list: a subset check ('contains a
-    // pesteater') passes on a ledger that also grew a flowrider and a siegemaster.
+    // pesteater') passes on a ledger that also grew a flowrider and a siegemaster, and the order is
+    // also what pins the carve to the HEAD of the relay — behind the intake item the fixture seeded
+    // and ahead of the pesteater that works in the tree it creates.
     expect(questData.quest.operations.map((op: { role: string }) => op.role)).toStrictEqual(
       EXPECTED_BUG_HUNT_LEDGER_ROLES,
     );
@@ -187,24 +197,37 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const bughuntItem = questData.quest.workItems.find(
       (wi: { role: string }) => wi.role === 'bughunt',
     );
-    const pesteaterItems = questData.quest.workItems.filter(
-      (wi: { role: string }) => wi.role === 'pesteater',
+    const riftcarverItems = questData.quest.workItems.filter(
+      (wi: { role: string }) => wi.role === 'riftcarver',
     );
 
     expect(bughuntOp.status).toBe('complete');
     expect(bughuntItem.status).toBe('complete');
-    // One assertion carries both facts: EXACTLY one pesteater work item exists (strict 1:1 with its
-    // operation item), and it is chained behind the intake session. Asserting the count separately
-    // from the dependsOn lets a second, unchained item slip through the pair.
-    expect(pesteaterItems.map((wi: { dependsOn: string[] }) => wi.dependsOn)).toStrictEqual([
-      [BUGHUNT_WORK_ITEM_ID],
-    ]);
+    // The whole work-item list, in order: the intake item plus the ONE item the relay minted. A
+    // filter-and-count on a single role never notices a second, unrelated item appearing beside it.
+    expect(questData.quest.workItems.map((wi: { role: string }) => wi.role)).toStrictEqual(
+      EXPECTED_BUG_HUNT_WORK_ITEM_ROLES,
+    );
+    // One assertion carries two more facts about that minted item: it is the dispatcher's to run
+    // rather than Claude's, and it is chained behind the intake session.
+    expect(
+      riftcarverItems.map((wi: { spawnerType: string; dependsOn: string[] }) => ({
+        spawnerType: wi.spawnerType,
+        dependsOn: wi.dependsOn,
+      })),
+    ).toStrictEqual([{ spawnerType: 'command', dependsOn: [BUGHUNT_WORK_ITEM_ID] }]);
   });
 
-  test('ERROR: {Begin Quest pressed again while the branch a prior Start already created still exists} => the real 400 is shown to the user and the quest stays startable', async ({
+  test('VALID: {Begin Quest pressed again on a quest whose relay a prior Start already seeded} => the second Start mints no second carve and the quest still reaches execution', async ({
     page,
     request,
   }) => {
+    // Pressing Begin Quest a second time is reachable whenever a Start seeded the ledger but did
+    // not finish: the seed, the promoted intake item and the carve's work item ride ONE atomic
+    // write, and the approved -> in_progress flip is a SEPARATE one, so a crash between them leaves
+    // a quest that is fully seeded and still `approved` — and every load of an `approved` quest
+    // re-arms the modal. What the second press must not do is double-seed: two riftcarver items
+    // would carve twice against one branch name, and the second carve refuses itself.
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
@@ -222,47 +245,58 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     });
     const questId = String(created.questId);
 
-    const seedApprovedBugHunt = (): void => {
-      quests.writeQuestFile({
-        questId,
-        questFolder: String(created.questFolder),
-        questFilePath: String(created.filePath),
-        title: 'E2E Bug Hunt Restart Quest',
-        status: 'approved',
-        questType: 'bug-hunt',
-        workItems: [
-          {
-            id: BUGHUNT_WORK_ITEM_ID,
-            role: 'bughunt',
-            sessionId,
-            status: 'in_progress',
-            relatedDataItems: [`operations/${BUGHUNT_OP_ID}`],
-          },
-        ],
-        operations: [
-          {
-            id: BUGHUNT_OP_ID,
-            role: 'bughunt',
-            text: BUGHUNT_OP_TEXT,
-            status: 'in_progress',
-            locked: true,
-          },
-        ],
-      });
-    };
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      title: 'E2E Bug Hunt Restart Quest',
+      status: 'approved',
+      questType: 'bug-hunt',
+      workItems: [
+        {
+          id: BUGHUNT_WORK_ITEM_ID,
+          role: 'bughunt',
+          sessionId,
+          status: 'in_progress',
+          relatedDataItems: [`operations/${BUGHUNT_OP_ID}`],
+        },
+      ],
+      operations: [
+        {
+          id: BUGHUNT_OP_ID,
+          role: 'bughunt',
+          text: BUGHUNT_OP_TEXT,
+          status: 'in_progress',
+          locked: true,
+        },
+      ],
+    });
 
-    // First Start: real, and it creates the real branch + worktree in the fixture repo.
-    seedApprovedBugHunt();
-
+    // First Start: real, through the same endpoint the button calls. The ledger the rest of this
+    // test measures is therefore one Start actually produced, not one the fixture hand-wrote.
     const firstStart = await request.post(`/api/quests/${questId}/start`);
     expect(firstStart.status()).toBe(HTTP_OK);
 
-    // Rewind quest.json to exactly what an INTERRUPTED Start leaves behind: still `approved`, with
-    // no branchName/worktreePath recorded. Nothing is persisted until the end of POST /start, so
-    // this is byte-for-byte the state a second Begin Quest observes while the first is still inside
-    // its (minutes-long, on a real repo) worktree-add + build window — the window a reload widens,
-    // because the modal re-arms on every load of an `approved` quest.
-    seedApprovedBugHunt();
+    const afterFirstStartResponse = await request.get(`/api/quests/${questId}`);
+    const afterFirstStart = await afterFirstStartResponse.json();
+
+    // Pin the pre-state so the "unchanged" assertions below cannot pass vacuously: an empty ledger
+    // compared against an empty ledger is still equal.
+    expect(afterFirstStart.quest.operations.map((op: { role: string }) => op.role)).toStrictEqual(
+      EXPECTED_BUG_HUNT_LEDGER_ROLES,
+    );
+    expect(afterFirstStart.quest.workItems.map((wi: { role: string }) => wi.role)).toStrictEqual(
+      EXPECTED_BUG_HUNT_WORK_ITEM_ROLES,
+    );
+
+    const seededOperationIds = afterFirstStart.quest.operations.map((op: { id: string }) => op.id);
+    const seededWorkItemIds = afterFirstStart.quest.workItems.map((wi: { id: string }) => wi.id);
+
+    // Rewind ONLY the status, leaving every other byte the first Start wrote. That is exactly the
+    // state the crash window above leaves, and it is what a reload re-arms the modal on. Rebuilding
+    // the file through writeQuestFile instead would hand the second Start a ledger the fixture
+    // authored, which is the one thing this test must not measure.
+    quests.rewindQuestStatus({ questFilePath: String(created.filePath), status: 'approved' });
 
     await nav.navigateToQuest({ urlSlug, questId });
 
@@ -282,23 +316,32 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     const startResponse = await startResponsePromise;
 
-    // The server's own rejection — QuestBranchNameTakenError, which quest-start-responder maps to
-    // 400 rather than 500 precisely so the caller can show it.
-    expect(startResponse.status()).toBe(HTTP_BAD_REQUEST);
-    const errorBody = await startResponse.json();
-    expect(String(errorBody.error)).toContain('already exists — name is in use by other work');
+    // The second Start is ACCEPTED. Its idempotency probe reads the already-seeded verify tail (a
+    // locked ward item) and skips straight to the status transition, so there is no refusal for the
+    // user to read — the honest surface is the quest carrying on into execution.
+    expect(startResponse.status()).toBe(HTTP_OK);
 
-    // THE POINT OF THIS TEST. Begin Quest currently swallows the failure into console.error, so the
-    // modal closes, the panel never swaps, and the user is left staring at an unchanged screen with
-    // no idea anything was refused. The server's message must reach the browser — the same bar
-    // quest-delete-from-root.e2e.ts already holds Banish to.
-    await expect(page.getByText(String(errorBody.error))).toBeVisible({ timeout: TOAST_TIMEOUT });
+    await expect(page.getByTestId('QUEST_APPROVED_MODAL_TITLE')).not.toBeVisible({
+      timeout: MODAL_TIMEOUT,
+    });
 
-    // And the refusal must be non-destructive: the git lifecycle runs entirely before anything is
-    // persisted, so the quest is still startable and a retry is all this costs.
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
+
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
 
-    expect(questData.quest.status).toBe('approved');
+    // Nothing appended and nothing re-minted: the SAME operation items and the SAME work items, by
+    // id, in the same order. Comparing ids rather than roles is what catches a second carve, which
+    // carries the same role name as the first and would slide past a role-list check.
+    expect(questData.quest.operations.map((op: { id: string }) => op.id)).toStrictEqual(
+      seededOperationIds,
+    );
+    expect(questData.quest.workItems.map((wi: { id: string }) => wi.id)).toStrictEqual(
+      seededWorkItemIds,
+    );
+    expect(questData.quest.status).toBe('in_progress');
   });
 });

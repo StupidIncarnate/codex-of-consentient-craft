@@ -303,6 +303,16 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
+    it('VALID: dumpsterLaunch.body => instructs calling run-riftcarver with questId/workItemId and NO mode', () => {
+      const needle =
+        'mcp__dungeonmaster__run-riftcarver({ questId: result.questId, workItemId: result.workItemId })';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
     it('VALID: dumpsterLaunch.body => idle branch instructs a backgrounded Bash sleep 1800', () => {
       const needle = 'Bash `sleep 1800`** with `run_in_background: true`';
       const { body } = slashCommandsStatics.dumpsterLaunch;

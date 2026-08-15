@@ -8,13 +8,15 @@
  * // Returns the verify-tail operation-item seeds questBuildRelayGraphBroker appends at Start.
  *
  * This is DATA only (statics may import statics, never brokers). `startImplementationOps` are the
- * implementation operation items the orchestrator seeds at Start. BOTH quest types now use it:
- * bug-hunt seeds its pesteater item, and feature seeds a codeweaver item that fans out into one
- * slice per (package, flow) cell plus a foundation item per package. ChaosWhisperer no longer
- * authors the ledger at all — `operations` has left its modify-quest allowlist, and the partition
- * is DERIVED from the flow nodes' package tags and the contracts' source paths instead. `relayTail`
- * is the fixed verify chain appended after the implementation items. Adding a new quest type = one
- * entry here + the type added to questTypeContract.
+ * implementation operation items the orchestrator seeds at Start, and BOTH quest types use it. Its
+ * FIRST entry is `riftcarver` for either type: the branch, the worktree and the preflight build are
+ * the head of the relay, so the workspace is forged when the quest is next in line rather than
+ * inside the Start POST. After it, bug-hunt seeds its pesteater item, and feature seeds a codeweaver
+ * item that fans out into one slice per (package, flow) cell plus a foundation item per package.
+ * ChaosWhisperer authors no part of the ledger — `operations` is off its modify-quest allowlist, and
+ * the partition is DERIVED from the flow nodes' package tags and the contracts' source paths
+ * instead. `relayTail` is the fixed verify chain appended after the implementation items. Adding a
+ * new quest type = one entry here + the type added to questTypeContract.
  *
  * `fanOutBy` is how ONE seed becomes N operation items, expressed as data so the relay's expansion
  * reads a field instead of matching role names:
@@ -44,6 +46,16 @@ export const questTypeRegistryStatics = {
     intakeSlashCommandFileName: 'dumpster-create.md',
     initialWorkItemRole: 'chaoswhisperer',
     startImplementationOps: [
+      {
+        role: 'riftcarver',
+        // FIRST for both quest types: nothing else can run until the branch, worktree and preflight
+        // build exist, and putting it here is what moves that minutes-long work off the Start POST
+        // and onto the relay, where it happens when the quest is next in line. No `fanOutBy`, so it
+        // seeds exactly one item; no `locked`, so it defaults TRUE and is enrolled in its
+        // slotManagerStatics pt budget — a carve that cannot converge in a bounded number of
+        // spiritmender passes is a halt worth surfacing rather than a loop.
+        text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+      },
       {
         role: 'codeweaver',
         // Fanned out into one item per (package, flow) cell plus a foundation item per package.
@@ -84,6 +96,7 @@ export const questTypeRegistryStatics = {
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
     roles: [
+      'riftcarver',
       'codeweaver',
       'ward',
       'flowrider',
@@ -98,6 +111,11 @@ export const questTypeRegistryStatics = {
     initialWorkItemRole: 'bughunt',
     startImplementationOps: [
       {
+        role: 'riftcarver',
+        // Same head-of-relay seed as `feature`, and for the same reasons — see the note there.
+        text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+      },
+      {
         role: 'pesteater',
         text: 'PestEater: reproduce the bug with a failing test first, then fix it',
       },
@@ -106,6 +124,6 @@ export const questTypeRegistryStatics = {
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
-    roles: ['pesteater', 'ward', 'blightscout', 'spiritmender'],
+    roles: ['riftcarver', 'pesteater', 'ward', 'blightscout', 'spiritmender'],
   },
 } as const;

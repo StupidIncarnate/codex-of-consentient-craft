@@ -1,8 +1,8 @@
 /**
  * PURPOSE: The orchestrator's ONLY runtime writer for the quest operations ledger. Applies an
  * operations mutation — and any accompanying workItems, git-context (branchName, baseBranch,
- * worktreePath, baseRef) or packageGraph write — in ONE atomic read-modify-write persist, then
- * re-derives quest status through the operation-aware transformer.
+ * worktreePath, baseRef), packageGraph or riftcarverResults write — in ONE atomic read-modify-write
+ * persist, then re-derives quest status through the operation-aware transformer.
  *
  * USAGE:
  * await questOperationsUpdateBroker({
@@ -31,7 +31,13 @@ import {
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import type { OperationItem, Quest, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  OperationItem,
+  Quest,
+  QuestId,
+  RiftcarverResult,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
@@ -55,6 +61,7 @@ export const questOperationsUpdateBroker = async ({
     baseBranch?: NonNullable<Quest['baseBranch']>;
     worktreePath?: NonNullable<Quest['worktreePath']>;
     packageGraph?: Quest['packageGraph'];
+    riftcarverResults?: RiftcarverResult[];
   } | null;
 }): Promise<{ quest: Quest } | null> =>
   questWithModifyLockBroker({
@@ -89,12 +96,20 @@ export const questOperationsUpdateBroker = async ({
       // context: the relay seeded in this write is ordered from it, so a crash between two writes
       // would leave a dependency-ordered ledger beside no graph to justify it.
       const nextPackageGraph = changes.packageGraph ?? quest.packageGraph;
+      // Riftcarver's result ref rides this persist rather than a preceding questModifyBroker call,
+      // which is what ward does for `wardResults`. Ward's separate write opens a real crash window:
+      // the result file exists on disk with no ref in the quest. Here the log ref, the work item's
+      // `riftcarverResults/<id>` back-link and the ledger mutation the outcome implies are
+      // all-or-nothing in one write — and riding this broker keeps `riftcarverResults` off the
+      // modify-quest allowlist entirely, since no agent ever writes it.
+      const nextRiftcarverResults = changes.riftcarverResults ?? quest.riftcarverResults;
 
       const mutated = questContract.parse({
         ...quest,
         operations: nextOperations,
         workItems: nextWorkItems,
         packageGraph: nextPackageGraph,
+        riftcarverResults: nextRiftcarverResults,
         ...(nextBaseRef === undefined ? {} : { baseRef: nextBaseRef }),
         ...(nextBranchName === undefined ? {} : { branchName: nextBranchName }),
         ...(nextBaseBranch === undefined ? {} : { baseBranch: nextBaseBranch }),

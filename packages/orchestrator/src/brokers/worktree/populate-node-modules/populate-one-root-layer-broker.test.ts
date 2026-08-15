@@ -1,7 +1,13 @@
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  ErrorMessageStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { populateOneRootLayerBroker } from './populate-one-root-layer-broker';
 import { populateOneRootLayerBrokerProxy } from './populate-one-root-layer-broker.proxy';
+
+type StreamedLine = ReturnType<typeof ErrorMessageStub>;
 
 describe('populateOneRootLayerBroker', () => {
   describe('workspace links', () => {
@@ -26,7 +32,11 @@ describe('populateOneRootLayerBroker', () => {
         target: FilePathStub({ value: '../../packages/orchestrator' }),
       });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({
         workspacePackageRoots: [
@@ -57,7 +67,11 @@ describe('populateOneRootLayerBroker', () => {
       });
       proxy.setupSymlinkSucceeds({ target: FilePathStub({ value: '/repo/node_modules/zod' }) });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ workspacePackageRoots: [] });
       expect(proxy.getAllSymlinks()).toStrictEqual([
@@ -81,7 +95,11 @@ describe('populateOneRootLayerBroker', () => {
       });
       proxy.setupSymlinkSucceeds({ target: FilePathStub({ value: '/repo/node_modules/.bin' }) });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ workspacePackageRoots: [] });
       expect(proxy.getAllSymlinks()).toStrictEqual([
@@ -111,7 +129,11 @@ describe('populateOneRootLayerBroker', () => {
         target: FilePathStub({ value: '/repo/node_modules/@types/node' }),
       });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ workspacePackageRoots: [] });
       expect(proxy.getAllSymlinks()).toStrictEqual([
@@ -143,7 +165,11 @@ describe('populateOneRootLayerBroker', () => {
         target: FilePathStub({ value: '/repo/node_modules/@babel/core' }),
       });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ workspacePackageRoots: [] });
       expect(proxy.getAllSymlinks()).toStrictEqual([
@@ -166,9 +192,9 @@ describe('populateOneRootLayerBroker', () => {
         error: new Error('EACCES: permission denied'),
       });
 
-      await expect(populateOneRootLayerBroker({ sourceRoot, targetRoot })).rejects.toThrow(
-        /^EACCES: permission denied$/u,
-      );
+      await expect(
+        populateOneRootLayerBroker({ sourceRoot, targetRoot, onLine: () => undefined }),
+      ).rejects.toThrow(/^EACCES: permission denied$/u);
       expect(proxy.getAllSymlinks()).toStrictEqual([]);
     });
 
@@ -188,9 +214,9 @@ describe('populateOneRootLayerBroker', () => {
         error: new Error('EACCES: permission denied'),
       });
 
-      await expect(populateOneRootLayerBroker({ sourceRoot, targetRoot })).rejects.toThrow(
-        /^EACCES: permission denied$/u,
-      );
+      await expect(
+        populateOneRootLayerBroker({ sourceRoot, targetRoot, onLine: () => undefined }),
+      ).rejects.toThrow(/^EACCES: permission denied$/u);
       expect(proxy.getAllSymlinks()).toStrictEqual([]);
     });
   });
@@ -217,7 +243,11 @@ describe('populateOneRootLayerBroker', () => {
         target: FilePathStub({ value: '../../packages/orchestrator' }),
       });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({
         workspacePackageRoots: [
@@ -255,7 +285,11 @@ describe('populateOneRootLayerBroker', () => {
       });
       proxy.setupSymlinkSucceeds({ target: FilePathStub({ value: '../../packages/shared' }) });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({
         workspacePackageRoots: [
@@ -296,9 +330,142 @@ describe('populateOneRootLayerBroker', () => {
         target: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/orchestrator' }),
       });
 
-      const result = await populateOneRootLayerBroker({ sourceRoot, targetRoot });
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
 
       expect(result).toStrictEqual({ workspacePackageRoots: [] });
+    });
+  });
+
+  describe('live streaming', () => {
+    it('VALID: {target node_modules absent} => onLine receives exactly the mirroring line naming the target root', async () => {
+      const proxy = populateOneRootLayerBrokerProxy();
+      const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const streamed: StreamedLine[] = [];
+
+      proxy.setupDirectoryEntries({
+        dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
+        entries: [{ name: 'zod', isDir: true, isSymlink: false }],
+      });
+      proxy.setupSymlinkSucceeds({ target: FilePathStub({ value: '/repo/node_modules/zod' }) });
+
+      await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      });
+
+      expect(streamed).toStrictEqual([
+        '— mirroring node_modules: /repo/worktrees/quest-slug-a1b2c3d4 —',
+      ]);
+    });
+  });
+
+  describe('per-root done-check', () => {
+    it('VALID: {target node_modules already holds entries} => writes ZERO symlinks and emits the skip line', async () => {
+      const proxy = populateOneRootLayerBrokerProxy();
+      const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const streamed: StreamedLine[] = [];
+
+      proxy.setupTargetNodeModulesOnDisk({
+        targetRoot,
+        entries: [
+          { name: 'zod', isDir: false, isSymlink: true },
+          { name: '@dungeonmaster', isDir: true, isSymlink: false },
+        ],
+      });
+      proxy.setupDirectoryEntries({
+        dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
+        entries: [{ name: 'zod', isDir: true, isSymlink: false }],
+      });
+
+      await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      });
+
+      expect(proxy.getAllSymlinks()).toStrictEqual([]);
+      expect(streamed).toStrictEqual([
+        '— skip /repo/worktrees/quest-slug-a1b2c3d4 (node_modules already populated) —',
+      ]);
+    });
+
+    it('VALID: {target node_modules already populated} => still returns the workspace roots discovered from the SOURCE side', async () => {
+      const proxy = populateOneRootLayerBrokerProxy();
+      const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
+
+      proxy.setupTargetNodeModulesOnDisk({
+        targetRoot,
+        entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
+      });
+      proxy.setupDirectoryEntries({
+        dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
+        entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
+      });
+      proxy.setupDirectoryEntries({
+        dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules/@dungeonmaster' }),
+        entries: [{ name: 'orchestrator', isDir: false, isSymlink: true }],
+      });
+      proxy.setupReadlinkTarget({
+        linkPath: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/orchestrator' }),
+        target: '../../packages/orchestrator',
+      });
+
+      const result = await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: () => undefined,
+      });
+
+      expect(result).toStrictEqual({
+        workspacePackageRoots: [
+          { sourceRoot: '/repo/packages/orchestrator', targetRoot: '/wt/packages/orchestrator' },
+        ],
+      });
+      expect(proxy.getAllSymlinks()).toStrictEqual([]);
+    });
+
+    it('EMPTY: {target node_modules exists but holds no entries} => mirrors anyway and emits the mirroring line', async () => {
+      const proxy = populateOneRootLayerBrokerProxy();
+      const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const streamed: StreamedLine[] = [];
+
+      proxy.setupTargetNodeModulesOnDisk({ targetRoot, entries: [] });
+      proxy.setupDirectoryEntries({
+        dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
+        entries: [{ name: 'zod', isDir: true, isSymlink: false }],
+      });
+      proxy.setupSymlinkSucceeds({ target: FilePathStub({ value: '/repo/node_modules/zod' }) });
+
+      await populateOneRootLayerBroker({
+        sourceRoot,
+        targetRoot,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      });
+
+      expect(proxy.getAllSymlinks()).toStrictEqual([
+        {
+          target: '/repo/node_modules/zod',
+          linkPath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/zod',
+        },
+      ]);
+      expect(streamed).toStrictEqual([
+        '— mirroring node_modules: /repo/worktrees/quest-slug-a1b2c3d4 —',
+      ]);
     });
   });
 });

@@ -210,6 +210,11 @@ export const QuestChatContentLayerWidget = ({
   );
 
   const [approvedModalOpen, setApprovedModalOpen] = useState(false);
+  // Guards the Begin Quest button for the lifetime of one questStartBroker call: set true the
+  // instant the click fires, cleared on both the success and failure path. QuestApprovedModalWidget
+  // disables its button on this flag, so a second click while the first POST is still in flight
+  // never reaches the handler at all.
+  const [beginQuestPending, setBeginQuestPending] = useState(false);
   const prevQuestStatusRef = useRef<QuestStatus | null>(null);
 
   // Open the Begin-Quest modal only on the rising edge into 'approved' so
@@ -401,19 +406,33 @@ export const QuestChatContentLayerWidget = ({
       opened={
         approvedModalOpen && shouldShowBeginQuestModalQuestStatusGuard({ status: quest.status })
       }
+      beginQuestPending={beginQuestPending}
       onBeginQuest={(): void => {
-        setApprovedModalOpen(false);
-        questStartBroker({ questId: quest.id }).catch((startError: unknown) => {
-          globalThis.console.error('[quest-chat] begin quest failed', startError);
-          // Closing the modal is the ONLY thing a refused Start changes on screen, so without this
-          // the panel simply never swaps and the reader has no way to tell a rejection from the
-          // minutes POST /start legitimately spends inside `git worktree add` + the build. The
-          // broker hands up the server's own sentence, which names the actual cause.
-          mantineNotificationsShowAdapter({
-            message: startError instanceof Error ? startError.message : BEGIN_QUEST_FAILED_MESSAGE,
-            color: ERROR_NOTIFICATION_COLOR,
+        // Re-entry guard belt-and-suspenders the disabled button: QuestApprovedModalWidget already
+        // strips the click handler while beginQuestPending is true, but this makes the invariant
+        // hold even if a caller ever wires the button up differently.
+        if (beginQuestPending) return;
+        setBeginQuestPending(true);
+        // Held open (not closed here) so the busy button IS the immediate feedback the click
+        // produced — closing before the fetch is what let the modal vanish for minutes with
+        // nothing on screen to show Start was ever accepted.
+        questStartBroker({ questId: quest.id })
+          .then(() => {
+            setBeginQuestPending(false);
+            setApprovedModalOpen(false);
+          })
+          .catch((startError: unknown) => {
+            setBeginQuestPending(false);
+            globalThis.console.error('[quest-chat] begin quest failed', startError);
+            // The modal stays open on a rejection so the reader can read the toast and retry
+            // without losing their place. The broker hands up the server's own sentence, which
+            // names the actual cause.
+            mantineNotificationsShowAdapter({
+              message:
+                startError instanceof Error ? startError.message : BEGIN_QUEST_FAILED_MESSAGE,
+              color: ERROR_NOTIFICATION_COLOR,
+            });
           });
-        });
       }}
       onKeepChatting={(): void => {
         setApprovedModalOpen(false);

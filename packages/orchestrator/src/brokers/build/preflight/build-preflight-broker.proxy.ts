@@ -1,23 +1,40 @@
-import { ErrorMessageStub, ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
+import { childProcessSpawnStreamLinesAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const buildPreflightBrokerProxy = (): {
   setupBuildSuccess: (params: { command: string }) => void;
+  setupBuildStdoutLines: (params: { command: string; lines: readonly string[] }) => void;
   setupBuildFailure: (params: { command: string; exitCode: ExitCode; output: string }) => void;
   setupBuildError: (params: { command: string; error: Error }) => void;
   getSpawnedCommand: (params: { command: string }) => unknown;
   getSpawnedArgs: (params: { command: string }) => unknown;
 } => {
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const streamProxy = childProcessSpawnStreamLinesAdapterProxy();
 
   return {
     setupBuildSuccess: ({ command }: { command: string }): void => {
-      captureProxy.setupSuccess({
+      streamProxy.setupSuccess({
         command,
         exitCode: ExitCodeStub({ value: 0 }),
-        stdout: ErrorMessageStub({ value: 'Build succeeded' }),
-        stderr: ErrorMessageStub({ value: '' }),
+        stdoutLines: ['Build succeeded'],
+      });
+    },
+
+    // The adapter joins stdout LINES with '\n' to build `output`, so a caller staging multi-line
+    // output must hand the lines in rather than one pre-joined blob — that is also what the
+    // streaming assertions read back through `onLine`.
+    setupBuildStdoutLines: ({
+      command,
+      lines,
+    }: {
+      command: string;
+      lines: readonly string[];
+    }): void => {
+      streamProxy.setupSuccess({
+        command,
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: [...lines],
       });
     },
 
@@ -30,22 +47,17 @@ export const buildPreflightBrokerProxy = (): {
       exitCode: ExitCode;
       output: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command,
-        exitCode,
-        stdout: ErrorMessageStub({ value: output }),
-        stderr: ErrorMessageStub({ value: '' }),
-      });
+      streamProxy.setupSuccess({ command, exitCode, stdoutLines: output.split('\n') });
     },
 
     setupBuildError: ({ command, error }: { command: string; error: Error }): void => {
-      captureProxy.setupError({ command, error });
+      streamProxy.setupError({ command, error });
     },
 
     getSpawnedCommand: ({ command }: { command: string }): unknown =>
-      captureProxy.getSpawnedCommand({ command }),
+      streamProxy.getSpawnedCommand({ command }),
 
     getSpawnedArgs: ({ command }: { command: string }): unknown =>
-      captureProxy.getSpawnedArgs({ command }),
+      streamProxy.getSpawnedArgs({ command }),
   };
 };

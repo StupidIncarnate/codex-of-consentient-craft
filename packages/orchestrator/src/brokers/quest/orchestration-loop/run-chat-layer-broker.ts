@@ -18,6 +18,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import { slotIndexContract } from '@dungeonmaster/shared/contracts';
@@ -44,9 +45,9 @@ export const runChatLayerBroker = async ({
 
   // Refused before the prompt is built, so the caller gets this specific diagnosis rather than
   // the generic "no template for role" the prompt builder raises for any non-chat role.
-  if (workItem.role === 'ward') {
+  if (isCommandWorkItemRoleGuard({ role: workItem.role })) {
     throw new Error(
-      `runChatLayerBroker cannot spawn role '${workItem.role}' — ward is a command, not a Claude agent`,
+      `runChatLayerBroker cannot spawn role '${workItem.role}' — it is a command the dispatcher runs itself, not a Claude agent`,
     );
   }
 

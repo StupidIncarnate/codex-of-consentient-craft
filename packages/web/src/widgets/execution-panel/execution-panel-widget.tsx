@@ -22,6 +22,7 @@ import type {
   UserInput,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
+import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
@@ -109,6 +110,8 @@ const ACTION_BAR_PADDING = 12;
 const EXECUTION_FLOOR_MIN_HEIGHT = 160;
 const WARD_RESULTS_PREFIX = 'wardResults/';
 const WARD_RESULTS_PREFIX_LENGTH = WARD_RESULTS_PREFIX.length;
+const RIFTCARVER_RESULTS_PREFIX = 'riftcarverResults/';
+const RIFTCARVER_RESULTS_PREFIX_LENGTH = RIFTCARVER_RESULTS_PREFIX.length;
 const OPERATIONS_PREFIX = 'operations/';
 const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
 const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
@@ -204,6 +207,14 @@ export const ExecutionPanelWidget = ({
   >();
   for (const wr of quest.wardResults) {
     wardResultsById.set(wr.id, wr);
+  }
+
+  const riftcarverResultsById = new Map<
+    (typeof quest.riftcarverResults)[0]['id'],
+    (typeof quest.riftcarverResults)[0]
+  >();
+  for (const rr of quest.riftcarverResults) {
+    riftcarverResultsById.set(rr.id, rr);
   }
 
   return (
@@ -311,6 +322,21 @@ export const ExecutionPanelWidget = ({
                   ),
                 )
                 .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
+              const wiRiftcarverRefs = wi.relatedDataItems.filter((ref) =>
+                ref.startsWith(RIFTCARVER_RESULTS_PREFIX),
+              );
+              const wiRiftcarverResults = wiRiftcarverRefs
+                .map((ref) => {
+                  // Parse the sliced id through the contract's own id schema to re-brand it,
+                  // rather than asserting the raw slice into RiftcarverResult['id'] — a ref that
+                  // fails to parse (corrupt/legacy data) is treated as not-found instead of lying
+                  // to the type system about a string that was never validated.
+                  const parsedId = riftcarverResultContract.shape.id.safeParse(
+                    ref.slice(RIFTCARVER_RESULTS_PREFIX_LENGTH),
+                  );
+                  return parsedId.success ? riftcarverResultsById.get(parsedId.data) : undefined;
+                })
+                .filter((rr): rr is NonNullable<typeof rr> => rr !== undefined);
               const wiStatus = wi.status as ExecutionStepStatus;
               const wiOperationRef = wi.relatedDataItems.find((ref) =>
                 ref.startsWith(OPERATIONS_PREFIX),
@@ -348,6 +374,9 @@ export const ExecutionPanelWidget = ({
                   {...(wi.summary ? { summary: wi.summary } : {})}
                   {...(wiWardResults.length > 0
                     ? { wardResults: wiWardResults, questId: quest.id }
+                    : {})}
+                  {...(wiRiftcarverResults.length > 0
+                    ? { riftcarverResults: wiRiftcarverResults, questId: quest.id }
                     : {})}
                   {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                   {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}

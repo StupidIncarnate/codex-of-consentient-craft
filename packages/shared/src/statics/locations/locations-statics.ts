@@ -52,6 +52,7 @@ export const locationsStatics = {
   },
   quest: {
     wardResultsDir: 'ward-results',
+    riftcarverResultsDir: 'riftcarver-results',
     designDir: 'design',
     questFile: 'quest.json',
   },

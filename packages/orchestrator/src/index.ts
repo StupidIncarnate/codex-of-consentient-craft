@@ -50,6 +50,8 @@ export { nextStepContract } from './contracts/next-step/next-step-contract';
 export type { NextStep } from './contracts/next-step/next-step-contract';
 export { questRunWardResultContract } from './contracts/quest-run-ward-result/quest-run-ward-result-contract';
 export type { QuestRunWardResult } from './contracts/quest-run-ward-result/quest-run-ward-result-contract';
+export { questRunRiftcarverResultContract } from './contracts/quest-run-riftcarver-result/quest-run-riftcarver-result-contract';
+export type { QuestRunRiftcarverResult } from './contracts/quest-run-riftcarver-result/quest-run-riftcarver-result-contract';
 export { questGetServerConfigResultContract } from './contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 export type { QuestGetServerConfigResult } from './contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 export { spawnInstructionContract } from './contracts/spawn-instruction/spawn-instruction-contract';

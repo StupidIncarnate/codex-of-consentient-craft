@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, get-server-config, reset-flow-signoffs, get-quest-summary)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, reset-flow-signoffs, get-quest-summary)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 15 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns 16 ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -23,6 +23,7 @@ import { getQuestSummaryInputContract } from '../../contracts/get-quest-summary-
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { resetFlowSignoffsInputContract } from '../../contracts/reset-flow-signoffs-input/reset-flow-signoffs-input-contract';
+import { runRiftcarverInputContract } from '../../contracts/run-riftcarver-input/run-riftcarver-input-contract';
 import { runWardInputContract } from '../../contracts/run-ward-input/run-ward-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
@@ -53,6 +54,7 @@ const getBlightChecklistSchema = zodToJsonSchema(
 const createQuestSchema = zodToJsonSchema(createQuestInputContract as never, jsonSchemaOptions);
 const getNextStepSchema = zodToJsonSchema(getNextStepInputContract as never, jsonSchemaOptions);
 const runWardSchema = zodToJsonSchema(runWardInputContract as never, jsonSchemaOptions);
+const runRiftcarverSchema = zodToJsonSchema(runRiftcarverInputContract as never, jsonSchemaOptions);
 const resetFlowSignoffsSchema = zodToJsonSchema(
   resetFlowSignoffsInputContract as never,
   jsonSchemaOptions,
@@ -151,6 +153,13 @@ export const QuestFlow = (): ToolRegistration[] => [
       'Runs `npm run ward` synchronously in changed or full mode and persists the result onto the named work item. Blocks until ward exits.' as never,
     inputSchema: runWardSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'run-ward' as never, args }),
+  },
+  {
+    name: 'run-riftcarver' as never,
+    description:
+      "Carves a quest its workspace: detects the base branch, creates the quest branch and git worktree, mirrors node_modules into it, and runs the preflight build to convergence — then persists the streamed log and applies the outcome to the ledger. Riftcarver is the FIRST item of every new quest's relay, so /dumpster-launch reaches it before any agent runs. It BLOCKS for minutes while the workspace is forged; AWAIT it and do not call get-next-step again until it returns. There is no mode — a carve has only one scope." as never,
+    inputSchema: runRiftcarverSchema as never,
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'run-riftcarver' as never, args }),
   },
   {
     name: 'get-server-config' as never,

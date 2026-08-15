@@ -1596,6 +1596,81 @@ describe('QuestHandleResponder', () => {
     });
   });
 
+  describe('run-riftcarver', () => {
+    it('VALID: {questId, workItemId} => returns QuestRunRiftcarverResult JSON', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const riftcarverResult = proxy.buildRunRiftcarverResult();
+      proxy.setupRunRiftcarverReturns({
+        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        result: riftcarverResult,
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'run-riftcarver' }),
+        args: {
+          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(riftcarverResult, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('INVALID: {mode: "changed"} => throws validation error (riftcarver takes no mode)', async () => {
+      const proxy = QuestHandleResponderProxy();
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'run-riftcarver' }),
+          args: {
+            questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+            workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+            mode: 'changed',
+          },
+        }),
+      ).rejects.toThrow(/Unrecognized key/u);
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupRunRiftcarverThrows({
+        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        error: new Error('git worktree add failed'),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'run-riftcarver' }),
+        args: {
+          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'git worktree add failed' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
   describe('get-server-config', () => {
     it('VALID: {} => returns { baseUrl, port } JSON', async () => {
       const proxy = QuestHandleResponderProxy();

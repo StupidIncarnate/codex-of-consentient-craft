@@ -18,12 +18,13 @@ describe('gitWorktreeAddAdapter', () => {
         worktreePath: AbsoluteFilePathStub({ value: '/project/worktrees/foo-7bc21741' }),
         branchName: QuestBranchNameStub({ value: 'quest/foo-7bc21741' }),
         baseBranch: BaseBranchNameStub({ value: 'main' }),
+        mode: 'create-branch',
       });
 
       expect(result).toStrictEqual({ exitCode: 0, output: '' });
     });
 
-    it('VALID: {worktreePath, branchName, baseBranch, cwd} => spawns `git worktree add <path> -b <branch> <base>` in cwd', async () => {
+    it('VALID: {mode: create-branch} => spawns `git worktree add <path> -b <branch> <base>` in cwd', async () => {
       const proxy = gitWorktreeAddAdapterProxy();
       proxy.setupSuccess();
       const cwd = AbsoluteFilePathStub({ value: '/project' });
@@ -31,7 +32,13 @@ describe('gitWorktreeAddAdapter', () => {
       const branchName = QuestBranchNameStub({ value: 'quest/foo-7bc21741' });
       const baseBranch = BaseBranchNameStub({ value: 'main' });
 
-      await gitWorktreeAddAdapter({ cwd, worktreePath, branchName, baseBranch });
+      await gitWorktreeAddAdapter({
+        cwd,
+        worktreePath,
+        branchName,
+        baseBranch,
+        mode: 'create-branch',
+      });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         'worktree',
@@ -41,6 +48,28 @@ describe('gitWorktreeAddAdapter', () => {
         branchName,
         baseBranch,
       ]);
+      expect(proxy.getSpawnedCwd()).toBe(cwd);
+    });
+
+    // `-b` and the base branch are BOTH absent here, not just `-b`: an existing branch carries its
+    // own tip, and naming a base would move the quest's work onto a fresh fork point.
+    it('VALID: {mode: attach-existing} => spawns `git worktree add <path> <branch>` with no -b and no base branch', async () => {
+      const proxy = gitWorktreeAddAdapterProxy();
+      proxy.setupSuccess();
+      const cwd = AbsoluteFilePathStub({ value: '/project' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/project/worktrees/foo-7bc21741' });
+      const branchName = QuestBranchNameStub({ value: 'quest/foo-7bc21741' });
+      const baseBranch = BaseBranchNameStub({ value: 'main' });
+
+      await gitWorktreeAddAdapter({
+        cwd,
+        worktreePath,
+        branchName,
+        baseBranch,
+        mode: 'attach-existing',
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual(['worktree', 'add', worktreePath, branchName]);
       expect(proxy.getSpawnedCwd()).toBe(cwd);
     });
   });
@@ -55,6 +84,7 @@ describe('gitWorktreeAddAdapter', () => {
         worktreePath: AbsoluteFilePathStub({ value: '/project/worktrees/foo-7bc21741' }),
         branchName: QuestBranchNameStub({ value: 'quest/foo-7bc21741' }),
         baseBranch: BaseBranchNameStub({ value: 'main' }),
+        mode: 'create-branch',
       });
 
       expect(result).toStrictEqual({

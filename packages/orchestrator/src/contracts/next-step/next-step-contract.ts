@@ -5,6 +5,7 @@
  * nextStepContract.parse({ type: 'idle' });
  * nextStepContract.parse({ type: 'spawn-agents', agents: [SpawnInstruction, ...] });
  * nextStepContract.parse({ type: 'run-ward', questId, workItemId, mode: 'changed' });
+ * nextStepContract.parse({ type: 'run-riftcarver', questId, workItemId });
  * // Returns: NextStep variant
  */
 
@@ -24,6 +25,14 @@ export const nextStepContract = z.discriminatedUnion('type', [
     questId: questIdContract,
     workItemId: questWorkItemIdContract,
     mode: z.enum(['changed', 'full']),
+  }),
+  z.object({
+    // The other command role. It carries no mode: ward grades a tree that already exists and needs
+    // to be told which slice, where a carve has exactly one job and reads its own scope off the
+    // quest.
+    type: z.literal('run-riftcarver'),
+    questId: questIdContract,
+    workItemId: questWorkItemIdContract,
   }),
   z.object({
     type: z.literal('idle'),

@@ -1,22 +1,38 @@
 # Validation Playbook — Full Live Flow (operations relay)
 
-End-to-end manual validation of the quest pipeline. Flowrider, Siegemaster, and Blightwarden are operation
-items in the live relay. The orchestrator (you) runs Phase 0 checks individually, then drives Phases 1–3 as a live quest
-and branches to fixer agents on red.
+End-to-end manual validation of the quest pipeline. Riftcarver, Flowrider, Groundstomper, Siegemaster, and Blightscout
+are operation items in the live relay. The orchestrator (you) runs Phase 0 checks individually, then drives Phases 1–3
+as a live quest and branches to fixer agents on red.
+
+> **Want only to hand the user a test quest they can drive by hand?** Skip to
+> **[Fake-Quest Bootstrap](#fake-quest-bootstrap-no-chat-session)**. It is self-contained: it does not need a
+> ChaosWhisperer chat session, and it gets you from nothing to an `approved` quest sitting on the Begin Quest modal in
+> about a minute.
+
+> **Known drift in this file.** Phase 1.7 and parts of Phase 2 still say **Blightwarden** and describe it as one
+> whole-diff audit at the end of the tail. The role is **`blightscout`**: scoped to ONE COMMIT, summoning no minions,
+> and APPENDED by the signal-back handler after every committing session rather than seeded in the tail. Read
+> `docs/quest-role-paths.md` for the current shape and treat those sections as approximate.
 
 ---
 
 ## Current execution model (read first)
 
-Execution is a **reactive relay over the quest's `operations` ledger** — an ordered `OperationItem[]` the orchestrator
-works one agent *session* at a time. It is **not** auto-dispatched by the server. Three surfaces drive a quest:
+Execution is a **reactive relay over the quest's `operations` ledger** — an ordered `OperationItem[]` worked one
+*session* at a time. It is **not** auto-dispatched by the server. Three surfaces drive a quest:
 
-- **Spec** runs in the Web UI (or via `/dumpster-create`): ChaosWhisperer through the two approval gates. During
-  `explore_observables` ChaosWhisperer ALSO authors the `operations` ledger — the ordered `{ role: 'codeweaver', text }`
-  implementation items (one per scope a Codeweaver session builds). The approval gate requires ≥1 `codeweaver` item.
-- **Start Quest** (Web UI button → `orchestration-start-responder`) seeds the relay: `questBuildRelayGraphBroker`
-  appends the fixed verify tail as operation items and creates the FIRST work item, then flips the quest to
-  `in_progress` and enqueues it. It **spawns nothing**.
+- **Spec** runs in the Web UI (or via `/dumpster-create`): ChaosWhisperer through the two approval gates. It authors
+  flows, observables, contracts and `packagesAffected` — and **never** the `operations` ledger, which is off the
+  modify-quest allowlist at every status for every caller. The approval gate requires **non-empty `flows` and nothing
+  else**; the implementation ledger is DERIVED at Start from the flow nodes' `packages` tags and the contracts'
+  `source` paths.
+- **Start Quest** (Web UI button → `orchestration-start-responder`) is **pure `quest.json` bookkeeping and answers in
+  milliseconds**. It derives the package graph, seeds the relay (`questBuildRelayGraphBroker` mints the implementation
+  items + the fixed verify tail and creates the FIRST work item), and flips the quest to `in_progress`. It **spawns
+  nothing, runs no git, and builds nothing** — assert that, it is a regression guard.
+- **The first item of every relay is `riftcarver`** — a `spawnerType: 'command'` role that creates the quest branch and
+  git worktree, mirrors `node_modules` into it, and runs the preflight build. It is what makes a workspace exist, and
+  it runs only once the quest is actually next in line. Watching it is the point of the Riftcarver checkpoint below.
 - **Dispatch** actually runs the work. Two interchangeable dispatchers share one brain (`quest-get-next-step-broker` +
   `signal-back` + the dispatch scan):
     - **Node/UI mode (primary)** — the `/queue` play button starts the server-side Node dispatch runner, which loops
@@ -32,19 +48,154 @@ Consequences for this playbook:
   `in_progress`.
 - `get-next-step` dispatches **one work item per response** — one operation item at a time. `questAdvanceBroker` creates
   exactly ONE work item for the first `pending` operation item (marking it `in_progress` in the same atomic write), then
-  waits for its `signal-back` (or ward exit) before advancing. A ready `ward` item is dispatched alone via `run-ward`.
-- **There is no failure signal — only forward.** An agent that can't finish its scope signals `operationStatus:
+  waits for its `signal-back` (or the command's exit) before advancing. A ready COMMAND item — `riftcarver` or `ward` —
+  is dispatched alone, as `run-riftcarver` / `run-ward`.
+- **Agents have no failure signal — only forward.** An agent that can't finish its scope signals `operationStatus:
   'partial'`; the orchestrator marks its operation item `complete` and appends a `"pt N: {text}"` continuation a fresh
   session runs. `ward` uses that chain as the **verify fixpoint** — a red run completes its item and spawns `pt N+1`;
-  a green run ends the chain. The verify-tail **operators** (`flowrider`, `siegemaster`, `blightwarden`) signal on
-  remaining SCOPE instead: `done` once every unit in scope (an observable on a flow, or a changed-file × concern unit
-  on the diff) carries a disposition, `partial` only
-  for a named remainder, because an operator re-reads what its own minions wrote and so already is the fresh pair of
-  eyes a
-  `pt N` session supplies. The ONLY failure concept is a **ward exit-code red**, which inserts a
-  `spiritmender` operation item + a fresh ward. A server crash mid-session **resumes** the orphaned session
-  (`claude --resume`) — it does not restart it. The **sole** path to `blocked` is a spent bounded loop (ward-retry, a
-  locked role's `pt N` chain, or orphan-recovery exhaustion).
+  a green run ends the chain. The verify-tail **operators** (`flowrider`, `groundstomper`, `siegemaster`, `blightscout`)
+  signal on remaining SCOPE instead: `done` once every unit in scope carries a sign-off (or, for blightscout, a
+  disposition), `partial` only for a named remainder.
+- **Three failure concepts, all of them the orchestrator's rather than an agent's judgement call:** a **ward exit-code
+  red** (inserts a spiritmender + a fresh ward), a **riftcarver failure** (routed by class — see below), and an agent's
+  **`operationStatus: 'blocked'`** environment wall. A server crash mid-session **resumes** the orphaned session
+  (`claude --resume`) — it does not restart it.
+- **Riftcarver failures route by class, and only one of the classes is recoverable.** A build or `node_modules` failure
+  is `repairable`: a spiritmender is spliced in ahead of a fresh `pt N` carve, bounded by
+  `slotManagerStatics.riftcarver.maxRetries`. A `git-state` failure (base branch missing, branch name taken,
+  `git worktree add` refused) **blocks the quest**, deliberately — with no worktree, the only checkout is the repo root,
+  which is a different branch's source, and no agent may be dispatched into it. A permission-denied error at any step
+  blocks too, overriding the class.
+- **Riftcarver is re-entrant by design.** Because the recovery route is `riftcarver → spiritmender → riftcarver (pt N)`,
+  the carve is re-entered against a partly-built workspace as a matter of routine. Every step re-checks the real world
+  (disk and git, never `quest.json` alone) and skips itself when already satisfied — **except the build, which always
+  re-runs**, because re-running it is how the spiritmender's fix gets verified. When you watch a `pt N` carve, expect the
+  git and `node_modules` steps to report skips and the build to run.
+
+---
+
+## Fake-Quest Bootstrap (no chat session)
+
+**Use this when the user says "make me a test quest so I can check X by hand".** It mints an `approved` quest with no
+ChaosWhisperer conversation, so the user can click Begin Quest and drive the run themselves. Every call below is
+verified against a live server, in this order, with no other setup.
+
+### The two preconditions that actually bite
+
+1. **The prod server runs from `dist/`, and so does the MCP server.** Neither sees a source change until you rebuild
+   AND restart them. If you skip this you will watch a quest seed a relay with no `riftcarver` item in it and conclude
+   the feature is broken. Symptom to recognise: a quest written by a stale server is missing newly-added `quest.json`
+   fields entirely (e.g. no `riftcarverResults` key at all).
+2. **The dogfood homes are repo-local and NOT the same directory.** Prod is `<repo>/.dungeonmaster/`, dev is
+   `<repo>/.dungeonmaster-dev/`. There is no `.dungeonmaster-home/`, no `DUNGEONMASTER_ENV`, and no `.env` file — the
+   root `npm run prod` / `npm run dev` scripts set `DUNGEONMASTER_HOME` inline. Ports come from `.dungeonmaster.json`:
+   prod server **4800**, prod web **4801**; dev server **4750**, dev web **4751**. Host is `dungeonmaster.localhost`.
+
+### Step 1 — build, then start the prod server
+
+```bash
+npm run build          # own command, unpiped, must exit 0
+npm run prod           # kills stale prod, serves dist/ on 4800 + vite preview on 4801
+```
+
+`npm run prod:build-and-serve` does both. **Restart your own MCP connection too** if contracts or tool names changed —
+the MCP server is a separate process, also running from `dist/`.
+
+### Step 2 — find the guild, clear the decks
+
+```bash
+ls .dungeonmaster/guilds/          # the guild UUID
+```
+
+Abandon any non-terminal quests from earlier runs (`mcp__dungeonmaster__list-quests` → `modify-quest` with
+`status: 'abandoned'`). Leftover in-flight quests get recovered on server start and their agents resume writing into
+your working tree.
+
+### Step 3 — mint the quest (7 MCP calls, no chat session)
+
+`operations` is not writable by anyone, so there is nothing to author — the ledger is DERIVED at Start. The `approved`
+gate wants **non-empty `flows` and nothing else**, so the minimum viable spec is one flow with two nodes.
+
+The per-status allowlist decides which fields a call may carry, so the flow must land while the quest is at
+`explore_flows` (`flowsRule: 'no-observables'` there — do not send observables). Node `packages` tags must draw from
+`packagesAffected`, which is why both ride the same call.
+
+```
+1. create-quest({ userRequest: '<why this quest exists>' })        → { questId, guildSlug }
+2. modify-quest({ questId, status: 'explore_flows', title: '...' })
+3. modify-quest({ questId, status: 'review_flows',
+     packagesAffected: [{ name: 'shared', location: './packages/shared',
+                          changeType: 'edit', packageType: 'library' }],
+     flows: [{ id: 'carve-check', name: 'Carve check', flowType: 'runtime',
+               entryPoint: 'begin-clicked', exitPoints: ['execution-live'],
+               nodes: [
+                 { id: 'begin-clicked',  label: 'User clicks Begin Quest',
+                   type: 'state',    packages: ['shared'] },
+                 { id: 'execution-live', label: 'Execution panel is live and the carve is queued',
+                   type: 'terminal', packages: ['shared'] }],
+               edges: [{ id: 'begin-to-live', from: 'begin-clicked', to: 'execution-live' }] }] })
+4. modify-quest({ questId, status: 'flows_approved' })
+5. modify-quest({ questId, status: 'explore_observables' })
+6. modify-quest({ questId, status: 'review_observables' })
+7. modify-quest({ questId, status: 'approved' })
+```
+
+Every id matches `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`; `entryPoint` / `exitPoints` name real node ids. Statuses step one at a
+time — `questStatusTransitionsStatics` refuses a skip. If a write is refused, the error names the invariant it broke;
+fix that rather than widening the payload.
+
+**Result:** status `approved`, one `chaoswhisperer` intake operation item, no git fields, an empty ledger. The quest is
+sitting exactly where a real spec conversation would have left it.
+
+### Step 4 — hand it to the user
+
+```
+http://dungeonmaster.localhost:4801/<guildSlug>/quest/<questId>
+```
+
+The Begin Quest modal arms itself on an `approved` quest. **Do not click it for them** unless asked — the point is that
+they drive it.
+
+### Step 5 — what "working" looks like
+
+| # | Watch for | Why it matters |
+|---|---|---|
+| 1 | The execution panel replaces the spec panel **immediately** | Start is pure bookkeeping; a pause here is the original bug returning |
+| 2 | Row 1 is **riftcarver**, `spawnerType: 'command'` | The carve heads the relay for both quest types |
+| 3 | `worktrees/` does **not** exist yet at the moment the panel appears | Proves the swap happened before any carving |
+| 4 | Nothing runs until the **`/queue` play button** is pressed | `orchestrationMode` is `node`; Start dispatches nothing |
+| 5 | The riftcarver row streams base-branch → `git worktree add` → per-root `node_modules` mirroring → `— build pass N/3 —` | Command output has no session JSONL; this stream is its only route to a UI |
+| 6 | On green: `worktrees/<slug>-<id8>/` exists, `quest.json` carries `branchName` / `baseBranch` / `worktreePath` / `baseRef`, and the first **codeweaver** row appears | The carve advanced the relay |
+| 7 | Reload the page, expand the finished riftcarver row | The persisted `riftcarver-results/<id>.log` renders — proves history, not just the live stream |
+
+### Step 6 — stop before the codeweavers
+
+Once the carve is green the relay dispatches real agents that write real code. **Press pause on `/queue`** as soon as
+the codeweaver row appears, unless the user wants a full run.
+
+### Cleanup
+
+```bash
+git worktree remove worktrees/<slug>-<id8> --force
+git branch -D quest/<slug>-<id8>
+git worktree prune
+```
+
+Then abandon the quest via `modify-quest({ questId, status: 'abandoned' })`. Leaving the branch behind is not fatal —
+a re-carve probes git and attaches to an existing branch instead of re-creating it — but it clutters the repo.
+
+### Exercising the failure routes by hand
+
+- **`repairable`** — point `.dungeonmaster.json` → `devServer.buildCommand` at a failing command before pressing play.
+  Expect: riftcarver red → a **spiritmender** row → a **`pt 2`** riftcarver row. Read the `pt 2` stream: the git and
+  `node_modules` steps report **skips** and only the build re-runs. That is the idempotency contract, visible.
+- **`git-state`** — pre-create the branch the quest will want (`git branch quest/<slug>-<id8>`) **and** leave no
+  worktree. This one does NOT block: the carve probes git, attaches to the existing branch, and proceeds. To force the
+  block, break base-branch detection instead (a repo with neither `main` nor `master`).
+- **Permission** — `chmod -w` the `worktrees/` directory. Expect an immediate block, whatever the step.
+
+In both block cases the quest goes `blocked` with the git error as the failed row's `errorMessage`, and **no agent is
+dispatched**. Resume with the RESUME button after fixing the environment.
 
 ---
 
@@ -97,10 +248,13 @@ Static policies. These hold for every run.
 - **Autonomy: fix, then restart — do NOT ask for approval between runs.** After a blocking bug is fixed and committed, immediately follow Run Lifecycle step 1 for the next run. Do not pause to ask the user "should I start Run N?" or "do you want me to proceed?". The user will intervene if they want you to stop. Same rule applies mid-run: keep driving through checkpoints, branching to fixers on red, without checking in at every checkpoint. Only stop-and-ask when you genuinely cannot decide (ambiguous bug classification, missing context for a fix).
 - **Orchestrator (you) does NOT edit source code or run ward directly.** Fix work and ward invocation MUST be delegated to sub-agents via the `Agent` tool. The orchestrator's job is to drive the flow, observe outcomes, classify bugs, dispatch agents, and commit results. Exceptions: the orchestrator may freely edit `VALIDATION-PLAYBOOK.md`, `/tmp/validation-notes.md`, and update task lists — those are process artifacts, not codebase changes. Everything else — contract edits, prompt edits, guard fixes, broker fixes, widget fixes, test updates, rebuilds — goes to an agent. This protects the orchestrator's context window for the full end-to-end validation run.
 - **Kickoff surfaces.** Spec + Start Quest go through the Web UI (and MCP tools / server HTTP endpoints) as a real user
-  would. Execution dispatch is the one place a slash command is required: after Start Quest you run `/dumpster-launch`
-  in
-  your Claude session to drive the work-item loop (see "Current execution model"). Do not use `/dumpster-create` for the
-  spec — drive that through the UI.
+  would. Do not use `/dumpster-create` for the spec — drive that through the UI, or mint the quest directly per
+  *Fake-Quest Bootstrap* when no chat session is available.
+- **Which dispatcher drives execution is CONFIG, not preference.** `.dungeonmaster.json` → `orchestrationMode` decides:
+  it is `node` in this repo, so the `/queue` **play button** is the driver and `/dumpster-launch` will report an idle
+  reason and stop while Node holds the queue. The two are mutually exclusive, arbitrated through
+  `<dungeonmasterHome>/dispatch-state.json`. Read the config before assuming which one to reach for; both drive the
+  same `get-next-step` brain, so a checkpoint's expectations do not change with the mode — only how you start it.
 - **Single dev server policy.** Only one dev server process is up at any time across the whole run.
 - **Build before dev server.** Always run `npm run build` before starting the dev server (initial start AND every
   restart after a fix). All packages run from `dist/`, so a stale build will mask or create bugs that don't reflect the
@@ -130,10 +284,11 @@ Static policies. These hold for every run.
     - Siegemaster's build preflight (already wired via `.dungeonmaster.json.devServer.buildCommand`) still runs — it
       builds the orchestrator code that spawns siegemaster, even though siege's own dev server runs from source via tsx.
   Shortcut: `npm run prod:build-and-serve` does both in order. Use it whenever unsure whether dist is current.
-- **Ports:** prod = 4800/4801 (smoke-test orchestrator, `.env.prod` sourced). dev = 4750/4751 (spawned by a runtime-flow agent,
-  `.env` sourced). `DUNGEONMASTER_HOME` is shared across both modes; the subdirectory split comes from
-  `DUNGEONMASTER_ENV` (`dev` → `.dungeonmaster-home/.dungeonmaster-dev/`,
-  `production` → `.dungeonmaster-home/.dungeonmaster/`).
+- **Ports and homes.** Everything comes from `.dungeonmaster.json` plus the root npm scripts — there are no `.env`
+  files and no `DUNGEONMASTER_ENV`. prod = **4800** (server) / **4801** (web preview), home `<repo>/.dungeonmaster/`.
+  dev = **4750** / **4751**, home `<repo>/.dungeonmaster-dev/` — a separate directory, not a subdirectory of the same
+  one. `npm run prod` and `npm run dev` each set `DUNGEONMASTER_HOME` inline, which is why the two queues never mix and
+  why a siege-spawned dev server cannot touch the smoke-test quest. Host is `dungeonmaster.localhost`.
 - **Agent crash mid-session (any role).** An `in_progress` work item observed during a get-next-step scan is orphaned;
   `recover-orphaned-work-items-layer-broker` flips it back to `pending` keeping `sessionId`/`agentId` + a `resume`
   marker, and Node/UI dispatch resumes the retained Claude session (`claude --resume`) so partial work survives — no
@@ -223,13 +378,13 @@ folder name so restore is a one-shot copy back into the guild's `quests/` dir.
 
 ```
 rm -rf tmp/smoke-test-quest/*
-cp -r .dungeonmaster-home/.dungeonmaster-dev/guilds/<guildId>/quests/<questId> tmp/smoke-test-quest/
+cp -r .dungeonmaster/guilds/<guildId>/quests/<questId> tmp/smoke-test-quest/
 ```
 
 After snapshot, `tmp/smoke-test-quest/<questId>/quest.json` exists.
 
 - **Always overwrite.** The newest clean spec wins — no snapshot history.
-- **Keep the UUID-named folder.** Restore is `cp -r tmp/smoke-test-quest/<questId> .dungeonmaster-home/...quests/` with
+- **Keep the UUID-named folder.** Restore is `cp -r tmp/smoke-test-quest/<questId> .dungeonmaster/guilds/<guildId>/quests/` with
   no path surgery.
 - **Snapshot goes in `<repoRoot>/tmp/smoke-test-quest/`**, not `~/tmp` (permission issues) and not `/tmp` (outside repo
   permission scope; survives wipes). The `tmp/` dir is already git-ignored.
@@ -238,7 +393,7 @@ After snapshot, `tmp/smoke-test-quest/<questId>/quest.json` exists.
 
 1. With the dev server stopped, copy the snapshotted folder back:
    ```
-   cp -r tmp/smoke-test-quest/<questId> .dungeonmaster-home/.dungeonmaster-dev/guilds/<guildId>/quests/
+   cp -r tmp/smoke-test-quest/<questId> .dungeonmaster/guilds/<guildId>/quests/
    ```
 2. Start the dev server — startup recovery picks up the quest.
 3. Navigate to the quest's bound `activeSessionId` URL (from the snapshotted `quest.json`). The UI should land on
@@ -496,6 +651,10 @@ are autonomous and will not emit new questions.
 One quest, one clean run, from Web UI new chat to `complete`. Two flows (one runtime UI, one operational CLI), ~3 steps
 total.
 
+**Checkpoint 1.1 is skippable.** When there is no chat session available — or when the run is about execution rather
+than the spec phase — mint the quest per *Fake-Quest Bootstrap* and enter at **1.2**. Everything from 1.2 onward is
+identical; the relay does not care whether a human or a `modify-quest` call authored the flows.
+
 ### Cross-cutting expectations (apply to every checkpoint below)
 
 These came out of smoke runs and belong on every checkpoint unless explicitly overridden.
@@ -561,18 +720,25 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
        each groundstomper row lists its own single flow, and the ward and blightwarden rows list none). The
        status bar (`execution-status-bar-layer-widget`) reads `EXECUTION — 0/M OPERATIONS` once the relay is seeded (or
        `AWAITING PLAN` before Start Quest seeds it).
-  3. Status → `in_progress`. `questBuildRelayGraphBroker` appended the verify tail as operation items
-     (`ward(changed) → flowrider → groundstomper → siegemaster → blightwarden → ward(full)`, all `locked`, `pending`)
-     and created ONE work item for the FIRST `codeweaver` operation item, marking that operation `in_progress`.
-     **Assert the tail's shape**: three fixed items (`ward(changed)`, `blightwarden`, `ward(full)`), ONE `siegemaster`
-     item PER FLOW, ONE `groundstomper` item per RUNTIME flow that reaches an e2e-eligible package (none at all when
-     the quest reaches no such package), plus the `flowrider` items its package slicing mints. `blightwarden` holds
-     exactly one item regardless of flow count and self-scopes over the diff. Read `quest.json` and confirm each
-     `siegemaster` item carries a single-element `flowIds` naming its own flow with a `— flow: <id>` text suffix, and
-     that each `groundstomper` item likewise names exactly one flow. This is the invariant most likely to regress: a
-     whole-quest siegemaster item or a truncated `flowIds` both show up here first.
-    4. Once a dispatcher is running, the first codeweaver work item flips to `in_progress` (a flat
-       `execution-row-layer-widget` row, `RUNNING` badge) and gets a `sessionId`.
+  3. Status → `in_progress`. `questBuildRelayGraphBroker` derived the implementation items and appended the verify
+     tail (`ward(changed) → flowrider → groundstomper → siegemaster → ward(full)`, all `locked`, `pending`), then
+     created ONE work item for the FIRST operation item.
+     **Assert the head first: operation item [0] is `riftcarver`, `locked: true`, `packageNames: []`, `in_progress`,
+     and its work item carries `spawnerType: 'command'`.** A command role declares no package slice — it prepares the
+     whole worktree — so a riftcarver item that inherited the spine's packages is a regression.
+     Then assert the tail's shape: two fixed ward items (`ward(changed)`, `ward(full)`), ONE `siegemaster` item PER
+     FLOW, ONE `groundstomper` item per RUNTIME flow that reaches an e2e-eligible package (none at all when the quest
+     reaches no such package), plus the `flowrider` items its package slicing mints. **There is no seeded blight-review
+     item** — `blightscout` is APPENDED after each committing session, so an empty tail here is correct. Read
+     `quest.json` and confirm each `siegemaster` item carries a single-element `flowIds` naming its own flow with a
+     `— flow: <id>` text suffix, and that each `groundstomper` item likewise names exactly one flow. This is the
+     invariant most likely to regress: a whole-quest siegemaster item or a truncated `flowIds` both show up here first.
+    4. **Nothing was carved and nothing was spawned.** `quest.json` has no `branchName` / `baseBranch` /
+       `worktreePath` / `baseRef`, and `<repo>/worktrees/` holds no directory for this quest. Start is pure
+       bookkeeping; anything else here is the "Begin Quest hangs for minutes" defect returning.
+    5. Once a dispatcher is running, the **riftcarver** work item flips to `in_progress` (a flat
+       `execution-row-layer-widget` row, `RUNNING` badge). It is a command, so it gets **no `sessionId`** — its output
+       reaches the panel through the chat-output bus keyed on the work item id, not through a session JSONL tail.
 
 **→ FAIL assertion #1 (UI never switches after Start Quest click):** UI bug in the execution-panel guard or in the
 binding that reacts to `quest-modified`. Most likely candidate: `shouldRenderExecutionPanelQuestStatusGuard` is missing
@@ -581,6 +747,35 @@ binding that reacts to `quest-modified`. Most likely candidate: `shouldRenderExe
 polled. If `get-next-step` returns `idle` despite a pending operation item with no live work item, debug the scan
 self-heal / advance; if no dispatcher is running, nothing will dispatch — that is expected, not a bug.
 **→ FAIL no "Start Quest" popup appears:** UI bug in the post-Gate-#2 flow. File it, fix, restart.
+**→ PASS:** continue.
+
+### 1.2b — Riftcarver (the carve; first item of every relay)
+
+The first thing any dispatcher runs. It is `spawnerType: 'command'` — the dispatcher executes it itself, there is no
+Claude session, and `onLine` is the ONLY route its output has to a UI for the minutes it runs.
+
+- **Action:** none. It runs as soon as a dispatcher starts. Watch the row.
+- **Assert:**
+    1. **The row streams while it runs** — base-branch probe, `git worktree add`, one line per `node_modules` root
+       mirrored, then `— build pass N/3 —`. A row that sits `RUNNING` with an empty body for minutes is the
+       required-`onLine` contract regressing; that exact defect shipped once for ward and is why the parameter is not
+       optional.
+    2. **On green:** `worktrees/<slug>-<id8>/` exists on disk; `quest.json` gains `branchName`, `baseBranch`,
+       `worktreePath` and `baseRef`; `quest.riftcarverResults` gains one entry; the work item carries a
+       `riftcarverResults/<id>` ref; the operation item is `complete`; and the **first codeweaver** work item appears.
+    3. **`baseRef` is the fork point**, i.e. the base branch tip the worktree was cut from — not the server process's
+       HEAD. It is written exactly once and never moves again, including across a `pt N` re-carve.
+    4. **History survives a reload.** Reload the page, expand the finished riftcarver row: the persisted
+       `riftcarver-results/<id>.log` renders. The live stream is in memory only — this is the durable half.
+- **On red, check the class before calling it a bug.** `node_modules`/build failures are `repairable` and MUST produce
+  a spiritmender + a `pt N` carve. Base-branch/`git worktree add`/permission failures MUST block the quest with the git
+  error on the failed row and dispatch NO agent. A repairable failure that blocks, or a git-state failure that spawns an
+  agent into the repo root, is the bug.
+
+**→ FAIL (row streams nothing):** the `onLine` wiring at the dispatch site. Check both emit paths — the Node loop's
+`onRiftcarverLine` and the MCP responder — they share `commandChatOutputEmitTransformer`.
+**→ FAIL (quest blocks on a `pt N` carve because the branch already exists):** the re-entrancy probe. A carve whose
+directory is gone but whose branch survives must ATTACH to that branch (no `-b`, prune first), not re-create it.
 **→ PASS:** continue.
 
 ### 1.3 — Codeweavers (one operation item at a time)
@@ -862,14 +1057,46 @@ must keep identity + a resume marker and set `pending`, not stay `in_progress`).
 - **Seed:** a `bug-hunt` quest (via `/dumpster-hunt`) — captured as a reproduction flow + an expected-behavior
   observable.
 - **Assert:**
-    - At Start Quest the orchestrator seeds a single `pesteater` implementation operation item (not authored at spec
-      time) plus the bug-hunt verify tail `ward(changed) → blightwarden → ward(full)` (no
-      flowrider/siegemaster).
+    - At Start Quest the orchestrator seeds `riftcarver` then a single `pesteater` implementation operation item
+      (neither authored at spec time) plus the bug-hunt verify tail `ward(changed) → ward(full)` (no
+      flowrider/groundstomper/siegemaster, and no seeded blight-review item).
     - PestEater turns the expected-behavior observable into a failing test, then makes it pass; the relay advances the
       same way as a feature quest (done → advance, partial → pt N, ward red → spiritmender). Quest derives `complete`.
 
 **→ FAIL (wrong seed shape / feature tail seeded):** fix `questTypeRegistryStatics['bug-hunt']`. Restart 2.8.
 **→ PASS:** continue.
+
+---
+
+### 2.9 — Riftcarver failure classes (the new block route)
+
+Riftcarver adds the fifth entry to block ownership, and it is the only failure whose routing depends on WHICH step
+failed. Run each arm on its own quest.
+
+- **Arm A — `repairable`.** Point `.dungeonmaster.json` → `devServer.buildCommand` at a command that exits non-zero,
+  then start a dispatcher.
+    - **Assert:** the carve row goes red with `errorMessage: 'riftcarver_build_failed'`; the ledger gains a
+      `spiritmender` item whose text names the failing step and the riftcarver result id, followed by a `pt 2`
+      riftcarver; the quest stays `in_progress`; the spiritmender is dispatched next, **inside the quest's worktree**
+      (the git context was persisted before the build ran, which is what gives it a tree to work in).
+    - **Then read the `pt 2` carve's stream** — the git and `node_modules` steps report skips, the build re-runs. That
+      is the idempotency contract observable at runtime. A `pt 2` that re-runs `git worktree add` and dies on a
+      name collision is the regression this arm exists to catch.
+    - Restore `buildCommand` and let the chain converge green, or exhaust `slotManagerStatics.riftcarver.maxRetries`
+      to see the spent-budget block.
+- **Arm B — `git-state`.** Break base-branch detection (a repo state with neither `main` nor `master` resolvable).
+    - **Assert:** the quest goes `blocked` immediately — no spiritmender, no `pt N` — with the git error verbatim on
+      the failed row, and **no agent dispatched**. This asymmetry is deliberate: with no worktree the only checkout is
+      the repo root, which is a different branch's source. An agent spawned there is the bug.
+    - Note that a merely pre-existing BRANCH is **not** this case: the carve probes git and attaches to it.
+- **Arm C — permission.** `chmod -w` the `worktrees/` directory.
+    - **Assert:** immediate block regardless of which step hit it — the permission guard overrides the step's class.
+- **Arm D — resume.** From the blocked quest in B or C, fix the environment and press RESUME.
+    - **Assert:** the rearm returns the carve's work item to `pending` and the quest re-dispatches it. A RESUME that
+      visibly does nothing is the rearm regressing.
+
+**→ FAIL (repairable arm blocks, or git-state arm spawns an agent):** the routing in `quest-run-riftcarver-broker`
+keyed off `worktreePrepareStepStatics.classifications`. **→ PASS:** continue.
 
 ---
 
@@ -885,8 +1112,12 @@ must keep identity + a resume marker and set `pending`, not stay `in_progress`).
 ## Execution Order
 
 1. Run Phase 0 in its entirety (static checks).
-2. Run Phase 1 as a single unbroken live quest. Branch to fixers on red, restart from failing checkpoint.
+2. Run Phase 1 as a single unbroken live quest. Branch to fixers on red, restart from failing checkpoint. Enter at 1.2
+   with a *Fake-Quest Bootstrap* quest when no chat session is available.
 3. Run Phase 2 scenarios one by one, each on its own quest. Branch to fixers on red.
 4. Run Phase 3.
+
+**If the user only asked for a test quest to drive by hand, none of the above applies** — run *Fake-Quest Bootstrap*,
+hand over the URL, and stay available to read `quest.json` for them. That is the whole job.
 
 Only after Phase 3 passes do I declare the two features green.

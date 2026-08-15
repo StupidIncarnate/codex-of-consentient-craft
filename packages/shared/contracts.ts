@@ -357,6 +357,9 @@ export * from './src/contracts/related-data-item/related-data-item.stub';
 export * from './src/contracts/ward-result/ward-result-contract';
 export * from './src/contracts/ward-result/ward-result.stub';
 
+export * from './src/contracts/riftcarver-result/riftcarver-result-contract';
+export * from './src/contracts/riftcarver-result/riftcarver-result.stub';
+
 export * from './src/contracts/work-item/work-item-contract';
 export * from './src/contracts/work-item/work-item.stub';
 
