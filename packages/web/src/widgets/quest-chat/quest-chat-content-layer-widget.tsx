@@ -31,6 +31,7 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 
+import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
 import { useCommentQueueSweepBinding } from '../../bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding';
 import { useOrchestrationModeBinding } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
@@ -65,6 +66,11 @@ const DUMPSTER_CREATE_COMMAND = displayLabelContract.parse('/dumpster-create');
 
 const FLOWS_APPROVED_FOLLOWUP_MESSAGE =
   'Flows approved. Proceed to observables and contracts.' as UserInput;
+
+// Shown only when the failure carried no message at all (a connection-level throw). Every server
+// rejection reaches the toast as its own text — see questStartBroker.
+const BEGIN_QUEST_FAILED_MESSAGE = 'Begin Quest failed — the quest was not started.';
+const ERROR_NOTIFICATION_COLOR = 'red';
 
 export interface QuestChatContentLayerWidgetProps {
   questId: QuestId | null;
@@ -399,6 +405,14 @@ export const QuestChatContentLayerWidget = ({
         setApprovedModalOpen(false);
         questStartBroker({ questId: quest.id }).catch((startError: unknown) => {
           globalThis.console.error('[quest-chat] begin quest failed', startError);
+          // Closing the modal is the ONLY thing a refused Start changes on screen, so without this
+          // the panel simply never swaps and the reader has no way to tell a rejection from the
+          // minutes POST /start legitimately spends inside `git worktree add` + the build. The
+          // broker hands up the server's own sentence, which names the actual cause.
+          mantineNotificationsShowAdapter({
+            message: startError instanceof Error ? startError.message : BEGIN_QUEST_FAILED_MESSAGE,
+            color: ERROR_NOTIFICATION_COLOR,
+          });
         });
       }}
       onKeepChatting={(): void => {

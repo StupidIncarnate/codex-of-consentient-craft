@@ -9,6 +9,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
+import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
 import { useCommentQueueSweepBindingProxy } from '../../bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding.proxy';
 import { useOrchestrationModeBindingProxy } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding.proxy';
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
@@ -71,6 +72,11 @@ export const QuestChatContentLayerWidgetProxy = (): {
   typeFollowupMessage: (params: { text: string }) => Promise<void>;
   clickFollowupSend: () => Promise<void>;
   hasAbandonButton: () => boolean;
+  setupStart: (params: { processId: string }) => void;
+  setupStartRejected: (params: { error: string }) => void;
+  clickBeginQuest: () => Promise<void>;
+  getStartRequestCount: () => RequestCount;
+  getShownNotification: () => unknown;
 } => {
   // Created BEFORE the chat binding proxy: both compose webSocketChannelStateProxy, whose WebSocket
   // spy is addressed on the same url, so the LAST registration owns the created socket. The chat
@@ -90,7 +96,8 @@ export const QuestChatContentLayerWidgetProxy = (): {
   questModifyBrokerProxy();
   questPauseBrokerProxy();
   questResumeBrokerProxy();
-  questStartBrokerProxy();
+  const questStart = questStartBrokerProxy();
+  const notifications = mantineNotificationsShowAdapterProxy();
   setupAutoScrollContainer();
   setupChatEntryList();
   const executionPanel = ExecutionPanelWidgetProxy();
@@ -98,7 +105,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   FormDropdownWidgetProxy();
   DumpsterCommandBannerWidgetProxy();
   DumpsterRaccoonWidgetProxy();
-  QuestApprovedModalWidgetProxy();
+  const approvedModal = QuestApprovedModalWidgetProxy();
   QuestLoadErrorWidgetProxy();
   QuestSpecPanelWidgetProxy();
   return {
@@ -176,5 +183,16 @@ export const QuestChatContentLayerWidgetProxy = (): {
       await executionPanel.clickFollowupSend();
     },
     hasAbandonButton: () => executionPanel.hasAbandonButton(),
+    setupStart: ({ processId }) => {
+      questStart.setupStart({ processId });
+    },
+    setupStartRejected: ({ error }) => {
+      questStart.setupRejected({ error });
+    },
+    clickBeginQuest: async () => {
+      await approvedModal.clickBeginQuest();
+    },
+    getStartRequestCount: () => questStart.getRequestCount(),
+    getShownNotification: () => notifications.getShownNotification(),
   };
 };

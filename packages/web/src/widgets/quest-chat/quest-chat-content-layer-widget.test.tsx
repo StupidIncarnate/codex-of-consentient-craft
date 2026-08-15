@@ -1015,6 +1015,100 @@ describe('QuestChatContentLayerWidget', () => {
     });
   });
 
+  describe('Begin Quest failure surface', () => {
+    // POST /start runs the whole git lifecycle synchronously, so on a real repo it is silent for
+    // minutes. Closing the modal is the only thing a REFUSED start changes on screen, which makes
+    // a rejection and a slow success look identical to a reader — the toast is the only thing that
+    // tells them apart, and every rejection this endpoint issues names its own cause in the body.
+    it('ERROR: {start POST rejected with 400} => raises a red toast carrying the exact server error text', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupStartRejected({
+        error: 'quest/add-auth-7bc217a1 already exists — name is in use by other work',
+      });
+      const guildId = GuildIdStub({ value: 'aaaaaaa7-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-begin-rejected', status: 'approved' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-begin-rejected' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_APPROVED_MODAL_TITLE');
+      await proxy.clickBeginQuest();
+
+      await waitFor(() => {
+        expect(proxy.getShownNotification()).toStrictEqual({
+          message: 'quest/add-auth-7bc217a1 already exists — name is in use by other work',
+          color: 'red',
+        });
+      });
+
+      // One click, one POST. A refused Start must not quietly retry behind the reader.
+      expect(proxy.getStartRequestCount()).toBe(1);
+    });
+
+    it('VALID: {start POST accepted} => raises no toast', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupStart({ processId: 'proc-begin-ok' });
+      const guildId = GuildIdStub({ value: 'aaaaaaa8-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-begin-ok', status: 'approved' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-begin-ok' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_APPROVED_MODAL_TITLE');
+      await proxy.clickBeginQuest();
+
+      await waitFor(() => {
+        expect(proxy.getStartRequestCount()).toBe(1);
+      });
+
+      // Pairs with the rejection case above: without it, a toast fired on EVERY start would still
+      // pass that test.
+      expect(proxy.getShownNotification()).toBe(undefined);
+    });
+  });
+
   describe('quest load failure surface', () => {
     it('ERROR: {quest-load-failed for this quest} => renders the parse reason instead of the awaiting surface', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
