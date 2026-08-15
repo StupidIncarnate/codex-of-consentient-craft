@@ -102,9 +102,9 @@ phrased as what SHOULD happen, never as the bug.
 behavior must also change for the fix to be real. NEVER on an `ACTUAL:` node, and never on a node the bug does not
 touch.
 
-**Write as many observables as the corrected behavior actually has.** A bug report is usually more
-than one broken assertion: the symptom the user named, the state that must hold around it, and the follow-on behavior
-that proves the fix is real rather than cosmetic.
+**Write as many observables as the corrected behavior actually has.** A bug report is usually more than one broken
+assertion: the symptom the user named, the state that must hold around it, and the follow-on behavior that proves the
+fix is real rather than cosmetic.
 
 **Split, do not cram.** If an outcome has two parts, they are two observables — not one observable with an "AND ..."
 sentence glued on. A single observable whose `description` runs to a paragraph of "AND ... AND ..." is the failure mode
@@ -160,7 +160,6 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 you never write mermaid.
 
 **Node types:**
-
 - `state` — resting states, UI pages, waiting points (renders: rectangle)
 - `decision` — branching points, conditionals, the divergence fork (renders: diamond)
 - `action` — operations, API calls, processing steps (renders: rectangle)
@@ -240,7 +239,6 @@ it sits on).
   unless the edge set already forces one (dropping it would leave an incident edge with nothing spanning it).
 
 On the `EXPECTED:` terminal of the example flow — a single-package node, so no `package` key:
-
 ```json
 "observables": [
   { "id": "tool-result-text-renders", "type": "ui-state", "description": "the expanded row body shows the GET-QUEST tool result text" },
@@ -251,7 +249,6 @@ On the `EXPECTED:` terminal of the example flow — a single-package node, so no
 On the `fetch-tool-result` SEAM node, where the fix must also change what the endpoint returns —
 `<ui-package>` is seam-forced (dropping it would unglue both incident edges), so only
 `<api-package>` owes an observable, and it names its own side:
-
 ```json
 "observables": [
   { "id": "chat-endpoint-returns-tool-result", "type": "api-call", "description": "GET /api/quest/:questId/chat returns the tool_result entry for the failed work item", "package": "<api-package>" }
