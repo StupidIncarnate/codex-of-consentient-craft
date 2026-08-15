@@ -677,10 +677,17 @@ reads the registry entry for `quest.questType`:
   Quest seeds. `startImplementationOps` = a single `pesteater` item (orchestrator-seeded, no `fanOutBy`, so it fans
   to exactly one item — `pesteater-prompt-statics` already directs PestEater to write the reproducing e2e itself);
   `relayTail` = `ward(changed) → ward(full)` (no flowrider/groundstomper/siegemaster, and — same as `feature` — no
-  seeded blight-review item either).
-  Bug-hunt reuses the flow/observable spec lifecycle — the bug is captured as two flows (the actual-state reproduction
-  path ending at the symptom, and the expected-state path ending at the correct behavior), with the expected behavior
-  an observable PestEater turns into a failing test.
+  seeded blight-review item either). Bug-hunt reuses the flow/observable spec lifecycle, in the shape **ONE FLOW PER
+  BUG**: each flow is the reproduction path run once, forking at its last shared node (two outgoing edges labelled
+  `today` / `after fix`) into two terminal nodes whose LABELS carry the indicator — `ACTUAL: <symptom today>` and
+  `EXPECTED: <what the fix must make real>`. The observables sit on the EXPECTED side (never on ACTUAL — an observable
+  is a positive expectation, so one on the broken branch asks PestEater for a test that asserts the bug), and each
+  becomes one failing test. The prefixes are a LABEL convention, not a contract field: `flowNodeContract` carries
+  id/label/type/packages/observables and has nowhere else to put them, so `dumpsterHuntPromptStatics` and
+  `pesteaterPromptStatics` must spell them identically. A mirrored actual-state/expected-state flow PAIR is what this
+  replaced — it duplicated the repro path across both flows, hid which step diverges, and gave a two-bug report four
+  flows to pair up by name. Since the `pesteater` seed has no
+  `fanOutBy`, one PestEater session owns every flow on the quest however many bugs the report named.
 
 Each type owns its COMPLETE relay via its registry entry. Adding a type = one `questTypeRegistryStatics` entry + the
 type added to `questTypeContract`.

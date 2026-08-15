@@ -78,13 +78,112 @@ describe('pesteaterPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => Gate 1 reads the actual-state and expected-state flows', () => {
-    const needle =
-      '- **flows** — two flows: the **actual-state flow** (the reproduction path, ending at the\n  observed symptom) and the **expected-state flow**';
-    const { template } = pesteaterPromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
+  describe('Gate 1 reads the one-flow-per-bug spec shape', () => {
+    it('VALID: template => Gate 1 reads ONE FLOW PER BUG forking at its last shared node', () => {
+      const needle =
+        '- **flows** — **ONE FLOW PER BUG**. Each is the reproduction path, forking at its last shared node\n  (two outgoing edges, labelled `today` and `after fix`) into TWO terminal nodes whose LABELS are\n  the actual/expected indicator:';
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
 
-    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // The ACTUAL/EXPECTED prefixes are a LABEL convention — `flowNodeContract` has no field for
+    // them — so this prompt must name the same two strings BugHunt writes, or PestEater reads a
+    // spec whose invariant it cannot locate.
+    it('VALID: template => names the ACTUAL terminal as the repro target carrying no observables', () => {
+      const needle =
+        '  - the node labelled `ACTUAL: …` is the symptom as it behaves today — your repro target. It\n    carries no observables by design; asserting it would be asserting the bug.';
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => names the EXPECTED observables as the invariants the failing tests assert', () => {
+      const needle =
+        '  - the node labelled `EXPECTED: …` is the behavior your fix must make real. **Its observables,\n    plus any on nodes between the entry point and the fork, are the invariants your failing tests\n    assert**';
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => tells PestEater to start its trace at the fork, not the entry point', () => {
+      const needle =
+        "  - the fork node itself names the divergence — the step where today's behavior stops matching the\n    correct one. Start your root-cause trace there, not at the entry point.";
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // The bug-hunt `startImplementationOps` seed carries no `fanOutBy`, so ONE PestEater session
+    // owns every flow the quest holds — collapsing several bugs into one repro would drop tests.
+    it('VALID: template => treats a multi-flow quest as multiple bugs, none collapsed', () => {
+      const needle =
+        '  More than one flow means more than one bug in this report: each is its own repro, its own fork,\n  and its own set of failing tests. Do not collapse them.';
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => no longer reads a mirrored actual-state/expected-state flow pair', () => {
+      const { template } = pesteaterPromptStatics.prompt;
+
+      expect(template.indexOf('two flows')).toBe(-1);
+      expect(template.indexOf('actual-state flow')).toBe(-1);
+      expect(template.indexOf('expected-state flow')).toBe(-1);
+    });
+  });
+
+  describe('Gate 3 writes one test per EXPECTED observable', () => {
+    it('VALID: template => asserts each observable description, one test each', () => {
+      const needle =
+        "Write (or strengthen) a test per `EXPECTED:` observable from Gate 1 — asserting that observable's\n`description`, never an intermediate cause. Intake split those observables precisely so each one\nis independently testable, so do not fold several into one test.";
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => derives the e2e repro walk from entryPoint to the ACTUAL terminal', () => {
+      const needle =
+        'The e2e walk that reproduces one flow is the walk from its `entryPoint` to its `ACTUAL:`\nterminal — driving those steps is how you watch the assertion go red for the right reason.';
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // BugHunt tags each observable with an outcome type precisely so the layer is decided at
+    // intake rather than re-guessed here; `ui-state` is the one that means Playwright.
+    it('VALID: template => picks the test layer from the observable type tag', () => {
+      const needle = "The observable's `type` picks the\nlayer, and the symptom shape confirms it:";
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => routes ui-state and browser-observed api-call to Playwright', () => {
+      const needle =
+        '- `ui-state` (or an `api-call` the user only observes through the browser) / UI element missing / wrong content → e2e (Playwright)';
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => routes every other observable type to unit or integration', () => {
+      const needle =
+        '- Every other `type`, or a transformer/contract you can drive directly → a unit or integration test alongside the implementation.';
+      const { template } = pesteaterPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
   });
 
   it('VALID: template => keeps the failing-test-before-fix TDD discipline', () => {
@@ -95,7 +194,7 @@ describe('pesteaterPromptStatics', () => {
 
   it('VALID: template => resolves the UI package from packageType, as a set, never from the diff', () => {
     const needle =
-      "- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: `<ui-package>/src/flows/**/*.e2e.ts`. Resolve `<ui-package>` from `packagesAffected`: the UI packages are EVERY entry whose `packageType` is `frontend-react` or `frontend-ink`, and that `location` is the path to write under. Treat it as a SET — a repo may have several, and when it does, pick the one carrying the flow you are reproducing rather than assuming there is only one.";
+      "e2e (Playwright) colocated in the entry flow's folder of the UI package: `<ui-package>/src/flows/**/*.e2e.ts`. Resolve `<ui-package>` from `packagesAffected`: the UI packages are EVERY entry whose `packageType` is `frontend-react` or `frontend-ink`, and that `location` is the path to write under. Treat it as a SET — a repo may have several, and when it does, pick the one carrying the flow you are reproducing rather than assuming there is only one.";
     const { template } = pesteaterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

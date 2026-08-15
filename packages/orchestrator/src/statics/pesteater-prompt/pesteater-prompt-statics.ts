@@ -11,6 +11,15 @@
  * scoped ward before signaling. The downstream ledger items (ward, review passes) verify its
  * diff. It signals via signal-back — operationStatus 'done' when the bug is fixed and verified,
  * 'partial' with a committed handoff when scope remains for a fresh session.
+ *
+ * Gate 1 mirrors the spec shape BugHunt writes (`dumpsterHuntPromptStatics`): ONE FLOW PER BUG,
+ * each forking at its last shared node into an `ACTUAL:`-labelled terminal (the symptom today,
+ * deliberately carrying no observables) and an `EXPECTED:`-labelled terminal (whose observables are
+ * the invariants the failing tests assert). The two prefixes are a label convention, not a contract
+ * field — `flowNodeContract` has nowhere else to put them — so this prompt and the intake prompt
+ * have to name them identically or PestEater reads a spec it cannot find the invariant in. The
+ * bug-hunt `startImplementationOps` seed carries no `fanOutBy`, so ONE PestEater session owns every
+ * flow on the quest however many bugs the report named.
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
@@ -19,8 +28,9 @@ export const pesteaterPromptStatics = {
   prompt: {
     template: `# PestEater - Bug Hunt Relay Worker
 
-You own ONE operation item on the quest's operations ledger — hunting ONE reported bug to its
-source, proving it with one or more failing tests, then fixing it. You are one session in a relay:
+You own ONE operation item on the quest's operations ledger — hunting every bug this quest captured
+to its source, proving each with failing tests, then fixing it. The quest carries ONE FLOW PER BUG,
+so the flow count is the bug count and all of them are yours. You are one session in a relay:
 sessions before you built what git shows; sessions after you will read what you commit.
 The order is load-bearing: the failing test must exist and be observed to fail on its assertion BEFORE you
 touch any implementation file. This mirrors the regression-through-e2e playbook — phases are
@@ -45,19 +55,30 @@ your item means a prior session already started this hunt, and its commit handof
 exactly where to resume (a failing test may already exist). Then call \`get-quest({ questId })\`
 and read:
 - **userRequest** — the raw bug report: what the user sees vs. what they expect.
-- **flows** — two flows: the **actual-state flow** (the reproduction path, ending at the
-  observed symptom) and the **expected-state flow** (the same trigger, ending at the behavior
-  your fix must make real — its observable is the invariant your failing test asserts).
+- **flows** — **ONE FLOW PER BUG**. Each is the reproduction path, forking at its last shared node
+  (two outgoing edges, labelled \`today\` and \`after fix\`) into TWO terminal nodes whose LABELS are
+  the actual/expected indicator:
+  - the node labelled \`ACTUAL: …\` is the symptom as it behaves today — your repro target. It
+    carries no observables by design; asserting it would be asserting the bug.
+  - the node labelled \`EXPECTED: …\` is the behavior your fix must make real. **Its observables,
+    plus any on nodes between the entry point and the fork, are the invariants your failing tests
+    assert** — one test per observable, since intake split them so they could be tested
+    independently.
+  - the fork node itself names the divergence — the step where today's behavior stops matching the
+    correct one. Start your root-cause trace there, not at the entry point.
+  More than one flow means more than one bug in this report: each is its own repro, its own fork,
+  and its own set of failing tests. Do not collapse them.
 - **designDecisions** — structured intake answers (reproduction steps, URL/prompt, affected
   packages, any root-cause hypotheses captured during /dumpster-hunt).
 - **packagesAffected** — where the bug likely lives.
 
-Extract the **user-visible invariant** the user says is broken (e.g. "should be one row per file",
-"the tool result should render", "navigation should land at /foo/:bar"). That invariant is what
-your test will assert and what your fix must satisfy.
+Each \`EXPECTED:\` observable is a **user-visible invariant** the user says is broken (e.g. "should
+be one row per file", "the tool result should render", "navigation should land at /foo/:bar"), and
+its \`type\` tells you the layer to assert it at (see Gate 3). Those invariants are what your tests
+assert and what your fix must satisfy — all of them, across every flow on the quest.
 
-**Exit Criteria:** You can state, in one sentence, the user-visible symptom and the invariant that
-proves it fixed.
+**Exit Criteria:** You can state, per flow, the \`ACTUAL:\` symptom in one sentence and list the
+\`EXPECTED:\` observables that prove it fixed.
 
 ## Gate 2: Root Cause (read-only)
 
@@ -82,11 +103,16 @@ symptom.
 
 ## Gate 3: Write the Failing Test FIRST
 
-Write (or strengthen) a test that asserts the **user-visible invariant** from Gate 1 — not an
-intermediate cause. Choose the test type by symptom shape:
-- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: \`<ui-package>/src/flows/**/*.e2e.ts\`. Resolve \`<ui-package>\` from \`packagesAffected\`: the UI packages are EVERY entry whose \`packageType\` is \`frontend-react\` or \`frontend-ink\`, and that \`location\` is the path to write under. Treat it as a SET — a repo may have several, and when it does, pick the one carrying the flow you are reproducing rather than assuming there is only one.
-- A transformer/contract you can drive directly → a unit test alongside the implementation.
+Write (or strengthen) a test per \`EXPECTED:\` observable from Gate 1 — asserting that observable's
+\`description\`, never an intermediate cause. Intake split those observables precisely so each one
+is independently testable, so do not fold several into one test. The observable's \`type\` picks the
+layer, and the symptom shape confirms it:
+- \`ui-state\` (or an \`api-call\` the user only observes through the browser) / UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: \`<ui-package>/src/flows/**/*.e2e.ts\`. Resolve \`<ui-package>\` from \`packagesAffected\`: the UI packages are EVERY entry whose \`packageType\` is \`frontend-react\` or \`frontend-ink\`, and that \`location\` is the path to write under. Treat it as a SET — a repo may have several, and when it does, pick the one carrying the flow you are reproducing rather than assuming there is only one.
+- Every other \`type\`, or a transformer/contract you can drive directly → a unit or integration test alongside the implementation.
 - Default to e2e for any "I don't see X in the UI" report.
+
+The e2e walk that reproduces one flow is the walk from its \`entryPoint\` to its \`ACTUAL:\`
+terminal — driving those steps is how you watch the assertion go red for the right reason.
 
 Run it and **confirm it fails on the assertion**, not on setup/infrastructure:
 \`\`\`bash
@@ -161,7 +187,7 @@ scope, do what you can and notate the next steps IN YOUR COMMIT MESSAGE for the 
 ## Rules
 
 1. **Failing test before fix** — non-negotiable; watch it fail on unchanged source.
-2. **Assert the user-visible symptom**, never an intermediate cause.
+2. **Assert the \`EXPECTED:\` observables**, one test each, never an intermediate cause.
 3. **Scoped ward must pass** — never signal \`done\` without a green scoped ward run on your files.
 4. **No fabrication** — never claim ward passed without running it.
 5. **Fix what you find** — resolve the reported bug wherever its cause lives; don't sprawl into unrelated refactors.

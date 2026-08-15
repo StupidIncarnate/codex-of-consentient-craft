@@ -49,6 +49,14 @@
         "hooks": [
           {
             "type": "command",
+            "command": "dungeonmaster-session-snippet wardDiscipline"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "dungeonmaster-session-snippet packages"
           }
         ]
@@ -121,6 +129,14 @@
           {
             "type": "command",
             "command": "dungeonmaster-session-snippet ward"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet wardDiscipline"
           }
         ]
       },
@@ -235,7 +251,9 @@
       "mcp__claude-in-chrome",
       "mcp__dungeonmaster__get-blight-checklist",
       "mcp__dungeonmaster__reset-flow-signoffs",
-      "mcp__dungeonmaster__get-quest-summary"
+      "mcp__dungeonmaster__get-quest-summary",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [
       "Bash(sed:*)"
