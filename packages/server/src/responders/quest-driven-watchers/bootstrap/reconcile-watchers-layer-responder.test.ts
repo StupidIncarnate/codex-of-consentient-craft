@@ -87,6 +87,91 @@ describe('ReconcileWatchersLayerResponder', () => {
     ).toBe(true);
   });
 
+  // Claude CLI encodes the JSONL directory from the child's cwd. Every role after riftcarver is
+  // spawned in the quest's WORKTREE, so a tail started against the guild path watches a file that
+  // is never written — the row streams nothing live, and only a browser reload fills it from
+  // subscribe-quest's replay, which resolves the session through the quest's own recorded cwd.
+  describe('project dir follows the quest cwd', () => {
+    it('VALID: {carved quest (worktreePath set), active worker session} => starts the tail against the WORKTREE, not the guild path', async () => {
+      const proxy = ReconcileWatchersLayerResponderProxy();
+
+      const questId = QuestIdStub({ value: 'carved-quest' });
+      const workerSessionId = '55555555-5555-5555-5555-555555555555';
+      const worktreePath = '/repo/worktrees/add-auth-a1b2c3d4';
+
+      const guild = GuildListItemStub();
+      proxy.guildsProxy.returns({ guilds: [guild] });
+      proxy.questsProxy.returns({
+        guildId: guild.id,
+        quests: [QuestListItemStub({ id: questId, status: 'in_progress' })],
+      });
+      proxy.loadQuestProxy.returns({
+        questId,
+        quest: QuestStub({
+          id: questId,
+          worktreePath,
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: '66666666-6666-6666-6666-666666666666' }),
+              role: 'codeweaver',
+              status: 'in_progress',
+              sessionId: SessionIdStub({ value: workerSessionId }),
+            }),
+          ],
+        }),
+      });
+      proxy.startWatcherProxy.resolves({ parentSessionId: workerSessionId });
+
+      await ReconcileWatchersLayerResponder({ watchers: new Map(), projectDir: '/repo' });
+
+      expect(
+        proxy.startWatcherProxy.startedWithProjectDir({
+          parentSessionId: workerSessionId,
+          projectDir: worktreePath,
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {spec-phase quest (no worktreePath), active intake session} => keeps the guild path, because no worktree exists to run in', async () => {
+      const proxy = ReconcileWatchersLayerResponderProxy();
+
+      const questId = QuestIdStub({ value: 'spec-quest' });
+      const intakeSessionId = '77777777-7777-7777-7777-777777777777';
+
+      const guild = GuildListItemStub();
+      proxy.guildsProxy.returns({ guilds: [guild] });
+      proxy.questsProxy.returns({
+        guildId: guild.id,
+        quests: [QuestListItemStub({ id: questId, status: 'explore_flows' })],
+      });
+      proxy.loadQuestProxy.returns({
+        questId,
+        quest: QuestStub({
+          id: questId,
+          status: 'explore_flows',
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: '88888888-8888-8888-8888-888888888888' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId: SessionIdStub({ value: intakeSessionId }),
+            }),
+          ],
+        }),
+      });
+      proxy.startWatcherProxy.resolves({ parentSessionId: intakeSessionId });
+
+      await ReconcileWatchersLayerResponder({ watchers: new Map(), projectDir: '/repo' });
+
+      expect(
+        proxy.startWatcherProxy.startedWithProjectDir({
+          parentSessionId: intakeSessionId,
+          projectDir: String(guild.path),
+        }),
+      ).toBe(true);
+    });
+  });
+
   describe('spec-phase quests', () => {
     // A spec-phase quest's intake work item carries the session id of the conversation the user is
     // having RIGHT NOW. If these statuses are filtered out, no tail is started and the browser chat

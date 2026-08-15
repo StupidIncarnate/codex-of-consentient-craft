@@ -13,6 +13,9 @@ export const orchestratorStartMonitorWatcherAdapterProxy = (): {
   }) => boolean;
   startedWithoutWorkerWorkItemId: (params: { parentSessionId: string }) => boolean;
   startedWithWorkerQuestId: (params: { parentSessionId: string; workerQuestId: string }) => boolean;
+  // Claude CLI encodes the JSONL directory from the child's cwd, so this is the value that decides
+  // whether the tail watches the file the agent is actually writing or one that never appears.
+  startedWithProjectDir: (params: { parentSessionId: string; projectDir: string }) => boolean;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.startMonitorWatcher });
   const stopState = { called: false };
@@ -54,5 +57,12 @@ export const orchestratorStartMonitorWatcherAdapterProxy = (): {
       parentSessionId: string;
       workerQuestId: string;
     }): boolean => mock.callsMatching([{ parentSessionId, workerQuestId }]).length > 0,
+    startedWithProjectDir: ({
+      parentSessionId,
+      projectDir,
+    }: {
+      parentSessionId: string;
+      projectDir: string;
+    }): boolean => mock.callsMatching([{ parentSessionId, projectDir }]).length > 0,
   };
 };

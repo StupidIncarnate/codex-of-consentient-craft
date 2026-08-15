@@ -16,6 +16,7 @@ import {
   reconcileWatchersResultContract,
   type ReconcileWatchersResult,
 } from '../../../contracts/reconcile-watchers-result/reconcile-watchers-result-contract';
+import { guildPathContract } from '@dungeonmaster/shared/contracts';
 import type {
   GuildPath,
   QuestId,
@@ -103,7 +104,22 @@ export const ReconcileWatchersLayerResponder = async ({
   // per-quest event — a frame with no questId reaches no subscriber at all.
   const workerQuestIdBySessionId = new Map<SessionId, QuestId>();
   for (const quest of loadedQuests) {
-    const questProjectDir = guildPathByQuestId.get(quest.id);
+    // A CARVED quest runs its sessions in the WORKTREE, and Claude CLI encodes the JSONL
+    // directory from the child's cwd — so every role dispatched after riftcarver writes under the
+    // worktree's encoding, not the guild's. Resolving this from the guild path alone pointed the
+    // tail at a file that never appears: the execution row streamed nothing live, and only a
+    // browser reload filled it, because subscribe-quest's replay resolves the same session
+    // through the quest's OWN recorded cwd (chatHistoryReplayBroker's `questId` param →
+    // questCwdResolveBroker) and therefore finds the real file. Live and replay disagreeing about
+    // where a session lives is the whole defect.
+    //
+    // `worktreePath` is undefined for the entire spec phase, so an intake chat still resolves to
+    // the guild path; and the active-work-item filter below means a session recorded BEFORE the
+    // carve is already out of scope rather than being re-targeted at a worktree it never ran in.
+    const questProjectDir =
+      quest.worktreePath === undefined
+        ? guildPathByQuestId.get(quest.id)
+        : guildPathContract.parse(quest.worktreePath);
     for (const wi of quest.workItems) {
       if (wi.sessionId === undefined) continue;
       if (!isActiveWorkItemStatusGuard({ status: wi.status })) continue;
