@@ -13,7 +13,7 @@ type StreamedLine = ReturnType<typeof ErrorMessageStub>;
 describe('buildUntilGreenBroker (integration) — real spawned build passes', () => {
   const git = gitWorktreeFixtureHarness();
 
-  it('VALID: {build script that only converges on its second run} => returns success and streams one banner per pass', async () => {
+  it('VALID: {build script that only converges on its second run} => returns success and streams a pass banner per pass plus a green verdict on the one that clears', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'bugl-converge' }),
     });
@@ -49,7 +49,10 @@ describe('buildUntilGreenBroker (integration) — real spawned build passes', ()
       success: true,
       sharedDistExists: true,
       webDistExists: true,
-      streamed: ['— build pass 1/3 —', '— build pass 2/3 —'],
+      // Pass 1 goes red and prints nothing here (its TS6305 noise is the child's own output on a
+      // real build); pass 2 clears and earns the verdict line. The red case below owns no verdict
+      // banner at all — the caller reports that one.
+      streamed: ['— build pass 1/3 —', '— build pass 2/3 —', '— build green on pass 2/3 —'],
     });
   }, 30_000);
 

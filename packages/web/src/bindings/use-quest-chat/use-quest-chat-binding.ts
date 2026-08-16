@@ -40,6 +40,7 @@ import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questClarifyBroker } from '../../brokers/quest/clarify/quest-clarify-broker';
 import { questCommentBatchBroker } from '../../brokers/quest/comment-batch/quest-comment-batch-broker';
 import { questFollowupBroker } from '../../brokers/quest/followup/quest-followup-broker';
+import { questFollowupStopBroker } from '../../brokers/quest/followup-stop/quest-followup-stop-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { commentBatchSendResultContract } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
@@ -50,6 +51,7 @@ import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
+import { isTrackedChatProcessGuard } from '../../guards/is-tracked-chat-process/is-tracked-chat-process-guard';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
@@ -72,8 +74,10 @@ export const useQuestChatBinding = ({
   loadError: QuestLoadFailedPayload['error'] | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   isStreaming: boolean;
+  isFollowupStreaming: boolean;
   armStreaming: () => void;
   disarmStreaming: () => void;
+  disarmFollowupStreaming: () => void;
   sendMessage: (params: { message: UserInput }) => void;
   sendFollowupMessage: (params: { message: UserInput }) => void;
   sendCommentBatch: (params: {
@@ -84,6 +88,7 @@ export const useQuestChatBinding = ({
     questions: AskUserQuestionItem[];
   }) => void;
   stopChat: () => void;
+  stopFollowupChat: () => void;
 } => {
   const [entriesBySessionInternal, setEntriesBySessionInternal] = useState<
     Map<SessionId, Map<ChatEntryUuid, ChatEntry>>
@@ -121,6 +126,21 @@ export const useQuestChatBinding = ({
   const [streamingFromOutput, setStreamingFromOutput] = useState(false);
   const isStreaming = pendingTurn || streamingFromOutput;
 
+  // The SAME two halves again, for the FOLLOW-UP tab's tavernkeeper conversation. It is a separate
+  // pair rather than a share of the one above because they answer different questions: `isStreaming`
+  // is "is anything on this quest running", and the follow-up composer needs "is MY agent running".
+  // Wiring that composer to the quest-global flag meant any work item's output — or, before replay
+  // frames stopped arming it, the subscribe-quest replay itself — showed STOP over a tavernkeeper
+  // that was not running and that the user had not spoken to yet.
+  //
+  // Mirrored rather than generalised into a per-work-item map on purpose: the main pair's exact
+  // arm/disarm timing is load-bearing (see the two failure modes in packages/web/CLAUDE.md), and a
+  // shared structure would have re-derived it for both. Every line of the main path below is
+  // unchanged; the follow-up arms sit alongside it.
+  const [followupPendingTurn, setFollowupPendingTurn] = useState(false);
+  const [followupStreamingFromOutput, setFollowupStreamingFromOutput] = useState(false);
+  const isFollowupStreaming = followupPendingTurn || followupStreamingFromOutput;
+
   const entriesBySession = useMemo(
     () => deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal }),
     [entriesBySessionInternal],
@@ -143,21 +163,26 @@ export const useQuestChatBinding = ({
   // Local entries that replay has not echoed yet are filtered against the work item's own
   // entries the same way QuestChatContentLayerWidget's flattenedEntries dedupes the
   // create-surface composer.
+  // The tavernkeeper's work item id — the FOLLOW-UP tab's routing key for BOTH its transcript and
+  // its running state. `null` until the follow-up POST has minted the work item and the resulting
+  // quest-modified has landed, which is precisely the window `followupPendingTurn` covers.
+  const followupWorkItemId = useMemo<QuestWorkItemId | null>(
+    () =>
+      quest?.workItems.find((workItem) => isPostQuestChatWorkItemRoleGuard({ role: workItem.role }))
+        ?.id ?? null,
+    [quest],
+  );
+
   const followupEntries = useMemo<ChatEntry[]>(() => {
-    const tavernkeeperWorkItem = quest?.workItems.find((workItem) =>
-      isPostQuestChatWorkItemRoleGuard({ role: workItem.role }),
-    );
     const workItemEntries =
-      tavernkeeperWorkItem === undefined
-        ? []
-        : (entriesByWorkItem.get(tavernkeeperWorkItem.id) ?? []);
+      followupWorkItemId === null ? [] : (entriesByWorkItem.get(followupWorkItemId) ?? []);
     const localFiltered = followupLocalEntries.filter(
       (entry) => !hasEquivalentChatEntryGuard({ entry, among: workItemEntries }),
     );
     return sortChatEntriesByTimestampTransformer({
       entries: [...localFiltered, ...workItemEntries],
     });
-  }, [quest, entriesByWorkItem, followupLocalEntries]);
+  }, [followupWorkItemId, entriesByWorkItem, followupLocalEntries]);
 
   const questIdRef = useRef<QuestId | null>(questId);
   questIdRef.current = questId;
@@ -174,6 +199,21 @@ export const useQuestChatBinding = ({
   // back to clearing on any `turn-ended`, which is what keeps a turn that emits nothing from
   // sticking on STOP forever.
   const trackedChatProcessIdRef = useRef<ProcessId | null>(null);
+
+  // The same handle for the FOLLOW-UP tab's turn, kept apart from the main composer's. A follow-up
+  // POST writing the shared ref would retarget whichever turn the main composer had in flight, so
+  // that turn's own completion would then read as foreign and never clear it.
+  const followupTrackedChatProcessIdRef = useRef<ProcessId | null>(null);
+
+  // Read by the chat-output subscription below, which is set up once per questId and cannot close
+  // over a value that changes when the quest does.
+  //
+  // Written by the quest-updated handler at the moment the quest arrives, NOT synced on render.
+  // The frame that mints the tavernkeeper work item and that work item's first chat-output can land
+  // in the same React batch — no render happens between them — so a render-synced ref is still null
+  // when the output it is meant to route arrives, and the composer misses the opening of its own
+  // turn. Writing it on the wire closes that window.
+  const followupWorkItemIdRef = useRef<QuestWorkItemId | null>(null);
 
   // Every chatProcessId that has already reported `turn-ended`. A spawned agent's transcript keeps
   // ARRIVING after its turn is over — the CLI writes its session JSONL at exit and the post-exit
@@ -200,7 +240,13 @@ export const useQuestChatBinding = ({
     setPendingTurn(false);
     setStreamingFromOutput(false);
     setFollowupLocalEntries([]);
+    setFollowupPendingTurn(false);
+    setFollowupStreamingFromOutput(false);
     trackedChatProcessIdRef.current = null;
+    followupTrackedChatProcessIdRef.current = null;
+    // The previous quest's tavernkeeper id must not route the next quest's output; the new quest's
+    // own quest-modified rewrites it.
+    followupWorkItemIdRef.current = null;
     endedChatProcessIdsRef.current = new Set<ProcessId>();
   }, [questId]);
 
@@ -286,8 +332,15 @@ export const useQuestChatBinding = ({
 
       // Entries are upserted above whatever this decides — a drained transcript still has to
       // RENDER; it just must not claim the agent is still working.
-      // Entries are upserted above whatever this decides — a drained transcript still has to
-      // RENDER; it just must not claim the agent is still working.
+      //
+      // A REPLAYED frame is a transcript read back off disk (ChatReplayResponder stamps it), so it
+      // never arms the indicator. Subscribe-quest replays EVERY work item and each one ends with
+      // its own `chat-history-complete`, so without this arm→disarm alternates once per work item:
+      // a 31-item quest strobed the FOLLOW-UP composer SEND↔STOP ~35 times in under three seconds
+      // while nothing was running. Gating on the flag rather than on the `quest-replay-` process-id
+      // prefix keeps the server's id-naming convention out of the browser.
+      if (payload.replay === true) return;
+
       const outputChatProcessId = payload.chatProcessId;
       if (
         outputChatProcessId !== undefined &&
@@ -297,6 +350,15 @@ export const useQuestChatBinding = ({
       }
 
       setStreamingFromOutput(true);
+
+      // The follow-up composer arms only on ITS OWN agent's output. Routing by workItemId rather
+      // than by chatProcessId is what makes this work across a reload: a replayed-then-resumed
+      // tavernkeeper turn arrives under a process id this browser never issued, but the work item
+      // is stamped on the quest and survives.
+      const followupWorkItemIdNow = followupWorkItemIdRef.current;
+      if (followupWorkItemIdNow !== null && workItemKey === followupWorkItemIdNow) {
+        setFollowupStreamingFromOutput(true);
+      }
     });
 
     const chatStreamEndedSub = rxjsFilterAdapter({
@@ -307,20 +369,50 @@ export const useQuestChatBinding = ({
       // is what made the control read PLAY while this quest's harness was still working. An
       // untracked turn (`null`) or an untagged payload falls through, same as chatOutputSub's own
       // "no id to compare against" arm.
+      //
+      // TWO tracked turns now, so the filter admits a frame either one claims and each arm re-tests
+      // its own below. Filtering on the main handle alone would have dropped the tavernkeeper's own
+      // completion whenever the main composer had a turn in flight, leaving the FOLLOW-UP tab on
+      // STOP with nothing left to clear it.
       predicate: (p) =>
-        trackedChatProcessIdRef.current === null ||
-        p.chatProcessId === undefined ||
-        p.chatProcessId === trackedChatProcessIdRef.current,
+        isTrackedChatProcessGuard({
+          chatProcessId: p.chatProcessId,
+          trackedChatProcessId: trackedChatProcessIdRef.current,
+        }) ||
+        isTrackedChatProcessGuard({
+          chatProcessId: p.chatProcessId,
+          trackedChatProcessId: followupTrackedChatProcessIdRef.current,
+        }),
     }).subscribe((payload): void => {
-      setStreamingFromOutput(false);
-      // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
-      // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
-      // would report a turn the user just started as idle.
-      if (payload.reason === 'turn-ended') {
-        setPendingTurn(false);
-        trackedChatProcessIdRef.current = null;
-        if (payload.chatProcessId !== undefined) {
-          endedChatProcessIdsRef.current.add(payload.chatProcessId);
+      if (
+        isTrackedChatProcessGuard({
+          chatProcessId: payload.chatProcessId,
+          trackedChatProcessId: trackedChatProcessIdRef.current,
+        })
+      ) {
+        setStreamingFromOutput(false);
+        // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
+        // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
+        // would report a turn the user just started as idle.
+        if (payload.reason === 'turn-ended') {
+          setPendingTurn(false);
+          trackedChatProcessIdRef.current = null;
+          if (payload.chatProcessId !== undefined) {
+            endedChatProcessIdsRef.current.add(payload.chatProcessId);
+          }
+        }
+      }
+
+      if (
+        isTrackedChatProcessGuard({
+          chatProcessId: payload.chatProcessId,
+          trackedChatProcessId: followupTrackedChatProcessIdRef.current,
+        })
+      ) {
+        setFollowupStreamingFromOutput(false);
+        if (payload.reason === 'turn-ended') {
+          setFollowupPendingTurn(false);
+          followupTrackedChatProcessIdRef.current = null;
         }
       }
     });
@@ -342,6 +434,10 @@ export const useQuestChatBinding = ({
       const questParsed = questContract.safeParse(updatedQuest);
       if (!questParsed.success) return;
       setQuest(questParsed.data);
+      followupWorkItemIdRef.current =
+        questParsed.data.workItems.find((workItem) =>
+          isPostQuestChatWorkItemRoleGuard({ role: workItem.role }),
+        )?.id ?? null;
       // A quest that now parses supersedes any earlier failure, so the route stops reporting a
       // failure it has already recovered from.
       setLoadError(null);
@@ -448,12 +544,13 @@ export const useQuestChatBinding = ({
     [quest],
   );
 
-  // Mirrors sendMessage's shape for the FOLLOW-UP tab's tavernkeeper conversation. Two
+  // Mirrors sendMessage's shape for the FOLLOW-UP tab's tavernkeeper conversation. Three
   // deliberate divergences: the optimistic entry lands in followupLocalEntries, never
-  // entriesBySessionInternal (see followupLocalEntries above); and there is no resume-if-paused
-  // step, because the tavernkeeper only ever runs against a quest that has already left the
-  // execution phase (blocked/complete/merged) — that step exists for sendMessage's relay
-  // composer and has no quest state to resume from here.
+  // entriesBySessionInternal (see followupLocalEntries above); the running state armed is the
+  // FOLLOW-UP pair, so the main composer is not told a turn it does not own is in flight; and there
+  // is no resume-if-paused step, because the tavernkeeper only ever runs against a quest that has
+  // already left the execution phase (blocked/complete/merged) — that step exists for sendMessage's
+  // relay composer and has no quest state to resume from here.
   const sendFollowupMessage = useCallback(({ message }: { message: UserInput }): void => {
     const activeQuestId = questIdRef.current;
     if (!activeQuestId) return;
@@ -465,17 +562,17 @@ export const useQuestChatBinding = ({
       timestamp: new Date().toISOString(),
     });
     setFollowupLocalEntries((prev) => [...prev, userEntry]);
-    setPendingTurn(true);
+    setFollowupPendingTurn(true);
     // The previous turn's handle must not outlive it: a late completion for THAT process would
     // otherwise match and clear the turn just committed.
-    trackedChatProcessIdRef.current = null;
+    followupTrackedChatProcessIdRef.current = null;
 
     questFollowupBroker({ questId: activeQuestId, message })
       .then(({ chatProcessId }) => {
-        trackedChatProcessIdRef.current = chatProcessId;
+        followupTrackedChatProcessIdRef.current = chatProcessId;
       })
       .catch((err: unknown) => {
-        setPendingTurn(false);
+        setFollowupPendingTurn(false);
         const errorMessage = err instanceof Error ? err.message : String(err);
         const errorEntry = chatEntryContract.parse({
           role: 'system',
@@ -602,6 +699,21 @@ export const useQuestChatBinding = ({
     });
   }, []);
 
+  // The FOLLOW-UP tab's STOP goes to its OWN endpoint, never questPauseBroker. Pause is a
+  // quest-level halt: it kills every process on the quest and flips status to `paused`. A
+  // follow-up chat only runs on a quest that is already blocked/complete/merged, and
+  // `questStatusTransitionsStatics` makes that flip illegal from `complete` and `merged` (so the
+  // pause failed AFTER killing) and legal from `blocked` — where it silently took the whole quest
+  // and the FOLLOW-UP tab with it, since `paused` is not follow-up-chatable.
+  const stopFollowupChat = useCallback((): void => {
+    const activeQuestId = questIdRef.current;
+    if (!activeQuestId) return;
+    questFollowupStopBroker({ questId: activeQuestId }).catch(() => {
+      setFollowupPendingTurn(false);
+      setFollowupStreamingFromOutput(false);
+    });
+  }, []);
+
   // For the one turn this binding cannot POST itself: the first message, which must create its
   // quest before there is a questId to send to. The caller owns that round-trip, so it arms here
   // with no process handle and the wire disarms on `turn-ended` like any other turn.
@@ -614,6 +726,16 @@ export const useQuestChatBinding = ({
     setPendingTurn(false);
   }, []);
 
+  // The FOLLOW-UP tab's STOP. Same reason disarmStreaming exists for the main composer: a STOP
+  // pressed before the tavernkeeper ever emitted has no turn end coming, so waiting for the wire
+  // would hold the control on STOP forever. Pointing that button at disarmStreaming instead would
+  // clear the MAIN composer's flag and leave the follow-up one armed — the same stuck control, one
+  // indirection further away.
+  const disarmFollowupStreaming = useCallback((): void => {
+    setFollowupPendingTurn(false);
+    setFollowupStreamingFromOutput(false);
+  }, []);
+
   return {
     entriesBySession,
     entriesByWorkItem,
@@ -623,12 +745,15 @@ export const useQuestChatBinding = ({
     loadError,
     pendingClarification,
     isStreaming,
+    isFollowupStreaming,
     armStreaming,
     disarmStreaming,
+    disarmFollowupStreaming,
     sendMessage,
     sendFollowupMessage,
     sendCommentBatch,
     submitClarifyAnswers,
     stopChat,
+    stopFollowupChat,
   };
 };

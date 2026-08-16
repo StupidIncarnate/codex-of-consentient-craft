@@ -772,21 +772,34 @@ both exist to stop it from being mistaken for the intake thread:
 
 It owns a work item but never an operation item: the follow-up chat spawns outside the operations ledger entirely.
 
-| Role           | Dispatched By                                                                         | Operation outcome                   | Ledger writes (modify-quest)                                                                          |
-|----------------|---------------------------------------------------------------------------------------|-------------------------------------|-------------------------------------------------------------------------------------------------------|
-| ChaosWhisperer | `/dumpster-create` (interactive)                                                      | N/A (spec)                          | full spec surface (flows, observables, contracts, packagesAffected) — never `operations`               |
-| Glyphsmith     | startDesignChat (interactive)                                                         | N/A (design)                        | status                                                                                                |
-| Tavernkeeper   | follow-up chat (interactive, AFTER the quest ends)                                    | N/A (chat; no operation item)       | none                                                                                                  |
-| riftcarver     | `/dumpster-launch` via `run-riftcarver` MCP tool, or the Node loop in-process (command); ALWAYS the ledger's first item | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
-| codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)                            | complete (done / partial / blocked) | none                                                                                                  |
-| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)                                  | exit code (green / red)             | none (broker writes wardResults + item status)                                                        |
-| flowrider      | `/dumpster-launch` via Task() (one session for every RUNTIME flow)                    | complete (done / partial / blocked) | `flowriderSignoff` per unit (written by `flowrider-coverage-minion`; the operator signs what it adds) |
-| groundstomper  | `/dumpster-launch` via Task() (ONE SESSION PER e2e-eligible RUNTIME FLOW; no minions) | complete (done / partial / blocked) | `flowriderSignoff` per unit, over the browser-reachable package kinds                                 |
-| siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW)                                  | complete (done / partial / blocked) | `siegemasterSignoff` per unit, plus `planningNotes.questNotes`                                        |
-| blightscout    | `/dumpster-launch` via Task(); its item is APPENDED by signal-back after every committing session (ONE-COMMIT audit; no minions) | complete (done / partial / blocked) | `planningNotes.blightLedger` (per-unit dispositions)                                                  |
-| spiritmender   | `/dumpster-launch` via Task() (inserted on a ward red, or on a REPAIRABLE riftcarver red) | complete (done / partial / blocked) | none                                                                                              |
-| pesteater      | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)                    | complete (done / partial / blocked) | none                                                                                                  |
-| warpgate       | dispatched like any relay role, but its item is appended at MERGE time (see below)    | complete (done / partial / blocked) | none                                                                                                  |
+**Stopping it is `FollowupChatStopResponder`, keyed by QUEST, not `ChatStopResponder`, keyed by chatProcessId.** The
+browser pressing STOP on the FOLLOW-UP tab may never have seen the id of the process it wants stopped — the turn can
+have been spawned before that page load — so the responder resolves the tavernkeeper work item off the quest and kills
+whatever `findByQuestWorkItemId` holds for it. It writes NOTHING: no status, no work-item mutation. The item is left as
+it stands precisely so the next message resumes the same conversation (`FollowupChatStartResponder` matches on role
+alone, whatever state a stop or a crash left it in), and the spawn's own `onComplete` is what closes the item out and
+emits the `chat-complete` the browser's running indicator clears on. `stopped: false` — no tavernkeeper item, or nothing
+registered for it — is a 200, not an error: that is a STOP pressed either side of a turn.
+
+This exists because that button used to POST the quest PAUSE route, which kills every process on the quest AND flips
+status to `paused` — from `complete`/`merged` an illegal transition (so it errored after the kill), and from `blocked` a
+legal one that quietly took the whole quest.
+
+| Role           | Dispatched By                                                                                                                    | Operation outcome                        | Ledger writes (modify-quest)                                                                              |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| ChaosWhisperer | `/dumpster-create` (interactive)                                                                                                 | N/A (spec)                               | full spec surface (flows, observables, contracts, packagesAffected) — never `operations`                  |
+| Glyphsmith     | startDesignChat (interactive)                                                                                                    | N/A (design)                             | status                                                                                                    |
+| Tavernkeeper   | follow-up chat (interactive, AFTER the quest ends)                                                                               | N/A (chat; no operation item)            | none                                                                                                      |
+| riftcarver     | `/dumpster-launch` via `run-riftcarver` MCP tool, or the Node loop in-process (command); ALWAYS the ledger's first item          | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
+| codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)                                                                       | complete (done / partial / blocked)      | none                                                                                                      |
+| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)                                                                             | exit code (green / red)                  | none (broker writes wardResults + item status)                                                            |
+| flowrider      | `/dumpster-launch` via Task() (one session for every RUNTIME flow)                                                               | complete (done / partial / blocked)      | `flowriderSignoff` per unit (written by `flowrider-coverage-minion`; the operator signs what it adds)     |
+| groundstomper  | `/dumpster-launch` via Task() (ONE SESSION PER e2e-eligible RUNTIME FLOW; no minions)                                            | complete (done / partial / blocked)      | `flowriderSignoff` per unit, over the browser-reachable package kinds                                     |
+| siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW)                                                                             | complete (done / partial / blocked)      | `siegemasterSignoff` per unit, plus `planningNotes.questNotes`                                            |
+| blightscout    | `/dumpster-launch` via Task(); its item is APPENDED by signal-back after every committing session (ONE-COMMIT audit; no minions) | complete (done / partial / blocked)      | `planningNotes.blightLedger` (per-unit dispositions)                                                      |
+| spiritmender   | `/dumpster-launch` via Task() (inserted on a ward red, or on a REPAIRABLE riftcarver red)                                        | complete (done / partial / blocked)      | none                                                                                                      |
+| pesteater      | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)                                                               | complete (done / partial / blocked)      | none                                                                                                      |
+| warpgate       | dispatched like any relay role, but its item is appended at MERGE time (see below)                                               | complete (done / partial / blocked)      | none                                                                                                      |
 
 ### Riftcarver — the head of the relay, and re-entrant by design
 

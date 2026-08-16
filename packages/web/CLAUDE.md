@@ -221,7 +221,53 @@ a POST resolves); an untracked turn falls back to clearing on any `turn-ended`, 
 turn that emits nothing from sticking on STOP forever. Scope the clear; never pin the indicator on
 optimistically, or a turn the harness never picked up becomes indistinguishable from a slow one.
 
-Two failure modes this shape exists to prevent, both previously live:
+**There are TWO running states, one per composer, and a widget reads the one it belongs to.**
+`isStreaming` answers "is anything on this quest running"; `isFollowupStreaming` answers "is the tavernkeeper running".
+The FOLLOW-UP tab reads the second and calls `disarmFollowupStreaming`; the main composer reads the first and calls
+`disarmStreaming`. Wiring that tab to `isStreaming` — which is what it did — put STOP over an agent the user had not
+spoken to whenever any OTHER work item emitted, and handing it `disarmStreaming` clears a flag it does not read, so its
+STOP does nothing visible.
+
+**The FOLLOW-UP STOP posts `questFollowupStopBroker`, never `questPauseBroker`.** Pause is a QUEST-level halt: it kills
+every process on the quest and flips status to `paused`. A follow-up chat only ever runs on a quest that is already
+blocked/complete/merged, and `questStatusTransitionsStatics`
+makes that flip ILLEGAL from `complete` and `merged` — so the old wiring errored after the kill — and LEGAL from
+`blocked`, where it succeeded and silently took the whole quest along with the tab the reader was using, since `paused`
+is not follow-up-chatable. The dedicated route kills the tavernkeeper's own process by work item and writes nothing, so
+the conversation stays resumable. Guarded by `quest-chat-content-layer-widget.test.tsx`, which asserts the pause route's
+request count is 0 alongside the stop route's 1 — the half that catches a regression back to the old wiring.
+
+The pair is mirrored rather than generalised into a per-work-item map on purpose: the main pair's arm/disarm timing is
+load-bearing (the two failure modes below), and one shared structure would have re-derived it for both at once.
+`sendFollowupMessage` therefore arms ONLY the follow-up pair and retains its own `chatProcessId`; a follow-up POST
+writing the shared handle would retarget whichever turn the main composer had in flight, so that turn's own completion
+would then read as foreign and never clear it.
+
+**Route the follow-up's output arm by `workItemId`, and set that id from the WIRE.** The tavernkeeper work item is
+stamped on the quest, so it survives a reload where a `chatProcessId` this browser issued does not. The id ref is
+written inside the quest-updated handler rather than synced on render because the frame that MINTS the work item and
+that work item's first `chat-output` can arrive in one React batch — no render happens between them, so a render-synced
+ref is still null when the output it routes arrives, and the composer misses the opening of its own turn. Covered by
+`use-quest-chat-binding.test.ts` → "the FOLLOW-UP running state is scoped to the tavernkeeper" and, at the
+rendered-control level, by `quest-chat-content-layer-widget.test.tsx`'s non-tavernkeeper streaming case.
+
+**A REPLAYED frame never arms the indicator.** `chat-output` carrying `replay: true` is a transcript being read back off
+disk — `ChatReplayResponder` is its only emitter and stamps every frame it sends. The binding upserts those entries (the
+transcript has to RENDER) and then returns BEFORE
+`setStreamingFromOutput(true)`. Do not drop that guard, and do not re-derive it from the
+`quest-replay-` chatProcessId prefix — that is the server's id-naming convention and the browser has no business reading
+it.
+
+The reason is the shape of a `subscribe-quest` replay: it replays EVERY work item, and each one ends with its own
+`chat-history-complete`. So without the guard the flag alternates arm→disarm once per work item. Measured on a
+31-work-item quest: 28 `chat-history-complete` frames in 3.1 s of wall clock, and the FOLLOW-UP tab's composer — the
+only surface mounting the control during the execution phase — strobed SEND↔STOP 35 times with nothing running and no
+message sent. Guarded by
+`use-quest-chat-binding.test.ts` → "replay-flagged chat-output does not arm the running indicator", which records the
+control state after EVERY frame rather than once at the end: the last frame of a replay burst is a disarm, so a single
+check once the burst has drained reads false whether or not the bug is present.
+
+Two further failure modes this shape exists to prevent, both previously live:
 
 1. **`chatStreamEnded$` merges two wire events.** `chat-history-complete` is the subscribe-quest replay draining and
    fires a couple hundred ms after a browser binds a quest — inside the window where a just-sent turn hasn't produced a

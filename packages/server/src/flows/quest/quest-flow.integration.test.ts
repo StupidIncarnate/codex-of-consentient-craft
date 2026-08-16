@@ -408,6 +408,29 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('POST /api/quests/:questId/followup/stop', () => {
+    // Its own route rather than a flag on the followup POST above, and registered under a path
+    // that nests below it — so this proves Hono routes the two distinctly rather than the parent
+    // swallowing `/stop` as a questId. The MESSAGE is what pins which responder answered:
+    // `Quest not found: <id>` is FollowupChatStopResponder's own wording, where the followup route
+    // reaches the quest LOADER and reports `Quest with id "<id>" not found in any guild`. A
+    // bodyless POST is the second half — that route would have answered 400 'message is required'.
+    it('VALID: {bodyless POST, questId without matching quest} => reaches QuestFollowupStopResponder and returns its own 500', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/followup/stop`, {
+        method: 'POST',
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: `Quest not found: ${questId}`,
+      });
+    });
+  });
+
   describe('POST /api/quests/:questId/signal-back (env-gated)', () => {
     it('INVALID: {E2E_SIGNAL_BACK_HTTP=1, body missing workItemId} => 400 route registered, responder validates before the orchestrator call', async () => {
       process.env.E2E_SIGNAL_BACK_HTTP = '1';

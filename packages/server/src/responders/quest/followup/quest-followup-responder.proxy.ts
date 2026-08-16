@@ -35,6 +35,7 @@ registerModuleMock({
       startQuest: jest.fn(),
       stopAllChats: jest.fn(),
       stopChat: jest.fn(),
+      stopFollowupChat: jest.fn(),
       updateGuild: jest.fn(),
       clarifyAnswer: jest.fn(),
       resumeQuest: jest.fn(),

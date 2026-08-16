@@ -67,6 +67,7 @@ import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-star
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flow';
 import { FollowupChatStartFlow } from '../flows/followup-chat-start/followup-chat-start-flow';
+import { FollowupChatStopFlow } from '../flows/followup-chat-stop/followup-chat-stop-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationDispatchFlow } from '../flows/orchestration-dispatch/orchestration-dispatch-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
@@ -359,6 +360,13 @@ export const StartOrchestrator = {
     guildId: GuildId;
     message: string;
   }): Promise<{ chatProcessId: ProcessId }> => FollowupChatStartFlow({ questId, guildId, message }),
+
+  // Keyed by QUEST, unlike stopChat's chatProcessId, because the browser pressing STOP on the
+  // FOLLOW-UP tab may never have seen the id of the process it wants stopped — the turn can have
+  // been spawned before that page load. Kills only the tavernkeeper's own process; the quest's
+  // status and the work item are left untouched so the conversation stays resumable.
+  stopFollowupChat: async ({ questId }: { questId: QuestId }): Promise<{ stopped: boolean }> =>
+    FollowupChatStopFlow({ questId }),
 
   // Agent prompt methods
   getAgentPrompt: async ({

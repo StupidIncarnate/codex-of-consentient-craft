@@ -291,8 +291,11 @@ describe('ChatReplayResponder', () => {
       // Exactly one chat-output frame fired for this orphan session — and its payload
       // keys must NOT include questId or workItemId (those only get stamped when the
       // session is linked to a quest workItem). sessionId is always present so the
-      // SessionViewWidget readonly viewer can bucket entries per-session.
-      expect(chatOutputPayloadKeys).toStrictEqual([['chatProcessId', 'entries', 'sessionId']]);
+      // SessionViewWidget readonly viewer can bucket entries per-session, and `replay`
+      // marks the frame as a transcript read off disk rather than an agent emitting.
+      expect(chatOutputPayloadKeys).toStrictEqual([
+        ['chatProcessId', 'entries', 'replay', 'sessionId'],
+      ]);
     });
   });
 
@@ -361,12 +364,17 @@ describe('ChatReplayResponder', () => {
       const events = eventCapture.getEmittedEvents();
       const chatOutputEvent = events.find((e) => e.type === 'chat-output');
 
+      // `replay: true` is what tells the web this frame is a transcript read off disk rather
+      // than an agent emitting. Without it, a subscribe-quest replay arms and disarms the
+      // browser's running indicator once per work item and the FOLLOW-UP composer strobes
+      // SEND↔STOP with nothing running.
       expect(chatOutputEvent).toStrictEqual({
         type: 'chat-output',
         processId: chatProcessId,
         payload: {
           chatProcessId,
           sessionId,
+          replay: true,
           questId: quest.id,
           workItemId: linkedWorkItem.id,
           entries: [
@@ -425,6 +433,7 @@ describe('ChatReplayResponder', () => {
         payload: {
           chatProcessId,
           sessionId,
+          replay: true,
           entries: [
             {
               role: 'assistant',

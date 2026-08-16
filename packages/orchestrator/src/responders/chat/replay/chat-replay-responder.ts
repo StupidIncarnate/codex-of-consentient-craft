@@ -94,6 +94,13 @@ export const ChatReplayResponder = async ({
             chatProcessId,
             entries,
             sessionId,
+            // A transcript being READ BACK OFF DISK, never an agent emitting. This flag is the
+            // web's only way to tell the two apart: both arrive as chat-output on the same
+            // quest subscription, and a browser that treats them alike arms its running
+            // indicator once per work item during the subscribe-quest replay — a 31-work-item
+            // quest strobed the follow-up composer SEND↔STOP ~35 times in under three seconds
+            // with nothing running. Entries still render; only the running state ignores them.
+            replay: true,
             ...questIdFragment,
             ...workItemIdFragment,
           },

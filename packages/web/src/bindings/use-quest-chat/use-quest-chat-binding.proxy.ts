@@ -7,6 +7,7 @@ import { questChatBrokerProxy } from '../../brokers/quest/chat/quest-chat-broker
 import { questClarifyBrokerProxy } from '../../brokers/quest/clarify/quest-clarify-broker.proxy';
 import { questCommentBatchBrokerProxy } from '../../brokers/quest/comment-batch/quest-comment-batch-broker.proxy';
 import { questFollowupBrokerProxy } from '../../brokers/quest/followup/quest-followup-broker.proxy';
+import { questFollowupStopBrokerProxy } from '../../brokers/quest/followup-stop/quest-followup-stop-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
@@ -26,6 +27,9 @@ export const useQuestChatBindingProxy = (): {
   setupFollowupRejected: (params: { error: string }) => void;
   setupFollowupError: () => void;
   setupPause: () => void;
+  setupFollowupStop: (params: { stopped: boolean }) => void;
+  setupFollowupStopError: () => void;
+  getFollowupStopRequestCount: () => RequestCount;
   setupResume: (params: { restoredStatus: QuestStatus }) => void;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
@@ -47,6 +51,7 @@ export const useQuestChatBindingProxy = (): {
   const clarifyProxy = questClarifyBrokerProxy();
   const commentBatchProxy = questCommentBatchBrokerProxy();
   const followupProxy = questFollowupBrokerProxy();
+  const followupStopProxy = questFollowupStopBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();
   const resumeProxy = questResumeBrokerProxy();
   rxjsFilterAdapterProxy();
@@ -104,6 +109,17 @@ export const useQuestChatBindingProxy = (): {
     setupPause: () => {
       pauseProxy.setupPause();
     },
+    setupFollowupStop: ({ stopped }) => {
+      if (stopped) {
+        followupStopProxy.setupStopped();
+        return;
+      }
+      followupStopProxy.setupNothingRunning();
+    },
+    setupFollowupStopError: () => {
+      followupStopProxy.setupError();
+    },
+    getFollowupStopRequestCount: () => followupStopProxy.getRequestCount(),
     setupResume: ({ restoredStatus }) => {
       resumeProxy.setupResume({ restoredStatus });
     },

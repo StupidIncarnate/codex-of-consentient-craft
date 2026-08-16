@@ -15,6 +15,7 @@ import { QuestClarifyResponder } from '../../responders/quest/clarify/quest-clar
 import { QuestCommentBatchResponder } from '../../responders/quest/comment-batch/quest-comment-batch-responder';
 import { QuestFindBySessionResponder } from '../../responders/quest/find-by-session/quest-find-by-session-responder';
 import { QuestFollowupResponder } from '../../responders/quest/followup/quest-followup-responder';
+import { QuestFollowupStopResponder } from '../../responders/quest/followup-stop/quest-followup-stop-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestMergeResponder } from '../../responders/quest/merge/quest-merge-responder';
@@ -158,6 +159,16 @@ export const QuestFlow = (): Hono => {
     const result = await QuestFollowupResponder({
       params: { questId: c.req.param('questId') },
       body,
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  // Registered AFTER the followup POST above, and deliberately its own route rather than a body
+  // flag on it: this one takes no body at all, and a stop must not be gated by the status check
+  // that route performs — a stale tab pressing STOP still has to be able to kill what it started.
+  app.post(apiRoutesStatics.quests.followupStop, async (c) => {
+    const result = await QuestFollowupStopResponder({
+      params: { questId: c.req.param('questId') },
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

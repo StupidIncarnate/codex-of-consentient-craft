@@ -52,6 +52,28 @@ describe('chatOutputPayloadContract', () => {
 
       expect(result.success).toBe(true);
     });
+
+    // Zod strips unknown keys, so a `replay` the schema does not declare never reaches the
+    // binding that reads it — the flag would be silently dropped at the channel boundary and
+    // every replayed frame would look live again.
+    it('VALID: {replay: true on a quest-scoped frame} => survives the parse', () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub();
+
+      const result = chatOutputPayloadContract.parse({
+        entries: [],
+        questId,
+        workItemId,
+        replay: true,
+      });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        questId,
+        workItemId,
+        replay: true,
+      });
+    });
   });
 
   describe('error cases', () => {

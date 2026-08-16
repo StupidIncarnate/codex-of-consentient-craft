@@ -71,6 +71,13 @@ export const QuestChatContentLayerWidgetProxy = (): {
   clickMergeButton: () => Promise<void>;
   typeFollowupMessage: (params: { text: string }) => Promise<void>;
   clickFollowupSend: () => Promise<void>;
+  clickFollowupStop: () => Promise<void>;
+  setupFollowupStop: (params: { stopped: boolean }) => void;
+  getFollowupStopRequestCount: () => RequestCount;
+  // The execution phase mounts exactly one CHAT_PANEL — the FOLLOW-UP tab's — so an unqualified
+  // testid lookup names that composer's control and no other.
+  isFollowupStopButtonVisible: () => boolean;
+  isFollowupSendButtonVisible: () => boolean;
   hasAbandonButton: () => boolean;
   setupStart: (params: { processId: string }) => void;
   setupStartRejected: (params: { error: string }) => void;
@@ -182,6 +189,15 @@ export const QuestChatContentLayerWidgetProxy = (): {
     clickFollowupSend: async () => {
       await executionPanel.clickFollowupSend();
     },
+    clickFollowupStop: async () => {
+      await executionPanel.clickFollowupStop();
+    },
+    setupFollowupStop: ({ stopped }) => {
+      binding.setupFollowupStop({ stopped });
+    },
+    getFollowupStopRequestCount: () => binding.getFollowupStopRequestCount(),
+    isFollowupStopButtonVisible: () => chatPanel.isStopButtonVisible(),
+    isFollowupSendButtonVisible: () => chatPanel.isSendButtonVisible(),
     hasAbandonButton: () => executionPanel.hasAbandonButton(),
     setupStart: ({ processId }) => {
       questStart.setupStart({ processId });

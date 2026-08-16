@@ -9,6 +9,8 @@ import {
   QuestSummaryFlowStub,
   QuestSummaryStub,
   QuestSummaryTrackCountsStub,
+  QuestWorkItemIdStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -932,6 +934,144 @@ describe('QuestChatContentLayerWidget', () => {
       expect(errorMessage?.textContent).toBe(
         'ERRORQuest must be blocked, complete or merged for follow-up',
       );
+    });
+
+    // The reported bug, at the surface the user actually looked at. The composer used to read the
+    // quest-GLOBAL streaming flag, so any work item emitting on the quest flipped this control to
+    // STOP over a tavernkeeper nobody had spoken to. Asserting the rendered control rather than the
+    // binding flag is the point — the binding test proves the value, this proves the button.
+    it('VALID: {FOLLOW-UP tab open, a NON-tavernkeeper work item streams} => the composer keeps SEND and never shows STOP', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-scope' }) });
+      const guildId = GuildIdStub({ value: 'aaaaaaa6-1111-2222-3333-444444444444' });
+      const codeweaverWorkItemId = QuestWorkItemIdStub({
+        value: '00000000-0000-4000-8000-0000000000d2',
+      });
+      const quest = QuestStub({
+        id: 'q-followup-scope',
+        status: 'blocked',
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-0000000000d1' }),
+            role: 'tavernkeeper',
+          }),
+          WorkItemStub({ id: codeweaverWorkItemId, role: 'codeweaver' }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-followup-scope' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await proxy.clickFollowupButton();
+      await screen.findByTestId('CHAT_PANEL');
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: quest.id,
+              workItemId: codeweaverWorkItemId,
+              chatProcessId: ProcessIdStub({ value: 'proc-codeweaver-scope' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'still building',
+                  uuid: '00000000-0000-4000-8000-0000000000d3',
+                  timestamp: '2025-01-01T00:00:01.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
+      });
+
+      expect({
+        stop: proxy.isFollowupStopButtonVisible(),
+        send: proxy.isFollowupSendButtonVisible(),
+      }).toStrictEqual({ stop: false, send: true });
+    });
+
+    // STOP on this tab kills the tavernkeeper alone. It used to POST the quest PAUSE route, which
+    // halts the whole quest and flips its status — illegal from `complete`/`merged`, and from
+    // `blocked` it succeeded and took the FOLLOW-UP tab away with the quest. Asserting the pause
+    // count is 0 alongside is the half that catches a regression back to the old wiring.
+    it('VALID: {FOLLOW-UP turn in flight, STOP clicked} => POSTs followup-stop once and never the quest pause route', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-stop' }) });
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-stop' }) });
+      proxy.setupFollowupStop({ stopped: true });
+      proxy.setupPause();
+      const guildId = GuildIdStub({ value: 'aaaaaaa7-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-followup-stop', status: 'complete' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-followup-stop' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+      await proxy.clickFollowupButton();
+      await screen.findByTestId('CHAT_PANEL');
+      await proxy.typeFollowupMessage({ text: 'What broke?' });
+      await proxy.clickFollowupSend();
+
+      // The composer must actually be showing STOP before the click — a test that clicked a
+      // control it never saw would pass on a tab stuck on SEND.
+      await screen.findByTestId('STOP_BUTTON');
+      await proxy.clickFollowupStop();
+
+      await waitFor(() => {
+        expect(proxy.getFollowupStopRequestCount()).toBe(1);
+      });
+
+      expect({
+        followupStop: proxy.getFollowupStopRequestCount(),
+        pause: proxy.getPauseRequestCount(),
+        stopStillVisible: proxy.isFollowupStopButtonVisible(),
+      }).toStrictEqual({ followupStop: 1, pause: 0, stopStillVisible: false });
     });
 
     it('VALID: {complete quest, MERGE button clicked} => POSTs quest-merge once', async () => {

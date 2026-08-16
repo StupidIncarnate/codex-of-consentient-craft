@@ -112,14 +112,17 @@ export const QuestChatContentLayerWidget = ({
     entriesByWorkItem,
     followupEntries,
     isStreaming,
+    isFollowupStreaming,
     armStreaming,
     disarmStreaming,
+    disarmFollowupStreaming,
     pendingClarification,
     sendMessage,
     sendFollowupMessage,
     sendCommentBatch,
     submitClarifyAnswers,
     stopChat,
+    stopFollowupChat,
   } = useQuestChatBinding({ questId });
 
   // Node-mode first-message flow: the user's first message lives in localEntries until the binding's
@@ -153,6 +156,15 @@ export const QuestChatContentLayerWidget = ({
     disarmStreaming();
     stopChat();
   }, [disarmStreaming, stopChat]);
+
+  // The FOLLOW-UP tab's own STOP, on both halves. It disarms the FOLLOW-UP running state rather
+  // than the main composer's — handing it `handleStop` clears a flag that tab does not read and
+  // leaves the one it does read armed, so the button appears to do nothing — and it kills the
+  // tavernkeeper alone rather than pausing the whole quest.
+  const handleStopFollowup = useCallback((): void => {
+    disarmFollowupStreaming();
+    stopFollowupChat();
+  }, [disarmFollowupStreaming, stopFollowupChat]);
 
   const handleSend = useCallback(
     ({ message }: { message: UserInput }): void => {
@@ -498,9 +510,9 @@ export const QuestChatContentLayerWidget = ({
             workItemEntries={entriesByWorkItem}
             guildSlug={guildSlug}
             followupEntries={followupEntries}
-            isFollowupStreaming={isStreaming}
+            isFollowupStreaming={isFollowupStreaming}
             onSendFollowupMessage={sendFollowupMessage}
-            onStopFollowup={handleStop}
+            onStopFollowup={handleStopFollowup}
             onMerge={(): void => {
               questMergeBroker({ questId: quest.id }).catch((mergeError: unknown) => {
                 globalThis.console.error('[quest-chat] merge failed', mergeError);

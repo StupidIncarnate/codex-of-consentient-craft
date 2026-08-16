@@ -103,13 +103,16 @@ describe('shared websocket connection', () => {
       loadError: null,
       pendingClarification: null,
       isStreaming: false,
+      isFollowupStreaming: false,
       armStreaming: expect.any(Function),
       disarmStreaming: expect.any(Function),
+      disarmFollowupStreaming: expect.any(Function),
       sendMessage: expect.any(Function),
       sendFollowupMessage: expect.any(Function),
       sendCommentBatch: expect.any(Function),
       submitClarifyAnswers: expect.any(Function),
       stopChat: expect.any(Function),
+      stopFollowupChat: expect.any(Function),
     });
 
     // After Phase 1, all three bindings share one WebSocket connection via the
