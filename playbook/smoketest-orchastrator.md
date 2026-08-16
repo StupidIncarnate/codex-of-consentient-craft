@@ -1,18 +1,19 @@
 # Validation Playbook — Full Live Flow (operations relay)
 
-End-to-end manual validation of the quest pipeline. Riftcarver, Flowrider, Groundstomper, Siegemaster, and Blightscout
-are operation items in the live relay. The orchestrator (you) runs Phase 0 checks individually, then drives Phases 1–3
-as a live quest and branches to fixer agents on red.
+End-to-end manual validation of the quest pipeline. Riftcarver, Codeweaver, Ward, Flowrider, Groundstomper and
+Siegemaster are the operation items in the live relay; standards review is NOT one of them — it happens inside each
+committing session's own round, via that session's `reviewer-minion`. The orchestrator (you) runs Phase 0 checks
+individually, then drives Phases 1–3 as a live quest and branches to fixer agents on red.
 
 > **Want only to hand the user a test quest they can drive by hand?** Skip to
 > **[Fake-Quest Bootstrap](#fake-quest-bootstrap-no-chat-session)**. It is self-contained: it does not need a
 > ChaosWhisperer chat session, and it gets you from nothing to an `approved` quest sitting on the Begin Quest modal in
 > about a minute.
 
-> **Known drift in this file.** Phase 1.7 and parts of Phase 2 still say **Blightwarden** and describe it as one
-> whole-diff audit at the end of the tail. The role is **`blightscout`**: scoped to ONE COMMIT, summoning no minions,
-> and APPENDED by the signal-back handler after every committing session rather than seeded in the tail. Read
-> `docs/quest-role-paths.md` for the current shape and treat those sections as approximate.
+> **The relay has no standards-review role.** Its five concerns (`craft`, `perf`, `dedup`, `integrity`,
+> `test-cases`) are taken by the `reviewer-minion` inside every round, before that round's parent commits, and
+> `signal-back`'s review-coverage gate refuses `done` when a round left no `blightLedger` trace. Read
+> `docs/quest-role-paths.md` for the current shape.
 
 ---
 
@@ -53,9 +54,9 @@ Consequences for this playbook:
 - **Agents have no failure signal — only forward.** An agent that can't finish its scope signals `operationStatus:
   'partial'`; the orchestrator marks its operation item `complete` and appends a `"pt N: {text}"` continuation a fresh
   session runs. `ward` uses that chain as the **verify fixpoint** — a red run completes its item and spawns `pt N+1`;
-  a green run ends the chain. The verify-tail **operators** (`flowrider`, `groundstomper`, `siegemaster`, `blightscout`)
-  signal on remaining SCOPE instead: `done` once every unit in scope carries a sign-off (or, for blightscout, a
-  disposition), `partial` only for a named remainder.
+  a green run ends the chain. The verify-tail **operators** (`flowrider`, `groundstomper`, `siegemaster`)
+  signal on remaining SCOPE instead: `done` once every unit in scope carries a sign-off on that role's own track,
+  `partial` only for a named remainder.
 - **Three failure concepts, all of them the orchestrator's rather than an agent's judgement call:** a **ward exit-code
   red** (inserts a spiritmender + a fresh ward), a **riftcarver failure** (routed by class — see below), and an agent's
   **`operationStatus: 'blocked'`** environment wall. A server crash mid-session **resumes** the orphaned session
@@ -213,9 +214,10 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
    "Phase N checkpoint X.Y fix:" — these landed because a prior run blocked on them.
 4. **`docs/quest-role-paths.md`** and **`packages/orchestrator/CLAUDE.md`** — the authoritative model for the operations
    relay: per-role happy/sad transitions, block ownership, the **Fixpoint** and **Operator convergence** bullets in Core
-   concepts, and how quest status is derived. Read these if you need context on why Flowrider runs as ONE session over
-   ALL quest flows, Siegemaster runs ONE session PER flow, Blightwarden runs as ONE session over the whole diff, and
-   why the operators signal on scope rather than on whether the pass changed code.
+   concepts, and how quest status is derived. Read these if you need context on why Flowrider runs ONE session per
+   PACKAGE SLICE, Groundstomper and Siegemaster one session PER flow, why every one of those sessions is an
+   ORCHESTRATOR that never opens a source file, and why the operators signal on scope rather than on whether the pass
+   changed code.
 
 **Resumption rules:**
 
@@ -238,7 +240,7 @@ Static policies. These hold for every run.
 - **NEVER manually refresh the browser. EVER.** This includes F5, Ctrl+R, Cmd+R, right-click-reload, clicking the
   browser reload button, `page.reload()`, `mcp__claude-in-chrome__navigate` to the current URL, `key: "F5"`,
   `key: "ctrl+r"`, or ANY other mechanism that reloads the page. Manually refreshing **kills any agent currently running
-  in the quest session** (codeweaver, flowrider, blightwarden, etc.) and corrupts the orchestration state. The UI
+  in the quest session** (codeweaver, flowrider, siegemaster, etc.) and corrupts the orchestration state. The UI
   manages its own state end-to-end: panels swap, statuses update, clarifications appear, execution progress renders —
   all via WebSocket. If something doesn't show up live, **that is a bug to file** — not something to work around with a
   refresh. If you see yourself about to refresh for any reason (including the phrase "refresh test"), stop, screenshot
@@ -268,7 +270,7 @@ Static policies. These hold for every run.
 - **Two servers: smoke test (prod, manual) and agent-spawned (dev).** Siegemaster is the only role handed a dev server:
   it resolves `devCommand` + dev `port` from `.dungeonmaster.json`, stands one up by hand for its walks, and tears it
   down before signalling. Flowrider gets no dev-server config at all — the server its e2e run needs comes from the
-  project's Playwright `webServer` block and lives only for that run. No other role (codeweaver, blightwarden, ward)
+  project's Playwright `webServer` block and lives only for that run. No other role (codeweaver, flowrider, ward)
   touches the dev-server lifecycle. The validation orchestrator (you) runs
   `npm run prod` on ports 4800/4801 for the smoke-test UI you drive — the compiled server from `dist/`, exercising the
   same code a real user would hit. A runtime-flow agent spawns its OWN test server via `npm run dev` on ports 4750/4751
@@ -556,8 +558,8 @@ you do NOT have the RCA yet and must use the agent.
 3. **Kill the dev server** (`npm run dev:kill` or equivalent). Fix agents must not race a live server; a stale server
    holds file locks / ports.
 4. **Revert quest-generated artifacts.** Any uncommitted working-tree changes are almost certainly from smoke-test
-   agents (codeweaver/blightwarden outputs), not the bug itself. Revert BEFORE dispatching fixers so agents work from a
-   clean base.
+   agents (a worker- or reviewer-minion's edits), not the bug itself. Revert BEFORE dispatching fixers so agents work
+   from a clean base.
 5. **Do Root Cause Analysis first** (see that section above). No fix agent is dispatched until the orchestrator can
    cite the causal file:line from its own observation or from an RCA sub-agent's report, AND every material ambiguity
    has been resolved with the user. Skip this step only if you directly observed the bug and can write
@@ -580,7 +582,7 @@ you do NOT have the RCA yet and must use the agent.
 
 - **One bug, one commit.** Each fix agent's changes get committed on completion. Message references phase/checkpoint.
   Never batch unrelated fixes.
-- **Never commit quest-generated artifacts.** The smoke flow produces codeweaver outputs, blightwarden inline fixes,
+- **Never commit quest-generated artifacts.** The smoke flow produces codeweaver outputs, reviewer-minion inline fixes,
   etc. inside the working tree. Before restarting a run OR declaring validation done, revert those changes (
   `git restore` / `git clean -fd` scoped to the generated paths). Only bug-fix commits should remain in git history;
   source tree is identical to pre-validation state apart from fixes.
@@ -717,7 +719,7 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
     2. **The operations ledger renders in the execution panel** (`data-testid="OPERATIONS_LEDGER"`, rows
        `OPERATIONS_LEDGER_ROW` — role badge + text + status; ward rows show a `(changed)`/`(full)` mode tag, and any row
        whose item carries `flowIds` shows the flow NAMES in `OPERATIONS_LEDGER_ROW_FLOWS` — each siegemaster row and
-       each groundstomper row lists its own single flow, and the ward and blightwarden rows list none). The
+       each groundstomper row lists its own single flow, and the ward rows list none). The
        status bar (`execution-status-bar-layer-widget`) reads `EXECUTION — 0/M OPERATIONS` once the relay is seeded (or
        `AWAITING PLAN` before Start Quest seeds it).
   3. Status → `in_progress`. `questBuildRelayGraphBroker` derived the implementation items and appended the verify
@@ -728,8 +730,9 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
      whole worktree — so a riftcarver item that inherited the spine's packages is a regression.
      Then assert the tail's shape: two fixed ward items (`ward(changed)`, `ward(full)`), ONE `siegemaster` item PER
      FLOW, ONE `groundstomper` item per RUNTIME flow that reaches an e2e-eligible package (none at all when the quest
-     reaches no such package), plus the `flowrider` items its package slicing mints. **There is no seeded blight-review
-     item** — `blightscout` is APPENDED after each committing session, so an empty tail here is correct. Read
+     reaches no such package), plus the `flowrider` items its package slicing mints. **There is no blight-review item
+     on the tail and none is ever appended to it** — assert that no operation item appears after a committing
+     session's own item other than its `pt N` continuation. Read
      `quest.json` and confirm each `siegemaster` item carries a single-element `flowIds` naming its own flow with a
      `— flow: <id>` text suffix, and that each `groundstomper` item likewise names exactly one flow. This is the
      invariant most likely to regress: a whole-quest siegemaster item or a truncated `flowIds` both show up here first.
@@ -823,21 +826,24 @@ alone.
 spiritmender path is Phase 2.3).
 **→ PASS:** continue.
 
-### 1.5 — Flowrider (ONE operator session covering EVERY quest flow)
+### 1.5 — Flowrider (ONE operator session per PACKAGE SLICE)
 
 - **Assert:**
     - Dispatched only after `ward(changed)` is green (its operation item is next `pending`).
-  - EXACTLY ONE flowrider work item for the whole quest. Its operation item carries EVERY quest flow id in `flowIds`
-    (declaration order) and names no flow id in its text; the ledger row lists every flow NAME. A second flowrider row
-    appearing for a 2-flow quest is a regression — file it.
-  - The session reads all its flows, groups them into bundles by shared surface/harness/layer, dispatches a
-    `flowrider-authoring-minion` per bundle via the `Agent` tool (visible as sub-agent chains inside the flowrider's own row —
-    minions are NOT work items), then verifies the returned work by opening the files itself — the verification IS the
-    job. It is a test writer and reviewer FIRST — coverage is what its operation item buys — but it and its minions also
-    close the implementation holes their testing exposes, red-first. Only an architectural fix, or one needing a product
-    decision, is left as a red test plus an `unconfirmable` `flowriderSignoff` carrying the question Siegemaster picks
-    up. It prefers extending the suites Codeweaver left over starting fresh, and it does not rebuild what Codeweaver
-    already built.
+  - ONE flowrider work item PER PACKAGE SLICE — one per package whose kind this track owns, plus ONE seam item where
+    two such packages meet. Each operation item carries its own `packageNames` and a `— package: <name>` or
+    `— seam: <a> + <b>` text suffix. A quest with no runtime node to slice on falls back to exactly one whole-quest
+    item carrying every flow id; a quest whose every runtime node is browser-reachable mints NONE (those units are
+    Groundstomper's).
+  - The session is an ORCHESTRATOR and **never opens a source file.** It dispatches ONE `planner-minion`, reads the
+    plan back with `get-quest-planning-notes`, dispatches `worker-minion`s **strictly one at a time**, then ONE
+    `reviewer-minion` — all visible as sub-agent chains inside the flowrider's own row, since minions are NOT work
+    items. The reviewer is the ONLY writer of that slice's `flowriderSignoff`s: the session that authored a test never
+    signs it. Workers and the reviewer close the implementation holes their testing exposes, red-first. Only an
+    architectural fix, or one needing a product decision, is left as a red test plus an `unconfirmable`
+    `flowriderSignoff` carrying the question Siegemaster picks up.
+  - **Only the parent runs `npm run build`.** Two `Agent` calls in one assistant message is the regression to watch
+    for — it runs workers concurrently and corrupts the shared `dist/`.
     - For a **runtime** flow it controls its own dev server (Playwright `webServer` config from `.dungeonmaster.json`).
       Confirm the prod server on 4800/4801 stays LISTEN throughout; a dev server (4750/4751) comes up and goes down
       within the session. For an **operational** flow, no dev server is needed.
@@ -862,60 +868,62 @@ port resolution behind a Flowrider e2e run. Restart 1.5.
     - Dispatched only after the flowrider item signals `done`; the FIRST siegemaster item (one flow) is next in
       ledger order.
     - ONE siegemaster work item PER quest flow, each operation item carrying a single-element `flowIds` and text
-      suffixed `— flow: <id>`. Each session walks its ONE flow, grouping it into walk-bundles, stands up ONE dev
-      server, dispatches a `siegemaster-walker-minion` per bundle (every DRIVING bundle strictly one at a time; only
-      mutate-nothing inspection runs in parallel), then verifies what came back. A minion records a defect's broken
-      state before it may close a small local hole, and a `READ-ONLY`-lane one edits nothing. Siegemaster is the LAST
-      role that fixes BEHAVIOUR and has the widest fix authority on the quest — it reviews the suites and TDD-fixes
-      what it breaks, editing inline, including the architectural gaps flowrider left red for it.
-    - `done` (every observable on that flow dispositioned — a landed fix is not a reason to respawn) → advance to the
-      NEXT siegemaster item (the following flow), or to `blightwarden` once the LAST flow's siegemaster item is
-      `done`. `partial` (a named remainder) → a `pt N` siegemaster continuation carrying that SAME single `flowId`,
+      suffixed `— flow: <id>`. Each session orchestrates the walk of its ONE flow: it stands up ONE dev
+      server, dispatches `worker-minion`s to walk slices **strictly one at a time**, then ONE `reviewer-minion` that
+      confirms each reported fix against `git diff` and writes the `siegemasterSignoff`s. A worker records a defect's
+      broken state before it may close a small local hole, never starts/stops/bounces the dev server, and never runs
+      `git`. Siegemaster is the LAST role that fixes BEHAVIOUR and has the widest fix authority on the quest —
+      including the architectural gaps flowrider left red for it.
+    - `done` (every unit on that flow carries a `siegemasterSignoff` — a landed fix is not a reason to respawn) →
+      advance to the NEXT siegemaster item (the following flow), or to `ward(full)` once the LAST flow's siegemaster
+      item is `done`. **Assert nothing is appended in between.** `partial` (a named remainder) → a `pt N` siegemaster
+      continuation carrying that SAME single `flowId`,
       bounded by `slotManagerStatics.siegemaster.maxAttempts` (3) — a separate budget PER FLOW, not one for the whole
       quest.
 
 **→ PASS:** continue.
 
-### 1.7 — Blightwarden (whole-diff audit)
+### 1.7 — Standards review (inside every round, not a ledger item)
 
-- **Capture session JSONL.**
-- **Assert sequence:**
-    1. Dispatched only after every siegemaster item signals `done`. First action:
-       `get-blight-checklist({ questId })` — the deterministic file × concern review surface of the WHOLE quest diff,
-       measured from the quest's pinned `baseRef` (never a hand-rolled `git diff`).
-    2. Parallel Agent-tool dispatches: one `blightwarden-group-minion` per disjoint group of changed impl+test file pairs —
-       summoned via the Agent tool, briefed inline, NOT work items. Each reviews all seven concerns (coverage, craft,
-       security, dedup, perf, integrity, dead-code) against its group, FIXES violations in place, and writes a
-       disposition per unit into `planningNotes.blightLedger` via `modify-quest` as it goes.
-    3. Once every group has returned, ONE `blightwarden-crosscut-minion` — alone, last — runs over the WHOLE diff for
-       cross-pair duplication and blast radius no single group could see. It does NOT write `blightLedger`; it
-       reports its findings back to the parent as an artifact.
-    4. The blightwarden session reads every returned artifact, opens the files each minion actually changed, records
-       any remaining dispositions, runs ONE ward over every touched file, and commits the session's single commit
-       (minions never run `git`). It then re-calls `get-blight-checklist` and signals `complete` — `done` (remaining
-       count is zero) → advance to `ward(full)`; `partial` (a named remainder) → `pt N` fresh blightwarden pass,
-       bounded by `slotManagerStatics.blightwarden.maxAttempts` (3).
+There is no standards-review operation item to dispatch. Instead, assert this on EVERY committing session above —
+codeweaver, flowrider, groundstomper, siegemaster (and pesteater on a bug-hunt):
+
+- **Assert sequence, per session:**
+    1. The session dispatched a `reviewer-minion` after its workers returned, visible as a sub-agent chain in its own
+       execution row.
+    2. That reviewer's first scoping action is
+       `get-blight-checklist({ questId, scope: 'working-tree' })` — the deterministic file × concern surface of what
+       is changed since HEAD and **not yet committed, untracked files included** (never a hand-rolled `git diff`, and
+       never `scope: 'commit'`, which would hand it the round BEFORE its own).
+    3. It writes a disposition per unit into `planningNotes.blightLedger` via `modify-quest`, BATCHED — one call
+       carrying many, not one per unit — each carrying the PARENT's `workItemId`.
+    4. The parent then builds, wards the round's files, commits, and signals. `signal-back` REFUSES `done` if the
+       worktree is dirty, and REFUSES `done` if no `blightLedger` entry carries that work item's id.
 - **Assert data:**
-    - `planningNotes.blightLedger` gained one entry per unit the minions (and the parent) covered, each keyed on
-      `itemId` (`<implPath>:<concern>`) with a `disposition` of `reviewed | fixed | routed | recorded | gap`.
-    - **Completion gate:** a `signal-back` carrying `operationStatus: 'done'` recomputes the checklist and THROWS,
-      naming the outstanding units, if any unit still carries no disposition — confirm a stub that signals `done` too
-      early is refused and nothing is persisted (a real regression test for the same gate that already guards
-      siegemaster).
+    - `planningNotes.blightLedger` gained one entry per unit the reviewer covered, each keyed on
+      `itemId` (`<implPath>:<concern>`) with a `disposition` of `reviewed | fixed | routed | recorded | gap`, and each
+      carrying `createdAt` **stamped by the server** — any value the agent sent is discarded, so an entry's time is a
+      real one.
+    - `planningNotes.operationPlans` gained the round's plan, likewise with a server-stamped `at`.
+    - **Commit-before-signal gate:** with a deliberately dirty worktree, a `signal-back` carrying ANY
+      `operationStatus` — `done`, `partial` or `blocked` — THROWS naming the uncommitted paths, and nothing is
+      persisted. `git commit --allow-empty` then satisfies it.
+    - **Review-coverage gate:** with an empty `blightLedger` for that work item, `signal-back` carrying
+      `operationStatus: 'done'` THROWS; `partial` is accepted. Confirm nothing is persisted on the refusal.
     - Allowlist holds: at `in_progress`, `modify-quest` accepts any `planningNotes` sub-field, including
-      `blightLedger` (execution agents still cannot write `operations` at `in_progress`).
+      `blightLedger` and `operationPlans` (execution agents still cannot write `operations` at `in_progress`).
 
-**→ FAIL minion groups not disjoint / crosscut minion not run alone-and-last:** fix the blightwarden prompt dispatch
-section. Restart 1.7.
-**→ FAIL the completion gate does not throw on an incomplete checklist:** fix `quest-handle-signal-back-responder`'s
-blightwarden branch. Restart 1.7.
+**→ FAIL a session commits without dispatching a reviewer:** fix the shared orchestrator template's loop section.
+Restart 1.7.
+**→ FAIL either gate does not throw:** fix `quest-handle-signal-back-responder`. Restart 1.7.
 **→ FAIL allowlist breach:** fix `quest-status-input-allowlist-statics`. Restart 1.7.
 **→ PASS:** continue.
 
 ### 1.8 — Final Ward (full) + complete
 
 - **Assert:**
-    - `ward(full)` is the last operation item; dispatched only after blightwarden converges. `mode: 'full'`, green.
+    - `ward(full)` is the last operation item; dispatched immediately after the LAST siegemaster item signals `done`,
+      with nothing minted in between. `mode: 'full'`, green.
     - On green, no `pending` operation item remains, so the operation-aware `work-items-to-quest-status-transformer`
       derives quest `complete`. (It never derives `complete` while any operation item is `pending`/`in_progress`.)
     - WS `quest-modified` broadcast; the Web UI shows quest "Complete" (status bar reads `EXECUTION — M/M OPERATIONS`,
@@ -947,26 +955,30 @@ duplicate-on-partial + the strict-1:1 guard.
 ### 2.2 — Locked verify-tail role `partial` → bounded pt-N chain
 
 The orchestrator's handling is identical for every locked role: complete the item, append `pt N`, bound the chain by
-`slotManagerStatics.<role>.maxAttempts`. `flowrider`, `siegemaster`, and `blightwarden` are all **operators** — none
+`slotManagerStatics.<role>.maxAttempts`. `flowrider`, `groundstomper` and `siegemaster` are all **operators** — none
 of them is a fixpoint, and none earns `done` merely by having changed code.
 
-- **Seed / drive:** a flowrider / siegemaster / blightwarden session signals `operationStatus: 'partial'` because a
-  NAMED remainder is left — a bundle it could not dispatch, an observable (or blight-checklist unit) with no
-  disposition, a suite left red. **A pass that merely wrote a test, walked a path, or landed a fix must signal
-  `done`**: an operator re-reads what its minions wrote, so it already is the fresh pair of eyes a `pt N` session
+- **Seed / drive:** a flowrider / groundstomper / siegemaster session signals `operationStatus: 'partial'` because a
+  NAMED remainder is left — the reviewer's `REMAINDER` still non-empty after three rounds, a unit with no
+  sign-off, a suite left red. **A pass that merely wrote a test, walked a path, or landed a fix must signal
+  `done`**: the round's `reviewer-minion` is a separate session from its workers, so it already is the fresh pair of
+  eyes a `pt N` session
   supplies. A `partial` on a completed scope is a prompt bug — file it.
 - **Assert:**
-    - Its operation item is marked `complete` and a `pt N` continuation is appended: `flowrider`'s carries the
-      **complete** `flowIds` (every quest flow id, never a subset); `siegemaster`'s carries only that ONE item's
-      single `flowId`; `blightwarden`'s carries no `flowIds` at all (whole-diff roles carry none). A fresh session of
-      the same role starts from the remainder the commit (or ledger disposition) named.
-    - `done` advances to the next tail item on the first pass that has every unit in scope dispositioned — there is
-      no "changed nothing" pass to wait for: `flowrider` → the first `siegemaster` item; a `siegemaster` item → the
-      next `siegemaster` item, or `blightwarden` once the last flow's item is done; `blightwarden` → `ward(full)`.
+    - Its operation item is marked `complete` and a `pt N` continuation is appended, carrying the SAME `flowIds` AND
+      the SAME `packageNames`: `flowrider`'s carries its own package slice (or the seam's package set);
+      `groundstomper`'s and `siegemaster`'s carry only that ONE item's single `flowId`. A continuation that lost
+      either would silently work the whole quest instead of the remainder. A fresh session of
+      the same role starts from the remainder the commit named.
+    - `done` advances to the next tail item on the first pass that has every unit in scope signed — there is
+      no "changed nothing" pass to wait for: `flowrider` → the next flowrider slice, then `groundstomper`; a
+      `siegemaster` item → the next `siegemaster` item, or `ward(full)` once the last flow's item is done. **Nothing
+      is appended between two tail items.**
 
-**Budget:** the `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts` (3). `flowrider` and `blightwarden`
-each get ONE budget for the whole quest — each holds exactly one tail item, so three `partial`s from either role
-blocks the quest via `quest-block-on-failure-broker` (see 2.4) whatever the flow count. `siegemaster` gets one budget
+**Budget:** the `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts` (3), and it is a DIFFERENT bound
+from the 3-round loop inside one session — a session that spends its three rounds and still has a remainder signals
+`partial`, which spends one pt attempt. `flowrider`
+gets ONE budget PER PACKAGE SLICE. `groundstomper` and `siegemaster` get one budget
 PER FLOW — three `partial`s on ONE flow's item blocks the quest without touching another flow's separate item and
 budget.
 
@@ -1023,21 +1035,32 @@ order in `quest-run-ward-broker`. Restart 2.3.
 must keep identity + a resume marker and set `pending`, not stay `in_progress`).
 **→ PASS:** continue.
 
-### 2.6 — Blightwarden's completion gate refuses a premature `done`
+### 2.6 — The two computed signal-back gates refuse a premature `done`
 
-- **Seed:** a blightwarden operation item whose diff has multiple review units (`get-blight-checklist` reports several
-  `<implPath>:<concern>` ids); the stub dispositions only SOME of them via `modify-quest({ planningNotes: {
-  blightLedger: [...] } })`, then signals `operationStatus: 'done'`.
+Both run BEFORE any mutation, so every refusal below persists NOTHING: the work item and its operation item are
+untouched and the session can act and signal again.
+
+- **Seed (commit-before-signal):** an orchestrator-role work item whose quest worktree has an uncommitted edit AND an
+  untracked new file. The stub signals `operationStatus: 'done'`.
 - **Assert:**
-    - `signal-back` recomputes the checklist against the ledger and THROWS, naming the still-undispositioned units —
-      NOTHING is persisted (the work item and operation item are untouched, so the session can act and signal again).
-    - Dispositioning the rest (or signalling `partial` instead) then succeeds: `done` advances to `ward(full)`;
-      `partial` appends a `pt N` blightwarden continuation (2.2).
-    - A `blightwarden-group-minion`'s or `blightwarden-crosscut-minion`'s own finding never blocks the quest by itself — a
-      minion is not a work item and never signals back; only the parent blightwarden session's `signal-back` call is
-      gated.
+    - `signal-back` THROWS, naming BOTH paths — the untracked one is the regression to watch for, since `git diff` in
+      every form reports tracked paths only.
+    - It throws identically on `partial` and on `blocked` — this gate is not `done`-only.
+    - `git commit --allow-empty` in the worktree then satisfies it: the gate asks whether the TREE IS CLEAN, never
+      whether a commit was made.
+    - A quest with no worktree (a hydrated one) SKIPS the gate — assert no git command ran at all.
 
-**→ FAIL (`done` is accepted with undispositioned units left):** fix the blightwarden branch in
+- **Seed (review coverage):** an orchestrator-role work item on a clean tree whose `planningNotes.blightLedger`
+  carries NO entry with that work item's id. The stub signals `operationStatus: 'done'`.
+- **Assert:**
+    - `signal-back` THROWS, naming `get-blight-checklist({ scope: 'working-tree' })` and the `partial` alternative.
+    - Writing ONE `blightLedger` entry carrying that `workItemId` clears it, whatever the disposition — `gap` and
+      `recorded` count exactly as `reviewed` does. The gate refuses absence, not honesty.
+    - Signalling `partial` instead is accepted and appends a `pt N` continuation (2.2).
+    - A `reviewer-minion`'s own finding never blocks the quest by itself — a minion is not a work item and never
+      signals back; only the parent session's `signal-back` call is gated.
+
+**→ FAIL (`done` is accepted on a dirty tree, or with no ledger entry):** fix the gates in
 `quest-handle-signal-back-responder`.
 **→ PASS:** continue.
 

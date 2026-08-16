@@ -113,7 +113,7 @@ export const questContract = z.object({
     .brand<'GitBaseRef'>()
     .optional()
     .describe(
-      "The fork-point sha the quest's branch was created from, stamped from the worktree's own creation point rather than the server process cwd. It stays the base the review diff is measured from, so the blightwarden diff remains stable as the base branch moves ahead with other work.",
+      "The fork-point sha the quest's branch was created from, stamped from the worktree's own creation point rather than the server process cwd. It stays the base the review diff is measured from, so a whole-quest review scope remains stable as the base branch moves ahead with other work.",
     ),
   branchName: questBranchNameContract
     .optional()
@@ -157,13 +157,13 @@ export const questContract = z.object({
         .array(questBlightLedgerEntryContract)
         .default([])
         .describe(
-          "Blightwarden's per-unit review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. The signal-back completion gate reads this: a blightwarden item cannot report `done` while any changed-file/concern unit has no entry here.",
+          "A reviewer-minion's per-unit standards-review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. The signal-back review-coverage gate reads this: an orchestrator role cannot report `done` while no entry here carries its own work item's id.",
         ),
       questNotes: z
         .array(questNoteContract)
         .default([])
         .describe(
-          'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a blightwarden review unit by its blightLedger disposition.',
+          'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a standards-review unit by its blightLedger disposition.',
         ),
       operationPlans: z
         .array(operationPlanContract)
@@ -180,7 +180,7 @@ export const questContract = z.object({
       operationPlans: [],
     })
     .describe(
-      'Blightwarden blight reports (cross-cutting whole-diff findings written by the blightwarden-group-minion and blightwarden-crosscut-minion sub-agents, judged by the blightwarden operator), the per-unit blightwarden review ledger, the Siegemaster QA coverage ledger, the durable side-channel quest notes, and planner sub-agent output plans',
+      'Cross-cutting whole-diff blight reports, the per-unit standards-review ledger a reviewer-minion writes, the Siegemaster QA coverage ledger, the durable side-channel quest notes, and planner sub-agent output plans',
     ),
   questSource: questSourceContract
     .optional()

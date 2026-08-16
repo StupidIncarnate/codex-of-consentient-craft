@@ -8,7 +8,8 @@
  * const blight = await questGetPlanningNotesBroker({ questId, section: 'blight' });
  * // Returns only planningNotes.blightReports
  *
- * WHEN-TO-USE: Blightwarden synthesizer reads the minions' blight reports mid-run.
+ * WHEN-TO-USE: an operation orchestrator reads back the plan its `planner-minion` persisted, without
+ * ever opening a source file itself; the `blight` section narrows the read to the blight reports.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';

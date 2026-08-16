@@ -84,7 +84,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // false and are never tailed.
   isAgentIdActive: (params: { agentId: AgentId }) => boolean;
   // Set when the tailed session is a top-level node-dispatch worker: its own agent
-  // (codeweaver/blightwarden/…) writes its work to the MAIN session JSONL — there is no
+  // (codeweaver/siegemaster/…) writes its work to the MAIN session JSONL — there is no
   // dispatcher above it. Main-session tail emits then carry `sessionId: parentSessionId`
   // + this `workItemId`, so the web routes them to the worker's execution row exactly as
   // the replay path does. Omitted for /dumpster-launch dispatcher sessions, whose
@@ -122,9 +122,9 @@ export const questMonitorJsonlWatcherBroker = ({
   const subagentHandles = new Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>();
 
   // Sub-agents whose tail exists because their realAgentId is stamped on an in-progress work
-  // item. ONLY these are eligible for pruning. A parent-summoned minion (blightwarden-*-minion,
-  // codeweaver-piece-minion, flowrider-authoring-minion) and any nested sub-agent own no work item,
-  // so `isAgentIdActive` is false for them from the moment their tail starts — pruning on that
+  // item. ONLY these are eligible for pruning. A parent-summoned minion (planner-minion,
+  // worker-minion, reviewer-minion, chaoswhisperer-gap-minion) and any nested sub-agent own no work
+  // item, so `isAgentIdActive` is false for them from the moment their tail starts — pruning on that
   // predicate alone would stop them on the very next refresh tick.
   const workItemBackedAgentIds = new Set<AgentId>();
 

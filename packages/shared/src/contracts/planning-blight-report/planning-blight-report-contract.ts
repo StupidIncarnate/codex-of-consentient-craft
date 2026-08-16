@@ -1,5 +1,6 @@
 /**
- * PURPOSE: Defines the PlanningBlightReport structure — a Blightwarden minion's whole-diff cross-cutting report
+ * PURPOSE: Defines the PlanningBlightReport structure — a whole-diff cross-cutting findings report,
+ * distinct from the per-unit `blightLedger` a reviewer-minion writes for its own round
  *
  * USAGE:
  * planningBlightReportContract.parse({id: 'f47...', workItemId: '9c4...', minion: 'security', status: 'active', findings: [...], createdAt: '2024-...', reviewedOn: []});

@@ -34,7 +34,10 @@
  * characters of interpolated operation context inside `mcpToolResultStatics.maxVerbatimChars`; over
  * that ceiling the MCP layer spills the result to a file and hands the agent an error stub, so an
  * over-budget prompt loses its TAIL — the gates and the signal shapes — and de-gates the session
- * silently. `flowrider-prompt-statics.ts` documents the same ceiling from the other side.
+ * silently. The two halves of that ceiling are budgeted in different places and neither can see the
+ * other: this number bounds the TEMPLATE, while `workItemToPromptTransformer` bounds what
+ * `$ARGUMENTS` interpolates. Growing either one alone still spends the same shared ceiling, which is
+ * why anything discipline-specific belongs in a pack rather than here.
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';

@@ -16,7 +16,8 @@
  *
  * `observables` stays allowed on a signing NODE because every observable inside is held to this same
  * allowlist at its own level, so nothing can change unseen — and that batched shape (`{id,
- * flowriderSignoff, observables: [...]}`) is what the flowrider-coverage-minion prompt writes.
+ * flowriderSignoff, observables: [...]}`) is what a `reviewer-minion` writes: its discipline pack
+ * tells it to sign a whole slice in ONE modify-quest call rather than one call per unit.
  * `nodes` needs no equivalent entry: a flow carries no sign-off fields at all.
  *
  * Field NAMES rather than a track map: the reader is a key-presence check over a payload element,

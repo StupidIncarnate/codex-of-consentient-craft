@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines the branded, DERIVED identifier for one blightwarden review unit —
+ * PURPOSE: Defines the branded, DERIVED identifier for one standards-review unit —
  * `<repo-relative-impl-path>:<concern>`, a changed file crossed with one BlightConcern
  *
  * USAGE:

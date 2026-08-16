@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Decomposes a quest diff's changed files into the complete, deterministically-enumerated
- * blightwarden review surface — every changed impl file, with its test/proxy/stub companions
- * collapsed onto it, crossed with every BlightConcern — and reports which of those units still
- * carry no disposition in the quest's blight ledger
+ * PURPOSE: Decomposes a diff's changed files into the complete, deterministically-enumerated
+ * standards-review surface a `reviewer-minion` works — every changed impl file, with its
+ * test/proxy/stub companions collapsed onto it, crossed with every BlightConcern — and reports which
+ * of those units still carry no disposition in the quest's blight ledger
  *
  * USAGE:
  * blightChecklistBuildTransformer({

@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Defines the complete, deterministically-enumerated blightwarden review surface of a
- * quest diff — every changed-file/concern unit, measured from `baseRef`, and which of those units
- * still carry no disposition
+ * PURPOSE: Defines the complete, deterministically-enumerated standards-review surface of a diff —
+ * every changed-file/concern unit, measured from the ref the requested scope names, and which of
+ * those units still carry no disposition
  *
  * USAGE:
  * blightChecklistContract.parse({
@@ -39,7 +39,7 @@ export const blightChecklistContract = z.object({
     .array(blightChecklistItemIdContract)
     .default([])
     .describe(
-      'The units carrying no entry in quest.planningNotes.blightLedger. Empty is the only state in which a blightwarden operation item may report `done`.',
+      'The units carrying no entry in quest.planningNotes.blightLedger — what a reviewer-minion still has to disposition on this round.',
     ),
 });
 

@@ -148,8 +148,9 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['contracts', 'toolingRequirements', 'flows', 'packagesAffected', 'status'],
     flowsRule: 'additive-only',
     // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields:
-    // blightwarden minions write the per-unit `blightLedger` mid-run — the dispositions its own
-    // signal-back completion gate is computed against — and siegemaster writes `qaLedger`, the
+    // a reviewer-minion writes the per-unit `blightLedger` mid-run — the dispositions its parent's
+    // own signal-back review-coverage gate is computed against — a planner-minion writes
+    // `operationPlans`, and siegemaster writes `qaLedger`, the
     // per-unit QA dispositions a track-less `get-qa-checklist` measures its flow-wide remainder
     // against. Every execution role also appends `questNotes`, the durable
     // side channel for open questions, tooling errors, out-of-scope observations, and walk resets;

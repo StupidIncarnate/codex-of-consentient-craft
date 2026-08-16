@@ -88,7 +88,7 @@ describe('universalSyntaxRulesStatics', () => {
             'Any non-obvious rationale, in present tense',
           ],
           siblingDisambiguation:
-            'The when-to-reach-for-THIS-one sentence is the highest-value line in the header and the one most often missing. A reader scanning discover output already has the name and the signature; what it cannot get anywhere else is which of several similar files is the right one — absoluteFilePathContract vs repoRelativePathContract vs pathSegmentContract, or flowrider-authoring-minion vs flowrider-coverage-minion.',
+            'The when-to-reach-for-THIS-one sentence is the highest-value line in the header and the one most often missing. A reader scanning discover output already has the name and the signature; what it cannot get anywhere else is which of several similar files is the right one — absoluteFilePathContract vs repoRelativePathContract vs pathSegmentContract, or plannerMinionStatics vs workerMinionStatics.',
           writeLast:
             'Write PURPOSE LAST. Author the implementation first, then write PURPOSE as a summary of code that already exists. A PURPOSE written before the body describes intent, and intent and implementation diverge silently in the same authoring pass.',
           usageUnchanged: 'USAGE is unchanged — a concrete call and what comes back.',
@@ -496,7 +496,7 @@ describe('universalSyntaxRulesStatics', () => {
 
     it('VALID: siblingDisambiguation => names the sibling pairs a reader cannot choose between from a signature', () => {
       expect(universalSyntaxRulesStatics.fileMetadata.purposeContent.siblingDisambiguation).toBe(
-        'The when-to-reach-for-THIS-one sentence is the highest-value line in the header and the one most often missing. A reader scanning discover output already has the name and the signature; what it cannot get anywhere else is which of several similar files is the right one — absoluteFilePathContract vs repoRelativePathContract vs pathSegmentContract, or flowrider-authoring-minion vs flowrider-coverage-minion.',
+        'The when-to-reach-for-THIS-one sentence is the highest-value line in the header and the one most often missing. A reader scanning discover output already has the name and the signature; what it cannot get anywhere else is which of several similar files is the right one — absoluteFilePathContract vs repoRelativePathContract vs pathSegmentContract, or plannerMinionStatics vs workerMinionStatics.',
       );
     });
 

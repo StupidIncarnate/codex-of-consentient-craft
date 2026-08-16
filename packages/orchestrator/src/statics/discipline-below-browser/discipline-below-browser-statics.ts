@@ -11,13 +11,12 @@
  * disciplineBelowBrowserStatics.orchestratorMarkdown;
  * // Returns the slice/denominator/gate block that lands under the orchestrator's `## Your discipline`
  *
- * WHAT REPLACED WHAT: `flowrider-prompt-statics` asked ONE session to plan, bundle, dispatch,
+ * WHAT REPLACED WHAT: the monolithic Flowrider prompt asked ONE session to plan, bundle, dispatch,
  * verify, sign off, commit and signal. A post-mortem measured that load causing it to drop its
- * mandated coverage minion and sign all 27 of its own sign-offs. Here `reviewerMarkdown` is the
- * successor to `flowrider-coverage-minion`, and the thing that fixed it is structural rather than
- * textual: the reviewer is a SEPARATE session from the worker, so "the authoring minion never signs
- * its own work" stopped being an instruction that can be ignored and became the shape of the
- * pipeline.
+ * mandated coverage minion and sign all 27 of its own sign-offs. `reviewerMarkdown` is where that
+ * grading job lives now, and the thing that fixed it is structural rather than textual: the reviewer
+ * is a SEPARATE session from the worker, so "whoever authored the tests never signs its own work"
+ * stopped being an instruction that can be ignored and became the shape of the pipeline.
  *
  * THE SPLIT BETWEEN PACK AND TEMPLATE: the pack owns SCOPE and METHOD, the template owns the LOOP,
  * the TOOL SURFACE and the RETURN SHAPES. So nothing here widens a tool surface, restates a round

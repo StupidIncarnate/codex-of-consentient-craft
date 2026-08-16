@@ -61,7 +61,17 @@ export default defineConfig({
 
   webServer: [
     {
-      command: 'npm run dev --workspace=@dungeonmaster/server',
+      // `dev:no-watch`, never `dev`. The server's `dev` script is `tsx watch`, and
+      // `--conditions=source` puts every `packages/*/src/**` file in this repo into its module
+      // graph — so ANY write anywhere in the tree restarts the API server mid-suite. The port is
+      // gone for ~1.5 s while it reboots, Vite's `/api` proxy answers `ECONNREFUSED` with a bare
+      // `500` and an EMPTY body, and whichever spec is in flight fails on whatever it happened to
+      // be doing: `response.json()` on nothing (`SyntaxError: Unexpected end of JSON input`), a
+      // POST that never reaches a handler, or a panel that never mounts because its quest fetch
+      // died. Measured: an editor saving one file every ~14 s during a full run produced six such
+      // failures, each timestamp-matched to a save. The suite has no use for a watcher — Playwright
+      // starts this process once and tears it down at the end.
+      command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
       port: TEST_PORT,
       reuseExistingServer: false,
       env: {

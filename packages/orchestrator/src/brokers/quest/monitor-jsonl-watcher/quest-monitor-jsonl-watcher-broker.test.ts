@@ -770,7 +770,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-prune-minion' });
       const activeQuestId = QuestIdStub({ value: 'prune-minion-quest' });
 
-      // A parent-summoned minion (blightwarden-*-minion, codeweaver-piece-minion, …) owns no work
+      // A parent-summoned minion (planner-minion, worker-minion, reviewer-minion, …) owns no work
       // item, so `isAgentIdActive` is false for its realAgentId for the whole run. Its tail
       // exists only because the scan prompt-paired it, and prune must leave it alone.
       const TASK_LINE =

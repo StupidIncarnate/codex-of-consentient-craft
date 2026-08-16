@@ -495,8 +495,8 @@ describe('blightChecklistToTextTransformer', () => {
   // (that suite calls every tool with `arguments: {}`, and this tool requires a `questId`), so
   // its rendered size at real-quest scale has never actually been measured. Over
   // `mcpToolResultStatics.maxOutputTokens` the content is NOT delivered to the calling agent —
-  // it is spilled to a file and the agent receives an error stub, which for this tool means
-  // blightwarden loses the REMAINING count its completion signal depends on. This builds the
+  // it is spilled to a file and the agent receives an error stub, which for this tool means the
+  // reviewer-minion loses the REMAINING count its dispositions are measured against. This builds the
   // checklist the real transformer produces for a real-quest-sized diff and renders it through
   // the real text transformer, measuring the actual output — not a short-path stand-in.
   describe('scale — a real quest-sized diff', () => {

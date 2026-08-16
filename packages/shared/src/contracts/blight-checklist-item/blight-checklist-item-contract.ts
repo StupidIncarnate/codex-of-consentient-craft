@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines one atomic blightwarden review unit — a changed file crossed with one
+ * PURPOSE: Defines one atomic standards-review unit — a changed file crossed with one
  * BlightConcern — carrying the paired test/proxy/stub files that collapsed onto it and the
  * human-readable statement of what the unit asserts
  *

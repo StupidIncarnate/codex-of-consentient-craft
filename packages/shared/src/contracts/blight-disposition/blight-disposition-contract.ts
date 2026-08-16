@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines the five outcomes a blightwarden review unit can carry in
+ * PURPOSE: Defines the five outcomes a standards-review unit can carry in
  * `quest.planningNotes.blightLedger`
  *
  * USAGE:

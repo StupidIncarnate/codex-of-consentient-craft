@@ -116,13 +116,16 @@ The seed is idempotent — a re-Start detects the already-appended locked ward t
 
 The two quest types differ only in their ledger shape:
 
-- **feature** (`/dumpster-create`): `startImplementationOps` is empty (ChaosWhisperer authored the `codeweaver` items at
-  spec time). Verify tail = `ward(changed) → flowrider → groundstomper → siegemaster → blightwarden → ward(full)`.
-  Flowrider authors the suites below the browser; `groundstomper` gets one item per runtime flow that reaches an
-  e2e-eligible package and owns the Playwright walk there.
-- **bug-hunt** (`/dumpster-hunt`): `startImplementationOps` = a single orchestrator-seeded `pesteater` item. Verify
-  tail = `ward(changed) → blightwarden → ward(full)` (no flowrider/groundstomper/siegemaster — PestEater writes the
-  reproducing e2e itself).
+- **feature** (`/dumpster-create`): `startImplementationOps` is a `riftcarver` head item then a single `codeweaver`
+  seed the relay DERIVES into one item per (package, flow) cell plus a foundation item per package. Verify tail =
+  `ward(changed) → flowrider → groundstomper → siegemaster → ward(full)`.
+  Flowrider authors the suites below the browser, one item per package slice; `groundstomper` gets one item per runtime
+  flow that reaches an e2e-eligible package and owns the Playwright walk there. **No standards-review item is seeded,
+  and none is ever appended** — that review happens inside each session's own round.
+- **bug-hunt** (`/dumpster-hunt`): `startImplementationOps` = the `riftcarver` head item then a single
+  orchestrator-seeded `pesteater` item. Verify
+  tail = `ward(changed) → ward(full)` (no flowrider/groundstomper/siegemaster — the PestEater round writes the
+  reproducing test itself).
 
 So the full feature relay is:
 
@@ -131,8 +134,12 @@ codeweaver ×N (Chaos-authored)
   → ward(changed)
   → flowrider(below the browser) → groundstomper(one session per e2e-eligible runtime flow)
   → siegemaster(one session per flow)
-  → blightwarden → ward(full)
+  → ward(full)
 ```
+
+Each agent role above is an ORCHESTRATOR session running a bounded round loop internally
+(`planner-minion → worker-minions one at a time → reviewer-minion → build → ward → commit`, at most 3 rounds). Its
+minions are never ledger items, and its `reviewer-minion` is what takes the five standards concerns.
 
 ---
 
@@ -167,9 +174,9 @@ under Node mode) that first calls `get-agent-prompt({ agent, workItemId, questId
    (the sub-agent's realAgentId) + `startedAt`. Identity is resolved MCP-side from
    `request.params._meta.claudecode/toolUseId` scanned against the session's `subagents/agent-*.jsonl` files.
 2. **Builds the role prompt** by resolving the work item's linked operation item (`operations/<id>`) and interpolating
-   its scope (text, package, contracts, file paths). Flowrider self-scopes over ALL quest flows; Blightwarden
-   self-scopes over the whole diff (via the pinned `baseRef`); both read the quest context directly, not a per-flow
-   ref. Siegemaster's operation item names a single `flowId`, so its scope is that one flow.
+   its scope (text, package, contracts, file paths). Flowrider's operation item names its own `packageNames`, so its
+   scope is that package slice across the runtime flows. Groundstomper's and Siegemaster's each name a single
+   `flowId`, so each scope is that one flow.
 
 Ward is the exception: it is a command item (`spawnerType: 'command'`) with no `get-agent-prompt` call — the dispatcher
 calls the `run-ward` MCP tool for it (§10).
@@ -218,20 +225,21 @@ marking a work item terminal) and the dispatch scan's self-heal. In one `questOp
 **Duplicate-on-partial is the verify fixpoint for `ward`.** A red ward run marks its operation item `complete` and the
 appended `pt N` continuation makes a FRESH ward run re-verify the new state (a spiritmender splices in ahead of it —
 see §9). The chain converges when a run comes back green — convergence IS the verdict. Every relay AGENT role that
-carries a `pt N` chain (flowrider, siegemaster, blightwarden, and the unlocked codeweaver) is instead an **operator**
-that signals on remaining SCOPE: it owns its scope (every flow for flowrider, one flow for a siegemaster item, the
-whole diff for blightwarden), delegates to minions, re-reads what they wrote, and signals `done` once every unit in
-scope has a disposition — so `partial` means a named remainder, never merely "this pass wrote code". A locked role's
+carries a `pt N` chain (flowrider, groundstomper, siegemaster, and the unlocked codeweaver) is instead an **operator**
+that signals on remaining SCOPE: it owns its scope (a package slice for a flowrider item, one flow for a groundstomper
+or siegemaster item), runs its round loop, and signals `done` once every unit in
+scope carries a sign-off on its own track — so `partial` means a named remainder, never merely "this pass wrote code".
+A locked role's
 `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`
 (ward by `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest. An unlocked `codeweaver` item's `pt N`
 chain is unbounded — codeweavers pivot in place freely. A `blocked` signal appends its `pt N` regardless of budget — the
 halt is the bound, and dropping the append would make a resume skip the scope. A chain is keyed on role + base text.
-`flowrider` and `blightwarden` each hold exactly one tail item, so each gets exactly one budget; `siegemaster` holds
-one tail item PER FLOW, so each flow gets its own budget; the continuation copies its `flowIds`.
+`flowrider` holds one tail item PER PACKAGE SLICE and `groundstomper`/`siegemaster` one PER FLOW, so each gets its own
+budget; the continuation copies BOTH its `flowIds` and its `packageNames`.
 
-Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → groundstomper → siegemaster ×2 →
-blightwarden → ward(full)` — the two siegemaster items each carry one flow id, and groundstomper gets one item per
-runtime flow that reaches an e2e-eligible package.
+Trace a two-flow feature quest end to end: `riftcarver → codeweaver ×N → ward(changed) → flowrider ×N →
+groundstomper ×N → siegemaster ×2 → ward(full)` — the two siegemaster items each carry one flow id, and groundstomper
+gets one item per runtime flow that reaches an e2e-eligible package. Nothing is appended between two of those items.
 After `ward(full)` is green, no `pending`
 operation item remains and the operation-aware status transformer derives `complete`. The dispatcher's next
 `get-next-step` picks up the next FIFO quest.

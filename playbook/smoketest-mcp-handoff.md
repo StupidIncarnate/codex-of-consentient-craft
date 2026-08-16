@@ -13,9 +13,10 @@ process: `playbook/smoketest-orchastrator.md`.
 The operations relay end to end, one agent session at a time:
 
 ```
-codeweaver ×N (Chaos-authored) → ward(changed)
-  → flowrider (every quest flow, one session) → siegemaster (one session per quest flow, in declaration order)
-  → blightwarden → ward(full)
+riftcarver → codeweaver ×N (DERIVED at Start) → ward(changed)
+  → flowrider (one session per package slice) → groundstomper (one per e2e-eligible runtime flow)
+  → siegemaster (one session per quest flow, in declaration order)
+  → ward(full)
   → quest derives complete
 ```
 
@@ -23,9 +24,9 @@ plus the three non-failure "sad" paths and the sole block path:
 
 - **partial → pt N** — a role signals `operationStatus: 'partial'`; the orchestrator marks its operation item
   `complete` and appends a `"pt N: {text}"` continuation; a fresh work item runs it. For `ward` this is the verify
-  fixpoint: a `pt N` chain converging on a green run. For the operator roles (`flowrider`, `siegemaster`,
-  `blightwarden`, and the unlocked `codeweaver`) `partial` means a NAMED remainder is left, never merely "this pass
-  changed something" — each signals `done` once every unit in its scope carries a disposition.
+  fixpoint: a `pt N` chain converging on a green run. For the operator roles (`flowrider`, `groundstomper`,
+  `siegemaster`, and the unlocked `codeweaver`) `partial` means a NAMED remainder is left, never merely "this pass
+  changed something" — each signals `done` once every unit in its scope carries a sign-off on its own track.
 - **ward red → spiritmender → re-ward** — a red ward marks its work item `failed` + its operation item `complete`, then
   appends a `spiritmender` operation item + a fresh ward (`pt N`, same `wardMode`); the spiritmender runs before the
   re-ward (never two wards back-to-back).

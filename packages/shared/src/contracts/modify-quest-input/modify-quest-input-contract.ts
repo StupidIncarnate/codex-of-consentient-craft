@@ -323,7 +323,7 @@ export const modifyQuestInputContract = z
         questNotes: z
           .array(questNoteForUpsertContract)
           .describe(
-            'Durable side-channel notes appended to quest.planningNotes.questNotes, keyed on id — re-stating a note UPSERTS its prior entry rather than appending a duplicate, so a continuation session can sharpen a note it already left. These NEVER close a verification unit: they carry open questions, tooling failures, out-of-scope observations, and walk resets. A flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a blightwarden review unit by its blightLedger disposition.',
+            'Durable side-channel notes appended to quest.planningNotes.questNotes, keyed on id — re-stating a note UPSERTS its prior entry rather than appending a duplicate, so a continuation session can sharpen a note it already left. These NEVER close a verification unit: they carry open questions, tooling failures, out-of-scope observations, and walk resets. A flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a standards-review unit by its blightLedger disposition.',
           )
           .optional(),
         operationPlans: z
@@ -335,7 +335,7 @@ export const modifyQuestInputContract = z
       })
       .partial()
       .describe(
-        'Blightwarden blight reports, the blightwarden per-unit review ledger, the Siegemaster QA ledger dispositions, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes',
+        'Blight reports, the per-unit standards-review ledger a reviewer-minion writes, the Siegemaster QA ledger dispositions, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes',
       )
       .optional(),
   })

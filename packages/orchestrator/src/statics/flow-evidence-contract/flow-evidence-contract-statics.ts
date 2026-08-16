@@ -7,12 +7,13 @@
  * flowEvidenceContractStatics.judgingMarkdown;
  * // Returns the evidence contract, false-green catalogue and the two-verdict sign-off vocabulary
  *
- * The Flowrider operator embeds ONLY `judgingMarkdown`; the Flowrider-Authoring-Minion embeds both.
- * That split matches every other operator family — `codeweaver-piece-minion` owns the TDD method its
- * parent never restates, and `siegemaster-walker-minion` owns the browser-driving knowledge its
- * parent never carries.
- * The operator judges a finished artifact; it does not need the method that produced it, and
- * carrying both put the same 8,281 characters into two prompts at once.
+ * Two discipline packs interpolate these halves, and each hands a half to the session that needs it.
+ * `discipline-below-browser` uses BOTH — `authoringMarkdown` into its `workerMarkdown`, because that
+ * worker writes the suite, and `judgingMarkdown` into its `reviewerMarkdown`, because that reviewer
+ * grades it. `discipline-browser-e2e` interpolates `judgingMarkdown` alone; its colocated test pins
+ * the absence of the authoring half. The split is the same one the whole planner/worker/reviewer
+ * shape rests on: the session that grades a finished artifact does not need the method that produced
+ * it, and carrying both put the same 8,281 characters into two prompts at once.
  *
  * Two rules in here exist because the taxonomy silently dropped whole classes of observable:
  * `cache-state` (browser storage) appeared in no modality's signal list at all, and the operational

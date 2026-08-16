@@ -8,15 +8,15 @@
  * // Returns ContentText — the body the get-blight-checklist MCP tool returns
  *
  * A unit's itemId is `<implPath>:<concern>` — never restated on its own line. Rendering it once per
- * unit repeats a ~70-char impl path once per concern crossing it (up to four times per file); at
- * real-quest scale (170 changed files, 680 units) that alone overflows
+ * unit repeats a ~70-char impl path once per concern crossing it (once per BlightConcern the file is
+ * eligible for); at real-quest scale (170 changed files) that alone overflows
  * `mcpToolResultStatics.maxVerbatimChars`. Grouping by
  * file so the path appears ONCE — in the `### {implPath}` heading — and reducing each unit to just
  * its concern name on a `[x]`/`[ ]` line is what brings that back under budget. Because the id can
  * no longer be read off its own line, the header states the grammar for reconstructing it
- * explicitly: heading path + concern name. blightwarden writes `itemId` into `blightLedger` and the
- * completion gate (`quest-handle-signal-back-responder`) matches on it exactly, so an agent that
- * cannot reconstruct the id correctly cannot disposition the unit the gate is waiting on.
+ * explicitly: heading path + concern name. A `reviewer-minion` writes `itemId` into `blightLedger`
+ * and `blightChecklistBuildTransformer` matches on it exactly, so a reviewer that cannot reconstruct
+ * the id correctly leaves the unit reading as remaining however carefully it reviewed it.
  *
  * The legend exists to keep this affordable too. A concern is one or two sentences, and repeating
  * it against every file on a large diff would cost more than the units themselves; stated once per
@@ -28,10 +28,9 @@
  * Even after compaction a pathological diff (thousands of changed files) could still overflow, so
  * `blightChecklistLimitsStatics.maxUnits` caps how many units this render shows, prioritizing
  * REMAINING units over already-dispositioned ones so a truncated render never hides the work an
- * agent still has to do. Truncating is SAFE, not just tolerable: the completion gate recomputes the
- * outstanding set server-side from the same build transformer this render is a view of, so a
- * truncated render can never produce a false `done` — it can only slow the agent down by forcing
- * another `get-blight-checklist` call once it has dispositioned what it can see.
+ * agent still has to do. Truncating only slows a reviewer down — it dispositions what it can see and
+ * calls `get-blight-checklist` again for the rest — because `remainingItemIds` in the HEADER is the
+ * full count off the untruncated checklist, so a short render still says how much is left.
  *
  * The `[x]`/`[ ]` column is the resume property made visible: a later session sees at a glance
  * what a predecessor actually landed on this diff, rather than reconstructing it from prose in a

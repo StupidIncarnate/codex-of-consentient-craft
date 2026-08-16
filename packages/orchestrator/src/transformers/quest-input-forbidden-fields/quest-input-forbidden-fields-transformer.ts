@@ -10,8 +10,8 @@
  * - Top-level fields not in allowlist (and not in backTransitionFields when nextStatus matches the carveout) are rejected.
  * - planningNotes acceptance: a `planningNotes` payload is accepted when either (a) `planningNotes` is in
  *   `allowedFields` or (b) the status's `allowedPlanningNotesFields` is `'all'` (only `in_progress`, where
- *   blightwarden minions write blightReports). Otherwise the whole field is rejected with the blunt
- *   `Field 'planningNotes' not allowed`.
+ *   planner-minions write operationPlans and reviewer-minions write blightLedger). Otherwise the whole
+ *   field is rejected with the blunt `Field 'planningNotes' not allowed`.
  * - planningNotes sub-field allowlist: enforced ONLY for statuses that accept planningNotes via (a) and carry
  *   a finite `allowedPlanningNotesFields` array. Every sub-field present must appear in that array; any outside
  *   it is rejected BY NAME (`Sub-field 'planningNotes.<x>' not allowed`). `'all'` imposes no sub-field gating.
@@ -72,7 +72,8 @@ export const questInputForbiddenFieldsTransformer = ({
   //      `allowedPlanningNotesFields` array then gates each sub-field by name below.
   //  (b) ungated — `allowedPlanningNotesFields` is `'all'` (only `in_progress`): `planningNotes`
   //      is accepted even though it is NOT in `allowedFields`, with no sub-field gating —
-  //      blightwarden minions write blightReports while the quest runs.
+  //      planner-minions write operationPlans and reviewer-minions write blightLedger while the
+  //      quest runs.
   //  (c) wholesale forbidden — neither (created/approved/explore_*/...); any `planningNotes` write
   //      is rejected with the blunt top-level message, since no sub-field is ever permitted there.
   const planningNotesTopLevelAllowed = allowedSet.has('planningNotes');

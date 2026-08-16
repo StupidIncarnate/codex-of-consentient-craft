@@ -32,9 +32,9 @@ const withNormalizedStamp = ({
 }): ReturnType<typeof QuestBlightLedgerEntryStub> =>
   QuestBlightLedgerEntryStub({ ...entry, createdAt: NORMALIZED_STAMP });
 
-// GAP: the safety argument for parallel blightwarden minion writes is "questModifyBroker
-// serializes on a per-questId lock, the merge is itemId-keyed replace, and disjoint minion
-// groups mean disjoint itemIds — so concurrent writers cannot clobber each other." That
+// GAP: the safety argument for concurrent ledger writes is "questModifyBroker
+// serializes on a per-questId lock, the merge is itemId-keyed replace, and disjoint reviewers
+// mean disjoint itemIds — so concurrent writers cannot clobber each other." That
 // argument was never exercised against REAL disk I/O and REAL concurrency: the sibling unit
 // test in quest-modify-broker.test.ts drives the same lock through a mocked fs proxy, whose
 // mocked read/write calls resolve on synchronous/microtask timing that cannot expose a real

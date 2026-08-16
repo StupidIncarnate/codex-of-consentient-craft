@@ -85,6 +85,15 @@ export { orchestrationProcessesState } from './state/orchestration-processes/orc
 export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
 export type { AgentRole } from './contracts/agent-role/agent-role-contract';
 
+// The discipline union this package owns, exported as a TYPE ONLY. The MCP `get-agent-prompt` tool
+// schema hand-lists the same five names and pins them with `satisfies readonly Discipline[]`, so a
+// rename or a removal here fails that package's typecheck instead of shipping a served enum the
+// orchestrator then refuses. It is a type rather than the `disciplineContract` VALUE deliberately:
+// the MCP package module-mocks `@dungeonmaster/orchestrator` wholesale in its adapter proxies, so a
+// value imported from this barrel reads as `undefined` inside every one of its unit tests, while a
+// type import is erased before that can happen.
+export type { Discipline } from './contracts/discipline/discipline-contract';
+
 export { isoTimestampContract } from './contracts/iso-timestamp/iso-timestamp-contract';
 export type { IsoTimestamp } from './contracts/iso-timestamp/iso-timestamp-contract';
 

@@ -52,8 +52,16 @@ kill the parent server otherwise).
 (`VAR=val cmd` via `sh -c`) overrides inherited env, so the child uses `<repo>/.dungeonmaster-dev` (not the parent's
 prod home). The parent's quest queue is safe.
 
-**Test isolation:** Playwright spins up a real `npm run dev --workspace=@dungeonmaster/server` under
-`DUNGEONMASTER_HOME=/tmp/dm-e2e-{pid}` with a fake Claude CLI. Ward e2e (`check-run-e2e-broker.ts`) grabs a rotating
+**Test isolation:** Playwright spins up a real `npm run dev:no-watch --workspace=@dungeonmaster/server` under
+`DUNGEONMASTER_HOME=/tmp/dm-e2e-{pid}` with a fake Claude CLI. **`dev:no-watch`, never `dev` — the watcher is the
+difference between a green suite and six mystery failures.** `dev` is `tsx watch --conditions=source`, and
+`--conditions=source` resolves every `@dungeonmaster/*` import to TypeScript source, so the whole `packages/*/src/**`
+tree sits in the watcher's module graph: ONE file save anywhere in the repo restarts the API server for ~1.5s, and
+during that window Vite's `/api` proxy answers every request with a bare 500 and an empty body. That surfaces as
+`SyntaxError: Unexpected end of JSON input` from a harness calling `response.json()`, as `waitForResponse` timeouts,
+and as panels that never mount — six unrelated-looking specs at once, none of them actually broken. If you are
+editing the repo while e2e runs (or running parallel agents that are), this is the first thing to suspect.
+Ward e2e (`check-run-e2e-broker.ts`) grabs a rotating
 free port via `netFreePortAdapter` and passes it via `DUNGEONMASTER_PORT`. Jest integration tests use
 `installTestbedCreateBroker` with their own tmp dirs. Nothing touches `<repo>/.dungeonmaster`,
 `<repo>/.dungeonmaster-dev`, or `~/.dungeonmaster` during tests.

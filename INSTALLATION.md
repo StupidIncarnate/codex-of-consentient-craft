@@ -90,15 +90,19 @@ dungeonmaster clean
 
 ## How It Works
 
-1. **Quest Creation**: When you provide a task description, Dungeonmaster creates a quest and spawns Pathseeker to plan
-   the implementation.
+1. **Quest Creation**: When you provide a task description, Dungeonmaster runs a spec conversation with you and creates
+   a quest whose flows and observables you approve before any code is written.
 
 2. **Agent Orchestration**: The system sequentially spawns specialized Claude instances:
-   - **Pathseeker**: Analyzes requirements and creates implementation tasks
-   - **Codeweaver**: Implements each task
-   - **Siegemaster**: Analyzes test coverage gaps
-   - **Blightwarden**: Cross-cutting whole-diff audit (coverage, craft, security, dedup, perf, integrity, dead-code)
+   - **Riftcarver**: Carves the quest branch, worktree and preflight build
+   - **Codeweaver**: Implements each slice of the quest
+   - **Flowrider**: Authors the flow-perspective test suites below the browser
+   - **Groundstomper**: Authors the Playwright walk for each browser-reachable flow
+   - **Siegemaster**: Hand-drives each flow against a running system and grades its suite
    - **Spiritmender**: Fixes any errors that occur
+
+   Each of those coding roles runs a planner → workers → reviewer round internally, and the reviewer also takes the
+   standing standards concerns (craft, performance, duplication, integrity, test cases) over the round's output.
 
 3. **Progress Tracking**: Visual progress indicators show agent activity
 

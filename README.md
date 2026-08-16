@@ -69,13 +69,17 @@ and delegating to specialized AI agents. Think of it as a party system for your 
 
 - **ChaosWhisperer** - Runs the spec conversation in `/dumpster-create`; interviews you,
   authors flows and observables, gathers `packagesAffected[]`, and gates on your approval
-- **Pathseeker** - Dispatched as four work-item roles (`pathseeker-surface`,
-  `pathseeker-dedup`, `pathseeker-assertion-correctness`, `pathseeker-walk`) that author
-  steps + contracts and walk every flow entry→exit to catch structural issues
+- **Riftcarver** - Carves the quest's branch, worktree and preflight build before anything else runs
 - **Codeweaver** - Weaves elegant implementations and tests
-- **Siegemaster** - Analyzes test completeness and identifies gaps
-- **Blightwarden** - Cross-cutting whole-diff audit (coverage, craft, security, dedup, perf, integrity, dead-code)
+- **Flowrider** - Authors the flow-perspective test suites below the browser
+- **Groundstomper** - Authors the Playwright walk for each flow a browser can reach
+- **Siegemaster** - Hand-drives each flow against a running system and grades its suite
 - **Spiritmender** - Heals build errors and failed tests
+
+Each of Codeweaver, Flowrider, Groundstomper and Siegemaster runs as an **orchestrator** that never
+opens a source file itself: it summons a planner, then workers one at a time, then a reviewer, and
+commits the round. The reviewer also takes the standing standards concerns — craft, performance,
+duplication, integrity and test cases — over what the round produced.
 
 ## Usage
 
@@ -178,8 +182,8 @@ on its next pass.
 ### Add a Feature
 
 Same flow. The spec phase elicits flows, observables, contracts, and `packagesAffected[]`
-before approval; `/dumpster-launch` then dispatches the operations relay: codeweaver / ward /
-flowrider / siegemaster / blightwarden / ward.
+before approval; `/dumpster-launch` then dispatches the operations relay: riftcarver / codeweaver /
+ward / flowrider / groundstomper / siegemaster / ward.
 
 ## For Monorepos
 

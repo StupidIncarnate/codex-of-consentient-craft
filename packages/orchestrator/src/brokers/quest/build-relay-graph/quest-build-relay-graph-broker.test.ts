@@ -55,7 +55,7 @@ const CLI_PACKAGE = QuestPackageEntryStub({
 
 describe('questBuildRelayGraphBroker', () => {
   describe('feature quest', () => {
-    it('VALID: {feature quest with no packagesAffected/flow tags/contracts} => riftcarver is first actionable, the derived codeweaver fallback item seeds pending behind it, and the verify tail is ward → flowrider → siegemaster → ward with no blightwarden entry', () => {
+    it('VALID: {feature quest with no packagesAffected/flow tags/contracts} => riftcarver is first actionable, the derived codeweaver fallback item seeds pending behind it, and the verify tail is ward → flowrider → siegemaster → ward with no standards-review entry', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 

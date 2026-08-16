@@ -1,22 +1,24 @@
 /**
  * PURPOSE: Defines one disposition in `quest.planningNotes.blightLedger` — the durable record that a
- * specific blightwarden review unit was actually dealt with, by whom, with what was observed
+ * specific standards-review unit was actually dealt with, by whom, with what was observed
  *
  * USAGE:
  * questBlightLedgerEntryContract.parse({
  *   itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
  *   disposition: 'reviewed',
  *   evidence: 'handleSubmit rethrows the network error with the request url attached',
- *   observedBy: 'blightwarden',
+ *   observedBy: 'reviewer-minion',
  *   workItemId: '...', createdAt: '...',
  * });
  * // Returns: QuestBlightLedgerEntry — one entry in quest.planningNotes.blightLedger[]
  *
- * This exists so completion is COMPUTED rather than remembered, mirroring
- * `quest.planningNotes.qaLedger`. Blightwarden's review unit is one changed file crossed with one of
- * four concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
+ * This exists so coverage is COMPUTED rather than remembered, mirroring
+ * `quest.planningNotes.qaLedger`. A review unit is one changed file crossed with one of the five
+ * concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
  * session resumes against what a predecessor actually landed instead of re-reviewing the whole diff
- * from a fixpoint pass whose accuracy degrades as context fills.
+ * from a pass whose accuracy degrades as context fills. `workItemId` is what the signal-back
+ * review-coverage gate reads: an orchestrator role's `done` is refused while no entry here carries
+ * that work item's id.
  *
  * `evidence` is required on every disposition and is never an adjective: for `reviewed`/`fixed` it
  * is the concrete thing observed, and for `gap`/`recorded`/`routed` it is the specific reason.

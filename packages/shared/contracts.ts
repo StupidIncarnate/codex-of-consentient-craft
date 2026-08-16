@@ -442,7 +442,7 @@ export * from './src/contracts/get-quest-input/get-quest-input.stub';
 export * from './src/contracts/modify-quest-input/modify-quest-input-contract';
 export * from './src/contracts/modify-quest-input/modify-quest-input.stub';
 
-// Planning Notes Contracts (Blightwarden whole-diff findings)
+// Planning Notes Contracts (whole-diff cross-cutting findings)
 export * from './src/contracts/planning-blight-report/planning-blight-report-contract';
 export * from './src/contracts/planning-blight-report/planning-blight-report.stub';
 
@@ -472,8 +472,8 @@ export * from './src/contracts/qa-checklist/qa-checklist.stub';
 export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry.stub';
 
-// Blightwarden Ledger Contracts (per-unit review ledger — changed file crossed with concern,
-// mirroring how quest-qa-ledger-entry backs Siegemaster's completion gate)
+// Standards-Review Ledger Contracts (per-unit review ledger a reviewer-minion writes — changed
+// file crossed with concern, mirroring how quest-qa-ledger-entry backs Siegemaster's gate)
 export * from './src/contracts/blight-concern/blight-concern-contract';
 export * from './src/contracts/blight-concern/blight-concern.stub';
 
