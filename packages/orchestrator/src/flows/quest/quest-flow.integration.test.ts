@@ -82,6 +82,7 @@ describe('QuestFlow', () => {
             QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' }),
             QuestNoteStub({ id: 'tooling-error-ward-oom', kind: 'tooling-error' }),
           ],
+          operationPlans: [],
         },
         flows: [
           FlowStub({

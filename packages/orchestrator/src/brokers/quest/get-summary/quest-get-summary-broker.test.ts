@@ -104,6 +104,7 @@ describe('questGetSummaryBroker', () => {
           qaLedger: [],
           blightLedger: [],
           questNotes: [QuestNoteStub({ id: 'tooling-error-ward-oom', kind: 'tooling-error' })],
+          operationPlans: [],
         },
       });
       proxy.setupQuestFound({ quest });

@@ -1802,6 +1802,7 @@ describe('McpServerFlow', () => {
               at: '2026-01-02T00:00:00.000Z' as never,
             }),
           ],
+          operationPlans: [],
         },
       });
 

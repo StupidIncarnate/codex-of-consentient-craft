@@ -21,6 +21,12 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     workItems: [],
     wardResults: [],
     riftcarverResults: [],
-    planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+    planningNotes: {
+      blightReports: [],
+      qaLedger: [],
+      blightLedger: [],
+      questNotes: [],
+      operationPlans: [],
+    },
     ...props,
   });

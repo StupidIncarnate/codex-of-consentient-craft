@@ -91,7 +91,13 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightLedger: [], blightReports: [], qaLedger: [], questNotes: [] },
+        planningNotes: {
+          blightLedger: [],
+          blightReports: [],
+          qaLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
       });
     });
 
@@ -129,7 +135,13 @@ describe('questGetBroker', () => {
         designDecisions: result.quest?.designDecisions,
         toolingRequirements: result.quest?.toolingRequirements,
       }).toStrictEqual({
-        planningNotes: { blightLedger: [], blightReports: [blight], qaLedger: [], questNotes: [] },
+        planningNotes: {
+          blightLedger: [],
+          blightReports: [blight],
+          qaLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         operations: [operation],
         contracts: [contractEntry],
         flows: [],
@@ -169,7 +181,13 @@ describe('questGetBroker', () => {
         toolingRequirements: result.quest?.toolingRequirements,
         flows: result.quest?.flows,
       }).toStrictEqual({
-        planningNotes: { blightLedger: [], blightReports: [blight], qaLedger: [], questNotes: [] },
+        planningNotes: {
+          blightLedger: [],
+          blightReports: [blight],
+          qaLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         operations: [operation],
         contracts: [contractEntry],
         toolingRequirements: [tooling],

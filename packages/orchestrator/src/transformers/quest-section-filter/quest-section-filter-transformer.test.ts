@@ -62,7 +62,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [
           FlowStub({
             nodes: [
@@ -107,7 +113,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });
@@ -143,7 +155,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });
@@ -183,7 +201,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [flow],
       });
     });
@@ -219,7 +243,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });
@@ -262,7 +292,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [FlowStub()],
       });
     });
@@ -317,7 +353,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });
@@ -368,7 +410,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });
@@ -402,7 +450,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: quest.flows,
       });
     });
@@ -440,7 +494,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });
@@ -474,7 +534,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });
@@ -508,7 +574,13 @@ describe('questSectionFilterTransformer', () => {
         wardResults: [],
         riftcarverResults: [],
         comments: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         flows: [],
       });
     });

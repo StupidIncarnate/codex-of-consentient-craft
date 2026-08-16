@@ -108,6 +108,87 @@ describe('questGetBlightChecklistBroker', () => {
     });
   });
 
+  describe("scope: 'working-tree' — the pre-commit surface", () => {
+    // THE regression guard. `git diff` in every form reports TRACKED paths only, so a file a
+    // session has just created is in no diff at all. A reviewer that runs before its host session
+    // commits sees mostly net-new files, so a working-tree scope blind to untracked additions
+    // returns a green-looking checklist having never opened the files most likely to carry a
+    // defect. Assert on the enumerated implPaths, not on a count.
+    it('VALID: {one tracked modification and one NET-NEW UNTRACKED file} => both files carry review units', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorkingTreeDiff({
+        trackedFiles: ['packages/orchestrator/src/brokers/foo/foo-broker.ts'],
+        untrackedFiles: ['packages/orchestrator/src/brokers/brand-new/brand-new-broker.ts'],
+      });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'working-tree',
+      });
+
+      expect([...new Set(result!.items.map((item) => String(item.implPath)))]).toStrictEqual([
+        'packages/orchestrator/src/brokers/brand-new/brand-new-broker.ts',
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      ]);
+    });
+
+    it("VALID: {scope: 'working-tree'} => git is read twice — a rangeless HEAD diff and an ls-files for the untracked half", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorkingTreeDiff({ trackedFiles: [], untrackedFiles: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'working-tree',
+      });
+
+      expect(proxy.getGitArgsList()).toStrictEqual([
+        ['diff', 'HEAD', '--name-only'],
+        ['ls-files', '--others', '--exclude-standard'],
+      ]);
+    });
+
+    // The other two scopes are measurements AGAINST the review base, so an unpinned quest has
+    // nothing for them to measure. This one is measured from HEAD alone — gating it on `baseRef`
+    // would answer null, read downstream as "nothing to review", for the surface that has the most.
+    it('VALID: {no pinned baseRef} => still returns a checklist, because HEAD is the only reference this scope needs', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({});
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorkingTreeDiff({
+        trackedFiles: [],
+        untrackedFiles: ['packages/orchestrator/src/brokers/brand-new/brand-new-broker.ts'],
+      });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'working-tree',
+      });
+
+      expect([...new Set(result!.items.map((item) => String(item.implPath)))]).toStrictEqual([
+        'packages/orchestrator/src/brokers/brand-new/brand-new-broker.ts',
+      ]);
+    });
+
+    it('VALID: {quest records a worktreePath} => both git readings run inside that worktree, not the repo root', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktree({ quest, worktreePath: '/home/testuser/worktrees/quest-abc12345' });
+      proxy.setupWorkingTreeDiff({ trackedFiles: [], untrackedFiles: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'working-tree',
+      });
+
+      expect(proxy.getGitDiffCwd()).toBe('/home/testuser/worktrees/quest-abc12345');
+    });
+  });
+
   describe("the quest's own package declarations reach the units", () => {
     it('VALID: {packagesAffected declaring a location the changed file sits under} => the units carry that package', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();

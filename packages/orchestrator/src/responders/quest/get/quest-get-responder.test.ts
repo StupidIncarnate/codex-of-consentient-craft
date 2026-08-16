@@ -38,6 +38,7 @@ describe('QuestGetResponder', () => {
         blightReports: [],
         qaLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
       expect(result.quest?.operations).toStrictEqual([]);
       expect(result.quest?.contracts).toStrictEqual([]);
@@ -56,6 +57,7 @@ describe('QuestGetResponder', () => {
         blightReports: [],
         qaLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
       expect(result.quest?.operations).toStrictEqual([]);
       expect(result.quest?.contracts).toStrictEqual([]);

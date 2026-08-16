@@ -33,6 +33,11 @@ const SCALE_TEST_PACKAGE_NAMES = [
   'tooling',
   'eslint-plugin',
 ];
+// `contracts` is deliberately absent: a `-contract.ts` is declaration-shaped, so
+// blightChecklistBuildTransformer withholds the concerns blightConcernGatingStatics names and the
+// file crosses THREE concerns instead of five. These two scale tests measure the render at its most
+// expensive, which is the ungated per-file shape — a fixture mixing both would measure a cheaper
+// average and size the cap against a diff no real quest produces.
 const SCALE_TEST_FOLDER_TYPES = [
   'brokers',
   'transformers',
@@ -40,7 +45,7 @@ const SCALE_TEST_FOLDER_TYPES = [
   'responders',
   'adapters',
   'guards',
-  'contracts',
+  'bindings',
 ];
 const SCALE_TEST_DOMAIN_STEMS = [
   'quest-blight-checklist',

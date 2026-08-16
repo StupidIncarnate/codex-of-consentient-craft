@@ -995,7 +995,13 @@ describe('QuestHandleResponder', () => {
         questId: 'test-quest-id',
         result: {
           success: true,
-          data: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+          data: {
+            blightReports: [],
+            qaLedger: [],
+            blightLedger: [],
+            questNotes: [],
+            operationPlans: [],
+          },
         },
       });
 
@@ -1011,7 +1017,13 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify(
               {
                 success: true,
-                data: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+                data: {
+                  blightReports: [],
+                  qaLedger: [],
+                  blightLedger: [],
+                  questNotes: [],
+                  operationPlans: [],
+                },
               },
               null,
               JSON_INDENT_SPACES,

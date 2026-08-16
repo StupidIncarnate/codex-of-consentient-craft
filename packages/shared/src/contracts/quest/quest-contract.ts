@@ -13,6 +13,7 @@ import { baseBranchNameContract } from '../base-branch-name/base-branch-name-con
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
+import { operationPlanContract } from '../operation-plan/operation-plan-contract';
 import { packageGraphEntryContract } from '../package-graph-entry/package-graph-entry-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
@@ -164,10 +165,22 @@ export const questContract = z.object({
         .describe(
           'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a blightwarden review unit by its blightLedger disposition.',
         ),
+      operationPlans: z
+        .array(operationPlanContract)
+        .default([])
+        .describe(
+          "Planner sub-agent outputs, one per plan/work/review round, so the orchestrator session that dispatched a planner can read its plan back off the quest instead of holding it in the dispatching session's own context. Appended, never replaced — a rejected round's plan stays for audit alongside the round that superseded it.",
+        ),
     })
-    .default({ blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] })
+    .default({
+      blightReports: [],
+      qaLedger: [],
+      blightLedger: [],
+      questNotes: [],
+      operationPlans: [],
+    })
     .describe(
-      'Blightwarden blight reports (cross-cutting whole-diff findings written by the blightwarden-group-minion and blightwarden-crosscut-minion sub-agents, judged by the blightwarden operator), the per-unit blightwarden review ledger, the Siegemaster QA coverage ledger, and the durable side-channel quest notes',
+      'Blightwarden blight reports (cross-cutting whole-diff findings written by the blightwarden-group-minion and blightwarden-crosscut-minion sub-agents, judged by the blightwarden operator), the per-unit blightwarden review ledger, the Siegemaster QA coverage ledger, the durable side-channel quest notes, and planner sub-agent output plans',
     ),
   questSource: questSourceContract
     .optional()

@@ -1,6 +1,8 @@
 /**
  * PURPOSE: Proxy for quest-get-blight-checklist-broker that mocks quest find/load, the quest's
- * cwd resolution (worktree / repo-root / missing-worktree), and the git diff
+ * cwd resolution (worktree / repo-root / missing-worktree), and both git readings — the `quest` /
+ * `commit` scopes' single diff (`setupDiff`) and the `working-tree` scope's tracked+untracked union
+ * (`setupWorkingTreeDiff`)
  *
  * USAGE:
  * const proxy = questGetBlightChecklistBrokerProxy();
@@ -23,6 +25,7 @@ import { registerMock, registerModuleMock } from '@dungeonmaster/testing/registe
 
 import { gitDiffFilesAdapterProxy } from '../../../adapters/git/diff-files/git-diff-files-adapter.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
+import { gitWorkingTreeFilesBrokerProxy } from '../../git/working-tree-files/git-working-tree-files-broker.proxy';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
@@ -41,10 +44,15 @@ export const questGetBlightChecklistBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   setupDiff: (params: { files: readonly string[] }) => void;
+  setupWorkingTreeDiff: (params: {
+    trackedFiles: readonly string[];
+    untrackedFiles: readonly string[];
+  }) => void;
   setupWorktree: (params: { quest: Quest; worktreePath: string }) => void;
   setupWorktreeMissing: (params: { quest: Quest; worktreePath: string }) => void;
   getGitDiffArgs: () => unknown;
   getGitDiffCwd: () => unknown;
+  getGitArgsList: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
@@ -54,6 +62,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
   questCwdResolveBrokerProxy();
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
   const gitDiffProxy = gitDiffFilesAdapterProxy();
+  const workingTreeProxy = gitWorkingTreeFilesBrokerProxy();
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -117,6 +126,19 @@ export const questGetBlightChecklistBrokerProxy = (): {
       gitDiffProxy.setupDiffOutput({ output: files.join('\n') });
     },
 
+    // The `working-tree` scope reads git TWICE — a rangeless diff for tracked modifications and an
+    // ls-files for the untracked additions — so the two answers are staged separately here rather
+    // than through setupDiff's single command-addressed answer, which cannot tell them apart.
+    setupWorkingTreeDiff: ({
+      trackedFiles,
+      untrackedFiles,
+    }: {
+      trackedFiles: readonly string[];
+      untrackedFiles: readonly string[];
+    }): void => {
+      workingTreeProxy.setupWorkingTree({ trackedFiles, untrackedFiles });
+    },
+
     setupWorktree: ({ quest, worktreePath }: { quest: Quest; worktreePath: string }): void => {
       cwdMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
@@ -144,5 +166,9 @@ export const questGetBlightChecklistBrokerProxy = (): {
     getGitDiffArgs: (): unknown => gitDiffProxy.getSpawnedArgs(),
 
     getGitDiffCwd: (): unknown => gitDiffProxy.getSpawnedCwd(),
+
+    // Every git argv the broker spawned, in order — the `working-tree` scope's two readings need
+    // both, and getGitDiffArgs answers only the last.
+    getGitArgsList: (): readonly unknown[] => workingTreeProxy.getSpawnedArgsList(),
   };
 };

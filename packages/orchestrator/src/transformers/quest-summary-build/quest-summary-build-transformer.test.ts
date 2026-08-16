@@ -811,6 +811,7 @@ describe('questSummaryBuildTransformer', () => {
             QuestNoteStub({ id: 'walk-reset-after-anchor-fix', kind: 'walk-reset' }),
             QuestNoteStub({ id: 'open-question-batch-notify', kind: 'open-question' }),
           ],
+          operationPlans: [],
         },
       });
 

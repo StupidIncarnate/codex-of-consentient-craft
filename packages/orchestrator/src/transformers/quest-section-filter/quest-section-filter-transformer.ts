@@ -39,7 +39,8 @@ export const questSectionFilterTransformer = ({
         qaLedger: [],
         blightLedger: [],
         questNotes: [],
-      } as Quest['planningNotes'];
+        operationPlans: [],
+      };
       continue;
     }
     filtered[section] = [] as never;

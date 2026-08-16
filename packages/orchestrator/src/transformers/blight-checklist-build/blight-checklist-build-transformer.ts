@@ -32,6 +32,14 @@
  * path into scope — a test-only diff still needs its implementation read to judge whether the test
  * asserts anything.
  *
+ * CONCERNS: most groups cross every `BlightConcern`, but a DECLARATION-SHAPED group — a
+ * `-contract.ts`, a stub/proxy/test companion that resolved to itself, an `.e2e.ts`/`.harness.ts`,
+ * a bare `index.ts`, or a re-export file sitting directly in a declared package root — is withheld
+ * the concerns `blightConcernGatingStatics.structurallyInertConcerns` names. Which concerns those
+ * are, and the measurement behind the cut, live in that statics file; what belongs here is that the
+ * gate keys on the GROUP'S `implPath`, never on the changed files that collapsed onto it, so an
+ * impl file reviewed only because its test changed still crosses every concern.
+ *
  * PACKAGE: each group's `implPath` is matched against the `location` of every entry in the quest's
  * `packagesAffected`, longest prefix winning so a package nested inside another still resolves to
  * itself. The declared locations are the ONLY source — no layout is assumed and no package name is
@@ -66,6 +74,8 @@ import type {
   RepoRelativePath,
   RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
+
+import { blightConcernGatingStatics } from '../../statics/blight-concern-gating/blight-concern-gating-statics';
 
 // The concern half of every unit's label, colocated here so the wording lives in one place. `{file}`
 // is substituted with the impl path's basename at generation time. Deliberately NOT type-annotated
@@ -224,7 +234,36 @@ export const blightChecklistBuildTransformer = ({
       (declared) =>
         implPathText === declared.prefix || implPathText.startsWith(`${declared.prefix}/`),
     );
-    return blightConcernContract.options.map((concern) =>
+
+    // A barrel is either a bare `index.ts` anywhere, or a re-export file sitting DIRECTLY in a
+    // declared package's root (`packages/shared/contracts.ts`) — the shape this repo's cross-package
+    // public API takes, since those root barrels live outside `src/`. The declared location is the
+    // only honest test for the second form: the transformer refuses to read a package out of a path
+    // shape anywhere else (see PACKAGE above), and inventing a `packages/<x>/<y>.ts` rule here would
+    // reintroduce exactly that assumption for a repo that lays its packages out differently.
+    const isBarrel =
+      basename === blightConcernGatingStatics.barrelBasename ||
+      (owningPackage !== undefined && implPathText === `${owningPackage.prefix}/${basename}`);
+
+    // `perf` against a zod contract, and `integrity` against a brand-new file whose only consumer
+    // arrives in the same commit, are STRUCTURALLY incapable of firing — they can be dispositioned
+    // "n/a" and nothing else. Measured: those two concerns produced 0 findings across 88 units of
+    // exactly this file mix. The other three still apply here in full, so a declaration-shaped file
+    // keeps a unit group rather than dropping out of review.
+    const isDeclarationShaped =
+      isBarrel ||
+      blightConcernGatingStatics.inertImplSuffixes.some((suffix) => implPathText.endsWith(suffix));
+
+    const concerns = isDeclarationShaped
+      ? blightConcernContract.options.filter(
+          (concern) =>
+            !blightConcernGatingStatics.structurallyInertConcerns.some(
+              (inert) => inert === concern,
+            ),
+        )
+      : blightConcernContract.options;
+
+    return concerns.map((concern) =>
       blightChecklistItemContract.parse({
         id: `${implPathText}:${concern}`,
         implPath,

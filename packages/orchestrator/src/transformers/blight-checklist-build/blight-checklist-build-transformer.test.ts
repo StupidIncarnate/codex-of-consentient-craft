@@ -141,7 +141,7 @@ describe('blightChecklistBuildTransformer', () => {
       });
     });
 
-    it('VALID: {contract + its test + its stub} => ONE group of one unit per concern, not two groups', () => {
+    it('VALID: {contract + its test + its stub} => ONE group, not two, and only the concerns a contract can answer', () => {
       const contractPath = RepoRelativePathStub({
         value: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts',
       });
@@ -160,9 +160,7 @@ describe('blightChecklistBuildTransformer', () => {
 
       expect(result.items.map((item) => String(item.id))).toStrictEqual([
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:craft',
-        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:perf',
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:dedup',
-        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:integrity',
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:test-cases',
       ]);
     });
@@ -330,6 +328,135 @@ describe('blightChecklistBuildTransformer', () => {
       });
 
       expect(result.items).toStrictEqual([]);
+    });
+  });
+
+  describe('concern gating: a declaration-shaped file crosses only the concerns it can answer', () => {
+    // The measured cut: `perf` and `integrity` produced ZERO findings across 88 units of exactly
+    // this file mix. `perf` against a zod contract asks whether a schema declaration has a
+    // quadratic loop; `integrity` against a brand-new file asks whether its changed exports still
+    // mean what they did, when the only consumer arrives in the same commit. Assert the exact id
+    // list, not a count — the point is WHICH three survive, and that all three do.
+    it('VALID: {a -contract.ts} => craft, dedup, and test-cases units only, no perf and no integrity', () => {
+      const contractPath = RepoRelativePathStub({
+        value: 'packages/shared/src/contracts/torch-fuel/torch-fuel-contract.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({ changedFiles: [contractPath], baseRef });
+
+      expect(result.items.map((item) => String(item.id))).toStrictEqual([
+        'packages/shared/src/contracts/torch-fuel/torch-fuel-contract.ts:craft',
+        'packages/shared/src/contracts/torch-fuel/torch-fuel-contract.ts:dedup',
+        'packages/shared/src/contracts/torch-fuel/torch-fuel-contract.ts:test-cases',
+      ]);
+    });
+
+    it.each([
+      'packages/web/src/flows/quest-chat/foo.e2e.ts',
+      'packages/web/test/harnesses/quest/quest.harness.ts',
+      'packages/orchestrator/src/index.ts',
+    ])(
+      'VALID: {%s — a self-paired declaration-shaped file} => craft, dedup, and test-cases units only',
+      (path) => {
+        const { baseRef } = BlightChecklistStub();
+
+        const result = blightChecklistBuildTransformer({
+          changedFiles: [RepoRelativePathStub({ value: path })],
+          baseRef,
+        });
+
+        expect(result.items.map((item) => item.concern)).toStrictEqual([
+          'craft',
+          'dedup',
+          'test-cases',
+        ]);
+      },
+    );
+
+    // A package-root re-export (`packages/shared/contracts.ts`) is this repo's cross-package public
+    // API shape, and it lives OUTSIDE `src/` so no suffix identifies it. The declared package
+    // location is the only honest test: the file sits directly in that root. This transformer reads
+    // a package out of a declaration and never out of a path shape, so gating this on a
+    // `packages/<x>/<y>.ts` pattern would reintroduce the layout assumption it refuses everywhere
+    // else.
+    it("VALID: {a re-export file sitting directly in a declared package's root} => craft, dedup, and test-cases units only", () => {
+      const barrelPath = RepoRelativePathStub({ value: 'packages/shared/contracts.ts' });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [barrelPath],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'shared', location: './packages/shared' }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items.map((item) => String(item.id))).toStrictEqual([
+        'packages/shared/contracts.ts:craft',
+        'packages/shared/contracts.ts:dedup',
+        'packages/shared/contracts.ts:test-cases',
+      ]);
+    });
+
+    it('VALID: {an ordinary impl file} => still crosses every concern, so the gate narrows rather than replaces', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({ changedFiles: [implPath], baseRef });
+
+      expect(result.items.map((item) => item.concern)).toStrictEqual([
+        'craft',
+        'perf',
+        'dedup',
+        'integrity',
+        'test-cases',
+      ]);
+    });
+
+    // The gate keys on the GROUP'S implPath, never on the changed files that collapsed onto it —
+    // otherwise an impl file pulled into review by a companion change would lose two concerns for
+    // having a test.
+    it('VALID: {an impl file whose only changed companion is its .test.ts} => the impl still crosses every concern', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const testPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath, testPath],
+        baseRef,
+      });
+
+      expect(result.items.map((item) => item.concern)).toStrictEqual([
+        'craft',
+        'perf',
+        'dedup',
+        'integrity',
+        'test-cases',
+      ]);
+    });
+
+    it('VALID: {only a .proxy.ts changed, impl absent} => the resolved impl is NOT declaration-shaped and crosses every concern', () => {
+      const proxyPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.proxy.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({ changedFiles: [proxyPath], baseRef });
+
+      expect(result.items.map((item) => `${String(item.implPath)}:${item.concern}`)).toStrictEqual([
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts:craft',
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts:perf',
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts:dedup',
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts:integrity',
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts:test-cases',
+      ]);
     });
   });
 

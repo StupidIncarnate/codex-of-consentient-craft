@@ -19,6 +19,7 @@ describe('questGetPlanningNotesBroker', () => {
         blightReports: [],
         qaLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -41,6 +42,7 @@ describe('questGetPlanningNotesBroker', () => {
         blightReports: [blight],
         qaLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
   });

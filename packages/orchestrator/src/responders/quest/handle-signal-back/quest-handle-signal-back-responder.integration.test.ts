@@ -211,7 +211,13 @@ describe('QuestHandleSignalBackResponder (integration) — blightscout completio
       await questHelper.seedInProgressRelay({
         questId,
         baseRef,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: ledger, questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: ledger,
+          questNotes: [],
+          operationPlans: [],
+        },
         operations: [
           OperationItemStub({
             id: blightOpId,

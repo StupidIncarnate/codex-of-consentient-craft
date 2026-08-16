@@ -1,6 +1,7 @@
 import { FlowStub } from '../flow/flow.stub';
 import { FlowNodeStub } from '../flow-node/flow-node.stub';
 import { OperationItemStub } from '../operation-item/operation-item.stub';
+import { OperationPlanStub } from '../operation-plan/operation-plan.stub';
 import { PackageGraphEntryStub } from '../package-graph-entry/package-graph-entry.stub';
 import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
 import { QuestBlightLedgerEntryStub } from '../quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
@@ -43,7 +44,13 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
       });
     });
 
@@ -76,7 +83,13 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
       });
     });
 
@@ -109,7 +122,13 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
       });
     });
 
@@ -227,7 +246,13 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
       });
     });
 
@@ -384,6 +409,7 @@ describe('questContract', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -411,6 +437,7 @@ describe('questContract', () => {
         qaLedger: [],
         blightLedger: [firstEntry, secondEntry],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -442,10 +469,37 @@ describe('questContract', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [openQuestion, toolingError],
+        operationPlans: [],
       });
     });
 
-    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports, qaLedger, blightLedger, and questNotes', () => {
+    it('VALID: quest with populated operationPlans => parses successfully', () => {
+      const plan = OperationPlanStub({
+        round: 2,
+        summary: "Re-planned after the first round's piece was rejected.",
+      });
+      const quest = QuestStub({
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [plan],
+        },
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [],
+        blightLedger: [],
+        questNotes: [],
+        operationPlans: [plan],
+      });
+    });
+
+    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports, qaLedger, blightLedger, questNotes, and operationPlans', () => {
       const result = questContract.parse({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -462,6 +516,7 @@ describe('questContract', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -517,7 +572,13 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
         branchName: 'quest/add-auth-7bc217a1',
         baseBranch: 'main',
         worktreePath: '/repo/worktrees/add-auth-7bc217a1',

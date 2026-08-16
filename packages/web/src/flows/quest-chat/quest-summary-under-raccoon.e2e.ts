@@ -92,6 +92,7 @@ const SUMMARY_PLANNING_NOTES = {
       at: '2026-01-02T00:00:00.000Z',
     },
   ],
+  operationPlans: [],
 };
 
 wireHarnessLifecycle({ harness: claudeMockHarness({ guildPath: GUILD_PATH }), testObj: test });

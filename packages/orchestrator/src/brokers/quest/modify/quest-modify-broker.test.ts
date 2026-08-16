@@ -635,6 +635,7 @@ describe('questModifyBroker', () => {
         qaLedger: [entry],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -678,6 +679,7 @@ describe('questModifyBroker', () => {
         qaLedger: [untouched, corrected],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -711,6 +713,7 @@ describe('questModifyBroker', () => {
         qaLedger: [existingEntry],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -755,6 +758,7 @@ describe('questModifyBroker', () => {
         qaLedger: [existingEntry, newEntry],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -792,6 +796,7 @@ describe('questModifyBroker', () => {
         qaLedger: [existingEntry],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
   });
@@ -834,6 +839,7 @@ describe('questModifyBroker', () => {
         qaLedger: [last],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
   });
@@ -869,6 +875,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [entry],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -912,6 +919,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [untouched, corrected],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -952,6 +960,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [last],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -985,6 +994,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [existingEntry],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -1049,6 +1059,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -1090,6 +1101,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
 
@@ -1124,6 +1136,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [],
+        operationPlans: [],
       });
     });
   });
@@ -1169,6 +1182,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [existingNote, newNote],
+        operationPlans: [],
       });
     });
 
@@ -1219,6 +1233,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [untouched, sharpened],
+        operationPlans: [],
       });
     });
 
@@ -1258,6 +1273,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [existingNote],
+        operationPlans: [],
       });
     });
 
@@ -1307,6 +1323,7 @@ describe('questModifyBroker', () => {
         qaLedger: [existingEntry, newEntry],
         blightLedger: [],
         questNotes: [existingNote, newNote],
+        operationPlans: [],
       });
     });
 
@@ -1345,6 +1362,7 @@ describe('questModifyBroker', () => {
         qaLedger: [],
         blightLedger: [],
         questNotes: [last],
+        operationPlans: [],
       });
     });
   });

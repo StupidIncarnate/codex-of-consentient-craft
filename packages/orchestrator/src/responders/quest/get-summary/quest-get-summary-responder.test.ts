@@ -117,6 +117,7 @@ describe('QuestGetSummaryResponder', () => {
           qaLedger: [],
           blightLedger: [],
           questNotes: [QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' })],
+          operationPlans: [],
         },
       });
       proxy.setupQuestFound({ quest });

@@ -207,6 +207,7 @@ describe('QuestFlow', () => {
           qaLedger: [],
           blightLedger: [],
           questNotes: [openQuestionNote, toolingErrorNote],
+          operationPlans: [],
         },
       });
 

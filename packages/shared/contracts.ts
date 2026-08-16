@@ -747,3 +747,17 @@ export * from './src/contracts/config-index/config-index.stub';
 export * from './src/contracts/floor-name/floor-name-contract';
 export * from './src/contracts/floor-name/floor-name.stub';
 export * from './src/contracts/quest-section/quest-section-contract';
+
+// Operation Plan Contracts (planner sub-agent output — read back off the quest by the
+// orchestrator session that dispatched the planner, without holding the plan in context)
+export * from './src/contracts/operation-plan-piece-id/operation-plan-piece-id-contract';
+export * from './src/contracts/operation-plan-piece-id/operation-plan-piece-id.stub';
+
+export * from './src/contracts/operation-plan-piece/operation-plan-piece-contract';
+export * from './src/contracts/operation-plan-piece/operation-plan-piece.stub';
+
+export * from './src/contracts/operation-plan-id/operation-plan-id-contract';
+export * from './src/contracts/operation-plan-id/operation-plan-id.stub';
+
+export * from './src/contracts/operation-plan/operation-plan-contract';
+export * from './src/contracts/operation-plan/operation-plan.stub';
