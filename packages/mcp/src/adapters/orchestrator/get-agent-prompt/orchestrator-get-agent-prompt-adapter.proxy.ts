@@ -14,6 +14,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 export const orchestratorGetAgentPromptAdapterProxy = (): {
   returns: (params: { agent: string; questId: QuestId; result: AgentPromptResult }) => void;
   throws: (params: { agent: string; questId: QuestId; error: Error }) => void;
+  getLastCallArgs: () => unknown;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.getAgentPrompt });
 
@@ -40,5 +41,10 @@ export const orchestratorGetAgentPromptAdapterProxy = (): {
     }): void => {
       handle.calledWith([{ agent, questId }]).rejects(error);
     },
+    getLastCallArgs: (): unknown =>
+      handle
+        .callsMatching([])
+        .map((call) => call[0])
+        .at(-1),
   };
 };

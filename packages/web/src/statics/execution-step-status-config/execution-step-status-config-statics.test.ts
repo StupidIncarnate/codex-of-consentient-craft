@@ -27,7 +27,6 @@ describe('executionStepStatusConfigStatics', () => {
         flowrider: 'primary',
         groundstomper: 'primary',
         siegemaster: 'primary',
-        blightscout: 'primary',
         pesteater: 'primary',
         warpgate: 'primary',
       },

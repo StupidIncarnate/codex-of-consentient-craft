@@ -27,9 +27,6 @@ export const slotManagerStatics = {
   siegemaster: {
     maxAttempts: 3,
   },
-  blightscout: {
-    maxAttempts: 3,
-  },
   pesteater: {
     maxAttempts: 3,
   },

@@ -11,6 +11,10 @@
  * });
  * // Returns: Signoff — the value stored on `flowriderSignoff` or `siegemasterSignoff`
  *
+ * `at` is REQUIRED here because this is the PERSISTED shape and a stored sign-off always carries
+ * one. It is the write path — `questModifyBroker` — that puts it there, overwriting whatever the
+ * caller sent; the modify-quest input shape therefore accepts the field missing.
+ *
  * `evidence` is required on BOTH verdicts and is never an adjective. On `confirmed` it is the proof:
  * a test `file:line` plus what makes that test fail (Flowrider), or the value measured off the
  * running system (Siegemaster). On `unconfirmable` it is the specific reason confirmation was out of
@@ -47,7 +51,17 @@ export const signoffContract = z
         'Required on `unconfirmable`: what was tried and why it could not be confirmed, phrased so someone else can pick it up.',
       ),
     workItemId: questWorkItemIdContract,
-    at: z.string().datetime().brand<'IsoTimestamp'>(),
+    at: z
+      .string()
+      .datetime()
+      .brand<'IsoTimestamp'>()
+      .describe(
+        'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
+          'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +
+          'identical fabricated timestamp across every sign-off on a quest, and timestamps set in a ' +
+          'future that never happened. Required here because a persisted sign-off always carries ' +
+          'one; the modify-quest input shape drops the requirement, since the write path supplies it.',
+      ),
   })
   .superRefine((value, ctx) => {
     if (value.verdict === 'unconfirmable' && value.question === undefined) {

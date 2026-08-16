@@ -1,10 +1,12 @@
 import {
+  FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowOffMapSignoffStub,
   FlowStub,
   ModifyQuestInputStub,
   OperationItemStub,
+  OperationPlanStub,
   PlanningBlightReportStub,
   QuestBlightLedgerEntryStub,
   QuestCommentStub,
@@ -23,6 +25,13 @@ import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
 
 type PersistedQuest = ReturnType<typeof QuestStub>;
+
+// The instant every write in this file is stamped with. `questModifyBrokerProxy` composes the
+// persist proxy, which composes `questOutboxAppendBrokerProxy` — that is where
+// `Date.prototype.toISOString` is pinned here. The broker writes this over whatever `at` /
+// `createdAt` the caller sent, so it is the expected value on every sign-off, ledger entry, note and
+// plan a payload TOUCHES — and never on one it merely carried through.
+const SERVER_STAMPED_AT = '2024-01-15T10:00:00.000Z';
 
 const parseLatestPersisted = (persisted: readonly unknown[]): PersistedQuest => {
   const raw = persisted[persisted.length - 1];
@@ -1021,6 +1030,118 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({ success: true });
     });
+
+    it("VALID: {blightLedger entry carrying createdAt: '2020-01-01'} => persists the server's stamp, not the value the caller sent", async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          blightLedger: [
+            QuestBlightLedgerEntryStub({ createdAt: '2020-01-01T00:00:00.000Z' as never }),
+          ],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.blightLedger).toStrictEqual([
+        QuestBlightLedgerEntryStub({ createdAt: SERVER_STAMPED_AT }),
+      ]);
+    });
+
+    it('VALID: {blightLedger entry with NO createdAt} => accepted and persisted carrying the server stamp', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // The shape an agent that correctly declines to invent a clock reading sends: every field
+      // QuestBlightLedgerEntryStub carries except the timestamp.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          blightLedger: [
+            {
+              itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+              disposition: 'reviewed',
+              evidence: 'handleSubmit rethrows the network error with the request url attached',
+              observedBy: 'blightwarden',
+              rippleSites: [],
+              workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+            },
+          ],
+        } as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.blightLedger).toStrictEqual([
+        QuestBlightLedgerEntryStub({ createdAt: SERVER_STAMPED_AT }),
+      ]);
+    });
+
+    it('VALID: {a title-only write} => an existing blightLedger entry keeps its own createdAt rather than being re-stamped', async () => {
+      const proxy = questModifyBrokerProxy();
+      const untouched = QuestBlightLedgerEntryStub({
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft' as never,
+        createdAt: '2019-03-04T05:06:07.000Z' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [untouched] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          blightLedger: [
+            QuestBlightLedgerEntryStub({
+              itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:perf' as never,
+            }),
+          ],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.blightLedger).toStrictEqual([
+        untouched,
+        QuestBlightLedgerEntryStub({
+          itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:perf' as never,
+          createdAt: SERVER_STAMPED_AT,
+        }),
+      ]);
+    });
   });
 
   describe('planningNotes handling (blightReports only)', () => {
@@ -1181,7 +1302,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [],
-        questNotes: [existingNote, newNote],
+        questNotes: [existingNote, QuestNoteStub({ ...newNote, at: SERVER_STAMPED_AT })],
         operationPlans: [],
       });
     });
@@ -1232,7 +1353,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [],
-        questNotes: [untouched, sharpened],
+        questNotes: [untouched, QuestNoteStub({ ...sharpened, at: SERVER_STAMPED_AT })],
         operationPlans: [],
       });
     });
@@ -1322,7 +1443,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [existingEntry, newEntry],
         blightLedger: [],
-        questNotes: [existingNote, newNote],
+        questNotes: [existingNote, QuestNoteStub({ ...newNote, at: SERVER_STAMPED_AT })],
         operationPlans: [],
       });
     });
@@ -1361,9 +1482,292 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [],
-        questNotes: [last],
+        questNotes: [QuestNoteStub({ ...last, at: SERVER_STAMPED_AT })],
         operationPlans: [],
       });
+    });
+
+    it("VALID: {questNote carrying at: '2020-01-01'} => persists the server's stamp, not the value the caller sent", async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { questNotes: [QuestNoteStub({ at: '2020-01-01T00:00:00.000Z' })] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.questNotes).toStrictEqual([
+        QuestNoteStub({ at: SERVER_STAMPED_AT }),
+      ]);
+    });
+
+    it('VALID: {questNote with NO at} => accepted and persisted carrying the server stamp', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Every field QuestNoteStub carries except the timestamp — the payload an agent following the
+      // prompts now sends.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          questNotes: [
+            {
+              id: 'open-question-comment-anchor-scope',
+              kind: 'open-question',
+              role: 'siegemaster',
+              workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+              flowId: 'view-persisted-comments',
+              unitId: 'view-persisted-comments:observable:check-badge-count-text',
+              summary: 'Should a stale anchor notify per box or once per batch?',
+              detail:
+                'The batch send drops boxes whose node id no longer exists in the flow. Asked the operator; no answer landed before the walk ended.',
+            },
+          ],
+        } as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.questNotes).toStrictEqual([
+        QuestNoteStub({ at: SERVER_STAMPED_AT }),
+      ]);
+    });
+
+    it('VALID: {a write appending a second note} => the note already on the quest keeps its own at rather than being re-stamped', async () => {
+      const proxy = questModifyBrokerProxy();
+      const untouched = QuestNoteStub({
+        id: 'tooling-error-ward-e2e-port' as never,
+        kind: 'tooling-error',
+        at: '2019-03-04T05:06:07.000Z',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [untouched],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          questNotes: [QuestNoteStub({ id: 'open-question-comment-anchor-scope' as never })],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.questNotes).toStrictEqual([
+        untouched,
+        QuestNoteStub({
+          id: 'open-question-comment-anchor-scope' as never,
+          at: SERVER_STAMPED_AT,
+        }),
+      ]);
+    });
+  });
+
+  describe('planningNotes.operationPlans handling', () => {
+    it("VALID: {operationPlans carrying at: '2020-01-01'} => the plan is persisted with the server's stamp, not the value the caller sent", async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          operationPlans: [OperationPlanStub({ at: '2020-01-01T00:00:00.000Z' })],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.operationPlans).toStrictEqual([
+        OperationPlanStub({ at: SERVER_STAMPED_AT }),
+      ]);
+    });
+
+    it('VALID: {operationPlans entry with NO at} => accepted and persisted carrying the server stamp', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Every field OperationPlanStub carries except the timestamp — the payload the planner-minion
+      // prompt now tells the agent to send.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          operationPlans: [
+            {
+              id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
+              operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+              workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+              round: 1,
+              discipline: 'implementation',
+              summary:
+                'The operation-plan-piece-id contract mirrors operation-item-id; no blockers found.',
+              pieces: [],
+            },
+          ],
+        } as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.operationPlans).toStrictEqual([
+        OperationPlanStub({ at: SERVER_STAMPED_AT }),
+      ]);
+    });
+
+    it('VALID: {a write persisting a second round} => the plan already on the quest keeps its own at rather than being re-stamped', async () => {
+      const proxy = questModifyBrokerProxy();
+      const untouched = OperationPlanStub({
+        id: '11111111-1111-4111-8111-111111111111',
+        at: '2019-03-04T05:06:07.000Z',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [untouched],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          operationPlans: [
+            OperationPlanStub({ id: '22222222-2222-4222-8222-222222222222', round: 2 }),
+          ],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.operationPlans).toStrictEqual([
+        untouched,
+        OperationPlanStub({
+          id: '22222222-2222-4222-8222-222222222222',
+          round: 2,
+          at: SERVER_STAMPED_AT,
+        }),
+      ]);
+    });
+
+    it('VALID: {operationPlans re-stating an existing plan id} => corrects that plan in place rather than stacking a second copy', async () => {
+      const proxy = questModifyBrokerProxy();
+      const original = OperationPlanStub({
+        summary: 'First pass: the seam is one contract and one broker.',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [],
+          operationPlans: [original],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const corrected = OperationPlanStub({
+        summary: 'Corrected: the broker already exists, so the seam is the contract alone.',
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { operationPlans: [corrected] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.operationPlans).toStrictEqual([
+        OperationPlanStub({ ...corrected, at: SERVER_STAMPED_AT }),
+      ]);
     });
   });
 
@@ -2904,6 +3308,178 @@ describe('questModifyBroker', () => {
   });
 
   describe('sign-off writes at in_progress', () => {
+    it("VALID: {sign-off carrying at: '2020-01-01'} => persists the server's stamp, not the value the caller sent", async () => {
+      const proxy = questModifyBrokerProxy();
+      const observable = FlowObservableStub({ id: 'redirects' as never });
+      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'submit-form',
+                observables: [
+                  {
+                    id: 'redirects',
+                    flowriderSignoff: SignoffStub({ at: '2020-01-01T00:00:00.000Z' }),
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.flows[0]?.nodes[0]?.observables[0]?.flowriderSignoff).toStrictEqual(
+        SignoffStub({ at: SERVER_STAMPED_AT }),
+      );
+    });
+
+    it('VALID: {sign-off with NO at field} => accepted and persisted carrying the server stamp', async () => {
+      const proxy = questModifyBrokerProxy();
+      const observable = FlowObservableStub({ id: 'redirects' as never });
+      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Every field SignoffStub carries except the timestamp — the payload a coverage minion
+      // following the prompts now sends.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'submit-form',
+                observables: [
+                  {
+                    id: 'redirects',
+                    flowriderSignoff: {
+                      verdict: 'confirmed',
+                      evidence:
+                        'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
+                      workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.flows[0]?.nodes[0]?.observables[0]?.flowriderSignoff).toStrictEqual(
+        SignoffStub({ at: SERVER_STAMPED_AT }),
+      );
+    });
+
+    // The regression guard for the subtle half: the stamp is applied to the INCOMING payload, never
+    // to the merged quest. A node, an edge and an off-map family this call never mentions must come
+    // through the merge reading the instant they were really signed — otherwise every unrelated
+    // write looks like the whole quest re-signed itself.
+    it('VALID: {a write signing ONE observable} => the node, edge and off-map sign-offs it never mentions keep their own instants', async () => {
+      const proxy = questModifyBrokerProxy();
+      const oldSignoff = SignoffStub({
+        evidence: 'walked it against the dev server on the first pass',
+        at: '2019-03-04T05:06:07.000Z',
+      });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'submit-form' as never,
+            siegemasterSignoff: oldSignoff,
+            observables: [FlowObservableStub({ id: 'redirects' as never })],
+          }),
+          FlowNodeStub({ id: 'dashboard' as never, label: 'Dashboard' }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'submit-to-dashboard' as never,
+            from: 'submit-form' as never,
+            to: 'dashboard' as never,
+            siegemasterSignoff: oldSignoff,
+          }),
+        ],
+        offMapSignoffs: [
+          FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: oldSignoff }),
+        ],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'submit-form',
+                observables: [{ id: 'redirects', flowriderSignoff: SignoffStub() }],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect({
+        node: persisted.flows[0]?.nodes[0]?.siegemasterSignoff,
+        edge: persisted.flows[0]?.edges[0]?.siegemasterSignoff,
+        offMap: persisted.flows[0]?.offMapSignoffs[0]?.siegemasterSignoff,
+        written: persisted.flows[0]?.nodes[0]?.observables[0]?.flowriderSignoff,
+      }).toStrictEqual({
+        node: oldSignoff,
+        edge: oldSignoff,
+        offMap: oldSignoff,
+        written: SignoffStub({ at: SERVER_STAMPED_AT }),
+      });
+    });
+
     it('VALID: {observable already carrying siegemasterSignoff, one write sets only flowriderSignoff} => both sign-offs survive on the persisted observable', async () => {
       const proxy = questModifyBrokerProxy();
       const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
@@ -2948,8 +3524,9 @@ describe('questModifyBroker', () => {
               observables: [
                 FlowObservableStub({
                   id: 'redirects' as never,
+                  // Untouched by this write, so its own instant survives verbatim.
                   siegemasterSignoff,
-                  flowriderSignoff,
+                  flowriderSignoff: SignoffStub({ ...flowriderSignoff, at: SERVER_STAMPED_AT }),
                 }),
               ],
             }),
@@ -3000,7 +3577,7 @@ describe('questModifyBroker', () => {
       expectedOffMapSignoffs[offMapFamilies.indexOf('concurrency')] = FlowOffMapSignoffStub({
         id: 'concurrency',
         siegemasterSignoff,
-        flowriderSignoff,
+        flowriderSignoff: SignoffStub({ ...flowriderSignoff, at: SERVER_STAMPED_AT }),
       });
 
       expect(persisted.flows).toStrictEqual([
@@ -3131,6 +3708,10 @@ describe('questModifyBroker', () => {
       const flowriderSignoff = SignoffStub({
         evidence: 'packages/web/src/a.test.ts:4 — red first',
       });
+      const stampedFlowriderSignoff = SignoffStub({
+        ...flowriderSignoff,
+        at: SERVER_STAMPED_AT,
+      });
       const flowOne = FlowStub({
         id: 'flow-one' as never,
         edges: [],
@@ -3230,7 +3811,10 @@ describe('questModifyBroker', () => {
             FlowNodeStub({
               id: 'node-one' as never,
               observables: Array.from({ length: 20 }, (_unused, index) =>
-                FlowObservableStub({ id: `obs-one-${index}` as never, flowriderSignoff }),
+                FlowObservableStub({
+                  id: `obs-one-${index}` as never,
+                  flowriderSignoff: stampedFlowriderSignoff,
+                }),
               ),
             }),
           ],
@@ -3242,7 +3826,10 @@ describe('questModifyBroker', () => {
             FlowNodeStub({
               id: 'node-two' as never,
               observables: Array.from({ length: 20 }, (_unused, index) =>
-                FlowObservableStub({ id: `obs-two-${index}` as never, flowriderSignoff }),
+                FlowObservableStub({
+                  id: `obs-two-${index}` as never,
+                  flowriderSignoff: stampedFlowriderSignoff,
+                }),
               ),
             }),
           ],
@@ -3254,7 +3841,10 @@ describe('questModifyBroker', () => {
             FlowNodeStub({
               id: 'node-three' as never,
               observables: Array.from({ length: 10 }, (_unused, index) =>
-                FlowObservableStub({ id: `obs-three-${index}` as never, flowriderSignoff }),
+                FlowObservableStub({
+                  id: `obs-three-${index}` as never,
+                  flowriderSignoff: stampedFlowriderSignoff,
+                }),
               ),
             }),
           ],

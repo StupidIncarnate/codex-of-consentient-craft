@@ -49,7 +49,6 @@ describe('questTypeRegistryStatics', () => {
           'flowrider',
           'groundstomper',
           'siegemaster',
-          'blightscout',
           'spiritmender',
         ],
       },
@@ -70,7 +69,7 @@ describe('questTypeRegistryStatics', () => {
           { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
           { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
         ],
-        roles: ['riftcarver', 'pesteater', 'ward', 'blightscout', 'spiritmender'],
+        roles: ['riftcarver', 'pesteater', 'ward', 'spiritmender'],
       },
     });
   });

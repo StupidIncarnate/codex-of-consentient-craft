@@ -11,14 +11,29 @@ import {
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { flowriderAuthoringMinionStatics } from '../../../statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
-import { siegemasterWalkerMinionStatics } from '../../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
-import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { flowriderPromptStatics } from '../../../statics/flowrider-prompt/flowrider-prompt-statics';
-import { siegemasterPromptStatics } from '../../../statics/siegemaster-prompt/siegemaster-prompt-statics';
+import { disciplineBelowBrowserStatics } from '../../../statics/discipline-below-browser/discipline-below-browser-statics';
+import { disciplineImplementationStatics } from '../../../statics/discipline-implementation/discipline-implementation-statics';
+import { disciplineManualQaStatics } from '../../../statics/discipline-manual-qa/discipline-manual-qa-statics';
+import { operationOrchestratorPromptStatics } from '../../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { plannerMinionStatics } from '../../../statics/planner-minion/planner-minion-statics';
+import { reviewerMinionStatics } from '../../../statics/reviewer-minion/reviewer-minion-statics';
+import { workerMinionStatics } from '../../../statics/worker-minion/worker-minion-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
+
+// One template serves all five operation-owning roles; only the pack at `$DISCIPLINE` and the bare
+// discipline id at `$MY_DISCIPLINE` differ. Function-form replacement, never the string form: pack
+// markdown can carry `$&` / `` $` `` / `$'`.
+const IMPLEMENTATION_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineImplementationStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'implementation');
+const BELOW_BROWSER_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'below-browser');
+const MANUAL_QA_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineManualQaStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'manual-qa');
 
 describe('agentPromptGetBroker', () => {
   describe('full {agent, questId, workItemId} path', () => {
@@ -146,7 +161,7 @@ describe('agentPromptGetBroker', () => {
       expect(result).toStrictEqual({
         name: 'codeweaver',
         model: 'opus',
-        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       });
     });
 
@@ -213,7 +228,7 @@ describe('agentPromptGetBroker', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        MANUAL_QA_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       );
     });
 
@@ -298,7 +313,7 @@ describe('agentPromptGetBroker', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        MANUAL_QA_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       );
     });
   });
@@ -347,7 +362,7 @@ describe('agentPromptGetBroker', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        BELOW_BROWSER_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       );
     });
 
@@ -430,23 +445,57 @@ describe('agentPromptGetBroker', () => {
     });
 
     it.each([
-      ['flowrider-authoring-minion', flowriderAuthoringMinionStatics] as const,
-      ['siegemaster-walker-minion', siegemasterWalkerMinionStatics] as const,
+      ['planner-minion', 'opus', plannerMinionStatics, 'plannerMarkdown'] as const,
+      ['worker-minion', 'sonnet', workerMinionStatics, 'workerMarkdown'] as const,
+      ['reviewer-minion', 'opus', reviewerMinionStatics, 'reviewerMarkdown'] as const,
     ])(
-      'VALID: {agent: %s, questId, no workItemId} => resolves as a minion instead of demanding a workItemId',
-      async (agent, statics) => {
+      'VALID: {agent: %s, questId, discipline, no workItemId} => serves the template with that discipline pack substituted, on %s',
+      async (agent, model, statics, packKey) => {
         agentPromptGetBrokerProxy();
         const questId = QuestIdStub({ value: 'add-auth' });
 
-        const result = await agentPromptGetBroker({ agent, questId });
+        const result = await agentPromptGetBroker({
+          agent,
+          questId,
+          discipline: 'below-browser',
+        });
 
         expect(result).toStrictEqual({
           name: agent,
-          model: 'sonnet',
-          prompt: statics.prompt.template.replace('$ARGUMENTS', `Quest ID: ${String(questId)}`),
+          model,
+          prompt: statics.prompt.template
+            .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics[packKey])
+            .replace('$ARGUMENTS', () => `Quest ID: ${String(questId)}`),
         });
       },
     );
+
+    // Serving a generic minion without its discipline would hand the agent the literal token
+    // `$DISCIPLINE` in place of every instruction it has — a session that runs and does nothing.
+    it.each(['planner-minion', 'worker-minion', 'reviewer-minion'])(
+      'ERROR: {agent: %s, questId, no discipline} => throws naming every valid discipline',
+      async (agent) => {
+        agentPromptGetBrokerProxy();
+        const questId = QuestIdStub({ value: 'add-auth' });
+
+        await expect(agentPromptGetBroker({ agent, questId })).rejects.toThrow(
+          /requires a discipline — one of: implementation \| bug-repro \| below-browser \| browser-e2e \| manual-qa/u,
+        );
+      },
+    );
+
+    it('ERROR: {agent: chaoswhisperer-gap-minion, questId, discipline} => throws takes-no-discipline', async () => {
+      agentPromptGetBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      await expect(
+        agentPromptGetBroker({
+          agent: 'chaoswhisperer-gap-minion',
+          questId,
+          discipline: 'implementation',
+        }),
+      ).rejects.toThrow(/minion "chaoswhisperer-gap-minion" takes no discipline/u);
+    });
 
     it('ERROR: {role agent, questId, no workItemId} => throws role-requires-workItemId', async () => {
       agentPromptGetBrokerProxy();
@@ -456,5 +505,77 @@ describe('agentPromptGetBroker', () => {
         /role "codeweaver" requires a workItemId/u,
       );
     });
+  });
+
+  describe('a generic minion may not name a workItemId', () => {
+    // The work-item branch ignores `discipline` entirely, so falling through refused these calls
+    // for "no discipline" — pointing the caller at the one argument that was not its mistake. The
+    // workItemId IS the mistake: it puts the caller inside `subagentStopNeedsBlockGuard`.
+    it.each([
+      ['planner-minion', 'implementation'] as const,
+      ['worker-minion', 'below-browser'] as const,
+      ['reviewer-minion', 'manual-qa'] as const,
+    ])(
+      'ERROR: {agent: %s, workItemId AND discipline} => throws naming the workItemId as the fault',
+      async (agent, discipline) => {
+        const proxy = agentPromptGetBrokerProxy();
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7070-4222-9333-444444444444' });
+        const quest = QuestStub({
+          id: QuestIdStub({ value: 'add-auth' }),
+          workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver' })],
+        });
+        proxy.setupQuestFound({ quest });
+
+        await expect(
+          agentPromptGetBroker({ agent, questId: quest.id, workItemId, discipline }),
+        ).rejects.toThrow(
+          /must NOT be given a workItemId — not even its parent's\. Fetch with \{ agent, questId, discipline \} only: a workItemId puts the minion inside subagentStopNeedsBlockGuard/u,
+        );
+      },
+    );
+
+    it.each(['planner-minion', 'worker-minion', 'reviewer-minion'])(
+      'ERROR: {agent: %s, workItemId, no discipline} => throws on the workItemId, not on the missing discipline',
+      async (agent) => {
+        const proxy = agentPromptGetBrokerProxy();
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7171-4222-9333-444444444444' });
+        const quest = QuestStub({
+          id: QuestIdStub({ value: 'add-auth' }),
+          workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver' })],
+        });
+        proxy.setupQuestFound({ quest });
+
+        await expect(
+          agentPromptGetBroker({ agent, questId: quest.id, workItemId }),
+        ).rejects.toThrow(/must NOT be given a workItemId/u);
+      },
+    );
+  });
+
+  describe('a role may not name its own discipline', () => {
+    // A role's discipline is derived from its role. Accepting one off the call would let a
+    // dispatched session fetch a sibling discipline's instructions for its own operation item.
+    it.each(['codeweaver', 'pesteater', 'flowrider', 'groundstomper', 'siegemaster'])(
+      'ERROR: {agent: %s, discipline supplied} => throws must-not-be-given-a-discipline',
+      async (agent) => {
+        const proxy = agentPromptGetBrokerProxy();
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-9090-4222-9333-444444444444' });
+        const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
+        const quest = QuestStub({
+          id: QuestIdStub({ value: 'add-auth' }),
+          workItems: [workItem],
+        });
+        proxy.setupQuestFound({ quest });
+
+        await expect(
+          agentPromptGetBroker({
+            agent,
+            questId: quest.id,
+            workItemId,
+            discipline: 'manual-qa',
+          }),
+        ).rejects.toThrow(/must not be given a discipline/u);
+      },
+    );
   });
 });

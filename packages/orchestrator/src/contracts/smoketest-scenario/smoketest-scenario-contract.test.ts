@@ -43,14 +43,14 @@ describe('smoketestScenarioContract', () => {
             kind: 'work-item-status-histogram',
             expected: { complete: 3, skipped: 0 },
           },
-          WorkItemRoleCountAssertionStub({ role: 'blightscout', minCount: 2 }),
+          WorkItemRoleCountAssertionStub({ role: 'siegemaster', minCount: 2 }),
         ],
       });
 
       expect(result.assertions).toStrictEqual([
         { kind: 'quest-status', expected: 'complete' },
         { kind: 'work-item-status-histogram', expected: { complete: 3, skipped: 0 } },
-        { kind: 'work-item-role-count', role: 'blightscout', minCount: 2 },
+        { kind: 'work-item-role-count', role: 'siegemaster', minCount: 2 },
       ]);
     });
   });

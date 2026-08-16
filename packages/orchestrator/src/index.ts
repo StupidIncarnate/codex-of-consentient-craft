@@ -61,13 +61,10 @@ export type { DispatchPlayResponse } from './contracts/dispatch-play-response/di
 
 // Prompt statics - re-exported for CLI package
 export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';
-export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-prompt-statics';
-export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';
-export { siegemasterWalkerMinionStatics } from './statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
-export { siegemasterTestAuditMinionStatics } from './statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
-export { flowriderPromptStatics } from './statics/flowrider-prompt/flowrider-prompt-statics';
-export { flowriderAuthoringMinionStatics } from './statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
-export { flowriderCoverageMinionStatics } from './statics/flowrider-coverage-minion/flowrider-coverage-minion-statics';
+export { operationOrchestratorPromptStatics } from './statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+export { plannerMinionStatics } from './statics/planner-minion/planner-minion-statics';
+export { workerMinionStatics } from './statics/worker-minion/worker-minion-statics';
+export { reviewerMinionStatics } from './statics/reviewer-minion/reviewer-minion-statics';
 export { spiritmenderPromptStatics } from './statics/spiritmender-prompt/spiritmender-prompt-statics';
 export { toolDisplayConfigStatics } from './statics/tool-display-config/tool-display-config-statics';
 

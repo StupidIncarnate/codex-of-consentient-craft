@@ -12,7 +12,6 @@ describe('roleToModelStatics', () => {
       siegemaster: 'opus',
       codeweaver: 'opus',
       spiritmender: 'sonnet',
-      blightscout: 'sonnet',
       pesteater: 'opus',
       warpgate: 'opus',
     });

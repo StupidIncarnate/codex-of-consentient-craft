@@ -17,6 +17,21 @@ import { questHydrateBroker } from '../hydrate/quest-hydrate-broker';
 import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 import { questModifyBroker } from './quest-modify-broker';
 
+// `createdAt` is stamped SERVER-SIDE on every write, so on real disk with a real clock each of these
+// concurrent calls lands its own wall-clock instant and no expected value can be written down. What
+// a lost update destroys is the ENTRY, so both sides of every comparison below are re-stamped with
+// one sentinel and the remaining six fields are compared in full. The stamp's own behaviour — the
+// client value being discarded, an omitted field being filled — is pinned by value in
+// quest-modify-broker.test.ts against that suite's frozen clock.
+const NORMALIZED_STAMP = '1970-01-01T00:00:00.000Z';
+
+const withNormalizedStamp = ({
+  entry,
+}: {
+  entry: ReturnType<typeof QuestBlightLedgerEntryStub>;
+}): ReturnType<typeof QuestBlightLedgerEntryStub> =>
+  QuestBlightLedgerEntryStub({ ...entry, createdAt: NORMALIZED_STAMP });
+
 // GAP: the safety argument for parallel blightwarden minion writes is "questModifyBroker
 // serializes on a per-questId lock, the merge is itemId-keyed replace, and disjoint minion
 // groups mean disjoint itemIds — so concurrent writers cannot clobber each other." That
@@ -72,10 +87,12 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
 
     expect(results.every((result) => result.success)).toBe(true);
 
-    const persisted = [...loaded.quest!.planningNotes.blightLedger].sort((a, b) =>
-      String(a.itemId).localeCompare(String(b.itemId)),
-    );
-    const expected = [...entries].sort((a, b) => String(a.itemId).localeCompare(String(b.itemId)));
+    const persisted = [...loaded.quest!.planningNotes.blightLedger]
+      .sort((a, b) => String(a.itemId).localeCompare(String(b.itemId)))
+      .map((entry) => withNormalizedStamp({ entry }));
+    const expected = [...entries]
+      .sort((a, b) => String(a.itemId).localeCompare(String(b.itemId)))
+      .map((entry) => withNormalizedStamp({ entry }));
 
     expect(persisted).toStrictEqual(expected);
   });
@@ -134,7 +151,9 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     // same submission order. A real cross-process lost update would show up here as either zero
     // surviving entries (the write dropped) or more than one (the itemId-keyed replace failed to
     // collapse concurrent writers) — not a silently wrong survivor.
-    expect(persisted).toStrictEqual([entries[entries.length - 1]]);
+    expect(persisted.map((entry) => withNormalizedStamp({ entry }))).toStrictEqual([
+      withNormalizedStamp({ entry: entries[entries.length - 1]! }),
+    ]);
   });
 
   it('VALID: {an already-persisted entry, then 10 concurrent writes of NEW distinct itemIds} => the earlier entry survives alongside every new one — a concurrent batch does not drop prior state', async () => {
@@ -192,12 +211,12 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
 
     expect(concurrentResults.every((result) => result.success)).toBe(true);
 
-    const persisted = [...loaded.quest!.planningNotes.blightLedger].sort((a, b) =>
-      String(a.itemId).localeCompare(String(b.itemId)),
-    );
-    const expected = [earlierEntry, ...concurrentEntries].sort((a, b) =>
-      String(a.itemId).localeCompare(String(b.itemId)),
-    );
+    const persisted = [...loaded.quest!.planningNotes.blightLedger]
+      .sort((a, b) => String(a.itemId).localeCompare(String(b.itemId)))
+      .map((entry) => withNormalizedStamp({ entry }));
+    const expected = [earlierEntry, ...concurrentEntries]
+      .sort((a, b) => String(a.itemId).localeCompare(String(b.itemId)))
+      .map((entry) => withNormalizedStamp({ entry }));
 
     expect(persisted).toStrictEqual(expected);
   });
@@ -257,7 +276,9 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
     // The ledger write is questModifyBroker's; the branch name is questOperationsUpdateBroker's.
     // Under two separate mutex maps exactly one of these two assertions fails, depending on which
     // writer's persist landed last.
-    expect(loaded.quest!.planningNotes.blightLedger).toStrictEqual([ledgerEntry]);
+    expect(
+      loaded.quest!.planningNotes.blightLedger.map((entry) => withNormalizedStamp({ entry })),
+    ).toStrictEqual([withNormalizedStamp({ entry: ledgerEntry })]);
     expect(loaded.quest!.branchName).toBe(branchName);
   });
 });

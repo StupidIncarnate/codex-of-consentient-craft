@@ -1,5 +1,4 @@
 import {
-  BlightChecklistStub,
   BlockedReasonStub,
   FlowEdgeStub,
   FlowNodeStub,
@@ -7,6 +6,7 @@ import {
   FlowStub,
   OperationItemIdStub,
   OperationItemStub,
+  QuestBlightLedgerEntryStub,
   QuestIdStub,
   QuestPackageEntryStub,
   QuestStub,
@@ -20,7 +20,7 @@ import {
   workItemRoleStatics,
 } from '@dungeonmaster/shared/statics';
 
-import { blightscoutOperationStatics } from '../../../statics/blightscout-operation/blightscout-operation-statics';
+import { roleToDisciplineStatics } from '../../../statics/role-to-discipline/role-to-discipline-statics';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 import { QuestHandleSignalBackResponderProxy } from './quest-handle-signal-back-responder.proxy';
@@ -34,63 +34,30 @@ const OP3_ID = '33333333-3333-4333-8333-333333333333';
 const CONTINUATION_UUID = 'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b';
 const ADVANCE_UUID = '99999999-9999-4999-8999-999999999999';
 
-// The two ids the responder mints for the auto-appended standards review, in the order it mints
-// them: the operation item first, then its linked work item, both ahead of any pt continuation.
-const SCOUT_OP_UUID = 'd1d2d3d4-e5e6-4f7a-8b9c-0d1e2f3a4b5c';
-const SCOUT_WI_UUID = 'e1e2e3e4-f5f6-4a7b-8c9d-0e1f2a3b4c5d';
-
-// The scout text the responder mints for each completed (role, operation item) pair the cases below
-// exercise — the statics template with its placeholder filled by that item's role and id, exactly
-// as the append site composes it. Five texts rather than one shared sentence because
-// `operationPtChainTransformer` keys a chain on role + BASE TEXT: a scout naming the commit it
-// reviews is its own chain with its own `slotManagerStatics.blightscout.maxAttempts` budget, while
-// one shared sentence makes every scout on a quest one chain that the fourth `partial` exhausts.
-const SCOUT_TEXT_CODEWEAVER_OP1 = blightscoutOperationStatics.textTemplate.replace(
-  blightscoutOperationStatics.placeholders.reviewedOperation,
-  `codeweaver ${OP1_ID}`,
-);
-const SCOUT_TEXT_CODEWEAVER_OP2 = blightscoutOperationStatics.textTemplate.replace(
-  blightscoutOperationStatics.placeholders.reviewedOperation,
-  `codeweaver ${OP2_ID}`,
-);
-const SCOUT_TEXT_CODEWEAVER_OP3 = blightscoutOperationStatics.textTemplate.replace(
-  blightscoutOperationStatics.placeholders.reviewedOperation,
-  `codeweaver ${OP3_ID}`,
-);
-const SCOUT_TEXT_FLOWRIDER_OP1 = blightscoutOperationStatics.textTemplate.replace(
-  blightscoutOperationStatics.placeholders.reviewedOperation,
-  `flowrider ${OP1_ID}`,
-);
-const SCOUT_TEXT_SIEGEMASTER_OP2 = blightscoutOperationStatics.textTemplate.replace(
-  blightscoutOperationStatics.placeholders.reviewedOperation,
-  `siegemaster ${OP2_ID}`,
-);
-
-// The scout pair every committing session earns. Its SCOPE never varies with the signalling item —
-// a commit is not a slice of the spine, so no flowIds or packageNames ride along — which is exactly
-// what these shared constants pin. `dependsOn` names the signalling work item (ITEM_ID in every
-// case below), so the review can never be dispatched alongside the work it reviews. Cases
-// completing an item other than the codeweaver OP1_ID one spread this and override `text`.
-const SCOUT_OPERATION = OperationItemStub({
-  id: SCOUT_OP_UUID,
-  role: 'blightscout',
-  text: SCOUT_TEXT_CODEWEAVER_OP1,
-  status: 'pending',
-  locked: true,
-});
-const SCOUT_WORK_ITEM = WorkItemStub({
-  id: SCOUT_WI_UUID,
-  role: 'blightscout',
-  status: 'pending',
-  spawnerType: 'agent',
-  relatedDataItems: [`operations/${SCOUT_OP_UUID}`],
-  dependsOn: [ITEM_ID],
-  createdAt: FIXED_TIMESTAMP,
-});
-
-// The (fictional) changed file the blightscout completion gate tests below stage as the sole
-// outstanding checklist unit.
+// The (fictional) changed file the review-coverage cases below disposition.
 const BLIGHT_FILE = 'packages/orchestrator/src/foo/foo-broker.ts';
+
+// The trace a reviewer-minion round leaves on the quest: ONE disposition carrying the SIGNALLING
+// work item's id. Every `done` from one of the five orchestrator roles has to carry this, or the
+// review-coverage gate refuses it — so it is spread into those quests' `planningNotes` explicitly
+// at each site rather than hidden behind a default.
+const REVIEW_LEDGER = [
+  QuestBlightLedgerEntryStub({
+    itemId: `${BLIGHT_FILE}:craft`,
+    workItemId: ITEM_ID,
+    createdAt: FIXED_TIMESTAMP,
+  }),
+];
+
+// The five roles that run a planner/worker/reviewer round, read from the same static the responder
+// reads, so a role added there joins the review-coverage matrix instead of going untested.
+const REVIEWED_ROLES = Object.keys(
+  roleToDisciplineStatics,
+) as readonly (keyof typeof roleToDisciplineStatics)[];
+
+// The two roles outside that map whose session still writes code and therefore still owes a clean
+// tree before it signals — the other half of the commit-before-signal matrix.
+const NON_REVIEWED_COMMITTING_ROLES = ['spiritmender', 'warpgate'] as const;
 
 type SlotManagerRole = keyof typeof slotManagerStatics;
 type PtBudgetRole = Exclude<SlotManagerRole, 'ward' | 'orphanRecovery'>;
@@ -281,12 +248,11 @@ describe('QuestHandleSignalBackResponder', () => {
   });
 
   describe("operationStatus 'done' (or absent) — one atomic persist, then advance", () => {
-    // The whole blightscout append lands in the SAME persist as the terminal work item and the
-    // completed operation — operation AND work item together, ahead of the still-pending tail — so
-    // a crash is all-or-nothing. Advance then mints nothing: the scout is the first pending
-    // operation and it already carries a linked work item, which is exactly what
-    // questAdvanceBroker's strict-1:1 resume guard refuses to duplicate.
-    it("VALID: {codeweaver 'done', next op pending} => ONE persist completes item+operation and appends the scout operation WITH its work item; advance mints nothing", async () => {
+    // The terminal work item and its completed operation land in ONE persist, so a crash is
+    // all-or-nothing, and NOTHING is appended beside them — the standards review of this commit
+    // happened inside the session's own turn, via the reviewer-minion whose disposition the
+    // review-coverage gate just read. Advance then mints the next work item for the pending tail.
+    it("VALID: {codeweaver 'done', next op pending} => ONE persist completes item+operation and appends NO review item; advance creates the next work item", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const op2Pending = OperationItemStub({
@@ -296,6 +262,7 @@ describe('QuestHandleSignalBackResponder', () => {
         status: 'pending',
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -329,83 +296,12 @@ describe('QuestHandleSignalBackResponder', () => {
         status: 'complete',
       });
       const questAfterOutcome = QuestStub({
-        operations: [op1Complete, SCOUT_OPERATION, op2Pending],
-        workItems: [completedItem, SCOUT_WORK_ITEM],
-        updatedAt: FIXED_TIMESTAMP,
-      });
-      proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupResponderUuids({ ids: [SCOUT_OP_UUID, SCOUT_WI_UUID] });
-
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-        operationStatus: 'done',
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
-    });
-
-    // The termination proof, driven end to end: `blightscout` is not in
-    // blightscoutOperationStatics.committingRoles, so a scout going complete appends NO successor
-    // and the relay moves on to the next seeded item instead of reviewing its own review forever.
-    it("VALID: {blightscout 'done', next op pending} => no second scout is appended and advance creates the next work item", async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const op2Pending = OperationItemStub({
-        id: OP2_ID,
-        role: 'ward',
-        text: 'Ward gate (full monorepo)',
-        status: 'pending',
-        locked: true,
-        wardMode: 'full',
-      });
-      const scoutOp = OperationItemStub({
-        id: OP1_ID,
-        role: 'blightscout',
-        // A review of an earlier codeweaver commit, minted the way the append site mints it —
-        // naming the item it reviews, so it keys its own chain rather than the whole quest's.
-        text: SCOUT_TEXT_CODEWEAVER_OP3,
-        status: 'in_progress',
-        locked: true,
-      });
-      const quest = QuestStub({
-        operations: [scoutOp, op2Pending],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'blightscout',
-            status: 'in_progress',
-            relatedDataItems: [`operations/${OP1_ID}`],
-          }),
-        ],
-      });
-      const completedItem = WorkItemStub({
-        id: itemId,
-        role: 'blightscout',
-        status: 'complete',
-        relatedDataItems: [`operations/${OP1_ID}`],
-        completedAt: FIXED_TIMESTAMP,
-        actualSignal: 'complete',
-      });
-      const questAfterOutcome = QuestStub({
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'blightscout',
-            text: SCOUT_TEXT_CODEWEAVER_OP3,
-            status: 'complete',
-            locked: true,
-          }),
-          op2Pending,
-        ],
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        operations: [op1Complete, op2Pending],
         workItems: [completedItem],
         updatedAt: FIXED_TIMESTAMP,
       });
-      // The quest pins no baseRef, so the blightscout completion gate resolves to a null checklist
-      // and does not bind — this case is about the append, not about the gate.
-      proxy.setupSignalFlowWithBlightChecklist({ quest, questAfterOutcome, checklist: null });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
       proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
@@ -419,33 +315,24 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(proxy.getAllPersistedQuests()).toStrictEqual([
         questAfterOutcome,
         QuestStub({
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
           operations: [
-            OperationItemStub({
-              id: OP1_ID,
-              role: 'blightscout',
-              text: SCOUT_TEXT_CODEWEAVER_OP3,
-              status: 'complete',
-              locked: true,
-            }),
+            op1Complete,
             OperationItemStub({
               id: OP2_ID,
-              role: 'ward',
-              text: 'Ward gate (full monorepo)',
+              role: 'siegemaster',
+              text: 'qa: login flow',
               status: 'in_progress',
-              locked: true,
-              wardMode: 'full',
             }),
           ],
           workItems: [
             completedItem,
             WorkItemStub({
               id: ADVANCE_UUID,
-              role: 'ward',
+              role: 'siegemaster',
               status: 'pending',
-              spawnerType: 'command',
               relatedDataItems: [`operations/${OP2_ID}`],
               dependsOn: [itemId],
-              wardMode: 'full',
               createdAt: FIXED_TIMESTAMP,
             }),
           ],
@@ -454,9 +341,61 @@ describe('QuestHandleSignalBackResponder', () => {
       ]);
     });
 
-    // ward is `spawnerType: 'command'` and writes no code, so it is absent from
-    // blightscoutOperationStatics.committingRoles — a green gate run earns no standards review.
-    it("VALID: {ward 'done', ledger drained} => no scout is appended, because a command run commits nothing", async () => {
+    // The regression guard for the deleted relay role: a completing committing session mints NO
+    // extra operation item and NO extra work item of any role. `ward` earns none either — it is a
+    // command run that writes no code — so the two cases together pin the whole append surface as
+    // empty.
+    it.each(REVIEWED_ROLES)(
+      "VALID: {%s item, 'done'} => the ledger gains no review operation item and the work-item list gains nothing",
+      async (role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+        const quest = QuestStub({
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          operations: [
+            OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        });
+        const questAfterOutcome = QuestStub({
+          status: 'complete',
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          operations: [
+            OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'complete' }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'complete',
+              relatedDataItems: [`operations/${OP1_ID}`],
+              completedAt: FIXED_TIMESTAMP,
+              actualSignal: 'complete',
+            }),
+          ],
+          updatedAt: FIXED_TIMESTAMP,
+        });
+        proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+        await QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        });
+
+        expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+      },
+    );
+
+    it("VALID: {ward 'done', ledger drained} => the work item terminates and nothing is appended, because a command run commits nothing", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
@@ -527,15 +466,15 @@ describe('QuestHandleSignalBackResponder', () => {
         operations: [
           OperationItemStub({
             id: OP1_ID,
-            role: 'blightscout',
-            text: 'audit: whole diff',
+            role: 'warpgate',
+            text: 'merge: land the quest branch',
             status: 'in_progress',
           }),
         ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'warpgate',
             status: 'in_progress',
             relatedDataItems: [`operations/${OP1_ID}`],
           }),
@@ -546,15 +485,15 @@ describe('QuestHandleSignalBackResponder', () => {
         operations: [
           OperationItemStub({
             id: OP1_ID,
-            role: 'blightscout',
-            text: 'audit: whole diff',
+            role: 'warpgate',
+            text: 'merge: land the quest branch',
             status: 'complete',
           }),
         ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'warpgate',
             status: 'complete',
             relatedDataItems: [`operations/${OP1_ID}`],
             completedAt: FIXED_TIMESTAMP,
@@ -563,10 +502,7 @@ describe('QuestHandleSignalBackResponder', () => {
         ],
         updatedAt: FIXED_TIMESTAMP,
       });
-      // This item's role is blightscout, so the completion gate now runs the blight-checklist
-      // broker too; the quest carries no baseRef, so it resolves to null and the gate does not
-      // bind (see the dedicated "no baseRef pinned" gate test below for that path's own coverage).
-      proxy.setupSignalFlowWithBlightChecklist({ quest, questAfterOutcome, checklist: null });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -680,6 +616,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         flows: [signedFlow],
         operations: [siegeOp],
         workItems: [
@@ -810,7 +747,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const quest = QuestStub({
         flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         operations: [siegeOp],
         workItems: [
           WorkItemStub({
@@ -924,6 +861,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         flows: [signedFlow],
         operations: [flowOp],
         workItems: [
@@ -998,6 +936,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         flows: [signedFlow],
         operations: [flowOp],
         workItems: [
@@ -1063,6 +1002,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: [],
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         flows: [operationalFlow],
         operations: [flowOp],
         workItems: [
@@ -1331,6 +1271,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         packagesAffected: PACKAGES_AFFECTED,
         flows: [backendFlow],
         operations: [stompOp],
@@ -1389,6 +1330,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         packagesAffected: PACKAGES_AFFECTED,
         flows: [frontendFlow],
         operations: [flowOp],
@@ -1461,6 +1403,7 @@ describe('QuestHandleSignalBackResponder', () => {
           flowIds: ['login-flow'],
         });
         const quest = QuestStub({
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
           packagesAffected: PACKAGES_AFFECTED,
           flows: [signedFlow],
           operations: [stompOp],
@@ -1713,6 +1656,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         flows: [bothSignedFlow],
         operations: [siegeOp],
         workItems: [
@@ -1761,33 +1705,68 @@ describe('QuestHandleSignalBackResponder', () => {
     });
   });
 
-  describe("completion gate — 'done' is refused while blight units carry no disposition", () => {
-    it("ERROR: {blightscout item, one undispositioned unit, 'done'} => throws naming that unit id", async () => {
+  // The successor to the per-unit blight gate. A round's reviewer either ran and dispositioned
+  // something, or it did not — that is the only distinction the round structure supports, since the
+  // orchestrator commits per round and the tree is clean by construction at signal time.
+  describe("review-coverage gate — 'done' is refused while this work item has no blightLedger entry", () => {
+    it.each(REVIEWED_ROLES)(
+      "ERROR: {%s item, no disposition carrying this work item's id, 'done'} => refused naming the reviewer-minion and the partial escape",
+      async (role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+        proxy.setupQuest({
+          quest: QuestStub({
+            planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+            operations: [
+              OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
+            ],
+            workItems: [
+              WorkItemStub({
+                id: itemId,
+                role,
+                status: 'in_progress',
+                relatedDataItems: [`operations/${OP1_ID}`],
+              }),
+            ],
+          }),
+        });
+
+        await expect(
+          QuestHandleSignalBackResponder({
+            questId: QuestIdStub({ value: 'add-auth' }),
+            workItemId: itemId,
+            signal: 'complete',
+            operationStatus: 'done',
+          }),
+        ).rejects.toThrow(
+          /signal-back refused: your reviewer-minion recorded no review dispositions for this work item.*Dispatch a reviewer-minion.*get-blight-checklist\(\{ scope: 'working-tree' \}\).*operationStatus: 'partial'/su,
+        );
+      },
+    );
+
+    it('ERROR: {codeweaver item refused on review coverage} => nothing is persisted, so the session can dispatch a reviewer and signal again', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const quest = QuestStub({
-        baseRef: 'a1b2c3d4' as never,
-        planningNotes: { blightReports: [], qaLedger: [] },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'blightscout',
-            status: 'in_progress',
-            locked: true,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'blightscout',
-            status: 'in_progress',
-            relatedDataItems: [`operations/${OP1_ID}`],
-          }),
-        ],
-      });
-      proxy.setupQuestWithBlightChecklist({
-        quest,
-        checklist: BlightChecklistStub({ remainingItemIds: [`${BLIGHT_FILE}:integrity`] }),
+      proxy.setupQuest({
+        quest: QuestStub({
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'codeweaver',
+              text: 'core: config adapter',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'codeweaver',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
       });
 
       await expect(
@@ -1798,36 +1777,47 @@ describe('QuestHandleSignalBackResponder', () => {
           operationStatus: 'done',
         }),
       ).rejects.toThrow(
-        /signal-back refused: operationStatus 'done'.*1 still carry none.*packages\/orchestrator\/src\/foo\/foo-broker\.ts:integrity/su,
+        /signal-back refused: your reviewer-minion recorded no review dispositions/u,
       );
+
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
 
-    it("ERROR: {blightscout item, refused 'done'} => nothing is persisted, so the session can carry on and signal again", async () => {
+    // A ledger full of a SIBLING round's dispositions is not this round's review — the gate keys on
+    // the signalling work item's own id, so an earlier codeweaver's entries cannot settle this one.
+    it("ERROR: {codeweaver item, blightLedger carries only another work item's dispositions, 'done'} => still refused", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const quest = QuestStub({
-        baseRef: 'a1b2c3d4' as never,
-        planningNotes: { blightReports: [], qaLedger: [] },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'blightscout',
-            status: 'in_progress',
-            locked: true,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'blightscout',
-            status: 'in_progress',
-            relatedDataItems: [`operations/${OP1_ID}`],
-          }),
-        ],
-      });
-      proxy.setupQuestWithBlightChecklist({
-        quest,
-        checklist: BlightChecklistStub({ remainingItemIds: [`${BLIGHT_FILE}:integrity`] }),
+      proxy.setupQuest({
+        quest: QuestStub({
+          planningNotes: {
+            blightReports: [],
+            qaLedger: [],
+            blightLedger: [
+              QuestBlightLedgerEntryStub({
+                itemId: `${BLIGHT_FILE}:craft`,
+                workItemId: PENDING_ITEM_ID,
+                createdAt: FIXED_TIMESTAMP,
+              }),
+            ],
+          },
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'codeweaver',
+              text: 'core: config adapter',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'codeweaver',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
       });
 
       await expect(
@@ -1837,27 +1827,28 @@ describe('QuestHandleSignalBackResponder', () => {
           signal: 'complete',
           operationStatus: 'done',
         }),
-      ).rejects.toThrow(/signal-back refused/u);
-      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
+      ).rejects.toThrow(
+        /signal-back refused: your reviewer-minion recorded no review dispositions/u,
+      );
     });
 
-    it("VALID: {blightscout item, every unit dispositioned, 'done'} => the gate clears and the outcome applies", async () => {
+    it("VALID: {codeweaver item, one disposition carrying this work item's id, 'done'} => the gate clears and the outcome applies", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const blightOp = OperationItemStub({
-        id: OP1_ID,
-        role: 'blightscout',
-        status: 'in_progress',
-        locked: true,
-      });
       const quest = QuestStub({
-        baseRef: 'a1b2c3d4' as never,
-        planningNotes: { blightReports: [], qaLedger: [] },
-        operations: [blightOp],
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'codeweaver',
             status: 'in_progress',
             relatedDataItems: [`operations/${OP1_ID}`],
           }),
@@ -1865,15 +1856,19 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         status: 'complete',
-        baseRef: 'a1b2c3d4' as never,
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         operations: [
-          OperationItemStub({ id: OP1_ID, role: 'blightscout', status: 'complete', locked: true }),
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
         ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP1_ID}`],
             completedAt: FIXED_TIMESTAMP,
@@ -1882,11 +1877,7 @@ describe('QuestHandleSignalBackResponder', () => {
         ],
         updatedAt: FIXED_TIMESTAMP,
       });
-      proxy.setupSignalFlowWithBlightChecklist({
-        quest,
-        questAfterOutcome,
-        checklist: BlightChecklistStub({ remainingItemIds: [] }),
-      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -1896,52 +1887,54 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
 
-    it("VALID: {uncovered blightscout item, 'partial'} => NOT gated, because partial is the honest escape and never invokes the checklist broker", async () => {
+    it("VALID: {codeweaver item, no disposition at all, 'partial'} => NOT gated, because partial is the honest escape", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const blightOp = OperationItemStub({
-        id: OP1_ID,
-        role: 'blightscout',
-        text: 'Blightscout: cross-cutting whole-diff audit',
-        status: 'in_progress',
-        locked: true,
-      });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [] },
-        operations: [blightOp],
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+            locked: false,
+          }),
+        ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'codeweaver',
             status: 'in_progress',
             relatedDataItems: [`operations/${OP1_ID}`],
           }),
         ],
       });
       const questAfterOutcome = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
-            role: 'blightscout',
-            text: 'Blightscout: cross-cutting whole-diff audit',
+            role: 'codeweaver',
+            text: 'core: config adapter',
             status: 'complete',
-            locked: true,
+            locked: false,
           }),
           OperationItemStub({
             id: CONTINUATION_UUID,
-            role: 'blightscout',
-            text: 'pt 2: Blightscout: cross-cutting whole-diff audit',
+            role: 'codeweaver',
+            text: 'pt 2: core: config adapter',
             status: 'pending',
-            locked: true,
+            locked: false,
           }),
         ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP1_ID}`],
             completedAt: FIXED_TIMESTAMP,
@@ -1962,49 +1955,62 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      expect(proxy.getBlightChecklistCallArgs()).toStrictEqual([]);
     });
 
-    it("VALID: {blightscout item, no baseRef pinned, 'done'} => NOT gated, so a quest whose review base was never pinned still completes", async () => {
+    it("VALID: {ward item, no disposition at all, 'done'} => NOT gated, because a command run has no reviewer round", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const blightOp = OperationItemStub({
-        id: OP1_ID,
-        role: 'blightscout',
-        status: 'in_progress',
-        locked: true,
-      });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [] },
-        operations: [blightOp],
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'in_progress',
+            locked: true,
+            wardMode: 'full',
+          }),
+        ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'ward',
             status: 'in_progress',
+            spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
+            wardMode: 'full',
           }),
         ],
       });
       const questAfterOutcome = QuestStub({
         status: 'complete',
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
-          OperationItemStub({ id: OP1_ID, role: 'blightscout', status: 'complete', locked: true }),
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'complete',
+            locked: true,
+            wardMode: 'full',
+          }),
         ],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'blightscout',
+            role: 'ward',
             status: 'complete',
+            spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
+            wardMode: 'full',
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
           }),
         ],
         updatedAt: FIXED_TIMESTAMP,
       });
-      proxy.setupSignalFlowWithBlightChecklist({ quest, questAfterOutcome, checklist: null });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2015,11 +2021,145 @@ describe('QuestHandleSignalBackResponder', () => {
 
       expect(result).toStrictEqual({ success: true });
     });
+  });
 
-    it("VALID: {codeweaver item, 'done'} => the blight checklist broker is never called, so no git diff runs on a non-blightscout signal", async () => {
+  // §4.3 of the post-mortem measured a session dying ONE gate short of its commit while holding a
+  // fully verified, twice-green artifact: the re-carve destroyed it, 101 minutes of wall clock for
+  // 11 minutes of work, with no trace in quest.json that any of it happened. The check is "is the
+  // tree clean", never "did you make a commit".
+  describe('commit-before-signal gate — a code-changing role is refused while its worktree is dirty', () => {
+    it.each([...REVIEWED_ROLES, ...NON_REVIEWED_COMMITTING_ROLES])(
+      "ERROR: {%s item, tracked modification uncommitted, 'done'} => refused, and the message names the dirty path",
+      async (role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+        proxy.setupQuest({
+          quest: QuestStub({
+            planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+            operations: [
+              OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
+            ],
+            workItems: [
+              WorkItemStub({
+                id: itemId,
+                role,
+                status: 'in_progress',
+                relatedDataItems: [`operations/${OP1_ID}`],
+              }),
+            ],
+          }),
+        });
+        proxy.setupWorktree({ trackedFiles: [BLIGHT_FILE], untrackedFiles: [] });
+
+        await expect(
+          QuestHandleSignalBackResponder({
+            questId: QuestIdStub({ value: 'add-auth' }),
+            workItemId: itemId,
+            signal: 'complete',
+            operationStatus: 'done',
+          }),
+        ).rejects.toThrow(
+          new RegExp(
+            `signal-back refused: the quest worktree still carries 1 uncommitted change\\(s\\).*- ${BLIGHT_FILE}.*Commit this round`,
+            'su',
+          ),
+        );
+      },
+    );
+
+    // The case a bare `git diff` misses entirely: every net-new file a worker just wrote is
+    // untracked, so a gate reading the tracked half alone comes back clean on the dirtiest tree.
+    it("ERROR: {codeweaver item, ONLY untracked additions, 'done'} => refused naming the untracked path", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'codeweaver',
+              text: 'core: config adapter',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'codeweaver',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [BLIGHT_FILE] });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        new RegExp(
+          `signal-back refused: the quest worktree still carries 1 uncommitted change\\(s\\).*- ${BLIGHT_FILE}`,
+          'su',
+        ),
+      );
+    });
+
+    // A blocked quest hands its work forward through git exactly as a finished one does, so the
+    // outcome that halts is the one that most needs the work durable first.
+    it("ERROR: {codeweaver item, dirty tree, 'blocked'} => refused too, and nothing is persisted", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'codeweaver',
+              text: 'core: config adapter',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'codeweaver',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+      proxy.setupWorktree({ trackedFiles: [BLIGHT_FILE], untrackedFiles: [] });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'blocked',
+          blockedReason: BlockedReasonStub({
+            value: 'the CI token this round needs is not on this machine',
+          }),
+        }),
+      ).rejects.toThrow(
+        /signal-back refused: the quest worktree still carries 1 uncommitted change/u,
+      );
+
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
+    });
+
+    it("VALID: {codeweaver item, clean worktree, 'done'} => accepted, and the git read ran inside the WORKTREE", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2037,24 +2177,92 @@ describe('QuestHandleSignalBackResponder', () => {
           }),
         ],
       });
-      const completedItem = WorkItemStub({
-        id: itemId,
-        role: 'codeweaver',
+      const questAfterOutcome = QuestStub({
         status: 'complete',
-        relatedDataItems: [`operations/${OP1_ID}`],
-        completedAt: FIXED_TIMESTAMP,
-        actualSignal: 'complete',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
       });
-      const op1Complete = OperationItemStub({
-        id: OP1_ID,
-        role: 'codeweaver',
-        text: 'core: config adapter',
-        status: 'complete',
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getGitSpawnedArgsList()).toStrictEqual([
+        ['diff', 'HEAD', '--name-only'],
+        ['ls-files', '--others', '--exclude-standard'],
+      ]);
+    });
+
+    // A hydrated quest, or one seeded before worktrees, resolves to the repo root rather than a
+    // worktree of its own. That is a real state, not a violation — so the gate skips entirely and
+    // never reaches git, which is what the empty spawn list proves.
+    it("VALID: {codeweaver item, quest with no resolvable worktree, 'done'} => accepted with no git command run at all", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
       });
       const questAfterOutcome = QuestStub({
         status: 'complete',
-        operations: [op1Complete],
-        workItems: [completedItem],
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
@@ -2067,15 +2275,79 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      expect(proxy.getBlightChecklistCallArgs()).toStrictEqual([]);
+      expect(proxy.getGitSpawnedArgsList()).toStrictEqual([]);
+    });
+
+    // Ward and riftcarver never call signal-back at all, and a chat role commits nothing — so
+    // neither pays the git cost, which the empty spawn list is what proves.
+    it("VALID: {ward item, dirty worktree staged, 'done'} => accepted, because a COMMAND role is outside the gate and never reaches git", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'in_progress',
+            locked: true,
+            wardMode: 'full',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'ward',
+            status: 'in_progress',
+            spawnerType: 'command',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            wardMode: 'full',
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'complete',
+            locked: true,
+            wardMode: 'full',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'ward',
+            status: 'complete',
+            spawnerType: 'command',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            wardMode: 'full',
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupWorktree({ trackedFiles: [BLIGHT_FILE], untrackedFiles: [] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getGitSpawnedArgsList()).toStrictEqual([]);
     });
   });
 
   describe("operationStatus 'partial' — pt continuation duplicated after the completed item", () => {
-    // The scout is inserted BETWEEN the completed item and its own pt continuation, never after it.
-    // Its scope is `HEAD~1...HEAD`, so letting the continuation run first would move HEAD~1 onto the
-    // continuation's commit and leave the partial session's commit permanently unreviewed.
-    it("VALID: {unlocked codeweaver, first 'partial'} => same persist appends the scout AND 'pt 2: <base>' after it, in that order", async () => {
+    it("VALID: {unlocked codeweaver, first 'partial'} => same persist completes the item and appends 'pt 2: <base>' directly after it", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
@@ -2120,12 +2392,13 @@ describe('QuestHandleSignalBackResponder', () => {
         locked: false,
       });
       const questAfterOutcome = QuestStub({
-        operations: [op1Complete, SCOUT_OPERATION, continuation],
-        workItems: [completedItem, SCOUT_WORK_ITEM],
+        operations: [op1Complete, continuation],
+        workItems: [completedItem],
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupResponderUuids({ ids: [SCOUT_OP_UUID, SCOUT_WI_UUID, CONTINUATION_UUID] });
+      proxy.setupResponderUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2135,9 +2408,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      // ONE persist. Advance adds nothing on top: the scout is the first pending operation and it
-      // already carries its work item, so the continuation waits for the review to finish.
-      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+      expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
     });
 
     it("VALID: {whole-quest flowrider item, 'partial'} => continuation carries the same flowIds so the fresh session keeps every flow", async () => {
@@ -2188,19 +2459,14 @@ describe('QuestHandleSignalBackResponder', () => {
         locked: true,
         flowIds: ['send-comment', 'view-comments'],
       });
-      // A flowrider commit, so the scout's text names the flowrider item — the review of THIS
-      // commit, keyed apart from every scout following a codeweaver session.
-      const scoutOperation = OperationItemStub({
-        ...SCOUT_OPERATION,
-        text: SCOUT_TEXT_FLOWRIDER_OP1,
-      });
       const questAfterOutcome = QuestStub({
-        operations: [op1Complete, scoutOperation, continuation],
-        workItems: [completedItem, SCOUT_WORK_ITEM],
+        operations: [op1Complete, continuation],
+        workItems: [completedItem],
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupResponderUuids({ ids: [SCOUT_OP_UUID, SCOUT_WI_UUID, CONTINUATION_UUID] });
+      proxy.setupResponderUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2210,12 +2476,8 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      // The scout carries NO flowIds of its own even though the item it follows declares two — a
-      // commit is not a slice of the spine, so copying them would advertise a narrowing
-      // get-blight-checklist never applies.
       expect(proxy.getPersistedQuestAt({ index: 0 }).operations).toStrictEqual([
         op1Complete,
-        scoutOperation,
         continuation,
       ]);
     });
@@ -2271,12 +2533,13 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
-        operations: [op1Complete, SCOUT_OPERATION, continuation],
-        workItems: [completedItem, SCOUT_WORK_ITEM],
+        operations: [op1Complete, continuation],
+        workItems: [completedItem],
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupResponderUuids({ ids: [SCOUT_OP_UUID, SCOUT_WI_UUID, CONTINUATION_UUID] });
+      proxy.setupResponderUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2286,11 +2549,8 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      // Same contrast on the package axis: the continuation keeps both packages, the scout takes
-      // neither, because its denominator comes from the diff rather than from a declared slice.
       expect(proxy.getPersistedQuestAt({ index: 0 }).operations).toStrictEqual([
         op1Complete,
-        SCOUT_OPERATION,
         continuation,
       ]);
     });
@@ -2332,10 +2592,6 @@ describe('QuestHandleSignalBackResponder', () => {
             text: 'pt 2: core: config adapter',
             status: 'complete',
           }),
-          // The reviewed item is the pt-2 continuation, so the scout names ITS id — a second pass
-          // over the same scope still lands a second commit, and that commit gets its own review
-          // budget rather than sharing the first pass's.
-          OperationItemStub({ ...SCOUT_OPERATION, text: SCOUT_TEXT_CODEWEAVER_OP2 }),
           OperationItemStub({
             id: CONTINUATION_UUID,
             role: 'codeweaver',
@@ -2352,12 +2608,12 @@ describe('QuestHandleSignalBackResponder', () => {
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
           }),
-          SCOUT_WORK_ITEM,
         ],
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupResponderUuids({ ids: [SCOUT_OP_UUID, SCOUT_WI_UUID, CONTINUATION_UUID] });
+      proxy.setupResponderUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
       await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2487,7 +2743,6 @@ describe('QuestHandleSignalBackResponder', () => {
             status: 'complete',
             locked: false,
           }),
-          OperationItemStub({ ...SCOUT_OPERATION, text: SCOUT_TEXT_CODEWEAVER_OP3 }),
           OperationItemStub({
             id: CONTINUATION_UUID,
             role: 'codeweaver',
@@ -2505,12 +2760,12 @@ describe('QuestHandleSignalBackResponder', () => {
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
           }),
-          SCOUT_WORK_ITEM,
         ],
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupResponderUuids({ ids: [SCOUT_OP_UUID, SCOUT_WI_UUID, CONTINUATION_UUID] });
+      proxy.setupResponderUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2520,8 +2775,6 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      // Each pass of an unbounded chain earns its own review — the scout mints LOCKED (a bounded
-      // three-attempt budget of its own) even when the item it follows is unlocked.
       expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
     });
 
@@ -2620,6 +2873,7 @@ describe('QuestHandleSignalBackResponder', () => {
         status: 'in_progress',
       });
       const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         operations: [
           linkedOp,
           OperationItemStub({
@@ -2639,6 +2893,7 @@ describe('QuestHandleSignalBackResponder', () => {
         ],
       });
       const questAfterOutcome = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
         operations: [
           linkedOp,
           OperationItemStub({
@@ -2647,10 +2902,6 @@ describe('QuestHandleSignalBackResponder', () => {
             text: 'qa: login flow',
             status: 'complete',
           }),
-          // The scout lands after the EXPLICITLY named operation, not after the work item's own
-          // ref — the append reads the same resolved item the completion did, and its text names
-          // that same item (the siegemaster OP2_ID one), never the work item's OP1_ID link.
-          OperationItemStub({ ...SCOUT_OPERATION, text: SCOUT_TEXT_SIEGEMASTER_OP2 }),
         ],
         workItems: [
           WorkItemStub({
@@ -2661,12 +2912,10 @@ describe('QuestHandleSignalBackResponder', () => {
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
           }),
-          SCOUT_WORK_ITEM,
         ],
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupResponderUuids({ ids: [SCOUT_OP_UUID, SCOUT_WI_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2798,10 +3047,6 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      // NO scout, even though pesteater IS a committing role: an environment wall halts the quest
-      // immediately, and questBlockOnFailureBroker drains pending work items to `skipped` — the
-      // review would be born dead, and `skipped` never satisfies `dependsOn`. The `finalOperations`
-      // assertion below names every item on the ledger, so a scout appearing here would red this.
       expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
 
       const finalQuest = proxy.getLastPersistedQuest();
@@ -3045,7 +3290,7 @@ describe('QuestHandleSignalBackResponder', () => {
             }),
             WorkItemStub({
               id: pendingId,
-              role: 'blightscout',
+              role: 'siegemaster',
               status: 'pending',
               dependsOn: [itemId],
             }),
@@ -3074,7 +3319,7 @@ describe('QuestHandleSignalBackResponder', () => {
             }),
             WorkItemStub({
               id: pendingId,
-              role: 'blightscout',
+              role: 'siegemaster',
               status: 'pending',
               dependsOn: [itemId],
             }),
@@ -3092,9 +3337,7 @@ describe('QuestHandleSignalBackResponder', () => {
 
         expect(result).toStrictEqual({ success: true });
         // Persist 1 (the responder's own atomic outcome write) completes the chain WITHOUT a
-        // 'pt 4' continuation AND without a scout — a spent budget halts the quest exactly as an
-        // environment wall does, so a review appended here would only be drained to `skipped`.
-        // `finalOperationTexts` below names every ledger item, so a stray scout would red this.
+        // 'pt 4' continuation — a spent budget halts the quest exactly as an environment wall does.
         expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
 
         const finalQuest = proxy.getLastPersistedQuest();

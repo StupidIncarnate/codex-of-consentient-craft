@@ -94,31 +94,26 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     const markers = page.getByTestId('OPERATIONS_LEDGER_ROW_MARKER');
     await expect(markers).toHaveText(['[>]', '[ ]'], { timeout: PANEL_TIMEOUT });
 
-    // codeweaver is a committing role, so EACH codeweaver item's `done` appends a blightscout
-    // review immediately after it — the ledger advances codeweaver#1 -> blightscout#1 ->
-    // codeweaver#2 -> blightscout#2, so the FIFO script interleaves a blightscout outcome after
-    // every codeweaver outcome.
+    // The relay advances codeweaver#1 -> codeweaver#2, one dispatch each, so the FIFO script is
+    // exactly two outcomes.
     await dispatch.playAndDrive({
       questId: String(questId),
       script: [
         { role: 'codeweaver', outcome: 'done' },
-        { role: 'blightscout', outcome: 'done' },
         { role: 'codeweaver', outcome: 'done' },
-        { role: 'blightscout', outcome: 'done' },
       ],
     });
 
-    // Backend truth: all four operations complete (each codeweaver item's completion appended a
-    // blightscout review right after it), one work item each, quest complete. The scan re-reads
-    // the unparseable sibling on every pass, so this also proves it stays survivable across
-    // dispatches rather than only on the first one.
+    // Backend truth: both operations complete, one work item each, quest complete. The scan
+    // re-reads the unparseable sibling on every pass, so this also proves it stays survivable
+    // across dispatches rather than only on the first one.
     const finalQuest = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&
-        quest.operations.length === 4 &&
-        quest.workItems.length === 4 &&
+        quest.operations.length === 2 &&
+        quest.workItems.length === 2 &&
         quest.operations.every((op) => op.status === 'complete'),
     });
 
@@ -126,11 +121,9 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
       finalQuest.operations.map((op) => ({ role: String(op.role), status: op.status })),
     ).toStrictEqual([
       { role: 'codeweaver', status: 'complete' },
-      { role: 'blightscout', status: 'complete' },
       { role: 'codeweaver', status: 'complete' },
-      { role: 'blightscout', status: 'complete' },
     ]);
 
-    await expect(markers).toHaveText(['[x]', '[x]', '[x]', '[x]'], { timeout: LEDGER_TIMEOUT });
+    await expect(markers).toHaveText(['[x]', '[x]'], { timeout: LEDGER_TIMEOUT });
   });
 });

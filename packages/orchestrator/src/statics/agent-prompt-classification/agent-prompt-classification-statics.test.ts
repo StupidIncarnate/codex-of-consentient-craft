@@ -6,37 +6,31 @@ describe('agentPromptClassificationStatics', () => {
       expect(agentPromptClassificationStatics).toStrictEqual({
         promptNames: [
           'chaoswhisperer-gap-minion',
+          'planner-minion',
+          'worker-minion',
+          'reviewer-minion',
           'codeweaver',
-          'codeweaver-piece-minion',
           'spiritmender',
           'flowrider',
-          'flowrider-authoring-minion',
-          'flowrider-coverage-minion',
           'groundstomper',
           'siegemaster',
-          'siegemaster-walker-minion',
-          'siegemaster-test-audit-minion',
-          'blightscout',
           'pesteater',
           'warpgate',
         ],
         roleNames: [
           'codeweaver',
-          'spiritmender',
           'flowrider',
           'groundstomper',
           'siegemaster',
-          'blightscout',
           'pesteater',
+          'spiritmender',
           'warpgate',
         ],
         minionNames: [
           'chaoswhisperer-gap-minion',
-          'codeweaver-piece-minion',
-          'flowrider-authoring-minion',
-          'flowrider-coverage-minion',
-          'siegemaster-walker-minion',
-          'siegemaster-test-audit-minion',
+          'planner-minion',
+          'worker-minion',
+          'reviewer-minion',
         ],
       });
     });
@@ -62,14 +56,17 @@ describe('agentPromptClassificationStatics', () => {
     );
 
     it.each(agentPromptClassificationStatics.promptNames)(
-      'VALID: {promptName: %s} => is classified as a role, a minion, or both',
+      'VALID: {promptName: %s} => is classified as exactly one of role or minion',
       (promptName) => {
-        const classified = [
-          ...agentPromptClassificationStatics.roleNames,
-          ...agentPromptClassificationStatics.minionNames,
-        ];
-
-        expect(classified.some((name) => name === promptName)).toBe(true);
+        expect({
+          isRole: agentPromptClassificationStatics.roleNames.some((name) => name === promptName),
+          isMinion: agentPromptClassificationStatics.minionNames.some(
+            (name) => name === promptName,
+          ),
+        }).toStrictEqual({
+          isRole: agentPromptClassificationStatics.minionNames.every((name) => name !== promptName),
+          isMinion: agentPromptClassificationStatics.roleNames.every((name) => name !== promptName),
+        });
       },
     );
   });

@@ -1,32 +1,44 @@
 /**
- * PURPOSE: Resolves an agent prompt name to its prompt result (name, model, prompt text)
+ * PURPOSE: Resolves an agent prompt name to the prompt result `get-agent-prompt` serves — and is
+ * the ONE place `$DISCIPLINE` (and, for a role, `$MY_DISCIPLINE`) is substituted, so no caller
+ * downstream can hand an agent the literal token. An orchestrator ROLE derives its own discipline
+ * from `roleToDisciplineStatics`; the three generic minions have none of their own and must be
+ * given one by the parent that summons them — which is why a role's served prompt has to carry the
+ * discipline ID as well as the pack.
  *
  * USAGE:
- * const result = agentNameToPromptTransformer({ agent: agentPromptNameContract.parse('chaoswhisperer-gap-minion') });
- * // Returns { name: 'chaoswhisperer-gap-minion', model: 'sonnet', prompt: '...' }
+ * agentNameToPromptTransformer({ agent: agentPromptNameContract.parse('codeweaver') });
+ * // Returns { name: 'codeweaver', model: 'opus', prompt: '...' } — $DISCIPLINE resolved,
+ * // $ARGUMENTS still unsubstituted for the caller that owns the operation context.
+ *
+ * The switch is exhaustive on purpose: its `never` default is what fails the build when a name is
+ * added to `agentPromptClassificationStatics.promptNames` without a prompt behind it.
  */
 
 import { agentPromptResultContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
+
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
-import { blightscoutPromptStatics } from '../../statics/blightscout-prompt/blightscout-prompt-statics';
+import { disciplineContract } from '../../contracts/discipline/discipline-contract';
+import type { Discipline } from '../../contracts/discipline/discipline-contract';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPieceMinionStatics } from '../../statics/codeweaver-piece-minion/codeweaver-piece-minion-statics';
-import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { flowriderCoverageMinionStatics } from '../../statics/flowrider-coverage-minion/flowrider-coverage-minion-statics';
-import { flowriderAuthoringMinionStatics } from '../../statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
-import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
-import { groundstomperPromptStatics } from '../../statics/groundstomper-prompt/groundstomper-prompt-statics';
-import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { siegemasterWalkerMinionStatics } from '../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
-import { siegemasterTestAuditMinionStatics } from '../../statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
-import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
+import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { plannerMinionStatics } from '../../statics/planner-minion/planner-minion-statics';
+import { reviewerMinionStatics } from '../../statics/reviewer-minion/reviewer-minion-statics';
+import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
+import { workerMinionStatics } from '../../statics/worker-minion/worker-minion-statics';
+import { disciplineToPackTransformer } from '../discipline-to-pack/discipline-to-pack-transformer';
 
 export const agentNameToPromptTransformer = ({
   agent,
+  discipline,
 }: {
   agent: AgentPromptName;
+  // Required for every minion whose template carries a `$DISCIPLINE` placeholder, and meaningless
+  // for everything else: a ROLE derives its own, and a role's caller must not be able to ask for
+  // another discipline's instructions.
+  discipline?: Discipline;
 }): AgentPromptResult => {
   switch (agent) {
     case 'chaoswhisperer-gap-minion':
@@ -35,77 +47,91 @@ export const agentNameToPromptTransformer = ({
         model: 'sonnet',
         prompt: chaoswhispererGapMinionStatics.prompt.template,
       });
+    // The five operation-owning roles share ONE template. Only the pack interpolated at
+    // `$DISCIPLINE` differs, and it is derived from the role rather than passed in.
     case 'codeweaver':
+    case 'pesteater':
+    case 'flowrider':
+    case 'groundstomper':
+    case 'siegemaster':
       return agentPromptResultContract.parse({
-        name: 'codeweaver',
+        name: agent,
         model: 'opus',
-        prompt: codeweaverPromptStatics.prompt.template,
+        prompt: operationOrchestratorPromptStatics.prompt.template
+          .replace(
+            operationOrchestratorPromptStatics.prompt.placeholders.discipline,
+            // Function replacement, never the string form: pack markdown is authored prose that can
+            // contain `$&`, `` $` `` or `$'`, and the string form expands those against the match —
+            // `` $` `` splices the whole preceding prompt in.
+            () =>
+              disciplineToPackTransformer({ discipline: roleToDisciplineStatics[agent] })
+                .orchestratorMarkdown,
+          )
+          // The discipline ID, not the pack: the template quotes it back into the
+          // `get-agent-prompt` call its minions must make, and that broker REFUSES a generic
+          // minion without one. Same function form for the same reason — and the two tokens
+          // share no prefix, so neither substitution can eat the other whatever the order.
+          .replace(
+            operationOrchestratorPromptStatics.prompt.placeholders.myDiscipline,
+            () => roleToDisciplineStatics[agent],
+          ),
       });
-    case 'codeweaver-piece-minion':
+    // Planning is the hard part of a round and it can spike, so the planner runs on opus even
+    // though it writes nothing.
+    case 'planner-minion': {
+      if (discipline === undefined) {
+        throw new Error(
+          `agentNameToPromptTransformer: "planner-minion" carries a $DISCIPLINE placeholder and must be summoned with a discipline — one of: ${disciplineContract.options.join(' | ')}`,
+        );
+      }
       return agentPromptResultContract.parse({
-        name: 'codeweaver-piece-minion',
-        model: 'sonnet',
-        prompt: codeweaverPieceMinionStatics.prompt.template,
+        name: 'planner-minion',
+        model: 'opus',
+        prompt: plannerMinionStatics.prompt.template.replace(
+          plannerMinionStatics.prompt.placeholders.discipline,
+          () => disciplineToPackTransformer({ discipline }).plannerMarkdown,
+        ),
       });
+    }
+    // The worker executes ONE piece of a plan another session already made, against files it is
+    // told to open — the narrowest job on the round, and the only one that is cheap on sonnet.
+    case 'worker-minion': {
+      if (discipline === undefined) {
+        throw new Error(
+          `agentNameToPromptTransformer: "worker-minion" carries a $DISCIPLINE placeholder and must be summoned with a discipline — one of: ${disciplineContract.options.join(' | ')}`,
+        );
+      }
+      return agentPromptResultContract.parse({
+        name: 'worker-minion',
+        model: 'sonnet',
+        prompt: workerMinionStatics.prompt.template.replace(
+          workerMinionStatics.prompt.placeholders.discipline,
+          () => disciplineToPackTransformer({ discipline }).workerMarkdown,
+        ),
+      });
+    }
+    // Opus, because the whole design rests on it: the orchestrator never reads source and the
+    // worker grades nothing, so this is the only session on the round that verifies anything.
+    case 'reviewer-minion': {
+      if (discipline === undefined) {
+        throw new Error(
+          `agentNameToPromptTransformer: "reviewer-minion" carries a $DISCIPLINE placeholder and must be summoned with a discipline — one of: ${disciplineContract.options.join(' | ')}`,
+        );
+      }
+      return agentPromptResultContract.parse({
+        name: 'reviewer-minion',
+        model: 'opus',
+        prompt: reviewerMinionStatics.prompt.template.replace(
+          reviewerMinionStatics.prompt.placeholders.discipline,
+          () => disciplineToPackTransformer({ discipline }).reviewerMarkdown,
+        ),
+      });
+    }
     case 'spiritmender':
       return agentPromptResultContract.parse({
         name: 'spiritmender',
         model: 'sonnet',
         prompt: spiritmenderPromptStatics.prompt.template,
-      });
-    case 'flowrider':
-      return agentPromptResultContract.parse({
-        name: 'flowrider',
-        model: 'opus',
-        prompt: flowriderPromptStatics.prompt.template,
-      });
-    case 'flowrider-authoring-minion':
-      return agentPromptResultContract.parse({
-        name: 'flowrider-authoring-minion',
-        model: 'sonnet',
-        prompt: flowriderAuthoringMinionStatics.prompt.template,
-      });
-    case 'flowrider-coverage-minion':
-      return agentPromptResultContract.parse({
-        name: 'flowrider-coverage-minion',
-        model: 'sonnet',
-        prompt: flowriderCoverageMinionStatics.prompt.template,
-      });
-    case 'groundstomper':
-      return agentPromptResultContract.parse({
-        name: 'groundstomper',
-        model: 'opus',
-        prompt: groundstomperPromptStatics.prompt.template,
-      });
-    case 'siegemaster':
-      return agentPromptResultContract.parse({
-        name: 'siegemaster',
-        model: 'opus',
-        prompt: siegemasterPromptStatics.prompt.template,
-      });
-    case 'siegemaster-walker-minion':
-      return agentPromptResultContract.parse({
-        name: 'siegemaster-walker-minion',
-        model: 'sonnet',
-        prompt: siegemasterWalkerMinionStatics.prompt.template,
-      });
-    case 'siegemaster-test-audit-minion':
-      return agentPromptResultContract.parse({
-        name: 'siegemaster-test-audit-minion',
-        model: 'sonnet',
-        prompt: siegemasterTestAuditMinionStatics.prompt.template,
-      });
-    case 'blightscout':
-      return agentPromptResultContract.parse({
-        name: 'blightscout',
-        model: 'sonnet',
-        prompt: blightscoutPromptStatics.prompt.template,
-      });
-    case 'pesteater':
-      return agentPromptResultContract.parse({
-        name: 'pesteater',
-        model: 'opus',
-        prompt: pesteaterPromptStatics.prompt.template,
       });
     case 'warpgate':
       return agentPromptResultContract.parse({

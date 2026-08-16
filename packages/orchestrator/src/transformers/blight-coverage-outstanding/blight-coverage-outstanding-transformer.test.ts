@@ -1,33 +1,15 @@
-import { BlightChecklistStub, OperationItemStub } from '@dungeonmaster/shared/contracts';
+import { BlightChecklistStub } from '@dungeonmaster/shared/contracts';
 
 import { blightCoverageOutstandingTransformer } from './blight-coverage-outstanding-transformer';
 
 describe('blightCoverageOutstandingTransformer', () => {
-  describe('items the gate does not bind', () => {
-    it('VALID: {non-blightscout role} => never gated', () => {
-      const checklist = BlightChecklistStub({
-        remainingItemIds: ['packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage'],
-      });
-
-      expect(
-        blightCoverageOutstandingTransformer({
-          operationItem: OperationItemStub({ role: 'siegemaster' }),
-          checklist,
-        }),
-      ).toStrictEqual([]);
-    });
-
-    it('EMPTY: {checklist: null, meaning baseRef was never pinned} => not gated, so the quest never wedges', () => {
-      expect(
-        blightCoverageOutstandingTransformer({
-          operationItem: OperationItemStub({ role: 'blightscout' }),
-          checklist: null,
-        }),
-      ).toStrictEqual([]);
+  describe('surfaces that cannot be measured', () => {
+    it('EMPTY: {checklist: null, meaning baseRef was never pinned} => returns empty, so a caller never wedges on a scope it cannot compute', () => {
+      expect(blightCoverageOutstandingTransformer({ checklist: null })).toStrictEqual([]);
     });
   });
 
-  describe('blightscout items with a measured checklist', () => {
+  describe('a measured checklist', () => {
     it('VALID: {remaining units on the checklist} => returns those ids', () => {
       const checklist = BlightChecklistStub({
         remainingItemIds: [
@@ -36,26 +18,16 @@ describe('blightCoverageOutstandingTransformer', () => {
         ],
       });
 
-      expect(
-        blightCoverageOutstandingTransformer({
-          operationItem: OperationItemStub({ role: 'blightscout' }),
-          checklist,
-        }),
-      ).toStrictEqual([
+      expect(blightCoverageOutstandingTransformer({ checklist })).toStrictEqual([
         'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
         'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:integrity',
       ]);
     });
 
-    it('VALID: {no remaining units} => returns empty, so done is allowed', () => {
+    it('VALID: {no remaining units} => returns empty, so every unit on that surface is dealt with', () => {
       const checklist = BlightChecklistStub({ remainingItemIds: [] });
 
-      expect(
-        blightCoverageOutstandingTransformer({
-          operationItem: OperationItemStub({ role: 'blightscout' }),
-          checklist,
-        }),
-      ).toStrictEqual([]);
+      expect(blightCoverageOutstandingTransformer({ checklist })).toStrictEqual([]);
     });
   });
 });

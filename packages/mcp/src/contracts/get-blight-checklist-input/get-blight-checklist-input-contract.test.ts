@@ -9,10 +9,9 @@ describe('getBlightChecklistInputContract', () => {
       });
     });
 
-    // Blightscout's prompt tells it to pass this on every call, and the signal-back completion gate
-    // measures its remainder with the same scope. A schema that rejected it left the role unable to
-    // read the set it is graded on.
-    it("VALID: {questId, scope: 'commit'} => parses, so the one-commit call the prompt mandates is accepted", () => {
+    // A caller auditing one landed commit passes this rather than the whole-quest default. A schema
+    // that rejected it would leave that caller reading a diff it was not asking about.
+    it("VALID: {questId, scope: 'commit'} => parses, so a one-commit audit call is accepted", () => {
       expect(
         getBlightChecklistInputContract.parse(
           GetBlightChecklistInputStub({ questId: 'add-auth', scope: 'commit' }),
@@ -27,6 +26,17 @@ describe('getBlightChecklistInputContract', () => {
         ),
       ).toStrictEqual({ questId: 'add-auth', scope: 'quest' });
     });
+
+    // A reviewer sub-agent runs BEFORE its parent session commits, so nothing under review is in
+    // history yet — 'commit' would hand it the round BEFORE its own. This is the one scope that
+    // needs no pinned baseRef and reads uncommitted + untracked changes alone.
+    it("VALID: {questId, scope: 'working-tree'} => parses, so a pre-commit reviewer can scope to uncommitted changes", () => {
+      expect(
+        getBlightChecklistInputContract.parse(
+          GetBlightChecklistInputStub({ questId: 'add-auth', scope: 'working-tree' }),
+        ),
+      ).toStrictEqual({ questId: 'add-auth', scope: 'working-tree' });
+    });
   });
 
   describe('invalid inputs', () => {
@@ -38,7 +48,7 @@ describe('getBlightChecklistInputContract', () => {
       expect(() => getBlightChecklistInputContract.parse({})).toThrow(/Required/u);
     });
 
-    it("INVALID: {scope: 'branch'} => throws, the only two diffs are the quest's and the last commit's", () => {
+    it("INVALID: {scope: 'branch'} => throws, the only three diffs are the quest's, the last commit's, and the working tree's", () => {
       expect(() =>
         getBlightChecklistInputContract.parse({ questId: 'add-auth', scope: 'branch' } as never),
       ).toThrow(/Invalid enum value/u);

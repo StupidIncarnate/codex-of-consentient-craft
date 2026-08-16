@@ -133,6 +133,7 @@ export const InteractionHandleResponder = async ({
       agent: parsed.data.agent,
       questId: parsed.data.questId,
       ...(workItemId !== undefined && { workItemId }),
+      ...(parsed.data.discipline !== undefined && { discipline: parsed.data.discipline }),
     });
 
     return {

@@ -35,12 +35,20 @@ describe('agentRoleContract', () => {
       expect(result).toBe('siegemaster');
     });
 
-    it('VALID: blightscout => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightscout' });
+    it('VALID: groundstomper => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'groundstomper' });
 
       const result = agentRoleContract.parse(role);
 
-      expect(result).toBe('blightscout');
+      expect(result).toBe('groundstomper');
+    });
+
+    it('VALID: warpgate => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'warpgate' });
+
+      const result = agentRoleContract.parse(role);
+
+      expect(result).toBe('warpgate');
     });
 
     it('VALID: pesteater => parses successfully', () => {
@@ -88,6 +96,23 @@ describe('agentRoleContract', () => {
         agentRoleContract.parse('lawbringer');
       }).toThrow(/Invalid enum value/u);
     });
+
+    it('INVALID: blightscout => throws validation error (removed role)', () => {
+      expect(() => {
+        agentRoleContract.parse('blightscout');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    // The generic minions are parameterized by a discipline their parent hands them, so none can
+    // ever hold an operation item of its own.
+    it.each(['planner-minion', 'worker-minion', 'reviewer-minion'])(
+      'INVALID: %s => throws validation error (a minion is never a dispatchable role)',
+      (value) => {
+        expect(() => {
+          agentRoleContract.parse(value);
+        }).toThrow(/Invalid enum value/u);
+      },
+    );
 
     it('VALID: {stub default} => defaults to codeweaver', () => {
       const role = AgentRoleStub();

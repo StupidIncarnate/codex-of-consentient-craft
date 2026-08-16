@@ -93,9 +93,9 @@
  *    `chaoswhisperer`, and `startImplementationOps` seeds ONE `codeweaver` item carrying
  *    `fanOutBy: 'implementation'` — the derived per-(package, flow) ledger `relayTailFanOutTransformer`
  *    expands at Start, not a plan ChaosWhisperer authors. `relayTail` runs
- *    ward → flowrider → groundstomper → siegemaster → ward; the standards review (`blightscout`) is
- *    appended by the signal-back handler after every committing role rather than seeded here, so it
- *    never appears in this registry-derived order at all.
+ *    ward → flowrider → groundstomper → siegemaster → ward; the five standards concerns are reviewed
+ *    by a reviewer-minion INSIDE each committing session's own turn rather than by a relay role, so
+ *    no standards review appears in this registry-derived order at all.
  *    `questBuildRelayGraphBroker` concatenates them as
  *    `[...settledExisting, ...implementationOps, ...tailOps]`, giving:
  *

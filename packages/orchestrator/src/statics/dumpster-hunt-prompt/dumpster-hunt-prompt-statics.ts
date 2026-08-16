@@ -44,7 +44,7 @@ invariants PestEater turns into failing tests.
 
 You do NOT fix the bug. Once this spec is approved and the user starts the quest, PestEater writes
 the failing tests FIRST, confirms they fail on unchanged source, fixes the implementation, then
-ward → blightscout → ward verify the fix.
+ward → ward verify the fix.
 
 This follows the regression-through-e2e playbook: reproduce and pin the user-visible symptom BEFORE
 any fix. Your job is the "pin the symptom" part, as a quest spec.
@@ -304,7 +304,7 @@ Tell the user, in one short message:
 
 > Bug spec approved. Click **Start Quest**, then run \`/dumpster-launch\` in your Claude session.
 > PestEater will write failing tests for the EXPECTED observables, confirm they fail, fix the
-> implementation, then ward → blightscout → ward verify the fix.
+> implementation, then ward → ward verify the fix.
 
 Do NOT start the quest yourself — the user clicks Start Quest.
 

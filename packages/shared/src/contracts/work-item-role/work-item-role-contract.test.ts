@@ -59,14 +59,6 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('siegemaster');
     });
 
-    it('VALID: blightscout => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'blightscout' });
-
-      const result = workItemRoleContract.parse(role);
-
-      expect(result).toBe('blightscout');
-    });
-
     it('VALID: bughunt => parses successfully', () => {
       const role = WorkItemRoleStub({ value: 'bughunt' });
 

@@ -230,15 +230,16 @@ export const StartOrchestrator = {
       ...(packageNames !== undefined && { packageNames }),
     }),
 
-  // `scope` rides all the way out to the MCP tool because Blightscout is dispatched against ONE
-  // COMMIT and its completion gate recomputes the remainder with `scope: 'commit'` — a session that
-  // could not name the same scope would read a different denominator than the one grading it.
+  // `scope` rides all the way out to the MCP tool because a reviewer-minion running inside its
+  // parent's turn is graded on the WORKING TREE, while a caller auditing a landed commit wants
+  // `commit` and one auditing the whole branch wants `quest` — a caller that could not name the
+  // scope would read a different denominator than the one it is answering for.
   getBlightChecklist: async ({
     questId,
     scope,
   }: {
     questId: string;
-    scope?: 'quest' | 'commit';
+    scope?: 'quest' | 'commit' | 'working-tree';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getBlightChecklist>>> =>
     QuestFlow.getBlightChecklist({ questId, ...(scope !== undefined && { scope }) }),
 
@@ -368,20 +369,25 @@ export const StartOrchestrator = {
   stopFollowupChat: async ({ questId }: { questId: QuestId }): Promise<{ stopped: boolean }> =>
     FollowupChatStopFlow({ questId }),
 
-  // Agent prompt methods
+  // Agent prompt methods. `discipline` is an explicit param because a minion (planner-minion /
+  // worker-minion / reviewer-minion) fetches with no workItemId — there is no work item to derive
+  // one from server-side, so the caller must name it.
   getAgentPrompt: async ({
     agent,
     questId,
     workItemId,
+    discipline,
   }: {
     agent: string;
     questId: QuestId;
     workItemId?: QuestWorkItemId;
+    discipline?: 'implementation' | 'bug-repro' | 'below-browser' | 'browser-e2e' | 'manual-qa';
   }): Promise<AgentPromptResult> =>
     AgentPromptFlow.get({
       agent,
       questId,
       ...(workItemId !== undefined && { workItemId }),
+      ...(discipline !== undefined && { discipline }),
     }),
 
   // Recovery methods

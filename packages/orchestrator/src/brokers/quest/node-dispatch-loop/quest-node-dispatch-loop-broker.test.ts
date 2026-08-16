@@ -227,7 +227,7 @@ describe('questNodeDispatchLoopBroker', () => {
 
     it('VALID: {spawn-agents step then idle} => spawns the batch then recurses to idle', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
-      const agents = [SpawnInstructionStub(), SpawnInstructionStub({ role: 'blightscout' })];
+      const agents = [SpawnInstructionStub(), SpawnInstructionStub({ role: 'spiritmender' })];
       const spawnStep = NextStepStub({ type: 'spawn-agents', agents });
       proxy.queueStep({ step: spawnStep });
       const isPlaying = jest.fn().mockReturnValue(true);
@@ -282,7 +282,7 @@ describe('questNodeDispatchLoopBroker', () => {
     it('VALID: {two spawn steps queued} => dispatches both batches before idling', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
       const firstAgents = [SpawnInstructionStub()];
-      const secondAgents = [SpawnInstructionStub({ role: 'blightscout' })];
+      const secondAgents = [SpawnInstructionStub({ role: 'spiritmender' })];
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents: firstAgents }) });
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents: secondAgents }) });
       const isPlaying = jest.fn().mockReturnValue(true);

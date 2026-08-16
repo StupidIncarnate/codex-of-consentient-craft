@@ -1,14 +1,15 @@
 /**
- * PURPOSE: Defines the five concern families a blightscout review unit crosses with one changed
+ * PURPOSE: Defines the five concern families a standards-review unit crosses with one changed
  * file — `<repo-relative-impl-path>:<concern>`
  *
  * USAGE:
  * blightConcernContract.parse('craft');
  * // Returns: BlightConcern enum value
  *
- * Blightscout's question is "is the changed CODE well-made?", asked once per commit rather than once
- * per quest. The hands-on walk track belongs to Siegemaster, whose off-map `hostile-input` probe
- * proves security by sending a real payload rather than reading for one.
+ * The reviewer-minion's question is "is the changed CODE well-made?", asked once per round inside
+ * its orchestrator's own turn rather than once per quest. The hands-on walk track belongs to
+ * Siegemaster, whose off-map `hostile-input` probe proves security by sending a real payload rather
+ * than reading for one.
  *
  * A changed file clears each concern independently — passing `craft` says nothing about `perf` — so
  * a file's review is complete only once every concern below has its own ledger entry:

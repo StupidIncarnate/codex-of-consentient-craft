@@ -91,9 +91,8 @@ export const orchestrationQuestHarness = (): {
     questId: QuestId;
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
-    // Present only for tests exercising the blightscout completion gate, which recomputes
-    // outstanding review units from a real `git diff HEAD~1...HEAD` — omitted, quest.baseRef
-    // stays whatever create-quest seeded (unset), and the gate does not bind.
+    // Present only for tests measuring a real review surface from a pinned base — omitted,
+    // quest.baseRef stays whatever create-quest seeded (unset).
     baseRef?: GitBaseRef;
     // Present only for tests seeding quest.planningNotes.blightLedger / qaLedger dispositions
     // ahead of a signal-back — omitted, planningNotes stays whatever create-quest seeded.
@@ -123,11 +122,11 @@ export const orchestrationQuestHarness = (): {
     worktreePath?: WorktreePath;
     branchName?: BranchName;
   }) => Promise<void>;
-  // Real `git init` + one commit at repoPath (an integration testbed dir, NOT this repo), so the
-  // blightscout completion gate's `questGetBlightChecklistBroker` has a real commit to diff
-  // against. Returns the new commit's sha as the quest's baseRef. `-c user.*`/`-c
-  // commit.gpgsign=false` scope identity + signing to this one invocation so the test never
-  // depends on (or mutates) the developer's real git config.
+  // Real `git init` + one commit at repoPath (an integration testbed dir, NOT this repo), so
+  // `questGetBlightChecklistBroker` has a real commit to diff against. Returns the new commit's
+  // sha as the quest's baseRef. `-c user.*`/`-c commit.gpgsign=false` scope identity + signing to
+  // this one invocation so the test never depends on (or mutates) the developer's real git
+  // config.
   initGitRepoAndCommitBase: (params: { repoPath: GuildPath }) => Promise<{ baseRef: GitBaseRef }>;
   // Writes each file under repoPath and commits them on top of the base commit, so
   // `git diff baseRef...HEAD --name-only` reports exactly these paths as changed.

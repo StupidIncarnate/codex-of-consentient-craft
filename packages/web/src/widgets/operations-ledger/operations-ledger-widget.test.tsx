@@ -207,8 +207,8 @@ describe('OperationsLedgerWidget', () => {
       const operations = [
         OperationItemStub({
           id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d444',
-          role: 'blightscout',
-          text: 'Blightscout: review the commit',
+          role: 'warpgate',
+          text: 'Warpgate: merge the quest branch home',
           status: 'pending',
         }),
       ];

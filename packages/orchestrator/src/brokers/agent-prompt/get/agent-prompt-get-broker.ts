@@ -16,6 +16,14 @@
  * sub-agent's realAgentId as the sessionId. `quest-monitor-watcher-start-broker` wires
  * that hook to `questModifyBroker`, stamping `quest.workItems[workItemId].sessionId`.
  *
+ * Discipline routing: a ROLE derives its discipline from its own role and must therefore REJECT a
+ * `discipline` argument — accepting one would let a dispatched session request another discipline's
+ * instructions. The three generic minions have no discipline of their own and REQUIRE one, because
+ * the failure mode of serving them without it is an agent holding the literal token `$DISCIPLINE`
+ * and running with no discipline instructions at all. Those three are also refused a `workItemId`
+ * BY NAME rather than being let fall through to the work-item branch (which ignores `discipline`
+ * and would report the wrong argument as the fault).
+ *
  * USAGE:
  * const result = await agentPromptGetBroker({ agent: 'codeweaver', questId, workItemId });
  * // Returns AgentPromptResult whose `prompt` has $ARGUMENTS substituted with operation context
@@ -39,6 +47,7 @@ import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmast
 import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { devCommandContract } from '../../../contracts/dev-command/dev-command-contract';
 import { devServerUrlContract } from '../../../contracts/dev-server-url/dev-server-url-contract';
+import { disciplineContract } from '../../../contracts/discipline/discipline-contract';
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { workItemToPromptTransformer } from '../../../transformers/work-item-to-prompt/work-item-to-prompt-transformer';
@@ -49,13 +58,32 @@ export const agentPromptGetBroker = async ({
   agent,
   questId,
   workItemId,
+  discipline,
 }: {
   agent: string;
   questId: QuestId;
   workItemId?: QuestWorkItemId;
+  discipline?: string;
 }): Promise<AgentPromptResult> => {
   const parsedAgent = agentPromptNameContract.parse(agent);
-  const base = agentNameToPromptTransformer({ agent: parsedAgent });
+  const isMinion = agentPromptClassificationStatics.minionNames.some(
+    (name) => name === parsedAgent,
+  );
+
+  // A role's discipline is derived from its role and nowhere else. Letting the call carry one would
+  // let a dispatched session fetch a sibling discipline's instructions for its own operation item.
+  if (!isMinion && discipline !== undefined) {
+    throw new Error(
+      `agentPromptGetBroker: role "${parsedAgent}" must not be given a discipline — a role's discipline is derived from the role itself`,
+    );
+  }
+
+  // `chaoswhisperer-gap-minion` is summoned during the SPEC phase, before any operation item
+  // exists, so its template carries no $DISCIPLINE placeholder and a discipline handed to it
+  // would silently go nowhere. The three generic minions are the mirror case: their whole
+  // parameterization IS the discipline, and serving one without it hands the agent the literal
+  // token and no instructions.
+  const carriesDisciplinePlaceholder = isMinion && parsedAgent !== 'chaoswhisperer-gap-minion';
 
   // Minion-fetch: a parent-summoned sub-agent minion (every name in
   // agentPromptClassificationStatics.minionNames) has no work item of its own. It fetches its
@@ -64,18 +92,47 @@ export const agentPromptGetBroker = async ({
   // No quest load, no work-item context block. A ROLE name (dispatched as its own work item by
   // /dumpster-launch) MUST supply a workItemId — reject one that omits it.
   if (workItemId === undefined) {
-    const isMinion = agentPromptClassificationStatics.minionNames.some(
-      (name) => name === parsedAgent,
-    );
     if (!isMinion) {
       throw new Error(`agentPromptGetBroker: role "${parsedAgent}" requires a workItemId`);
     }
+
+    if (!carriesDisciplinePlaceholder && discipline !== undefined) {
+      throw new Error(
+        `agentPromptGetBroker: minion "${parsedAgent}" takes no discipline — it is summoned during the spec phase, before any operation item exists`,
+      );
+    }
+    if (carriesDisciplinePlaceholder && discipline === undefined) {
+      throw new Error(
+        `agentPromptGetBroker: minion "${parsedAgent}" requires a discipline — one of: ${disciplineContract.options.join(' | ')}`,
+      );
+    }
+
+    const minionBase = agentNameToPromptTransformer({
+      agent: parsedAgent,
+      ...(discipline === undefined ? {} : { discipline: disciplineContract.parse(discipline) }),
+    });
     return agentPromptResultContract.parse({
-      name: base.name,
-      model: base.model,
-      prompt: base.prompt.replace('$ARGUMENTS', () => `Quest ID: ${String(questId)}`),
+      name: minionBase.name,
+      model: minionBase.model,
+      prompt: minionBase.prompt.replace('$ARGUMENTS', () => `Quest ID: ${String(questId)}`),
     });
   }
+
+  // Past this point the caller is on the WORK-ITEM branch, which drops `discipline` entirely —
+  // the prompt is parameterized off the work item's role instead. A generic minion arriving here
+  // has passed a workItemId it must never pass, and saying so is the whole point: falling through
+  // would refuse it for "no discipline", sending it to add the one argument that is not its
+  // mistake. The workItemId is the mistake — it is what puts the caller inside
+  // `subagentStopNeedsBlockGuard`, which then holds the minion's turn open until it calls
+  // `signal-back`, and the only item it could signal on is its PARENT's operation item —
+  // completing the parent's scope and advancing the relay while the parent is still working.
+  if (carriesDisciplinePlaceholder) {
+    throw new Error(
+      `agentPromptGetBroker: minion "${parsedAgent}" must NOT be given a workItemId — not even its parent's. Fetch with { agent, questId, discipline } only: a workItemId puts the minion inside subagentStopNeedsBlockGuard, which holds its turn open until it calls signal-back, and the only item it could signal on is its parent's operation item — completing the parent's scope while the parent is still working`,
+    );
+  }
+
+  const base = agentNameToPromptTransformer({ agent: parsedAgent });
 
   const { questPath } = await questFindQuestPathBroker({ questId });
   const questFilePath = filePathContract.parse(

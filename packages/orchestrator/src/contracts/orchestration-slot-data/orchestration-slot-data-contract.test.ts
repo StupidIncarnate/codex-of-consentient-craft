@@ -42,7 +42,7 @@ describe('orchestrationSlotDataContract', () => {
       const slotData = OrchestrationSlotDataStub({
         slotIndex: 1,
         stepName: 'create-model',
-        role: 'blightscout',
+        role: 'spiritmender',
         status: 'running',
       });
 
@@ -51,7 +51,7 @@ describe('orchestrationSlotDataContract', () => {
       expect(result).toStrictEqual({
         slotIndex: 1,
         stepName: 'create-model',
-        role: 'blightscout',
+        role: 'spiritmender',
         status: 'running',
       });
     });

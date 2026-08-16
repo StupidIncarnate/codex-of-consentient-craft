@@ -106,4 +106,32 @@ describe('getAgentPromptInputContract', () => {
       });
     }).toThrow(/too_small/u);
   });
+
+  // A minion has no workItemId to derive a discipline from, so the discipline that parameterizes
+  // its shared planner/worker/reviewer prompt template must arrive as an explicit field instead.
+  it("VALID: {agent: 'worker-minion', discipline: 'implementation'} => parses without a workItemId", () => {
+    const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+
+    const result = getAgentPromptInputContract.parse({
+      agent: 'worker-minion',
+      questId,
+      discipline: 'implementation',
+    });
+
+    expect(result).toStrictEqual({
+      agent: 'worker-minion',
+      questId,
+      discipline: 'implementation',
+    });
+  });
+
+  it("INVALID: {discipline: 'browser-visual'} => throws, that discipline pack does not exist", () => {
+    expect(() => {
+      getAgentPromptInputContract.parse({
+        agent: 'worker-minion',
+        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+        discipline: 'browser-visual',
+      });
+    }).toThrow(/Invalid enum value/u);
+  });
 });

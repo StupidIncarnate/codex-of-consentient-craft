@@ -1,46 +1,29 @@
 /**
- * PURPOSE: Returns the blight checklist units still carrying no disposition for a blightscout
- * operation item — the list the signal-back completion gate refuses `done` on
+ * PURPOSE: Narrows a review checklist to the units still carrying no disposition, treating an
+ * UNMEASURABLE surface as nothing outstanding. Reach for this over reading
+ * `checklist.remainingItemIds` directly whenever the caller has to act on the remainder of a
+ * checklist it did not compute itself and therefore cannot know was measurable at all.
  *
  * USAGE:
- * blightCoverageOutstandingTransformer({ operationItem, checklist });
- * // Returns BlightChecklistItemId[] — empty means every unit in this scout's commit is dealt with
+ * blightCoverageOutstandingTransformer({ checklist });
+ * // Returns BlightChecklistItemId[] — empty means every unit on that surface is dealt with
  *
- * This exists so completion is COMPUTED. A review role that re-derives its scope from scratch each
- * session re-slices its diff differently every pass and can report `done` having covered only part
- * of it — that is the exact failure this closes. Recomputing from the diff and the persisted ledger
- * takes the claim out of the agent's hands entirely.
+ * The `checklist: null` case is the whole reason this is a transformer rather than a field read: a
+ * quest whose `baseRef` was never pinned has no diff to measure, and treating that structural
+ * absence as "everything is outstanding" would wedge a session that could never satisfy it. A
+ * remainder is only ever computed against a real, measured checklist.
  *
- * Scope comes from the caller-supplied `checklist` (the questGetBlightChecklistBroker result), not
- * from anything on the operation item itself. The caller is what decides how wide that checklist
- * is: a scout is measured over its own COMMIT RANGE, which is what makes this gate small and
- * satisfiable per session rather than a whole-quest audit deferred to the end.
- *
- * A `checklist: null` (the quest's `baseRef` was never pinned, so no diff can be measured) is NOT
- * gated: silently wedging a quest that structurally cannot compute a review scope would be a worse
- * failure than the one being prevented. The gate only ever binds against a real, measured checklist.
- *
- * Every disposition clears a unit, including `gap` and `recorded`. What the gate refuses is the
- * absence of any entry at all, so it can always be satisfied honestly.
+ * Every disposition clears a unit, including `gap` and `recorded` — a remainder names the units
+ * with NO entry at all, so it can always be driven to empty honestly.
  */
 
-import type {
-  BlightChecklist,
-  BlightChecklistItemId,
-  OperationItem,
-} from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, BlightChecklistItemId } from '@dungeonmaster/shared/contracts';
 
 export const blightCoverageOutstandingTransformer = ({
-  operationItem,
   checklist,
 }: {
-  operationItem: OperationItem;
   checklist: BlightChecklist | null;
 }): BlightChecklistItemId[] => {
-  if (operationItem.role !== 'blightscout') {
-    return [];
-  }
-
   if (checklist === null) {
     return [];
   }

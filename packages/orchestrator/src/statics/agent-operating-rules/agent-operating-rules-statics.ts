@@ -3,19 +3,27 @@
  *
  * USAGE:
  * agentOperatingRulesStatics.markdown;
- * // Returns the Operating Rules block for a role that OWNS a work item (codeweaver, flowrider, siegemaster, blightwarden, spiritmender, pesteater)
- * agentOperatingRulesStatics.minionMarkdown;
- * // Returns the Operating Rules block for a parent-summoned minion, which owns no work item
+ * // Returns the Operating Rules block for a role that OWNS a work item (codeweaver, flowrider, siegemaster, spiritmender, pesteater, warpgate)
+ * agentOperatingRulesStatics.delegatingMinionMarkdown;
+ * // Returns the Operating Rules block for a parent-summoned minion allowed a bounded spike (planner-minion)
+ * agentOperatingRulesStatics.leafMinionMarkdown;
+ * // Returns the Operating Rules block for a parent-summoned minion that spawns nothing of its own (worker-minion, reviewer-minion, and every other leaf minion)
  *
- * Two variants, because the terminal action differs and the difference is load-bearing. A work-item
- * role ENDS in `signal-back`; a minion must NEVER call it — the `workItemId` in a minion's briefing
- * is its PARENT's, so signalling on it would complete the parent's operation item and advance the
- * relay while the parent is still working. A single shared block cannot say both: whichever mandate
- * it carries contradicts the role text of the other family, and a prompt that contradicts itself is
- * resolved by whichever instruction the agent reads first.
+ * Three variants now, on TWO independent axes. The first axis is the terminal action, and it is why no
+ * minion variant can collapse into `markdown`: a work-item role ENDS in `signal-back`, but the
+ * `workItemId` in a minion's briefing is its PARENT's, so a minion signalling on it would complete the
+ * parent's operation item and advance the relay while the parent is still working. The second axis,
+ * splitting the minion family in two, is whether the reader may itself delegate. A LEAF minion that
+ * spawns its own sub-agent produces a grandchild whose conclusions no gate ever reads — the parent
+ * verifies the minion's FILES, not a grandchild's summary — and a post-mortem measured that shape
+ * costing 3m55s of a 10m20s minion run. Only a planning minion may delegate, and only for a bounded
+ * spike on a pattern it cannot plan against without trying. A single shared block cannot say both
+ * "never delegate" and "delegate for a spike": whichever mandate it carries contradicts the other, and
+ * a prompt that contradicts itself is resolved by whichever instruction the agent reads first.
  *
- * Rules 2-4 are turn discipline and ward scope — identical for both, so they are composed from one
- * source here rather than copy-pasted into each variant.
+ * Rules 1, 2, 3 and 5 are identical across BOTH minion variants — terminal action, turn discipline,
+ * ward scope, and the environment-wall report — composed from shared consts here rather than
+ * copy-pasted into each. Only Rule 4, the delegation rule, differs between them.
  */
 
 const heading = `## Operating Rules — READ FIRST (ignoring these wedges the whole quest)`;
@@ -27,6 +35,16 @@ const wardScopeRule = `**3. Run ward SCOPED to what you changed, ALWAYS in the f
 const synchronousAgentRule = `**4. The \`Agent\`/Task tool is SYNCHRONOUS — awaiting a helper you spawn is allowed and does NOT violate Rule 2.** Rule 2 forbids ending your turn waiting on a backgrounded *shell* command. A sub-agent you spawn via \`Agent\` returns its result inline as the tool result within the same turn — you stay alive, read what it returns, and continue. If your role's prompt tells you to delegate isolated work to a helper, decide it EARLY (the model will not reliably stop to delegate deep into a long turn) and brief the helper fully. Then simply wait: the helper's result arrives as your next tool result, and waiting for it costs you nothing, because your turn never ended.`;
 
 const deniedCommandWall = `You are dispatched with no interactive approver: a command outside the project's permission allowlist comes back \`This command requires approval\` and is DENIED outright, not queued for someone to accept. The same goes for a missing credential, an unreachable service, or a tool the sandbox does not expose.`;
+
+const minionIntro = `You are a parent-summoned minion running as a sub-agent. These rules are non-negotiable for every file-changing minion — breaking any one of them strands the parent that is blocked waiting on you, and wedges the whole quest behind it.`;
+
+const minionRule1 = `**1. NEVER call \`signal-back\` — your final message IS your terminal action.** You have no work item of your own. The \`workItemId\` in your briefing belongs to your PARENT: signalling on it would complete the parent's operation item and advance the relay while the parent is still working. Every path through this prompt — a clean pass, or a wall you cannot get past — ends by returning your distilled artifact as your final message. The parent is blocked on that message: it reads it, verifies it, wards the batch, and signals for you.`;
+
+const minionRule5 = `**5. When the wall is the ENVIRONMENT, not the work, report it — do not work around it.** ${deniedCommandWall} Retrying it or rephrasing it cannot work, and neither can any sibling minion. Name the wall and what a human must change under \`UNFIXABLE\` in your return; the parent decides whether that becomes an \`operationStatus: 'blocked'\` for the whole quest. Do NOT paper over it, and do NOT report a green ward you did not actually get.`;
+
+const delegatingSpikeRule = `**4. The \`Agent\`/Task tool is SYNCHRONOUS, and that is WHY a bounded spike is on the table at all — not a general licence to delegate.** Awaiting a helper you spawn does NOT violate Rule 2: it returns its result inline as the tool result within the same turn, so waiting for it costs you nothing. What that buys you is narrow: a SPIKE, and only a spike — trying a pattern nobody in this repo has built yet, so you find out whether it works BEFORE you commit a plan to it. You may NOT delegate your whole assignment to a helper, and a spike's result is never passed through as your own output: read what it found, decide what it means, and fold that decision into YOUR plan in your own words. A helper's conclusions are not a deliverable; your judgment on them is.`;
+
+const leafBanRule = `**4. You are a LEAF. Do NOT call the \`Agent\`/Task tool.** Everything you need is in your briefing and on disk. A sub-agent you spawn produces work your parent cannot review — it reads YOUR files, not your helper's conclusions — and a leaf that delegates burns its parent's wall-clock on a result nobody grades. If your piece genuinely cannot be done without work outside it, say so in your return and let your parent decide.`;
 
 export const agentOperatingRulesStatics = {
   markdown: `${heading}
@@ -55,17 +73,31 @@ signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete
 
 Commit whatever you finished first, exactly as you would for \`partial\` — a blocked quest still hands its work forward through git.`,
 
-  minionMarkdown: `${heading}
+  delegatingMinionMarkdown: `${heading}
 
-You are a parent-summoned minion running as a sub-agent. These rules are non-negotiable for every file-changing minion — breaking any one of them strands the parent that is blocked waiting on you, and wedges the whole quest behind it.
+${minionIntro}
 
-**1. NEVER call \`signal-back\` — your final message IS your terminal action.** You have no work item of your own. The \`workItemId\` in your briefing belongs to your PARENT: signalling on it would complete the parent's operation item and advance the relay while the parent is still working. Every path through this prompt — a clean pass, or a wall you cannot get past — ends by returning your distilled artifact as your final message. The parent is blocked on that message: it reads it, verifies it, wards the batch, and signals for you.
+${minionRule1}
 
 ${backgroundTaskRule}
 
 ${wardScopeRule}
 
-${synchronousAgentRule}
+${delegatingSpikeRule}
 
-**5. When the wall is the ENVIRONMENT, not the work, report it — do not work around it.** ${deniedCommandWall} Retrying it or rephrasing it cannot work, and neither can any sibling minion. Name the wall and what a human must change under \`UNFIXABLE\` in your return; the parent decides whether that becomes an \`operationStatus: 'blocked'\` for the whole quest. Do NOT paper over it, and do NOT report a green ward you did not actually get.`,
+${minionRule5}`,
+
+  leafMinionMarkdown: `${heading}
+
+${minionIntro}
+
+${minionRule1}
+
+${backgroundTaskRule}
+
+${wardScopeRule}
+
+${leafBanRule}
+
+${minionRule5}`,
 } as const;

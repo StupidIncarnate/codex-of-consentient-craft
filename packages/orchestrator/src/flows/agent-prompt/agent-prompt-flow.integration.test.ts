@@ -16,12 +16,21 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
+import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { questSeedHarness } from '../../../test/harnesses/quest-seed/quest-seed.harness';
 
 import { AgentPromptFlow } from './agent-prompt-flow';
+
+// Codeweaver is served the shared operation-orchestrator template with the implementation pack
+// already substituted at `$DISCIPLINE` and that discipline's id at `$MY_DISCIPLINE`. Function-form
+// replacement, never the string form: pack markdown is authored prose that can carry
+// `$&` / `` $` `` / `$'`.
+const IMPLEMENTATION_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineImplementationStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'implementation');
 
 describe('AgentPromptFlow', () => {
   const envHarness = orchestrationEnvironmentHarness();
@@ -102,7 +111,7 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'codeweaver',
         model: 'opus',
-        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       });
     });
   });

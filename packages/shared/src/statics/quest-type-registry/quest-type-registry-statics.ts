@@ -91,8 +91,9 @@ export const questTypeRegistryStatics = {
         text: 'Siegemaster: manual-QA this flow and review its test suite',
         fanOutBy: 'flow',
       },
-      // No blightwarden item: the standards review is `blightscout`, appended by the signal-back
-      // handler after EVERY committing item rather than run once over the whole diff here.
+      // No standards-review item: the five standards concerns are reviewed INSIDE each committing
+      // session's own turn, by the reviewer-minion its orchestrator summons, rather than by a
+      // separate relay role scheduled here.
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
     roles: [
@@ -102,7 +103,6 @@ export const questTypeRegistryStatics = {
       'flowrider',
       'groundstomper',
       'siegemaster',
-      'blightscout',
       'spiritmender',
     ],
   },
@@ -124,6 +124,6 @@ export const questTypeRegistryStatics = {
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
-    roles: ['riftcarver', 'pesteater', 'ward', 'blightscout', 'spiritmender'],
+    roles: ['riftcarver', 'pesteater', 'ward', 'spiritmender'],
   },
 } as const;

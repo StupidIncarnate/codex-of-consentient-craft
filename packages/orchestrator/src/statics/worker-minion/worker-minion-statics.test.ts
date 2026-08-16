@@ -40,11 +40,18 @@ describe('workerMinionStatics', () => {
     });
   });
 
-  it('VALID: template => embeds the minion operating rules, not the work-item variant', () => {
+  // The worker is a LEAF: it never spawns a helper of its own, so it embeds the leaf variant rather
+  // than the delegating one planner-minion carries.
+  it('VALID: template => embeds the leaf-minion operating rules, not the delegating or work-item variant', () => {
     expect({
-      minionVariant: has(agentOperatingRulesStatics.minionMarkdown),
+      leafMinionVariant: has(agentOperatingRulesStatics.leafMinionMarkdown),
+      delegatingMinionVariant: has(agentOperatingRulesStatics.delegatingMinionMarkdown),
       workItemVariant: has(agentOperatingRulesStatics.markdown),
-    }).toStrictEqual({ minionVariant: true, workItemVariant: false });
+    }).toStrictEqual({
+      leafMinionVariant: true,
+      delegatingMinionVariant: false,
+      workItemVariant: false,
+    });
   });
 
   it('VALID: template => stays under the MCP tool-result verbatim-delivery ceiling', () => {

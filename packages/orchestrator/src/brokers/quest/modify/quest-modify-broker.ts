@@ -30,7 +30,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Signoff } from '@dungeonmaster/shared/contracts';
 import { modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
@@ -46,6 +46,7 @@ import { questContractSourceResolutionTransformer } from '../../../transformers/
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
+import { questInputServerTimestampsTransformer } from '../../../transformers/quest-input-server-timestamps/quest-input-server-timestamps-transformer';
 import { questPackageEntryViolationsTransformer } from '../../../transformers/quest-package-entry-violations/quest-package-entry-violations-transformer';
 import { questResolvedCommentsTransformer } from '../../../transformers/quest-resolved-comments/quest-resolved-comments-transformer';
 import { questResolvedObservablePackagesTransformer } from '../../../transformers/quest-resolved-observable-packages/quest-resolved-observable-packages-transformer';
@@ -66,7 +67,14 @@ export const questModifyBroker = async ({
   input: ModifyQuestInput;
 }): Promise<ModifyQuestResult> => {
   try {
-    const validated = modifyQuestInputContract.parse(input);
+    // Every timestamp this payload writes is replaced with the server's clock BEFORE anything reads
+    // the input, so no downstream branch can be handed an agent's value. It stamps what is INCOMING
+    // rather than what is merged: an entry the caller did not send is carried through the merge
+    // untouched and keeps the time it was really made.
+    const validated = questInputServerTimestampsTransformer({
+      input: modifyQuestInputContract.parse(input),
+      at: new Date().toISOString() as Signoff['at'],
+    });
 
     // Serialize the read-modify-write critical section per questId to prevent lost writes
     // when multiple callers (e.g., parallel minion dispatch) target the same quest file.
@@ -203,6 +211,7 @@ export const questModifyBroker = async ({
           const incomingLedger = incoming.qaLedger;
           const incomingBlightLedger = incoming.blightLedger;
           const incomingQuestNotes = incoming.questNotes;
+          const incomingOperationPlans = incoming.operationPlans;
 
           quest.planningNotes = {
             ...current,
@@ -258,6 +267,19 @@ export const questModifyBroker = async ({
                 ),
                 ...[...new Map(incomingQuestNotes.map((entry) => [entry.id, entry])).values()],
               ] as typeof current.questNotes,
+            }),
+            // Keyed on the plan's own `id`, the same shape as the questNotes branch above. A
+            // re-planned round carries a FRESH id and its own `round`, so it lands beside the plan
+            // it supersedes rather than replacing it — a rejected round stays readable for audit.
+            // Re-stating one id corrects that plan in place instead of stacking a second copy the
+            // orchestrator would then have to disambiguate.
+            ...(incomingOperationPlans !== undefined && {
+              operationPlans: [
+                ...current.operationPlans.filter(
+                  (entry) => !incomingOperationPlans.some((update) => update.id === entry.id),
+                ),
+                ...[...new Map(incomingOperationPlans.map((entry) => [entry.id, entry])).values()],
+              ] as typeof current.operationPlans,
             }),
           };
         }

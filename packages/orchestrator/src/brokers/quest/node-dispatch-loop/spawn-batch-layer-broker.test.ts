@@ -130,7 +130,7 @@ describe('spawnBatchLayerBroker', () => {
       const second = SpawnInstructionStub({
         questId,
         workItemId: 'cccccccc-1111-4222-9333-444444444444' as never,
-        role: 'blightscout',
+        role: 'spiritmender',
       });
       proxy.setupQuestContext({
         questId,

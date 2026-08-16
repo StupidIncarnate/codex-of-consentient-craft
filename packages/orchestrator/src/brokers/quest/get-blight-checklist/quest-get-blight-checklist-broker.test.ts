@@ -76,9 +76,9 @@ describe('questGetBlightChecklistBroker', () => {
       expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'deadbeef...HEAD', '--name-only']);
     });
 
-    // Blightscout is dispatched against ONE COMMIT, and its signal-back completion gate calls this
-    // broker with exactly this scope. If the two ever measured different diffs, the session would
-    // disposition a set nobody grades and be refused on a set it never saw.
+    // A caller auditing one landed commit needs HEAD~1, not the quest's pinned base — the two
+    // measure different diffs, so a scope silently resolving to the wrong one answers a question
+    // nobody asked.
     it("VALID: {scope: 'commit'} => the git adapter measures HEAD~1, not the quest baseRef", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
       const quest = QuestStub({ baseRef: 'deadbeef' as never });

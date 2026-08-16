@@ -217,7 +217,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
           WorkItemStub({ id: firstId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: secondId,
-            role: 'blightscout',
+            role: 'siegemaster',
             status: 'in_progress',
             dependsOn: [firstId],
           }),
@@ -231,7 +231,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
         WorkItemStub({ id: firstId, role: 'codeweaver', status: 'pending' }),
         WorkItemStub({
           id: secondId,
-          role: 'blightscout',
+          role: 'siegemaster',
           status: 'pending',
           dependsOn: [firstId],
         }),
@@ -344,7 +344,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
           }),
           WorkItemStub({
             id: secondId,
-            role: 'blightscout',
+            role: 'siegemaster',
             status: 'in_progress',
             retryCount: slotManagerStatics.orphanRecovery.maxResets,
           }),

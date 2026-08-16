@@ -17,9 +17,77 @@ describe('operationOrchestratorPromptStatics', () => {
         template: expect.stringMatching(/^.+$/su),
         placeholders: {
           discipline: '$DISCIPLINE',
+          myDiscipline: '$MY_DISCIPLINE',
           arguments: '$ARGUMENTS',
         },
       },
+    });
+  });
+
+  // `$DISCIPLINE` is substituted with the pack's authored MARKDOWN and `$MY_DISCIPLINE` with the
+  // bare discipline id, by two independent `.replace` calls in two separate resolvers. If one token
+  // were a PREFIX of the other — `$DISCIPLINE_NAME` and `$DISCIPLINE_ID` both are — the pack
+  // substitution would match the prefix first and leave `<whole pack markdown>_NAME` behind. The
+  // next person to rename one of these has no way to know that from the call sites, so it is pinned
+  // here: neither token may contain the other, in either direction.
+  describe('the two discipline placeholders cannot collide under substitution', () => {
+    it('VALID: {both placeholders} => neither token contains the other, so substitution order is irrelevant', () => {
+      const { discipline, myDiscipline } = operationOrchestratorPromptStatics.prompt.placeholders;
+
+      expect({
+        packTokenContainsIdToken: discipline.includes(myDiscipline),
+        idTokenContainsPackToken: myDiscipline.includes(discipline),
+        idTokenStartsWithPackToken: myDiscipline.startsWith(discipline),
+        packTokenStartsWithIdToken: discipline.startsWith(myDiscipline),
+      }).toStrictEqual({
+        packTokenContainsIdToken: false,
+        idTokenContainsPackToken: false,
+        idTokenStartsWithPackToken: false,
+        packTokenStartsWithIdToken: false,
+      });
+    });
+
+    it('VALID: {pack substituted first} => the id token survives verbatim and then resolves', () => {
+      const { template, placeholders } = operationOrchestratorPromptStatics.prompt;
+
+      const packFirst = template
+        .replace(placeholders.discipline, () => '<PACK MARKDOWN>')
+        .replace(placeholders.myDiscipline, () => 'manual-qa');
+
+      expect({
+        packToken: packFirst.split(placeholders.discipline).length - 1,
+        idToken: packFirst.split(placeholders.myDiscipline).length - 1,
+        pack: packFirst.split('<PACK MARKDOWN>').length - 1,
+        id: packFirst.split("discipline: 'manual-qa'").length - 1,
+      }).toStrictEqual({ packToken: 0, idToken: 0, pack: 1, id: 1 });
+    });
+
+    it('VALID: {id substituted first} => the pack token survives verbatim and then resolves', () => {
+      const { template, placeholders } = operationOrchestratorPromptStatics.prompt;
+
+      const idFirst = template
+        .replace(placeholders.myDiscipline, () => 'manual-qa')
+        .replace(placeholders.discipline, () => '<PACK MARKDOWN>');
+
+      expect({
+        packToken: idFirst.split(placeholders.discipline).length - 1,
+        idToken: idFirst.split(placeholders.myDiscipline).length - 1,
+        pack: idFirst.split('<PACK MARKDOWN>').length - 1,
+        id: idFirst.split("discipline: 'manual-qa'").length - 1,
+      }).toStrictEqual({ packToken: 0, idToken: 0, pack: 1, id: 1 });
+    });
+
+    it('VALID: {either order} => both orders produce the identical rendered prompt', () => {
+      const { template, placeholders } = operationOrchestratorPromptStatics.prompt;
+
+      const packFirst = template
+        .replace(placeholders.discipline, () => '<PACK MARKDOWN>')
+        .replace(placeholders.myDiscipline, () => 'manual-qa');
+      const idFirst = template
+        .replace(placeholders.myDiscipline, () => 'manual-qa')
+        .replace(placeholders.discipline, () => '<PACK MARKDOWN>');
+
+      expect(idFirst).toBe(packFirst);
     });
   });
 
@@ -31,30 +99,41 @@ describe('operationOrchestratorPromptStatics', () => {
 
     expect({
       disciplineCount: template.split('$DISCIPLINE').length - 1,
+      myDisciplineCount: template.split('$MY_DISCIPLINE').length - 1,
       argumentsCount: template.split('$ARGUMENTS').length - 1,
       disciplineOnItsOwnLine: /^\$DISCIPLINE$/mu.test(template),
       argumentsOnItsOwnLine: /^\$ARGUMENTS$/mu.test(template),
       disciplineComesFirst: template.indexOf('$DISCIPLINE') < template.indexOf('$ARGUMENTS'),
+      myDisciplineComesBeforeArguments:
+        template.indexOf('$MY_DISCIPLINE') < template.indexOf('$ARGUMENTS'),
       argumentsIsTheTail: template.endsWith('$ARGUMENTS'),
       operationContextHeading: /^## Operation Context$/mu.test(template),
     }).toStrictEqual({
       disciplineCount: 1,
+      myDisciplineCount: 1,
       argumentsCount: 1,
       disciplineOnItsOwnLine: true,
       argumentsOnItsOwnLine: true,
       disciplineComesFirst: true,
+      myDisciplineComesBeforeArguments: true,
       argumentsIsTheTail: true,
       operationContextHeading: true,
     });
   });
 
-  // The work-item variant, not the minion one: this session OWNS an operation item and its terminal
-  // action is `signal-back`. The minion block mandates the opposite and would contradict the loop.
-  it('VALID: template => embeds the work-item operating rules, not the minion variant', () => {
+  // The work-item variant, not either minion one: this session OWNS an operation item and its
+  // terminal action is `signal-back`. Both minion blocks mandate the opposite and would contradict
+  // the loop.
+  it('VALID: template => embeds the work-item operating rules, not either minion variant', () => {
     expect({
       workItemVariant: has(agentOperatingRulesStatics.markdown),
-      minionVariant: has(agentOperatingRulesStatics.minionMarkdown),
-    }).toStrictEqual({ workItemVariant: true, minionVariant: false });
+      delegatingMinionVariant: has(agentOperatingRulesStatics.delegatingMinionMarkdown),
+      leafMinionVariant: has(agentOperatingRulesStatics.leafMinionMarkdown),
+    }).toStrictEqual({
+      workItemVariant: true,
+      delegatingMinionVariant: false,
+      leafMinionVariant: false,
+    });
   });
 
   it('VALID: template => stays under its budget excluding the operating-rules block', () => {
@@ -351,14 +430,23 @@ describe('operationOrchestratorPromptStatics', () => {
     });
   });
 
-  it('VALID: template => dispatches every minion by minion-fetch with no workItemId and no signal-back', () => {
+  // The fetch instruction is the pipeline's narrowest failure point: `agentPromptGetBroker` THROWS
+  // on a generic minion summoned without a discipline, so an instruction missing that argument
+  // means every dispatch on the happy path dies at the minion's first action.
+  it('VALID: template => dispatches every minion by minion-fetch carrying the discipline, no workItemId, no signal-back', () => {
     expect({
       minionFetch: has(
-        "`get-agent-prompt({ agent: '<planner|worker|reviewer>-minion', questId: 'QUEST_ID' })`",
+        "`get-agent-prompt({ agent: 'planner-minion', questId: 'QUEST_ID', discipline: '$MY_DISCIPLINE' })`",
       ),
+      siblingsFetchTheSameWay: has('`worker-minion` / `reviewer-minion` fetch the same way'),
       noWorkItemId: has('minion-fetch, **NO workItemId**'),
+      disciplineIsRequired: has(
+        '**The `discipline` argument is REQUIRED and the fetch is REFUSED without it**',
+      ),
+      namesTheConsequence: has(
+        'a minion that\ncannot load its prompt has no method, no evidence bar and no prohibition on `signal-back`',
+      ),
       subagentType: has('`subagent_type: "general-purpose"`'),
-      model: has('`model: "sonnet"`'),
       spawnMessageIsTheOnlyContext: has(
         '**Your spawn message is the ONLY quest context a minion gets.**',
       ),
@@ -370,12 +458,41 @@ describe('operationOrchestratorPromptStatics', () => {
       ),
     }).toStrictEqual({
       minionFetch: true,
+      siblingsFetchTheSameWay: true,
       noWorkItemId: true,
+      disciplineIsRequired: true,
+      namesTheConsequence: true,
       subagentType: true,
-      model: true,
       spawnMessageIsTheOnlyContext: true,
       minionsNeverSignal: true,
       pivotBecomesARemainder: true,
+    });
+  });
+
+  // The template is where the orchestrator reads the `model:` it hands the Agent tool. These three
+  // strings are cross-checked against `agentNameToPromptTransformer`'s actual returned models in
+  // that transformer's own test — a statics test may not import a transformer, and the drift
+  // between the two is the defect this pins. What is asserted HERE is that the template names each
+  // minion's model individually rather than one blanket value for all three.
+  it('VALID: template => names a per-minion model rather than one blanket model for all three', () => {
+    const { template } = operationOrchestratorPromptStatics.prompt;
+
+    expect({
+      planner: has('`planner-minion` → `model: "opus"`'),
+      worker: has('`worker-minion` → `model: "sonnet"`'),
+      reviewer: has('`reviewer-minion` → `model: "opus"`'),
+      reviewerCostNamed: has(
+        'Downgrading the reviewer is the expensive mistake: it is the\nonly session on the round that verifies anything.',
+      ),
+      opusMentions: template.split('`model: "opus"`').length - 1,
+      sonnetMentions: template.split('`model: "sonnet"`').length - 1,
+    }).toStrictEqual({
+      planner: true,
+      worker: true,
+      reviewer: true,
+      reviewerCostNamed: true,
+      opusMentions: 2,
+      sonnetMentions: 1,
     });
   });
 });

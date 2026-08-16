@@ -34,7 +34,7 @@ describe('agentTaskPromptTransformer', () => {
     });
 
     it('VALID: {resume: false} => returns the fresh prompt, not the resume variant', () => {
-      const role = AgentRoleStub({ value: 'blightscout' });
+      const role = AgentRoleStub({ value: 'groundstomper' });
       const workItemId = QuestWorkItemIdStub({
         value: 'dddddddd-1111-4222-9333-444444444444',
       });
@@ -43,7 +43,7 @@ describe('agentTaskPromptTransformer', () => {
       const result = agentTaskPromptTransformer({ role, workItemId, questId, resume: false });
 
       expect(String(result)).toBe(
-        `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightscout",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "groundstomper",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
       );
     });
   });

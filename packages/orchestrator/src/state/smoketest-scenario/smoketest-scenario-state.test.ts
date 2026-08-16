@@ -97,7 +97,7 @@ describe('smoketestScenarioState', () => {
       questId,
       scripts: {
         codeweaver: ['signalComplete', 'siegeVerifyDevServer'],
-        blightscout: ['signalComplete'],
+        siegemaster: ['signalComplete'],
       },
     });
     smoketestScenarioState.dispense({ questId, role: 'codeweaver' });

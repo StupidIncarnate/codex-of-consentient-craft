@@ -171,7 +171,7 @@ describe('QuestModifyResponder', () => {
           WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'failed', dependsOn: [planId] }),
           WorkItemStub({
             id: scout1Id,
-            role: 'blightscout',
+            role: 'siegemaster',
             status: 'pending',
             dependsOn: [cw1Id],
           }),

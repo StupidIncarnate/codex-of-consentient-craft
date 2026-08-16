@@ -153,7 +153,7 @@ describe('scanOnceLayerBroker', () => {
         OperationItemStub({ id: doneOperationId, role: 'codeweaver', status: 'in_progress' }),
         // The next scope on the ledger. Before the block short-circuit, advance would mint a work
         // item for it and this scan would dispatch an agent against an already-halted quest.
-        OperationItemStub({ id: nextOperationId, role: 'blightscout', status: 'pending' }),
+        OperationItemStub({ id: nextOperationId, role: 'flowrider', status: 'pending' }),
       ],
       workItems: [
         WorkItemStub({

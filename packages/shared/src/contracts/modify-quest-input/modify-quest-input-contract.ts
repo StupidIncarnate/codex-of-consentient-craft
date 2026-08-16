@@ -34,6 +34,14 @@
  * requires it: on a node tagged with exactly one package the save resolves it from the node, so the
  * author has nothing to state. `quest.packageGraph` is deliberately ABSENT — it is derived at Start
  * through `questOperationsUpdateBroker`, which bypasses this allowlist, and no agent writes it.
+ *
+ * EVERY TIMESTAMP IS `.optional()` HERE AND REQUIRED ON THE PERSISTED CONTRACT — a sign-off's `at`,
+ * a blight-ledger entry's `createdAt`, a quest note's `at`, an operation plan's `at`. The same
+ * asymmetry as `package` above, for a different reason: `questModifyBroker` stamps each one from the
+ * server clock and DISCARDS whatever arrived, so requiring the field on input would only reject an
+ * agent that correctly declined to invent a value. An LLM has no reliable clock; agent-supplied
+ * timestamps have been observed identical across a whole quest and set in a future that never
+ * happened.
  */
 import { z } from 'zod';
 
@@ -50,6 +58,7 @@ import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
+import { operationPlanContract } from '../operation-plan/operation-plan-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
@@ -69,14 +78,55 @@ import { workItemForUpsertContract } from '../work-item-for-upsert/work-item-for
 
 const deleteMarker = z.literal(true);
 
+// One spelling of "the server owns this field", reused at every attachment point below so the
+// instruction an agent reads is identical wherever it meets a timestamp.
+const serverStampedTimestamp = z
+  .string()
+  .datetime()
+  .brand<'IsoTimestamp'>()
+  .optional()
+  .describe(
+    'OMIT THIS FIELD. Stamped server-side at write time from the server clock; any value you send ' +
+      'is ignored and overwritten. An LLM has no reliable clock, so a value invented here is ' +
+      'fabricated audit data — agent-written timestamps have been observed identical across a whole ' +
+      'quest and dated into a future that never happened.',
+  );
+
+// `signoffContract` carries a `.superRefine`, which makes it a ZodEffects with no `.extend()`, so
+// the input variant is rebuilt from its `.innerType()`. That is also why the unconfirmable-needs-a-
+// question rule is restated here rather than inherited — each copy is pinned by its own contract
+// test, and dropping it here would demote a form-level rejection to an opaque whole-quest re-parse
+// failure at save time.
+const signoffForUpsertContract = signoffContract
+  .innerType()
+  .extend({ at: serverStampedTimestamp })
+  .superRefine((value, ctx) => {
+    if (value.verdict === 'unconfirmable' && value.question === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['question'],
+        message:
+          'question is required when verdict is unconfirmable — say what was tried and why it could not be confirmed',
+      });
+    }
+  });
+
+const questBlightLedgerEntryForUpsertContract = questBlightLedgerEntryContract.extend({
+  createdAt: serverStampedTimestamp,
+});
+
+const questNoteForUpsertContract = questNoteContract.extend({ at: serverStampedTimestamp });
+
+const operationPlanForUpsertContract = operationPlanContract.extend({ at: serverStampedTimestamp });
+
 const fullFlowObservable = flowObservableContract.extend({
   package: packageNameContract
     .optional()
     .describe(
       'The package this observable is read in. Omit it when the owning node tags exactly one package — the save resolves it from the node. On a node tagging more than one there is nothing to inherit and the omission is refused, so state which side of the seam this one sits on.',
     ),
-  flowriderSignoff: signoffContract.nullish(),
-  siegemasterSignoff: signoffContract.nullish(),
+  flowriderSignoff: signoffForUpsertContract.nullish(),
+  siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
 });
 const deletableObservableContract = z.union([
@@ -92,8 +142,8 @@ const deletableObservableContract = z.union([
 // through flowNodeContract, and by the save-invariants tier that names the offending node.
 const fullFlowNode = flowNodeContract.extend({
   observables: z.array(deletableObservableContract).optional(),
-  flowriderSignoff: signoffContract.nullish(),
-  siegemasterSignoff: signoffContract.nullish(),
+  flowriderSignoff: signoffForUpsertContract.nullish(),
+  siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
 });
 const deletableNodeContract = z.union([
@@ -103,8 +153,8 @@ const deletableNodeContract = z.union([
 ]);
 
 const fullFlowEdge = flowEdgeContract.extend({
-  flowriderSignoff: signoffContract.nullish(),
-  siegemasterSignoff: signoffContract.nullish(),
+  flowriderSignoff: signoffForUpsertContract.nullish(),
+  siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
 });
 const deletableEdgeContract = z.union([
@@ -119,8 +169,8 @@ const fullFlow = flowContract.extend({
   offMapSignoffs: z
     .array(
       flowOffMapSignoffContract.extend({
-        flowriderSignoff: signoffContract.nullish(),
-        siegemasterSignoff: signoffContract.nullish(),
+        flowriderSignoff: signoffForUpsertContract.nullish(),
+        siegemasterSignoff: signoffForUpsertContract.nullish(),
       }),
     )
     .optional(),
@@ -265,21 +315,27 @@ export const modifyQuestInputContract = z
           )
           .optional(),
         blightLedger: z
-          .array(questBlightLedgerEntryContract)
+          .array(questBlightLedgerEntryForUpsertContract)
           .describe(
             'Blight checklist dispositions to merge into quest.planningNotes.blightLedger, keyed on itemId (changed file crossed with concern) — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a continuation session can correct a predecessor. This is the only write path for the ledger the completion gate enforces.',
           )
           .optional(),
         questNotes: z
-          .array(questNoteContract)
+          .array(questNoteForUpsertContract)
           .describe(
             'Durable side-channel notes appended to quest.planningNotes.questNotes, keyed on id — re-stating a note UPSERTS its prior entry rather than appending a duplicate, so a continuation session can sharpen a note it already left. These NEVER close a verification unit: they carry open questions, tooling failures, out-of-scope observations, and walk resets. A flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a blightwarden review unit by its blightLedger disposition.',
+          )
+          .optional(),
+        operationPlans: z
+          .array(operationPlanForUpsertContract)
+          .describe(
+            "Planner sub-agent plans to merge into quest.planningNotes.operationPlans, keyed on the plan's own id — a plan re-stated under the same id REPLACES its prior entry, while a re-planned round carries a fresh id and its own `round`, so a rejected round's plan stays for audit alongside the round that superseded it. This is the write path the operation orchestrator reads back with get-quest-planning-notes instead of holding the plan body in its own context.",
           )
           .optional(),
       })
       .partial()
       .describe(
-        'Blightwarden blight reports, the blightwarden per-unit review ledger, the Siegemaster QA ledger dispositions, and the durable side-channel quest notes to merge into quest.planningNotes',
+        'Blightwarden blight reports, the blightwarden per-unit review ledger, the Siegemaster QA ledger dispositions, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes',
       )
       .optional(),
   })

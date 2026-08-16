@@ -1,5 +1,4 @@
 import { dumpsterHuntPromptStatics } from '../dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
-import { pesteaterPromptStatics } from '../pesteater-prompt/pesteater-prompt-statics';
 import { disciplineBugReproStatics } from './discipline-bug-repro-statics';
 
 const hasOrchestrator = (needle: string): boolean =>
@@ -71,7 +70,7 @@ describe('disciplineBugReproStatics', () => {
   // The `ACTUAL:` / `EXPECTED:` prefixes are a LABEL convention with no contract field behind them.
   // The intake writes them, this pack reads them, and a one-character drift in either direction
   // leaves a session unable to find the invariant it is supposed to assert.
-  it('VALID: node-label prefixes => spelled identically in the pack, the intake and the pesteater prompt', () => {
+  it('VALID: node-label prefixes => spelled identically in the pack and in the intake prompt', () => {
     const pack = [
       disciplineBugReproStatics.orchestratorMarkdown,
       disciplineBugReproStatics.plannerMarkdown,
@@ -79,7 +78,6 @@ describe('disciplineBugReproStatics', () => {
       disciplineBugReproStatics.reviewerMarkdown,
     ].join('\n');
     const intake = dumpsterHuntPromptStatics.prompt.template;
-    const pesteater = pesteaterPromptStatics.prompt.template;
 
     expect({
       intake: {
@@ -87,12 +85,6 @@ describe('disciplineBugReproStatics', () => {
         expected: intake.includes('EXPECTED: '),
         edgeToday: intake.includes('`today`'),
         edgeAfterFix: intake.includes('`after fix`'),
-      },
-      pesteater: {
-        actual: pesteater.includes('ACTUAL: '),
-        expected: pesteater.includes('EXPECTED: '),
-        edgeToday: pesteater.includes('`today`'),
-        edgeAfterFix: pesteater.includes('`after fix`'),
       },
       pack: {
         actual: pack.includes('ACTUAL: '),
@@ -103,7 +95,6 @@ describe('disciplineBugReproStatics', () => {
       packMisspellings: MISSPELLED_LABEL_VARIANTS.filter((variant) => pack.includes(variant)),
     }).toStrictEqual({
       intake: { actual: true, expected: true, edgeToday: true, edgeAfterFix: true },
-      pesteater: { actual: true, expected: true, edgeToday: true, edgeAfterFix: true },
       pack: { actual: true, expected: true, edgeToday: true, edgeAfterFix: true },
       packMisspellings: [],
     });

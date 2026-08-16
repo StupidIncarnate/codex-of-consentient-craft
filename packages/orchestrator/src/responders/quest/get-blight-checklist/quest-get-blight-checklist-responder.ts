@@ -7,12 +7,12 @@
  * // Returns { success: true, data: '<rendered checklist>' }
  *
  * A quest with no pinned `baseRef`, or a diff with zero changed files, returns a plain statement
- * of that rather than an error — both are real states a Blightscout session needs to be able to
- * act on, and turning either into a failure would push the session toward inventing scope.
+ * of that rather than an error — both are real states a reviewer needs to be able to act on, and
+ * turning either into a failure would push it toward inventing scope.
  *
- * `scope` is carried rather than fixed here because the caller decides which diff it is graded on:
- * a Blightscout session and the signal-back completion gate that measures it must both read the
- * SAME `commit` scope, or the session reads a denominator no gate is enforcing.
+ * `scope` is carried rather than fixed here because the caller decides which diff it is answering
+ * for: a reviewer-minion running inside its parent's turn is graded on the WORKING TREE, while a
+ * caller auditing a landed commit wants `commit` and one auditing the whole branch wants `quest`.
  */
 
 import {
@@ -34,7 +34,7 @@ export const QuestGetBlightChecklistResponder = async ({
   scope,
 }: {
   questId: string;
-  scope?: 'quest' | 'commit';
+  scope?: 'quest' | 'commit' | 'working-tree';
 }): Promise<QuestGetBlightChecklistResponderResult> => {
   try {
     const parsedQuestId = questIdContract.parse(questId);

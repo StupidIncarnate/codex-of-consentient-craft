@@ -35,12 +35,12 @@ describe('smoketestAssertionContract', () => {
       });
     });
 
-    it('VALID: {kind: "work-item-role-count", role: "blightscout", minCount: 2} => parses to role-count assertion', () => {
+    it('VALID: {kind: "work-item-role-count", role: "siegemaster", minCount: 2} => parses to role-count assertion', () => {
       const result = WorkItemRoleCountAssertionStub();
 
       expect(result).toStrictEqual({
         kind: 'work-item-role-count',
-        role: 'blightscout',
+        role: 'siegemaster',
         minCount: 2,
       });
     });

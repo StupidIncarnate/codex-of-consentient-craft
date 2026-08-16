@@ -40,7 +40,7 @@ outside your \`files\` list; a sibling piece owns those, and last-write-wins is 
 each other. If your piece genuinely needs a change outside its bounds, say so in your return
 instead of reaching for it.
 
-${agentOperatingRulesStatics.minionMarkdown}
+${agentOperatingRulesStatics.leafMinionMarkdown}
 
 ## Your discipline
 

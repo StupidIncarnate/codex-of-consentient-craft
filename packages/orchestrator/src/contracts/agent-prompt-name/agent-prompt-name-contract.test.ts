@@ -42,14 +42,6 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('siegemaster');
   });
 
-  it('VALID: {value: "blightscout"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightscout' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('blightscout');
-  });
-
   it('VALID: {value: "pesteater"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'pesteater' });
 
@@ -66,20 +58,28 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
-  it('VALID: {value: "flowrider-authoring-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'flowrider-authoring-minion' });
+  it('VALID: {value: "planner-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'planner-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('flowrider-authoring-minion');
+    expect(result).toBe('planner-minion');
   });
 
-  it('VALID: {value: "siegemaster-walker-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'siegemaster-walker-minion' });
+  it('VALID: {value: "worker-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'worker-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('siegemaster-walker-minion');
+    expect(result).toBe('worker-minion');
+  });
+
+  it('VALID: {value: "reviewer-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'reviewer-minion' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('reviewer-minion');
   });
 
   it('INVALID: {value: "unknown-agent"} => throws validation error', () => {
@@ -129,6 +129,24 @@ describe('agentPromptNameContract', () => {
       agentPromptNameContract.parse('blightwarden-deadcode-minion');
     }).toThrow(/Invalid enum value/u);
   });
+
+  // The per-parent minion families and the standards-review role the generic planner/worker/reviewer
+  // trio replaced. A stale MCP server serving one of these names is the failure this pins.
+  it.each([
+    'blightscout',
+    'codeweaver-piece-minion',
+    'flowrider-authoring-minion',
+    'flowrider-coverage-minion',
+    'siegemaster-walker-minion',
+    'siegemaster-test-audit-minion',
+  ])(
+    'INVALID: {value: "%s"} => throws validation error (replaced by the generic trio)',
+    (value) => {
+      expect(() => {
+        agentPromptNameContract.parse(value);
+      }).toThrow(/Invalid enum value/u);
+    },
+  );
 
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {

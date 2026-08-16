@@ -15,7 +15,6 @@ describe('workItemRoleStatics', () => {
         'flowrider',
         'groundstomper',
         'siegemaster',
-        'blightscout',
         'pesteater',
         'warpgate',
       ],

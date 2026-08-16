@@ -121,7 +121,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-blight-checklist' as never,
     description:
-      "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. Blightscout calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
+      "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. A reviewer-minion calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
     inputSchema: getBlightChecklistSchema as never,
     handler: async ({ args }) =>
       QuestHandleResponder({ tool: 'get-blight-checklist' as never, args }),

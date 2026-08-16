@@ -40,10 +40,9 @@ describe('BlightChecklistLayerResponder', () => {
       });
     });
 
-    // The refusal message the signal-back gate hands a Blightscout session names this exact call.
-    // Rejecting it, or accepting it and dropping the value, leaves the role reading a whole-quest
-    // diff while it is graded on one commit.
-    it("VALID: {questId, scope: 'commit'} => forwards the scope, so the session reads the diff its gate measures", async () => {
+    // Rejecting the scope, or accepting it and dropping the value, leaves the caller reading a
+    // whole-quest diff when it asked about one commit.
+    it("VALID: {questId, scope: 'commit'} => forwards the scope, so the caller reads the diff it asked for", async () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
         questId: 'add-auth',

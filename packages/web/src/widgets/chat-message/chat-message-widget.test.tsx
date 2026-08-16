@@ -836,24 +836,6 @@ describe('ChatMessageWidget', () => {
       expect(message.textContent).toBe('SIEGEMASTERresponse');
     });
 
-    it('VALID: {roleLabel: blightscout} => renders BLIGHTSCOUT label', () => {
-      ChatMessageWidgetProxy();
-      const entry = AssistantTextChatEntryStub({ content: 'response' });
-
-      mantineRenderAdapter({
-        ui: (
-          <ChatMessageWidget
-            entry={entry}
-            roleLabel={ExecutionRoleStub({ value: 'blightscout' })}
-          />
-        ),
-      });
-
-      const message = screen.getByTestId('CHAT_MESSAGE');
-
-      expect(message.textContent).toBe('BLIGHTSCOUTresponse');
-    });
-
     it('VALID: {no roleLabel} => defaults to CHAOSWHISPERER', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });

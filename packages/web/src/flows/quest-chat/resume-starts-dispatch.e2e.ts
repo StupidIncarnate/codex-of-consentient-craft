@@ -64,14 +64,9 @@ test.describe('Resume starts the dispatch queue', () => {
     });
 
     // The agent RESUME is about to spawn needs a queued outcome waiting for it — an unqueued
-    // spawn exits red-on-empty with no signal-back and churns orphan recovery. Codeweaver is a
-    // committing role, so its `done` auto-appends a blightscout review right after it — queue that
-    // outcome too, or the second dispatch exits red-on-empty the same way.
+    // spawn exits red-on-empty with no signal-back and churns orphan recovery.
     dispatch.queueScript({
-      script: [
-        { role: 'codeweaver', outcome: 'done' },
-        { role: 'blightscout', outcome: 'done' },
-      ],
+      script: [{ role: 'codeweaver', outcome: 'done' }],
     });
 
     // Precondition: quest paused, and the dispatcher explicitly NOT playing (beforeEach paused it).
@@ -108,20 +103,16 @@ test.describe('Resume starts the dispatch queue', () => {
     // The queue is genuinely on — not just reported on.
     expect(await dispatch.isDispatchPlaying()).toBe(true);
 
-    // And it actually dispatched: the seeded work item ran, its auto-appended blightscout review
-    // ran after it (codeweaver is a committing role), and the ledger drained — which is the whole
-    // point of coupling the two switches.
+    // And it actually dispatched: the seeded work item ran and the ledger drained — which is the
+    // whole point of coupling the two switches.
     const finalQuest = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
-        quest.operations.length === 2 && quest.operations.every((op) => op.status === 'complete'),
+        quest.operations.length === 1 && quest.operations.every((op) => op.status === 'complete'),
     });
 
-    expect(finalQuest.workItems.map((workItem) => workItem.status)).toStrictEqual([
-      'complete',
-      'complete',
-    ]);
+    expect(finalQuest.workItems.map((workItem) => workItem.status)).toStrictEqual(['complete']);
   });
 
   test('VALID: {paused quest whose ledger is already drained} => RESUME leaves the global dispatcher alone', async ({

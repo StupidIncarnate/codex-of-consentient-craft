@@ -19,9 +19,8 @@ const FIRST_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000010';
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('Operations-driven dispatch', () => {
-  // The full relay (7 serial dispatches: 6 fake-CLI children + 1 in-process ward — every
-  // codeweaver/flowrider completion auto-appends a blightscout review right after it, ward does
-  // not) plus the deadline-bounded poll runs past the 10s default per-test budget.
+  // The full relay (4 serial dispatches: 3 fake-CLI children + 1 in-process ward) plus the
+  // deadline-bounded poll runs past the 10s default per-test budget.
   test.describe.configure({ timeout: 60_000 });
 
   test.beforeEach(async ({ request }) => {
@@ -33,7 +32,7 @@ test.describe('Operations-driven dispatch', () => {
     await dispatchHarness({ request, guildPath: GUILD_PATH }).afterEach();
   });
 
-  test('VALID: {ledger [cw, cw, ward(changed), flowrider] driven done/blightscout/done/blightscout/green/done/blightscout} => each operation completes in order, exactly one work item per operation, quest completes', async ({
+  test('VALID: {ledger [cw, cw, ward(changed), flowrider] driven done/done/green/done} => each operation completes in order, exactly one work item per operation, quest completes', async ({
     page,
     request,
   }) => {
@@ -91,57 +90,47 @@ test.describe('Operations-driven dispatch', () => {
     ]);
     await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(changed)');
 
-    // Drive the relay: codeweaver -> done -> blightscout -> done, codeweaver -> done ->
-    // blightscout -> done, ward -> green (ward is not a committing role, so no review follows it),
-    // flowrider -> done -> blightscout -> done. Every committing role's completion (codeweaver,
-    // flowrider) auto-appends a blightscout review immediately after it.
+    // Drive the relay: codeweaver -> done, codeweaver -> done, ward -> green, flowrider -> done.
+    // Nothing is appended between them — the standards review runs inside each session's own turn.
     await dispatch.playAndDrive({
       questId: String(questId),
       script: [
         { role: 'codeweaver', outcome: 'done' },
-        { role: 'blightscout', outcome: 'done' },
         { role: 'codeweaver', outcome: 'done' },
-        { role: 'blightscout', outcome: 'done' },
         { role: 'ward', outcome: 'green' },
         { role: 'flowrider', outcome: 'done' },
-        { role: 'blightscout', outcome: 'done' },
       ],
     });
 
     // Backend truth (deadline-bounded poll): quest reaches complete, every operation item is
-    // complete, and exactly seven work items exist and are all complete (strict 1:1, no
-    // duplicates) — the four seeded items plus the three auto-appended blightscout reviews.
+    // complete, and exactly four work items exist and are all complete (strict 1:1, no
+    // duplicates) — one per seeded ledger row, with nothing appended beside them.
     const finalQuest = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&
-        quest.operations.length === 7 &&
+        quest.operations.length === 4 &&
         quest.operations.every((op) => op.status === 'complete') &&
-        quest.workItems.length === 7 &&
+        quest.workItems.length === 4 &&
         quest.workItems.every((wi) => wi.status === 'complete'),
     });
 
-    // Operations stayed in the seeded order, with a blightscout review auto-appended immediately
-    // after each committing item's completion (codeweaver, codeweaver, flowrider) — ward is not a
-    // committing role, so no review follows it. No pt continuation was appended (that would mean a
-    // partial) and no extra ward/spiritmender pair (that would mean a red).
+    // Operations stayed in the seeded order and NOTHING was appended: no review item, no pt
+    // continuation (that would mean a partial), no extra ward/spiritmender pair (that would mean a
+    // red).
     expect(
       finalQuest.operations.map((op) => ({ role: String(op.role), status: op.status })),
     ).toStrictEqual([
       { role: 'codeweaver', status: 'complete' },
-      { role: 'blightscout', status: 'complete' },
       { role: 'codeweaver', status: 'complete' },
-      { role: 'blightscout', status: 'complete' },
       { role: 'ward', status: 'complete' },
       { role: 'flowrider', status: 'complete' },
-      { role: 'blightscout', status: 'complete' },
     ]);
 
-    // Strict 1:1: exactly seven work items, each linked to a DISTINCT operation item. Three of the
-    // seven operation ids (the auto-appended blightscout reviews) are minted server-side, so
-    // compare against the quest's own operations list rather than the seeded id constants — that
-    // still proves strict 1:1 across the WHOLE ledger, which is what this test claims.
+    // Strict 1:1: exactly four work items, each linked to a DISTINCT operation item. Compared
+    // against the quest's own operations list rather than the seeded id constants, which proves
+    // strict 1:1 across the WHOLE ledger — the claim this test makes.
     const linkedOperationRefs = finalQuest.workItems
       .map((wi) =>
         wi.relatedDataItems.map((ref) => String(ref)).find((ref) => ref.startsWith('operations/')),
@@ -153,19 +142,16 @@ test.describe('Operations-driven dispatch', () => {
         .sort((a, b) => a.localeCompare(b)),
     );
 
-    // AFTER (UI): the old markers are gone; all seven ledger rows read complete ([x]), in the
-    // order codeweaver, blightscout, codeweaver, blightscout, ward, flowrider, blightscout.
-    await expect(markers).toHaveText(['[x]', '[x]', '[x]', '[x]', '[x]', '[x]', '[x]'], {
+    // AFTER (UI): the old markers are gone; all four ledger rows read complete ([x]), in the
+    // seeded order codeweaver, codeweaver, ward, flowrider.
+    await expect(markers).toHaveText(['[x]', '[x]', '[x]', '[x]'], {
       timeout: LEDGER_TIMEOUT,
     });
     await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
       '[CODEWEAVER]',
-      '[BLIGHTSCOUT]',
       '[CODEWEAVER]',
-      '[BLIGHTSCOUT]',
       '[WARD]',
       '[FLOWRIDER]',
-      '[BLIGHTSCOUT]',
     ]);
   });
 });

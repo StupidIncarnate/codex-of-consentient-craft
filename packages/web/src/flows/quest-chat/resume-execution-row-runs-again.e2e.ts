@@ -113,14 +113,8 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     await request.patch(`/api/quests/${questId}`, { data: { pausedAtStatus: 'in_progress' } });
 
     // The agent RESUME is about to spawn needs a queued outcome, or it exits red-on-empty.
-    // codeweaver is a committing role, so its `done` appends a blightscout review right after it —
-    // queue that review's outcome too, or the appended work item is left running forever with
-    // nothing to signal it.
     dispatch.queueScript({
-      script: [
-        { role: 'codeweaver', outcome: 'done' },
-        { role: 'blightscout', outcome: 'done' },
-      ],
+      script: [{ role: 'codeweaver', outcome: 'done' }],
       agentLineDelayMs: RUNNING_WINDOW_LINE_DELAY_MS,
     });
 
@@ -178,21 +172,14 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // The row that was already done never moved.
     await expect(doneRow.getByTestId('execution-row-status-badge')).toHaveText('DONE');
 
-    // Let the queued outcomes land so the run finishes cleanly rather than leaving a live child
-    // process behind at test teardown. The resumed codeweaver item's `done` appends a blightscout
-    // review right after it (codeweaver is a committing role) in the SAME persist that completes
-    // it, so the review's work item already exists — and needs its own outcome — by the time
-    // RESUMED_WORK_ITEM_ID reads `complete`.
+    // Let the queued outcome land so the run finishes cleanly rather than leaving a live child
+    // process behind at test teardown.
     const finalQuest = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
-        quest.workItems.length === 3 && quest.workItems.every((wi) => wi.status === 'complete'),
+        quest.workItems.length === 2 && quest.workItems.every((wi) => wi.status === 'complete'),
     });
-    expect(finalQuest.workItems.map((wi) => wi.status)).toStrictEqual([
-      'complete',
-      'complete',
-      'complete',
-    ]);
+    expect(finalQuest.workItems.map((wi) => wi.status)).toStrictEqual(['complete', 'complete']);
   });
 });

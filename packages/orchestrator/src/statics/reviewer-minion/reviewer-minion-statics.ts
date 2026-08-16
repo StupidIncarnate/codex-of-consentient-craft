@@ -41,7 +41,7 @@ ships too.
 Your parent summoned you via the \`Agent\` tool over everything one round produced: the plan a
 \`planner-minion\` persisted, and the files one or more \`worker-minion\`s wrote against it.
 
-${agentOperatingRulesStatics.minionMarkdown}
+${agentOperatingRulesStatics.leafMinionMarkdown}
 
 ## Your discipline
 

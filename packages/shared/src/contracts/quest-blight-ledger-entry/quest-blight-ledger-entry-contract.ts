@@ -70,7 +70,17 @@ export const questBlightLedgerEntryContract = z.object({
       'For `fixed`: every other place the same value renders or the same logic runs, that was checked for the identical defect. A fix without a ripple list is half a fix. Repo-relative so the persisted ledger stays portable across machines.',
     ),
   workItemId: questWorkItemIdContract,
-  createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  createdAt: z
+    .string()
+    .datetime()
+    .brand<'IsoTimestamp'>()
+    .describe(
+      'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
+        'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +
+        'identical fabricated timestamp across every entry on a quest, and timestamps set in a ' +
+        'future that never happened. Required here because a persisted disposition always carries ' +
+        'one; the modify-quest input shape drops the requirement, since the write path supplies it.',
+    ),
 });
 
 export type QuestBlightLedgerEntry = z.infer<typeof questBlightLedgerEntryContract>;

@@ -218,7 +218,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     const codeweaver1Id = 'e2e00000-0000-4000-8000-000000000003';
     const wardMiniBossId = 'e2e00000-0000-4000-8000-000000000004';
     const siegemasterId = 'e2e00000-0000-4000-8000-000000000005';
-    const blightscoutId = 'e2e00000-0000-4000-8000-000000000006';
+    const flowriderId = 'e2e00000-0000-4000-8000-000000000006';
     const wardFloorBossId = 'e2e00000-0000-4000-8000-000000000007';
     const now = new Date().toISOString();
 
@@ -285,11 +285,11 @@ test.describe.skip('Ward Execution Streaming', () => {
           completedAt: now,
         },
         {
-          id: blightscoutId,
-          role: 'blightscout',
+          id: flowriderId,
+          role: 'flowrider',
           status: 'complete',
           spawnerType: 'agent',
-          sessionId: `bs-${sessionId}`,
+          sessionId: `fr-${sessionId}`,
           dependsOn: [siegemasterId],
           createdAt: now,
           completedAt: now,
@@ -299,7 +299,7 @@ test.describe.skip('Ward Execution Streaming', () => {
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
-          dependsOn: [blightscoutId],
+          dependsOn: [flowriderId],
           createdAt: now,
           attempt: 0,
           maxAttempts: 3,

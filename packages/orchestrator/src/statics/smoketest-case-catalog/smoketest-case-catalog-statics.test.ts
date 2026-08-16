@@ -50,14 +50,9 @@ describe('smoketestCaseCatalogStatics', () => {
     ]);
   });
 
-  it('VALID: {orchestration} => references the 4 scenarios from smoketestScenariosStatics', () => {
+  it('VALID: {orchestration} => references the 3 scenarios from smoketestScenariosStatics', () => {
     expect(smoketestCaseCatalogStatics.orchestration.map((c) => c.caseId).sort()).toStrictEqual(
-      [
-        'orch-codeweaver-partial',
-        'orch-happy-path',
-        'orch-reaches-blightscout',
-        'orch-reaches-flowrider',
-      ].sort(),
+      ['orch-codeweaver-partial', 'orch-happy-path', 'orch-reaches-flowrider'].sort(),
     );
   });
 
@@ -69,7 +64,6 @@ describe('smoketestCaseCatalogStatics', () => {
     }));
 
     expect(shapes).toStrictEqual([
-      { hasBlueprint: true, hasScripts: true, hasAssertions: true },
       { hasBlueprint: true, hasScripts: true, hasAssertions: true },
       { hasBlueprint: true, hasScripts: true, hasAssertions: true },
       { hasBlueprint: true, hasScripts: true, hasAssertions: true },

@@ -1,10 +1,11 @@
 import { agentOperatingRulesStatics } from './agent-operating-rules-statics';
 
 describe('agentOperatingRulesStatics', () => {
-  it('VALID: exported value => has a work-item markdown string and a minion variant', () => {
+  it('VALID: exported value => has a work-item markdown string and two minion variants', () => {
     expect(agentOperatingRulesStatics).toStrictEqual({
       markdown: expect.stringMatching(/^.+$/su),
-      minionMarkdown: expect.stringMatching(/^.+$/su),
+      delegatingMinionMarkdown: expect.stringMatching(/^.+$/su),
+      leafMinionMarkdown: expect.stringMatching(/^.+$/su),
     });
   });
 
@@ -170,78 +171,238 @@ describe('agentOperatingRulesStatics', () => {
     expect(found).toBe(needle);
   });
 
-  describe('minionMarkdown', () => {
-    it('VALID: minionMarkdown => starts with the same Operating Rules heading', () => {
+  describe('delegatingMinionMarkdown', () => {
+    it('VALID: delegatingMinionMarkdown => starts with the same Operating Rules heading', () => {
       const needle = '## Operating Rules — READ FIRST (ignoring these wedges the whole quest)';
-      const { minionMarkdown } = agentOperatingRulesStatics;
+      const { delegatingMinionMarkdown } = agentOperatingRulesStatics;
 
-      expect(minionMarkdown.slice(0, needle.length)).toBe(needle);
+      expect(delegatingMinionMarkdown.slice(0, needle.length)).toBe(needle);
     });
 
-    it('VALID: minionMarkdown => Rule 1 FORBIDS signal-back instead of mandating it', () => {
+    it('VALID: delegatingMinionMarkdown => Rule 1 FORBIDS signal-back instead of mandating it', () => {
       const needle =
         '**1. NEVER call `signal-back` — your final message IS your terminal action.**';
-      const { minionMarkdown } = agentOperatingRulesStatics;
-      const found = minionMarkdown.slice(
-        minionMarkdown.indexOf(needle),
-        minionMarkdown.indexOf(needle) + needle.length,
+      const { delegatingMinionMarkdown } = agentOperatingRulesStatics;
+      const found = delegatingMinionMarkdown.slice(
+        delegatingMinionMarkdown.indexOf(needle),
+        delegatingMinionMarkdown.indexOf(needle) + needle.length,
       );
 
       expect(found).toBe(needle);
     });
 
-    it("VALID: minionMarkdown => explains that signalling would complete the PARENT's operation item", () => {
-      const needle =
-        "signalling on it would complete the parent's operation item and advance the relay while the parent is still working";
-      const { minionMarkdown } = agentOperatingRulesStatics;
-      const found = minionMarkdown.slice(
-        minionMarkdown.indexOf(needle),
-        minionMarkdown.indexOf(needle) + needle.length,
-      );
+    it('VALID: delegatingMinionMarkdown => carries no "ALWAYS call signal-back" mandate to contradict Rule 1', () => {
+      const { delegatingMinionMarkdown } = agentOperatingRulesStatics;
 
-      expect(found).toBe(needle);
+      expect(delegatingMinionMarkdown.indexOf('ALWAYS call `signal-back`')).toBe(-1);
     });
 
-    it('VALID: minionMarkdown => carries no "ALWAYS call signal-back" mandate to contradict Rule 1', () => {
-      const { minionMarkdown } = agentOperatingRulesStatics;
+    it('VALID: delegatingMinionMarkdown => shows no signal-back call example a minion could copy', () => {
+      const { delegatingMinionMarkdown } = agentOperatingRulesStatics;
 
-      expect(minionMarkdown.indexOf('ALWAYS call `signal-back`')).toBe(-1);
+      expect(delegatingMinionMarkdown.indexOf('signal-back({')).toBe(-1);
     });
 
-    it('VALID: minionMarkdown => shows no signal-back call example a minion could copy', () => {
-      const { minionMarkdown } = agentOperatingRulesStatics;
-
-      expect(minionMarkdown.indexOf('signal-back({')).toBe(-1);
-    });
-
-    it('VALID: minionMarkdown => routes an environment wall to UNFIXABLE in the artifact, not a signal', () => {
+    it('VALID: delegatingMinionMarkdown => routes an environment wall to UNFIXABLE in the artifact, not a signal', () => {
       const needle =
         "Name the wall and what a human must change under `UNFIXABLE` in your return; the parent decides whether that becomes an `operationStatus: 'blocked'` for the whole quest.";
-      const { minionMarkdown } = agentOperatingRulesStatics;
-      const found = minionMarkdown.slice(
-        minionMarkdown.indexOf(needle),
-        minionMarkdown.indexOf(needle) + needle.length,
+      const { delegatingMinionMarkdown } = agentOperatingRulesStatics;
+      const found = delegatingMinionMarkdown.slice(
+        delegatingMinionMarkdown.indexOf(needle),
+        delegatingMinionMarkdown.indexOf(needle) + needle.length,
       );
 
       expect(found).toBe(needle);
     });
 
-    it.each([
-      '**2. NEVER end your turn waiting for a background task, and NEVER poll for one.**',
-      '**3. Run ward SCOPED to what you changed, ALWAYS in the foreground. NEVER run the whole-repo `npm run ward`.**',
-      '**4. The `Agent`/Task tool is SYNCHRONOUS — awaiting a helper you spawn is allowed and does NOT violate Rule 2.**',
-    ])('VALID: minionMarkdown => shares rule %s verbatim with the work-item variant', (needle) => {
-      const { markdown, minionMarkdown } = agentOperatingRulesStatics;
+    it('VALID: delegatingMinionMarkdown => shares the background-task rule verbatim with the work-item variant', () => {
+      const needle =
+        '**2. NEVER end your turn waiting for a background task, and NEVER poll for one.**';
+      const { markdown, delegatingMinionMarkdown } = agentOperatingRulesStatics;
 
       expect(
-        minionMarkdown.slice(
-          minionMarkdown.indexOf(needle),
-          minionMarkdown.indexOf(needle) + needle.length,
+        delegatingMinionMarkdown.slice(
+          delegatingMinionMarkdown.indexOf(needle),
+          delegatingMinionMarkdown.indexOf(needle) + needle.length,
         ),
       ).toBe(needle);
       expect(
         markdown.slice(markdown.indexOf(needle), markdown.indexOf(needle) + needle.length),
       ).toBe(needle);
     });
+
+    it('VALID: delegatingMinionMarkdown => shares the ward-scope rule verbatim with the work-item variant', () => {
+      const needle =
+        '**3. Run ward SCOPED to what you changed, ALWAYS in the foreground. NEVER run the whole-repo `npm run ward`.**';
+      const { markdown, delegatingMinionMarkdown } = agentOperatingRulesStatics;
+
+      expect(
+        delegatingMinionMarkdown.slice(
+          delegatingMinionMarkdown.indexOf(needle),
+          delegatingMinionMarkdown.indexOf(needle) + needle.length,
+        ),
+      ).toBe(needle);
+      expect(
+        markdown.slice(markdown.indexOf(needle), markdown.indexOf(needle) + needle.length),
+      ).toBe(needle);
+    });
+
+    it('VALID: delegatingMinionMarkdown => Rule 4 permits a bounded spike on a genuinely net-new pattern', () => {
+      const needle =
+        'a SPIKE, and only a spike — trying a pattern nobody in this repo has built yet, so you find out whether it works BEFORE you commit a plan to it';
+      const { delegatingMinionMarkdown } = agentOperatingRulesStatics;
+      const found = delegatingMinionMarkdown.slice(
+        delegatingMinionMarkdown.indexOf(needle),
+        delegatingMinionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: delegatingMinionMarkdown => Rule 4 forbids delegating the whole assignment and passing a spike through as-is', () => {
+      const needle =
+        "You may NOT delegate your whole assignment to a helper, and a spike's result is never passed through as your own output: read what it found, decide what it means, and fold that decision into YOUR plan in your own words.";
+      const { delegatingMinionMarkdown } = agentOperatingRulesStatics;
+      const found = delegatingMinionMarkdown.slice(
+        delegatingMinionMarkdown.indexOf(needle),
+        delegatingMinionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+  });
+
+  describe('leafMinionMarkdown', () => {
+    it('VALID: leafMinionMarkdown => starts with the same Operating Rules heading', () => {
+      const needle = '## Operating Rules — READ FIRST (ignoring these wedges the whole quest)';
+      const { leafMinionMarkdown } = agentOperatingRulesStatics;
+
+      expect(leafMinionMarkdown.slice(0, needle.length)).toBe(needle);
+    });
+
+    it('VALID: leafMinionMarkdown => Rule 1 FORBIDS signal-back instead of mandating it', () => {
+      const needle =
+        '**1. NEVER call `signal-back` — your final message IS your terminal action.**';
+      const { leafMinionMarkdown } = agentOperatingRulesStatics;
+      const found = leafMinionMarkdown.slice(
+        leafMinionMarkdown.indexOf(needle),
+        leafMinionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: leafMinionMarkdown => carries no "ALWAYS call signal-back" mandate to contradict Rule 1', () => {
+      const { leafMinionMarkdown } = agentOperatingRulesStatics;
+
+      expect(leafMinionMarkdown.indexOf('ALWAYS call `signal-back`')).toBe(-1);
+    });
+
+    it('VALID: leafMinionMarkdown => shows no signal-back call example a minion could copy', () => {
+      const { leafMinionMarkdown } = agentOperatingRulesStatics;
+
+      expect(leafMinionMarkdown.indexOf('signal-back({')).toBe(-1);
+    });
+
+    it('VALID: leafMinionMarkdown => routes an environment wall to UNFIXABLE in the artifact, not a signal', () => {
+      const needle =
+        "Name the wall and what a human must change under `UNFIXABLE` in your return; the parent decides whether that becomes an `operationStatus: 'blocked'` for the whole quest.";
+      const { leafMinionMarkdown } = agentOperatingRulesStatics;
+      const found = leafMinionMarkdown.slice(
+        leafMinionMarkdown.indexOf(needle),
+        leafMinionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: leafMinionMarkdown => shares the background-task rule verbatim with the work-item variant', () => {
+      const needle =
+        '**2. NEVER end your turn waiting for a background task, and NEVER poll for one.**';
+      const { markdown, leafMinionMarkdown } = agentOperatingRulesStatics;
+
+      expect(
+        leafMinionMarkdown.slice(
+          leafMinionMarkdown.indexOf(needle),
+          leafMinionMarkdown.indexOf(needle) + needle.length,
+        ),
+      ).toBe(needle);
+      expect(
+        markdown.slice(markdown.indexOf(needle), markdown.indexOf(needle) + needle.length),
+      ).toBe(needle);
+    });
+
+    it('VALID: leafMinionMarkdown => shares the ward-scope rule verbatim with the work-item variant', () => {
+      const needle =
+        '**3. Run ward SCOPED to what you changed, ALWAYS in the foreground. NEVER run the whole-repo `npm run ward`.**';
+      const { markdown, leafMinionMarkdown } = agentOperatingRulesStatics;
+
+      expect(
+        leafMinionMarkdown.slice(
+          leafMinionMarkdown.indexOf(needle),
+          leafMinionMarkdown.indexOf(needle) + needle.length,
+        ),
+      ).toBe(needle);
+      expect(
+        markdown.slice(markdown.indexOf(needle), markdown.indexOf(needle) + needle.length),
+      ).toBe(needle);
+    });
+
+    it('VALID: leafMinionMarkdown => Rule 4 bans the Agent/Task tool outright, replacing the synchronous-delegation text', () => {
+      const needle = '**4. You are a LEAF. Do NOT call the `Agent`/Task tool.**';
+      const { leafMinionMarkdown } = agentOperatingRulesStatics;
+      const found = leafMinionMarkdown.slice(
+        leafMinionMarkdown.indexOf(needle),
+        leafMinionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: leafMinionMarkdown => tells the leaf to report an unreachable piece and let the parent decide', () => {
+      const needle =
+        'If your piece genuinely cannot be done without work outside it, say so in your return and let your parent decide.';
+      const { leafMinionMarkdown } = agentOperatingRulesStatics;
+      const found = leafMinionMarkdown.slice(
+        leafMinionMarkdown.indexOf(needle),
+        leafMinionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+  });
+
+  it.each([
+    '**1. NEVER call `signal-back` — your final message IS your terminal action.**',
+    '**2. NEVER end your turn waiting for a background task, and NEVER poll for one.**',
+    '**3. Run ward SCOPED to what you changed, ALWAYS in the foreground. NEVER run the whole-repo `npm run ward`.**',
+    '**5. When the wall is the ENVIRONMENT, not the work, report it — do not work around it.**',
+  ])(
+    'VALID: delegatingMinionMarkdown and leafMinionMarkdown => share rule %s verbatim',
+    (needle) => {
+      const { delegatingMinionMarkdown, leafMinionMarkdown } = agentOperatingRulesStatics;
+
+      expect(
+        delegatingMinionMarkdown.slice(
+          delegatingMinionMarkdown.indexOf(needle),
+          delegatingMinionMarkdown.indexOf(needle) + needle.length,
+        ),
+      ).toBe(needle);
+      expect(
+        leafMinionMarkdown.slice(
+          leafMinionMarkdown.indexOf(needle),
+          leafMinionMarkdown.indexOf(needle) + needle.length,
+        ),
+      ).toBe(needle);
+    },
+  );
+
+  it('VALID: delegatingMinionMarkdown and leafMinionMarkdown => diverge on Rule 4, the delegation rule', () => {
+    const { delegatingMinionMarkdown, leafMinionMarkdown } = agentOperatingRulesStatics;
+
+    expect(
+      delegatingMinionMarkdown.indexOf('**4. You are a LEAF. Do NOT call the `Agent`/Task tool.**'),
+    ).toBe(-1);
+    expect(leafMinionMarkdown.indexOf('a SPIKE, and only a spike')).toBe(-1);
   });
 });

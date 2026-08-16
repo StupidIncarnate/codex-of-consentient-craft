@@ -12,11 +12,14 @@
  * item and every `in_progress` / `pending` item are always rendered.
  *
  * **Path discrimination — minion vs role:** the agent name is run through
- * `workItemRoleContract.safeParse`. If it fails (e.g. `chaoswhisperer-gap-minion`,
- * `codeweaver-piece-minion`, `flowrider-authoring-minion`, `siegemaster-walker-minion`), the agent
- * is parent-dispatched via the Agent tool and receives a minimal "Quest ID + Work Item ID"
- * substitution; the parent briefs task context inline. Blightwarden minions and pesteater own their work items but read the
- * quest/diff themselves, so they also take the minimal branch.
+ * `workItemRoleContract.safeParse`. If it fails, the caller is one of the four parent-summoned
+ * minions and receives a minimal "Quest ID + Work Item ID" substitution; the parent briefs task
+ * context inline. In practice only `chaoswhisperer-gap-minion` can be served that way here: the
+ * three generic minions (`planner-minion` / `worker-minion` / `reviewer-minion`) carry a
+ * `$DISCIPLINE` placeholder and this transformer has no discipline to resolve it with, so one
+ * arriving here throws rather than serving an unparameterized prompt. EVERY role takes the relay
+ * path below, `pesteater` included — as an operation orchestrator it needs its operation item, the
+ * ledger, `packagesAffected` and the user request exactly as its four siblings do.
  *
  * Every parent prompt instructs its minion to fetch with `{ agent, questId }` and NO `workItemId`,
  * which routes to `agentPromptGetBroker`'s minion-fetch branch (a bare `Quest ID:` substitution, no
@@ -44,6 +47,7 @@ import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmas
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
+import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
 import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
@@ -74,17 +78,6 @@ export const workItemToPromptTransformer = ({
   // via the Agent tool, with the parent's workItemId echoed in the get-agent-prompt call.
   const isWorkItemRole = workItemRoleContract.safeParse(parsedAgent).success;
   if (!isWorkItemRole) {
-    const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
-    return {
-      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => minionArguments)),
-    };
-  }
-
-  // PestEater reads the bug report off the quest itself, so it gets the minimal substitution. The
-  // blightwarden minions used to share this branch — they were report-only finders that read the
-  // diff themselves — and that whole family is gone: `blightscout` takes the full relay path below,
-  // because it needs its operation item to resolve the commit range it reviews.
-  if (workItem.role === 'pesteater') {
     const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
     return {
       prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => minionArguments)),
@@ -230,6 +223,20 @@ export const workItemToPromptTransformer = ({
   // exactly what its gate then refuses it for. For every other role the list is a pre-work reading
   // order, binding nothing.
   if (linkedOperation.packageNames.length > 0) {
+    // A role with no track gets an advisory rather than a scope, and WHICH advisory turns on
+    // whether it is served `operationOrchestratorPromptStatics`. That template's tool table is
+    // EXHAUSTIVE and forbids `discover` / `get-project-map` outright, so naming them here would
+    // hand the session a tool its own prompt banned a few screens earlier — and this is the line an
+    // agent acts on. The orchestrator roles are exactly `roleToDisciplineStatics`' keys, read from
+    // the map rather than listed, so a sixth discipline cannot fall through to the searching
+    // wording. `spiritmender` and `warpgate` keep bespoke templates that DO tell them to search.
+    const servedTheOrchestratorTemplate = new Map(Object.entries(roleToDisciplineStatics)).has(
+      workItem.role,
+    );
+    const nonTrackPackageAdvisory = servedTheOrchestratorTemplate
+      ? '(Name these packages in every minion brief you write — the planner and the workers point their own searches here instead of guessing. NOT a boundary: a minion may touch another package if the work needs it.)'
+      : '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)';
+
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(
@@ -237,7 +244,7 @@ export const workItemToPromptTransformer = ({
       ),
       contentTextContract.parse(
         trackEligibility === undefined
-          ? '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)'
+          ? nonTrackPackageAdvisory
           : trackEligibility.packageScope === 'partition'
             ? '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)'
             : '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',

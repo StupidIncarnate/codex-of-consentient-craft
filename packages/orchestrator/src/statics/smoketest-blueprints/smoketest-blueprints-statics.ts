@@ -21,9 +21,8 @@
  * the flows would otherwise derive for the same role; the hydrator appends the
  * fixed verify tail (flowrider, siegemaster — ward is skipped here) at in_progress. Groundstomper
  * is also part of the tail but fans to zero items, because the quest's only package
- * (`orchestrator`) is not e2e-eligible. There is no blightscout item in the seeded tail at all: the
- * signal-back handler appends one after every committing session, so the scouts this blueprint runs
- * are minted mid-relay rather than seeded here.
+ * (`orchestrator`) is not e2e-eligible. There is no standards-review item anywhere in the tail: the
+ * five concerns are reviewed by a reviewer-minion inside each committing session's own turn.
  */
 
 export const smoketestBlueprintsStatics = {

@@ -19,18 +19,36 @@ import { agentPromptClassificationStatics } from '../../statics/agent-prompt-cla
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
 import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
-import { blightscoutPromptStatics } from '../../statics/blightscout-prompt/blightscout-prompt-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPieceMinionStatics } from '../../statics/codeweaver-piece-minion/codeweaver-piece-minion-statics';
-import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { disciplineBelowBrowserStatics } from '../../statics/discipline-below-browser/discipline-below-browser-statics';
+import { disciplineBugReproStatics } from '../../statics/discipline-bug-repro/discipline-bug-repro-statics';
+import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
+import { disciplineManualQaStatics } from '../../statics/discipline-manual-qa/discipline-manual-qa-statics';
+import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
-import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
+import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
+
+// The relay path serves ONE template to all five operation-owning roles; what tells a codeweaver
+// dispatch from a siegemaster one is only the pack substituted at `$DISCIPLINE` and the bare
+// discipline id at `$MY_DISCIPLINE`. Function-form replacement, never the string form: pack
+// markdown is authored prose that can carry `$&` / `` $` `` / `$'`, which the string form would
+// expand against the match.
+const IMPLEMENTATION_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineImplementationStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'implementation');
+const BUG_REPRO_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineBugReproStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'bug-repro');
+const BELOW_BROWSER_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'below-browser');
+const MANUAL_QA_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineManualQaStatics.orchestratorMarkdown)
+  .replace('$MY_DISCIPLINE', () => 'manual-qa');
 
 // Fixture scale for the MCP tool-result budget below, calibrated against a real dogfood quest
 // (e0210063): a 21-item ledger rendering to 6,444 characters, seven flows, five affected packages,
@@ -74,10 +92,11 @@ const ELISION_NOTICE_PLURAL =
 const ELISION_NOTICE_SINGULAR =
   "... 1 earlier complete operation item elided to fit the prompt budget — call get-quest({ questId, stage: 'implementation' }) for the full ledger.";
 
-// Names that are served but own no work item, so their $ARGUMENTS is the two-line minimal form.
-const SUMMONED_ONLY_MINION_NAMES = agentPromptClassificationStatics.promptNames.filter(
-  (promptName) =>
-    agentPromptClassificationStatics.roleNames.every((roleName) => roleName !== promptName),
+// The three minions parameterized by a discipline. They own no work item and are served by
+// `agentPromptGetBroker`'s minion branch; reaching THIS transformer they can only be refused,
+// because it has no discipline to resolve their `$DISCIPLINE` placeholder with.
+const GENERIC_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
+  (minionName) => minionName !== 'chaoswhisperer-gap-minion',
 );
 
 type SignoffTrackRole = keyof typeof signoffTrackEligibilityStatics.byTrack;
@@ -102,6 +121,27 @@ const INTERSECTION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter(
   (role) => signoffTrackEligibilityStatics.byTrack[role].packageScope === 'intersection',
 );
 
+// The roles served `operationOrchestratorPromptStatics`, derived from the map that decides it, so a
+// sixth discipline added there is covered by the ban assertion below without anyone remembering to
+// list it. Everything under this heading — the pack, the gates, the minion protocol AND the
+// `$ARGUMENTS` block this transformer builds — sits BELOW the template's exhaustive tool table, so
+// it is the region a leak can hide in.
+const ORCHESTRATOR_TEMPLATE_ROLES = Object.keys(
+  roleToDisciplineStatics,
+) as (keyof typeof roleToDisciplineStatics)[];
+const DISCIPLINE_HEADING = '## Your discipline';
+// Case-sensitive word matches: `browser-e2e`'s pack legitimately says `DISCOVERY MISMATCH` about a
+// scoped ward run, which is the ward output and not the `discover` tool.
+const FORBIDDEN_ORCHESTRATOR_TOOLS = [
+  'get-architecture',
+  'get-syntax-rules',
+  'get-testing-patterns',
+  'discover',
+  'get-project-map',
+  'get-project-inventory',
+  'get-folder-detail',
+];
+
 describe('workItemToPromptTransformer', () => {
   describe('minion path (agent name is not a WorkItemRole)', () => {
     it('VALID: {agent: chaoswhisperer-gap-minion} => substitutes Quest ID + Work Item ID', () => {
@@ -123,7 +163,7 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    it('VALID: {agent: codeweaver-piece-minion, workItem.role: siegemaster} => minimal substitution regardless of workItem.role', () => {
+    it('VALID: {agent: chaoswhisperer-gap-minion, workItem.role: siegemaster} => minimal substitution regardless of workItem.role', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
       const workItem = WorkItemStub({ id: workItemId, role: 'siegemaster' });
@@ -132,23 +172,59 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'codeweaver-piece-minion' }),
+        agentName: AgentPromptNameStub({ value: 'chaoswhisperer-gap-minion' }),
       });
 
       const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
 
       expect(result.prompt).toBe(
-        codeweaverPieceMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        chaoswhispererGapMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
+
+    // The three generic minions carry a `$DISCIPLINE` placeholder and this transformer has no
+    // discipline to fill it with — they are served by agentPromptGetBroker's minion branch, which
+    // demands one. A refusal here is what stops a caller that echoes a workItemId from being handed
+    // a prompt whose every instruction is still the literal token.
+    it.each(GENERIC_MINION_NAMES)(
+      'ERROR: {agent: %s, workItemId echoed} => throws rather than serving an unparameterized prompt',
+      (minionName) => {
+        const workItem = WorkItemStub({ role: 'siegemaster' });
+        const quest = QuestStub({ workItems: [workItem] });
+
+        expect(() =>
+          workItemToPromptTransformer({
+            quest,
+            workItem,
+            agentName: AgentPromptNameStub({ value: minionName }),
+          }),
+        ).toThrow(/must be summoned with a discipline/u);
+      },
+    );
   });
 
-  describe('pesteater (minimal substitution)', () => {
-    it('VALID: {agent + role: pesteater} => substitutes Quest ID + Work Item ID (reads quest itself, no operations ref)', () => {
+  describe('pesteater takes the full relay path, exactly like its four sibling orchestrators', () => {
+    it('VALID: {agent + role: pesteater, one linked operation} => substitutes the operation-relay $ARGUMENTS into the bug-repro template', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-6666-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'pesteater', relatedDataItems: [] });
-      const quest = QuestStub({ id: questId, questType: 'bug-hunt', workItems: [workItem] });
+      const operationId = OperationItemIdStub({ value: 'dddddddd-6666-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'pesteater',
+        text: 'reproduce every bug on the report',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'pesteater',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: questId,
+        questType: 'bug-hunt',
+        operations: [operation],
+        workItems: [workItem],
+      });
 
       const result = workItemToPromptTransformer({
         quest,
@@ -156,11 +232,35 @@ describe('workItemToPromptTransformer', () => {
         agentName: AgentPromptNameStub({ value: 'pesteater' }),
       });
 
-      const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [pesteater] reproduce every bug on the report',
+        '',
+        'Operations ledger (in order):',
+        '1. [>] [pesteater] reproduce every bug on the report  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
 
       expect(result.prompt).toBe(
-        pesteaterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        BUG_REPRO_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
+    });
+
+    it('ERROR: {agent + role: pesteater, empty relatedDataItems} => throws no-resolvable-operations-ref error', () => {
+      const workItem = WorkItemStub({ role: 'pesteater', relatedDataItems: [] });
+      const quest = QuestStub({ questType: 'bug-hunt', workItems: [workItem] });
+
+      expect(() =>
+        workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'pesteater' }),
+        }),
+      ).toThrow(/has no resolvable operations\/<id> reference/u);
     });
   });
 
@@ -256,7 +356,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       );
     });
 
@@ -303,7 +403,7 @@ describe('workItemToPromptTransformer', () => {
       // split/join, never String.replace(string, string) — building the expectation with the very
       // bug under test would corrupt it identically and pass vacuously.
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -348,7 +448,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -390,7 +490,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -428,14 +528,14 @@ describe('workItemToPromptTransformer', () => {
         '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
         '',
         'Packages your operation item lands in: shared, server',
-        '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)',
+        '(Name these packages in every minion brief you write — the planner and the workers point their own searches here instead of guessing. NOT a boundary: a minion may touch another package if the work needs it.)',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -582,7 +682,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -644,48 +744,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
-      );
-    });
-
-    it('VALID: {role: blightscout, one linked operation} => substitutes exact operation-relay $ARGUMENTS', () => {
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7777-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-7777-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'blightscout',
-        text: 'review the last commit and clean up',
-        status: 'pending',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'blightscout',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
-
-      const result = workItemToPromptTransformer({
-        quest,
-        workItem,
-        agentName: AgentPromptNameStub({ value: 'blightscout' }),
-      });
-
-      const expectedArgs = [
-        `Quest ID: ${String(questId)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [blightscout] review the last commit and clean up',
-        '',
-        'Operations ledger (in order):',
-        '1. [ ] [blightscout] review the last commit and clean up  <-- YOUR OPERATION ITEM',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
-      ].join('\n');
-
-      expect(result.prompt).toBe(
-        blightscoutPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -887,7 +946,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+          IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
         );
       });
     });
@@ -943,7 +1002,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+          MANUAL_QA_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
         );
       });
 
@@ -992,7 +1051,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+          BELOW_BROWSER_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
         );
       });
     });
@@ -1304,7 +1363,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -1368,7 +1427,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -1444,7 +1503,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
   });
@@ -1462,6 +1521,54 @@ describe('workItemToPromptTransformer', () => {
         }),
       ).toThrow(/Invalid enum value/u);
     });
+  });
+
+  // The tool table near the top of the orchestrator template is EXHAUSTIVE, and the whole design
+  // rests on it: a session that searches source runs out of room mid-loop and starts hand-coding
+  // the remainder. Measuring the template or a pack ALONE cannot catch a breach, because the
+  // `$ARGUMENTS` block this transformer builds is spliced in below both — and that block is the
+  // part an agent acts on first.
+  describe('the orchestrator tool-surface ban survives assembly', () => {
+    it.each(ORCHESTRATOR_TEMPLATE_ROLES)(
+      'VALID: {agent: %s, operation item declaring packageNames} => the assembled prompt names no forbidden tool below the tool table',
+      (role) => {
+        const operationItemId = OperationItemIdStub({
+          value: 'eeeeeeee-4444-4222-9333-444444444444',
+        });
+        const operation = OperationItemStub({
+          id: operationItemId,
+          role,
+          text: 'orchestrator: thread the operation ledger through the dispatch scan',
+          status: 'in_progress',
+          flowIds: ['send-queued-comment-batch'],
+          packageNames: ['orchestrator', 'shared'],
+        });
+        const workItem = WorkItemStub({
+          id: QuestWorkItemIdStub({ value: 'ffffffff-4444-4222-9333-444444444444' }),
+          role,
+          relatedDataItems: [
+            RelatedDataItemStub({ value: `operations/${String(operationItemId)}` }),
+          ],
+        });
+        const quest = QuestStub({ operations: [operation], workItems: [workItem] });
+
+        const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName: role });
+        const sections = String(prompt).split(DISCIPLINE_HEADING);
+        const [, belowToolTable] = sections;
+        const namedTools = FORBIDDEN_ORCHESTRATOR_TOOLS.filter((tool) =>
+          new RegExp(`\\b${tool}\\b`, 'u').test(String(belowToolTable)),
+        );
+
+        // The split arity rides in the same assertion so a renamed heading fails loudly instead of
+        // making the tool scan vacuously green over an empty region.
+        const toolTableFound = sections.length === 2;
+
+        expect({ toolTableFound, namedTools }).toStrictEqual({
+          toolTableFound: true,
+          namedTools: [],
+        });
+      },
+    );
   });
 
   describe('MCP tool-result budget', () => {
@@ -1607,28 +1714,28 @@ describe('workItemToPromptTransformer', () => {
       },
     );
 
-    it.each(SUMMONED_ONLY_MINION_NAMES)(
-      'VALID: {agent: %s, no work item of its own} => served MCP block stays within the verbatim budget',
-      (agentName) => {
-        const workItem = WorkItemStub({
-          id: QuestWorkItemIdStub({ value: 'cccccccc-2222-4222-9333-444444444444' }),
-          role: 'codeweaver',
-        });
-        const quest = QuestStub({ workItems: [workItem] });
+    // The generic minions never reach this transformer — their budget is measured against the
+    // minion-fetch shape in agent-name-to-prompt-transformer.test.ts.
+    it('VALID: {agent: chaoswhisperer-gap-minion, no work item of its own} => served MCP block stays within the verbatim budget', () => {
+      const agentName = 'chaoswhisperer-gap-minion';
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'cccccccc-2222-4222-9333-444444444444' }),
+        role: 'codeweaver',
+      });
+      const quest = QuestStub({ workItems: [workItem] });
 
-        const { model, name } = agentNameToPromptTransformer({
-          agent: AgentPromptNameStub({ value: agentName }),
-        });
-        const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName });
+      const { model, name } = agentNameToPromptTransformer({
+        agent: AgentPromptNameStub({ value: agentName }),
+      });
+      const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName });
 
-        const servedBlock = JSON.stringify(
-          { name, model, prompt },
-          null,
-          mcpToolResultStatics.jsonIndentSpaces,
-        );
+      const servedBlock = JSON.stringify(
+        { name, model, prompt },
+        null,
+        mcpToolResultStatics.jsonIndentSpaces,
+      );
 
-        expect(servedBlock.length).toBeLessThanOrEqual(mcpToolResultStatics.maxVerbatimChars);
-      },
-    );
+      expect(servedBlock.length).toBeLessThanOrEqual(mcpToolResultStatics.maxVerbatimChars);
+    });
   });
 });

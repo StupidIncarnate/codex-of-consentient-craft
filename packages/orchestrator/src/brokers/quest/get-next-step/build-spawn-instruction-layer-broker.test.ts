@@ -149,7 +149,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
           'codeweaver',
           'flowrider',
           'siegemaster',
-          'blightscout',
+          'groundstomper',
           'spiritmender',
           'pesteater',
         ] as const
@@ -163,7 +163,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         { role: 'codeweaver', resumeSessionId: sessionId },
         { role: 'flowrider', resumeSessionId: sessionId },
         { role: 'siegemaster', resumeSessionId: sessionId },
-        { role: 'blightscout', resumeSessionId: sessionId },
+        { role: 'groundstomper', resumeSessionId: sessionId },
         { role: 'spiritmender', resumeSessionId: sessionId },
         { role: 'pesteater', resumeSessionId: sessionId },
       ]);

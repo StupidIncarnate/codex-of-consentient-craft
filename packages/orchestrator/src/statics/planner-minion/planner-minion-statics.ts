@@ -36,7 +36,7 @@ a planner. What you produce is a plan persisted onto the quest plus a 3-5 line s
 the tree, so a plan that is wrong about what exists on disk is a plan that gets executed anyway.
 Reading the real code is not diligence here, it is the job.
 
-${agentOperatingRulesStatics.minionMarkdown}
+${agentOperatingRulesStatics.delegatingMinionMarkdown}
 
 ## Your discipline
 

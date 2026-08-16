@@ -59,7 +59,17 @@ export const questNoteContract = z.object({
     .min(1)
     .brand<'QuestNoteDetail'>()
     .describe('What the next session needs in order to act on the note without re-deriving it.'),
-  at: z.string().datetime().brand<'IsoTimestamp'>(),
+  at: z
+    .string()
+    .datetime()
+    .brand<'IsoTimestamp'>()
+    .describe(
+      'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
+        'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +
+        'identical fabricated timestamp across every note on a quest, and timestamps set in a ' +
+        'future that never happened. Required here because a persisted note always carries one; ' +
+        'the modify-quest input shape drops the requirement, since the write path supplies it.',
+    ),
 });
 
 export type QuestNote = z.infer<typeof questNoteContract>;

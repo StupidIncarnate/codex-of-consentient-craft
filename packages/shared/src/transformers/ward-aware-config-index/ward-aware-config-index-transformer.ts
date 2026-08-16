@@ -6,7 +6,7 @@
  *
  * USAGE:
  * wardAwareConfigIndexTransformer({ workItem: wardItem, allItemMap });
- * // Returns: ConfigIndex for the ward's floor — either MINI BOSS (4) or FLOOR BOSS (11)
+ * // Returns: ConfigIndex for the ward's floor — either MINI BOSS (4) or FLOOR BOSS (10)
  * wardAwareConfigIndexTransformer({ workItem: codeweaverItem, allItemMap });
  * // Returns: ConfigIndex for FORGE (2)
  */

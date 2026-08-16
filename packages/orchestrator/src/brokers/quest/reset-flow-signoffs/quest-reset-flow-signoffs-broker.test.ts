@@ -27,12 +27,14 @@ const TARGET_FLOW_ID = FlowIdStub({ value: 'login-flow' });
 const OTHER_FLOW_ID = FlowIdStub({ value: 'signup-flow' });
 
 const SIEGE_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' });
-const BLIGHT_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' });
+const FLOWRIDER_WORK_ITEM_ID = QuestWorkItemIdStub({
+  value: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+});
 const UNKNOWN_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' });
 const ORPHAN_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd' });
 
 const SIEGE_OP_ID = OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000001' });
-const BLIGHT_OP_ID = OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000002' });
+const FLOWRIDER_OP_ID = OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000002' });
 
 const FLOWRIDER_SIGNOFF = SignoffStub({
   evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red when the redirect is removed',
@@ -66,20 +68,20 @@ const SIEGE_WORK_ITEM = WorkItemStub({
   relatedDataItems: [`operations/${String(SIEGE_OP_ID)}`],
 });
 
-const BLIGHT_OPERATION = OperationItemStub({
-  id: BLIGHT_OP_ID,
-  role: 'blightscout',
-  text: 'Blightscout: whole-diff audit',
+const FLOWRIDER_OPERATION = OperationItemStub({
+  id: FLOWRIDER_OP_ID,
+  role: 'flowrider',
+  text: 'Flowrider: author the flow-perspective suites',
   status: 'in_progress',
   locked: true,
   flowIds: ['login-flow'],
 });
 
-const BLIGHT_WORK_ITEM = WorkItemStub({
-  id: BLIGHT_WORK_ITEM_ID,
-  role: 'blightscout',
+const FLOWRIDER_WORK_ITEM = WorkItemStub({
+  id: FLOWRIDER_WORK_ITEM_ID,
+  role: 'flowrider',
   status: 'in_progress',
-  relatedDataItems: [`operations/${String(BLIGHT_OP_ID)}`],
+  relatedDataItems: [`operations/${String(FLOWRIDER_OP_ID)}`],
 });
 
 // A work item carrying no `operations/<id>` ref at all — it declares no flow scope, so there is
@@ -415,13 +417,13 @@ describe('questResetFlowSignoffsBroker', () => {
       expect(proxy.getPersistedQuests()).toStrictEqual([]);
     });
 
-    it('INVALID: {a blightscout work item asks for a reset} => rejects, only siegemaster owns this track', async () => {
+    it('INVALID: {a flowrider work item asks for a reset} => rejects, only siegemaster owns this track', async () => {
       const proxy = questResetFlowSignoffsBrokerProxy();
       proxy.setupQuestFound({
         quest: QuestStub({
           id: QUEST_ID,
-          operations: [BLIGHT_OPERATION],
-          workItems: [BLIGHT_WORK_ITEM],
+          operations: [FLOWRIDER_OPERATION],
+          workItems: [FLOWRIDER_WORK_ITEM],
           flows: [SIGNED_TARGET_FLOW],
         }),
       });
@@ -429,12 +431,12 @@ describe('questResetFlowSignoffsBroker', () => {
       await expect(
         questResetFlowSignoffsBroker({
           questId: QUEST_ID,
-          workItemId: BLIGHT_WORK_ITEM_ID,
+          workItemId: FLOWRIDER_WORK_ITEM_ID,
           flowId: TARGET_FLOW_ID,
           reason: RESET_REASON,
         }),
       ).rejects.toThrow(
-        /^reset-flow-signoffs: only a siegemaster work item may reset a walk — work item bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb is linked to a blightscout operation item \(00000000-0000-4000-8000-000000000002\)$/u,
+        /^reset-flow-signoffs: only a siegemaster work item may reset a walk — work item bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb is linked to a flowrider operation item \(00000000-0000-4000-8000-000000000002\)$/u,
       );
 
       expect(proxy.getPersistedQuests()).toStrictEqual([]);

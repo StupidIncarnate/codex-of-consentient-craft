@@ -41,12 +41,18 @@ describe('plannerMinionStatics', () => {
   });
 
   // A minion has no work item of its own: the minion variant is what forbids `signal-back`, and the
-  // work-item variant would mandate it on the PARENT's item, advancing the relay mid-round.
-  it('VALID: template => embeds the minion operating rules, not the work-item variant', () => {
+  // work-item variant would mandate it on the PARENT's item, advancing the relay mid-round. It is the
+  // DELEGATING variant specifically — planner-minion is the only minion allowed a bounded spike.
+  it('VALID: template => embeds the delegating-minion operating rules, not the leaf or work-item variant', () => {
     expect({
-      minionVariant: has(agentOperatingRulesStatics.minionMarkdown),
+      delegatingMinionVariant: has(agentOperatingRulesStatics.delegatingMinionMarkdown),
+      leafMinionVariant: has(agentOperatingRulesStatics.leafMinionMarkdown),
       workItemVariant: has(agentOperatingRulesStatics.markdown),
-    }).toStrictEqual({ minionVariant: true, workItemVariant: false });
+    }).toStrictEqual({
+      delegatingMinionVariant: true,
+      leafMinionVariant: false,
+      workItemVariant: false,
+    });
   });
 
   it('VALID: template => stays under the MCP tool-result verbatim-delivery ceiling', () => {

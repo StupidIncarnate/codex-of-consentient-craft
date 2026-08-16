@@ -11,7 +11,7 @@ import { computeNextStepFromQuestLayerBrokerProxy } from './compute-next-step-fr
 // Bug-hunt chain ids (shape seeded at Start Quest by questBuildRelayGraphBroker for the bug-hunt quest type).
 const PESTEATER_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 const WARD_CHANGED_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-const BLIGHTSCOUT_ID = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
+const SPIRITMENDER_ID = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
 const WARD_FULL_ID = QuestWorkItemIdStub({ value: 'eeeeeeee-1111-4222-9333-444444444444' });
 
 const bugHuntItems = ({
@@ -38,9 +38,9 @@ const bugHuntItems = ({
       dependsOn: [PESTEATER_ID],
     }),
     WorkItemStub({
-      id: BLIGHTSCOUT_ID,
-      role: 'blightscout',
-      status: statusFor(BLIGHTSCOUT_ID),
+      id: SPIRITMENDER_ID,
+      role: 'spiritmender',
+      status: statusFor(SPIRITMENDER_ID),
       dependsOn: [WARD_CHANGED_ID],
     }),
     WorkItemStub({
@@ -49,7 +49,7 @@ const bugHuntItems = ({
       spawnerType: 'command',
       wardMode: 'full',
       status: statusFor(WARD_FULL_ID),
-      dependsOn: [BLIGHTSCOUT_ID],
+      dependsOn: [SPIRITMENDER_ID],
     }),
   ];
 };
@@ -280,7 +280,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
       });
     });
 
-    it('VALID: {through ward(changed)} => spawn-agents blightscout', () => {
+    it('VALID: {through ward(changed)} => spawn-agents spiritmender', () => {
       computeNextStepFromQuestLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({
@@ -294,22 +294,22 @@ describe('computeNextStepFromQuestLayerBroker', () => {
         agents: [
           {
             questId,
-            role: 'blightscout',
-            workItemId: BLIGHTSCOUT_ID,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightscout",\n  workItemId: "${String(BLIGHTSCOUT_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(BLIGHTSCOUT_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+            role: 'spiritmender',
+            workItemId: SPIRITMENDER_ID,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "spiritmender",\n  workItemId: "${String(SPIRITMENDER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(SPIRITMENDER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
           },
         ],
       });
     });
 
-    it('VALID: {through blightscout} => run-ward full', () => {
+    it('VALID: {through spiritmender} => run-ward full', () => {
       computeNextStepFromQuestLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({
         id: questId,
         questType: 'bug-hunt',
         workItems: bugHuntItems({
-          completeIds: [PESTEATER_ID, WARD_CHANGED_ID, BLIGHTSCOUT_ID],
+          completeIds: [PESTEATER_ID, WARD_CHANGED_ID, SPIRITMENDER_ID],
         }),
       });
 
@@ -328,7 +328,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
         id: questId,
         questType: 'bug-hunt',
         workItems: bugHuntItems({
-          completeIds: [PESTEATER_ID, WARD_CHANGED_ID, BLIGHTSCOUT_ID, WARD_FULL_ID],
+          completeIds: [PESTEATER_ID, WARD_CHANGED_ID, SPIRITMENDER_ID, WARD_FULL_ID],
         }),
       });
 

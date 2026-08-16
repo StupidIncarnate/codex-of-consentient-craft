@@ -270,9 +270,65 @@ function writeJsonlSessionFile() {
     }
 }
 
+// A real orchestrator session dispatches a reviewer-minion over its round's output, and that
+// minion writes its verdicts to `quest.planningNotes.blightLedger` via modify-quest. The
+// signal-back review-coverage gate refuses `operationStatus: 'done'` from any of the five
+// orchestrator roles until at least one disposition carries THAT work item's id — so a fake agent
+// that reports done has to leave the same trace, or every relay-driving spec is refused at the
+// gate rather than at the behaviour it is testing. Fired only for `done`: `partial` and `blocked`
+// are the honest escapes the gate does not bind.
+function postReviewDisposition() {
+    return new Promise((resolve) => {
+        const questId = parsePromptId('questId');
+        const workItemId = parsePromptId('workItemId');
+        const port = process.env.DUNGEONMASTER_PORT;
+        if (!questId || !workItemId || !port) {
+            resolve();
+            return;
+        }
+        const payload = JSON.stringify({
+            planningNotes: {
+                blightLedger: [
+                    {
+                        // Derived per work item so two rounds never collide on one ledger key —
+                        // the ledger REPLACES on itemId.
+                        itemId: `packages/fake/src/${workItemId}.ts:craft`,
+                        disposition: 'reviewed',
+                        evidence: 'fake Claude CLI reviewer-minion stand-in for an e2e dispatch',
+                        observedBy: 'reviewer-minion',
+                        workItemId,
+                    },
+                ],
+            },
+        });
+        const req = http.request(
+            {
+                host: SIGNAL_BACK_HOST,
+                port: Number(port),
+                path: `/api/quests/${questId}`,
+                method: 'PATCH',
+                headers: {
+                    'content-type': 'application/json',
+                    'content-length': Buffer.byteLength(payload),
+                },
+            },
+            (res) => {
+                res.on('data', () => {});
+                res.on('end', () => resolve());
+            },
+        );
+        req.on('error', (err) => {
+            process.stderr.write(`Fake Claude CLI: review-disposition PATCH failed: ${err.message}\n`);
+            resolve();
+        });
+        req.write(payload);
+        req.end();
+    });
+}
+
 // Runs once every queued stream line has been emitted. In hang mode the process blocks forever
-// (init line already emitted so sessionId stamps). Otherwise it optionally signals back (awaited),
-// writes the JSONL session file, and exits.
+// (init line already emitted so sessionId stamps). Otherwise it optionally records a review
+// disposition and signals back (both awaited), writes the JSONL session file, and exits.
 async function finish() {
     if (hang) {
         // Keep the event loop alive indefinitely — a restart spec kills this child.
@@ -281,6 +337,9 @@ async function finish() {
     }
 
     if (signalBack) {
+        if (signalBack.operationStatus === 'done') {
+            await postReviewDisposition();
+        }
         await postSignalBack();
     }
 

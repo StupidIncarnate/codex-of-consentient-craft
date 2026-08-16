@@ -33,7 +33,7 @@ describe('orchestratorGetBlightChecklistAdapter', () => {
   });
 
   describe('single commit diff', () => {
-    it("VALID: {questId, scope: 'commit'} => forwards the scope, which is the whole surface a Blightscout item is dispatched against", async () => {
+    it("VALID: {questId, scope: 'commit'} => forwards the scope, so a one-commit audit reaches the broker intact", async () => {
       const proxy = orchestratorGetBlightChecklistAdapterProxy();
       proxy.returns({
         questId: 'add-auth',

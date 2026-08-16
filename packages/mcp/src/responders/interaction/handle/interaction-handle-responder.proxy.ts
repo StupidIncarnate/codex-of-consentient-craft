@@ -46,6 +46,7 @@ export const InteractionHandleResponderProxy = (): {
     contents: string;
   }) => void;
   getLastModifyQuestInput: (params: { questId: QuestId }) => unknown;
+  getLastAgentPromptCallArgs: () => unknown;
 } => {
   askUserQuestionBrokerProxy();
   signalBackBrokerProxy();
@@ -81,5 +82,6 @@ export const InteractionHandleResponderProxy = (): {
     setupAgentFile: layerProxy.setupAgentFile,
     getLastModifyQuestInput: ({ questId }: { questId: QuestId }): unknown =>
       modifyProxy.getLastCalledInputFor({ questId }),
+    getLastAgentPromptCallArgs: (): unknown => agentPromptProxy.getLastCallArgs(),
   };
 };

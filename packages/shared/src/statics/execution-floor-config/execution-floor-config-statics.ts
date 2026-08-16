@@ -18,7 +18,6 @@ export const executionFloorConfigStatics = {
     { name: 'GLUEWORKS', role: 'flowrider', type: 'floor' },
     { name: 'PROVING GROUNDS', role: 'groundstomper', type: 'floor' },
     { name: 'ARENA', role: 'siegemaster', type: 'floor' },
-    { name: 'QUARANTINE', role: 'blightscout', type: 'floor' },
     { name: 'FLOOR BOSS', role: 'ward', wardPosition: 'last', type: 'floor' },
     { name: 'TAVERN', role: 'tavernkeeper', type: 'floor' },
     { name: 'WARPGATE', role: 'warpgate', type: 'floor' },

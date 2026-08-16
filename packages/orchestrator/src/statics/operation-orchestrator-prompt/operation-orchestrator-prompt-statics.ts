@@ -21,6 +21,14 @@
  * reviewer signs) lives in the pack; anything about HOW to build, test or verify lives in the
  * minions. What is left here is the part that is identical for all five roles.
  *
+ * $MY_DISCIPLINE CARRIES THE DISCIPLINE **ID** — the bare `roleToDisciplineStatics[role]` value, not
+ * prose — because the orchestrator has to hand that exact string to `get-agent-prompt` for each of
+ * its three minions, and the pack is authored markdown that mostly never names itself. The name is
+ * deliberately NOT `$DISCIPLINE_NAME` or `$DISCIPLINE_ID`: `$DISCIPLINE` is a prefix of both, so the
+ * pack substitution would match the prefix first and corrupt the second token into
+ * `<whole pack markdown>_NAME`. `$MY_DISCIPLINE` shares no prefix with `$DISCIPLINE`, so the two
+ * substitutions are independent whatever order a resolver runs them in.
+ *
  * BUDGET: the template stays under 12,000 characters EXCLUDING the embedded operating-rules block,
  * which the colocated test measures. `get-agent-prompt` serves this template PLUS up to ~9k
  * characters of interpolated operation context inside `mcpToolResultStatics.maxVerbatimChars`; over
@@ -183,8 +191,15 @@ signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete
 ## Minion dispatch protocol
 
 Every minion's FIRST action is
-\`get-agent-prompt({ agent: '<planner|worker|reviewer>-minion', questId: 'QUEST_ID' })\` —
-minion-fetch, **NO workItemId**. Use \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`.
+\`get-agent-prompt({ agent: 'planner-minion', questId: 'QUEST_ID', discipline: '$MY_DISCIPLINE' })\` —
+minion-fetch, **NO workItemId** — and \`worker-minion\` / \`reviewer-minion\` fetch the same way.
+**The \`discipline\` argument is REQUIRED and the fetch is REFUSED without it** — a minion that
+cannot load its prompt has no method, no evidence bar and no prohibition on \`signal-back\`.
+
+Use \`subagent_type: "general-purpose"\`, and each minion on the model it is built for:
+\`planner-minion\` → \`model: "opus"\`, \`worker-minion\` → \`model: "sonnet"\`,
+\`reviewer-minion\` → \`model: "opus"\`. Downgrading the reviewer is the expensive mistake: it is the
+only session on the round that verifies anything.
 
 **Your spawn message is the ONLY quest context a minion gets.** It has no work item, no ledger, and
 no view of the flow graph; anything you do not write down, it does not know. Give it the frame
@@ -198,6 +213,7 @@ that the piece becomes a REMAINDER for the next round's planner — never someth
 $ARGUMENTS`,
     placeholders: {
       discipline: '$DISCIPLINE',
+      myDiscipline: '$MY_DISCIPLINE',
       arguments: '$ARGUMENTS',
     },
   },

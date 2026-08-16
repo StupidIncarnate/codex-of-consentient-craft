@@ -11,7 +11,7 @@
  * // Returns a QuestBlueprint carrying one codeweaver operation item per case, plus N codeweaver work
  * // items linearly chained via dependsOn — each linked to its operation item via
  * // relatedDataItems: ['operations/<id>'] and stamped with the case's promptKey-resolved
- * // smoketestPromptOverride. Ward/flowrider/siegemaster/blightscout roles are skipped so
+ * // smoketestPromptOverride. Ward/flowrider/siegemaster roles are skipped so
  * // the relay tail never runs — the chain is codeweaver-only.
  *
  * WHEN-TO-USE: The smoketest-run responder's MCP and Signals suites — one quest per suite with N cases.
@@ -79,7 +79,7 @@ export const caseCatalogToBlueprintTransformer = ({
     toolingRequirements: minimal.toolingRequirements,
     flows: minimal.flows,
     operations,
-    skipRoles: ['ward', 'flowrider', 'siegemaster', 'blightscout'],
+    skipRoles: ['ward', 'flowrider', 'siegemaster'],
   });
 
   const workItems: WorkItem[] = built.map(({ entry, operation, workItemId }, index) => {
