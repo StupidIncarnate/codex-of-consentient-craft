@@ -76,3 +76,4 @@ _lint-testbed/
 .dungeonmaster/
 .dungeonmaster-dev/
 .claude/worktrees
+worktrees/
