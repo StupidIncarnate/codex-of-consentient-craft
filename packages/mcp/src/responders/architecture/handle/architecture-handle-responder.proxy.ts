@@ -24,6 +24,8 @@ import { mcpDiscoverBrokerProxy } from '../../../brokers/mcp/discover/mcp-discov
 import { architectureFolderDetailBrokerProxy } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
 import { architectureSyntaxRulesBrokerProxy } from '../../../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
 import { architectureTestingPatternsBrokerProxy } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
+import { discoverIgnoreStateProxy } from '../../../state/discover-ignore/discover-ignore-state.proxy';
+import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
 import { folderConstraintsStateProxy } from '../../../state/folder-constraints/folder-constraints-state.proxy';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import { ArchitectureHandleResponder } from './architecture-handle-responder';
@@ -40,6 +42,7 @@ export const ArchitectureHandleResponderProxy = (): {
     contents: FileContents;
     pattern: GlobPattern;
   }) => void;
+  setupDiscoverIgnore: (params: { patterns: readonly GlobPattern[] }) => void;
   setupFolderConstraint: (params: { folderType: string; content: string }) => void;
   setupLibraryPackage: (params: { packageName: string }) => void;
   setupFrontendInkPackage: (params: { packageName: string }) => void;
@@ -55,9 +58,16 @@ export const ArchitectureHandleResponderProxy = (): {
   architectureTestingPatternsBrokerProxy();
   const stateProxy = folderConstraintsStateProxy();
   stateProxy.setupClear();
+  // Cleared rather than seeded: the state falls back to the static ignore rules while unset, which
+  // is exactly what the discover branch should scan with when a test says nothing about gitignore.
+  const ignoreStateProxy = discoverIgnoreStateProxy();
+  ignoreStateProxy.setupClear();
 
   return {
     callResponder: ArchitectureHandleResponder,
+    setupDiscoverIgnore: ({ patterns }: { patterns: readonly GlobPattern[] }): void => {
+      discoverIgnoreState.set({ patterns });
+    },
     setupFileDiscovery: ({
       filepath,
       contents,

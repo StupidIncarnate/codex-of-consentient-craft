@@ -18,6 +18,9 @@ import { treeOutputContract } from '../../../contracts/tree-output/tree-output-c
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern } from '@dungeonmaster/shared/contracts';
+import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
+import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { pathToTreeRelativeTransformer } from '../../../transformers/path-to-tree-relative/path-to-tree-relative-transformer';
 import { discoverHintStatics } from '../../../statics/discover-hint/discover-hint-statics';
@@ -25,8 +28,10 @@ import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 
 export const mcpDiscoverBroker = async ({
   input,
+  ignorePatterns,
 }: {
   input: DiscoverInput;
+  ignorePatterns?: readonly GlobPattern[];
 }): Promise<{
   results: DiscoverResultItem[] | TreeOutput;
   count: ResultCount;
@@ -40,6 +45,7 @@ export const mcpDiscoverBroker = async ({
     ...(validated.grep && { grep: validated.grep }),
     ...(validated.context !== undefined && { context: validated.context }),
     ...(validated.strict !== undefined && { strict: validated.strict }),
+    ...(ignorePatterns !== undefined && { ignorePatterns }),
   });
 
   // Map FileMetadata to DiscoverResultItem format (fileType -> type, signature.raw -> signature)
@@ -81,10 +87,19 @@ export const mcpDiscoverBroker = async ({
     const globSuffix = globResolveTransformer({ glob: validated.glob });
     const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
 
+    // The probes below must see the same tree the scan just saw, or the hint explains an absence
+    // the caller never had — so they resolve the ignore list exactly as fileScannerBroker does.
+    const ignore = globIgnoreFilterTransformer({
+      patterns:
+        ignorePatterns ??
+        fileDiscoveryStatics.globIgnorePatterns.map((value) => globPatternContract.parse(value)),
+      glob: globSuffix,
+    });
+
     // When grep was set, check if the glob itself matched files before grep filtered them out.
     // This prevents the misleading "append /**" directory hint when the real problem is grep.
     if (validated.grep) {
-      const fileHits = await globFindAdapter({ pattern, cwd: cwdPath });
+      const fileHits = await globFindAdapter({ pattern, cwd: cwdPath, ignore });
       if (fileHits.length > 0) {
         const hintLines = [
           discoverHintStatics.grepNoMatchHeader,
@@ -103,6 +118,7 @@ export const mcpDiscoverBroker = async ({
       pattern,
       cwd: cwdPath,
       includeDirectories: true,
+      ignore,
     });
 
     // Keep only directory entries — glob still returns both when includeDirectories is true.

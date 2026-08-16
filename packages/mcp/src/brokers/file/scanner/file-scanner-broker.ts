@@ -19,8 +19,10 @@ import { pathToBasenameTransformer } from '../../../transformers/path-to-basenam
 import { contentGrepTransformer } from '../../../transformers/content-grep/content-grep-transformer';
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
+import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
+import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern as IgnorePattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
@@ -36,17 +38,30 @@ export const fileScannerBroker = async ({
   grep,
   context,
   strict,
+  ignorePatterns,
 }: {
   glob?: GlobPattern;
   grep?: GrepPattern;
   context?: ContextLines;
   strict?: StrictGrep;
+  ignorePatterns?: readonly IgnorePattern[];
 }): Promise<readonly FileMetadata[]> => {
   // 1. Resolve glob pattern and scan from cwd + shared package
   const cwdPath = pathSegmentContract.parse(processCwdAdapter());
   const globSuffix = globResolveTransformer({ ...(glob && { glob }) });
   const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
-  const projectFiles = await globFindAdapter({ pattern, cwd: cwdPath });
+
+  // The escape hatch is applied to the CALLER'S glob, not `pattern` — that one carries the cwd,
+  // and a repo living under a directory an ignore rule names would disable that rule for every
+  // search it ever ran.
+  const ignore = globIgnoreFilterTransformer({
+    patterns:
+      ignorePatterns ??
+      fileDiscoveryStatics.globIgnorePatterns.map((value) => globPatternContract.parse(value)),
+    glob: globSuffix,
+  });
+
+  const projectFiles = await globFindAdapter({ pattern, cwd: cwdPath, ignore });
 
   // Also scan @dungeonmaster/shared for broad (unscoped) globs starting with **
   const isBroadGlob = globSuffix.startsWith('**');
@@ -58,6 +73,7 @@ export const fileScannerBroker = async ({
     const foundSharedFiles = await globFindAdapter({
       pattern: sharedPattern,
       cwd: sharedBasePathStr,
+      ignore,
     });
     sharedFilePaths.push(...foundSharedFiles);
   }

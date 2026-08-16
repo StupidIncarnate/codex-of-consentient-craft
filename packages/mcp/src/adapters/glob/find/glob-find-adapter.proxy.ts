@@ -18,6 +18,7 @@ export const globFindAdapterProxy = (): {
     files: readonly PathSegment[];
   }) => void;
   throws: (params: { pattern: GlobPattern; error: Error }) => void;
+  getOptionsFor: (params: { pattern: GlobPattern }) => unknown;
 } => {
   const handle = registerMock({ fn: glob });
 
@@ -105,5 +106,14 @@ export const globFindAdapterProxy = (): {
         ])
         .rejects(error);
     },
+
+    // The options object glob was actually handed for this pattern — the only place a caller can
+    // see WHAT was ignored, since the ignore list is not part of the staging address.
+    getOptionsFor: ({ pattern }: { pattern: GlobPattern }): unknown =>
+      handle
+        .callsMatching([
+          (candidate: unknown): boolean => matchesGlobTail({ staged: pattern, candidate }),
+        ])
+        .at(-1)?.[1],
   };
 };

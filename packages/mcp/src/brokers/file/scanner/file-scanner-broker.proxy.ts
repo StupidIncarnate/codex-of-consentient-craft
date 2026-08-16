@@ -28,6 +28,7 @@ export const fileScannerBrokerProxy = (): {
     }[];
     pattern: GlobPattern;
   }) => void;
+  getGlobOptionsFor: (params: { pattern: GlobPattern }) => unknown;
 } => {
   processCwdAdapterProxy();
   // The scan root the broker will resolve, read from the same mocked adapter the broker calls.
@@ -71,5 +72,10 @@ export const fileScannerBrokerProxy = (): {
         }
       }
     },
+
+    // What the broker actually asked glob to skip — the only place the escape-hatch filtering it
+    // applies to the ignore list is observable.
+    getGlobOptionsFor: ({ pattern }: { pattern: GlobPattern }): unknown =>
+      globProxy.getOptionsFor({ pattern }),
   };
 };

@@ -839,4 +839,67 @@ export const orphanGuard = (): boolean => true;`,
       expect(results).toStrictEqual([]);
     });
   });
+
+  describe('ignore patterns', () => {
+    it('VALID: {ignorePatterns} => hands that list to glob in place of the static rules', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      proxy.setupFiles({ files: [], pattern });
+
+      await fileScannerBroker({
+        ignorePatterns: [
+          GlobPatternStub({ value: '**/node_modules/**' }),
+          GlobPatternStub({ value: '**/tmp/**' }),
+          GlobPatternStub({ value: '**/worktrees/**' }),
+        ],
+      });
+
+      expect(proxy.getGlobOptionsFor({ pattern })).toStrictEqual({
+        cwd: '/default/cwd',
+        absolute: true,
+        nodir: true,
+        ignore: ['**/node_modules/**', '**/tmp/**', '**/worktrees/**'],
+      });
+    });
+
+    it('VALID: {glob naming an ignored dir} => drops that rule before glob sees it', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: 'tmp/**/*' });
+      const { glob } = DiscoverInputStub({ glob: 'tmp' });
+
+      proxy.setupFiles({ files: [], pattern });
+
+      await fileScannerBroker({
+        glob: glob!,
+        ignorePatterns: [
+          GlobPatternStub({ value: '**/node_modules/**' }),
+          GlobPatternStub({ value: '**/tmp/**' }),
+        ],
+      });
+
+      expect(proxy.getGlobOptionsFor({ pattern })).toStrictEqual({
+        cwd: '/default/cwd',
+        absolute: true,
+        nodir: true,
+        ignore: ['**/node_modules/**'],
+      });
+    });
+
+    it('EMPTY: {no ignorePatterns} => falls back to the static rules', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      proxy.setupFiles({ files: [], pattern });
+
+      await fileScannerBroker({});
+
+      expect(proxy.getGlobOptionsFor({ pattern })).toStrictEqual({
+        cwd: '/default/cwd',
+        absolute: true,
+        nodir: true,
+        ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
+      });
+    });
+  });
 });

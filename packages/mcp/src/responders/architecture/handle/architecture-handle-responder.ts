@@ -21,6 +21,7 @@ import { architectureFolderDetailBroker } from '../../../brokers/architecture/fo
 import { architectureSyntaxRulesBroker } from '../../../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 import { architectureTestingPatternsBroker } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
 import { mcpDiscoverBroker } from '../../../brokers/mcp/discover/mcp-discover-broker';
+import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
@@ -41,6 +42,7 @@ export const ArchitectureHandleResponder = async ({
   if (tool === 'discover') {
     const result = await mcpDiscoverBroker({
       input: args as never,
+      ignorePatterns: discoverIgnoreState.get(),
     });
 
     return {
