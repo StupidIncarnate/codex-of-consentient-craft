@@ -62,7 +62,6 @@ export const questGetQaChecklistBroker = async ({
   );
 
   const quest = await questLoadBroker({ questFilePath });
-  const ledger = quest.planningNotes.qaLedger;
 
   const eligibleFlowTypes =
     track === undefined
@@ -82,7 +81,6 @@ export const questGetQaChecklistBroker = async ({
   return flows.map((flow) =>
     qaChecklistBuildTransformer({
       flow,
-      ledger,
       packagesAffected: quest.packagesAffected,
       packageNames,
       ...(track !== undefined && { track }),

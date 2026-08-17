@@ -3,7 +3,6 @@ import { FlowNodeStub } from '../flow-node/flow-node.stub';
 import { OperationItemStub } from '../operation-item/operation-item.stub';
 import { OperationPlanStub } from '../operation-plan/operation-plan.stub';
 import { PackageGraphEntryStub } from '../package-graph-entry/package-graph-entry.stub';
-import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
 import { QuestBlightLedgerEntryStub } from '../quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestCommentStub } from '../quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
@@ -45,8 +44,6 @@ describe('questContract', () => {
         wardResults: [],
         riftcarverResults: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -84,8 +81,6 @@ describe('questContract', () => {
         wardResults: [],
         riftcarverResults: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -123,8 +118,6 @@ describe('questContract', () => {
         wardResults: [],
         riftcarverResults: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -247,8 +240,6 @@ describe('questContract', () => {
         wardResults: [],
         riftcarverResults: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -385,34 +376,6 @@ describe('questContract', () => {
       expect(result.wardResults).toStrictEqual([]);
     });
 
-    it('VALID: quest with populated blightReports => parses successfully', () => {
-      const firstReport = PlanningBlightReportStub({
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        minion: 'security',
-        status: 'active',
-      });
-      const secondReport = PlanningBlightReportStub({
-        id: 'aabbccdd-58cc-4372-a567-0e02b2c3d479',
-        minion: 'dedup',
-        status: 'resolved',
-      });
-      const quest = QuestStub({
-        planningNotes: {
-          blightReports: [firstReport, secondReport],
-        },
-      });
-
-      const result = questContract.parse(quest);
-
-      expect(result.planningNotes).toStrictEqual({
-        blightReports: [firstReport, secondReport],
-        qaLedger: [],
-        blightLedger: [],
-        questNotes: [],
-        operationPlans: [],
-      });
-    });
-
     it('VALID: quest with populated blightLedger => parses successfully', () => {
       const firstEntry = QuestBlightLedgerEntryStub({
         itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
@@ -424,8 +387,6 @@ describe('questContract', () => {
       });
       const quest = QuestStub({
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [firstEntry, secondEntry],
         },
       });
@@ -433,8 +394,6 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.planningNotes).toStrictEqual({
-        blightReports: [],
-        qaLedger: [],
         blightLedger: [firstEntry, secondEntry],
         questNotes: [],
         operationPlans: [],
@@ -455,8 +414,6 @@ describe('questContract', () => {
       });
       const quest = QuestStub({
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [openQuestion, toolingError],
         },
@@ -465,8 +422,6 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.planningNotes).toStrictEqual({
-        blightReports: [],
-        qaLedger: [],
         blightLedger: [],
         questNotes: [openQuestion, toolingError],
         operationPlans: [],
@@ -480,8 +435,6 @@ describe('questContract', () => {
       });
       const quest = QuestStub({
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [plan],
@@ -491,15 +444,13 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.planningNotes).toStrictEqual({
-        blightReports: [],
-        qaLedger: [],
         blightLedger: [],
         questNotes: [],
         operationPlans: [plan],
       });
     });
 
-    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports, qaLedger, blightLedger, questNotes, and operationPlans', () => {
+    it('VALID: quest without planningNotes field => backward compat defaults to empty blightLedger, questNotes, and operationPlans', () => {
       const result = questContract.parse({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -512,8 +463,6 @@ describe('questContract', () => {
       });
 
       expect(result.planningNotes).toStrictEqual({
-        blightReports: [],
-        qaLedger: [],
         blightLedger: [],
         questNotes: [],
         operationPlans: [],
@@ -573,8 +522,6 @@ describe('questContract', () => {
         wardResults: [],
         riftcarverResults: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],

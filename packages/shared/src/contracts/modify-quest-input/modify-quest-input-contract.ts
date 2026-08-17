@@ -60,7 +60,6 @@ import { operationItemContract } from '../operation-item/operation-item-contract
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { operationPlanContract } from '../operation-plan/operation-plan-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
-import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questCommentIdContract } from '../quest-comment-id/quest-comment-id-contract';
@@ -68,7 +67,6 @@ import { questContractEntryContract } from '../quest-contract-entry/quest-contra
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
-import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { signoffContract } from '../signoff/signoff-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
@@ -190,9 +188,6 @@ const fullToolingRequirement = toolingRequirementContract.extend({
 const fullQuestContractEntry = questContractEntryContract.extend({
   _delete: z.boolean().optional(),
 });
-const fullPlanningBlightReport = planningBlightReportContract.extend({
-  _delete: z.boolean().optional(),
-});
 // This field exists even though agents rarely write comments directly: the comment-batch route's
 // own server-side write persists queued comments by going through this contract. The MCP layer
 // (not this contract) is what blocks agent writes, by stripping `comments` from the modify-quest
@@ -299,21 +294,6 @@ export const modifyQuestInputContract = z
       .optional(),
     planningNotes: z
       .object({
-        blightReports: z
-          .array(
-            z.union([
-              fullPlanningBlightReport,
-              fullPlanningBlightReport.partial().required({ id: true }),
-              z.object({ id: planningBlightReportContract.shape.id, _delete: deleteMarker }),
-            ]),
-          )
-          .optional(),
-        qaLedger: z
-          .array(questQaLedgerEntryContract)
-          .describe(
-            'QA checklist dispositions to merge into quest.planningNotes.qaLedger, keyed on itemId — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a pt-N session can correct a predecessor. This is the only write path for the ledger a track-less get-qa-checklist measures its flow-wide remainder against. The signal-back completion gate enforces the per-unit `flowriderSignoff` / `siegemasterSignoff`, which are written through `flows` on the element that carries them — an entry here settles no verification unit for either track.',
-          )
-          .optional(),
         blightLedger: z
           .array(questBlightLedgerEntryForUpsertContract)
           .describe(
@@ -335,7 +315,7 @@ export const modifyQuestInputContract = z
       })
       .partial()
       .describe(
-        'Blight reports, the per-unit standards-review ledger a reviewer-minion writes, the Siegemaster QA ledger dispositions, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes',
+        'The per-unit standards-review ledger a reviewer-minion writes, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes. Verification sign-offs are NOT here — `flowriderSignoff` / `siegemasterSignoff` are written through `flows`, on the element that carries them.',
       )
       .optional(),
   })

@@ -2,7 +2,7 @@ import { orchestratorGetQuestPlanningNotesAdapter } from './orchestrator-get-que
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from './orchestrator-get-quest-planning-notes-adapter.proxy';
 
 describe('orchestratorGetQuestPlanningNotesAdapter', () => {
-  describe('default (no section)', () => {
+  describe('planning notes', () => {
     it('VALID: {questId} => returns wrapped planning-notes shape', async () => {
       const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
       proxy.returns({
@@ -10,8 +10,6 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
         result: {
           success: true,
           data: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [],
             questNotes: [],
             operationPlans: [],
@@ -24,8 +22,6 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
       expect(result).toStrictEqual({
         success: true,
         data: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -33,31 +29,13 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
       });
     });
 
-    it('VALID: {questId, section} => forwards section to orchestrator', async () => {
-      const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
-      proxy.returns({ questId: 'add-auth', result: { success: true, data: [] } });
-
-      const result = await orchestratorGetQuestPlanningNotesAdapter({
-        questId: 'add-auth',
-        section: 'blight',
-      });
-
-      expect(result).toStrictEqual({ success: true, data: [] });
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
-        questId: 'add-auth',
-        section: 'blight',
-      });
-    });
-
-    it('VALID: {questId, no section} => omits section in call', async () => {
+    it('VALID: {questId} => calls the orchestrator with the questId alone', async () => {
       const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
       proxy.returns({
         questId: 'add-auth',
         result: {
           success: true,
           data: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [],
             questNotes: [],
             operationPlans: [],

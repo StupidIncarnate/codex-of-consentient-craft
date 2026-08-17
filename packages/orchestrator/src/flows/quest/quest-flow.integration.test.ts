@@ -73,8 +73,6 @@ describe('QuestFlow', () => {
         operations: [],
         workItems: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [
             QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' }),
@@ -1294,8 +1292,6 @@ describe('QuestFlow', () => {
         questId,
         planningNotes: QuestStub({
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [
               QuestBlightLedgerEntryStub({
                 itemId: 'packages/orchestrator/src/foo/foo-broker.ts:craft',

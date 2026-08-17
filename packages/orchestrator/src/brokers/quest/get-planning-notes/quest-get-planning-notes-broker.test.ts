@@ -1,10 +1,14 @@
-import { PlanningBlightReportStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestBlightLedgerEntryStub,
+  QuestIdStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { questGetPlanningNotesBroker } from './quest-get-planning-notes-broker';
 import { questGetPlanningNotesBrokerProxy } from './quest-get-planning-notes-broker.proxy';
 
 describe('questGetPlanningNotesBroker', () => {
-  describe('full planningNotes (no section)', () => {
+  describe('planningNotes', () => {
     it('VALID: {questId, fresh quest} => returns default empty planningNotes', async () => {
       const proxy = questGetPlanningNotesBrokerProxy();
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
@@ -16,20 +20,20 @@ describe('questGetPlanningNotesBroker', () => {
 
       expect(result).toStrictEqual({
         blightLedger: [],
-        blightReports: [],
-        qaLedger: [],
         questNotes: [],
         operationPlans: [],
       });
     });
 
-    it('VALID: {questId, fully populated planningNotes} => returns full object', async () => {
+    it('VALID: {questId, populated planningNotes} => returns every field, unfiltered', async () => {
       const proxy = questGetPlanningNotesBrokerProxy();
-      const blight = PlanningBlightReportStub();
+      const entry = QuestBlightLedgerEntryStub({
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        planningNotes: { blightReports: [blight], qaLedger: [] },
+        planningNotes: { blightLedger: [entry] },
       });
       proxy.setupQuestFound({ quest });
 
@@ -38,45 +42,10 @@ describe('questGetPlanningNotesBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        blightLedger: [],
-        blightReports: [blight],
-        qaLedger: [],
+        blightLedger: [entry],
         questNotes: [],
         operationPlans: [],
       });
-    });
-  });
-
-  describe('section: blight', () => {
-    it('VALID: {section: "blight", reports present} => returns blightReports array', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const blight = PlanningBlightReportStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        planningNotes: { blightReports: [blight], qaLedger: [] },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'blight',
-      });
-
-      expect(result).toStrictEqual([blight]);
-    });
-
-    it('VALID: {section: "blight", fresh quest} => returns empty array', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'blight',
-      });
-
-      expect(result).toStrictEqual([]);
     });
   });
 

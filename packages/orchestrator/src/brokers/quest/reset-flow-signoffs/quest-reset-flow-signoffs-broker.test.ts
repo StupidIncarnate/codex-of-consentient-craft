@@ -286,8 +286,6 @@ describe('questResetFlowSignoffsBroker', () => {
           wardResults: [],
           riftcarverResults: [],
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [],
             questNotes: [
               {
@@ -353,8 +351,6 @@ describe('questResetFlowSignoffsBroker', () => {
           workItems: [SIEGE_WORK_ITEM],
           flows: [UNSIGNED_TARGET_FLOW],
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [],
             questNotes: [
               QuestNoteStub({

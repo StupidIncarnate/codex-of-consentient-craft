@@ -219,7 +219,7 @@ describe('questStatusInputAllowlistStatics', () => {
     expect(questStatusInputAllowlistStatics.in_progress.flowsRule).toBe('additive-only');
   });
 
-  it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports)", () => {
+  it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightLedger, questNotes and operationPlans)", () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
   });
 

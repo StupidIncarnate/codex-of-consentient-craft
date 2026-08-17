@@ -1785,8 +1785,6 @@ describe('McpServerFlow', () => {
           }),
         ],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [
             QuestNoteStub({

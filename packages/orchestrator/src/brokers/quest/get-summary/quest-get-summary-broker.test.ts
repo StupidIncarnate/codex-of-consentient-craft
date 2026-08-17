@@ -100,8 +100,6 @@ describe('questGetSummaryBroker', () => {
           }),
         ],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [QuestNoteStub({ id: 'tooling-error-ward-oom', kind: 'tooling-error' })],
           operationPlans: [],

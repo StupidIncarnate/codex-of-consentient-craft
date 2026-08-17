@@ -47,7 +47,7 @@ describe('questGetBlightChecklistBroker', () => {
       const proxy = questGetBlightChecklistBrokerProxy();
       const quest = QuestStub({
         baseRef: 'a1b2c3d4' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [ledgerEntry] },
+        planningNotes: { blightLedger: [ledgerEntry] },
       });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: changedFiles.map((file) => String(file)) });
@@ -308,8 +308,6 @@ describe('questGetBlightChecklistBroker', () => {
         const quest = QuestStub({
           baseRef: 'deadbeef' as never,
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [
               QuestBlightLedgerEntryStub({
                 itemId: `${changedFile}:craft`,

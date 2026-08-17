@@ -4,7 +4,6 @@ import {
   FlowObservableStub,
   FlowStub,
   OperationItemStub,
-  PlanningBlightReportStub,
   QuestPackageEntryStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
@@ -342,63 +341,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
   });
 
-  describe('in_progress planningNotes ungating (allowedPlanningNotesFields: all)', () => {
-    it('VALID: {in_progress + planningNotes.blightReports only} => returns empty array (in_progress is ungated)', () => {
-      const blight = PlanningBlightReportStub();
-      const input = ModifyQuestInputStub({
-        planningNotes: {
-          blightReports: [blight],
-        },
-      });
-      const currentQuest = QuestStub({ status: 'in_progress' });
-
-      const offenders = questInputForbiddenFieldsTransformer({
-        input,
-        currentQuest,
-        currentStatus: 'in_progress',
-      });
-
-      expect(offenders).toStrictEqual([]);
-    });
-
-    it('VALID: {in_progress + planningNotes.blightReports partial-patch by id} => permits patch shape (in_progress is ungated)', () => {
-      const blight = PlanningBlightReportStub({ id: '11111111-1111-1111-1111-111111111111' });
-      const input = ModifyQuestInputStub({
-        planningNotes: {
-          blightReports: [{ id: blight.id, status: 'resolved' }],
-        },
-      });
-      const currentQuest = QuestStub({ status: 'in_progress' });
-
-      const offenders = questInputForbiddenFieldsTransformer({
-        input,
-        currentQuest,
-        currentStatus: 'in_progress',
-      });
-
-      expect(offenders).toStrictEqual([]);
-    });
-
-    it('INVALID: {created + planningNotes.blightReports only} => rejects planningNotes wholesale (created forbids planningNotes)', () => {
-      const blight = PlanningBlightReportStub();
-      const input = ModifyQuestInputStub({
-        planningNotes: {
-          blightReports: [blight],
-        },
-      });
-      const currentQuest = QuestStub({ status: 'created' });
-
-      const offenders = questInputForbiddenFieldsTransformer({
-        input,
-        currentQuest,
-        currentStatus: 'created',
-      });
-
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Field 'planningNotes' not allowed in status 'created'",
-      ]);
-    });
-  });
+  describe('in_progress planningNotes ungating (allowedPlanningNotesFields: all)', () => {});
 
   describe('operations field allowlist (never writable — the implementation ledger is derived at Start, not authored)', () => {
     it('INVALID: {explore_observables + operations} => rejects operations (the ledger is derived from node packages tags and contract source paths, not authored here)', () => {

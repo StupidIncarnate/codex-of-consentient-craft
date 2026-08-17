@@ -37,11 +37,7 @@
 
 export type QuestStatusFlowsRule = 'forbidden' | 'full' | 'no-observables' | 'additive-only';
 
-export type QuestStatusPlanningNotesField =
-  | 'blightReports'
-  | 'blightLedger'
-  | 'qaLedger'
-  | 'questNotes';
+export type QuestStatusPlanningNotesField = 'blightLedger' | 'questNotes';
 
 export const questStatusInputAllowlistStatics = {
   // `comments` joins `allowedFields` ONLY at the statuses that precede `approved` — pending,
@@ -149,12 +145,12 @@ export const questStatusInputAllowlistStatics = {
     flowsRule: 'additive-only',
     // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields:
     // a reviewer-minion writes the per-unit `blightLedger` mid-run — the dispositions its parent's
-    // own signal-back review-coverage gate is computed against — a planner-minion writes
-    // `operationPlans`, and siegemaster writes `qaLedger`, the
-    // per-unit QA dispositions a track-less `get-qa-checklist` measures its flow-wide remainder
-    // against. Every execution role also appends `questNotes`, the durable
-    // side channel for open questions, tooling errors, out-of-scope observations, and walk resets;
-    // this is the only status those roles run at, so it is the only status that need accept them.
+    // own signal-back review-coverage gate is computed against — and a planner-minion writes
+    // `operationPlans`, the plan its orchestrator reads back rather than holding in context. Every
+    // execution role also appends `questNotes`, the durable side channel for open questions,
+    // tooling errors, out-of-scope observations, and walk resets; this is the only status those
+    // roles run at, so it is the only status that need accept them. Verification sign-offs are not
+    // here at all — they ride `flows`, on the element that carries them.
     allowedPlanningNotesFields: 'all',
   },
   paused: {

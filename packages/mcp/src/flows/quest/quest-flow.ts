@@ -106,7 +106,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-quest-planning-notes' as never,
     description:
-      "Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report). Used by PathSeeker on resume to re-read already-committed phase artifacts." as never,
+      "Returns a quest's `planningNotes`: the `operationPlans` a planner-minion persisted, the per-unit `blightLedger` a reviewer-minion writes, and the durable `questNotes` side channel. An operation orchestrator calls this to read its round's plan back off the quest — the planner returns a 3-5 line pointer, never the plan body, so this is the only place the pieces themselves exist." as never,
     inputSchema: getQuestPlanningNotesSchema as never,
     handler: async ({ args }) =>
       QuestHandleResponder({ tool: 'get-quest-planning-notes' as never, args }),

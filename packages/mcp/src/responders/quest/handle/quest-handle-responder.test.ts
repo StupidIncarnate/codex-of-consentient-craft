@@ -531,15 +531,14 @@ describe('QuestHandleResponder', () => {
         args: {
           questId: 'test-quest-id',
           planningNotes: {
-            blightReports: [
+            blightLedger: [
               {
-                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+                disposition: 'reviewed',
+                evidence: 'handleSubmit rethrows with the request url attached',
+                observedBy: 'reviewer-minion',
                 workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
-                minion: 'security',
-                status: 'active',
-                findings: [],
                 createdAt: '2024-01-15T10:00:00.000Z',
-                reviewedOn: [],
               },
             ],
           },
@@ -552,15 +551,14 @@ describe('QuestHandleResponder', () => {
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
         planningNotes: {
-          blightReports: [
+          blightLedger: [
             {
-              id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+              itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+              disposition: 'reviewed',
+              evidence: 'handleSubmit rethrows with the request url attached',
+              observedBy: 'reviewer-minion',
               workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
-              minion: 'security',
-              status: 'active',
-              findings: [],
               createdAt: '2024-01-15T10:00:00.000Z',
-              reviewedOn: [],
             },
           ],
         },
@@ -996,8 +994,6 @@ describe('QuestHandleResponder', () => {
         result: {
           success: true,
           data: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [],
             questNotes: [],
             operationPlans: [],
@@ -1018,8 +1014,6 @@ describe('QuestHandleResponder', () => {
               {
                 success: true,
                 data: {
-                  blightReports: [],
-                  qaLedger: [],
                   blightLedger: [],
                   questNotes: [],
                   operationPlans: [],
@@ -1033,41 +1027,15 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('VALID: {questId, section: "blight"} => forwards section and returns blightReports', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupGetPlanningNotesReturns({
-        questId: 'test-quest-id',
-        result: { success: true, data: [] },
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
-        args: { questId: 'test-quest-id', section: 'blight' },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: true, data: [] }, null, JSON_INDENT_SPACES),
-          },
-        ],
-      });
-      expect(proxy.getLastGetPlanningNotesInput({ questId: 'test-quest-id' })).toStrictEqual({
-        questId: 'test-quest-id',
-        section: 'blight',
-      });
-    });
-
-    it('INVALID: {questId, invalid section} => throws validation error', async () => {
+    it('INVALID: {questId, an unadvertised key} => throws, because the input contract is strict', async () => {
       const proxy = QuestHandleResponderProxy();
 
       await expect(
         proxy.callResponder({
           tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
-          args: { questId: 'test-quest-id', section: 'bogus' },
+          args: { questId: 'test-quest-id', section: 'blight' },
         }),
-      ).rejects.toThrow(/Invalid enum value/u);
+      ).rejects.toThrow(/Unrecognized key\(s\) in object: 'section'/u);
     });
 
     it('VALID: {unsuccessful result} => returns isError true', async () => {

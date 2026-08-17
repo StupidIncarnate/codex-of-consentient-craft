@@ -194,12 +194,10 @@ export const StartOrchestrator = {
 
   getPlanningNotes: async ({
     questId,
-    section,
   }: {
     questId: string;
-    section?: 'blight';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
-    QuestFlow.getPlanningNotes({ questId, ...(section !== undefined && { section }) }),
+    QuestFlow.getPlanningNotes({ questId }),
 
   // The quest's whole verification state: per-flow/per-track sign-off counts, the observables added
   // after approval, every `unconfirmable` verdict with its question, and the side-channel notes.

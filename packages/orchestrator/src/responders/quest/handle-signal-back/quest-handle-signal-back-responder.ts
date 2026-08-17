@@ -315,13 +315,16 @@ export const QuestHandleSignalBackResponder = async ({
       // disposition still clears it. The gate measures whether the surface was reviewed, never who
       // reviewed it.
       //
-      // FOUR states SKIP rather than refuse, and each is real. No recorded `startRef` (a hydrated
+      // TWO states SKIP rather than refuse, and each is real: no recorded `startRef` (a hydrated
       // quest, an item that predates the field, an item whose worktree never resolved) leaves no
-      // range to measure; no worktree resolving leaves no checkout to measure it in; no pinned
-      // `baseRef` marks a quest seeded before the review base existed at all. An EMPTY range is the
-      // fourth and it PASSES honestly rather than skipping — a round that committed nothing has
-      // nothing to review, which is the same reading `git commit --allow-empty` gets from the
-      // commit gate above.
+      // range to measure, and no worktree resolving leaves no checkout to measure it in. An EMPTY
+      // range is neither — it PASSES honestly, because a round that committed nothing has nothing
+      // to review, the same reading `git commit --allow-empty` gets from the commit gate above.
+      //
+      // The quest's pinned `baseRef` is deliberately NOT one of them. It is the base the `quest`
+      // and `commit` scopes measure from, and `since-ref` reads the caller's ref instead — so
+      // testing it here would skip a gate that had everything it needed, turning an unreviewed
+      // round into a silent pass on the one outcome this gate exists to refuse.
       //
       // It is a gate rather than a prompt line for the reason the post-mortem measured directly:
       // the computed `scope: 'commit'` parameter was passed correctly 30 times out of 30 because a
@@ -330,8 +333,7 @@ export const QuestHandleSignalBackResponder = async ({
       if (
         REVIEWED_ROLES.has(linkedOperation.role) &&
         resolution?.kind === 'worktree' &&
-        signaledItem.startRef !== undefined &&
-        result.quest.baseRef !== undefined
+        signaledItem.startRef !== undefined
       ) {
         const checklist = await questGetBlightChecklistBroker({
           questId,

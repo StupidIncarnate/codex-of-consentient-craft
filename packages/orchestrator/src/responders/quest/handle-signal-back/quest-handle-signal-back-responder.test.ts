@@ -270,7 +270,7 @@ describe('QuestHandleSignalBackResponder', () => {
         status: 'pending',
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -304,7 +304,7 @@ describe('QuestHandleSignalBackResponder', () => {
         status: 'complete',
       });
       const questAfterOutcome = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [op1Complete, op2Pending],
         workItems: [completedItem],
         updatedAt: FIXED_TIMESTAMP,
@@ -323,7 +323,7 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(proxy.getAllPersistedQuests()).toStrictEqual([
         questAfterOutcome,
         QuestStub({
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          planningNotes: { blightLedger: REVIEW_LEDGER },
           operations: [
             op1Complete,
             OperationItemStub({
@@ -359,7 +359,7 @@ describe('QuestHandleSignalBackResponder', () => {
         const proxy = QuestHandleSignalBackResponderProxy();
         const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
         const quest = QuestStub({
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          planningNotes: { blightLedger: REVIEW_LEDGER },
           operations: [
             OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
           ],
@@ -374,7 +374,7 @@ describe('QuestHandleSignalBackResponder', () => {
         });
         const questAfterOutcome = QuestStub({
           status: 'complete',
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          planningNotes: { blightLedger: REVIEW_LEDGER },
           operations: [
             OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'complete' }),
           ],
@@ -530,7 +530,7 @@ describe('QuestHandleSignalBackResponder', () => {
       proxy.setupQuest({
         quest: QuestStub({
           flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
-          planningNotes: { blightReports: [], qaLedger: [] },
+          planningNotes: {},
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -572,7 +572,7 @@ describe('QuestHandleSignalBackResponder', () => {
       proxy.setupQuest({
         quest: QuestStub({
           flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
-          planningNotes: { blightReports: [], qaLedger: [] },
+          planningNotes: {},
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -624,7 +624,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         flows: [signedFlow],
         operations: [siegeOp],
         workItems: [
@@ -685,7 +685,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const quest = QuestStub({
         flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: {},
         operations: [siegeOp],
         workItems: [
           WorkItemStub({
@@ -698,7 +698,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: {},
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -755,7 +755,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const quest = QuestStub({
         flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [siegeOp],
         workItems: [
           WorkItemStub({
@@ -769,7 +769,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const questAfterOutcome = QuestStub({
         status: 'complete',
         flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: {},
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -869,7 +869,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         flows: [signedFlow],
         operations: [flowOp],
         workItems: [
@@ -944,7 +944,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         flows: [signedFlow],
         operations: [flowOp],
         workItems: [
@@ -1010,7 +1010,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: [],
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         flows: [operationalFlow],
         operations: [flowOp],
         workItems: [
@@ -1279,7 +1279,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         packagesAffected: PACKAGES_AFFECTED,
         flows: [backendFlow],
         operations: [stompOp],
@@ -1338,7 +1338,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         packagesAffected: PACKAGES_AFFECTED,
         flows: [frontendFlow],
         operations: [flowOp],
@@ -1411,7 +1411,7 @@ describe('QuestHandleSignalBackResponder', () => {
           flowIds: ['login-flow'],
         });
         const quest = QuestStub({
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          planningNotes: { blightLedger: REVIEW_LEDGER },
           packagesAffected: PACKAGES_AFFECTED,
           flows: [signedFlow],
           operations: [stompOp],
@@ -1664,7 +1664,7 @@ describe('QuestHandleSignalBackResponder', () => {
         flowIds: ['login-flow'],
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         flows: [bothSignedFlow],
         operations: [siegeOp],
         workItems: [
@@ -1727,7 +1727,7 @@ describe('QuestHandleSignalBackResponder', () => {
         proxy.setupQuest({
           quest: QuestStub({
             baseRef: 'deadbeef' as never,
-            planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+            planningNotes: { blightLedger: REVIEW_LEDGER },
             operations: [
               OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
             ],
@@ -1770,7 +1770,7 @@ describe('QuestHandleSignalBackResponder', () => {
       proxy.setupQuest({
         quest: QuestStub({
           baseRef: 'deadbeef' as never,
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+          planningNotes: { blightLedger: [] },
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -1819,7 +1819,7 @@ describe('QuestHandleSignalBackResponder', () => {
       proxy.setupQuest({
         quest: QuestStub({
           baseRef: 'deadbeef' as never,
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+          planningNotes: { blightLedger: [] },
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -1864,7 +1864,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -1886,7 +1886,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const questAfterOutcome = QuestStub({
         status: 'complete',
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -1935,7 +1935,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -1957,7 +1957,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const questAfterOutcome = QuestStub({
         status: 'complete',
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2002,7 +2002,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2023,7 +2023,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const questAfterOutcome = QuestStub({
         status: 'complete',
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2071,7 +2071,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2093,7 +2093,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const questAfterOutcome = QuestStub({
         status: 'complete',
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2134,73 +2134,53 @@ describe('QuestHandleSignalBackResponder', () => {
       }).toStrictEqual({ result: { success: true }, checklistCalls: [] });
     });
 
-    // A quest seeded before the review base was pinned has no review surface at all. Its work items
-    // are outside this gate's reach, whatever they carry.
-    it('EMPTY: {quest with no pinned baseRef} => signals fine and the checklist is never measured', async () => {
+    // `since-ref` measures from the ref the CALLER names, so the quest's own pinned base is not an
+    // input to this gate at all. A quest missing one is still measured — skipping there would pass
+    // an unreviewed round on the strength of a field the measurement never reads.
+    it("VALID: {codeweaver item with a startRef, quest with NO pinned baseRef} => still measured over 'since-ref' and refused", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'codeweaver',
-            text: 'core: config adapter',
-            status: 'in_progress',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'codeweaver',
-            status: 'in_progress',
-            startRef: ITEM_START_REF,
-            relatedDataItems: [`operations/${OP1_ID}`],
-          }),
-        ],
+      const questId = QuestIdStub({ value: 'add-auth' });
+      proxy.setupQuest({
+        quest: QuestStub({
+          planningNotes: { blightLedger: [] },
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'codeweaver',
+              text: 'core: config adapter',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'codeweaver',
+              status: 'in_progress',
+              startRef: ITEM_START_REF,
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
       });
-      const questAfterOutcome = QuestStub({
-        status: 'complete',
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'codeweaver',
-            text: 'core: config adapter',
-            status: 'complete',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'codeweaver',
-            status: 'complete',
-            startRef: ITEM_START_REF,
-            relatedDataItems: [`operations/${OP1_ID}`],
-            completedAt: FIXED_TIMESTAMP,
-            actualSignal: 'complete',
-          }),
-        ],
-        updatedAt: FIXED_TIMESTAMP,
-      });
-      proxy.setupSignalFlow({ quest, questAfterOutcome });
       proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
       proxy.setupReviewRemainder({
         dispositionedItemIds: [],
         remainingItemIds: [OUTSTANDING_UNIT_ID],
       });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-        operationStatus: 'done',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(/signal-back refused: operationStatus 'done'/u);
 
-      expect({
-        result,
-        checklistCalls: proxy.getReviewChecklistCallArgs(),
-      }).toStrictEqual({ result: { success: true }, checklistCalls: [] });
+      expect(proxy.getReviewChecklistCallArgs()).toStrictEqual([
+        [{ questId, scope: 'since-ref', sinceRef: ITEM_START_REF }],
+      ]);
     });
 
     it("VALID: {codeweaver item, every unit outstanding, 'partial'} => NOT gated, because partial is the honest escape", async () => {
@@ -2208,7 +2188,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2230,7 +2210,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2288,7 +2268,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2314,7 +2294,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const questAfterOutcome = QuestStub({
         status: 'complete',
         baseRef: 'deadbeef' as never,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2374,7 +2354,7 @@ describe('QuestHandleSignalBackResponder', () => {
         const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
         proxy.setupQuest({
           quest: QuestStub({
-            planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+            planningNotes: { blightLedger: REVIEW_LEDGER },
             operations: [
               OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
             ],
@@ -2413,7 +2393,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       proxy.setupQuest({
         quest: QuestStub({
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          planningNotes: { blightLedger: REVIEW_LEDGER },
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -2456,7 +2436,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       proxy.setupQuest({
         quest: QuestStub({
-          planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+          planningNotes: { blightLedger: REVIEW_LEDGER },
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -2498,7 +2478,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2518,7 +2498,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         status: 'complete',
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2563,7 +2543,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -2583,7 +2563,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         status: 'complete',
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -3212,7 +3192,7 @@ describe('QuestHandleSignalBackResponder', () => {
         status: 'in_progress',
       });
       const quest = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           linkedOp,
           OperationItemStub({
@@ -3232,7 +3212,7 @@ describe('QuestHandleSignalBackResponder', () => {
         ],
       });
       const questAfterOutcome = QuestStub({
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        planningNotes: { blightLedger: REVIEW_LEDGER },
         operations: [
           linkedOp,
           OperationItemStub({

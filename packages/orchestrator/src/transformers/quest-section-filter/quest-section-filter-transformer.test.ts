@@ -63,8 +63,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -114,8 +112,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -156,8 +152,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -202,8 +196,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -244,8 +236,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -293,8 +283,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -354,8 +342,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -411,8 +397,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -451,8 +435,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -495,8 +477,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -535,8 +515,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],
@@ -575,8 +553,6 @@ describe('questSectionFilterTransformer', () => {
         riftcarverResults: [],
         comments: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [],
           operationPlans: [],

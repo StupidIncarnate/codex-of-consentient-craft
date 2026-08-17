@@ -1,4 +1,4 @@
-import { FlowStub, QuestQaLedgerEntryStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts';
 import { qaCheckSurfaceStatics, qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { qaChecklistBuildTransformer } from './qa-checklist-build-transformer';
@@ -225,8 +225,8 @@ describe('qaChecklistBuildTransformer', () => {
     });
   });
 
-  describe('coverage against the ledger', () => {
-    it('VALID: {empty ledger} => every unit is remaining', () => {
+  describe('coverage with no track named', () => {
+    it('VALID: {no track} => every unit is remaining, because no denominator was named to settle any', () => {
       const flow = FlowStub({
         id: 'a-flow',
         nodes: [
@@ -243,81 +243,6 @@ describe('qaChecklistBuildTransformer', () => {
       const result = qaChecklistBuildTransformer({ flow });
 
       expect(result.remainingItemIds).toStrictEqual(result.items.map((item) => item.id));
-    });
-
-    it('VALID: {ledger covering one unit} => that unit drops out of remaining', () => {
-      const flow = FlowStub({
-        id: 'a-flow',
-        nodes: [
-          {
-            id: 'a-node',
-            label: 'A node',
-            type: 'state',
-            packages: ['auth-service'],
-            observables: [],
-          },
-        ],
-        edges: [],
-      });
-
-      expect(
-        qaChecklistBuildTransformer({
-          flow,
-          ledger: [QuestQaLedgerEntryStub({ itemId: 'a-flow:terminal:a-node' })],
-        }).remainingItemIds,
-      ).toStrictEqual([
-        'a-flow:off-map:re-entry',
-        'a-flow:off-map:concurrency',
-        'a-flow:off-map:interruption',
-        'a-flow:off-map:staleness',
-        'a-flow:off-map:configuration',
-        'a-flow:off-map:hostile-input',
-        'a-flow:off-map:perf',
-      ]);
-    });
-
-    it('VALID: {ledger entry for a different flow} => clears nothing here, because ids embed their own flow', () => {
-      const flow = FlowStub({
-        id: 'a-flow',
-        nodes: [
-          {
-            id: 'a-node',
-            label: 'A node',
-            type: 'state',
-            packages: ['auth-service'],
-            observables: [],
-          },
-        ],
-        edges: [],
-      });
-
-      expect(
-        qaChecklistBuildTransformer({
-          flow,
-          ledger: [QuestQaLedgerEntryStub({ itemId: 'other-flow:terminal:a-node' })],
-        }).remainingItemIds,
-      ).toStrictEqual([
-        'a-flow:terminal:a-node',
-        'a-flow:off-map:re-entry',
-        'a-flow:off-map:concurrency',
-        'a-flow:off-map:interruption',
-        'a-flow:off-map:staleness',
-        'a-flow:off-map:configuration',
-        'a-flow:off-map:hostile-input',
-        'a-flow:off-map:perf',
-      ]);
-    });
-
-    it('VALID: {ledger covering every unit} => remaining is empty, the only gate-clearing state', () => {
-      const flow = FlowStub({ id: 'a-flow', nodes: [], edges: [] });
-      const allIds = qaChecklistBuildTransformer({ flow }).items.map((item) => item.id);
-
-      expect(
-        qaChecklistBuildTransformer({
-          flow,
-          ledger: allIds.map((itemId) => QuestQaLedgerEntryStub({ itemId })),
-        }).remainingItemIds,
-      ).toStrictEqual([]);
     });
   });
 

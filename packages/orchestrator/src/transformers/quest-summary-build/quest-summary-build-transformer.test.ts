@@ -801,8 +801,6 @@ describe('questSummaryBuildTransformer', () => {
       const quest = QuestStub({
         flows: [],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [
             QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' }),

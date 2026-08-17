@@ -318,13 +318,10 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'get-quest-planning-notes') {
-    const { questId, section } = getQuestPlanningNotesInputContract.parse(args);
+    const { questId } = getQuestPlanningNotesInputContract.parse(args);
 
     try {
-      const notes = await orchestratorGetQuestPlanningNotesAdapter({
-        questId,
-        ...(section !== undefined && { section }),
-      });
+      const notes = await orchestratorGetQuestPlanningNotesAdapter({ questId });
       return {
         content: [
           {

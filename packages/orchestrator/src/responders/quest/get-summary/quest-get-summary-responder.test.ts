@@ -113,8 +113,6 @@ describe('QuestGetSummaryResponder', () => {
           }),
         ],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' })],
           operationPlans: [],

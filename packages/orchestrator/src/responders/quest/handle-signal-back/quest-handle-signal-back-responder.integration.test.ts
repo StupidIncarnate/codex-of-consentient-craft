@@ -120,8 +120,6 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
       branchName,
       planningNotes: QuestStub({
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: blightChecklistBuildTransformer({
             changedFiles: [ALPHA_FILE],
             baseRef: RANGE_BASE_REF,
@@ -246,8 +244,6 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
       branchName,
       planningNotes: QuestStub({
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: blightChecklistBuildTransformer({
             changedFiles: [ALPHA_FILE, BETA_FILE],
             baseRef: RANGE_BASE_REF,
@@ -367,8 +363,6 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
         branchName,
         planningNotes: QuestStub({
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: blightChecklistBuildTransformer({
               changedFiles: [ALPHA_FILE],
               baseRef: RANGE_BASE_REF,
@@ -637,8 +631,6 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
       branchName,
       planningNotes: QuestStub({
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [
             QuestBlightLedgerEntryStub({
               itemId: REVIEW_ITEM_ID,
@@ -838,8 +830,6 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
       branchName,
       planningNotes: QuestStub({
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [
             QuestBlightLedgerEntryStub({
               itemId: REVIEW_ITEM_ID,
@@ -987,8 +977,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
         questId,
         planningNotes: QuestStub({
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [
               QuestBlightLedgerEntryStub({
                 itemId: REVIEW_ITEM_ID,
@@ -1089,8 +1077,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
         questId,
         planningNotes: QuestStub({
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [
               QuestBlightLedgerEntryStub({
                 itemId: REVIEW_ITEM_ID,
@@ -1313,8 +1299,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
         questId,
         planningNotes: QuestStub({
           planningNotes: {
-            blightReports: [],
-            qaLedger: [],
             blightLedger: [
               QuestBlightLedgerEntryStub({
                 itemId: REVIEW_ITEM_ID,

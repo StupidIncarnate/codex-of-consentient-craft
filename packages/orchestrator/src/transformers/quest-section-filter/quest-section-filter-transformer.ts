@@ -35,8 +35,6 @@ export const questSectionFilterTransformer = ({
     }
     if (section === 'planningNotes') {
       filtered.planningNotes = {
-        blightReports: [],
-        qaLedger: [],
         blightLedger: [],
         questNotes: [],
         operationPlans: [],

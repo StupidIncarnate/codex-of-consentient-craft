@@ -12,9 +12,8 @@
  * });
  * // Returns: QuestBlightLedgerEntry — one entry in quest.planningNotes.blightLedger[]
  *
- * This exists so coverage is COMPUTED rather than remembered, mirroring
- * `quest.planningNotes.qaLedger`. A review unit is one changed file crossed with one of the five
- * concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
+ * This exists so coverage is COMPUTED rather than remembered. A review unit is one changed file
+ * crossed with one of the five concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
  * session resumes against what a predecessor actually landed instead of re-reviewing the whole diff
  * from a pass whose accuracy degrades as context fills. `itemId` is what the signal-back
  * review-coverage gate reads: an orchestrator role's `done` is refused while any unit its own

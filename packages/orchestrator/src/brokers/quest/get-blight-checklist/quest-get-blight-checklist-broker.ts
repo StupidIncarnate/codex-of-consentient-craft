@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Returns the deterministic blight checklist for one of THREE review surfaces — every file
+ * PURPOSE: Returns the deterministic blight checklist for one of FOUR review surfaces — every file
  * on that surface crossed with every applicable BlightConcern, measured in whatever checkout
  * `questCwdResolveBroker` says this quest lives in, plus which of those units still carry no
  * disposition in the quest's blight ledger. A worktree quest MUST be measured inside its own tree:

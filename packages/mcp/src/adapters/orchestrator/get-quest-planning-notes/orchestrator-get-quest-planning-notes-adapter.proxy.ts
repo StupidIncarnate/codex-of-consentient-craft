@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
- * proxy.returns({ questId: 'add-auth', result: { success: true, data: { blightReports: [] } } });
+ * proxy.returns({ questId: 'add-auth', result: { success: true, data: { blightLedger: [], questNotes: [], operationPlans: [] } } });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';

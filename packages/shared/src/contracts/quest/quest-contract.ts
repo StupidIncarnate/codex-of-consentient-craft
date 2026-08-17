@@ -15,14 +15,12 @@ import { flowContract } from '../flow/flow-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationPlanContract } from '../operation-plan/operation-plan-contract';
 import { packageGraphEntryContract } from '../package-graph-entry/package-graph-entry-contract';
-import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 import { questBranchNameContract } from '../quest-branch-name/quest-branch-name-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
-import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { questTitleContract } from '../quest-title/quest-title-contract';
@@ -146,13 +144,6 @@ export const questContract = z.object({
     ),
   planningNotes: z
     .object({
-      blightReports: z.array(planningBlightReportContract).default([]),
-      qaLedger: z
-        .array(questQaLedgerEntryContract)
-        .default([])
-        .describe(
-          "Siegemaster's per-unit QA dispositions, keyed on the derived QaChecklistItemId so coverage is computed rather than remembered. A track-less `get-qa-checklist` measures its flow-wide remainder against these entries. The signal-back completion gate reads the per-unit `flowriderSignoff` / `siegemasterSignoff` on each flow element instead — an entry here settles no verification unit for either track.",
-        ),
       blightLedger: z
         .array(questBlightLedgerEntryContract)
         .default([])
@@ -173,14 +164,12 @@ export const questContract = z.object({
         ),
     })
     .default({
-      blightReports: [],
-      qaLedger: [],
       blightLedger: [],
       questNotes: [],
       operationPlans: [],
     })
     .describe(
-      'Cross-cutting whole-diff blight reports, the per-unit standards-review ledger a reviewer-minion writes, the Siegemaster QA coverage ledger, the durable side-channel quest notes, and planner sub-agent output plans',
+      'The per-unit standards-review ledger a reviewer-minion writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by its own `flowriderSignoff` / `siegemasterSignoff` on the flow element, which is what both signal-back completion gates recompute.',
     ),
   questSource: questSourceContract
     .optional()

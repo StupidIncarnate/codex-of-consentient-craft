@@ -1104,10 +1104,12 @@ signals again; the work item and its operation item are exactly as they were.
    (`<implPath>:<concern>`), never on the author — a file first reviewed in round 1 and touched again in round 3 is
    still covered by the round-1 disposition.
 
-   **Four states SKIP rather than refuse**, and every one is real: a work item with no recorded `startRef` (hydrated
-   quest, or an item predating the field), no worktree resolving, or a quest with no pinned `baseRef` leave nothing
-   to measure; an EMPTY range PASSES honestly instead — a round that committed nothing has nothing to review, the
-   same reading `git commit --allow-empty` gets from 0a.
+   **Two states SKIP rather than refuse**, and both are real: a work item with no recorded `startRef` (hydrated
+   quest, or an item predating the field) leaves no range to measure, and no worktree resolving leaves no checkout
+   to measure it in. An EMPTY range is neither — it PASSES honestly, because a round that committed nothing has
+   nothing to review, the same reading `git commit --allow-empty` gets from 0a. The quest's pinned `baseRef` is
+   deliberately NOT a third: it is what the `quest` and `commit` scopes measure from, and `since-ref` reads the
+   caller's ref instead, so testing it would skip a gate that had everything it needed.
 
    It is a gate rather than a prompt line for the reason the post-mortem measured directly: a computed `scope`
    parameter with a named consequence bolted to it was passed correctly 30 times out of 30, while the prose

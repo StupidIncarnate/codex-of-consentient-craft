@@ -1,15 +1,12 @@
 /**
- * PURPOSE: Returns a quest's planningNotes (full object or the blight section)
+ * PURPOSE: Loads a quest's whole `planningNotes` object off disk. Reach for this over `get-quest`
+ * when the caller wants the plan/ledger side channel without paying for the spec: an operation
+ * orchestrator reads back the plan its `planner-minion` persisted here, never having opened a
+ * source file itself.
  *
  * USAGE:
  * const notes = await questGetPlanningNotesBroker({ questId });
- * // Returns full planningNotes object
- *
- * const blight = await questGetPlanningNotesBroker({ questId, section: 'blight' });
- * // Returns only planningNotes.blightReports
- *
- * WHEN-TO-USE: an operation orchestrator reads back the plan its `planner-minion` persisted, without
- * ever opening a source file itself; the `blight` section narrows the read to the blight reports.
+ * // Returns { blightLedger, questNotes, operationPlans }
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -20,18 +17,12 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 
-type PlanningNotes = Quest['planningNotes'];
-
-export type PlanningNotesSection = 'blight';
-
-export type QuestGetPlanningNotesResult = PlanningNotes | PlanningNotes['blightReports'];
+export type QuestGetPlanningNotesResult = Quest['planningNotes'];
 
 export const questGetPlanningNotesBroker = async ({
   questId,
-  section,
 }: {
   questId: QuestId;
-  section?: PlanningNotesSection;
 }): Promise<QuestGetPlanningNotesResult> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
@@ -40,11 +31,6 @@ export const questGetPlanningNotesBroker = async ({
   );
 
   const quest = await questLoadBroker({ questFilePath });
-  const notes = quest.planningNotes;
 
-  if (section === undefined) {
-    return notes;
-  }
-
-  return notes.blightReports;
+  return quest.planningNotes;
 };

@@ -77,8 +77,6 @@ const SUMMARY_FLOWS = [
 ];
 
 const SUMMARY_PLANNING_NOTES = {
-  blightReports: [],
-  qaLedger: [],
   blightLedger: [],
   questNotes: [
     {

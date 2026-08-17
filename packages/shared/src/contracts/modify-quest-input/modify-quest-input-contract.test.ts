@@ -61,80 +61,6 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
-  it('VALID: {planningNotes with blightReports upsert} => parses successfully', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      planningNotes: {
-        blightReports: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-            minion: 'security',
-            status: 'active',
-            findings: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-            reviewedOn: [],
-          },
-        ],
-      },
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      planningNotes: {
-        blightReports: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-            minion: 'security',
-            status: 'active',
-            findings: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-            reviewedOn: [],
-          },
-        ],
-      },
-    });
-  });
-
-  it('VALID: {planningNotes with a qaLedger disposition} => survives parsing instead of being stripped', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      planningNotes: {
-        qaLedger: [
-          {
-            itemId: 'login-flow:observable:check-redirect',
-            disposition: 'walked',
-            evidence: 'the browser landed on /dashboard',
-            brokenWouldShow: 'would have stayed on /login',
-            observedBy: 'walker slice 1',
-            rippleSites: [],
-            workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-            createdAt: '2024-01-15T10:00:00.000Z',
-          },
-        ],
-      },
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      planningNotes: {
-        qaLedger: [
-          {
-            itemId: 'login-flow:observable:check-redirect',
-            disposition: 'walked',
-            evidence: 'the browser landed on /dashboard',
-            brokenWouldShow: 'would have stayed on /login',
-            observedBy: 'walker slice 1',
-            rippleSites: [],
-            workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-            createdAt: '2024-01-15T10:00:00.000Z',
-          },
-        ],
-      },
-    });
-  });
-
   it('VALID: {planningNotes with a blightLedger disposition} => survives parsing instead of being stripped', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',
@@ -167,22 +93,6 @@ describe('modifyQuestInputContract', () => {
             createdAt: '2024-01-15T10:00:00.000Z',
           },
         ],
-      },
-    });
-  });
-
-  it('VALID: {planningNotes with blightReports delete marker} => parses successfully', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      planningNotes: {
-        blightReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
-      },
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      planningNotes: {
-        blightReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
       },
     });
   });
@@ -347,22 +257,6 @@ describe('modifyQuestInputContract', () => {
     expect(result).toStrictEqual({
       questId: 'add-auth',
       designDecisions: [{ id: 'use-jwt-auth', _delete: true }],
-    });
-  });
-
-  it('VALID: {planningNotes.blightReports partial-patch: id + status only} => parses successfully', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      planningNotes: {
-        blightReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'blocking-carry' }],
-      },
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      planningNotes: {
-        blightReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'blocking-carry' }],
-      },
     });
   });
 
@@ -870,7 +764,7 @@ describe('modifyQuestInputContract', () => {
   // Regression guard: modifyQuestInputContract originally had no `operationPlans` field at all, so
   // a planner-minion's plan was silently stripped by planningNotes' non-strict .partial() shape —
   // parse succeeded, the field just vanished, with no error anywhere. This pins the field surviving
-  // parsing the same way its blightReports/qaLedger/blightLedger/questNotes siblings above do.
+  // parsing the same way its blightLedger/questNotes siblings above do.
   it('VALID: {planningNotes with an operationPlan} => survives parsing instead of being stripped', () => {
     const plan = OperationPlanStub();
 

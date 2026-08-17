@@ -20,7 +20,6 @@ import {
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { questFlowObservableSeedTransformer } from '@dungeonmaster/testing/transformers/quest-flow-observable-seed';
-import { questGateContentSeedTransformer } from '@dungeonmaster/testing/transformers/quest-gate-content-seed';
 
 const JSON_INDENT = 2;
 const CREATED_AT_INTERVAL_MS = 1000;
@@ -315,10 +314,7 @@ export const questHarness = ({
       packageNames?: string[];
     }[];
   }): void => {
-    const seededPlanningNotes = questGateContentSeedTransformer({
-      status,
-      ...(planningNotes === undefined ? {} : { override: planningNotes }),
-    });
+    const seededPlanningNotes: PlanningNotesInput = planningNotes ?? {};
     const baseFlows: FlowInput[] = flows ?? DEFAULT_FLOWS;
     const seededFlows: FlowInput[] = questFlowObservableSeedTransformer({
       flows: baseFlows,

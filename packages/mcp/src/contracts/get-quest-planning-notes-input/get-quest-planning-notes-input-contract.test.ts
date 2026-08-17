@@ -18,14 +18,6 @@ describe('getQuestPlanningNotesInputContract', () => {
 
       expect(result).toStrictEqual({ questId: 'add-auth' });
     });
-
-    it('VALID: {questId, section: "blight"} => parses successfully', () => {
-      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'blight' });
-
-      const result = getQuestPlanningNotesInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', section: 'blight' });
-    });
   });
 
   describe('invalid inputs', () => {
@@ -41,22 +33,13 @@ describe('getQuestPlanningNotesInputContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID: {section: "surface"} => throws validation error (removed section)', () => {
+    it('INVALID: {section} => throws Unrecognized key error, because the tool takes no section filter', () => {
       expect(() => {
         return getQuestPlanningNotesInputContract.parse({
           questId: 'add-auth',
-          section: 'surface',
-        });
-      }).toThrow(/invalid_enum_value/u);
-    });
-
-    it('INVALID: {section: "unknown"} => throws validation error', () => {
-      expect(() => {
-        return getQuestPlanningNotesInputContract.parse({
-          questId: 'add-auth',
-          section: 'unknown',
-        });
-      }).toThrow(/invalid_enum_value/u);
+          section: 'blight',
+        } as never);
+      }).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {

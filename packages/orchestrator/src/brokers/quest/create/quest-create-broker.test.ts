@@ -63,8 +63,6 @@ describe('questCreateBroker', () => {
       riftcarverResults: [],
       planningNotes: {
         blightLedger: [],
-        blightReports: [],
-        qaLedger: [],
         questNotes: [],
         operationPlans: [],
       },

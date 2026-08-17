@@ -5,7 +5,7 @@ import {
   FlowStub,
   GetQuestInputStub,
   OperationItemStub,
-  PlanningBlightReportStub,
+  QuestBlightLedgerEntryStub,
   QuestContractEntryStub,
   QuestStub,
   ToolingRequirementStub,
@@ -59,7 +59,9 @@ describe('questGetBroker', () => {
       const tooling = ToolingRequirementStub();
       const contractEntry = QuestContractEntryStub();
       const operation = OperationItemStub();
-      const blight = PlanningBlightReportStub();
+      const blight = QuestBlightLedgerEntryStub({
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -69,7 +71,7 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightReports: [blight], qaLedger: [] },
+        planningNotes: { blightLedger: [blight] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -93,8 +95,6 @@ describe('questGetBroker', () => {
         operations: [operation],
         planningNotes: {
           blightLedger: [],
-          blightReports: [],
-          qaLedger: [],
           questNotes: [],
           operationPlans: [],
         },
@@ -108,7 +108,9 @@ describe('questGetBroker', () => {
       const tooling = ToolingRequirementStub();
       const contractEntry = QuestContractEntryStub();
       const operation = OperationItemStub();
-      const blight = PlanningBlightReportStub();
+      const blight = QuestBlightLedgerEntryStub({
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -118,7 +120,7 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightReports: [blight], qaLedger: [] },
+        planningNotes: { blightLedger: [blight] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -136,9 +138,7 @@ describe('questGetBroker', () => {
         toolingRequirements: result.quest?.toolingRequirements,
       }).toStrictEqual({
         planningNotes: {
-          blightLedger: [],
-          blightReports: [blight],
-          qaLedger: [],
+          blightLedger: [blight],
           questNotes: [],
           operationPlans: [],
         },
@@ -156,7 +156,9 @@ describe('questGetBroker', () => {
       const tooling = ToolingRequirementStub();
       const contractEntry = QuestContractEntryStub();
       const operation = OperationItemStub();
-      const blight = PlanningBlightReportStub();
+      const blight = QuestBlightLedgerEntryStub({
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -165,7 +167,7 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightReports: [blight], qaLedger: [] },
+        planningNotes: { blightLedger: [blight] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -182,9 +184,7 @@ describe('questGetBroker', () => {
         flows: result.quest?.flows,
       }).toStrictEqual({
         planningNotes: {
-          blightLedger: [],
-          blightReports: [blight],
-          qaLedger: [],
+          blightLedger: [blight],
           questNotes: [],
           operationPlans: [],
         },

@@ -727,7 +727,8 @@ generic minions (`planner-minion`, `worker-minion`, `reviewer-minion`), the shar
    static, and does it still exist? (`discover` to confirm — don't trust the prompt.) Are referenced signals/fields
    valid against current contracts (`signal-back` = `complete` + `operationStatus`; agents never write `operations`;
    `modify-quest` at `in_progress` accepts any `planningNotes` sub-field — `operationPlans` from a planner,
-   `blightLedger` from a reviewer, `qaLedger` for siegemaster)? Does the minion-fetch instruction pass
+   `blightLedger` from a reviewer, `questNotes` from any role; verification sign-offs ride `flows`, not
+   `planningNotes`)? Does the minion-fetch instruction pass
    `{ agent, questId, discipline }` and NO `workItemId`? Any holes — a value never provided in the
    interpolated scope, a tool the role can't call, a file read before it's written, stale wording?
 4. **Record findings:** capabilities covered ✓, capabilities with a hole ✗ (name the missing link), stale/ambiguous

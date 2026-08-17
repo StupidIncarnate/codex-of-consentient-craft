@@ -203,8 +203,6 @@ describe('QuestFlow', () => {
         status: 'in_progress' as never,
         flows: [flow],
         planningNotes: {
-          blightReports: [],
-          qaLedger: [],
           blightLedger: [],
           questNotes: [openQuestionNote, toolingErrorNote],
           operationPlans: [],

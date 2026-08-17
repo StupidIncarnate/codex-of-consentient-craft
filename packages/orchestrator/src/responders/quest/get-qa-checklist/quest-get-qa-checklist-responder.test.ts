@@ -3,7 +3,6 @@ import {
   FlowNodeStub,
   FlowStub,
   QuestPackageEntryStub,
-  QuestQaLedgerEntryStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -38,7 +37,7 @@ describe('QuestGetQaChecklistResponder', () => {
       expect(result).toStrictEqual({
         success: true,
         data: qaChecklistToTextTransformer({
-          checklist: qaChecklistBuildTransformer({ flow, ledger: [] }),
+          checklist: qaChecklistBuildTransformer({ flow }),
         }),
       });
     });
@@ -56,10 +55,10 @@ describe('QuestGetQaChecklistResponder', () => {
         success: true,
         data: [
           qaChecklistToTextTransformer({
-            checklist: qaChecklistBuildTransformer({ flow: first, ledger: [] }),
+            checklist: qaChecklistBuildTransformer({ flow: first }),
           }),
           qaChecklistToTextTransformer({
-            checklist: qaChecklistBuildTransformer({ flow: second, ledger: [] }),
+            checklist: qaChecklistBuildTransformer({ flow: second }),
           }),
         ].join('\n\n---\n\n'),
       });
@@ -77,40 +76,7 @@ describe('QuestGetQaChecklistResponder', () => {
       expect(result).toStrictEqual({
         success: true,
         data: qaChecklistToTextTransformer({
-          checklist: qaChecklistBuildTransformer({ flow: second, ledger: [] }),
-        }),
-      });
-    });
-
-    it('VALID: {ledger disposition} => the rendered coverage reflects the persisted ledger', async () => {
-      const proxy = QuestGetQaChecklistResponderProxy();
-      const flow = FlowStub({
-        id: 'a-flow',
-        name: 'A Flow',
-        nodes: [
-          {
-            id: 'a-node',
-            label: 'A node',
-            type: 'state',
-            packages: ['auth-service'],
-            observables: [],
-          },
-        ],
-        edges: [],
-      });
-      const ledger = [QuestQaLedgerEntryStub({ itemId: 'a-flow:terminal:a-node' })];
-      const quest = QuestStub({
-        flows: [flow],
-        planningNotes: { blightReports: [], qaLedger: ledger },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await proxy.callResponder({ questId: quest.id });
-
-      expect(result).toStrictEqual({
-        success: true,
-        data: qaChecklistToTextTransformer({
-          checklist: qaChecklistBuildTransformer({ flow, ledger }),
+          checklist: qaChecklistBuildTransformer({ flow: second }),
         }),
       });
     });

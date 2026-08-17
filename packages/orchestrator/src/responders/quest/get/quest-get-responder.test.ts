@@ -35,8 +35,6 @@ describe('QuestGetResponder', () => {
       expect(result.success).toBe(true);
       expect(result.quest?.planningNotes).toStrictEqual({
         blightLedger: [],
-        blightReports: [],
-        qaLedger: [],
         questNotes: [],
         operationPlans: [],
       });
@@ -54,8 +52,6 @@ describe('QuestGetResponder', () => {
       expect(result.success).toBe(true);
       expect(result.quest?.planningNotes).toStrictEqual({
         blightLedger: [],
-        blightReports: [],
-        qaLedger: [],
         questNotes: [],
         operationPlans: [],
       });

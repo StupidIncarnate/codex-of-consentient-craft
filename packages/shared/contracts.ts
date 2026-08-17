@@ -442,20 +442,14 @@ export * from './src/contracts/get-quest-input/get-quest-input.stub';
 export * from './src/contracts/modify-quest-input/modify-quest-input-contract';
 export * from './src/contracts/modify-quest-input/modify-quest-input.stub';
 
-// Planning Notes Contracts (whole-diff cross-cutting findings)
-export * from './src/contracts/planning-blight-report/planning-blight-report-contract';
-export * from './src/contracts/planning-blight-report/planning-blight-report.stub';
-
 // QA Checklist Contracts (Siegemaster's computed coverage — the deterministic enumeration of a
-// flow into atomic verification units, and the durable disposition ledger keyed on them)
+// flow into atomic verification units. Coverage is settled by the per-unit `flowriderSignoff` /
+// `siegemasterSignoff` on the flow element itself, which is what the completion gate recomputes)
 export * from './src/contracts/qa-checklist-kind/qa-checklist-kind-contract';
 export * from './src/contracts/qa-checklist-kind/qa-checklist-kind.stub';
 
 export * from './src/contracts/qa-off-map-family/qa-off-map-family-contract';
 export * from './src/contracts/qa-off-map-family/qa-off-map-family.stub';
-
-export * from './src/contracts/qa-disposition/qa-disposition-contract';
-export * from './src/contracts/qa-disposition/qa-disposition.stub';
 
 export * from './src/contracts/qa-checklist-item-id/qa-checklist-item-id-contract';
 export * from './src/contracts/qa-checklist-item-id/qa-checklist-item-id.stub';
@@ -469,11 +463,8 @@ export * from './src/contracts/qa-walk-path/qa-walk-path.stub';
 export * from './src/contracts/qa-checklist/qa-checklist-contract';
 export * from './src/contracts/qa-checklist/qa-checklist.stub';
 
-export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
-export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry.stub';
-
-// Standards-Review Ledger Contracts (per-unit review ledger a reviewer-minion writes — changed
-// file crossed with concern, mirroring how quest-qa-ledger-entry backs Siegemaster's gate)
+// Standards-Review Ledger Contracts (the per-unit review ledger a reviewer-minion writes — every
+// changed file crossed with each applicable concern, keyed so coverage is computed not remembered)
 export * from './src/contracts/blight-concern/blight-concern-contract';
 export * from './src/contracts/blight-concern/blight-concern.stub';
 

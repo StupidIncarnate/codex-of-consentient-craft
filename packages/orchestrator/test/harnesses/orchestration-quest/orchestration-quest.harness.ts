@@ -94,7 +94,7 @@ export const orchestrationQuestHarness = (): {
     // Present only for tests measuring a real review surface from a pinned base — omitted,
     // quest.baseRef stays whatever create-quest seeded (unset).
     baseRef?: GitBaseRef;
-    // Present only for tests seeding quest.planningNotes.blightLedger / qaLedger dispositions
+    // Present only for tests seeding quest.planningNotes.blightLedger dispositions
     // ahead of a signal-back — omitted, planningNotes stays whatever create-quest seeded.
     planningNotes?: PlanningNotes;
     // Present only for tests exercising the flowrider/siegemaster completion gates, which

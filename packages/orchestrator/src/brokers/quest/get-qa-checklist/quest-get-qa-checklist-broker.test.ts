@@ -6,7 +6,6 @@ import {
   OperationItemStub,
   QuestIdStub,
   QuestPackageEntryStub,
-  QuestQaLedgerEntryStub,
   QuestStub,
   SignoffStub,
 } from '@dungeonmaster/shared/contracts';
@@ -141,75 +140,6 @@ describe('questGetQaChecklistBroker', () => {
       const result = await questGetQaChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
 
       expect(result).toStrictEqual([]);
-    });
-  });
-
-  describe('coverage from the persisted ledger', () => {
-    it('VALID: {ledger entry for a unit} => that unit is absent from remainingItemIds', async () => {
-      const proxy = questGetQaChecklistBrokerProxy();
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            id: 'first-flow',
-            name: 'First Flow',
-            nodes: [
-              {
-                id: 'a-node',
-                label: 'A node',
-                type: 'state',
-                packages: ['auth-service'],
-                observables: [],
-              },
-            ],
-            edges: [],
-          }),
-        ],
-        planningNotes: {
-          blightReports: [],
-          qaLedger: [QuestQaLedgerEntryStub({ itemId: 'first-flow:terminal:a-node' })],
-        },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetQaChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
-
-      expect(result[0]?.remainingItemIds).toStrictEqual([
-        'first-flow:off-map:re-entry',
-        'first-flow:off-map:concurrency',
-        'first-flow:off-map:interruption',
-        'first-flow:off-map:staleness',
-        'first-flow:off-map:configuration',
-        'first-flow:off-map:hostile-input',
-        'first-flow:off-map:perf',
-      ]);
-    });
-
-    it('VALID: {empty ledger} => every unit on the flow remains', async () => {
-      const proxy = questGetQaChecklistBrokerProxy();
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            id: 'first-flow',
-            name: 'First Flow',
-            nodes: [
-              {
-                id: 'a-node',
-                label: 'A node',
-                type: 'state',
-                packages: ['auth-service'],
-                observables: [],
-              },
-            ],
-            edges: [],
-          }),
-        ],
-        planningNotes: { blightReports: [], qaLedger: [] },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetQaChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
-
-      expect(result[0]?.remainingItemIds).toStrictEqual(result[0]?.items.map((item) => item.id));
     });
   });
 
@@ -372,8 +302,8 @@ describe('questGetQaChecklistBroker', () => {
     });
   });
 
-  describe('remainingItemIds is measured against the named track, not the ledger', () => {
-    it("VALID: {track: 'flowrider', ledger says dispositioned but no flowriderSignoff} => still outstanding", async () => {
+  describe('remainingItemIds is measured against the named track', () => {
+    it("VALID: {track: 'flowrider', terminal carrying no flowriderSignoff} => still outstanding", async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const quest = QuestStub({
         flows: [
@@ -385,10 +315,6 @@ describe('questGetQaChecklistBroker', () => {
             edges: [],
           }),
         ],
-        planningNotes: {
-          blightReports: [],
-          qaLedger: [QuestQaLedgerEntryStub({ itemId: 'walk-flow:terminal:a-node' })],
-        },
       });
       proxy.setupQuestFound({ quest });
 
@@ -414,7 +340,7 @@ describe('questGetQaChecklistBroker', () => {
             edges: [],
           }),
         ],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: {},
       });
       proxy.setupQuestFound({ quest });
 
@@ -440,7 +366,7 @@ describe('questGetQaChecklistBroker', () => {
             edges: [],
           }),
         ],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: {},
       });
       proxy.setupQuestFound({ quest });
 
