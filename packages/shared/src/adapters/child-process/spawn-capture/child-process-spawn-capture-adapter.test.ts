@@ -52,6 +52,29 @@ describe('childProcessSpawnCaptureAdapter', () => {
         output: ErrorMessageStub({ value: 'All tests passed' }),
       });
     });
+
+    it('VALID: {stdio drains AFTER the exit event fires} => still returns full stdout content', async () => {
+      const proxy = childProcessSpawnCaptureAdapterProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      proxy.setupSuccess({
+        command: 'npm',
+        exitCode,
+        stdout: ErrorMessageStub({ value: 'All tests passed' }),
+        stderr: ErrorMessageStub({ value: '' }),
+        raceExitBeforeDrain: true,
+      });
+
+      const result = await childProcessSpawnCaptureAdapter({
+        command: 'npm',
+        args: ['run', 'test'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 0 }),
+        output: ErrorMessageStub({ value: 'All tests passed' }),
+      });
+    });
   });
 
   describe('failure execution', () => {
@@ -141,6 +164,37 @@ describe('childProcessSpawnCaptureAdapter', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         output: ErrorMessageStub({ value: '' }),
       });
+    });
+  });
+
+  describe('stdio pipe never drains', () => {
+    it('EDGE: {child exits but neither stdio stream ever emits end/close} => promise stays unsettled', async () => {
+      const proxy = childProcessSpawnCaptureAdapterProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      proxy.setupSuccess({
+        command: 'npm',
+        exitCode,
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: '' }),
+        neverDrain: true,
+      });
+
+      const boundedWait = new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(undefined);
+        }, 50);
+      });
+
+      const result = await Promise.race([
+        childProcessSpawnCaptureAdapter({
+          command: 'npm',
+          args: ['run', 'test'],
+          cwd: AbsoluteFilePathStub({ value: '/project' }),
+        }),
+        boundedWait,
+      ]);
+
+      expect(result).toBe(undefined);
     });
   });
 

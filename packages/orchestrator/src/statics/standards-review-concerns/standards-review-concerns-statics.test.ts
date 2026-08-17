@@ -322,7 +322,16 @@ describe('standardsReviewConcernsStatics', () => {
         honestAnswers: has(
           '`gap` and `recorded` are honest answers, so the record can\nalways be completed truthfully',
         ),
-        absenceIsRefused: has('What is never acceptable is a unit with NO entry at all.'),
+        absenceIsRefused: has('What is never acceptable is a unit with NO entry at all'),
+        // A style note gets skipped; a named consequence does not. The completion gate rebuilds
+        // this ledger against everything the parent's work item committed and refuses its `done`
+        // per unit, so a skipped unit is the parent's session that cannot end. Named as "the
+        // completion gate" rather than by tool, because the block below forbids this markdown from
+        // ever putting the word `signal-back` in front of a minion.
+        namesTheParentsGate: has(
+          "the completion gate recomputes this ledger against everything your parent's\nwork item committed, and REFUSES your parent's `done` while any unit carries no entry",
+        ),
+        namesWhatSkippingCosts: has('A unit you\nskip is a session your parent cannot end.'),
       }).toStrictEqual({
         reviewed: true,
         fixed: true,
@@ -332,6 +341,8 @@ describe('standardsReviewConcernsStatics', () => {
         allFiveClear: true,
         honestAnswers: true,
         absenceIsRefused: true,
+        namesTheParentsGate: true,
+        namesWhatSkippingCosts: true,
       });
     });
 

@@ -189,6 +189,172 @@ describe('questGetBlightChecklistBroker', () => {
     });
   });
 
+  // The scope the signal-back review-coverage gate calls with: the base is a WORK ITEM's recorded
+  // fork point, which is neither the quest's pinned base nor a fixed offset from HEAD.
+  describe("scope: 'since-ref' — a base the caller names", () => {
+    it("VALID: {scope: 'since-ref', sinceRef} => the git adapter measures that ref, not the quest baseRef", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'since-ref',
+        sinceRef: 'cafebabe' as never,
+      });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'cafebabe...HEAD', '--name-only']);
+    });
+
+    it("VALID: {scope: 'since-ref', sinceRef, changed files} => the checklist is built over that range", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: ['packages/orchestrator/src/brokers/foo/foo-broker.ts'] });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'since-ref',
+        sinceRef: 'cafebabe' as never,
+      });
+
+      expect([...new Set(result!.items.map((item) => String(item.implPath)))]).toStrictEqual([
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      ]);
+    });
+
+    // A caller naming this scope and no ref has named no base at all — the same unmeasurable state
+    // an unpinned `baseRef` puts `quest`/`commit` in, and answered the same way so
+    // `blightCoverageOutstandingTransformer` reads it as nothing outstanding rather than wedging a
+    // session against a surface it cannot compute.
+    it("EMPTY: {scope: 'since-ref', no sinceRef} => returns null and never reaches git", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'since-ref',
+      });
+
+      expect({ result, gitDiffArgs: proxy.getGitDiffArgs() }).toStrictEqual({
+        result: null,
+        gitDiffArgs: undefined,
+      });
+    });
+
+    // `sinceRef` belongs to ONE scope. A caller that passes it alongside another scope gets that
+    // scope's own reading unchanged — which is what keeps the three original scopes provably
+    // untouched by this parameter rather than merely untested against it.
+    it("VALID: {scope: 'quest' WITH a sinceRef} => the pinned baseRef still wins, because sinceRef is read by 'since-ref' alone", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'quest',
+        sinceRef: 'cafebabe' as never,
+      });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'deadbeef...HEAD', '--name-only']);
+    });
+
+    it("VALID: {scope: 'commit' WITH a sinceRef} => HEAD~1 still wins", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'commit',
+        sinceRef: 'cafebabe' as never,
+      });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'HEAD~1...HEAD', '--name-only']);
+    });
+
+    it("VALID: {scope: 'working-tree' WITH a sinceRef} => still the rangeless HEAD reading plus ls-files", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorkingTreeDiff({ trackedFiles: [], untrackedFiles: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'working-tree',
+        sinceRef: 'cafebabe' as never,
+      });
+
+      expect(proxy.getGitArgsList()).toStrictEqual([
+        ['diff', 'HEAD', '--name-only'],
+        ['ls-files', '--others', '--exclude-standard'],
+      ]);
+    });
+
+    // What the signal-back review-coverage gate reads is `remainingItemIds`, and a unit leaves that
+    // list the moment ANY disposition names it. `gap` and `recorded` are the honest answers for a
+    // concern that cannot be assessed or a finding handed to a named owner, so if either left the
+    // unit remaining the gate would be unsatisfiable without lying — it refuses ABSENCE, not
+    // honesty.
+    it.each(['gap', 'recorded'])(
+      "VALID: {scope: 'since-ref', a '%s' disposition on a unit} => that unit is no longer remaining",
+      async (disposition) => {
+        const changedFile = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
+        const proxy = questGetBlightChecklistBrokerProxy();
+        const quest = QuestStub({
+          baseRef: 'deadbeef' as never,
+          planningNotes: {
+            blightReports: [],
+            qaLedger: [],
+            blightLedger: [
+              QuestBlightLedgerEntryStub({
+                itemId: `${changedFile}:craft`,
+                disposition: disposition as never,
+              }),
+            ],
+          },
+        });
+        proxy.setupQuestFound({ quest });
+        proxy.setupDiff({ files: [changedFile] });
+
+        const result = await questGetBlightChecklistBroker({
+          questId: QuestIdStub({ value: quest.id }),
+          scope: 'since-ref',
+          sinceRef: 'cafebabe' as never,
+        });
+
+        expect(result!.remainingItemIds.map(String)).toStrictEqual([
+          `${changedFile}:perf`,
+          `${changedFile}:dedup`,
+          `${changedFile}:integrity`,
+          `${changedFile}:test-cases`,
+        ]);
+      },
+    );
+
+    it("VALID: {scope: 'since-ref', empty range} => a checklist with zero items, which is a round that committed nothing", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'since-ref',
+        sinceRef: 'cafebabe' as never,
+      });
+
+      expect({ items: result?.items, remaining: result?.remainingItemIds }).toStrictEqual({
+        items: [],
+        remaining: [],
+      });
+    });
+  });
+
   describe("the quest's own package declarations reach the units", () => {
     it('VALID: {packagesAffected declaring a location the changed file sits under} => the units carry that package', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();

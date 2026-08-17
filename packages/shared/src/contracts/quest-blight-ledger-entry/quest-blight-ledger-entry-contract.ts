@@ -16,9 +16,11 @@
  * `quest.planningNotes.qaLedger`. A review unit is one changed file crossed with one of the five
  * concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
  * session resumes against what a predecessor actually landed instead of re-reviewing the whole diff
- * from a pass whose accuracy degrades as context fills. `workItemId` is what the signal-back
- * review-coverage gate reads: an orchestrator role's `done` is refused while no entry here carries
- * that work item's id.
+ * from a pass whose accuracy degrades as context fills. `itemId` is what the signal-back
+ * review-coverage gate reads: an orchestrator role's `done` is refused while any unit its own
+ * commits produced carries no entry here. Coverage is keyed on the UNIT, never on the author, so an
+ * earlier round's disposition still clears a file a later round touched again — `workItemId` is
+ * provenance and a filter for the ledger's readers, not the gate's key.
  *
  * `evidence` is required on every disposition and is never an adjective: for `reviewed`/`fixed` it
  * is the concrete thing observed, and for `gap`/`recorded`/`routed` it is the specific reason.

@@ -1,6 +1,7 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+import { slotManagerStatics } from '../slot-manager/slot-manager-statics';
 import { operationOrchestratorPromptStatics } from './operation-orchestrator-prompt-statics';
 
 const has = (needle: string): boolean =>
@@ -291,8 +292,8 @@ describe('operationOrchestratorPromptStatics', () => {
       ),
       commitsTheRound: has('**9. Commit the round.**'),
       remainderDrivesTheLoop: has('Reviewer `REMAINDER` non-empty → back to gate 4'),
-      roundCapIsThree: has(
-        'Three rounds spent with a remainder still\nstanding → commit and signal `partial`',
+      roundCapNamesTheStatic: has(
+        `${slotManagerStatics.operationOrchestrator.maxRoundsPerSession} rounds spent with a remainder still\nstanding → commit and signal \`partial\``,
       ),
     }).toStrictEqual({
       readsCommitBodies: true,
@@ -309,8 +310,22 @@ describe('operationOrchestratorPromptStatics', () => {
       wardTakesPlanFilePaths: true,
       commitsTheRound: true,
       remainderDrivesTheLoop: true,
-      roundCapIsThree: true,
+      roundCapNamesTheStatic: true,
     });
+  });
+
+  // Gate 10 used to spell out the literal "Three" here. Building the expected phrase from the LIVE
+  // `slotManagerStatics.operationOrchestrator.maxRoundsPerSession` import — instead of hardcoding "3"
+  // in this assertion too — is what actually pins the template to the static rather than to a number
+  // that merely happens to match today: if a future edit reverts the interpolation and hand-writes a
+  // literal back into the template, this test starts asserting against whatever the static says THEN,
+  // and fails the moment the two disagree. A hardcoded "3" in this test would not catch that.
+  it('VALID: template => interpolates the round cap from slotManagerStatics rather than a hardcoded literal', () => {
+    expect(
+      has(
+        `${slotManagerStatics.operationOrchestrator.maxRoundsPerSession} rounds spent with a remainder still\nstanding → commit and signal \`partial\`, naming the remainder in the commit body.`,
+      ),
+    ).toBe(true);
   });
 
   // A bare instruction was ignored 13/13 times on the quest this came from; a named consequence
@@ -427,6 +442,31 @@ describe('operationOrchestratorPromptStatics', () => {
       signalledOnce: true,
       callsInTheBody: 3,
       callsInTheRulesBlock: 1,
+    });
+  });
+
+  // `quest-handle-signal-back-responder` REFUSES `done` per review unit over
+  // `<the work item's startRef>..HEAD`. A template that never says so hands the session a refusal
+  // it was told nothing about — and its only visible remedy would be to retry the same signal.
+  it('VALID: template => warns that `done` is recomputed per review unit over the whole work item, and names both escapes', () => {
+    expect({
+      recomputed: has('**`done` is RECOMPUTED, not believed.**'),
+      wholeItemRange: has('every commit YOUR work item made — not just this round'),
+      refusesUndispositioned: has(
+        'refuses `done` while any unit on it\ncarries no disposition in `quest.planningNotes.blightLedger`',
+      ),
+      partialIsTheEscape: has('a round you cannot get reviewed is `partial`, not `done`'),
+      honestDispositionsClear: has(
+        '`gap` and `recorded` with a real reason\nclear a unit exactly as `reviewed` does',
+      ),
+      refusesAbsence: has('the gate refuses ABSENCE, not honesty'),
+    }).toStrictEqual({
+      recomputed: true,
+      wholeItemRange: true,
+      refusesUndispositioned: true,
+      partialIsTheEscape: true,
+      honestDispositionsClear: true,
+      refusesAbsence: true,
     });
   });
 

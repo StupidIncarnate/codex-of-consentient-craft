@@ -41,7 +41,11 @@
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+import { slotManagerStatics } from '../slot-manager/slot-manager-statics';
 
+// The round cap interpolated into gate 10 below is advisory-in-prompt, not server-enforced — see the
+// comment on `slotManagerStatics.operationOrchestrator.maxRoundsPerSession` for why that is a
+// different bound from a role's ENFORCED `maxAttempts` pt-chain budget, and do not conflate the two.
 export const operationOrchestratorPromptStatics = {
   prompt: {
     template: `# Operation Orchestrator
@@ -135,7 +139,7 @@ reason to stop.
 **9. Commit the round.** Every path commits, including a round that changed nothing.
 
 **10. Decide.** Reviewer \`REMAINDER\` non-empty → back to gate 4 with that remainder as the next
-planner's brief. Empty, and ward green → signal \`done\`. Three rounds spent with a remainder still
+planner's brief. Empty, and ward green → signal \`done\`. ${slotManagerStatics.operationOrchestrator.maxRoundsPerSession} rounds spent with a remainder still
 standing → commit and signal \`partial\`, naming the remainder in the commit body.
 
 ## Three rules that each carry a named cost
@@ -178,6 +182,13 @@ git commit -m "<your role>: <what this round did>. <verification state>. Next: <
 Body, in prose: the plan id and piece count per round; the reviewer's \`VERDICT\`, its \`FIXES MADE\`
 and every \`UNFIXABLE\` it named with that item's owner; the exact ward invocation and its result;
 and anything a successor must not have to re-derive.
+
+**\`done\` is RECOMPUTED, not believed.** \`signal-back\` rebuilds the standards-review checklist over
+every commit YOUR work item made — not just this round's — and refuses \`done\` while any unit on it
+carries no disposition in \`quest.planningNotes.blightLedger\`. That is why every round dispatches a
+\`reviewer-minion\` and why a round you cannot get reviewed is \`partial\`, not \`done\`. Coverage is
+cumulative: an earlier round's dispositions still count, and \`gap\` and \`recorded\` with a real reason
+clear a unit exactly as \`reviewed\` does — the gate refuses ABSENCE, not honesty.
 
 Signal exactly once, as the final action of your turn:
 

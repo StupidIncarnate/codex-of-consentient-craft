@@ -157,7 +157,7 @@ export const questContract = z.object({
         .array(questBlightLedgerEntryContract)
         .default([])
         .describe(
-          "A reviewer-minion's per-unit standards-review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. The signal-back review-coverage gate reads this: an orchestrator role cannot report `done` while no entry here carries its own work item's id.",
+          "A reviewer-minion's per-unit standards-review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. The signal-back review-coverage gate reads this per unit: an orchestrator role cannot report `done` while any unit its own commits produced — measured over `<the work item's recorded startRef>..HEAD` — carries no entry here.",
         ),
       questNotes: z
         .array(questNoteContract)

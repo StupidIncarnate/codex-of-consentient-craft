@@ -35,6 +35,10 @@ const MANUAL_QA_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.promp
   .replace('$DISCIPLINE', () => disciplineManualQaStatics.orchestratorMarkdown)
   .replace('$MY_DISCIPLINE', () => 'manual-qa');
 
+// Two DIFFERENT worktree HEADs, so a stamp that moved is distinguishable from one that held.
+const FIRST_ROUND_SHA = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0';
+const LATER_ROUND_SHA = 'ffffffffeeeeeeeeddddddddccccccccbbbbbbbb';
+
 describe('agentPromptGetBroker', () => {
   describe('full {agent, questId, workItemId} path', () => {
     it('VALID: {agent: chaoswhisperer-gap-minion, questId, workItemId} => returns prompt with $ARGUMENTS substituted', async () => {
@@ -550,6 +554,200 @@ describe('agentPromptGetBroker', () => {
         ).rejects.toThrow(/must NOT be given a workItemId/u);
       },
     );
+  });
+
+  // `startRef` is the fork point of ONE work item's output. `signal-back` rebuilds the standards
+  // review checklist over `<startRef>..HEAD`, so a stamp that never lands, or one that moves,
+  // silently shrinks what gets reviewed.
+  describe('start-ref stamp', () => {
+    it('VALID: {work item with no startRef, worktree HEAD readable} => stamps that sha onto the item and reads it with `git rev-parse HEAD`', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5050-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreeHead({ sha: FIRST_ROUND_SHA });
+
+      await agentPromptGetBroker({
+        agent: 'chaoswhisperer-gap-minion',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect({
+        stamped: proxy.getStampedWorkItems(),
+        gitArgs: proxy.getGitSpawnedArgs(),
+      }).toStrictEqual({
+        stamped: [
+          [
+            WorkItemStub({
+              id: workItemId,
+              role: 'codeweaver',
+              status: 'in_progress',
+              startRef: FIRST_ROUND_SHA,
+            }),
+          ],
+        ],
+        gitArgs: ['rev-parse', 'HEAD'],
+      });
+    });
+
+    // THE RESUME GUARD. A re-served prompt is routine — orphan recovery resumes the same item, a
+    // redelivered fetch repeats it — and by then HEAD already carries this item's own commits. A
+    // second stamp would move the base forward past them, so the gate would measure an empty range
+    // and pass on a round nobody reviewed.
+    it('VALID: {second fetch for a work item that already carries a startRef} => nothing is stamped and git is never read', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5151-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startRef: FIRST_ROUND_SHA,
+          }),
+        ],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreeHead({ sha: LATER_ROUND_SHA });
+
+      await agentPromptGetBroker({
+        agent: 'chaoswhisperer-gap-minion',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect({
+        stamped: proxy.getStampedWorkItems(),
+        gitArgs: proxy.getGitSpawnedArgs(),
+      }).toStrictEqual({ stamped: [], gitArgs: undefined });
+    });
+
+    // The same guard one layer deeper: two fetches racing on one work item both read `undefined`
+    // before either persists, so the pre-check above cannot be the only one. `setupLockedQuest`
+    // stages the quest the persist re-reads INSIDE the per-quest lock — already stamped by the
+    // fetch that got there first.
+    it('VALID: {quest.json already stamped by the time the persist takes the lock} => the update callback returns no change, so git ran but nothing was written', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5252-4222-9333-444444444444' });
+      const questAtFetch = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+      });
+      const questUnderLock = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startRef: FIRST_ROUND_SHA,
+          }),
+        ],
+      });
+      proxy.setupQuestFound({ quest: questAtFetch });
+      // AFTER setupQuestFound, which points the lock at the same quest the fs chain serves.
+      proxy.setupLockedQuest({ quest: questUnderLock });
+      proxy.setupWorktreeHead({ sha: LATER_ROUND_SHA });
+
+      await agentPromptGetBroker({
+        agent: 'chaoswhisperer-gap-minion',
+        questId: questAtFetch.id,
+        workItemId,
+      });
+
+      expect({
+        stamped: proxy.getStampedWorkItems(),
+        gitArgs: proxy.getGitSpawnedArgs(),
+      }).toStrictEqual({ stamped: [], gitArgs: ['rev-parse', 'HEAD'] });
+    });
+
+    // A hydrated quest, or one seeded before worktrees, resolves to the repo root — whose HEAD is
+    // the developer's own checkout and means nothing for this item. Recording it would hand the
+    // gate a range from another branch entirely.
+    it('EMPTY: {quest with no worktree of its own} => nothing is stamped and git is never read', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5353-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+      });
+      proxy.setupQuestFound({ quest });
+
+      await agentPromptGetBroker({
+        agent: 'chaoswhisperer-gap-minion',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect({
+        stamped: proxy.getStampedWorkItems(),
+        gitArgs: proxy.getGitSpawnedArgs(),
+      }).toStrictEqual({ stamped: [], gitArgs: undefined });
+    });
+
+    // The stamp reaches the guild registry and the filesystem, neither of which is this call's
+    // subject. A prompt fetch that died here would take the whole dispatch with it, to protect a
+    // gate that already treats a missing startRef as a skip.
+    it('ERROR: {cwd resolution throws} => nothing is stamped and the prompt still serves', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5555-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupCwdUnresolvable();
+
+      const result = await agentPromptGetBroker({
+        agent: 'chaoswhisperer-gap-minion',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect({
+        stamped: proxy.getStampedWorkItems(),
+        prompt: result.prompt,
+      }).toStrictEqual({
+        stamped: [],
+        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`,
+        ),
+      });
+    });
+
+    it('EMPTY: {worktree resolves but `git rev-parse HEAD` fails} => nothing is stamped and the prompt still serves', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5454-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreeHeadUnreadable();
+
+      const result = await agentPromptGetBroker({
+        agent: 'chaoswhisperer-gap-minion',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect({
+        stamped: proxy.getStampedWorkItems(),
+        prompt: result.prompt,
+      }).toStrictEqual({
+        stamped: [],
+        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`,
+        ),
+      });
+    });
   });
 
   describe('a role may not name its own discipline', () => {

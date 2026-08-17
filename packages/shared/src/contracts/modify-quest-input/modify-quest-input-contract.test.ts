@@ -1,5 +1,6 @@
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
+import { OperationPlanStub } from '../operation-plan/operation-plan.stub';
 import { QuestNoteStub } from '../quest-note/quest-note.stub';
 import { SignoffStub } from '../signoff/signoff.stub';
 import { modifyQuestInputContract } from './modify-quest-input-contract';
@@ -862,6 +863,26 @@ describe('modifyQuestInputContract', () => {
             at: '2026-01-01T00:00:00.000Z',
           },
         ],
+      },
+    });
+  });
+
+  // Regression guard: modifyQuestInputContract originally had no `operationPlans` field at all, so
+  // a planner-minion's plan was silently stripped by planningNotes' non-strict .partial() shape —
+  // parse succeeded, the field just vanished, with no error anywhere. This pins the field surviving
+  // parsing the same way its blightReports/qaLedger/blightLedger/questNotes siblings above do.
+  it('VALID: {planningNotes with an operationPlan} => survives parsing instead of being stripped', () => {
+    const plan = OperationPlanStub();
+
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      planningNotes: { operationPlans: [plan] },
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      planningNotes: {
+        operationPlans: [plan],
       },
     });
   });

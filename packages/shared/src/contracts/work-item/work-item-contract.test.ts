@@ -216,6 +216,57 @@ describe('workItemContract', () => {
       });
     });
 
+    it("VALID: {startRef stamped at the first prompt fetch} => parses and keeps the item's fork point", () => {
+      const item = WorkItemStub({
+        role: 'codeweaver',
+        status: 'in_progress',
+        startRef: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0',
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        startRef: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0',
+      });
+    });
+
+    // The field is deliberately `.optional()` with NO `.default()`: a default would make it
+    // REQUIRED on the parsed type and materialise a key onto every one of the most numerous array
+    // on a quest. An absent startRef is what the signal-back review-coverage gate reads as "this
+    // item has no range to measure", so absence has to survive a round-trip as absence.
+    it('EMPTY: {no startRef} => the key is absent rather than defaulted', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
     it('EMPTY: {no packageNames} => the key is absent rather than defaulted to an empty array', () => {
       const result = workItemContract.parse({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -392,6 +443,19 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           createdAt: '2024-01-15T10:00:00.000Z',
           agentId: '',
+        });
+      }).toThrow(/too_small|String must contain at least 1/u);
+    });
+
+    it('INVALID: {empty startRef} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          startRef: '',
         });
       }).toThrow(/too_small|String must contain at least 1/u);
     });

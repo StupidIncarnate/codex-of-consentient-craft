@@ -9,6 +9,14 @@ interface ProxyConfig {
   stdout: ErrorMessage;
   stderr: ErrorMessage;
   error: Error | null;
+  // Models the race the production adapter guards against: the child's `exit` firing before its
+  // stdio pipes have drained. `false` keeps every existing caller's ordering (data settles, then
+  // exit) so the other ~25 composed proxies are unaffected.
+  raceExitBeforeDrain: boolean;
+  // Models a descendant process holding a stdio pipe open past the child's own exit (e.g. a
+  // detached postinstall helper inheriting the fd): `exit` fires but neither stream ever pushes
+  // `null`, so neither `end` nor `close` ever follows.
+  neverDrain: boolean;
 }
 
 const createMockChildFromConfig = ({ snapshot }: { snapshot: ProxyConfig }): ChildProcess => {
@@ -36,15 +44,29 @@ const createMockChildFromConfig = ({ snapshot }: { snapshot: ProxyConfig }): Chi
   setImmediate(() => {
     if (snapshot.error) {
       child.emit('error', snapshot.error);
-    } else {
-      if (String(snapshot.stdout).length > 0) {
-        mockStdout.push(Buffer.from(String(snapshot.stdout)));
-      }
-      mockStdout.push(null);
-      if (String(snapshot.stderr).length > 0) {
-        mockStderr.push(Buffer.from(String(snapshot.stderr)));
-      }
-      mockStderr.push(null);
+      return;
+    }
+
+    if (snapshot.neverDrain) {
+      child.emit('exit', snapshot.exitCode, snapshot.signal);
+      return;
+    }
+
+    // Racy ordering: fire `exit` BEFORE the pipes drain, matching a real short-lived process.
+    if (snapshot.raceExitBeforeDrain) {
+      child.emit('exit', snapshot.exitCode, snapshot.signal);
+    }
+
+    if (String(snapshot.stdout).length > 0) {
+      mockStdout.push(Buffer.from(String(snapshot.stdout)));
+    }
+    mockStdout.push(null);
+    if (String(snapshot.stderr).length > 0) {
+      mockStderr.push(Buffer.from(String(snapshot.stderr)));
+    }
+    mockStderr.push(null);
+
+    if (!snapshot.raceExitBeforeDrain) {
       child.emit('exit', snapshot.exitCode, snapshot.signal);
     }
   });
@@ -58,6 +80,8 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
     exitCode: ExitCode;
     stdout: ErrorMessage;
     stderr: ErrorMessage;
+    raceExitBeforeDrain?: boolean;
+    neverDrain?: boolean;
   }) => void;
   setupSignalKill: (params: {
     command: string;
@@ -79,13 +103,25 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       exitCode,
       stdout,
       stderr,
+      raceExitBeforeDrain,
+      neverDrain,
     }: {
       command: string;
       exitCode: ExitCode;
       stdout: ErrorMessage;
       stderr: ErrorMessage;
+      raceExitBeforeDrain?: boolean;
+      neverDrain?: boolean;
     }): void => {
-      const snapshot: ProxyConfig = { exitCode, signal: null, stdout, stderr, error: null };
+      const snapshot: ProxyConfig = {
+        exitCode,
+        signal: null,
+        stdout,
+        stderr,
+        error: null,
+        raceExitBeforeDrain: raceExitBeforeDrain ?? false,
+        neverDrain: neverDrain ?? false,
+      };
       handle.calledWith([command]).implement(() => createMockChildFromConfig({ snapshot }));
     },
 
@@ -100,7 +136,15 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       stdout: ErrorMessage;
       stderr: ErrorMessage;
     }): void => {
-      const snapshot: ProxyConfig = { exitCode: null, signal, stdout, stderr, error: null };
+      const snapshot: ProxyConfig = {
+        exitCode: null,
+        signal,
+        stdout,
+        stderr,
+        error: null,
+        raceExitBeforeDrain: false,
+        neverDrain: false,
+      };
       handle.calledWith([command]).implement(() => createMockChildFromConfig({ snapshot }));
     },
 
@@ -111,6 +155,8 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
         stdout: '' as ErrorMessage,
         stderr: '' as ErrorMessage,
         error,
+        raceExitBeforeDrain: false,
+        neverDrain: false,
       };
       handle.calledWith([command]).implement(() => createMockChildFromConfig({ snapshot }));
     },

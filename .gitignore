@@ -8,7 +8,9 @@ out-tsc
 # test artifacts
 tests/tmp/
 spike-tmp/
-.playwright-ward-report.json
+# Written by check-run-e2e-broker.ts as `${projectFolder.path}/.ward-playwright-report.json`.
+# The old entry here had the words transposed, so a ~400KB report per e2e run was never ignored.
+.ward-playwright-report.json
 
 
 # dependencies

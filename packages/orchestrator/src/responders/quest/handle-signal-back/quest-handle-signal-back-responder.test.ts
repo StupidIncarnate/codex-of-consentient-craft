@@ -37,10 +37,9 @@ const ADVANCE_UUID = '99999999-9999-4999-8999-999999999999';
 // The (fictional) changed file the review-coverage cases below disposition.
 const BLIGHT_FILE = 'packages/orchestrator/src/foo/foo-broker.ts';
 
-// The trace a reviewer-minion round leaves on the quest: ONE disposition carrying the SIGNALLING
-// work item's id. Every `done` from one of the five orchestrator roles has to carry this, or the
-// review-coverage gate refuses it — so it is spread into those quests' `planningNotes` explicitly
-// at each site rather than hidden behind a default.
+// The trace a reviewer-minion round leaves on the quest: one disposition on one review unit. Spread
+// into those quests' `planningNotes` explicitly at each site rather than hidden behind a default, so
+// each quest fixture states its own review history.
 const REVIEW_LEDGER = [
   QuestBlightLedgerEntryStub({
     itemId: `${BLIGHT_FILE}:craft`,
@@ -48,6 +47,15 @@ const REVIEW_LEDGER = [
     createdAt: FIXED_TIMESTAMP,
   }),
 ];
+
+// The fork point `agentPromptGetBroker` stamps on a work item at its FIRST prompt fetch. The
+// review-coverage gate measures `<startRef>..HEAD` from it; a work item carrying none has no range,
+// and the gate skips rather than refusing.
+const ITEM_START_REF = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0';
+
+// Two review units on the range: one the round's reviewer dispositioned, one it never reached.
+const DISPOSITIONED_UNIT_ID = `${BLIGHT_FILE}:craft`;
+const OUTSTANDING_UNIT_ID = 'packages/orchestrator/src/bar/bar-broker.ts:craft';
 
 // The five roles that run a planner/worker/reviewer round, read from the same static the responder
 // reads, so a role added there joins the review-coverage matrix instead of going untested.
@@ -1705,18 +1713,21 @@ describe('QuestHandleSignalBackResponder', () => {
     });
   });
 
-  // The successor to the per-unit blight gate. A round's reviewer either ran and dispositioned
-  // something, or it did not — that is the only distinction the round structure supports, since the
-  // orchestrator commits per round and the tree is clean by construction at signal time.
-  describe("review-coverage gate — 'done' is refused while this work item has no blightLedger entry", () => {
+  // The successor to the deleted blightscout gate, and the same PER-UNIT shape: every review unit
+  // this work item's commits produced needs a disposition, measured over
+  // `<the item's recorded startRef>..HEAD`. That range is the only one that sees a whole item — the
+  // orchestrator commits once per ROUND, so at signal time the tree is clean and HEAD~1 holds the
+  // last round alone.
+  describe("review-coverage gate — 'done' is refused while any unit in this item's range carries no disposition", () => {
     it.each(REVIEWED_ROLES)(
-      "ERROR: {%s item, no disposition carrying this work item's id, 'done'} => refused naming the reviewer-minion and the partial escape",
+      "ERROR: {%s item, two files committed and one dispositioned, 'done'} => refused naming the outstanding unit, the range, and the partial escape",
       async (role) => {
         const proxy = QuestHandleSignalBackResponderProxy();
         const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
         proxy.setupQuest({
           quest: QuestStub({
-            planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+            baseRef: 'deadbeef' as never,
+            planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
             operations: [
               OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
             ],
@@ -1725,10 +1736,16 @@ describe('QuestHandleSignalBackResponder', () => {
                 id: itemId,
                 role,
                 status: 'in_progress',
+                startRef: ITEM_START_REF,
                 relatedDataItems: [`operations/${OP1_ID}`],
               }),
             ],
           }),
+        });
+        proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+        proxy.setupReviewRemainder({
+          dispositionedItemIds: [DISPOSITIONED_UNIT_ID],
+          remainingItemIds: [OUTSTANDING_UNIT_ID],
         });
 
         await expect(
@@ -1739,7 +1756,10 @@ describe('QuestHandleSignalBackResponder', () => {
             operationStatus: 'done',
           }),
         ).rejects.toThrow(
-          /signal-back refused: your reviewer-minion recorded no review dispositions for this work item.*Dispatch a reviewer-minion.*get-blight-checklist\(\{ scope: 'working-tree' \}\).*operationStatus: 'partial'/su,
+          new RegExp(
+            `signal-back refused: operationStatus 'done' means every review unit your commits produced carries a disposition.*1 still carry none.*\`${ITEM_START_REF}\\.\\.HEAD\`.*- ${OUTSTANDING_UNIT_ID}.*Dispatch a \`reviewer-minion\`.*operationStatus: 'partial'`,
+            'su',
+          ),
         );
       },
     );
@@ -1749,6 +1769,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       proxy.setupQuest({
         quest: QuestStub({
+          baseRef: 'deadbeef' as never,
           planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
           operations: [
             OperationItemStub({
@@ -1763,10 +1784,16 @@ describe('QuestHandleSignalBackResponder', () => {
               id: itemId,
               role: 'codeweaver',
               status: 'in_progress',
+              startRef: ITEM_START_REF,
               relatedDataItems: [`operations/${OP1_ID}`],
             }),
           ],
         }),
+      });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [],
+        remainingItemIds: [DISPOSITIONED_UNIT_ID, OUTSTANDING_UNIT_ID],
       });
 
       await expect(
@@ -1777,30 +1804,22 @@ describe('QuestHandleSignalBackResponder', () => {
           operationStatus: 'done',
         }),
       ).rejects.toThrow(
-        /signal-back refused: your reviewer-minion recorded no review dispositions/u,
+        /signal-back refused: operationStatus 'done' means every review unit your commits produced/u,
       );
 
       expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
 
-    // A ledger full of a SIBLING round's dispositions is not this round's review — the gate keys on
-    // the signalling work item's own id, so an earlier codeweaver's entries cannot settle this one.
-    it("ERROR: {codeweaver item, blightLedger carries only another work item's dispositions, 'done'} => still refused", async () => {
+    // The range is the whole point: measured from the quest's pinned base it would sweep in every
+    // earlier item's files, and from HEAD~1 only the last of this item's several round commits.
+    it("VALID: {codeweaver item carrying a startRef} => the checklist is rebuilt with scope 'since-ref' over THAT sha", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const questId = QuestIdStub({ value: 'add-auth' });
       proxy.setupQuest({
         quest: QuestStub({
-          planningNotes: {
-            blightReports: [],
-            qaLedger: [],
-            blightLedger: [
-              QuestBlightLedgerEntryStub({
-                itemId: `${BLIGHT_FILE}:craft`,
-                workItemId: PENDING_ITEM_ID,
-                createdAt: FIXED_TIMESTAMP,
-              }),
-            ],
-          },
+          baseRef: 'deadbeef' as never,
+          planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -1814,29 +1833,176 @@ describe('QuestHandleSignalBackResponder', () => {
               id: itemId,
               role: 'codeweaver',
               status: 'in_progress',
+              startRef: ITEM_START_REF,
               relatedDataItems: [`operations/${OP1_ID}`],
             }),
           ],
         }),
       });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [],
+        remainingItemIds: [OUTSTANDING_UNIT_ID],
+      });
 
       await expect(
         QuestHandleSignalBackResponder({
-          questId: QuestIdStub({ value: 'add-auth' }),
+          questId,
           workItemId: itemId,
           signal: 'complete',
           operationStatus: 'done',
         }),
-      ).rejects.toThrow(
-        /signal-back refused: your reviewer-minion recorded no review dispositions/u,
-      );
+      ).rejects.toThrow(/signal-back refused: operationStatus 'done'/u);
+
+      expect(proxy.getReviewChecklistCallArgs()).toStrictEqual([
+        [{ questId, scope: 'since-ref', sinceRef: ITEM_START_REF }],
+      ]);
     });
 
-    it("VALID: {codeweaver item, one disposition carrying this work item's id, 'done'} => the gate clears and the outcome applies", async () => {
+    it("VALID: {codeweaver item, every unit in the range dispositioned, 'done'} => the gate clears and the outcome applies", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
+        baseRef: 'deadbeef' as never,
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        baseRef: 'deadbeef' as never,
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+      // A measured surface with units on it and NOTHING remaining — a fully-dispositioned round,
+      // which is a different state from the unmeasurable surface the other skips produce.
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [DISPOSITIONED_UNIT_ID, OUTSTANDING_UNIT_ID],
+        remainingItemIds: [],
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+
+    // A round that committed nothing has nothing to review. The range is real and measured — it is
+    // simply empty — so this PASSES honestly rather than being one of the skips.
+    it("EMPTY: {codeweaver item whose range holds no changed files, 'done'} => accepted", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        baseRef: 'deadbeef' as never,
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        baseRef: 'deadbeef' as never,
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+      proxy.setupReviewRemainder({ dispositionedItemIds: [], remainingItemIds: [] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+
+    // A hydrated quest, or a work item that predates the field, has no fork point to measure from.
+    // The gate never even asks for a checklist — refusing an item that could never satisfy it would
+    // wedge the relay.
+    it('EMPTY: {codeweaver item carrying NO startRef} => signals fine and the checklist is never measured', async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        baseRef: 'deadbeef' as never,
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -1856,7 +2022,8 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         status: 'complete',
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: REVIEW_LEDGER },
+        baseRef: 'deadbeef' as never,
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
           OperationItemStub({
             id: OP1_ID,
@@ -1878,6 +2045,11 @@ describe('QuestHandleSignalBackResponder', () => {
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [],
+        remainingItemIds: [OUTSTANDING_UNIT_ID],
+      });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -1886,14 +2058,156 @@ describe('QuestHandleSignalBackResponder', () => {
         operationStatus: 'done',
       });
 
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+      expect({
+        result,
+        checklistCalls: proxy.getReviewChecklistCallArgs(),
+      }).toStrictEqual({ result: { success: true }, checklistCalls: [] });
     });
 
-    it("VALID: {codeweaver item, no disposition at all, 'partial'} => NOT gated, because partial is the honest escape", async () => {
+    // No worktree of its own — the repo-root fallback — means no checkout whose HEAD the recorded
+    // sha belongs to, so there is nothing to measure `<startRef>..HEAD` in.
+    it('EMPTY: {codeweaver item with a startRef but no worktree} => signals fine and the checklist is never measured', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
+        baseRef: 'deadbeef' as never,
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        baseRef: 'deadbeef' as never,
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [],
+        remainingItemIds: [OUTSTANDING_UNIT_ID],
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect({
+        result,
+        checklistCalls: proxy.getReviewChecklistCallArgs(),
+      }).toStrictEqual({ result: { success: true }, checklistCalls: [] });
+    });
+
+    // A quest seeded before the review base was pinned has no review surface at all. Its work items
+    // are outside this gate's reach, whatever they carry.
+    it('EMPTY: {quest with no pinned baseRef} => signals fine and the checklist is never measured', async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            startRef: ITEM_START_REF,
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [],
+        remainingItemIds: [OUTSTANDING_UNIT_ID],
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect({
+        result,
+        checklistCalls: proxy.getReviewChecklistCallArgs(),
+      }).toStrictEqual({ result: { success: true }, checklistCalls: [] });
+    });
+
+    it("VALID: {codeweaver item, every unit outstanding, 'partial'} => NOT gated, because partial is the honest escape", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        baseRef: 'deadbeef' as never,
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
           OperationItemStub({
@@ -1909,11 +2223,13 @@ describe('QuestHandleSignalBackResponder', () => {
             id: itemId,
             role: 'codeweaver',
             status: 'in_progress',
+            startRef: ITEM_START_REF,
             relatedDataItems: [`operations/${OP1_ID}`],
           }),
         ],
       });
       const questAfterOutcome = QuestStub({
+        baseRef: 'deadbeef' as never,
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
           OperationItemStub({
@@ -1936,6 +2252,7 @@ describe('QuestHandleSignalBackResponder', () => {
             id: itemId,
             role: 'codeweaver',
             status: 'complete',
+            startRef: ITEM_START_REF,
             relatedDataItems: [`operations/${OP1_ID}`],
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
@@ -1944,6 +2261,12 @@ describe('QuestHandleSignalBackResponder', () => {
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
+      // Every unit outstanding: what makes this a real bypass rather than a vacuously clean round.
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [],
+        remainingItemIds: [DISPOSITIONED_UNIT_ID, OUTSTANDING_UNIT_ID],
+      });
       proxy.setupResponderUuids({ ids: [CONTINUATION_UUID] });
       proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
@@ -1954,13 +2277,17 @@ describe('QuestHandleSignalBackResponder', () => {
         operationStatus: 'partial',
       });
 
-      expect(result).toStrictEqual({ success: true });
+      expect({
+        result,
+        checklistCalls: proxy.getReviewChecklistCallArgs(),
+      }).toStrictEqual({ result: { success: true }, checklistCalls: [] });
     });
 
-    it("VALID: {ward item, no disposition at all, 'done'} => NOT gated, because a command run has no reviewer round", async () => {
+    it("VALID: {ward item, every unit outstanding, 'done'} => NOT gated, because a command run has no reviewer round", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
+        baseRef: 'deadbeef' as never,
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
           OperationItemStub({
@@ -1978,6 +2305,7 @@ describe('QuestHandleSignalBackResponder', () => {
             role: 'ward',
             status: 'in_progress',
             spawnerType: 'command',
+            startRef: ITEM_START_REF,
             relatedDataItems: [`operations/${OP1_ID}`],
             wardMode: 'full',
           }),
@@ -1985,6 +2313,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const questAfterOutcome = QuestStub({
         status: 'complete',
+        baseRef: 'deadbeef' as never,
         planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
         operations: [
           OperationItemStub({
@@ -2002,6 +2331,7 @@ describe('QuestHandleSignalBackResponder', () => {
             role: 'ward',
             status: 'complete',
             spawnerType: 'command',
+            startRef: ITEM_START_REF,
             relatedDataItems: [`operations/${OP1_ID}`],
             wardMode: 'full',
             completedAt: FIXED_TIMESTAMP,
@@ -2011,6 +2341,12 @@ describe('QuestHandleSignalBackResponder', () => {
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
+      // Everything a gated role would be refused for — a startRef, a pinned base, a full remainder.
+      // Ward passes anyway, which is what proves ROLE membership is the exclusion.
+      proxy.setupReviewRemainder({
+        dispositionedItemIds: [],
+        remainingItemIds: [DISPOSITIONED_UNIT_ID, OUTSTANDING_UNIT_ID],
+      });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -2019,7 +2355,10 @@ describe('QuestHandleSignalBackResponder', () => {
         operationStatus: 'done',
       });
 
-      expect(result).toStrictEqual({ success: true });
+      expect({
+        result,
+        checklistCalls: proxy.getReviewChecklistCallArgs(),
+      }).toStrictEqual({ result: { success: true }, checklistCalls: [] });
     });
   });
 

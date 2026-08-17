@@ -160,7 +160,10 @@ full: a \`.refine\` message can be wrong (\`craft\`), a second contract can dupl
 | \`gap\` | the concern cannot be assessed at this layer — say precisely why |
 
 **Every one of these clears a unit.** \`gap\` and \`recorded\` are honest answers, so the record can
-always be completed truthfully. What is never acceptable is a unit with NO entry at all.
+always be completed truthfully. What is never acceptable is a unit with NO entry at all — and that
+is not a style note: the completion gate recomputes this ledger against everything your parent's
+work item committed, and REFUSES your parent's \`done\` while any unit carries no entry. A unit you
+skip is a session your parent cannot end.
 
 **These dispositions are the one thing you do NOT batch.** Write each one immediately after you
 finish that concern for that file — a session that dies at file four otherwise loses every

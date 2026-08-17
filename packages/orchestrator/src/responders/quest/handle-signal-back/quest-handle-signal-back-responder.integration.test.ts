@@ -22,6 +22,7 @@ import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
+import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQuestHarness } from '../../../../test/harnesses/orchestration-quest/orchestration-quest.harness';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
@@ -31,19 +32,35 @@ import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktr
 // with qaOffMapFamilyContract's options.
 const OFF_MAP_FAMILIES = Object.keys(qaOffMapProbeStatics.byFamily);
 
-// The disposition a reviewer-minion round leaves behind. The review-coverage gate reads exactly
-// this: at least one entry carrying the SIGNALLING work item's id.
+// One disposition a reviewer-minion round left behind, for the fixtures whose gate is the
+// commit-before-signal one rather than review coverage.
 const REVIEW_ITEM_ID = 'packages/orchestrator/src/foo/foo-broker.ts:craft';
 
-// A reviewer-minion round leaves a disposition on the quest, and the signal-back gate refuses
-// `done` from any of the five orchestrator roles until one exists for THAT work item. These drive
-// the real responder -> real questOperationsUpdateBroker -> real disk chain, because the
-// load-bearing property is what quest.json ends up holding.
+// The two files the review-range fixtures commit, ONE PER ROUND, into `packages/shared/` — which
+// `initRepoWithPackages` creates, so `commitFile` can write into it without a mkdir. Neither is
+// declaration-shaped, so each crosses all five concerns.
+const ALPHA_FILE = RepoRelativePathStub({ value: 'packages/shared/alpha-broker.ts' });
+const BETA_FILE = RepoRelativePathStub({ value: 'packages/shared/beta-broker.ts' });
+
+// The quest's own pinned review base. The review-coverage gate reads it only as "this quest has a
+// review surface at all" — the RANGE it measures is the work item's own startRef, never this.
+const RANGE_BASE_REF = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as never;
+
+// The two dispositions that are honest answers rather than a review — both clear a unit, which is
+// the property the gate's satisfiability rests on.
+const HONEST_DISPOSITIONS = ['gap', 'recorded'] as const;
+
+// The review-coverage gate rebuilds the standards-review checklist over `<startRef>..HEAD` — every
+// commit the signalling work item made — and refuses `done` while any unit on it carries no
+// blightLedger disposition. These drive the real responder against a REAL git worktree with REAL
+// commits, because the range IS the measurement: a mocked file list would prove the wiring and
+// nothing about what `git diff <startRef>...HEAD` actually reports across two round commits.
 describe('QuestHandleSignalBackResponder (integration) — review-coverage gate', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
+  const git = gitWorktreeFixtureHarness();
 
-  it('ERROR: {codeweaver done, empty blightLedger} => throws naming the reviewer-minion and persists NOTHING', async () => {
+  it('ERROR: {codeweaver done, two files committed since its startRef and one dispositioned} => refused naming the outstanding unit, and persists NOTHING', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'sb-review-refuse' }),
     });
@@ -51,11 +68,72 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
 
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
+    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    await git.initRepoWithPackages({
+      repoPath,
+      initialBranchName: FileNameStub({ value: 'main' }),
+      packageNames: [FileNameStub({ value: 'shared' })],
+    });
+
+    const worktreePath = AbsoluteFilePathStub({
+      value: `${testbed.guildPath}/worktrees/review-refuse-a1b2c3d4`,
+    });
+    const branchName = QuestBranchNameStub({ value: 'quest/review-refuse-a1b2c3d4' });
+    await gitWorktreeAddAdapter({
+      cwd: repoPath,
+      worktreePath,
+      branchName,
+      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
+    });
+
+    // The fork point `agentPromptGetBroker` stamps at the item's FIRST prompt fetch.
+    const startRef = await git.gitRevParseOrNull({
+      repoPath: worktreePath,
+      ref: ErrorMessageStub({ value: 'HEAD' }),
+    });
+
+    // TWO commits after it — one per round. `HEAD~1` would see only the second.
+    await git.commitFile({
+      repoPath: worktreePath,
+      relativePath: ALPHA_FILE,
+      content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
+      message: ErrorMessageStub({ value: 'round 1' }),
+    });
+    await git.commitFile({
+      repoPath: worktreePath,
+      relativePath: BETA_FILE,
+      content: FileContentsStub({ value: 'export const betaBroker = (): number => 2;\n' }),
+      message: ErrorMessageStub({ value: 'round 2' }),
+    });
+
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d1' });
     const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
+    // Round 1's reviewer dispositioned every unit of ALPHA and never reached BETA. Derived from the
+    // same transformer the checklist is built by, so the ids are the real ones rather than a
+    // hand-typed guess that would leave the gate refusing for the wrong reason.
     await questHelper.seedInProgressRelay({
       questId,
+      baseRef: RANGE_BASE_REF,
+      worktreePath,
+      branchName,
+      planningNotes: QuestStub({
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: blightChecklistBuildTransformer({
+            changedFiles: [ALPHA_FILE],
+            baseRef: RANGE_BASE_REF,
+          }).items.map((item) =>
+            QuestBlightLedgerEntryStub({
+              itemId: item.id,
+              workItemId: cwWorkItemId,
+              createdAt: new Date().toISOString(),
+            }),
+          ),
+        },
+      }).planningNotes,
       operations: [
         OperationItemStub({
           id: cwOpId,
@@ -70,6 +148,7 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
           role: 'codeweaver',
           status: 'in_progress',
           spawnerType: 'agent',
+          startRef: String(startRef) as never,
           relatedDataItems: [`operations/${String(cwOpId)}`],
           dependsOn: [],
           createdAt: new Date().toISOString(),
@@ -88,7 +167,10 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
         operationStatus: 'done',
       }),
     ).rejects.toThrow(
-      /signal-back refused: your reviewer-minion recorded no review dispositions for this work item.*get-blight-checklist\(\{ scope: 'working-tree' \}\)/su,
+      new RegExp(
+        `signal-back refused: operationStatus 'done' means every review unit your commits produced carries a disposition.*- ${String(BETA_FILE)}:craft.*Dispatch a \`reviewer-minion\``,
+        'su',
+      ),
     );
 
     // Byte-identical: a refused gate persists nothing, so the session can dispatch a reviewer and
@@ -109,7 +191,7 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
     });
   }, 30_000);
 
-  it("VALID: {codeweaver done, one disposition carrying this work item's id} => the gate clears and quest.json records the completion with NO review item appended", async () => {
+  it('VALID: {codeweaver done, every unit across BOTH round commits dispositioned} => the gate clears and quest.json records the completion with NO review item appended', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'sb-review-clear' }),
     });
@@ -117,22 +199,65 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
 
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
+    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    await git.initRepoWithPackages({
+      repoPath,
+      initialBranchName: FileNameStub({ value: 'main' }),
+      packageNames: [FileNameStub({ value: 'shared' })],
+    });
+
+    const worktreePath = AbsoluteFilePathStub({
+      value: `${testbed.guildPath}/worktrees/review-clear-a1b2c3d4`,
+    });
+    const branchName = QuestBranchNameStub({ value: 'quest/review-clear-a1b2c3d4' });
+    await gitWorktreeAddAdapter({
+      cwd: repoPath,
+      worktreePath,
+      branchName,
+      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
+    });
+
+    const startRef = await git.gitRevParseOrNull({
+      repoPath: worktreePath,
+      ref: ErrorMessageStub({ value: 'HEAD' }),
+    });
+
+    await git.commitFile({
+      repoPath: worktreePath,
+      relativePath: ALPHA_FILE,
+      content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
+      message: ErrorMessageStub({ value: 'round 1' }),
+    });
+    await git.commitFile({
+      repoPath: worktreePath,
+      relativePath: BETA_FILE,
+      content: FileContentsStub({ value: 'export const betaBroker = (): number => 2;\n' }),
+      message: ErrorMessageStub({ value: 'round 2' }),
+    });
+
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d2' });
     const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
     await questHelper.seedInProgressRelay({
       questId,
+      baseRef: RANGE_BASE_REF,
+      worktreePath,
+      branchName,
       planningNotes: QuestStub({
         planningNotes: {
           blightReports: [],
           qaLedger: [],
-          blightLedger: [
+          blightLedger: blightChecklistBuildTransformer({
+            changedFiles: [ALPHA_FILE, BETA_FILE],
+            baseRef: RANGE_BASE_REF,
+          }).items.map((item) =>
             QuestBlightLedgerEntryStub({
-              itemId: REVIEW_ITEM_ID,
+              itemId: item.id,
               workItemId: cwWorkItemId,
               createdAt: new Date().toISOString(),
             }),
-          ],
+          ),
         },
       }).planningNotes,
       operations: [
@@ -149,6 +274,7 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
           role: 'codeweaver',
           status: 'in_progress',
           spawnerType: 'agent',
+          startRef: String(startRef) as never,
           relatedDataItems: [`operations/${String(cwOpId)}`],
           dependsOn: [],
           createdAt: new Date().toISOString(),
@@ -182,6 +308,275 @@ describe('QuestHandleSignalBackResponder (integration) — review-coverage gate'
       operationRoles: ['codeweaver'],
       operationStatuses: ['complete'],
       workItemRoles: ['codeweaver'],
+      workItemStatuses: ['complete'],
+    });
+  }, 30_000);
+
+  // The gate refuses ABSENCE, not honesty. `gap` (the concern cannot be assessed at this layer) and
+  // `recorded` (a real finding handed to a named owner) are the answers a reviewer gives when
+  // `reviewed` would be a lie — if either left its unit outstanding the gate would only be
+  // satisfiable by lying, which is the failure mode a computed gate exists to remove.
+  it.each(HONEST_DISPOSITIONS)(
+    "VALID: {codeweaver done, every unit dispositioned '%s'} => accepted exactly as 'reviewed' would be",
+    async (disposition) => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: `sb-review-${disposition}` }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+      await git.initRepoWithPackages({
+        repoPath,
+        initialBranchName: FileNameStub({ value: 'main' }),
+        packageNames: [FileNameStub({ value: 'shared' })],
+      });
+
+      const worktreePath = AbsoluteFilePathStub({
+        value: `${testbed.guildPath}/worktrees/review-${disposition}-a1b2c3d4`,
+      });
+      const branchName = QuestBranchNameStub({ value: `quest/review-${disposition}-a1b2c3d4` });
+      await gitWorktreeAddAdapter({
+        cwd: repoPath,
+        worktreePath,
+        branchName,
+        baseBranch: BaseBranchNameStub({ value: 'main' }),
+        mode: 'create-branch',
+      });
+
+      const startRef = await git.gitRevParseOrNull({
+        repoPath: worktreePath,
+        ref: ErrorMessageStub({ value: 'HEAD' }),
+      });
+
+      await git.commitFile({
+        repoPath: worktreePath,
+        relativePath: ALPHA_FILE,
+        content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
+        message: ErrorMessageStub({ value: 'round 1' }),
+      });
+
+      const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d4' });
+      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        baseRef: RANGE_BASE_REF,
+        worktreePath,
+        branchName,
+        planningNotes: QuestStub({
+          planningNotes: {
+            blightReports: [],
+            qaLedger: [],
+            blightLedger: blightChecklistBuildTransformer({
+              changedFiles: [ALPHA_FILE],
+              baseRef: RANGE_BASE_REF,
+            }).items.map((item) =>
+              QuestBlightLedgerEntryStub({
+                itemId: item.id,
+                disposition,
+                workItemId: cwWorkItemId,
+                createdAt: new Date().toISOString(),
+              }),
+            ),
+          },
+        }).planningNotes,
+        operations: [
+          OperationItemStub({
+            id: cwOpId,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: cwWorkItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            startRef: String(startRef) as never,
+            relatedDataItems: [`operations/${String(cwOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId,
+        workItemId: cwWorkItemId,
+        signal: 'complete',
+        operationItemId: cwOpId,
+        operationStatus: 'done',
+      });
+
+      const after = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        responderResult: result,
+        operationStatuses: after.operations.map(({ status }) => status),
+        workItemStatuses: after.workItems.map(({ status }) => status),
+      }).toStrictEqual({
+        responderResult: { success: true },
+        operationStatuses: ['complete'],
+        workItemStatuses: ['complete'],
+      });
+    },
+    30_000,
+  );
+
+  // A hydrated quest, or an item that predates the field, has no fork point to measure from. The
+  // relay must not wedge on a work item that could never satisfy the gate.
+  it('EMPTY: {codeweaver done, work item carrying NO startRef} => signals fine even with an empty blightLedger', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'sb-review-nostart' }),
+    });
+    envHarness.setupHome({ tempDir: testbed.guildPath });
+
+    const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+    const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d5' });
+    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+    await questHelper.seedInProgressRelay({
+      questId,
+      baseRef: RANGE_BASE_REF,
+      operations: [
+        OperationItemStub({
+          id: cwOpId,
+          role: 'codeweaver',
+          text: 'core: config adapter',
+          status: 'in_progress',
+        }),
+      ],
+      workItems: [
+        WorkItemStub({
+          id: cwWorkItemId,
+          role: 'codeweaver',
+          status: 'in_progress',
+          spawnerType: 'agent',
+          relatedDataItems: [`operations/${String(cwOpId)}`],
+          dependsOn: [],
+          createdAt: new Date().toISOString(),
+        }),
+      ],
+    });
+
+    const result = await QuestHandleSignalBackResponder({
+      questId,
+      workItemId: cwWorkItemId,
+      signal: 'complete',
+      operationItemId: cwOpId,
+      operationStatus: 'done',
+    });
+
+    const after = await questHelper.reload({ questId });
+
+    testbed.cleanup();
+
+    expect({
+      responderResult: result,
+      blightLedger: after.planningNotes.blightLedger,
+      operationStatuses: after.operations.map(({ status }) => status),
+      workItemStatuses: after.workItems.map(({ status }) => status),
+    }).toStrictEqual({
+      responderResult: { success: true },
+      blightLedger: [],
+      operationStatuses: ['complete'],
+      workItemStatuses: ['complete'],
+    });
+  }, 30_000);
+
+  // An empty range is a REAL state, not a skip: a round that committed nothing has nothing to
+  // review, exactly as `git commit --allow-empty` satisfies the commit gate above.
+  it('EMPTY: {codeweaver done, startRef equal to HEAD so the range holds no commits} => accepted with an empty blightLedger', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'sb-review-emptyrange' }),
+    });
+    envHarness.setupHome({ tempDir: testbed.guildPath });
+
+    const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    await git.initRepoWithPackages({
+      repoPath,
+      initialBranchName: FileNameStub({ value: 'main' }),
+      packageNames: [FileNameStub({ value: 'shared' })],
+    });
+
+    const worktreePath = AbsoluteFilePathStub({
+      value: `${testbed.guildPath}/worktrees/review-empty-a1b2c3d4`,
+    });
+    const branchName = QuestBranchNameStub({ value: 'quest/review-empty-a1b2c3d4' });
+    await gitWorktreeAddAdapter({
+      cwd: repoPath,
+      worktreePath,
+      branchName,
+      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      mode: 'create-branch',
+    });
+
+    // Stamped, then nothing committed after it.
+    const startRef = await git.gitRevParseOrNull({
+      repoPath: worktreePath,
+      ref: ErrorMessageStub({ value: 'HEAD' }),
+    });
+
+    const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d6' });
+    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+    await questHelper.seedInProgressRelay({
+      questId,
+      baseRef: RANGE_BASE_REF,
+      worktreePath,
+      branchName,
+      operations: [
+        OperationItemStub({
+          id: cwOpId,
+          role: 'codeweaver',
+          text: 'core: config adapter',
+          status: 'in_progress',
+        }),
+      ],
+      workItems: [
+        WorkItemStub({
+          id: cwWorkItemId,
+          role: 'codeweaver',
+          status: 'in_progress',
+          spawnerType: 'agent',
+          startRef: String(startRef) as never,
+          relatedDataItems: [`operations/${String(cwOpId)}`],
+          dependsOn: [],
+          createdAt: new Date().toISOString(),
+        }),
+      ],
+    });
+
+    const result = await QuestHandleSignalBackResponder({
+      questId,
+      workItemId: cwWorkItemId,
+      signal: 'complete',
+      operationItemId: cwOpId,
+      operationStatus: 'done',
+    });
+
+    const after = await questHelper.reload({ questId });
+
+    testbed.cleanup();
+
+    expect({
+      responderResult: result,
+      blightLedger: after.planningNotes.blightLedger,
+      operationStatuses: after.operations.map(({ status }) => status),
+      workItemStatuses: after.workItems.map(({ status }) => status),
+    }).toStrictEqual({
+      responderResult: { success: true },
+      blightLedger: [],
+      operationStatuses: ['complete'],
       workItemStatuses: ['complete'],
     });
   }, 30_000);

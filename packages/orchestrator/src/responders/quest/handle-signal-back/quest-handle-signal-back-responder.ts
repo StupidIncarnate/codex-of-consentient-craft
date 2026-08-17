@@ -14,9 +14,12 @@
  *   the other — and the three DENOMINATORS over them are disjoint, Flowrider and Groundstomper
  *   splitting `flowriderSignoff` by package kind. Both verdicts clear a unit — `confirmed` and
  *   `unconfirmable` alike — so the gate is always satisfiable honestly; it refuses absence, not
- *   honesty. An item held by any of the five orchestrator roles is additionally gated on REVIEW
- *   COVERAGE: `done` is refused while this work item has produced no `planningNotes.blightLedger`
- *   disposition at all, which is the durable trace a reviewer-minion round leaves behind.
+ *   honesty. An item held by any of the five orchestrator roles is additionally gated PER UNIT on
+ *   REVIEW COVERAGE: the responder rebuilds the standards-review checklist over
+ *   `<the item's recorded startRef>..HEAD` — every commit this item made, across all its rounds —
+ *   and refuses `done` while any unit carries no `planningNotes.blightLedger` disposition. Every
+ *   disposition clears a unit, `gap` and `recorded` exactly as `reviewed`, so this gate too refuses
+ *   absence rather than honesty.
  * - `operationStatus: 'partial'` → the linked operation item is marked `complete` AND a
  *   "pt N: {text}" continuation item (same role, locked flag preserved) is appended immediately
  *   after it — duplicate-on-partial keeps the strict 1:1 operation-item↔work-item invariant and an
@@ -72,8 +75,10 @@ import { gitWorkingTreeFilesBroker } from '../../../brokers/git/working-tree-fil
 import { questAdvanceBroker } from '../../../brokers/quest/advance/quest-advance-broker';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
 import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker';
+import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
+import { blightCoverageOutstandingTransformer } from '../../../transformers/blight-coverage-outstanding/blight-coverage-outstanding-transformer';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
 import { roleToDisciplineStatics } from '../../../statics/role-to-discipline/role-to-discipline-statics';
@@ -93,8 +98,8 @@ const ORCHESTRATOR_ROLES = Object.keys(
   roleToDisciplineStatics,
 ) as readonly (keyof typeof roleToDisciplineStatics)[];
 
-// Whose `done` is gated on a reviewer-minion having recorded something. Membership, not a name
-// chain: a role that runs a review round is a role whose round has to leave a trace.
+// Whose `done` is gated on their round's output being reviewed unit by unit. Membership, not a name
+// chain: a role that runs a review round is a role whose round has to be covered.
 const REVIEWED_ROLES: ReadonlySet<OperationItem['role']> = new Set(ORCHESTRATOR_ROLES);
 
 // Every role whose session ends by CHANGING CODE, and therefore owes a commit before it signals.
@@ -188,31 +193,37 @@ export const QuestHandleSignalBackResponder = async ({
   // satisfies it, so a round that legitimately changed nothing still signals. And a quest with no
   // worktree of its own — a hydrated quest, or one seeded before worktrees — SKIPS the check
   // rather than failing it: that is a real state, not a violation.
-  if (gatedOperation !== undefined && CODE_CHANGING_ROLES.has(gatedOperation.role)) {
-    const resolution = await questCwdResolveBroker({ questId });
+  //
+  // The resolution is taken ONCE, here, and read again by the review-coverage gate below: both
+  // measure the same checkout, and resolving twice would load the quest a second time to answer a
+  // question already answered. `undefined` means the signalling role owes no git measurement at
+  // all, which is why the review gate can key on `?.kind` without repeating the role test.
+  const resolution =
+    gatedOperation !== undefined && CODE_CHANGING_ROLES.has(gatedOperation.role)
+      ? await questCwdResolveBroker({ questId })
+      : undefined;
 
-    if (resolution.kind === 'worktree') {
-      const dirtyPaths = await gitWorkingTreeFilesBroker({ cwd: resolution.cwd });
+  if (resolution?.kind === 'worktree') {
+    const dirtyPaths = await gitWorkingTreeFilesBroker({ cwd: resolution.cwd });
 
-      if (dirtyPaths.length > 0) {
-        throw new Error(
-          [
-            `signal-back refused: the quest worktree still carries ${String(dirtyPaths.length)} uncommitted change(s), so the work this signal reports is not in history yet and the next session inherits a dirty tree it did not write.`,
-            '',
-            'Uncommitted paths:',
-            ...dirtyPaths.slice(0, OUTSTANDING_PREVIEW_LIMIT).map((path) => `  - ${String(path)}`),
-            ...(dirtyPaths.length > OUTSTANDING_PREVIEW_LIMIT
-              ? [
-                  `  … and ${String(dirtyPaths.length - OUTSTANDING_PREVIEW_LIMIT)} more — run \`git status\` in the worktree for the full list.`,
-                ]
-              : []),
-            '',
-            'Do ONE of these, then signal again:',
-            '  1. Commit this round in the quest worktree. This gate asks whether the TREE IS CLEAN, never whether you made a commit — `git commit --allow-empty` satisfies it, so a round that changed nothing still signals.',
-            '  2. Discard what you did not mean to keep (`git restore` / `git clean`) so the tree is clean either way.',
-          ].join('\n'),
-        );
-      }
+    if (dirtyPaths.length > 0) {
+      throw new Error(
+        [
+          `signal-back refused: the quest worktree still carries ${String(dirtyPaths.length)} uncommitted change(s), so the work this signal reports is not in history yet and the next session inherits a dirty tree it did not write.`,
+          '',
+          'Uncommitted paths:',
+          ...dirtyPaths.slice(0, OUTSTANDING_PREVIEW_LIMIT).map((path) => `  - ${String(path)}`),
+          ...(dirtyPaths.length > OUTSTANDING_PREVIEW_LIMIT
+            ? [
+                `  … and ${String(dirtyPaths.length - OUTSTANDING_PREVIEW_LIMIT)} more — run \`git status\` in the worktree for the full list.`,
+              ]
+            : []),
+          '',
+          'Do ONE of these, then signal again:',
+          '  1. Commit this round in the quest worktree. This gate asks whether the TREE IS CLEAN, never whether you made a commit — `git commit --allow-empty` satisfies it, so a round that changed nothing still signals.',
+          '  2. Discard what you did not mean to keep (`git restore` / `git clean`) so the tree is clean either way.',
+        ].join('\n'),
+      );
     }
   }
 
@@ -287,12 +298,30 @@ export const QuestHandleSignalBackResponder = async ({
         );
       }
 
-      // REVIEW-COVERAGE GATE — the honest, cheap successor to the per-unit blight gate. The
-      // orchestrator commits per ROUND, so at signal time the tree is clean by construction and a
-      // per-unit `working-tree` measurement is empty while a `commit` one sees only the last of
-      // several round commits — there is no per-unit precision to be had here. What IS measurable
-      // is whether the round's reviewer ran at all: a reviewer-minion that reviewed anything wrote
-      // at least one `planningNotes.blightLedger` entry carrying THIS work item's id.
+      // REVIEW-COVERAGE GATE — the same PER-UNIT shape as the sign-off gate above, over the
+      // standards-review surface instead of the flow graph. Every changed file this work item
+      // committed, crossed with each applicable concern, has to carry a disposition in
+      // `planningNotes.blightLedger`; `done` is refused while any unit carries none.
+      //
+      // THE RANGE IS WHAT MAKES IT MEASURABLE. An orchestrator commits once per ROUND, so at signal
+      // time the tree is clean by construction — a `working-tree` reading is empty, and a `commit`
+      // one sees only the LAST of several round commits. Neither can measure a whole item. What can
+      // is `<the item's own recorded startRef>..HEAD`: the fork point stamped by
+      // `agentPromptGetBroker` the first time this item was served its prompt, never moved
+      // afterwards, so the range covers every round the item ran rather than the one it ended on.
+      //
+      // Coverage is cumulative and per UNIT, not per author: a file first reviewed in round 1 and
+      // touched again in round 3 keys on the same `<implPath>:<concern>` id, so the round-1
+      // disposition still clears it. The gate measures whether the surface was reviewed, never who
+      // reviewed it.
+      //
+      // FOUR states SKIP rather than refuse, and each is real. No recorded `startRef` (a hydrated
+      // quest, an item that predates the field, an item whose worktree never resolved) leaves no
+      // range to measure; no worktree resolving leaves no checkout to measure it in; no pinned
+      // `baseRef` marks a quest seeded before the review base existed at all. An EMPTY range is the
+      // fourth and it PASSES honestly rather than skipping — a round that committed nothing has
+      // nothing to review, which is the same reading `git commit --allow-empty` gets from the
+      // commit gate above.
       //
       // It is a gate rather than a prompt line for the reason the post-mortem measured directly:
       // the computed `scope: 'commit'` parameter was passed correctly 30 times out of 30 because a
@@ -300,18 +329,42 @@ export const QuestHandleSignalBackResponder = async ({
       // you go" was ignored 13 times out of 13. A concern that lives only in a prompt is skipped.
       if (
         REVIEWED_ROLES.has(linkedOperation.role) &&
-        !result.quest.planningNotes.blightLedger.some((entry) => entry.workItemId === workItemId)
+        resolution?.kind === 'worktree' &&
+        signaledItem.startRef !== undefined &&
+        result.quest.baseRef !== undefined
       ) {
-        throw new Error(
-          [
-            "signal-back refused: your reviewer-minion recorded no review dispositions for this work item, so nothing on this round's output has been reviewed against the five standards concerns.",
-            '',
-            'Do ONE of these, then signal again:',
-            "  1. Dispatch a reviewer-minion over this round's output. It calls `get-blight-checklist({ scope: 'working-tree' })` for its scope and writes each verdict to `quest.planningNotes.blightLedger` via modify-quest, carrying this work item's id.",
-            '     Every disposition clears a unit — `gap` and `recorded` with a real reason count exactly as `reviewed` does. This gate refuses absence, not honesty.',
-            "  2. Signal operationStatus: 'partial' instead, which hands this round's scope to a fresh session of your role.",
-          ].join('\n'),
-        );
+        const checklist = await questGetBlightChecklistBroker({
+          questId,
+          scope: 'since-ref',
+          sinceRef: signaledItem.startRef,
+        });
+        const outstandingUnits = blightCoverageOutstandingTransformer({ checklist });
+
+        if (outstandingUnits.length > 0) {
+          const reviewerCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'working-tree' })`;
+
+          throw new Error(
+            [
+              `signal-back refused: operationStatus 'done' means every review unit your commits produced carries a disposition in \`quest.planningNotes.blightLedger\`, and ${String(outstandingUnits.length)} still carry none. The surface measured is \`${String(signaledItem.startRef)}..HEAD\` — every commit THIS work item made, across all of its rounds, not just the last one.`,
+              '',
+              'Outstanding units:',
+              ...outstandingUnits
+                .slice(0, OUTSTANDING_PREVIEW_LIMIT)
+                .map((id) => `  - ${String(id)}`),
+              ...(outstandingUnits.length > OUTSTANDING_PREVIEW_LIMIT
+                ? [
+                    `  … and ${String(outstandingUnits.length - OUTSTANDING_PREVIEW_LIMIT)} more — the reviewer-minion's own ${reviewerCall} enumerates its round's share of them.`,
+                  ]
+                : []),
+              '',
+              'Do ONE of these, then signal again:',
+              `  1. Dispatch a \`reviewer-minion\` over the output this round produced. It calls \`${reviewerCall}\` for its own scope and writes each verdict to \`quest.planningNotes.blightLedger\` via modify-quest.`,
+              '     EVERY disposition clears a unit — `gap` and `recorded` with a real reason count exactly as `reviewed` does. This gate refuses ABSENCE, not honesty.',
+              '     A unit listed above that no round of yours touched belongs to an earlier round of THIS item; the same reviewer clears it, because a disposition is keyed on the unit and not on who wrote it.',
+              "  2. Signal operationStatus: 'partial' instead, which hands the un-reviewed remainder to a fresh session of your role.",
+            ].join('\n'),
+          );
+        }
       }
     }
   }

@@ -12,19 +12,26 @@
  * const checklist = await questGetBlightChecklistBroker({ questId, scope: 'working-tree' });
  * // Returns BlightChecklist, or null when the scope needs a review base the quest never pinned
  *
- * The three scopes answer three different questions and are not interchangeable:
+ * The four scopes answer four different questions and are not interchangeable:
  * - `quest` measures the whole review surface from the pinned `quest.baseRef`
  * - `commit` measures ONE session's committed output (`HEAD~1`)
  * - `working-tree` measures what is changed but NOT YET COMMITTED — the surface of a reviewer that
  *   runs inside another session's turn, BEFORE it commits, where nothing under review is in
- *   history yet. Alone among the three it needs no review base, only HEAD, so it answers on a quest
- *   with no pinned `baseRef`; and alone among the three it cannot be a `git diff`, which reports
+ *   history yet. Alone among the four it needs no review base, only HEAD, so it answers on a quest
+ *   with no pinned `baseRef`; and alone among the four it cannot be a `git diff`, which reports
  *   tracked paths only — `gitWorkingTreeFilesBroker` unions in the untracked additions, which on a
  *   pre-commit surface are every net-new file the session just wrote.
+ * - `since-ref` measures from a base the CALLER names, in `sinceRef`. It exists for a caller whose
+ *   base is neither the quest's nor a fixed offset from HEAD: the signal-back review-coverage gate
+ *   measures one WORK ITEM's whole output, which is every commit since that item's recorded
+ *   `startRef` — several round commits, not the one `commit` would see, and not the empty set
+ *   `working-tree` sees once the round has committed. The ref rides its own parameter rather than
+ *   overriding `scope`, so the other three scopes never read it and a caller has to say which
+ *   question it is asking.
  *
  * A quest seeded before the review base was pinned has no `baseRef`, so `quest` and `commit` have
- * no diff to measure — that is a real state, not an error, so this returns null rather than
- * throwing.
+ * no diff to measure — and a `since-ref` call with no `sinceRef` names no base at all. Each is a
+ * real state, not an error, so this returns null rather than throwing.
  *
  * The quest's own `packagesAffected` travels with the diff because a changed path only names a
  * package relative to the declarations of the repo it came from; resolving it anywhere else would
@@ -33,7 +40,7 @@
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { BlightChecklist, QuestId } from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { gitDiffFilesAdapter } from '../../../adapters/git/diff-files/git-diff-files-adapter';
@@ -46,13 +53,18 @@ import { questLoadBroker } from '../load/quest-load-broker';
 export const questGetBlightChecklistBroker = async ({
   questId,
   scope = 'quest',
+  sinceRef,
 }: {
   questId: QuestId;
   // `commit` measures the LAST COMMIT alone — one session's output. `working-tree` measures what is
   // changed but not yet committed — the surface of a reviewer running inside another session's turn
-  // before it commits. `quest` keeps the original `baseRef`-to-HEAD reading for any caller that
-  // wants the full review surface.
-  scope?: 'quest' | 'commit' | 'working-tree';
+  // before it commits. `since-ref` measures from the ref `sinceRef` names. `quest` keeps the
+  // original `baseRef`-to-HEAD reading for any caller that wants the full review surface.
+  scope?: 'quest' | 'commit' | 'working-tree' | 'since-ref';
+  // Read by `scope: 'since-ref'` and by nothing else, so the three original scopes cannot change
+  // behaviour on a caller that passes it. Absent under that scope, the call names no base and
+  // answers null, exactly as an unpinned `baseRef` does for `quest` / `commit`.
+  sinceRef?: NonNullable<Quest['baseRef']>;
 }): Promise<BlightChecklist | null> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
@@ -75,14 +87,19 @@ export const questGetBlightChecklistBroker = async ({
   // because it is the one scope that needs no review base: a session reviewing its own uncommitted
   // work has HEAD whether or not anyone ever pinned one, and gating it on `baseRef` would return
   // null — read downstream as "nothing to review" — for exactly the surface that has the most.
+  //
+  // `since-ref` is likewise checked ahead of the `baseRef` guard, because the base it measures from
+  // is the caller's own and the quest's pinned one is irrelevant to it.
   const measuredFrom =
     scope === 'working-tree'
       ? questContract.shape.baseRef.unwrap().parse('HEAD')
-      : baseRef === undefined
-        ? undefined
-        : scope === 'commit'
-          ? questContract.shape.baseRef.unwrap().parse('HEAD~1')
-          : baseRef;
+      : scope === 'since-ref'
+        ? sinceRef
+        : baseRef === undefined
+          ? undefined
+          : scope === 'commit'
+            ? questContract.shape.baseRef.unwrap().parse('HEAD~1')
+            : baseRef;
 
   if (measuredFrom === undefined) {
     return null;

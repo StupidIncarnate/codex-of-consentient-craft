@@ -950,8 +950,12 @@ The standards-review surface is measured the same way and by the same tool famil
 A diff decomposes into atomic **review units** (`get-blight-checklist` — every changed impl file, its test/proxy/stub
 companions collapsed onto it, crossed with each of FIVE concerns: `craft`, `perf`, `dedup`, `integrity`,
 `test-cases`), each getting a disposition in `quest.planningNotes.blightLedger`. The caller that reads it is the
-`reviewer-minion` inside a round, and it must pass `scope: 'working-tree'`; the other two scopes exist for callers
-auditing history (`commit` — `HEAD~1...HEAD`) or the whole branch (`quest` — from the pinned `baseRef`). Dead-code
+`reviewer-minion` inside a round, and it must pass `scope: 'working-tree'`; the other three scopes exist for callers
+auditing history (`commit` — `HEAD~1...HEAD`), the whole branch (`quest` — from the pinned `baseRef`), or a base the
+caller names itself (`since-ref` — from its own `sinceRef` param, which is how the signal-back review-coverage gate
+measures ONE work item's whole output from that item's recorded `startRef`). `signal-back` recomputes that surface
+and **refuses `done` while any unit in the signalling item's own range carries no disposition** — the same shape as
+the sign-off gate, over the review ledger instead of the flow graph. Dead-code
 detection is deliberately UNOWNED: whether an export still has a consumer is a property of the whole post-fix import
 graph, which no per-file crossing can answer, so it waits on a deterministic orphan-export tool rather than being
 assigned to a role that would have to guess.
@@ -1083,20 +1087,33 @@ signals again; the work item and its operation item are exactly as they were.
    `addedBy: 'siegemaster'`. A siegemaster item declaring no `flowIds` is never gated, which keeps a flow-less quest
    and any pre-gate item completable.
 
-0c. **Review-coverage gate — on `done` only, from any of the five orchestrator roles.** `done` is refused while NO
-   `planningNotes.blightLedger` entry carries THIS work item's id, which is the durable trace a `reviewer-minion`
-   round leaves behind. Membership is read from `roleToDisciplineStatics` rather than listed, so a role added to that
-   map is covered by both this gate and 0a the day it is added — the same reason `isChatWorkItemRoleGuard` reads
+0c. **Review-coverage gate — on `done` only, from any of the five orchestrator roles.** PER UNIT, exactly like 0b:
+   the responder rebuilds the standards-review checklist over everything this work item committed and THROWS while
+   any unit on it carries no disposition in `planningNotes.blightLedger`, naming the outstanding units so the agent
+   can act. Membership is read from `roleToDisciplineStatics` rather than listed, so a role added to that map is
+   covered by both this gate and 0a the day it is added — the same reason `isChatWorkItemRoleGuard` reads
    `workItemRoleStatics.chat` instead of growing an `||` chain.
 
-   It is deliberately COARSER than the per-unit sign-off gate above, and the coarseness is forced: the orchestrator
-   commits per ROUND, so at signal time the tree is clean by construction — a per-unit `working-tree` measurement
-   would be empty, and a `commit` one would see only the last of several round commits. There is no per-unit
-   precision to be had at this point. What IS measurable is whether the round's reviewer ran at all. And it is a gate
-   rather than a prompt line for the reason the post-mortem measured directly: a computed `scope` parameter with a
-   named consequence bolted to it was passed correctly 30 times out of 30, while the prose instruction to "record
-   dispositions as you go" was ignored 13 times out of 13. A concern that lives only in a prompt is skipped.
-   Every disposition clears — `gap` and `recorded` with a real reason count exactly as `reviewed` does.
+   **THE RANGE IS THE WHOLE DESIGN.** An orchestrator commits once per ROUND, so at signal time the tree is clean by
+   construction: a `working-tree` measurement is EMPTY, and a `commit` one sees only the LAST of several round
+   commits. Neither can measure a whole item. What can is `<workItem.startRef>..HEAD` —
+   `agentPromptGetBroker` stamps `startRef` with the worktree's HEAD sha the FIRST time an item is served its prompt
+   and never moves it, so a resumed or re-served session keeps its ORIGINAL start rather than silently shrinking the
+   reviewed range to whatever landed after the crash. `questGetBlightChecklistBroker` takes that ref under a fourth
+   scope, `since-ref`; the other three scopes never read it. Coverage is keyed on the UNIT
+   (`<implPath>:<concern>`), never on the author — a file first reviewed in round 1 and touched again in round 3 is
+   still covered by the round-1 disposition.
+
+   **Four states SKIP rather than refuse**, and every one is real: a work item with no recorded `startRef` (hydrated
+   quest, or an item predating the field), no worktree resolving, or a quest with no pinned `baseRef` leave nothing
+   to measure; an EMPTY range PASSES honestly instead — a round that committed nothing has nothing to review, the
+   same reading `git commit --allow-empty` gets from 0a.
+
+   It is a gate rather than a prompt line for the reason the post-mortem measured directly: a computed `scope`
+   parameter with a named consequence bolted to it was passed correctly 30 times out of 30, while the prose
+   instruction to "record dispositions as you go" was ignored 13 times out of 13. A concern that lives only in a
+   prompt is skipped. Every disposition clears — `gap` and `recorded` with a real reason count exactly as `reviewed`
+   does; this gate refuses ABSENCE, not honesty.
 
 1. Marks the signaled work item terminal (`completedAt`, `actualSignal`) — `complete`, or `failed` on `blocked`.
 2. Resolves the linked operation item (the call's `operationItemId`, else the work item's `operations/<id>` ref).
@@ -1355,6 +1372,17 @@ sub-agent's OWN MCP call, not the parent Task() dispatch id). The responder scan
 session's `subagents/agent-*.jsonl` file for an assistant line whose `tool_use.id`
 matches — deterministically identifying the calling sub-agent race-free even when N
 sub-agents call in parallel against the same MCP stdio child.
+
+**`agentPromptGetBroker` stamps a third field, `workItem.startRef`** — the quest worktree's HEAD
+sha, read with `gitHeadShaAdapter` off the checkout `questCwdResolveBroker` resolves. Written the
+FIRST time an item is served its prompt and NEVER moved: it is the base
+`quest-handle-signal-back-responder`'s review-coverage gate measures `<startRef>..HEAD` from, and a
+re-served prompt (an orphan-recovery resume, a redelivered fetch) reads a HEAD that already contains
+this item's own commits — so re-stamping would shrink the reviewed range towards empty and pass a
+round nobody reviewed. Guarded twice: a pre-check that skips the git spawn on every fetch after the
+first, and a re-check inside `questOperationsUpdateBroker`'s per-quest lock for two fetches racing.
+No worktree, or an unreadable HEAD, records nothing — and the gate SKIPS an item with no `startRef`
+rather than refusing it.
 
 | Agent (parent-summoned minion) | Summoned By | Model | Purpose |
 |--------------------------------|-------------|-------|---------|

@@ -39,6 +39,19 @@ export const slotManagerStatics = {
   warpgate: {
     maxAttempts: 3,
   },
+  // NOT a server-enforced budget — unlike every `maxAttempts`/`maxRetries`/`maxResets` in this file,
+  // nothing server-side counts rounds. This is the plan→work→review loop cap baked into
+  // `operationOrchestratorPromptStatics`' prose, honoured by the orchestrator SESSION on its own
+  // recognizance inside ONE relay dispatch — never read or enforced by `quest-handle-signal-back-responder`
+  // or any other server code. Conflating it with a role's `maxAttempts` above is the exact confusion
+  // this comment exists to head off: they are TWO DIFFERENT BOUNDS ON TWO DIFFERENT THINGS. A session
+  // that spends this round budget and still has a remainder signals `operationStatus: 'partial'`,
+  // which server-side duplicate-on-partial appends a `pt N` continuation that spends ONE of that
+  // role's THREE ENFORCED `maxAttempts` pt-chain attempts. This key bounds a LOOP inside one session;
+  // `maxAttempts` bounds a CHAIN of sessions across a quest.
+  operationOrchestrator: {
+    maxRoundsPerSession: 3,
+  },
   ward: {
     // Red-ward chain budget: the count of ward operation items of one wardMode since the last
     // green ward of that mode. Reaching it blocks the quest instead of appending another

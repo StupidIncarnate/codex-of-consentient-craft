@@ -8,6 +8,12 @@
  * broker resolves `.dungeonmaster.json` (`devServer.devCommand` + `devServer.port`) and hands the
  * command + URL to the transformer for that role only.
  *
+ * Start-ref capture: the FIRST prompt fetch for a work item stamps `workItem.startRef` with the
+ * quest worktree's HEAD sha, and no later fetch moves it. That sha is the base the signal-back
+ * review-coverage gate rebuilds its blight checklist from, so it has to be recorded by the one
+ * server-side surface every dispatched session passes through before it changes anything — the same
+ * reason the MCP responder above stamps `sessionId`/`agentId` here rather than trusting the agent.
+ *
  * Session id capture: this broker does NOT persist sessionId itself — MCP stdio carries
  * no per-call session metadata. The capture happens in the JSONL watcher: when each
  * Task-dispatched sub-agent's first user-text line lands (Claude CLI passes the parent's
@@ -33,6 +39,7 @@ import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapte
 import {
   agentPromptResultContract,
   filePathContract,
+  workItemContract,
   type AgentPromptResult,
   type QuestId,
   type QuestWorkItemId,
@@ -44,6 +51,7 @@ import {
 } from '@dungeonmaster/shared/statics';
 
 import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
+import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
 import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { devCommandContract } from '../../../contracts/dev-command/dev-command-contract';
 import { devServerUrlContract } from '../../../contracts/dev-server-url/dev-server-url-contract';
@@ -51,8 +59,10 @@ import { disciplineContract } from '../../../contracts/discipline/discipline-con
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { workItemToPromptTransformer } from '../../../transformers/work-item-to-prompt/work-item-to-prompt-transformer';
+import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
+import { questOperationsUpdateBroker } from '../../quest/operations-update/quest-operations-update-broker';
 
 export const agentPromptGetBroker = async ({
   agent,
@@ -143,6 +153,58 @@ export const agentPromptGetBroker = async ({
   const workItem = quest.workItems.find((item) => item.id === workItemId);
   if (workItem === undefined) {
     throw new Error(`agentPromptGetBroker: workItem ${workItemId} not found on quest ${questId}`);
+  }
+
+  // START REF — the fork point of THIS work item's own output, recorded before the session it is
+  // being served can commit anything. `signal-back`'s review-coverage gate rebuilds the blight
+  // checklist over `<startRef>..HEAD`, which is the only reading that sees a whole item: the
+  // session commits once per ROUND, so by signal time the tree is clean and `HEAD~1` holds the last
+  // round alone.
+  //
+  // It is stamped ONCE and NEVER moved. A re-served prompt is the routine case — an orphan-recovery
+  // resume, a redelivered fetch — and each one reads a HEAD that already contains the commits this
+  // item made, so overwriting would silently shrink the reviewed range towards empty and the gate
+  // would pass on a round nobody reviewed. Both the pre-check here and the re-check inside the
+  // update callback are load-bearing: the first skips the git spawn on every fetch after the first,
+  // the second is what makes it safe under the per-quest lock when two fetches race.
+  //
+  // THREE states record nothing, and each is real rather than a failure: a quest with no worktree
+  // of its own (hydrated, or seeded before worktrees) has no checkout whose HEAD means anything
+  // here; a recorded worktree missing on disk cannot be read; and `git rev-parse` on a checkout
+  // with no commits answers nothing. The gate SKIPS an item with no `startRef` for exactly that
+  // reason — it refuses an unreviewed range, never the absence of a range.
+  //
+  // BEST-EFFORT, exactly like the identity stamp the MCP responder above performs: the resolution
+  // chain reaches the guild registry and the filesystem, and neither is this call's subject. A
+  // prompt fetch that DIED because the fork point could not be recorded would take the whole
+  // dispatch with it, to protect a gate that already treats a missing `startRef` as a skip.
+  if (workItem.startRef === undefined) {
+    try {
+      const resolution = await questCwdResolveBroker({ questId });
+      const startRef =
+        resolution.kind === 'worktree' ? await gitHeadShaAdapter({ cwd: resolution.cwd }) : null;
+
+      if (startRef !== null) {
+        await questOperationsUpdateBroker({
+          questId,
+          update: ({ quest: current }) => {
+            const target = current.workItems.find((item) => item.id === workItemId);
+            if (target === undefined || target.startRef !== undefined) {
+              return null;
+            }
+            return {
+              workItems: current.workItems.map((item) =>
+                item.id === workItemId ? workItemContract.parse({ ...item, startRef }) : item,
+              ),
+            };
+          },
+        });
+      }
+    } catch (error: unknown) {
+      process.stderr.write(
+        `[get-agent-prompt] start-ref stamp failed for work item ${String(workItemId)} on quest ${String(questId)}: ${error instanceof Error ? error.message : String(error)}\n`,
+      );
+    }
   }
 
   // Siegemaster ALONE gets the dev server. It stands a long-lived one up by hand at its Gate 5,
