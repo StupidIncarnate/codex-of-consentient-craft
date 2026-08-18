@@ -59,7 +59,7 @@
 
 import type { OperationItem, QaChecklistItemId, Quest } from '@dungeonmaster/shared/contracts';
 
-import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
+import { operationSignoffScopeTransformer } from '../operation-signoff-scope/operation-signoff-scope-transformer';
 import { signoffFlowOutstandingTransformer } from '../signoff-flow-outstanding/signoff-flow-outstanding-transformer';
 
 export const signoffOutstandingTransformer = ({
@@ -69,39 +69,22 @@ export const signoffOutstandingTransformer = ({
   quest: Quest;
   operationItem: OperationItem;
 }): QaChecklistItemId[] => {
-  if (
-    operationItem.role !== 'flowrider' &&
-    operationItem.role !== 'groundstomper' &&
-    operationItem.role !== 'siegemaster'
-  ) {
+  // The scope derivation is SHARED with `get-qa-checklist`, deliberately: this transformer is what
+  // refuses an agent's `done`, and that tool is what the agent reads to find out what it owes. Two
+  // copies of "which flows, which packages, which track" is two answers to one question, and the
+  // agent only ever sees one of them.
+  const scope = operationSignoffScopeTransformer({ quest, operationItem });
+
+  if (scope === null) {
     return [];
   }
 
-  const track = operationItem.role;
-
-  // Which FLOW TYPES, flow SLICE rule, UNIT KINDS, PACKAGE KINDS, package SLICE rule and observable
-  // origins a track measures is data in `signoffTrackEligibilityStatics` — one file answers "what is
-  // in this track's denominator" rather than that rule being half data and half a branch here.
-  const eligibility = signoffTrackEligibilityStatics.byTrack[track];
-  const eligibleFlowTypes = new Set(eligibility.flowTypes.map(String));
-  const typedFlows = quest.flows.filter((flow) => eligibleFlowTypes.has(flow.flowType));
-
-  // A `declared` track's items were sliced BY FLOW, so the item's own list is its scope; an
-  // `every-eligible` track's were sliced by package, so its denominator is every flow of an eligible
-  // type. An empty declared set matches no flow, which is how a per-flow item carrying no flowIds
-  // stays ungated without a special case.
-  const scopedFlowIds = new Set(operationItem.flowIds.map(String));
-  const scopedFlows =
-    eligibility.flowScope === 'declared'
-      ? typedFlows.filter((flow) => scopedFlowIds.has(String(flow.id)))
-      : typedFlows;
-
-  return scopedFlows.flatMap((flow) =>
+  return scope.flows.flatMap((flow) =>
     signoffFlowOutstandingTransformer({
       flow,
-      track,
+      track: scope.track,
       packagesAffected: quest.packagesAffected,
-      packageNames: operationItem.packageNames,
+      packageNames: scope.packageNames,
     }),
   );
 };

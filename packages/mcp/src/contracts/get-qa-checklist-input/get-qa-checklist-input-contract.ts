@@ -2,33 +2,40 @@
  * PURPOSE: Validates input for the get-qa-checklist MCP tool
  *
  * USAGE:
+ * getQaChecklistInputContract.parse({questId: 'add-auth', operationItemId: '...'});
+ * // Returns: GetQaChecklistInput scoped to exactly what that operation item is measured over
+ *
  * getQaChecklistInputContract.parse({questId: 'add-auth'});
- * // Returns: GetQaChecklistInput for every flow on the quest
+ * // Returns: GetQaChecklistInput for every flow on the quest, with no track applied
  *
- * getQaChecklistInputContract.parse({questId: 'add-auth', flowId: 'login-flow'});
- * // Returns: GetQaChecklistInput scoped to one flow
+ * **`operationItemId` IS THE SCOPE.** The item carries the track (its `role`), its `flowIds` and its
+ * `packageNames`, and the server derives all three through the SAME transformer the signal-back
+ * completion gate uses — so the remainder a session reads here and the remainder that refuses its
+ * `done` are one number, not two computations a caller has to keep in step.
  *
- * getQaChecklistInputContract.parse({questId: 'add-auth', track: 'groundstomper'});
- * // Returns: GetQaChecklistInput scoped to the flows and units that DENOMINATOR is measured over
+ * IT REPLACED `track`, `flowId` AND `packageNames` AS SEPARATE ARGUMENTS, and each of those was a
+ * way to ask a different question from the one the gate answers:
  *
- * `track` is the SHARED `signoffDenominatorTrackContract` — the three denominators, not the two
- * sign-off fields — so the value a session passes here is the value the signal-back completion gate
- * keys on. Taking the field enum instead is what left a Groundstomper session with no way to name
- * itself: it writes `flowriderSignoff`, so a field-keyed input would have handed it Flowrider's
- * package kinds, which are the exact complement of its own.
+ * - `track` is the DENOMINATOR name, not the sign-off field. Flowrider and Groundstomper both write
+ *   `flowriderSignoff` over DISJOINT package kinds, so naming the sibling returned the exact
+ *   complement of the caller's own work.
+ * - `packageNames` was `.optional()`, so omitting it did not error — it silently WIDENED the
+ *   measurement to the whole quest, and the session then worked units a sibling item was gated on.
+ * - `flowId` did the same for the two `declared` tracks, whose scope is the item's own flow list.
  *
- * `packageNames` is advertised for the same reason. Flowrider's tail fans out to one item per
- * package plus a seam item, and the gate narrows each one by the names its operation item declares —
- * so a session holding a sliced item and unable to pass them here reads a whole-quest remainder
- * while its own gate clears at zero. The schema is `.strict()`, so an unadvertised key is a hard
- * parse rejection rather than a silently ignored argument, which is what makes advertising it the
- * whole fix.
+ * All three failed by OVER-reporting, which is the direction that never surfaces: the remainder
+ * simply never reached empty while `done` went on being refused, with nothing naming the cause.
+ *
+ * It is also what makes the tool reachable from a MINION, which is the session that actually needs
+ * the body. A `get-agent-prompt` minion fetch carries the Quest ID and nothing else, so a scope
+ * assembled from three values only the parent holds cannot be assembled at all; an id the parent
+ * writes into the briefing can.
+ *
+ * `flowId` survives ONLY as the un-scoped browse form, for a caller that owns no operation item.
+ * The schema is `.strict()`, so passing it alongside `operationItemId` is a hard rejection rather
+ * than a silently ignored argument.
  */
 
-import {
-  packageNameContract,
-  signoffDenominatorTrackContract,
-} from '@dungeonmaster/shared/contracts';
 import { z } from 'zod';
 
 export const getQaChecklistInputContract = z
@@ -38,27 +45,38 @@ export const getQaChecklistInputContract = z
       .min(1)
       .describe('The ID of the quest to enumerate the QA surface for')
       .brand<'QuestId'>(),
+    operationItemId: z
+      .string()
+      .min(1)
+      .describe(
+        'The operation item this work is for — the ONE argument that scopes this call. Everything the denominator depends on is already on that item (its role is the track, plus its flowIds and packageNames), and the server derives them with the same transformer the signal-back completion gate uses, so what you read here is exactly what your `done` will be measured against. Pass it and REMAINING is your remainder. A role with no sign-off track (codeweaver, pesteater) is told so plainly: its denominator is the scope block in its Operation Context, not the flow graph.',
+      )
+      .brand<'OperationItemId'>()
+      .optional(),
     flowId: z
       .string()
       .min(1)
       .describe(
-        'Optional flow id. Omit to enumerate every flow on the quest; pass one to scope the checklist to the flow this session owns.',
+        'Browse ONE flow with no track applied — for a caller that owns no operation item. Never pass it alongside operationItemId: the item already says which flows are in scope, and a hand-picked flow is how a session ends up measuring something other than what its gate measures.',
       )
       .brand<'FlowId'>()
       .optional(),
-    track: signoffDenominatorTrackContract
-      .describe(
-        "Your verification track — the ROLE you were dispatched as, not the sign-off field you write. Pass it and REMAINING counts the units in YOUR denominator still carrying no sign-off, which is exactly what the signal-back completion gate will refuse `done` on. 'flowrider' and 'groundstomper' both write flowriderSignoff but are measured over DISJOINT package kinds (groundstomper: the browser-reachable ones), so passing the other role's name returns the complement of your own work. Both also narrow the flow set to the quest's runtime flows, the only set they are measured over. Omit it to list every flow with no track applied.",
-      )
-      .optional(),
-    packageNames: z
-      .array(packageNameContract)
-      .describe(
-        'The package names your operation item declares, if it declares any. Pass them and REMAINING is narrowed to your slice the same way the completion gate narrows it — a per-package flowrider item owns the units whose node tags exactly its one package, and the seam item owns the glue. Omit them when your item declares none, and nothing is narrowed.',
-      )
-      .optional(),
   })
   .strict()
+  .superRefine((value, ctx) => {
+    // Hard rejection rather than a precedence rule. `operationItemId` already says which flows are
+    // in scope, so a hand-picked `flowId` alongside it can only mean the caller believes it is
+    // measuring something the item does not cover — and silently letting one win is how a session
+    // ends up reading a different set from the one its gate refuses it on.
+    if (value.operationItemId !== undefined && value.flowId !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['flowId'],
+        message:
+          'flowId cannot be combined with operationItemId — the operation item already declares which flows are in scope, and its own denominator is what your `done` is measured against. Pass operationItemId alone.',
+      });
+    }
+  })
   .brand<'GetQaChecklistInput'>();
 
 export type GetQaChecklistInput = z.infer<typeof getQaChecklistInputContract>;

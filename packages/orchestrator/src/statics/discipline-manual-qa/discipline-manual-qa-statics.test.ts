@@ -1,15 +1,13 @@
-import { operationOrchestratorPromptStatics } from '../operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
 import { disciplineManualQaStatics } from './discipline-manual-qa-statics';
 
-const has = ({ text, needle }: { text: string; needle: string }): boolean => text.includes(needle);
-
-const { orchestratorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
+const { operatorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
   disciplineManualQaStatics;
 
-// The orchestrator template's whole design is a session whose context CANNOT fill up: it loads no
-// standards and runs no search. A pack that names one of these hands the tool back through the one
-// slot the template cannot police, and the session that reads source stops dispatching mid-loop.
-const TOOLS_THE_ORCHESTRATOR_NEVER_LOADS = [
+// A tool named in an operator's discipline block is a GRANT — the operator template's table says so
+// in as many words. Every name here is on that template's FORBIDDEN half. The dev server and
+// `reset-flow-signoffs` are the deliberate exceptions this pack DOES grant, and they are asserted
+// separately below.
+const FORBIDDEN_IN_AN_OPERATOR_BLOCK = [
   'get-architecture',
   'get-syntax-rules',
   'get-testing-patterns',
@@ -17,603 +15,461 @@ const TOOLS_THE_ORCHESTRATOR_NEVER_LOADS = [
   'get-project-map',
   'get-project-inventory',
   'get-folder-detail',
-] as const;
-
-// `$DISCIPLINE` is served inside the template, whose own budget is measured separately. These two
-// numbers are what keep the composed prompt under the MCP verbatim-delivery ceiling.
-const ORCHESTRATOR_BUDGET_CHARS = 2_500;
-const MINION_BLOCK_BUDGET_CHARS = 6_500;
-
-const MINION_BLOCKS = [
-  ['plannerMarkdown', plannerMarkdown],
-  ['workerMarkdown', workerMarkdown],
-  ['reviewerMarkdown', reviewerMarkdown],
-] as const;
-
-const ALL_BLOCKS = [['orchestratorMarkdown', orchestratorMarkdown], ...MINION_BLOCKS] as const;
-
-// The five standing concerns live in `standardsReviewConcernsStatics`, already embedded in the
-// reviewer template beside `$DISCIPLINE`. A pack-local copy is a copy that drifts.
-const SHARED_STANDARDS_REVIEW_MARKERS = [
-  'craft',
-  'dedup',
-  'integrity',
-  'test-cases',
-  'blightLedger',
   'get-blight-checklist',
-] as const;
+  'npm run ward',
+  'git log',
+  'git diff',
+  'git commit',
+];
 
 describe('disciplineManualQaStatics', () => {
-  it('VALID: exported value => exactly the four discipline blocks, each a non-empty string', () => {
+  it('VALID: exported value => carries exactly the four blocks, all non-empty strings', () => {
     expect(disciplineManualQaStatics).toStrictEqual({
-      orchestratorMarkdown: expect.stringMatching(/^.+$/su),
+      operatorMarkdown: expect.stringMatching(/^.+$/su),
       plannerMarkdown: expect.stringMatching(/^.+$/su),
       workerMarkdown: expect.stringMatching(/^.+$/su),
       reviewerMarkdown: expect.stringMatching(/^.+$/su),
     });
   });
 
-  describe('budgets', () => {
-    it('VALID: orchestratorMarkdown => stays within the orchestrator budget', () => {
-      expect(orchestratorMarkdown.length).toBeLessThanOrEqual(ORCHESTRATOR_BUDGET_CHARS);
+  describe('operatorMarkdown is two fields and nothing else', () => {
+    it('VALID: operatorMarkdown => carries exactly RESOURCE and RESET, in that order', () => {
+      expect(
+        Array.from(operatorMarkdown.matchAll(/\*\*([A-Z]+):/gu)).map((match) => match[1]),
+      ).toStrictEqual(['RESOURCE', 'RESET']);
     });
 
-    it.each(MINION_BLOCKS)(
-      'VALID: {block: %s} => stays within the minion budget',
-      (name, markdown) => {
-        expect({ name, withinBudget: markdown.length <= MINION_BLOCK_BUDGET_CHARS }).toStrictEqual({
-          name,
-          withinBudget: true,
-        });
-      },
-    );
-  });
-
-  describe('the orchestrator block hands back no tool the template took away', () => {
-    it.each(TOOLS_THE_ORCHESTRATOR_NEVER_LOADS)(
-      'VALID: {tool: %s} => is absent from orchestratorMarkdown',
-      (tool) => {
-        expect(has({ text: orchestratorMarkdown, needle: tool })).toBe(false);
-      },
-    );
-
-    // Drift guard the other way: each name above is a tool the template's FORBIDDEN block really
-    // names, so this list cannot quietly become a list of strings nobody forbids.
-    it.each(TOOLS_THE_ORCHESTRATOR_NEVER_LOADS)(
-      'VALID: {tool: %s} => is named in the orchestrator template FORBIDDEN block',
-      (tool) => {
-        const { template } = operationOrchestratorPromptStatics.prompt;
-        const forbiddenBlock = template.slice(
-          template.indexOf('FORBIDDEN — no exceptions'),
-          template.indexOf('judging whether code is CORRECT'),
-        );
-
-        expect(has({ text: forbiddenBlock, needle: tool })).toBe(true);
-      },
-    );
-
-    it('VALID: orchestratorMarkdown => leaves the signal shapes to the template', () => {
-      expect(has({ text: orchestratorMarkdown, needle: 'signal-back' })).toBe(false);
+    it('VALID: operatorMarkdown => names no tool the operator template forbids', () => {
+      expect(
+        FORBIDDEN_IN_AN_OPERATOR_BLOCK.filter((tool) => operatorMarkdown.includes(tool)),
+      ).toStrictEqual([]);
     });
-  });
 
-  // The pack owns SCOPE and METHOD; the templates own the LOOP. Restating the build/ward gates here
-  // is how a pack starts contradicting the loop it was interpolated into.
-  it.each(ALL_BLOCKS)(
-    'VALID: {block: %s} => restates neither the build nor the ward gate',
-    (name, markdown) => {
+    it('VALID: operatorMarkdown => stays inside the budget that keeps this session small', () => {
+      expect(operatorMarkdown.length).toBeLessThan(1_200);
+    });
+
+    // This is the discipline where the operator's block earns its two non-"none" fields: it is the
+    // session that starts and owns the ONE dev server, and the session that pulls the ONE reset
+    // lever between workers. Naming a tool here IS the grant, so both have to be named.
+    it('VALID: RESOURCE => grants the dev server, demands it in every brief, and bounds the teardown', () => {
       expect({
-        name,
-        build: has({ text: markdown, needle: 'npm run build' }),
-        ward: has({ text: markdown, needle: 'npm run ward' }),
-      }).toStrictEqual({ name, build: false, ward: false });
-    },
-  );
-
-  it.each(SHARED_STANDARDS_REVIEW_MARKERS)(
-    'VALID: {concern marker: %s} => is absent from reviewerMarkdown, which defers to the shared statics',
-    (marker) => {
-      expect(has({ text: reviewerMarkdown, needle: marker })).toBe(false);
-    },
-  );
-
-  describe('orchestratorMarkdown', () => {
-    it('VALID: block => scopes the item to ONE FLOW and names the checklist as the denominator', () => {
-      expect({
-        oneFlow: has({ text: orchestratorMarkdown, needle: '**Your item is ONE FLOW.**' }),
-        denominatorCall: has({
-          text: orchestratorMarkdown,
-          needle: "`get-qa-checklist({ questId, flowId, track: 'siegemaster' })`",
-        }),
-        neverEnumerateByHand: has({
-          text: orchestratorMarkdown,
-          needle: 'the tool cannot skip a long tail',
-        }),
-        pathsVsUnits: has({
-          text: orchestratorMarkdown,
-          needle:
-            '**Paths are the ITINERARY; units are the DEFINITION OF DONE — not the same size.**',
-        }),
-        twentyObservablesOnOneNode: has({
-          text: orchestratorMarkdown,
-          needle: 'carry twenty observables stacked on one node',
-        }),
-        zeroUnitsIsReal: has({ text: orchestratorMarkdown, needle: 'Zero units is a real state' }),
+        namingIsTheGrant: operatorMarkdown.includes(
+          '**RESOURCE: the dev server, and naming it here IS your grant to run it.**',
+        ),
+        bothValues: operatorMarkdown.includes('`Dev Server Command` and\n`Dev Server URL`'),
+        ownItAllSession: operatorMarkdown.includes('own it for the whole\nsession'),
+        everyBrief: operatorMarkdown.includes('**Put both values in EVERY minion brief**'),
+        minionFetchCarriesNeither: operatorMarkdown.includes(
+          "a minion's\nown fetch carries neither",
+        ),
+        noWorkerMayBounceIt: operatorMarkdown.includes('no worker may start, restart or stop it'),
+        scopedKill: operatorMarkdown.includes('**Kill only what you\nstarted**'),
+        portAndCwd: operatorMarkdown.includes('match port AND cwd'),
+        neverPkill: operatorMarkdown.includes('never `pkill` a bare name or\nport'),
+        wontStartIsADefect: operatorMarkdown.includes(
+          "A server that will not start on THIS QUEST'S code is a defect",
+        ),
       }).toStrictEqual({
-        oneFlow: true,
-        denominatorCall: true,
-        neverEnumerateByHand: true,
-        pathsVsUnits: true,
-        twentyObservablesOnOneNode: true,
-        zeroUnitsIsReal: true,
-      });
-    });
-
-    it('VALID: block => claims the last behaviour fix, security, performance and observation', () => {
-      expect({
-        lastRoleFixingBehaviour: has({
-          text: orchestratorMarkdown,
-          needle: '**You are the LAST role that fixes BEHAVIOUR**',
-        }),
-        nothingRunsAfterYou: has({
-          text: orchestratorMarkdown,
-          needle: 'nothing after you runs the system',
-        }),
-        securityAndPerf: has({
-          text: orchestratorMarkdown,
-          needle: '**Security and performance are YOURS**',
-        }),
-        perfIsMeasuredOffTheRunningSystem: has({
-          text: orchestratorMarkdown,
-          needle: '`perf` MEASURES its performance off the running system',
-        }),
-        observationNotInspection: has({
-          text: orchestratorMarkdown,
-          needle: '**Verification means OBSERVATION**',
-        }),
-        aSuiteIsAClaim: has({ text: orchestratorMarkdown, needle: 'a green suite is a claim' }),
-        notEveryFlowHasAUi: has({
-          text: orchestratorMarkdown,
-          needle: '**Not every flow has a UI**',
-        }),
-      }).toStrictEqual({
-        lastRoleFixingBehaviour: true,
-        nothingRunsAfterYou: true,
-        securityAndPerf: true,
-        perfIsMeasuredOffTheRunningSystem: true,
-        observationNotInspection: true,
-        aSuiteIsAClaim: true,
-        notEveryFlowHasAUi: true,
-      });
-    });
-
-    it('VALID: block => owns one dev server, kills it scoped, and treats a dead one as a defect', () => {
-      expect({
-        serverIsYours: has({
-          text: orchestratorMarkdown,
-          needle: '**The dev server is yours alone**',
-        }),
-        contextCarriesTheCommandAndUrl: has({
-          text: orchestratorMarkdown,
-          needle: '`Dev Server Command` / `Dev Server URL`',
-        }),
-        scopedKill: has({
-          text: orchestratorMarkdown,
-          needle: "match port AND cwd, or use the repo's scoped kill script",
-        }),
-        noBarePkill: has({ text: orchestratorMarkdown, needle: 'never `pkill` a bare' }),
-        deadServerIsADefect: has({
-          text: orchestratorMarkdown,
-          needle: '**A server that will not start is your first defect, not a wall.**',
-        }),
-        driversAreSerial: has({
-          text: orchestratorMarkdown,
-          needle: '**Every driving worker is SERIAL, always**',
-        }),
-        onlyInspectionRunsBeside: has({
-          text: orchestratorMarkdown,
-          needle: 'Only pure inspection runs beside a driver.',
-        }),
-      }).toStrictEqual({
-        serverIsYours: true,
-        contextCarriesTheCommandAndUrl: true,
+        namingIsTheGrant: true,
+        bothValues: true,
+        ownItAllSession: true,
+        everyBrief: true,
+        minionFetchCarriesNeither: true,
+        noWorkerMayBounceIt: true,
         scopedKill: true,
-        noBarePkill: true,
-        deadServerIsADefect: true,
-        driversAreSerial: true,
-        onlyInspectionRunsBeside: true,
+        portAndCwd: true,
+        neverPkill: true,
+        wontStartIsADefect: true,
       });
     });
 
-    it('VALID: block => routes a measured defect to an added observable and a free track reset', () => {
+    // Called ZERO times in 334 audited turns, with 52 units signed against pre-fix code. The whole
+    // reason it goes unpulled is that it reads as an admission of failure, so the block says twice
+    // over that it is free.
+    it('VALID: RESET => grants the lever, names when to pull it, and says it is free', () => {
       expect({
-        defectIsAnObservable: has({
-          text: orchestratorMarkdown,
-          needle: '**A defect you MEASURE is a NEW observable, not a verdict.**',
-        }),
-        addedBySiegemaster: has({
-          text: orchestratorMarkdown,
-          needle: "(`addedBy: 'siegemaster'`)",
-        }),
-        noThirdVerdict: has({
-          text: orchestratorMarkdown,
-          needle: 'No `gap`/`recorded`/`deferred`',
-        }),
-        resetCall: has({
-          text: orchestratorMarkdown,
-          needle: '`reset-flow-signoffs({ questId, workItemId, flowId, reason })`',
-        }),
-        resetsAreFree: has({
-          text: orchestratorMarkdown,
-          needle: '**Resets are FREE — no pt-chain attempt, no admission of failure**',
-        }),
-        theMeasuredCostOfNotResetting: has({
-          text: orchestratorMarkdown,
-          needle: '334 audited turns, while 52 units sat signed against pre-fix code',
-        }),
-        emptyCommitStillLands: has({ text: orchestratorMarkdown, needle: '(`--allow-empty`)' }),
+        theCall: operatorMarkdown.includes(
+          '**RESET: `reset-flow-signoffs({ questId, workItemId, flowId, reason })`.**',
+        ),
+        whenToPullIt: operatorMarkdown.includes(
+          'Pull it whenever a worker\nreports a fix, before you dispatch the next one',
+        ),
+        whyItMatters: operatorMarkdown.includes(
+          'sign-offs already written describe a system that\nCHANGED',
+        ),
+        free: operatorMarkdown.includes('**Resets are FREE**'),
+        noAttempt: operatorMarkdown.includes('no pt-chain attempt, no admission of failure'),
+        onlyThisFlow: operatorMarkdown.includes('only your own track\non this one flow clears'),
+        theMeasurement: operatorMarkdown.includes(
+          'It was called ZERO times in 334 audited turns, with 52 units signed against\npre-fix code.',
+        ),
       }).toStrictEqual({
-        defectIsAnObservable: true,
-        addedBySiegemaster: true,
-        noThirdVerdict: true,
-        resetCall: true,
-        resetsAreFree: true,
-        theMeasuredCostOfNotResetting: true,
-        emptyCommitStillLands: true,
+        theCall: true,
+        whenToPullIt: true,
+        whyItMatters: true,
+        free: true,
+        noAttempt: true,
+        onlyThisFlow: true,
+        theMeasurement: true,
       });
     });
   });
 
-  describe('plannerMarkdown', () => {
-    it('VALID: block => cuts small slices and designs the lever and the canvas the worker cannot', () => {
+  // THE PACK THE GENERIC WORKER TEMPLATE EXISTS FOR. A manual-QA worker resets a live system, drives
+  // a route by hand, and stops at the first defect — it shells nothing and writes no failing test
+  // first, so a template that hard-coded that method was wrong here for four disciplines out of five.
+  describe('workerMarkdown carries the two headings the worker template points at', () => {
+    it('VALID: workerMarkdown => carries ### The work and ### The proof, work first', () => {
       expect({
-        errSmall: has({
-          text: plannerMarkdown,
-          needle:
-            '**Err small: a worker that reports on eight units carefully beats one that skims thirty.**',
-        }),
-        leverProvenTwice: has({
-          text: plannerMarkdown,
-          needle: '**1. The seed/reset lever — prove it by using it TWICE.**',
-        }),
-        falseFindingAndFalseGreen: has({
-          text: plannerMarkdown,
-          needle:
-            'is a FALSE finding; a branch that passes only because prior state masked the bug is a FALSE green.',
-        }),
-        discriminatingCanvas: has({
-          text: plannerMarkdown,
-          needle: "**2. A DISCRIMINATING canvas — never inherit the e2e suite's fixture.**",
-        }),
-        hostileMembers: has({
-          text: plannerMarkdown,
-          needle: 'an unbroken token with no break opportunity',
-        }),
-        faultLever: has({ text: plannerMarkdown, needle: '**3. A fault lever.**' }),
-        unforceableIsUnconfirmable: has({
-          text: plannerMarkdown,
-          needle: 'A unit that cannot be forced is signed `unconfirmable`',
-        }),
+        work: /^### The work$/mu.test(workerMarkdown),
+        proof: /^### The proof$/mu.test(workerMarkdown),
+        workFirst: workerMarkdown.indexOf('### The work') < workerMarkdown.indexOf('### The proof'),
+      }).toStrictEqual({ work: true, proof: true, workFirst: true });
+    });
+
+    it('VALID: ### The work => is a hand-driven walk that stops at the first defect', () => {
+      const work = workerMarkdown.slice(
+        workerMarkdown.indexOf('### The work'),
+        workerMarkdown.indexOf('### The proof'),
+      );
+
+      expect({
+        steps: Array.from(work.matchAll(/^\d\. \*\*/gmu)).map((match) => match[0]),
+        resetFirst: work.includes('**Reset before EVERY path**'),
+        expectBeforeYouDrive: work.includes('**Learn the expected value BEFORE you drive.**'),
+        rationalisesOtherwise: work.includes('rationalises whatever it sees'),
+        driveTheRealSurface: work.includes(
+          '**Drive the route by hand at the surface the brief names.**',
+        ),
+        forceEveryBranch: work.includes('**Force every branch and reach every terminal.**'),
+        checkForDamage: work.includes('**After\n   any error branch, check for damage**'),
+        whereItLives: work.includes('**Check each unit where it actually lives.**'),
+        stopAtTheFirst: work.includes('**STOP at the first defect.**'),
+        recordBrokenBeforeFixing: work.includes('**Record its BROKEN state BEFORE you fix it**'),
+        neverGradeYourOwn: work.includes(
+          '**Never continue past your own repair, and never grade it.**',
+        ),
+        freshWorkerReWalks: work.includes('A FRESH worker re-walks this slice'),
       }).toStrictEqual({
-        errSmall: true,
-        leverProvenTwice: true,
-        falseFindingAndFalseGreen: true,
-        discriminatingCanvas: true,
-        hostileMembers: true,
-        faultLever: true,
-        unforceableIsUnconfirmable: true,
+        steps: ['1. **', '2. **', '3. **', '4. **'],
+        resetFirst: true,
+        expectBeforeYouDrive: true,
+        rationalisesOtherwise: true,
+        driveTheRealSurface: true,
+        forceEveryBranch: true,
+        checkForDamage: true,
+        whereItLives: true,
+        stopAtTheFirst: true,
+        recordBrokenBeforeFixing: true,
+        neverGradeYourOwn: true,
+        freshWorkerReWalks: true,
       });
     });
 
-    it('VALID: block => settles the browser surface before any browser slice is planned', () => {
-      expect({
-        establishTheSurface: has({
-          text: plannerMarkdown,
-          needle: '**4. Establish the real browser surface before planning any browser slice.**',
-        }),
-        theAsymmetricDenial: has({
-          text: plannerMarkdown,
-          needle: '`navigate` returns `Permission denied by user`',
-        }),
-        theWorkingFallback: has({ text: plannerMarkdown, needle: '**Playwright Node API**' }),
-        degradedIsDeclared: has({ text: plannerMarkdown, needle: 'the run is DEGRADED' }),
-        noBrowserIsNotAnExcuse: has({
-          text: plannerMarkdown,
-          needle: 'as a way to skip the harder walk.**',
-        }),
-      }).toStrictEqual({
-        establishTheSurface: true,
-        theAsymmetricDenial: true,
-        theWorkingFallback: true,
-        degradedIsDeclared: true,
-        noBrowserIsNotAnExcuse: true,
-      });
-    });
+    // The proof on this discipline is a per-unit WALK RECORD, and `BROKEN WOULD SHOW` is the whole
+    // falsifiability check: a measurement whose result was fixed by construction proves nothing.
+    it('VALID: ### The proof => is the per-unit walk record with BROKEN WOULD SHOW', () => {
+      const proof = workerMarkdown.slice(workerMarkdown.indexOf('### The proof'));
 
-    it('VALID: block => hands every worker the four environment facts that each cost a session', () => {
       expect({
-        ipv6Only: has({ text: plannerMarkdown, needle: '**The dev server binds IPv6-only**' }),
-        offlineDoesNotCloseTheSocket: has({
-          text: plannerMarkdown,
-          needle:
-            '**`context.setOffline(true)` does NOT close an established WebSocket in Chromium**',
-        }),
-        barrelBootsTimers: has({
-          text: plannerMarkdown,
-          needle: '**Importing the orchestrator barrel boots real intervals and fs watchers**',
-        }),
-        noHeredocsOrUnboundedLoops: has({
-          text: plannerMarkdown,
-          needle: 'rejects `python3` heredocs and unbounded shell loops',
-        }),
-        theBoundedPoll: has({
-          text: plannerMarkdown,
-          needle: '`curl -sf --retry 15 --retry-delay 2 --retry-connrefused`',
-        }),
-      }).toStrictEqual({
-        ipv6Only: true,
-        offlineDoesNotCloseTheSocket: true,
-        barrelBootsTimers: true,
-        noHeredocsOrUnboundedLoops: true,
-        theBoundedPoll: true,
-      });
-    });
-  });
-
-  describe('workerMarkdown', () => {
-    // The independence the whole pipeline is shaped around: the session that made a repair is never
-    // the session that grades it, which only holds if the broken state is recorded BEFORE the fix.
-    it('VALID: block => stops at the first defect, records the break first, and never grades its own fix', () => {
-      expect({
-        stopAtFirstDefect: has({ text: workerMarkdown, needle: '## STOP at the first defect' }),
-        recordBrokenStateFirst: has({
-          text: workerMarkdown,
-          needle: '**Record its BROKEN state BEFORE you fix it**',
-        }),
-        reviewerReDrives: has({
-          text: workerMarkdown,
-          needle: 'Your reviewer verifies by RE-DRIVING',
-        }),
-        fixRedFirst: has({ text: workerMarkdown, needle: '**Fix it red-first.**' }),
-        neverContinuePastYourRepair: has({
-          text: workerMarkdown,
-          needle: '**Never continue past your own repair, and never grade it.**',
-        }),
-        aFreshWorkerVerifies: has({
-          text: workerMarkdown,
-          needle: 'A FRESH worker re-walks this slice',
-        }),
-      }).toStrictEqual({
-        stopAtFirstDefect: true,
-        recordBrokenStateFirst: true,
-        reviewerReDrives: true,
-        fixRedFirst: true,
-        neverContinuePastYourRepair: true,
-        aFreshWorkerVerifies: true,
-      });
-    });
-
-    it('VALID: block => fixes the per-unit evidence a report must carry', () => {
-      expect({
-        precondition: has({
-          text: workerMarkdown,
-          needle:
-            'PRECONDITION: <the state I reset to, and that I ran the reset lever to get there>',
-        }),
-        whatItDid: has({
-          text: workerMarkdown,
-          needle:
-            'DID:          <my actions in order — URL loaded, elements clicked, payload sent, command run>',
-        }),
-        aValueNeverAnAdjective: has({
-          text: workerMarkdown,
-          needle: 'A value, never an adjective',
-        }),
-        brokenWouldShow: has({
-          text: workerMarkdown,
-          needle: 'BROKEN WOULD SHOW: <the specific different value a defect would have produced>',
-        }),
-        resetBeforeEveryPath: has({ text: workerMarkdown, needle: '**Reset before EVERY path**' }),
-        forceEveryBranch: has({
-          text: workerMarkdown,
-          needle: '**Force every branch and reach every terminal.**',
-        }),
-        checkUnitsWhereTheyLive: has({
-          text: workerMarkdown,
-          needle: '**Check each unit where it actually lives.**',
-        }),
+        precondition: proof.includes('PRECONDITION:'),
+        did: proof.includes('DID:'),
+        observed: proof.includes('OBSERVED:'),
+        brokenWouldShow: proof.includes('BROKEN WOULD SHOW:'),
+        valueNeverAdjective: proof.includes('A value, never an adjective'),
+        theWalkRecordIsTheEvidence: proof.includes('**This walk record IS your evidence**'),
+        cleanOrDefect: proof.includes('`RESULT` says CLEAN'),
+        grepYourOwnDraft: proof.includes('**Grep your own draft for "confirmed"'),
+        secondRunForPerf: proof.includes('needs the SECOND run of\nthe action'),
+        oneRowCannotTellFlatFromQuadratic: proof.includes(
+          'one row cannot tell flat from quadratic',
+        ),
+        hiddenTab: proof.includes('**A backgrounded tab reads `visibilityState: "hidden"`**'),
+        zeroDefectsIsGood: proof.includes('**ZERO DEFECTS IS A GOOD ANSWER.**'),
+        zeroDefectsIsContinue: proof.includes('is `NEXT: continue`'),
       }).toStrictEqual({
         precondition: true,
-        whatItDid: true,
-        aValueNeverAnAdjective: true,
+        did: true,
+        observed: true,
         brokenWouldShow: true,
-        resetBeforeEveryPath: true,
-        forceEveryBranch: true,
-        checkUnitsWhereTheyLive: true,
+        valueNeverAdjective: true,
+        theWalkRecordIsTheEvidence: true,
+        cleanOrDefect: true,
+        grepYourOwnDraft: true,
+        secondRunForPerf: true,
+        oneRowCannotTellFlatFromQuadratic: true,
+        hiddenTab: true,
+        zeroDefectsIsGood: true,
+        zeroDefectsIsContinue: true,
       });
     });
 
-    it('VALID: block => accepts a clean walk and withholds git and the dev server', () => {
+    it('VALID: workerMarkdown => forbids touching the dev server its parent owns', () => {
       expect({
-        zeroDefectsIsGood: has({
-          text: workerMarkdown,
-          needle: '**ZERO DEFECTS IS A GOOD ANSWER.**',
-        }),
-        noManufacturedFinding: has({
-          text: workerMarkdown,
-          needle: 'Do not manufacture a finding to look productive.',
-        }),
-        neverGit: has({
-          text: workerMarkdown,
-          needle: '- **`git`, ever.** Your parent owns the commit.',
-        }),
-        neverBounceTheServer: has({
-          text: workerMarkdown,
-          needle: "never run the reset lever's owning server",
-        }),
+        notYours: workerMarkdown.includes('**The dev server is not yours.**'),
+        neverBounceIt: workerMarkdown.includes('Never start, restart or stop it'),
+        exactlyOne: workerMarkdown.includes('there is exactly ONE, your parent owns it'),
+        bounceWipesTheCanvas: workerMarkdown.includes(
+          'a bounce wipes the canvas under\nwhichever worker is mid-walk',
+        ),
+        deadUrlIsRework: workerMarkdown.includes(
+          'If the URL does not answer, stop and say so in `NEXT: rework`',
+        ),
+        observationNotASuite: workerMarkdown.includes('**Verification means OBSERVATION**'),
       }).toStrictEqual({
-        zeroDefectsIsGood: true,
-        noManufacturedFinding: true,
-        neverGit: true,
-        neverBounceTheServer: true,
+        notYours: true,
+        neverBounceIt: true,
+        exactlyOne: true,
+        bounceWipesTheCanvas: true,
+        deadUrlIsRework: true,
+        observationNotASuite: true,
+      });
+    });
+  });
+
+  // What moved DOWN from the operator block, plus the instrument design only this session can do.
+  describe('plannerMarkdown holds the scope framing and designs the instruments', () => {
+    it('VALID: plannerMarkdown => carries the framing the operator block used to relay', () => {
+      expect({
+        pathsVersusUnits: plannerMarkdown.includes(
+          '**Paths are the ITINERARY; units are the DEFINITION OF DONE.**',
+        ),
+        classicUnderDelivery: plannerMarkdown.includes("this role's classic under-delivery"),
+        lastToFixBehaviour: plannerMarkdown.includes(
+          '**This round is the LAST that fixes BEHAVIOUR.**',
+        ),
+        securityAndPerfAreYours: plannerMarkdown.includes('**Security and performance are yours**'),
+        notEveryFlowHasAUi: plannerMarkdown.includes('**Not every flow has a UI.**'),
+        curlIsFirstClass: plannerMarkdown.includes('first-class QA instruments'),
+      }).toStrictEqual({
+        pathsVersusUnits: true,
+        classicUnderDelivery: true,
+        lastToFixBehaviour: true,
+        securityAndPerfAreYours: true,
+        notEveryFlowHasAUi: true,
+        curlIsFirstClass: true,
+      });
+    });
+
+    it('VALID: plannerMarkdown => designs all four instruments as recipes rather than descriptions', () => {
+      expect({
+        asACommand: plannerMarkdown.includes('as a command or a recipe, never a description'),
+        inventedDifferently: plannerMarkdown.includes(
+          'An instrument a\nworker has to invent gets invented differently in every slice',
+        ),
+        resetLever: plannerMarkdown.includes('**1. The seed/reset lever'),
+        proveItTwice: plannerMarkdown.includes('prove it by using it TWICE.**'),
+        discriminatingCanvas: plannerMarkdown.includes('**2. A DISCRIMINATING canvas'),
+        twoOfAnything: plannerMarkdown.includes(
+          '**at least two of\nanything an assertion must tell apart**',
+        ),
+        faultLever: plannerMarkdown.includes('**3. A fault lever.**'),
+        browserSurface: plannerMarkdown.includes(
+          '**4. Establish the real browser surface before planning any browser slice.**',
+        ),
+        probeWhatYouWillDrive: plannerMarkdown.includes(
+          '**So probing `tabs_context_mcp` does NOT test\nusability — probe the one you will actually drive with.**',
+        ),
+        neverDeclareNoBrowserToSkip: plannerMarkdown.includes(
+          '**Never\ndeclare "no browser" as a way to skip the harder walk.**',
+        ),
+      }).toStrictEqual({
+        asACommand: true,
+        inventedDifferently: true,
+        resetLever: true,
+        proveItTwice: true,
+        discriminatingCanvas: true,
+        twoOfAnything: true,
+        faultLever: true,
+        browserSurface: true,
+        probeWhatYouWillDrive: true,
+        neverDeclareNoBrowserToSkip: true,
+      });
+    });
+
+    // Each of these cost a prior session real wall-clock, and none of them is derivable from the
+    // code. A worker that has to rediscover one spends its slice on that instead of the walk.
+    it('VALID: plannerMarkdown => carries the durable environment knowledge, for every chunk', () => {
+      expect({
+        heading: plannerMarkdown.includes(
+          '## Durable environment knowledge — put it in EVERY chunk',
+        ),
+        ipv6: plannerMarkdown.includes('**The dev server binds IPv6-only**'),
+        webSocketOffline: plannerMarkdown.includes(
+          '**`context.setOffline(true)` does NOT close an established WebSocket in Chromium**',
+        ),
+        orchestratorBarrel: plannerMarkdown.includes(
+          '**Importing the orchestrator barrel boots real intervals and fs watchers**',
+        ),
+        noHeredocs: plannerMarkdown.includes(
+          "**This repo's Bash static analyzer rejects `python3` heredocs",
+        ),
+        spikeTmp: plannerMarkdown.includes('**under `spike-tmp/`**'),
+        curlRetry: plannerMarkdown.includes(
+          'curl -sf --retry 15 --retry-delay 2 --retry-connrefused',
+        ),
+        diagnosticNotKept: plannerMarkdown.includes(
+          '**Your spike is DIAGNOSTIC on this discipline, not kept.**',
+        ),
+      }).toStrictEqual({
+        heading: true,
+        ipv6: true,
+        webSocketOffline: true,
+        orchestratorBarrel: true,
+        noHeredocs: true,
+        spikeTmp: true,
+        curlRetry: true,
+        diagnosticNotKept: true,
+      });
+    });
+
+    it('VALID: plannerMarkdown => writes a ward command per chunk, keyed on where a fix would land', () => {
+      expect({
+        byWhereAFixLands: plannerMarkdown.includes(
+          '**`WARD` per chunk, by where a fix would land.**',
+        ),
+        pureLogic: plannerMarkdown.includes('`--only lint,typecheck,unit` for a pure-logic fix'),
+        flowsAndStartup: plannerMarkdown.includes('`--only lint,typecheck,unit,integration` when'),
+        paintedGeometry: plannerMarkdown.includes('`--only lint,typecheck,e2e` when painted'),
+      }).toStrictEqual({
+        byWhereAFixLands: true,
+        pureLogic: true,
+        flowsAndStartup: true,
+        paintedGeometry: true,
       });
     });
   });
 
   describe('reviewerMarkdown', () => {
-    it('VALID: block => judges artifacts as claims and checks coverage mechanically first', () => {
+    it('VALID: reviewerMarkdown => rejects on sight the seven hand-waves that shipped on this repo', () => {
       expect({
-        artifactIsAClaim: has({ text: reviewerMarkdown, needle: 'Judge each artifact as a CLAIM' }),
-        coverageFirst: has({
-          text: reviewerMarkdown,
-          needle: '## Coverage first, and it is mechanical',
-        }),
-        everyUnitIdMustAppear: has({
-          text: reviewerMarkdown,
-          needle: "Every unit id in the slice must appear in that worker's report.",
-        }),
-        crossCheckTheDiff: has({
-          text: reviewerMarkdown,
-          needle: 'read `git diff` on the file it named',
-        }),
-        aRepairNobodyCanFind: has({
-          text: reviewerMarkdown,
-          needle: '**A repair nobody can find in the working tree did not happen.**',
-        }),
+        coverageIsMechanical: reviewerMarkdown.includes('## Coverage first, and it is mechanical'),
+        missingIdsGoBack: reviewerMarkdown.includes('Missing ids are not a\njudgement call'),
+        adjectives: reviewerMarkdown.includes('**Adjectives where values belong.**'),
+        cannotComeOutDifferently: reviewerMarkdown.includes(
+          '**A measurement incapable of coming out differently.**',
+        ),
+        suiteInsteadOfWalk: reviewerMarkdown.includes(
+          '**A suite run offered in place of a walk.**',
+        ),
+        simplifiedCanvas: reviewerMarkdown.includes('**A canvas the worker simplified.**'),
+        requestFired: reviewerMarkdown.includes(
+          '**A `custom` unit reduced to "a request fired".**',
+        ),
+        nonDomInTheDom: reviewerMarkdown.includes('**A non-DOM unit checked in the DOM.**'),
+        hiddenTab: reviewerMarkdown.includes(
+          '**A geometry or visibility finding from a hidden tab.**',
+        ),
+        fixedWithNoRedTest: reviewerMarkdown.includes(
+          '**A defect reported as fixed with no red test.**',
+        ),
       }).toStrictEqual({
-        artifactIsAClaim: true,
-        coverageFirst: true,
-        everyUnitIdMustAppear: true,
-        crossCheckTheDiff: true,
-        aRepairNobodyCanFind: true,
-      });
-    });
-
-    // Each of these is a hand-wave that shipped on this repo. Dropping one drops the only place a
-    // reviewer is told that shape is not evidence.
-    it('VALID: block => carries all eight reject-on-sight shapes', () => {
-      expect({
-        adjectives: has({ text: reviewerMarkdown, needle: '**Adjectives where values belong.**' }),
-        unfalsifiableMeasurement: has({
-          text: reviewerMarkdown,
-          needle: '**A measurement incapable of coming out differently.**',
-        }),
-        suiteInsteadOfWalk: has({
-          text: reviewerMarkdown,
-          needle: '**A suite run offered in place of a walk.**',
-        }),
-        theNinetySixSecondAudit: has({ text: reviewerMarkdown, needle: '96-second suite audit' }),
-        simplifiedCanvas: has({
-          text: reviewerMarkdown,
-          needle: '**A canvas the worker simplified.**',
-        }),
-        customUnitReducedToARequest: has({
-          text: reviewerMarkdown,
-          needle: '**A `custom` unit reduced to "a request fired".**',
-        }),
-        nonDomUnitInTheDom: has({
-          text: reviewerMarkdown,
-          needle: '**A non-DOM unit checked in the DOM.**',
-        }),
-        hiddenTabGeometry: has({
-          text: reviewerMarkdown,
-          needle: '**A geometry or visibility finding from a hidden tab.**',
-        }),
-        fixWithNoRedTest: has({
-          text: reviewerMarkdown,
-          needle: '**A defect reported as fixed with no red test.**',
-        }),
-      }).toStrictEqual({
+        coverageIsMechanical: true,
+        missingIdsGoBack: true,
         adjectives: true,
-        unfalsifiableMeasurement: true,
+        cannotComeOutDifferently: true,
         suiteInsteadOfWalk: true,
-        theNinetySixSecondAudit: true,
         simplifiedCanvas: true,
-        customUnitReducedToARequest: true,
-        nonDomUnitInTheDom: true,
-        hiddenTabGeometry: true,
-        fixWithNoRedTest: true,
+        requestFired: true,
+        nonDomInTheDom: true,
+        hiddenTab: true,
+        fixedWithNoRedTest: true,
       });
     });
 
-    it('VALID: block => writes batched two-verdict sign-offs and refuses questNotes as a closer', () => {
+    it('VALID: reviewerMarkdown => writes siegemasterSignoff, batched, in a two-verdict vocabulary', () => {
       expect({
-        confirmedRow: has({
-          text: reviewerMarkdown,
-          needle: '| `confirmed` | measured off the running system',
-        }),
-        unconfirmableNeedsAQuestion: has({
-          text: reviewerMarkdown,
-          needle: 'a `question` naming what someone else would need is REQUIRED',
-        }),
-        batchedWrites: has({
-          text: reviewerMarkdown,
-          needle: '**BATCH the writes: ONE `modify-quest` call per artifact**',
-        }),
-        offMapIdIsTheFamily: has({
-          text: reviewerMarkdown,
-          needle: "offMapSignoffs: [{ id: 'hostile-input', siegemasterSignoff: { ... } }]",
-        }),
-        notesNeverClose: has({
-          text: reviewerMarkdown,
-          needle: '**A `questNotes` entry NEVER closes a unit; only a sign-off does.**',
-        }),
-        // The server stamps the time; a value an LLM invents is fabricated audit data.
-        noTimestampField: has({ text: reviewerMarkdown, needle: 'at:' }),
+        theTrack: reviewerMarkdown.includes('One `siegemasterSignoff` per unit'),
+        confirmed: reviewerMarkdown.includes('| `confirmed` | measured off the running system'),
+        unconfirmable: reviewerMarkdown.includes(
+          '| `unconfirmable` | no surface available settles it',
+        ),
+        bothClear: reviewerMarkdown.includes('Both verdicts CLEAR a unit'),
+        batch: reviewerMarkdown.includes('**BATCH the writes: ONE `modify-quest` call**'),
+        idPlusFieldOnly: reviewerMarkdown.includes(
+          'A\nsigning element carries ONLY its `id` plus the sign-off field',
+        ),
+        noteNeverClosesAUnit: reviewerMarkdown.includes(
+          '**A `questNotes` entry NEVER closes a unit; only a sign-off does.**',
+        ),
+        measuredDefectIsAdded: reviewerMarkdown.includes(
+          '**An observable the round MEASURED into existence**',
+        ),
+        addedBy: reviewerMarkdown.includes("`addedBy: 'siegemaster'`"),
       }).toStrictEqual({
-        confirmedRow: true,
-        unconfirmableNeedsAQuestion: true,
-        batchedWrites: true,
-        offMapIdIsTheFamily: true,
-        notesNeverClose: true,
-        noTimestampField: false,
+        theTrack: true,
+        confirmed: true,
+        unconfirmable: true,
+        bothClear: true,
+        batch: true,
+        idPlusFieldOnly: true,
+        noteNeverClosesAUnit: true,
+        measuredDefectIsAdded: true,
+        addedBy: true,
       });
     });
 
-    it('VALID: block => scopes the mutation audit so a clean walk cannot empty it', () => {
+    // A behaviour change here invalidates the clean walks the round just bought, so the audit is
+    // MUTATION-ONLY and a suspected defect routes to a fresh walk rather than a fix in place.
+    it('VALID: reviewerMarkdown => runs a mutation-only audit and routes a suspected defect to rework', () => {
       expect({
-        mutationOnly: has({ text: reviewerMarkdown, needle: 'It is **MUTATION-ONLY**' }),
-        changesNoBehaviour: has({ text: reviewerMarkdown, needle: 'change no behaviour' }),
-        theEmptySetFix: has({
-          text: reviewerMarkdown,
-          needle: 'when that set is EMPTY on a clean',
-        }),
-        auditTheCoveringTests: has({
-          text: reviewerMarkdown,
-          needle: "audit the tests that COVER the flow's units instead",
-        }),
-        theOverrideThatPaidOff: has({
-          text: reviewerMarkdown,
-          needle: "the run's only coverage finding",
-        }),
+        heading: reviewerMarkdown.includes('## The mutation audit'),
+        revertByEditing: reviewerMarkdown.includes(
+          'revert BY EDITING the line back (never `git checkout --`)',
+        ),
+        mutationOnly: reviewerMarkdown.includes('It is **MUTATION-ONLY**'),
+        wouldInvalidateTheWalks: reviewerMarkdown.includes(
+          'a behaviour change now invalidates the clean walks this round just bought',
+        ),
+        suspectedDefectIsRework: reviewerMarkdown.includes(
+          'A\nsuspected defect is `NEXT: rework` for a fresh walk, never fixed here.',
+        ),
+        banIsOnProductBehaviour: reviewerMarkdown.includes(
+          '**That ban is on PRODUCT BEHAVIOUR UNDER WALK, and on nothing else.**',
+        ),
+        emptySetFallback: reviewerMarkdown.includes(
+          "audit the tests that COVER the flow's units instead",
+        ),
       }).toStrictEqual({
+        heading: true,
+        revertByEditing: true,
         mutationOnly: true,
-        changesNoBehaviour: true,
-        theEmptySetFix: true,
-        auditTheCoveringTests: true,
-        theOverrideThatPaidOff: true,
+        wouldInvalidateTheWalks: true,
+        suspectedDefectIsRework: true,
+        banIsOnProductBehaviour: true,
+        emptySetFallback: true,
       });
     });
 
-    it('VALID: block => resolves the fetch-intercept ban as binding authored specs only', () => {
+    // Two roles read the fetch-intercept rule and reached opposite verdicts on six units. It binds
+    // AUTHORED specs; a hand-driven measurement is this discipline's own modality.
+    it('VALID: reviewerMarkdown => resolves the fetch-intercept rule in this modality favour', () => {
       expect({
-        bindsAuthoredSpecs: has({
-          text: reviewerMarkdown,
-          needle: 'The fetch-intercept ban binds **AUTHORED specs**',
-        }),
-        handDrivenMeasurementMayPatch: has({
-          text: reviewerMarkdown,
-          needle: 'MAY patch the fetch boundary',
-        }),
-        theContestedUnitsStand: has({
-          text: reviewerMarkdown,
-          needle: 'the six units it was contested over stand',
-        }),
+        bindsAuthoredSpecs: reviewerMarkdown.includes(
+          'The fetch-intercept ban binds **AUTHORED specs**',
+        ),
+        handDrivenMayPatch: reviewerMarkdown.includes(
+          '**A hand-driven MEASUREMENT in a live browser MAY patch the fetch boundary to force a\nvalue**',
+        ),
+        namesTheLever: reviewerMarkdown.includes('the resulting sign-off names the lever'),
+        sixUnitsStand: reviewerMarkdown.includes('the six units it was contested over stand'),
       }).toStrictEqual({
         bindsAuthoredSpecs: true,
-        handDrivenMeasurementMayPatch: true,
-        theContestedUnitsStand: true,
+        handDrivenMayPatch: true,
+        namesTheLever: true,
+        sixUnitsStand: true,
       });
+    });
+  });
+
+  describe('budgets', () => {
+    it('VALID: the three minion blocks => each stay inside their budget', () => {
+      expect({
+        planner: plannerMarkdown.length < 9_000,
+        worker: workerMarkdown.length < 9_000,
+        reviewer: reviewerMarkdown.length < 9_000,
+      }).toStrictEqual({ planner: true, worker: true, reviewer: true });
     });
   });
 });

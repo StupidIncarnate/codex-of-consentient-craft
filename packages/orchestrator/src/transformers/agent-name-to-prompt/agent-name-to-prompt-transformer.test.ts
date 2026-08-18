@@ -4,10 +4,11 @@ import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-pro
 import { DisciplineStub } from '../../contracts/discipline/discipline.stub';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
 import { plannerMinionStatics } from '../../statics/planner-minion/planner-minion-statics';
 import { reviewerMinionStatics } from '../../statics/reviewer-minion/reviewer-minion-statics';
 import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
+import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workerMinionStatics } from '../../statics/worker-minion/worker-minion-statics';
@@ -19,7 +20,7 @@ type OrchestratorRole = keyof typeof roleToDisciplineStatics;
 // The five operation-owning roles and the discipline each derives, read off the role map rather
 // than listed here — a role added there and forgotten in a hand-written case list would go
 // untested precisely when its wiring is new.
-const ORCHESTRATOR_ROLE_CASES = (
+const OPERATOR_ROLE_CASES = (
   Object.keys(roleToDisciplineStatics) as readonly OrchestratorRole[]
 ).map((role) => [role, roleToDisciplineStatics[role]] as const);
 
@@ -38,8 +39,8 @@ const GENERIC_MINION_DISCIPLINE_CASES = GENERIC_MINION_NAMES.flatMap((minionName
 
 describe('agentNameToPromptTransformer', () => {
   describe('the five operation-owning roles share one template, parameterized by their discipline', () => {
-    it.each(ORCHESTRATOR_ROLE_CASES)(
-      'VALID: {agent: %s} => returns the operation-orchestrator template with the %s pack interpolated, on opus',
+    it.each(OPERATOR_ROLE_CASES)(
+      'VALID: {agent: %s} => returns the operator template with the %s pack interpolated, on sonnet',
       (role, discipline) => {
         const agent = AgentPromptNameStub({ value: role });
 
@@ -47,20 +48,28 @@ describe('agentNameToPromptTransformer', () => {
 
         expect(result).toStrictEqual({
           name: role,
-          model: 'opus',
-          prompt: operationOrchestratorPromptStatics.prompt.template
+          // An operator opens no source file and renders no verdict — the expensive reasoning is in
+          // its minions, whose models are fixed per minion below. Read from `roleToModelStatics`
+          // rather than restated, because that map is what the CLI `--model` flag resolves through
+          // at spawn time: a literal here could report one model while the child ran another.
+          model: roleToModelStatics[role],
+          prompt: operatorPromptStatics.prompt.template
             .replace(
               '$DISCIPLINE',
               () =>
                 disciplineToPackTransformer({ discipline: DisciplineStub({ value: discipline }) })
-                  .orchestratorMarkdown,
+                  .operatorMarkdown,
             )
-            .replace('$MY_DISCIPLINE', () => discipline),
+            // `$MY_DISCIPLINE` substitutes EVERYWHERE, not once: the template quotes the bare
+            // discipline id into the `get-agent-prompt` call its minions must make AND into the
+            // header every minion brief opens with.
+            .split('$MY_DISCIPLINE')
+            .join(discipline),
         });
       },
     );
 
-    it.each(ORCHESTRATOR_ROLE_CASES)(
+    it.each(OPERATOR_ROLE_CASES)(
       'VALID: {agent: %s} => served prompt carries no unresolved $DISCIPLINE or $MY_DISCIPLINE token',
       (role) => {
         const agent = AgentPromptNameStub({ value: role });
@@ -74,11 +83,11 @@ describe('agentNameToPromptTransformer', () => {
       },
     );
 
-    // The round-trip the pipeline actually runs: the orchestrator reads a discipline id out of the
+    // The round-trip the pipeline actually runs: the operator reads a discipline id out of the
     // prompt it was served and hands that exact string to `get-agent-prompt` for each of its three
     // minions. If the id the template emits is not one those minions accept, EVERY dispatch on the
     // happy path throws at the minion's first action.
-    it.each(ORCHESTRATOR_ROLE_CASES)(
+    it.each(OPERATOR_ROLE_CASES)(
       'VALID: {agent: %s} => the discipline id its prompt tells minions to send is one all three minions accept',
       (role, discipline) => {
         const { prompt } = agentNameToPromptTransformer({
@@ -102,10 +111,10 @@ describe('agentNameToPromptTransformer', () => {
       },
     );
 
-    // The `model:` line in the template is where the orchestrator reads the model it passes to the
+    // The `model:` line in the template is where the operator reads the model it passes to the
     // Agent tool, and this switch is the registry it has to agree with. Drift between the two IS
     // the defect: one blanket `sonnet` here ran the planner and the reviewer off-model.
-    it.each(ORCHESTRATOR_ROLE_CASES)(
+    it.each(OPERATOR_ROLE_CASES)(
       'VALID: {agent: %s} => the per-minion models its prompt names match the models this transformer returns',
       (role) => {
         const { prompt } = agentNameToPromptTransformer({
@@ -132,7 +141,7 @@ describe('agentNameToPromptTransformer', () => {
       },
     );
 
-    it.each(ORCHESTRATOR_ROLE_CASES)(
+    it.each(OPERATOR_ROLE_CASES)(
       'VALID: {agent: %s} => served prompt still carries exactly one $ARGUMENTS for the operation context',
       (role) => {
         const agent = AgentPromptNameStub({ value: role });

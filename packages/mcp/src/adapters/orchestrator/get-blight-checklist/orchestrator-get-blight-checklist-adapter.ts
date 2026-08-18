@@ -13,6 +13,6 @@ export const orchestratorGetBlightChecklistAdapter = async ({
   scope,
 }: {
   questId: string;
-  scope?: 'quest' | 'commit' | 'working-tree';
+  scope?: 'quest' | 'commit' | 'working-tree' | 'unpushed';
 }): Promise<Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>> =>
   StartOrchestrator.getBlightChecklist({ questId, ...(scope !== undefined && { scope }) });

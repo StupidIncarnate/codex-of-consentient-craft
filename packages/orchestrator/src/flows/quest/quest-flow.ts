@@ -10,7 +10,7 @@
  * const modified = await QuestFlow.modify({ questId, input });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
  * const summary = await QuestFlow.getSummary({ questId });
- * const checklist = await QuestFlow.getQaChecklist({ questId, flowId, track });
+ * const checklist = await QuestFlow.getQaChecklist({ questId, operationItemId });
  * const blightChecklist = await QuestFlow.getBlightChecklist({ questId });
  * const walkReset = await QuestFlow.resetFlowSignoffs({ questId, workItemId, flowId, reason });
  * const created = await QuestFlow.mcpCreate({ userRequest });
@@ -114,15 +114,13 @@ export const QuestFlow = {
 
   getQaChecklist: async ({
     questId,
+    operationItemId,
     flowId,
-    track,
-    packageNames,
   }: GetQaChecklistParams): Promise<GetQaChecklistResult> =>
     QuestGetQaChecklistResponder({
       questId,
+      ...(operationItemId !== undefined && { operationItemId }),
       ...(flowId !== undefined && { flowId }),
-      ...(track !== undefined && { track }),
-      ...(packageNames !== undefined && { packageNames }),
     }),
 
   getBlightChecklist: async ({

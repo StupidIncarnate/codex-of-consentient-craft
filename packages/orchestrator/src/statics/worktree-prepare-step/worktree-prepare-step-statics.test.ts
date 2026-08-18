@@ -6,12 +6,14 @@ describe('worktreePrepareStepStatics', () => {
       steps: {
         create: 'create',
         baseBranch: 'base_branch',
+        push: 'push',
         nodeModules: 'node_modules',
         build: 'build',
       },
       classifications: {
         create: 'git-state',
         base_branch: 'git-state',
+        push: 'repairable',
         node_modules: 'repairable',
         build: 'repairable',
       },
@@ -41,6 +43,15 @@ describe('worktreePrepareStepStatics', () => {
       expect(
         worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.baseBranch],
       ).toBe('git-state');
+    });
+
+    // REPAIRABLE rather than `git-state`, and the difference decides whether a quest survives a
+    // network blip: a failed push leaves a fully built worktree holding every commit, so a
+    // spiritmender has somewhere to work and the pt N carve retries only the publication.
+    it('VALID: {steps.push} => classifies repairable, because a failed push leaves the worktree intact', () => {
+      expect(
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.push],
+      ).toBe('repairable');
     });
   });
 });

@@ -353,6 +353,123 @@ describe('questGetBlightChecklistBroker', () => {
     });
   });
 
+  describe("scope: 'unpushed' — one round, framed by what has not been published", () => {
+    it("VALID: {scope: 'unpushed', branch tracks an upstream} => the git adapter measures that upstream sha", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupUpstream({ sha: 'cafebabe' });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'unpushed',
+      });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'cafebabe...HEAD', '--name-only']);
+    });
+
+    it("VALID: {scope: 'unpushed', changed files} => the checklist is built over that range", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupUpstream({ sha: 'cafebabe' });
+      proxy.setupDiff({ files: ['packages/orchestrator/src/brokers/foo/foo-broker.ts'] });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'unpushed',
+      });
+
+      expect([...new Set(result!.items.map((item) => String(item.implPath)))]).toStrictEqual([
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      ]);
+    });
+
+    // Over-reporting on purpose. A reviewer handed null reads it as "nothing to review" and
+    // dispositions nothing, which is the one failure this scope exists to avoid; a reviewer handed
+    // the whole quest re-reads files that already carry a disposition, which costs a pass and
+    // hides nothing.
+    it("VALID: {scope: 'unpushed', branch tracks NOTHING} => falls back to the quest's pinned baseRef", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupNoUpstream();
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'unpushed',
+      });
+
+      expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'deadbeef...HEAD', '--name-only']);
+    });
+
+    it("EMPTY: {scope: 'unpushed', no upstream AND no pinned baseRef} => returns null", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub();
+      proxy.setupQuestFound({ quest });
+      proxy.setupNoUpstream();
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'unpushed',
+      });
+
+      // `getGitDiffArgs` answers the LAST `git` argv the broker spawned, and this scope always
+      // spawns the upstream probe before it can know there is no base. Seeing the PROBE there
+      // rather than a `diff` is exactly the proof that no diff followed it: had one run, it would
+      // be the last spawn. Asserting `undefined` here would require the broker to somehow know the
+      // branch tracks nothing without asking git.
+      expect({ result, lastGitArgs: proxy.getGitDiffArgs() }).toStrictEqual({
+        result: null,
+        lastGitArgs: ['rev-parse', '@{upstream}'],
+      });
+    });
+
+    // The upstream lookup belongs to ONE scope, exactly as `sinceRef` does. These keep the other
+    // scopes provably untouched by it rather than merely untested against it.
+    it("VALID: {scope: 'quest'} => never asks git for an upstream, and the pinned baseRef wins", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'quest',
+      });
+
+      expect({
+        diffArgs: proxy.getGitDiffArgs(),
+        upstreamAsked: proxy.wasUpstreamAsked(),
+      }).toStrictEqual({
+        diffArgs: ['diff', 'deadbeef...HEAD', '--name-only'],
+        upstreamAsked: false,
+      });
+    });
+
+    it("VALID: {scope: 'commit'} => never asks git for an upstream, and HEAD~1 wins", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+        scope: 'commit',
+      });
+
+      expect({
+        diffArgs: proxy.getGitDiffArgs(),
+        upstreamAsked: proxy.wasUpstreamAsked(),
+      }).toStrictEqual({
+        diffArgs: ['diff', 'HEAD~1...HEAD', '--name-only'],
+        upstreamAsked: false,
+      });
+    });
+  });
+
   describe("the quest's own package declarations reach the units", () => {
     it('VALID: {packagesAffected declaring a location the changed file sits under} => the units carry that package', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();

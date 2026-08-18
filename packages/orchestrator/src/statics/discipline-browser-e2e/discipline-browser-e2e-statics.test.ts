@@ -1,619 +1,426 @@
 import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
-import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
 import { disciplineBrowserE2eStatics } from './discipline-browser-e2e-statics';
 
-const inOrchestrator = (needle: string): boolean =>
-  disciplineBrowserE2eStatics.orchestratorMarkdown.includes(needle);
+const { operatorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
+  disciplineBrowserE2eStatics;
 
-const inPlanner = (needle: string): boolean =>
-  disciplineBrowserE2eStatics.plannerMarkdown.includes(needle);
+// The half of the reviewer block this file authored — the shared judging spine is governed by its
+// own colocated test.
+const AUTHORED_REVIEWER = reviewerMarkdown
+  .split(flowEvidenceContractStatics.judgingMarkdown)
+  .join('');
 
-const inWorker = (needle: string): boolean =>
-  disciplineBrowserE2eStatics.workerMarkdown.includes(needle);
-
-const inReviewer = (needle: string): boolean =>
-  disciplineBrowserE2eStatics.reviewerMarkdown.includes(needle);
+const FORBIDDEN_IN_AN_OPERATOR_BLOCK = [
+  'get-architecture',
+  'get-syntax-rules',
+  'get-testing-patterns',
+  'discover',
+  'get-project-map',
+  'get-project-inventory',
+  'get-folder-detail',
+  'get-blight-checklist',
+  'npm run ward',
+  'git log',
+  'git diff',
+  'git commit',
+];
 
 describe('disciplineBrowserE2eStatics', () => {
-  it('VALID: exported value => carries exactly the four discipline blocks as non-empty strings', () => {
+  it('VALID: exported value => carries exactly the four blocks, all non-empty strings', () => {
     expect(disciplineBrowserE2eStatics).toStrictEqual({
-      orchestratorMarkdown: expect.stringMatching(/^.+$/su),
+      operatorMarkdown: expect.stringMatching(/^.+$/su),
       plannerMarkdown: expect.stringMatching(/^.+$/su),
       workerMarkdown: expect.stringMatching(/^.+$/su),
       reviewerMarkdown: expect.stringMatching(/^.+$/su),
     });
   });
 
-  // The blocks are interpolated INTO templates that own the placeholders. A pack carrying one of its
-  // own would either swallow the template's substitution or leave an unsubstituted token in a prompt.
-  it('VALID: every block => carries no template placeholder of its own', () => {
-    const placeholders = ['$DISCIPLINE', '$ARGUMENTS'];
-
-    expect({
-      orchestrator: placeholders.filter((token) => inOrchestrator(token)),
-      planner: placeholders.filter((token) => inPlanner(token)),
-      worker: placeholders.filter((token) => inWorker(token)),
-      reviewer: placeholders.filter((token) => inReviewer(token)),
-    }).toStrictEqual({
-      orchestrator: [],
-      planner: [],
-      worker: [],
-      reviewer: [],
+  describe('operatorMarkdown is two fields and nothing else', () => {
+    it('VALID: operatorMarkdown => carries exactly RESOURCE and RESET, in that order', () => {
+      expect(
+        Array.from(operatorMarkdown.matchAll(/\*\*([A-Z]+):\*\*/gu)).map((match) => match[1]),
+      ).toStrictEqual(['RESOURCE', 'RESET']);
     });
-  });
 
-  // The orchestrator template's whole design is a session whose context CANNOT fill up, because it
-  // never opens source. A discipline that hands one of these tools back de-gates that budget, and the
-  // minions load them anyway. `DISCOVERY MISMATCH` is deliberately the uppercased ward output, which
-  // is not the tool name.
-  it('VALID: orchestratorMarkdown => names none of the repo-exploration or standards tools', () => {
-    const forbidden = [
-      'get-architecture',
-      'get-syntax-rules',
-      'get-testing-patterns',
-      'discover',
-      'get-project-map',
-      'get-project-inventory',
-      'get-folder-detail',
-    ];
-
-    expect(forbidden.filter((tool) => inOrchestrator(tool))).toStrictEqual([]);
-  });
-
-  // 2,500 for the orchestrator (it runs the whole loop on one context) and 6,500 for each minion
-  // block. `reviewerMarkdown` is measured over the prose authored HERE: the interpolated evidence
-  // contract is governed by its own colocated test, and counting it twice would price a shared block
-  // as a pack cost.
-  it('VALID: every block => stays inside its authored-character budget', () => {
-    const reviewerAuthored = disciplineBrowserE2eStatics.reviewerMarkdown.replace(
-      flowEvidenceContractStatics.judgingMarkdown,
-      '',
-    );
-
-    expect({
-      orchestrator: disciplineBrowserE2eStatics.orchestratorMarkdown.length <= 2500,
-      planner: disciplineBrowserE2eStatics.plannerMarkdown.length <= 6500,
-      worker: disciplineBrowserE2eStatics.workerMarkdown.length <= 6500,
-      reviewerAuthored: reviewerAuthored.length <= 6500,
-    }).toStrictEqual({
-      orchestrator: true,
-      planner: true,
-      worker: true,
-      reviewerAuthored: true,
+    it('VALID: operatorMarkdown => names no tool the operator template forbids', () => {
+      expect(
+        FORBIDDEN_IN_AN_OPERATOR_BLOCK.filter((tool) => operatorMarkdown.includes(tool)),
+      ).toStrictEqual([]);
     });
-  });
 
-  describe('orchestratorMarkdown', () => {
-    // Naming the sibling track returns the exact complement of this role's work, so its
-    // `remainingItemIds` clears at zero while the completion gate refuses `done` — a stall with no
-    // visible cause unless the consequence is written down.
-    it('VALID: block => keys the denominator on the ROLE name and names the sibling-track cost', () => {
+    it('VALID: operatorMarkdown => stays inside the budget that keeps this session small', () => {
+      expect(operatorMarkdown.length).toBeLessThan(1_200);
+    });
+
+    // `RESOURCE: none` is the interesting one here: the server an e2e run needs comes up from the
+    // project's Playwright `webServer` config and goes down with the run, so this operator is given
+    // no dev server and needs none. Saying so is what stops it going looking for one.
+    it('VALID: operatorMarkdown => is both fields as none, with the webServer explaining the first', () => {
       expect({
-        oneFlowsWalk: inOrchestrator("**ONE runtime flow's browser walk**"),
-        playwrightOnly: inOrchestrator('output is Playwright and only Playwright'),
-        call: inOrchestrator("`get-qa-checklist({ questId, flowId, track: 'groundstomper' })`"),
-        trackIsTheRole: inOrchestrator('**The track name is your ROLE.**'),
-        siblingReturnsComplement: inOrchestrator('the exact complement of\nyour work'),
-        clearsAtZero: inOrchestrator(
-          'would clear at zero while your own completion gate refuses\n`done`',
+        resourceNoneDeliberate: operatorMarkdown.includes(
+          '**RESOURCE:** none, and that is deliberate.',
         ),
+        webServerConfig: operatorMarkdown.includes(
+          "declared in the project's\nPlaywright `webServer` config",
+        ),
+        baseUrlRelative: operatorMarkdown.includes(
+          'the specs navigate\n`baseURL`-relative so no URL ever reaches a test',
+        ),
+        resetNone: operatorMarkdown.includes('**RESET:** none.'),
+        noScopeProse: operatorMarkdown.includes('runtime flow'),
+        noDenominatorProse: operatorMarkdown.includes('denominator'),
+        noEmptyRule: operatorMarkdown.includes('seeded in error'),
       }).toStrictEqual({
-        oneFlowsWalk: true,
-        playwrightOnly: true,
-        call: true,
-        trackIsTheRole: true,
-        siblingReturnsComplement: true,
-        clearsAtZero: true,
-      });
-    });
-
-    // Resolving by KIND is what lets the role run in a repo with several UI packages or none, and the
-    // empty case is a seeding error rather than work — a session that treats it as work invents specs.
-    it('EMPTY: block => resolves the package set by kind and signals done on an empty set', () => {
-      expect({
-        byPackageType: inOrchestrator(
-          'resolved from `packagesAffected` by `packageType` (the browser-reachable kinds)',
-        ),
-        neverByName: inOrchestrator('**never from a\npackage name you recognised**'),
-        isASet: inOrchestrator('a repo may have several UI packages, and it may\nhave none'),
-        seededInError: inOrchestrator(
-          '**If the set is empty this item was seeded in error — say so plainly and signal `done`.**',
-        ),
-      }).toStrictEqual({
-        byPackageType: true,
-        neverByName: true,
-        isASet: true,
-        seededInError: true,
-      });
-    });
-
-    it('VALID: block => leaves the sub-browser layers to Flowrider rather than asserting them', () => {
-      expect({
-        notTheWholeSuite: inOrchestrator('**You are not the whole test suite for this flow.**'),
-        flowriderRunsAhead: inOrchestrator(
-          'Flowrider owns every layer below the browser and\nruns ahead of you',
-        ),
-        sayAndLeave: inOrchestrator('Where the flow goes deeper, say so and leave it'),
-        falseGreen: inOrchestrator(
-          'asserting a server-side claim\nthrough the browser is a false green',
-        ),
-      }).toStrictEqual({
-        notTheWholeSuite: true,
-        flowriderRunsAhead: true,
-        sayAndLeave: true,
-        falseGreen: true,
-      });
-    });
-
-    // The config is install-time scaffolding every sibling item on the quest shares, so an edit there
-    // is last-write-wins across sessions that never see each other. The missing-webServer case has a
-    // sign-off answer precisely so it is not answered with an edit.
-    it('VALID: block => never stands a dev server up and never edits the Playwright config', () => {
-      expect({
-        noDevServer: inOrchestrator('**You never touch a dev server and are not given one.**'),
-        webServerOwnsIt: inOrchestrator(
-          "the project's Playwright `webServer` config, brought up for the run and torn down with it",
-        ),
-        baseUrlRelative: inOrchestrator(
-          'navigate `baseURL`-relative so no URL ever reaches a test',
-        ),
-        neverEditConfig: inOrchestrator('**Never edit the Playwright\nconfig**'),
-        sharedTree: inOrchestrator('sibling items work\nagainst this same tree'),
-        missingWebServer: inOrchestrator(
-          'If a resolved package declares no `webServer`, every unit it blocks is\nsigned `unconfirmable`',
-        ),
-      }).toStrictEqual({
-        noDevServer: true,
-        webServerOwnsIt: true,
+        resourceNoneDeliberate: true,
+        webServerConfig: true,
         baseUrlRelative: true,
-        neverEditConfig: true,
-        sharedTree: true,
-        missingWebServer: true,
+        resetNone: true,
+        noScopeProse: false,
+        noDenominatorProse: false,
+        noEmptyRule: false,
       });
     });
 
-    // The off-map families are a hand-off; the fixture rule underneath one of them never was, so the
-    // exception has to be stated with the hand-off or it reads as fully delegated.
-    it('VALID: block => hands off the off-map families but keeps the benign-input hole', () => {
+    // The seeded-in-error answer moved to the session that RESOLVES the package set — the operator
+    // cannot resolve it, so it could only have relayed a rule about a value it never sees.
+    it('VALID: plannerMarkdown => owns the empty-package-set and zero-unit answers', () => {
       expect({
-        siegemastersCharter: inOrchestrator(
-          "hostile-input, perf and their siblings — are Siegemaster's charter",
+        seededInError: plannerMarkdown.includes(
+          '**An EMPTY set means this item was seeded in\n   error**',
         ),
-        outsideDenominator: inOrchestrator('sit\noutside your denominator'),
-        neverWasAHandoff: inOrchestrator('**with one exception that never was a hand-off'),
-        ownFixtureRule: inOrchestrator(
-          'seeding only well-behaved\nvalues is your own fixture rule',
+        zeroChunkPlan: plannerMarkdown.includes(
+          'write a plan with zero chunks whose `SUMMARY` says exactly that',
         ),
-        holeOnYourSide: inOrchestrator(
-          'a benign-input monoculture in these specs is a hole on YOUR\nside',
+        zeroUnitsSameAnswer: plannerMarkdown.includes('Zero units in scope gets the same answer.'),
+        neitherIsAWall: plannerMarkdown.includes(
+          'Neither is a wall, and neither is a\n   reason to widen anything.',
         ),
       }).toStrictEqual({
-        siegemastersCharter: true,
-        outsideDenominator: true,
-        neverWasAHandoff: true,
-        ownFixtureRule: true,
-        holeOnYourSide: true,
-      });
-    });
-
-    // An e2e-and-harness file set has no Jest counterpart, so the mismatch is the NORMAL outcome here
-    // rather than an exception — a session reading it as a break widens scope or reaches for a flag.
-    it('VALID: block => reads DISCOVERY MISMATCH as a narrowing, never as a break', () => {
-      expect({
-        expectItEveryRun: inOrchestrator(
-          '**You will hit the ward narrowing case almost every run**',
-        ),
-        noJestCounterpart: inOrchestrator('an e2e-and-harness file set has\nno Jest counterpart'),
-        meaningOfTheRed: inOrchestrator(
-          'a red meaning "this check had nothing to\ndo here", not "your code is broken"',
-        ),
-        theChecks: inOrchestrator('(`--only lint,typecheck,e2e -- <files>`)'),
-        sayWhichInCommit: inOrchestrator('say in the commit which you ran and why'),
-        noPassWithNoTests: inOrchestrator('**Never reach\nfor `--passWithNoTests`.**'),
-      }).toStrictEqual({
-        expectItEveryRun: true,
-        noJestCounterpart: true,
-        meaningOfTheRed: true,
-        theChecks: true,
-        sayWhichInCommit: true,
-        noPassWithNoTests: true,
+        seededInError: true,
+        zeroChunkPlan: true,
+        zeroUnitsSameAnswer: true,
+        neitherIsAWall: true,
       });
     });
   });
 
-  describe('plannerMarkdown', () => {
-    // A duplicate suite is invisible in a green run, which is why the inventory is ordered and
-    // blocking rather than advisory. Step 3 is the one that gets skipped: reading a filename is
-    // cheaper than opening the spec, and it is wrong often enough to have its own sentence.
-    it('VALID: block => orders the inventory and opens specs rather than reading their names', () => {
+  // On this discipline the proof is mostly MUTATION rather than red-first, because the behaviour a
+  // walk covers usually already works — which is precisely why a worker template that hard-coded
+  // red-first was wrong for four packs out of five.
+  describe('workerMarkdown carries the two headings the worker template points at', () => {
+    it('VALID: workerMarkdown => carries ### The work and ### The proof, work first', () => {
       expect({
-        mostExpensiveMistake: inPlanner(
-          '**Inventory before you author — a parallel suite standing beside one that already covered the path\nis the most expensive mistake this role can make, and it is invisible in a green run.**',
-        ),
-        resolveByType: inPlanner(
-          '**Resolve the e2e-eligible packages from `packagesAffected` by `packageType`**',
-        ),
-        listEveryE2e: inPlanner("`discover({ glob: '<e2e-package>/src/**/*.e2e.ts' })`"),
-        wholeExistingSurface: inPlanner('is the whole existing surface you might be extending'),
-        openTheSpecs: inPlanner(
-          "**OPEN the specs whose `page.goto` target matches this flow's entry node, and open the harnesses\n   they import.**",
-        ),
-        neverCreditByName: inPlanner(
-          '*Do not credit a file by its name — a filename that sounds like your flow routinely\n   asserts something else entirely.*',
-        ),
-      }).toStrictEqual({
-        mostExpensiveMistake: true,
-        resolveByType: true,
-        listEveryE2e: true,
-        wholeExistingSurface: true,
-        openTheSpecs: true,
-        neverCreditByName: true,
-      });
+        work: /^### The work$/mu.test(workerMarkdown),
+        proof: /^### The proof$/mu.test(workerMarkdown),
+        workFirst: workerMarkdown.indexOf('### The work') < workerMarkdown.indexOf('### The proof'),
+      }).toStrictEqual({ work: true, proof: true, workFirst: true });
     });
 
-    // Per-flow verdicts are how both failure modes ship: a duplicate suite and a case bolted into an
-    // unrelated spec. Both wrong answers are named because "decide per unit" alone reads as advice.
-    it('VALID: block => decides extend-vs-add per UNIT with three named verdicts', () => {
-      expect({
-        perUnit: inPlanner('**Decide extend-vs-add PER UNIT, not per flow.**'),
-        alreadyCovered: inPlanner(
-          '**already covered** (naming the spec `file:line` and the assertion you read)',
-        ),
-        extend: inPlanner('**extend** (naming the spec file the case goes into)'),
-        add: inPlanner(
-          '**add** (naming the new file and why no\n   existing spec is the right home)',
-        ),
-        wrongAdd: inPlanner(
-          '*A whole flow marked "add" while three specs already walk its\n   entry route is a wrong answer',
-        ),
-        wrongExtend: inPlanner(
-          'so is a whole flow marked "extend" into a spec that asserts\n   something unrelated.*',
-        ),
-        unitIdsAreGradeable: inPlanner(
-          "piece's `unitIds` are the terminal, branch and observable ids that one spec must cover",
-        ),
-      }).toStrictEqual({
-        perUnit: true,
-        alreadyCovered: true,
-        extend: true,
-        add: true,
-        wrongAdd: true,
-        wrongExtend: true,
-        unitIdsAreGradeable: true,
-      });
-    });
+    it('VALID: ### The work => walks every terminal and drives state through the UI', () => {
+      const work = workerMarkdown.slice(
+        workerMarkdown.indexOf('### The work'),
+        workerMarkdown.indexOf('### The proof'),
+      );
 
-    it('VALID: block => colocates each spec at the route folder its walk starts in', () => {
       expect({
-        path: inPlanner('`<e2e-package>/src/flows/<route>/<feature>.e2e.ts`'),
-        routeIsTheGoto: inPlanner(
-          'where `<route>` is the route folder the test STARTS at (its `page.goto` target)',
+        steps: Array.from(work.matchAll(/^\d\. \*\*/gmu)).map((match) => match[0]),
+        everyTerminal: work.includes('**One test per path** from the entry node to EVERY terminal'),
+        allBranches: work.includes('cover ALL branches, success and failure'),
+        happyPathIsTheFailure: work.includes(
+          '*"I covered the happy path and stopped" is the\n   most common way this role fails',
         ),
-        packageWasResolved: inPlanner(
-          '`<e2e-package>` is a package you RESOLVED, never a path you assumed',
+        oneAssertionPerObservable: work.includes('**One assertion per observable**'),
+        noToBeVisibleStandIn: work.includes('never a weaker `toBeVisible()` stand-in'),
+        fullTransition: work.includes('**Assert the full transition**'),
+        twoOfAnything: work.includes('**Seed two of anything an assertion must discriminate.**'),
+        throughTheUi: work.includes('**Drive state through the UI, not around it.**'),
+        preconditionSeedingIsFine: work.includes(
+          'Seeding a PRECONDITION through the server or the\n   file system is fine',
         ),
-        bridgingCase: inPlanner(
-          'Where the test starts is where\nit lives, even when it bridges two UIs.',
-        ),
-        oneFilePerPiece: inPlanner("One piece is one `.e2e.ts` file's worth of walk"),
+        waitForElements: work.includes('**Wait for elements, never for a duration.**'),
+        mayFixADefect: work.includes('**You may fix a genuine defect your walk exposes**'),
       }).toStrictEqual({
-        path: true,
-        routeIsTheGoto: true,
-        packageWasResolved: true,
-        bridgingCase: true,
-        oneFilePerPiece: true,
-      });
-    });
-
-    // A prior role has usually already paid for the fault levers, and the measured cost of not
-    // looking is a concrete rediscovery — kept concrete so the instruction is not read as generic
-    // reuse advice.
-    it('VALID: block => mines existing harnesses for levers with the measured rediscovery cost', () => {
-      expect({
-        leversNotFixtures: inPlanner('## Mine the existing harnesses for LEVERS, not fixtures'),
-        readThemFirst: inPlanner(
-          '**Read `packages/*/test/harnesses/**` before you design a fault lever**',
-        ),
-        nameItInNotes: inPlanner("name the\nlever you found in the owning piece's `notes`"),
-        measuredCost: inPlanner('one session lost\n2m11s'),
-        offlineLesson: inPlanner(
-          '`context.setOffline(true)` does NOT close an established WebSocket in\nChromium',
-        ),
-        hmrLesson: inPlanner("closing Vite's HMR socket reloads the document"),
-      }).toStrictEqual({
-        leversNotFixtures: true,
-        readThemFirst: true,
-        nameItInNotes: true,
-        measuredCost: true,
-        offlineLesson: true,
-        hmrLesson: true,
-      });
-    });
-  });
-
-  describe('workerMarkdown', () => {
-    // Terminals with no signature are the only visible trace of a happy-path-only walk, and they
-    // surface at the reviewer rather than in the run, so the branch mandate carries its failure mode.
-    it('VALID: block => walks every terminal and every branch, failures included', () => {
-      expect({
-        onePerPath: inWorker('**One test per path**'),
-        everyTerminal: inWorker('to EVERY terminal your piece owns'),
-        allBranches: inWorker('cover ALL branches, success and failure'),
-        failuresAreFirstClass: inWorker(
-          'An error toast, a 4xx rendering, a\n  rejection terminal is first-class, never optional',
-        ),
-        namedFailureMode: inWorker(
-          '*"I covered the happy path and stopped" is the\n  most common way this role fails, and it shows up only as terminal ids with no signature.*',
-        ),
-      }).toStrictEqual({
-        onePerPath: true,
+        steps: ['1. **', '2. **', '3. **', '4. **', '5. **', '6. **', '7. **'],
         everyTerminal: true,
         allBranches: true,
-        failuresAreFirstClass: true,
-        namedFailureMode: true,
-      });
-    });
-
-    it('VALID: block => asserts exact values, the full transition, and two of anything discriminated', () => {
-      expect({
-        onePerObservable: inWorker('**One assertion per observable**'),
-        exactValues: inWorker('exact text, exact count, exact\n  state'),
-        noVisibleStandIn: inWorker('never a weaker `toBeVisible()` stand-in'),
-        fullTransition: inWorker(
-          '**Assert the full transition**: the request that went out, the old state gone, the new state\n  visible.',
-        ),
-        twoOfAnything: inWorker('**Two of anything an assertion must discriminate.**'),
-        offByIndexPasses: inWorker('an off-by-index bug passes'),
-      }).toStrictEqual({
-        onePerObservable: true,
-        exactValues: true,
-        noVisibleStandIn: true,
+        happyPathIsTheFailure: true,
+        oneAssertionPerObservable: true,
+        noToBeVisibleStandIn: true,
         fullTransition: true,
         twoOfAnything: true,
-        offByIndexPasses: true,
-      });
-    });
-
-    // Seeding a precondition is fine; performing the named mutation around the UI removes the control,
-    // the handler and the request body — everything the walk exists to observe.
-    it('VALID: block => drives the named mutation through the UI and waits on elements', () => {
-      expect({
-        throughTheUi: inWorker('**Drive state through the UI, not around it.**'),
-        preconditionIsFine: inWorker(
-          'Seeding a PRECONDITION through the server or the\n  file system is fine',
-        ),
-        namedMutationIsNot: inWorker(
-          'performing the mutation the test is NAMED for that way is not',
-        ),
-        whatItSkips: inWorker('it skips the\n  control, the handler and the request body'),
-        noSleep: inWorker('**Wait for elements, never for a duration.**'),
-        sleepIsAFlake: inWorker('An arbitrary sleep is a flake with a timer on it.'),
-      }).toStrictEqual({
         throughTheUi: true,
-        preconditionIsFine: true,
-        namedMutationIsNot: true,
-        whatItSkips: true,
-        noSleep: true,
-        sleepIsAFlake: true,
+        preconditionSeedingIsFine: true,
+        waitForElements: true,
+        mayFixADefect: true,
       });
     });
 
-    // Red-first is impossible when the behaviour already works, which is the common case for a walk
-    // authored after the implementation landed — so the mutation route is spelled out with its revert.
-    it('VALID: block => proves each case bites by a witnessed red or a reverted mutation', () => {
+    it('VALID: ### The proof => leads on mutation, because the behaviour usually already works', () => {
+      const proof = workerMarkdown.slice(workerMarkdown.indexOf('### The proof'));
+
       expect({
-        watchItFail: inWorker(
-          '**Watch each new case fail before you make it pass, and capture the failure output.**',
+        watchItFail: proof.includes('**Watch each new case fail before you make it pass'),
+        mostOfThem: proof.includes('which on this discipline is\nmost of them'),
+        mutation: proof.includes('prove the test bites by MUTATION'),
+        revertByEditing: proof.includes(
+          'revert BY EDITING the line back (never `git checkout --`)',
         ),
-        mutationRoute: inWorker('prove the test bites by **mutation**'),
-        breakRunRevert: inWorker(
-          'break the production line it guards, run it, capture the red, revert it, and confirm the file reads\nexactly as it did before',
+        readsExactlyAsBefore: proof.includes('confirm the file\nreads exactly as it did before'),
+        evidencePerUnit: proof.includes('`EVIDENCE` carries, per unit'),
+        whatMakesItFail: proof.includes('**what makes\nit fail**'),
+        saysWhichSource: proof.includes(
+          'saying whether it came from red-first or from a mutation you reverted',
+        ),
+        theSentenceTest: proof.includes(
+          '**An assertion you cannot name\na failing value for is a sentence that happens to be true, not a test.**',
         ),
       }).toStrictEqual({
         watchItFail: true,
-        mutationRoute: true,
-        breakRunRevert: true,
+        mostOfThem: true,
+        mutation: true,
+        revertByEditing: true,
+        readsExactlyAsBefore: true,
+        evidencePerUnit: true,
+        whatMakesItFail: true,
+        saysWhichSource: true,
+        theSentenceTest: true,
       });
     });
 
-    it('VALID: block => may fix a defect it exposes but never edits shared e2e scaffolding', () => {
+    // Sibling items walk their own flows against this same tree, so a config or harness edit here is
+    // last-write-wins across sessions the worker cannot see.
+    it('VALID: workerMarkdown => bans editing the Playwright config or another flow harness', () => {
       expect({
-        mayFix: inWorker('**You may fix a genuine defect your walk exposes**'),
-        redFirstAndReport: inWorker('red test first, and report it in your return'),
-        closeNotRebuild: inWorker('Close the hole;\ndo not rebuild the feature.'),
-        neverConfigOrHarness: inWorker(
+        ban: workerMarkdown.includes(
           "**Never edit the Playwright config, and never edit a harness another flow's session owns.**",
         ),
-        lastWriteWins: inWorker('an edit there is last-write-wins'),
-        askInsteadOfReaching: inWorker(
-          'If your\nwalk needs a lever no harness carries, say so in your return rather than reaching for one.',
+        sameTree: workerMarkdown.includes(
+          'Sibling\nitems walk their own flows against this same tree',
+        ),
+        lastWriteWins: workerMarkdown.includes('an edit there is last-write-wins'),
+        sayInsteadOfReaching: workerMarkdown.includes(
+          'say so in `GOTCHAS` rather than reaching for one',
         ),
       }).toStrictEqual({
-        mayFix: true,
-        redFirstAndReport: true,
-        closeNotRebuild: true,
-        neverConfigOrHarness: true,
+        ban: true,
+        sameTree: true,
         lastWriteWins: true,
-        askInsteadOfReaching: true,
+        sayInsteadOfReaching: true,
+      });
+    });
+  });
+
+  // The extend-vs-add inventory is the load-bearing part of this role. A parallel suite standing
+  // beside one that already covered the path is the most expensive mistake available here, and it is
+  // invisible in a green run.
+  describe('plannerMarkdown is inventory-first', () => {
+    it('VALID: plannerMarkdown => runs the four inventory steps in order and decides PER UNIT', () => {
+      expect({
+        inventoryFirst: plannerMarkdown.includes('**Inventory before you author'),
+        parallelSuiteIsTheMistake: plannerMarkdown.includes(
+          'a parallel suite standing beside one that already covered the path\nis the most expensive mistake this role can make',
+        ),
+        steps: Array.from(plannerMarkdown.matchAll(/^\d\. \*\*/gmu)).map((match) => match[0]),
+        resolveByPackageType: plannerMarkdown.includes(
+          '**Resolve the e2e-eligible packages from `packagesAffected` by `packageType`**',
+        ),
+        neverAssumeAPath: plannerMarkdown.includes(
+          'Never\n   assume a package path from a name you recognised.',
+        ),
+        listEveryE2e: plannerMarkdown.includes('**List every `.e2e.ts` in those packages**'),
+        openTheSpecs: plannerMarkdown.includes('**OPEN the specs whose `page.goto` target matches'),
+        doNotCreditAFile: plannerMarkdown.includes('*Do not credit a file by its name'),
+        perUnitNotPerFlow: plannerMarkdown.includes(
+          '**Decide extend-vs-add PER UNIT, not per flow.**',
+        ),
+        threeVerdicts: plannerMarkdown.includes('**already\n   covered**'),
+        verdictsAreThePlan: plannerMarkdown.includes('Those verdicts ARE the plan'),
+      }).toStrictEqual({
+        inventoryFirst: true,
+        parallelSuiteIsTheMistake: true,
+        steps: ['1. **', '2. **', '3. **', '4. **'],
+        resolveByPackageType: true,
+        neverAssumeAPath: true,
+        listEveryE2e: true,
+        openTheSpecs: true,
+        doNotCreditAFile: true,
+        perUnitNotPerFlow: true,
+        threeVerdicts: true,
+        verdictsAreThePlan: true,
+      });
+    });
+
+    // This role hits the narrowing case on almost every run, because an e2e-and-harness file set has
+    // no Jest counterpart. Writing the invocation here is what stops five sessions each guessing it.
+    it('VALID: plannerMarkdown => writes the e2e ward invocation and forbids passWithNoTests', () => {
+      expect({
+        theInvocation: plannerMarkdown.includes(
+          "**`WARD` per chunk: `npm run ward -- --only lint,typecheck,e2e -- <the chunk's files>`.**",
+        ),
+        noJestCounterpart: plannerMarkdown.includes('has no Jest counterpart'),
+        everyChunk: plannerMarkdown.includes(
+          'this is the invocation that applies on every\nchunk of this discipline',
+        ),
+        noPassWithNoTests: plannerMarkdown.includes('**Never reach for `--passWithNoTests`**'),
+        mismatchIsAnAnswer: plannerMarkdown.includes(
+          'that is ward answering the question,\nnot failing',
+        ),
+      }).toStrictEqual({
+        theInvocation: true,
+        noJestCounterpart: true,
+        everyChunk: true,
+        noPassWithNoTests: true,
+        mismatchIsAnAnswer: true,
+      });
+    });
+
+    it('VALID: plannerMarkdown => places a spec by its entry route and mines harnesses for levers', () => {
+      expect({
+        colocates: plannerMarkdown.includes('`<e2e-package>/src/flows/<route>/<feature>.e2e.ts`'),
+        whereItStarts: plannerMarkdown.includes(
+          'Where the test starts is where\nit lives, even when it bridges two UIs.',
+        ),
+        neverTheSameSpecPath: plannerMarkdown.includes(
+          'Two chunks must never name the same spec path',
+        ),
+        leversNotFixtures: plannerMarkdown.includes(
+          '## Mine the existing harnesses for LEVERS, not fixtures',
+        ),
+        readHarnessesFirst: plannerMarkdown.includes(
+          '**Read `packages/*/test/harnesses/**` before you design a fault lever**',
+        ),
+        theMeasuredCost: plannerMarkdown.includes('one session lost\n2m11s relearning'),
+      }).toStrictEqual({
+        colocates: true,
+        whereItStarts: true,
+        neverTheSameSpecPath: true,
+        leversNotFixtures: true,
+        readHarnessesFirst: true,
+        theMeasuredCost: true,
+      });
+    });
+
+    it('VALID: plannerMarkdown => leaves the deeper layers to the sibling role and keeps the fixture rule', () => {
+      expect({
+        notTheWholeSuite: plannerMarkdown.includes(
+          '**You are not the whole test suite for this flow.**',
+        ),
+        deeperIsAFalseGreen: plannerMarkdown.includes(
+          'asserting a\nserver-side claim through the browser is a false green',
+        ),
+        offMapIsAnotherRole: plannerMarkdown.includes('**Off-map probe families**'),
+        exceptTheFixtureRule: plannerMarkdown.includes(
+          '**with one exception that never was a hand-off',
+        ),
+        noWebServerBlocksUnits: plannerMarkdown.includes(
+          '**A resolved package declaring no `webServer` blocks every unit it owns.**',
+        ),
+      }).toStrictEqual({
+        notTheWholeSuite: true,
+        deeperIsAFalseGreen: true,
+        offMapIsAnotherRole: true,
+        exceptTheFixtureRule: true,
+        noWebServerBlocksUnits: true,
+      });
+    });
+  });
+
+  // The judging spine is INTERPOLATED and the authoring half is deliberately absent: this pack's
+  // worker does not need the modality-choice method, and carrying both put the same 8,281 characters
+  // into two prompts at once.
+  describe('the shared evidence contract', () => {
+    it('VALID: reviewerMarkdown => opens on the judging half and carries no authoring half anywhere', () => {
+      expect({
+        judgingIsTheSpine: reviewerMarkdown.startsWith(flowEvidenceContractStatics.judgingMarkdown),
+        reviewerAuthoring: reviewerMarkdown.includes(flowEvidenceContractStatics.authoringMarkdown),
+        workerAuthoring: workerMarkdown.includes(flowEvidenceContractStatics.authoringMarkdown),
+        workerJudging: workerMarkdown.includes(flowEvidenceContractStatics.judgingMarkdown),
+      }).toStrictEqual({
+        judgingIsTheSpine: true,
+        reviewerAuthoring: false,
+        workerAuthoring: false,
+        workerJudging: false,
       });
     });
   });
 
   describe('reviewerMarkdown', () => {
-    // Interpolated, never copied: the evidence contract is the shared spine of every verification
-    // track, and a pack-local copy is the one that drifts when the false-green catalogue grows.
-    it('VALID: block => interpolates the shared evidence contract exactly once', () => {
-      const { reviewerMarkdown } = disciplineBrowserE2eStatics;
-
+    // Two roles write the SAME field over DISJOINT package kinds, so signing one of these never
+    // settles one of the sibling's units.
+    it('VALID: reviewerMarkdown => signs flowriderSignoff over the disjoint complement, batched', () => {
       expect({
-        occurrences: reviewerMarkdown.split(flowEvidenceContractStatics.judgingMarkdown).length - 1,
-        leadsWithIt: reviewerMarkdown.startsWith(flowEvidenceContractStatics.judgingMarkdown),
-        carriesTheAuthoringHalf: reviewerMarkdown.includes(
-          flowEvidenceContractStatics.authoringMarkdown,
+        sameFieldDisjoint: AUTHORED_REVIEWER.includes(
+          'the sibling role writes the\nSAME field over the DISJOINT complement',
         ),
-      }).toStrictEqual({
-        occurrences: 1,
-        leadsWithIt: true,
-        carriesTheAuthoringHalf: false,
-      });
-    });
-
-    // The five standing concerns are discipline-independent and the reviewer template carries them
-    // beside this slot. A pack-local restatement is a second copy an agent reads instead of the one
-    // that gets maintained.
-    it('VALID: block => restates none of the standing standards-review concerns', () => {
-      const concerns = ['dedup', 'integrity', 'test-cases', 'get-blight-checklist'];
-
-      expect({
-        sharedBlock: inReviewer(standardsReviewConcernsStatics.markdown),
-        concernNames: concerns.filter((concern) => inReviewer(concern)),
-      }).toStrictEqual({
-        sharedBlock: false,
-        concernNames: [],
-      });
-    });
-
-    // The template owns the return shape; a pack that repeats a field name is a second place to edit
-    // when one changes, and the orchestrator routes on the template's spelling.
-    it('VALID: every block => restates none of the reviewer template return fields', () => {
-      const fields = [
-        'VERDICT:',
-        'PIECES:',
-        'FIXES MADE:',
-        'REMAINDER:',
-        'UNFIXABLE:',
-        'SIGNOFFS WRITTEN:',
-        'WARD:',
-      ];
-
-      expect({
-        orchestrator: fields.filter((field) => inOrchestrator(field)),
-        planner: fields.filter((field) => inPlanner(field)),
-        worker: fields.filter((field) => inWorker(field)),
-        reviewer: fields.filter((field) => inReviewer(field)),
-      }).toStrictEqual({
-        orchestrator: [],
-        planner: [],
-        worker: [],
-        reviewer: [],
-      });
-    });
-
-    // Two denominators write ONE field over disjoint package kinds, so a reviewer that thinks it is
-    // settling units generally signs the wrong side's work and leaves its own gate refusing.
-    it('VALID: block => signs flowriderSignoff over the disjoint browser-reachable half, batched', () => {
-      expect({
-        sameFieldDisjoint: inReviewer(
-          'You write `flowriderSignoff` over the browser-reachable package kinds; Flowrider writes the SAME\nfield over the DISJOINT complement',
+        neverSettlesTheSibling: AUTHORED_REVIEWER.includes(
+          'signing one of yours never settles one of its units',
         ),
-        neverSettlesTheirs: inReviewer('signing one of yours never settles one of its units'),
-        confirmedBar: inReviewer(
+        confirmedBar: AUTHORED_REVIEWER.includes(
           '`confirmed` carries a test `file:line` PLUS what makes that test fail',
         ),
-        unconfirmableBar: inReviewer(
-          '`unconfirmable` carries what was tried, why each attempt could not reach it, and a `question`\nsomeone else can pick up',
+        unconfirmableBar: AUTHORED_REVIEWER.includes('`unconfirmable` carries what was tried'),
+        batch: AUTHORED_REVIEWER.includes('**BATCH the writes**'),
+        noWebServerIsUnconfirmable: AUTHORED_REVIEWER.includes(
+          '**A resolved package with no `webServer` declaration blocks every unit it owns**',
         ),
-        batched: inReviewer(
-          '**BATCH the writes** — one `modify-quest` call carrying many, never one\nper unit',
-        ),
+        auditEveryOne: AUTHORED_REVIEWER.includes('**AUDIT EVERY `unconfirmable`'),
       }).toStrictEqual({
         sameFieldDisjoint: true,
-        neverSettlesTheirs: true,
+        neverSettlesTheSibling: true,
         confirmedBar: true,
         unconfirmableBar: true,
-        batched: true,
+        batch: true,
+        noWebServerIsUnconfirmable: true,
+        auditEveryOne: true,
       });
     });
 
-    // An `unconfirmable` closes a unit permanently while sounding responsible, so it is where a
-    // deferral hides — including a predecessor's, which nothing else in the relay ever re-reads.
-    it('VALID: block => audits every unconfirmable, a predecessor included, and owns what it reopens', () => {
+    it('VALID: reviewerMarkdown => hunts the browser-specific false greens, including the config edit', () => {
       expect({
-        audit: inReviewer("**AUDIT EVERY `unconfirmable`, a predecessor's included.**"),
-        soundsResponsible: inReviewer(
-          'It closes a unit permanently while\nsounding responsible, so deferral hides there',
+        wouldPassAgainstBroken: AUTHORED_REVIEWER.includes(
+          'An assertion that would pass against a broken product.',
         ),
-        reopenAssignments: inReviewer(
-          'Reopen any whose evidence names an assignment rather\nthan a wall',
+        hiddenTab: AUTHORED_REVIEWER.includes(
+          '**A geometry or visibility finding taken from a hidden tab.**',
         ),
-        ownership: inReviewer('What you reopen, you own.'),
-      }).toStrictEqual({
-        audit: true,
-        soundsResponsible: true,
-        reopenAssignments: true,
-        ownership: true,
-      });
-    });
-
-    // A hidden tab throttles rAF and stops frame-committed layout, so nodes read invisible with
-    // zero-ish boxes — indistinguishable from a product bug unless the reviewer knows the mechanism.
-    it('VALID: block => catalogues the browser-walk false greens including the hidden-tab reading', () => {
-      expect({
-        passesAgainstBroken: inReviewer('An assertion that would pass against a broken product.'),
-        hiddenTab: inReviewer('**A geometry or visibility finding taken from a hidden tab.**'),
-        mechanism: inReviewer(
-          'A backgrounded tab reads\n  `visibilityState: "hidden"`, which throttles `requestAnimationFrame` and stops frame-committed\n  layout',
+        toBeVisibleStandIn: AUTHORED_REVIEWER.includes(
+          'A `toBeVisible()` standing in for an exact-text claim.',
         ),
-        looksLikeABug: inReviewer(
-          'so nodes read as invisible with zero-ish boxes — it looks exactly like a product bug',
+        duplicateWalk: AUTHORED_REVIEWER.includes(
+          'A spec that duplicates a path an existing spec already walked.',
         ),
-        visibleStandIn: inReviewer('A `toBeVisible()` standing in for an exact-text claim.'),
-        duplicateSpec: inReviewer('A spec that duplicates a path an existing spec already walked.'),
-      }).toStrictEqual({
-        passesAgainstBroken: true,
-        hiddenTab: true,
-        mechanism: true,
-        looksLikeABug: true,
-        visibleStandIn: true,
-        duplicateSpec: true,
-      });
-    });
-
-    // The contested rule: the ban is on AUTHORED specs manufacturing their own values, not on a
-    // hand-driven measurement patching the fetch boundary. Stated as resolved, with the side this
-    // track lands on.
-    it('VALID: block => binds the intercept ban to authored specs and rejects intercepted evidence', () => {
-      expect({
-        resolved: inReviewer(
-          '**One rule the post-mortem left contested, resolved: the intercept ban binds AUTHORED specs.**',
+        configEditIsRework: AUTHORED_REVIEWER.includes(
+          '**A Playwright config or shared harness edited by this round.**',
         ),
-        theBan: inReviewer(
-          'A\nPlaywright spec must not `page.route` its own backend to manufacture a value.',
+        interceptBanBindsAuthoring: AUTHORED_REVIEWER.includes(
+          'the intercept ban binds AUTHORED specs',
         ),
-        siegemastersException: inReviewer(
-          "A hand-driven\nmeasurement in a live browser — Siegemaster's modality, not yours — may patch the fetch boundary",
-        ),
-        bindsHere: inReviewer('on\nthis track you are authoring, so the ban binds you'),
-        rejectEvidence: inReviewer(
-          '**Do not accept a `confirmed` whose evidence\ncame from an intercepted route.**',
-        ),
-      }).toStrictEqual({
-        resolved: true,
-        theBan: true,
-        siegemastersException: true,
-        bindsHere: true,
-        rejectEvidence: true,
-      });
-    });
-
-    // A file count is not a test count, and an e2e suite that discovered specs without running them
-    // reports green in seconds — the one green that has to be re-read rather than accepted.
-    it('VALID: block => refuses an impossibly fast green until per-test durations are read', () => {
-      expect({
-        refuseIt: inReviewer(
+        impossiblyFastRun: AUTHORED_REVIEWER.includes(
           '**If a green run looks impossibly fast for the work it claims, do not accept it.**',
         ),
-        detailCall: inReviewer('`npm run ward -- detail <runId>`'),
-        realDurations: inReviewer('confirm real per-test durations'),
-        countIsNotACount: inReviewer(
+        discoveredIsNotRan: AUTHORED_REVIEWER.includes(
           'A "discovered" file count is\nnot a count of tests that ran.',
         ),
       }).toStrictEqual({
-        refuseIt: true,
-        detailCall: true,
-        realDurations: true,
-        countIsNotACount: true,
+        wouldPassAgainstBroken: true,
+        hiddenTab: true,
+        toBeVisibleStandIn: true,
+        duplicateWalk: true,
+        configEditIsRework: true,
+        interceptBanBindsAuthoring: true,
+        impossiblyFastRun: true,
+        discoveredIsNotRan: true,
       });
+    });
+  });
+
+  describe('budgets', () => {
+    it('VALID: the three minion blocks => each authored half stays inside its budget', () => {
+      expect({
+        planner: plannerMarkdown.length < 9_000,
+        worker: workerMarkdown.length < 9_000,
+        authoredReviewer: AUTHORED_REVIEWER.length < 9_000,
+      }).toStrictEqual({ planner: true, worker: true, authoredReviewer: true });
     });
   });
 });

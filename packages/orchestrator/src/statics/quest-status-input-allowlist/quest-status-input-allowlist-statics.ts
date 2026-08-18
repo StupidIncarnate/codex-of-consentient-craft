@@ -146,7 +146,7 @@ export const questStatusInputAllowlistStatics = {
     // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields:
     // a reviewer-minion writes the per-unit `blightLedger` mid-run — the dispositions its parent's
     // own signal-back review-coverage gate is computed against — and a planner-minion writes
-    // `operationPlans`, the plan its orchestrator reads back rather than holding in context. Every
+    // `operationPlans`, the plan its operator reads back rather than holding in context. Every
     // execution role also appends `questNotes`, the durable side channel for open questions,
     // tooling errors, out-of-scope observations, and walk resets; this is the only status those
     // roles run at, so it is the only status that need accept them. Verification sign-offs are not

@@ -18,7 +18,7 @@
  * three generic minions (`planner-minion` / `worker-minion` / `reviewer-minion`) carry a
  * `$DISCIPLINE` placeholder and this transformer has no discipline to resolve it with, so one
  * arriving here throws rather than serving an unparameterized prompt. EVERY role takes the relay
- * path below, `pesteater` included — as an operation orchestrator it needs its operation item, the
+ * path below, `pesteater` included — as an operator it needs its operation item, the
  * ledger, `packagesAffected` and the user request exactly as its four siblings do.
  *
  * Every parent prompt instructs its minion to fetch with `{ agent, questId }` and NO `workItemId`,
@@ -224,16 +224,16 @@ export const workItemToPromptTransformer = ({
   // order, binding nothing.
   if (linkedOperation.packageNames.length > 0) {
     // A role with no track gets an advisory rather than a scope, and WHICH advisory turns on
-    // whether it is served `operationOrchestratorPromptStatics`. That template's tool table is
+    // whether it is served `operatorPromptStatics`. That template's tool table is
     // EXHAUSTIVE and forbids `discover` / `get-project-map` outright, so naming them here would
     // hand the session a tool its own prompt banned a few screens earlier — and this is the line an
-    // agent acts on. The orchestrator roles are exactly `roleToDisciplineStatics`' keys, read from
+    // agent acts on. The operator roles are exactly `roleToDisciplineStatics`' keys, read from
     // the map rather than listed, so a sixth discipline cannot fall through to the searching
     // wording. `spiritmender` and `warpgate` keep bespoke templates that DO tell them to search.
-    const servedTheOrchestratorTemplate = new Map(Object.entries(roleToDisciplineStatics)).has(
+    const servedTheOperatorTemplate = new Map(Object.entries(roleToDisciplineStatics)).has(
       workItem.role,
     );
-    const nonTrackPackageAdvisory = servedTheOrchestratorTemplate
+    const nonTrackPackageAdvisory = servedTheOperatorTemplate
       ? '(Name these packages in every minion brief you write — the planner and the workers point their own searches here instead of guessing. NOT a boundary: a minion may touch another package if the work needs it.)'
       : '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)';
 

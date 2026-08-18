@@ -181,6 +181,7 @@ describe('questRunRiftcarverBroker', () => {
         '— base branch: main —',
         `— git worktree add ${WORKTREE_PATH} (branch ${BRANCH_NAME}) —`,
         `— baseRef ${HEAD_SHA} —`,
+        `— git push -u origin ${BRANCH_NAME} —`,
         `— mirroring node_modules: ${WORKTREE_PATH} —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
@@ -265,6 +266,7 @@ describe('questRunRiftcarverBroker', () => {
             '— base branch: main —',
             `— git worktree add ${WORKTREE_PATH} (branch ${BRANCH_NAME}) —`,
             `— baseRef ${HEAD_SHA} —`,
+            `— git push -u origin ${BRANCH_NAME} —`,
             `— mirroring node_modules: ${WORKTREE_PATH} —`,
             `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
             '— build pass 1/3 —',
@@ -443,6 +445,7 @@ describe('questRunRiftcarverBroker', () => {
         '— base branch: master —',
         `— git worktree add ${WORKTREE_PATH} (branch ${BRANCH_NAME}) —`,
         `— baseRef ${HEAD_SHA} —`,
+        `— git push -u origin ${BRANCH_NAME} —`,
         `— mirroring node_modules: ${WORKTREE_PATH} —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
@@ -502,6 +505,102 @@ describe('questRunRiftcarverBroker', () => {
         exitCode: 0,
         riftcarverResultId: RIFTCARVER_RESULT_ID,
         outcome: 'green',
+      });
+    });
+  });
+
+  describe('PUSH — the step that makes every later push a bare one', () => {
+    // Pushing at CARVE time is what removes the branching decision from every session downstream:
+    // `@{upstream}` resolves from the moment the quest exists, so a reviewer-minion's
+    // `scope: 'unpushed'` always has a range and no operator ever has to decide about `-u`.
+    it('VALID: {fresh carve, branch tracks nothing} => pushes with -u so the branch is tracked from the start', async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
+      const lines: unknown[] = [];
+      const proxy = questRunRiftcarverBrokerProxy();
+      proxy.setupQuest({
+        quest: QuestStub({
+          id: questId,
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({
+              id: CARVE_OP_ID,
+              role: 'riftcarver',
+              text: CARVE_TEXT,
+              status: 'in_progress',
+              locked: true,
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: workItemId,
+              role: 'riftcarver',
+              status: 'pending',
+              spawnerType: 'command',
+              relatedDataItems: [`operations/${CARVE_OP_ID}`],
+            }),
+          ],
+        }),
+      });
+
+      await questRunRiftcarverBroker({
+        questId,
+        workItemId,
+        onLine: (line: string) => {
+          lines.push(line);
+        },
+      });
+
+      expect(lines.filter((line) => String(line).includes('push'))).toStrictEqual([
+        `— git push -u origin ${BRANCH_NAME} —`,
+      ]);
+    });
+
+    // REPAIRABLE, not blocked: the worktree is fully built and holds every commit, so a spiritmender
+    // has somewhere to work and the pt N retries only the publication. Blocking here would halt a
+    // quest over a network blip.
+    it('VALID: {push fails} => routes repairable naming the push step, so the quest keeps running', async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
+      const carveOp = OperationItemStub({
+        id: CARVE_OP_ID,
+        role: 'riftcarver',
+        text: CARVE_TEXT,
+        status: 'in_progress',
+        locked: true,
+      });
+      const carveItem = WorkItemStub({
+        id: workItemId,
+        role: 'riftcarver',
+        status: 'pending',
+        spawnerType: 'command',
+        relatedDataItems: [`operations/${CARVE_OP_ID}`],
+      });
+      const proxy = questRunRiftcarverBrokerProxy();
+      proxy.setupQuest({
+        quest: QuestStub({
+          id: questId,
+          status: 'in_progress',
+          operations: [carveOp],
+          workItems: [carveItem],
+        }),
+      });
+      proxy.setupPushFails({ output: 'fatal: unable to access remote: Could not resolve host' });
+
+      const result = await questRunRiftcarverBroker({
+        questId,
+        workItemId,
+        onLine: () => undefined,
+      });
+
+      expect(result).toStrictEqual({
+        success: true,
+        questId,
+        workItemId,
+        exitCode: 1,
+        riftcarverResultId: RIFTCARVER_RESULT_ID,
+        outcome: 'repairable',
+        failedStep: 'push',
       });
     });
   });
@@ -1158,6 +1257,7 @@ describe('questRunRiftcarverBroker', () => {
         }),
       });
       proxy.setupExistingWorktree();
+      proxy.setupAlreadyPushed();
 
       await questRunRiftcarverBroker({
         questId,
@@ -1174,6 +1274,7 @@ describe('questRunRiftcarverBroker', () => {
         '— skip base branch: main already recorded and still resolves —',
         `— skip worktree: ${WORKTREE_PATH} is already a live worktree of ${BRANCH_NAME} —`,
         `— skip baseRef: already pinned at ${RECORDED_BASE_REF} —`,
+        `— skip push: ${BRANCH_NAME} already tracks an upstream —`,
         `— mirroring node_modules: ${WORKTREE_PATH} —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
@@ -1375,6 +1476,7 @@ describe('questRunRiftcarverBroker', () => {
         }),
       });
       proxy.setupExistingWorktree();
+      proxy.setupAlreadyPushed();
       proxy.setupWorktreeNodeModulesAlreadyPopulated();
 
       await questRunRiftcarverBroker({
@@ -1395,6 +1497,7 @@ describe('questRunRiftcarverBroker', () => {
         '— skip base branch: main already recorded and still resolves —',
         `— skip worktree: ${WORKTREE_PATH} is already a live worktree of ${BRANCH_NAME} —`,
         `— skip baseRef: already pinned at ${RECORDED_BASE_REF} —`,
+        `— skip push: ${BRANCH_NAME} already tracks an upstream —`,
         `— skip ${WORKTREE_PATH} (node_modules already populated) —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
         '— build pass 1/3 —',
@@ -1437,6 +1540,7 @@ describe('questRunRiftcarverBroker', () => {
         }),
       });
       proxy.setupExistingWorktree();
+      proxy.setupAlreadyPushed();
       proxy.setupWorktreeNodeModulesAlreadyPopulated();
 
       await questRunRiftcarverBroker({ questId, workItemId, onLine: () => undefined });

@@ -1,8 +1,9 @@
 /**
  * PURPOSE: Proxy for quest-get-blight-checklist-broker that mocks quest find/load, the quest's
- * cwd resolution (worktree / repo-root / missing-worktree), and both git readings — the `quest` /
- * `commit` scopes' single diff (`setupDiff`) and the `working-tree` scope's tracked+untracked union
- * (`setupWorkingTreeDiff`)
+ * cwd resolution (worktree / repo-root / missing-worktree), and every git reading — the `quest` /
+ * `commit` scopes' single diff (`setupDiff`), the `working-tree` scope's tracked+untracked union
+ * (`setupWorkingTreeDiff`), and the `unpushed` scope's upstream lookup (`setupUpstream` /
+ * `setupNoUpstream`)
  *
  * USAGE:
  * const proxy = questGetBlightChecklistBrokerProxy();
@@ -11,19 +12,24 @@
  * proxy.setupQuestNotFound();
  */
 
+import { spawn, type ChildProcess } from 'child_process';
+import { EventEmitter, Readable } from 'stream';
 import {
   AbsoluteFilePathStub,
+  ErrorMessageStub,
+  ExitCodeStub,
   FileContentsStub,
   FileNameStub,
   FilePathStub,
   GuildIdStub,
   RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, ExitCode, QuestStub } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { gitDiffFilesAdapterProxy } from '../../../adapters/git/diff-files/git-diff-files-adapter.proxy';
+import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { gitWorkingTreeFilesBrokerProxy } from '../../git/working-tree-files/git-working-tree-files-broker.proxy';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -40,6 +46,48 @@ type Quest = ReturnType<typeof QuestStub>;
 
 const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/home/testuser/my-guild' });
 
+// `scope: 'unpushed'` spawns bare `git` TWICE — `rev-parse @{upstream}` for the range base, then
+// the diff over it — and the shared childProcessSpawnCaptureAdapterProxy addresses on COMMAND
+// alone, staging one sticky answer per command. Staging both there collapses into whichever was
+// registered last, so the upstream half is addressed on its full args instead, exactly as
+// gitWorkingTreeFilesBrokerProxy discriminates its own two `git` readings. The more specific
+// address wins, so `setupDiff`'s command-level answer still serves the diff call.
+const UPSTREAM_ARGS = ['rev-parse', '@{upstream}'];
+
+const createGitChild = ({
+  stdout,
+  exitCode,
+}: {
+  stdout: ErrorMessage;
+  exitCode: ExitCode;
+}): ChildProcess => {
+  const child = new EventEmitter() as ChildProcess;
+  child.stdout = new Readable({
+    read(): void {
+      /* noop */
+    },
+  });
+  child.stderr = new Readable({
+    read(): void {
+      /* noop */
+    },
+  });
+
+  const mockStdout = child.stdout;
+  const mockStderr = child.stderr;
+
+  setImmediate(() => {
+    if (String(stdout).length > 0) {
+      mockStdout.push(Buffer.from(String(stdout)));
+    }
+    mockStdout.push(null);
+    mockStderr.push(null);
+    child.emit('exit', Number(exitCode), null);
+  });
+
+  return child;
+};
+
 export const questGetBlightChecklistBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
@@ -50,6 +98,9 @@ export const questGetBlightChecklistBrokerProxy = (): {
   }) => void;
   setupWorktree: (params: { quest: Quest; worktreePath: string }) => void;
   setupWorktreeMissing: (params: { quest: Quest; worktreePath: string }) => void;
+  setupUpstream: (params: { sha: string }) => void;
+  setupNoUpstream: () => void;
+  wasUpstreamAsked: () => boolean;
   getGitDiffArgs: () => unknown;
   getGitDiffCwd: () => unknown;
   getGitArgsList: () => readonly unknown[];
@@ -63,6 +114,11 @@ export const questGetBlightChecklistBrokerProxy = (): {
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
   const gitDiffProxy = gitDiffFilesAdapterProxy();
   const workingTreeProxy = gitWorkingTreeFilesBrokerProxy();
+  // Created but unstaged, same reason gitWorkingTreeFilesBrokerProxy creates its two adapter
+  // proxies: this proxy answers `spawn` directly for the upstream read, so the adapter proxy's own
+  // command-addressed staging is never exercised.
+  gitUpstreamShaAdapterProxy();
+  const spawnHandle = registerMock({ fn: spawn });
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -162,6 +218,32 @@ export const questGetBlightChecklistBrokerProxy = (): {
         }),
       );
     },
+
+    // What `git rev-parse @{upstream}` answers in the quest's checkout — the base
+    // `scope: 'unpushed'` measures its round from.
+    setupUpstream: ({ sha }: { sha: string }): void => {
+      spawnHandle.calledWith(['git', UPSTREAM_ARGS]).implement(() =>
+        createGitChild({
+          stdout: ErrorMessageStub({ value: `${sha}\n` }),
+          exitCode: ExitCodeStub({ value: 0 }),
+        }),
+      );
+    },
+
+    // A branch tracking nothing. Real state, not an error: it is what a quest carved before
+    // riftcarver started pushing looks like, and it is what sends the scope to its baseRef fallback.
+    setupNoUpstream: (): void => {
+      spawnHandle.calledWith(['git', UPSTREAM_ARGS]).implement(() =>
+        createGitChild({
+          stdout: ErrorMessageStub({ value: '' }),
+          exitCode: ExitCodeStub({ value: 128 }),
+        }),
+      );
+    },
+
+    // Proves the OTHER scopes never reach for an upstream — the property that keeps them untouched
+    // by this parameter rather than merely untested against it.
+    wasUpstreamAsked: (): boolean => spawnHandle.callsMatching(['git', UPSTREAM_ARGS]).length > 0,
 
     getGitDiffArgs: (): unknown => gitDiffProxy.getSpawnedArgs(),
 

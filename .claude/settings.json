@@ -253,7 +253,14 @@
       "mcp__dungeonmaster__reset-flow-signoffs",
       "mcp__dungeonmaster__get-quest-summary",
       "Bash(git checkout:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "mcp__dungeonmaster__run-riftcarver",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)",
+      "Bash(lsof:*)",
+      "Bash(ps:*)",
+      "Bash(python3:*)"
     ],
     "deny": [
       "Bash(sed:*)"

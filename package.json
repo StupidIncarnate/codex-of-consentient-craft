@@ -13,6 +13,7 @@
     "typecheck": "dungeonmaster-ward --only typecheck",
     "ward": "dungeonmaster-ward",
     "ward:changed": "dungeonmaster-ward --changed",
+    "ward:staged": "dungeonmaster-ward --staged",
     "init": "dungeonmaster init",
     "dev": "npm run dev:kill && VERBOSE=1 DUNGEONMASTER_HOME=\"$(pwd)/.dungeonmaster-dev\" DUNGEONMASTER_PORT=$(node -e 'process.stdout.write(String(require(\"./.dungeonmaster.json\").devServer.port))') bash -c 'npm run dev --workspace=@dungeonmaster/server & npm run dev --workspace=@dungeonmaster/web & wait'",
     "dev:kill": "bash scripts/scoped-kill.sh dev",

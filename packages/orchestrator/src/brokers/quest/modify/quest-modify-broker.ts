@@ -251,7 +251,7 @@ export const questModifyBroker = async ({
             // re-planned round carries a FRESH id and its own `round`, so it lands beside the plan
             // it supersedes rather than replacing it — a rejected round stays readable for audit.
             // Re-stating one id corrects that plan in place instead of stacking a second copy the
-            // orchestrator would then have to disambiguate.
+            // operator would then have to disambiguate.
             ...(incomingOperationPlans !== undefined && {
               operationPlans: [
                 ...current.operationPlans.filter(

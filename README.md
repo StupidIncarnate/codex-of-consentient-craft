@@ -76,7 +76,7 @@ and delegating to specialized AI agents. Think of it as a party system for your 
 - **Siegemaster** - Hand-drives each flow against a running system and grades its suite
 - **Spiritmender** - Heals build errors and failed tests
 
-Each of Codeweaver, Flowrider, Groundstomper and Siegemaster runs as an **orchestrator** that never
+Each of Codeweaver, Flowrider, Groundstomper and Siegemaster runs as an **operator** that never
 opens a source file itself: it summons a planner, then workers one at a time, then a reviewer, and
 commits the round. The reviewer also takes the standing standards concerns — craft, performance,
 duplication, integrity and test cases — over what the round produced.

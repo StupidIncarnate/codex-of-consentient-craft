@@ -114,7 +114,13 @@ describe('flowEvidenceContractStatics', () => {
           'it arrives unsigned and then\ncarries its own two sign-offs like every other unit',
         ),
         noOtherVerdicts: judgingMarkdown.includes(
-          'There is no `defect`, `deferred`, `gap` or `recorded`\nverdict.',
+          'There is no `defect`, `deferred`, `gap` or `recorded`\nSIGN-OFF verdict.',
+        ),
+        // The same composed reviewer prompt carries the standing concerns' disposition table, where
+        // `gap` and `recorded` are honest answers that CLEAR a unit. Unqualified, the two blocks
+        // read as one vocabulary contradicting itself.
+        dispositionsAreADifferentRecord: judgingMarkdown.includes(
+          "(The standing concerns' `blightLedger` dispositions are a separate record with a\nvocabulary of their own; nothing here governs them.)",
         ),
         provenanceIsSeparate: judgingMarkdown.includes('**Provenance is a SEPARATE axis.**'),
         unsignedIsARealState: judgingMarkdown.includes(
@@ -128,6 +134,7 @@ describe('flowEvidenceContractStatics', () => {
         inverseExpectation: true,
         carriesItsOwnSignoffs: true,
         noOtherVerdicts: true,
+        dispositionsAreADifferentRecord: true,
         provenanceIsSeparate: true,
         unsignedIsARealState: true,
         unconfirmableIsNotForMissingTests: true,
@@ -249,7 +256,8 @@ describe('flowEvidenceContractStatics', () => {
       const { judgingMarkdown } = flowEvidenceContractStatics;
 
       expect({
-        namesTheTool: judgingMarkdown.includes('`get-qa-checklist({ questId, flowId })` stamps a'),
+        namesTheTool: judgingMarkdown.includes('`get-qa-checklist` stamps a'),
+        showsNoArgumentsOfItsOwn: !judgingMarkdown.includes('get-qa-checklist({'),
         surfaceIsAuthoritative: judgingMarkdown.includes(
           'That\nstring is the authoritative surface for that unit.',
         ),
@@ -258,6 +266,7 @@ describe('flowEvidenceContractStatics', () => {
         ),
       }).toStrictEqual({
         namesTheTool: true,
+        showsNoArgumentsOfItsOwn: true,
         surfaceIsAuthoritative: true,
         disagreementIsRejection: true,
       });

@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Resolves a discipline name to the four-block pack whose markdown fills the `$DISCIPLINE`
- * placeholder in the orchestrator/planner/worker/reviewer templates. Reach for this over importing
+ * placeholder in the operator/planner/worker/reviewer templates. Reach for this over importing
  * one `discipline*Statics` module directly whenever the discipline is only known at dispatch time:
  * the exhaustive switch's `never` default is what turns "a discipline was added and nothing serves
  * it" into a compile error, instead of an agent silently receiving an undefined instruction block.

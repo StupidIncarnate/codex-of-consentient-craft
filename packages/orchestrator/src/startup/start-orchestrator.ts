@@ -76,7 +76,6 @@ import { QuestFlow } from '../flows/quest/quest-flow';
 import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
 import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
-import type { signoffTrackEligibilityStatics } from '../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
 // Bootstrap the cross-guild execution-queue runner on module load. Idempotent.
 ExecutionQueueFlow.bootstrap();
@@ -208,24 +207,24 @@ export const StartOrchestrator = {
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getSummary>>> =>
     QuestFlow.getSummary({ questId }),
 
+  // `operationItemId` IS the scope: the item carries the track (its `role`), its `flowIds` and its
+  // `packageNames`, and the same derivation the signal-back completion gate uses turns them into a
+  // denominator. It replaced three hand-passed arguments that each let a caller ask a DIFFERENT
+  // question from the one the gate answers, every one of them failing by over-reporting so the
+  // remainder never emptied while `done` went on being refused.
   getQaChecklist: async ({
     questId,
+    operationItemId,
     flowId,
-    track,
-    packageNames,
   }: {
     questId: string;
+    operationItemId?: string;
     flowId?: string;
-    // The three DENOMINATOR tracks, not the two sign-off fields — Groundstomper is measured over
-    // the browser-reachable package kinds alone and would read Flowrider's numbers otherwise.
-    track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
-    packageNames?: string[];
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getQaChecklist>>> =>
     QuestFlow.getQaChecklist({
       questId,
+      ...(operationItemId !== undefined && { operationItemId }),
       ...(flowId !== undefined && { flowId }),
-      ...(track !== undefined && { track }),
-      ...(packageNames !== undefined && { packageNames }),
     }),
 
   // `scope` rides all the way out to the MCP tool because a reviewer-minion running inside its
@@ -237,7 +236,7 @@ export const StartOrchestrator = {
     scope,
   }: {
     questId: string;
-    scope?: 'quest' | 'commit' | 'working-tree';
+    scope?: 'quest' | 'commit' | 'working-tree' | 'unpushed';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getBlightChecklist>>> =>
     QuestFlow.getBlightChecklist({ questId, ...(scope !== undefined && { scope }) }),
 

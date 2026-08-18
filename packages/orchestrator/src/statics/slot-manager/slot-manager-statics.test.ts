@@ -35,7 +35,7 @@ describe('slotManagerStatics', () => {
       warpgate: {
         maxAttempts: 3,
       },
-      operationOrchestrator: {
+      operator: {
         maxRoundsPerSession: 3,
       },
       ward: {

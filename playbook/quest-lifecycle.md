@@ -137,7 +137,7 @@ codeweaver ×N (Chaos-authored)
   → ward(full)
 ```
 
-Each agent role above is an ORCHESTRATOR session running a bounded round loop internally
+Each agent role above is an OPERATOR session running a bounded round loop internally
 (`planner-minion → worker-minions one at a time → reviewer-minion → build → ward → commit`, at most 3 rounds). Its
 minions are never ledger items, and its `reviewer-minion` is what takes the five standards concerns.
 

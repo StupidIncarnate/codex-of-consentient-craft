@@ -3,7 +3,7 @@
  *
  * USAGE:
  * roleToModelTransformer({ role: workItemRoleContract.parse('codeweaver') });
- * // Returns 'opus' as ClaudeModel
+ * // Returns 'sonnet' as ClaudeModel
  */
 
 import type { WorkItemRole } from '@dungeonmaster/shared/contracts';

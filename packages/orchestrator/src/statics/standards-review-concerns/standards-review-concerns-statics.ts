@@ -38,21 +38,28 @@ no-any, proxy colocation, stub usage, no-console, silent catches, unused and unr
 pure syntactic test structure (name prefixes, \`{input} => {expected}\` titles, \`describe\` shape) is
 lint's domain too. Skip ALL of it. What is left is the judgement a linter cannot make.
 
-**Your surface is the files THIS ROUND produced** — the ones your brief names. Confirm that list,
-and decompose it into atomic review units, with:
+**Your surface is the files THIS ROUND produced**, and you enumerate it at your method's ENUMERATE
+step — after your own fixes are committed, never before. Each unit is id'd \`<implPath>:<concern>\`
+and marked \`[x]\` dispositioned or \`[ ]\` remaining; the ids are DERIVED from the tree, so re-running
+the tool reproduces them byte-identically.
 
 \`\`\`
-get-blight-checklist({ questId: 'QUEST_ID', scope: 'working-tree' })
+get-blight-checklist({ questId: 'QUEST_ID', scope: 'unpushed' })
 \`\`\`
 
-Each unit is id'd \`<implPath>:<concern>\` and marked \`[x]\` dispositioned or \`[ ]\` remaining. The ids
-are DERIVED from the tree, so re-running the tool reproduces them byte-identically.
+**\`scope: 'unpushed'\` is the only correct scope for you, and you must pass it.** It measures
+everything committed in this worktree and not yet pushed — the SAME boundary the round's
+\`npm run ward -- --staged\` used, because your parent pushes once at the end of each round. You pass
+no id and name no range: git already knows where the round began. The other scopes each fail you in
+their own direction: \`working-tree\` finds NOTHING, because every worker committed its own chunk
+before you were summoned; \`commit\` hands you the last commit alone, one chunk out of the round's
+several; and \`quest\` hands you every file every session has ever touched, burying this round in work
+already dispositioned.
 
-**\`scope: 'working-tree'\` is the only correct scope for you, and you must pass it.** It means
-changed since HEAD, untracked files INCLUDED. Your parent has not committed yet when you run, so
-nothing you are reviewing is in history: a commit-shaped reading hands you the round BEFORE yours,
-and every form of \`git diff\` reports tracked paths only — which on a fresh round hides most of what
-was just written, and is exactly where a defect hides.
+**ONE exception, and your brief says so in as many words: \`SCOPE: quest\`.** That brief is the
+post-push re-review, where \`unpushed\` is empty and would disposition nothing. \`quest\` over-reports
+— units already dispositioned come back marked done, so you re-read rather than miss any — and it is
+the only agent-facing scope that still spans a pushed round.
 
 ### craft
 
@@ -155,9 +162,13 @@ full: a \`.refine\` message can be wrong (\`craft\`), a second contract can dupl
 |---|---|
 | \`reviewed\` | the concern was checked against this unit and holds |
 | \`fixed\` | a real defect was found here and corrected in place |
-| \`routed\` | a real user-visible defect needing a product decision; asked via \`ask-user-question\` |
-| \`recorded\` | a real finding handed to a named owner, not closed this round |
+| \`routed\` | a real finding needing a decision this round cannot make — and it is named in your \`NEXT: rework\` line, or it went nowhere |
+| \`recorded\` | a real finding handed to a named owner outside this quest, not closed this round |
 | \`gap\` | the concern cannot be assessed at this layer — say precisely why |
+
+**Nothing here asks the user anything.** You are a sub-agent inside your parent's turn: no human
+sees your questions and nothing resumes you with an answer, so a question you ask is a question you
+answer yourself or hand up in \`NEXT: rework\`.
 
 **Every one of these clears a unit.** \`gap\` and \`recorded\` are honest answers, so the record can
 always be completed truthfully. What is never acceptable is a unit with NO entry at all — and that

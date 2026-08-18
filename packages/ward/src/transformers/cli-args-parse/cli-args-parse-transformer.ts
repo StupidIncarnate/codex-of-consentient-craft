@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Parses CLI argument array into ward config flags (--only, --changed)
+ * PURPOSE: The one place ward decides whether a combination of CLI flags is legal. Both git scope
+ * flags (`--changed`, `--staged`) are all-or-nothing: they own the whole run, so anything that would
+ * narrow it — `--only`, `--onlyTests`, an explicit file list — is rejected here rather than silently
+ * losing to whichever flag the broker happens to read last.
  *
  * USAGE:
  * cliArgsParseTransformer({ args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'lint,typecheck' })] });
@@ -13,7 +16,9 @@ import {
 } from '../../contracts/ward-config/ward-config-contract';
 import { checkTypeContract } from '../../contracts/check-type/check-type-contract';
 
-const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--changed', '--']);
+const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--changed', '--staged', '--']);
+
+const USAGE = `Usage: npm run ward -- [--only <check-types>] [--onlyTests <regex>] [-- <files>]\n       npm run ward -- --changed\n       npm run ward -- --staged`;
 
 export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfig => {
   const parsed: Partial<WardConfig> = {};
@@ -67,6 +72,11 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
       continue;
     }
 
+    if (arg === '--staged') {
+      parsed.staged = true;
+      continue;
+    }
+
     if (String(arg).startsWith('-')) {
       const flag = String(arg);
       throw new Error(
@@ -74,8 +84,7 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
           `  - Jest flags (--watch, --bail, --coverage) are not supported\n` +
           `  - ESLint flags (--fix, --quiet, --format) are not supported\n` +
           `  - tsc flags (--noEmit, --project, --strict) are not supported\n` +
-          `  - Playwright flags (--headed, --debug, --ui) are not supported\n\n` +
-          `Usage: npm run ward -- [--only <check-types>] [--onlyTests <regex>] [--changed] [-- <files>]`,
+          `  - Playwright flags (--headed, --debug, --ui) are not supported\n\n${USAGE}`,
       );
     }
 
@@ -84,6 +93,38 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
         `File paths must come after "--" separator.\n` +
         `Usage: npm run ward -- --only unit -- path/to/file.test.ts`,
     );
+  }
+
+  if (parsed.changed === true && parsed.staged === true) {
+    throw new Error(
+      `--changed and --staged cannot be combined.\n\n` +
+        `Each one picks the file set from git, so only one can decide the scope:\n` +
+        `  --changed  files that differ from the local default branch\n` +
+        `  --staged   files origin does not have yet — unpushed commits plus uncommitted edits\n\n${
+          USAGE
+        }`,
+    );
+  }
+
+  if (parsed.changed === true || parsed.staged === true) {
+    const gitScopeFlag = parsed.staged === true ? '--staged' : '--changed';
+    const conflicting = [
+      ...(parsed.only === undefined ? [] : ['--only']),
+      ...(parsed.onlyTests === undefined ? [] : ['--onlyTests']),
+      ...(parsed.passthrough === undefined ? [] : ['-- <files>']),
+    ];
+
+    if (conflicting.length > 0) {
+      throw new Error(
+        `${gitScopeFlag} cannot be combined with: ${conflicting.join(', ')}\n\n` +
+          `${gitScopeFlag} runs every check type over the file set git reports. Narrowing it would ` +
+          `let a check pass without ever seeing part of that set, so ward rejects the combination ` +
+          `instead of picking a winner.\n\n` +
+          `Run it alone, or scope the run yourself and drop ${gitScopeFlag}:\n` +
+          `  npm run ward -- ${gitScopeFlag}\n` +
+          `  npm run ward -- --only lint -- packages/ward/src/index.ts\n\n${USAGE}`,
+      );
+    }
   }
 
   return wardConfigContract.parse(parsed);

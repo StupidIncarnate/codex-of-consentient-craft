@@ -26,6 +26,7 @@ import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-perm
 import {
   agentBrowserPermissionsStatics,
   agentGitPermissionsStatics,
+  agentQaPermissionsStatics,
   locationsStatics,
   mcpToolsStatics,
 } from '@dungeonmaster/shared/statics';
@@ -66,8 +67,9 @@ export const settingsPermissionsAddBroker = async ({
   }
 
   // Every permission dungeonmaster manages: the MCP tool grants, then the git grants that let a
-  // dispatched relay agent read history and land its handoff commit, then the Claude-in-Chrome
-  // grant Siegemaster needs to drive a real browser (a headless child has no interactive
+  // dispatched relay agent read history, land its handoff commit and publish its round, then the
+  // Claude-in-Chrome grant Siegemaster needs to drive a real browser, then the HTTP-probe grant
+  // its non-UI walks read a real status and body with (a headless child has no interactive
   // approver, so an ungranted command is denied outright rather than prompted).
   const managedPermissions: ClaudePermission[] = [
     ...mcpPermissionsCreatorTransformer().map((permission) =>
@@ -77,6 +79,9 @@ export const settingsPermissionsAddBroker = async ({
       claudePermissionContract.parse(permission),
     ),
     ...agentBrowserPermissionsStatics.allow.map((permission) =>
+      claudePermissionContract.parse(permission),
+    ),
+    ...agentQaPermissionsStatics.allow.map((permission) =>
       claudePermissionContract.parse(permission),
     ),
   ];

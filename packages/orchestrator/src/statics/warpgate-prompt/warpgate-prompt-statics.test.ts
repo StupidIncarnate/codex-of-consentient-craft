@@ -58,9 +58,38 @@ describe('warpgatePromptStatics', () => {
     expect(found).toBe(needle);
   });
 
+  // Rule 3 (embedded in this same prompt) says NEVER run the whole-repo `npm run ward`, and Rule 2
+  // says a command the harness auto-backgrounds strands the turn. This role is the one legitimate
+  // exception — a base merge can break files outside the quest's own, which a scoped run cannot
+  // see — so the exception and the background-mode it requires have to be stated here, not left to
+  // whichever rule the session reads first.
+  it('VALID: template => names its whole-repo ward as the deliberate exception to Rule 3, run in background mode', () => {
+    const { template } = warpgatePromptStatics.prompt;
+
+    expect({
+      wholeRepo: template.includes('`npm run ward`, whole-repo, no\n`--only` and no paths'),
+      isTheException: template.includes(
+        '**This is a deliberate exception to Operating Rule 3 above, and the only\none on the quest**',
+      ),
+      namesWhyScopedCannotWork: template.includes(
+        "a BASE MERGE did not break something outside the quest's\nown files, which a scoped run cannot see",
+      ),
+      runsItRule2sWay: template.includes(
+        "run it Rule 2's sanctioned way — `run_in_background: true`, then wait for the task notification and\nread the output once",
+      ),
+      neverSleepAndTail: template.includes('Never `sleep`-and-tail.'),
+    }).toStrictEqual({
+      wholeRepo: true,
+      isTheException: true,
+      namesWhyScopedCannotWork: true,
+      runsItRule2sWay: true,
+      neverSleepAndTail: true,
+    });
+  });
+
   it('VALID: template => reads the exit code of the full-mode ward run and branches on it', () => {
     const needle =
-      '**Read its exit code and branch on it — a conforming run does not just\ninvoke ward and move on:**';
+      '**Read its exit code and branch on it — a conforming\nrun does not just invoke ward and move on:**';
     const { template } = warpgatePromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

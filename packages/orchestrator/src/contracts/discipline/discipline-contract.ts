@@ -2,7 +2,7 @@
  * PURPOSE: A discipline names which side of the work a session is responsible for —
  * implementation, reproducing a bug, verifying below the browser, verifying through the
  * browser, or manually QAing the result. The same three phase prompts (planner, worker,
- * reviewer) are parameterized by this value rather than duplicated once per orchestrator role.
+ * reviewer) are parameterized by this value rather than duplicated once per operator role.
  *
  * USAGE:
  * disciplineContract.parse('implementation');

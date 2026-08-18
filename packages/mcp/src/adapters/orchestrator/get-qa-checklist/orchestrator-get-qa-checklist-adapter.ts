@@ -11,33 +11,29 @@
  * const mine = await orchestratorGetQaChecklistAdapter({
  *   questId,
  *   track: 'groundstomper',
- *   packageNames: ['web'],
+ *   operationItemId: 'a1b2…',
  * });
- * // Returns the runtime flows, each measured over the groundstomper denominator narrowed to `web`
+ * // Returns exactly the scope that operation item is measured over
  *
- * `track` is the DENOMINATOR enum, of which there are three, rather than the sign-off FIELD enum, of
- * which there are two — Groundstomper writes `flowriderSignoff` and is still measured on its own.
- * Every optional key is spread conditionally because `exactOptionalPropertyTypes` makes an explicit
- * `undefined` a type error downstream, not a no-op.
+ * `operationItemId` is the whole scope: the track, the flows and the package slice are derived from
+ * the item server-side, by the same transformer the signal-back completion gate uses. Every optional
+ * key is spread conditionally because `exactOptionalPropertyTypes` makes an explicit `undefined` a
+ * type error downstream, not a no-op.
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { SignoffDenominatorTrack } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorGetQaChecklistAdapter = async ({
   questId,
+  operationItemId,
   flowId,
-  track,
-  packageNames,
 }: {
   questId: string;
+  operationItemId?: string;
   flowId?: string;
-  track?: SignoffDenominatorTrack;
-  packageNames?: string[];
 }): Promise<Awaited<ReturnType<typeof StartOrchestrator.getQaChecklist>>> =>
   StartOrchestrator.getQaChecklist({
     questId,
+    ...(operationItemId !== undefined && { operationItemId }),
     ...(flowId !== undefined && { flowId }),
-    ...(track !== undefined && { track }),
-    ...(packageNames !== undefined && { packageNames }),
   });

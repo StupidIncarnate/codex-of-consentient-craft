@@ -14,26 +14,34 @@ import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-
 import { disciplineBelowBrowserStatics } from '../../../statics/discipline-below-browser/discipline-below-browser-statics';
 import { disciplineImplementationStatics } from '../../../statics/discipline-implementation/discipline-implementation-statics';
 import { disciplineManualQaStatics } from '../../../statics/discipline-manual-qa/discipline-manual-qa-statics';
-import { operationOrchestratorPromptStatics } from '../../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { operatorPromptStatics } from '../../../statics/operator-prompt/operator-prompt-statics';
 import { plannerMinionStatics } from '../../../statics/planner-minion/planner-minion-statics';
 import { reviewerMinionStatics } from '../../../statics/reviewer-minion/reviewer-minion-statics';
 import { workerMinionStatics } from '../../../statics/worker-minion/worker-minion-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
+import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
 
 // One template serves all five operation-owning roles; only the pack at `$DISCIPLINE` and the bare
 // discipline id at `$MY_DISCIPLINE` differ. Function-form replacement, never the string form: pack
 // markdown can carry `$&` / `` $` `` / `$'`.
-const IMPLEMENTATION_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineImplementationStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'implementation');
-const BELOW_BROWSER_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'below-browser');
-const MANUAL_QA_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineManualQaStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'manual-qa');
+// `$DISCIPLINE` substitutes once and `$MY_DISCIPLINE` substitutes EVERYWHERE, which is why the two
+// use different methods: the template quotes the bare discipline id both into the
+// `get-agent-prompt` call its minions must make and into the header every minion brief opens with,
+// and `.replace` with a string pattern would resolve only the first of those.
+const IMPLEMENTATION_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineImplementationStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('implementation');
+const BELOW_BROWSER_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('below-browser');
+const MANUAL_QA_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineManualQaStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('manual-qa');
 
 // Two DIFFERENT worktree HEADs, so a stamp that moved is distinguishable from one that held.
 const FIRST_ROUND_SHA = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0';
@@ -164,8 +172,11 @@ describe('agentPromptGetBroker', () => {
 
       expect(result).toStrictEqual({
         name: 'codeweaver',
-        model: 'opus',
-        prompt: IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+        // Read from the role map rather than restated: that map is what the CLI `--model` flag
+        // resolves through at spawn time, so a literal here could report one model while the
+        // dispatched child ran another.
+        model: roleToModelStatics.codeweaver,
+        prompt: IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       });
     });
 
@@ -231,9 +242,7 @@ describe('agentPromptGetBroker', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        MANUAL_QA_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
-      );
+      expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
     });
 
     it('VALID: {role: siegemaster, operation linked} => resolves config from a repo-root config FILE path, not the bare cwd directory', async () => {
@@ -316,9 +325,7 @@ describe('agentPromptGetBroker', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        MANUAL_QA_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
-      );
+      expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
     });
   });
 
@@ -366,7 +373,7 @@ describe('agentPromptGetBroker', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        BELOW_BROWSER_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+        BELOW_BROWSER_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       );
     });
 

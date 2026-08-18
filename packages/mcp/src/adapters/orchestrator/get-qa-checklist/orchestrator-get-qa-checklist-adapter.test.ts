@@ -1,5 +1,4 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
-import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { orchestratorGetQaChecklistAdapter } from './orchestrator-get-qa-checklist-adapter';
 import { orchestratorGetQaChecklistAdapterProxy } from './orchestrator-get-qa-checklist-adapter.proxy';
@@ -50,28 +49,26 @@ describe('orchestratorGetQaChecklistAdapter', () => {
     });
   });
 
-  describe('track-scoped', () => {
-    // The DENOMINATOR list, not the sign-off field list — `groundstomper` is the member that only
-    // exists on this side, and it is the one this adapter previously could not carry.
-    it.each(signoffTracksStatics.denominators)(
-      'VALID: {questId, track: %s} => forwards track to the orchestrator',
-      async (track) => {
-        const proxy = orchestratorGetQaChecklistAdapterProxy();
-        proxy.returns({
-          questId: 'add-auth',
-          result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
-        });
+  describe('item-scoped', () => {
+    // `operationItemId` is the whole scope now — the track, the flows and the package slice are all
+    // derived from the item server-side. The three arguments this used to forward were each a way
+    // to ask a different question from the one the completion gate answers.
+    it('VALID: {questId, operationItemId} => forwards the item id to the orchestrator', async () => {
+      const proxy = orchestratorGetQaChecklistAdapterProxy();
+      proxy.returns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+      });
 
-        await orchestratorGetQaChecklistAdapter({ questId: 'add-auth', track });
+      await orchestratorGetQaChecklistAdapter({ questId: 'add-auth', operationItemId: 'op-1' });
 
-        expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
-          questId: 'add-auth',
-          track,
-        });
-      },
-    );
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        operationItemId: 'op-1',
+      });
+    });
 
-    it('VALID: {questId, no track} => omits track from the call', async () => {
+    it('VALID: {questId, no operationItemId} => omits it from the call', async () => {
       const proxy = orchestratorGetQaChecklistAdapterProxy();
       proxy.returns({
         questId: 'add-auth',
@@ -87,47 +84,7 @@ describe('orchestratorGetQaChecklistAdapter', () => {
     });
   });
 
-  describe('package-sliced', () => {
-    // The item's own slice is what makes a per-package flowrider item's remainder its own rather
-    // than N copies of the whole quest's. Dropping it here would leave a session reading a number
-    // its gate never computes.
-    it('VALID: {questId, track, packageNames} => forwards the slice to the orchestrator', async () => {
-      const proxy = orchestratorGetQaChecklistAdapterProxy();
-      proxy.returns({
-        questId: 'add-auth',
-        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
-      });
-
-      await orchestratorGetQaChecklistAdapter({
-        questId: 'add-auth',
-        track: 'groundstomper',
-        packageNames: ['ui-app'],
-      });
-
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
-        questId: 'add-auth',
-        track: 'groundstomper',
-        packageNames: ['ui-app'],
-      });
-    });
-
-    it('VALID: {questId, no packageNames} => omits packageNames from the call', async () => {
-      const proxy = orchestratorGetQaChecklistAdapterProxy();
-      proxy.returns({
-        questId: 'add-auth',
-        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
-      });
-
-      await orchestratorGetQaChecklistAdapter({ questId: 'add-auth', track: 'flowrider' });
-
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
-        questId: 'add-auth',
-        track: 'flowrider',
-      });
-    });
-  });
-
-  describe('error cases', () => {
+  describe('adapter failures', () => {
     it('ERROR: {orchestrator throws} => rejects with error', async () => {
       const proxy = orchestratorGetQaChecklistAdapterProxy();
       proxy.throws({ questId: 'non-existent', error: new Error('Quest not found') });

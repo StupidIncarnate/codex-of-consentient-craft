@@ -80,9 +80,13 @@ marker is a merge you have not actually finished, whatever the exit code said.
 
 ### 3. Full-mode ward, gated on its exit code
 
-After the intake merge, run a full-mode ward in the worktree (\`npm run ward\`, \`timeout:
-600000\`, foreground). **Read its exit code and branch on it — a conforming run does not just
-invoke ward and move on:**
+After the intake merge, run a full-mode ward in the worktree — \`npm run ward\`, whole-repo, no
+\`--only\` and no paths. **This is a deliberate exception to Operating Rule 3 above, and the only
+one on the quest**: you are verifying that a BASE MERGE did not break something outside the quest's
+own files, which a scoped run cannot see. Because it is whole-repo it will be auto-backgrounded, so
+run it Rule 2's sanctioned way — \`run_in_background: true\`, then wait for the task notification and
+read the output once. Never \`sleep\`-and-tail. **Read its exit code and branch on it — a conforming
+run does not just invoke ward and move on:**
 
 - **Non-zero** — route to repair. Fix what the merge broke, at its root cause, then run a FRESH
   full-mode ward. Repeat until it comes back green. This repair loop is deliberately unbounded —

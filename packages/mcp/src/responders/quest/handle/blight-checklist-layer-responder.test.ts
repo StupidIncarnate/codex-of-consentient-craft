@@ -56,6 +56,24 @@ describe('BlightChecklistLayerResponder', () => {
         scope: 'commit',
       });
     });
+
+    // The reviewer-minion's call. Dropping the scope here would silently fall the server back to the
+    // whole-quest diff, so the reviewer would read a surface of already-dispositioned files and
+    // report a round it never actually scoped.
+    it("VALID: {questId, scope: 'unpushed'} => forwards the round scope", async () => {
+      const proxy = BlightChecklistLayerResponderProxy();
+      proxy.setupReturns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+      });
+
+      await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'unpushed' } });
+
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        scope: 'unpushed',
+      });
+    });
   });
 
   describe('unsuccessful checklist', () => {

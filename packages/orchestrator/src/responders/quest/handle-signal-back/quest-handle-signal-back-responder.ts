@@ -14,7 +14,7 @@
  *   the other — and the three DENOMINATORS over them are disjoint, Flowrider and Groundstomper
  *   splitting `flowriderSignoff` by package kind. Both verdicts clear a unit — `confirmed` and
  *   `unconfirmable` alike — so the gate is always satisfiable honestly; it refuses absence, not
- *   honesty. An item held by any of the five orchestrator roles is additionally gated PER UNIT on
+ *   honesty. An item held by any of the five operator roles is additionally gated PER UNIT on
  *   REVIEW COVERAGE: the responder rebuilds the standards-review checklist over
  *   `<the item's recorded startRef>..HEAD` — every commit this item made, across all its rounds —
  *   and refuses `done` while any unit carries no `planningNotes.blightLedger` disposition. Every
@@ -53,6 +53,7 @@
 import type {
   AdapterResult,
   BlockedReason,
+  ErrorMessage,
   OperationItem,
   OperationItemId,
   QuestId,
@@ -94,21 +95,21 @@ const OUTSTANDING_PREVIEW_LIMIT = 15;
 // `roleToDisciplineStatics` rather than listed here, so a role added to that map is covered by both
 // gates below the day it is added — the same reason `isChatWorkItemRoleGuard` reads
 // `workItemRoleStatics.chat` instead of growing an `||` chain.
-const ORCHESTRATOR_ROLES = Object.keys(
+const OPERATOR_ROLES = Object.keys(
   roleToDisciplineStatics,
 ) as readonly (keyof typeof roleToDisciplineStatics)[];
 
 // Whose `done` is gated on their round's output being reviewed unit by unit. Membership, not a name
 // chain: a role that runs a review round is a role whose round has to be covered.
-const REVIEWED_ROLES: ReadonlySet<OperationItem['role']> = new Set(ORCHESTRATOR_ROLES);
+const REVIEWED_ROLES: ReadonlySet<OperationItem['role']> = new Set(OPERATOR_ROLES);
 
 // Every role whose session ends by CHANGING CODE, and therefore owes a commit before it signals.
-// The five orchestrator roles plus the two bespoke-prompt workers that also write code and commit.
+// The five operator roles plus the two bespoke-prompt workers that also write code and commit.
 // Both COMMAND roles (`workItemRoleStatics.command` — `ward`, `riftcarver`) are absent because they
 // are terminal by exit code and never reach signal-back at all; every chat role is absent because a
 // conversation produces a spec, not a commit.
 const CODE_CHANGING_ROLES: ReadonlySet<OperationItem['role']> = new Set([
-  ...ORCHESTRATOR_ROLES,
+  ...OPERATOR_ROLES,
   'spiritmender',
   'warpgate',
 ]);
@@ -290,7 +291,11 @@ export const QuestHandleSignalBackResponder = async ({
               : []),
             '',
             'Do ONE of these, then signal again:',
-            `  1. Write a \`${signoffField}\` on each remaining unit via modify-quest — \`confirmed\` with \`evidence\` (a test file:line plus what makes that test fail, or the value you measured off the running system), or \`unconfirmable\` with \`evidence\` of what you tried and why it was out of reach plus a \`question\` someone else can pick up. BOTH verdicts clear this gate; what it refuses is the ABSENCE of a sign-off, never an honest one.`,
+            // The remedy has to be one the SIGNALLING session may actually perform. An operator's
+            // own tool table forbids it "writing a test, a fix, or a sign-off yourself" — it never
+            // opened the files these units are about — so naming the write directly sends it to
+            // break its own prompt. The reviewer-minion is the session that signs, on every round.
+            `  1. Dispatch a \`reviewer-minion\` over the outstanding units. It writes a \`${signoffField}\` on each via modify-quest — \`confirmed\` with \`evidence\` (a test file:line plus what makes that test fail, or the value it measured off the running system), or \`unconfirmable\` with \`evidence\` of what was tried and why it was out of reach plus a \`question\` someone else can pick up. BOTH verdicts clear this gate; what it refuses is the ABSENCE of a sign-off, never an honest one.`,
             '     BATCH the writes: ONE modify-quest call carrying many sign-offs, never one call per unit.',
             "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
             '     A unit you genuinely cannot close is `unconfirmable`, not pt work — pt-chaining a permanently unprovable unit only burns the chain to its maxAttempts and blocks the quest.',
@@ -303,9 +308,9 @@ export const QuestHandleSignalBackResponder = async ({
       // committed, crossed with each applicable concern, has to carry a disposition in
       // `planningNotes.blightLedger`; `done` is refused while any unit carries none.
       //
-      // THE RANGE IS WHAT MAKES IT MEASURABLE. An orchestrator commits once per ROUND, so at signal
-      // time the tree is clean by construction — a `working-tree` reading is empty, and a `commit`
-      // one sees only the LAST of several round commits. Neither can measure a whole item. What can
+      // THE RANGE IS WHAT MAKES IT MEASURABLE. Every minion commits its own work as it goes, so at
+      // signal time the tree is clean by construction — a `working-tree` reading is empty, a
+      // `commit` one sees one piece, and a `plan` one sees one round. None measures an item. What can
       // is `<the item's own recorded startRef>..HEAD`: the fork point stamped by
       // `agentPromptGetBroker` the first time this item was served its prompt, never moved
       // afterwards, so the range covers every round the item ran rather than the one it ended on.
@@ -343,7 +348,20 @@ export const QuestHandleSignalBackResponder = async ({
         const outstandingUnits = blightCoverageOutstandingTransformer({ checklist });
 
         if (outstandingUnits.length > 0) {
-          const reviewerCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'working-tree' })`;
+          // The scope a reviewer-minion actually uses. `working-tree` would answer EMPTY here —
+          // every worker commits its own piece, so nothing under review is uncommitted by the time
+          // a reviewer runs — and an empty surface dispositions nothing, which is precisely the
+          // state this gate is refusing. Naming the wrong call in the refusal would send the agent
+          // to re-run the thing that produced the refusal.
+          const reviewerCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'unpushed' })`;
+          // …and `unpushed` is EMPTY by the time this refusal can fire, because the operator's
+          // gate 9 pushes before gate 10 signals. A fresh reviewer sent to that scope enumerates
+          // nothing, dispositions nothing, and earns the identical refusal — so the message has to
+          // name the one agent-facing scope that still spans the range this gate measured.
+          // `since-ref` is server-only and no agent can compute this item's `startRef`; `quest`
+          // over-reports (units already dispositioned come back marked done) rather than missing
+          // any, which is the safe direction for a caller trying to clear a refusal.
+          const afterPushCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'quest' })`;
 
           throw new Error(
             [
@@ -361,6 +379,7 @@ export const QuestHandleSignalBackResponder = async ({
               '',
               'Do ONE of these, then signal again:',
               `  1. Dispatch a \`reviewer-minion\` over the output this round produced. It calls \`${reviewerCall}\` for its own scope and writes each verdict to \`quest.planningNotes.blightLedger\` via modify-quest.`,
+              `     IF YOU HAVE ALREADY PUSHED this round, that scope is EMPTY and will disposition nothing — brief the reviewer to use \`${afterPushCall}\` instead, which still spans the range measured above. It over-reports: units already dispositioned come back marked done, so it re-reads rather than missing any.`,
               '     EVERY disposition clears a unit — `gap` and `recorded` with a real reason count exactly as `reviewed` does. This gate refuses ABSENCE, not honesty.',
               '     A unit listed above that no round of yours touched belongs to an earlier round of THIS item; the same reviewer clears it, because a disposition is keyed on the unit and not on who wrote it.',
               "  2. Signal operationStatus: 'partial' instead, which hands the un-reviewed remainder to a fresh session of your role.",
@@ -373,7 +392,12 @@ export const QuestHandleSignalBackResponder = async ({
 
   // Object holder (not a bare `let`): the flag is assigned inside the update callback, which
   // TypeScript's flow analysis cannot see — a bare boolean would read as always-false.
-  const blockedOnSpentPtChain = { value: false };
+  //
+  // It carries the CHAIN DETAIL as well as the flag, because a spent chain is the one halt route
+  // that leaves nothing to read: the signalling item stays `complete` (only an environment wall
+  // marks it `failed`), so with no reason passed to questBlockOnFailureBroker the quest goes
+  // `blocked` with every row green and no `errorMessage` anywhere naming why.
+  const blockedOnSpentPtChain: { value: boolean; reason?: ErrorMessage } = { value: false };
   const isEnvironmentWall = operationStatus === 'blocked';
 
   await questOperationsUpdateBroker({
@@ -463,6 +487,9 @@ export const QuestHandleSignalBackResponder = async ({
 
       if (chainSpent) {
         blockedOnSpentPtChain.value = true;
+        blockedOnSpentPtChain.reason = errorMessageContract.parse(
+          `${linkedOperation.role} pt chain for "${String(base)}" is spent: ${String(chainLength)} attempt(s) signalled 'partial' against a budget of ${String(maxAttempts)}. The remaining scope is on the last 'pt' operation item; a resume re-dispatches it.`,
+        );
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
@@ -505,7 +532,15 @@ export const QuestHandleSignalBackResponder = async ({
   // Both halt routes drain pending work items and flip the quest to `blocked`; neither advances,
   // because the next session would hit the very wall (or spent budget) that stopped this one.
   if (blockedOnSpentPtChain.value || isEnvironmentWall) {
-    await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
+    // An environment wall already carries its `blockedReason` on the work item's `errorMessage`,
+    // written in the persist above. A spent chain has no such carrier, so its reason is supplied
+    // here — otherwise `blocked` is the only thing the user is told.
+    const { reason } = blockedOnSpentPtChain;
+    await questBlockOnFailureBroker({
+      questId,
+      failedWorkItemId: workItemId,
+      ...(reason === undefined ? {} : { reason }),
+    });
     return adapterResultContract.parse({ success: true });
   }
 

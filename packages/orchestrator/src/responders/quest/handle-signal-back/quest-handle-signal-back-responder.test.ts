@@ -1156,7 +1156,7 @@ describe('QuestHandleSignalBackResponder', () => {
           operationStatus: 'done',
         }),
       ).rejects.toThrow(
-        /signal-back refused: operationStatus 'done'.*`flowriderSignoff`.*1 still carry none.*Outstanding units:.*- login-flow:terminal:dashboard.*Write a `flowriderSignoff` on each remaining unit/su,
+        /signal-back refused: operationStatus 'done'.*`flowriderSignoff`.*1 still carry none.*Outstanding units:.*- login-flow:terminal:dashboard.*Dispatch a `reviewer-minion` over the outstanding units. It writes a `flowriderSignoff` on each/su,
       );
     });
 
@@ -1715,9 +1715,9 @@ describe('QuestHandleSignalBackResponder', () => {
 
   // The successor to the deleted blightscout gate, and the same PER-UNIT shape: every review unit
   // this work item's commits produced needs a disposition, measured over
-  // `<the item's recorded startRef>..HEAD`. That range is the only one that sees a whole item — the
-  // orchestrator commits once per ROUND, so at signal time the tree is clean and HEAD~1 holds the
-  // last round alone.
+  // `<the item's recorded startRef>..HEAD`. That range is the only one that sees a whole item —
+  // every minion commits its own work as it goes, so at signal time the tree is clean, HEAD~1 holds
+  // one piece, and a plan-scoped reading holds one round.
   describe("review-coverage gate — 'done' is refused while any unit in this item's range carries no disposition", () => {
     it.each(REVIEWED_ROLES)(
       "ERROR: {%s item, two files committed and one dispositioned, 'done'} => refused naming the outstanding unit, the range, and the partial escape",
@@ -3661,15 +3661,27 @@ describe('QuestHandleSignalBackResponder', () => {
 
         const finalQuest = proxy.getLastPersistedQuest();
 
+        // The carrier goes `failed` and carries the REASON. It used to be left `complete`, which
+        // made this the one halt route with nothing to read: every row green, quest `blocked`, and
+        // no `errorMessage` anywhere naming the spent chain. The environment-wall route has always
+        // written its `blockedReason` onto the item for exactly this purpose, and the execution row
+        // renders that field — so without it the user is told `blocked` and nothing else.
         expect({
           persistedStatuses: proxy.getAllPersistedQuests().map(({ status }) => status),
           finalWorkItems: finalQuest.workItems.map(({ id, status }) => ({ id, status })),
+          carrierErrorMessages: finalQuest.workItems.map(({ errorMessage }) =>
+            String(errorMessage),
+          ),
           finalOperationTexts: finalQuest.operations.map(({ text }) => String(text)),
         }).toStrictEqual({
           persistedStatuses: ['in_progress', 'blocked'],
           finalWorkItems: [
-            { id: itemId, status: 'complete' },
+            { id: itemId, status: 'failed' },
             { id: pendingId, status: 'skipped' },
+          ],
+          carrierErrorMessages: [
+            `${role} pt chain for "verify: quest flows" is spent: 3 attempt(s) signalled 'partial' against a budget of 3. The remaining scope is on the last 'pt' operation item; a resume re-dispatches it.`,
+            'undefined',
           ],
           finalOperationTexts: [
             'verify: quest flows',

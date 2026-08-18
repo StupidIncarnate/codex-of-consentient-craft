@@ -7,7 +7,7 @@ import { disciplineManualQaStatics } from '../../statics/discipline-manual-qa/di
 import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
 import { disciplineToPackTransformer } from './discipline-to-pack-transformer';
 
-// Every discipline an orchestrator role can be dispatched with, read off the role map rather than
+// Every discipline an operator role can be dispatched with, read off the role map rather than
 // listed here: a discipline added there and forgotten in a hand-written case list is exactly the
 // silent gap the transformer's `never` default exists to make impossible.
 const EVERY_DISPATCHABLE_DISCIPLINE = Object.values(roleToDisciplineStatics);
@@ -64,11 +64,11 @@ describe('disciplineToPackTransformer', () => {
         });
 
         expect({
-          orchestrator: pack.orchestratorMarkdown.length > 0,
+          operator: pack.operatorMarkdown.length > 0,
           planner: pack.plannerMarkdown.length > 0,
           worker: pack.workerMarkdown.length > 0,
           reviewer: pack.reviewerMarkdown.length > 0,
-        }).toStrictEqual({ orchestrator: true, planner: true, worker: true, reviewer: true });
+        }).toStrictEqual({ operator: true, planner: true, worker: true, reviewer: true });
       },
     );
   });

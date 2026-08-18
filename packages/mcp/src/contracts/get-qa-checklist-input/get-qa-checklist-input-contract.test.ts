@@ -1,18 +1,5 @@
-import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
-
 import { getQaChecklistInputContract } from './get-qa-checklist-input-contract';
 import { GetQaChecklistInputStub } from './get-qa-checklist-input.stub';
-
-// The DENOMINATOR tuple the shared contract builds its enum from — three roles over two sign-off
-// fields. Hardcoding two here is the mistake this input shipped with: `groundstomper` was silently
-// absent, so the one session that needed to name itself could not.
-const DENOMINATOR_TRACKS = signoffTracksStatics.denominators;
-
-// The member of that tuple that is NOT a sign-off field name. A track-scoped input keyed on the
-// field enum would reject exactly this value.
-const FIELDLESS_TRACKS = DENOMINATOR_TRACKS.filter(
-  (track) => !signoffTracksStatics.fields.some((field) => field === track),
-);
 
 describe('getQaChecklistInputContract', () => {
   describe('valid inputs', () => {
@@ -22,68 +9,39 @@ describe('getQaChecklistInputContract', () => {
       });
     });
 
-    it('VALID: {questId, flowId} => parses the flow-scoped form', () => {
+    // The scoped form, and the only one a dispatched session should ever use: the operation item
+    // carries the track, the flows and the package slice, and the server derives all three with the
+    // same transformer the signal-back completion gate uses.
+    it('VALID: {questId, operationItemId} => parses the item-scoped form', () => {
+      expect(
+        getQaChecklistInputContract.parse(
+          GetQaChecklistInputStub({ questId: 'add-auth', operationItemId: 'op-1' }),
+        ),
+      ).toStrictEqual({ questId: 'add-auth', operationItemId: 'op-1' });
+    });
+
+    it('VALID: {questId, flowId} => parses the un-scoped browse form', () => {
       expect(
         getQaChecklistInputContract.parse(
           GetQaChecklistInputStub({ questId: 'add-auth', flowId: 'login-flow' }),
         ),
       ).toStrictEqual({ questId: 'add-auth', flowId: 'login-flow' });
     });
+  });
 
-    it.each(DENOMINATOR_TRACKS)(
-      'VALID: {questId, track: %s} => parses the track-scoped form',
-      (track) => {
-        expect(
-          getQaChecklistInputContract.parse(
-            GetQaChecklistInputStub({ questId: 'add-auth', track }),
-          ),
-        ).toStrictEqual({ questId: 'add-auth', track });
-      },
-    );
-
-    it.each(FIELDLESS_TRACKS)(
-      'VALID: {questId, track: %s} => parses, even though no sign-off field carries that name',
-      (track) => {
-        expect(
-          getQaChecklistInputContract.parse(
-            GetQaChecklistInputStub({ questId: 'add-auth', track }),
-          ),
-        ).toStrictEqual({ questId: 'add-auth', track });
-      },
-    );
-
-    it('VALID: {questId, packageNames} => parses the item-sliced form', () => {
-      expect(
-        getQaChecklistInputContract.parse(
-          GetQaChecklistInputStub({ questId: 'add-auth', packageNames: ['ui-app', 'api-service'] }),
-        ),
-      ).toStrictEqual({ questId: 'add-auth', packageNames: ['ui-app', 'api-service'] });
-    });
-
-    it('EMPTY: {packageNames: []} => parses, an item declaring no slice narrows nothing', () => {
-      expect(
-        getQaChecklistInputContract.parse(
-          GetQaChecklistInputStub({ questId: 'add-auth', packageNames: [] }),
-        ),
-      ).toStrictEqual({ questId: 'add-auth', packageNames: [] });
-    });
-
-    it('VALID: {questId, flowId, track, packageNames} => parses every scope together', () => {
-      expect(
-        getQaChecklistInputContract.parse(
-          GetQaChecklistInputStub({
-            questId: 'add-auth',
-            flowId: 'login-flow',
-            track: 'groundstomper',
-            packageNames: ['ui-app'],
-          }),
-        ),
-      ).toStrictEqual({
-        questId: 'add-auth',
-        flowId: 'login-flow',
-        track: 'groundstomper',
-        packageNames: ['ui-app'],
-      });
+  describe('the three scope arguments this input no longer takes', () => {
+    // Each of these was a way to ask a DIFFERENT question from the one the completion gate answers,
+    // and every one failed by over-reporting — the remainder simply never reached empty while
+    // `done` went on being refused, with nothing naming the cause. They are gone, and `.strict()`
+    // turns a stale call into a loud rejection instead of a silently ignored argument.
+    it.each([
+      ['track', { track: 'flowrider' }],
+      ['packageNames', { packageNames: ['ui-app'] }],
+      ['both', { track: 'groundstomper', packageNames: ['ui-app'] }],
+    ])('INVALID: {%s} => rejected as an unrecognized key', (_name, extra) => {
+      expect(() =>
+        getQaChecklistInputContract.parse({ questId: 'add-auth', ...extra } as never),
+      ).toThrow(/Unrecognized key/u);
     });
   });
 
@@ -102,31 +60,24 @@ describe('getQaChecklistInputContract', () => {
       );
     });
 
-    it('INVALID: {track: "blightscout"} => throws, because blightscout signs no verification unit', () => {
+    it('INVALID: {operationItemId: ""} => throws validation error', () => {
       expect(() =>
-        getQaChecklistInputContract.parse({ questId: 'add-auth', track: 'blightscout' } as never),
-      ).toThrow(/invalid_enum_value/u);
-    });
-
-    it('INVALID: {track: "flowriderSignoff"} => throws, the FIELD name is not a denominator name', () => {
-      expect(() =>
-        getQaChecklistInputContract.parse({
-          questId: 'add-auth',
-          track: 'flowriderSignoff',
-        } as never),
-      ).toThrow(/invalid_enum_value/u);
-    });
-
-    it('INVALID: {packageNames: [""]} => throws, an empty package name narrows to nothing silently', () => {
-      expect(() =>
-        getQaChecklistInputContract.parse({ questId: 'add-auth', packageNames: [''] } as never),
+        getQaChecklistInputContract.parse({ questId: 'add-auth', operationItemId: '' }),
       ).toThrow(/too_small/u);
     });
 
-    it('INVALID: {packageNames: "ui-app"} => throws, the slice is a list even at one member', () => {
+    // A hard rejection rather than a precedence rule: the item already says which flows are in
+    // scope, so a hand-picked flow alongside it can only mean the caller believes it is measuring
+    // something the item does not cover, and letting either win silently is the whole failure mode
+    // this input was rebuilt to remove.
+    it('INVALID: {operationItemId AND flowId} => throws, the item already declares its flows', () => {
       expect(() =>
-        getQaChecklistInputContract.parse({ questId: 'add-auth', packageNames: 'ui-app' } as never),
-      ).toThrow(/Expected array/u);
+        getQaChecklistInputContract.parse({
+          questId: 'add-auth',
+          operationItemId: 'op-1',
+          flowId: 'login-flow',
+        }),
+      ).toThrow(/flowId cannot be combined with operationItemId/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {

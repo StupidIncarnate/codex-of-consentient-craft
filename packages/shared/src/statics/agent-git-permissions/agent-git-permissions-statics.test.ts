@@ -8,7 +8,7 @@ const MERGE_ROLE_ENTRIES = new Set(['Bash(git checkout:*)', 'Bash(git merge:*)']
 
 describe('agentGitPermissionsStatics', () => {
   describe('allow', () => {
-    it('VALID: {agentGitPermissionsStatics} => exposes exactly the read + handoff-commit + merge-role git entries', () => {
+    it('VALID: {agentGitPermissionsStatics} => exposes exactly the read + handoff-commit + merge-role + round-push git entries', () => {
       expect(agentGitPermissionsStatics).toStrictEqual({
         allow: [
           'Bash(git status:*)',
@@ -21,6 +21,7 @@ describe('agentGitPermissionsStatics', () => {
           'Bash(git commit:*)',
           'Bash(git checkout:*)',
           'Bash(git merge:*)',
+          'Bash(git push:*)',
         ],
       });
     });
@@ -39,9 +40,20 @@ describe('agentGitPermissionsStatics', () => {
       expect(mergeRole).toStrictEqual(['Bash(git checkout:*)', 'Bash(git merge:*)']);
     });
 
-    it('VALID: {allow} => withholds history-rewriting and remote-publishing commands', () => {
+    // An operator's gate 9 pushes once per round, and its reviewer measures that round as
+    // `@{upstream}..HEAD`. Denying it makes the prompt's own mandated step come back
+    // `This command requires approval`, which Operating Rule 5 defines as an environment wall.
+    it('VALID: {allow} => grants the round push an operator gate 9 makes', () => {
       const { allow } = agentGitPermissionsStatics;
-      const rewriting = allow.filter((entry) => /git (stash|reset|rebase|push)/u.test(entry));
+
+      expect(allow.filter((entry) => entry === 'Bash(git push:*)')).toStrictEqual([
+        'Bash(git push:*)',
+      ]);
+    });
+
+    it('VALID: {allow} => withholds every history-rewriting command', () => {
+      const { allow } = agentGitPermissionsStatics;
+      const rewriting = allow.filter((entry) => /git (stash|reset|rebase)/u.test(entry));
 
       expect(rewriting).toStrictEqual([]);
     });

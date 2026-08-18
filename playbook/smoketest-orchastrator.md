@@ -215,8 +215,8 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
 4. **`docs/quest-role-paths.md`** and **`packages/orchestrator/CLAUDE.md`** — the authoritative model for the operations
    relay: per-role happy/sad transitions, block ownership, the **Fixpoint** and **Operator convergence** bullets in Core
    concepts, and how quest status is derived. Read these if you need context on why Flowrider runs ONE session per
-   PACKAGE SLICE, Groundstomper and Siegemaster one session PER flow, why every one of those sessions is an
-   ORCHESTRATOR that never opens a source file, and why the operators signal on scope rather than on whether the pass
+   PACKAGE SLICE, Groundstomper and Siegemaster one session PER flow, why every one of those sessions is an OPERATOR
+   that never opens a source file, and why the operators signal on scope rather than on whether the pass
    changed code.
 
 **Resumption rules:**
@@ -835,7 +835,7 @@ spiritmender path is Phase 2.3).
     `— seam: <a> + <b>` text suffix. A quest with no runtime node to slice on falls back to exactly one whole-quest
     item carrying every flow id; a quest whose every runtime node is browser-reachable mints NONE (those units are
     Groundstomper's).
-  - The session is an ORCHESTRATOR and **never opens a source file.** It dispatches ONE `planner-minion`, reads the
+  - The session is an OPERATOR and **never opens a source file.** It dispatches ONE `planner-minion`, reads the
     plan back with `get-quest-planning-notes`, dispatches `worker-minion`s **strictly one at a time**, then ONE
     `reviewer-minion` — all visible as sub-agent chains inside the flowrider's own row, since minions are NOT work
     items. The reviewer is the ONLY writer of that slice's `flowriderSignoff`s: the session that authored a test never
@@ -913,7 +913,7 @@ codeweaver, flowrider, groundstomper, siegemaster (and pesteater on a bug-hunt):
     - Allowlist holds: at `in_progress`, `modify-quest` accepts any `planningNotes` sub-field, including
       `blightLedger` and `operationPlans` (execution agents still cannot write `operations` at `in_progress`).
 
-**→ FAIL a session commits without dispatching a reviewer:** fix the shared orchestrator template's loop section.
+**→ FAIL a session commits without dispatching a reviewer:** fix the shared operator template's loop section.
 Restart 1.7.
 **→ FAIL either gate does not throw:** fix `quest-handle-signal-back-responder`. Restart 1.7.
 **→ FAIL allowlist breach:** fix `quest-status-input-allowlist-statics`. Restart 1.7.
@@ -1040,7 +1040,7 @@ must keep identity + a resume marker and set `pending`, not stay `in_progress`).
 Both run BEFORE any mutation, so every refusal below persists NOTHING: the work item and its operation item are
 untouched and the session can act and signal again.
 
-- **Seed (commit-before-signal):** an orchestrator-role work item whose quest worktree has an uncommitted edit AND an
+- **Seed (commit-before-signal):** an operator-role work item whose quest worktree has an uncommitted edit AND an
   untracked new file. The stub signals `operationStatus: 'done'`.
 - **Assert:**
     - `signal-back` THROWS, naming BOTH paths — the untracked one is the regression to watch for, since `git diff` in
@@ -1050,7 +1050,7 @@ untouched and the session can act and signal again.
       whether a commit was made.
     - A quest with no worktree (a hydrated one) SKIPS the gate — assert no git command ran at all.
 
-- **Seed (review coverage):** an orchestrator-role work item on a clean tree whose `planningNotes.blightLedger`
+- **Seed (review coverage):** an operator-role work item on a clean tree whose `planningNotes.blightLedger`
   carries NO entry with that work item's id. The stub signals `operationStatus: 'done'`.
 - **Assert:**
     - `signal-back` THROWS, naming `get-blight-checklist({ scope: 'working-tree' })` and the `partial` alternative.

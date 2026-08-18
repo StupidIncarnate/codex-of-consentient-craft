@@ -2,6 +2,7 @@ import {
   FlowEdgeStub,
   FlowNodeStub,
   FlowStub,
+  OperationItemStub,
   QuestPackageEntryStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
@@ -23,6 +24,8 @@ const RUNTIME_ONLY_TRACKS = (
       (flowType) => flowType === 'operational',
     ),
 );
+
+const OP_ID = 'c1c1c1c1-1111-4222-9333-444444444444';
 
 describe('QuestGetQaChecklistResponder', () => {
   describe('rendering a quest', () => {
@@ -99,10 +102,17 @@ describe('QuestGetQaChecklistResponder', () => {
         nodes: [],
         edges: [],
       });
-      const quest = QuestStub({ flows: [runtime, operational] });
+      // The scope comes off the ITEM now: its role is the track, and a flowrider item is
+      // `flowScope: 'every-eligible'`, so its own flowIds do not narrow the flow set — the track's
+      // `flowTypes` do, and they drop the operational one.
+      const item = OperationItemStub({ id: OP_ID, role: 'flowrider' });
+      const quest = QuestStub({ flows: [runtime, operational], operations: [item] });
       proxy.setupQuestFound({ quest });
 
-      const result = await proxy.callResponder({ questId: quest.id, track: 'flowrider' });
+      const result = await proxy.callResponder({
+        questId: quest.id,
+        operationItemId: String(item.id),
+      });
 
       expect(result).toStrictEqual({
         success: true,
@@ -129,10 +139,20 @@ describe('QuestGetQaChecklistResponder', () => {
         nodes: [],
         edges: [],
       });
-      const quest = QuestStub({ flows: [runtime, operational] });
+      // Siegemaster is `flowScope: 'declared'`, so the item names its flows — and its `flowTypes`
+      // carry BOTH kinds, which is why an operational flow is in scope for this track alone.
+      const item = OperationItemStub({
+        id: OP_ID,
+        role: 'siegemaster',
+        flowIds: ['walk-flow', 'rollout-flow'],
+      });
+      const quest = QuestStub({ flows: [runtime, operational], operations: [item] });
       proxy.setupQuestFound({ quest });
 
-      const result = await proxy.callResponder({ questId: quest.id, track: 'siegemaster' });
+      const result = await proxy.callResponder({
+        questId: quest.id,
+        operationItemId: String(item.id),
+      });
 
       expect(result).toStrictEqual({
         success: true,
@@ -179,7 +199,15 @@ describe('QuestGetQaChecklistResponder', () => {
           FlowEdgeStub({ id: 'to-rejected', from: 'intake', to: 'rejected' }),
         ],
       });
-      const quest = QuestStub({ packagesAffected, flows: [flow] });
+      // The package slice is ON the item now, so it cannot be omitted. That omission used not to
+      // error — it silently widened the measurement to the whole quest, and the session then worked
+      // units a sibling item was gated on while its own remainder never emptied.
+      const item = OperationItemStub({
+        id: OP_ID,
+        role: 'flowrider',
+        packageNames: ['api-service'],
+      });
+      const quest = QuestStub({ packagesAffected, flows: [flow], operations: [item] });
       proxy.setupQuestFound({ quest });
 
       const scoped = packagesAffected
@@ -199,8 +227,7 @@ describe('QuestGetQaChecklistResponder', () => {
 
       const result = await proxy.callResponder({
         questId: quest.id,
-        track: 'flowrider',
-        packageNames: ['api-service'],
+        operationItemId: String(item.id),
       });
 
       expect(result).toStrictEqual({
@@ -248,13 +275,45 @@ describe('QuestGetQaChecklistResponder', () => {
             }),
           ],
         });
-        proxy.setupQuestFound({ quest });
+        const item = OperationItemStub({ id: OP_ID, role: track });
+        proxy.setupQuestFound({
+          quest: QuestStub({ ...quest, operations: [item] }),
+        });
 
-        const result = await proxy.callResponder({ questId: quest.id, track });
+        const result = await proxy.callResponder({
+          questId: quest.id,
+          operationItemId: String(item.id),
+        });
 
         expect(result).toStrictEqual({
           success: true,
           data: `This quest has no runtime flows, so the ${track} track has nothing to walk. That is a real state, not an error — operational flows are verified by Siegemaster checking their end state, never by an authored suite. Your gate still binds and it yields zero units, so commit the record and signal done.`,
+        });
+      },
+    );
+
+    // Not the same fact as "this quest has no flows": these roles are measured on the scope block
+    // rendered into their Operation Context. Reading the generic no-flows line would tell a
+    // codeweaver its scope was empty, which it would act on by signalling done over unbuilt work.
+    it.each(['codeweaver', 'pesteater'] as const)(
+      'EMPTY: {role: %s} => says its denominator is the rendered scope block, not that there is nothing to verify',
+      async (role) => {
+        const proxy = QuestGetQaChecklistResponderProxy();
+        const item = OperationItemStub({ id: OP_ID, role });
+        const quest = QuestStub({
+          flows: [FlowStub({ id: 'a-flow', name: 'A Flow', nodes: [], edges: [] })],
+          operations: [item],
+        });
+        proxy.setupQuestFound({ quest });
+
+        const result = await proxy.callResponder({
+          questId: quest.id,
+          operationItemId: String(item.id),
+        });
+
+        expect(result).toStrictEqual({
+          success: true,
+          data: "That operation item's role has no sign-off track, so no checklist measures it. Its denominator is the scope block already rendered into the Operation Context — its nodes, its verbatim observables, its contracts and its Seams. There is no tool to hunt for.",
         });
       },
     );

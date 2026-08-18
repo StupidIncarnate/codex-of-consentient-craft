@@ -7,13 +7,13 @@
  *
  * USAGE:
  * const template = roleToPromptTemplateTransformer({ role: agentRoleContract.parse('codeweaver') });
- * // Returns the operation-orchestrator template with the implementation pack interpolated
+ * // Returns the operator template with the implementation pack interpolated
  */
 
 import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../../contracts/agent-role/agent-role-contract';
-import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
 import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
@@ -29,23 +29,25 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
     case 'groundstomper':
     case 'siegemaster':
       return contentTextContract.parse(
-        operationOrchestratorPromptStatics.prompt.template
+        operatorPromptStatics.prompt.template
           .replace(
-            operationOrchestratorPromptStatics.prompt.placeholders.discipline,
+            operatorPromptStatics.prompt.placeholders.discipline,
             // Function replacement, never the string form: pack markdown is authored prose that can
             // contain `$&`, `` $` `` or `$'`, which the string form would expand against the match.
             () =>
               disciplineToPackTransformer({ discipline: roleToDisciplineStatics[role] })
-                .orchestratorMarkdown,
+                .operatorMarkdown,
           )
           // The discipline ID, not the pack: the template quotes it back into the
-          // `get-agent-prompt` call its minions must make, and that broker REFUSES a generic
-          // minion without one. Same function form for the same reason — and the two tokens
-          // share no prefix, so neither substitution can eat the other whatever the order.
-          .replace(
-            operationOrchestratorPromptStatics.prompt.placeholders.myDiscipline,
-            () => roleToDisciplineStatics[role],
-          ),
+          // `get-agent-prompt` call its minions must make (and that broker REFUSES a generic minion
+          // without one), AND into the header every minion brief opens with. `split`/`join` rather
+          // than `.replace`, because `.replace` with a string pattern substitutes the FIRST match
+          // only — the second occurrence would reach the agent as the literal token `$MY_DISCIPLINE`
+          // and every minion it dispatched would fetch with that as its discipline and be refused.
+          // It is also `$`-safe on its own terms: `join` performs no `$&` / `` $` `` expansion at
+          // all, which is what the function form of `.replace` above is there to avoid.
+          .split(operatorPromptStatics.prompt.placeholders.myDiscipline)
+          .join(roleToDisciplineStatics[role]),
       );
     case 'spiritmender':
       return contentTextContract.parse(spiritmenderPromptStatics.prompt.template);

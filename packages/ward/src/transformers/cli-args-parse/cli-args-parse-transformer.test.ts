@@ -162,6 +162,157 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
+  describe('--staged flag', () => {
+    it('VALID: {args: ["--staged"]} => returns config with staged true', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--staged' })],
+      });
+
+      expect(result).toStrictEqual({ staged: true });
+    });
+
+    it('VALID: {args: ["--staged", "--staged"]} => repeating the flag stays a single true', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--staged' }), CliArgStub({ value: '--staged' })],
+      });
+
+      expect(result).toStrictEqual({ staged: true });
+    });
+
+    it('VALID: {args: ["--staged", "--"]} => a bare separator adds no file scope and is accepted', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--staged' }), CliArgStub({ value: '--' })],
+      });
+
+      expect(result).toStrictEqual({ staged: true });
+    });
+  });
+
+  describe('git scope flags reject every narrowing flag', () => {
+    describe.each([['--staged'], ['--changed']])('%s', (scopeFlag) => {
+      it(`INVALID: {${scopeFlag} --only lint} => throws naming --only`, () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: scopeFlag }),
+              CliArgStub({ value: '--only' }),
+              CliArgStub({ value: 'lint' }),
+            ],
+          }),
+        ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: --only$`, 'mu'));
+      });
+
+      it(`INVALID: {--only lint ${scopeFlag}} => throws regardless of flag order`, () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: '--only' }),
+              CliArgStub({ value: 'lint' }),
+              CliArgStub({ value: scopeFlag }),
+            ],
+          }),
+        ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: --only$`, 'mu'));
+      });
+
+      it(`INVALID: {${scopeFlag} --onlyTests "my test"} => throws naming --onlyTests`, () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: scopeFlag }),
+              CliArgStub({ value: '--onlyTests' }),
+              CliArgStub({ value: 'my test' }),
+            ],
+          }),
+        ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: --onlyTests$`, 'mu'));
+      });
+
+      it(`INVALID: {${scopeFlag} -- file.ts} => throws naming the file list`, () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: scopeFlag }),
+              CliArgStub({ value: '--' }),
+              CliArgStub({ value: 'packages/ward/src/index.ts' }),
+            ],
+          }),
+        ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: -- <files>$`, 'mu'));
+      });
+
+      it(`INVALID: {${scopeFlag} --only lint --onlyTests "x" -- file.ts} => names all three conflicts`, () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: scopeFlag }),
+              CliArgStub({ value: '--only' }),
+              CliArgStub({ value: 'lint' }),
+              CliArgStub({ value: '--onlyTests' }),
+              CliArgStub({ value: 'x' }),
+              CliArgStub({ value: '--' }),
+              CliArgStub({ value: 'packages/ward/src/index.ts' }),
+            ],
+          }),
+        ).toThrow(
+          new RegExp(
+            `^${scopeFlag} cannot be combined with: --only, --onlyTests, -- <files>$`,
+            'mu',
+          ),
+        );
+      });
+
+      it(`INVALID: {${scopeFlag} --only lint} => error shows the standalone invocation to use instead`, () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: scopeFlag }),
+              CliArgStub({ value: '--only' }),
+              CliArgStub({ value: 'lint' }),
+            ],
+          }),
+        ).toThrow(new RegExp(`^ {2}npm run ward -- ${scopeFlag}$`, 'mu'));
+      });
+    });
+  });
+
+  describe('--changed and --staged are mutually exclusive', () => {
+    it('INVALID: {--staged --changed} => throws because both pick the file set from git', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [CliArgStub({ value: '--staged' }), CliArgStub({ value: '--changed' })],
+        }),
+      ).toThrow(/^--changed and --staged cannot be combined\.$/mu);
+    });
+
+    it('INVALID: {--changed --staged} => throws regardless of flag order', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [CliArgStub({ value: '--changed' }), CliArgStub({ value: '--staged' })],
+        }),
+      ).toThrow(/^--changed and --staged cannot be combined\.$/mu);
+    });
+  });
+
   describe('-- passthrough separator', () => {
     it('VALID: {args: ["--", "path/to/file.test.ts"]} => returns config with passthrough', () => {
       cliArgsParseTransformerProxy();
@@ -226,15 +377,16 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
-  describe('all flags combined', () => {
-    it('VALID: {--only test --changed -- file.ts} => returns complete config', () => {
+  describe('all narrowing flags combined', () => {
+    it('VALID: {--only test --onlyTests "x" -- file.ts} => returns complete config', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
         args: [
           CliArgStub({ value: '--only' }),
           CliArgStub({ value: 'test' }),
-          CliArgStub({ value: '--changed' }),
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'validates input' }),
           CliArgStub({ value: '--' }),
           CliArgStub({ value: 'packages/hooks/src/foo.test.ts' }),
         ],
@@ -242,7 +394,7 @@ describe('cliArgsParseTransformer', () => {
 
       expect(result).toStrictEqual({
         only: ['unit', 'integration', 'e2e'],
-        changed: true,
+        onlyTests: 'validates input',
         passthrough: ['packages/hooks/src/foo.test.ts'],
       });
     });
@@ -617,20 +769,21 @@ describe('cliArgsParseTransformer', () => {
   });
 
   describe('combined flags', () => {
-    it('VALID: {all flags} => returns config with all options', () => {
+    it('VALID: {--only lint --onlyTests "x"} => returns config with both options', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
         args: [
           CliArgStub({ value: '--only' }),
           CliArgStub({ value: 'lint' }),
-          CliArgStub({ value: '--changed' }),
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'my test' }),
         ],
       });
 
       expect(result).toStrictEqual({
         only: ['lint'],
-        changed: true,
+        onlyTests: 'my test',
       });
     });
   });

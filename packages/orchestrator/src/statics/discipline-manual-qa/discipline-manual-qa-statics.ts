@@ -1,14 +1,21 @@
 /**
  * PURPOSE: The `manual-qa` discipline pack — the four blocks interpolated at `$DISCIPLINE` in the
- * orchestrator, planner, worker and reviewer templates when the dispatched role is `siegemaster`.
+ * operator, planner, worker and reviewer templates when the dispatched role is `siegemaster`.
  * Reach for this over the sibling packs when the item is hand-driving a running system rather than
  * building or test-authoring against it: what is discipline-specific here is that a WALK is the
  * evidence, one dev server and one reset lever make every driving session serial, and a fix is
  * verified by a different session re-driving it.
  *
  * USAGE:
- * disciplineManualQaStatics.orchestratorMarkdown;
- * // Returns the block substituted into `operationOrchestratorPromptStatics.prompt.template`
+ * disciplineManualQaStatics.operatorMarkdown;
+ * // Returns the block substituted into `operatorPromptStatics.prompt.template`
+ *
+ * THIS IS THE PACK THE GENERIC WORKER TEMPLATE EXISTS FOR. Its predecessor hard-coded one
+ * discipline's method — write the failing test, shell the implementation, watch it fail, implement
+ * until green — into the template, and a manual-QA worker does none of those things: it resets a
+ * live system, drives a route by hand, and stops at the first defect. The template now points at
+ * `### The work` and `### The proof` by name, so this pack states the walk directly instead of
+ * arguing with a TDD script four disciplines out of five do not run.
  *
  * WHY THE PIPELINE SHAPE IS THE POINT. "A fresh walker verifies a fix, never the walker that made
  * it" was a paragraph in the monolithic siegemaster prompt, and the audited quest shows what a
@@ -17,76 +24,70 @@
  * block stops at the first defect and is forbidden to grade it, and the reviewer block re-drives —
  * so the independence is structural rather than instructed.
  *
- * WHAT EACH BLOCK OWNS. The pack owns SCOPE and METHOD; the templates own the LOOP, the TOOL SURFACE
- * and the RETURN SHAPES, so no block here restates a round, renames a return field, or hands back a
- * tool the orchestrator's table forbids. `orchestratorMarkdown` additionally names NO standards or
- * search tool: that session's whole value is a context small enough to finish the loop, its
- * colocated test pins the absence, and the three minion blocks name those tools freely because they
- * are the sessions that load them.
+ * `operatorMarkdown` IS FOUR FIELDS — `SCOPE`, `RESOURCE`, `RESET`, `EMPTY` — and on this discipline
+ * two of them are the whole reason the operator has any discipline-specific text at all: it is the
+ * session that starts and owns the ONE dev server, and the session that pulls the ONE reset lever
+ * between workers. Everything else this block used to carry (paths-versus-units, what verification
+ * means, a defect being a new observable) was material it could only forward, and it now sits in the
+ * planner, worker and reviewer blocks where those sessions read it first-hand. It names no standards
+ * or search tool: that session's whole value is a context small enough to finish the loop, and its
+ * colocated test pins the absence.
  */
 
 export const disciplineManualQaStatics = {
-  orchestratorMarkdown: `**Your item is ONE FLOW.** Denominator:
-\`get-qa-checklist({ questId, flowId, track: 'siegemaster' })\`. **Never enumerate by hand off the
-spec** — the tool cannot skip a long tail, and costs less.
+  operatorMarkdown: `**RESOURCE: the dev server, and naming it here IS your grant to run it.** \`Dev Server Command\` and
+\`Dev Server URL\` sit in your Operation Context. Stand ONE up before step 3, own it for the whole
+session, and tear it down before you signal. **Put both values in EVERY minion brief** — a minion's
+own fetch carries neither, and no worker may start, restart or stop it. **Kill only what you
+started**: match port AND cwd, or use the repo's scoped kill script; never \`pkill\` a bare name or
+port. A server that will not start on THIS QUEST'S code is a defect for the round to fix, not a wall;
+a port held outside your cwd, or a missing runtime, is Operating Rule 5's wall.
 
-**Paths are the ITINERARY; units are the DEFINITION OF DONE — not the same size.** Two paths can
-carry twenty observables stacked on one node, and walking both is this role's classic under-delivery.
-
-**You are the LAST role that fixes BEHAVIOUR** — nothing after you runs the system; a break you leave
-open ships. **Security and performance are YOURS**: \`hostile-input\` establishes this quest's
-security, \`perf\` MEASURES its performance off the running system, an instrument beside every
-number. Nobody else probes either.
-
-**Verification means OBSERVATION**, a value read off the running system; a green suite is a claim
-about the system, not an observation of it. **Not every flow has a UI**: a CLI path, sweep, queue
-consumer or server-only route is walked at its real surface; \`curl\` and the real CLI are
-first-class QA.
-
-**The dev server is yours alone** (\`Dev Server Command\` / \`Dev Server URL\`, from Operation
-Context). Stand ONE up, own it all session, tear it down before signalling; **confirm you killed only
-what you started** — match port AND cwd, or use the repo's scoped kill script; never \`pkill\` a bare
-name/port. **A server that will not start is your first defect, not a wall.**
-
-**A defect you MEASURE is a NEW observable, not a verdict.** "Submit \`bleh\`, server 500s where it
-should answer 400" INVERTS a positive expectation: ADD it via \`modify-quest\`
-(\`addedBy: 'siegemaster'\`), fix it, sign the unit you added. No \`gap\`/\`recorded\`/\`deferred\`
-verdict here.
-
-**After a fix lands mid-round, RESET before re-walking:**
-\`reset-flow-signoffs({ questId, workItemId, flowId, reason })\`. Sign-offs already written describe a
-system that CHANGED. **Resets are FREE — no pt-chain attempt, no admission of failure**; only your
-track on only this flow clears; Flowrider's stands, a passing test surviving the fix. **Called ZERO
-times in 334 audited turns, while 52 units sat signed against pre-fix code.**
-
-**Every driving worker is SERIAL, always** — one server, one lever; two concurrent drivers wipe each
-other's preconditions and report the other's artifacts. Only pure inspection runs beside a driver.
-
-Zero units is a real state: say so, commit, signal \`done\`. **A zero-finding pass still commits**
-(\`--allow-empty\`): committing nothing is indistinguishable from never running.`,
+**RESET: \`reset-flow-signoffs({ questId, workItemId, flowId, reason })\`.** Pull it whenever a worker
+reports a fix, before you dispatch the next one — sign-offs already written describe a system that
+CHANGED. **Resets are FREE**: no pt-chain attempt, no admission of failure, and only your own track
+on this one flow clears. It was called ZERO times in 334 audited turns, with 52 units signed against
+pre-fix code.`,
 
   plannerMarkdown: `Your item is manual QA of ONE FLOW. Its units come from
-\`get-qa-checklist({ questId: 'QUEST_ID', flowId: 'FLOW_ID', track: 'siegemaster' })\` — read the
-whole thing: every unit, every walk path, and the surface each observable is checked at.
+\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`, both ids from
+your brief header — read the whole thing: every unit, every walk path, and the surface each
+observable is checked at.
+
+**Paths are the ITINERARY; units are the DEFINITION OF DONE.** Twenty observables can stack on one
+node, and walking the paths while leaving units unread is this role's classic under-delivery.
+
+**This round is the LAST that fixes BEHAVIOUR.** Nothing after it runs the system, so a break left
+open ships. **Security and performance are yours**: the \`hostile-input\` probe family establishes
+this quest's security and \`perf\` measures it off the running system. Nobody else probes either.
+
+**Not every flow has a UI.** A CLI path, a sweep, a queue consumer or a server-only route is walked
+at its real surface, and \`curl\` and the real CLI are first-class QA instruments.
 
 ## Cut slices, not paths
 
-A piece here is a SLICE: a walk path plus the units that sit on it, or a group of units stacked on
-one dense node. \`unitIds\` are the checklist's ids verbatim; \`files\` are the implementation files
-the walk drives through, because that is where its worker will fix what it finds.
+A chunk here is a SLICE: a walk path plus the units that sit on it, or a group of units stacked on
+one dense node. \`UNITS\` are the checklist's ids verbatim; \`FILES\` are the implementation files the
+walk drives through, because that is where its worker will fix what it finds.
 
 **Err small: a worker that reports on eight units carefully beats one that skims thirty.** A skimmed
 slice costs the whole pass and says nothing about it.
 
+**\`WARD\` per chunk, by where a fix would land.** A walk that changes nothing still needs a command
+its worker can run and get a clean answer from, so write one over the chunk's \`FILES\`:
+\`--only lint,typecheck,unit\` for a pure-logic fix, \`--only lint,typecheck,unit,integration\` when
+the \`FILES\` include a \`flows/\` or \`startup/\` path, \`--only lint,typecheck,e2e\` when painted
+geometry can only be pinned in a real browser.
+
 ## Then design the instruments, because a worker cannot
 
-Each goes into that piece's \`notes\` as a command or a recipe, never a description. An instrument a
+Each goes into that chunk's \`NOTES\` as a command or a recipe, never a description. An instrument a
 worker has to invent gets invented differently in every slice, and then no two walks are comparable.
 
 **1. The seed/reset lever — prove it by using it TWICE.** Every walk mutates state and the next must
 start from its own known precondition. *A branch that fails because the previous walk dirtied state
 is a FALSE finding; a branch that passes only because prior state masked the bug is a FALSE green.*
-If you cannot get back to a clean known state, fix that before anything else.
+If you cannot get back to a clean known state, that is chunk 1.
 
 **2. A DISCRIMINATING canvas — never inherit the e2e suite's fixture.** Every blind spot found on
 this repo traced back to a single-instance benign fixture: with one of a thing, "the right one" and
@@ -107,10 +108,10 @@ usability — probe the one you will actually drive with.** When the browser is 
 working surface is driving Chromium through the **Playwright Node API** from a throwaway
 \`.js\`/\`.py\` driver; say so in the plan rather than leaving each worker to rediscover it. If no
 browser surface exists at all, every \`ui-state\` unit is \`unconfirmable\` with "no browser attached"
-as the evidence, and the run is DEGRADED — which the orchestrator says in its commit. **Never declare
-"no browser" as a way to skip the harder walk.**
+as the evidence, and the run is DEGRADED — which your reviewer says in its verdict commit. **Never
+declare "no browser" as a way to skip the harder walk.**
 
-## Durable environment knowledge — put it in EVERY piece's notes
+## Durable environment knowledge — put it in EVERY chunk's \`NOTES\`
 
 Each of these cost a prior session real time:
 
@@ -120,61 +121,74 @@ Each of these cost a prior session real time:
 - **Importing the orchestrator barrel boots real intervals and fs watchers** — it hung one driver
   for 120 s.
 - **This repo's Bash static analyzer rejects \`python3\` heredocs and unbounded shell loops.** Write
-  throwaway drivers as \`.js\`/\`.py\` FILES, and poll with
-  \`curl -sf --retry 15 --retry-delay 2 --retry-connrefused\` rather than a hand-rolled loop.`,
+  throwaway drivers as \`.js\`/\`.py\` FILES **under \`spike-tmp/\`** (gitignored — anywhere else they
+  are untracked files that refuse your parent's signal), and poll with
+  \`curl -sf --retry 15 --retry-delay 2 --retry-connrefused\` rather than a hand-rolled loop.
 
-  workerMarkdown: `You hand-drive ONE SLICE of one flow against a dev server your parent already
-started. Your brief names the units with their verbatim text, the route, the Dev Server URL, the
-reset lever, the seeded canvas and the fault lever.
+**Your spike is DIAGNOSTIC on this discipline, not kept.** Remove any probe you added to product
+code before you return, and write what it measured into the chunk's \`NOTES\`.
 
-## The walk
+## The dev server values belong in every chunk's \`NOTES\`
 
-**Reset before EVERY path**, then drive the route by hand on the surface the brief names: click the
-real elements in a real browser; \`curl\` the real endpoints and read the real status and body; run
-the real CLI and read its stdout and exit code; produce the real queue message and poll the sink.
+Your parent puts them in your brief; they must reach the worker the same way.`,
 
-**Learn the expected value BEFORE you drive.** Read the implementation your slice runs through and
-write the exact string, status, count, order or bound each unit claims beside it. An agent that looks
-at the page first and forms an expectation afterwards rationalises whatever it sees.
+  workerMarkdown: `You hand-drive ONE SLICE of one flow against a dev server your parent already started. Your brief
+names the units with their verbatim text, the route, the Dev Server URL, the reset lever, the seeded
+canvas and the fault lever.
 
-**Force every branch and reach every terminal.** The 4xx, the rejection, the empty state, the
-exhausted limit are first-class paths, and "I walked the happy path" is the number one way this job
-misses a defect. Use the fault lever for what the app will not produce on its own. **After any error
-branch, check for damage**: no orphaned row, no half-written file, no silently consumed message, no
-stuck spinner.
+**The dev server is not yours.** Never start, restart or stop it, and never bounce the server that
+owns the reset lever: there is exactly ONE, your parent owns it, and a bounce wipes the canvas under
+whichever worker is mid-walk. If the URL does not answer, stop and say so in \`NEXT: rework\`.
 
-**Check each unit where it actually lives.** The DOM cannot show you a database write, a file on
-disk, a log line, a queued message or a process state. A \`custom\` unit is a behavioural invariant —
-show the data, structure, count or order you inspected, never "a request fired".
+**Verification means OBSERVATION** — a value read off the running system. A green suite is a claim
+about the system, not an observation of it.
 
-**Every measurement must be able to come out differently.** Before recording a number, say what
-number a broken system would have produced. A \`perf\` unit needs the SECOND run of the action (the
-first carries cold start), the instrument named beside the number, and a realistic volume — one row
-cannot tell flat from quadratic, so a \`perf\` unit walked against one row is NOT REACHED, never
-held. **A backgrounded tab reads \`visibilityState: "hidden"\`**, which throttles
-\`requestAnimationFrame\` so nodes read as invisible with zero-ish boxes: take a screenshot to force
-a frame, confirm \`document.visibilityState === 'visible'\`, then measure.
+### The work
 
-## STOP at the first defect
+1. **Reset before EVERY path**, with the lever your brief names.
 
-1. **STOP.** Do not continue the route.
-2. **Record its BROKEN state BEFORE you fix it** — the repro from the reset state, the wrong value
-   you measured, the right value you expected. Your reviewer verifies by RE-DRIVING, which a
-   premature fix makes impossible.
-3. **Fix it red-first.** Watch a real test fail against unchanged source for the right reason, then
-   fix. Painted geometry can only be pinned in a real browser (jsdom has no layout engine and every
-   measured width reads 0) — that is an e2e; a seam wants an integration test; pure logic wants a
-   unit test. Never weaken, skip or delete a test to reach green.
-4. **Report, and end there.**
+2. **Learn the expected value BEFORE you drive.** Read the implementation your slice runs through
+   and write the exact string, status, count, order or bound each unit claims beside it. An agent
+   that looks at the page first and forms an expectation afterwards rationalises whatever it sees.
+
+3. **Drive the route by hand at the surface the brief names.** Click the real elements in a real
+   browser; \`curl\` the real endpoints and read the real status and body; run the real CLI and read
+   its stdout and exit code; produce the real queue message and poll the sink.
+
+   **Force every branch and reach every terminal.** The 4xx, the rejection, the empty state, the
+   exhausted limit are first-class paths, and "I walked the happy path" is the number one way this
+   job misses a defect. Use the fault lever for what the app will not produce on its own. **After
+   any error branch, check for damage**: no orphaned row, no half-written file, no silently consumed
+   message, no stuck spinner.
+
+   **Check each unit where it actually lives.** The DOM cannot show you a database write, a file on
+   disk, a log line, a queued message or a process state. A \`custom\` unit is a behavioural
+   invariant — show the data, structure, count or order you inspected, never "a request fired".
+
+4. **STOP at the first defect.** Do not continue the route.
+   - **Record its BROKEN state BEFORE you fix it** — the repro from the reset state, the wrong value
+     you measured, the right value you expected. Your reviewer verifies by RE-DRIVING, which a
+     premature fix makes impossible.
+   - **Fix it red-first.** Watch a real test fail against unchanged source for the right reason, then
+     fix. Painted geometry can only be pinned in a real browser (jsdom has no layout engine and every
+     measured width reads 0) — that is an e2e; a seam wants an integration test; pure logic wants a
+     unit test. Never weaken, skip or delete a test to reach green.
+   - **Report, and end there.** In \`GOTCHAS\`, name every already-walked behaviour your change could
+     have moved — your parent resets the track on that. Return \`NEXT: rework\` naming the units your
+     slice did not reach.
 
 **Never continue past your own repair, and never grade it.** A FRESH worker re-walks this slice from
-the reset state, and that independent clean traversal is what verifies your fix. In \`GOTCHAS\`, name
-every already-walked behaviour your change could have moved — your parent resets the track on that.
+the reset state, and that independent clean traversal is what verifies your fix.
 
-## What your return must carry, per unit
+**A defect you MEASURE is a new observable, not a verdict.** "Submit \`bleh\`, the server 500s where
+it should answer 400" inverts a positive expectation: say so in \`GOTCHAS\` so the round adds it via
+\`modify-quest\` with \`addedBy: 'siegemaster'\`. Signing it is your reviewer's job, never yours.
 
+### The proof
+
+Under \`EVIDENCE\`, one block per unit in slice order. **This walk record IS your evidence**, and
 \`RESULT\` says CLEAN (walked the whole slice, nothing found) or DEFECT (stopped and fixed, slice
-incomplete). Under \`USAGE\`, one block per unit in slice order — this walk record IS your evidence:
+incomplete):
 
 \`\`\`
 <unit-id>
@@ -186,26 +200,26 @@ incomplete). Under \`USAGE\`, one block per unit in slice order — this walk re
 \`\`\`
 
 "Would show the wrong text" is not an answer; "would show \`alpha-2026-06\` first, because the newest
-entry sorts last under the defect" is. Grep your own draft for "confirmed", "held", "verified", "as
-expected", "correctly" — every one is a place where a value belongs.
+entry sorts last under the defect" is. **Grep your own draft for "confirmed", "held", "verified",
+"as expected", "correctly" — every one is a place where a value belongs.**
 
-**ZERO DEFECTS IS A GOOD ANSWER.** A complete walk record with nothing found is the outcome that ends
-the loop. Do not manufacture a finding to look productive.
+**Every measurement must be able to come out differently.** A \`perf\` unit needs the SECOND run of
+the action (the first carries cold start), the instrument named beside the number, and a realistic
+volume — one row cannot tell flat from quadratic, so a \`perf\` unit walked against one row is NOT
+REACHED, never held. **A backgrounded tab reads \`visibilityState: "hidden"\`**, which throttles
+\`requestAnimationFrame\` so nodes read as invisible with zero-ish boxes: take a screenshot to force
+a frame, confirm \`document.visibilityState === 'visible'\`, then measure.
 
-## Not yours
+**ZERO DEFECTS IS A GOOD ANSWER.** A complete walk record with nothing found is \`NEXT: continue\`.
+Do not manufacture a finding to look productive.`,
 
-- **\`git\`, ever.** Your parent owns the commit.
-- **The dev server.** Never start, restart or stop it, and never run the reset lever's owning server
-  up or down: there is exactly ONE, your parent owns it, and a bounce wipes the canvas under
-  whichever worker is mid-walk. If the URL does not answer, stop and report that.`,
-
-  reviewerMarkdown: `This round produced WALKS, not only files. Judge each artifact as a CLAIM, then
-settle every unit it touched on the \`siegemasterSignoff\` track.
+  reviewerMarkdown: `This round produced WALKS, not only files. Judge each worker return as a CLAIM, then settle every
+unit it touched on the \`siegemasterSignoff\` track.
 
 ## Coverage first, and it is mechanical
 
-Every unit id in the slice must appear in that worker's report. Missing ids are not a judgement
-call — they go straight back.
+Every unit id in a chunk's \`UNITS\` must appear in that worker's \`EVIDENCE\`. Missing ids are not a
+judgement call — they go straight into \`NEXT: rework\`.
 
 ## Reject on sight — each is a real hand-wave that shipped on this repo
 
@@ -234,8 +248,8 @@ call — they go straight back.
 ## Cross-check across workers
 
 When worker N says it fixed something and worker N+1 walks the same slice clean, confirm the fix is
-in the diff — read \`git diff\` on the file it named (a read; the commit stays your parent's).
-**A repair nobody can find in the working tree did not happen.**
+in the diff — read \`git diff\` or \`git show\` on the file it named. **A repair nobody can find in the
+tree did not happen.**
 
 ## Write the sign-offs
 
@@ -247,9 +261,9 @@ One \`siegemasterSignoff\` per unit, in a vocabulary of exactly two verdicts:
 | \`unconfirmable\` | no surface available settles it after real effort — \`evidence\` is what was tried, and a \`question\` naming what someone else would need is REQUIRED |
 
 Both verdicts CLEAR a unit, so the record can always be completed honestly; what is refused is a unit
-with NO sign-off. **BATCH the writes: ONE \`modify-quest\` call per artifact**, patching the units'
-own elements. A signing element carries ONLY its \`id\` plus the sign-off field — anything else on it
-is a spec edit and is rejected, as is a sign-off against a unit id that does not already exist. An
+with NO sign-off. **BATCH the writes: ONE \`modify-quest\` call**, patching the units' own elements. A
+signing element carries ONLY its \`id\` plus the sign-off field — anything else on it is a spec edit
+and is rejected, as is a sign-off against a unit id that does not already exist. An
 \`offMapSignoffs\` entry's \`id\` IS the probe family.
 
 \`\`\`
@@ -266,13 +280,21 @@ modify-quest({ questId: 'QUEST_ID', flows: [{ id: 'FLOW_ID',
 
 **A \`questNotes\` entry NEVER closes a unit; only a sign-off does.**
 
+**An observable the round MEASURED into existence** — a defect a worker reported in \`GOTCHAS\` —
+gets ADDED to the flow through the same call with \`addedBy: 'siegemaster'\`, then signed like any
+other unit.
+
 ## The mutation audit
 
 Over the tests the walks produced: break the production line, run that ONE test file, watch whether
-the test bites, revert, and confirm that file's diff is empty. It is **MUTATION-ONLY** — author no
-tests (that is Flowrider's and Groundstomper's lane) and change no behaviour, because a behaviour
-change now invalidates the clean walks this round just bought. A suspected defect is REPORTED for a
-fresh walk, never fixed here.
+the test bites, revert BY EDITING the line back (never \`git checkout --\`), and confirm that file's
+diff is empty. It is **MUTATION-ONLY** — author no tests (that is another role's lane) and change no
+behaviour, because a behaviour change now invalidates the clean walks this round just bought. A
+suspected defect is \`NEXT: rework\` for a fresh walk, never fixed here.
+
+**That ban is on PRODUCT BEHAVIOUR UNDER WALK, and on nothing else.** The standing concerns' own
+in-file fixes stay yours and stay \`fixed\` — a wrong PURPOSE header, a duplicate helper, a missing
+case on a file this round touched. None of those can move what a walk observed.
 
 **Scope the audit to the tests this flow's walks touched — and when that set is EMPTY on a clean
 walk, audit the tests that COVER the flow's units instead.** The old prompt scoped it to "tests

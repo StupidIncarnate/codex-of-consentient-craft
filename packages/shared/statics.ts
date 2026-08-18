@@ -25,6 +25,7 @@ export * from './src/statics/mcp-tools/mcp-tools-statics';
 export * from './src/statics/mcp-tool-result/mcp-tool-result-statics';
 export * from './src/statics/agent-git-permissions/agent-git-permissions-statics';
 export * from './src/statics/agent-browser-permissions/agent-browser-permissions-statics';
+export * from './src/statics/agent-qa-permissions/agent-qa-permissions-statics';
 export * from './src/statics/locations/locations-statics';
 export * from './src/statics/widget-tree/widget-tree-statics';
 export * from './src/statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';

@@ -59,32 +59,51 @@ describe('standardsReviewConcernsStatics', () => {
     });
   });
 
-  describe("scope — the round's own uncommitted files, never a commit", () => {
-    // The parent has not committed when the reviewer runs, so a commit-shaped reading measures the
-    // PREVIOUS round and comes back clean on files nobody opened.
-    it("VALID: markdown => names get-blight-checklist with scope 'working-tree' and why that is the only correct scope", () => {
+  describe('scope — one round, framed by what has not been pushed', () => {
+    // Each of the other three scopes fails this session in its own direction, and the template says
+    // which: `working-tree` finds nothing once the workers have committed their pieces, `commit`
+    // sees one piece out of several, and `quest` buries the round in already-dispositioned work.
+    it("VALID: markdown => names get-blight-checklist with scope 'unpushed' and why the other scopes each fail it", () => {
       expect({
         surfaceIsThisRound: has('**Your surface is the files THIS ROUND produced**'),
-        theCall: has("get-blight-checklist({ questId: 'QUEST_ID', scope: 'working-tree' })"),
+        theCall: has("get-blight-checklist({ questId: 'QUEST_ID', scope: 'unpushed' })"),
         onlyCorrectScope: has(
-          "**`scope: 'working-tree'` is the only correct scope for you, and you must pass it.**",
+          "**`scope: 'unpushed'` is the only correct scope for you, and you must pass it.**",
         ),
-        definesTheScope: has('It means\nchanged since HEAD, untracked files INCLUDED.'),
-        parentHasNotCommitted: has('Your parent has not committed yet when you run'),
-        commitReadsThePreviousRound: has(
-          'a commit-shaped reading hands you the round BEFORE yours',
+        definesTheScope: has(
+          'It measures\neverything committed in this worktree and not yet pushed',
         ),
-        diffMissesUntracked: has('every form of `git diff` reports tracked paths only'),
+        namesTheBoundary: has('because your parent pushes once at the end of each round'),
+        noIdToPass: has('You pass\nno id and name no range'),
+        workingTreeFindsNothing: has('`working-tree` finds NOTHING'),
+        commitSeesOnePiece: has('`commit` hands you the last'),
+        questBuriesTheRound: has('`quest` hands you every file every session'),
         unitIdGrammar: has("Each unit is id'd `<implPath>:<concern>`"),
+        // The round's ward is `npm run ward -- --staged` and this enumeration is
+        // `scope: 'unpushed'`. Both mean "what origin does not have yet", so the two tools cannot
+        // disagree about what the round was — and the parent's single push per round is what resets
+        // both at once.
+        sameBoundaryAsTheRoundWard: has("the SAME boundary the round's"),
+        theStagedCommand: has('`npm run ward -- --staged` used'),
+        // The enumeration happens AFTER this session's own fix commit, never before: it reads
+        // COMMITTED history, and the parent's completion gate measures a range that includes that
+        // commit. The predecessor said both "commit everything first" and "disposition as you go",
+        // which cannot both hold.
+        enumerateAfterTheFixCommit: has('after your own fixes are committed, never before'),
       }).toStrictEqual({
         surfaceIsThisRound: true,
         theCall: true,
         onlyCorrectScope: true,
         definesTheScope: true,
-        parentHasNotCommitted: true,
-        commitReadsThePreviousRound: true,
-        diffMissesUntracked: true,
+        namesTheBoundary: true,
+        noIdToPass: true,
+        workingTreeFindsNothing: true,
+        commitSeesOnePiece: true,
+        questBuriesTheRound: true,
         unitIdGrammar: true,
+        sameBoundaryAsTheRoundWard: true,
+        theStagedCommand: true,
+        enumerateAfterTheFixCommit: true,
       });
     });
   });
@@ -311,11 +330,19 @@ describe('standardsReviewConcernsStatics', () => {
       expect({
         reviewed: has('| `reviewed` | the concern was checked against this unit and holds |'),
         fixed: has('| `fixed` | a real defect was found here and corrected in place |'),
+        // `routed` used to read "asked via `ask-user-question`", which a minion cannot act on: it
+        // runs inside its parent's turn, so no human sees the question and nothing resumes it with
+        // an answer. It now routes through the one channel the parent does read.
         routed: has(
-          '| `routed` | a real user-visible defect needing a product decision; asked via `ask-user-question` |',
+          '| `routed` | a real finding needing a decision this round cannot make — and it is named in your `NEXT: rework` line, or it went nowhere |',
         ),
         recorded: has(
-          '| `recorded` | a real finding handed to a named owner, not closed this round |',
+          '| `recorded` | a real finding handed to a named owner outside this quest, not closed this round |',
+        ),
+        noQuestionTool: has('ask-user-question'),
+        saysWhyNoQuestions: has('**Nothing here asks the user anything.**'),
+        insideTheParentsTurn: has(
+          "You are a sub-agent inside your parent's turn: no human\nsees your questions",
         ),
         gap: has('| `gap` | the concern cannot be assessed at this layer — say precisely why |'),
         allFiveClear: has('**Every one of these clears a unit.**'),
@@ -337,6 +364,9 @@ describe('standardsReviewConcernsStatics', () => {
         fixed: true,
         routed: true,
         recorded: true,
+        noQuestionTool: false,
+        saysWhyNoQuestions: true,
+        insideTheParentsTurn: true,
         gap: true,
         allFiveClear: true,
         honestAnswers: true,
@@ -395,8 +425,10 @@ describe('standardsReviewConcernsStatics', () => {
   });
 
   // A minion has no work item of its own, so a `signal-back` reference would point it at its
-  // parent's item and let it complete the parent's operation mid-round. Its parent owns every `git`
-  // write on the session.
+  // parent's item and let it complete the parent's operation mid-round. The git verbs stay out of
+  // THIS block for a different reason: it is shared markdown embedded in the reviewer template, and
+  // the reviewer's own commit step lives in that template — a second instruction here would be a
+  // copy free to drift from the one that actually governs.
   describe('what a sub-agent reader must never be told to do', () => {
     it('VALID: markdown => mentions neither signal-back nor a git write', () => {
       expect({

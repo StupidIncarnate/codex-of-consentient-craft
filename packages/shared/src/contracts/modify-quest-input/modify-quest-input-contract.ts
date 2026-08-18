@@ -309,7 +309,7 @@ export const modifyQuestInputContract = z
         operationPlans: z
           .array(operationPlanForUpsertContract)
           .describe(
-            "Planner sub-agent plans to merge into quest.planningNotes.operationPlans, keyed on the plan's own id — a plan re-stated under the same id REPLACES its prior entry, while a re-planned round carries a fresh id and its own `round`, so a rejected round's plan stays for audit alongside the round that superseded it. This is the write path the operation orchestrator reads back with get-quest-planning-notes instead of holding the plan body in its own context.",
+            "Planner sub-agent plans to merge into quest.planningNotes.operationPlans, keyed on the plan's own id — a plan re-stated under the same id REPLACES its prior entry, while a re-planned round carries a fresh id and its own `round`, so a rejected round's plan stays for audit alongside the round that superseded it. This is the write path the operator reads back with get-quest-planning-notes instead of holding the plan body in its own context.",
           )
           .optional(),
       })

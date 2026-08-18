@@ -17,11 +17,10 @@ import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check
 import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
 import { commandRunLayerFolderBroker } from './command-run-layer-folder-broker';
+import { commandRunLayerGitScopeBroker } from './command-run-layer-git-scope-broker';
 import { commandRunLayerSingleBroker } from './command-run-layer-single-broker';
 import { commandRunLayerMultiBroker } from './command-run-layer-multi-broker';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
-import { gitDiffFilesBroker } from '../../git/diff-files/git-diff-files-broker';
-import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
 import { isProjectReferencesModeGuard } from '../../../guards/is-project-references-mode/is-project-references-mode-guard';
 import { hasCheckDiscoveryMismatchGuard } from '../../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 import { hasUnmatchedTestNamePatternGuard } from '../../../guards/has-unmatched-test-name-pattern/has-unmatched-test-name-pattern-guard';
@@ -35,21 +34,7 @@ export const commandRunBroker = async ({
   config: WardConfig;
   rootPath: AbsoluteFilePath;
 }): Promise<AdapterResult> => {
-  const resolvedConfig = config.changed
-    ? await (async (): Promise<WardConfig> => {
-        const changedFiles = await gitDiffFilesBroker({ cwd: rootPath });
-        const sourceFiles = changedFiles.filter((file) =>
-          isSourceFileGuard({ filePath: String(file) }),
-        );
-        return {
-          ...config,
-          passthrough:
-            sourceFiles.length > 0
-              ? (sourceFiles.map(String) as WardConfig['passthrough'])
-              : config.passthrough,
-        };
-      })()
-    : config;
+  const resolvedConfig = await commandRunLayerGitScopeBroker({ config, rootPath });
 
   const workspaces = await workspaceDiscoverBroker({ rootPath });
 

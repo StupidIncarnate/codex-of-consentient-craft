@@ -48,7 +48,7 @@ An agent that cannot say what would make its assertion fail has not written a te
 a sentence that happens to be true.
 
 **The surface each unit must be checked at comes from the checklist, never from memory.**
-\`get-qa-checklist({ questId, flowId })\` stamps a \`checkSurface\` on every unit it returns. That
+\`get-qa-checklist\` stamps a \`checkSurface\` on every unit it returns. That
 string is the authoritative surface for that unit. An assertion whose layer disagrees with its unit's
 \`checkSurface\` is rejected on that basis alone — no judgement call required.
 
@@ -104,7 +104,8 @@ expectation and it belongs in the spec. Write down what you actually measured an
 through the additive spec authority both roles hold (\`modify-quest\`); it arrives unsigned and then
 carries its own two sign-offs like every other unit. If it cannot be closed this session it sits
 \`unconfirmable\` with that reason. There is no \`defect\`, \`deferred\`, \`gap\` or \`recorded\`
-verdict.
+SIGN-OFF verdict. (The standing concerns' \`blightLedger\` dispositions are a separate record with a
+vocabulary of their own; nothing here governs them.)
 
 **Provenance is a SEPARATE axis.** \`addedBy\` on the observable (\`spec\`, \`chaoswhisperer\`,
 \`codeweaver\`, \`flowrider\`, \`siegemaster\`, \`operator\`) answers "was this in the spec at approval,
@@ -149,6 +150,7 @@ shortcuts that look like looking:
 - \`process-state\` — a mocked spawner, which cannot prove the "zero processes spawned" half of the
   claim at all.
 - \`custom\` — paraphrasing the predicate into something easier to satisfy. A \`custom\` observable is
-  not automatically operational; run what it actually asks for, and when it names a grep, the grep's
-  real output IS the measured value.`,
+  not automatically operational; run what it actually asks for, and when it names a content search,
+  that search's real output IS the measured value — via \`discover({ grep, strict: true })\`, a bare
+  shell \`grep\` being blocked in this repo.`,
 } as const;

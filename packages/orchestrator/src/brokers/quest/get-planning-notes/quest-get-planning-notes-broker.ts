@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Loads a quest's whole `planningNotes` object off disk. Reach for this over `get-quest`
- * when the caller wants the plan/ledger side channel without paying for the spec: an operation
- * orchestrator reads back the plan its `planner-minion` persisted here, never having opened a
+ * when the caller wants the plan/ledger side channel without paying for the spec: an operator
+ * reads back the plan its `planner-minion` persisted here, never having opened a
  * source file itself.
  *
  * USAGE:

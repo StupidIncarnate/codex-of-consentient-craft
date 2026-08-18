@@ -41,7 +41,7 @@ export const slotManagerStatics = {
   },
   // NOT a server-enforced budget — unlike every `maxAttempts`/`maxRetries`/`maxResets` in this file,
   // nothing server-side counts rounds. This is the plan→work→review loop cap baked into
-  // `operationOrchestratorPromptStatics`' prose, honoured by the orchestrator SESSION on its own
+  // `operatorPromptStatics`' prose, honoured by the operator SESSION on its own
   // recognizance inside ONE relay dispatch — never read or enforced by `quest-handle-signal-back-responder`
   // or any other server code. Conflating it with a role's `maxAttempts` above is the exact confusion
   // this comment exists to head off: they are TWO DIFFERENT BOUNDS ON TWO DIFFERENT THINGS. A session
@@ -49,7 +49,7 @@ export const slotManagerStatics = {
   // which server-side duplicate-on-partial appends a `pt N` continuation that spends ONE of that
   // role's THREE ENFORCED `maxAttempts` pt-chain attempts. This key bounds a LOOP inside one session;
   // `maxAttempts` bounds a CHAIN of sessions across a quest.
-  operationOrchestrator: {
+  operator: {
     maxRoundsPerSession: 3,
   },
   ward: {

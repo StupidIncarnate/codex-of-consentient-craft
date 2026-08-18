@@ -106,7 +106,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-quest-planning-notes' as never,
     description:
-      "Returns a quest's `planningNotes`: the `operationPlans` a planner-minion persisted, the per-unit `blightLedger` a reviewer-minion writes, and the durable `questNotes` side channel. An operation orchestrator calls this to read its round's plan back off the quest — the planner returns a 3-5 line pointer, never the plan body, so this is the only place the pieces themselves exist." as never,
+      "Returns a quest's `planningNotes`: the `operationPlans` a planner-minion persisted, the per-unit `blightLedger` a reviewer-minion writes, and the durable `questNotes` side channel. An operator calls this to read its round's plan back off the quest — the planner returns a 3-5 line pointer, never the plan body, so this is the only place the pieces themselves exist." as never,
     inputSchema: getQuestPlanningNotesSchema as never,
     handler: async ({ args }) =>
       QuestHandleResponder({ tool: 'get-quest-planning-notes' as never, args }),
@@ -114,14 +114,14 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-qa-checklist' as never,
     description:
-      "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. Flowrider, Groundstomper and Siegemaster call this instead of reading the spec and enumerating by hand. Pass `track` ('flowrider' | 'groundstomper' | 'siegemaster') — the ROLE you were dispatched as, not the sign-off field you write — and REMAINING counts the units in YOUR denominator, which is exactly what the signal-back completion gate refuses `done` on. Flowrider and Groundstomper both write flowriderSignoff but are measured over DISJOINT package kinds, so the other's name returns the complement of your work; both also narrow to the quest's runtime flows, the only set they are measured over. Pass `packageNames` too when your operation item declares any, or you read a whole-quest remainder while your own gate clears at zero." as never,
+      "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. The `planner-minion` and `reviewer-minion` of a Flowrider, Groundstomper or Siegemaster round call this instead of reading the spec and enumerating by hand. **Pass `operationItemId` — it IS the scope.** Everything the denominator depends on already lives on that item (its role is the track, plus its flowIds and packageNames), and the server derives all of it with the SAME transformer the signal-back completion gate uses, so REMAINING here is exactly what your parent's `done` will be measured against. There is nothing else to pass and no way to widen it by accident. An item whose role has no sign-off track (codeweaver, pesteater) is told so plainly: its denominator is the scope block already in its Operation Context. `flowId` alone is the un-scoped browse form for a caller that owns no operation item, and may never be combined with `operationItemId`." as never,
     inputSchema: getQaChecklistSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-qa-checklist' as never, args }),
   },
   {
     name: 'get-blight-checklist' as never,
     description:
-      "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. A reviewer-minion calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
+      "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. A reviewer-minion calls this with scope: 'unpushed', which frames exactly the commits its round produced; the other scopes measure the whole quest, the last commit alone, or the uncommitted working tree. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
     inputSchema: getBlightChecklistSchema as never,
     handler: async ({ args }) =>
       QuestHandleResponder({ tool: 'get-blight-checklist' as never, args }),

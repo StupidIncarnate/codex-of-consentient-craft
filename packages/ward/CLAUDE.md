@@ -46,8 +46,24 @@ All flags apply to the `run` subcommand.
 |----------------------------------------------|-----------------------------------------------------------------------------------------|
 | `--only lint,typecheck,unit,integration,e2e` | Comma-separated list of check types to run. Omit to run all five.                       |
 | `--onlyTests <regex>`                        | Filter tests by name pattern. Maps to Jest `--testNamePattern` and Playwright `--grep`. |
-| `--changed`                                  | Scope checks to files changed in git (uses `git diff`).                                 |
+| `--changed`                                  | Run every check type over the files that differ from the local default branch.          |
+| `--staged`                                   | Run every check type over the files origin does not have yet.                           |
 | `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths.                  |
+
+### The two git scope flags take no companions
+
+`--changed` and `--staged` each run **all five check types** over a file set that git decides. Neither accepts `--only`,
+`--onlyTests`, or a `-- <files>` list, and the two cannot be combined with each other. Ward rejects those combinations
+at CLI parse time with an error naming the offending flags, rather than picking a winner between two file sets.
+
+```bash
+npm run ward -- --staged                 # correct
+npm run ward -- --staged --only lint     # rejected
+npm run ward -- --changed -- packages/ward  # rejected
+npm run ward -- --changed --staged       # rejected
+```
+
+To narrow a run, drop the git scope flag and say what you want directly: `npm run ward -- --only lint -- <files>`.
 
 **`--onlyTests` accepts a regex pattern.** Use `|` for alternation: `--onlyTests "foo|bar"` runs tests matching either
 name. Ignored by lint and typecheck check types.
@@ -91,8 +107,11 @@ npm run ward -- --only test --only lint --only typecheck -- packages/hooks
 # Run multiple check types
 npm run ward -- --only lint,unit
 
-# Lint only changed files
-npm run ward -- --only lint --changed
+# All checks, scoped to files that differ from the local default branch
+npm run ward -- --changed
+
+# All checks, scoped to everything origin does not have yet — the pre-push gate
+npm run ward -- --staged
 
 # Run only tests matching a name pattern
 npm run ward -- --only unit --onlyTests "my specific test"
@@ -122,14 +141,26 @@ a failing run.
 
 ## How File Scoping Works
 
-Ward supports two file scoping mechanisms: passthrough (`--`) and changed (`--changed`). When either is active, ward
-considers the run to have "file scope."
+Ward has three file scoping mechanisms: passthrough (`--`), changed (`--changed`), and staged (`--staged`). When any of
+them is active, ward considers the run to have "file scope."
 
 - **No file scope**: Each check runs against all files in each package.
 - **Passthrough (`--`)**: The provided paths are passed directly to the check tool. Accepts both file paths
   (`-- packages/hooks/src/foo.test.ts`) and package paths (`-- packages/hooks`). A package path runs all checks in that
   package without file-level scoping.
-- **Changed (`--changed`)**: Uses `git diff` to discover changed files, then passes them to each check tool.
+- **Changed (`--changed`)**: Diffs against the merge-base with the **local** `main` or `master`, then passes the
+  resulting files to each check tool.
+- **Staged (`--staged`)**: Diffs against the merge-base with the branch's **upstream tracking ref**, so the file set is
+  everything origin does not have: files touched by commits that have not been pushed, plus staged and unstaged edits on
+  top of them. Use it as a pre-push gate. When the branch has no tracking ref it falls back to `origin/main`, then
+  `origin/master`; when the repo has no origin refs at all it falls back to what `--changed` would produce.
+
+The two git scope flags resolve to a plain file list before any check runs, so from a check runner's point of view
+`--changed` and `--staged` are indistinguishable from a `-- <files>` passthrough. Non-source paths (`.md`, `.json`) are
+dropped from that list, because ESLint reports a "file ignored" error for a non-source file handed to it explicitly.
+
+**Empty file set:** when git reports no files (nothing changed, or nothing unpushed), the run has no file scope and
+every check runs against every file — the same as a bare `npm run ward`.
 
 **Special case:** Typecheck always runs `tsc --noEmit` on the entire package regardless of file scope. There is no way
 to typecheck individual files with tsc.

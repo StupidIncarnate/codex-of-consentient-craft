@@ -4,6 +4,7 @@ import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub'
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 import { spawnBatchLayerBrokerProxy } from './spawn-batch-layer-broker.proxy';
+import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
 
 const SESSION_ID = '9c4d8f1c-3e38-48c9-bdec-22b61883b473';
 
@@ -65,7 +66,7 @@ describe('spawnBatchLayerBroker', () => {
         'stream-json',
         '--verbose',
         '--model',
-        'opus',
+        roleToModelStatics.codeweaver,
         '--chrome',
         '--settings',
         '{"hooks":{}}',
@@ -171,7 +172,7 @@ describe('spawnBatchLayerBroker', () => {
         'stream-json',
         '--verbose',
         '--model',
-        'opus',
+        roleToModelStatics.codeweaver,
         '--chrome',
         '--settings',
         '{"hooks":{}}',
@@ -201,7 +202,7 @@ describe('spawnBatchLayerBroker', () => {
         'stream-json',
         '--verbose',
         '--model',
-        'opus',
+        roleToModelStatics.codeweaver,
         '--chrome',
         '--settings',
         '{"hooks":{}}',
@@ -229,7 +230,7 @@ describe('spawnBatchLayerBroker', () => {
         'stream-json',
         '--verbose',
         '--model',
-        'opus',
+        roleToModelStatics.codeweaver,
         '--chrome',
         '--settings',
         '{"hooks":{}}',

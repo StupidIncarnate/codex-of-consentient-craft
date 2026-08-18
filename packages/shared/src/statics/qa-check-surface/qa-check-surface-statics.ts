@@ -36,7 +36,7 @@ export const qaCheckSurfaceStatics = {
     'external-api':
       'the real outbound call to the third-party service, or the recorded outbound request when the service cannot be called',
     custom:
-      'a BEHAVIOURAL INVARIANT, not an I/O channel — drive the real path that should produce it, inspect the actual result or state it left behind, and reason about whether the invariant held. NEVER reduce it to "a request fired". A grep or static assertion is the correct check ONLY when the observable itself names one (for example "grep for X returns zero matches"), and then the grep output IS the measured value',
+      'a BEHAVIOURAL INVARIANT, not an I/O channel — drive the real path that should produce it, inspect the actual result or state it left behind, and reason about whether the invariant held. NEVER reduce it to "a request fired". A content search or static assertion is the correct check ONLY when the observable itself names one (for example "no file still references X"), and then the real output of that search IS the measured value — run it with discover({ grep, strict: true }), since a bare shell grep/rg/find is blocked outright in this repo',
   },
   byKind: {
     terminal:

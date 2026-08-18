@@ -44,7 +44,7 @@ describe('orchestrator', () => {
       'modifyQuestInputContract',
       'modifyQuestResultContract',
       'nextStepContract',
-      'operationOrchestratorPromptStatics',
+      'operatorPromptStatics',
       'orchestrationEventsState',
       'orchestrationProcessesState',
       'plannerMinionStatics',

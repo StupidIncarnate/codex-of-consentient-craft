@@ -1,585 +1,409 @@
 import { disciplineImplementationStatics } from './discipline-implementation-statics';
 
-// The orchestrator block is interpolated into a template that already spends most of its own budget
-// on the loop and the tool table; the minion blocks land in templates with more room.
-const ORCHESTRATOR_BUDGET_CHARS = 2_500;
-const MINION_BUDGET_CHARS = 6_500;
+const { operatorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
+  disciplineImplementationStatics;
+
+// A tool named in an operator's discipline block is a GRANT — the operator template's table says so
+// in as many words ("A discipline may NAME A TOOL THE ALLOWED LIST DOES NOT"). Every name here is on
+// that template's FORBIDDEN half, so a mention would hand the session back the exact context leak
+// the operator/minion split exists to close.
+const FORBIDDEN_IN_AN_OPERATOR_BLOCK = [
+  'get-architecture',
+  'get-syntax-rules',
+  'get-testing-patterns',
+  'discover',
+  'get-project-map',
+  'get-project-inventory',
+  'get-folder-detail',
+  'get-blight-checklist',
+  'npm run ward',
+  'git log',
+  'git diff',
+  'git commit',
+];
 
 describe('disciplineImplementationStatics', () => {
-  it('VALID: exported value => carries exactly the four discipline blocks as strings', () => {
+  it('VALID: exported value => carries exactly the four blocks, all non-empty strings', () => {
     expect(disciplineImplementationStatics).toStrictEqual({
-      orchestratorMarkdown: expect.stringMatching(/^.+$/su),
+      operatorMarkdown: expect.stringMatching(/^.+$/su),
       plannerMarkdown: expect.stringMatching(/^.+$/su),
       workerMarkdown: expect.stringMatching(/^.+$/su),
       reviewerMarkdown: expect.stringMatching(/^.+$/su),
     });
   });
 
-  // Each block is substituted AT `$DISCIPLINE`. A block carrying either placeholder itself would be
-  // re-substituted, or would swallow the operation context appended at `$ARGUMENTS`.
-  it('VALID: every block => carries neither template placeholder', () => {
-    const { orchestratorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
-      disciplineImplementationStatics;
-    const blocks = [orchestratorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown];
-
-    expect({
-      discipline: blocks.filter((block) => block.includes('$DISCIPLINE')),
-      arguments: blocks.filter((block) => block.includes('$ARGUMENTS')),
-    }).toStrictEqual({ discipline: [], arguments: [] });
-  });
-
-  describe('budgets — an over-budget pack loses the served prompt its tail, silently', () => {
-    it('VALID: orchestratorMarkdown => stays inside the orchestrator budget', () => {
-      expect(disciplineImplementationStatics.orchestratorMarkdown.length).toBeLessThanOrEqual(
-        ORCHESTRATOR_BUDGET_CHARS,
-      );
-    });
-
-    it('VALID: minion blocks => the largest stays inside the minion budget', () => {
-      const { plannerMarkdown, workerMarkdown, reviewerMarkdown } = disciplineImplementationStatics;
-
+  // TWO FIELDS, and the contract is that there is no third. It was four. `SCOPE` and `EMPTY` both
+  // went, for different reasons: `SCOPE` duplicated `Your operation item:` / `Your flows:` /
+  // `Your packages:`, which `workItemToPromptTransformer` generates into `$ARGUMENTS` from live
+  // quest data, so pack prose could only drift from it; `EMPTY` duplicated the operator script's own
+  // "a plan with zero chunks dispatches zero workers". Everything else this block ever carried — the
+  // authority order, the Seams markers, repair authority, the spec-movement rules — was material the
+  // operator could only COPY into a brief, which made it a relay for instructions rather than a
+  // reader of them. All of it lives in the three minion blocks now.
+  describe('operatorMarkdown is two fields and nothing else', () => {
+    it('VALID: operatorMarkdown => carries exactly RESOURCE and RESET, in that order', () => {
       expect(
-        Math.max(plannerMarkdown.length, workerMarkdown.length, reviewerMarkdown.length),
-      ).toBeLessThanOrEqual(MINION_BUDGET_CHARS);
+        Array.from(operatorMarkdown.matchAll(/\*\*([A-Z]+):\*\*/gu)).map((match) => match[1]),
+      ).toStrictEqual(['RESOURCE', 'RESET']);
+    });
+
+    it('VALID: operatorMarkdown => names no tool the operator template forbids', () => {
+      expect(
+        FORBIDDEN_IN_AN_OPERATOR_BLOCK.filter((tool) => operatorMarkdown.includes(tool)),
+      ).toStrictEqual([]);
+    });
+
+    it('VALID: operatorMarkdown => stays inside the budget that keeps this session small', () => {
+      expect(operatorMarkdown.length).toBeLessThan(1_200);
+    });
+
+    // Both fields are "none" here, and saying so is the whole content: it stops the session going
+    // looking for a server or a lever. The SCOPE this block used to carry is already in the
+    // operator's `$ARGUMENTS` — `Your operation item:`, `Your flows:`, `Your packages:`, and the
+    // codeweaver-only nodes/observables/contracts/seams render — generated from live quest data,
+    // where prose here could only drift from it.
+    it('VALID: operatorMarkdown => is both fields as none, and restates no scope of its own', () => {
+      expect({
+        resourceNone: operatorMarkdown.includes(
+          '**RESOURCE:** none. This discipline runs no server and starts none.',
+        ),
+        resetNone: operatorMarkdown.includes('**RESET:** none.'),
+        noScopeProse: operatorMarkdown.includes('CELL'),
+        noDenominatorProse: operatorMarkdown.includes('denominator'),
+        noEmptyRule: operatorMarkdown.includes('zero chunks'),
+      }).toStrictEqual({
+        resourceNone: true,
+        resetNone: true,
+        noScopeProse: false,
+        noDenominatorProse: false,
+        noEmptyRule: false,
+      });
+    });
+
+    // The cell framing did not vanish, it moved to the session that reads code and cuts the chunks.
+    it('VALID: plannerMarkdown => carries the cell framing the operator block used to hold', () => {
+      expect({
+        cell: plannerMarkdown.includes('Your cell is one (package, flow) pair'),
+        foundationIsNotEmpty: plannerMarkdown.includes(
+          'the thing every other cell builds on, never an empty one',
+        ),
+        denominatorIsTheContextBlock: plannerMarkdown.includes(
+          '## Your denominator is the `CONTEXT:` block in your brief',
+        ),
+        noChecklistTool: plannerMarkdown.includes('**No checklist tool answers it'),
+        // The four headings `codeweaverScopeBlockTransformer` actually emits. Naming them is what
+        // lets this session find its acceptance targets inside a context block its parent pasted
+        // whole — the operator cannot label them, because it cannot read them.
+        namesTheRenderedHeadings: [
+          'Your nodes',
+          'Must satisfy',
+          'Contracts you own',
+          'Seams',
+        ].every((heading) => plannerMarkdown.includes(heading)),
+      }).toStrictEqual({
+        cell: true,
+        foundationIsNotEmpty: true,
+        denominatorIsTheContextBlock: true,
+        noChecklistTool: true,
+        namesTheRenderedHeadings: true,
+      });
     });
   });
 
-  describe('orchestratorMarkdown', () => {
-    // The orchestrator template's tool table forbids all seven outright and its own test pins their
-    // absence outside its FORBIDDEN block. A pack naming one hands the tool back, and a session that
-    // then loads the standards cannot finish the loop — the leak this whole split exists to close.
-    it('VALID: orchestratorMarkdown => names no standards or search tool anywhere', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
+  // THE CONTRACT WITH THE WORKER TEMPLATE. Its method steps 3 and 4 point at these two headings BY
+  // NAME rather than hard-coding one discipline's method into a template four other disciplines have
+  // to argue with. A pack missing either heading serves a worker two steps that resolve to nothing.
+  describe('workerMarkdown carries the two headings the worker template points at', () => {
+    it('VALID: workerMarkdown => carries ### The work and ### The proof, work first', () => {
+      expect({
+        work: /^### The work$/mu.test(workerMarkdown),
+        proof: /^### The proof$/mu.test(workerMarkdown),
+        workFirst: workerMarkdown.indexOf('### The work') < workerMarkdown.indexOf('### The proof'),
+      }).toStrictEqual({ work: true, proof: true, workFirst: true });
+    });
+
+    it('VALID: ### The work => is the red-first build loop, in the order the worker runs it', () => {
+      const work = workerMarkdown.slice(
+        workerMarkdown.indexOf('### The work'),
+        workerMarkdown.indexOf('### The proof'),
+      );
 
       expect({
-        getArchitecture: orchestratorMarkdown.split('get-architecture').length - 1,
-        getSyntaxRules: orchestratorMarkdown.split('get-syntax-rules').length - 1,
-        getTestingPatterns: orchestratorMarkdown.split('get-testing-patterns').length - 1,
-        discover: orchestratorMarkdown.split('discover').length - 1,
-        getProjectMap: orchestratorMarkdown.split('get-project-map').length - 1,
-        getProjectInventory: orchestratorMarkdown.split('get-project-inventory').length - 1,
-        getFolderDetail: orchestratorMarkdown.split('get-folder-detail').length - 1,
+        steps: Array.from(work.matchAll(/^\d\. \*\*/gmu)).map((match) => match[0]),
+        failingTestFirst: work.includes(
+          '**Write the failing test FIRST, driven by the observables.**',
+        ),
+        shell: work.includes('**Shell the implementation** with the right signature and no logic'),
+        implementUntilGreen: work.includes('**Implement until green**'),
+        walkTheDiff: work.includes('**Walk your own diff for the branches you added**'),
+        folderTypeDecidesCompanions: work.includes('**Which tests are yours, by FOLDER TYPE'),
+        integrationInsteadOfUnit: work.includes(
+          '**`flows/`\nand `startup/` require an `.integration.test.ts` INSTEAD of a unit test**',
+        ),
+        noPlaywright: work.includes('**The\none boundary: Playwright `.e2e.ts` is NOT yours**'),
       }).toStrictEqual({
-        getArchitecture: 0,
-        getSyntaxRules: 0,
-        getTestingPatterns: 0,
-        discover: 0,
-        getProjectMap: 0,
-        getProjectInventory: 0,
-        getFolderDetail: 0,
+        steps: ['1. **', '2. **', '3. **', '4. **'],
+        failingTestFirst: true,
+        shell: true,
+        implementUntilGreen: true,
+        walkTheDiff: true,
+        folderTypeDecidesCompanions: true,
+        integrationInsteadOfUnit: true,
+        noPlaywright: true,
       });
     });
 
-    it('VALID: orchestratorMarkdown => defines the item as one cell of the derived partition', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
+    // On this discipline the proof is a BEHAVIOURAL red: the assertion ran, reached the shelled code,
+    // and disagreed with it. A structural red — import error, missing export, type error — proves the
+    // file was not there yet and nothing about the assertion.
+    it('VALID: ### The proof => demands a behavioural red and the actual value it printed', () => {
+      const proof = workerMarkdown.slice(workerMarkdown.indexOf('### The proof'));
 
       expect({
-        oneCell: orchestratorMarkdown.includes('Your item is ONE CELL of a partition derived at'),
-        perPackagePerFlow: orchestratorMarkdown.includes('one cell per (package, flow)'),
-        foundationPerPackage: orchestratorMarkdown.includes(
-          'plus one flow-less **foundation** item per\npackage holding its contracts and the individual contract properties whose source resolves under it.',
+        behaviourallyNotStructurally: proof.includes(
+          '**Watch it fail BEHAVIOURALLY, not STRUCTURALLY**',
         ),
-        foundationIsNotEmpty: orchestratorMarkdown.includes(
-          '**A foundation item is not an item with nothing to do**; it is the thing everything else is built on.',
+        wholeOfTheEvidence: proof.includes('it is the\nwhole of your evidence'),
+        structuralProvesNothing: proof.includes(
+          'A red that is an import\nerror, a missing export or a type error proves nothing about your assertion',
         ),
+        wrongValue: proof.includes('**The red you need is a WRONG VALUE**'),
+        fixTheAssertionFirst: proof.includes('fix the assertion before you write a line of logic'),
+        evidencePerUnit: proof.includes('one line per unit'),
+        notItFailedFirst: proof.includes('"It failed first" is not evidence'),
+        aRealExample: proof.includes("`expected 'draft', received undefined` is"),
       }).toStrictEqual({
-        oneCell: true,
-        perPackagePerFlow: true,
-        foundationPerPackage: true,
-        foundationIsNotEmpty: true,
+        behaviourallyNotStructurally: true,
+        wholeOfTheEvidence: true,
+        structuralProvesNothing: true,
+        wrongValue: true,
+        fixTheAssertionFirst: true,
+        evidencePerUnit: true,
+        notItFailedFirst: true,
+        aRealExample: true,
       });
     });
 
-    it('VALID: orchestratorMarkdown => keeps the four-source authority order and its qualifier', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
-
+    it('VALID: workerMarkdown => names the three commit-body markers this session writes', () => {
       expect({
-        flowIsNorthStar: orchestratorMarkdown.includes(
-          '**the flow graph is the north star** — the USER approved it',
+        heading: workerMarkdown.includes(
+          '### Three commit markers, and you are the session that writes them',
         ),
-        observablesAreNotGospel: orchestratorMarkdown.includes(
-          '**the observables are the best available expression of that intent, not\ngospel**',
-        ),
-        writtenBeforeAnyCode: orchestratorMarkdown.includes(
-          'written before any code existed, so some WILL be unachievable as written',
-        ),
-        gitIsTheAuthorityLog: orchestratorMarkdown.includes('**git is the\nauthority log**'),
-        ledgerIsDerivedAndExact: orchestratorMarkdown.includes(
-          '**the ledger is DERIVED and its scope is\nexact.**',
-        ),
-        exactIsNotComplete: orchestratorMarkdown.includes(
-          '**Exact is not the same as complete. The partition covers everything the spec SAYS; what\nstays approximate is whether the spec says everything.**',
-        ),
+        adjusted: workerMarkdown.includes('`ADJUSTED:`'),
+        added: workerMarkdown.includes('`ADDED:`'),
+        repair: workerMarkdown.includes('`REPAIR:`'),
+        subjectUnchanged: workerMarkdown.includes('The subject stays `chunk <n>: <title>`.'),
       }).toStrictEqual({
+        heading: true,
+        adjusted: true,
+        added: true,
+        repair: true,
+        subjectUnchanged: true,
+      });
+    });
+  });
+
+  // What moved DOWN from the operator block. Each of these is something only the planner can act on:
+  // it reads the code, the history and the scope block, and the operator reads none of them.
+  describe('plannerMarkdown holds what the operator block used to relay', () => {
+    it('VALID: plannerMarkdown => carries the four-source authority order', () => {
+      expect({
+        heading: plannerMarkdown.includes('## What is authoritative, when four sources disagree'),
+        flowIsNorthStar: plannerMarkdown.includes('**The flow graph is the north star.**'),
+        observablesNotGospel: plannerMarkdown.includes(
+          '**The observables express that intent but are not gospel**',
+        ),
+        gitIsTheLog: plannerMarkdown.includes('**Git is the authority log.**'),
+        exactIsNotComplete: plannerMarkdown.includes('**Exact is not complete**'),
+      }).toStrictEqual({
+        heading: true,
         flowIsNorthStar: true,
-        observablesAreNotGospel: true,
-        writtenBeforeAnyCode: true,
-        gitIsTheAuthorityLog: true,
-        ledgerIsDerivedAndExact: true,
+        observablesNotGospel: true,
+        gitIsTheLog: true,
         exactIsNotComplete: true,
       });
     });
 
-    // Gate 3 of the loop says "fetch your denominator; your discipline names the tool". This
-    // discipline has no such tool, so it has to say so plainly or the session burns turns hunting
-    // for a checklist call it has no track for.
-    it('VALID: orchestratorMarkdown => points the denominator at the rendered scope block, not a tool', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
-
+    it('VALID: plannerMarkdown => carries all three Seams markers and the repair authority', () => {
       expect({
-        theScopeBlock: orchestratorMarkdown.includes(
-          '**Your denominator is the scope block already rendered into your Operation Context**',
-        ),
-        itsFourParts: orchestratorMarkdown.includes(
-          'its nodes,\nverbatim observables, contracts and Seams.',
-        ),
-        noChecklistTool: orchestratorMarkdown.includes(
-          'No checklist tool answers it; do not hunt for one.',
-        ),
-      }).toStrictEqual({ theScopeBlock: true, itsFourParts: true, noChecklistTool: true });
-    });
-
-    it('VALID: orchestratorMarkdown => gives each of the three seam markers a different action', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        alreadyBuiltIsVerifiedAgainstCode: orchestratorMarkdown.includes(
-          '**ALREADY BUILT** — verify every observable under it against real COMMITTED CODE, not the ledger',
-        ),
-        notTheLedgerNotTheSpec: orchestratorMarkdown.includes(
-          '(which reports it complete either way) and not the spec (which says what should exist)',
-        ),
-        shortfallIsARepair: orchestratorMarkdown.includes(
-          'shortfall is YOURS to repair, with a `REPAIR:` commit line',
-        ),
-        notBuiltYetIsShapedAndLeft: orchestratorMarkdown.includes(
-          '**NOT BUILT YET** — not yours. Build your half to the shape they need; say what you left.',
-        ),
-        noSessionOwnsItIsYours: orchestratorMarkdown.includes(
-          '**NO SESSION OWNS IT** — nobody downstream builds that half, so it is yours.',
-        ),
-      }).toStrictEqual({
-        alreadyBuiltIsVerifiedAgainstCode: true,
-        notTheLedgerNotTheSpec: true,
-        shortfallIsARepair: true,
-        notBuiltYetIsShapedAndLeft: true,
-        noSessionOwnsItIsYours: true,
-      });
-    });
-
-    it('VALID: orchestratorMarkdown => licenses repair by relevance and forbids unwinding others', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        repairIsExpected: orchestratorMarkdown.includes(
-          '**Repair is expected work, not scope creep.**',
-        ),
-        limitIsRelevance: orchestratorMarkdown.includes(
+        alreadyBuilt: plannerMarkdown.includes('**ALREADY BUILT**'),
+        againstCommittedCode: plannerMarkdown.includes('against real COMMITTED CODE'),
+        notBuiltYet: plannerMarkdown.includes('**NOT BUILT YET** — not yours.'),
+        noSessionOwnsIt: plannerMarkdown.includes('**NO SESSION OWNS IT**'),
+        repairIsExpected: plannerMarkdown.includes('**Repair is expected work, not scope creep.**'),
+        relevanceNotPackage: plannerMarkdown.includes(
           'The limit is relevance, not package boundary.',
         ),
-        neverRevert: orchestratorMarkdown.includes(
-          "**Never delete or revert another session's committed work.**",
+        neverRevert: plannerMarkdown.includes(
+          "**Never plan a chunk that deletes or reverts another session's committed work.**",
         ),
-      }).toStrictEqual({ repairIsExpected: true, limitIsRelevance: true, neverRevert: true });
+      }).toStrictEqual({
+        alreadyBuilt: true,
+        againstCommittedCode: true,
+        notBuiltYet: true,
+        noSessionOwnsIt: true,
+        repairIsExpected: true,
+        relevanceNotPackage: true,
+        neverRevert: true,
+      });
     });
 
-    it('VALID: orchestratorMarkdown => carries additive-only spec authority with both commit markers', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
-
+    it('VALID: plannerMarkdown => carries both spec-movement directions and their commit markers', () => {
       expect({
-        additiveOnly: orchestratorMarkdown.includes(
-          '**You may move the spec, additively only** (`modify-quest`)',
+        additiveOnly: plannerMarkdown.includes('ADDITIVE-ONLY'),
+        deleteRefused: plannerMarkdown.includes(
+          '**Every delete is refused, and so is a new flow.**',
         ),
-        adjusted: orchestratorMarkdown.includes(
-          '`ADJUSTED:` for an observable\nrestated to what was achievable',
+        cannotBeMet: plannerMarkdown.includes('**When an observable cannot be met as written.**'),
+        genuineEffort: plannerMarkdown.includes('The bar is genuine effort, not first resistance'),
+        nearestAchievable: plannerMarkdown.includes('deliver the NEAREST achievable'),
+        adjustedMarker: plannerMarkdown.includes('that is what puts the `ADJUSTED:`'),
+        flowImplies: plannerMarkdown.includes(
+          '**When the flow implies an outcome nobody wrote down**',
         ),
-        couldNotVersusChoseNotTo: orchestratorMarkdown.includes(
-          '**"could not" and "chose not to" are different, and only one of them\nis allowed**',
+        constraintOnYourself: plannerMarkdown.includes(
+          'an observable you add is a constraint on YOURSELF',
         ),
-        added: orchestratorMarkdown.includes(
-          '`ADDED:` for an outcome the flow implied that nobody wrote down.',
-        ),
+        addedMarker: plannerMarkdown.includes('flag it in `NOTES` so the commit carries `ADDED:`'),
       }).toStrictEqual({
         additiveOnly: true,
-        adjusted: true,
-        couldNotVersusChoseNotTo: true,
-        added: true,
-      });
-    });
-
-    it('VALID: orchestratorMarkdown => makes partial free and a premature done permanent', () => {
-      const { orchestratorMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        noFailureSignal: orchestratorMarkdown.includes(
-          '**There is no failure signal, and `partial` is not the lesser outcome**',
-        ),
-        chainIsUnbounded: orchestratorMarkdown.includes('this chain is unbounded on\npurpose'),
-        doneOverACornerIsInvisible: orchestratorMarkdown.includes(
-          '**a `done` over a corner you did not build is invisible to everyone, because the ledger\nwill report that scope complete forever and no later role goes back to fill implementation gaps.**',
-        ),
-      }).toStrictEqual({
-        noFailureSignal: true,
-        chainIsUnbounded: true,
-        doneOverACornerIsInvisible: true,
-      });
-    });
-  });
-
-  describe('plannerMarkdown', () => {
-    it('VALID: plannerMarkdown => partitions the cell into dependency-ordered file-groups', () => {
-      const { plannerMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        oneFileGroupPerPiece: plannerMarkdown.includes('One **file-group** per piece'),
-        laterWiresIntoRealFiles: plannerMarkdown.includes(
-          "ordered by dependency so a later worker wires into an earlier one's\nREAL on-disk files instead of a shape it imagined",
-        ),
-        filesAreOwnership: plannerMarkdown.includes(
-          '`files` is OWNERSHIP. Two pieces must never list the same path',
-        ),
-        foundationCellIsNotEmpty: plannerMarkdown.includes(
-          'the thing every other cell builds on, never an empty one',
-        ),
-      }).toStrictEqual({
-        oneFileGroupPerPiece: true,
-        laterWiresIntoRealFiles: true,
-        filesAreOwnership: true,
-        foundationCellIsNotEmpty: true,
-      });
-    });
-
-    it('VALID: plannerMarkdown => makes each piece carry the six things a worker cannot derive', () => {
-      const { plannerMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        flowAndPlacement: plannerMarkdown.includes('**the flow, and where the piece sits in it**'),
-        observablesVerbatim: plannerMarkdown.includes(
-          '**the observables it must satisfy, quoted VERBATIM**',
-        ),
-        contracts: plannerMarkdown.includes('**the contracts it takes and returns**'),
-        designDecisions: plannerMarkdown.includes('**the design decisions that constrain it**'),
-        mirror: plannerMarkdown.includes(
-          '**a MIRROR** — an existing sibling of the same folder type',
-        ),
-        wiresInto: plannerMarkdown.includes('**the already-built exports it wires into**'),
-        theReason: plannerMarkdown.includes(
-          '**A minion that understands the flow writes assertions that mean something; one that only got a file\npath writes a test that passes and proves nothing.**',
-        ),
-      }).toStrictEqual({
-        flowAndPlacement: true,
-        observablesVerbatim: true,
-        contracts: true,
-        designDecisions: true,
-        mirror: true,
-        wiresInto: true,
-        theReason: true,
-      });
-    });
-
-    it('VALID: plannerMarkdown => keeps a spike on disk instead of throwing it away', () => {
-      const { plannerMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        heading: /^## Spikes are KEPT$/mu.test(plannerMarkdown),
-        firstPassNotAProbe: plannerMarkdown.includes(
-          'it is **KEPT** — a first pass, not\na throwaway probe',
-        ),
-        namedForTheNextRound: plannerMarkdown.includes(
-          "name it in the owning piece's `notes`, so the next round\nenhances a working pattern instead of re-deriving it from nothing",
-        ),
-      }).toStrictEqual({ heading: true, firstPassNotAProbe: true, namedForTheNextRound: true });
-    });
-
-    it('VALID: plannerMarkdown => carries the observable-cannot-be-met section intact', () => {
-      const { plannerMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        heading: /^## When an observable cannot be met as written$/mu.test(plannerMarkdown),
-        genuineEffort: plannerMarkdown.includes(
-          '**The bar is genuine effort, not first resistance.**',
-        ),
-        neverSilentlyDrop: plannerMarkdown.includes('**Never silently drop it.**'),
-        nearestAchievable: plannerMarkdown.includes(
-          '**Deliver the NEAREST achievable outcome that still serves the flow.**',
-        ),
-        minimumDistance: plannerMarkdown.includes(
-          'Retreat the\n   minimum distance, never to something trivially true.',
-        ),
-        adjustedMarker: plannerMarkdown.includes('carries the `ADJUSTED:` line'),
-        deletesAreRefused: plannerMarkdown.includes(
-          'You may never delete an observable, a node or an edge, or replace a flow.',
-        ),
-      }).toStrictEqual({
-        heading: true,
+        deleteRefused: true,
+        cannotBeMet: true,
         genuineEffort: true,
-        neverSilentlyDrop: true,
         nearestAchievable: true,
-        minimumDistance: true,
         adjustedMarker: true,
-        deletesAreRefused: true,
-      });
-    });
-
-    it('VALID: plannerMarkdown => carries the flow-implies-an-outcome section intact', () => {
-      const { plannerMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        heading: /^## When the flow implies an outcome nobody wrote down$/mu.test(plannerMarkdown),
-        addThemFreely: plannerMarkdown.includes('**Add them, freely.** This is the safe direction'),
-        constraintOnYourself: plannerMarkdown.includes(
-          '**an observable you add is a constraint on\nYOURSELF**',
-        ),
-        cannotSlipPastAGate: plannerMarkdown.includes(
-          'it can never be a way to slip past a gate — only a\nway to make the target more honest',
-        ),
-        vagueIsWorseThanNone: plannerMarkdown.includes(
-          'a vague addition is worse than none,\nbecause it looks like coverage',
-        ),
-        addedMarker: plannerMarkdown.includes('flag it so the commit carries the\n`ADDED:` line'),
-      }).toStrictEqual({
-        heading: true,
-        addThemFreely: true,
+        flowImplies: true,
         constraintOnYourself: true,
-        cannotSlipPastAGate: true,
-        vagueIsWorseThanNone: true,
         addedMarker: true,
       });
     });
-  });
 
-  describe('workerMarkdown', () => {
-    it('VALID: workerMarkdown => loads all three standards sources before it reads any code', () => {
-      const { workerMarkdown } = disciplineImplementationStatics;
-      const standardsTools = ['`get-architecture`', '`get-syntax-rules`', '`get-testing-patterns`'];
-
+    it('VALID: plannerMarkdown => writes the ward command per chunk, by folder type', () => {
       expect({
-        standardsBlocking: workerMarkdown.includes('**Standards first, BLOCKING.**'),
-        namesAllThree: standardsTools.filter((tool) => workerMarkdown.includes(tool)),
-        beforeTheMirror: workerMarkdown.includes(
-          'before you read the mirror, run\n   `discover`, or open any code',
+        unitDefault: plannerMarkdown.includes('`--only lint,typecheck,unit` for contracts'),
+        integrationForFlowsAndStartup: plannerMarkdown.includes(
+          '`--only lint,typecheck,unit,integration` when the chunk includes a `flows/` or `startup/` file',
         ),
+        neverE2e: plannerMarkdown.includes('Never `e2e` — no chunk on this'),
       }).toStrictEqual({
-        standardsBlocking: true,
-        namesAllThree: standardsTools,
-        beforeTheMirror: true,
+        unitDefault: true,
+        integrationForFlowsAndStartup: true,
+        neverE2e: true,
       });
     });
 
-    it('VALID: workerMarkdown => runs the TDD method with the observables driving the first test', () => {
-      const { workerMarkdown } = disciplineImplementationStatics;
-
+    // The pt chain is UNBOUNDED on this discipline, so nothing server-side ever stops a round that is
+    // not converging. Only this session can see it, because only this session reads history.
+    it('VALID: plannerMarkdown => turns a non-shrinking pt chain into a wall it alone can see', () => {
       expect({
-        flowContextBeforeCode: /^## Read the brief's flow context BEFORE the code$/mu.test(
-          workerMarkdown,
+        heading: plannerMarkdown.includes('## The one thing that makes this chain a wall'),
+        unbounded: plannerMarkdown.includes("This discipline's pt chain is UNBOUNDED"),
+        readTheReviewCommits: plannerMarkdown.includes(
+          "read the previous rounds' `review <n>:` commit bodies",
         ),
-        pathAndSignatureProvesNothing: workerMarkdown.includes(
-          'A test written from a path and a signature will pass and prove\nnothing',
+        notShrunkIsAWall: plannerMarkdown.includes(
+          '**If it has not SHRUNK, this is a wall, not slow progress**',
         ),
-        failingTestFirst: workerMarkdown.includes(
-          '**Write the failing test FIRST, driven by the observables.**',
+        onlySessionThatCanSeeIt: plannerMarkdown.includes(
+          'You are the only session that reads\nhistory, so you are the only one that can see it.',
         ),
-        implementUntilGreen: workerMarkdown.includes('**Implement until green**'),
-        scopedWard: workerMarkdown.includes('**Scoped ward, then your own diff.**'),
       }).toStrictEqual({
-        flowContextBeforeCode: true,
-        pathAndSignatureProvesNothing: true,
-        failingTestFirst: true,
-        implementUntilGreen: true,
-        scopedWard: true,
+        heading: true,
+        unbounded: true,
+        readTheReviewCommits: true,
+        notShrunkIsAWall: true,
+        onlySessionThatCanSeeIt: true,
       });
     });
 
-    it('VALID: workerMarkdown => distinguishes a behavioural red from a structural one', () => {
-      const { workerMarkdown } = disciplineImplementationStatics;
-
+    it('VALID: plannerMarkdown => keeps a spike on this discipline rather than removing it', () => {
       expect({
-        theRule: workerMarkdown.includes('**Watch it fail BEHAVIOURALLY, not STRUCTURALLY.**'),
-        structuralRedProvesNothing: workerMarkdown.includes(
-          'A red that is an import error, a missing export or a\n   type error proves nothing about your assertion',
-        ),
-        theRedYouNeed: workerMarkdown.includes(
-          'The\n   red you need is a WRONG VALUE: the assertion ran, reached the shelled code, and disagreed with it.',
-        ),
-        noRedMeansTheAssertionIsWrong: workerMarkdown.includes(
-          'If you cannot produce that red, the assertion is not testing what you think it is',
-        ),
-      }).toStrictEqual({
-        theRule: true,
-        structuralRedProvesNothing: true,
-        theRedYouNeed: true,
-        noRedMeansTheAssertionIsWrong: true,
-      });
-    });
-
-    it('VALID: workerMarkdown => routes test ownership through the folder type, e2e excluded', () => {
-      const { workerMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        folderTypeDecides: workerMarkdown.includes(
-          '**You test what you build, at the level the FOLDER TYPE demands.** Follow the folder type, not a rule\nof thumb',
-        ),
-        integrationInsteadOfUnit: workerMarkdown.includes(
-          '**`flows/` and `startup/` require an `.integration.test.ts` INSTEAD of a unit test.**',
-        ),
-        colocationLintFails: workerMarkdown.includes(
-          '`enforce-implementation-colocation` fails the lint when the right companion\n  is missing',
-        ),
-        ownsFlowsAndStartupWiring: workerMarkdown.includes(
-          '**You own the `flows/` and `startup/` wiring itself.**',
-        ),
-        playwrightIsNotYours: workerMarkdown.includes(
-          '**The one boundary: Playwright `.e2e.ts` is NOT yours.**',
-        ),
-        neverAuthorE2e: workerMarkdown.includes('Never author an `.e2e.ts`.'),
-      }).toStrictEqual({
-        folderTypeDecides: true,
-        integrationInsteadOfUnit: true,
-        colocationLintFails: true,
-        ownsFlowsAndStartupWiring: true,
-        playwrightIsNotYours: true,
-        neverAuthorE2e: true,
-      });
+        kept: plannerMarkdown.includes('## Spikes are KEPT on this discipline'),
+        firstPassNotProbe: plannerMarkdown.includes('a first pass, not a throwaway probe'),
+        spikeTmp: plannerMarkdown.includes('under `spike-tmp/`'),
+      }).toStrictEqual({ kept: true, firstPassNotProbe: true, spikeTmp: true });
     });
   });
 
   describe('reviewerMarkdown', () => {
-    it('VALID: reviewerMarkdown => verifies the round against the plan on four axes', () => {
-      const { reviewerMarkdown } = disciplineImplementationStatics;
-
+    it('VALID: reviewerMarkdown => names all four false-green shapes with their measured origin', () => {
       expect({
-        intent: reviewerMarkdown.includes(
-          "**Intent.** Does the implementation make that piece's `intent` TRUE",
+        redStepInvisible: reviewerMarkdown.includes(
+          '## The red step is structurally invisible — assume it was skipped',
         ),
-        genuineTests: reviewerMarkdown.includes(
-          '**Genuine tests.** Does every behaviour the piece added have an assertion that would go red without\n  it?',
-        ),
-        rightExports: reviewerMarkdown.includes(
-          "**The RIGHT exports.** Does each dependent piece call its predecessor's REAL export",
-        ),
-        stayedInScope: reviewerMarkdown.includes(
-          '**Scope.** Did the worker stay inside its `files`?',
-        ),
-      }).toStrictEqual({
-        intent: true,
-        genuineTests: true,
-        rightExports: true,
-        stayedInScope: true,
-      });
-    });
-
-    // Post-mortem section 5.10: the worker's return has no field for "I witnessed a red", so nothing
-    // in the loop can notice its absence. Every minion on the audited quest skipped the step.
-    it('VALID: reviewerMarkdown => treats the TDD red step as skipped and replaces it with a visible check', () => {
-      const { reviewerMarkdown } = disciplineImplementationStatics;
-
-      expect({
-        heading: /^## The red step is structurally invisible — assume it was skipped$/mu.test(
-          reviewerMarkdown,
-        ),
-        returnSaysNothingAboutTheRed: reviewerMarkdown.includes(
-          "A worker's return reports `WARD: green | red` and says NOTHING about whether a red was ever\nwitnessed.",
-        ),
-        everyMinionSkippedIt: reviewerMarkdown.includes(
-          'on the audited\nquest EVERY minion skipped it, which is how two tautological tests shipped green',
-        ),
-        whatValueWouldMakeItFail: reviewerMarkdown.includes(
+        everyMinionSkippedIt: reviewerMarkdown.includes('EVERY minion skipped it'),
+        askWhatWouldFail: reviewerMarkdown.includes(
           '**read the assertion and ask what value would\nmake it fail.**',
         ),
-        noSuchValueMeansNoProof: reviewerMarkdown.includes(
-          'the test proves nothing, regardless of what\nthe worker claimed',
-        ),
+        stub: reviewerMarkdown.includes('**A stub that swallowed the subject.**'),
+        measurement: reviewerMarkdown.includes('**A measurement that measured nothing.**'),
+        tautology: reviewerMarkdown.includes('**A tautological assertion.**'),
+        proxy: reviewerMarkdown.includes('**A proxy that mocked application code.**'),
+        shapeNotText: reviewerMarkdown.includes('look for the shape, not the text'),
       }).toStrictEqual({
-        heading: true,
-        returnSaysNothingAboutTheRed: true,
+        redStepInvisible: true,
         everyMinionSkippedIt: true,
-        whatValueWouldMakeItFail: true,
-        noSuchValueMeansNoProof: true,
+        askWhatWouldFail: true,
+        stub: true,
+        measurement: true,
+        tautology: true,
+        proxy: true,
+        shapeNotText: true,
       });
     });
 
-    it('VALID: reviewerMarkdown => names all four defects the open-the-files check caught', () => {
-      const { reviewerMarkdown } = disciplineImplementationStatics;
-      const defects = [
-        '**A stub that swallowed the subject.**',
-        '**A measurement that measured nothing.**',
-        '**A tautological assertion.**',
-        '**A proxy that mocked application code.**',
-      ];
-
+    it('VALID: reviewerMarkdown => reports no sign-off track and still writes every disposition', () => {
       expect({
-        allFourNamed: defects.filter((defect) => reviewerMarkdown.includes(defect)),
-        outerParseNeverRan: reviewerMarkdown.includes(
-          'Invalid-case tests routed through a stub, so the outer\n  `parse` never executed',
+        noTrack: reviewerMarkdown.includes('**This discipline writes no SIGN-OFF.**'),
+        theExactField: reviewerMarkdown.includes(
+          'Report `SIGNOFFS: none — this discipline has no track`',
         ),
-        countedFramesMeasuredNoSpacing: reviewerMarkdown.includes(
-          'A cadence test that counted frames but measured no\n  spacing',
+        neverInventAField: reviewerMarkdown.includes('never invent a field to fill it'),
+        dispositionsAreDifferent: reviewerMarkdown.includes(
+          '**The per-unit dispositions the standing concerns ask for are a DIFFERENT record, and you write\nevery one.**',
         ),
-        theTautologyVerbatim: reviewerMarkdown.includes(
-          "`expect(x.getAttribute('data-testid')).toBe('HEALTH_PAGE')`",
-        ),
-        proxyMockedAppCodeForAFalseBranch: reviewerMarkdown.includes(
-          'A responder proxy mocking application code to reach a\n  false branch',
-        ),
-        allReturnedGreen: reviewerMarkdown.includes(
-          'Every one of them returned a green ward and a confident summary.',
+        unboundedRetriesForever: reviewerMarkdown.includes(
+          'that retries forever instead of surfacing',
         ),
       }).toStrictEqual({
-        allFourNamed: defects,
-        outerParseNeverRan: true,
-        countedFramesMeasuredNoSpacing: true,
-        theTautologyVerbatim: true,
-        proxyMockedAppCodeForAFalseBranch: true,
-        allReturnedGreen: true,
+        noTrack: true,
+        theExactField: true,
+        neverInventAField: true,
+        dispositionsAreDifferent: true,
+        unboundedRetriesForever: true,
       });
     });
 
-    it('VALID: reviewerMarkdown => carries the implementation-specific checks and no sign-off track', () => {
-      const { reviewerMarkdown } = disciplineImplementationStatics;
-
+    it('VALID: reviewerMarkdown => routes undeclared spec movement and undeclared repair into rework', () => {
       expect({
-        companionsFollowFolderType: reviewerMarkdown.includes(
-          '**Companions follow the FOLDER TYPE.**',
-        ),
-        noPlaywright: reviewerMarkdown.includes('**No Playwright.**'),
-        specMovementIsDeclared: reviewerMarkdown.includes(
+        specMovementDeclared: reviewerMarkdown.includes(
           '**Spec movement is declared, or it did not happen.**',
         ),
-        crossPackageRepairIsDeclared: reviewerMarkdown.includes(
-          '**Cross-package repair is declared.**',
+        specMovementIsRework: reviewerMarkdown.includes(
+          'If either is missing, that is `NEXT: rework`',
         ),
-        writesNoSignoffs: reviewerMarkdown.includes(
-          '**This discipline writes NONE.** Implementation has no sign-off track and no disposition ledger',
+        repairDeclared: reviewerMarkdown.includes('**Cross-package repair is declared.**'),
+        seamIsRework: reviewerMarkdown.includes(
+          'this round could not reach is\n  `NEXT: rework` with that package named',
         ),
-        reportsTheEmptyField: reviewerMarkdown.includes(
-          'Report `SIGNOFFS WRITTEN: none — implementation writes no track`',
-        ),
+        noPlaywright: reviewerMarkdown.includes('**No Playwright.**'),
       }).toStrictEqual({
-        companionsFollowFolderType: true,
+        specMovementDeclared: true,
+        specMovementIsRework: true,
+        repairDeclared: true,
+        seamIsRework: true,
         noPlaywright: true,
-        specMovementIsDeclared: true,
-        crossPackageRepairIsDeclared: true,
-        writesNoSignoffs: true,
-        reportsTheEmptyField: true,
       });
     });
+  });
 
-    // The five standards-review concerns live in a shared statics the reviewer template embeds and
-    // apply to every discipline. A copy here would be a second, staler rendering of them.
-    it('VALID: reviewerMarkdown => restates none of the shared standards-review concerns', () => {
-      const { reviewerMarkdown } = disciplineImplementationStatics;
-      const concerns = ['craft', 'perf', 'dedup', 'integrity', 'test-cases'];
-
-      expect(concerns.filter((concern) => reviewerMarkdown.includes(concern))).toStrictEqual([]);
-    });
-
-    // The pack may narrow what the reviewer looks at; it may never rename the fields the orchestrator
-    // routes on, because the orchestrator cannot read code to work out what a renamed field meant.
-    it('VALID: reviewerMarkdown => refers to the template return fields by their own names', () => {
-      const { reviewerMarkdown } = disciplineImplementationStatics;
-      const fields = ['REMAINDER', 'UNFIXABLE', 'SIGNOFFS WRITTEN', 'WARD'];
-
-      expect(fields.filter((field) => reviewerMarkdown.includes(field))).toStrictEqual(fields);
+  describe('budgets', () => {
+    it('VALID: the three minion blocks => each stay inside their budget', () => {
+      expect({
+        planner: plannerMarkdown.length < 9_000,
+        worker: workerMarkdown.length < 9_000,
+        reviewer: reviewerMarkdown.length < 9_000,
+      }).toStrictEqual({ planner: true, worker: true, reviewer: true });
     });
   });
 });

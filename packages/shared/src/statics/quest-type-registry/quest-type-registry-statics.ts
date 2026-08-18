@@ -92,7 +92,7 @@ export const questTypeRegistryStatics = {
         fanOutBy: 'flow',
       },
       // No standards-review item: the five standards concerns are reviewed INSIDE each committing
-      // session's own turn, by the reviewer-minion its orchestrator summons, rather than by a
+      // session's own turn, by the reviewer-minion its operator summons, rather than by a
       // separate relay role scheduled here.
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],

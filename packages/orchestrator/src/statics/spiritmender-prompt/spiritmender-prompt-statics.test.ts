@@ -68,15 +68,33 @@ describe('spiritmenderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => declares there is no failure, only moving forward', () => {
-    const needle = '**There is no failure — only moving forward.** You have no failure signal.';
+  // "no failure signal" used to be stated as an absolute, TWICE, bracketing the embedded Operating
+  // Rule 5 that MANDATES `blocked` on an environment wall. Read as written, a spiritmender whose
+  // ward red is environmental signals `partial`; the ward broker's spliced item is `locked`, so the
+  // chain burns to its budget and blocks anyway — three sessions to reach the halt Rule 5 reaches
+  // in one. The claim is true of work the session could have done, and of nothing else.
+  it('VALID: template => scopes "no failure" to work it could have done, and defers the wall to Rule 5', () => {
     const { template } = spiritmenderPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
 
-    expect(found).toBe(needle);
+    expect({
+      onlyMovingForward: template.includes(
+        '**There is no failure — only moving forward.** You have no `failed` signal for work you could\nhave done.',
+      ),
+      namesRule5AsTheException: template.includes(
+        'Operating Rule 5 above is the one exception and it is not that: an ENVIRONMENT wall',
+      ),
+      namesTheCostOfGettingItWrong: template.includes(
+        'is `blocked`, once, rather than three\n`partial`s that each hit the same wall',
+      ),
+      theSecondStatementIsScopedToo: template.includes(
+        "unless the blocker is Rule 5's environment wall, which is `blocked`.",
+      ),
+    }).toStrictEqual({
+      onlyMovingForward: true,
+      namesRule5AsTheException: true,
+      namesTheCostOfGettingItWrong: true,
+      theSecondStatementIsScopedToo: true,
+    });
   });
 
   it('VALID: template => forbids editing the operations ledger', () => {

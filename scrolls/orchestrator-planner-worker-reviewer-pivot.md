@@ -1,4 +1,4 @@
-# The orchestrator/planner/worker/reviewer split
+# The operator/planner/worker/reviewer split
 
 Why planning and verification authority sit where they do in the operations-ledger model, so the design is not
 re-litigated. This is the *why*; the wiring reference is `packages/orchestrator/CLAUDE.md` + `docs/quest-role-paths.md`,
@@ -9,7 +9,7 @@ and the prompts themselves are `packages/orchestrator/src/statics/`.
 ## 1. The shape
 
 The five operation-owning roles — `codeweaver`, `pesteater`, `flowrider`, `groundstomper`, `siegemaster` — are all
-served **ONE prompt**, `operation-orchestrator-prompt-statics.ts`, with a per-role **discipline pack** interpolated at
+served **ONE prompt**, `operator-prompt-statics.ts`, with a per-role **discipline pack** interpolated at
 `$DISCIPLINE` and the discipline's bare id at `$MY_DISCIPLINE`. Each owns one operation item, and its whole session is a
 bounded loop of at most three rounds:
 
@@ -20,7 +20,7 @@ build → planner-minion → read the plan back → worker-minions ONE AT A TIME
 
 `roleToDisciplineStatics` is the map (`codeweaver→implementation`, `pesteater→bug-repro`, `flowrider→below-browser`,
 `groundstomper→browser-e2e`, `siegemaster→manual-qa`). Each discipline has one pack carrying four markdown blocks —
-`orchestratorMarkdown`, `plannerMarkdown`, `workerMarkdown`, `reviewerMarkdown` — one per session in the round.
+`operatorMarkdown`, `plannerMarkdown`, `workerMarkdown`, `reviewerMarkdown` — one per session in the round.
 `spiritmender` and `warpgate` keep bespoke prompts and run no round; a `roleToDisciplineStatics` lookup returning
 `undefined` IS the "bespoke prompt" signal, not an error.
 
@@ -32,7 +32,7 @@ build → planner-minion → read the plan back → worker-minions ONE AT A TIME
 sign off, commit and signal fills its context mid-loop and starts skipping the dispatches. Measured on a 10.5-hour
 quest: an operator ran **217 turns with ZERO `Agent` calls** and wrote **all 27 of its own sign-offs**. The fix is not a
 longer prompt — it is a session whose context CANNOT fill, because it is forbidden to read source at all. That is what
-the exhaustive ALLOWED/FORBIDDEN table at the top of the orchestrator template buys, and it is why the table is a table:
+the exhaustive ALLOWED/FORBIDDEN table at the top of the operator template buys, and it is why the table is a table:
 the prose version of the same rule is the version that got dropped.
 
 **Fault 2 — the author grades its own work.** "Verify independently" is an instruction a filling session ignores. It is
@@ -48,8 +48,8 @@ sub-agent, and only for a bounded **spike** of exactly that. A spike is KEPT on 
 
 ## 3. The three laws the split honours
 
-1. **Conservation of synthesis** — every fan-out point needs a parent that holds the seam and reconciles. The
-   orchestrator is that parent; its minions return distilled artifacts and the reviewer checks them against the plan.
+1. **Conservation of synthesis** — every fan-out point needs a parent that holds the seam and reconciles. The operator
+   is that parent; its minions return distilled artifacts and the reviewer checks them against the plan.
 2. **Risk-adaptive depth** — plan deep at seams (package interface, novelty, must-hold constraint), shallow wherever
    there is sibling precedent ("mirror X, stop"). That judgement is the planner's, made against the real tree.
 3. **Context tax** — every sub-agent re-reads the standards, so decompose only when the work saved beats the standards
@@ -75,14 +75,14 @@ Models are fixed per minion, not per role: `planner-minion` and `reviewer-minion
 
 ## 5. Five load-bearing rules, each a measurement rather than a preference
 
-- **The orchestrator never opens a source file.** `Read`/`Edit`/`Write` under `src/`, `discover`, the project-map tools
+- **The operator never opens a source file.** `Read`/`Edit`/`Write` under `src/`, `discover`, the project-map tools
   and the three standards tools are all FORBIDDEN to it. Its minions load the standards; it never does.
-- **ONLY the orchestrator runs `npm run build`.** `tsc` writes one shared `dist/` per package, so a second builder hands
+- **ONLY the operator runs `npm run build`.** `tsc` writes one shared `dist/` per package, so a second builder hands
   every sibling phantom TS2339s on correct code. Same reason the workers are strictly SERIAL: **one `Agent` call per
   assistant message, never two in one message.** "Independent" in a plan means safe to order any way, not safe to run at
   once.
 - **The plan is PERSISTED, not returned.** The planner writes `quest.planningNotes.operationPlans[]` and returns 3-5
-  lines; the orchestrator reads it back with `get-quest-planning-notes`. It has to — the orchestrator cannot check a plan
+  lines; the operator reads it back with `get-quest-planning-notes`. It has to — the operator cannot check a plan
   against the tree, and a plan that only ever existed in one minion's final message is invisible to the reviewer that
   verifies against it and to any successor session.
 - **Fix authority is delegated, not withheld.** A minion that finds a hole in its own work may close it; forbidding that
@@ -145,7 +145,7 @@ satisfiable truthfully.
 ## 8. The real proof (the smoketest verdict is UI-driven, per repo policy)
 
 Run a live `/dumpster-create` → play button (or `/dumpster-launch`) on a novel multi-package feature and confirm:
-(a) the orchestrator session makes ZERO `Read`/`Edit` calls and dispatches a planner, then workers one at a time, then a
-reviewer; (b) the plan lands in `quest.planningNotes.operationPlans` and the orchestrator reads it back rather than
+(a) the operator session makes ZERO `Read`/`Edit` calls and dispatches a planner, then workers one at a time, then a
+reviewer; (b) the plan lands in `quest.planningNotes.operationPlans` and the operator reads it back rather than
 re-asking the planner; (c) each minion renders as its own chain in the quest UI; (d) the round commits before it
 signals, and a `done` with an unreviewed file is REFUSED by the review-coverage gate with the outstanding units named.

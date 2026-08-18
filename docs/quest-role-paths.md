@@ -73,14 +73,14 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
 - **Fixpoint** — the `pt N` chain for `ward`. A red run completes its ward operation item and spawns a fresh `pt N+1`
   ward continuation (with a spiritmender spliced in ahead of it — see "The sad paths in detail" § (b)); a run that
   comes back green ends the chain. Convergence IS the verdict: a fresh run that came back green is acceptance.
-- **Orchestrator role** — one of the five roles in `roleToDisciplineStatics` (`codeweaver→implementation`,
-  `pesteater→bug-repro`, `flowrider→below-browser`, `groundstomper→browser-e2e`, `siegemaster→manual-qa`). All five
-  are served ONE template, `operationOrchestratorPromptStatics`, with their discipline pack interpolated at
+- **Operator role** — one of the five roles in `roleToDisciplineStatics` (`codeweaver→implementation`,
+  `pesteater→bug-repro`, `flowrider→below-browser`, `groundstomper→browser-e2e`, `siegemaster→manual-qa`). All five are
+  served ONE template, `operatorPromptStatics`, with their discipline pack interpolated at
   `$DISCIPLINE`. **The session never opens a source file**; it runs a **round loop** (below) and signals. Only
   `spiritmender` and `warpgate` keep bespoke prompts and run no round.
-- **Round loop** — the unit of work inside ONE orchestrator session, capped at **3 rounds**:
+- **Round loop** — the unit of work inside ONE operator session, capped at **3 rounds**:
   `build → planner-minion → read the plan back → worker-minions ONE AT A TIME → reviewer-minion → build → scoped ward
-  → commit the round → loop on the reviewer's REMAINDER`. Only the orchestrator runs `npm run build`, which is why
+  → commit the round → loop on the reviewer's REMAINDER`. Only the operator runs `npm run build`, which is why
   workers are serial: concurrent `tsc` corrupts the shared `dist/`. An empty `REMAINDER` ends the loop.
 - **Minion** — `planner-minion`, `worker-minion`, `reviewer-minion` (generic; all five disciplines summon the same
   three, parameterized by `discipline` at fetch time) plus the spec-phase `chaoswhisperer-gap-minion`. A minion owns
@@ -140,7 +140,7 @@ chaoswhisperer (plan item)
   → ward(full)
 ```
 
-Every one of `codeweaver`, `flowrider`, `groundstomper`, `siegemaster` and `pesteater` above is an ORCHESTRATOR
+Every one of `codeweaver`, `flowrider`, `groundstomper`, `siegemaster` and `pesteater` above is an OPERATOR
 session that runs the round loop internally. Its planner/worker/reviewer minions are NOT ledger items and never
 appear on it.
 
@@ -179,7 +179,7 @@ the seven off-map probe families, which Flowrider's denominator excludes. A flow
 siegemaster item, because those off-map families — `hostile-input` and `perf` above all — are where the quest's
 security and performance are established at all, and they belong to no drawn flow.
 
-`pesteater` is the bug-hunt front and is an orchestrator role like the four above, discipline `bug-repro`. Bug-hunt
+`pesteater` is the bug-hunt front and is an operator role like the four above, discipline `bug-repro`. Bug-hunt
 reuses the same flow/observable spec lifecycle (the reproduction path is a flow, the expected behavior is an
 `EXPECTED:` observable the round turns into a failing test). Its tail has no verify roles at all, and no sign-off
 track exists on that discipline, so `signal-back` recomputes no denominator for it — which makes the round's
@@ -467,33 +467,44 @@ its question and the pass moves on. Handing it to a `pt N` continuation instead 
 `slotManagerStatics.<role>.maxAttempts` on sessions that provably cannot close it, and then blocks the quest with the
 unit still open. `partial` is for scope a fresh session really could finish.
 
-### The round loop — the paths INSIDE one orchestrator session
+### The round loop — the paths INSIDE one operator session
 
-Everything above is the relay BETWEEN sessions. Inside any one of the five orchestrator roles' sessions there is a
+Everything above is the relay BETWEEN sessions. Inside any one of the five operator roles' sessions there is a
 second, bounded loop, and its paths need their own coverage because none of them reaches `signal-back`.
 
-| Gate | Step | Happy | Sad |
-|---|---|---|---|
-| 1 | `git log` (bodies, whole quest) + `git diff --name-only` + `git status` | scope confirmed against what is really on disk | a `pt N:` prefix means a predecessor did part of this; a dirty tree means a dead session left work — neither is a reason to stop |
-| 2 | `npm run build`, its OWN command, unpiped | exit 0 | red → dispatch a `worker-minion` with the error; the orchestrator fixes nothing itself |
-| 3 | fetch the denominator the discipline names | a recomputed number | — |
-| 4 | ONE `planner-minion` | plan persisted to `planningNotes.operationPlans[]`, 3-5 line return | no honest plan → the planner says so in `DECISIONS FOR YOU` and persists what is honest |
-| 5 | `get-quest-planning-notes` to read the plan back | the persisted plan, not the planner's summary | — |
-| 6 | `worker-minion`s, **ONE per assistant message**, in `dependsOn` order | each piece built red-first inside its own `files` | a thin return → ONE re-dispatch with a sharper brief; after that the piece becomes a REMAINDER for the next round |
-| 7 | ONE `reviewer-minion` over everything the round produced | structured return with an empty `REMAINDER` | `VERDICT: rework` / non-empty `REMAINDER` |
-| 8 | `npm run build`, then `npm run ward -- -- <this round's FILE paths>` | green | a red it cannot close this round is a remainder, not a reason to stop |
-| 9 | commit the round | every path commits, `--allow-empty` included | — |
-| 10 | decide | `REMAINDER` empty + ward green → signal `done` | non-empty → back to gate 4 with that remainder as the next planner's brief; **3 rounds spent** → commit and signal `partial`, naming the remainder in the commit body |
+Nine steps, and the operator makes exactly ONE kind of decision across all of them: it matches the FIRST WORD of each
+minion's last line (`NEXT: continue` / `NEXT: rework — …` / `NEXT: wall — …`) against a three-row table. `continue`
+and `rework` both mean "next step"; `wall` means stop dispatching, clean the tree, push and signal `blocked`. **Only the
+REVIEWER's line decides the round** — a worker's `rework` is a claim about its own chunk, and the reviewer is the
+session that reads every worker return AND opens the files.
+
+| Step | What it does                                                                                   | Happy                                                                                                                              | Sad                                                                                                                                                            |
+|------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1    | `npm run build`, its OWN command, unpiped                                                      | exit 0; the output goes into step 3's brief                                                                                        | red; the output goes into step 3's brief unchanged. **The operator does not act on it** — its planner cuts chunk 1 for it                                      |
+| 2    | `git status`                                                                                   | clean; the output goes into step 3's brief                                                                                         | dirty; same. A dead session left work, and reconstructing it is the planner's job                                                                              |
+| 3    | ONE `planner-minion` — brief is the scope block VERBATIM + steps 1 and 2 + last round's rework | `NEXT: continue`, and a plan file committed at `.quest-plans/round-<n>.md`                                                         | `NEXT: wall` → signal `blocked`. Scope the planner cannot plan cleanly is still a CHUNK, never a routing note                                                  |
+| 4    | `Read .quest-plans/round-<n>.md`                                                               | numbered chunks, in dispatch order                                                                                                 | zero chunks is a legal plan — the scope is already true on disk                                                                                                |
+| 5    | `worker-minion` PER CHUNK, **ONE per assistant message**, in the plan's order                  | each chunk done and committed under `chunk <n>: <title>`                                                                           | `NEXT: rework` → carry on; the reviewer settles it. `NEXT: wall` → stop dispatching, go to step 7                                                              |
+| 6    | ONE `reviewer-minion` — brief is EVERY worker return verbatim                                  | `NEXT: continue`; it has run `npm run ward -- --staged`, committed its fixes, enumerated, dispositioned, and committed its verdict | `NEXT: rework` with what is not done, in chunk terms                                                                                                           |
+| 7    | `git status` again                                                                             | clean, because every minion committed its own work                                                                                 | anything listed → ONE sweep `worker-minion` whose brief is those paths. Still dirty → signal `blocked`                                                         |
+| 8    | `git push`, bare                                                                               | pushed; the next round's `--staged` and `unpushed` windows both reset                                                              | —                                                                                                                                                              |
+| 9    | decide, from the REVIEWER's line alone                                                         | `continue` → signal `done`                                                                                                         | `rework` + rounds left → round + 1, back to step 1 with that text as the next planner's `REWORK:`; `rework` + **3 rounds spent** → signal `partial`, naming it |
 
 Round-loop invariants worth asserting:
 
 - **Two `Agent` calls in one assistant message is the bug**, not slowness — that runs the workers concurrently, and
-  concurrent `tsc` corrupts the shared `dist/`. "Independent" in a plan means safe to order any way, not safe to run
-  at once.
-- **Only the orchestrator builds.** Planner, workers and reviewer are all forbidden `npm run build`, and all three are
-  forbidden `git` entirely; the parent makes the round's one commit and writes the handoff body.
-- **The plan is read back from the quest, never from the planner's message.** A pasted plan body defeats the
+  concurrent `tsc` corrupts the shared `dist/`. The chunk NUMBER is the dependency order, so there is no "independent"
+  flag anywhere for a session to misread as "safe to run at once".
+- **Only the operator builds, and only the reviewer wards.** Planner, workers and reviewer are all forbidden
+  `npm run build`; the operator is forbidden `npm run ward`. The reviewer runs the round's one `--staged` pass and each
+  worker separately runs the literal `WARD:` command its planner wrote into its chunk, so nobody narrows `--only`.
+- **Every session commits its own work and the operator commits nothing** — workers under `chunk <n>: <title>`, the
+  reviewer twice (`review <n>: fixes`, then `review <n>: <continue|rework>`). The operator's whole git surface is
+  `git status` and one bare `git push`.
+- **The plan is read back from the committed FILE, never from the planner's message.** A pasted plan body defeats the
   persistence the reviewer and any successor session both depend on.
+- **No minion asks the user anything.** It runs inside its parent's turn, so nothing resumes it with an answer; a
+  decision it cannot make goes up as `NEXT: rework`.
 - **`Agent` coming back actually DENIED is `blocked` (Operating Rule 5), not a licence to hand-code.** A tool that was
   never called is not a tool that was denied — attempt it once and quote the refusal. And a constraint read out of a
   predecessor's commit is a CLAIM, not an observation: one session's ad-hoc reading of this exact conflict propagated
@@ -762,7 +773,7 @@ The three signal-back gates run BEFORE any mutation, so every refusal below pers
 That is why the refusal is a THROW rather than a returned error — it rides the awaited `signal-back` path back through
 the MCP tool to the agent, where it is visible and actionable, instead of being swallowed as a success.
 
-This first gate binds every role that changes code: the five orchestrator roles plus `spiritmender` and `warpgate`.
+This first gate binds every role that changes code: the five operator roles plus `spiritmender` and `warpgate`.
 It applies on **`done`, `partial` AND `blocked` alike** — a blocked quest hands its work forward through git exactly
 as a finished one does, so the outcome that halts is the one that most needs the work durable first. The measurement
 is `gitWorkingTreeFilesBroker`, which unions `git diff HEAD --name-only` with `git ls-files --others
@@ -779,7 +790,7 @@ to say any of it happened.
 
 ### (f) `done` with no review trace → signal REFUSED — the review-coverage gate
 
-On `done` from any of the five orchestrator roles, `signal-back` also refuses while NO
+On `done` from any of the five operator roles, `signal-back` also refuses while NO
 `quest.planningNotes.blightLedger` entry carries THAT work item's id. Membership is read off
 `roleToDisciplineStatics` rather than listed, so a role added to that map is gated the day it is added — the same
 reason `isChatWorkItemRoleGuard` reads `workItemRoleStatics.chat` instead of growing an `||` chain. Every disposition
@@ -787,7 +798,7 @@ clears: `gap` and `recorded` with a real reason count exactly as `reviewed` does
 honesty. The two ways out are to dispatch a `reviewer-minion` over the round's output, or to signal `partial` and hand
 that scope to a fresh session.
 
-It is deliberately COARSER than the sign-off gate, and the coarseness is forced by the round loop. The orchestrator
+It is deliberately COARSER than the sign-off gate, and the coarseness is forced by the round loop. The operator
 commits per ROUND, so at signal time the tree is clean by construction: a per-unit `working-tree` measurement would be
 empty and a `commit` one would see only the last of several round commits. There is no per-unit precision to be had at
 that point; what IS measurable is whether the round's reviewer ran at all. And it is a gate rather than a prompt line
@@ -867,13 +878,13 @@ dispatchable while the wreckage is still in place.
   green; for `flowrider`, `groundstomper` and `siegemaster` it is that role's OWN track carrying a sign-off on every
   unit in its own denominator. Both verdicts
   (`confirmed`, `unconfirmable`) satisfy a track — the gate refuses ABSENCE, not honesty.
-- **REL-6d — Commit-before-signal.** For any role that changes code (the five orchestrator roles plus `spiritmender`
+- **REL-6d — Commit-before-signal.** For any role that changes code (the five operator roles plus `spiritmender`
   and `warpgate`), `signal-back` THROWS while the quest worktree carries uncommitted changes — **on `done`, `partial`
   AND `blocked` alike**, and nothing is persisted on the refusal. The measurement unions `git diff HEAD --name-only`
   with `git ls-files --others --exclude-standard`, so a net-new untracked file counts. It asks whether the TREE IS
   CLEAN, never whether a commit was made: `git commit --allow-empty` satisfies it. A quest whose cwd does not resolve
   to a worktree SKIPS the check rather than failing it, and no git command runs for a role outside that set.
-- **REL-6e — Review coverage.** `signal-back` THROWS on `done` from any of the five orchestrator roles while NO
+- **REL-6e — Review coverage.** `signal-back` THROWS on `done` from any of the five operator roles while NO
   `planningNotes.blightLedger` entry carries THAT work item's id — the trace a `reviewer-minion` round leaves. Every
   disposition clears (`gap` and `recorded` with a real reason count as `reviewed` does); what it refuses is absence.
   Membership is read off `roleToDisciplineStatics`, so a role added to that map is gated the day it is added.

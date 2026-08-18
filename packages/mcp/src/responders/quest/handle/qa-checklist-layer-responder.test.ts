@@ -1,14 +1,9 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
-import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
 
 const JSON_INDENT_SPACES = 2;
-
-// The DENOMINATOR tuple, three names over two sign-off fields — the list the tool has to accept for
-// every dispatched role to be able to name itself.
-const DENOMINATOR_TRACKS = signoffTracksStatics.denominators;
 
 describe('QaChecklistLayerResponder', () => {
   describe('successful checklist', () => {
@@ -58,25 +53,22 @@ describe('QaChecklistLayerResponder', () => {
       });
     });
 
-    it.each(DENOMINATOR_TRACKS)(
-      'VALID: {questId, track: %s} => forwards track to the orchestrator',
-      async (track) => {
-        const proxy = QaChecklistLayerResponderProxy();
-        proxy.setupReturns({
-          questId: 'add-auth',
-          result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
-        });
+    it('VALID: {questId, operationItemId} => forwards the item id to the orchestrator', async () => {
+      const proxy = QaChecklistLayerResponderProxy();
+      proxy.setupReturns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+      });
 
-        await QaChecklistLayerResponder({ args: { questId: 'add-auth', track } });
+      await QaChecklistLayerResponder({ args: { questId: 'add-auth', operationItemId: 'op-1' } });
 
-        expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
-          questId: 'add-auth',
-          track,
-        });
-      },
-    );
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        operationItemId: 'op-1',
+      });
+    });
 
-    it('VALID: {questId, no track} => omits track from the call', async () => {
+    it('VALID: {questId, no operationItemId} => omits it from the call', async () => {
       const proxy = QaChecklistLayerResponderProxy();
       proxy.setupReturns({
         questId: 'add-auth',
@@ -90,59 +82,33 @@ describe('QaChecklistLayerResponder', () => {
         flowId: 'login-flow',
       });
     });
-
-    // A groundstomper session holds a per-flow item whose `packageNames` are the browser-reachable
-    // packages that flow touches, and its gate narrows by them. The tool has to carry both or the
-    // number it prints is not the number the gate refuses on.
-    it('VALID: {questId, track: groundstomper, packageNames} => forwards both to the orchestrator', async () => {
-      const proxy = QaChecklistLayerResponderProxy();
-      proxy.setupReturns({
-        questId: 'add-auth',
-        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
-      });
-
-      await QaChecklistLayerResponder({
-        args: { questId: 'add-auth', track: 'groundstomper', packageNames: ['ui-app'] },
-      });
-
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
-        questId: 'add-auth',
-        track: 'groundstomper',
-        packageNames: ['ui-app'],
-      });
-    });
-
-    it('VALID: {questId, no packageNames} => omits packageNames from the call', async () => {
-      const proxy = QaChecklistLayerResponderProxy();
-      proxy.setupReturns({
-        questId: 'add-auth',
-        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
-      });
-
-      await QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'flowrider' } });
-
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
-        questId: 'add-auth',
-        track: 'flowrider',
-      });
-    });
   });
 
-  describe('track validation', () => {
-    it('INVALID: {track: "blightscout"} => throws on the shared denominator track enum', async () => {
+  describe('the scope arguments this tool no longer takes', () => {
+    // `track` and `packageNames` were the caller's job and each was a way to ask a DIFFERENT
+    // question from the one the completion gate answers. They are gone, and the strict contract
+    // turns a stale call into a loud rejection rather than a silently ignored argument.
+    it.each([
+      ['track', { track: 'flowrider' }],
+      ['packageNames', { packageNames: ['ui-app'] }],
+    ])('INVALID: {%s} => throws on the strict contract', async (_name, extra) => {
       QaChecklistLayerResponderProxy();
 
       await expect(
-        QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'blightscout' } }),
-      ).rejects.toThrow(/invalid_enum_value/u);
+        QaChecklistLayerResponder({ args: { questId: 'add-auth', ...extra } }),
+      ).rejects.toThrow(/Unrecognized key/u);
     });
 
-    it('INVALID: {track: "flowriderSignoff"} => throws, the sign-off FIELD name is not a track name', async () => {
+    // A hard rejection rather than a precedence rule: the item already declares its flows, so a
+    // hand-picked one alongside it can only mean the caller thinks it is measuring something else.
+    it('INVALID: {operationItemId AND flowId} => throws, the item already declares its flows', async () => {
       QaChecklistLayerResponderProxy();
 
       await expect(
-        QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'flowriderSignoff' } }),
-      ).rejects.toThrow(/invalid_enum_value/u);
+        QaChecklistLayerResponder({
+          args: { questId: 'add-auth', operationItemId: 'op-1', flowId: 'login-flow' },
+        }),
+      ).rejects.toThrow(/flowId cannot be combined with operationItemId/u);
     });
   });
 

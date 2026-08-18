@@ -1,19 +1,23 @@
 /**
- * PURPOSE: Builds a real throwaway git repo plus a real `git worktree add` checkout so
- * gitDiffFilesBroker's worktree-vs-repo-root isolation can be proven against real git instead of a
- * mocked spawn. `packages/orchestrator` owns a much larger fixture with the same name
+ * PURPOSE: Builds a real throwaway git repo — optionally with a real bare remote and a real
+ * `git worktree add` checkout — so the two diff brokers can be proven against real git instead of a
+ * mocked spawn. gitDiffFilesBroker's worktree-vs-repo-root isolation and gitDiffUnpushedBroker's
+ * pushed-vs-unpushed split are both invisible to a mocked spawn, which cannot distinguish one cwd or
+ * one ref from another. `packages/orchestrator` owns a much larger fixture with the same name
  * (git-worktree-fixture.harness.ts under its own test/harnesses/) but ward has no dependency on the
  * orchestrator package — its package.json lists only @dungeonmaster/shared and @dungeonmaster/testing
  * — so that harness is not importable here (no project reference, no package.json export, and no
  * existing cross-package test-harness import anywhere in the repo). This harness intentionally stays
- * small: init + worktree + commit is all `git-diff-files-broker.integration.test.ts` needs, not the
- * orchestrator harness's branch drift, symlinked workspace packages, or build-script scaffolding.
+ * small: init + remote + worktree + commit is all the two integration tests need, not the
+ * orchestrator harness's symlinked workspace packages or build-script scaffolding.
  *
  * USAGE:
  * const git = wardGitWorktreeFixtureHarness();
  * await git.initRepo({ repoPath });
- * await git.addWorktree({ repoPath, worktreePath, branchName: GitBranchNameStub({ value: 'quest/x' }) });
- * await git.commitFile({ cwd: worktreePath, relativePath: GitRelativePathStub({ value: 'a.txt' }), content: 'hi\n' });
+ * await git.initBareRemote({ remotePath });
+ * await git.addRemote({ cwd: repoPath, remotePath });
+ * await git.pushBranch({ cwd: repoPath, branchName: GitBranchNameStub({ value: 'main' }) });
+ * await git.commitFile({ cwd: repoPath, relativePath: GitRelativePathStub({ value: 'a.txt' }), content: 'hi\n' });
  */
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
@@ -39,6 +43,13 @@ const GIT_COMMIT_ENV = {
 
 export const wardGitWorktreeFixtureHarness = (): {
   initRepo: (params: { repoPath: AbsoluteFilePath }) => Promise<void>;
+  initBareRemote: (params: { remotePath: AbsoluteFilePath }) => Promise<void>;
+  addRemote: (params: { cwd: AbsoluteFilePath; remotePath: AbsoluteFilePath }) => Promise<void>;
+  pushBranch: (params: { cwd: AbsoluteFilePath; branchName: GitBranchName }) => Promise<void>;
+  checkoutNewBranch: (params: {
+    cwd: AbsoluteFilePath;
+    branchName: GitBranchName;
+  }) => Promise<void>;
   addWorktree: (params: {
     repoPath: AbsoluteFilePath;
     worktreePath: AbsoluteFilePath;
@@ -49,6 +60,11 @@ export const wardGitWorktreeFixtureHarness = (): {
     relativePath: GitRelativePath;
     content: string;
   }) => Promise<void>;
+  writeUncommittedFile: (params: {
+    cwd: AbsoluteFilePath;
+    relativePath: GitRelativePath;
+    content: string;
+  }) => void;
 } => {
   const runGit = async ({
     cwd,
@@ -72,6 +88,43 @@ export const wardGitWorktreeFixtureHarness = (): {
       writeFileSync(join(repoPath, 'base.txt'), 'base\n');
       await runGit({ cwd: repoPath, args: ['add', '-A'] });
       await runGit({ cwd: repoPath, args: ['commit', '-m', 'base'] });
+    },
+
+    initBareRemote: async ({ remotePath }: { remotePath: AbsoluteFilePath }): Promise<void> => {
+      mkdirSync(remotePath, { recursive: true });
+      await runGit({ cwd: remotePath, args: ['init', '--bare', '-b', 'main'] });
+    },
+
+    addRemote: async ({
+      cwd,
+      remotePath,
+    }: {
+      cwd: AbsoluteFilePath;
+      remotePath: AbsoluteFilePath;
+    }): Promise<void> => {
+      await runGit({ cwd, args: ['remote', 'add', 'origin', remotePath] });
+    },
+
+    // `-u` is what makes @{upstream} resolve afterwards, which is the ref gitDetectUpstreamBroker
+    // asks for first. A branch pushed without it stays untracked and exercises the fallback instead.
+    pushBranch: async ({
+      cwd,
+      branchName,
+    }: {
+      cwd: AbsoluteFilePath;
+      branchName: GitBranchName;
+    }): Promise<void> => {
+      await runGit({ cwd, args: ['push', '-u', 'origin', branchName] });
+    },
+
+    checkoutNewBranch: async ({
+      cwd,
+      branchName,
+    }: {
+      cwd: AbsoluteFilePath;
+      branchName: GitBranchName;
+    }): Promise<void> => {
+      await runGit({ cwd, args: ['checkout', '-b', branchName] });
     },
 
     addWorktree: async ({
@@ -100,6 +153,20 @@ export const wardGitWorktreeFixtureHarness = (): {
       writeFileSync(targetPath, content);
       await runGit({ cwd, args: ['add', '-A'] });
       await runGit({ cwd, args: ['commit', '-m', `commit ${relativePath}`] });
+    },
+
+    writeUncommittedFile: ({
+      cwd,
+      relativePath,
+      content,
+    }: {
+      cwd: AbsoluteFilePath;
+      relativePath: GitRelativePath;
+      content: string;
+    }): void => {
+      const targetPath = join(cwd, relativePath);
+      mkdirSync(dirname(targetPath), { recursive: true });
+      writeFileSync(targetPath, content);
     },
   };
 };

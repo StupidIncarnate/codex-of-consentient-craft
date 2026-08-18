@@ -100,8 +100,8 @@ HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-resu
   reaches an e2e-eligible package (a quest with no such flow gets none). `flowrider` fans out BY PACKAGE — one item
   per package whose kind it owns plus ONE seam item, each carrying its own `packageNames`. `siegemaster` fans out to
   ONE operation item PER quest flow, each carrying a single `flowId` (a flow-less quest still gets exactly one).
-  Each of `codeweaver`, `flowrider`, `groundstomper`, `siegemaster` (and bug-hunt's `pesteater`) is an
-  **orchestrator** session that never opens a source file: it runs a bounded round loop —
+  Each of `codeweaver`, `flowrider`, `groundstomper`, `siegemaster` (and bug-hunt's `pesteater`) is an **operator**
+  session that never opens a source file: it runs a bounded round loop —
   `planner-minion → worker-minions ONE AT A TIME → reviewer-minion → build → ward → commit`, at most 3 rounds — and
   the `reviewer-minion` takes the five standards concerns over `get-blight-checklist({ scope: 'working-tree' })`
   before the parent commits. Minions are never ledger items. `flowrider` holds one pt-continuation chain per package
@@ -440,7 +440,7 @@ detail breakdown only for a known-**failing** ward run.
 > - The ONLY sub-agent activity in the model is **minions a parent summons via the Agent tool** (`planner-minion` /
 >   `worker-minion` / `reviewer-minion`). Those are inside the parent's turn, not separate
 >   `get-next-step` dispatches — you never dispatch them. Note the parent runs its workers strictly ONE AT A TIME,
->   so even that is not parallelism: only the orchestrator builds, and concurrent `tsc` corrupts the shared `dist/`.
+>   so even that is not parallelism: only the operator builds, and concurrent `tsc` corrupts the shared `dist/`.
 > - **Operationally:** ONE `get-next-step` → dispatch its single returned entry → wait → assert `quest.json` →
 >   `get-next-step` again. Drive strictly off the returned `workItemId`; never off the seed array or a remembered id.
 >   When in doubt, do one tool call per turn.
@@ -706,7 +706,7 @@ Verify each agent prompt still gives an LLM enough to do its job — every capab
 ### Targets
 
 The five operation-owning roles are served ONE template, so walk it once and then walk each pack:
-`operation-orchestrator-prompt` (the shared template), the five discipline packs (`discipline-implementation`,
+`operator-prompt` (the shared template), the five discipline packs (`discipline-implementation`,
 `discipline-bug-repro`, `discipline-below-browser`, `discipline-browser-e2e`, `discipline-manual-qa`), the three
 generic minions (`planner-minion`, `worker-minion`, `reviewer-minion`), the shared blocks they interpolate
 (`agent-operating-rules`, `standards-review-concerns`, `flow-evidence-contract`), and the bespoke prompts
@@ -719,7 +719,7 @@ generic minions (`planner-minion`, `worker-minion`, `reviewer-minion`), the shar
 2. **Enumerate the required capabilities.** For the shared template: verify the item against git + the ledger, build,
    fetch the discipline's denominator, dispatch ONE planner, read the plan back with `get-quest-planning-notes`,
    dispatch workers ONE AT A TIME, dispatch ONE reviewer, build + scoped ward, commit the round, loop or signal. For a
-   discipline pack: does `orchestratorMarkdown` name the item's SCOPE and the exact denominator call, and does it
+   discipline pack: does `operatorMarkdown` name the item's SCOPE and the exact denominator call, and does it
    name NO code-reading tool the template forbids? Do `plannerMarkdown` / `workerMarkdown` / `reviewerMarkdown` carry
    the method the template deliberately omits? For a minion: does it load the standards itself, does it obey the leaf
    ban (planner excepted, spike only), and does it refuse `signal-back` and `git`?

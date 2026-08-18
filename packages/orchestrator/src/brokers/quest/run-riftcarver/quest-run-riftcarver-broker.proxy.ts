@@ -67,6 +67,8 @@ import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapte
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { gitCurrentBranchAdapterProxy } from '../../../adapters/git/current-branch/git-current-branch-adapter.proxy';
 import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-sha-adapter.proxy';
+import { gitPushAdapterProxy } from '../../../adapters/git/push/git-push-adapter.proxy';
+import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
 import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-verify-ref-adapter.proxy';
 import { buildUntilGreenBrokerProxy } from '../../build/until-green/build-until-green-broker.proxy';
 import { gitDetectBaseBranchBrokerProxy } from '../../git/detect-base-branch/git-detect-base-branch-broker.proxy';
@@ -163,6 +165,8 @@ export const questRunRiftcarverBrokerProxy = (): {
   setupWorktreeAddPermissionDenied: () => void;
   setupExistingWorktree: () => void;
   setupWorktreeNodeModulesAlreadyPopulated: () => void;
+  setupAlreadyPushed: () => void;
+  setupPushFails: (params: { output: string }) => void;
   setupNodeModulesMirrorFails: (params: { error: Error }) => void;
   setupBuildFails: (params: { lines: readonly string[] }) => void;
   getPersistedQuest: () => Quest;
@@ -188,6 +192,10 @@ export const questRunRiftcarverBrokerProxy = (): {
   fsIsAccessibleAdapterProxy();
   gitCurrentBranchAdapterProxy();
   gitHeadShaAdapterProxy();
+  // The push step and its `@{upstream}` done-check. Created for enforce-proxy-child-creation and
+  // for their own internal mocks; this proxy answers `spawn` directly, so neither is staged here.
+  gitPushAdapterProxy();
+  gitUpstreamShaAdapterProxy();
   gitVerifyRefAdapterProxy();
   buildUntilGreenBrokerProxy();
   gitDetectBaseBranchBrokerProxy();
@@ -226,6 +234,13 @@ export const questRunRiftcarverBrokerProxy = (): {
   const existingRefs = new Set<FileName>([fileNameContract.parse('main')]);
   const worktreeBranches = new Map<FilePath, FileName>();
   const worktreeAddOutcome: { exitCode: ExitCode; output: ErrorMessage } = {
+    exitCode: exitCodeContract.parse(GIT_SUCCESS),
+    output: errorMessageContract.parse(''),
+  };
+  // A fresh carve starts with the branch tracking NOTHING, which is what makes the push step run.
+  // `setupAlreadyPushed` flips it to model a `pt N` re-entry, where the done-check must skip.
+  const upstreamSha: { value: ErrorMessage | null } = { value: null };
+  const pushOutcome: { exitCode: ExitCode; output: ErrorMessage } = {
     exitCode: exitCodeContract.parse(GIT_SUCCESS),
     output: errorMessageContract.parse(''),
   };
@@ -408,6 +423,27 @@ export const questRunRiftcarverBrokerProxy = (): {
         exitCode: exitCodeContract.parse(GIT_SUCCESS),
         output: errorMessageContract.parse(`${HEAD_SHA}\n`),
       });
+    }
+
+    // The push step's done-check. A branch tracking nothing is git's own non-zero answer, and that
+    // is what a first carve looks like.
+    if (first === 'rev-parse' && second === '@{upstream}') {
+      const tracked = upstreamSha.value;
+      return Promise.resolve(
+        tracked === null
+          ? {
+              exitCode: exitCodeContract.parse(GIT_FAILURE),
+              output: errorMessageContract.parse('fatal: no upstream configured'),
+            }
+          : {
+              exitCode: exitCodeContract.parse(GIT_SUCCESS),
+              output: errorMessageContract.parse(`${String(tracked)}\n`),
+            },
+      );
+    }
+
+    if (first === 'push') {
+      return Promise.resolve({ exitCode: pushOutcome.exitCode, output: pushOutcome.output });
     }
 
     if (first === 'worktree' && second === 'prune') {
@@ -599,6 +635,17 @@ export const questRunRiftcarverBrokerProxy = (): {
 
     setupNodeModulesMirrorFails: ({ error }: { error: Error }): void => {
       nodeModulesError.value = error;
+    },
+
+    // A `pt N` re-entry: the first attempt already pushed, so the branch tracks something and the
+    // push step must SKIP rather than push again.
+    setupAlreadyPushed: (): void => {
+      upstreamSha.value = errorMessageContract.parse(HEAD_SHA);
+    },
+
+    setupPushFails: ({ output }: { output: string }): void => {
+      pushOutcome.exitCode = exitCodeContract.parse(GIT_FAILURE);
+      pushOutcome.output = errorMessageContract.parse(output);
     },
 
     setupBuildFails: ({ lines }: { lines: readonly string[] }): void => {

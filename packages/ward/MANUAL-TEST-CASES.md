@@ -184,14 +184,15 @@ All failures require modifying source files — see linked detail for exact chan
 
 ### Edge Cases
 
-| ID                                                      | Command                                                | Expected                |
-|---------------------------------------------------------|--------------------------------------------------------|-------------------------|
-| [10a](#10a-file-that-doesnt-exist)                      | `--only unit -- packages/ward/src/nonexistent.test.ts` | no crash, FAIL 0 files  |
-| [10b](#10b---only-with-invalid-check-type)              | `--only banana -- packages/ward`                       | error message           |
-| [10c](#10c-empty-passthrough-just---)                   | `--only unit --`                                       | no file scope, runs all |
-| [10d](#10d---changed-flag-requires-uncommitted-changes) | `--only lint --changed`                                | scoped to git diff      |
-| [10e](#10e---changed-with-multiple-check-types)         | `--only lint,unit,typecheck --changed`                 | each type scoped        |
-| [10f](#10f-no-tests-discovered-in-package)              | `--only integration -- packages/shared`                | skip                    |
+| ID                                                              | Command                                                | Expected                  |
+|-----------------------------------------------------------------|--------------------------------------------------------|---------------------------|
+| [10a](#10a-file-that-doesnt-exist)                              | `--only unit -- packages/ward/src/nonexistent.test.ts` | no crash, FAIL 0 files    |
+| [10b](#10b---only-with-invalid-check-type)                      | `--only banana -- packages/ward`                       | error message             |
+| [10c](#10c-empty-passthrough-just---)                           | `--only unit --`                                       | no file scope, runs all   |
+| [10d](#10d---changed-flag-requires-uncommitted-changes)         | `--changed`                                            | all checks, git diff      |
+| [10e](#10e---staged-flag-requires-an-unpushed-commit)           | `--staged`                                             | all checks, unpushed set  |
+| [10e-bis](#10e-bis-git-scope-flags-reject-every-narrowing-flag) | `--staged --only lint`                                 | rejected before any check |
+| [10f](#10f-no-tests-discovered-in-package)                      | `--only integration -- packages/shared`                | skip                      |
 
 ---
 
@@ -1229,16 +1230,19 @@ npm run ward -- --only unit --
 
 #### 10d. --changed flag (requires uncommitted changes)
 
-**Modify:** Make a trivial change to `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add a blank line)
+**Modify:** Make a trivial change to `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
 
 ```bash
-npm run ward -- --only lint --changed
+npm run ward -- --changed
 ```
 
 **Expected:**
 
-- Only the changed file is linted
-- Live: `lint @dungeonmaster/ward PASS  1 files, N discovered`
+- All five check types run, each scoped to the changed source files
+- lint: scoped to changed source files only — `lint @dungeonmaster/ward PASS  1 files, N discovered`
+- unit: scoped to changed source files via `--findRelatedTests`
+- typecheck: runs full tsc, post-filters errors to changed source files
+- e2e: skip in packages that are not e2e-eligible
 
 **Mutation tip:** Don't use a blank line — ESLint `--fix` will strip it, leaving git clean. Use a comment instead.
 
@@ -1247,21 +1251,46 @@ npm run ward -- --only lint --changed
 
 **Revert the change after testing.**
 
-#### 10e. --changed with multiple check types
+#### 10e. --staged flag (requires an unpushed commit)
 
-**Modify:** Make a trivial change to `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
+**Set up:** On a branch that tracks a remote, commit a trivial change to
+`packages/ward/src/guards/is-check-type/is-check-type-guard.ts` **without pushing it**. Then edit a second file and
+leave that edit uncommitted.
 
 ```bash
-npm run ward -- --only lint,unit,typecheck --changed
+npm run ward -- --staged
 ```
 
 **Expected:**
 
-- lint: scoped to changed source files only
-- unit: scoped to changed source files via --findRelatedTests
-- typecheck: runs full tsc, post-filters errors to changed source files
+- All five check types run, scoped to BOTH files — the committed-but-unpushed one and the uncommitted one
+- A file that was already pushed is NOT in scope, even when `--changed` would include it
+- With nothing unpushed and a clean tree, the run has no file scope and every check runs repo-wide
 
-**Revert the change after testing.**
+**Verify the file set git reports:**
+
+```bash
+git diff --name-only --diff-filter=d "$(git merge-base HEAD @{upstream})"
+```
+
+**Revert the commit and the edit after testing.**
+
+#### 10e-bis. Git scope flags reject every narrowing flag
+
+```bash
+npm run ward -- --staged --only lint
+npm run ward -- --changed --only lint
+npm run ward -- --staged --onlyTests "my test"
+npm run ward -- --changed -- packages/ward
+npm run ward -- --changed --staged
+```
+
+**Expected:**
+
+- Every one of these exits non-zero before any check runs
+- The first four print `<flag> cannot be combined with: <the offending flags>`
+- The last prints `--changed and --staged cannot be combined.`
+- Each error names the standalone invocation to use instead
 
 #### 10f. No tests discovered in package
 

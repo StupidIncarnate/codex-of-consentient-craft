@@ -29,9 +29,9 @@ export const getBlightChecklistInputContract = z
       .describe('The ID of the quest to enumerate the blight review surface for')
       .brand<'QuestId'>(),
     scope: z
-      .enum(['quest', 'commit', 'working-tree'])
+      .enum(['quest', 'commit', 'working-tree', 'unpushed'])
       .describe(
-        "Which diff to enumerate. 'working-tree' measures everything changed since HEAD that is NOT YET COMMITTED, INCLUDING untracked files — the surface for a reviewer-minion that runs INSIDE its parent session's turn, before that session commits, and the scope that session's signal-back review-coverage gate expects a disposition from. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's landed output, for a caller auditing history rather than a working tree. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched.",
+        "Which diff to enumerate. 'unpushed' measures ONE ROUND — everything committed in this worktree and not yet pushed — and is the reviewer-minion's scope: worker-minions commit their own pieces, so a working-tree reading finds nothing, and a commit reading sees only the last of the round's several commits. The operator pushes once at the end of each round, which is what makes unpushed mean this round. 'working-tree' measures everything changed since HEAD that is NOT YET COMMITTED, INCLUDING untracked files, for a caller whose subject really is uncommitted. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's landed output, for a caller auditing history. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched.",
       )
       .optional(),
   })

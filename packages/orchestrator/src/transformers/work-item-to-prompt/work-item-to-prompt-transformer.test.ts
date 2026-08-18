@@ -24,7 +24,7 @@ import { disciplineBelowBrowserStatics } from '../../statics/discipline-below-br
 import { disciplineBugReproStatics } from '../../statics/discipline-bug-repro/discipline-bug-repro-statics';
 import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
 import { disciplineManualQaStatics } from '../../statics/discipline-manual-qa/discipline-manual-qa-statics';
-import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
 import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
@@ -37,18 +37,26 @@ import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 // discipline id at `$MY_DISCIPLINE`. Function-form replacement, never the string form: pack
 // markdown is authored prose that can carry `$&` / `` $` `` / `$'`, which the string form would
 // expand against the match.
-const IMPLEMENTATION_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineImplementationStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'implementation');
-const BUG_REPRO_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineBugReproStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'bug-repro');
-const BELOW_BROWSER_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'below-browser');
-const MANUAL_QA_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineManualQaStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'manual-qa');
+// `$DISCIPLINE` substitutes once and `$MY_DISCIPLINE` substitutes EVERYWHERE, which is why the two
+// use different methods: the template quotes the bare discipline id both into the
+// `get-agent-prompt` call its minions must make and into the header every minion brief opens with,
+// and `.replace` with a string pattern would resolve only the first of those.
+const IMPLEMENTATION_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineImplementationStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('implementation');
+const BUG_REPRO_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineBugReproStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('bug-repro');
+const BELOW_BROWSER_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('below-browser');
+const MANUAL_QA_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineManualQaStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('manual-qa');
 
 // Fixture scale for the MCP tool-result budget below, calibrated against a real dogfood quest
 // (e0210063): a 21-item ledger rendering to 6,444 characters, seven flows, five affected packages,
@@ -121,18 +129,18 @@ const INTERSECTION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter(
   (role) => signoffTrackEligibilityStatics.byTrack[role].packageScope === 'intersection',
 );
 
-// The roles served `operationOrchestratorPromptStatics`, derived from the map that decides it, so a
+// The roles served `operatorPromptStatics`, derived from the map that decides it, so a
 // sixth discipline added there is covered by the ban assertion below without anyone remembering to
 // list it. Everything under this heading — the pack, the gates, the minion protocol AND the
 // `$ARGUMENTS` block this transformer builds — sits BELOW the template's exhaustive tool table, so
 // it is the region a leak can hide in.
-const ORCHESTRATOR_TEMPLATE_ROLES = Object.keys(
+const OPERATOR_TEMPLATE_ROLES = Object.keys(
   roleToDisciplineStatics,
 ) as (keyof typeof roleToDisciplineStatics)[];
 const DISCIPLINE_HEADING = '## Your discipline';
 // Case-sensitive word matches: `browser-e2e`'s pack legitimately says `DISCOVERY MISMATCH` about a
 // scoped ward run, which is the ward output and not the `discover` tool.
-const FORBIDDEN_ORCHESTRATOR_TOOLS = [
+const FORBIDDEN_OPERATOR_TOOLS = [
   'get-architecture',
   'get-syntax-rules',
   'get-testing-patterns',
@@ -203,7 +211,7 @@ describe('workItemToPromptTransformer', () => {
     );
   });
 
-  describe('pesteater takes the full relay path, exactly like its four sibling orchestrators', () => {
+  describe('pesteater takes the full relay path, exactly like its four sibling operators', () => {
     it('VALID: {agent + role: pesteater, one linked operation} => substitutes the operation-relay $ARGUMENTS into the bug-repro template', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-6666-4222-9333-444444444444' });
@@ -246,7 +254,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        BUG_REPRO_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        BUG_REPRO_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -356,7 +364,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       );
     });
 
@@ -403,7 +411,7 @@ describe('workItemToPromptTransformer', () => {
       // split/join, never String.replace(string, string) — building the expectation with the very
       // bug under test would corrupt it identically and pass vacuously.
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -448,7 +456,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -490,7 +498,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -535,7 +543,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -682,7 +690,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -744,7 +752,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -946,7 +954,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+          IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
         );
       });
     });
@@ -1001,9 +1009,7 @@ describe('workItemToPromptTransformer', () => {
           'Add authentication to the application',
         ].join('\n');
 
-        expect(result.prompt).toBe(
-          MANUAL_QA_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
-        );
+        expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
       });
 
       // Flowrider never starts a server — Playwright's own `webServer` config owns the one its e2e
@@ -1051,7 +1057,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          BELOW_BROWSER_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+          BELOW_BROWSER_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
         );
       });
     });
@@ -1363,7 +1369,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -1427,7 +1433,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -1503,7 +1509,7 @@ describe('workItemToPromptTransformer', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
+        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
       );
     });
   });
@@ -1523,13 +1529,13 @@ describe('workItemToPromptTransformer', () => {
     });
   });
 
-  // The tool table near the top of the orchestrator template is EXHAUSTIVE, and the whole design
+  // The tool table near the top of the operator template is EXHAUSTIVE, and the whole design
   // rests on it: a session that searches source runs out of room mid-loop and starts hand-coding
   // the remainder. Measuring the template or a pack ALONE cannot catch a breach, because the
   // `$ARGUMENTS` block this transformer builds is spliced in below both — and that block is the
   // part an agent acts on first.
-  describe('the orchestrator tool-surface ban survives assembly', () => {
-    it.each(ORCHESTRATOR_TEMPLATE_ROLES)(
+  describe('the operator tool-surface ban survives assembly', () => {
+    it.each(OPERATOR_TEMPLATE_ROLES)(
       'VALID: {agent: %s, operation item declaring packageNames} => the assembled prompt names no forbidden tool below the tool table',
       (role) => {
         const operationItemId = OperationItemIdStub({
@@ -1555,7 +1561,7 @@ describe('workItemToPromptTransformer', () => {
         const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName: role });
         const sections = String(prompt).split(DISCIPLINE_HEADING);
         const [, belowToolTable] = sections;
-        const namedTools = FORBIDDEN_ORCHESTRATOR_TOOLS.filter((tool) =>
+        const namedTools = FORBIDDEN_OPERATOR_TOOLS.filter((tool) =>
           new RegExp(`\\b${tool}\\b`, 'u').test(String(belowToolTable)),
         );
 

@@ -1,6 +1,6 @@
 /**
  * PURPOSE: One planner sub-agent's output for a single operation-item round — the artifact a
- * planner writes onto the quest so the orchestrator session that dispatched it can read the plan
+ * planner writes onto the quest so the operator session that dispatched it can read the plan
  * back without holding the spike in its own context
  *
  * USAGE:
@@ -24,7 +24,7 @@ import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-i
 
 export const operationPlanContract = z.object({
   id: operationPlanIdContract.describe(
-    'Identity for this plan. The orchestrator reads a plan back by this id after the planner ' +
+    'Identity for this plan. The operator reads a plan back by this id after the planner ' +
       'sub-agent that wrote it has returned, without holding the plan body in its own context.',
   ),
   operationItemId: operationItemIdContract.describe(
@@ -61,7 +61,7 @@ export const operationPlanContract = z.object({
     .min(1)
     .brand<'OperationPlanSummary'>()
     .describe(
-      "What the planner found — the spike's conclusion in prose, read by the orchestrator (or a " +
+      "What the planner found — the spike's conclusion in prose, read by the operator (or a " +
         'human) without opening any of the pieces. Should stand alone: a reader who never looks at ' +
         'pieces[] should still know what is about to happen and why.',
     ),

@@ -53,7 +53,7 @@ export const getAgentPromptInputContract = z.object({
     .enum(DISCIPLINE_NAMES)
     .optional()
     .describe(
-      "Which discipline pack fills the shared prompt template's $DISCIPLINE placeholder. REQUIRED for planner-minion / worker-minion / reviewer-minion — those fetch with { agent, questId } only and have no workItemId to derive a discipline from. MUST be OMITTED for an orchestrator role, whose discipline is derived server-side from its own role, and for chaoswhisperer-gap-minion.",
+      "Which discipline pack fills the shared prompt template's $DISCIPLINE placeholder. REQUIRED for planner-minion / worker-minion / reviewer-minion — those fetch with { agent, questId } only and have no workItemId to derive a discipline from. MUST be OMITTED for an operator role, whose discipline is derived server-side from its own role, and for chaoswhisperer-gap-minion.",
     ),
 });
 

@@ -64,9 +64,9 @@ describe('QuestFlow', () => {
         'Gets the current status of an orchestration process by its process ID.',
         'Lists all quests in the .dungeonmaster-quests folder.',
         'Lists all registered guilds with their IDs, names, paths, and quest counts.',
-        "Returns a quest's `planningNotes`: the `operationPlans` a planner-minion persisted, the per-unit `blightLedger` a reviewer-minion writes, and the durable `questNotes` side channel. An operation orchestrator calls this to read its round's plan back off the quest — the planner returns a 3-5 line pointer, never the plan body, so this is the only place the pieces themselves exist.",
-        "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. Flowrider, Groundstomper and Siegemaster call this instead of reading the spec and enumerating by hand. Pass `track` ('flowrider' | 'groundstomper' | 'siegemaster') — the ROLE you were dispatched as, not the sign-off field you write — and REMAINING counts the units in YOUR denominator, which is exactly what the signal-back completion gate refuses `done` on. Flowrider and Groundstomper both write flowriderSignoff but are measured over DISJOINT package kinds, so the other's name returns the complement of your work; both also narrow to the quest's runtime flows, the only set they are measured over. Pass `packageNames` too when your operation item declares any, or you read a whole-quest remainder while your own gate clears at zero.",
-        "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. A reviewer-minion calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
+        "Returns a quest's `planningNotes`: the `operationPlans` a planner-minion persisted, the per-unit `blightLedger` a reviewer-minion writes, and the durable `questNotes` side channel. An operator calls this to read its round's plan back off the quest — the planner returns a 3-5 line pointer, never the plan body, so this is the only place the pieces themselves exist.",
+        "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. The `planner-minion` and `reviewer-minion` of a Flowrider, Groundstomper or Siegemaster round call this instead of reading the spec and enumerating by hand. **Pass `operationItemId` — it IS the scope.** Everything the denominator depends on already lives on that item (its role is the track, plus its flowIds and packageNames), and the server derives all of it with the SAME transformer the signal-back completion gate uses, so REMAINING here is exactly what your parent's `done` will be measured against. There is nothing else to pass and no way to widen it by accident. An item whose role has no sign-off track (codeweaver, pesteater) is told so plainly: its denominator is the scope block already in its Operation Context. `flowId` alone is the un-scoped browse form for a caller that owns no operation item, and may never be combined with `operationItemId`.",
+        "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. A reviewer-minion calls this with scope: 'unpushed', which frames exactly the commits its round produced; the other scopes measure the whole quest, the last commit alone, or the uncommitted working tree. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
         'Creates a new quest seeded with the supplied userRequest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id, but the caller MUST pass the original user request text so it is captured on the quest from the moment of creation.',
         'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | run-ward | idle. Long-polls internally up to ~25s.',
         'Runs `npm run ward` synchronously in changed or full mode and persists the result onto the named work item. Blocks until ward exits.',
@@ -109,10 +109,13 @@ describe('QuestFlow', () => {
 
       // The exact match proves the registration wired the get-blight-checklist input contract
       // (not some other contract, and not a hand-written stand-in schema) through zodToJsonSchema.
-      // `scope` reaching the PUBLISHED schema is what makes the tool usable by the caller it
-      // exists for: the contract is `.strict()`, and a reviewer-minion running inside its parent's
-      // turn has to pass `scope: 'working-tree'` on every call — so a schema without the property
-      // rejects every one of those calls outright.
+      // `scope` reaching the PUBLISHED schema is what makes the tool usable by the caller it exists
+      // for: the contract is `.strict()`, and a reviewer-minion passes `scope: 'unpushed'` on every
+      // call — so a schema without the property rejects every one of those calls outright. There is
+      // deliberately NO id argument to go with it: git already knows where the round began, because
+      // the orchestrator pushes at the end of each one. `since-ref` is likewise absent from the
+      // enum: its only caller is the server-side signal-back gate, and no agent can compute the
+      // work-item `startRef` it measures from.
       expect(registration?.inputSchema).toStrictEqual({
         type: 'object',
         properties: {
@@ -123,9 +126,9 @@ describe('QuestFlow', () => {
           },
           scope: {
             type: 'string',
-            enum: ['quest', 'commit', 'working-tree'],
+            enum: ['quest', 'commit', 'working-tree', 'unpushed'],
             description:
-              "Which diff to enumerate. 'working-tree' measures everything changed since HEAD that is NOT YET COMMITTED, INCLUDING untracked files — the surface for a reviewer-minion that runs INSIDE its parent session's turn, before that session commits, and the scope that session's signal-back review-coverage gate expects a disposition from. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's landed output, for a caller auditing history rather than a working tree. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched.",
+              "Which diff to enumerate. 'unpushed' measures ONE ROUND — everything committed in this worktree and not yet pushed — and is the reviewer-minion's scope: worker-minions commit their own pieces, so a working-tree reading finds nothing, and a commit reading sees only the last of the round's several commits. The operator pushes once at the end of each round, which is what makes unpushed mean this round. 'working-tree' measures everything changed since HEAD that is NOT YET COMMITTED, INCLUDING untracked files, for a caller whose subject really is uncommitted. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's landed output, for a caller auditing history. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched.",
           },
         },
         required: ['questId'],
@@ -230,17 +233,20 @@ describe('QuestFlow', () => {
       });
     });
 
-    it('VALID: {get-qa-checklist} => inputSchema advertises questId, flowId, the THREE-member track enum AND packageNames', () => {
+    it('VALID: {get-qa-checklist} => inputSchema advertises questId, operationItemId AND flowId, with no track or packageNames', () => {
       const registrations = QuestFlow();
 
       const registration = registrations.find(({ name }) => name === 'get-qa-checklist');
 
       // What reaches the PUBLISHED schema is what makes the tool callable at all: the input contract
       // is `.strict()`, so a caller passing a key the schema never advertised is a hard parse
-      // rejection rather than an ignored argument. Both of the additions here are that failure
-      // measured — `groundstomper` missing from the enum left the one role that needs its own
-      // denominator unable to name itself, and `packageNames` missing left a session holding a
-      // sliced operation item reading a whole-quest remainder its own gate never computes.
+      // rejection rather than an ignored argument. `operationItemId` REPLACED `track` and
+      // `packageNames` rather than joining them, so their ABSENCE here is the assertion that matters:
+      // both were optional, so omitting either silently WIDENED the measurement to the whole quest
+      // while the caller's own completion gate went on refusing `done` against the narrow set.
+      // The contract also rejects flowId alongside operationItemId, but that lives in a superRefine,
+      // which zod-to-json-schema cannot express and drops — so the pair is absent here by design and
+      // is asserted in get-qa-checklist-input-contract.test.ts instead.
       expect(registration?.inputSchema).toStrictEqual({
         type: 'object',
         properties: {
@@ -249,23 +255,17 @@ describe('QuestFlow', () => {
             minLength: 1,
             description: 'The ID of the quest to enumerate the QA surface for',
           },
+          operationItemId: {
+            type: 'string',
+            minLength: 1,
+            description:
+              'The operation item this work is for — the ONE argument that scopes this call. Everything the denominator depends on is already on that item (its role is the track, plus its flowIds and packageNames), and the server derives them with the same transformer the signal-back completion gate uses, so what you read here is exactly what your `done` will be measured against. Pass it and REMAINING is your remainder. A role with no sign-off track (codeweaver, pesteater) is told so plainly: its denominator is the scope block in its Operation Context, not the flow graph.',
+          },
           flowId: {
             type: 'string',
             minLength: 1,
             description:
-              'Optional flow id. Omit to enumerate every flow on the quest; pass one to scope the checklist to the flow this session owns.',
-          },
-          track: {
-            type: 'string',
-            enum: ['flowrider', 'groundstomper', 'siegemaster'],
-            description:
-              "Your verification track — the ROLE you were dispatched as, not the sign-off field you write. Pass it and REMAINING counts the units in YOUR denominator still carrying no sign-off, which is exactly what the signal-back completion gate will refuse `done` on. 'flowrider' and 'groundstomper' both write flowriderSignoff but are measured over DISJOINT package kinds (groundstomper: the browser-reachable ones), so passing the other role's name returns the complement of your own work. Both also narrow the flow set to the quest's runtime flows, the only set they are measured over. Omit it to list every flow with no track applied.",
-          },
-          packageNames: {
-            type: 'array',
-            items: { type: 'string', minLength: 1 },
-            description:
-              'The package names your operation item declares, if it declares any. Pass them and REMAINING is narrowed to your slice the same way the completion gate narrows it — a per-package flowrider item owns the units whose node tags exactly its one package, and the seam item owns the glue. Omit them when your item declares none, and nothing is narrowed.',
+              'Browse ONE flow with no track applied — for a caller that owns no operation item. Never pass it alongside operationItemId: the item already says which flows are in scope, and a hand-picked flow is how a session ends up measuring something other than what its gate measures.',
           },
         },
         required: ['questId'],

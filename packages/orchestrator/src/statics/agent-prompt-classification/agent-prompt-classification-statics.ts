@@ -15,7 +15,7 @@
  *
  * `roleNames` and `minionNames` are DISJOINT, and the shape that keeps them so is now the whole
  * design rather than an accident of naming: there is no longer one minion family per parent role.
- * The five operation-owning roles share ONE template (`operationOrchestratorPromptStatics`) and
+ * The five operation-owning roles share ONE template (`operatorPromptStatics`) and
  * summon the SAME three GENERIC minions — `planner-minion`, `worker-minion`, `reviewer-minion` —
  * which are parameterized at fetch time by the dispatching role's discipline
  * (`roleToDisciplineStatics` → `disciplineToPackTransformer`) instead of being named after it. A
@@ -43,7 +43,7 @@ export const agentPromptClassificationStatics = {
     'warpgate',
   ],
   roleNames: [
-    /** The five operation-owning roles below are served the SAME `operationOrchestratorPromptStatics`
+    /** The five operation-owning roles below are served the SAME `operatorPromptStatics`
      * template; what differs between them is only the discipline pack interpolated at `$DISCIPLINE`
      * (`roleToDisciplineStatics`). None of them opens a source file: each plans through a
      * `planner-minion`, builds through `worker-minion`s, and verifies through a `reviewer-minion`. */
@@ -67,7 +67,7 @@ export const agentPromptClassificationStatics = {
      * it carries no `$DISCIPLINE` placeholder and must never be handed a discipline. */
     'chaoswhisperer-gap-minion',
     /** The three generic phases of one operation round. Each carries a `$DISCIPLINE` placeholder its
-     * summoning orchestrator's discipline fills in, which is why the same three names serve
+     * summoning operator's discipline fills in, which is why the same three names serve
      * implementation, bug-repro, below-browser, browser-e2e and manual-qa alike. */
     'planner-minion',
     'worker-minion',

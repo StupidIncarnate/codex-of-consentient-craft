@@ -119,15 +119,7 @@ Call all three tools, read their output, THEN plan your approach.`,
 
   ward: `## Ward Quality Commands
 
-**ALWAYS use \`npm run ward\` instead of raw tool invocations:**
-
-| Don't Use | Use Instead |
-|-----------|-------------|
-| \`npx jest ...\` | \`npm run ward -- --only test -- <path>\` |
-| \`npx jest -t "name"\` | \`npm run ward -- --only unit --onlyTests "name"\` |
-| \`npx eslint ...\` | \`npm run ward -- --only lint\` |
-| \`npx tsc --noEmit\` | \`npm run ward -- --only typecheck\` |
-| \`npm test\` | \`npm run ward -- --only test\` |
+**ALWAYS use \`npm run ward\`.** Never invoke \`npx jest\`, \`npx eslint\`, \`npx tsc\`, \`npx playwright\`, or \`npm test\` directly — pick the matching check type below instead.
 
 ### Check Types
 
@@ -135,9 +127,9 @@ Call all three tools, read their output, THEN plan your approach.`,
 |------|------|-------------|
 | \`lint\` | ESLint | Linting with \`--fix\` |
 | \`typecheck\` | tsc | TypeScript type checking |
-| \`unit\` | Jest | Unit tests (\`*.test.ts\`, excludes \`*.integration.test.ts\`) |
-| \`integration\` | Jest | Integration tests (\`*.integration.test.ts\` only) |
-| \`e2e\` | Playwright | End-to-end browser tests |
+| \`unit\` | Jest | \`*.test.ts\`, excludes \`*.integration.test.ts\` |
+| \`integration\` | Jest | \`*.integration.test.ts\` only |
+| \`e2e\` | Playwright | Browser tests |
 | \`test\` | *(alias)* | Expands to \`unit,integration,e2e\` |
 
 ### Flags
@@ -146,9 +138,11 @@ Call all three tools, read their output, THEN plan your approach.`,
 |------|-------------|
 | \`--only lint,typecheck,unit\` | Comma-separated check types. Omit for all. |
 | \`--onlyTests <regex>\` | Filter tests by name. Supports \`\\|\` alternation. |
-| \`--changed\` | Scope to git-changed files. |
 | \`-- file1 file2\` | Passthrough file paths (after \`--\`). |
-| \`--verbose\` | Verbose output. |
+| \`--changed\` | All checks, on files differing from local default branch. |
+| \`--staged\` | All checks, on files origin lacks. Pre-push gate. |
+
+**\`--changed\` and \`--staged\` run ALONE.** Each takes its file set from git, so ward rejects either one combined with \`--only\`, \`--onlyTests\`, \`-- <files>\`, or the other. To narrow a run, drop the flag and scope it yourself.
 
 ### Common Invocations
 
@@ -157,8 +151,8 @@ npm run ward                                          # All checks
 npm run ward -- --only unit -- path/to/file.test.ts   # Single test file
 npm run ward -- --only unit --onlyTests "my test"     # Tests by name
 npm run ward -- -- packages/hooks                     # Single package
-npm run ward -- --only lint --changed                 # Changed files only
-npm run ward -- --only lint,typecheck,unit -- packages/hooks  # Combo
+npm run ward -- --changed                             # Changed files, all checks
+npm run ward -- --staged                              # Unpushed work, all checks
 \`\`\`
 
 ### Inspecting Failures
@@ -179,7 +173,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **Run it ONCE.** Choose the right flags the first time; never re-run the same checks a second way, or follow a scoped run with a full one.
 
-**A skip on a scoped run is not a regression.** Jest's \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — narrow \`--only\` instead of widening scope.
+**A skip on a scoped run is not a regression.** Jest's \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — on a \`-- <files>\` run, narrow \`--only\` rather than widen scope. \`--changed\`/\`--staged\` reject \`--only\`; re-run those as \`--only <types> -- <files>\`.
 
 **Who owns a FULL run.** An agent working directly for the user makes \`npm run ward\` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role is the opposite: it NEVER runs the full sweep — its Operating Rules override this snippet, and the dispatcher's own \`run-ward\` item is the regression pass.`,
 

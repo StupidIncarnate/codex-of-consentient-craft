@@ -11,8 +11,8 @@
  * turning either into a failure would push it toward inventing scope.
  *
  * `scope` is carried rather than fixed here because the caller decides which diff it is answering
- * for: a reviewer-minion running inside its parent's turn is graded on the WORKING TREE, while a
- * caller auditing a landed commit wants `commit` and one auditing the whole branch wants `quest`.
+ * for: a reviewer-minion is graded on ONE ROUND and passes `unpushed`, while a caller auditing a
+ * landed commit wants `commit` and one auditing the whole branch wants `quest`.
  */
 
 import {
@@ -34,7 +34,7 @@ export const QuestGetBlightChecklistResponder = async ({
   scope,
 }: {
   questId: string;
-  scope?: 'quest' | 'commit' | 'working-tree';
+  scope?: 'quest' | 'commit' | 'working-tree' | 'unpushed';
 }): Promise<QuestGetBlightChecklistResponderResult> => {
   try {
     const parsedQuestId = questIdContract.parse(questId);

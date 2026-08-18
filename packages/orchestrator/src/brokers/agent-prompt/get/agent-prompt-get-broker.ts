@@ -157,9 +157,9 @@ export const agentPromptGetBroker = async ({
 
   // START REF — the fork point of THIS work item's own output, recorded before the session it is
   // being served can commit anything. `signal-back`'s review-coverage gate rebuilds the blight
-  // checklist over `<startRef>..HEAD`, which is the only reading that sees a whole item: the
-  // session commits once per ROUND, so by signal time the tree is clean and `HEAD~1` holds the last
-  // round alone.
+  // checklist over `<startRef>..HEAD`, which is the only reading that sees a whole item: every
+  // minion commits its own work as it goes, so by signal time the tree is clean, `HEAD~1` holds one
+  // piece, and a `plan`-scoped reading holds one round.
   //
   // It is stamped ONCE and NEVER moved. A re-served prompt is the routine case — an orphan-recovery
   // resume, a redelivered fetch — and each one reads a HEAD that already contains the commits this

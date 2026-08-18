@@ -20,9 +20,20 @@
  * now works in its OWN git worktree, so a stray checkout by another role happens inside that
  * quest's tree and cannot disturb the base branch or another quest.
  *
- * `stash`, `reset`, `rebase`, and `push` stay denied for everyone — agents fix forward and never
- * rewrite or publish history. `git worktree` is NOT granted: worktrees are created by the server
- * at Start, not by any agent.
+ * `push` is granted because an OPERATOR pushes once per round at its gate 9, and the whole
+ * review-scope design rests on that push landing: a `reviewer-minion` measures its round with
+ * `get-blight-checklist({ scope: 'unpushed' })` — `@{upstream}..HEAD` — so an unpushed round is a
+ * round the NEXT reviewer reads as its own. Denied, the operator reads its own prompt's mandated
+ * step coming back `This command requires approval`, which its Operating Rule 5 defines as an
+ * environment wall — so the most COMPLIANT reading of a denial turns the first round of the first
+ * operator item into an `operationStatus: 'blocked'` and halts the quest. Publishing the quest's
+ * own branch is not history rewriting: it is how the relay hands work forward, exactly as the
+ * commit is.
+ *
+ * `stash`, `reset` and `rebase` stay denied for everyone — those DISCARD or REWRITE work on a
+ * branch several sessions share, and the operator that would have to notice cannot open a file to
+ * see what went missing. `git worktree` is NOT granted: worktrees are created by the server at
+ * Start, not by any agent.
  */
 
 export const agentGitPermissionsStatics = {
@@ -37,5 +48,6 @@ export const agentGitPermissionsStatics = {
     'Bash(git commit:*)',
     'Bash(git checkout:*)',
     'Bash(git merge:*)',
+    'Bash(git push:*)',
   ],
 } as const;

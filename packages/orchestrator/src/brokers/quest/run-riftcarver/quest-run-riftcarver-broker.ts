@@ -64,6 +64,8 @@ import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmast
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { gitCurrentBranchAdapter } from '../../../adapters/git/current-branch/git-current-branch-adapter';
 import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
+import { gitPushAdapter } from '../../../adapters/git/push/git-push-adapter';
+import { gitUpstreamShaAdapter } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter';
 import { gitVerifyRefAdapter } from '../../../adapters/git/verify-ref/git-verify-ref-adapter';
 import { questRunRiftcarverResultContract } from '../../../contracts/quest-run-riftcarver-result/quest-run-riftcarver-result-contract';
 import type { QuestRunRiftcarverResult } from '../../../contracts/quest-run-riftcarver-result/quest-run-riftcarver-result-contract';
@@ -263,6 +265,36 @@ export const questRunRiftcarverBroker = async ({
           questId,
           update: () => ({ branchName, baseBranch, worktreePath, baseRef }),
         });
+      }
+
+      // PUSH. Establishes the branch's upstream, once, right after the git context is recorded.
+      // Doing it HERE rather than at the first round's end is what removes every branching decision
+      // downstream: `@{upstream}` resolves from the moment the quest exists, so a reviewer-minion's
+      // `scope: 'unpushed'` always has a range, and every later push is a bare `git push` with no
+      // `-u` for any session to decide about.
+      //
+      // Its done-check reads the REAL WORLD like every other step's: a branch that already tracks
+      // something has been pushed, whatever the ledger says. Without it a `pt N` carve re-pushes
+      // on every retry.
+      step.value = STEPS.push;
+      const existingUpstream = await gitUpstreamShaAdapter({ cwd: worktreePath });
+
+      if (existingUpstream === null) {
+        const pushResult = await gitPushAdapter({ cwd: worktreePath, setUpstream: { branchName } });
+
+        stream.emit(`— git push -u origin ${branchName} —`);
+
+        if (pushResult.exitCode !== 0) {
+          throw new WorktreePrepareError({
+            step: STEPS.push,
+            detail: worktreeFailureDetailTransformer({
+              worktreePath,
+              cause: String(pushResult.output),
+            }),
+          });
+        }
+      } else {
+        stream.emit(`— skip push: ${branchName} already tracks an upstream —`);
       }
 
       // NODE MODULES. Per-root done-checks live inside populateOneRootLayerBroker, which is why

@@ -13,6 +13,7 @@ export const wardConfigContract = z.object({
   only: z.array(checkTypeContract).optional(),
   onlyTests: z.string().brand<'TestNamePattern'>().optional(),
   changed: z.boolean().optional(),
+  staged: z.boolean().optional(),
   passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),
 });
 

@@ -1,6 +1,6 @@
 import { AgentRoleStub } from '../../contracts/agent-role/agent-role.stub';
 import { DisciplineStub } from '../../contracts/discipline/discipline.stub';
-import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
 import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
@@ -11,31 +11,35 @@ type OrchestratorRole = keyof typeof roleToDisciplineStatics;
 
 // Read off the role map rather than listed here: a role added there and forgotten in a hand-written
 // case list is served an unparameterized template with nothing failing.
-const ORCHESTRATOR_ROLE_CASES = (
+const OPERATOR_ROLE_CASES = (
   Object.keys(roleToDisciplineStatics) as readonly OrchestratorRole[]
 ).map((role) => [role, roleToDisciplineStatics[role]] as const);
 
 describe('roleToPromptTemplateTransformer', () => {
   describe('every operation-owning role gets the same template with its own discipline pack', () => {
-    it.each(ORCHESTRATOR_ROLE_CASES)(
-      'VALID: {role: %s} => returns the operation-orchestrator template with the %s pack substituted at $DISCIPLINE',
+    it.each(OPERATOR_ROLE_CASES)(
+      'VALID: {role: %s} => returns the operator template with the %s pack substituted at $DISCIPLINE',
       (role, discipline) => {
         const result = roleToPromptTemplateTransformer({ role: AgentRoleStub({ value: role }) });
 
         expect(String(result)).toBe(
-          operationOrchestratorPromptStatics.prompt.template
+          operatorPromptStatics.prompt.template
             .replace(
               '$DISCIPLINE',
               () =>
                 disciplineToPackTransformer({ discipline: DisciplineStub({ value: discipline }) })
-                  .orchestratorMarkdown,
+                  .operatorMarkdown,
             )
-            .replace('$MY_DISCIPLINE', () => discipline),
+            // `$MY_DISCIPLINE` substitutes EVERYWHERE, not once: the template quotes the bare
+            // discipline id into the `get-agent-prompt` call its minions must make AND into the
+            // header every minion brief opens with.
+            .split('$MY_DISCIPLINE')
+            .join(discipline),
         );
       },
     );
 
-    it.each(ORCHESTRATOR_ROLE_CASES)(
+    it.each(OPERATOR_ROLE_CASES)(
       'VALID: {role: %s} => returned template carries no unresolved $DISCIPLINE or $MY_DISCIPLINE token',
       (role) => {
         const result = roleToPromptTemplateTransformer({ role: AgentRoleStub({ value: role }) });
@@ -50,7 +54,7 @@ describe('roleToPromptTemplateTransformer', () => {
     // This transformer is the path `work-item-to-prompt-transformer` actually serves a role
     // through, so a `$MY_DISCIPLINE` fixed only in the agent-name switch would leave the literal
     // token in every dispatched session's prompt and every minion fetch would be refused.
-    it.each(ORCHESTRATOR_ROLE_CASES)(
+    it.each(OPERATOR_ROLE_CASES)(
       'VALID: {role: %s} => tells its minions to fetch with that role own discipline id',
       (role, discipline) => {
         const result = roleToPromptTemplateTransformer({ role: AgentRoleStub({ value: role }) });

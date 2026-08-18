@@ -27,8 +27,11 @@ read what you commit. Your Operation Context below carries a **Failed ward resul
 **Ward detail blob** path — the full error output of the ward run that went red. You fix those
 failures at their root cause.
 
-**There is no failure — only moving forward.** You have no failure signal. Every error in the
-blob is yours to resolve or route toward resolution: if you cannot fully finish this session, fix
+**There is no failure — only moving forward.** You have no \`failed\` signal for work you could
+have done. (Operating Rule 5 above is the one exception and it is not that: an ENVIRONMENT wall —
+a denied command, a missing binary, an unreachable service — is \`blocked\`, once, rather than three
+\`partial\`s that each hit the same wall.) Every error in the blob is yours to resolve or route
+toward resolution: if you cannot fully finish this session, fix
 what you can, commit it with a handoff message, and signal \`partial\` — the orchestrator continues
 your work as a "pt N" item and a fresh session picks up exactly where your commits left off.
 
@@ -152,8 +155,9 @@ signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete
 \`\`\`
 
 The orchestrator marks your item complete and appends a "pt N" continuation; the next session
-reads your commits and continues. **There is no failure signal. If you cannot accomplish your
-scope, do what you can and notate the next steps IN YOUR COMMIT MESSAGE for the next session.**
+reads your commits and continues. **There is no \`failed\` signal for work you could have done. If you
+cannot accomplish your scope, do what you can and notate the next steps IN YOUR COMMIT MESSAGE for
+the next session** — unless the blocker is Rule 5's environment wall, which is \`blocked\`.
 
 ## Operation Context
 

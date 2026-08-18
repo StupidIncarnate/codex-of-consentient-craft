@@ -9,8 +9,13 @@
  * const one = await QuestGetQaChecklistResponder({ questId: 'add-auth', flowId: 'login-flow' });
  * // Returns { success: true, data: '<just that flow>' }
  *
- * const mine = await QuestGetQaChecklistResponder({ questId: 'add-auth', track: 'flowrider' });
- * // Returns { success: true, data: '<the runtime flows, measured against flowriderSignoff>' }
+ * const mine = await QuestGetQaChecklistResponder({ questId: 'add-auth', operationItemId });
+ * // Returns { success: true, data: '<exactly the scope that item is measured over>' }
+ *
+ * `operationItemId` IS the scope — the track, the flows and the package slice all come off the item
+ * through the same derivation the signal-back completion gate uses, so the two answers cannot drift.
+ * The track it resolved comes back with the checklists because the RENDER needs it: the sign-off
+ * caption names the field, and the empty case reads differently per track.
  *
  * A quest with no flows, or a flowId not on the quest, returns a plain statement of that rather
  * than an error — "this flow has nothing to verify" is a real answer a verification session needs
@@ -39,22 +44,18 @@ export type QuestGetQaChecklistResponderResult =
 
 export const QuestGetQaChecklistResponder = async ({
   questId,
+  operationItemId,
   flowId,
-  track,
-  packageNames,
 }: {
   questId: string;
+  operationItemId?: string;
   flowId?: string;
-  track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
-  packageNames?: string[];
 }): Promise<QuestGetQaChecklistResponderResult> => {
   try {
-    const parsedQuestId = questIdContract.parse(questId);
-    const checklists = await questGetQaChecklistBroker({
-      questId: parsedQuestId,
+    const { checklists, track } = await questGetQaChecklistBroker({
+      questId: questIdContract.parse(questId),
+      ...(operationItemId !== undefined && { operationItemId: operationItemId as never }),
       ...(flowId !== undefined && { flowId: flowId as never }),
-      ...(track !== undefined && { track }),
-      ...(packageNames !== undefined && { packageNames: packageNames as never }),
     });
 
     // A track whose `flowTypes` omit `operational` cannot be handed an operational flow at all, so
@@ -65,6 +66,19 @@ export const QuestGetQaChecklistResponder = async ({
       !signoffTrackEligibilityStatics.byTrack[track].flowTypes.some(
         (flowType) => flowType === 'operational',
       );
+
+    // An item whose ROLE has no sign-off track resolves to no scope, which is not the same fact as
+    // a quest with no flows: `codeweaver` and `pesteater` are measured on the scope block rendered
+    // into their Operation Context, so the honest answer names that rather than reading as "nothing
+    // to verify" — which a session would act on by signalling done over unbuilt scope.
+    if (operationItemId !== undefined && track === undefined) {
+      return {
+        success: true,
+        data: contentTextContract.parse(
+          `That operation item's role has no sign-off track, so no checklist measures it. Its denominator is the scope block already rendered into the Operation Context — its nodes, its verbatim observables, its contracts and its Seams. There is no tool to hunt for.`,
+        ),
+      };
+    }
 
     if (checklists.length === 0) {
       return {

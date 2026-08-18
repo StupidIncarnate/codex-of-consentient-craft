@@ -61,7 +61,7 @@ export type { DispatchPlayResponse } from './contracts/dispatch-play-response/di
 
 // Prompt statics - re-exported for CLI package
 export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';
-export { operationOrchestratorPromptStatics } from './statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+export { operatorPromptStatics } from './statics/operator-prompt/operator-prompt-statics';
 export { plannerMinionStatics } from './statics/planner-minion/planner-minion-statics';
 export { workerMinionStatics } from './statics/worker-minion/worker-minion-statics';
 export { reviewerMinionStatics } from './statics/reviewer-minion/reviewer-minion-statics';

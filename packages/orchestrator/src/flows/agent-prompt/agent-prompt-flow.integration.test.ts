@@ -17,20 +17,25 @@ import {
 
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
-import { operationOrchestratorPromptStatics } from '../../statics/operation-orchestrator-prompt/operation-orchestrator-prompt-statics';
+import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { questSeedHarness } from '../../../test/harnesses/quest-seed/quest-seed.harness';
 
 import { AgentPromptFlow } from './agent-prompt-flow';
+import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
 
-// Codeweaver is served the shared operation-orchestrator template with the implementation pack
+// Codeweaver is served the shared operator template with the implementation pack
 // already substituted at `$DISCIPLINE` and that discipline's id at `$MY_DISCIPLINE`. Function-form
 // replacement, never the string form: pack markdown is authored prose that can carry
 // `$&` / `` $` `` / `$'`.
-const IMPLEMENTATION_ORCHESTRATOR_TEMPLATE = operationOrchestratorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineImplementationStatics.orchestratorMarkdown)
-  .replace('$MY_DISCIPLINE', () => 'implementation');
+// `$DISCIPLINE` substitutes once and `$MY_DISCIPLINE` substitutes EVERYWHERE — the template quotes
+// the bare discipline id both into the `get-agent-prompt` call its minions must make and into the
+// header every minion brief opens with, and `.replace` would resolve only the first of those.
+const IMPLEMENTATION_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
+  .replace('$DISCIPLINE', () => disciplineImplementationStatics.operatorMarkdown)
+  .split('$MY_DISCIPLINE')
+  .join('implementation');
 
 describe('AgentPromptFlow', () => {
   const envHarness = orchestrationEnvironmentHarness();
@@ -110,8 +115,11 @@ describe('AgentPromptFlow', () => {
 
       expect(result).toStrictEqual({
         name: 'codeweaver',
-        model: 'opus',
-        prompt: IMPLEMENTATION_ORCHESTRATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+        // Read from the role map rather than restated: that map is what the CLI `--model` flag
+        // resolves through at spawn time, so a literal here could report one model while the
+        // dispatched child ran another.
+        model: roleToModelStatics.codeweaver,
+        prompt: IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
       });
     });
   });

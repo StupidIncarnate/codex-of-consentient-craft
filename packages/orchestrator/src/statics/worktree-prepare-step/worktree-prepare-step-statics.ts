@@ -20,12 +20,20 @@ export const worktreePrepareStepStatics = {
   steps: {
     create: 'create',
     baseBranch: 'base_branch',
+    push: 'push',
     nodeModules: locationsStatics.repoRoot.nodeModules,
     build: 'build',
   },
   classifications: {
     create: 'git-state',
     base_branch: 'git-state',
+    // REPAIRABLE, not `git-state`, and the distinction is the point: a failed push leaves a fully
+    // built worktree holding every commit, so a spiritmender has somewhere to work and the `pt N`
+    // carve retries only the publication. What is lost meanwhile is the reviewer's `unpushed`
+    // range — which falls back to the quest's `baseRef` and over-reports rather than going blind.
+    // A permission-denied push is caught ahead of this by `isPermissionDeniedErrorGuard` and blocks,
+    // because no fresh session talks an operator's credentials into working.
+    push: 'repairable',
     [locationsStatics.repoRoot.nodeModules]: 'repairable',
     build: 'repairable',
   },
