@@ -21,6 +21,27 @@ const expectedSadRaccoonBoxShadow = sadRaccoonPixelsStatics.pixels
   .join(',');
 
 describe('ServerHealthBadgeWidget', () => {
+  describe('loading', () => {
+    it('EMPTY: {first render, fetch not yet resolved} => renders nothing at all', () => {
+      const proxy = ServerHealthBadgeWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSnapshot({ snapshot: HealthSnapshotStub() });
+
+      const { queryByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <ServerHealthBadgeWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      expect([
+        queryByTestId('SERVER_HEALTH_BADGE'),
+        queryByTestId('SERVER_HEALTH_BADGE_LINK'),
+      ]).toStrictEqual([null, null]);
+    });
+  });
+
   describe('online', () => {
     it('VALID: {uptimeSeconds: 745, version: 0.1.0} => badge is online with exact bracketed text', async () => {
       const proxy = ServerHealthBadgeWidgetProxy();
