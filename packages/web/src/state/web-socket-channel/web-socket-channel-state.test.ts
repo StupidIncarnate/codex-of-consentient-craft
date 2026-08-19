@@ -532,6 +532,50 @@ describe('webSocketChannelState', () => {
     });
   });
 
+  describe('closes$ behavior', () => {
+    it('VALID: {subscriber before triggerClose} => closes$ emits undefined exactly once', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: unknown[] = [];
+      const sub = webSocketChannelState.closes$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.triggerClose();
+
+      sub.unsubscribe();
+
+      expect(captured).toStrictEqual([undefined]);
+    });
+
+    it('EMPTY: {only a health-updated frame delivered} => closes$ emits nothing', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: unknown[] = [];
+      const sub = webSocketChannelState.closes$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'health-updated',
+          payload: {},
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(captured).toStrictEqual([]);
+    });
+  });
+
   describe('outbound senders', () => {
     it('VALID: {sendSubscribeQuest after open} => sends correct shape on the socket', () => {
       const proxy = webSocketChannelStateProxy();

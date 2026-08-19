@@ -63,6 +63,7 @@ const internalState: {
   dispatchStateChangedSubject: SubjectAdapter<undefined>;
   wardDetailResponseSubject: SubjectAdapter<WardDetailResponse>;
   opensSubject: SubjectAdapter<undefined>;
+  closesSubject: SubjectAdapter<undefined>;
 } = {
   socket: null,
   url: null,
@@ -80,6 +81,7 @@ const internalState: {
   dispatchStateChangedSubject: rxjsSubjectAdapter<undefined>(),
   wardDetailResponseSubject: rxjsSubjectAdapter<WardDetailResponse>(),
   opensSubject: rxjsSubjectAdapter<undefined>(),
+  closesSubject: rxjsSubjectAdapter<undefined>(),
 };
 
 export const webSocketChannelState = {
@@ -117,6 +119,7 @@ export const webSocketChannelState = {
       onClose: (): void => {
         internalState.isOpen = false;
         internalState.socket = null;
+        internalState.closesSubject.next(undefined);
         if (!internalState.shouldReconnect) return;
         internalState.reconnectTimer = globalThis.setTimeout(() => {
           internalState.reconnectTimer = null;
@@ -225,6 +228,8 @@ export const webSocketChannelState = {
         internalState.opensSubject.observable,
       ],
     }),
+
+  closes$: (): ChannelObservable<undefined> => internalState.closesSubject.observable,
 
   sendSubscribeQuest: ({ questId }: { questId: QuestId }): boolean => {
     if (internalState.socket === null) return false;
