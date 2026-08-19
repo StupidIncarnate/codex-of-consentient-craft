@@ -33,6 +33,7 @@ export const orchestrationEventTypeContract = z.enum([
   'execution-queue-error',
   'rate-limits-updated',
   'dispatch-state-changed',
+  'health-updated',
 ]);
 
 export type OrchestrationEventType = z.infer<typeof orchestrationEventTypeContract>;

@@ -8,28 +8,15 @@ describe('orchestrationEventTypeContract', () => {
     expect(type).toBe('phase-change');
   });
 
-  it.each([
-    'phase-change',
-    'slot-update',
-    'progress-update',
-    'process-complete',
-    'process-failed',
-    'chat-output',
-    'chat-complete',
-    'quest-created',
-    'quest-modified',
-    'quest-load-failed',
-    'quest-persisted',
-    'clarification-request',
-    'chat-history-complete',
-    'quest-session-linked',
-    'chat-session-started',
-    'execution-queue-updated',
-    'execution-queue-error',
-    'rate-limits-updated',
-    'dispatch-state-changed',
-  ] as const)('VALID: {value: %s} => parses successfully', (type) => {
-    expect(orchestrationEventTypeContract.parse(type)).toBe(type);
+  it.each(orchestrationEventTypeContract.options)(
+    'VALID: {value: %s} => parses successfully',
+    (type) => {
+      expect(orchestrationEventTypeContract.parse(type)).toBe(type);
+    },
+  );
+
+  it('VALID: {value: "health-updated"} => parses the new health tick event type', () => {
+    expect(orchestrationEventTypeContract.parse('health-updated')).toBe('health-updated');
   });
 
   it('INVALID: {value: "invalid"} => throws validation error', () => {
