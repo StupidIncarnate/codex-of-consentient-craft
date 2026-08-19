@@ -52,49 +52,49 @@ describe('healthSnapshotContract', () => {
   describe('invalid snapshots', () => {
     it('INVALID: {status: "degraded"} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ status: 'degraded' as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), status: 'degraded' });
       }).toThrow(/Invalid literal value/u);
     });
 
     it('INVALID: {uptimeSeconds: -1} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ uptimeSeconds: -1 as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), uptimeSeconds: -1 });
       }).toThrow(/too_small/u);
     });
 
     it('INVALID: {uptimeSeconds: 3.5} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ uptimeSeconds: 3.5 as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), uptimeSeconds: 3.5 });
       }).toThrow(/Expected integer/u);
     });
 
     it('INVALID: {timestamp: "not-a-timestamp"} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ timestamp: 'not-a-timestamp' as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), timestamp: 'not-a-timestamp' });
       }).toThrow(/Invalid datetime/u);
     });
 
     it('INVALID: {version: ""} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ version: '' as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), version: '' });
       }).toThrow(/too_small/u);
     });
 
     it('INVALID: {port: 0} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ port: 0 as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), port: 0 });
       }).toThrow(/too_small/u);
     });
 
     it('INVALID: {home: "relative/path"} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ home: 'relative/path' as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), home: 'relative/path' });
       }).toThrow('Path must be absolute');
     });
 
     it('INVALID: {orchestrationMode: "hybrid"} => throws validation error', () => {
       expect(() => {
-        healthSnapshotContract.parse(HealthSnapshotStub({ orchestrationMode: 'hybrid' as never }));
+        healthSnapshotContract.parse({ ...HealthSnapshotStub(), orchestrationMode: 'hybrid' });
       }).toThrow(/Invalid enum value/u);
     });
 
