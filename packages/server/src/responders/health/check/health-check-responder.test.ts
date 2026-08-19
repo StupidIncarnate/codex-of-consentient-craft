@@ -10,6 +10,8 @@ describe('HealthCheckResponder', () => {
 
     const result = await proxy.callResponder();
 
+    proxy.clearEnv();
+
     expect(result).toStrictEqual({
       status: 200,
       data: {

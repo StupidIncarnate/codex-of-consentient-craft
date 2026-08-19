@@ -59,10 +59,14 @@ export const healthSnapshotBrokerProxy = (): {
     // Everything the broker touches BEFORE `version` in the parse object literal — orchestrationMode
     // (awaited), homePath (computed before the parse call), timestamp and uptimeSeconds (evaluated
     // ahead of version inside the literal) — must resolve so the version read is the ONLY failure.
+    // home goes through its ADAPTER rung here, not setHomeEnv: this case ends on a rejection
+    // assertion, so there is no post-call line left to clear DUNGEONMASTER_HOME on, and a set env
+    // var outlives the test file inside the jest worker. setupHomePath deletes the var and stages
+    // osHomedirAdapter + pathJoinAdapter instead, so the case writes no env at all.
     setupVersionFailure: ({ error }: { error: Error }): void => {
       const defaults = HealthSnapshotStub();
       modeProxy.returns({ mode: defaults.orchestrationMode });
-      homeProxy.setHomeEnv({ value: defaults.home });
+      homeProxy.setupHomePath({ homeDir: '/home/user', homePath: defaults.home });
       uptimeProxy.returnsSeconds({ seconds: defaults.uptimeSeconds });
       clock.calledWith([]).returns(defaults.timestamp);
       versionProxy.readFails({ error });

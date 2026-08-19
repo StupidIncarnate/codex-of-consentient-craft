@@ -59,9 +59,9 @@ describe('healthSnapshotBroker', () => {
     const error = new Error('version manifest corrupt');
     proxy.setupVersionFailure({ error });
 
-    // No trailing clearEnv() — dungeonmasterHomeFindBroker() reads DUNGEONMASTER_HOME lazily when
-    // the broker actually runs, so clearing beforehand would break the staged home lookup, and
-    // clearing after would leave `jest/prefer-ending-with-an-expect` without its required last line.
+    // No trailing clearEnv() is needed: setupVersionFailure stages home through its adapter rung
+    // rather than DUNGEONMASTER_HOME, so this case writes no env var to clean up — which is what
+    // lets the rejection assertion be the last line `jest/prefer-ending-with-an-expect` requires.
     await expect(healthSnapshotBroker()).rejects.toThrow(/version manifest corrupt/u);
   });
 

@@ -1,7 +1,9 @@
 /**
- * PURPOSE: Gives GET /api/health an error path — until now the route was an inline c.json literal
- * that could never fail, so a broken snapshot assembly (bad version manifest, unreadable home dir)
- * surfaced as a 200 with malformed data instead of a status code the web badge can key off.
+ * PURPOSE: Owns the HTTP verdict for GET /api/health, so the snapshot assembly beneath it stays a
+ * pure broker with no status codes in it. Reach for this rather than calling healthSnapshotBroker
+ * from the flow directly: assembly reads a manifest off disk, resolves a home dir and asks the
+ * orchestrator for its mode, and the web badge keys OFFLINE off the status code that failing
+ * produces, so the translation needs a named home.
  *
  * USAGE:
  * const result = await HealthCheckResponder();
