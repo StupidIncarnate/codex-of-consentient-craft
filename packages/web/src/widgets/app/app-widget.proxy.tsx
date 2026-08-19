@@ -82,8 +82,13 @@ export const AppWidgetProxy = (): {
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
   RateLimitsStackWidgetProxy();
+  // ServerHealthBadgeWidgetProxy still supplies the sprite proxy and channel setup the badge
+  // needs, but its MSW listener must NOT be the one the health methods below route through —
+  // EndpointMockListenResponder registers each listen() via MSW server.use, which PREPENDS, so
+  // whichever proxy constructs its listener LAST is the one every /api/health request actually
+  // hits. The health-page proxy is constructed after this one for exactly that reason.
+  ServerHealthBadgeWidgetProxy();
   const healthPageProxy = setupHealthPage();
-  const healthBadgeProxy = ServerHealthBadgeWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -150,9 +155,9 @@ export const AppWidgetProxy = (): {
       homeProxy.clearStorage();
     },
     setupHealthSnapshot: ({ snapshot }: { snapshot: HealthSnapshot }): void => {
-      healthBadgeProxy.setupSnapshot({ snapshot });
+      healthPageProxy.setupSnapshot({ snapshot });
     },
-    getHealthRequestCount: (): RequestCount => healthBadgeProxy.getRequestCount(),
+    getHealthRequestCount: (): RequestCount => healthPageProxy.getRequestCount(),
     isServerHealthBadgeVisible: (): boolean => screen.queryByTestId('SERVER_HEALTH_BADGE') !== null,
     clickServerHealthBadge: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('SERVER_HEALTH_BADGE_LINK'));

@@ -940,10 +940,11 @@ describe('AppWidget', () => {
       ]).toStrictEqual([3, 1, 0]);
     });
 
-    it('VALID: {/health} => badge is suppressed, issues zero health fetches, logo still centered', async () => {
+    it('VALID: {/health} => badge issues none, the page issues exactly one — one GET /api/health across the whole app', async () => {
       const proxy = AppWidgetProxy();
 
       proxy.setupGuilds({ guilds: [] });
+      proxy.setupHealthSnapshot({ snapshot: HealthSnapshotStub() });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -953,7 +954,10 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isHealthPageVisible()).toBe(true);
+        expect([proxy.isHealthPageVisible(), proxy.getHealthRequestCount()]).toStrictEqual([
+          true,
+          1,
+        ]);
       });
 
       const logoRow = screen.getByTestId('APP_LOGO_ROW');
@@ -961,7 +965,7 @@ describe('AppWidget', () => {
       const logoRowChildren = Array.from(logoRow.children);
 
       expect(screen.queryByTestId('SERVER_HEALTH_BADGE')).toBe(null);
-      expect(proxy.getHealthRequestCount()).toBe(0);
+      expect(proxy.getHealthRequestCount()).toBe(1);
       expect([logoRowChildren.length, logoRowChildren.indexOf(logoLink)]).toStrictEqual([3, 1]);
     });
 
@@ -994,6 +998,37 @@ describe('AppWidget', () => {
       });
 
       expect(proxy.isServerHealthBadgeVisible()).toBe(false);
+    });
+
+    it('VALID: {/health, click logo} => leaves the health page and the badge reappears', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp({ initialPath: '/health' });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isHealthPageVisible()).toBe(true);
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickLogoLink();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isServerHealthBadgeVisible()).toBe(true);
+      });
+
+      expect(proxy.isHealthPageVisible()).toBe(false);
+      expect(proxy.isServerHealthBadgeVisible()).toBe(true);
     });
   });
 });
