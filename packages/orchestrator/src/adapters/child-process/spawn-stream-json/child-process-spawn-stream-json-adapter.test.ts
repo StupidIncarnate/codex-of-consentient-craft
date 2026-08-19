@@ -159,7 +159,10 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(options.env).toStrictEqual({ ...process.env });
+      expect(options.env).toStrictEqual({
+        ...process.env,
+        CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS: '0',
+      });
     });
 
     it('VALID: {disableToolSearch: true} => sets ENABLE_TOOL_SEARCH=false in spawn env', () => {
@@ -176,6 +179,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       expect(options.env).toStrictEqual({
         ...process.env,
+        CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS: '0',
         ENABLE_TOOL_SEARCH: 'false',
       });
     });
@@ -192,7 +196,29 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(options.env).toStrictEqual({ ...process.env });
+      expect(options.env).toStrictEqual({
+        ...process.env,
+        CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS: '0',
+      });
+    });
+  });
+
+  describe('background-task wait ceiling', () => {
+    // Print mode terminates a session's background tasks 600s after the final turn by
+    // default, which cuts an agent off mid-`npm run ward`. '0' means wait indefinitely, and
+    // it has to ride the SPAWN so an end-user install gets it without exporting anything.
+    it('VALID: {prompt: "Hello", model: sonnet} => spawn env sets CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS to "0"', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
+      });
+
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
+
+      expect(options.env?.CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS).toBe('0');
     });
   });
 
