@@ -1,6 +1,8 @@
 /**
- * PURPOSE: Reach for this over the server's legacy healthResponseContract — that narrower shape is
- * superseded by this one and both the badge and the /health page parse against this contract instead.
+ * PURPOSE: Lives in `shared`, not the server, because both the server producing this body and the
+ * web widgets parsing it (the health badge and the /health page) need to hold one identical type
+ * rather than two shapes that can drift apart. Unknown keys are stripped rather than rejected, so a
+ * future server-only field can't flip the web badge to OFFLINE.
  *
  * USAGE:
  * healthSnapshotContract.parse(body);
