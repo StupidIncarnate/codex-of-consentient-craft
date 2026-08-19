@@ -59,6 +59,7 @@ const internalState: {
   questLoadFailedSubject: SubjectAdapter<QuestLoadFailedPayload>;
   executionQueueChangedSubject: SubjectAdapter<undefined>;
   rateLimitsChangedSubject: SubjectAdapter<undefined>;
+  healthChangedSubject: SubjectAdapter<undefined>;
   dispatchStateChangedSubject: SubjectAdapter<undefined>;
   wardDetailResponseSubject: SubjectAdapter<WardDetailResponse>;
   opensSubject: SubjectAdapter<undefined>;
@@ -75,6 +76,7 @@ const internalState: {
   questLoadFailedSubject: rxjsSubjectAdapter<QuestLoadFailedPayload>(),
   executionQueueChangedSubject: rxjsSubjectAdapter<undefined>(),
   rateLimitsChangedSubject: rxjsSubjectAdapter<undefined>(),
+  healthChangedSubject: rxjsSubjectAdapter<undefined>(),
   dispatchStateChangedSubject: rxjsSubjectAdapter<undefined>(),
   wardDetailResponseSubject: rxjsSubjectAdapter<WardDetailResponse>(),
   opensSubject: rxjsSubjectAdapter<undefined>(),
@@ -183,6 +185,10 @@ export const webSocketChannelState = {
       internalState.rateLimitsChangedSubject.next(undefined);
       return;
     }
+    if (envelope.data.type === 'health-updated') {
+      internalState.healthChangedSubject.next(undefined);
+      return;
+    }
     if (envelope.data.type === 'dispatch-state-changed') {
       internalState.dispatchStateChangedSubject.next(undefined);
     }
@@ -203,6 +209,7 @@ export const webSocketChannelState = {
     internalState.executionQueueChangedSubject.observable,
   rateLimitsChanged$: (): ChannelObservable<undefined> =>
     internalState.rateLimitsChangedSubject.observable,
+  healthChanged$: (): ChannelObservable<undefined> => internalState.healthChangedSubject.observable,
   dispatchStateChanged$: (): ChannelObservable<undefined> =>
     internalState.dispatchStateChangedSubject.observable,
   wardDetailResponse$: (): ChannelObservable<WardDetailResponse> =>

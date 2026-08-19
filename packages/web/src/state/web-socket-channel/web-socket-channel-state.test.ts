@@ -294,6 +294,78 @@ describe('webSocketChannelState', () => {
       expect(emitted).toBe(true);
     });
 
+    it('VALID: {health-updated ws message} => healthChanged$ emits undefined exactly once', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: unknown[] = [];
+      const sub = webSocketChannelState.healthChanged$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'health-updated',
+          payload: {},
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(captured).toStrictEqual([undefined]);
+    });
+
+    it('VALID: {health-updated ws message with a non-empty payload} => healthChanged$ still emits only undefined', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: unknown[] = [];
+      const sub = webSocketChannelState.healthChanged$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'health-updated',
+          payload: { uptimeSeconds: 99 },
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(captured).toStrictEqual([undefined]);
+    });
+
+    it('EMPTY: {rate-limits-updated ws message} => healthChanged$ emits nothing', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: unknown[] = [];
+      const sub = webSocketChannelState.healthChanged$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'rate-limits-updated',
+          payload: {},
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(captured).toStrictEqual([]);
+    });
+
     it('VALID: {dispatch-state-changed ws message} => dispatchStateChanged$ emits undefined', () => {
       const proxy = webSocketChannelStateProxy();
       proxy.setupEmpty();
