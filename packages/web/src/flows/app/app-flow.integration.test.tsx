@@ -18,9 +18,11 @@ describe('AppFlow', () => {
       expect({
         hasMapContainer: harness.hasMapContainer(),
         hasHealthPageInsideMapContainer: harness.hasHealthPageInsideMapContainer(),
+        hasHealthPageAnywhere: harness.hasHealthPageAnywhere(),
       }).toStrictEqual({
         hasMapContainer: true,
         hasHealthPageInsideMapContainer: true,
+        hasHealthPageAnywhere: true,
       });
     });
 
@@ -29,9 +31,11 @@ describe('AppFlow', () => {
 
       expect({
         hasMapContainer: harness.hasMapContainer(),
+        hasHealthPageInsideMapContainer: harness.hasHealthPageInsideMapContainer(),
         hasHealthPageAnywhere: harness.hasHealthPageAnywhere(),
       }).toStrictEqual({
         hasMapContainer: false,
+        hasHealthPageInsideMapContainer: false,
         hasHealthPageAnywhere: false,
       });
     });
