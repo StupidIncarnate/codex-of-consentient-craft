@@ -20,6 +20,7 @@ import {
 } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
+import { healthHeartbeatStatics } from '../../../statics/health-heartbeat/health-heartbeat-statics';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
@@ -799,6 +800,19 @@ export const ServerInitResponder = ({
     }
   }, FLUSH_INTERVAL_MS);
 
+  // The heartbeat broadcasts straight from here rather than through the orchestration event bus:
+  // this responder already owns `clients`, and the orchestrator holds no health state to own.
+  const healthHeartbeatIntervalHandle = setInterval(() => {
+    wsEventRelayBroadcastBroker({
+      clients,
+      message: wsMessageContract.parse({
+        type: 'health-updated',
+        payload: {},
+        timestamp: isoTimestampContract.parse(new Date().toISOString()),
+      }),
+    });
+  }, healthHeartbeatStatics.broadcast.intervalMs);
+
   orchestratorOutboxWatchAdapter({
     onQuestChanged: ({ questId }) => {
       orchestratorLoadQuestAdapter({ questId })
@@ -847,6 +861,7 @@ export const ServerInitResponder = ({
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     clearInterval(flushIntervalHandle);
+    clearInterval(healthHeartbeatIntervalHandle);
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);
@@ -854,6 +869,7 @@ export const ServerInitResponder = ({
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     clearInterval(flushIntervalHandle);
+    clearInterval(healthHeartbeatIntervalHandle);
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);

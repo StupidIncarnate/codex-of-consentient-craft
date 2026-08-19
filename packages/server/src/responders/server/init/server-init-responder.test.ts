@@ -1220,4 +1220,98 @@ describe('ServerInitResponder', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe('health heartbeat broadcast', () => {
+    it('VALID: {one client connected, 5000ms elapses} => broadcasts exactly one health-updated frame', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(5000);
+      jest.useRealTimers();
+
+      expect(sendMock.mock.calls).toStrictEqual([
+        ['{"type":"health-updated","payload":{},"timestamp":"2024-01-01T00:00:00.000Z"}'],
+      ]);
+    });
+
+    it('EDGE: {4999ms elapses} => no health-updated frame yet', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(4999);
+      jest.useRealTimers();
+
+      expect(sendMock.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {10000ms elapses} => broadcasts two frames, one per 5000ms interval', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(10000);
+      jest.useRealTimers();
+
+      expect(sendMock.mock.calls).toStrictEqual([
+        ['{"type":"health-updated","payload":{},"timestamp":"2024-01-01T00:00:00.000Z"}'],
+        ['{"type":"health-updated","payload":{},"timestamp":"2024-01-01T00:00:00.000Z"}'],
+      ]);
+    });
+
+    it('VALID: {two clients connected} => both receive the tick', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const firstSend = jest.fn();
+      const secondSend = jest.fn();
+      const firstClient = WsClientStub({ send: firstSend });
+      const secondClient = WsClientStub({ send: secondSend });
+      proxy.simulateConnection({ client: firstClient });
+      proxy.simulateConnection({ client: secondClient });
+
+      jest.advanceTimersByTime(5000);
+      jest.useRealTimers();
+
+      expect({ first: firstSend.mock.calls, second: secondSend.mock.calls }).toStrictEqual({
+        first: [['{"type":"health-updated","payload":{},"timestamp":"2024-01-01T00:00:00.000Z"}']],
+        second: [['{"type":"health-updated","payload":{},"timestamp":"2024-01-01T00:00:00.000Z"}']],
+      });
+    });
+
+    it('EDGE: {client disconnects before the tick} => that client receives nothing', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateDisconnect({ ws: client });
+
+      jest.advanceTimersByTime(5000);
+      jest.useRealTimers();
+
+      expect(sendMock.mock.calls).toStrictEqual([]);
+    });
+  });
 });

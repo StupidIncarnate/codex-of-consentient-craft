@@ -132,12 +132,13 @@ devLogEventFormatTransformer (main entry)
 
 ## Quest Event Relay
 
-The server has two WS broadcast paths — they handle different event tiers:
+The server has three WS broadcast paths — they handle different event tiers:
 
 | Path | Events | Source |
 |------|--------|--------|
 | **Outbox watcher** (`orchestratorOutboxWatchAdapter`) | `quest-modified`, `quest-created` | Tails `event-outbox.jsonl`, loads full quest, broadcasts to all WS clients |
 | **In-memory relay** (`orchestratorEventsOnAdapter` loop) | `chat-output`, `chat-complete`, `clarification-request`, etc. | Subscribes to `orchestrationEventsState` in-process events |
+| **Health heartbeat** (`setInterval` in `ServerInitResponder`) | `health-updated` | A 5000ms timer; broadcasts to every connected client via `wsEventRelayBroadcastBroker`, never through the orchestration bus |
 
 The relay loop explicitly skips `quest-modified` and `quest-created` — those are handled by the outbox watcher. Pipeline `chat-output` events (those with `slotIndex` in the payload) are batched at 100ms before broadcasting. Chat `chat-output` events (without `slotIndex`) relay immediately.
 
