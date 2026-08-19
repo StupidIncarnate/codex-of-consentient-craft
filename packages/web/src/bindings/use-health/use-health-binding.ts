@@ -1,0 +1,82 @@
+/**
+ * PURPOSE: React hook backing the header health badge. Seeds from GET /api/health on mount, then
+ * re-fetches on every emission of the shared web socket channel's healthChanged$ observable, and
+ * clears the snapshot the moment the channel closes — a stale ONLINE uptime after the server died is
+ * exactly what this hook exists to avoid.
+ *
+ * USAGE:
+ * const { snapshot, isLoading, error } = useHealthBinding();
+ * // snapshot = HealthSnapshot | null. Null on the first render, on a failed fetch, an unparseable
+ * // body, or a dropped WebSocket connection.
+ */
+
+import { useCallback, useEffect, useState } from 'react';
+
+import type { ErrorMessage, HealthSnapshot } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+
+import { healthGetBroker } from '../../brokers/health/get/health-get-broker';
+import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
+
+export const useHealthBinding = (): {
+  snapshot: HealthSnapshot | null;
+  isLoading: boolean;
+  error: ErrorMessage | null;
+} => {
+  const [snapshot, setSnapshot] = useState<HealthSnapshot | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<ErrorMessage | null>(null);
+
+  const refresh = useCallback(async (): Promise<void> => {
+    try {
+      const next = await healthGetBroker();
+      setSnapshot(next);
+      setError(null);
+    } catch (caughtError: unknown) {
+      setSnapshot(null);
+      setError(
+        errorMessageContract.parse(
+          caughtError instanceof Error ? caughtError.message : 'Failed to load health snapshot',
+        ),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh().catch((caughtError: unknown) => {
+      setSnapshot(null);
+      setError(
+        errorMessageContract.parse(
+          caughtError instanceof Error ? caughtError.message : 'Failed to load health snapshot',
+        ),
+      );
+      setIsLoading(false);
+    });
+
+    const healthSubscription = webSocketChannelState.healthChanged$().subscribe(() => {
+      refresh().catch((caughtError: unknown) => {
+        setSnapshot(null);
+        setError(
+          errorMessageContract.parse(
+            caughtError instanceof Error ? caughtError.message : 'Failed to load health snapshot',
+          ),
+        );
+        setIsLoading(false);
+      });
+    });
+
+    const closeSubscription = webSocketChannelState.closes$().subscribe(() => {
+      setSnapshot(null);
+      setError(errorMessageContract.parse('WebSocket connection lost'));
+    });
+
+    return (): void => {
+      healthSubscription.unsubscribe();
+      closeSubscription.unsubscribe();
+    };
+  }, [refresh]);
+
+  return { snapshot, isLoading, error };
+};
