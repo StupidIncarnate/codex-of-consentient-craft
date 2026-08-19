@@ -10,9 +10,18 @@ test.describe('Smoke Tests', () => {
 
     const body = await response.json();
 
+    expect(Number.isInteger(body.uptimeSeconds)).toBe(true);
+    expect(Number.isInteger(body.port)).toBe(true);
+    expect(body.home.startsWith('/')).toBe(true);
+
     expect(body).toStrictEqual({
       status: 'ok',
       timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
+      uptimeSeconds: body.uptimeSeconds,
+      version: '0.1.0',
+      port: body.port,
+      home: body.home,
+      orchestrationMode: expect.stringMatching(/^(claude|node)$/u),
     });
   });
 
