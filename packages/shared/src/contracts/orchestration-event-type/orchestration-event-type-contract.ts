@@ -1,5 +1,10 @@
 /**
- * PURPOSE: Defines the event types emitted by the orchestrator event bus
+ * PURPOSE: The single enumeration point for real-time event names. wsMessageContract.type validates
+ * against it, and server-init-responder iterates its members in declaration order to register the
+ * bus relay subscriptions — so a member added here widens both the wire vocabulary and that
+ * subscription set, and members are never reordered. Reaching the in-memory bus is the common case,
+ * not a guarantee: quest-load-failed is per-subscription, and health-updated is broadcast straight
+ * to WS clients.
  *
  * USAGE:
  * orchestrationEventTypeContract.parse('phase-change');
