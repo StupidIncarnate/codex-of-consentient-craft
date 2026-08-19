@@ -1342,8 +1342,29 @@ describe('ServerInitResponder', () => {
       const plainTicks = plainSend.mock.calls.filter((c) =>
         String(c[0]).includes('"type":"health-updated"'),
       ).length;
+      // The quest-modified counts are this test's precondition, not a second subject: the
+      // subscribe replay sends that frame to the subscribing client alone, so 1-vs-0 is what
+      // proves the two clients really differ in subscription state. Without it a silently
+      // dropped subscribe-quest would leave two indistinguishable plain clients and the tick
+      // counts below would still read 1 and 1.
+      const subscribedQuestFrames = subscribedSend.mock.calls.filter((c) =>
+        String(c[0]).includes('"type":"quest-modified"'),
+      ).length;
+      const plainQuestFrames = plainSend.mock.calls.filter((c) =>
+        String(c[0]).includes('"type":"quest-modified"'),
+      ).length;
 
-      expect({ subscribedTicks, plainTicks }).toStrictEqual({ subscribedTicks: 1, plainTicks: 1 });
+      expect({
+        subscribedTicks,
+        plainTicks,
+        subscribedQuestFrames,
+        plainQuestFrames,
+      }).toStrictEqual({
+        subscribedTicks: 1,
+        plainTicks: 1,
+        subscribedQuestFrames: 1,
+        plainQuestFrames: 0,
+      });
     });
   });
 });
