@@ -1313,5 +1313,37 @@ describe('ServerInitResponder', () => {
 
       expect(sendMock.mock.calls).toStrictEqual([]);
     });
+
+    it('VALID: {one client subscribed to a quest, one subscribed to nothing} => both receive exactly one health-updated frame', async () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-health-unscoped' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
+      proxy.callResponder();
+
+      const subscribedSend = jest.fn();
+      const plainSend = jest.fn();
+      const subscribedClient = WsClientStub({ send: subscribedSend });
+      const plainClient = WsClientStub({ send: plainSend });
+      proxy.simulateConnection({ client: subscribedClient });
+      proxy.simulateConnection({ client: plainClient });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: subscribedClient,
+      });
+
+      await jest.advanceTimersByTimeAsync(5000);
+      jest.useRealTimers();
+
+      const subscribedTicks = subscribedSend.mock.calls.filter((c) =>
+        String(c[0]).includes('"type":"health-updated"'),
+      ).length;
+      const plainTicks = plainSend.mock.calls.filter((c) =>
+        String(c[0]).includes('"type":"health-updated"'),
+      ).length;
+
+      expect({ subscribedTicks, plainTicks }).toStrictEqual({ subscribedTicks: 1, plainTicks: 1 });
+    });
   });
 });
