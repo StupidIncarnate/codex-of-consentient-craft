@@ -56,6 +56,67 @@ describe('MarkdownBlockLayerWidget', () => {
 
       expect(screen.getByTestId('MARKDOWN_HEADING').style.fontSize).toBe('12px');
     });
+
+    // The size ladder cannot separate a heading from body prose on its own, so the gap above it and
+    // the rule under it are what a reader actually scans by. Asserted as VALUES, because both
+    // degrade silently: a dropped marginTop still renders a bold line, and a rule painted in
+    // `border` instead of `text-dim` measures 1.23:1 on an open tool row and is simply not there.
+    it('VALID: {level: 2} => carries the section gap above it and a legible rule under it', () => {
+      MarkdownBlockLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 2 } as never)} />,
+      });
+
+      const heading = screen.getByTestId('MARKDOWN_HEADING');
+
+      expect({
+        gapAbove: heading.style.marginTop,
+        rule: heading.style.borderBottom,
+        rulePadding: heading.style.paddingBottom,
+      }).toStrictEqual({
+        gapAbove: '12px',
+        rule: '1px solid rgb(138, 114, 96)',
+        rulePadding: '3px',
+      });
+    });
+
+    it('VALID: {level: 3} => takes the section gap but no rule', () => {
+      MarkdownBlockLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 3 } as never)} />,
+      });
+
+      const heading = screen.getByTestId('MARKDOWN_HEADING');
+
+      expect({ gapAbove: heading.style.marginTop, rule: heading.style.borderBottom }).toStrictEqual(
+        {
+          gapAbove: '12px',
+          rule: '',
+        },
+      );
+    });
+
+    it('VALID: {isFirst} => drops the gap so a document does not open on empty space', () => {
+      MarkdownBlockLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <MarkdownBlockLayerWidget
+            block={MarkdownHeadingBlockStub({ level: 1 } as never)}
+            isFirst={true}
+          />
+        ),
+      });
+
+      const heading = screen.getByTestId('MARKDOWN_HEADING');
+
+      expect({
+        gapAbove: heading.style.marginTop,
+        rule: heading.style.borderBottom,
+      }).toStrictEqual({ gapAbove: '0px', rule: '1px solid rgb(138, 114, 96)' });
+    });
   });
 
   describe('list items', () => {

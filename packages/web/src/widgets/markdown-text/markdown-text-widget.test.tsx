@@ -102,6 +102,22 @@ describe('MarkdownTextWidget', () => {
       });
     });
 
+    it('VALID: {document opening on a heading, another below} => only the opening one loses its gap', () => {
+      MarkdownTextWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <MarkdownTextWidget
+            content={MarkdownSourceStub({ value: '# Title\n\nProse.\n\n## Section' })}
+          />
+        ),
+      });
+
+      expect(
+        screen.queryAllByTestId('MARKDOWN_HEADING').map((node) => node.style.marginTop),
+      ).toStrictEqual(['0px', '12px']);
+    });
+
     it('EDGE: {markdown syntax inside a fence} => renders it verbatim rather than as structure', () => {
       MarkdownTextWidgetProxy();
 

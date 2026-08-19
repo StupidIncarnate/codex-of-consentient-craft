@@ -17,6 +17,9 @@ import { MarkdownSpanLayerWidget } from './markdown-span-layer-widget';
 
 export interface MarkdownBlockLayerWidgetProps {
   block: MarkdownBlock;
+  // Suppresses a heading's leading gap. A document that opens on its own title would otherwise
+  // start with a band of empty space inside a box already tight on height.
+  isFirst?: boolean;
 }
 
 const HAIRLINE = '1px solid';
@@ -24,6 +27,7 @@ const QUOTE_BORDER = '2px solid';
 
 export const MarkdownBlockLayerWidget = ({
   block,
+  isFirst = false,
 }: MarkdownBlockLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
@@ -76,6 +80,26 @@ export const MarkdownBlockLayerWidget = ({
             Math.max(0, markdownTypographyStatics.headingFlatLevel - Number(block.level)) *
               markdownTypographyStatics.headingStep,
           color: colors.text,
+          // What separates a heading here is the space ABOVE it, not its size. The ladder tops out
+          // three points over body and flattens entirely at `####` (deliberately — see
+          // markdownTypographyStatics), which leaves nothing for a reader to pick out of a column of
+          // prose: a `##` at 14px in body colour, sitting the same 4px off the paragraph before it
+          // as that paragraph sat off the one before THAT, is a bold line, not a section.
+          marginTop: isFirst ? 0 : markdownTypographyStatics.headingGapTop,
+          // The rule is `text-dim`, and `border` is the trap. `border` is what MARKDOWN_RULE uses
+          // and reads as the matching token for a divider, but the two marks are not in the same
+          // situation: a `---` is alone on its line with air above and below, while this sits tight
+          // under glyphs. Measured against the surfaces markdown actually renders on, `border` is
+          // 1.37:1 over `bg-surface` and 1.23:1 over the `bg-raised` of an open tool row — the same
+          // range this palette already documents as "technically painted and perceptually absent"
+          // (see markdown-span-layer-widget). `text-dim` is 3.71:1 on `bg-raised`, and is already
+          // the token doing exactly this job as the inline code chip's outline.
+          ...(Number(block.level) <= markdownTypographyStatics.headingRuleMaxLevel
+            ? {
+                borderBottom: `${HAIRLINE} ${colors['text-dim']}`,
+                paddingBottom: markdownTypographyStatics.headingRulePadding,
+              }
+            : {}),
         }}
       >
         {spanElements}

@@ -25,7 +25,11 @@ export const MarkdownTextWidget = ({ content }: MarkdownTextWidgetProps): React.
   return (
     <Box data-testid="MARKDOWN_TEXT">
       {blocks.map((block, index) => (
-        <MarkdownBlockLayerWidget key={`${String(index)}-${block.kind}`} block={block} />
+        <MarkdownBlockLayerWidget
+          key={`${String(index)}-${block.kind}`}
+          block={block}
+          isFirst={index === 0}
+        />
       ))}
     </Box>
   );
