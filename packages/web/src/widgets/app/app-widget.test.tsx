@@ -2,33 +2,44 @@
  * PURPOSE: Tests for AppWidget - routing, layout, guild selection, and session navigation
  */
 
-import { waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import {
   GuildIdStub,
   GuildListItemStub,
+  HealthSnapshotStub,
   QuestQueueEntryStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
+import { HealthPageWidget } from '../health-page/health-page-widget';
 import { HomeContentWidget } from '../home-content/home-content-widget';
 import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
 import { SessionViewWidget } from '../session-view/session-view-widget';
 import { AppWidget } from './app-widget';
 import { AppWidgetProxy } from './app-widget.proxy';
 
-const renderApp = (): void => {
+const DEFAULT_INITIAL_PATH = '/';
+
+// A default VALUE (`= {}`) on a destructured param whose nested field is a raw `string` trips
+// @dungeonmaster/ban-primitives — the rule's AST walk only recognizes a destructured object as
+// "input context" when its parent is the function itself, and a default value wraps it in an
+// AssignmentPattern first. An optional (`?`) top-level param with no default sidesteps that.
+const renderApp = (params?: { initialPath?: string }): void => {
+  const initialPath = params?.initialPath ?? DEFAULT_INITIAL_PATH;
+
   mantineRenderAdapter({
     ui: (
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={[initialPath]}>
         <Routes>
           <Route element={<AppWidget />}>
             <Route path="/" element={<HomeContentWidget />} />
             <Route path="/:guildSlug/session/:sessionId" element={<SessionViewWidget />} />
             <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
             <Route path="/:guildSlug/quest/:questId" element={<QuestChatWidget />} />
+            <Route path="/health" element={<HealthPageWidget />} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -895,6 +906,94 @@ describe('AppWidget', () => {
       });
 
       expect(proxy.isSessionViewVisible()).toBe(true);
+    });
+  });
+
+  describe('server health badge', () => {
+    it('VALID: {/, snapshot staged} => badge mounts in the left header cell, logo stays centered', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+      proxy.setupHealthSnapshot({ snapshot: HealthSnapshotStub() });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isServerHealthBadgeVisible()).toBe(true);
+      });
+
+      const logoRow = screen.getByTestId('APP_LOGO_ROW');
+      const logoLink = screen.getByTestId('LOGO_LINK');
+      const badge = screen.getByTestId('SERVER_HEALTH_BADGE');
+      const logoRowChildren = Array.from(logoRow.children);
+      const badgeCellIndex = logoRowChildren.findIndex((child) => child.contains(badge));
+
+      expect([
+        logoRowChildren.length,
+        logoRowChildren.indexOf(logoLink),
+        badgeCellIndex,
+      ]).toStrictEqual([3, 1, 0]);
+    });
+
+    it('VALID: {/health} => badge is suppressed, issues zero health fetches, logo still centered', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp({ initialPath: '/health' });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isHealthPageVisible()).toBe(true);
+      });
+
+      const logoRow = screen.getByTestId('APP_LOGO_ROW');
+      const logoLink = screen.getByTestId('LOGO_LINK');
+      const logoRowChildren = Array.from(logoRow.children);
+
+      expect(screen.queryByTestId('SERVER_HEALTH_BADGE')).toBe(null);
+      expect(proxy.getHealthRequestCount()).toBe(0);
+      expect([logoRowChildren.length, logoRowChildren.indexOf(logoLink)]).toStrictEqual([3, 1]);
+    });
+
+    it('VALID: {/, click badge} => navigates to /health and the badge unmounts itself there', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+      proxy.setupHealthSnapshot({ snapshot: HealthSnapshotStub() });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isServerHealthBadgeVisible()).toBe(true);
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickServerHealthBadge();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isHealthPageVisible()).toBe(true);
+      });
+
+      expect(proxy.isServerHealthBadgeVisible()).toBe(false);
     });
   });
 });

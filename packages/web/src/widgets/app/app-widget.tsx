@@ -11,12 +11,14 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { isHealthRouteGuard } from '../../guards/is-health-route/is-health-route-guard';
 import { isWorkspaceRouteGuard } from '../../guards/is-workspace-route/is-workspace-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
 import { QuestQueueBarWidget } from '../quest-queue-bar/quest-queue-bar-widget';
 import { RateLimitsStackWidget } from '../rate-limits-stack/rate-limits-stack-widget';
+import { ServerHealthBadgeWidget } from '../server-health-badge/server-health-badge-widget';
 
 const TRANSITION_DURATION = '0.4s';
 const TRANSITION_EASING = 'ease-out';
@@ -28,6 +30,7 @@ const unrestrictedMaxWidth = cssPixelsContract.parse(mapFrameStatics.unrestricte
 export const AppWidget = (): React.JSX.Element => {
   const location = useLocation();
   const isQuestRoute = isWorkspaceRouteGuard({ pathname: location.pathname });
+  const isHealthRoute = isHealthRouteGuard({ pathname: location.pathname });
   const { colors } = emberDepthsThemeStatics;
 
   const transition = `all ${TRANSITION_DURATION} ${TRANSITION_EASING}`;
@@ -55,13 +58,23 @@ export const AppWidget = (): React.JSX.Element => {
 
       {/* Logo row: logo horizontally centered via flex spacers, rate-limits stack right-aligned */}
       <div
+        data-testid="APP_LOGO_ROW"
         style={{
           padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
         }}
       >
-        <div style={{ flex: '1 1 0', minWidth: 0 }} />
+        <div
+          style={{
+            flex: '1 1 0',
+            minWidth: 0,
+            display: 'flex',
+            justifyContent: 'flex-start',
+          }}
+        >
+          {isHealthRoute ? null : <ServerHealthBadgeWidget />}
+        </div>
         <Link to="/" style={{ textDecoration: 'none' }} data-testid="LOGO_LINK">
           <LogoWidget />
         </Link>

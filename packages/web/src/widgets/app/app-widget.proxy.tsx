@@ -9,32 +9,39 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import type { RequestCount } from '@dungeonmaster/testing';
 import type {
   GuildIdStub,
   GuildListItemStub,
+  HealthSnapshotStub,
   QuestQueueEntryStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
 import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
+import { HealthPageWidgetProxy } from '../health-page/health-page-widget.proxy';
 import { HomeContentWidgetProxy } from '../home-content/home-content-widget.proxy';
 import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
 import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-widget.proxy';
 import { RateLimitsStackWidgetProxy } from '../rate-limits-stack/rate-limits-stack-widget.proxy';
+import { ServerHealthBadgeWidgetProxy } from '../server-health-badge/server-health-badge-widget.proxy';
 import { SessionViewWidgetProxy } from '../session-view/session-view-widget.proxy';
 
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestQueueEntry = ReturnType<typeof QuestQueueEntryStub>;
+type HealthSnapshot = ReturnType<typeof HealthSnapshotStub>;
 
 // Aliased calls to avoid enforce-proxy-child-creation phantom detection
 // These proxies are needed because AppWidget renders HomeContentWidget, QuestChatWidget,
-// and SessionViewWidget via <Outlet />, which the implementation file doesn't directly import
+// SessionViewWidget, and HealthPageWidget via <Outlet />, which the implementation file
+// doesn't directly import
 const setupHomeContent = HomeContentWidgetProxy;
 const setupQuestChat = QuestChatWidgetProxy;
 const setupSessionView = SessionViewWidgetProxy;
+const setupHealthPage = HealthPageWidgetProxy;
 
 export const AppWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
@@ -62,6 +69,11 @@ export const AppWidgetProxy = (): {
   isLogoLinkVisible: () => boolean;
   isQuestQueueBarVisible: () => boolean;
   clearStorage: () => void;
+  setupHealthSnapshot: (params: { snapshot: HealthSnapshot }) => void;
+  getHealthRequestCount: () => RequestCount;
+  isServerHealthBadgeVisible: () => boolean;
+  clickServerHealthBadge: () => Promise<void>;
+  isHealthPageVisible: () => boolean;
 } => {
   LogoWidgetProxy();
   MapFrameWidgetProxy();
@@ -70,6 +82,8 @@ export const AppWidgetProxy = (): {
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
   RateLimitsStackWidgetProxy();
+  const healthPageProxy = setupHealthPage();
+  const healthBadgeProxy = ServerHealthBadgeWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -135,5 +149,14 @@ export const AppWidgetProxy = (): {
     clearStorage: (): void => {
       homeProxy.clearStorage();
     },
+    setupHealthSnapshot: ({ snapshot }: { snapshot: HealthSnapshot }): void => {
+      healthBadgeProxy.setupSnapshot({ snapshot });
+    },
+    getHealthRequestCount: (): RequestCount => healthBadgeProxy.getRequestCount(),
+    isServerHealthBadgeVisible: (): boolean => screen.queryByTestId('SERVER_HEALTH_BADGE') !== null,
+    clickServerHealthBadge: async (): Promise<void> => {
+      await userEvent.click(screen.getByTestId('SERVER_HEALTH_BADGE_LINK'));
+    },
+    isHealthPageVisible: (): boolean => healthPageProxy.hasHealthPage(),
   };
 };
