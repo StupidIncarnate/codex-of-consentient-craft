@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Defines immutable pixel coordinate data for the sad/slumped raccoon sprite (21x15, side-view facing right)
+ * PURPOSE: The raccoon mascot's offline face — hatless, head down, tail on the floor. Reach for this
+ * over raccoonWizardPixelsStatics on any surface reporting that the server is DOWN; the two sit on the
+ * same grid and share a palette, so PixelSpriteWidget swaps one for the other with nothing else changed.
  *
  * USAGE:
  * sadRaccoonPixelsStatics.dimensions.width;
