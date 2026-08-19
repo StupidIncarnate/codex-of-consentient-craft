@@ -730,6 +730,10 @@ export * from './src/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 export * from './src/contracts/rate-limits-history-line/rate-limits-history-line-contract';
 export * from './src/contracts/rate-limits-history-line/rate-limits-history-line.stub';
 
+// Health Contracts
+export * from './src/contracts/health-snapshot/health-snapshot-contract';
+export * from './src/contracts/health-snapshot/health-snapshot.stub';
+
 // Work Item Floor Ordering Contracts (shared by the web floor view and the orchestrator dispatcher)
 export * from './src/contracts/topological-depth/topological-depth-contract';
 export * from './src/contracts/topological-depth/topological-depth.stub';
