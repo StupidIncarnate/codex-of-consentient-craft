@@ -1,5 +1,7 @@
 /**
- * PURPOSE: React hook backing the header health badge. Seeds from GET /api/health on mount, then
+ * PURPOSE: React hook backing both health surfaces — the header badge and the /health detail page,
+ * which is why it exposes an on-demand re-fetch the badge itself never calls. Seeds from
+ * GET /api/health on mount, then
  * re-fetches on every emission of the shared web socket channel's healthChanged$ observable, and
  * clears the snapshot the moment the channel closes — a stale ONLINE uptime after the server died is
  * exactly what this hook exists to avoid.

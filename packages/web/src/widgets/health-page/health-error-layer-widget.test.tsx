@@ -4,10 +4,20 @@ import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { healthErrorStatics } from '../../statics/health-error/health-error-statics';
+import { sadRaccoonPixelsStatics } from '../../statics/sad-raccoon-pixels/sad-raccoon-pixels-statics';
 import { HealthErrorLayerWidget } from './health-error-layer-widget';
 import { HealthErrorLayerWidgetProxy } from './health-error-layer-widget.proxy';
 
 const SPRITE_SCALE = 8;
+
+const expectedSadRaccoonBoxShadow = sadRaccoonPixelsStatics.pixels
+  .map((p) => {
+    const [xStr, yStr, color] = p.split(' ');
+    const x = Number(xStr);
+    const y = Number(yStr);
+    return `${x * SPRITE_SCALE}px ${y * SPRITE_SCALE}px 0 0 ${color}`;
+  })
+  .join(',');
 
 const INVALID_BODY_MESSAGE =
   '[\n' +
@@ -76,7 +86,7 @@ describe('HealthErrorLayerWidget', () => {
   });
 
   describe('sad raccoon sprite', () => {
-    it('VALID: {render} => HEALTH_PAGE_SAD_RACCOON renders PIXEL_SPRITE at scale 8', () => {
+    it('VALID: {render} => HEALTH_PAGE_SAD_RACCOON renders PIXEL_SPRITE built from sadRaccoonPixelsStatics at scale 8', () => {
       const proxy = HealthErrorLayerWidgetProxy();
       const message = ErrorMessageStub();
 
@@ -87,9 +97,10 @@ describe('HealthErrorLayerWidget', () => {
       const raccoon = getByTestId('HEALTH_PAGE_SAD_RACCOON');
       const sprite = within(raccoon).getByTestId('PIXEL_SPRITE');
 
-      expect([proxy.hasSadRaccoon(), sprite.style.width]).toStrictEqual([
+      expect([proxy.hasSadRaccoon(), sprite.style.width, sprite.style.boxShadow]).toStrictEqual([
         true,
         `${SPRITE_SCALE}px`,
+        expectedSadRaccoonBoxShadow,
       ]);
     });
   });

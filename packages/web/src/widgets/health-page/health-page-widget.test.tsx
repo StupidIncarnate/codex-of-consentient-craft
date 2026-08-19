@@ -133,6 +133,22 @@ describe('HealthPageWidget', () => {
       expect(proxy.hasErrorPanel()).toBe(false);
     });
 
+    it("ERROR: {500 from /api/health} => the page takes the error branch and HEALTH_PAGE_ERROR_STATUS renders 'HTTP 500'", async () => {
+      const proxy = HealthPageWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupServerError();
+
+      mantineRenderAdapter({ ui: <HealthPageWidget /> });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(proxy.hasErrorPanel()).toBe(true);
+        },
+      });
+
+      expect([proxy.hasTable(), proxy.getErrorStatusText()]).toStrictEqual([false, 'HTTP 500']);
+    });
+
     it('ERROR: {network error} => HEALTH_PAGE_ERROR is visible and HEALTH_PAGE_TABLE is absent', async () => {
       const proxy = HealthPageWidgetProxy();
       proxy.setupConnectedChannel();
