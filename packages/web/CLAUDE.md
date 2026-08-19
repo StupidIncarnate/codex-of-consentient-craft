@@ -308,6 +308,14 @@ counting lines, so anything wanting a second line goes behind the disclosure ins
 `widgets/tool-row/tool-row-widget.test.tsx`, which asserts the row's ONLY child is
 `TOOL_ROW_HEADER` — a check on badge placement alone passes on a row that grew a third element.
 
+**That chevron is the ONLY disclosure, and an open row shows its result WHOLE** — no "show full
+result", no capped inner scroller. Both were there and both are gone: a second collapse re-asks the
+question the reader answered by opening the row, and a `maxHeight` + `overflow: auto` on the body
+defeats the sticky header below, which pins only while the row's content scrolls in the PANEL. The
+scroller rode on a wrapper `<Box>` rather than on the body, so the test asserts `TOOL_ROW_RESULT`'s
+children are exactly `[label, body]` — a re-added wrapper reappears as an extra untagged child long
+before anyone thinks to check a style.
+
 **The disclosure follows the stream; it does not latch.** `ChatEntryListWidget` raises
 `defaultExpanded` on the ONE call that is currently in flight (`isLastUnpaired`), and `ToolRowWidget`
 derives `expanded` from that prop every render — the reader's click is the only thing stored. So the
@@ -335,8 +343,9 @@ that opens, compares, or resolves a path.
 ## `MarkdownTextWidget` is the only place agent-authored markdown is rendered
 
 Models emit markdown, so the assistant `text` branch of `ChatMessageWidget` renders through
-`MarkdownTextWidget`. Everything the APP itself composes stays plain `<Text>` — there, markdown
-characters are literal and formatting them would misreport what the agent said.
+`MarkdownTextWidget`, and so does a tool result that turns out to be markdown (via
+`ToolResultContentWidget` — see below). Everything the APP itself composes stays plain `<Text>` —
+there, markdown characters are literal and formatting them would misreport what the agent said.
 
 The dialect is closed on purpose (headings, fences, lists, quotes, rules; code / bold / italic /
 link inline) and is parsed in this package rather than by a markdown npm package, because
@@ -357,6 +366,26 @@ Two rules the parsers exist to hold, both covered in their `.test.ts`:
 An unterminated fence renders as a code block rather than being dropped: that is the normal shape
 of a message still streaming.
 
+**A heading is separated by the space ABOVE it and a rule UNDER it, never by size.** The size ladder
+in `markdownTypographyStatics` tops out three points over body and flattens entirely at `####`, and
+that stays — a document-scale `h1` out-shouts the role label above it in a narrow panel. But it
+leaves the eye nothing to catch: a `##` at 14px in body colour, sitting the same 4px off the
+paragraph before it as that paragraph sat off the one before THAT, is a bold line, not a section.
+`headingGapTop` opens the section and `headingRuleMaxLevel` puts a hairline under `#` and `##` only.
+The gap is suppressed on the first block (`isFirst`, passed by `MarkdownTextWidget`) or every tool
+result opens on a band of empty space. **Reach for those three values before reopening the ladder** —
+buying a `##` presence with points is the thing the ladder exists to refuse.
+
+**That rule is `text-dim`, and `border` is the trap.** `border` is what `MARKDOWN_RULE` uses and
+reads as the matching token for a divider, but the two marks are not in the same situation: a `---`
+is alone on its line with air either side, while this sits tight under glyphs. Measured against the
+surfaces markdown actually renders on, `border` is 1.37:1 over `bg-surface` and 1.23:1 over the
+`bg-raised` of an open tool row — the same range this palette already documents below as
+"technically painted and perceptually absent". `text-dim` is 3.71:1, and is already the token doing
+exactly this job as the code chip's outline. The failure mode is the chip's, exactly: every test
+passes while the line is not there, which is why `markdown-block-layer-widget.test.tsx` asserts the
+rule's COLOUR rather than its presence.
+
 **Inline code is marked by its chip, not by colour — and the chip is LIGHTER than the message.**
 Agents backtick constantly (identifiers, paths, file:line refs, flags), so an accent on the code
 span fires a dozen times per message and the prose reads as highlighter. `bg-raised` carrying body
@@ -365,6 +394,84 @@ because each has an obvious-but-wrong instinct behind it: "make code stand out" 
 highlighter, and "code sits in a well, so use `bg-deep`" gives you a chip a single shade off the
 `bg-surface` it renders over — invisible in the browser while every test still passes. Links keep
 `primary`; those are rare enough to earn a colour.
+
+## A tool result is drawn by `ToolResultContentWidget`, and its default is to change nothing
+
+Two surfaces show a tool's answer — `ToolRowWidget` and the unpaired-result branch of
+`ChatMessageWidget` — and both hand the content to `ToolResultContentWidget` rather than to a
+`<Text>` of their own. Do NOT render `toolResult.content` directly, and do NOT reach for
+`MarkdownTextWidget` here: that widget assumes its input IS markdown, and a tool result is a build
+log or a diff at least as often.
+
+**Only `ChatMessageWidget` still truncates a result, and the asymmetry is the point.** A tool row is
+collapsed to one line by default, so its chevron already IS the disclosure and a second "show full
+result" inside it re-asks a question the reader answered by opening the row. An unpaired result has
+no row and no chevron — it renders flat in the transcript — so it keeps the string truncation, or an
+unbounded blob lands in the middle of the chat with nothing to fold it back up.
+
+`parseToolResultDisplayTransformer` decides, and it DECLINES for most replies — measured over 69,706
+captured tool results, 87% render byte-identical to before. Two shapes get help:
+
+1. **A JSON reply with an escaped document inside it.** `get-agent-prompt` returns
+   `{name, model, prompt}` where `prompt` is a whole agent prompt, and `discover` returns
+   `{results, count}` where `results` is a folder tree — both reach the browser with every newline
+   printed as the two characters `\` and `n`, which no panel width fixes. Each property becomes its
+   own unit: scalars inline as `key: value`, multi-line ones get a caption and real line breaks.
+   A truncated preview declines on its own, because half an object does not parse — which is what
+   lets `ChatMessageWidget` keep string truncation without the two features having to know about
+   each other.
+2. **A body authored as markdown** — the MCP doc tools, sub-agent reports, plan text.
+
+**`isMarkdownContentGuard` counts only a heading or a fence at column ZERO, and that narrowness is
+load-bearing.** The block parser rejoins consecutive prose lines into one paragraph, so a log
+misread as markdown loses its line structure — the reader loses the only copy of the output. Every
+softer mark occurs in raw output by accident: a removed diff line reads as a bullet, `---` reads as
+a rule, an npm script echo reads as a quote. Column zero specifically excludes a diff OF a markdown
+file, whose context headings all sit one column in behind the diff's own gutter. Against the same
+69,706 results this leaves 0 `Read` results and 2% of `Bash` results formatted, and most of that 2%
+is agents printing deliberately markdown-headed diagnostics. The known residual is `cat`ting a file
+whose `#` comments start at column zero; widening the marker set trades that one case for every
+diff and build log in the transcript.
+
+## Every expand/collapse in the transcript obeys ONE rule: the control you clicked stays put
+
+`useDisclosureAnchorBinding` owns it, and every disclosure calls it — `ToolRowWidget`'s header and
+its per-field show-more, `SubagentChainWidget`'s header, `ShowEarlierToggleWidget` (which owns the
+binding itself, so both its call sites are covered at once), and `ChatMessageWidget`'s truncation
+toggle. **Adding a new expandable means calling `holdAnchor()` in its click handler and putting
+`anchorRef` on the control**, before the state change. Anchor the ONE element there is exactly one
+of: `ToolRowWidget`'s field toggles anchor the row HEADER, because several fields can carry a
+toggle and a callback ref keeps only the last.
+
+It does two things, and neither works without the other:
+
+1. **Restores the anchor's offset inside its scrollport**, in a `useLayoutEffect` so it lands before
+   paint. `computeAnchorScrollTopTransformer` diffs the anchor's CURRENT offset against the
+   remembered one rather than tracking how much taller the page got — which is what makes it
+   self-correcting when something else moved the scrollport in between.
+2. **Holds `useAutoScrollBinding` down** via `disclosureAnchorState`. That binding's `ResizeObserver`
+   sees the transcript change height but never WHY, so it read a reader opening a sub-agent chain as
+   new output arriving and jumped to the bottom — which is the whole reason expanding a chain or
+   clicking "Show N earlier" used to dump you at the end of it.
+
+**The hold is released two animation frames later, and scheduled inside `holdAnchor` rather than in
+the layout effect.** Both halves are load-bearing. Two frames: a `ResizeObserver` callback for this
+mutation runs after the layout effects AND after that same frame's first rAF, so anything sooner
+hands the auto-scroll the very resize the hold exists to suppress. Inside `holdAnchor`: a component
+that unmounts itself by toggling never runs its effect, and a hold nothing releases disables the
+auto-scroll for the rest of the session.
+
+**Collapse is the case that needed the arithmetic**, and it works because of the sticky headers: a
+row's header pins to the top of the scrollport while it is open, so the offset being restored is the
+pinned one, and restoring it reads as "take me back to what I just collapsed". Expanding a chain
+needs no arithmetic at all — everything inserts BELOW the header — so for that case the fix is
+entirely the hold.
+
+**jsdom cannot see any of this.** It has no layout, so `getBoundingClientRect` is all zeros and the
+`ResizeObserver` is a no-op stub (`__mocks__/jsdom-polyfills.cjs`). The unit tests therefore cover
+the two halves that ARE observable — `compute-anchor-scroll-top-transformer.test.ts` for the
+arithmetic against real numbers, and a per-widget assertion that clicking takes the hold. Nothing
+below Playwright proves the scrollport actually moved.
 
 ## `AppRootWidget` is where global CSS lives, because inline styles cannot express a pseudo-element
 

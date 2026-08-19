@@ -6,6 +6,12 @@
  * The disclosure follows the stream rather than latching, so a settled transcript is one line
  * per call whether the reader watched it arrive or opened it after the fact.
  *
+ * There is exactly ONE disclosure, and it is this row's own chevron. An open row shows its result
+ * WHOLE — no second collapse, no capped inner scroller — because a reader who opened a row has
+ * already asked for the thing a "show full result" link would ask about again, and because the
+ * sticky header exists so that a long open row scrolls past in the panel with its name pinned.
+ * An inner scroller is what takes that away: it gives the header nothing to travel against.
+ *
  * USAGE:
  * <ToolRowWidget toolUse={toolUseEntry} toolResult={resultEntry} isLoading={false} />
  * // Renders collapsed single-line tool row, expandable on click to show full input and result
@@ -16,8 +22,9 @@ import { useState } from 'react';
 
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
+import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
-import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
+import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
@@ -25,7 +32,7 @@ import { formatToolInputTransformer } from '../../transformers/format-tool-input
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { toolDisplayLabelTransformer } from '../../transformers/tool-display-label/tool-display-label-transformer';
 import { toolRowSummaryTransformer } from '../../transformers/tool-row-summary/tool-row-summary-transformer';
-import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
+import { ToolResultContentWidget } from '../tool-result-content/tool-result-content-widget';
 
 type ToolUseEntry = Extract<ChatEntry, { type: 'tool_use' }>;
 type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
@@ -59,6 +66,7 @@ const STATUS_SKIP = '\u2298';
 const TOOL_NAME_FONT_SIZE = 11;
 const PARAM_FONT_SIZE = 10;
 const DETAIL_FONT_SIZE = 10;
+const RESULT_FONT_SIZE = cssPixelsContract.parse(DETAIL_FONT_SIZE);
 
 export const ToolRowWidget = ({
   toolUse,
@@ -76,8 +84,8 @@ export const ToolRowWidget = ({
   // to close each one by hand to get the scannable list back.
   const [readerExpanded, setReaderExpanded] = useState<boolean | null>(null);
   const expanded = readerExpanded ?? defaultExpanded === true;
-  const [resultExpanded, setResultExpanded] = useState(false);
   const [expandedFields, setExpandedFields] = useState<Record<PropertyKey, boolean>>({});
+  const { anchorRef, holdAnchor } = useDisclosureAnchorBinding();
 
   const { toolName, toolInput } = toolUse;
   const isSkill = toolName === 'Skill';
@@ -132,9 +140,6 @@ export const ToolRowWidget = ({
       : isSkippedResult
         ? colors.warning
         : colors['text-dim'];
-  const needsResultTruncation = hasResult
-    ? shouldTruncateContentGuard({ content: toolResult.content })
-    : false;
 
   return (
     <Box
@@ -147,8 +152,10 @@ export const ToolRowWidget = ({
       }}
     >
       <UnstyledButton
+        ref={anchorRef}
         data-testid="TOOL_ROW_HEADER"
         onClick={() => {
+          holdAnchor();
           setReaderExpanded(!expanded);
         }}
         style={{
@@ -296,6 +303,12 @@ export const ToolRowWidget = ({
                             cursor: 'pointer',
                           }}
                           onClick={() => {
+                            // Anchors this row's HEADER, not the link: several fields can carry a
+                            // toggle, and the header is the one element in the row there is exactly
+                            // one of. It is also already pinned to the top of the scrollport while
+                            // the row is open, so holding it is what the reader sees as "nothing
+                            // moved".
+                            holdAnchor();
                             setExpandedFields({ ...expandedFields, [index]: !isFieldExpanded });
                           }}
                         >
@@ -373,74 +386,12 @@ export const ToolRowWidget = ({
                 <Text ff="monospace" style={{ fontSize: DETAIL_FONT_SIZE, color: colors.warning }}>
                   This tool call was skipped because another tool call in the same batch failed.
                 </Text>
-              ) : needsResultTruncation && !resultExpanded ? (
-                <Box>
-                  <Text
-                    ff="monospace"
-                    style={{
-                      fontSize: DETAIL_FONT_SIZE,
-                      color: resultColor,
-                      whiteSpace: 'pre-wrap',
-                      maskImage: `linear-gradient(to bottom, ${resultColor} calc(100% - 30px), transparent)`,
-                      WebkitMaskImage: `linear-gradient(to bottom, ${resultColor} calc(100% - 30px), transparent)`,
-                    }}
-                  >
-                    {truncateContentTransformer({ content: toolResult.content })}
-                  </Text>
-                  <Text
-                    data-testid="TOOL_ROW_TRUNCATION_TOGGLE"
-                    ff="monospace"
-                    style={{
-                      fontSize: DETAIL_FONT_SIZE,
-                      color: colors.primary,
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => {
-                      setResultExpanded(true);
-                    }}
-                  >
-                    Show full result
-                  </Text>
-                </Box>
-              ) : needsResultTruncation && resultExpanded ? (
-                <Box>
-                  <Text
-                    ff="monospace"
-                    style={{
-                      fontSize: DETAIL_FONT_SIZE,
-                      color: resultColor,
-                      whiteSpace: 'pre-wrap',
-                      maxHeight: 300,
-                      overflowY: 'auto',
-                    }}
-                  >
-                    {toolResult.content}
-                  </Text>
-                  <Text
-                    ff="monospace"
-                    style={{
-                      fontSize: DETAIL_FONT_SIZE,
-                      color: colors.primary,
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => {
-                      setResultExpanded(false);
-                    }}
-                  >
-                    Collapse
-                  </Text>
-                </Box>
               ) : (
-                <Text
-                  ff="monospace"
-                  style={{
-                    fontSize: DETAIL_FONT_SIZE,
-                    color: resultColor,
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  {toolResult.content}
-                </Text>
+                <ToolResultContentWidget
+                  content={toolResultDisplayContentContract.parse(toolResult.content)}
+                  color={resultColor}
+                  fontSize={RESULT_FONT_SIZE}
+                />
               )}
             </Box>
           ) : null}

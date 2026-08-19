@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { useDisclosureAnchorBindingProxy } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding.proxy';
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
 import { ShowEarlierToggleWidgetProxy } from '../show-earlier-toggle/show-earlier-toggle-widget.proxy';
 import { ToolRowWidgetProxy } from '../tool-row/tool-row-widget.proxy';
@@ -13,12 +14,19 @@ export const SubagentChainWidgetProxy = (): {
   isBadgeVisible: () => boolean;
   hasShowEarlierToggle: () => boolean;
   hasInnerGroupCount: (params: { count: number }) => boolean;
+  setupAutoScrollReleased: () => void;
+  isAutoScrollHeld: () => boolean;
 } => {
+  const anchorProxy = useDisclosureAnchorBindingProxy();
   ChatMessageWidgetProxy();
   ShowEarlierToggleWidgetProxy();
   ToolRowWidgetProxy();
 
   return {
+    setupAutoScrollReleased: (): void => {
+      anchorProxy.setupReleased();
+    },
+    isAutoScrollHeld: (): boolean => anchorProxy.isHeld(),
     clickHeader: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('SUBAGENT_CHAIN_HEADER'));
     },

@@ -1,13 +1,26 @@
+import { useDisclosureAnchorBindingProxy } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding.proxy';
 import { MarkdownTextWidgetProxy } from '../markdown-text/markdown-text-widget.proxy';
 import { ThinkingRowWidgetProxy } from '../thinking-row/thinking-row-widget.proxy';
+import { ToolResultContentWidgetProxy } from '../tool-result-content/tool-result-content-widget.proxy';
 import { ToolRowWidgetProxy } from '../tool-row/tool-row-widget.proxy';
 import { InjectedPromptLayerWidgetProxy } from './injected-prompt-layer-widget.proxy';
 
-export const ChatMessageWidgetProxy = (): Record<PropertyKey, never> => {
+export const ChatMessageWidgetProxy = (): {
+  setupAutoScrollReleased: () => void;
+  isAutoScrollHeld: () => boolean;
+} => {
+  const anchorProxy = useDisclosureAnchorBindingProxy();
   InjectedPromptLayerWidgetProxy();
   MarkdownTextWidgetProxy();
   ThinkingRowWidgetProxy();
+  ToolResultContentWidgetProxy();
   ToolRowWidgetProxy();
 
-  return {} as Record<PropertyKey, never>;
+  return {
+    setupAutoScrollReleased: (): void => {
+      anchorProxy.setupReleased();
+    },
+
+    isAutoScrollHeld: (): boolean => anchorProxy.isHeld(),
+  };
 };

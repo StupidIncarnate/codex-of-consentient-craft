@@ -477,8 +477,11 @@ describe('ToolRowWidget', () => {
     });
   });
 
-  describe('long result truncation', () => {
-    it('VALID: {long result content} => shows truncated with "Show full result"', () => {
+  describe('long results', () => {
+    // The row's own chevron is the ONLY disclosure. A second collapse inside a body already behind
+    // one asks the reader to re-answer a question they answered by opening the row, so a long
+    // result renders whole and offers no toggle at all.
+    it('VALID: {long result content, expanded} => renders the result whole with no inner toggle', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub();
       const toolResult = AssistantToolResultChatEntryStub({
@@ -496,12 +499,16 @@ describe('ToolRowWidget', () => {
         ),
       });
 
-      const result = screen.getByTestId('TOOL_ROW_RESULT');
-
-      expect(result.textContent).toBe(`RESULT${'x'.repeat(200)}Show full result`);
+      expect(screen.getByTestId('TOOL_ROW_RESULT').textContent).toBe(`RESULT${'x'.repeat(2000)}`);
+      expect(screen.queryByTestId('TOOL_ROW_TRUNCATION_TOGGLE')).toBe(null);
     });
 
-    it('VALID: {click "Show full result"} => expands and shows "Collapse"', async () => {
+    // A capped inner scroller is the other way to hide a long result, and it defeats the sticky
+    // header — that header pins only while the row's content scrolls in the PANEL. It rode on a
+    // wrapper Box around the body rather than on the body itself, so this asserts the result block
+    // is EXACTLY its label and its content: a re-added wrapper shows up as an extra untagged child
+    // long before anyone thinks to check a style.
+    it('VALID: {long result content, expanded} => result block is the label and the body, nothing between', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub();
       const toolResult = AssistantToolResultChatEntryStub({
@@ -519,12 +526,106 @@ describe('ToolRowWidget', () => {
         ),
       });
 
-      const showLink = screen.getByTestId('TOOL_ROW_TRUNCATION_TOGGLE');
-      await userEvent.click(showLink);
-
       const result = screen.getByTestId('TOOL_ROW_RESULT');
+      const childTestIds = Array.from(result.children).map((child) =>
+        child.getAttribute('data-testid'),
+      );
 
-      expect(result.textContent).toBe(`RESULT${'x'.repeat(2000)}Collapse`);
+      expect(childTestIds).toStrictEqual([null, 'TOOL_RESULT_VERBATIM']);
+    });
+  });
+
+  describe('disclosure anchoring', () => {
+    // Collapsing a row the reader scrolled deep into has to carry them back to the header they
+    // clicked, and the auto-scroll's ResizeObserver would otherwise read the shrink as new output
+    // and throw them to the bottom instead. jsdom has no layout, so the hold is the half of the fix
+    // it can observe; the arithmetic is covered by compute-anchor-scroll-top-transformer.test.ts.
+    it('VALID: {click header to expand} => puts the auto-scroll on hold', async () => {
+      const proxy = ToolRowWidgetProxy();
+      proxy.setupAutoScrollReleased();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
+      });
+
+      expect(proxy.isAutoScrollHeld()).toBe(false);
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
+
+      expect(proxy.isAutoScrollHeld()).toBe(true);
+    });
+
+    it('VALID: {click header to collapse} => puts the auto-scroll on hold', async () => {
+      const proxy = ToolRowWidgetProxy();
+      proxy.setupAutoScrollReleased();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
+
+      expect([screen.queryByTestId('TOOL_ROW_DETAIL'), proxy.isAutoScrollHeld()]).toStrictEqual([
+        null,
+        true,
+      ]);
+    });
+  });
+
+  describe('formatted result content', () => {
+    it('VALID: {JSON result with a markdown property} => renders the document instead of escaped newlines', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'get-agent-prompt' });
+      const toolResult = AssistantToolResultChatEntryStub({
+        toolName: 'use_1',
+        content: JSON.stringify({
+          model: 'sonnet',
+          prompt: '# Operator\n\nYou own ONE operation item.',
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            toolResult={toolResult as ToolResultEntry}
+            defaultExpanded={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_RESULT').textContent).toBe(
+        'RESULTmodel: sonnetpromptOperatorYou own ONE operation item.',
+      );
+      expect(
+        screen.queryAllByTestId('MARKDOWN_HEADING').map((node) => node.textContent),
+      ).toStrictEqual(['Operator']);
+    });
+
+    it('VALID: {plain multi-line result} => stays verbatim, so the lines are not rejoined', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Bash' });
+      const toolResult = AssistantToolResultChatEntryStub({
+        toolName: 'use_1',
+        content: '> @dungeonmaster/web@1.0.0 build\n> tsc\n\ndone in 4s',
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            toolResult={toolResult as ToolResultEntry}
+            defaultExpanded={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe(
+        '> @dungeonmaster/web@1.0.0 build\n> tsc\n\ndone in 4s',
+      );
+      expect(screen.queryAllByTestId('MARKDOWN_TEXT')).toStrictEqual([]);
     });
   });
 

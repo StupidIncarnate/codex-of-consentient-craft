@@ -30,6 +30,44 @@ describe('SubagentChainWidget', () => {
     });
   });
 
+  describe('disclosure anchoring', () => {
+    // Opening a chain inserts every entry BELOW its header, so the header itself never moves and
+    // the entire defect was the auto-scroll: its ResizeObserver read the growth as new output and
+    // dropped the reader at the end of the chain they had just opened. jsdom has no layout, so the
+    // hold is the half of the fix it can observe; the arithmetic that matters on a COLLAPSE is
+    // covered by compute-anchor-scroll-top-transformer.test.ts.
+    it('VALID: {click header to collapse} => puts the auto-scroll on hold', async () => {
+      const proxy = SubagentChainWidgetProxy();
+      proxy.setupAutoScrollReleased();
+      const group = SubagentChainGroupStub();
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      expect(proxy.isAutoScrollHeld()).toBe(false);
+
+      await proxy.clickHeader();
+
+      expect(proxy.isAutoScrollHeld()).toBe(true);
+    });
+
+    it('VALID: {click header twice to re-expand} => puts the auto-scroll on hold again', async () => {
+      const proxy = SubagentChainWidgetProxy();
+      proxy.setupAutoScrollReleased();
+      const group = SubagentChainGroupStub();
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      await proxy.clickHeader();
+      await proxy.clickHeader();
+
+      expect(proxy.isAutoScrollHeld()).toBe(true);
+    });
+  });
+
   describe('default expanded state', () => {
     it('VALID: {default} => shows header with description and entry count', () => {
       const proxy = SubagentChainWidgetProxy();

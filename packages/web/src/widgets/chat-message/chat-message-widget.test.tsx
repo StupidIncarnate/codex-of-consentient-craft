@@ -277,7 +277,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toBe('TOOL RESULTread_file: file data here');
+      expect(message.textContent).toBe('TOOL RESULT read_filefile data here');
     });
 
     it('VALID: {role: assistant, type: tool_result} => renders text-dim borders', () => {
@@ -401,7 +401,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toBe('HOOK BLOCKEDread_file: PreToolUse: blocked by policy');
+      expect(message.textContent).toBe('HOOK BLOCKED read_filePreToolUse: blocked by policy');
     });
 
     it('VALID: {tool_result, isError, PreToolUse prefix} => renders danger borders', () => {
@@ -433,7 +433,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toBe('HOOK BLOCKEDread_file: PostToolUse: rejected');
+      expect(message.textContent).toBe('HOOK BLOCKED read_filePostToolUse: rejected');
     });
   });
 
@@ -451,7 +451,7 @@ describe('ChatMessageWidget', () => {
 
       const messageText = message.textContent;
 
-      expect(messageText).toBe('TOOL ERRORread_file: Command failed with exit code 1');
+      expect(messageText).toBe('TOOL ERROR read_fileCommand failed with exit code 1');
     });
 
     it('VALID: {tool_result, isError: true} => renders danger borders', () => {
@@ -613,7 +613,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toBe(`TOOL RESULTread_file: ${'x'.repeat(189)}Show full result`);
+      expect(message.textContent).toBe(`TOOL RESULT read_file${'x'.repeat(200)}Show full result`);
     });
 
     it('VALID: {long tool_result content, click Show full result} => expands and shows Collapse', () => {
@@ -633,7 +633,24 @@ describe('ChatMessageWidget', () => {
 
       const messageText = message.textContent;
 
-      expect(messageText).toBe(`TOOL RESULTread_file: ${'x'.repeat(300)}Collapse`);
+      expect(messageText).toBe(`TOOL RESULT read_file${'x'.repeat(300)}Collapse`);
+    });
+
+    // The last of the transcript's disclosures to get the hold. An unpaired result has no row to
+    // collapse it back into, so it keeps its toggle — and a toggle that grows the page still has to
+    // stop the auto-scroll reading that growth as new output.
+    it('VALID: {click Show full result} => puts the auto-scroll on hold', () => {
+      const proxy = ChatMessageWidgetProxy();
+      proxy.setupAutoScrollReleased();
+      const entry = AssistantToolResultChatEntryStub({ content: 'x'.repeat(300) });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      expect(proxy.isAutoScrollHeld()).toBe(false);
+
+      fireEvent.click(screen.getByTestId('CHAT_MESSAGE_TRUNCATION_TOGGLE'));
+
+      expect(proxy.isAutoScrollHeld()).toBe(true);
     });
 
     it('VALID: {short tool_result content} => does not render truncation toggle', () => {
@@ -644,7 +661,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toBe('TOOL RESULTread_file: short');
+      expect(message.textContent).toBe('TOOL RESULT read_fileshort');
     });
   });
 

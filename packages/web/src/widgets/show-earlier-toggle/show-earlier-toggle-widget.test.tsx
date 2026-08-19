@@ -106,5 +106,32 @@ describe('ShowEarlierToggleWidget', () => {
 
       expect(onToggle.mock.calls).toStrictEqual([[]]);
     });
+
+    // Revealing earlier entries grows the transcript, and the auto-scroll's ResizeObserver reads
+    // that growth as new output and jumps to the bottom — which is what left the reader at the end
+    // of the chain instead of at the entries they just asked to see. The hold is what stops it.
+    // jsdom has no layout, so this is the half of the fix it can observe; the scroll arithmetic
+    // itself is covered by compute-anchor-scroll-top-transformer.test.ts.
+    it('VALID: {click toggle} => puts the auto-scroll on hold', async () => {
+      const proxy = ShowEarlierToggleWidgetProxy();
+      proxy.setupAutoScrollReleased();
+
+      mantineRenderAdapter({
+        ui: (
+          <ShowEarlierToggleWidget
+            hiddenCount={TailStartIndexStub({ value: 3 })}
+            expanded={false}
+            onToggle={(): void => undefined}
+            testId={ToggleTestIdStub()}
+          />
+        ),
+      });
+
+      expect(proxy.isAutoScrollHeld()).toBe(false);
+
+      await userEvent.click(screen.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE'));
+
+      expect(proxy.isAutoScrollHeld()).toBe(true);
+    });
   });
 });

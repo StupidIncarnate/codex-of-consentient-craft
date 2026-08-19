@@ -10,10 +10,12 @@ import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { markdownSourceContract } from '../../contracts/markdown-source/markdown-source-contract';
+import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -21,6 +23,7 @@ import { formatContextTokensTransformer } from '../../transformers/format-contex
 import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
 import { MarkdownTextWidget } from '../markdown-text/markdown-text-widget';
 import { ThinkingRowWidget } from '../thinking-row/thinking-row-widget';
+import { ToolResultContentWidget } from '../tool-result-content/tool-result-content-widget';
 import { ToolRowWidget } from '../tool-row/tool-row-widget';
 import { InjectedPromptLayerWidget } from './injected-prompt-layer-widget';
 
@@ -41,6 +44,7 @@ export interface ChatMessageWidgetProps {
 
 const BORDER_WIDTH = '2px solid';
 const LABEL_FONT_WEIGHT = 600;
+const RESULT_EXPANDED_MAX_HEIGHT = 300;
 
 export const ChatMessageWidget = ({
   entry,
@@ -54,6 +58,9 @@ export const ChatMessageWidget = ({
   const { colors } = emberDepthsThemeStatics;
   const isSubagent = 'source' in entry && entry.source === 'subagent';
   const [expanded, setExpanded] = useState(false);
+  // Serves whichever of the two truncation toggles below this entry renders — a task report's or an
+  // unpaired tool result's. Only one branch ever mounts, so one callback ref covers both.
+  const { anchorRef, holdAnchor } = useDisclosureAnchorBinding();
 
   const tokenBadgeElement =
     tokenBadgeLabel === undefined ? null : (
@@ -143,11 +150,13 @@ export const ChatMessageWidget = ({
             </Text>
             {needsTruncation ? (
               <Text
+                ref={anchorRef}
                 data-testid="CHAT_MESSAGE_TRUNCATION_TOGGLE"
                 ff="monospace"
                 size="xs"
                 style={{ color: colors.primary, cursor: 'pointer' }}
                 onClick={() => {
+                  holdAnchor();
                   setExpanded(!expanded);
                 }}
               >
@@ -335,9 +344,10 @@ export const ChatMessageWidget = ({
       : 'TOOL RESULT';
   const toolResultColor = isHookBlocked || isToolError ? colors.danger : colors['text-dim'];
 
-  // Tool result truncation (Improvement 6)
-  const contentString = `${entry.toolName}: ${entry.content}`;
-  const needsToolResultTruncation = shouldTruncateContentGuard({ content: contentString });
+  // The tool name rides on the label line rather than in front of the content, so the content
+  // reaches the renderer as the reply the tool actually sent — a JSON answer with a prefix glued to
+  // its front no longer parses, and would render as the escaped blob this exists to avoid.
+  const needsToolResultTruncation = shouldTruncateContentGuard({ content: entry.content });
 
   return (
     <Box
@@ -359,28 +369,35 @@ export const ChatMessageWidget = ({
         style={{ color: toolResultColor }}
       >
         {toolResultLabel}
+        <Text component="span" style={{ color: colors['text-dim'] }}>
+          {' '}
+          {entry.toolName}
+        </Text>
       </Text>
       {tokenBadgeElement}
       {needsToolResultTruncation && !expanded ? (
         <Box>
-          <Text
-            ff="monospace"
-            size="xs"
+          <Box
             style={{
-              color: toolResultColor,
-              whiteSpace: 'pre-wrap',
               maskImage: `linear-gradient(to bottom, ${toolResultColor} calc(100% - 30px), transparent)`,
               WebkitMaskImage: `linear-gradient(to bottom, ${toolResultColor} calc(100% - 30px), transparent)`,
             }}
           >
-            {truncateContentTransformer({ content: contentString })}
-          </Text>
+            <ToolResultContentWidget
+              content={toolResultDisplayContentContract.parse(
+                truncateContentTransformer({ content: entry.content }),
+              )}
+              color={toolResultColor}
+            />
+          </Box>
           <Text
+            ref={anchorRef}
             data-testid="CHAT_MESSAGE_TRUNCATION_TOGGLE"
             ff="monospace"
             size="xs"
             style={{ color: colors.primary, cursor: 'pointer' }}
             onClick={() => {
+              holdAnchor();
               setExpanded(true);
             }}
           >
@@ -389,23 +406,19 @@ export const ChatMessageWidget = ({
         </Box>
       ) : needsToolResultTruncation && expanded ? (
         <Box>
+          <Box style={{ maxHeight: RESULT_EXPANDED_MAX_HEIGHT, overflowY: 'auto' }}>
+            <ToolResultContentWidget
+              content={toolResultDisplayContentContract.parse(entry.content)}
+              color={toolResultColor}
+            />
+          </Box>
           <Text
-            ff="monospace"
-            size="xs"
-            style={{
-              color: toolResultColor,
-              whiteSpace: 'pre-wrap',
-              maxHeight: 300,
-              overflowY: 'auto',
-            }}
-          >
-            {contentString}
-          </Text>
-          <Text
+            ref={anchorRef}
             ff="monospace"
             size="xs"
             style={{ color: colors.primary, cursor: 'pointer' }}
             onClick={() => {
+              holdAnchor();
               setExpanded(false);
             }}
           >
@@ -413,9 +426,10 @@ export const ChatMessageWidget = ({
           </Text>
         </Box>
       ) : (
-        <Text ff="monospace" size="xs" style={{ color: toolResultColor, whiteSpace: 'pre-wrap' }}>
-          {entry.toolName}: {entry.content}
-        </Text>
+        <ToolResultContentWidget
+          content={toolResultDisplayContentContract.parse(entry.content)}
+          color={toolResultColor}
+        />
       )}
     </Box>
   );

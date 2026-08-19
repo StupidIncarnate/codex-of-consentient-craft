@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { ScrollPositionPx } from '../../contracts/scroll-position-px/scroll-position-px-contract';
 import { scrollThresholdPxContract } from '../../contracts/scroll-threshold-px/scroll-threshold-px-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
+import { disclosureAnchorState } from '../../state/disclosure-anchor/disclosure-anchor-state';
 import { computeScrollCaptureTransformer } from '../../transformers/compute-scroll-capture/compute-scroll-capture-transformer';
 
 const threshold = scrollThresholdPxContract.parse(raccoonAnimationConfigStatics.scrollThresholdPx);
@@ -37,6 +38,13 @@ export const useAutoScrollBinding = (): {
     }
 
     const observer = new ResizeObserver(() => {
+      // A resize carries no reason with it, so this observer cannot tell a message arriving from a
+      // reader opening a sub-agent chain — and treating the second like the first is what threw
+      // them to the end of the run every time they opened anything. `useDisclosureAnchorBinding`
+      // holds this down for the frame its own toggle is settling in, and puts the scrollport where
+      // the reader's own click says it belongs instead.
+      if (disclosureAnchorState.isHeld()) return;
+
       if (!isUserCapturingScroll.current) {
         container.scrollTop = container.scrollHeight;
       }

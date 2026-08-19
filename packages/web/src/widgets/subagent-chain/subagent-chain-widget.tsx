@@ -11,6 +11,7 @@ import { useState } from 'react';
 
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
+import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type {
   ChatEntryGroup,
   SingleGroup,
@@ -50,6 +51,7 @@ export const SubagentChainWidget = ({
   const { colors } = emberDepthsThemeStatics;
   const [expanded, setExpanded] = useState(true);
   const [showAllEarlier, setShowAllEarlier] = useState(false);
+  const { anchorRef, holdAnchor } = useDisclosureAnchorBinding();
 
   if (group.kind !== 'subagent-chain') return null;
 
@@ -77,8 +79,10 @@ export const SubagentChainWidget = ({
   return (
     <Box data-testid="SUBAGENT_CHAIN">
       <Box
+        ref={anchorRef}
         data-testid="SUBAGENT_CHAIN_HEADER"
         onClick={() => {
+          holdAnchor();
           setExpanded((prev) => !prev);
         }}
         style={{
