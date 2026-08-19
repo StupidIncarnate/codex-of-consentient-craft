@@ -5,9 +5,10 @@
  * exactly what this hook exists to avoid.
  *
  * USAGE:
- * const { snapshot, isLoading, error } = useHealthBinding();
+ * const { snapshot, isLoading, error, refresh } = useHealthBinding();
  * // snapshot = HealthSnapshot | null. Null on the first render, on a failed fetch, an unparseable
- * // body, or a dropped WebSocket connection.
+ * // body, or a dropped WebSocket connection. refresh() re-runs the same GET on demand (the RETRY
+ * // control) without touching isLoading.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -17,11 +18,13 @@ import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { healthGetBroker } from '../../brokers/health/get/health-get-broker';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
+import { healthErrorStatics } from '../../statics/health-error/health-error-statics';
 
 export const useHealthBinding = (): {
   snapshot: HealthSnapshot | null;
   isLoading: boolean;
   error: ErrorMessage | null;
+  refresh: () => Promise<void>;
 } => {
   const [snapshot, setSnapshot] = useState<HealthSnapshot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +64,7 @@ export const useHealthBinding = (): {
 
     const closeSubscription = webSocketChannelState.closes$().subscribe(() => {
       setSnapshot(null);
-      setError(errorMessageContract.parse('WebSocket connection lost'));
+      setError(errorMessageContract.parse(healthErrorStatics.socketClosedMessage));
     });
 
     return (): void => {
@@ -70,5 +73,5 @@ export const useHealthBinding = (): {
     };
   }, [refresh, reportFailure]);
 
-  return { snapshot, isLoading, error };
+  return { snapshot, isLoading, error, refresh };
 };
