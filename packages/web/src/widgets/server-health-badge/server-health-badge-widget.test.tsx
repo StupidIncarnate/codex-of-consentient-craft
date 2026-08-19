@@ -55,7 +55,7 @@ describe('ServerHealthBadgeWidget', () => {
       async (seconds, token) => {
         const proxy = ServerHealthBadgeWidgetProxy();
         proxy.setupConnectedChannel();
-        proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: seconds as never }) });
+        proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: seconds }) });
 
         const { findByTestId } = mantineRenderAdapter({
           ui: (
@@ -177,7 +177,7 @@ describe('ServerHealthBadgeWidget', () => {
     it('VALID: {two health-updated ticks} => uptime token advances in place with no remount', async () => {
       const proxy = ServerHealthBadgeWidgetProxy();
       proxy.setupConnectedChannel();
-      proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: 45 as never }) });
+      proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: 45 }) });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -191,7 +191,7 @@ describe('ServerHealthBadgeWidget', () => {
 
       expect(badgeBeforeTicks.textContent).toBe('[ ONLINE · 45s · v0.1.0 ]');
 
-      proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: 745 as never }) });
+      proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: 745 }) });
       testingLibraryActAdapter({
         callback: () => {
           proxy.deliverWsMessage({
@@ -211,7 +211,7 @@ describe('ServerHealthBadgeWidget', () => {
         badgeAfterFirstTick === badgeBeforeTicks,
       ]).toStrictEqual(['[ ONLINE · 12m · v0.1.0 ]', true]);
 
-      proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: 3745 as never }) });
+      proxy.setupSnapshot({ snapshot: HealthSnapshotStub({ uptimeSeconds: 3745 }) });
       testingLibraryActAdapter({
         callback: () => {
           proxy.deliverWsMessage({

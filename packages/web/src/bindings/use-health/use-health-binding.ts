@@ -27,43 +27,35 @@ export const useHealthBinding = (): {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ErrorMessage | null>(null);
 
+  const reportFailure = useCallback(({ caughtError }: { caughtError: unknown }): void => {
+    setSnapshot(null);
+    setError(
+      errorMessageContract.parse(
+        caughtError instanceof Error ? caughtError.message : 'Failed to load health snapshot',
+      ),
+    );
+    setIsLoading(false);
+  }, []);
+
   const refresh = useCallback(async (): Promise<void> => {
     try {
       const next = await healthGetBroker();
       setSnapshot(next);
       setError(null);
-    } catch (caughtError: unknown) {
-      setSnapshot(null);
-      setError(
-        errorMessageContract.parse(
-          caughtError instanceof Error ? caughtError.message : 'Failed to load health snapshot',
-        ),
-      );
-    } finally {
       setIsLoading(false);
+    } catch (caughtError: unknown) {
+      reportFailure({ caughtError });
     }
-  }, []);
+  }, [reportFailure]);
 
   useEffect(() => {
     refresh().catch((caughtError: unknown) => {
-      setSnapshot(null);
-      setError(
-        errorMessageContract.parse(
-          caughtError instanceof Error ? caughtError.message : 'Failed to load health snapshot',
-        ),
-      );
-      setIsLoading(false);
+      reportFailure({ caughtError });
     });
 
     const healthSubscription = webSocketChannelState.healthChanged$().subscribe(() => {
       refresh().catch((caughtError: unknown) => {
-        setSnapshot(null);
-        setError(
-          errorMessageContract.parse(
-            caughtError instanceof Error ? caughtError.message : 'Failed to load health snapshot',
-          ),
-        );
-        setIsLoading(false);
+        reportFailure({ caughtError });
       });
     });
 
@@ -76,7 +68,7 @@ export const useHealthBinding = (): {
       healthSubscription.unsubscribe();
       closeSubscription.unsubscribe();
     };
-  }, [refresh]);
+  }, [refresh, reportFailure]);
 
   return { snapshot, isLoading, error };
 };

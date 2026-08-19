@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The header's one-line server-status readout, in the opposite corner from the rate-limit
- * cards. Swaps its bracketed monospace line for a sad-raccoon sprite the moment the server cannot be
- * reached, so the failure state is legible at a glance rather than a blank corner.
+ * cards. When the server cannot be reached it shortens its bracketed monospace line and prefixes a
+ * sad-raccoon sprite, so the failure state is legible at a glance rather than a blank corner.
  *
  * USAGE:
  * <ServerHealthBadgeWidget />

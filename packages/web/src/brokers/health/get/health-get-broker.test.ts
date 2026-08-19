@@ -14,18 +14,18 @@ describe('healthGetBroker', () => {
     expect(result).toStrictEqual(snapshot);
   });
 
-  it('ERROR: {500 response} => rejects', async () => {
+  it('ERROR: {500 response} => rejects with the status the adapter saw', async () => {
     const proxy = healthGetBrokerProxy();
     proxy.setupServerError();
 
-    await expect(healthGetBroker()).rejects.toThrow(/.+/u);
+    await expect(healthGetBroker()).rejects.toThrow(/^GET \/api\/health failed with status 500$/u);
   });
 
-  it('ERROR: {network error} => rejects', async () => {
+  it('ERROR: {network error} => rejects with the transport failure', async () => {
     const proxy = healthGetBrokerProxy();
     proxy.setupNetworkError();
 
-    await expect(healthGetBroker()).rejects.toThrow(/.+/u);
+    await expect(healthGetBroker()).rejects.toThrow(/^Failed to fetch$/u);
   });
 
   it('INVALID: {200 body missing uptimeSeconds} => rejects with a uptimeSeconds contract complaint', async () => {
