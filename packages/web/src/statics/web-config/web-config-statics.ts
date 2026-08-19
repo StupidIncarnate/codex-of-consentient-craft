@@ -42,6 +42,7 @@ export const webConfigStatics = {
       orchestrationDispatchPlay: '/api/orchestration/dispatch/play',
       orchestrationDispatchPause: '/api/orchestration/dispatch/pause',
       orchestrationMode: '/api/orchestration/mode',
+      health: '/api/health',
     },
   },
   polling: {
