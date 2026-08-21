@@ -14,7 +14,7 @@
  *
  * WHICH PROMPT TAKES WHICH PIECES:
  *
- * | Prompt | [TURN END] | [WARD] | [DELEGATION] | [WALL] | Close |
+ * | Prompt | [TURN END] | [WARD] | [DELEGATION] | [WALL] | [CLEAN TREE] |
  * |---|---|---|---|---|---|
  * | spiritmender, warpgate | `turnEndRole` | `wardScoped` | `delegationSynchronous` | `wallRole` | `treeCleanRole` |
  * | operator-prompt | `turnEndRole` | `wardScoped` | `delegationSynchronous` | `wallRole` | `treeCleanOperator` |
@@ -22,14 +22,23 @@
  * | worker-minion | `turnEndMinion` | `wardScoped` | `delegationLeafBan` | `wallMinion` | — |
  * | reviewer-minion | `turnEndMinion` | `wardNone` | `delegationLeafBan` | `wallMinion` | — |
  *
- * Every row opens on `heading` and takes `background` unchanged between [TURN END] and [WARD]. So
- * every reader gets exactly five rules, in the column order above.
+ * Every row opens on `heading` and takes `background` unchanged between [TURN END] and [WARD]. A
+ * work-item role gets six rules, a minion five; [CLEAN TREE] is the one no minion takes, because a
+ * minion never signals and so is never refused for a dirty tree.
  *
- * THE TAG IS THE RULE'S ID. Each rule opens with one of five bracketed tags — [TURN END],
- * [BACKGROUND], [WARD], [DELEGATION], [WALL] — and everything that cites a rule names that tag,
- * including the half-dozen sibling prompts that cite one from inside their own text. A tag survives
- * a rule being inserted, dropped or reordered. A position number does not: it re-points every one
- * of those citations at whichever rule lands in that slot. A tag also says what the rule is about.
+ * THE TAG IS THE RULE'S ID. Each rule opens with one of six bracketed tags — [TURN END],
+ * [BACKGROUND], [WARD], [DELEGATION], [WALL], [CLEAN TREE] — and everything that cites a rule names
+ * that tag, including the half-dozen sibling prompts that cite one from inside their own text. A tag
+ * survives a rule being inserted, dropped or reordered. A position number does not: it re-points
+ * every one of those citations at whichever rule lands in that slot. A tag also says what the rule
+ * is about.
+ *
+ * **EVERY EXPORT HERE EXCEPT `heading` OPENS WITH ITS TAG, IN BOLD, AS ITS FIRST CHARACTERS.** Add a
+ * piece without one and it renders as loose prose in the middle of a numbered-feeling list: nothing
+ * can cite it, and the reader cannot tell where the rule before it stopped. `heading` is the one
+ * exception because it is the FRAME — it introduces the tags and closes on the subheading the rules
+ * render under, so a tag on it would name a rule that is not there. The colocated test asserts the
+ * tag of every export by key, so a new piece fails until it has one.
  *
  * THE THREE AXES ARE WHY A PIECE HAS TWO OR THREE FORMS. No prompt may take both sides of one axis.
  *
@@ -105,9 +114,9 @@ signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete
 
 const wallMinion = `**[WALL] When the ENVIRONMENT blocks you rather than the work, report it. Do not work around it.** ${deniedCommandWall} You cannot get past a wall by retrying. You cannot get past one by rephrasing. No sibling minion can get past one either. Report the wall as \`NEXT: wall — <what a human must change>\`. Write that line for nothing else. Your parent turns that line into an \`operationStatus: 'blocked'\` that halts the whole quest. Work that merely remains unfinished is \`NEXT: rework\` instead. **A wall your parent can clear by restarting a resource it owns is \`NEXT: rework\`, not \`NEXT: wall\`.** A dev server your parent started is where minions get this wrong. A URL that stops answering is \`NEXT: rework\`, because a restart makes it answer again. Write \`wall\` only for what a FRESH session hits exactly as you did. Do NOT paper over a wall. Do NOT report a green ward you did not actually get.`;
 
-const treeCleanRole = `**Land whatever you finished in git first, exactly as you would for \`partial\`.** A wall does not cancel the scope it leaves reachable. \`blocked\` also marks your work item \`failed\`. That renders as a red row rather than a clean handoff. A blocked quest hands its work forward through git the same way a finished one does. \`signal-back\` refuses every outcome while the tree is dirty.`;
+const treeCleanRole = `**[CLEAN TREE] Land whatever you finished in git first, whatever you are about to signal.** \`signal-back\` refuses \`done\`, \`partial\` and \`blocked\` alike while the worktree carries uncommitted changes, tracked or untracked. A wall does not cancel the scope it leaves reachable. \`blocked\` also marks your work item \`failed\`. That renders as a red row rather than a clean handoff. A blocked quest hands its work forward through git the same way a finished one does.`;
 
-const treeCleanOperator = `The tree should already be clean when you signal, because your minions commit their own work. \`signal-back\` refuses every outcome while the tree is dirty, \`blocked\` included. Your script has a step that clears a dirty tree. **Never clear one by committing.** You cannot see what is sitting there.`;
+const treeCleanOperator = `**[CLEAN TREE] Your worktree must be clean before you signal.** It should already be: your reviewer commits the whole round. \`signal-back\` refuses every outcome while the tree is dirty, \`blocked\` included. Your script has a step that clears a dirty tree. **Never clear one by committing.** You cannot see what is sitting there.`;
 
 export const agentOperatingRulesStatics = {
   heading,

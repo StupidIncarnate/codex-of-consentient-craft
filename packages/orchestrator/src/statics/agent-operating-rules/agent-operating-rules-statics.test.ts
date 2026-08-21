@@ -1,8 +1,8 @@
 import { agentOperatingRulesStatics } from './agent-operating-rules-statics';
 
 // Every exported piece, keyed to the bracketed tag it opens with. The tag is a rule's ID, so a
-// piece that opens with none reads as 'none' here — the heading and the two closes are all that
-// should land in that group.
+// piece that opens with none reads as 'none' here — and `heading` is the ONLY export allowed to,
+// because it is the frame rather than a rule.
 const OPENING_TAGS = Object.fromEntries(
   Object.entries(agentOperatingRulesStatics).map(([key, piece]) => [
     key,
@@ -51,9 +51,21 @@ describe('agentOperatingRulesStatics', () => {
       delegationLeafBan: 'DELEGATION',
       wallRole: 'WALL',
       wallMinion: 'WALL',
-      treeCleanRole: 'none',
-      treeCleanOperator: 'none',
+      treeCleanRole: 'CLEAN TREE',
+      treeCleanOperator: 'CLEAN TREE',
     });
+  });
+
+  // The rule the map above enforces, stated as its own assertion so a new export fails on THIS test
+  // rather than only as an unexpected key in that one. A piece with no tag renders as loose prose
+  // between two rules: nothing can cite it, and the reader cannot tell where the rule before it
+  // stopped.
+  it('VALID: exported pieces => only the heading opens without a tag', () => {
+    expect(
+      Object.entries(OPENING_TAGS)
+        .filter(([, tag]) => tag === 'none')
+        .map(([key]) => key),
+    ).toStrictEqual(['heading']);
   });
 
   it('VALID: exported pieces => no piece numbers itself', () => {
@@ -336,25 +348,40 @@ describe('agentOperatingRulesStatics', () => {
     });
   });
 
-  // Both work-item closes exist because `signal-back` refuses EVERY outcome while the tree is
-  // dirty, `blocked` included. They differ on who did the work: a spiritmender commits its own, and
-  // an operator cannot see what is sitting there.
-  describe('the tree-clean close differs by who did the work', () => {
+  // [CLEAN TREE] is the one rule no minion takes. A minion never calls `signal-back`, so it is never
+  // refused for a dirty tree. Both work-item forms exist because that refusal covers EVERY outcome,
+  // `blocked` included; they differ on who did the work. A spiritmender commits its own. An operator
+  // cannot see what is sitting there, so it may not commit at all.
+  describe('the [CLEAN TREE] rule differs by who did the work', () => {
     it('VALID: {treeCleanRole} => tells a file-changing role to land its own work in git first', () => {
       expect({
-        landsItsOwn: agentOperatingRulesStatics.treeCleanRole.includes(
-          'Land whatever you finished in git first, exactly as you would for `partial`',
+        opensWithTheTag: agentOperatingRulesStatics.treeCleanRole.startsWith(
+          '**[CLEAN TREE] Land whatever you finished in git first, whatever you are about to signal.**',
         ),
-        refusesWhileDirty: agentOperatingRulesStatics.treeCleanRole.includes(
-          '`signal-back` refuses every outcome while the tree is dirty',
+        refusesEveryOutcome: agentOperatingRulesStatics.treeCleanRole.includes(
+          '`signal-back` refuses `done`, `partial` and `blocked` alike while the worktree carries uncommitted changes, tracked or untracked.',
         ),
-      }).toStrictEqual({ landsItsOwn: true, refusesWhileDirty: true });
+        aWallLeavesScopeReachable: agentOperatingRulesStatics.treeCleanRole.includes(
+          'A wall does not cancel the scope it leaves reachable.',
+        ),
+        blockedRendersRed: agentOperatingRulesStatics.treeCleanRole.includes(
+          'That renders as a red row rather than a clean handoff.',
+        ),
+      }).toStrictEqual({
+        opensWithTheTag: true,
+        refusesEveryOutcome: true,
+        aWallLeavesScopeReachable: true,
+        blockedRendersRed: true,
+      });
     });
 
-    it('VALID: {treeCleanOperator} => says the minions committed, and that you never clear the tree by committing', () => {
+    it('VALID: {treeCleanOperator} => says the reviewer committed, and that you never clear the tree by committing', () => {
       expect({
-        minionsCommitted: agentOperatingRulesStatics.treeCleanOperator.includes(
-          'The tree should already be clean when you signal, because your minions commit their own work',
+        opensWithTheTag: agentOperatingRulesStatics.treeCleanOperator.startsWith(
+          '**[CLEAN TREE] Your worktree must be clean before you signal.**',
+        ),
+        theReviewerCommitted: agentOperatingRulesStatics.treeCleanOperator.includes(
+          'It should already be: your reviewer commits the whole round.',
         ),
         blockedIncluded: agentOperatingRulesStatics.treeCleanOperator.includes(
           'refuses every outcome while the tree is dirty, `blocked` included',
@@ -362,7 +389,12 @@ describe('agentOperatingRulesStatics', () => {
         notByCommitting: agentOperatingRulesStatics.treeCleanOperator.includes(
           '**Never clear one by committing.** You cannot see what is sitting there.',
         ),
-      }).toStrictEqual({ minionsCommitted: true, blockedIncluded: true, notByCommitting: true });
+      }).toStrictEqual({
+        opensWithTheTag: true,
+        theReviewerCommitted: true,
+        blockedIncluded: true,
+        notByCommitting: true,
+      });
     });
   });
 });
