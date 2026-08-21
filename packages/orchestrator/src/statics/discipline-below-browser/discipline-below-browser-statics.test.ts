@@ -1,10 +1,11 @@
 import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
+import { signoffTrackEligibilityStatics } from '../signoff-track-eligibility/signoff-track-eligibility-statics';
 import { disciplineBelowBrowserStatics } from './discipline-below-browser-statics';
 
 const { operatorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
   disciplineBelowBrowserStatics;
 
-// The authored half of each block that interpolates a shared spine — the part this file owns.
+// Two blocks interpolate a shared spine. These constants hold only the half this file authors.
 const AUTHORED_WORKER = workerMarkdown
   .split(flowEvidenceContractStatics.authoringMarkdown)
   .join('');
@@ -12,8 +13,8 @@ const AUTHORED_REVIEWER = reviewerMarkdown
   .split(flowEvidenceContractStatics.judgingMarkdown)
   .join('');
 
-// A tool named in an operator's discipline block is a GRANT — the operator template's table says so
-// in as many words. Every name here is on that template's FORBIDDEN half.
+// A tool named in an operator's discipline block reads to that session as a permission. The operator
+// template's table says so in as many words. Every name below sits on that template's FORBIDDEN half.
 const FORBIDDEN_IN_AN_OPERATOR_BLOCK = [
   'get-architecture',
   'get-syntax-rules',
@@ -56,15 +57,15 @@ describe('disciplineBelowBrowserStatics', () => {
       expect(operatorMarkdown.length).toBeLessThan(1_200);
     });
 
-    // Both fields are "none", and saying so is the whole content. The package-slice framing this
-    // block used to carry was material the operator could only forward: it reads its own slice off
-    // `Your packages:` in `$ARGUMENTS`, generated from the operation item, and its planner reads the
+    // Both fields read "none". Saying so is the whole block. The package-slice framing this block
+    // used to carry was material the operator could only forward: it reads its own slice off
+    // `Your packages:` in `$ARGUMENTS`, generated from the operation item. Its planner reads that
     // framing first-hand below.
     it('VALID: operatorMarkdown => is both fields as none, and restates no scope of its own', () => {
       expect({
         resourceNone: operatorMarkdown.includes('**RESOURCE:** none.'),
         namesWhyNoServer: operatorMarkdown.includes(
-          "This track's suites need no dev server and start none",
+          'Your workers start no dev server, because a suite below the browser needs none.',
         ),
         resetNone: operatorMarkdown.includes('**RESET:** none.'),
         noSliceProse: operatorMarkdown.includes('PACKAGE SLICE'),
@@ -80,14 +81,16 @@ describe('disciplineBelowBrowserStatics', () => {
       });
     });
 
-    // The empty-checklist answer did not vanish, it moved to the session that makes the call and is
-    // therefore the only one that could be tempted to widen it.
+    // The empty-checklist answer did not vanish. It moved to the planner, which is the session that
+    // makes the call and the only one that could widen it.
     it('VALID: plannerMarkdown => owns the empty-checklist answer and the ban on widening', () => {
       expect({
         emptyIsReal: plannerMarkdown.includes(
           '**An EMPTY checklist is a real state, not an error.**',
         ),
-        zeroChunks: plannerMarkdown.includes('Zero units in your slice means a plan with zero'),
+        zeroChunks: plannerMarkdown.includes(
+          'Zero units in your slice means a plan with zero\nchunks.',
+        ),
         doNotWiden: plannerMarkdown.includes(
           '**Do NOT widen the call to find something to cover.**',
         ),
@@ -115,24 +118,22 @@ describe('disciplineBelowBrowserStatics', () => {
         modalityPerObservable: work.includes('**Choose the modality per OBSERVABLE**'),
         neverAMockOfTheSubject: work.includes('never a mock of the system under test'),
         everyTerminal: work.includes(
-          '**One test per path to EVERY terminal, and every branch taken.**',
+          '**Write one test per path to EVERY terminal. Write one per branch taken.**',
         ),
         errorIsFirstClass: work.includes('is a first-class path, never optional'),
         happyPathIsTheFailure: work.includes(
-          '"I covered the happy path and stopped" is how this\n   discipline fails',
+          '"I covered the happy path and stopped"\n   is how this discipline fails',
         ),
         fixturesThatCanFail: work.includes('**Seed fixtures that can fail.**'),
         closeAHole: work.includes('**Close an implementation hole your own testing exposes.**'),
-        redFirst: work.includes('**Fix it\n   RED-FIRST**'),
+        redFirst: work.includes('**Fix it\n   RED-FIRST.**'),
         architecturalIsRework: work.includes(
-          'goes in `NEXT: rework` with its proving test left red',
+          'Hand these four up in `NEXT: rework`, leaving the proving test red:\n\n   - an architectural fix',
         ),
         neverBendTheImplementation: work.includes(
-          '**Never bend the implementation to make a test pass**',
+          '**Never bend the implementation to make a test pass.**',
         ),
-        noPlaywrightNoServer: work.includes(
-          '**You author NO Playwright and you start no server.**',
-        ),
+        noPlaywrightNoServer: work.includes('**You author NO Playwright. You start no server.**'),
       }).toStrictEqual({
         steps: ['1. **', '2. **', '3. **', '4. **'],
         modalityPerObservable: true,
@@ -149,26 +150,29 @@ describe('disciplineBelowBrowserStatics', () => {
       });
     });
 
-    // Where red-first is impossible because the behaviour already works, the proof is a MUTATION —
-    // break the line, capture the red, revert by EDITING (never `git checkout --`, which is on every
-    // minion's destructive-git ban), and confirm the file's diff is empty.
+    // Where red-first is impossible because the behaviour already works, the proof is a MUTATION.
+    // The worker breaks the line, captures the red, then reverts by EDITING it back.
+    // `git checkout --` is on every minion's destructive-git ban. The last step confirms the file's
+    // diff is empty.
     it('VALID: ### The proof => demands a witnessed red or a reverted mutation, and what makes it fail', () => {
       const proof = workerMarkdown.slice(workerMarkdown.indexOf('### The proof'));
 
       expect({
         witnessedRed: proof.includes('**witnessed red**'),
-        perUnit: proof.includes('`EVIDENCE` carries it per unit'),
-        theOtherFour: proof.includes('other four items of the evidence contract'),
+        perUnit: proof.includes('`EVIDENCE` carries that red per unit'),
+        theOtherFour: proof.includes('alongside the\nother four items of the evidence contract'),
         whatMakesItFail: proof.includes('**what makes it fail**'),
         mutationWhenRedFirstIsImpossible: proof.includes('prove the test bites by\nMUTATION'),
         revertByEditing: proof.includes(
-          'revert BY EDITING the\nline back — never `git checkout --`',
+          'Revert BY EDITING the line back. Never `git checkout --`.',
         ),
-        confirmDiffEmpty: proof.includes('confirm `git diff` on that file is empty'),
-        sayWhichOne: proof.includes('Say which of\nthe two you did.'),
+        confirmDiffEmpty: proof.includes('Confirm `git diff` on that file is empty.'),
+        sayWhichOne: proof.includes(
+          'For each unit, say which of the two you did — the witnessed red, or the mutation.',
+        ),
         notAnAnswer: proof.includes('"Fails if the text is wrong" is not an answer'),
-        theSentenceTest: proof.includes(
-          '**An agent that cannot say what\nwould make its assertion fail has not written a test',
+        nameTheFailingValue: proof.includes(
+          '**Name the specific wrong value\nfor every assertion you write.**',
         ),
       }).toStrictEqual({
         witnessedRed: true,
@@ -180,32 +184,50 @@ describe('disciplineBelowBrowserStatics', () => {
         confirmDiffEmpty: true,
         sayWhichOne: true,
         notAnAnswer: true,
-        theSentenceTest: true,
+        nameTheFailingValue: true,
       });
     });
 
-    it('VALID: workerMarkdown => takes its scope from the tool and signs nothing', () => {
+    // The checklist call takes an `operationItemId`, so it narrows to the PACKAGE SLICE. That slice
+    // is the whole operation item, never this worker's chunk of it. A worker reading the returned
+    // list as its own scope would write outside its `FILES` against a sibling worker. It would also
+    // report the sibling chunks' units as uncovered, spending a round on work the plan scheduled.
+    it('VALID: workerMarkdown => takes unit TEXT from the tool and its SCOPE from its chunk', () => {
       expect({
-        scopeFromATool: workerMarkdown.includes(
-          '**Your scope comes from a tool, not from prose.**',
+        textFromToolScopeFromChunk: workerMarkdown.includes(
+          '**The checklist gives you the unit TEXT. Your chunk gives you the SCOPE.**',
         ),
-        oneArgumentIsTheScope: workerMarkdown.includes(
-          'that one argument carries the track, the flows and the package slice',
+        toolReturnsTheWholeSlice: workerMarkdown.includes('It returns the whole PACKAGE SLICE'),
+        listIsWiderThanTheChunk: workerMarkdown.includes(
+          '**That list is WIDER than your chunk. The surplus belongs to a sibling worker.**',
         ),
-        verbatimLabels: workerMarkdown.includes('never from a\nparaphrase'),
+        scopeIsTheIntersection: workerMarkdown.includes(
+          "INTERSECTION: the entries whose ids your chunk's `UNITS` names, over the bundle of flows its\n`NOTES` names.",
+        ),
+        widerScopeRacesTheSibling: workerMarkdown.includes(
+          "You write outside your `FILES` to cover a sibling's unit. The later write wins, so one of you\n   loses the work.",
+        ),
+        widerScopeBurnsARound: workerMarkdown.includes(
+          "You report a sibling's unit as uncovered in `NEXT: rework`. That spends a round on a chunk the\n   plan already scheduled.",
+        ),
+        verbatimLabels: workerMarkdown.includes('never from a paraphrase'),
         pathsTruncated: workerMarkdown.includes(
-          '`pathsTruncated: true` means the path list is INCOMPLETE',
+          '`pathsTruncated: true` — the path list is INCOMPLETE',
         ),
         remainingIsNotScope: workerMarkdown.includes(
-          "`remainingItemIds` is your parent's gate count, not your scope",
+          "`remainingItemIds` — your parent's gate count. It is never your scope.",
         ),
         signsNothing: workerMarkdown.includes('**You sign NOTHING.**'),
         whySigningWouldBeCircular: workerMarkdown.includes(
-          'a signature from the\nsession that wrote the test would satisfy the gate the moment you returned',
+          "If you signed a unit,\nyour parent's completion gate would clear the moment you returned.",
         ),
       }).toStrictEqual({
-        scopeFromATool: true,
-        oneArgumentIsTheScope: true,
+        textFromToolScopeFromChunk: true,
+        toolReturnsTheWholeSlice: true,
+        listIsWiderThanTheChunk: true,
+        scopeIsTheIntersection: true,
+        widerScopeRacesTheSibling: true,
+        widerScopeBurnsARound: true,
         verbatimLabels: true,
         pathsTruncated: true,
         remainingIsNotScope: true,
@@ -218,22 +240,22 @@ describe('disciplineBelowBrowserStatics', () => {
   describe('plannerMarkdown', () => {
     it('VALID: plannerMarkdown => carries the unit-routing and filter rules the operator block used to relay', () => {
       expect({
-        itemsAreWider: plannerMarkdown.includes('**`items` is WIDER than the observables.'),
+        itemsAreWider: plannerMarkdown.includes('**`items` is WIDER than the observables.**'),
         terminalsAreUnits: plannerMarkdown.includes(
-          'Terminals and labelled branches are units too**',
+          'Terminals and labelled branches are units too.',
         ),
         everyUnitInOneChunk: plannerMarkdown.includes(
-          '**Every unit it returns lands in exactly one chunk**',
+          '**Every unit that call returns lands in exactly one chunk.**',
         ),
         routingByNode: plannerMarkdown.includes(
-          '**A package slice does NOT own the seams, and the seam slice does NOT own the per-package units.**',
+          '**A package slice does NOT own the seams. The seam slice does NOT own the per-package units.**',
         ),
         crossingCostsTheBudget: plannerMarkdown.includes(
-          "spends your parent's budget on units a sibling item is\ngated on",
+          "spends your parent's budget on units a sibling item is already gated on.\nYour own slice then reaches the reviewer with units no chunk covers.",
         ),
         operationalNotYours: plannerMarkdown.includes('**Operational flows are not yours.**'),
         browserNotYours: plannerMarkdown.includes(
-          '**The browser is not yours and neither is Playwright.**',
+          '**The browser is not yours. Playwright is not yours either.**',
         ),
       }).toStrictEqual({
         itemsAreWider: true,
@@ -254,15 +276,15 @@ describe('disciplineBelowBrowserStatics', () => {
         sharedSurface: plannerMarkdown.includes('**Shared surface or harness**'),
         sharedLayer: plannerMarkdown.includes('**Shared layer**'),
         coupledObservables: plannerMarkdown.includes('**Coupled observables**'),
-        splitTooBig: plannerMarkdown.includes('**Split anything too big to hold.**'),
-        skimIsInvisible: plannerMarkdown.includes('the skim is invisible in a green run'),
+        splitTooBig: plannerMarkdown.includes('**Split anything too big for one worker.**'),
+        skimIsInvisible: plannerMarkdown.includes('The skim is invisible in a green run'),
         earlierOwnsTheHarness: plannerMarkdown.includes('the EARLIER-NUMBERED one owns it'),
         fullPathNotConcept: plannerMarkdown.includes('**by FULL PATH, never by concept**'),
         wardLine: plannerMarkdown.includes(
           '**`WARD` per chunk:** `--only lint,typecheck,unit,integration`',
         ),
         neverE2e: plannerMarkdown.includes(
-          'Never `e2e` — no chunk on this discipline authors Playwright.',
+          'Never `e2e`. No chunk on this discipline authors Playwright.',
         ),
       }).toStrictEqual({
         bundleNotOneFlow: true,
@@ -278,7 +300,37 @@ describe('disciplineBelowBrowserStatics', () => {
       });
     });
 
-    // Copying the units by hand costs most of the planner's turn AND puts a transcription error
+    // The planner template tells this session that its discipline decides the spike's disposal. A
+    // pack saying nothing leaves the one minion allowed to spawn a sub-agent guessing about the only
+    // thing it may spawn one for. `spike-tmp/` is gitignored, which keeps a spike out of the
+    // operator's step-7 `git status` sweep.
+    it('VALID: plannerMarkdown => keeps a spike, under gitignored spike-tmp, named in the chunk NOTES', () => {
+      expect({
+        kept: plannerMarkdown.includes('## Spikes are KEPT on this discipline'),
+        whyKept: plannerMarkdown.includes(
+          'A harness recipe you got working is the pattern its worker extends, never a probe you throw away.',
+        ),
+        whenToSpike: plannerMarkdown.includes(
+          'Spike when reading cannot tell you whether a route, a queue, a spawned process or a real file system\ncan be driven from a Jest test at all.',
+        ),
+        spikeTmpAndGitignored: plannerMarkdown.includes(
+          'Leave the working driver under `spike-tmp/`, which is\ngitignored.',
+        ),
+        namedInNotes: plannerMarkdown.includes("Name that\npath in the owning chunk's `NOTES`."),
+        untrackedRefusesTheSignal: plannerMarkdown.includes(
+          "The\nserver then refuses your parent's `signal-back`, because an untracked file leaves the worktree\ndirty.",
+        ),
+      }).toStrictEqual({
+        kept: true,
+        whyKept: true,
+        whenToSpike: true,
+        spikeTmpAndGitignored: true,
+        namedInNotes: true,
+        untrackedRefusesTheSignal: true,
+      });
+    });
+
+    // Copying the units by hand costs most of the planner's turn. It also puts a transcription error
     // between the spec and the test. The worker calls the same narrowed tool with the same ids.
     it('VALID: plannerMarkdown => refuses to transcribe the units and lists what the tool cannot know', () => {
       expect({
@@ -293,14 +345,14 @@ describe('disciplineBelowBrowserStatics', () => {
           'What `NOTES` carries is what the tool CANNOT know',
         ),
         designDecisionRationale: plannerMarkdown.includes(
-          "**An observable's text says what to assert; its design decision says what\ngoes wrong if you assert it the easy way.**",
+          "**An observable's text says what to assert. Its design\ndecision says what goes wrong if you assert it the easy way.**",
         ),
         openTheTestFiles: plannerMarkdown.includes(
-          '## Inventory what already covers each flow — BY OPENING THE TEST FILES',
+          '## Inventory what already covers each flow, by OPENING THE TEST FILES',
         ),
         neverCreditAFilename: plannerMarkdown.includes('**Do not credit a filename'),
         theMeasuredFalseGreen: plannerMarkdown.includes(
-          'naming three test files in a\ncommit message having opened none of them',
+          'named three test files in a commit message.\nIt had opened none of them. That shipped a false green.',
         ),
       }).toStrictEqual({
         doNotTranscribe: true,
@@ -315,9 +367,8 @@ describe('disciplineBelowBrowserStatics', () => {
     });
   });
 
-  // The two shared blocks are INTERPOLATED, never copied: a copy would let the method a worker
-  // authors by and the criteria a reviewer rejects by drift apart silently, which is the one drift
-  // neither session could detect.
+  // The two shared blocks are INTERPOLATED, never copied. A copy would let the method a worker
+  // authors by drift away from the criteria a reviewer rejects by. Neither session could ever notice.
   describe('the shared evidence contract is interpolated, split by who needs which half', () => {
     it('VALID: workerMarkdown => carries the authoring half and not the judging half', () => {
       expect({
@@ -333,29 +384,78 @@ describe('disciplineBelowBrowserStatics', () => {
         judgingIsTheSpine: reviewerMarkdown.startsWith(flowEvidenceContractStatics.judgingMarkdown),
       }).toStrictEqual({ judging: true, authoring: false, judgingIsTheSpine: true });
     });
+
+    // PAIR: `flowEvidenceContractStatics`' two halves and the four blocks this file authors. The
+    // two pins above prove the WHOLE half is interpolated. Neither can see a PARAPHRASE of one of
+    // its sections sitting alongside it, which is how a copy starts. The section headings are read
+    // off the shared block itself, so a heading renamed there is a heading renamed here.
+    it('VALID: the four blocks => restate none of the shared halves own sections', () => {
+      const judgingHeadings = Array.from(
+        flowEvidenceContractStatics.judgingMarkdown.matchAll(/^## .+$/gmu),
+      ).flatMap((match) => match.slice(0, 1));
+      const authoringHeadings = Array.from(
+        flowEvidenceContractStatics.authoringMarkdown.matchAll(/^## .+$/gmu),
+      ).flatMap((match) => match.slice(0, 1));
+      const authored = [operatorMarkdown, plannerMarkdown, AUTHORED_WORKER, AUTHORED_REVIEWER];
+
+      expect({
+        judgingHasSectionsToCopy: judgingHeadings.length > 0,
+        authoringHasSectionsToCopy: authoringHeadings.length > 0,
+        judgingSectionsRestatedHere: judgingHeadings.filter((heading) =>
+          authored.some((block) => block.includes(heading)),
+        ),
+        authoringSectionsRestatedHere: authoringHeadings.filter((heading) =>
+          authored.some((block) => block.includes(heading)),
+        ),
+      }).toStrictEqual({
+        judgingHasSectionsToCopy: true,
+        authoringHasSectionsToCopy: true,
+        judgingSectionsRestatedHere: [],
+        authoringSectionsRestatedHere: [],
+      });
+    });
   });
 
   describe('reviewerMarkdown', () => {
-    it('VALID: reviewerMarkdown => is the only writer of the track, batched, and rebuilds its own denominator', () => {
+    // The reviewer signs and the worker does not. The FIELD is shared even so. The eligibility
+    // statics give `flowrider` and `groundstomper` the same `signoffField` over disjoint
+    // `packageTypes`, so this block claims the package slice rather than the whole track.
+    it('VALID: reviewerMarkdown => signs this slice rather than the whole field, batched, and rebuilds its own denominator', () => {
       expect({
-        onlyWriter: AUTHORED_REVIEWER.includes(
-          '## You are the only writer of the `flowriderSignoff` track',
-        ),
+        reviewerSignsWorkerDoesNot: AUTHORED_REVIEWER.includes("## You sign this track's units"),
         notAnInstruction: AUTHORED_REVIEWER.includes(
-          'That is not an instruction\nit was trusted to keep — it is the shape of the pipeline',
+          'That is\nstructural rather than a promise it was trusted to keep',
         ),
-        rebuildItYourself: AUTHORED_REVIEWER.includes('Rebuild the denominator yourself'),
-        idAndFieldOnly: AUTHORED_REVIEWER.includes('the id and the\nsign-off field ONLY'),
+        theSliceNotTheField: AUTHORED_REVIEWER.includes(
+          '**Your units are the PACKAGE SLICE your brief names, never the whole `flowriderSignoff` field.**',
+        ),
+        siblingOwnsTheComplement: AUTHORED_REVIEWER.includes(
+          'sibling role writes that SAME field over the browser-reachable package kinds. Those kinds are the\nDISJOINT complement of your slice.',
+        ),
+        neitherSettlesTheOther: AUTHORED_REVIEWER.includes(
+          "So signing one of your units never settles one of the sibling's.",
+        ),
+        signingTheirsIsAFalseGreen: AUTHORED_REVIEWER.includes(
+          'Signing one of ITS units is a false green: you opened no browser, so you cannot confirm a\nbrowser-reachable claim.',
+        ),
+        rebuildItYourself: AUTHORED_REVIEWER.includes(
+          'Your denominator is every unit in your slice. Rebuild it yourself with',
+        ),
+        idAndFieldOnly: AUTHORED_REVIEWER.includes('Send the id and the sign-off field ONLY.'),
         batch: AUTHORED_REVIEWER.includes('**BATCH the writes.**'),
         theCostOfNotBatching: AUTHORED_REVIEWER.includes(
-          '45 units\nsigned one at a time is 45 quest writes',
+          'Signing 45\nunits one at a time costs 45 quest writes',
         ),
         e2eIsNeverEvidence: AUTHORED_REVIEWER.includes(
           '**A Playwright `.e2e.ts` is never evidence on this track.**',
         ),
       }).toStrictEqual({
-        onlyWriter: true,
+        reviewerSignsWorkerDoesNot: true,
         notAnInstruction: true,
+        theSliceNotTheField: true,
+        siblingOwnsTheComplement: true,
+        neitherSettlesTheOther: true,
+        signingTheirsIsAFalseGreen: true,
         rebuildItYourself: true,
         idAndFieldOnly: true,
         batch: true,
@@ -364,17 +464,43 @@ describe('disciplineBelowBrowserStatics', () => {
       });
     });
 
-    // Nothing server-side reopens an UNSIGNED unit — the gate refuses the parent's `done` while one
-    // exists, so a permanently unprovable unit left blank burns the pt chain and blocks the quest.
-    // `unconfirmable` clears; a blank never does. Which is exactly why the audit exists.
+    // `signoffTrackEligibilityStatics.byTrack.flowrider.unitKinds` is terminal / branch / observable.
+    // Only `siegemaster` carries `off-map`. So `offMapSignoffs` is another role's patch target. A
+    // sign-off sent there settles a unit this session never measured.
+    it('VALID: reviewerMarkdown => patches observables, nodes and edges, and never offMapSignoffs', () => {
+      expect({
+        patchTargets: AUTHORED_REVIEWER.includes(
+          'patching `{ id, flowriderSignoff }` onto the\nobservable, node or edge through `modify-quest`',
+        ),
+        offMapIsNotADenominator: AUTHORED_REVIEWER.includes(
+          '**The off-map probe families are not on your denominator.**',
+        ),
+        offMapBelongsToAnotherRole: AUTHORED_REVIEWER.includes(
+          'Another role probes security, performance\nand the other off-map families by hand against a running system.',
+        ),
+        neverPatchOffMapSignoffs: AUTHORED_REVIEWER.includes(
+          "`offMapSignoffs` is that role's\npatch target. A patch you send there signs a unit you never measured.",
+        ),
+      }).toStrictEqual({
+        patchTargets: true,
+        offMapIsNotADenominator: true,
+        offMapBelongsToAnotherRole: true,
+        neverPatchOffMapSignoffs: true,
+      });
+    });
+
+    // Nothing server-side reopens an UNSIGNED unit. The gate refuses the parent's `done` while one
+    // exists. A permanently unprovable unit left blank therefore spends the pt chain to its budget.
+    // It then blocks the quest. An honest `unconfirmable` clears the gate. A blank never does. The
+    // audit exists for exactly that gap.
     it('VALID: reviewerMarkdown => routes an unprovable unit to unconfirmable and audits every one', () => {
       expect({
-        notLeftUnsigned: AUTHORED_REVIEWER.includes('not left unsigned'),
+        notLeftUnsigned: AUTHORED_REVIEWER.includes('Never leave it unsigned.'),
         nothingReopensABlank: AUTHORED_REVIEWER.includes(
           'Nothing server-side reopens an unsigned unit',
         ),
-        burnsTheChain: AUTHORED_REVIEWER.includes(
-          'burns the pt chain to its budget and blocks the quest',
+        spendsTheChain: AUTHORED_REVIEWER.includes(
+          'spends the pt chain to its budget. It then blocks the quest.',
         ),
         auditEveryOne: AUTHORED_REVIEWER.includes(
           "**AUDIT EVERY `unconfirmable`, a predecessor's included.**",
@@ -382,48 +508,135 @@ describe('disciplineBelowBrowserStatics', () => {
         assignmentNotWall: AUTHORED_REVIEWER.includes(
           'Reopen any whose evidence names an\nASSIGNMENT rather than a WALL',
         ),
-        whatYouReopenYouOwn: AUTHORED_REVIEWER.includes('What you reopen, you own.'),
+        whatYouReopenYouOwn: AUTHORED_REVIEWER.includes('A\nunit you reopen is yours to settle.'),
       }).toStrictEqual({
         notLeftUnsigned: true,
         nothingReopensABlank: true,
-        burnsTheChain: true,
+        spendsTheChain: true,
         auditEveryOne: true,
         assignmentNotWall: true,
         whatYouReopenYouOwn: true,
       });
     });
 
-    // A sample you do not name is a silent cap, and reads to the next session as "all of this was
-    // checked".
+    // PAIR: `flowEvidenceContractStatics.judgingMarkdown` — interpolated as the spine of this very
+    // block — and the words this file authors underneath it. ONE rule, two wordings: a unit nobody
+    // can settle after real effort is `unconfirmable`, carrying evidence AND a `question`, while a
+    // unit merely awaiting a test nobody has written is not `unconfirmable` at all. The verdict
+    // token and the spine's own clause are READ off the spine, so a reword of either side fails
+    // this one test. Diverge and this reviewer leaves the unit blank: nothing server-side reopens
+    // it, the sign-off gate refuses its parent's `done`, the round spends the pt chain to its
+    // budget, and the quest blocks.
+    it('VALID: reviewerMarkdown + judgingMarkdown => route an unsettleable unit to the same verdict, and a deferral back out of it', () => {
+      const { judgingMarkdown } = flowEvidenceContractStatics;
+      const opener = 'after real effort is `';
+      const closer = '`.** Sign it with';
+      const verdict = judgingMarkdown.slice(
+        judgingMarkdown.indexOf(opener) + opener.length,
+        judgingMarkdown.indexOf(closer),
+      );
+      const spineClause = judgingMarkdown.slice(
+        judgingMarkdown.indexOf('**A unit nobody can settle'),
+        judgingMarkdown.indexOf(closer) + 1,
+      );
+
+      expect({
+        verdict,
+        spineClause,
+        spineRefusesABlank: judgingMarkdown.includes('Never leave it blank.'),
+        spineSaysTheVerdictClears: judgingMarkdown.includes(
+          `An honest \`${verdict}\` clears\nthe gate. A blank never does.`,
+        ),
+        spineKeepsAnUnwrittenTestOut: judgingMarkdown.includes(
+          `needs a test nobody has written yet is NOT \`${verdict}\`.**`,
+        ),
+        packRestatesTheSpinesClause: AUTHORED_REVIEWER.includes(spineClause),
+        packSaysTheVerdictClears: AUTHORED_REVIEWER.includes(
+          `An honest \`${verdict}\` CLEARS that gate. A blank one never does.`,
+        ),
+        packSendsADeferralToTheAudit: AUTHORED_REVIEWER.includes(
+          `A session can also defer real\nwork by writing \`${verdict}\`, which is why the audit below exists.`,
+        ),
+      }).toStrictEqual({
+        verdict: 'unconfirmable',
+        spineClause: '**A unit nobody can settle after real effort is `unconfirmable`',
+        spineRefusesABlank: true,
+        spineSaysTheVerdictClears: true,
+        spineKeepsAnUnwrittenTestOut: true,
+        packRestatesTheSpinesClause: true,
+        packSaysTheVerdictClears: true,
+        packSendsADeferralToTheAudit: true,
+      });
+    });
+
+    // PAIR: `signoffTrackEligibilityStatics.byTrack` — the data the completion gate itself reads —
+    // and this block's claim about what it signs. The FIELD NAME comes off the statics rather than
+    // a copy, and so does the split that makes the claim honest: `flowrider` and `groundstomper`
+    // carry the SAME `signoffField` over DISJOINT `packageTypes` (a merged set that loses no member
+    // is what disjoint MEANS). That disjointness is the only reason this block may claim a SLICE
+    // rather than the field. It once claimed the whole field, which is this reviewer signing
+    // browser-reachable units it never opened a browser for — a false green the sibling role's own
+    // gate then reads as settled.
+    it('VALID: reviewerMarkdown + signoffTrackEligibilityStatics => claim the slice of the shared field this track is assigned', () => {
+      const { flowrider, groundstomper, siegemaster } = signoffTrackEligibilityStatics.byTrack;
+      const field = flowrider.signoffField;
+      const bothTracksKinds = [...flowrider.packageTypes, ...groundstomper.packageTypes];
+      // Deduped rather than compared with `===`. TypeScript narrows both fields to the same literal,
+      // so a direct comparison reads as always-true and lint deletes the check.
+      const bothTracksFields = [flowrider.signoffField, groundstomper.signoffField];
+
+      expect({
+        theSiblingWritesTheSameField: new Set(bothTracksFields).size === 1,
+        theTwoTracksShareNoPackageKind: new Set(bothTracksKinds).size === bothTracksKinds.length,
+        namesTheSliceNotTheField: AUTHORED_REVIEWER.includes(
+          `**Your units are the PACKAGE SLICE your brief names, never the whole \`${field}\` field.**`,
+        ),
+        patchesThatField: AUTHORED_REVIEWER.includes(`patching \`{ id, ${field} }\` onto the`),
+        claimsTheOtherTracksField: AUTHORED_REVIEWER.includes(siegemaster.signoffField),
+      }).toStrictEqual({
+        theSiblingWritesTheSameField: true,
+        theTwoTracksShareNoPackageKind: true,
+        namesTheSliceNotTheField: true,
+        patchesThatField: true,
+        claimsTheOtherTracksField: false,
+      });
+    });
+
+    // The reviewer must state the sample's size and its ids. An unnamed sample reads to the next
+    // session as "all of this was checked".
     it('VALID: reviewerMarkdown => runs a structural pass on everything and a named sample of the rest', () => {
       expect({
         passA: AUTHORED_REVIEWER.includes('**Pass A — structural, on 100% of claims.**'),
-        noExcuseToSample: AUTHORED_REVIEWER.includes('so there is no excuse to sample\nit'),
+        noExcuseToSample: AUTHORED_REVIEWER.includes(
+          'Sample none of it. Pass A is cheap and mechanical.',
+        ),
         passB: AUTHORED_REVIEWER.includes('**Pass B — semantic, by opening the file.**'),
         mandatoryNoSampling: AUTHORED_REVIEWER.includes('MANDATORY, no sampling, for'),
         namedSample: AUTHORED_REVIEWER.includes('**NAMED random sample of the remainder**'),
-        silentCap: AUTHORED_REVIEWER.includes('*A sample\nyou do not name is a silent cap'),
+        unnamedSampleMisreads: AUTHORED_REVIEWER.includes(
+          'An\nunnamed sample reads to the next session as "all of this was checked".',
+        ),
       }).toStrictEqual({
         passA: true,
         noExcuseToSample: true,
         passB: true,
         mandatoryNoSampling: true,
         namedSample: true,
-        silentCap: true,
+        unnamedSampleMisreads: true,
       });
     });
 
     it('VALID: reviewerMarkdown => binds the intercept ban to this track, because it is authoring', () => {
       expect({
         settledHere: AUTHORED_REVIEWER.includes(
-          'Two roles read this rule and reached opposite verdicts on six units, so it is settled here.',
+          'This rule is settled here. Two roles read it and reached opposite verdicts on six units.',
         ),
-        theBan: AUTHORED_REVIEWER.includes('**A\nsuite must not `page.route` its own backend.**'),
+        theBan: AUTHORED_REVIEWER.includes('**A suite\nmust not `page.route` its own backend.**'),
         handDrivenMay: AUTHORED_REVIEWER.includes(
           'A hand-driven MEASUREMENT in a live browser MAY',
         ),
         bindsYou: AUTHORED_REVIEWER.includes(
-          '**never sign a unit `confirmed` on evidence from an\nintercepted route.**',
+          '**Never sign a unit `confirmed` on evidence from an intercepted route.**',
         ),
       }).toStrictEqual({ settledHere: true, theBan: true, handDrivenMay: true, bindsYou: true });
     });

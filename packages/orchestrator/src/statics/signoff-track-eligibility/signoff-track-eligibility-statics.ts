@@ -45,8 +45,10 @@
  *
  *    - `declared` — Groundstomper (`fanOutBy: 'e2e-flow'`) and Siegemaster (`fanOutBy: 'flow'`) get
  *      ONE item per flow, each carrying that flow alone, so the item's `flowIds` ARE its coverage
- *      scope and the gate measures exactly the flow `get-qa-checklist({ flowId, track })` answers
- *      for. Measuring such an item over every flow of an eligible type instead makes the first of
+ *      scope and the gate measures exactly the flow
+ *      `get-qa-checklist({ questId, operationItemId })` answers for — that ONE id carries the track,
+ *      the flows and the packages, and it REPLACED `track` and `packageNames` as separate arguments.
+ *      Measuring such an item over every flow of an eligible type instead makes the first of
  *      several sibling items unable to signal `done` at all — every sibling flow sharing one of its
  *      packages lands in its denominator — which is the spent-pt-chain failure the slicing exists
  *      to remove. An item declaring NO flows matches nothing and is not gated, which is what keeps

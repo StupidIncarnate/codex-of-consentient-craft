@@ -1,204 +1,302 @@
 /**
- * PURPOSE: The `browser-e2e` discipline pack — the four `$DISCIPLINE` blocks that turn the generic
- * operator/planner/worker/reviewer templates into the role `roleToDisciplineStatics.groundstomper`
- * names. Reach for this over `discipline-below-browser` when the artifact is a Playwright walk of one
- * runtime flow, and over `discipline-manual-qa` when a suite brings its own server up rather than a
- * human driving a long-lived one.
+ * PURPOSE: The `browser-e2e` discipline pack. It holds the four `$DISCIPLINE` blocks that turn the
+ * generic operator, planner, worker and reviewer templates into the role
+ * `roleToDisciplineStatics.groundstomper` names.
+ *
+ * WHICH PACK COVERS WHICH ARTIFACT:
+ * - This pack covers a Playwright walk of one runtime flow.
+ * - `discipline-below-browser` covers an artifact sitting under the browser.
+ * - `discipline-manual-qa` covers a human driving a long-lived server that no suite brought up.
  *
  * USAGE:
  * disciplineBrowserE2eStatics.plannerMarkdown;
  * // Returns the inventory-first block interpolated at the planner template's `$DISCIPLINE`
  *
- * THE PLANNER BLOCK IS THE LOAD-BEARING ONE. The extend-vs-add inventory used to be Gate 1 of a
- * monolith that also authored, warded, signed and committed, which is exactly the load a post-mortem
- * measured sessions shedding. The reviewer block is newer still: nothing independent had ever graded
- * this role's specs, so its whole subject is what a browser walk can fake.
+ * THE PLANNER BLOCK MATTERS MOST. The extend-vs-add inventory used to be Gate 1 of a monolith that
+ * also authored, warded, signed and committed. A post-mortem measured sessions shedding exactly that
+ * work. The reviewer block is newer than the other three. Nothing independent had ever graded this
+ * role's specs. Its whole subject is therefore what a browser walk can fake.
  *
- * `operatorMarkdown` IS FOUR FIELDS — `SCOPE`, `RESOURCE`, `RESET`, `EMPTY` — and on this discipline
- * `RESOURCE` is the interesting "none": the server an e2e run needs comes up from the project's
- * Playwright `webServer` config and goes down with the run, so this operator is given no dev server
- * and needs none. The ward invocation this role always ends up narrowing to lives in
- * `plannerMarkdown` now, because the planner is the session that writes every chunk's `WARD` line.
- * `operatorMarkdown` names no repo-exploration tool at all, and the colocated test pins that
- * absence: the operator's value is a context small enough to run the whole loop to its end, and a
- * discipline that hands it back a tool the template forbade is how that budget gets spent.
+ * THE REVIEWER REBUILDS ITS OWN DENOMINATOR. The planner is what makes that possible. The
+ * signal-back completion gate measures every eligible unit on the item's OWN flow, because
+ * `operationSignoffScopeTransformer` gives this track `flowScope: 'declared'`. Never the units the
+ * plan cut into chunks. A unit an existing spec already covers therefore reaches that gate needing a
+ * signature. `plannerMarkdown` records those ids in `SUMMARY` beside the spec that covers them.
+ * `reviewerMarkdown` names the `get-qa-checklist` call that rebuilds the slice. It also tells the
+ * reviewer to sign every unit in that slice. Drop either half and the round fails its parent's gate.
+ * The next round earns the identical refusal. The round after that spends a pt attempt.
  *
- * `workerMarkdown` MUST CARRY THE HEADINGS `### The work` AND `### The proof`, which the worker
- * template's method points at by name. On this discipline `### The proof` is mostly MUTATION rather
- * than red-first, because the behaviour a walk covers usually already works — which is precisely why
- * a template that hard-coded red-first was wrong for four packs out of five.
+ * `operatorMarkdown` IS TWO FIELDS, `RESOURCE` and `RESET`. Both read "none" on this discipline. The
+ * server an e2e run needs comes up from the project's Playwright `webServer` config. It goes down
+ * with the run. This operator is therefore given no dev server. `plannerMarkdown` holds the narrowed
+ * ward invocation this role always uses, because the planner writes every chunk's `WARD` line.
+ * `operatorMarkdown` names no code-reading, search or standards tool at all. The colocated test pins
+ * that absence. The operator keeps a context small enough to run the whole loop to its end. A pack
+ * that hands the operator a tool the template forbade burns that headroom.
  *
- * `flowEvidenceContractStatics.judgingMarkdown` is INTERPOLATED, not copied. It is already the shared
- * spine every verification track judges against, and a pack-local copy is the copy that drifts the
- * next time the false-green catalogue grows. Its authoring half is deliberately absent, and the
- * colocated test pins that.
+ * `workerMarkdown` MUST CARRY THE HEADINGS `### The work` AND `### The proof`. The worker template's
+ * method points at both by name. On this discipline `### The proof` is mostly MUTATION rather than
+ * red-first, because the behaviour a walk covers usually already works. That is why a template
+ * hard-coding red-first was wrong for four packs out of five.
  *
- * The five standing review concerns are deliberately absent too: `standardsReviewConcernsStatics` is
- * discipline-independent and the reviewer template carries it beside this slot.
+ * `flowEvidenceContractStatics.judgingMarkdown` is INTERPOLATED, not copied. Every verification
+ * track already judges against it. A pack-local copy drifts the next time the false-green catalogue
+ * grows. Its authoring half is deliberately absent. The colocated test pins that too.
+ *
+ * The five standing review concerns are deliberately absent as well.
+ * `standardsReviewConcernsStatics` is discipline-independent. The reviewer template carries it
+ * beside this slot.
  */
 
 import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
 
 export const disciplineBrowserE2eStatics = {
-  operatorMarkdown: `**RESOURCE:** none, and that is deliberate. The server an e2e run needs is declared in the project's
-Playwright \`webServer\` config, brought up for the run and torn down with it, and the specs navigate
-\`baseURL\`-relative so no URL ever reaches a test. You are given no dev server and need none.
+  operatorMarkdown: `**RESOURCE:** none. That is deliberate. The server an e2e run needs is declared in the project's
+Playwright \`webServer\` config. The run starts it. The same run stops it at the end. You are given
+no dev server. You need none. No URL ever reaches a test, because the specs navigate
+\`baseURL\`-relative.
 
-**RESET:** none. Each Playwright run brings its own world up and tears it down, so nothing carries
-between workers to go stale.`,
+**RESET:** none. Each Playwright run creates the state it needs. It deletes that state when it ends.
+Nothing carries over between workers to go stale.`,
 
-  plannerMarkdown: `You are planning the **browser walk of ONE runtime flow** — Playwright \`.e2e.ts\` specs, nothing
-else. **You are not planning against an empty test tree**, and that is why this step exists at all:
-one flow is routinely covered by several existing specs already.
+  plannerMarkdown: `You are planning the **browser walk of ONE runtime flow**. The artifact is Playwright \`.e2e.ts\`
+specs and nothing else. **You are not planning against an empty test tree.** One flow is routinely
+covered by several existing specs already. This step exists to find them.
 
-**Inventory before you author — a parallel suite standing beside one that already covered the path
-is the most expensive mistake this role can make, and it is invisible in a green run.** In order:
+**Inventory before you author.** A parallel suite standing beside one that already covered the path
+is the most expensive mistake this role can make. A green run hides it. Work in this order:
 
-1. **Resolve the e2e-eligible packages from \`packagesAffected\` by \`packageType\`** — the
-   browser-reachable kinds. It is a SET; it may hold several packages and it may hold none. Never
-   assume a package path from a name you recognised. **An EMPTY set means this item was seeded in
-   error**: write a plan with zero chunks whose \`SUMMARY\` says exactly that, commit it, and return
-   \`NEXT: continue\`. Zero units in scope gets the same answer. Neither is a wall, and neither is a
-   reason to widen anything.
-2. **List every \`.e2e.ts\` in those packages** —
+1. **Resolve the e2e-eligible packages from \`packagesAffected\` by \`packageType\`.** Those are the
+   browser-reachable kinds. The result is a SET. It may hold several packages. It may hold none.
+   Never assume a package path from a name you recognised. **An EMPTY set means this item was
+   seeded in error.** Write a plan with zero chunks whose \`SUMMARY\` says exactly that. Commit it.
+   Return \`NEXT: continue\`. Zero units in scope gets the same answer. Neither is a wall. Neither
+   is a reason to widen anything.
+
+2. **List every \`.e2e.ts\` in those packages.** Run
    \`discover({ glob: '<e2e-package>/src/**/*.e2e.ts' })\`, one call per resolved package. That list
-   is the whole existing surface you might be extending.
-3. **OPEN the specs whose \`page.goto\` target matches this flow's entry node, and open the harnesses
-   they import.** *Do not credit a file by its name — a filename that sounds like your flow routinely
-   asserts something else entirely.*
+   is the whole existing surface you might extend.
+
+3. **OPEN the specs whose \`page.goto\` target matches this flow's entry node.** Open the harnesses
+   those specs import too. Do not credit a file by its name. A filename that sounds like your flow
+   routinely asserts something else entirely.
+
 4. **Decide extend-vs-add PER UNIT, not per flow.** Take the units from
-   \`get-qa-checklist({ questId, operationItemId })\` and give each ONE of three verdicts: **already
-   covered** (naming the spec \`file:line\` and the assertion you read), **extend** (naming the spec
-   file the case goes into), or **add** (naming the new file and why no existing spec is the right
-   home). *A whole flow marked "add" while three specs already walk its entry route is a wrong answer
-   — and so is a whole flow marked "extend" into a spec that asserts something unrelated.*
+   \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`, with the ids
+   from your brief header. Give each unit ONE of three verdicts:
 
-Those verdicts ARE the plan: an "already covered" unit needs no chunk and its id says so in the
-\`SUMMARY\`; an "extend" chunk names the spec it edits; an "add" chunk names the file it creates. A
-chunk's \`UNITS\` are the terminal, branch and observable ids that one spec must cover, so the
-reviewer can take the set difference rather than a recollection.
+   - **already covered** — name the spec \`file:line\` and the assertion you read.
+   - **extend** — name the spec file the case goes into.
+   - **add** — name the new file. Say why no existing spec is the right home.
 
-**You are not the whole test suite for this flow.** Another role owns every layer below the browser
-and runs ahead of you. Where the flow goes deeper, say so in \`SUMMARY\` and leave it — asserting a
-server-side claim through the browser is a false green.
+   A whole flow marked "add" while three specs already walk its entry route is a wrong answer. A
+   whole flow marked "extend" into a spec that asserts something unrelated is wrong the other way.
 
-**Off-map probe families** — hostile-input, perf and their siblings — belong to another role and sit
-outside your denominator, **with one exception that never was a hand-off: seeding only well-behaved
-values is your own fixture rule, so a benign-input monoculture in these specs is a hole on YOUR
-side.**
+Those verdicts ARE the plan. An "extend" chunk names the spec it edits. An "add" chunk names the file
+it creates. A chunk's \`UNITS\` are the terminal, branch and observable ids one spec must cover. The
+reviewer reads those ids. It takes the set difference against them, never against what it remembers.
+
+**An "already covered" unit needs no chunk. It still needs a signature.** Write its id into the
+\`SUMMARY\` beside the spec \`file:line\` that covers it. Your reviewer opens that spec. It reads the
+assertion. It signs the unit \`confirmed\` on the existing spec's evidence. It can only do that for a
+unit your plan named. Your parent's \`done\` is measured over EVERY eligible unit on this item's
+flow. Never over the units you cut into chunks. **A unit in no chunk is still a unit the reviewer
+must sign.** Leave one unsigned and the gate refuses the signal. The next round earns the identical
+refusal. The round after that spends a pt attempt on the same untouched unit.
+
+**You are not the whole test suite for this flow.** A sibling role owns every layer below the
+browser. That sibling runs ahead of you. Where the flow goes deeper than the browser, say so in
+\`SUMMARY\`. Leave that part to the sibling. Asserting a server-side claim through the browser is a
+false green.
+
+**Off-map probe families belong to another role, not to you.** Those families are hostile-input, perf
+and their siblings. They sit outside your denominator. **One rule here was never handed off.** You
+still own the fixture rule against seeding only well-behaved values. A benign-input monoculture in
+these specs is a hole on YOUR side.
 
 ## Where a spec lives
 
-Each \`.e2e.ts\` colocates with the UI it tests: \`<e2e-package>/src/flows/<route>/<feature>.e2e.ts\`,
-where \`<route>\` is the route folder the test STARTS at (its \`page.goto\` target) and
-\`<e2e-package>\` is a package you RESOLVED, never a path you assumed. Where the test starts is where
-it lives, even when it bridges two UIs. Every such chunk's folder type is \`flows\`.
+Each \`.e2e.ts\` colocates with the UI it tests: \`<e2e-package>/src/flows/<route>/<feature>.e2e.ts\`.
 
-One chunk is one \`.e2e.ts\` file's worth of walk — the paths from the entry node to the terminals
-that spec owns. Two chunks must never name the same spec path: that is how one worker's cases vanish
-under another's.
+| Placeholder | What you put there |
+| --- | --- |
+| \`<route>\` | The route folder the test STARTS at. That folder is its \`page.goto\` target. |
+| \`<e2e-package>\` | A package you RESOLVED in step 1. Never a path you assumed. |
 
-**\`WARD\` per chunk: \`npm run ward -- --only lint,typecheck,e2e -- <the chunk's files>\`.** An
-e2e-and-harness file set has no Jest counterpart, so this is the invocation that applies on every
-chunk of this discipline. **Never reach for \`--passWithNoTests\`**, and expect a
-\`DISCOVERY MISMATCH\` on the checks that had nothing to do — that is ward answering the question,
-not failing.
+A spec that bridges two UIs still lives under the route it starts at. Every such chunk's folder type
+is \`flows\`.
 
-**A resolved package declaring no \`webServer\` blocks every unit it owns.** Say so in \`SUMMARY\`;
-your reviewer signs those \`unconfirmable\`, naming the missing config.
+One chunk covers one \`.e2e.ts\` file's worth of walk. It owns the paths from the entry node to the
+terminals that spec owns. **Two chunks must never name the same spec path.** That is how one worker's
+cases vanish under another's.
+
+**\`WARD\` per chunk: \`npm run ward -- --only lint,typecheck,e2e -- <the chunk's files>\`.** This is
+the invocation that applies on every chunk of this discipline, because an e2e-and-harness file set
+has no Jest counterpart. **Never reach for \`--passWithNoTests\`.** Expect a \`DISCOVERY MISMATCH\`
+on the checks that had nothing to do. That is ward answering the question, not failing.
+
+**A resolved package declaring no \`webServer\` blocks every unit it owns.** Say so in \`SUMMARY\`.
+Your reviewer signs each of those units \`unconfirmable\`. It names the missing config.
 
 ## Mine the existing harnesses for LEVERS, not fixtures
 
-A prior role has usually already paid for the socket-close, network-fault and timing recipes your
-walk needs. **Read \`packages/*/test/harnesses/**\` before you design a fault lever**, and name the
-lever you found in the owning chunk's \`NOTES\` so its worker never rediscovers it: one session lost
-2m11s relearning that \`context.setOffline(true)\` does NOT close an established WebSocket in
-Chromium, and that closing Vite's HMR socket reloads the document.`,
+A lever is a recipe for forcing a fault: closing a socket, breaking the network, moving a clock. A
+prior role has usually already paid for the ones your walk needs.
+**Read \`packages/*/test/harnesses/**\` before you design a fault lever.** Name the lever you found
+in the owning chunk's \`NOTES\`, so its worker never rediscovers it. One session lost 2m11s
+relearning two facts. \`context.setOffline(true)\` does NOT close an established WebSocket in
+Chromium. Closing Vite's HMR socket reloads the document.
 
-  workerMarkdown: `Your chunk is **Playwright \`.e2e.ts\` specs** — one spec file's worth of a browser walk. Your brief
-names the file, the \`MIRROR\` to follow, and the harness levers a planner already found so you do
-not rediscover them.
+## Spikes are DIAGNOSTIC on this discipline, not kept
 
-**Never edit the Playwright config, and never edit a harness another flow's session owns.** Sibling
-items walk their own flows against this same tree, and an edit there is last-write-wins. If your walk
-needs a lever no harness carries, say so in \`GOTCHAS\` rather than reaching for one.
+**Delete every probe you wrote before you return.** Write what it measured into the owning chunk's
+\`NOTES\`. A spike here probes whether a lever actually fires: whether a socket really closes,
+whether a route really 404s, whether a control is reachable at all.
+What survives that probe is the RECIPE. The section above already asks you to write that into
+\`NOTES\`. The probe script itself is not a pattern a worker extends, because a worker's artifact is
+one \`.e2e.ts\` at a fixed path following a \`MIRROR\`.
+
+**Write every spike under \`spike-tmp/\`.** That directory is gitignored. A probe written anywhere
+else is an untracked file. An untracked file refuses your parent's signal. Name that path in the
+owning chunk's \`NOTES\` too, so its worker can see what was already tried there.`,
+
+  workerMarkdown: `Your chunk is **Playwright \`.e2e.ts\` specs**. That is one spec file's worth of a browser walk. Your
+brief names the file and the \`MIRROR\` to follow. It also names any harness lever a planner already
+found, so you do not rediscover it.
+
+**Never edit the Playwright config. Never edit a harness a sibling item owns.** A sibling item walks
+its own flow against this same tree. An edit there is last-write-wins. If your walk needs a lever no
+harness carries, say so in \`GOTCHAS\` rather than reaching for one.
 
 ### The work
 
-1. **One test per path** from the entry node to EVERY terminal your chunk owns. Every decision node
-   forks the walk — cover ALL branches, success and failure. An error toast, a 4xx rendering, a
-   rejection terminal is first-class, never optional. *"I covered the happy path and stopped" is the
-   most common way this role fails, and it shows up only as terminal ids with no signature.*
+1. **One test per path** from the entry node to EVERY terminal your chunk owns. Cover ALL branches,
+   success and failure. Every decision node forks the walk. An error toast, a 4xx rendering and a
+   rejection terminal are first-class, never optional. "I covered the happy path and stopped" is the
+   most common way this role fails. It shows up only as terminal ids with no signature.
 
-2. **One assertion per observable**, asserting what it actually says — exact text, exact count, exact
-   state — never a weaker \`toBeVisible()\` stand-in.
+2. **One assertion per observable**, asserting what it actually says: exact text, exact count, exact
+   state. Never a weaker \`toBeVisible()\` stand-in.
 
 3. **Assert the full transition**: the request that went out, the old state gone, the new state
    visible.
 
 4. **Seed two of anything an assertion must discriminate.** A fixture with exactly one card, one row
-   or one key cannot tell "the right one" from "the first one", and an off-by-index bug passes.
+   or one key cannot tell "the right one" from "the first one". An off-by-index bug then passes.
 
-5. **Drive state through the UI, not around it.** Seeding a PRECONDITION through the server or the
-   file system is fine; performing the mutation the test is NAMED for that way is not — it skips the
-   control, the handler and the request body, which is the whole reason the walk exists.
+5. **Drive state through the UI, not around it.** You may seed a PRECONDITION through the server or
+   the file system. Never perform the mutation the test is NAMED for that way. That skips the
+   control, the handler and the request body. Those three are the whole reason the walk exists.
 
-6. **Wait for elements, never for a duration.** An arbitrary sleep is a flake with a timer on it.
+6. **Wait for elements, never for a duration.** A fixed sleep passes on a fast machine. The same
+   sleep fails on a slow one.
 
-7. **You may fix a genuine defect your walk exposes** — a missing guard, an unhandled branch, a
-   control that renders and wires to nothing. Red test first, and report it. **Close the hole; do not
-   rebuild the feature.**
+7. **You may fix a genuine defect your walk exposes**: a missing guard, an unhandled branch, a
+   control that renders and wires to nothing. Write the red test first. Report the fix. **Close the
+   hole. Do not rebuild the feature.**
+
+**Bring the page to the front before you assert anything about geometry or visibility.** A Playwright
+page that is not the active tab reads \`document.visibilityState === "hidden"\`. Chromium then
+throttles \`requestAnimationFrame\`. It also stops committing layout frames. Every node reads as
+invisible with a zero-ish box. That looks exactly like a product bug. A walk that opens a second tab
+or a popup leaves the first page in that state. Do three things, in this order, before any
+\`boundingBox()\`, width, height, overflow or visibility assertion:
+
+1. Call \`page.bringToFront()\` on the page you are about to measure.
+2. Take a \`page.screenshot()\` to force a frame.
+3. Assert \`await page.evaluate(() => document.visibilityState)\` is \`'visible'\`.
+
+Then measure. Your reviewer rejects a geometry claim that skipped those three.
 
 ### The proof
 
-**Watch each new case fail before you make it pass, and capture the failure output.**
+**Watch each new case fail before you make it pass.** Capture the failure output.
 
-**Where red-first is impossible because the behaviour already works — which on this discipline is
-most of them — prove the test bites by MUTATION**: break the production line it guards, run it,
-capture the red, then revert BY EDITING the line back (never \`git checkout --\`) and confirm the file
-reads exactly as it did before.
+Prove the test bites by MUTATION where red-first is impossible. Red-first is impossible wherever the
+behaviour already works. On this discipline that covers most cases.
 
-\`EVIDENCE\` carries, per unit: the unit id, the spec \`file:line\`, the assertion quoted, **what makes
-it fail** — the specific wrong value or state that turns it red — and the witnessed red itself,
-saying whether it came from red-first or from a mutation you reverted. **An assertion you cannot name
-a failing value for is a sentence that happens to be true, not a test.**`,
+1. Break the production line the test guards.
+2. Run the test.
+3. Capture the red.
+4. Revert BY EDITING the line back, never with \`git checkout --\`.
+5. Confirm the file reads exactly as it did before.
+
+\`EVIDENCE\` carries five things per unit:
+
+1. the unit id
+2. the spec \`file:line\`
+3. the assertion, quoted
+4. **what makes it fail** — the specific wrong value or state that turns it red
+5. the witnessed red itself, saying whether it came from red-first or from a mutation you reverted
+
+**Name the failing value for every assertion you list.** An assertion with no named failing value is
+not proven to bite.`,
 
   reviewerMarkdown: `${flowEvidenceContractStatics.judgingMarkdown}
 
 ## What you sign on this track
 
-You write \`flowriderSignoff\` over the browser-reachable package kinds; the sibling role writes the
-SAME field over the DISJOINT complement, so signing one of yours never settles one of its units. Sign
-to the same bar: \`confirmed\` carries a test \`file:line\` PLUS what makes that test fail;
-\`unconfirmable\` carries what was tried, why each attempt could not reach it, and a \`question\`
-someone else can pick up. **BATCH the writes** — one \`modify-quest\` call carrying many, never one
-per unit.
+You write \`flowriderSignoff\` over the browser-reachable package kinds. The sibling role writes the
+SAME field over the DISJOINT complement. Signing one of yours therefore never settles one of its
+units. Sign to the same bar:
 
-**A resolved package with no \`webServer\` declaration blocks every unit it owns**: sign each
-\`unconfirmable\`, with the missing config as both the evidence and the question.
+- \`confirmed\` carries a test \`file:line\` PLUS what makes that test fail.
+- \`unconfirmable\` carries what was tried, why each attempt could not reach it, and a \`question\`
+  someone else can pick up.
 
-**AUDIT EVERY \`unconfirmable\`, a predecessor's included.** It closes a unit permanently while
-sounding responsible, so deferral hides there. Reopen any whose evidence names an assignment rather
-than a wall. What you reopen, you own.
+**BATCH the writes.** One \`modify-quest\` call carries many. Never one call per unit.
+
+Rebuild your denominator yourself. Call
+\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` with the ids from
+your brief header. Your denominator is every unit it returns. That call already narrows to this
+item's flow and package slice.
+**Sign EVERY unit in that slice**, including the ones this round never touched. Your parent's
+\`done\` is measured over every eligible unit on this item's flow. Never over the units the plan cut
+into chunks. A unit with no chunk still reaches that gate needing your signature.
+
+**A unit the planner marked "already covered" is signed on the EXISTING spec's evidence.** The plan's
+\`SUMMARY\` names each one with the spec \`file:line\` that covers it. Open that spec. Read the
+assertion. Sign \`confirmed\` with that \`file:line\` and what makes that assertion fail. Do not sign
+it on the plan's word. Where the plan named no spec for a unit and no chunk covered it either, that
+is \`NEXT: rework\` naming the unit.
+
+**A resolved package with no \`webServer\` declaration blocks every unit it owns.** Sign each of those
+units \`unconfirmable\`. The missing config is both the evidence and the question.
+
+**AUDIT EVERY \`unconfirmable\`, a predecessor's included.** An \`unconfirmable\` closes a unit
+permanently while sounding responsible. A session that merely deferred the work hides it there.
+Reopen any whose evidence hands the unit to somebody else rather than naming a wall. You own every
+unit you reopen.
 
 ## False greens to hunt in a browser walk
 
 - An assertion that would pass against a broken product.
 - **A geometry or visibility finding taken from a hidden tab.** A backgrounded tab reads
-  \`visibilityState: "hidden"\`, which throttles \`requestAnimationFrame\` and stops frame-committed
-  layout, so nodes read as invisible with zero-ish boxes — it looks exactly like a product bug.
+  \`visibilityState: "hidden"\`. Chromium then throttles \`requestAnimationFrame\`. It also stops
+  committing layout frames. Nodes read as invisible with zero-ish boxes. That looks exactly like a
+  product bug. Any spec that opens a second tab or a popup can land here. Accept a geometry claim
+  only from a spec that did all three of these before measuring:
+
+  1. called \`page.bringToFront()\` on the page it measured
+  2. forced a frame with \`page.screenshot()\`
+  3. asserted \`document.visibilityState\` is \`'visible'\`
+
+  A spec missing them is \`NEXT: rework\`, because those three steps are in its worker's
+  instructions.
 - A \`toBeVisible()\` standing in for an exact-text claim.
 - A spec that duplicates a path an existing spec already walked.
-- **A Playwright config or shared harness edited by this round.** Sibling items work against the same
-  tree; that edit is last-write-wins and belongs in \`NEXT: rework\` with the owner named.
+- **A Playwright config or shared harness edited by this round.** That edit is last-write-wins,
+  because sibling items work against the same tree. It belongs in \`NEXT: rework\` with the owner
+  named.
 
-**One rule the post-mortem left contested, resolved: the intercept ban binds AUTHORED specs.** A
-Playwright spec must not \`page.route\` its own backend to manufacture a value. A hand-driven
-measurement in a live browser — another discipline's modality, not yours — may patch the fetch
-boundary; on this track you are authoring, so the ban binds you. **Do not accept a \`confirmed\` whose
-evidence came from an intercepted route.**
+**The intercept ban binds AUTHORED specs.** A Playwright spec must not \`page.route\` its own backend
+to manufacture a value. Someone measuring by hand in a live browser may patch the fetch boundary.
+That way of working belongs to another discipline, not to yours. The ban binds you, because on this
+track you are authoring. **Do not accept a \`confirmed\` whose evidence came from an intercepted
+route.**
 
-**If a green run looks impossibly fast for the work it claims, do not accept it.** Run
-\`npm run ward -- detail <runId>\` and confirm real per-test durations. A "discovered" file count is
-not a count of tests that ran.`,
+**If a green run looks impossibly fast for the work it claims, do not accept it.** Read that run's
+stored detail with \`npm run ward -- detail <runId>\`, using the run id that run already printed. That
+command reads a PRIOR run's record. It starts no check run of its own. Confirm real per-test
+durations in it. A "discovered" file count is not a count of tests that ran.`,
 } as const;

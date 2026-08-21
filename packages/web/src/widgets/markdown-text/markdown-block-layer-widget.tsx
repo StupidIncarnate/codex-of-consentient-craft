@@ -155,7 +155,10 @@ export const MarkdownBlockLayerWidget = ({
       ff="monospace"
       size="xs"
       mb={markdownTypographyStatics.blockGap}
-      style={{ color: colors.text }}
+      // `pre-wrap`, not `normal`, because a paragraph parsed with `preserveLineBreaks` carries its
+      // own newlines and indentation inside its spans and `normal` collapses both away. On a
+      // rejoined paragraph this is inert — that text is already one line of single-spaced words.
+      style={{ color: colors.text, whiteSpace: 'pre-wrap' }}
     >
       {spanElements}
     </Text>

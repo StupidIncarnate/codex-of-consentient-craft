@@ -362,6 +362,16 @@ Two rules the parsers exist to hold, both covered in their `.test.ts`:
    lines, so a model that hard-wraps does not render with a break at every wrap point. Per-line
    parsing looks correct on unwrapped output and shreds wrapped output — only something holding a
    buffer can tell a wrap from a deliberate blank line.
+3. **…except where the newlines ARE the structure**, which is what `preserveLineBreaks` is for.
+   Agent prose wraps; TOOL OUTPUT does not — `get-quest` puts one contract per line with its
+   properties indented beneath it, however long the line runs, and rejoining that produced a single
+   run-on sentence with every nesting level flattened out. The flag keeps the buffer (so blank lines
+   still separate paragraphs and the spacing is unchanged) and only swaps the join to `\n` and stops
+   trimming. `ToolResultContentWidget` raises it; the assistant `text` branch never does.
+   `MARKDOWN_PARAGRAPH` therefore carries `whiteSpace: 'pre-wrap'` — inert on a rejoined paragraph,
+   which is already one line of single-spaced words, and load-bearing on a preserved one. Assert the
+   style, not just `textContent`: `textContent` reports newlines the CSS would collapse, so a
+   missing `pre-wrap` renders one line while every text assertion still passes.
 
 An unterminated fence renders as a code block rather than being dropped: that is the normal shape
 of a message still streaming.
@@ -421,6 +431,11 @@ captured tool results, 87% render byte-identical to before. Two shapes get help:
    lets `ChatMessageWidget` keep string truncation without the two features having to know about
    each other.
 2. **A body authored as markdown** — the MCP doc tools, sub-agent reports, plan text.
+
+Both render through `MarkdownTextWidget` with **`preserveLineBreaks` raised** — see the markdown
+section above. A tool's answer is machine-formatted, so its newlines and indentation say where one
+logical item ended and which continuations belong to it; the rejoining that serves an agent's
+hard-wrapped prose destroys exactly that.
 
 **`isMarkdownContentGuard` counts only a heading or a fence at column ZERO, and that narrowness is
 load-bearing.** The block parser rejoins consecutive prose lines into one paragraph, so a log

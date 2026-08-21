@@ -1,156 +1,190 @@
 /**
- * PURPOSE: The single source of truth for what counts as honest flow-perspective coverage, split by
- * who needs it — `judgingMarkdown` is the criteria an artifact is accepted or rejected against, and
- * `authoringMarkdown` is the method for choosing where to assert
+ * PURPOSE: The single source of truth for what counts as honest flow-perspective coverage. The two
+ * exports split it by who needs it. A reviewer accepts or rejects a finished artifact against
+ * `judgingMarkdown`. An author reads `authoringMarkdown` to decide where to assert.
  *
  * USAGE:
  * flowEvidenceContractStatics.judgingMarkdown;
- * // Returns the evidence contract, false-green catalogue and the two-verdict sign-off vocabulary
+ * // Returns the evidence contract, a catalogue of known false greens, and the two verdicts a
+ * // sign-off may carry
  *
- * Two discipline packs interpolate these halves, and each hands a half to the session that needs it.
- * `discipline-below-browser` uses BOTH — `authoringMarkdown` into its `workerMarkdown`, because that
- * worker writes the suite, and `judgingMarkdown` into its `reviewerMarkdown`, because that reviewer
- * grades it. `discipline-browser-e2e` interpolates `judgingMarkdown` alone; its colocated test pins
- * the absence of the authoring half. The split is the same one the whole planner/worker/reviewer
- * shape rests on: the session that grades a finished artifact does not need the method that produced
- * it, and carrying both put the same 8,281 characters into two prompts at once.
+ * TWO DISCIPLINE PACKS INTERPOLATE THESE HALVES. Each pack hands a half to the session that needs
+ * it:
  *
- * Two rules in here exist because the taxonomy silently dropped whole classes of observable:
- * `cache-state` (browser storage) appeared in no modality's signal list at all, and the operational
- * modality was keyed on a flow's `flowType` even though an operational flow routinely carries
- * `ui-state` observables that still need a browser. Both are now keyed on the OBSERVABLE, not the
- * flow, because that is the level a modality is actually chosen at.
+ * 1. `discipline-below-browser` puts `authoringMarkdown` in its `workerMarkdown`, because that
+ *    worker writes the suite.
+ * 2. `discipline-below-browser` puts `judgingMarkdown` in its `reviewerMarkdown`, because that
+ *    reviewer grades the suite.
+ * 3. `discipline-browser-e2e` interpolates `judgingMarkdown` alone. Its colocated test pins the
+ *    absence of the authoring half.
  *
- * **The check-surface map is NOT restated here.** `get-qa-checklist` stamps a `checkSurface` on every
- * unit it returns, generated from `qaCheckSurfaceStatics.byOutcomeType`, and renders a legend
- * covering exactly the observable types present on that flow. Both roles fetch that checklist before
- * they author or judge anything, so an inline copy is a second, wider, staler rendering of a value
- * they already hold per unit. Siegemaster has always relied on the tool this way and carries no
- * table; this block now matches it.
+ * ONE RULE DECIDES THAT SPLIT: a reviewer does not need the method that produced the artifact it
+ * grades. The whole planner/worker/reviewer shape rests on that rule. When each pack carried both
+ * halves, the same 8,281 characters went into two prompts at once.
+ *
+ * TWO RULES HERE EXIST BECAUSE AN EARLIER TAXONOMY DROPPED WHOLE CLASSES OF OBSERVABLE.
+ * `cache-state` (browser storage) appeared in no modality's signal list at all. The operational
+ * modality was keyed on a flow's `flowType`. An operational flow routinely carries `ui-state`
+ * observables. A browser is the only place to check those. Both rules now key on the OBSERVABLE
+ * rather than the flow, because a session picks a modality one observable at a time.
+ *
+ * NEITHER BLOCK RESTATES A CHECK-SURFACE MAP OF ITS OWN. `get-qa-checklist` stamps a `checkSurface`
+ * on every unit it returns. `qaCheckSurfaceStatics.byOutcomeType` generates that string. The same
+ * tool renders a legend covering exactly the observable types present on that flow. An inline copy
+ * here would restate that value a second time, wider and staler than the per-unit one both roles
+ * already hold. Both roles fetch that checklist before they author or judge anything. Siegemaster
+ * has always read the surface off that tool. Its pack carries no table. These two blocks now match
+ * that precedent.
  */
 
 export const flowEvidenceContractStatics = {
   judgingMarkdown: `## The Evidence Contract — what makes an observable COVERED
 
-An observable is covered when all five of these exist and a reader can confirm each by opening the
-file. Fewer than five is a claim, not coverage.
+An observable is covered when all five items below exist. Four items out of five is a claim rather
+than coverage. A reader must be able to confirm every one of the five by opening the file.
 
 1. the **observable id** and its **verbatim** text from the spec
 2. the **test file and line**
 3. the **assertion itself, quoted**
-4. **what makes it fail** — the specific wrong value or state that turns it red
-5. the **witnessed red** — the actual failure output seen before the code made it pass, or the
-   mutation made and reverted to prove the test bites
+4. **what makes it fail**: the specific wrong value or state that turns it red
+5. the **witnessed red**: the failure output you saw before the code made it pass, or the mutation
+   you made and reverted to prove the test bites
 
-Item 4 catches nearly everything. "Fails if the text is wrong" is not an answer; "fails if the row
-renders the older comment first, because the assertion pins the exact order \`[newer, older]\`" is.
-An agent that cannot say what would make its assertion fail has not written a test — it has written
-a sentence that happens to be true.
+Most false claims fail at item 4. "Fails if the text is wrong" is not an answer. "Fails if the row
+renders the older comment first, because the assertion pins the exact order \`[newer, older]\`" is one.
+An assertion you cannot name a failing value for is not a test yet.
 
-**The surface each unit must be checked at comes from the checklist, never from memory.**
-\`get-qa-checklist\` stamps a \`checkSurface\` on every unit it returns. That
-string is the authoritative surface for that unit. An assertion whose layer disagrees with its unit's
-\`checkSurface\` is rejected on that basis alone — no judgement call required.
+**The checklist names the surface each unit must be checked at. Never take it from memory.**
+\`get-qa-checklist\` stamps a \`checkSurface\` on every unit it returns. That string is the
+authoritative surface for that unit. Reject an assertion whose layer disagrees with its unit's
+\`checkSurface\`. That disagreement is the entire reason. You weigh nothing else.
 
 ## Known false greens — reject on sight
 
-Every pattern below is a real false green that shipped in this repo.
+A false green is a suite that passes while the observable it claims to cover stays unproven. Every
+pattern below is a real one that shipped in this repo.
 
-- **Existence-only coverage.** "Observable X maps to test Y" with no assertion and no failure mode.
-  Matching observable ids against \`describe\` block names is name-matching, not auditing. If the
-  audit could have been done without reading the assertions, it was not an audit.
-- **Layer blindness.** The assertion cannot observe what the observable claims — a painted-geometry
-  claim asserted in jsdom, a storage-lifecycle claim asserted by calling the helper directly, a
-  spawn claim asserted against a mock. Check it against the unit's \`checkSurface\`.
+- **Existence-only coverage.** "Observable X maps to test Y", with no assertion and no failure mode.
+  Matching observable ids against \`describe\` block names is not an audit, because it opens no
+  assertion. Read every assertion you count.
+- **Layer blindness.** The assertion cannot observe what the observable claims: a painted-geometry
+  claim you assert in jsdom, a storage-lifecycle claim you prove by calling the helper directly, a
+  spawn claim you assert against a mock. Check the assertion against the unit's \`checkSurface\`.
 - **Stopping at the browser when the flow goes deeper.** Playwright proves only what the browser can
-  observe — never that the row persisted with the right shape, that the route rejected a bad payload
-  with the right status, or that a downstream side effect fired.
-- **A negative claim proved at the wrong layer.** "Zero processes spawned" and "no request issued"
-  are only provable where the real thing would have happened.
-- **Single-instance fixtures.** If the fixture holds exactly one of whatever the assertion
-  discriminates — one card, one key, one comment, one row — then "the right one" and "the first one"
-  are the same value and the test cannot tell them apart. An off-by-index bug passes. Seed at least
+  observe. It never proves that the row persisted with the right shape, that the route rejected a
+  bad payload with the right status, or that a downstream side effect fired.
+- **A negative claim proved at the wrong layer.** You can prove "zero processes spawned" and "no
+  request issued" only where the real thing would have happened.
+- **Single-instance fixtures.** A fixture holds exactly one of whatever the assertion discriminates:
+  one card, one key, one comment, one row. "The right one" and "the first one" are then the same
+  value. An off-by-index bug passes, because the test cannot tell those two apart. Seed at least
   two.
-- **Benign-input monoculture.** If every seeded value is a short, well-behaved, space-separated
-  happy-path string, the suite cannot fail. Every input class needs at least one hostile or extreme
-  member: an unbroken token with no break opportunity, a newline, empty, whitespace-only, a
+- **Benign-input monoculture.** A suite whose every seeded value is a short, well-behaved,
+  space-separated happy-path string cannot fail. Every input class needs at least one hostile or
+  extreme member: an unbroken token with no break opportunity, a newline, empty, whitespace-only, a
   duplicate, a very long value, something resembling markup.
-- **Vacuous negatives.** Asserting a count of 0, or an absence, proves nothing unless the same suite
-  shows that selector reaching non-zero. Otherwise a typo'd selector passes forever.
-- **Unwitnessed red.** No captured failing output means the test was never proven to bite.
+- **Vacuous negatives.** Assert a count of 0, or an absence, only where the same suite also shows
+  that selector reaching non-zero. Otherwise a typo'd selector passes forever.
+- **Unwitnessed red.** No captured failing output means you never proved the test bites.
 - **Self-referential tests.** A test whose real subject is the harness, a proxy, or another test is
-  not coverage. Fixture plumbing that pins nothing about the product gets deleted, not counted.
-- **A guard for an input the product cannot produce.** Legitimate only when it says plainly that it
-  is defensive. It must never be counted as covering a user-facing observable.
+  not coverage. Delete fixture plumbing that pins nothing about the product. Never count it.
+- **A guard for an input the product cannot produce.** A guard like that is legitimate only when the
+  test says plainly that it is defensive. Never count it as covering a user-facing observable.
 
 ## Verdicts — every unit carries TWO independent sign-offs
 
-A unit is settled PER TRACK, never once for everybody. \`flowriderSignoff\` answers *is this proven
-by a test?* and \`siegemasterSignoff\` answers *does it hold when a human drives the real system?*
-Each is \`{ verdict, evidence, question?, workItemId, at }\`, each carries one of exactly TWO
-verdicts, and a unit is done only when BOTH tracks have signed it. Both verdicts CLEAR the completion
-gate; what the gate refuses is the ABSENCE of a sign-off.
+A unit is settled PER TRACK, never once for everybody. Each track answers its own question:
 
-- **\`confirmed\`** — Flowrider: a test \`file:line\` PLUS what makes that test fail, which is the
-  production line you broke and the assertion that went red. Siegemaster: the value measured off the
-  running system. A test nobody has watched fail is not evidence, and an adjective never is.
-- **\`unconfirmable\`** — genuinely unable to settle this unit after real effort. \`evidence\` says
-  what was TRIED and why each attempt could not reach it, and a \`question\` naming what someone else
-  would need is REQUIRED — the contract refuses an \`unconfirmable\` that carries none.
+- \`flowriderSignoff\` answers *is this proven by a test?*
+- \`siegemasterSignoff\` answers *does it hold when a human drives the real system?*
+
+Each field holds \`{ verdict, evidence, question?, workItemId, at }\`. Each carries one of exactly
+TWO verdicts. A unit is done only when BOTH tracks have signed it. Both verdicts CLEAR the
+completion gate. The gate refuses an ABSENT sign-off. It refuses nothing else.
+
+- **\`confirmed\`** — the evidence differs by track:
+  - Flowrider: a test \`file:line\` PLUS what makes that test fail. Name the production line you
+    broke and the assertion that went red.
+  - Siegemaster: the value you measured off the running system.
+  - Both tracks: never cite a test nobody has watched fail, never cite an adjective.
+- **\`unconfirmable\`** — you genuinely could not settle this unit after real effort. \`evidence\`
+  names what you TRIED. It also says why each attempt could not reach the unit. A \`question\` naming
+  what someone else would need is REQUIRED. The contract refuses an \`unconfirmable\` that carries
+  none.
 
 **A measured defect is a NEW observable, not a third verdict.** An observable is a positive
-expectation, so "send it \`bleh\` and the server crashes instead of returning 400" is the INVERSE
-expectation and it belongs in the spec. Write down what you actually measured and ADD it to the flow
-through the additive spec authority both roles hold (\`modify-quest\`); it arrives unsigned and then
-carries its own two sign-offs like every other unit. If it cannot be closed this session it sits
-\`unconfirmable\` with that reason. There is no \`defect\`, \`deferred\`, \`gap\` or \`recorded\`
-SIGN-OFF verdict. (The standing concerns' \`blightLedger\` dispositions are a separate record with a
-vocabulary of their own; nothing here governs them.)
+expectation. "Send it \`bleh\` and the server crashes instead of returning 400" is the INVERSE
+expectation. That belongs in the spec. Write down what you measured. ADD it to the flow through the
+additive spec authority both roles hold (\`modify-quest\`). It arrives unsigned. It then carries its
+own two sign-offs, like every other unit. Sign a defect you cannot close this session as
+\`unconfirmable\`. Your evidence is why you could not close it. There is no \`defect\`, \`deferred\`,
+\`gap\` or \`recorded\` SIGN-OFF verdict. (The standing concerns' \`blightLedger\` dispositions are a
+separate record with a vocabulary of their own. Nothing here governs them.)
 
-**Provenance is a SEPARATE axis.** \`addedBy\` on the observable (\`spec\`, \`chaoswhisperer\`,
-\`codeweaver\`, \`flowrider\`, \`siegemaster\`, \`operator\`) answers "was this in the spec at approval,
-or added mid-quest, and by whom" — it never answers whether the unit is settled.
+**Provenance is a SEPARATE axis.** \`addedBy\` on the observable answers "was this in the spec at
+approval, or added mid-quest, and by whom". Its values are \`spec\`, \`chaoswhisperer\`,
+\`codeweaver\`, \`flowrider\`, \`siegemaster\` and \`operator\`. It never answers whether the unit is
+settled.
 
-**A unit nobody can settle stays UNSIGNED.** That is a real state and the gate is built for it: an
-unsigned unit is what routes the work back to another pass. Never reach for \`unconfirmable\` to
-clear a unit that simply needs a test nobody has written yet.`,
+**A unit nobody can settle after real effort is \`unconfirmable\`.** Sign it with \`evidence\` and a
+\`question\`. Never leave it blank.
+
+A blank sign-off routes nothing back to anybody, because nothing server-side reopens an unsigned
+unit. A blank also blocks the quest, because the completion gate refuses your parent's \`done\` while
+any unit carries no sign-off. A blank spends the pt chain as well. An honest \`unconfirmable\` clears
+the gate. A blank never does.
+
+**A unit that simply needs a test nobody has written yet is NOT \`unconfirmable\`.** That unit is
+work remaining, not a wall. Put it in your \`NEXT: rework\` line, where the next round picks it up.
+A verdict CLOSES a unit permanently. Never spend one on a test somebody could still write,
+because that closes the unit with nothing proving it.`,
 
   authoringMarkdown: `## Modality — chosen per OBSERVABLE, never per flow
 
-**A flow is not one technology, and neither is a node.** One flow routinely crosses a browser, an
-HTTP route, a persistence layer and a spawned process, and each of its observables is provable at
-exactly one of those layers. Read each unit's \`checkSurface\` off the checklist and assert there. A
-flow's \`flowType\` is a hint about where its centre of gravity sits — it never overrides the
-per-observable choice, and an \`operational\` flow carrying \`ui-state\` observables still needs a
-browser for those.
+**A flow is not one technology. Neither is a node.** One flow routinely crosses a browser, an HTTP
+route, a persistence layer and a spawned process. You can prove each of its observables at exactly
+one of those layers. Read each unit's \`checkSurface\` off the checklist. Assert at that surface. A
+flow's \`flowType\` is a hint about where its centre of gravity sits. It never overrides the modality
+you chose for a single observable.
 
-**Two rules compose here, and they never compete. Journey-vs-matrix chooses the test SHAPE;
-\`checkSurface\` chooses the LAYER.** The shape decides how many tests there are and what each one
-walks: a branchy flow is a JOURNEY — one test per path, driven end to end — while a set of
-independent input combinations is a MATRIX, one parameterized test over the combinations. The
-surface decides where each assertion inside that shape reads its value from. So a branchy flow is a
-journey rendered as e2e for a web surface and as integration for a non-web one; a combination matrix
-is integration. Picking the shape never licenses asserting at the wrong layer, and picking the layer
-never collapses a journey into a matrix.
+An \`operational\` flow carrying \`ui-state\` observables still needs a browser for those.
 
-**The wrong proof each type attracts.** The \`checkSurface\` says where to look; these are the
-shortcuts that look like looking:
+**Two rules compose here. They never compete.**
 
-- \`ui-state\` — jsdom for any painted claim. It has no layout engine, every measured width reads 0,
-  and the assertion passes no matter what paints. \`textContent\` proves a string is in the DOM,
-  never that a user can read it. Geometry, wrapping, clipping and visibility need a real browser.
-- \`cache-state\` — a test that calls the read/write helper directly. That proves the helper's shape
-  ONLY, never that the app reaches it on the lifecycle event the observable names (mount, reload,
-  navigation, a second tab, a sweep that runs on mount).
-- \`api-call\` — asserting a mocked fetch was called. That proves your mock, not the route. Prove it
-  from the side that makes the claim: request interception for "the browser sent this body", a
-  server-layer test for "the route answered 400 with this message".
-- \`db-query\` — a spy on the write function. It proves the call happened, never that what landed is
-  correct. Read the persisted artifact back.
-- \`process-state\` — a mocked spawner, which cannot prove the "zero processes spawned" half of the
-  claim at all.
-- \`custom\` — paraphrasing the predicate into something easier to satisfy. A \`custom\` observable is
-  not automatically operational; run what it actually asks for, and when it names a content search,
-  that search's real output IS the measured value — via \`discover({ grep, strict: true })\`, a bare
-  shell \`grep\` being blocked in this repo.`,
+1. Journey-vs-matrix chooses the test SHAPE.
+2. \`checkSurface\` chooses the LAYER.
+
+The shape decides how many tests there are. It also decides what each one walks. A branchy flow is a
+JOURNEY: one test per path, driven end to end. A set of independent input combinations is a MATRIX,
+one parameterized test over the combinations. The surface decides where each assertion inside that
+shape reads its value from. The two rules cross into three cases:
+
+- A branchy flow on a web surface is a journey rendered as e2e.
+- A branchy flow on a non-web surface is a journey rendered as integration.
+- A combination matrix is integration.
+
+Never let the shape you picked move an assertion off its \`checkSurface\`. Never let the layer you
+picked collapse a journey into one parameterized test.
+
+**The wrong proof each type attracts.** The \`checkSurface\` says where to look. Each entry below
+names the shortcut that never reaches that surface:
+
+- \`ui-state\` — you reach for jsdom on a painted claim. jsdom has no layout engine. Every measured
+  width reads 0. The assertion then passes whatever the real browser would paint. \`textContent\`
+  proves a string is in the DOM, never that a user can read it. Geometry, wrapping, clipping and
+  visibility need a real browser.
+- \`cache-state\` — you call the read/write helper directly. That call proves the helper's shape
+  ONLY. It never proves the app reaches that helper on the lifecycle event the observable names
+  (mount, reload, navigation, a second tab, a sweep that runs on mount).
+- \`api-call\` — you assert that a mocked fetch was called. That proves your mock, not the route.
+  Prove it from the side that makes the claim: intercept the request for "the browser sent this
+  body", or test the server layer for "the route answered 400 with this message".
+- \`db-query\` — you spy on the write function. The spy proves the call happened, never that what
+  landed is correct. Read the persisted artifact back.
+- \`process-state\` — you mock the spawner. A mocked spawner cannot prove the "zero processes
+  spawned" half of the claim at all.
+- \`custom\` — you paraphrase the predicate into something easier to satisfy. A \`custom\` observable
+  is not automatically operational. Run what it actually asks for. When it names a content search,
+  that search's real output IS the measured value. Run that search with
+  \`discover({ grep, strict: true })\`. A bare shell \`grep\` is blocked in this repo.`,
 } as const;

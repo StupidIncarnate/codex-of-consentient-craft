@@ -9,7 +9,25 @@ import {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
 import { codeweaverScopeBlockTransformer } from './codeweaver-scope-block-transformer';
+
+const { plannerMarkdown } = disciplineImplementationStatics;
+
+// THE PACK'S SIDE OF THE `CONTEXT:` HEADING PAIR, parsed off the live `plannerMarkdown` rather than
+// copied into a list here — a copy drifts exactly the way the prose drifts, which is the failure
+// this pin closes. The section is bounded by its own two `##` headings; inside it the pack numbers
+// the headings it tells the planner to look for, and item 4's name is the one its `NOTES` checklist
+// tells the planner to QUOTE. `discipline-implementation-statics.test.ts` parses it identically, so
+// the two sides cannot disagree about what an enumerated name is.
+const CONTEXT_SECTION = plannerMarkdown.slice(
+  plannerMarkdown.indexOf('## Your denominator is the `CONTEXT:` block in your brief'),
+  plannerMarkdown.indexOf('## Cut the cell into CHUNKS'),
+);
+
+const ENUMERATED_CONTEXT_HEADINGS = Array.from(
+  CONTEXT_SECTION.matchAll(/^\d\. `(?<heading>[^`]+)`/gmu),
+).map((match) => match.groups?.heading ?? '');
 
 const SHARED_ENTRY = QuestPackageEntryStub({
   name: 'shared',
@@ -687,6 +705,111 @@ describe('codeweaverScopeBlockTransformer', () => {
         '  - StatusKeyedStaticsFanout (data, modified) [packages/shared/src/statics/quest-hydrate-strategy/hydrate-statics.ts]',
         '      questHydrateStrategyStatics.strategies: Both new statuses need an entry or the key-set equality test fails',
       ]);
+    });
+  });
+
+  // CROSS-FILE PAIR — this transformer ←→ `disciplineImplementationStatics.plannerMarkdown`. What
+  // this transformer splices into the `CONTEXT:` section of a codeweaver operator's prompt is the
+  // planner's WHOLE denominator: the pack tells it "no checklist tool answers it", enumerates the
+  // headings this file emits so the planner can find its acceptance targets inside a block its
+  // parent pasted in whole, and its chunk-`NOTES` checklist depends on item 4 — `Design decisions
+  // constraining your nodes` — by name, telling the planner to quote that text rather than call
+  // `get-quest` for it.
+  //
+  // The pin lives on THIS side because it is the only side that can hold both halves live:
+  // `folderConfigStatics.statics.allowedImports` is `['statics/']`, so a test under `statics/`
+  // cannot import a transformer at all, while a test under `transformers/` may import statics.
+  //
+  // What breaks if they diverge: nothing. Silently. An added, dropped, renamed or reordered heading
+  // leaves the pack's enumeration stale, the planner hunts for a heading nothing renders, finds no
+  // acceptance targets under it, and plans the cell against the ledger's label — the one source the
+  // pack's own authority order puts LAST. An audit already caught this once, with the pack listing
+  // four while this file emitted five, and the missing one was precisely the heading the `NOTES`
+  // checklist told the planner to quote.
+  describe('the CONTEXT: headings the implementation pack enumerates', () => {
+    it('VALID: {a cell exercising all five sections} => every heading it emits is opened by the enumerated name at that position', () => {
+      const operationItem = OperationItemStub({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        text: 'Codeweaver: build this slice — server: warpgate-merge',
+        status: 'in_progress',
+        flowIds: ['warpgate-merge'],
+        packageNames: ['server'],
+      });
+
+      // One glue node carrying a server observable, a server-sourced contract and a design decision
+      // is enough to open all five sections, so every heading below is one this transformer really
+      // emitted rather than one assumed to exist.
+      const quest = QuestStub({
+        packagesAffected: [SERVER_ENTRY, WEB_ENTRY],
+        operations: [operationItem],
+        designDecisions: [
+          DesignDecisionStub({
+            id: 'sign-sessions-with-hs256',
+            title: 'Sign sessions with HS256',
+            rationale: 'verification stays in-process for the single-node deployment',
+            relatedNodeIds: ['press-warp'],
+          }),
+        ],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'session-token',
+            name: 'SessionToken',
+            kind: 'data',
+            status: 'new',
+            source: 'packages/server/src/contracts/session-token/session-token-contract.ts',
+            nodeId: 'press-warp',
+            properties: [
+              {
+                name: 'value',
+                type: 'SessionTokenValue',
+                description: 'The signed token, opaque to the browser',
+              },
+            ],
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            nodes: [
+              FlowNodeStub({
+                id: 'press-warp',
+                label: 'Press warp',
+                packages: ['server', 'web'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'merge-route-returns-202',
+                    type: 'api-call',
+                    description: 'POST /api/quests/:questId/merge returns 202',
+                    package: 'server',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      // A heading is a rendered line starting in column zero — which is neither the blank separator
+      // pushed before it nor any of the indented detail lines pushed under it. Harvested from the
+      // real output, never listed here.
+      const emittedHeadings = codeweaverScopeBlockTransformer({ quest, operationItem })
+        .map(String)
+        .filter((line) => /^\S/u.test(line));
+
+      // Positional match, so a renamed heading, a reordered pair and a sixth section all come out
+      // false rather than passing on set membership.
+      expect({
+        emittedCount: emittedHeadings.length,
+        enumeratedCount: ENUMERATED_CONTEXT_HEADINGS.length,
+        eachEnumeratedNameOpensTheHeadingAtThatPosition: emittedHeadings.map((heading, index) =>
+          heading.startsWith(String(ENUMERATED_CONTEXT_HEADINGS[index])),
+        ),
+      }).toStrictEqual({
+        emittedCount: 5,
+        enumeratedCount: 5,
+        eachEnumeratedNameOpensTheHeadingAtThatPosition: [true, true, true, true, true],
+      });
     });
   });
 });
