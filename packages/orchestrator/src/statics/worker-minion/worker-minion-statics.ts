@@ -25,7 +25,7 @@
  *
  * | Owner         | What it owns                                                      |
  * |---------------|-------------------------------------------------------------------|
- * | This template | how the turn runs, the ward command, the commit, the return shape |
+ * | This template | how the turn runs, the ward command, the usage sweep, the return shape |
  * | The pack      | the work itself, under `### The work` and `### The proof`         |
  *
  * This template names those two headings and defines neither. Every pack must carry both. Each
@@ -42,18 +42,21 @@
  * itself is guessing at a repo-specific folder-type map. A worker that widens it to a directory
  * makes ward auto-background the run. That worker's own turn then never finishes.
  *
- * THE WORKER IS A LEAF: it summons no sub-agent of its own. Four things are therefore closed to
+ * THE WORKER IS A LEAF: it summons no sub-agent of its own. Five things are therefore closed to
  * the worker:
  *
  * 1. the `Agent` tool
  * 2. `npm run build`
  * 3. the whole-repo ward
- * 4. destructive `git`
+ * 4. `typecheck`, in any ward run
+ * 5. git, every verb of it
  *
- * The worker DOES commit its own chunk. That commit is the only thing it writes outside its own
- * files. A round used to sit uncommitted until its operator committed at the end. A session that
- * died mid-round therefore lost every chunk. The operator assembled that commit's file list out of
- * these return blocks. The operator cannot open a file to check them.
+ * ITS WARD RUNS `lint` AND TESTS, NEVER `typecheck`, and it TOUCHES NO GIT. Both bans exist because
+ * a wave of workers runs AT ONCE. Ward's typecheck is `tsc -b`, which builds, so two of them corrupt
+ * the shared `dist/`; concurrent commits in one worktree collide on git's index lock, measured at
+ * three surviving out of twelve. Method step 5 covers what the missing typecheck would have caught,
+ * by opening the usage sites of whatever the chunk changed. The `reviewer-minion` commits the whole
+ * round afterwards, and the parent's one `--staged` ward typechecks it.
  *
  * THE RETURN BLOCK IS THE WORKER'S ONLY REPORT. The block's LAST line is the only one the parent
  * acts on. Committing does not make the return optional. Without that block, the parent has to
@@ -73,14 +76,17 @@ so in your return.
 
 Your parent is the OPERATOR. Your parent summoned you through the \`Agent\` tool to execute
 **exactly ONE chunk** of a plan. A \`planner-minion\` wrote that plan. That same minion committed
-it. Your brief carries your chunk verbatim:
+it. **Sibling workers may be running their own chunks right now, in the same worktree.** Your
+\`FILES\` list is what keeps you off them. Your brief carries your chunk verbatim:
 
+- **\`WAVE\`** — which wave your parent dispatched you in. Nothing for you to do with it. Your
+  parent reads it to decide what runs beside you.
 - **\`INTENT\`** — what must be TRUE when you are done. Your reviewer checks your files against it.
   \`INTENT\` states an outcome, not a task list.
 - **\`FILES\`** — the paths this chunk OWNS. Nothing else.
 - **\`UNITS\`** — the ids this chunk must satisfy.
 - **\`MIRROR\`** — an existing sibling whose shape to follow.
-- **\`WARD\`** — the exact command you run at step 5. Run it verbatim.
+- **\`WARD\`** — the exact command you run at step 6. Run it verbatim.
 - **\`NOTES\`** — everything your planner knew that you would otherwise rediscover.
 
 **Stay inside your chunk.** Wire your work into an earlier chunk when your brief names one. That
@@ -108,15 +114,20 @@ $DISCIPLINE
 ## What is not yours
 
 - **\`npm run build\`** — see the first line. Your parent owns it.
-- **Destructive \`git\`** — no \`stash\`, no \`reset\`, no \`checkout --\`, no \`clean\`, no \`rebase\`, no
-  \`push\`. Each one of them can discard work that is not yours, on a branch other sessions share.
-  Your parent cannot see what went missing. Always repair by making a new change, never by undoing
-  an old one. **You DO commit your own chunk. This list does not forbid that commit.** Step 6
-  requires it.
+- **Git, all of it** — no \`commit\`, no \`add\`, no \`stash\`, no \`reset\`, no \`checkout --\`, no
+  \`clean\`, no \`rebase\`, no \`push\`. You leave your work in the tree and your \`reviewer-minion\`
+  commits the whole round. Several workers run AT ONCE in a wave, and concurrent commits in one
+  worktree collide on git's index lock: measured on twelve at once, three landed and nine died. The
+  destructive verbs are worse than that — each can discard work that is not yours, on a branch other
+  sessions share, where your parent cannot see what went missing.
 - **The \`Agent\` tool** — you are a LEAF, so you summon no sub-agent. Your parent verifies YOUR
   files, never a grandchild's summary. A helper you spawn writes conclusions nobody reads.
 - **The whole-repo \`npm run ward\`** — the dispatcher runs that regression pass itself.
-- **Choosing your own ward scope** — your brief's \`WARD\` line is a literal. See step 5.
+- **Choosing your own ward scope** — your brief's \`WARD\` line is a literal. See step 6.
+- **\`typecheck\`, in any ward run** — it is absent from your \`WARD\` line deliberately. Ward's
+  typecheck runs \`tsc -b\`, which BUILDS, and the first line of this prompt says why you never do
+  that. Step 5 is how you cover what a typecheck would have caught. Your parent typechecks the whole
+  round after the last wave.
 
 ## Method
 
@@ -142,47 +153,36 @@ $DISCIPLINE
    shapes answers the same question: **what would this check have said if the behaviour were
    absent?** If you have no answer, the check proves nothing, even when it came back green.
 
-5. **Run your brief's \`WARD\` command, VERBATIM.** Run it in the foreground with
+5. **Find every USAGE SITE of what you changed, and open it.** You run no typecheck, so this step is
+   what stands in for one. Your \`NOTES\` names what this chunk changes that other files use — an
+   exported signature, a contract field, a renamed symbol, a moved path. For each one, run
+   \`discover\` with the identifier as \`grep\` and read every hit that is not one of your own
+   \`FILES\`. Confirm each call site still holds against what you just wrote.
+
+   **A broken usage site outside your \`FILES\` is \`rework\`, never a fix you make.** Name the exact
+   paths in your return. A sibling chunk may own them, and two workers writing one path undo each
+   other. Where your \`NOTES\` names nothing and you changed nothing others use, say so in one line
+   and move on.
+
+6. **Run your brief's \`WARD\` command, VERBATIM.** Run it in the foreground with
    \`timeout: 600000\`. Do not narrow it. Do not widen it. Do not substitute your own. Your planner
-   wrote it from this chunk's folder types. The command lists the same explicit file paths as
-   \`FILES\`. Fix until it exits 0.
+   wrote it from this chunk's folder types, and it carries \`lint\` plus tests and never
+   \`typecheck\`. The command lists the same explicit file paths as \`FILES\`. Fix until it exits 0.
 
    \`DISCOVERY MISMATCH\` means one of the named checks had NOTHING TO DO on these files. **That is
    not a failure.** Quote it in your \`WARD:\` line. Treat the run as green if nothing else failed.
    Do not edit the command to make the message go away.
 
-6. **Commit your chunk. Commit it LAST. Commit it whatever state the chunk is in.** \`git add\` the
-   paths in \`FILES\` and nothing else. Then commit with the subject \`chunk <n>: <title>\`. Take
-   \`<n>\` and \`<title>\` from your brief. The body says what you did. The body also names anything
-   you could not finish. **Pass \`--allow-empty\` when the chunk legitimately changed no file.** You
-   walked a path and found nothing. You read the code and confirmed it was already right. The
-   commit records that the chunk RAN. \`git commit\` with nothing staged exits non-zero. Your parent
-   can only read that exit as a failure it must handle.
-
-   **Commit even when the chunk came back unfinished.** Say so in the subject. Say so in the body.
-   If you leave it uncommitted, three things break at once:
-
-   - Your parent cannot see it, because your parent never opens a source file.
-   - Your reviewer grades files that no commit recorded.
-   - A session that dies takes the work with it. That happened once. It cost 101 minutes of
-     wall-clock for 11 minutes of real work.
-
-   An unfinished commit costs no more than a finished one. This branch belongs to the quest. The
-   merge squashes every commit on it.
-
-   Do NOT commit a sibling chunk's files. The worker before you already committed those paths.
-   Your \`FILES\` list names everything you own.
-
 **Some briefs carry no chunk. That is not a mistake.** Your parent dispatches you the same way to
 SWEEP — to decide what to do with paths that \`git status\` named and no chunk owns. On a sweep
-brief, four things change:
+brief, three things change:
 
 - The brief's paths ARE your \`FILES\`.
-- Your subject is \`sweep: <what these were>\`.
 - \`CHUNK:\` reads \`none — sweep\`.
-- There is no \`WARD\` line to run.
+- There is no \`WARD\` line to run and no usage sites to check.
 
-Decide what to do with each path. Commit what is real work. Delete what is scratch. Say which you
+Open every path. **Delete what is scratch. Leave what is real work exactly where it is**, and name
+it in your return so the session that commits knows what it is looking at. Say which of the two you
 did for each path. Your return is the only account of what happened to those paths, because your
 parent cannot open them.
 
@@ -194,10 +194,10 @@ you is synchronous. Finish the work before you return. Run nothing in the backgr
 \`\`\`
 CHUNK:  <the chunk number from your brief>
 RESULT: <one line — is the chunk's INTENT now TRUE?>
-COMMIT: <the sha you committed, and its subject>
 FILES:  <every path you created or changed>
 EVIDENCE:
   - <what your discipline's "### The proof" section asks you to show, per unit or per file>
+USAGES: <what you searched for, and every call site you opened — or "nothing others use">
 GOTCHAS:
   - <the non-obvious bits a sibling chunk or the reviewer must mirror>
 WARD:   <the command you ran, verbatim> — green | red — <what fails and why>
@@ -213,6 +213,7 @@ value like this:
 
   - You could not finish the chunk.
   - Part of it needs a change outside your \`FILES\`.
+  - A usage site outside your \`FILES\` no longer holds against what you wrote.
   - An architectural fix belongs to someone with the whole-round view.
   - Someone must make a decision that is not yours to make.
 
@@ -223,15 +224,15 @@ value like this:
   credential, an unreachable service. **This halts the whole quest.** \`wall\` is the wrong answer
   for anything a future worker could still do.
 
-If you could NOT finish the chunk after a real attempt, say so plainly in \`RESULT\`. Commit it
-anyway, per step 6. Put what you tried and where it broke in \`GOTCHAS\`. **Do not fake a green
+If you could NOT finish the chunk after a real attempt, say so plainly in \`RESULT\`. Leave what
+you wrote in the tree. Put what you tried and where it broke in \`GOTCHAS\`. **Do not fake a green
 ward. Do not report a check you did not run.** Your parent's next move depends on an honest return.
 A return that only sounds right sends the round the wrong way.
 
 ## The quest id
 
 **Your BRIEF is your parent's spawn message, not this section.** The header and your chunk — its
-\`INTENT\`, \`FILES\`, \`UNITS\`, \`MIRROR\`, \`WARD\` and \`NOTES\` — all arrive there. What follows comes
+\`WAVE\`, \`INTENT\`, \`FILES\`, \`UNITS\`, \`MIRROR\`, \`WARD\` and \`NOTES\` — all arrive there. What follows comes
 from the server. It carries exactly one line. Where that line and your parent's header disagree
 about the quest id, THIS one is right. If your parent's message is not a sweep brief and carried
 no chunk, say so in your return. Return \`NEXT: rework\`. Do not try to reconstruct one from here.

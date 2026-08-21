@@ -4,7 +4,6 @@ import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-opera
 import { operatorPromptStatics } from '../operator-prompt/operator-prompt-statics';
 import { plannerMinionStatics } from '../planner-minion/planner-minion-statics';
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
-import { workerMinionStatics } from '../worker-minion/worker-minion-statics';
 import { reviewerMinionStatics } from './reviewer-minion-statics';
 
 const { template } = reviewerMinionStatics.prompt;
@@ -23,15 +22,12 @@ const METHOD = template.slice(
 // ================================================================================================
 const OPERATOR = operatorPromptStatics.prompt.template;
 const PLANNER = plannerMinionStatics.prompt.template;
-const WORKER = workerMinionStatics.prompt.template;
-
-const FLAT_TEMPLATE = template.replace(/\s+/gu, ' ');
 
 // The operator's ROUND brief for this minion, and its POST-REFUSAL brief — the only two dispatches
 // this template is ever read under.
 const ROUND_BRIEF_OPENS = OPERATOR.indexOf(
   '```',
-  OPERATOR.indexOf('**6. Dispatch ONE `reviewer-minion`**'),
+  OPERATOR.indexOf('**7. Dispatch ONE `reviewer-minion`**'),
 );
 const OPERATOR_ROUND_BRIEF = OPERATOR.slice(
   ROUND_BRIEF_OPENS + 3,
@@ -62,9 +58,6 @@ const OPERATOR_BRIEF_HEADER = OPERATOR.slice(
 const REFUSAL_LITERAL =
   /\*\*Read a `([^`]+)` line before anything else in the brief\.\*\*/u.exec(template)?.[1] ??
   'THIS TEMPLATE KEYS ON NO REFUSAL LINE';
-const SKIP_WARD_LITERAL =
-  /\*\*Skip this step when your brief says `([^`]+)`\.\*\*/u.exec(template)?.[1] ??
-  'THIS TEMPLATE KEYS ON NO SKIP-WARD LINE';
 const SCOPE_LITERAL =
   /instead when your brief says\s+`([^`]+)`\.\*\*/u.exec(template)?.[1] ??
   'THIS TEMPLATE KEYS ON NO SCOPE LINE';
@@ -124,8 +117,6 @@ const FIELDS_STEP_TWO_GRADES = Array.from(
 
 // The subject every worker on the round commits under, and the id this session's checklist call
 // needs — both of which reach it from somewhere else entirely.
-const WORKER_CHUNK_SUBJECT =
-  /Then commit with the subject `([^`]+)`/u.exec(WORKER)?.[1] ?? 'THE WORKER NAMES NO SUBJECT';
 const CHECKLIST_ID =
   /get-blight-checklist\(\{ questId: '([A-Z_]+)'/u.exec(template)?.[1] ??
   'THIS TEMPLATE NAMES NO QUEST ID';
@@ -184,7 +175,7 @@ describe('reviewerMinionStatics', () => {
         "**Your BRIEF is your parent's spawn message, not this section.**",
       ),
       namesWhatArrivesThere: has(
-        "- the header;\n- the plan file's path;\n- every worker return;\n- any `REFUSAL:` / `SCOPE: quest` / `SKIP WARD` line.",
+        "- the header;\n- the plan file's path;\n- the `WARD:` block from your parent's own run;\n- every worker return;\n- any `REFUSAL:` / `SCOPE: quest` line.",
       ),
       oneLineOnly: has('It carries exactly one line.'),
       thisOneWins: has('the quest id, THIS one is right'),
@@ -210,7 +201,7 @@ describe('reviewerMinionStatics', () => {
   // returns" fallback, instead of letting the session grade itself degraded.
   it('VALID: the last section => reads REFUSAL first and treats its units as the re-review scope', () => {
     expect({
-      inTheBriefInventory: has('any `REFUSAL:` / `SCOPE: quest` / `SKIP WARD` line.'),
+      inTheBriefInventory: has('any `REFUSAL:` / `SCOPE: quest` line.'),
       readItFirst: has('**Read a `REFUSAL:` line before anything else in the brief.**'),
       verbatimFromSignalBack: has(
         'It is the message `signal-back` threw\nat your parent, verbatim.',
@@ -258,8 +249,8 @@ describe('reviewerMinionStatics', () => {
       turnEndRole: false,
       turnEndMinion: true,
       background: true,
-      wardScoped: true,
-      wardNone: false,
+      wardScoped: false,
+      wardNone: true,
       delegationSynchronous: false,
       delegationSpike: false,
       delegationLeafBan: true,
@@ -506,25 +497,45 @@ describe('reviewerMinionStatics', () => {
       });
     });
 
-    it('VALID: step 7 => states why the fix commit has to precede the enumeration', () => {
+    it('VALID: step 7 => commits the WHOLE round, and says why that has to precede the enumeration', () => {
       expect({
-        notAPreference: has('**Do NOT enumerate\n   before this commit lands.**'),
+        theWholeRound: has('7. **COMMIT THE WHOLE ROUND**, before anything in step 8 runs.'),
+        noWorkerCommitted: has('**No worker committed anything.**'),
+        theWaveIsWhy: has(
+          "A\n   wave of them runs at once, and concurrent commits in one worktree collide on git's index lock —\n   measured at three surviving out of twelve.",
+        ),
+        theirsAndYours: has(
+          'So every file this round produced is sitting in the\n   tree right now, theirs and your fixes together.',
+        ),
+        addAll: has('Run `git add -A`, then commit with the subject'),
+        subject: has('`round <n>: <what the round made true>`'),
+        onePerChunkInTheBody: has('one line per chunk in the body saying what landed'),
+        allowEmpty: has('Pass `--allow-empty` if the round genuinely changed nothing.'),
+        onlyYouOpenedThem: has('**You are the only session that can write that commit honestly**'),
+        unexplainedPathsGoUp: has(
+          'A path you cannot account for still goes in — but name it\n   in your return as well',
+        ),
+        notAPreference: has('**Do NOT enumerate before this commit lands.**'),
         readsCommittedHistory: has('Step 8 reads COMMITTED history.'),
         gateIncludesThisCommit: has(
-          "Your parent's completion gate\n   measures a range that includes this commit.",
+          "Your parent's\n   completion gate measures a range that includes this commit.",
         ),
         theCost: has('It reaches that gate carrying no disposition.'),
-        refusesOverYourOwnFiles: has('the files only you touched'),
-        allowEmpty: has('`--allow-empty` if you fixed nothing'),
-        subject: has('subject `review <n>: fixes`'),
       }).toStrictEqual({
+        theWholeRound: true,
+        noWorkerCommitted: true,
+        theWaveIsWhy: true,
+        theirsAndYours: true,
+        addAll: true,
+        subject: true,
+        onePerChunkInTheBody: true,
+        allowEmpty: true,
+        onlyYouOpenedThem: true,
+        unexplainedPathsGoUp: true,
         notAPreference: true,
         readsCommittedHistory: true,
         gateIncludesThisCommit: true,
         theCost: true,
-        refusesOverYourOwnFiles: true,
-        allowEmpty: true,
-        subject: true,
       });
     });
 
@@ -558,48 +569,76 @@ describe('reviewerMinionStatics', () => {
   // parent pushes once at the end of each one. `scope: 'unpushed'` measures the identical boundary.
   // The two tools therefore cannot disagree about what the round was.
   describe('the round ward', () => {
-    it('VALID: step 5 => runs --staged, alone, and says why it needs no flags', () => {
+    it('VALID: step 5 => READS the parent --staged result and runs none of its own', () => {
       expect({
-        command: has("**Run the round's ward: `npm run ward -- --staged`.**"),
-        foregroundWithTimeout: has('Foreground, `timeout: 600000`.'),
-        noFlagsNoFileList: has('One\n   command, no flags, no file list'),
-        everyCheckType: has(
-          '`--staged` takes every check type over every source file that\n   origin does not have yet',
+        readIt: has("5. **READ the round's ward result out of your brief.**"),
+        theParentRanIt: has(
+          'Your parent ran `npm run ward -- --staged`\n   after the last wave and pasted the output in verbatim.',
         ),
-        wardRejectsNarrowing: has('Ward REJECTS it combined with `--only` or a file\n   list.'),
-        parentRunsNone: has('Your parent runs no ward at all.'),
-        workersProvedTheirOwn: has('Each worker only proved its own chunk.'),
-        oneRerun: has('re-run step 5 ONCE'),
-        stillRedIsRework: has('Still red → that is your `NEXT: rework`'),
+        everyCheckType: has(
+          'That is every check type over every source\n   file origin does not have yet, which IS this round.',
+        ),
+        youRunNone: has('**You run none yourself**'),
+        theOnlyTypecheck: has(
+          "that one run of\n   your parent's is the only thing that has TYPECHECKED anything",
+        ),
+        soThatIsWhereContractBreaksShow: has(
+          'so a broken contract or a stale\n   call site shows up there and nowhere else',
+        ),
+        aMissingBlockIsSaidOutLoud: has(
+          '**A brief carrying no ward block is one your parent could not run.**',
+        ),
+        andYouStillGrade: has('grade what you can from the files themselves'),
+        andRunsNoCommandOfItsOwn: has("**Run the round's ward: `npm run ward -- --staged`.**"),
       }).toStrictEqual({
-        command: true,
-        foregroundWithTimeout: true,
-        noFlagsNoFileList: true,
+        readIt: true,
+        theParentRanIt: true,
         everyCheckType: true,
-        wardRejectsNarrowing: true,
-        parentRunsNone: true,
-        workersProvedTheirOwn: true,
-        oneRerun: true,
-        stillRedIsRework: true,
+        youRunNone: true,
+        theOnlyTypecheck: true,
+        soThatIsWhereContractBreaksShow: true,
+        aMissingBlockIsSaidOutLoud: true,
+        andYouStillGrade: true,
+        andRunsNoCommandOfItsOwn: false,
       });
     });
 
-    // The parent dispatches the post-push re-review after it has pushed, so both the `--staged`
-    // window and the `unpushed` window are empty. Each exception is keyed on a literal the parent
-    // writes into the brief, so neither one is a judgement this session makes.
-    it('VALID: template => carries both post-push brief exceptions, keyed on a literal', () => {
+    // The reviewer cannot check its own fixes, because it runs no ward. The parent's second
+    // `--staged` is that check, and it is keyed on this session's own `FIXES MADE` block.
+    it('VALID: step 6 => hands its fixes to the parent to re-check rather than re-running a ward', () => {
       expect({
-        skipWard: has('**Skip this step when your brief says `SKIP WARD`.**'),
-        skipWardReason: has('The round it would measure is already\n   published'),
+        cannotRecheck: has('**You cannot re-run the ward to check your own fixes.**'),
+        listThemInFixesMade: has(
+          'List every one of them in the\n   `FIXES MADE` block of your return instead.',
+        ),
+        theParentRerunsIt: has(
+          'Your parent re-runs `npm run ward -- --staged` after\n   you, precisely because you made fixes',
+        ),
+        stillRedIsNextRoundsScope: has("a still-red result becomes the next round's scope"),
+        unfixableIsRework: has(
+          'A red\n   you could not fix at all is your `NEXT: rework`, carrying the failing output verbatim.',
+        ),
+      }).toStrictEqual({
+        cannotRecheck: true,
+        listThemInFixesMade: true,
+        theParentRerunsIt: true,
+        stillRedIsNextRoundsScope: true,
+        unfixableIsRework: true,
+      });
+    });
+
+    // The parent dispatches the post-push re-review after it has pushed, so the `unpushed` window
+    // is empty. That exception is keyed on a literal the parent writes into the brief, so it is not
+    // a judgement this session makes.
+    it('VALID: template => carries the post-push scope exception, keyed on a literal', () => {
+      expect({
         scopeQuest: has(
           "**Use `scope: 'quest'` instead when your brief says\n   `SCOPE: quest`.**",
         ),
         scopeQuestReason: has('where `unpushed` comes back empty'),
-        sameBoundary: has("`unpushed` is the same boundary step 5's `--staged` used"),
-        cannotDisagree: has('so the two cannot\n   disagree about what this round was'),
+        sameBoundary: has("`unpushed` is the same boundary your parent's `--staged` run used"),
+        cannotDisagree: has('so the two\n   cannot disagree about what this round was'),
       }).toStrictEqual({
-        skipWard: true,
-        skipWardReason: true,
         scopeQuest: true,
         scopeQuestReason: true,
         sameBoundary: true,
@@ -718,17 +757,19 @@ describe('reviewerMinionStatics', () => {
     expect({
       build: has('- **`npm run build`** — your parent already built'),
       destructiveGit: has('- **Destructive `git`**'),
-      commitsAreRequired: has(
-        '**Committing your own fixes and\n  your verdict is NOT on this list.**',
+      theRoundIsUncommittedWhenYouArrive: has(
+        "The whole round is UNCOMMITTED when you arrive, so any of those verbs discards work no\n  commit is holding — every worker's, not just your own.",
       ),
+      commitsAreRequired: has('**Committing the round and your\n  verdict is NOT on this list.**'),
       agentTool: has('- **The `Agent` tool** — you are a LEAF.'),
-      noSecondRoundScopedWard: has('- **A SECOND round-scoped ward.**'),
+      theRoundsWardIsTheParents: has("- **The round's ward.**"),
     }).toStrictEqual({
       build: true,
       destructiveGit: true,
+      theRoundIsUncommittedWhenYouArrive: true,
       commitsAreRequired: true,
       agentTool: true,
-      noSecondRoundScopedWard: true,
+      theRoundsWardIsTheParents: true,
     });
   });
 
@@ -741,11 +782,14 @@ describe('reviewerMinionStatics', () => {
   //
   // Step 6's own red-first instruction contradicted that entry too. What the ban forbids is a
   // second WHOLE-ROUND ward. It also forbids a different scope for the round's own pass.
-  it('VALID: the ward ban => bans a second round-scoped run and permits a single-file one', () => {
+  it('VALID: the ward ban => sends the round-scoped run to the parent and permits a single-file one', () => {
     expect({
-      oneRoundScopedWardOnce: has('One round-scoped ward, once, plus the one re-run in step 6.'),
-      noOtherScopeForTheRound: has("Do not\n  give the round's own pass a different scope either."),
-      stagedIsTheBoundary: has('`--staged` is the boundary step 8 measures'),
+      theParentRunsItTwice: has(
+        'Your parent runs it, once, before it dispatches you, and once more after\n  you.',
+      ),
+      noStagedOfYourOwn: has(
+        "Do not run `--staged` yourself and do not run the round's pass under some other scope.",
+      ),
       narrowRunIsNotBanned: has('**A run over ONE file or ONE test is not on this list.**'),
       witnessingARed: has('- you witness a red before you fix it;'),
       provingAMutation: has('- you revert a line to see whether a test fails;'),
@@ -753,9 +797,8 @@ describe('reviewerMinionStatics', () => {
       disciplineMayRequireIt: has('Your discipline above may require one as proof.'),
       noBlanketBan: has("Any ward but step 5's"),
     }).toStrictEqual({
-      oneRoundScopedWardOnce: true,
-      noOtherScopeForTheRound: true,
-      stagedIsTheBoundary: true,
+      theParentRunsItTwice: true,
+      noStagedOfYourOwn: true,
       narrowRunIsNotBanned: true,
       witnessingARed: true,
       provingAMutation: true,
@@ -793,40 +836,40 @@ describe('reviewerMinionStatics', () => {
   // ============================================================================================
   describe('agreements with the operator above it and the two minions beside it', () => {
     // SPANS operator-prompt-statics.ts (it WRITES the post-refusal brief) ↔ this file (it is the
-    // only reader). Three overrides ride in that brief and each one changes what this session
-    // does: `REFUSAL:` carries the outstanding units no tool hands back, `SCOPE: quest` widens the
-    // enumeration that would otherwise come back empty, and `SKIP WARD` drops a run that would
-    // measure a round already pushed. All three are matched by SPELLING. Reword one on either side
-    // and this session silently runs the default path, earning its parent the identical refusal.
-    it('VALID: {operator post-refusal brief, reviewer} => handles all three overrides the operator writes, spelled identically', () => {
+    // only reader). Two overrides ride in that brief and each changes what this session does:
+    // `REFUSAL:` carries the outstanding units no tool hands back, and `SCOPE: quest` widens the
+    // enumeration that would otherwise come back empty. Both are matched by SPELLING. Reword one on
+    // either side and this session silently runs the default path, earning its parent the identical
+    // refusal. There is no `SKIP WARD` on either side any more: this session runs no ward at all.
+    it('VALID: {operator post-refusal brief, reviewer} => handles both overrides the operator writes, spelled identically', () => {
       expect({
         operatorWritesTheRefusalLine: REFUSAL_BRIEF_LINES.filter((line) =>
           line.startsWith(REFUSAL_LITERAL),
         ).length,
         operatorWritesTheScopeLineExactly: REFUSAL_BRIEF_LINES.includes(SCOPE_LITERAL),
-        operatorWritesTheSkipWardLine: REFUSAL_BRIEF_LINES.filter((line) =>
-          line.startsWith(SKIP_WARD_LITERAL),
-        ).length,
         theScopeLinesValueIsTheArgumentThisTemplatePasses: SCOPE_LITERAL.endsWith(SCOPE_ARGUMENT),
-        theBriefInventoryHereListsAllThree: has(
-          `any \`${REFUSAL_LITERAL}\` / \`${SCOPE_LITERAL}\` / \`${SKIP_WARD_LITERAL}\` line.`,
+        theBriefInventoryHereListsBoth: has(
+          `any \`${REFUSAL_LITERAL}\` / \`${SCOPE_LITERAL}\` line.`,
         ),
         theOperatorSaysThatScopeLineIsNotOptional: OPERATOR.includes(
           `**\`${SCOPE_LITERAL}\` is not optional here.**`,
         ),
         andBothSidesGiveTheSameReason: OPERATOR.includes(
-          "The reviewer's usual not-yet-pushed window is EMPTY,\nbecause you pushed at step 8.",
+          "The reviewer's usual not-yet-pushed window is EMPTY,\nbecause you pushed at step 10.",
         ),
         whichIsWhatThisTemplateCallsIt: has('where `unpushed` comes back empty'),
+        theOperatorNoLongerWritesASkipWardLine: OPERATOR.includes('SKIP WARD'),
+        andThisTemplateNoLongerReadsOne: has('SKIP WARD'),
       }).toStrictEqual({
         operatorWritesTheRefusalLine: 1,
         operatorWritesTheScopeLineExactly: true,
-        operatorWritesTheSkipWardLine: 1,
         theScopeLinesValueIsTheArgumentThisTemplatePasses: true,
-        theBriefInventoryHereListsAllThree: true,
+        theBriefInventoryHereListsBoth: true,
         theOperatorSaysThatScopeLineIsNotOptional: true,
         andBothSidesGiveTheSameReason: true,
         whichIsWhatThisTemplateCallsIt: true,
+        theOperatorNoLongerWritesASkipWardLine: false,
+        andThisTemplateNoLongerReadsOne: false,
       });
     });
 
@@ -894,7 +937,7 @@ describe('reviewerMinionStatics', () => {
           '**Read the PLAN FILE** at the path your brief names.',
         ),
       }).toStrictEqual({
-        thePlannerWritesThisManyFields: 7,
+        thePlannerWritesThisManyFields: 8,
         fieldsStepTwoNamesThatNoPlanCarries: [],
         stepTwoNamesThisMany: 4,
         thePlannerDeclaresWhichFieldThisSessionGradesBy: true,
@@ -905,12 +948,11 @@ describe('reviewerMinionStatics', () => {
       });
     });
 
-    // SPANS operator-prompt-statics.ts step 6 and worker-minion-statics.ts ↔ the opening of this
-    // file. Three things reach this session from outside and nothing else carries any of them: the
-    // worker returns (which exist NOWHERE else once the operator's turn ends), the subject every
-    // worker committed under, and the quest id its checklist call needs. Each of the three is
-    // produced by a file this one cannot see.
-    it('VALID: {operator step 6 and worker commits, reviewer} => expects exactly what those two files send', () => {
+    // SPANS operator-prompt-statics.ts step 7 ↔ the opening of this file. Three things reach this
+    // session from outside and nothing else carries any of them: the worker returns (which exist
+    // NOWHERE else once the operator's turn ends), the parent's own `--staged` ward output, and the
+    // quest id its checklist call needs. Each is produced by a file this one cannot see.
+    it('VALID: {operator step 7 brief, reviewer} => expects exactly what that step sends', () => {
       expect({
         theOperatorSendsTheReturnsVerbatimAndInOrder: OPERATOR_ROUND_BRIEF.includes(
           '<every worker return from step 5, VERBATIM and in dispatch order>',
@@ -921,8 +963,11 @@ describe('reviewerMinionStatics', () => {
         theOperatorSaysTheyExistNowhereElse: OPERATOR.includes(
           'Those returns exist NOWHERE else — not on the quest, not in git',
         ),
-        thisTemplateNamesTheWorkersCommitSubjectVerbatim: FLAT_TEMPLATE.includes(
-          `chunk under \`${WORKER_CHUNK_SUBJECT}\``,
+        theOperatorSendsItsOwnWardOutput: OPERATOR_ROUND_BRIEF.includes(
+          "WARD:   <step 6's output, verbatim>",
+        ),
+        andThisTemplateReadsItRatherThanRunningOne: has(
+          "5. **READ the round's ward result out of your brief.**",
         ),
         theBriefHeaderCarriesTheIdTheChecklistCallNeeds: OPERATOR_BRIEF_HEADER.includes(
           `Quest ID: ${CHECKLIST_ID}`,
@@ -931,7 +976,8 @@ describe('reviewerMinionStatics', () => {
         theOperatorSendsTheReturnsVerbatimAndInOrder: true,
         andThisTemplateExpectsThemThatWay: true,
         theOperatorSaysTheyExistNowhereElse: true,
-        thisTemplateNamesTheWorkersCommitSubjectVerbatim: true,
+        theOperatorSendsItsOwnWardOutput: true,
+        andThisTemplateReadsItRatherThanRunningOne: true,
         theBriefHeaderCarriesTheIdTheChecklistCallNeeds: true,
       });
     });

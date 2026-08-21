@@ -74,16 +74,17 @@ const OPERATOR_HEADER_FIELDS = Array.from(
   OPERATOR_BRIEF_HEADER.matchAll(/(?:^|· )([A-Za-z][A-Za-z ]*):/gmu),
 ).map((match) => match[1] ?? '');
 
-// The operator's step 7 — the one step that dispatches THIS minion with no chunk at all.
-const OPERATOR_STEP_SEVEN = OPERATOR.slice(
-  OPERATOR.indexOf('**7. `git status` again.**'),
-  OPERATOR.indexOf('**8. `git push`.**'),
+// The operator's step 9 — the one step that dispatches THIS minion with no chunk at all.
+const OPERATOR_SWEEP_STEP = OPERATOR.slice(
+  OPERATOR.indexOf('**9. `git status`.**'),
+  OPERATOR.indexOf('**10. `git push`.**'),
 );
-const SWEEP_SUBJECT_FORM =
-  /- Your subject is `([^`]+)`/u.exec(template)?.[1] ?? 'THIS TEMPLATE NAMES NO SWEEP SUBJECT';
-const SWEEP_SUBJECT_PREFIX = SWEEP_SUBJECT_FORM.split('<')[0] ?? '';
-const OPERATOR_SWEEP_SUBJECT =
-  /under the subject `([^`]+)`/u.exec(OPERATOR)?.[1] ?? 'THE OPERATOR NAMES NO SWEEP SUBJECT';
+// The half of that step that dispatches THIS minion. The rest of it dispatches a reviewer to
+// commit what survives, and that half legitimately says `SKIP WARD`.
+const OPERATOR_SWEEP_WORKER_HALF = OPERATOR_SWEEP_STEP.slice(
+  0,
+  OPERATOR_SWEEP_STEP.indexOf('Then dispatch ONE'),
+);
 
 describe('workerMinionStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
@@ -253,11 +254,13 @@ describe('workerMinionStatics', () => {
     // A worker that narrows `--only` itself is guessing at a repo-specific folder-type map. A
     // worker that widens it to a directory makes ward auto-background the run. That worker's own
     // turn then never finishes.
-    it('VALID: step 5 => runs the brief WARD command verbatim and treats DISCOVERY MISMATCH as not-a-failure', () => {
+    it('VALID: step 6 => runs the brief WARD command verbatim and treats DISCOVERY MISMATCH as not-a-failure', () => {
       expect({
         verbatim: has("**Run your brief's `WARD` command, VERBATIM.**"),
         noNarrowing: has('Do not narrow it. Do not widen it. Do not substitute your own.'),
-        plannerWroteIt: has("Your planner\n   wrote it from this chunk's folder types."),
+        plannerWroteIt: has(
+          "Your planner\n   wrote it from this chunk's folder types, and it carries `lint` plus tests and never\n   `typecheck`.",
+        ),
         fixUntilZero: has('Fix until it exits 0.'),
         mismatchIsNotAFailure: has('**That is\n   not a failure.**'),
         quoteIt: has('Quote it in your `WARD:` line.'),
@@ -278,58 +281,101 @@ describe('workerMinionStatics', () => {
     });
   });
 
-  // A round used to sit uncommitted until its operator committed at the end. A session that died
-  // mid-round therefore lost every chunk. The operator assembled that commit's file list out of
-  // these return blocks. The operator cannot open a file to check them.
-  describe('the commit', () => {
-    it('VALID: step 6 => commits last, whatever state the chunk is in, with the chunk subject', () => {
+  // A WAVE of workers runs at once, and concurrent commits in one worktree collide on git's index
+  // lock — twelve at once put three commits in and lost nine. So no worker commits at all. The
+  // reviewer commits the whole round afterwards, and it is the one session that has opened every
+  // file going into that commit.
+  describe('git, and the usage sites that stand in for a typecheck', () => {
+    it('VALID: step 5 => searches the usage sites of what the chunk changed and routes a break to rework', () => {
       expect({
-        last: has('**Commit your chunk. Commit it LAST.'),
-        whateverState: has('Commit it whatever state the chunk is in.**'),
-        onlyItsOwnFiles: has('`git add` the\n   paths in `FILES` and nothing else'),
-        subject: has('commit with the subject `chunk <n>: <title>`'),
-        allowEmpty: has('**Pass `--allow-empty` when the chunk legitimately changed no file.**'),
-        emptyCommitExitsNonZero: has('`git commit` with nothing staged exits non-zero'),
-        commitEvenUnfinished: has('**Commit even when the chunk came back unfinished.**'),
-        parentCannotSeeIt: has(
-          'Your parent cannot see it, because your parent never opens a source file.',
+        theStep: has('5. **Find every USAGE SITE of what you changed, and open it.**'),
+        whyItExists: has('You run no typecheck, so this step is\n   what stands in for one.'),
+        notesIsTheInput: has('Your `NOTES` names what this chunk changes that other files use'),
+        theTool: has(
+          'run\n   `discover` with the identifier as `grep` and read every hit that is not one of your own\n   `FILES`.',
         ),
-        theMeasuredCost: has(
-          'It cost 101 minutes of\n     wall-clock for 11 minutes of real work.',
+        confirmTheyHold: has('Confirm each call site still holds against what you just wrote.'),
+        breakIsRework: has(
+          '**A broken usage site outside your `FILES` is `rework`, never a fix you make.**',
         ),
-        squashMakesItFree: has('The\n   merge squashes every commit on it.'),
-        noSiblingFiles: has("Do NOT commit a sibling chunk's files."),
+        whyNotFixIt: has(
+          'A sibling chunk may own them, and two workers writing one path undo each\n   other.',
+        ),
+        nothingToSearchIsOneLine: has(
+          'Where your `NOTES` names nothing and you changed nothing others use, say so in one line\n   and move on.',
+        ),
       }).toStrictEqual({
-        last: true,
-        whateverState: true,
-        onlyItsOwnFiles: true,
-        subject: true,
-        allowEmpty: true,
-        emptyCommitExitsNonZero: true,
-        commitEvenUnfinished: true,
-        parentCannotSeeIt: true,
-        theMeasuredCost: true,
-        squashMakesItFree: true,
-        noSiblingFiles: true,
+        theStep: true,
+        whyItExists: true,
+        notesIsTheInput: true,
+        theTool: true,
+        confirmTheyHold: true,
+        breakIsRework: true,
+        whyNotFixIt: true,
+        nothingToSearchIsOneLine: true,
       });
     });
 
-    // The operator's step 7 dispatches this same minion at a dirty tree with no chunk at all.
+    it('VALID: template => touches no git at all, and says the measured reason', () => {
+      expect({
+        everyVerb: has(
+          '- **Git, all of it** — no `commit`, no `add`, no `stash`, no `reset`, no `checkout --`, no',
+        ),
+        theReviewerCommits: has(
+          'You leave your work in the tree and your `reviewer-minion`\n  commits the whole round.',
+        ),
+        theWaveIsWhy: has('Several workers run AT ONCE in a wave, and concurrent commits in one'),
+        theMeasurement: has('measured on twelve at once, three landed and nine died'),
+        andNoCommitCommandSurvives: template.includes('git commit'),
+        andNoCommitReturnFieldSurvives: /^COMMIT:/mu.test(template),
+      }).toStrictEqual({
+        everyVerb: true,
+        theReviewerCommits: true,
+        theWaveIsWhy: true,
+        theMeasurement: true,
+        andNoCommitCommandSurvives: false,
+        andNoCommitReturnFieldSurvives: false,
+      });
+    });
+
+    it('VALID: template => bans typecheck in any ward run, and names where it moved to', () => {
+      expect({
+        theBan: has('- **`typecheck`, in any ward run** — it is absent from your `WARD` line'),
+        becauseItBuilds: has(
+          "Ward's\n  typecheck runs `tsc -b`, which BUILDS, and the first line of this prompt says why you never do\n  that.",
+        ),
+        stepFiveCoversIt: has('Step 5 is how you cover what a typecheck would have caught.'),
+        theParentTypechecks: has('Your parent typechecks the whole\n  round after the last wave.'),
+      }).toStrictEqual({
+        theBan: true,
+        becauseItBuilds: true,
+        stepFiveCoversIt: true,
+        theParentTypechecks: true,
+      });
+    });
+
+    // The operator's step 9 dispatches this same minion at a dirty tree with no chunk at all.
     // Without this paragraph, the worker reads that brief as a malformed one.
     it('VALID: template => handles the chunkless sweep brief its parent dispatches at a dirty tree', () => {
       expect({
         notAMistake: has('**Some briefs carry no chunk. That is not a mistake.**'),
-        sweepSubject: has('- Your subject is `sweep: <what these were>`.'),
+        threeThingsChange: has('brief, three things change:'),
         chunkFieldReadsNone: has('- `CHUNK:` reads `none — sweep`.'),
-        noWardLine: has('- There is no `WARD` line to run.'),
-        decidePerPath: has('Commit what is real work. Delete what is scratch.'),
+        noWardLine: has('- There is no `WARD` line to run and no usage sites to check.'),
+        deleteScratchLeaveWork: has(
+          '**Delete what is scratch. Leave what is real work exactly where it is**',
+        ),
+        nameItForTheCommitter: has(
+          'name\nit in your return so the session that commits knows what it is looking at',
+        ),
         onlyAccount: has('Your return is the only account of what happened to those paths'),
       }).toStrictEqual({
         notAMistake: true,
-        sweepSubject: true,
+        threeThingsChange: true,
         chunkFieldReadsNone: true,
         noWardLine: true,
-        decidePerPath: true,
+        deleteScratchLeaveWork: true,
+        nameItForTheCommitter: true,
         onlyAccount: true,
       });
     });
@@ -348,6 +394,7 @@ describe('workerMinionStatics', () => {
         commit: returnBlock.includes('COMMIT:'),
         files: returnBlock.includes('FILES:'),
         evidence: returnBlock.includes('EVIDENCE:'),
+        usages: returnBlock.includes('USAGES:'),
         gotchas: returnBlock.includes('GOTCHAS:'),
         ward: returnBlock.includes('WARD:'),
         next: returnBlock.includes(
@@ -359,9 +406,10 @@ describe('workerMinionStatics', () => {
       }).toStrictEqual({
         chunk: true,
         result: true,
-        commit: true,
+        commit: false,
         files: true,
         evidence: true,
+        usages: true,
         gotchas: true,
         ward: true,
         next: true,
@@ -403,7 +451,7 @@ describe('workerMinionStatics', () => {
     it('VALID: template => refuses a faked green and demands an honest failure report', () => {
       expect({
         sayItPlainly: has('say so plainly in `RESULT`'),
-        commitAnyway: has('Commit it\nanyway, per step 6.'),
+        leaveItInTheTree: has('Leave what\nyou wrote in the tree.'),
         whatBrokeInGotchas: has('Put what you tried and where it broke in `GOTCHAS`'),
         noFakeGreen: has('**Do not fake a green\nward. Do not report a check you did not run.**'),
         plausibleReturnIsRefused: has(
@@ -411,7 +459,7 @@ describe('workerMinionStatics', () => {
         ),
       }).toStrictEqual({
         sayItPlainly: true,
-        commitAnyway: true,
+        leaveItInTheTree: true,
         whatBrokeInGotchas: true,
         noFakeGreen: true,
         plausibleReturnIsRefused: true,
@@ -420,20 +468,18 @@ describe('workerMinionStatics', () => {
   });
 
   describe('what is not yours', () => {
-    it('VALID: template => bans the build, destructive git, the Agent tool and the whole-repo ward', () => {
+    it('VALID: template => bans the build, all of git, typecheck, the Agent tool and the whole-repo ward', () => {
       expect({
         build: has('- **`npm run build`** — see the first line. Your parent owns it.'),
-        destructiveGit: has('- **Destructive `git`**'),
-        commitIsNotOnTheList: has(
-          '**You DO commit your own chunk. This list does not forbid that commit.**',
-        ),
+        allGit: has('- **Git, all of it**'),
+        typecheck: has('- **`typecheck`, in any ward run**'),
         agentTool: has('- **The `Agent` tool** — you are a LEAF, so you summon no sub-agent.'),
         wholeRepoWard: has('- **The whole-repo `npm run ward`**'),
         wardScope: has('- **Choosing your own ward scope**'),
       }).toStrictEqual({
         build: true,
-        destructiveGit: true,
-        commitIsNotOnTheList: true,
+        allGit: true,
+        typecheck: true,
         agentTool: true,
         wholeRepoWard: true,
         wardScope: true,
@@ -491,7 +537,7 @@ describe('workerMinionStatics', () => {
           'Two workers writing one path undo each other, because the last write wins.',
         ),
       }).toStrictEqual({
-        thePlannerWritesThisManyChunkFields: 6,
+        thePlannerWritesThisManyChunkFields: 7,
         fieldsThePlannerWritesAndThisBriefNeverNames: [],
         fieldsThisBriefNamesAndNoPlanCarries: [],
         theQuestIdSectionEnumeratesTheSameOnesInOrder: true,
@@ -501,38 +547,41 @@ describe('workerMinionStatics', () => {
       });
     });
 
-    // SPANS operator-prompt-statics.ts step 7 ↔ the chunkless-sweep paragraph here. Step 7 is the
+    // SPANS operator-prompt-statics.ts step 9 ↔ the chunkless-sweep paragraph here. Step 9 is the
     // one place this minion is dispatched with no chunk: the operator cannot commit a dirty tree
-    // itself, so it hands the paths to a worker, and hands them AGAIN to a second worker under a
-    // fixed subject if the tree is still dirty. Neither side can see the other. If step 7 stopped
-    // sending a chunkless brief, or sent a subject in a different form, this paragraph would be
-    // covering a dispatch that no longer happens while the real one read as malformed.
-    it('VALID: {operator step 7, worker sweep brief} => the chunkless sweep the operator dispatches is the one this template describes', () => {
+    // itself and cannot open the paths either, so it hands them to a worker to sort, then to a
+    // reviewer to commit what survived. Neither side can see the other. If step 9 stopped sending a
+    // chunkless brief, this paragraph would cover a dispatch that no longer happens while the real
+    // one read as malformed.
+    it('VALID: {operator step 9, worker sweep brief} => the chunkless sweep the operator dispatches is the one this template describes', () => {
       expect({
-        stepSevenDispatchesThisMinionWithHeaderAndPathsOnly: OPERATOR_STEP_SEVEN.includes(
+        theSweepStepDispatchesThisMinionWithHeaderAndPathsOnly: OPERATOR_SWEEP_WORKER_HALF.includes(
           'Dispatch ONE `worker-minion` whose whole brief is the header\nplus those paths.',
         ),
         andCarriesNoChunkFieldAtAll: PLAN_CHUNK_FIELDS.filter((field) =>
-          OPERATOR_STEP_SEVEN.includes(field),
+          OPERATOR_SWEEP_WORKER_HALF.includes(field),
         ),
         soThisTemplateSaysAChunklessBriefIsNotAMistake: has(
           '**Some briefs carry no chunk. That is not a mistake.**',
         ),
         andThatThosePathsAreTheFilesList: has("- The brief's paths ARE your `FILES`."),
-        thisTemplateReallyDoesNameASubjectForm: SWEEP_SUBJECT_PREFIX.length > 0,
-        theOperatorsSecondSweepUsesThisTemplatesSubjectForm:
-          OPERATOR_SWEEP_SUBJECT.startsWith(SWEEP_SUBJECT_PREFIX),
-        andThisTemplateExpectsNoWardOnASweep: has('- There is no `WARD` line to run.'),
-        whichIsWhyStepSevenSendsNoWardCommand: OPERATOR_STEP_SEVEN.includes('WARD'),
+        theOperatorSendsTheCommitToAReviewerInstead: OPERATOR_SWEEP_STEP.includes(
+          'Then dispatch ONE\n`reviewer-minion` to commit what survived',
+        ),
+        soThisTemplateNamesNoSubjectOfItsOwn: template.includes('- Your subject is'),
+        andThisTemplateExpectsNoWardOnASweep: has(
+          '- There is no `WARD` line to run and no usage sites to check.',
+        ),
+        whichIsWhyTheSweepStepSendsNoWardCommand: OPERATOR_SWEEP_WORKER_HALF.includes('WARD'),
       }).toStrictEqual({
-        stepSevenDispatchesThisMinionWithHeaderAndPathsOnly: true,
+        theSweepStepDispatchesThisMinionWithHeaderAndPathsOnly: true,
         andCarriesNoChunkFieldAtAll: [],
         soThisTemplateSaysAChunklessBriefIsNotAMistake: true,
         andThatThosePathsAreTheFilesList: true,
-        thisTemplateReallyDoesNameASubjectForm: true,
-        theOperatorsSecondSweepUsesThisTemplatesSubjectForm: true,
+        theOperatorSendsTheCommitToAReviewerInstead: true,
+        soThisTemplateNamesNoSubjectOfItsOwn: false,
         andThisTemplateExpectsNoWardOnASweep: true,
-        whichIsWhyStepSevenSendsNoWardCommand: false,
+        whichIsWhyTheSweepStepSendsNoWardCommand: false,
       });
     });
 

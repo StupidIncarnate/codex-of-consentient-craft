@@ -186,9 +186,11 @@ describe('agentOperatingRulesStatics', () => {
     });
   });
 
-  // AXIS 3 IS WHETHER THE READER RUNS WARD AT ALL. An operator runs none. Its reviewer runs the
-  // round's single `--staged` pass. Hand an operator the scoping rule and you hand back a command
-  // its own prompt FORBIDS.
+  // AXIS 3 IS WHETHER THE READER RUNS A WARD AT ALL, and it cuts across both families. `wardScoped`
+  // names the two forms and lets the reader's own prompt pick: an operator runs `--staged` once per
+  // round, a worker runs the named-file form over its chunk. `wardNone` goes to the planner and the
+  // reviewer, which run none. One ward per round is also what makes a wave of parallel workers safe,
+  // because ward's typecheck is `tsc -b`, which builds.
   describe('axis 3: ward ownership', () => {
     // The scoping rule has to cover BOTH legitimate forms. A worker runs the named-file form. A
     // reviewer runs `--staged`. Name only one of them, and the other reads as a violation of the
@@ -225,18 +227,31 @@ describe('agentOperatingRulesStatics', () => {
       });
     });
 
-    it('VALID: {wardNone} => runs no ward at all and names the reviewer as the one that does', () => {
+    // Reader-neutral, because two different minions take it. A body naming one of them by role
+    // reads as somebody else's rule to the other, and a rule that is not addressed to you is one
+    // you can talk yourself out of.
+    it('VALID: {wardNone} => runs no ward at all, and names the PARENT as the one that does', () => {
       expect({
-        reviewerRunsIt: agentOperatingRulesStatics.wardNone.includes(
-          "Your REVIEWER runs the round's ward, once, as `npm run ward -- --staged`",
+        parentRunsIt: agentOperatingRulesStatics.wardNone.includes(
+          "Your PARENT runs the round's ward, once, as `npm run ward -- --staged`",
+        ),
+        theBriefCarriesTheResult: agentOperatingRulesStatics.wardNone.includes(
+          'Where there is a result for you to act on, your brief carries it.',
         ),
         overridesBothSnippets: agentOperatingRulesStatics.wardNone.includes(
           'OVERRIDES both the `<dungeonmaster-ward>` and the `<dungeonmaster-ward-discipline>` snippets',
         ),
         namesTheCost: agentOperatingRulesStatics.wardNone.includes(
-          'compete with your reviewer for the same tree',
+          "compete with your parent's for the same tree",
         ),
-      }).toStrictEqual({ reviewerRunsIt: true, overridesBothSnippets: true, namesTheCost: true });
+        namesNoSingleRole: agentOperatingRulesStatics.wardNone.includes('REVIEWER'),
+      }).toStrictEqual({
+        parentRunsIt: true,
+        theBriefCarriesTheResult: true,
+        overridesBothSnippets: true,
+        namesTheCost: true,
+        namesNoSingleRole: false,
+      });
     });
   });
 

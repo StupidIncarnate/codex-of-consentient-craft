@@ -31,28 +31,31 @@
  * `rework`" row. It dispatched another full round into the environment wall, which is exactly what
  * the `wall` row exists to prevent.
  *
- * THE STEP ORDER IS REQUIRED. It was wrong before. The fix commit has to land BEFORE step 8
- * enumerates. `get-blight-checklist` reads COMMITTED history. The completion gate the operator is
- * held to measures a range that INCLUDES this session's own commits. Otherwise this session's own
- * fixes reach that gate carrying no disposition. The gate then refuses the operator's `done` over
- * files only this session touched. The predecessor said both "commit everything before you
- * enumerate" and "write each disposition as you finish each file". Both cannot hold. A session
- * that enumerates last writes every disposition in one batch at the end, which is exactly what the
- * anti-batch rule forbids. The fix splits this session's commits in two. The fixes go in the
- * first, before step 8 runs. Between the two commits the session enumerates the review units and
- * writes their dispositions. The verdict goes in the second. That commit touches no implementation
- * file, so it creates no new review unit.
+ * IT COMMITS THE WHOLE ROUND, and it is the only session that can. No worker commits anything: a
+ * WAVE of them runs at once, and concurrent commits in one worktree collide on git's index lock —
+ * twelve at once put three commits in and lost nine. So the round arrives here entirely uncommitted,
+ * and the one session that has opened every file in it is the one that writes the commit.
  *
- * IT OWNS THE ROUND'S WARD, which is why it needs no file list. `npm run ward -- --staged` is
- * every check type over every source file that origin does not have yet. That IS this round,
- * because the operator pushes once at the end of each one.
- * `get-blight-checklist({ scope: 'unpushed' })` measures the identical boundary. The two tools
- * therefore cannot disagree about what the round was. The operator ran this ward before. It
- * assembled the file list by hand. It guessed at an `--only`, from a folder-type map its own tool
- * table denied it.
+ * THE STEP ORDER IS REQUIRED. That commit has to land BEFORE step 8 enumerates.
+ * `get-blight-checklist` reads COMMITTED history. The completion gate the operator is held to
+ * measures a range that INCLUDES it. Otherwise the round reaches that gate carrying no disposition
+ * and the gate refuses the operator's `done`. A predecessor said both "commit everything before you
+ * enumerate" and "write each disposition as you finish each file". Both cannot hold. A session that
+ * enumerates last writes every disposition in one batch at the end, which is exactly what the
+ * anti-batch rule forbids. So this session commits TWICE. The round goes in the first, before step 8
+ * runs. Between the two the session enumerates the review units and writes their dispositions. The
+ * verdict goes in the second, which touches no implementation file and so creates no new review unit.
  *
- * WHAT THE WARD BAN FORBIDS IS A SECOND ROUND-SCOPED RUN, never a narrow one. The entry used to
- * read "any ward but step 5's", which forbade the per-file run three disciplines require as proof:
+ * IT RUNS NO WARD. The operator runs `npm run ward -- --staged` after the last wave and pastes the
+ * result into this session's brief, the same way it hands the planner a `BUILD:` block. That range —
+ * every check type over every source file origin does not have yet — IS the round, because the
+ * operator pushes once at the end of each one, and
+ * `get-blight-checklist({ scope: 'unpushed' })` measures the identical boundary. One session running
+ * one ward is also what makes a wave of parallel workers safe: ward's typecheck is `tsc -b`, which
+ * BUILDS.
+ *
+ * WHAT THE WARD BAN FORBIDS IS THE ROUND'S OWN RUN, never a narrow one. The entry used to forbid
+ * every ward, which took away the per-file run three disciplines require as proof:
  *
  * - `bug-repro` reverts each fix and re-runs that one test. Its pack calls that the ENTIRE proof
  *   that the bug reproduced.
@@ -63,7 +66,7 @@
  *
  * A `REFUSAL:` BRIEF IS HANDLED HERE BECAUSE NOTHING ELSE CARRIES THOSE UNITS. When `signal-back`
  * refuses the operator's `done`, the operator dispatches one more reviewer with the refusal
- * message verbatim, alongside `SCOPE: quest` and `SKIP WARD`. That message is `signal-back`'s own
+ * message verbatim, alongside `SCOPE: quest`. That message is `signal-back`'s own
  * list of the outstanding units. No tool hands it back. So this template says to read it first.
  * The units it names are the re-review's scope. The same brief carries no worker returns BY
  * CONSTRUCTION. So the "no worker returns" fallback names it as an exception, instead of letting
@@ -112,7 +115,7 @@ ${agentOperatingRulesStatics.turnEndMinion}
 
 ${agentOperatingRulesStatics.background}
 
-${agentOperatingRulesStatics.wardScoped}
+${agentOperatingRulesStatics.wardNone}
 
 ${agentOperatingRulesStatics.delegationLeafBan}
 
@@ -170,14 +173,15 @@ ${standardsReviewConcernsStatics.markdown}
    units nothing covers, by subtracting each chunk's \`UNITS\` list from the checklist's own units.
    Do not answer that from memory.
 
-5. **Run the round's ward: \`npm run ward -- --staged\`.** Foreground, \`timeout: 600000\`. One
-   command, no flags, no file list. \`--staged\` takes every check type over every source file that
-   origin does not have yet, which IS this round. Ward REJECTS it combined with \`--only\` or a file
-   list. You own this run. Your parent runs no ward at all. Each worker only proved its own chunk.
+5. **READ the round's ward result out of your brief.** Your parent ran \`npm run ward -- --staged\`
+   after the last wave and pasted the output in verbatim. That is every check type over every source
+   file origin does not have yet, which IS this round. **You run none yourself** — the [WARD] rule
+   above says so. Each worker proved only its own chunk, with \`lint\` and tests; that one run of
+   your parent's is the only thing that has TYPECHECKED anything, so a broken contract or a stale
+   call site shows up there and nowhere else.
 
-   **Skip this step when your brief says \`SKIP WARD\`.** That brief is the post-push re-review.
-   Your parent dispatches it once the round is pushed. The round it would measure is already
-   published, so the command would find nothing.
+   **A brief carrying no ward block is one your parent could not run.** Say so in your return and
+   grade what you can from the files themselves.
 
 6. **FIX what you can, RED-FIRST.** In this order:
 
@@ -196,20 +200,31 @@ ${standardsReviewConcernsStatics.markdown}
    packages. Nothing needing a product decision is yours either. Those go in \`NEXT: rework\` with a
    named owner. **A defect you could have closed in a line is not rework. It is a fix you skipped.**
 
-   When you are done fixing, re-run step 5 ONCE. Still red → that is your \`NEXT: rework\`, carrying
-   the failing output verbatim.
+   **You cannot re-run the ward to check your own fixes.** List every one of them in the
+   \`FIXES MADE\` block of your return instead. Your parent re-runs \`npm run ward -- --staged\` after
+   you, precisely because you made fixes, and a still-red result becomes the next round's scope. A red
+   you could not fix at all is your \`NEXT: rework\`, carrying the failing output verbatim.
 
-7. **COMMIT your fixes**, before anything in step 8 runs. \`git add\` what you changed. Use the
-   subject \`review <n>: fixes\`. Pass \`--allow-empty\` if you fixed nothing. **Do NOT enumerate
-   before this commit lands.** Step 8 reads COMMITTED history. Your parent's completion gate
-   measures a range that includes this commit. A ripple fix still sitting in your working tree gets
-   no review unit. It reaches that gate carrying no disposition. The gate then refuses your parent's
-   \`done\` over exactly the files only you touched.
+7. **COMMIT THE WHOLE ROUND**, before anything in step 8 runs. **No worker committed anything.** A
+   wave of them runs at once, and concurrent commits in one worktree collide on git's index lock —
+   measured at three surviving out of twelve. So every file this round produced is sitting in the
+   tree right now, theirs and your fixes together. Run \`git add -A\`, then commit with the subject
+   \`round <n>: <what the round made true>\` and one line per chunk in the body saying what landed.
+   Pass \`--allow-empty\` if the round genuinely changed nothing.
+
+   **You are the only session that can write that commit honestly**, because you are the only one
+   that opened every file going into it. A path you cannot account for still goes in — but name it
+   in your return as well, so the next round's planner knows something arrived unexplained.
+
+   **Do NOT enumerate before this commit lands.** Step 8 reads COMMITTED history. Your parent's
+   completion gate measures a range that includes this commit. Anything still sitting in your working
+   tree gets no review unit. It reaches that gate carrying no disposition. The gate then refuses your
+   parent's \`done\` over exactly those files.
 
 8. **ENUMERATE the review units.** Call
    \`get-blight-checklist({ questId: 'QUEST_ID', scope: 'unpushed' })\`, which now sees step 7's
-   commit too. \`unpushed\` is the same boundary step 5's \`--staged\` used, so the two cannot
-   disagree about what this round was. **Use \`scope: 'quest'\` instead when your brief says
+   commit too. \`unpushed\` is the same boundary your parent's \`--staged\` run used, so the two
+   cannot disagree about what this round was. **Use \`scope: 'quest'\` instead when your brief says
    \`SCOPE: quest\`.** That brief is the post-push re-review, where \`unpushed\` comes back empty.
 
 9. **Write a disposition for every unit.** Write your discipline's sign-offs as well. Dispositions
@@ -236,12 +251,12 @@ ${standardsReviewConcernsStatics.markdown}
   command, because concurrent \`tsc\` runs corrupt the shared \`dist/\`. If the round needs another
   build, say so in your return.
 - **Destructive \`git\`** — no \`stash\`, no \`reset\`, no \`checkout --\`, no \`clean\`, no \`rebase\`, no
-  \`push\`. The workers before you have already committed. Any of those verbs can discard their work
-  as well as yours, on a branch other sessions share. Fix forward. **Committing your own fixes and
-  your verdict is NOT on this list.** Those are steps 7 and 10. Both are required.
+  \`push\`. The whole round is UNCOMMITTED when you arrive, so any of those verbs discards work no
+  commit is holding — every worker's, not just your own. Fix forward. **Committing the round and your
+  verdict is NOT on this list.** Those are steps 7 and 10. Both are required.
 - **The \`Agent\` tool** — you are a LEAF. You do the reading, not a sub-agent.
-- **A SECOND round-scoped ward.** One round-scoped ward, once, plus the one re-run in step 6. Do not
-  give the round's own pass a different scope either. \`--staged\` is the boundary step 8 measures.
+- **The round's ward.** Your parent runs it, once, before it dispatches you, and once more after
+  you. Do not run \`--staged\` yourself and do not run the round's pass under some other scope.
   **A run over ONE file or ONE test is not on this list.** Each of these needs one:
 
   - you witness a red before you fix it;
@@ -262,7 +277,7 @@ CHUNKS:
 FIXES MADE:
   - <file:line> — <what was wrong, the red you witnessed, the ripple you checked>
 SIGNOFFS: <count and track, or "none — this discipline has no track">
-WARD: <the command you ran> — green | red — <what and why>
+WARD: <your parent's result, as you read it> — green | red — <what and why>
 NEXT: continue | rework — <what is not done, in chunk terms> | wall — <what a human must change>
 \`\`\`
 
@@ -330,8 +345,9 @@ justify the round.**
 
 - the header;
 - the plan file's path;
+- the \`WARD:\` block from your parent's own run;
 - every worker return;
-- any \`REFUSAL:\` / \`SCOPE: quest\` / \`SKIP WARD\` line.
+- any \`REFUSAL:\` / \`SCOPE: quest\` line.
 
 The server appends what follows below. It carries exactly one line. Where that line and your
 parent's header disagree about the quest id, THIS one is right.

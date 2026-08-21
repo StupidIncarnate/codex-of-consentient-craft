@@ -19,8 +19,6 @@ const OPERATOR = operatorPromptStatics.prompt.template;
 const WORKER = workerMinionStatics.prompt.template;
 const REVIEWER = reviewerMinionStatics.prompt.template;
 
-const FLAT_TEMPLATE = template.replace(/\s+/gu, ' ');
-
 // The operator's step-3 brief — the ONLY producer of the block labels Method step 1 reads back.
 const PLANNER_BRIEF_OPENS = OPERATOR.indexOf(
   '```',
@@ -92,16 +90,20 @@ const VALUES_ROUTED_BUT_NOT_THIS_SESSIONS = OPERATOR_ROUTED_VALUES.filter(
   (value) => !NEXT_VALUES.includes(value),
 );
 
-// The commit subjects Method step 5 sends this session into the log for. Both are written by the
-// two minions that run BELOW this one in the same round.
-const WORKER_CHUNK_SUBJECT =
-  /Then commit with the subject `([^`]+)`/u.exec(WORKER)?.[1] ?? 'THE WORKER NAMES NO SUBJECT';
+// The commit subjects Method step 5 sends this session into the log for. BOTH are written by the
+// reviewer now: no worker commits anything, because a wave of them runs at once.
 const REVIEWER_SUBJECTS = Array.from(REVIEWER.matchAll(/subject\s+`([^`]+)`/gu)).map(
   (match) => match[1] ?? '',
 );
+const ROUND_SUBJECT_CLAIM =
+  /commits its whole round\s+under `([^`]+)`/u.exec(template)?.[1] ??
+  'THIS TEMPLATE CLAIMS NO ROUND SUBJECT';
 const REVIEW_SUBJECT_CLAIM =
-  /commits its round under `([^`]+)`/u.exec(template)?.[1] ?? 'THIS TEMPLATE CLAIMS NO SUBJECT';
-const REVIEW_SUBJECT_PREFIX = REVIEW_SUBJECT_CLAIM.slice(0, REVIEW_SUBJECT_CLAIM.indexOf(':') + 2);
+  /then its verdict\s+under `([^`]+)`/u.exec(template)?.[1] ??
+  'THIS TEMPLATE CLAIMS NO REVIEW SUBJECT';
+const CLAIMED_SUBJECT_PREFIXES = [ROUND_SUBJECT_CLAIM, REVIEW_SUBJECT_CLAIM].map((claim) =>
+  claim.slice(0, claim.indexOf(':') + 2),
+);
 
 describe('plannerMinionStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
@@ -197,8 +199,8 @@ describe('plannerMinionStatics', () => {
       turnEndRole: false,
       turnEndMinion: true,
       background: true,
-      wardScoped: true,
-      wardNone: false,
+      wardScoped: false,
+      wardNone: true,
       delegationSynchronous: false,
       delegationSpike: true,
       delegationLeafBan: false,
@@ -245,25 +247,25 @@ describe('plannerMinionStatics', () => {
       });
     });
 
-    it('VALID: template => runs no ward of its own and says the WARD line belongs to the worker', () => {
+    it('VALID: template => runs no ward of its own and says whose the two ward commands are', () => {
       expect({
-        wardRuleForwardReference: agentOperatingRulesStatics.wardScoped.includes(
-          'Do not choose between them. Your own prompt tells you which one is yours',
+        embeddedRuleSaysNone: agentOperatingRulesStatics.wardNone.includes(
+          '**[WARD] You run NO ward, NO test and NO check of any kind.**',
         ),
         noWard: has('- **Ward, and every test and check of any kind.**'),
-        thisPromptNamesNone: has('This prompt names none, because none is yours.'),
+        theRuleAboveAlreadySaidIt: has('The [WARD] rule above already says so.'),
         wardLineIsTheWorkers: has(
-          "The `WARD:`\n  line you write into a chunk is a command that chunk's WORKER runs, never one you run yourself.",
+          "The\n  `WARD:` line you write into a chunk is a command that chunk's WORKER runs, never one you run\n  yourself.",
         ),
-        roundsWardIsTheReviewers: has(
-          "Your round's ward belongs to the `reviewer-minion` your parent summons after the workers.",
+        roundsWardIsTheParents: has(
+          "The round's own ward is your PARENT's: one `npm run ward -- --staged` after the last\n  wave has returned.",
         ),
       }).toStrictEqual({
-        wardRuleForwardReference: true,
+        embeddedRuleSaysNone: true,
         noWard: true,
-        thisPromptNamesNone: true,
+        theRuleAboveAlreadySaidIt: true,
         wardLineIsTheWorkers: true,
-        roundsWardIsTheReviewers: true,
+        roundsWardIsTheParents: true,
       });
     });
   });
@@ -298,6 +300,7 @@ describe('plannerMinionStatics', () => {
     it('VALID: the chunk format => carries every field the worker template reads back', () => {
       expect({
         heading: has('## chunk 1 — <one line a worker can hold in its head>'),
+        wave: has('WAVE: 1'),
         summary: has('SUMMARY: <2-3 sentences'),
         intent: has(
           'INTENT: <what must be TRUE when this chunk is done — an outcome, not a task list>',
@@ -307,10 +310,13 @@ describe('plannerMinionStatics', () => {
         mirror: has(
           'MIRROR: ./packages/<pkg>/src/<an existing sibling whose shape this follows>.ts',
         ),
-        ward: has('WARD: npm run ward -- --only lint,typecheck,unit -- '),
+        ward: has('WARD: npm run ward -- --only lint,unit -- '),
+        wardCarriesNoTypecheck: /^WARD:.*typecheck/mu.test(template),
         notes: has('NOTES:\n  <everything its worker cannot derive'),
       }).toStrictEqual({
         heading: true,
+        wave: true,
+        wardCarriesNoTypecheck: false,
         summary: true,
         intent: true,
         files: true,
@@ -321,20 +327,63 @@ describe('plannerMinionStatics', () => {
       });
     });
 
-    // The chunk NUMBER is the dependency order. The predecessor carried a `dependsOn` array of
-    // chunk UUIDs beside a list that was already ordered. That said the same thing twice. It also
-    // invited a reader to take "independent" as "safe to run at once".
-    it('VALID: template => makes the chunk number the dependency order and says there is no second field', () => {
+    // `WAVE` is the dependency order and the chunk number is identity. There is still exactly ONE
+    // ordering channel — it just moved, because the number now has to serve as a name a brief can
+    // cite while several chunks run at once.
+    it('VALID: template => makes WAVE the dependency order and the chunk number identity', () => {
       expect({
-        numberIsOrder: has('**Number from 1, contiguously. THE ORDER IS THE DEPENDENCY ORDER.**'),
-        parentDispatchesInOrder: has('Your parent dispatches chunk 1,'),
-        noSecondField: has('There is no separate dependency field'),
-        laterIsNumberedLater: has('A chunk that must land after\n  another is numbered after it.'),
+        waveIsOrder: has('**`WAVE` IS THE DEPENDENCY ORDER. The chunk number is identity.**'),
+        bothContiguous: has(
+          'Number chunks from 1,\n  contiguously, so a brief can name one. Number waves from 1, contiguously, too.',
+        ),
+        parentDispatchesAWaveAtOnce: has(
+          'Your parent dispatches\n  every chunk of wave 1 AT ONCE, waits for all of them, then dispatches wave 2.',
+        ),
+        laterIsAHigherWave: has('**A chunk goes in a\n  later wave than anything it depends on.**'),
+        independentGoesInWaveOne: has(
+          'A chunk that depends on nothing this round goes in wave 1,\n  however high its own number.',
+        ),
+        serialIsAlwaysLegal: has(
+          'Put every chunk in its own wave and you get the old serial round back,\n  which is always correct and always slower.',
+        ),
       }).toStrictEqual({
-        numberIsOrder: true,
-        parentDispatchesInOrder: true,
-        noSecondField: true,
-        laterIsNumberedLater: true,
+        waveIsOrder: true,
+        bothContiguous: true,
+        parentDispatchesAWaveAtOnce: true,
+        laterIsAHigherWave: true,
+        independentGoesInWaveOne: true,
+        serialIsAlwaysLegal: true,
+      });
+    });
+
+    // A wave is the only place two minions touch the tree at the same time. `FILES` disjointness
+    // covers the files; it does not cover Playwright's one report path per package, and it does not
+    // cover a discipline that owns one live server.
+    it('VALID: template => names what a wave may not share, and says to split when unsure', () => {
+      expect({
+        sameTime: has(
+          '**Two chunks in one wave RUN AT THE SAME TIME, so they may not share anything.**',
+        ),
+        filesAlreadyCovered: has(
+          '`FILES` is already\n  disjoint across the whole plan, which covers the files themselves.',
+        ),
+        noTwoE2eInAWave: has('**no two chunks in one wave may run `e2e`**'),
+        theReportPath: has(
+          'because Playwright writes one report path per package\n  and the second run overwrites the first',
+        ),
+        oneLiveSystemIsSerial: has(
+          '**a discipline that drives ONE live system puts every\n  chunk in its own wave**',
+        ),
+        splitWhenUnsure: has(
+          'When you cannot tell whether two chunks are independent, split the wave. A serial plan costs time. A\n  wrong wave costs both chunks.',
+        ),
+      }).toStrictEqual({
+        sameTime: true,
+        filesAlreadyCovered: true,
+        noTwoE2eInAWave: true,
+        theReportPath: true,
+        oneLiveSystemIsSerial: true,
+        splitWhenUnsure: true,
       });
     });
 
@@ -361,21 +410,59 @@ describe('plannerMinionStatics', () => {
     // was therefore guessing at a repo-specific map it could not read.
     it('VALID: template => makes WARD a literal the worker runs verbatim, narrowed by the discipline', () => {
       expect({
-        literal: has('**`WARD` is a literal command its worker runs verbatim.**'),
-        whyThisSession: has('You write it, because you know the\n  folder types.'),
+        literal: has(
+          '**`WARD` is a literal command its worker runs verbatim, and it NEVER carries `typecheck`.**',
+        ),
+        whyThisSession: has('You\n  write it, because you know the folder types.'),
         nobodyBelowNarrows: has('Nobody below you narrows anything.'),
-        disciplineSaysWhich: has('Your discipline says which checks those are.'),
-        sameFilesAsFiles: has('List the same explicit file paths as\n  `FILES`.'),
+        lintPlusTests: has(
+          'Narrow `--only` to\n  `lint` plus the test types these files actually carry — `unit`, `integration`, `e2e`.',
+        ),
+        disciplineSaysWhich: has('Your\n  discipline says which.'),
+        typecheckNever: has('**`typecheck` is never one of them.**'),
+        becauseItBuilds: has(
+          "Ward's typecheck runs `tsc -b` across\n  the repo, which BUILDS: it writes the shared `dist/`",
+        ),
+        theParentTypechecks: has(
+          'Your parent runs one `npm run ward -- --staged` after the last wave, and THAT run\n  typechecks everything this round touched.',
+        ),
+        sameFilesAsFiles: has('List the same explicit file paths as `FILES`.'),
         neverADirectory: has(
-          'Never pass a bare directory. A bare directory pulls in the whole package.',
+          'Never pass a\n  bare directory. A bare directory pulls in the whole package.',
         ),
       }).toStrictEqual({
         literal: true,
         whyThisSession: true,
         nobodyBelowNarrows: true,
+        lintPlusTests: true,
         disciplineSaysWhich: true,
+        typecheckNever: true,
+        becauseItBuilds: true,
+        theParentTypechecks: true,
         sameFilesAsFiles: true,
         neverADirectory: true,
+      });
+    });
+
+    // The worker runs no typecheck, so nothing else tells it what to go looking for usages of. This
+    // line in `NOTES` is the whole input to the worker's usage-site step.
+    it('VALID: template => makes NOTES name what the chunk changes that other files use', () => {
+      expect({
+        nameIt: has('- **Name in `NOTES` whatever this chunk changes that other files USE**'),
+        theFourKinds: has(
+          'an exported signature, a\n  contract field, a renamed symbol, a moved path',
+        ),
+        itIsTheWorkersInput: has(
+          'Its worker runs no typecheck, so this line is what\n  sends it looking for the usage sites.',
+        ),
+        whatLeavingItOutCosts: has(
+          "Leave it out and a call site elsewhere in the repo stays broken\n  until your parent's ward at the end of the round, with nobody assigned to it.",
+        ),
+      }).toStrictEqual({
+        nameIt: true,
+        theFourKinds: true,
+        itIsTheWorkersInput: true,
+        whatLeavingItOutCosts: true,
       });
     });
 
@@ -622,10 +709,13 @@ describe('plannerMinionStatics', () => {
           'A\n   `reviewer-minion` may open a `git diff` or a `git show` to confirm one named fix.',
         ),
         readTheBodies: has('**Read the BODIES.**'),
-        chunkSubject: has('commits its chunk under\n   `chunk <n>: <title>`'),
-        reviewSubject: has('commits its round under `review <n>: <verdict>`.'),
+        noWorkerCommits: has('**No worker commits anything**'),
+        roundSubject: has(
+          'commits its whole round\n   under `round <n>: <what the round made true>`',
+        ),
+        reviewSubject: has('then its verdict\n   under `review <n>: <verdict>`'),
         earlierPlansAreInGit: has(
-          "Earlier rounds' plan files are in git\n   too, at `.quest-plans/`.",
+          "Earlier rounds'\n   plan files are in git too, at `.quest-plans/`.",
         ),
         ptNIsTheJob: has('makes this the job, not background reading'),
         writesNothingElse: has('**You WRITE nothing to git except the plan file.**'),
@@ -636,7 +726,8 @@ describe('plannerMinionStatics', () => {
         onlyOneThatReadsTheLog: true,
         reviewerMayConfirmOneFix: true,
         readTheBodies: true,
-        chunkSubject: true,
+        noWorkerCommits: true,
+        roundSubject: true,
         reviewSubject: true,
         earlierPlansAreInGit: true,
         ptNIsTheJob: true,
@@ -792,30 +883,29 @@ describe('plannerMinionStatics', () => {
       });
     });
 
-    // SPANS worker-minion-statics.ts and reviewer-minion-statics.ts ↔ Method step 5. This session
-    // is the only one that reads history, and it reads it BY SUBJECT — the subjects those two
-    // templates write as their own last act. Reword a subject in either of them and this step
-    // sends the one session that could reconstruct a `pt N` predecessor's work looking for commits
-    // under a name nothing writes.
-    it('VALID: {worker and reviewer commit subjects, method step 5} => greps for the subjects those two templates actually write', () => {
+    // SPANS reviewer-minion-statics.ts ↔ Method step 5. This session is the only one that reads
+    // history, and it reads it BY SUBJECT. Both subjects on a quest branch are the reviewer's, since
+    // no worker commits. Reword either one there and this step sends the one session that could
+    // reconstruct a `pt N` predecessor's work looking for commits under a name nothing writes.
+    it('VALID: {reviewer commit subjects, method step 5} => greps for the subjects that template actually writes', () => {
       expect({
-        thisStepNamesTheWorkerSubjectVerbatim: FLAT_TEMPLATE.includes(
-          `commits its chunk under \`${WORKER_CHUNK_SUBJECT}\``,
-        ),
         theReviewerWritesThisManySubjects: REVIEWER_SUBJECTS.length,
-        thisStepReallyDoesClaimAReviewSubject: REVIEW_SUBJECT_PREFIX.length > 0,
-        reviewerSubjectsOutsideThePrefixThisStepGrepsFor: REVIEWER_SUBJECTS.filter(
-          (subject) => !subject.startsWith(REVIEW_SUBJECT_PREFIX),
+        thisStepClaimsBothOfThem: CLAIMED_SUBJECT_PREFIXES.length,
+        reviewerSubjectsOutsideThePrefixesThisStepGrepsFor: REVIEWER_SUBJECTS.filter(
+          (subject) => !CLAIMED_SUBJECT_PREFIXES.some((prefix) => subject.startsWith(prefix)),
         ),
+        andNoWorkerCommitsAtAll: WORKER.includes('git commit'),
+        andThisStepSaysSo: has('**No worker commits anything**'),
         andTheReviewerReallyDoesPutItsReturnInTheBody: REVIEWER.includes(
           'your whole return block below in the body, verbatim',
         ),
         soThisStepTellsTheReaderToOpenThem: has('**Read the BODIES.**'),
       }).toStrictEqual({
-        thisStepNamesTheWorkerSubjectVerbatim: true,
         theReviewerWritesThisManySubjects: 2,
-        thisStepReallyDoesClaimAReviewSubject: true,
-        reviewerSubjectsOutsideThePrefixThisStepGrepsFor: [],
+        thisStepClaimsBothOfThem: 2,
+        reviewerSubjectsOutsideThePrefixesThisStepGrepsFor: [],
+        andNoWorkerCommitsAtAll: false,
+        andThisStepSaysSo: true,
         andTheReviewerReallyDoesPutItsReturnInTheBody: true,
         soThisStepTellsTheReaderToOpenThem: true,
       });

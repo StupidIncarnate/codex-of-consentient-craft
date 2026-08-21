@@ -821,7 +821,7 @@ describe('disciplineBrowserE2eStatics', () => {
     it('VALID: reviewerMarkdown + reviewerMinionStatics => require only a ward run the reviewer template carves out', () => {
       const { template } = reviewerMinionStatics.prompt;
       const carveOut = template.slice(
-        template.indexOf('- **A SECOND round-scoped ward.**'),
+        template.indexOf("- **The round's ward.**"),
         template.indexOf('## What you return'),
       );
       const permitted = Array.from(carveOut.matchAll(/`(npm run ward[^`]*)`/gu)).flatMap((match) =>

@@ -128,19 +128,24 @@ const TOOL_TABLE = template.slice(
 //
 // Two noes mean it belongs in a pack or in a minion.
 //
-// It came DOWN again, from 13,500 to 13,350, when the template was rewritten into plain speech.
-// The authored half now measures 13,203. That rewrite spent characters splitting compound
-// sentences, turning the per-minion model mapping into a table, and turning the two-field
-// discipline block and the per-discipline caveat into tables. It took the same characters back out
-// of rationale that only recorded history. Step 3 still tells the operator to copy its WHOLE
-// Operation Context and still says why: a longer instruction that removes a judgement is what this
-// number is for.
+// It came DOWN once, from 18,500, when the script replaced the nine-gate loop, and DOWN again from
+// 13,500 to 13,350 when the template was rewritten into plain speech.
 //
-// The step-7 second sweep and the per-discipline caveat were bought the same way, at the number
-// rather than under it. Three things came out to pay for them: the wall paragraph's definition of
-// a wall, which the embedded operating rules already define; the reset lever's reason; and three
-// sentences of measured history.
-const BUDGET_CHARS_EXCLUDING_OPERATING_RULES = 13_350;
+// It went UP to 15,500 when the round became PARALLEL. Three things grew, and each answers both
+// questions above rather than only the second:
+//
+// 1. Step 5 dispatches WAVE BY WAVE. The wave is a field the planner writes, so the operator looks
+//    it up; what it may never do is group two chunks itself.
+// 2. Steps 6 and 8 are the operator's own `npm run ward -- --staged`. That command moved here from
+//    the reviewer for a mechanical reason: ward's typecheck is `tsc -b`, which BUILDS, so exactly
+//    one session per round may run it — and the operator was already the one session that builds.
+//    Step 8 is a lookup off the reviewer's `FIXES MADE` block, not a judgement about the fixes.
+// 3. The dispatch protocol inverted. Two `Agent` calls in one message is now how a wave runs, so
+//    the rule that used to forbid it has to say what IS forbidden instead.
+//
+// None of the three is discipline-specific and none asks the operator to weigh evidence it cannot
+// see. Growth of that shape is what this number is for. Growth of any other shape is what it stops.
+const BUDGET_CHARS_EXCLUDING_OPERATING_RULES = 15_500;
 
 describe('operatorPromptStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
@@ -253,8 +258,8 @@ describe('operatorPromptStatics', () => {
       turnEndRole: true,
       turnEndMinion: false,
       background: true,
-      wardScoped: false,
-      wardNone: true,
+      wardScoped: true,
+      wardNone: false,
       delegationSynchronous: true,
       delegationSpike: false,
       delegationLeafBan: false,
@@ -272,20 +277,24 @@ describe('operatorPromptStatics', () => {
     it('VALID: ALLOWED list => is exactly the commands and calls the script uses', () => {
       expect({
         build: TOOL_TABLE.includes('npm run build                                  ← step 1'),
-        status: TOOL_TABLE.includes(
-          'git status                                     ← steps 2 and 7',
+        wardStaged: TOOL_TABLE.includes(
+          'npm run ward -- --staged                       ← steps 6 and 8, that ONE form and no other',
         ),
-        push: TOOL_TABLE.includes('git push                                       ← step 8, bare'),
+        status: TOOL_TABLE.includes(
+          'git status                                     ← steps 2 and 9',
+        ),
+        push: TOOL_TABLE.includes('git push                                       ← step 10, bare'),
         readOnlyThePlan: TOOL_TABLE.includes(
           'Read on .quest-plans/round-<n>.md              ← step 4, that ONE path and no other',
         ),
         agent: TOOL_TABLE.includes('Agent(planner-minion | worker-minion | reviewer-minion)'),
-        signalBack: TOOL_TABLE.includes('signal-back                                    ← step 9'),
+        signalBack: TOOL_TABLE.includes('signal-back                                    ← step 11'),
         disciplineMayOpenIt: TOOL_TABLE.includes(
           'whatever your discipline names below           ← a server it owns, its own reset lever',
         ),
       }).toStrictEqual({
         build: true,
+        wardStaged: true,
         status: true,
         push: true,
         readOnlyThePlan: true,
@@ -298,8 +307,8 @@ describe('operatorPromptStatics', () => {
     it('VALID: FORBIDDEN list => names every tool that would let this session read source or grade code', () => {
       expect({
         readWrite: TOOL_TABLE.includes('Read / Edit / Write on any path but the plan file'),
-        ward: TOOL_TABLE.includes(
-          'npm run ward                                   ← your REVIEWER runs it',
+        wardInAnyOtherForm: TOOL_TABLE.includes(
+          'npm run ward in any other form                 ← scoped, --only, a file list: none of them is yours',
         ),
         // This one is per-discipline, not universal. On `below-browser` the planner, the worker
         // AND the reviewer each fetch it. On `implementation` nobody does — that pack says "No
@@ -309,7 +318,7 @@ describe('operatorPromptStatics', () => {
           'get-qa-checklist                               ← your minions fetch it if their discipline says to',
         ),
         blightChecklist: TOOL_TABLE.includes(
-          'get-blight-checklist                           ← your REVIEWER fetches it',
+          'get-blight-checklist                           ← your REVIEWER fetches it, after you dispatch it',
         ),
         search: TOOL_TABLE.includes(
           'discover · get-project-map · get-project-inventory · get-folder-detail',
@@ -338,7 +347,7 @@ describe('operatorPromptStatics', () => {
         judging: TOOL_TABLE.includes('judging whether code is CORRECT'),
       }).toStrictEqual({
         readWrite: true,
-        ward: true,
+        wardInAnyOtherForm: true,
         qaChecklist: true,
         blightChecklist: true,
         search: true,
@@ -374,7 +383,10 @@ describe('operatorPromptStatics', () => {
         gitLog: outsideFenceAndRules.includes('git log'),
         gitDiff: outsideFenceAndRules.includes('git diff'),
         gitCommit: outsideFenceAndRules.includes('git commit'),
-        ward: outsideFenceAndRules.includes('npm run ward'),
+        // The ONE ward form this session runs is named in steps 6 and 8, so it is not on this
+        // list. Every other form is, and the table's FORBIDDEN half says so.
+        wardScoped: outsideFenceAndRules.includes('npm run ward -- --only'),
+        wardBare: /npm run ward(?! -- --staged)/u.test(outsideFenceAndRules),
       }).toStrictEqual({
         discover: false,
         getProjectMap: false,
@@ -388,7 +400,8 @@ describe('operatorPromptStatics', () => {
         gitLog: false,
         gitDiff: false,
         gitCommit: false,
-        ward: false,
+        wardScoped: false,
+        wardBare: false,
       });
     });
   });
@@ -397,19 +410,31 @@ describe('operatorPromptStatics', () => {
   // fails nothing at runtime. Every predecessor of this template lost or renumbered one at least
   // once.
   describe('the script', () => {
-    it('VALID: template => numbers its steps 1 through 9, contiguously, and says so in the heading', () => {
+    it('VALID: template => numbers its steps 1 through 11, contiguously, and says so in the heading', () => {
       const scriptSection = template.slice(
         template.indexOf('## The script'),
         template.indexOf('## The NEXT table'),
       );
 
       expect({
-        steps: Array.from(scriptSection.matchAll(/^\*\*(\d)\./gmu)).map((match) => match[0]),
-        saysNine: scriptSection.includes('Nine steps. Run them in order.'),
+        steps: Array.from(scriptSection.matchAll(/^\*\*(\d+)\./gmu)).map((match) => match[0]),
+        saysEleven: scriptSection.includes('Eleven steps. Run them in order.'),
         noAdding: scriptSection.includes('Do not skip one, do not reorder them, do not add one.'),
       }).toStrictEqual({
-        steps: ['**1.', '**2.', '**3.', '**4.', '**5.', '**6.', '**7.', '**8.', '**9.'],
-        saysNine: true,
+        steps: [
+          '**1.',
+          '**2.',
+          '**3.',
+          '**4.',
+          '**5.',
+          '**6.',
+          '**7.',
+          '**8.',
+          '**9.',
+          '**10.',
+          '**11.',
+        ],
+        saysEleven: true,
         noAdding: true,
       });
     });
@@ -466,20 +491,34 @@ describe('operatorPromptStatics', () => {
       });
     });
 
-    it('VALID: steps 4 and 5 => read one file, then dispatch one worker per chunk in the plan order', () => {
+    it('VALID: steps 4 and 5 => read one file, then dispatch the plan wave by wave', () => {
       expect({
         readsThePlanFile: has('`Read` the path its return names — `.quest-plans/round-<n>.md`'),
         onlyFileAllSession: has('This is the\none file you open all session.'),
         orderIsDispatchOrder: has('You dispatch them in the order the plan\nlists them.'),
-        onePerChunk: has("**5. Dispatch `worker-minion`s, ONE PER CHUNK, in the plan's order.**"),
-        chunkVerbatim: has("that chunk's whole section of the plan file, copied verbatim"),
+        waveByWave: has('**5. Dispatch `worker-minion`s WAVE BY WAVE, in `WAVE` order.**'),
+        oneMessagePerWave: has(
+          '**Dispatch every chunk of one wave in a SINGLE assistant message, one `Agent` call each.**',
+        ),
+        waitForAllOfThem: has(
+          'Wait for all of them to return. Apply the NEXT table to each return.\nOnly then dispatch the next wave.',
+        ),
+        chunkVerbatim: has("that chunk's whole section of the plan\nfile, copied verbatim"),
+        thePlanDecidesNotYou: has('**The plan decides what runs together. You never do.**'),
+        neverRegroup: has(
+          'Never move a chunk\nbetween waves, never merge two, and never start one before the wave before it has fully returned.',
+        ),
         zeroChunksIsLegal: has('**A plan with zero chunks dispatches zero workers.**'),
       }).toStrictEqual({
         readsThePlanFile: true,
         onlyFileAllSession: true,
         orderIsDispatchOrder: true,
-        onePerChunk: true,
+        waveByWave: true,
+        oneMessagePerWave: true,
+        waitForAllOfThem: true,
         chunkVerbatim: true,
+        thePlanDecidesNotYou: true,
+        neverRegroup: true,
         zeroChunksIsLegal: true,
       });
     });
@@ -487,19 +526,81 @@ describe('operatorPromptStatics', () => {
     // Those returns live ONLY in the operator's context. They are not on the quest and not in git.
     // The reviewer's whole job is to grade them against disk. Summarising them makes the operator
     // the grader, which is the one thing it structurally cannot be.
-    it('VALID: step 6 => hands the reviewer every worker return verbatim, and says why a summary is disqualifying', () => {
+    it('VALID: step 6 => runs the round --staged and says it is the only thing that typechecks', () => {
+      expect({
+        theCommand: has('**6. `npm run ward -- --staged`.**'),
+        foregroundWithTimeout: has('Foreground, `timeout: 600000`.'),
+        wardRejectsCompanions: has(
+          'No `--only`, no file list —\nward rejects both alongside `--staged`.',
+        ),
+        theRangeIsTheRound: has(
+          'This is every check type over every source file origin does\nnot have yet, which IS this round.',
+        ),
+        doNotActOnIt: has('**Keep the output. Do not act on it.**'),
+        theOnlyTypecheck: has('**This run is the only thing that TYPECHECKS the round.**'),
+        becauseWorkersCannot: has(
+          "because ward's typecheck is `tsc -b`, which builds — and two workers building\nat once corrupt the shared `dist/`",
+        ),
+        contractBreaksSurfaceHere: has('A broken contract surfaces here and nowhere earlier.'),
+      }).toStrictEqual({
+        theCommand: true,
+        foregroundWithTimeout: true,
+        wardRejectsCompanions: true,
+        theRangeIsTheRound: true,
+        doNotActOnIt: true,
+        theOnlyTypecheck: true,
+        becauseWorkersCannot: true,
+        contractBreaksSurfaceHere: true,
+      });
+    });
+
+    // Those returns live ONLY in the operator's context, and so does step 6's ward output. The
+    // reviewer's whole job is to grade both against disk. Summarising either makes the operator the
+    // grader, which is the one thing it structurally cannot be.
+    it('VALID: step 7 => hands the reviewer the ward output and every worker return verbatim', () => {
       expect({
         planPath: has('PLAN: .quest-plans/round-<n>.md'),
+        wardBlock: has("WARD:   <step 6's output, verbatim>"),
         verbatimReturns: has('<every worker return from step 5, VERBATIM and in dispatch order>'),
         nowhereElse: has('Those returns exist NOWHERE else — not on the quest, not in git'),
+        norDoesTheWardOutput: has('Neither does that ward output.'),
         summarisingGrades: has(
-          '**Summarise them and you have graded them yourself.** That is the one\nthing you cannot do.',
+          '**Summarise any of it and you have\ngraded it yourself.** That is the one thing you cannot do.',
         ),
+        theReviewerCommitsTheRound: has('**Your reviewer commits the whole round.**'),
       }).toStrictEqual({
         planPath: true,
+        wardBlock: true,
         verbatimReturns: true,
         nowhereElse: true,
+        norDoesTheWardOutput: true,
         summarisingGrades: true,
+        theReviewerCommitsTheRound: true,
+      });
+    });
+
+    // The reviewer runs no ward, so it cannot check its own fixes. This second run is that check,
+    // keyed on the reviewer's own `FIXES MADE` block rather than on a judgement about whether the
+    // fixes looked risky.
+    it('VALID: step 8 => re-runs the ward only when the reviewer reported fixes', () => {
+      expect({
+        theCommand: has('**8. `npm run ward -- --staged` again — ONLY if'),
+        keyedOnFixesMade: has("your reviewer's `FIXES MADE` block lists\nanything.**"),
+        whyItExists: has(
+          'Your reviewer runs no ward, so it could not check its own fixes; this is\nthat check.',
+        ),
+        emptyMeansSkip: has(
+          'An empty `FIXES MADE` means nothing changed since step 6 — go to step 9.',
+        ),
+        aRedIsNotYours: has('A red here is\nnot yours to fix.'),
+        whereItGoes: has("It goes into the next round's `REWORK:`, or into your `partial` reason."),
+      }).toStrictEqual({
+        theCommand: true,
+        keyedOnFixesMade: true,
+        whyItExists: true,
+        emptyMeansSkip: true,
+        aRedIsNotYours: true,
+        whereItGoes: true,
       });
     });
 
@@ -510,29 +611,37 @@ describe('operatorPromptStatics', () => {
     // clears the tree. The predecessor ended this step at "signal `blocked`", routing the operator
     // into the one call the server was going to refuse. That ending is pinned negative below so it
     // cannot return.
-    it('VALID: step 7 => sweeps a dirty tree through one worker, then commits the remainder through a second', () => {
+    it('VALID: step 9 => sorts a dirty tree through a worker, then commits the remainder through a reviewer', () => {
       expect({
+        nothingShouldBeListed: has(
+          '**9. `git status`.** Nothing should be listed, because your reviewer committed the round.',
+        ),
         doNotCommitIt: has('**Do not commit it\nyourself.** You cannot see what it is.'),
-        oneWorker: has(
+        oneWorkerSorts: has(
           'Dispatch ONE `worker-minion` whose whole brief is the header\nplus those paths.',
         ),
-        decidesPerPath: has(
-          'It opens them, commits what is work, deletes what is scratch, and returns.',
+        itDeletesScratchAndReturnsWork: has(
+          'It opens them, deletes what is scratch, and returns what is real.',
+        ),
+        aReviewerCommitsWhatSurvived: has(
+          'Then dispatch ONE\n`reviewer-minion` to commit what survived, briefed with those paths and nothing else.',
         ),
         secondSweepCommitsEverything: has(
-          '**Still dirty → dispatch a SECOND `worker-minion`, briefed to commit every remaining path, whatever\nit is, under the subject `sweep: uncommitted remainder`.**',
+          '**Still dirty → dispatch a SECOND `reviewer-minion`, briefed to commit every remaining path,\nwhatever it is, under the subject `sweep: uncommitted remainder`.**',
         ),
         commitAlwaysClearsTheTree: has(
-          'That second sweep is what gets you to\nstep 8 clean, because a commit always clears the tree.',
+          'That second sweep is what gets\nyou to step 10 clean, because a commit always clears the tree.',
         ),
         noOutcomeFromADirtyTree: has(
-          '**A dirty tree signals nothing.** The server\nrefuses `done`, `partial` and `blocked` alike.',
+          '**A dirty tree signals nothing.** The\nserver refuses `done`, `partial` and `blocked` alike.',
         ),
         blockedFromADirtyTree: has('signal `blocked`,\nnaming the paths'),
       }).toStrictEqual({
+        nothingShouldBeListed: true,
         doNotCommitIt: true,
-        oneWorker: true,
-        decidesPerPath: true,
+        oneWorkerSorts: true,
+        itDeletesScratchAndReturnsWork: true,
+        aReviewerCommitsWhatSurvived: true,
         secondSweepCommitsEverything: true,
         commitAlwaysClearsTheTree: true,
         noOutcomeFromADirtyTree: true,
@@ -583,7 +692,9 @@ describe('operatorPromptStatics', () => {
       expect({
         continueRow: has('| `continue` | go to the next step |'),
         reworkRow: has('| `rework` | go to the next step |'),
-        wallRow: has('| `wall` | **STOP dispatching.** Go straight to step 7, then step 8'),
+        wallRow: has(
+          '| `wall` | **STOP dispatching.** Let the rest of the wave finish, then go straight to step 9, then step 10',
+        ),
         wallNamesUndispatched: has('and every chunk you had not dispatched yet'),
         missingLineDefault: has(
           '| no `NEXT:` line at all | treat it as `rework`, and say so in your signal |',
@@ -622,7 +733,9 @@ describe('operatorPromptStatics', () => {
         anotherRound: has(
           `| \`rework\`, and fewer than ${cap} rounds are spent | Do not signal. Start round + 1 at step 1`,
         ),
-        carriesTheText: has("with that text as the next planner's `REWORK:` |"),
+        carriesTheText: has(
+          "with that text — plus any red from step 8 — as the next planner's `REWORK:` |",
+        ),
         partialRow: has(
           `| \`rework\`, and ${cap} rounds are spent | \`partial\`, with that text as your reason |`,
         ),
@@ -662,9 +775,8 @@ describe('operatorPromptStatics', () => {
         nothingPersisted: has('**NOTHING is persisted on a refusal.**'),
         refusalVerbatim: has('REFUSAL: <the refusal message, verbatim>'),
         questScope: has('SCOPE: quest'),
-        skipWard: has('SKIP WARD: this round is already pushed'),
         whyQuestScope: has(
-          "The reviewer's usual not-yet-pushed window is EMPTY,\nbecause you pushed at step 8.",
+          "The reviewer's usual not-yet-pushed window is EMPTY,\nbecause you pushed at step 10.",
         ),
         twoStrikes: has('**A second refusal is `partial`.**'),
       }).toStrictEqual({
@@ -673,7 +785,6 @@ describe('operatorPromptStatics', () => {
         nothingPersisted: true,
         refusalVerbatim: true,
         questScope: true,
-        skipWard: true,
         whyQuestScope: true,
         twoStrikes: true,
       });
@@ -697,14 +808,33 @@ describe('operatorPromptStatics', () => {
       });
     });
 
-    it('VALID: template => bans two Agent calls in one message and names the shared dist as the cause', () => {
+    // The ban inverted when the round went parallel. Two `Agent` calls in one message IS a wave.
+    // What is forbidden now is grouping the operator chose itself, because the only thing that
+    // makes a group safe is the planner having read the files and said so.
+    it('VALID: template => makes concurrency the wave mechanism and forbids a grouping it chose itself', () => {
       expect({
-        ban: has('**Never two `Agent` calls in one assistant message.**'),
-        cause: has(
-          'Concurrent minions corrupt the shared `dist/`. They hand each other phantom failures',
+        concurrencyIsTheWave: has(
+          '**Two `Agent` calls in one assistant message run CONCURRENTLY. That is how a wave runs, and the\nonly thing it is for.**',
         ),
-        serialShape: has('Make one call. Wait for it. Then make the next.'),
-      }).toStrictEqual({ ban: true, cause: true, serialShape: true });
+        oneMessagePerWave: has('One message per wave, one call per chunk in it.'),
+        neverTwoWaves: has(
+          '**Never put two WAVES in one message, and never a planner or a reviewer beside anything else.**',
+        ),
+        thePlannerIsWhyAWaveIsSafe: has(
+          "A\nwave's chunks are safe together only because your planner read the files and said so.",
+        ),
+        cause: has(
+          'two minions that collide hand each other\nphantom failures that eat the rest of your turn',
+        ),
+        andTheOldSerialBanIsGone: has('**Never two `Agent` calls in one assistant message.**'),
+      }).toStrictEqual({
+        concurrencyIsTheWave: true,
+        oneMessagePerWave: true,
+        neverTwoWaves: true,
+        thePlannerIsWhyAWaveIsSafe: true,
+        cause: true,
+        andTheOldSerialBanIsGone: false,
+      });
     });
 
     // A minion's own fetch returns its method and the Quest ID and nothing else. The sign-off and
@@ -834,7 +964,7 @@ describe('operatorPromptStatics', () => {
         briefHeaderNamesThatPath: BRIEF_HEADER.includes(`plan file: ${PLAN_PATH}`),
         plannerReturnsThatSamePath: PLANNER.includes(`PLAN: ${PLAN_PATH} — <count> chunks`),
       }).toStrictEqual({
-        plannerWritesThisManyChunkFields: 6,
+        plannerWritesThisManyChunkFields: 7,
         stepFiveNamesThemAllInTheSameOrder: true,
         allowedTableGrantsReadOnExactlyThatPath: true,
         stepFourReadsThatPath: true,

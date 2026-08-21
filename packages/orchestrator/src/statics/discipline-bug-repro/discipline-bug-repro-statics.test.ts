@@ -643,9 +643,8 @@ describe('disciplineBugReproStatics', () => {
     // accepted with no session left to re-check it.
     it('VALID: the per-bug mutation check => is a run the reviewer template exempts from its ward ban', () => {
       expect({
-        templateBansASecondRoundScopedWard: REVIEWER_TEMPLATE_NOT_YOURS.includes(
-          '**A SECOND round-scoped ward.**',
-        ),
+        templateSendsTheRoundsWardToTheParent:
+          REVIEWER_TEMPLATE_NOT_YOURS.includes("**The round's ward.**"),
         templateExemptsAOneFileOrOneTestRun: REVIEWER_TEMPLATE_NOT_YOURS.includes(
           '**A run over ONE file or ONE test is not on this list.**',
         ),
@@ -666,7 +665,7 @@ describe('disciplineBugReproStatics', () => {
         ),
         packAsksForARoundScopedWardOfItsOwn: reviewerMarkdown.includes('--staged'),
       }).toStrictEqual({
-        templateBansASecondRoundScopedWard: true,
+        templateSendsTheRoundsWardToTheParent: true,
         templateExemptsAOneFileOrOneTestRun: true,
         templatePermitsARevertToSeeATestFail: true,
         templateDefersToTheDiscipline: true,

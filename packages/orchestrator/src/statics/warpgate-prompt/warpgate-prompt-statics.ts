@@ -168,15 +168,28 @@ Work around what you find at that checkout rather than stopping. You are here to
 | Uncommitted work that checking out base does not disturb | Check base out anyway. The uncommitted work rides along untouched. |
 | Uncommitted work that checking out base WOULD destroy | Never \`git stash\`. Never \`git reset\`. Never discard it. Signal \`blocked\` instead, at step 7, naming the exact repo-root paths that block you. |
 
-### 6. Merge the quest branch into base
+### 6. Squash the quest branch onto base
 
 Every git command in this step runs with cwd equal to the repo root checkout, never the
-worktree. Merge the quest branch into the base branch there.
+worktree. **Merge with \`--squash\`**, then commit the result yourself:
 
-Resolve any conflict here. COMMIT it on base, in the repo root checkout. That finishes the job.
-Do NOT run ward again on the branch. Running ward again belongs to step 3, on the intake path. A
-conflict on base is a different situation from a conflict during intake. It takes a different
-answer.
+\`\`\`bash
+git merge --squash <the quest branch>
+git commit
+\`\`\`
+
+**Base gets ONE commit for the whole quest.** Its subject names the quest. Its body lists what each
+round made true, read off the branch's own \`round <n>:\` and \`review <n>:\` commits. A quest branch
+carries a plan commit, a round commit and a review commit per round; every one of them is a record of
+how the work was made, not of what the work IS. Base keeps the second and drops the first.
+
+\`git merge --squash\` stages the tree and writes no commit of its own, which is why the \`git commit\`
+is a separate line. It also records no merge parent, so git will not report the quest branch as
+merged afterwards. Nothing downstream reads that: you never push, and publishing is the user's call.
+
+Resolve any conflict here, then commit as above. That finishes the job. Do NOT run ward again on the
+branch. Running ward again belongs to step 3, on the intake path. A conflict on base is a different
+situation from a conflict during intake. It takes a different answer.
 
 ### 7. Signal the outcome
 
