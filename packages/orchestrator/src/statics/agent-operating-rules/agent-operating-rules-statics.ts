@@ -17,10 +17,10 @@
  * | Prompt | [TURN END] | [WARD] | [DELEGATION] | [WALL] | [CLEAN TREE] |
  * |---|---|---|---|---|---|
  * | spiritmender, warpgate | `turnEndRole` | `wardScoped` | `delegationSynchronous` | `wallRole` | `treeCleanRole` |
- * | operator-prompt | `turnEndRole` | `wardScoped` | `delegationSynchronous` | `wallRole` | `treeCleanOperator` |
+ * | operator-prompt | `turnEndRole` | `wardNone` | `delegationSynchronous` | `wallRole` | `treeCleanOperator` |
  * | planner-minion | `turnEndMinion` | `wardNone` | `delegationSpike` | `wallMinion` | — |
  * | worker-minion | `turnEndMinion` | `wardScoped` | `delegationLeafBan` | `wallMinion` | — |
- * | reviewer-minion | `turnEndMinion` | `wardNone` | `delegationLeafBan` | `wallMinion` | — |
+ * | reviewer-minion | `turnEndMinion` | `wardScoped` | `delegationLeafBan` | `wallMinion` | — |
  *
  * Every row opens on `heading` and takes `background` unchanged between [TURN END] and [WARD]. A
  * work-item role gets six rules, a minion five; [CLEAN TREE] is the one no minion takes, because a
@@ -53,13 +53,18 @@
  * 3m55s of a 10m20s minion run. Only a planning minion takes `delegationSpike`, and only to try a
  * pattern it cannot plan against without trying it.
  *
- * AXIS 3 IS WHETHER THE READER RUNS A WARD AT ALL, and it cuts across both families rather than down
- * one. `wardScoped` names the two scoped forms and says the reader's own prompt picks which: an
- * operator runs `--staged` once per round, a worker runs the named-file form over its own chunk.
- * `wardNone` goes to the two minions that run none — the planner, which only WRITES a ward line for a
- * worker, and the reviewer, which reads its parent's `--staged` result out of its brief. One session
- * per round runs a ward, and that is what keeps a wave of parallel workers off each other's tree:
- * ward's typecheck is `tsc -b`, which BUILDS.
+ * AXIS 3 IS WHETHER THE READER RUNS A BUILD AND A WARD AT ALL, and it cuts across both families
+ * rather than down one. `wardScoped` names the two scoped forms and says the reader's own prompt
+ * picks which: a REVIEWER runs `--staged` over the whole round, a worker runs the named-file form
+ * over its own chunk. `wardNone` goes to the two sessions that run neither — the OPERATOR, which
+ * opens no file and so could not act on a result, and the PLANNER, which only WRITES a ward line for
+ * a worker. One session per round runs a build, and that is what keeps a wave of parallel workers off
+ * each other's tree: ward's typecheck is `tsc -b`, which BUILDS.
+ *
+ * THAT ONE SESSION IS THE REVIEWER, AND IT RUNS BOTH LAST — after it has opened every file the round
+ * produced. Neither reader of this rule may open a source file, so a compile error or a red check
+ * reaches either of them as text it can only forward. The reviewer holds the errors and the files at
+ * once, and already fixes what it finds, so it closes a straggler in the same turn.
  *
  * A PROMPT THAT TAKES BOTH SIDES OF AN AXIS CONTRADICTS ITSELF. One block cannot say both "never
  * delegate" and "delegate for a spike". An agent reading that follows whichever it reads first. Each
@@ -87,7 +92,7 @@ There are exactly TWO scoped forms. Do not choose between them. Your own prompt 
 
 Three mechanics in the \`<dungeonmaster-ward-discipline>\` snippet apply to you unchanged: build first, pick ONE mode, and run it once.`;
 
-const wardNone = `**[WARD] You run NO ward, NO test and NO check of any kind.** Your PARENT runs the round's ward, once, as \`npm run ward -- --staged\` — every check type over every source file origin does not have yet. That range IS the round. Where there is a result for you to act on, your brief carries it. This OVERRIDES both the \`<dungeonmaster-ward>\` and the \`<dungeonmaster-ward-discipline>\` snippets you were handed at session start. Neither is addressed to a session that runs none. A ward you ran yourself would compete with your parent's for the same tree, and would tell you nothing your brief does not already carry.`;
+const wardNone = `**[WARD] You run NO build, NO ward, NO test and NO check of any kind.** The round's \`reviewer-minion\` runs both, ONCE, after every worker has returned AND after it has opened every file the round produced: \`npm run build\`, then \`npm run ward -- --staged\` — every check type over every source file origin does not have yet. That range IS the round. This OVERRIDES both the \`<dungeonmaster-ward>\` and the \`<dungeonmaster-ward-discipline>\` snippets you were handed at session start. Neither is addressed to a session that runs neither. ONE session per round runs them, and that is what keeps a wave of parallel workers off each other's tree: \`tsc\` writes one shared \`dist/\` per package, and ward's typecheck is \`tsc -b\`, which BUILDS. That session is also the only one that can FIX what they turn up, because it is the only one with every file open.`;
 
 const delegationSynchronous = `**[DELEGATION] You do NOT break [BACKGROUND] by awaiting a helper you spawn.** The \`Agent\`/Task tool is SYNCHRONOUS. [BACKGROUND] forbids ending your turn on a backgrounded *shell* command. A sub-agent returns its result inline, as a tool result, inside the same turn. You stay alive. You read what it returns. You carry on. If your role's prompt tells you to delegate isolated work, decide it EARLY. The model will not reliably stop to delegate deep into a long turn. Brief the helper fully. Then wait. You lose nothing by waiting, because your turn never ended.`;
 
@@ -95,7 +100,9 @@ const delegationSpike = `**[DELEGATION] You may delegate a SPIKE, and only a spi
 
 const delegationLeafBan = `**[DELEGATION] You are a LEAF. Do NOT call the \`Agent\`/Task tool.** Everything you need is in your briefing and on disk. A sub-agent you spawn produces work your parent cannot review, because your parent reads YOUR files, not your helper's conclusions. A leaf that delegates spends its parent's time on a result nobody grades. If you genuinely cannot finish your assignment without work outside it, say so in your return. Let your parent decide.`;
 
-const deniedCommandWall = `You are dispatched with nobody there to approve a command. A command outside the project's permission allowlist comes back \`This command requires approval\`. It is DENIED outright. Nobody will accept it later. The same goes for a missing credential, an unreachable service, and a tool the sandbox does not expose. Each of those is a WALL.`;
+const deniedCommandWall = `You are dispatched with nobody there to approve a command. A command outside the project's permission allowlist comes back \`This command requires approval\`. It is DENIED outright. Nobody will accept it later. The same goes for a missing credential, an unreachable service, and a tool the sandbox does not expose. Each of those is a WALL.
+
+**A denied command is a wall only if the JOB has no other route.** Here \`Read\`+\`offset\`, \`discover\` and \`python3 -c\` replace \`sed\`/\`grep\`/\`find\`/\`rg\`. Swap the tool first.`;
 
 const wallRole = `**[WALL] When the ENVIRONMENT blocks you rather than the work, signal \`operationStatus: 'blocked'\`. Never \`partial\`.** ${deniedCommandWall}
 

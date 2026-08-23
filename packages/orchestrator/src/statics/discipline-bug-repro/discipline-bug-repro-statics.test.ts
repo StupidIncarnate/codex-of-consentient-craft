@@ -1,8 +1,20 @@
+import { plannerMinionStatics } from '../planner-minion/planner-minion-statics';
 import { reviewerMinionStatics } from '../reviewer-minion/reviewer-minion-statics';
+import { workerMinionStatics } from '../worker-minion/worker-minion-statics';
 import { disciplineBugReproStatics } from './discipline-bug-repro-statics';
 
 const { operatorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
   disciplineBugReproStatics;
+
+// THE MARKER'S HOME. The planner template owns the region a marker lands in; the worker template
+// owns the step that writes it. This pack owns neither, so both are read off those modules live.
+const ROUND_LOG_HEADING =
+  /^(?<heading>## Round log)$/mu.exec(plannerMinionStatics.prompt.template)?.groups?.heading ??
+  'THE PLANNER WRITES NO ROUND-LOG HEADING';
+
+const WORKER_APPEND_STEP_NUMBER =
+  /^(?<n>\d+)\. \*\*APPEND YOUR REPORT/mu.exec(workerMinionStatics.prompt.template)?.groups?.n ??
+  'THE WORKER TEMPLATE HAS NO APPEND STEP';
 
 // CROSS-FILE NEEDLES. Each one is read off the PRODUCING module's live value. A second copy of the
 // same sentence written down here would drift exactly the way the prose drifts, and go quiet.
@@ -198,10 +210,10 @@ describe('disciplineBugReproStatics', () => {
         ),
         reviewerLeavesNoBareCall: reviewerMarkdown.includes("get-quest({ questId: 'QUEST_ID' })"),
         reviewerSectionSixNamesTheSource: reviewerMarkdown.includes(
-          'Read\n`userRequest` from the JSON response of the `get-quest` call at the top of this block.',
+          "**Pass `format: 'json'`.** The default text render omits `userRequest`,\nwhich section 6 needs.",
         ),
-        reviewerSaysTheBriefLacksIt: reviewerMarkdown.includes(
-          'The text render never emits it. Your brief carries only the header,\nthe plan path and the worker returns.',
+        reviewerSaysTheDocumentCarriesItToo: reviewerMarkdown.includes(
+          "The round document's `## Context` carries it too, at the bottom.",
         ),
       }).toStrictEqual({
         plannerCall: true,
@@ -211,7 +223,7 @@ describe('disciplineBugReproStatics', () => {
         reviewerSaysWhy: true,
         reviewerLeavesNoBareCall: false,
         reviewerSectionSixNamesTheSource: true,
-        reviewerSaysTheBriefLacksIt: true,
+        reviewerSaysTheDocumentCarriesItToo: true,
       });
     });
   });
@@ -351,14 +363,16 @@ describe('disciplineBugReproStatics', () => {
     });
 
     // The planner promises that a corrected reading of the symptom survives into the next `pt N`.
-    // The commit body is the only channel that carries it, and the generic worker template says
-    // only "The body says what you did". Without a marker named here, nothing writes it and the
-    // successor re-derives the correction from scratch.
-    it('VALID: workerMarkdown => carries the CORRECTED commit marker the planner points at by name', () => {
+    // The ROUND LOG is the only channel that carries it: the worker's return reaches nothing on
+    // disk, and no worker commits. Without a marker named here, nothing writes it and the successor
+    // re-derives the correction from scratch.
+    it('VALID: workerMarkdown => carries the CORRECTED marker the planner points at by name', () => {
       expect({
-        heading: workerMarkdown.includes('### The `CORRECTED:` commit marker is yours to write'),
-        firstLineOfTheBody: workerMarkdown.includes(
-          'One situation puts a marker on **the first line of your commit BODY**:',
+        heading: workerMarkdown.includes(
+          '### The `CORRECTED:` marker is yours to write, in the round log',
+        ),
+        theStepItGoesIn: workerMarkdown.includes(
+          `One situation puts a marker in the block you append at method step ${WORKER_APPEND_STEP_NUMBER}:`,
         ),
         theRow: workerMarkdown.includes(
           '| Fixed a bug whose real symptom differs from the report | `CORRECTED:` |',
@@ -367,20 +381,42 @@ describe('disciplineBugReproStatics', () => {
           'That note names both readings: what the report\nclaims, and what your planner drove',
         ),
         onlyPlaceASuccessorReadsIt: workerMarkdown.includes(
-          'That line is the only place a\n`pt N` successor can read the correction back.',
+          '**It is the only place a `pt N`\nsuccessor can read the correction back**',
         ),
-        subjectUnchanged: workerMarkdown.includes('The subject stays `chunk <n>: <title>`.'),
+        aChunkWithNoneStillAppends: workerMarkdown.includes(
+          'A chunk that corrected nothing\nstill appends its block, carrying `none`.',
+        ),
         plannerNamesTheMarker: plannerMarkdown.includes(
-          "Say in the owning chunk's `NOTES` that its worker leads the commit\nbody with `CORRECTED:`.",
+          "Say in the owning chunk's `NOTES` that its worker logs `CORRECTED:`\nin the round log.",
         ),
+        noCommitBodyLeft: `${workerMarkdown}${plannerMarkdown}`.includes('commit body'),
       }).toStrictEqual({
         heading: true,
-        firstLineOfTheBody: true,
+        theStepItGoesIn: true,
         theRow: true,
         bothReadings: true,
         onlyPlaceASuccessorReadsIt: true,
-        subjectUnchanged: true,
+        aChunkWithNoneStillAppends: true,
         plannerNamesTheMarker: true,
+        noCommitBodyLeft: false,
+      });
+    });
+
+    // The region this pack's marker lands in belongs to the PLANNER template, and the step that
+    // writes it belongs to the WORKER template. Both needles are read off those modules live: a copy
+    // written down here would keep passing after the region was renamed, and a marker appended under
+    // a heading no file carries is lost with nothing reporting it.
+    it('VALID: workerMarkdown => sends its marker to the step and region the templates really build', () => {
+      expect({
+        theWorkerTemplateHasThatStep: workerMinionStatics.prompt.template.includes(
+          `${WORKER_APPEND_STEP_NUMBER}. **APPEND YOUR REPORT to the round document's \`${ROUND_LOG_HEADING}\``,
+        ),
+        andThePlannerLeavesThatRegionEmpty: plannerMinionStatics.prompt.template.includes(
+          '<nothing. Each worker appends its own report here as its last act.>',
+        ),
+      }).toStrictEqual({
+        theWorkerTemplateHasThatStep: true,
+        andThePlannerLeavesThatRegionEmpty: true,
       });
     });
   });
@@ -484,8 +520,12 @@ describe('disciplineBugReproStatics', () => {
         filesCarryTheCause: plannerMarkdown.includes(
           '**`FILES`** must also carry the implementation file you traced the cause to',
         ),
-        wardFollowsTheLayer: plannerMarkdown.includes('**`WARD`** follows that layer'),
-        e2eWard: plannerMarkdown.includes('`--only lint,typecheck,e2e` for an e2e chunk'),
+        theWorkerWardFollowsTheLayer: workerMarkdown.includes(
+          "Your check types follow the LAYER your chunk's `NOTES` named — the same layer that decided where\nyour reproducing test went:",
+        ),
+        andTheE2eRowCarriesNoTypecheck: workerMarkdown.includes(
+          '| a Playwright `.e2e.ts` | `lint,e2e` |',
+        ),
       }).toStrictEqual({
         unitsCarryExpectedIds: true,
         intentQuotesVerbatim: true,
@@ -493,8 +533,8 @@ describe('disciplineBugReproStatics', () => {
         notesNamesTheLayer: true,
         defaultToE2e: true,
         filesCarryTheCause: true,
-        wardFollowsTheLayer: true,
-        e2eWard: true,
+        theWorkerWardFollowsTheLayer: true,
+        andTheE2eRowCarriesNoTypecheck: true,
       });
     });
 
@@ -509,7 +549,7 @@ describe('disciplineBugReproStatics', () => {
         readThePreviousCommits: plannerMarkdown.includes(
           'read the previous `review <n>:` commit bodies',
         ),
-        doNotPlanItAgain: plannerMarkdown.includes('do NOT plan\nit again'),
+        doNotPlanItAgain: plannerMarkdown.includes('do NOT plan it again'),
         letTheReviewerRecordIt: plannerMarkdown.includes(
           '3. Let the reviewer record the undrivable one as an open question.',
         ),
@@ -631,8 +671,9 @@ describe('disciplineBugReproStatics', () => {
     });
 
     // CROSS-FILE PAIR — `reviewerMinionStatics`' "What is not yours" ward entry ←→ this pack's §3
-    // mutation check. That entry BANS a second round-scoped ward and, inside the same bullet,
-    // EXEMPTS a revert-to-see-whether-a-test-fails and a run over one test, then defers to whatever
+    // mutation check. That entry bans only the BARE whole-repo run — the round's own `--staged` is
+    // that session's to run now — and it PERMITS a revert-to-see-whether-a-test-fails and a run
+    // over one test, then defers to whatever
     // the discipline requires as proof. §3 requires exactly that run, per bug, and calls it the
     // ENTIRE proof that a reproduction ever happened. It asks for no round-scoped ward of its own,
     // which is why `--staged` must not appear in this block at all.
@@ -643,10 +684,11 @@ describe('disciplineBugReproStatics', () => {
     // accepted with no session left to re-check it.
     it('VALID: the per-bug mutation check => is a run the reviewer template exempts from its ward ban', () => {
       expect({
-        templateSendsTheRoundsWardToTheParent:
-          REVIEWER_TEMPLATE_NOT_YOURS.includes("**The round's ward.**"),
-        templateExemptsAOneFileOrOneTestRun: REVIEWER_TEMPLATE_NOT_YOURS.includes(
-          '**A run over ONE file or ONE test is not on this list.**',
+        templateBansOnlyTheWholeRepoWard: REVIEWER_TEMPLATE_NOT_YOURS.includes(
+          '- **The whole-repo `npm run ward`, bare.**',
+        ),
+        templatePermitsAOneFileOrOneTestRun: REVIEWER_TEMPLATE_NOT_YOURS.includes(
+          'A ward over ONE file or ONE test is fine at any point.',
         ),
         templatePermitsARevertToSeeATestFail: REVIEWER_TEMPLATE_NOT_YOURS.includes(
           '- you revert a line to see whether a test fails;',
@@ -665,8 +707,8 @@ describe('disciplineBugReproStatics', () => {
         ),
         packAsksForARoundScopedWardOfItsOwn: reviewerMarkdown.includes('--staged'),
       }).toStrictEqual({
-        templateSendsTheRoundsWardToTheParent: true,
-        templateExemptsAOneFileOrOneTestRun: true,
+        templateBansOnlyTheWholeRepoWard: true,
+        templatePermitsAOneFileOrOneTestRun: true,
         templatePermitsARevertToSeeATestFail: true,
         templateDefersToTheDiscipline: true,
         packRevertsByEditingRatherThanCheckout: true,
@@ -814,10 +856,19 @@ describe('disciplineBugReproStatics', () => {
     });
   });
 
+  // THE PLANNER BLOCK HAS A LARGER BUDGET THAN ITS TWO SIBLINGS, and the gap is structural rather
+  // than a licence to sprawl. Every pack must now carry `### How to plan` — an ORDERED procedure the
+  // planner template makes a BLOCKING read — plus `### The waves`, on top of the subject matter the
+  // block already held. Those two sections landed in all five packs at once, and 9,000 predates
+  // them: measured after the change, every worker and reviewer block still sits under 7,000 while
+  // three of the five planners run past 10,000. The bound still bites — the largest planner has
+  // under a thousand characters of slack — and going over it costs the SERVED prompt its tail,
+  // because a pack is interpolated into a template already sized against
+  // `mcpToolResultStatics.maxVerbatimChars`.
   describe('budgets', () => {
     it('VALID: the three minion blocks => each stay inside their budget', () => {
       expect({
-        planner: plannerMarkdown.length < 9_000,
+        planner: plannerMarkdown.length < 15_000,
         worker: workerMarkdown.length < 9_000,
         reviewer: reviewerMarkdown.length < 9_000,
       }).toStrictEqual({ planner: true, worker: true, reviewer: true });

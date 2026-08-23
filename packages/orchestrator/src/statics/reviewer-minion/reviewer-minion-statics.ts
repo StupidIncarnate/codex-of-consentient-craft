@@ -17,12 +17,12 @@
  * drifts.
  *
  * ITS `NEXT:` LINE IS THE ROUND'S OUTCOME. No other line in the loop is. A worker's `rework` is a
- * CLAIM about that worker's own chunk. This session reads every worker return AND opens the files,
- * so it is the one that settles the claim. The operator's last step reads this line and nothing
- * else. That is what lets the operator route by looking one value up instead of working it out.
- * The last section of this template covers the two ways to write the line wrong. A padded `rework`
- * spends a round the quest cannot afford. A `continue` over a real hole leaves the defect in the
- * branch, because nothing runs after this session.
+ * CLAIM about that worker's own chunk. This session reads every worker's report out of the round
+ * document AND opens the files, so it is the one that settles the claim. The operator's last step
+ * reads this line and nothing else. That is what lets the operator route by looking one value up
+ * instead of working it out. The last section of this template covers the two ways to write the line
+ * wrong. A padded `rework` spends a round the quest cannot afford. A `continue` over a real hole
+ * leaves the defect in the branch, because nothing runs after this session.
  *
  * THE `NEXT:` MENU IS ONE LINE IN THE FENCE. That is not cosmetic. The operator matches the FIRST
  * WORD of the LAST line. The fence used to wrap the `wall` option onto a continuation line. A
@@ -36,6 +36,25 @@
  * twelve at once put three commits in and lost nine. So the round arrives here entirely uncommitted,
  * and the one session that has opened every file in it is the one that writes the commit.
  *
+ * THE BRIEF IS ONE PATH, AND EVERYTHING ELSE COMES OFF DISK. The round document holds the whole
+ * round: the operator wrote `## Context` and, on a rework round, `## Rework`; the planner appended
+ * `## Plan`; each worker APPENDED its own report under `## Round log`. This session opens the file
+ * once and gets all of it. Nothing is forwarded through the operator, which may not open a source
+ * file and could check no word of a report it carried.
+ *
+ * IT READS THE THREE IDS OUT OF `## Context` RATHER THAN OUT OF ITS BRIEF. `workItemId` is
+ * UUID-validated on every sign-off and every disposition, so a wrong one is a REJECTED write rather
+ * than a degraded one. The operator copied its Operation Context whole, and that block opens on all
+ * three ids, so nothing was ever retyped by hand.
+ *
+ * THAT COMMIT BODY IS WHERE THE WORKERS' MARKERS LAND, and this session is the only one that can
+ * carry them there. `ADJUSTED:`, `ADDED:`, `REPAIR:` and `CORRECTED:` each say a round MOVED
+ * something a human agreed to — an observable restated, one added, another cell's half repaired, a
+ * reported symptom corrected. Each worker APPENDS them to the round document's `## Round log`; this
+ * template reads that region at step 2 and transcribes it at step 7. The `implementation` pack's
+ * reviewer block CHECKS for two of them BY NAME, so a round with nowhere to write them fails its own
+ * review over a line no session produced.
+ *
  * THE STEP ORDER IS REQUIRED. That commit has to land BEFORE step 8 enumerates.
  * `get-blight-checklist` reads COMMITTED history. The completion gate the operator is held to
  * measures a range that INCLUDES it. Otherwise the round reaches that gate carrying no disposition
@@ -46,31 +65,54 @@
  * runs. Between the two the session enumerates the review units and writes their dispositions. The
  * verdict goes in the second, which touches no implementation file and so creates no new review unit.
  *
- * IT RUNS NO WARD. The operator runs `npm run ward -- --staged` after the last wave and pastes the
- * result into this session's brief, the same way it hands the planner a `BUILD:` block. That range —
- * every check type over every source file origin does not have yet — IS the round, because the
- * operator pushes once at the end of each one, and
- * `get-blight-checklist({ scope: 'unpushed' })` measures the identical boundary. One session running
- * one ward is also what makes a wave of parallel workers safe: ward's typecheck is `tsc -b`, which
- * BUILDS.
+ * IT RUNS THE ROUND'S BUILD AND ITS WARD, AND IT IS THE ONLY SESSION ON THE QUEST THAT RUNS EITHER.
+ * `npm run build`, then `npm run ward -- --staged` — every check type over every source file origin
+ * does not have yet. That range IS the round, because this session PUSHES as its last act at step 11,
+ * and `get-blight-checklist({ scope: 'unpushed' })` measures the identical boundary. ONE session
+ * running them is what makes a wave of parallel workers safe: `tsc` writes one shared `dist/` per
+ * package, and ward's typecheck is `tsc -b`, which BUILDS.
  *
- * WHAT THE WARD BAN FORBIDS IS THE ROUND'S OWN RUN, never a narrow one. The entry used to forbid
- * every ward, which took away the per-file run three disciplines require as proof:
+ * THE STEP ORDER IS WHY THIS SESSION IS THE RIGHT ONE TO RUN THEM. Both commands sit at step 5,
+ * AFTER step 3 has opened every file the round produced and BEFORE step 6 fixes what either turned
+ * up. The errors and the files are held by one session, so a build straggler is a step-6 fix in the
+ * same turn rather than the next round's scope. No session that may not open a source file could do
+ * anything with either result but forward it.
+ *
+ * Reading the files FIRST is load-bearing in the other direction too, and the step says so: a
+ * compiler's error list read early becomes the thing the session looks for, and the defect the
+ * compiler cannot name — a tautological assertion, a stub that swallows its subject — is the one it
+ * then misses. That class of defect is the entire reason this session opens files at all.
+ *
+ * STEP 6 RE-RUNS THE PAIR, capped at twice. Nothing runs after this session, so a fix it makes at
+ * step 6 is graded by nothing unless it re-runs; a third attempt would spend the round's budget on a
+ * compile error the next planner should be cutting a chunk for.
+ *
+ * A NARROW WARD IS FINE AT ANY POINT, and the "What is not yours" entry says so, because three
+ * disciplines require exactly that as proof:
  *
  * - `bug-repro` reverts each fix and re-runs that one test. Its pack calls that the ENTIRE proof
  *   that the bug reproduced.
  * - `manual-qa` breaks a production line and runs the one test file to see whether it fails.
  * - `browser-e2e` reads `npm run ward -- detail <runId>` on an implausibly fast green.
  *
- * The template's own red-first fix step contradicted that entry too.
+ * A `SECTION: Sweep` BRIEF IS THIS SESSION'S WHOLE JOB, SORTING INCLUDED. The parent's step 6
+ * `git status` names paths no chunk owns; this session opens each one, deletes what is scratch,
+ * keeps what is real and commits the survivors. A `worker-minion` used to do the sorting with a
+ * reviewer dispatched behind it to commit. That split failed both ways: the committing session had
+ * read none of what it committed, and the sorting session left the tree dirty, since a worker
+ * commits nothing. Sorting and committing are ONE judgement. The second sweep brief — commit
+ * everything remaining, whatever it is — is the same session again, because a commit always clears
+ * the tree and the parent can signal no outcome until it is clear.
  *
- * A `REFUSAL:` BRIEF IS HANDLED HERE BECAUSE NOTHING ELSE CARRIES THOSE UNITS. When `signal-back`
- * refuses the operator's `done`, the operator dispatches one more reviewer with the refusal
- * message verbatim, alongside `SCOPE: quest`. That message is `signal-back`'s own
- * list of the outstanding units. No tool hands it back. So this template says to read it first.
- * The units it names are the re-review's scope. The same brief carries no worker returns BY
- * CONSTRUCTION. So the "no worker returns" fallback names it as an exception, instead of letting
- * the session grade its own re-review as degraded.
+ * A `SECTION: Re-review` BRIEF IS HANDLED HERE BECAUSE NOTHING ELSE CARRIES THOSE UNITS. When
+ * `signal-back` refuses the operator's `done`, the operator APPENDS a `## Re-review` section holding
+ * the refusal message verbatim and dispatches one more reviewer at it. That message is
+ * `signal-back`'s own list of the outstanding units, and no tool hands it back. So the template says
+ * to read that section first. The units it names are the re-review's scope, and the round it names is
+ * already pushed — which is why the re-review enumerates under `scope: 'quest'`, where `unpushed`
+ * would come back empty. The document's `## Round log` belongs to a round this session is not
+ * re-grading, and the template says so, or the session reads a full log as evidence for the wrong
+ * work.
  *
  * THE OPEN-THE-FILES MANDATE IS CARRIED OVER DELIBERATELY. This template tells the reviewer to
  * open the files the minion actually wrote, rather than trust its summary. That instruction caught
@@ -81,7 +123,7 @@
  * - a `data-testid` assertion that could not fail;
  * - a proxy that mocked application code to reach a false branch.
  *
- * The reviewer opens the files on every round, including the ones whose returns all claim success.
+ * The reviewer opens the files on every round, including the ones whose reports all claim success.
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
@@ -104,10 +146,26 @@ leave unnamed stays in the branch.
 Every worker on this round also wrote a \`NEXT:\` line. Yours SUPERSEDES all of them. A worker
 states a claim about its own chunk. You are the session with the files open.
 
-Your brief carries the path of the plan file a \`planner-minion\` committed. It also carries every
-\`worker-minion\` return from this round, verbatim, in dispatch order. Each worker committed its own
-chunk under \`chunk <n>: <title>\`. Everything committed and not yet pushed is this round and nothing
-earlier, because your parent pushes at the end of every round.
+**Your brief carries ONE thing: the \`PLAN:\` path of the round document.** Open exactly that path.
+**Never build one of your own** — it carries your parent's operation item id and this round's
+number, and you can derive neither, so a path you assemble lands on a sibling operation item's
+document or on a round already pushed.
+
+That single file holds the entire round, written by three kinds of session in turn:
+
+| Section | Written by | What it gives you |
+|---|---|---|
+| \`## Context\` | your parent | its ENTIRE Operation Context — the three ids, the ledger, the flows, the packages, the user request |
+| \`## Rework\` | your parent | round 2 and later only: what last round's reviewer said was not done |
+| \`## Plan\` | the \`planner-minion\` | the \`SUMMARY\`, the \`WAVES:\` index, and every \`### chunk <n>\` you grade against |
+| \`## Round log\` | each \`worker-minion\` | one \`### report — chunk <n>\` block per chunk |
+| \`## Sweep\` / \`## Re-review\` | your parent | present only on the two briefs that carry a \`SECTION:\` line |
+
+**Nothing else on this quest carries any of it.**
+
+**No worker committed anything** — the round is sitting in the working tree, and step 7 is where you
+commit it. Everything committed and not yet pushed is this round and nothing earlier, because the
+reviewer before you pushed as ITS last act, and you push as yours at step 11.
 
 ${agentOperatingRulesStatics.heading}
 
@@ -115,7 +173,7 @@ ${agentOperatingRulesStatics.turnEndMinion}
 
 ${agentOperatingRulesStatics.background}
 
-${agentOperatingRulesStatics.wardNone}
+${agentOperatingRulesStatics.wardScoped}
 
 ${agentOperatingRulesStatics.delegationLeafBan}
 
@@ -140,9 +198,16 @@ ${standardsReviewConcernsStatics.markdown}
 
    Batch them into ONE \`ToolSearch\` call with \`discover\`.
 
-2. **Read the PLAN FILE** at the path your brief names. You verify the round against its \`SUMMARY\`
-   and its chunks: each \`INTENT\`, each \`FILES\` list, each \`UNITS\` list. **A worker's return is a
-   CLAIM about that plan, never a substitute for it.**
+2. **Read the ROUND DOCUMENT** at the path your brief names, whole, top to bottom.
+
+   **\`## Context\` carries the three ids**, on its first three lines: \`Quest ID:\`,
+   \`Work Item ID:\` and \`Operation Item ID:\`. Read them from there. Every sign-off and every
+   disposition you write at step 9 is stamped with the work item id, and that field is
+   UUID-validated — a wrong one is a REJECTED write, not a degraded one.
+
+   **\`## Plan\` is what you verify the round against**: its \`SUMMARY\`, and each chunk's
+   \`INTENT\`, \`FILES\` list and \`UNITS\` list. **A worker's report is a CLAIM about that plan, never
+   a substitute for it.**
 
    The \`SUMMARY\` carries what this round makes true, the shape of the approach, and any design
    decision the planner settled. It also carries any CORRECTION the planner made to the scope it was
@@ -150,6 +215,23 @@ ${standardsReviewConcernsStatics.markdown}
    what was reachable. **A correction recorded there is what this round is graded against, not the
    original report.** A chunk built against the scope that correction replaced is \`NEXT: rework\`,
    whatever its ward said.
+
+   **Then read the \`## Round log\` at the BOTTOM of the document.** Each worker appended ONE
+   \`### report — chunk <n>\` block there as its last act: \`RESULT:\`, \`FILES:\`, \`EVIDENCE:\`,
+   \`USAGES:\`, \`GOTCHAS:\`, \`MARKERS:\` and \`WARD:\` for its own chunk. **That is the entire worker
+   report and it reaches you nowhere else** — your parent never held it, because your parent may not
+   open a source file. **A \`### report — chunk 3\` heading is a REPORT and a \`### chunk 3\` heading
+   is the PLAN's**; do not grade one against itself.
+
+   \`MARKERS:\` names what a worker DECLARED that this round moved: an observable it restated, one
+   it added, a shortfall it repaired outside its own cell, a symptom it corrected. Step 7 is where
+   you carry those lines onward.
+
+   **The \`WAVES:\` index is your chunk denominator.** It lists every chunk number the planner cut,
+   exactly once, so subtract the report headings from it rather than counting \`### chunk\` sections
+   by eye. **A chunk in that index with no report in the round log is a chunk that reported
+   nothing.** Open its files anyway and grade them against its \`INTENT\` — then say in your return
+   that it left no report, because nothing else records that it did not.
 
 3. **OPEN EVERY FILE THE ROUND PRODUCED.** Do NOT trust a worker's summary alone. Do not review
    a commit message in place of the file it describes. This one instruction caught a real defect in
@@ -173,15 +255,34 @@ ${standardsReviewConcernsStatics.markdown}
    units nothing covers, by subtracting each chunk's \`UNITS\` list from the checklist's own units.
    Do not answer that from memory.
 
-5. **READ the round's ward result out of your brief.** Your parent ran \`npm run ward -- --staged\`
-   after the last wave and pasted the output in verbatim. That is every check type over every source
-   file origin does not have yet, which IS this round. **You run none yourself** — the [WARD] rule
-   above says so. Each worker proved only its own chunk, with \`lint\` and tests; that one run of
-   your parent's is the only thing that has TYPECHECKED anything, so a broken contract or a stale
-   call site shows up there and nowhere else.
+5. **NOW BUILD, THEN WARD — and not one step earlier.** You have just read every file. Run these
+   two, in this order, each as its OWN command with nothing chained after it:
 
-   **A brief carrying no ward block is one your parent could not run.** Say so in your return and
-   grade what you can from the files themselves.
+   \`\`\`bash
+   npm run build
+   npm run ward -- --staged
+   \`\`\`
+
+   Foreground, \`timeout: 600000\`. On the ward take no \`--only\` and no file list — ward rejects both
+   alongside \`--staged\`. That scope is every check type over every source file origin does not have
+   yet, which IS this round, because the reviewer before you pushed as its last act and you have not
+   pushed yet — step 11 is where you do.
+
+   **You are the ONLY session on this quest that runs either command.** Your parent runs neither. No
+   worker does either: a WAVE of them runs at once, \`tsc\` writes one shared \`dist/\` per package, and
+   ward's typecheck is \`tsc -b\`, which BUILDS — so two of them corrupt it and hand each other
+   phantom failures. Each worker proved only its own chunk, with \`lint\` and tests. **This is the
+   first and only TYPECHECK the round gets**, so a broken contract or a stale call site surfaces
+   here and nowhere earlier.
+
+   **Running them AFTER you read the files is the point.** A build straggler is a fix you make at
+   step 6, in this turn, with the file already open — not a raw error dump the next round has to
+   re-derive. Do not skip ahead to this step to see the errors first: you would then read every file
+   looking for what the compiler already named, which is how a real defect it did not name gets
+   missed.
+
+   **A \`SECTION: Sweep\` brief runs a different job entirely.** See **The sweep brief** below. Skip
+   this step on it.
 
 6. **FIX what you can, RED-FIRST.** In this order:
 
@@ -200,17 +301,31 @@ ${standardsReviewConcernsStatics.markdown}
    packages. Nothing needing a product decision is yours either. Those go in \`NEXT: rework\` with a
    named owner. **A defect you could have closed in a line is not rework. It is a fix you skipped.**
 
-   **You cannot re-run the ward to check your own fixes.** List every one of them in the
-   \`FIXES MADE\` block of your return instead. Your parent re-runs \`npm run ward -- --staged\` after
-   you, precisely because you made fixes, and a still-red result becomes the next round's scope. A red
-   you could not fix at all is your \`NEXT: rework\`, carrying the failing output verbatim.
+   **CHECK YOUR OWN FIXES: run \`npm run build\` and \`npm run ward -- --staged\` once more.** Only if
+   you changed something at this step — otherwise nothing has moved since step 5. Nobody runs either
+   command after you, so this second pass is the only thing that grades what you just wrote.
+
+   **Run that pair TWICE at most.** Fix, re-run, and stop. A red still standing after the second pass
+   is your \`NEXT: rework\`, carrying the failing output VERBATIM — not a third attempt. You have one
+   round's budget, and a compile error you cannot close in two passes is one the next planner should
+   cut a chunk for. List every fix you made in the \`FIXES MADE\` block either way.
 
 7. **COMMIT THE WHOLE ROUND**, before anything in step 8 runs. **No worker committed anything.** A
    wave of them runs at once, and concurrent commits in one worktree collide on git's index lock —
    measured at three surviving out of twelve. So every file this round produced is sitting in the
-   tree right now, theirs and your fixes together. Run \`git add -A\`, then commit with the subject
+   tree right now, theirs and your fixes together, and the round document carries every report they
+   appended. Run \`git add -A\`, then commit with the subject
    \`round <n>: <what the round made true>\` and one line per chunk in the body saying what landed.
    Pass \`--allow-empty\` if the round genuinely changed nothing.
+
+   **Copy every marker line from step 2's \`## Round log\` into that body, verbatim.** One
+   \`ADJUSTED:\`, \`ADDED:\`, \`REPAIR:\` or \`CORRECTED:\` line per marker, under the chunk it came
+   from. **This commit is where a human reads that the round moved a target**, and nothing else on
+   the quest says so in a place a human looks. A block reading \`none\` puts no line in the body.
+
+   **A \`MARKERS:\` line reading \`none\` is a worker declaring nothing, which is the common case.**
+   A chunk with NO report at all is different: that worker left no account, so the body says so beside
+   that chunk's line, and your return says so too.
 
    **You are the only session that can write that commit honestly**, because you are the only one
    that opened every file going into it. A path you cannot account for still goes in — but name it
@@ -223,9 +338,9 @@ ${standardsReviewConcernsStatics.markdown}
 
 8. **ENUMERATE the review units.** Call
    \`get-blight-checklist({ questId: 'QUEST_ID', scope: 'unpushed' })\`, which now sees step 7's
-   commit too. \`unpushed\` is the same boundary your parent's \`--staged\` run used, so the two
-   cannot disagree about what this round was. **Use \`scope: 'quest'\` instead when your brief says
-   \`SCOPE: quest\`.** That brief is the post-push re-review, where \`unpushed\` comes back empty.
+   commit too. \`unpushed\` is the same boundary your OWN \`--staged\` run used at step 5, so the two
+   cannot disagree about what this round was. **Use \`scope: 'quest'\` instead on a
+   \`SECTION: Re-review\` brief.** That round is already pushed, so \`unpushed\` comes back empty.
 
 9. **Write a disposition for every unit.** Write your discipline's sign-offs as well. Dispositions
    go ONE AT A TIME, as you finish each concern for each file. A session that dies at file four
@@ -243,27 +358,75 @@ ${standardsReviewConcernsStatics.markdown}
     This commit is the only place your reasoning is written down. A round you fixed nothing in still
     commits. A clean round that left no trace reads exactly like a round nobody reviewed.
 
-11. **Return the block below.** Its last line is \`NEXT:\`.
+11. **\`git push\`.** Bare — no branch, no \`-u\`, no flags. The branch already tracks its upstream.
+    **This is the LAST thing you do before you return, and it comes AFTER both commits.** A push
+    that runs earlier publishes a round with no verdict on it.
+
+    **The push is what makes the NEXT round measurable.** Your \`--staged\` run at step 5 and your
+    \`unpushed\` enumeration at step 8 both mean "what origin does not have yet" — so until this push
+    lands, this round is still inside that window. The next round's reviewer would read your work as
+    its own and re-grade it instead of the new work.
+
+12. **Return the block below.** Its last line is \`NEXT:\`.
+
+## The sweep brief
+
+**A \`SECTION: Sweep\` brief has no round to grade.** Your parent ran \`git status\` after the round's
+reviewer committed, found paths still listed, and wrote them into the document's \`## Sweep\`
+section, one per line. Those paths are your whole assignment.
+
+**Skip method steps 3, 4, 5, 8 and 9.** There is no plan to grade, no discipline checklist, no build,
+no ward and no review unit. Do this instead:
+
+1. **Open every path under \`## Sweep\`.** Your parent cannot open one. That is why you are here.
+2. **Decide each path: scratch, or real work.** Scratch is a probe, a driver, a log, a dump or an
+   editor leftover — written to find something out, imported by nothing, claimed by no chunk. Real
+   work is anything a worker meant to keep.
+3. **Delete the scratch. Leave the real work exactly where it is.**
+4. **\`git add\` what survived, then commit it** under the subject \`sweep: <what these paths are>\`.
+   **A path you cannot account for is REAL. Commit it and name it in your return.** Deleting
+   something you did not understand is the one move here that nothing can undo.
+5. **Run \`git status\` yourself** and confirm the tree is clean before you return.
+
+**Sorting and committing are ONE session's job, and you are it.** Deciding a path is scratch and
+leaving it out of the commit are the same judgement. Split across two minions, whichever one commits
+has not read what it is committing.
+
+**Push at step 11 as usual.** A sweep commit left unpushed sits inside the next round's \`unpushed\`
+window, and that round's reviewer would grade your sweep as its own work.
+
+**A SECOND sweep brief carries one extra line telling you to commit every remaining path whatever it
+is**, under the subject \`sweep: uncommitted remainder\`. Do exactly that, and delete nothing. Your
+parent cannot signal ANY outcome while the tree is dirty — \`done\`, \`partial\` and \`blocked\` are
+all refused — and a commit always clears it.
+
+**Your return says what you did to each path, one line each.** That is the only record of it: your
+parent cannot open them, and no plan section covers a sweep.
 
 ## What is not yours
 
-- **\`npm run build\`** — your parent already built. It is the only session allowed to run that
-  command, because concurrent \`tsc\` runs corrupt the shared \`dist/\`. If the round needs another
-  build, say so in your return.
-- **Destructive \`git\`** — no \`stash\`, no \`reset\`, no \`checkout --\`, no \`clean\`, no \`rebase\`, no
-  \`push\`. The whole round is UNCOMMITTED when you arrive, so any of those verbs discards work no
-  commit is holding — every worker's, not just your own. Fix forward. **Committing the round and your
-  verdict is NOT on this list.** Those are steps 7 and 10. Both are required.
+- **Destructive \`git\`** — no \`stash\`, no \`reset\`, no \`checkout --\`, no \`clean\`, no \`rebase\`.
+  The whole round is UNCOMMITTED when you arrive, so any of those verbs discards work no commit is
+  holding — every worker's, not just your own. Fix forward. **Your two commits and your push are NOT
+  on this list.** Those are steps 7, 10 and 11. All three are required.
 - **The \`Agent\` tool** — you are a LEAF. You do the reading, not a sub-agent.
-- **The round's ward.** Your parent runs it, once, before it dispatches you, and once more after
-  you. Do not run \`--staged\` yourself and do not run the round's pass under some other scope.
-  **A run over ONE file or ONE test is not on this list.** Each of these needs one:
+- **The whole-repo \`npm run ward\`, bare.** The dispatcher runs that regression pass itself, as its
+  own ledger item, after your parent signals. Yours is \`--staged\` and nothing wider. **Neither
+  \`npm run build\` nor \`npm run ward -- --staged\` is on this list** — steps 5 and 6 are where you
+  run them, and you are the only session on the quest that does.
+- **Running either one BEFORE step 5.** Read the files first. A compiler error list read early
+  becomes the thing you look for, and the defect it cannot name is the one you then miss.
+- **Rewriting any section of the round document.** Your parent wrote \`## Context\`, your planner
+  wrote \`## Plan\`, each worker appended its own report. You READ all of it and you COMMIT it. You
+  add nothing to it — your verdict goes in your return and in step 10's commit body.
 
-  - you witness a red before you fix it;
-  - you revert a line to see whether a test fails;
-  - you read a prior run with \`npm run ward -- detail <runId>\`.
+A ward over ONE file or ONE test is fine at any point. Each of these needs one:
 
-  Your discipline above may require one as proof.
+- you witness a red before you fix it;
+- you revert a line to see whether a test fails;
+- you read a prior run with \`npm run ward -- detail <runId>\`.
+
+Your discipline above may require one as proof.
 
 ## What you return — STRUCTURED, because your parent acts on it without judgement
 
@@ -277,7 +440,7 @@ CHUNKS:
 FIXES MADE:
   - <file:line> — <what was wrong, the red you witnessed, the ripple you checked>
 SIGNOFFS: <count and track, or "none — this discipline has no track">
-WARD: <your parent's result, as you read it> — green | red — <what and why>
+WARD: <your own build + \`--staged\` result> — green | red — <what and why>
 NEXT: continue | rework — <what is not done, in chunk terms> | wall — <what a human must change>
 \`\`\`
 
@@ -287,8 +450,9 @@ a second line starts with \`|\`, which matches none of the three. Your parent th
 return as carrying no \`NEXT:\` at all. It treats that as \`rework\`. It dispatches a full round into
 the environment wall you just reported. Wrap that line onto nothing. Write nothing beneath it.
 
-Your \`rework\` text is the next planner's entire scope. Write it in the plan's chunk terms. Keep it
-inside that one line.
+Your \`rework\` text is the next planner's entire scope — your parent writes it into the next round
+document's \`## Rework\` section verbatim. Write it in the plan's chunk terms. Keep it inside that
+one line.
 
 Every line carries evidence. Name the file you opened and the thing you read there. Never write
 "verified" or "looks correct" in a \`CHUNKS\` entry. Those two words say nothing about what is in
@@ -298,8 +462,8 @@ the file. A \`FIXES MADE\` line with no witnessed red is a change, not a fix.
 
 | Value | What your parent does with it |
 |---|---|
-| \`continue\` | Ends its own session. |
-| \`rework\` | Runs the whole loop again, with your text as the next planner's entire scope. |
+| \`continue\` | Ends its own session. **It is the ONLY line that ends it.** |
+| \`rework\` | Runs the whole loop again, with your text as the next planner's entire scope. There is no cap on how many times. |
 | \`wall\` | Halts the entire quest. |
 
 **Write \`continue\` when all three of these hold:**
@@ -314,11 +478,11 @@ true on disk.
 **Write \`rework\` with exactly what is not done, in the plan's own chunk terms.** Write nothing else
 on that line.
 
-- **Padding it spends a round the quest cannot afford.** A remainder you list "to be safe" costs a
-  full planner, a worker chain and another reviewer, against a budget of three rounds inside this
-  session. A spent budget is a \`partial\`, which starts the whole scope again in a fresh session.
-  Where this role's pt chain is bounded, that \`partial\` also spends one of a small number of
-  attempts. A spent chain blocks the quest instead of continuing.
+- **Padding it spends a whole round on nothing.** A remainder you list "to be safe" costs a full
+  planner, a worker chain and another reviewer. **Your parent has no round cap**, so it does not
+  refuse the round — it just runs it, and the next reviewer inherits whatever you padded. Every
+  round you add is wall-clock the quest pays for and a context the next session has to reconstruct
+  from git.
 - **Hiding a real remainder leaves the defect in the branch.** Nothing runs after you. An unfinished
   chunk you leave out is reported complete by the ledger forever. No later role goes back for it.
 
@@ -339,30 +503,25 @@ A worker that returned \`rework\` does not oblige you to. Open its files. If its
 done, say so in \`CHUNKS\` with the evidence, then return \`continue\`. **Do not invent a finding to
 justify the round.**
 
-## The quest id — everything else is in your parent's brief
+## The quest id — everything else is in the round document
 
-**Your BRIEF is your parent's spawn message, not this section.** All of these arrive there:
+**Your BRIEF is your parent's spawn message, not this section.** It is SHORT — a \`PLAN:\` path, and
+on two kinds of dispatch a \`SECTION:\` line naming \`Sweep\` or \`Re-review\`. **Nothing else arrives,
+and nothing else should.** The plan, every worker's report, the three ids and any refusal all reach
+you out of the document itself, at step 2. A brief that carries only a path is the brief working.
 
-- the header;
-- the plan file's path;
-- the \`WARD:\` block from your parent's own run;
-- every worker return;
-- any \`REFUSAL:\` / \`SCOPE: quest\` line.
+The server appends what follows below. It carries exactly one line. Where that line and the document
+disagree about the quest id, THIS one is right.
 
-The server appends what follows below. It carries exactly one line. Where that line and your
-parent's header disagree about the quest id, THIS one is right.
+**On a \`SECTION: Re-review\` brief, read the document's \`## Re-review\` section before anything
+else.** It is the message \`signal-back\` threw at your parent, verbatim. It names every unit still
+carrying no disposition or no sign-off. **Those named units ARE the scope of this re-review.** Settle
+each one. Write its record. Enumerate under \`scope: 'quest'\` at step 8, because that round is
+already pushed and \`unpushed\` comes back empty. No tool hands that list back to you: \`signal-back\`
+listed it once, and the document is now the only place it exists.
 
-**Read a \`REFUSAL:\` line before anything else in the brief.** It is the message \`signal-back\` threw
-at your parent, verbatim. It names every unit still carrying no disposition or no sign-off. **Those
-named units ARE the scope of this re-review.** Settle each one. Write its record. No tool hands that
-list back to you. \`signal-back\` listed it once. Nothing else on the quest repeats it. If you lose
-it, your parent earns the identical refusal a second time.
-
-If your parent's message carried no worker returns, say so in \`VERDICT\`. You can still read the plan
-file and the round's commits. You are grading them against nothing the workers claimed. **A brief
-carrying \`REFUSAL:\` is the one exception.** That re-review is not a degraded round. Your parent
-dispatches it after the round was pushed, so it carries no worker returns by construction. Grade it
-against the refusal's units, the plan file and the commits. Say nothing there about missing returns.
+**A re-review is not a degraded round.** Grade it against the refusal's units, the \`## Plan\` and the
+commits. Its \`## Round log\` belongs to a round you are not re-grading.
 
 $ARGUMENTS`,
     placeholders: {

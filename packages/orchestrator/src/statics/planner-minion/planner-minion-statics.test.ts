@@ -19,44 +19,42 @@ const OPERATOR = operatorPromptStatics.prompt.template;
 const WORKER = workerMinionStatics.prompt.template;
 const REVIEWER = reviewerMinionStatics.prompt.template;
 
-// The operator's step-3 brief — the ONLY producer of the block labels Method step 1 reads back.
-const PLANNER_BRIEF_OPENS = OPERATOR.indexOf(
+// The operator's brief fence — the WHOLE grammar of every brief it writes. This session's `PLAN:`
+// path arrives there and nothing else does.
+const BRIEF_FENCE_OPENS = OPERATOR.indexOf(
   '```',
-  OPERATOR.indexOf('**3. Dispatch ONE `planner-minion`.**'),
+  OPERATOR.indexOf(
+    '**A brief takes the lines below that\napply to it, in the order they appear here.**',
+  ),
 );
-const OPERATOR_PLANNER_BRIEF = OPERATOR.slice(
-  PLANNER_BRIEF_OPENS + 3,
-  OPERATOR.indexOf('```', PLANNER_BRIEF_OPENS + 3),
+const OPERATOR_BRIEF_FENCE = OPERATOR.slice(
+  BRIEF_FENCE_OPENS + 3,
+  OPERATOR.indexOf('```', BRIEF_FENCE_OPENS + 3),
 );
-const OPERATOR_BRIEF_BLOCKS = Array.from(OPERATOR_PLANNER_BRIEF.matchAll(/^[A-Z][A-Z ]*:/gmu)).map(
-  (match) => match[0],
-);
-const OPERATOR_FIRST_BLOCK = OPERATOR_BRIEF_BLOCKS[0] ?? 'THE OPERATOR BRIEF CARRIES NO BLOCK';
+const BRIEF_PLAN_PATH =
+  /PLAN: (\S+)/u.exec(OPERATOR_BRIEF_FENCE)?.[1] ?? 'THE BRIEF FENCE NAMES NO PLAN PATH';
 
-// The post-refusal REVIEWER brief — the one place in this pipeline where `SCOPE:` is a real label.
-const REFUSAL_BRIEF_OPENS = OPERATOR.indexOf(
+// The document fence the operator WRITES at its step 1 — the two sections this session reads back.
+const CONTEXT_FENCE_OPENS = OPERATOR.indexOf(
   '```',
-  OPERATOR.indexOf('Dispatch ONE more `reviewer-minion`:'),
+  OPERATOR.indexOf('**1. WRITE the round document'),
 );
-const OPERATOR_REFUSAL_BRIEF = OPERATOR.slice(
-  REFUSAL_BRIEF_OPENS + 3,
-  OPERATOR.indexOf('```', REFUSAL_BRIEF_OPENS + 3),
+const OPERATOR_CONTEXT_FENCE = OPERATOR.slice(
+  CONTEXT_FENCE_OPENS + 3,
+  OPERATOR.indexOf('```', CONTEXT_FENCE_OPENS + 3),
 );
-
-// The header the operator mandates at the top of EVERY minion brief.
-const HEADER_OPENS = OPERATOR.indexOf(
-  '```',
-  OPERATOR.indexOf('**Open every brief with this header.**'),
-);
-const OPERATOR_BRIEF_HEADER = OPERATOR.slice(
-  HEADER_OPENS + 3,
-  OPERATOR.indexOf('```', HEADER_OPENS + 3),
-);
-const OPERATOR_HEADER_FIELDS = Array.from(
-  OPERATOR_BRIEF_HEADER.matchAll(/(?:^|· )([A-Za-z][A-Za-z ]*):/gmu),
+const OPERATOR_WRITTEN_SECTIONS = Array.from(
+  OPERATOR_CONTEXT_FENCE.matchAll(/^(## [A-Z][A-Za-z -]*)$/gmu),
 ).map((match) => match[1] ?? '');
-const HEADER_PLAN_PATH =
-  /plan file: (\S+)/u.exec(OPERATOR_BRIEF_HEADER)?.[1] ?? 'THE HEADER NAMES NO PLAN FILE';
+
+// The sections THIS session reads back, off the table at the top of its own template.
+const BRIEF_TABLE = template.slice(
+  template.indexOf('| Section | What it holds |'),
+  template.indexOf('**No section tells you the state of the tree.'),
+);
+const SECTIONS_THIS_SESSION_READS = Array.from(BRIEF_TABLE.matchAll(/^\| `(## [^`]+)`/gmu)).map(
+  (match) => match[1] ?? '',
+);
 
 // The operator's routing table: the only reader of any minion's `NEXT:` line.
 const OPERATOR_ROUTED_VALUES = Array.from(
@@ -65,15 +63,6 @@ const OPERATOR_ROUTED_VALUES = Array.from(
     OPERATOR.indexOf('**`continue` and `rework` do the same thing'),
   ).matchAll(/^\| `([a-z]+)` \|/gmu),
 ).map((match) => match[1] ?? '');
-
-// Method step 1 and the blocks it lists.
-const METHOD_STEP_ONE = template.slice(
-  template.indexOf('1. **Read your brief first.**'),
-  template.indexOf('2. **Load the project standards YOURSELF'),
-);
-const BLOCKS_THIS_STEP_READS = Array.from(METHOD_STEP_ONE.matchAll(/^ +- `([A-Z]+:)`/gmu)).map(
-  (match) => match[1] ?? '',
-);
 
 // Each template's own `NEXT:` vocabulary — one value per line here, the whole menu on ONE line in
 // the worker and the reviewer.
@@ -96,13 +85,39 @@ const REVIEWER_SUBJECTS = Array.from(REVIEWER.matchAll(/subject\s+`([^`]+)`/gu))
   (match) => match[1] ?? '',
 );
 const ROUND_SUBJECT_CLAIM =
-  /commits its whole round\s+under `([^`]+)`/u.exec(template)?.[1] ??
+  /commits its whole round under\s+`([^`]+)`/u.exec(template)?.[1] ??
   'THIS TEMPLATE CLAIMS NO ROUND SUBJECT';
 const REVIEW_SUBJECT_CLAIM =
-  /then its verdict\s+under `([^`]+)`/u.exec(template)?.[1] ??
+  /then its verdict under\s+`([^`]+)`/u.exec(template)?.[1] ??
   'THIS TEMPLATE CLAIMS NO REVIEW SUBJECT';
 const CLAIMED_SUBJECT_PREFIXES = [ROUND_SUBJECT_CLAIM, REVIEW_SUBJECT_CLAIM].map((claim) =>
   claim.slice(0, claim.indexOf(':') + 2),
+);
+
+// The format rules state their own count in WORDS, and the LIST is the authority. Both sides are
+// parsed rather than written down, so a rule added with the sentence left alone fails here.
+const COUNT_WORDS = [
+  'zero',
+  'one',
+  'two',
+  'three',
+  'four',
+  'five',
+  'six',
+  'seven',
+  'eight',
+  'nine',
+  'ten',
+  'eleven',
+  'twelve',
+];
+const FORMAT_RULES = template.slice(
+  template.indexOf('rules govern that format'),
+  template.indexOf('**A plan with ZERO chunks'),
+);
+const FORMAT_RULES_LISTED = (FORMAT_RULES.match(/^- \*\*/gmu) ?? []).length;
+const FORMAT_RULES_CLAIMED = COUNT_WORDS.indexOf(
+  (/(?<word>\w+) rules govern that format/u.exec(template)?.groups?.word ?? '').toLowerCase(),
 );
 
 describe('plannerMinionStatics', () => {
@@ -125,7 +140,7 @@ describe('plannerMinionStatics', () => {
       disciplineOnItsOwnLine: /^\$DISCIPLINE$/mu.test(template),
       disciplineComesFirst: template.indexOf('$DISCIPLINE') < template.indexOf('$ARGUMENTS'),
       argumentsIsTheTail: template.endsWith('$ARGUMENTS'),
-      questIdHeading: /^## The quest id — everything else is in your parent's brief$/mu.test(
+      questIdHeading: /^## The quest id — everything else is in the round document$/mu.test(
         template,
       ),
     }).toStrictEqual({
@@ -142,43 +157,76 @@ describe('plannerMinionStatics', () => {
     expect(template.length).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
   });
 
+  // THE BRIEF IS A PATH. Its predecessor was handed the operator's whole Operation Context pasted
+  // into the spawn message, which doubled that text inside the one session forbidden to open the
+  // file that would have shown a dropped line. The table at the top of this template is what makes
+  // the path readable: it names each section and what that section holds.
+  it('VALID: the opening => names the document, its sections, and what is NOT in any of them', () => {
+    expect({
+      theBriefIsAPath: has('**Your brief is a PATH.**'),
+      andItNamesTheDocument: has(
+        'Its `PLAN:` line names the round document, which your parent created\nbefore it summoned you. Everything you were given is in that file:',
+      ),
+      theTitleCarriesTheRoundNumber: BRIEF_TABLE.includes(
+        "| `# Round <n> — …` | the round number, and your parent's operation item text |",
+      ),
+      contextIsTheWholeOperationContext: BRIEF_TABLE.includes(
+        "| `## Context` | your parent's ENTIRE Operation Context, verbatim",
+      ),
+      reworkIsThisRoundsScope: BRIEF_TABLE.includes("**That IS this round's scope.**"),
+      theTreeIsThisSessionsToRead: has(
+        '**No section tells you the state of the tree. You read that yourself, at method step 6.**',
+      ),
+      itProducesThreeThings: has(
+        '1. Your `## Plan` section — the `WAVES:` index and the numbered chunks under it — appended to\n   that document.\n2. Its commit.\n3. A two-line return.',
+      ),
+      openTheRealFiles: has('**Open the real files yourself before you name them in a chunk.**'),
+    }).toStrictEqual({
+      theBriefIsAPath: true,
+      andItNamesTheDocument: true,
+      theTitleCarriesTheRoundNumber: true,
+      contextIsTheWholeOperationContext: true,
+      reworkIsThisRoundsScope: true,
+      theTreeIsThisSessionsToRead: true,
+      itProducesThreeThings: true,
+      openTheRealFiles: true,
+    });
+  });
+
   // `$ARGUMENTS` resolves to one line for a minion. That line is not a briefing.
   // `agentPromptGetBroker`'s minion-fetch branch substitutes `Quest ID: <uuid>` and nothing else.
   // That is deliberate. The only richer substitution needs a `workItemId`, and
   // `subagentStopNeedsBlockGuard` would hold a minion that passed one open until it signalled on its
-  // PARENT's operation item. So the real brief arrives in the parent's spawn message. This section
-  // used to be headed "## Briefing", which told a minion its briefing was one id.
-  it('VALID: the last section => says the parent brief is elsewhere and this line is the authoritative id', () => {
+  // PARENT's operation item. So the real assignment arrives in the round document.
+  it('VALID: the last section => says the assignment is in the document and this line is the authoritative id', () => {
     expect({
-      honestHeading: /^## The quest id — everything else is in your parent's brief$/mu.test(
+      honestHeading: /^## The quest id — everything else is in the round document$/mu.test(
         template,
       ),
       noBriefingHeading: /^## Briefing$/mu.test(template),
-      briefIsTheSpawnMessage: has(
-        "**Your BRIEF is your parent's spawn message, not this section.**",
-      ),
-      namesWhatArrivesThere: has('`BUILD:`, `TREE:` and `REWORK:` all arrive there'),
-      oneLineOnly: has('It carries\nexactly one line.'),
+      briefIsTheSpawnMessage: has("**Your BRIEF is your parent's spawn message**"),
+      andItIsAPath: has('and it is a `PLAN:` path'),
+      oneLineOnly: has('The server supplies what\nfollows. It carries exactly one line.'),
       thisOneWins: has(
-        "Where that line and your parent's header disagree about the quest id, the line\nbelow wins.",
+        'Where that line and the document disagree about the quest id,\nthe line below wins.',
       ),
-      noBriefIsWall: has(
-        "say so. Then return\n`NEXT: wall — my parent's spawn message carried no brief; a human must repair the dispatch`.",
+      noDocumentIsWall: has(
+        '`NEXT: wall — my parent wrote no round document; a human must repair the dispatch`.',
       ),
-      noBriefIsNotRework: has('**A missing brief is a wall, not `rework`.**'),
+      noDocumentIsNotRework: has('**A missing document is a wall, not `rework`.**'),
       aFreshSessionCannotFixIt: has(
-        'Neither this session nor a fresh one can invent the\nscope your parent never sent.',
+        'Neither this session nor a fresh one can invent the\nscope your parent never wrote.',
       ),
-      doNotReconstruct: has('Do not try to reconstruct a brief from here.'),
+      doNotReconstruct: has('Do not try to reconstruct it from here.'),
     }).toStrictEqual({
       honestHeading: true,
       noBriefingHeading: false,
       briefIsTheSpawnMessage: true,
-      namesWhatArrivesThere: true,
+      andItIsAPath: true,
       oneLineOnly: true,
       thisOneWins: true,
-      noBriefIsWall: true,
-      noBriefIsNotRework: true,
+      noDocumentIsWall: true,
+      noDocumentIsNotRework: true,
       aFreshSessionCannotFixIt: true,
       doNotReconstruct: true,
     });
@@ -212,60 +260,69 @@ describe('plannerMinionStatics', () => {
   });
 
   // THE BUILD BAN AND THE NO-WARD LINE. The worker and reviewer templates each ban the build. This
-  // one banned nothing. It is also the minion likeliest to try: its parent hands it a red `BUILD:`
-  // block, then sends it to open the failing file. `docs/quest-role-paths.md` states the invariant:
-  // "Planner, workers and reviewer are all forbidden `npm run build`." The no-ward bullet answers
-  // operating rule 3. Rule 3 tells its reader that its OWN prompt names the scoped form it may run.
-  // That forward reference resolved to nothing here. This template names no ward run of its own, and
-  // it only WRITES `WARD:` lines for workers.
+  // one banned nothing. It is also the minion likeliest to try: it is sent to open a failing file
+  // a previous round left behind. `docs/quest-role-paths.md` states the invariant: "Planner,
+  // workers and reviewer are all forbidden `npm run build`." The no-ward bullet answers the [WARD]
+  // rule, which tells its reader that its OWN prompt names the scoped form it may run. That forward
+  // reference resolved to nothing here. This template names no ward run of its own, and it only
+  // WRITES `WARD:` lines for workers.
   describe('what it never runs', () => {
-    it('VALID: template => bans npm run build with the shared-dist reason and names the alternative', () => {
+    // NOBODY HAS BUILT WHEN THIS SESSION RUNS, and the bullet says so in as many words. The round's
+    // build is the REVIEWER's, at the end. A planner left to infer that goes hunting for a block no
+    // session writes, so the bullet states the absence outright.
+    it('VALID: template => bans npm run build, and says nobody has built rather than pointing at a block', () => {
       expect({
         heading: /^## What you never run$/mu.test(template),
-        ban: has('- **`npm run build`.** Your parent already built'),
-        parentHandedTheOutput: has("It handed you that build's output as the\n  `BUILD:` block."),
-        onlySessionAllowed: has(
-          'It is the only session on this quest allowed to run that command.',
+        ban: has(
+          '- **`npm run build`.** Nobody has built yet this round, and it is not your job to.',
         ),
-        sharedDist: has('`tsc` writes one\n  shared `dist/` per package'),
+        theReviewerBuildsAtTheEnd: has(
+          "The round's\n  `reviewer-minion` builds at the END, once, after every worker has returned.",
+        ),
+        sharedDist: has('`tsc` writes one shared\n  `dist/` per package'),
         phantomErrors: has(
-          'A second\n  builder hands every sibling session phantom type errors on correct code',
+          'A second builder hands\n  every sibling session phantom type errors on correct code',
         ),
-        insteadAChunkOrANote: has(
-          'A build you want is a CHUNK for a worker, or a line in your return to\n  your parent.',
+        noBlockAndNotMissingOne: has('**You have no build output and you are not missing one.**'),
+        aBrokenTreeArrivesInTheDocument: has(
+          "What a broken tree\n  left behind reaches you as the document's `## Rework` section",
         ),
-        redBuildIsNotAReason: has('**A red `BUILD:` is not a reason to build again.**'),
+        diagnosedByTheSessionThatHadTheFilesOpen: has(
+          'diagnosed by the reviewer that hit\n  it with the files open',
+        ),
+        noStaleBuildBlockLeft: has('`BUILD:`'),
       }).toStrictEqual({
         heading: true,
         ban: true,
-        parentHandedTheOutput: true,
-        onlySessionAllowed: true,
+        theReviewerBuildsAtTheEnd: true,
         sharedDist: true,
         phantomErrors: true,
-        insteadAChunkOrANote: true,
-        redBuildIsNotAReason: true,
+        noBlockAndNotMissingOne: true,
+        aBrokenTreeArrivesInTheDocument: true,
+        diagnosedByTheSessionThatHadTheFilesOpen: true,
+        noStaleBuildBlockLeft: false,
       });
     });
 
     it('VALID: template => runs no ward of its own and says whose the two ward commands are', () => {
       expect({
         embeddedRuleSaysNone: agentOperatingRulesStatics.wardNone.includes(
-          '**[WARD] You run NO ward, NO test and NO check of any kind.**',
+          '**[WARD] You run NO build, NO ward, NO test and NO check of any kind.**',
         ),
         noWard: has('- **Ward, and every test and check of any kind.**'),
         theRuleAboveAlreadySaidIt: has('The [WARD] rule above already says so.'),
         wardLineIsTheWorkers: has(
-          "The\n  `WARD:` line you write into a chunk is a command that chunk's WORKER runs, never one you run\n  yourself.",
+          '**You do\n  not write one either** — each worker derives its own command from its discipline.',
         ),
-        roundsWardIsTheParents: has(
-          "The round's own ward is your PARENT's: one `npm run ward -- --staged` after the last\n  wave has returned.",
+        roundsWardIsTheReviewers: has(
+          "The round's own\n  ward is the REVIEWER's: one `npm run ward -- --staged` after it has read every file the round\n  produced.",
         ),
       }).toStrictEqual({
         embeddedRuleSaysNone: true,
         noWard: true,
         theRuleAboveAlreadySaidIt: true,
         wardLineIsTheWorkers: true,
-        roundsWardIsTheParents: true,
+        roundsWardIsTheReviewers: true,
       });
     });
   });
@@ -274,14 +331,17 @@ describe('plannerMinionStatics', () => {
   // used to persist the plan. That path forced this session to invent a UUID for the plan and for
   // every chunk, against a UUID-VALIDATED contract. A bad id therefore REJECTED the whole write
   // instead of degrading it. That left the operator nothing to read back. It also left it no way to
-  // find out why. The plan is a committed markdown file now. Numbering IS the order. A file path
-  // names a file and nothing more. A bad write shows up in `git status`.
-  describe('the plan is a committed file, not a quest write', () => {
+  // find out why. The plan is a section of a committed markdown file now. `WAVE` IS the order. A
+  // file path names a file and nothing more. A bad write shows up in `git status`.
+  describe('the plan is a section of a committed file, not a quest write', () => {
     it('VALID: template => names the file path, its commit subject, and nothing about operationPlans', () => {
       expect({
-        filePath: has('`.quest-plans/round-<n>.md`'),
+        filePath: has('`.quest-plans/<operationItemId>-round-<n>.md`'),
         commitSubject: has('Commit it with the subject `plan round <n>: <count> chunks`.'),
         onlyGitWrite: has('That commit is the only thing you put in git.'),
+        theRoundNumberComesOffTheTitle: has(
+          "`<n>` is the round number, off the document's own\n`# Round <n>` title.",
+        ),
         noOperationPlans: has('operationPlans'),
         noModifyQuestWrite: has('modify-quest({ questId'),
         noUuidMinting: has('a UUID you generate'),
@@ -290,6 +350,7 @@ describe('plannerMinionStatics', () => {
         filePath: true,
         commitSubject: true,
         onlyGitWrite: true,
+        theRoundNumberComesOffTheTitle: true,
         noOperationPlans: false,
         noModifyQuestWrite: false,
         noUuidMinting: false,
@@ -297,10 +358,90 @@ describe('plannerMinionStatics', () => {
       });
     });
 
-    it('VALID: the chunk format => carries every field the worker template reads back', () => {
+    // THE APPEND. The operator's `## Context` is already in this file, so `Write` and `Edit` both
+    // delete it. The delimiter is QUOTED so a plan containing a `$` or a backtick lands verbatim.
+    it('VALID: template => appends its section rather than writing the file, with a quoted heredoc', () => {
       expect({
-        heading: has('## chunk 1 — <one line a worker can hold in its head>'),
-        wave: has('WAVE: 1'),
+        appendOnly: has('**APPEND it. Never `Write` this file and never `Edit` it.**'),
+        theOperatorsContextIsAlreadyThere: has(
+          "Your parent's `## Context` is already\nin it, and both of those replace the whole file.",
+        ),
+        oneShot: has(
+          'Append your whole section in ONE shot, with a\nQUOTED heredoc delimiter so nothing inside it expands:',
+        ),
+        theCommand: has("cat >> <the PLAN: path from your brief> <<'PLAN'"),
+        thenAddAndCommit: has(
+          '1. `git add` the document.\n2. Commit it with the subject `plan round <n>: <count> chunks`.',
+        ),
+        andItRewritesNothingAbove: has(
+          '- **Your section starts at `## Plan` and ends at `## Round log`.** Never re-write `# Round`,\n  `## Context` or `## Rework`.',
+        ),
+      }).toStrictEqual({
+        appendOnly: true,
+        theOperatorsContextIsAlreadyThere: true,
+        oneShot: true,
+        theCommand: true,
+        thenAddAndCommit: true,
+        andItRewritesNothingAbove: true,
+      });
+    });
+
+    // THE APPEND REGION. It is the LAST thing in the fence and it is EMPTY, and both of those are
+    // what make a WAVE of workers safe to write into it. An append lands at whatever the end of the
+    // file is when it lands, so two siblings both survive; an `Edit` of a chunk section is a
+    // read-modify-write and the second one back erases the first. A region the planner wrote under
+    // would sit exactly where a worker's bytes are about to go.
+    it('VALID: the plan fence => ends on an EMPTY round-log region for its workers to append to', () => {
+      const fence = template.slice(
+        template.indexOf('## What you append'),
+        template.indexOf('**APPEND it.'),
+      );
+
+      expect({
+        theHeading: fence.includes('## Round log'),
+        leftEmpty: fence.includes(
+          '<nothing. Each worker appends its own report here as its last act.>',
+        ),
+        andItIsTheLastThingInTheFence: fence
+          .trimEnd()
+          .endsWith('<nothing. Each worker appends its own report here as its last act.>\n```'),
+        theRuleSaysWriteNothingUnderIt: has(
+          '- **`## Round log` is the LAST thing you write, and you write NOTHING under it.**',
+        ),
+        theRuleSaysWhyEditingRaces: has('and a wave of them editing one file overwrite each other'),
+        aZeroChunkPlanStillCarriesIt: has(
+          'It carries the `## Round log` header and no `### chunk`\nsections, and its index reads `WAVES: none` on ONE line.',
+        ),
+      }).toStrictEqual({
+        theHeading: true,
+        leftEmpty: true,
+        andItIsTheLastThingInTheFence: true,
+        theRuleSaysWriteNothingUnderIt: true,
+        theRuleSaysWhyEditingRaces: true,
+        aZeroChunkPlanStillCarriesIt: true,
+      });
+    });
+
+    it('VALID: the format rules => state a count matching the list underneath them', () => {
+      expect({
+        theListHasThisMany: FORMAT_RULES_LISTED,
+        andTheSentenceClaimsThisMany: FORMAT_RULES_CLAIMED,
+      }).toStrictEqual({
+        theListHasThisMany: 12,
+        andTheSentenceClaimsThisMany: 12,
+      });
+    });
+
+    // The plan's chunk heading is `### chunk <n>` and a worker's report heading is
+    // `### report — chunk <n>`. Both live in the same document under their own `##` section, so the
+    // two must never be spellable the same way: a reviewer told to read "chunk 3" out of a file
+    // carrying two `### chunk 3` headings grades the report against itself.
+    it('VALID: the chunk format => carries every field the worker template reads back, under its own heading', () => {
+      expect({
+        heading: has('### chunk 1 — <one line a worker can hold in its head>'),
+        andTheWorkerReportHeadingIsDifferent: WORKER.includes('### report — chunk <n>'),
+        wavesIndexSitsAboveTheChunks: has('WAVES:\n  1: 1, 3\n  2: 2'),
+        andNoChunkCarriesItsOwnWave: /^WAVE: /mu.test(template),
         summary: has('SUMMARY: <2-3 sentences'),
         intent: has(
           'INTENT: <what must be TRUE when this chunk is done — an outcome, not a task list>',
@@ -310,19 +451,19 @@ describe('plannerMinionStatics', () => {
         mirror: has(
           'MIRROR: ./packages/<pkg>/src/<an existing sibling whose shape this follows>.ts',
         ),
-        ward: has('WARD: npm run ward -- --only lint,unit -- '),
-        wardCarriesNoTypecheck: /^WARD:.*typecheck/mu.test(template),
+        noWardLineAtAll: /^WARD:/mu.test(template),
         notes: has('NOTES:\n  <everything its worker cannot derive'),
       }).toStrictEqual({
         heading: true,
-        wave: true,
-        wardCarriesNoTypecheck: false,
+        andTheWorkerReportHeadingIsDifferent: true,
+        wavesIndexSitsAboveTheChunks: true,
+        andNoChunkCarriesItsOwnWave: false,
         summary: true,
         intent: true,
         files: true,
         units: true,
         mirror: true,
-        ward: true,
+        noWardLineAtAll: false,
         notes: true,
       });
     });
@@ -330,59 +471,71 @@ describe('plannerMinionStatics', () => {
     // `WAVE` is the dependency order and the chunk number is identity. There is still exactly ONE
     // ordering channel — it just moved, because the number now has to serve as a name a brief can
     // cite while several chunks run at once.
-    it('VALID: template => makes WAVE the dependency order and the chunk number identity', () => {
+    it('VALID: template => makes the WAVES index the dependency order and the chunk number identity', () => {
       expect({
-        waveIsOrder: has('**`WAVE` IS THE DEPENDENCY ORDER. The chunk number is identity.**'),
-        bothContiguous: has(
-          'Number chunks from 1,\n  contiguously, so a brief can name one. Number waves from 1, contiguously, too.',
+        wavesIsOrder: has(
+          '**`WAVES:` IS THE DEPENDENCY ORDER, and it is the ONE place that order is written.**',
         ),
-        parentDispatchesAWaveAtOnce: has(
-          'Your parent dispatches\n  every chunk of wave 1 AT ONCE, waits for all of them, then dispatches wave 2.',
+        onePerWaveContiguous: has(
+          'One line per\n  wave, `<wave>: <chunk numbers>`, waves numbered from 1 contiguously.',
         ),
-        laterIsAHigherWave: has('**A chunk goes in a\n  later wave than anything it depends on.**'),
+        everyChunkExactlyOnce: has('**Every chunk number appears\n  in it exactly once**'),
+        laterIsAHigherWave: has('**A chunk goes in a later\n  wave than anything it depends on.**'),
         independentGoesInWaveOne: has(
           'A chunk that depends on nothing this round goes in wave 1,\n  however high its own number.',
         ),
         serialIsAlwaysLegal: has(
           'Put every chunk in its own wave and you get the old serial round back,\n  which is always correct and always slower.',
         ),
+        zeroChunkIndexIsOneLine: has(
+          '**On a zero-chunk plan the index is the one line\n  `WAVES: none`**',
+        ),
+        chunkNumberIsIdentity: has(
+          '- **The chunk number is IDENTITY, and no chunk section carries a wave of its own.**',
+        ),
       }).toStrictEqual({
-        waveIsOrder: true,
-        bothContiguous: true,
-        parentDispatchesAWaveAtOnce: true,
+        wavesIsOrder: true,
+        onePerWaveContiguous: true,
+        everyChunkExactlyOnce: true,
         laterIsAHigherWave: true,
         independentGoesInWaveOne: true,
         serialIsAlwaysLegal: true,
+        zeroChunkIndexIsOneLine: true,
+        chunkNumberIsIdentity: true,
       });
     });
 
     // A wave is the only place two minions touch the tree at the same time. `FILES` disjointness
     // covers the files; it does not cover Playwright's one report path per package, and it does not
     // cover a discipline that owns one live server.
-    it('VALID: template => names what a wave may not share, and says to split when unsure', () => {
+    it('VALID: template => names the four kinds of sharing FILES cannot show, and defers to the pack', () => {
       expect({
         sameTime: has(
-          '**Two chunks in one wave RUN AT THE SAME TIME, so they may not share anything.**',
+          '**Two chunks in one wave RUN AT THE SAME TIME, in ONE worktree, so they may not share anything.**',
         ),
-        filesAlreadyCovered: has(
-          '`FILES` is already\n  disjoint across the whole plan, which covers the files themselves.',
+        filesCoverOwnedPathsOnly: has(
+          '`FILES` disjointness covers the paths a chunk OWNS and nothing else.',
         ),
-        noTwoE2eInAWave: has('**no two chunks in one wave may run `e2e`**'),
-        theReportPath: has(
-          'because Playwright writes one report path per package\n  and the second run overwrites the first',
+        fourKinds: has('**Four kinds of sharing are\n  invisible to it**'),
+        theReadThroughFile: has(
+          'any file two chunks READ THROUGH rather than own, which is a `.proxy.ts`,\n  a `.stub.ts`, a harness, or a production line two chunks both mutate to prove their tests bite.',
         ),
-        oneLiveSystemIsSerial: has(
-          '**a discipline that drives ONE live system puts every\n  chunk in its own wave**',
+        aSharedOneGoesLater: has(
+          '**Look for those four before you group. A chunk that shares one goes in a later wave.**',
+        ),
+        disciplineDecides: has(
+          "**Your discipline's\n  `### The waves` section says which of those it holds, and therefore whether two chunks may share\n  a wave at all. Read it before you write the index.**",
         ),
         splitWhenUnsure: has(
-          'When you cannot tell whether two chunks are independent, split the wave. A serial plan costs time. A\n  wrong wave costs both chunks.',
+          "When your discipline leaves two chunks'\n  independence genuinely open, split the wave. A serial plan costs time. A wrong wave costs both\n  chunks.",
         ),
       }).toStrictEqual({
         sameTime: true,
-        filesAlreadyCovered: true,
-        noTwoE2eInAWave: true,
-        theReportPath: true,
-        oneLiveSystemIsSerial: true,
+        filesCoverOwnedPathsOnly: true,
+        fourKinds: true,
+        theReadThroughFile: true,
+        aSharedOneGoesLater: true,
+        disciplineDecides: true,
         splitWhenUnsure: true,
       });
     });
@@ -405,42 +558,33 @@ describe('plannerMinionStatics', () => {
       });
     });
 
-    // The planner writes the ward command, because the planner knows the folder types. Its
-    // operator's own tool table FORBIDS `get-folder-detail`. An operator asked to narrow `--only`
-    // was therefore guessing at a repo-specific map it could not read.
-    it('VALID: template => makes WARD a literal the worker runs verbatim, narrowed by the discipline', () => {
+    // The planner writes NO ward command. Its WORKER calls `get-folder-detail` for every folder type
+    // its `FILES` land in, blocking, at its own method step 1 — so the session banned from choosing
+    // holds the folder-type map first-hand, while the session choosing would be stating it for files
+    // nobody has written yet. What this session still owes is the explicit `FILES` list.
+    it('VALID: template => writes NO ward line and owes the FILES list instead', () => {
       expect({
-        literal: has(
-          '**`WARD` is a literal command its worker runs verbatim, and it NEVER carries `typecheck`.**',
+        noWardLine: has('- **You write NO `WARD` line. Each worker builds its own**'),
+        fromTheDisciplineSection: has(
+          "from its discipline's `### The ward`\n  section over the `FILES` you gave it.",
         ),
-        whyThisSession: has('You\n  write it, because you know the folder types.'),
-        nobodyBelowNarrows: has('Nobody below you narrows anything.'),
-        lintPlusTests: has(
-          'Narrow `--only` to\n  `lint` plus the test types these files actually carry — `unit`, `integration`, `e2e`.',
+        theWorkerHoldsTheFolderMap: has(
+          'That worker has already called `get-folder-detail` for\n  every folder type those files land in, so it knows which test types they actually carry',
         ),
-        disciplineSaysWhich: has('Your\n  discipline says which.'),
-        typecheckNever: has('**`typecheck` is never one of them.**'),
-        becauseItBuilds: has(
-          "Ward's typecheck runs `tsc -b` across\n  the repo, which BUILDS: it writes the shared `dist/`",
+        whatYouOweIsTheFilesList: has('**What you owe it instead is the `FILES`\n  list**'),
+        explicitPathsNeverADirectory: has('explicit file paths, never a bare directory.'),
+        andWhyADirectoryStrandsTheTurn: has(
+          "A bare directory pulls in the whole package,\n  ward auto-backgrounds the run, and that worker's turn stops there.",
         ),
-        theParentTypechecks: has(
-          'Your parent runs one `npm run ward -- --staged` after the last wave, and THAT run\n  typechecks everything this round touched.',
-        ),
-        sameFilesAsFiles: has('List the same explicit file paths as `FILES`.'),
-        neverADirectory: has(
-          'Never pass a\n  bare directory. A bare directory pulls in the whole package.',
-        ),
+        noWardFenceInTheChunkFormat: /^WARD:/mu.test(template),
       }).toStrictEqual({
-        literal: true,
-        whyThisSession: true,
-        nobodyBelowNarrows: true,
-        lintPlusTests: true,
-        disciplineSaysWhich: true,
-        typecheckNever: true,
-        becauseItBuilds: true,
-        theParentTypechecks: true,
-        sameFilesAsFiles: true,
-        neverADirectory: true,
+        noWardLine: true,
+        fromTheDisciplineSection: true,
+        theWorkerHoldsTheFolderMap: true,
+        whatYouOweIsTheFilesList: true,
+        explicitPathsNeverADirectory: true,
+        andWhyADirectoryStrandsTheTurn: true,
+        noWardFenceInTheChunkFormat: false,
       });
     });
 
@@ -456,7 +600,7 @@ describe('plannerMinionStatics', () => {
           'Its worker runs no typecheck, so this line is what\n  sends it looking for the usage sites.',
         ),
         whatLeavingItOutCosts: has(
-          "Leave it out and a call site elsewhere in the repo stays broken\n  until your parent's ward at the end of the round, with nobody assigned to it.",
+          "Leave it out and a call site elsewhere in the repo stays broken\n  until the reviewer's ward at the end of the round, with nobody assigned to it.",
         ),
       }).toStrictEqual({
         nameIt: true,
@@ -472,11 +616,17 @@ describe('plannerMinionStatics', () => {
           '**`UNITS` is what the reviewer grades the chunk against**, by set difference.',
         ),
         emptyComesBackClean: has('none is graded against nothing. It comes back clean.'),
-        sayWhyInNotes: has('`NOTES` why it exists'),
+        theNoneLiteral: has('`UNITS: none — <why this chunk exists>`'),
+        theSettledLiteral: has('`UNITS: settled <unit-id> at <sha> — <the assertion you read>`'),
+        theOutOfMediumLiteral: has(
+          '`UNITS: out-of-medium <unit-id> — <the medium, and which later role owns it>`',
+        ),
       }).toStrictEqual({
         gradedBySetDifference: true,
         emptyComesBackClean: true,
-        sayWhyInNotes: true,
+        theNoneLiteral: true,
+        theSettledLiteral: true,
+        theOutOfMediumLiteral: true,
       });
     });
 
@@ -528,7 +678,7 @@ describe('plannerMinionStatics', () => {
   describe('what it returns', () => {
     it('VALID: template => returns two lines, and never the plan body', () => {
       expect({
-        planLine: has('PLAN: .quest-plans/round-<n>.md — <count> chunks'),
+        planLine: has('PLAN: .quest-plans/<operationItemId>-round-<n>.md — <count> chunks'),
         continueLine: has('NEXT: continue'),
         wallLine: has('NEXT: wall — <what, and what a human must change>'),
         exactlyTwoValues: has('`NEXT:` has exactly two values.'),
@@ -549,9 +699,9 @@ describe('plannerMinionStatics', () => {
     // THE VOCABULARY SECTION MUST BEAT OPERATING RULE 5. That rule arrives inside
     // `delegatingMinionMarkdown`, a block that opens "Read every rule below before you do anything
     // else". It offers `NEXT: rework` to every minion. The operator cannot route a `rework` from a
-    // PLANNER. It matches the first word, then goes to step 4 of its own loop, then `Read`s a plan
-    // file that was never written. The section must name that third value and refuse it by name.
-    // Otherwise rule 5 wins.
+    // PLANNER. It matches the first word, then goes to step 3 of its own loop, then `Read`s a
+    // document with no `## Plan` section in it. The section must name that third value and refuse
+    // it by name. Otherwise rule 5 wins.
     it('VALID: template => excludes rule 5 rework by name and says why a planner has two values', () => {
       expect({
         wallRuleOffersIt: agentOperatingRulesStatics.wallMinion.includes(
@@ -561,24 +711,24 @@ describe('plannerMinionStatics', () => {
           '**Operating rule 5 above names a third value, `NEXT: rework`. Never write it.**',
         ),
         twoNotThree: has('A worker and a reviewer each have three values. You have two.'),
-        noPlanFileToRead: has(
-          'A rework round would\nhave nothing to act on, because a planner that cannot plan writes no plan file.',
+        noPlanToRead: has(
+          'A rework round would\nhave nothing to act on, because a planner that cannot plan appends no plan.',
         ),
         parentMatchesFirstWord: has(
           'Your parent matches\nthe FIRST WORD of this line and nothing else.',
         ),
-        stepFourReadsNothing: has(
-          '`rework` sends it straight to step 4 of its own loop.\nThere it `Read`s a plan file you never wrote.',
+        stepThreeReadsNothing: has(
+          '`rework` sends it straight to step 3 of its own loop.\nThere it `Read`s a document with no `## Plan` section in it.',
         ),
-        noFailureBranch: has('It has no failure branch there. It has no tool to\nfind out why.'),
+        noFailureBranch: has('It has no failure branch there. It has\nno tool to find out why.'),
         unplannableIsAChunk: has('Scope you could not plan cleanly is a CHUNK'),
       }).toStrictEqual({
         wallRuleOffersIt: true,
         namesRuleFive: true,
         twoNotThree: true,
-        noPlanFileToRead: true,
+        noPlanToRead: true,
         parentMatchesFirstWord: true,
-        stepFourReadsNothing: true,
+        stepThreeReadsNothing: true,
         noFailureBranch: true,
         unplannableIsAChunk: true,
       });
@@ -588,8 +738,8 @@ describe('plannerMinionStatics', () => {
       expect({
         legal: has('**A plan with ZERO chunks is a legal plan.**'),
         alreadyTrue: has('the scope is already true on disk'),
-        noChunkSections: has('no `## chunk` sections'),
-        doNotInvent: has('**Do not invent\na chunk to look productive.**'),
+        noChunkSections: has('no `### chunk`'),
+        doNotInvent: has('**Do not invent a chunk to look productive.**'),
       }).toStrictEqual({
         legal: true,
         alreadyTrue: true,
@@ -610,7 +760,7 @@ describe('plannerMinionStatics', () => {
         parentGuessesOrDrops: has(
           'It either guesses at a question you hand up, or\ndrops it silently.',
         ),
-        decideIt: has("Decide it yourself. Write your reasons into the plan's `SUMMARY`."),
+        decideIt: has('Decide it yourself. Write your reasons into the `SUMMARY`.'),
         usersCallIsAChunk: has(
           "Where the call is genuinely the USER's rather than yours, that is still a\nCHUNK.",
         ),
@@ -630,7 +780,7 @@ describe('plannerMinionStatics', () => {
     it('VALID: template => numbers its steps 1 through 9, contiguously', () => {
       const method = template.slice(
         template.indexOf('## Method'),
-        template.indexOf('## The plan file'),
+        template.indexOf('## What you append'),
       );
 
       expect(Array.from(method.matchAll(/^\d\. \*\*/gmu)).map((match) => match[0])).toStrictEqual([
@@ -646,34 +796,39 @@ describe('plannerMinionStatics', () => {
       ]);
     });
 
-    // The OPERATOR writes `CONTEXT:` at its own step 3, and this step is the first instruction the
-    // planner executes. It used to read `SCOPE:`, the only place in the repo that said so, which
-    // sent the session hunting for a block its parent never writes. `SCOPE:` is a live label
-    // elsewhere, with a different meaning. The operator writes `SCOPE: quest` into the REVIEWER's
-    // brief after a refused signal.
-    it('VALID: step 1 => reads the four blocks the operator hands it, including last round as this round', () => {
+    // The OPERATOR writes `## Context` at its own step 1, and this step is the first instruction
+    // the planner executes. Its predecessor read a `SCOPE:` block while the operator wrote
+    // `CONTEXT:`, which sent the session hunting for a block its parent never wrote. Reading both
+    // sides off the same file removes the class of fault entirely.
+    it('VALID: step 1 => reads the document, and the ids out of the section the operator wrote', () => {
       expect({
-        context: has("`CONTEXT:` — your parent's ENTIRE Operation Context, pasted verbatim."),
-        build: has("`BUILD:` — the output of this round's build."),
-        tree: has('`TREE:` — the output of `git status`.'),
-        reworkIsThisScope: has(
-          "what last round's reviewer said is not done. That IS this\n     round's scope.",
+        readsTheDocumentFirst: has(
+          "1. **Read the round document first**, whole, at the path your brief's `PLAN:` line names.",
         ),
-        neverScope: has('**The first block is labelled `CONTEXT:`, never `SCOPE:`.**'),
-        doNotHuntForScope: has(
-          'Do not go looking for a `SCOPE:`\n   block. Your parent writes none.',
+        twoSectionsAreTheAssignment: has(
+          'Its\n   `## Context` and `## Rework` sections are your entire assignment.',
         ),
-        scopeIsTheReviewers: has(
-          "Your parent writes `SCOPE: quest` into a REVIEWER's brief after a refused\n   signal.",
+        roundOneHasNoRework: has(
+          '**On round 1 there is no\n   `## Rework` section, and that is correct**',
         ),
+        readTheIdsFromThere: has(
+          '**Read the ids out of `## Context` rather than reconstructing them.**',
+        ),
+        theThreeIdsAreItsFirstLines: has(
+          '`Quest ID:`,\n   `Work Item ID:` and `Operation Item ID:` are the first three lines of that section',
+        ),
+        becauseTheParentCopiedTheBlockWhole: has('because\n   your parent copied the block whole.'),
+        noBuildBlock: has('`BUILD:`'),
+        noTreeBlock: has('`TREE:`'),
       }).toStrictEqual({
-        context: true,
-        build: true,
-        tree: true,
-        reworkIsThisScope: true,
-        neverScope: true,
-        doNotHuntForScope: true,
-        scopeIsTheReviewers: true,
+        readsTheDocumentFirst: true,
+        twoSectionsAreTheAssignment: true,
+        roundOneHasNoRework: true,
+        readTheIdsFromThere: true,
+        theThreeIdsAreItsFirstLines: true,
+        becauseTheParentCopiedTheBlockWhole: true,
+        noBuildBlock: false,
+        noTreeBlock: false,
       });
     });
 
@@ -697,52 +852,88 @@ describe('plannerMinionStatics', () => {
       });
     });
 
-    it('VALID: steps 4 and 5 => read real code and are the only session that reads history', () => {
+    // THIS SESSION IS THE ONLY ONE ON THE ROUND THAT READS GIT, and step 5 covers all four reads.
+    // `status` sits alongside `log`/`diff`/`show` because nothing hands this session the tree
+    // either: the document has no section for it. The PARENT keeps a single `git status`, at its
+    // sweep gate, where the answer changes what the parent does next.
+    it('VALID: steps 4 and 5 => read real code, and are the only session that reads any git', () => {
       expect({
         realCode: has('**Read the real code before you plan against it.**'),
         notAgainstTheSpecAlone: has('**Plan against\n   reality, never against the spec alone.**'),
-        onlySessionThatReadsHistory: has(
-          '**Read the HISTORY too.** No other session reconstructs it.',
+        allFourReads: has(
+          '6. **Read GIT — the tree first, then the history.** You are the only session on this round that\n   reads git at all.',
         ),
-        onlyOneThatReadsTheLog: has('You are the only one that reads the\n   log at all.'),
+        statusFirst: has('**Start with `git status`.**'),
+        theParentsIsTheSweepGateOnly: has(
+          'Your parent runs one, but only at its own sweep gate, long after\n   you have returned.',
+        ),
+        aDirtyTreeIsADeadSessions: has(
+          'Anything listed here is work a DEAD session left behind, mid-round',
+        ),
+        thenTheHistory: has('**Then the history.** No other session reconstructs it.'),
         reviewerMayConfirmOneFix: has(
-          'A\n   `reviewer-minion` may open a `git diff` or a `git show` to confirm one named fix.',
+          'A `reviewer-minion` may open a\n   `git diff` or a `git show` to confirm one named fix.',
         ),
-        readTheBodies: has('**Read the BODIES.**'),
+        readTheBodies: has('**Read the\n   BODIES.**'),
         noWorkerCommits: has('**No worker commits anything**'),
         roundSubject: has(
-          'commits its whole round\n   under `round <n>: <what the round made true>`',
+          'commits its whole round under\n   `round <n>: <what the round made true>`',
         ),
-        reviewSubject: has('then its verdict\n   under `review <n>: <verdict>`'),
-        earlierPlansAreInGit: has(
-          "Earlier rounds'\n   plan files are in git too, at `.quest-plans/`.",
+        reviewSubject: has('then its verdict under\n   `review <n>: <verdict>`'),
+        earlierDocumentsAreInGit: has(
+          "Earlier rounds'\n   documents are in git too, each holding that round's plan and every worker's report.",
+        ),
+        andTheyAreNamedForTheirOperationItem: has(
+          '**They are\n   named for the operation item that produced them**',
         ),
         ptNIsTheJob: has('makes this the job, not background reading'),
-        writesNothingElse: has('**You WRITE nothing to git except the plan file.**'),
+        writesNothingElse: has('**You WRITE nothing to git except the round document.**'),
+        andAllFourReadsAreNamedAsReads: has(
+          '`status`, `log`, `diff` and `show`\n   are reads and all four are yours.',
+        ),
       }).toStrictEqual({
         realCode: true,
         notAgainstTheSpecAlone: true,
-        onlySessionThatReadsHistory: true,
-        onlyOneThatReadsTheLog: true,
+        allFourReads: true,
+        statusFirst: true,
+        theParentsIsTheSweepGateOnly: true,
+        aDirtyTreeIsADeadSessions: true,
+        thenTheHistory: true,
         reviewerMayConfirmOneFix: true,
         readTheBodies: true,
         noWorkerCommits: true,
         roundSubject: true,
         reviewSubject: true,
-        earlierPlansAreInGit: true,
+        earlierDocumentsAreInGit: true,
+        andTheyAreNamedForTheirOperationItem: true,
         ptNIsTheJob: true,
         writesNothingElse: true,
+        andAllFourReadsAreNamedAsReads: true,
       });
     });
 
-    // A red build reaching this session is not a wall. The planner opens the failing file. What a
-    // predecessor left behind is right there.
-    it('VALID: step 6 => turns a red build or a dirty tree into chunk 1', () => {
+    // The trigger is the tree this session read at step 5, or a compile error in the document's
+    // `## Rework` — never a `BUILD:` block, because nothing compiles until the reviewer builds at
+    // the END of the round. The step says outright that a broken tree is INVISIBLE to this session
+    // until then, so it does not go hunting for a signal nothing has produced yet.
+    it('VALID: step 6 => turns a dirty tree or a rework compile error into chunk 1', () => {
       expect({
-        isAChunk: has('**A red `BUILD:` or a dirty `TREE:` is a CHUNK, not a wall.**'),
-        canOpenTheFile: has('You can open the failing file\n   yourself.'),
-        chunkOne: has('Cut chunk 1 for it. Number the\n   rest of the round after it.'),
-      }).toStrictEqual({ isAChunk: true, canOpenTheFile: true, chunkOne: true });
+        isAChunk: has(
+          '**A dirty tree, or a compile error in `## Rework`, is a CHUNK — not a wall.**',
+        ),
+        canOpenTheFile: has('You can open\n   the failing file yourself.'),
+        chunkOne: has('Cut chunk 1 for\n   it, in wave 1. Number the rest of the round after it.'),
+        nothingHasCompiledYet: has('**Nothing has compiled this round**'),
+        soABrokenTreeIsInvisibleUntilTheReviewer: has(
+          'so a\n   broken tree is invisible to you until its reviewer builds at the end',
+        ),
+      }).toStrictEqual({
+        isAChunk: true,
+        canOpenTheFile: true,
+        chunkOne: true,
+        nothingHasCompiledYet: true,
+        soABrokenTreeIsInvisibleUntilTheReviewer: true,
+      });
     });
 
     it('VALID: step 7 => bounds the spike to a new pattern under spike-tmp, which git ignores', () => {
@@ -772,75 +963,63 @@ describe('plannerMinionStatics', () => {
 
   // ============================================================================================
   // CROSS-FILE AGREEMENTS. Each test spans this file and one other statics file, and derives its
-  // needle from that other file's live value. Nothing type-checks a brief label, a `NEXT:` value
-  // or a commit subject, so until these landed a reword on either side stayed green.
+  // needle from that other file's live value. Nothing type-checks a section heading, a `NEXT:`
+  // value or a commit subject, so until these landed a reword on either side stayed green.
   // ============================================================================================
   describe('agreements with the operator above and the minions below', () => {
-    // SPANS operator-prompt-statics.ts (step 3 WRITES this brief) ↔ Method step 1 (the only
-    // session that READS it). This exact pair drifted once already: this step read `SCOPE:` while
-    // the operator wrote `CONTEXT:`. `SCOPE:` is not a dead token either — the operator writes
-    // `SCOPE: quest` into the REVIEWER's post-refusal brief, so the wrong needle names a real
-    // label with a different meaning, and the session hunts for a block nobody sends.
-    it('VALID: {operator step 3, method step 1} => reads exactly the blocks the operator writes, under the operator spelling', () => {
+    // SPANS operator-prompt-statics.ts (step 1 WRITES the document) ↔ the table at the top of this
+    // template (the only session that READS those sections first). Their predecessors drifted
+    // exactly here: this template read `SCOPE:` while the operator wrote `CONTEXT:`. Deriving both
+    // section sets live turns a rename into a set difference rather than a section nobody opens.
+    it('VALID: {operator document fence, this template} => reads exactly the sections the operator writes', () => {
       expect({
-        operatorWritesThisManyBlocks: OPERATOR_BRIEF_BLOCKS.length,
-        andThisStepSaysSo: has('It carries four blocks:'),
-        blocksTheOperatorWritesAndThisStepNeverReads: OPERATOR_BRIEF_BLOCKS.filter(
-          (label) => !BLOCKS_THIS_STEP_READS.includes(label),
+        theOperatorWritesThisManySections: OPERATOR_WRITTEN_SECTIONS.length,
+        sectionsTheOperatorWritesAndThisTemplateNeverReads: OPERATOR_WRITTEN_SECTIONS.filter(
+          (section) => !SECTIONS_THIS_SESSION_READS.includes(section),
         ),
-        blocksThisStepReadsAndTheOperatorNeverWrites: BLOCKS_THIS_STEP_READS.filter(
-          (label) => !OPERATOR_BRIEF_BLOCKS.includes(label),
+        sectionsThisTemplateReadsAndTheOperatorNeverWrites: SECTIONS_THIS_SESSION_READS.filter(
+          (section) => !OPERATOR_WRITTEN_SECTIONS.includes(section),
         ),
-        namesTheOperatorsFirstBlockInTheNeverSentence: has(
-          `**The first block is labelled \`${OPERATOR_FIRST_BLOCK}\`, never \`SCOPE:\`.**`,
-        ),
-        theOperatorsPlannerBriefCarriesNoScopeLabel: OPERATOR_PLANNER_BRIEF.includes('SCOPE'),
-        itsReviewerBriefIsWhereThatLabelReallyLives:
-          OPERATOR_REFUSAL_BRIEF.includes('SCOPE: quest'),
-        andThisStepSendsTheReaderThere: has(
-          "Your parent writes `SCOPE: quest` into a REVIEWER's brief after a refused\n   signal.",
-        ),
+        // Neither side may carry a `BUILD:` or a `TREE:` block: no session has compiled by the time
+        // the document is written, and the tree is this session's own to read at step 5.
+        andNeitherSideCarriesABuildBlock: `${OPERATOR_CONTEXT_FENCE}${template}`.includes('BUILD:'),
+        norATreeBlock: `${OPERATOR_CONTEXT_FENCE}${template}`.includes('TREE:'),
       }).toStrictEqual({
-        operatorWritesThisManyBlocks: 4,
-        andThisStepSaysSo: true,
-        blocksTheOperatorWritesAndThisStepNeverReads: [],
-        blocksThisStepReadsAndTheOperatorNeverWrites: [],
-        namesTheOperatorsFirstBlockInTheNeverSentence: true,
-        theOperatorsPlannerBriefCarriesNoScopeLabel: false,
-        itsReviewerBriefIsWhereThatLabelReallyLives: true,
-        andThisStepSendsTheReaderThere: true,
+        theOperatorWritesThisManySections: 2,
+        sectionsTheOperatorWritesAndThisTemplateNeverReads: [],
+        sectionsThisTemplateReadsAndTheOperatorNeverWrites: [],
+        andNeitherSideCarriesABuildBlock: false,
+        norATreeBlock: false,
       });
     });
 
-    // SPANS operator-prompt-statics.ts (the header it mandates on every minion brief) ↔ this file.
-    // That header is the ONLY place this session is told its round number and the path it must
-    // write the plan to; its own fetch hands back a method and a Quest ID and nothing else. So the
-    // path this template writes, the path it returns, and the path the operator reads back all
-    // have to be the header's path — a rename on one side leaves the operator `Read`ing a file
-    // nobody wrote, and its ALLOWED table permits no second path to try.
-    it('VALID: {operator brief header, planner} => writes back only fields that header carries, at the path it names', () => {
+    // SPANS operator-prompt-statics.ts (its brief fence) ↔ this file. That fence is the ONLY thing
+    // this session receives directly, so the path it appends to, the path it returns, and the path
+    // the operator reads back all have to be the fence's path — a rename on one side leaves the
+    // operator `Read`ing a file nobody wrote, and its ALLOWED table permits no second path to try.
+    it('VALID: {operator brief fence, planner} => appends at the path that fence names, and returns it', () => {
       expect({
-        headerCarriesTheRoundNumber: OPERATOR_HEADER_FIELDS.includes('round'),
-        andThisTemplateTakesItFromThere: has('`<n>` is the round number from your brief header.'),
-        headerCarriesTheQuestId: OPERATOR_HEADER_FIELDS.includes('Quest ID'),
-        andThisTemplateArbitratesAgainstIt: has(
-          "Where that line and your parent's header disagree about the quest id, the line\nbelow wins.",
+        theFenceNamesAPath: BRIEF_PLAN_PATH,
+        thisTemplateAppendsAtThatExactPath: has(
+          `## What you append — to the \`PLAN:\` path, at \`${BRIEF_PLAN_PATH}\``,
         ),
-        headerCarriesThePlanPath: OPERATOR_HEADER_FIELDS.includes('plan file'),
-        thisTemplateWritesThatExactPath: has(`## The plan file — \`${HEADER_PLAN_PATH}\``),
-        andReturnsThatExactPath: has(`PLAN: ${HEADER_PLAN_PATH} — <count> chunks`),
-        andTheOperatorReadsThatExactPath: OPERATOR.includes(
-          `\`Read\` the path its return names — \`${HEADER_PLAN_PATH}\``,
+        andReturnsThatExactPath: has(`PLAN: ${BRIEF_PLAN_PATH} — <count> chunks`),
+        andTheOperatorWritesThatExactPath: OPERATOR.includes(`Write on ${BRIEF_PLAN_PATH} `),
+        andReadsItBack: OPERATOR.includes(`Read on ${BRIEF_PLAN_PATH} `),
+        // The round number comes off the document's own title now, because the brief carries no
+        // header for it to sit in.
+        theRoundNumberComesOffTheTitle: has(
+          "`<n>` is the round number, off the document's own\n`# Round <n>` title.",
         ),
+        andTheOperatorWritesThatTitle: OPERATOR_CONTEXT_FENCE.includes('# Round <n> — '),
       }).toStrictEqual({
-        headerCarriesTheRoundNumber: true,
-        andThisTemplateTakesItFromThere: true,
-        headerCarriesTheQuestId: true,
-        andThisTemplateArbitratesAgainstIt: true,
-        headerCarriesThePlanPath: true,
-        thisTemplateWritesThatExactPath: true,
+        theFenceNamesAPath: '.quest-plans/<operationItemId>-round-<n>.md',
+        thisTemplateAppendsAtThatExactPath: true,
         andReturnsThatExactPath: true,
-        andTheOperatorReadsThatExactPath: true,
+        andTheOperatorWritesThatExactPath: true,
+        andReadsItBack: true,
+        theRoundNumberComesOffTheTitle: true,
+        andTheOperatorWritesThatTitle: true,
       });
     });
 
@@ -849,8 +1028,8 @@ describe('plannerMinionStatics', () => {
     // session can write must be a row the operator routes. The reverse does NOT hold, and that
     // asymmetry is the whole point: the operator routes a third value its OTHER two minions may
     // write, operating rule 5 offers that value to every minion, and a planner that took it sends
-    // the operator to step 4 to `Read` a plan file that was never written. So the refusal below
-    // names that value, and this test derives the name from the difference between the two sets.
+    // the operator to step 3 to `Read` a document with no plan in it. So the refusal below names
+    // that value, and this test derives the name from the difference between the two sets.
     it('VALID: {planner NEXT values, operator NEXT table} => declares only routed values, and refuses the routed value it must never write', () => {
       expect({
         valuesThisTemplateDeclaresThatTheOperatorCannotRoute: NEXT_VALUES.filter(
@@ -883,11 +1062,15 @@ describe('plannerMinionStatics', () => {
       });
     });
 
-    // SPANS reviewer-minion-statics.ts ↔ Method step 5. This session is the only one that reads
-    // history, and it reads it BY SUBJECT. Both subjects on a quest branch are the reviewer's, since
-    // no worker commits. Reword either one there and this step sends the one session that could
+    // SPANS reviewer-minion-statics.ts ↔ the git step. This session is the only one that reads
+    // history, and it reads it BY SUBJECT. Every subject on a quest branch is the reviewer's, since
+    // no worker commits. Reword one there and this step sends the one session that could
     // reconstruct a `pt N` predecessor's work looking for commits under a name nothing writes.
-    it('VALID: {reviewer commit subjects, method step 5} => greps for the subjects that template actually writes', () => {
+    //
+    // The two `sweep:` subjects are DELIBERATELY outside what this step greps for. A sweep commits
+    // paths no chunk owned, on a tree the round already left; it records no round, so a planner
+    // reconstructing what a predecessor built would read one as a round that never happened.
+    it('VALID: {reviewer commit subjects, method step 6} => greps for the round subjects, and not the sweeps', () => {
       expect({
         theReviewerWritesThisManySubjects: REVIEWER_SUBJECTS.length,
         thisStepClaimsBothOfThem: CLAIMED_SUBJECT_PREFIXES.length,
@@ -899,11 +1082,14 @@ describe('plannerMinionStatics', () => {
         andTheReviewerReallyDoesPutItsReturnInTheBody: REVIEWER.includes(
           'your whole return block below in the body, verbatim',
         ),
-        soThisStepTellsTheReaderToOpenThem: has('**Read the BODIES.**'),
+        soThisStepTellsTheReaderToOpenThem: has('**Read the\n   BODIES.**'),
       }).toStrictEqual({
-        theReviewerWritesThisManySubjects: 2,
+        theReviewerWritesThisManySubjects: 4,
         thisStepClaimsBothOfThem: 2,
-        reviewerSubjectsOutsideThePrefixesThisStepGrepsFor: [],
+        reviewerSubjectsOutsideThePrefixesThisStepGrepsFor: [
+          'sweep: <what these paths are>',
+          'sweep: uncommitted remainder',
+        ],
         andNoWorkerCommitsAtAll: false,
         andThisStepSaysSo: true,
         andTheReviewerReallyDoesPutItsReturnInTheBody: true,

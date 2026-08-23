@@ -1,8 +1,22 @@
+import { plannerMinionStatics } from '../planner-minion/planner-minion-statics';
 import { reviewerMinionStatics } from '../reviewer-minion/reviewer-minion-statics';
+import { workerMinionStatics } from '../worker-minion/worker-minion-statics';
 import { disciplineImplementationStatics } from './discipline-implementation-statics';
 
 const { operatorMarkdown, plannerMarkdown, workerMarkdown, reviewerMarkdown } =
   disciplineImplementationStatics;
+
+// THE MARKER'S HOME, read off the two modules that actually build it. This pack names the markers;
+// it owns neither the region they land in nor the step that writes them. Both needles below are
+// derived live: a hand-written copy keeps passing after the thing it names is renamed, and a marker
+// appended under a heading no file carries is lost with nothing reporting it.
+const ROUND_LOG_HEADING =
+  /^(?<heading>## Round log)$/mu.exec(plannerMinionStatics.prompt.template)?.groups?.heading ??
+  'THE PLANNER WRITES NO ROUND-LOG HEADING';
+
+const WORKER_APPEND_STEP_NUMBER =
+  /^(?<n>\d+)\. \*\*APPEND YOUR REPORT/mu.exec(workerMinionStatics.prompt.template)?.groups?.n ??
+  'THE WORKER TEMPLATE HAS NO APPEND STEP';
 
 // The reviewer template's return block DECLARES the exact form a discipline with no sign-off track
 // reports its `SIGNOFFS` field in. This pack and `disciplineBugReproStatics` both carry that string
@@ -27,12 +41,13 @@ const SIGNOFFS_NO_TRACK_FIELD = `SIGNOFFS: ${SIGNOFFS_NO_TRACK_DECLARATION?.grou
 // What this file still holds is the half nothing else does. The enumeration below is PARSED off
 // `plannerMarkdown`, never listed, so a heading added, dropped or renamed IN THE PACK fails here.
 const CONTEXT_SECTION = plannerMarkdown.slice(
-  plannerMarkdown.indexOf('## Your denominator is the `CONTEXT:` block in your brief'),
+  plannerMarkdown.indexOf('## Your denominator is the `## Context` section of the round document'),
   plannerMarkdown.indexOf('## Cut the cell into CHUNKS'),
 );
 
+// The headings are a TABLE now, one row each, rather than a numbered list.
 const ENUMERATED_CONTEXT_HEADINGS = Array.from(
-  CONTEXT_SECTION.matchAll(/^\d\. `(?<heading>[^`]+)`/gmu),
+  CONTEXT_SECTION.matchAll(/^\| `(?<heading>[^`]+)` \|/gmu),
 ).map((match) => match.groups?.heading ?? '');
 
 // The block states its own count twice, in words. Both have to follow the list rather than the
@@ -130,7 +145,7 @@ describe('disciplineImplementationStatics', () => {
         cell: plannerMarkdown.includes('Your cell is one (package, flow) pair'),
         foundationIsNotEmpty: plannerMarkdown.includes('A foundation cell is never an empty one.'),
         denominatorIsTheContextBlock: plannerMarkdown.includes(
-          '## Your denominator is the `CONTEXT:` block in your brief',
+          '## Your denominator is the `## Context` section of the round document',
         ),
         noChecklistTool: plannerMarkdown.includes('**No checklist tool answers it'),
         // `codeweaverScopeBlockTransformer` emits FIVE headings, not four. The planner needs those
@@ -149,7 +164,7 @@ describe('disciplineImplementationStatics', () => {
         // The design decisions are already pasted in. A planner that calls `get-quest` for them
         // spends a tool round trip on text it is holding.
         designDecisionsNeedNoToolCall: plannerMarkdown.includes(
-          '**Do not call `get-quest` for it. It is already in your brief.**',
+          '**Do not call `get-quest` for it. It is already in the document.**',
         ),
       }).toStrictEqual({
         cell: true,
@@ -179,13 +194,13 @@ describe('disciplineImplementationStatics', () => {
         theProseCountMatchesTheList: plannerMarkdown.includes(
           `carries ${ENUMERATED_COUNT_WORD} headings`,
         ),
-        theSecondProseCountMatchesToo: plannerMarkdown.includes(
-          `Those ${ENUMERATED_COUNT_WORD} render from the spec`,
+        andSaysEveryHeadingIsConditional: plannerMarkdown.includes(
+          '**Every heading is CONDITIONAL. A cell holding none of a thing renders no heading for it',
         ),
       }).toStrictEqual({
         enumeratedCount: 5,
         theProseCountMatchesTheList: true,
-        theSecondProseCountMatchesToo: true,
+        andSaysEveryHeadingIsConditional: true,
       });
     });
   });
@@ -264,13 +279,13 @@ describe('disciplineImplementationStatics', () => {
       });
     });
 
-    // The three markers live in a table now. The left column is the situation. The right column is
-    // the marker that situation writes. These pins keep a marker from drifting onto the wrong
-    // situation, which no typecheck would catch.
-    it('VALID: workerMarkdown => names the three commit-body markers this session writes', () => {
+    // The three markers live in a table. The left column is the situation. The right column is the
+    // marker that situation writes. These pins keep a marker from drifting onto the wrong situation,
+    // which no typecheck would catch.
+    it('VALID: workerMarkdown => names the three markers this session writes', () => {
       expect({
         heading: workerMarkdown.includes(
-          '### Three commit markers, and you are the session that writes them',
+          '### Three markers, and the round log is where you write them',
         ),
         adjusted: workerMarkdown.includes(
           '| Restated an observable to what was achievable | `ADJUSTED:` |',
@@ -279,15 +294,44 @@ describe('disciplineImplementationStatics', () => {
         repair: workerMarkdown.includes(
           "| Repaired a shortfall in another cell's already-built half | `REPAIR:` |",
         ),
-        firstLineOfTheBody: workerMarkdown.includes('**the first line of your commit BODY**'),
-        subjectUnchanged: workerMarkdown.includes('The subject stays `chunk <n>: <title>`.'),
+        notesTellsYouOneApplies: workerMarkdown.includes(
+          "Your chunk's `NOTES` is what tells you one applies.",
+        ),
+        aChunkWithNoneStillAppends: workerMarkdown.includes(
+          'A chunk that did none of the three still appends its block, carrying `none`.',
+        ),
       }).toStrictEqual({
         heading: true,
         adjusted: true,
         added: true,
         repair: true,
-        firstLineOfTheBody: true,
-        subjectUnchanged: true,
+        notesTellsYouOneApplies: true,
+        aChunkWithNoneStillAppends: true,
+      });
+    });
+
+    // WHERE the marker goes is not this pack's to state twice. The worker template owns the append
+    // step and the planner owns the region, so both needles are read off those modules. Get either
+    // wrong and `reviewerMarkdown` below checks for a line no session was told to write.
+    it('VALID: workerMarkdown => sends its markers to the step and region the templates really build', () => {
+      expect({
+        pointsAtTheWorkerTemplatesOwnStepNumber: workerMarkdown.includes(
+          `the block you append at method step ${WORKER_APPEND_STEP_NUMBER}`,
+        ),
+        andThatStepAppendsToThePlannersRegion: workerMinionStatics.prompt.template.includes(
+          `APPEND YOUR REPORT to the round document's \`${ROUND_LOG_HEADING}\``,
+        ),
+        andTheReviewerIsWhoCarriesItOnward: workerMarkdown.includes(
+          "**Your reviewer copies these lines into the\nround's commit message",
+        ),
+        noCommitBodyLeft: workerMarkdown.includes('commit BODY'),
+        noPerChunkSubjectLeft: workerMarkdown.includes('The subject stays'),
+      }).toStrictEqual({
+        pointsAtTheWorkerTemplatesOwnStepNumber: true,
+        andThatStepAppendsToThePlannersRegion: true,
+        andTheReviewerIsWhoCarriesItOnward: true,
+        noCommitBodyLeft: false,
+        noPerChunkSubjectLeft: false,
       });
     });
   });
@@ -345,7 +389,7 @@ describe('disciplineImplementationStatics', () => {
         genuineEffort: plannerMarkdown.includes('The bar is genuine effort, not first resistance'),
         nearestAchievable: plannerMarkdown.includes('Deliver the NEAREST achievable'),
         adjustedMarker: plannerMarkdown.includes(
-          "is what puts the `ADJUSTED:` line in the worker's commit body",
+          "is what puts the `ADJUSTED:` line in the worker's round-log block",
         ),
         flowImplies: plannerMarkdown.includes(
           '**When the flow implies an outcome nobody wrote down.**',
@@ -353,7 +397,9 @@ describe('disciplineImplementationStatics', () => {
         constraintOnYourself: plannerMarkdown.includes(
           'An observable you add is a constraint on YOURSELF',
         ),
-        addedMarker: plannerMarkdown.includes('Flag it in `NOTES` so the commit carries `ADDED:`'),
+        addedMarker: plannerMarkdown.includes(
+          'Flag it in `NOTES` so the round log carries `ADDED:`',
+        ),
       }).toStrictEqual({
         additiveOnly: true,
         deleteRefused: true,
@@ -367,17 +413,19 @@ describe('disciplineImplementationStatics', () => {
       });
     });
 
-    it('VALID: plannerMarkdown => writes the ward command per chunk, by folder type', () => {
+    it('VALID: workerMarkdown => derives its ward check types from its own folder types', () => {
       expect({
-        unitDefault: plannerMarkdown.includes('`--only lint,typecheck,unit` for contracts'),
-        integrationForFlowsAndStartup: plannerMarkdown.includes(
-          '`--only lint,typecheck,unit,integration` when the chunk includes a `flows/` or `startup/` file',
+        unitDefault: workerMarkdown.includes(
+          '`--only lint,unit` — for contracts, guards, transformers, statics, errors, adapters, brokers,\nresponders, bindings and widgets.',
         ),
-        integrationInsteadOfUnit: plannerMarkdown.includes(
+        integrationForFlowsAndStartup: workerMarkdown.includes(
+          '**`--only lint,unit,integration` when your `FILES` include a `flows/` or `startup/` path.**',
+        ),
+        integrationInsteadOfUnit: workerMarkdown.includes(
           'take an `.integration.test.ts` INSTEAD of a unit test',
         ),
-        neverE2e: plannerMarkdown.includes(
-          'Never `e2e`. No chunk on this discipline authors Playwright.',
+        neverE2e: workerMarkdown.includes(
+          '**Never `e2e`.** Nothing on this discipline authors Playwright',
         ),
       }).toStrictEqual({
         unitDefault: true,
@@ -446,7 +494,7 @@ describe('disciplineImplementationStatics', () => {
           'Only you can see this. You are the only session\nthat reads history.',
         ),
         aShrinkingRemainderIsNotAWall: plannerMarkdown.includes(
-          '**A `REWORK:` line that shrank at all is not this case.**',
+          '**A `## Rework` section that shrank at all is not this case.**',
         ),
       }).toStrictEqual({
         heading: true,
@@ -546,30 +594,51 @@ describe('disciplineImplementationStatics', () => {
     it('VALID: reviewerMarkdown => routes undeclared spec movement and undeclared repair into rework', () => {
       expect({
         specMovementDeclared: reviewerMarkdown.includes(
-          '**Spec movement is declared, or it did not happen.**',
+          '**Spec movement is declared, or it did not happen — and YOU are the session that writes it.**',
+        ),
+        andThisSessionMakesTheCall: reviewerMarkdown.includes(
+          '**So make the `modify-quest` call\n  yourself**',
         ),
         specMovementIsRework: reviewerMarkdown.includes(
-          'If either is missing, that is `NEXT: rework`',
+          'Where the change is one you may not make — a delete, a new flow — that is `NEXT: rework` naming',
         ),
         repairDeclared: reviewerMarkdown.includes('**Cross-package repair is declared.**'),
+        andCheckedInTheRegionItsWorkerAppendedTo: reviewerMarkdown.includes(
+          `Check that the chunk's report\n  in the round document's \`${ROUND_LOG_HEADING}\` carries \`REPAIR:\``,
+        ),
+        andInTheCommitTheReviewerWrites: reviewerMarkdown.includes(
+          'and that your own round commit carries\n  it too',
+        ),
         seamIsRework: reviewerMarkdown.includes(
-          'this round could not reach it, that\n  is `NEXT: rework` with that package named',
+          'this round could not reach it, that is\n  `NEXT: rework` with that package named',
         ),
         noPlaywright: reviewerMarkdown.includes('**No Playwright.**'),
       }).toStrictEqual({
         specMovementDeclared: true,
+        andThisSessionMakesTheCall: true,
         specMovementIsRework: true,
         repairDeclared: true,
+        andCheckedInTheRegionItsWorkerAppendedTo: true,
+        andInTheCommitTheReviewerWrites: true,
         seamIsRework: true,
         noPlaywright: true,
       });
     });
   });
 
+  // THE PLANNER BLOCK HAS A LARGER BUDGET THAN ITS TWO SIBLINGS, and the gap is structural rather
+  // than a licence to sprawl. Every pack must now carry `### How to plan` — an ORDERED procedure the
+  // planner template makes a BLOCKING read — plus `### The waves`, on top of the subject matter the
+  // block already held. Those two sections landed in all five packs at once, and 9,000 predates
+  // them: measured after the change, every worker and reviewer block still sits under 7,000 while
+  // three of the five planners run past 10,000. The bound still bites — the largest planner has
+  // under a thousand characters of slack — and going over it costs the SERVED prompt its tail,
+  // because a pack is interpolated into a template already sized against
+  // `mcpToolResultStatics.maxVerbatimChars`.
   describe('budgets', () => {
     it('VALID: the three minion blocks => each stay inside their budget', () => {
       expect({
-        planner: plannerMarkdown.length < 9_000,
+        planner: plannerMarkdown.length < 15_000,
         worker: workerMarkdown.length < 9_000,
         reviewer: reviewerMarkdown.length < 9_000,
       }).toStrictEqual({ planner: true, worker: true, reviewer: true });

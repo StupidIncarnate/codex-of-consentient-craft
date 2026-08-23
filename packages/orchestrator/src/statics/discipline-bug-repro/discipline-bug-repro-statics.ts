@@ -24,8 +24,31 @@
  * re-verifies you" went to the reviewer. Nothing on this quest type runs after the reviewer
  * commits.
  *
- * `workerMarkdown` MUST CARRY THE HEADINGS `### The work` AND `### The proof`. The worker
- * template's method points at both by name. On this discipline the proof is inverted. The product
+ * `plannerMarkdown` MUST CARRY `### How to plan`, and the planner template's method step 3 is a
+ * BLOCKING read of it. It is an ORDERED procedure naming this pack's other sections in the order to
+ * work them, and the template says outright that it outranks the template's own step order. Step 3
+ * is the load-bearing one here, and this is the only pack whose procedure says so in as many words:
+ * a plan written before the repro was DRIVEN names the file the symptom is visible in, which is
+ * routinely not the file the defect is in. So DRIVE sits ahead of every cutting step.
+ *
+ * `plannerMarkdown` MUST ALSO CARRY `### The waves`, and this is the one pack whose answer is MIXED.
+ * Chunks for different bugs run together, because two defects have two root causes and disjoint
+ * `FILES`. Two things go serial: an `e2e` chunk takes a wave alone, since Playwright writes one
+ * report path per package; and within one bug the repro chunk takes an EARLIER wave than the fix,
+ * because the chunk NUMBER only orders them on paper while the wave is what actually runs first. A
+ * fix landing beside its own repro leaves nothing red. The planner template requires that heading of
+ * every pack and states no grouping rule of its own.
+ *
+ * `workerMarkdown` MUST CARRY THE HEADINGS `### The work`, `### The proof` AND `### The ward`. The
+ * worker template's method points at all three by name.
+ *
+ * `### The ward` KEYS OFF THE LAYER THE CHUNK'S `NOTES` NAMED, which is the same field that decided
+ * where the reproducing test went — so the two can never disagree. It moved here from
+ * `plannerMarkdown`, which used to write the literal command; the worker calls `get-folder-detail`
+ * for its own folder types at method step 1 and holds the map first-hand. `typecheck` is gone from
+ * every row: ward's typecheck is `tsc -b`, which BUILDS the shared `dist/`.
+ *
+ * On this discipline the proof is inverted. The product
  * already exists and already runs. There is nothing to shell out. The red must come from the real
  * system misbehaving on unchanged source. The worker template used to hard-code
  * shell-then-implement. That was wrong here, and the template dropped it.
@@ -72,6 +95,28 @@ carry the report:
 **The \`EXPECTED:\` observables across every flow are your denominator.** Cut your chunks from that
 list. Nothing else on this discipline measures what the round had to make true.
 
+### How to plan
+
+Work these in order. **Order matters more here than on any sibling discipline**: a plan written
+before you have driven the repro names the file the symptom is VISIBLE in, and that is routinely not
+the file the defect is in.
+
+1. **Read the report** — \`userRequest\`, \`designDecisions\` and \`packagesAffected\` — out of the
+   \`get-quest({ format: 'json' })\` call above.
+2. **List every \`EXPECTED:\` observable across every flow.** That list is your denominator, and each
+   entry becomes exactly one failing test.
+3. **DRIVE each repro yourself.** Trace symptom → wire → contract until you can name a \`file:line\`
+   and say how that line produces what the user reported. → "Reproduce before you plan the fix"
+4. **Cut on the FLOW boundary first**, one bug per group, before you cut anything inside a bug. →
+   "Partition by BUG first"
+5. **Inside one bug, number the reproducing-test chunk BEFORE the chunk that fixes it.**
+6. **Name the LAYER in every chunk's \`NOTES\`**, and put the implementation file you traced into its
+   \`FILES\` beside the test. → "What every chunk must name"
+7. **Group the waves**: an \`e2e\` chunk alone, repro ahead of fix inside one bug, different bugs
+   together. → "The waves"
+8. **On a \`pt 2\` or later, check you are not sending an undrivable repro round again.** → "When
+   this item has become a wall"
+
 ## Partition by BUG first, then inside a bug
 
 **One session owns EVERY flow on this quest.** The item does not fan out. Nothing upstream split
@@ -108,8 +153,8 @@ already found.
 
 If the trace shows the report is wrong about the symptom, plan against what you OBSERVED. Name both
 readings in \`SUMMARY\`: what the report claims, and what you drove. The reviewer then checks the
-test against the right one. Say in the owning chunk's \`NOTES\` that its worker leads the commit
-body with \`CORRECTED:\`. That body is the only place a \`pt N\` successor can read the correction.
+test against the right one. Say in the owning chunk's \`NOTES\` that its worker logs \`CORRECTED:\`
+in the round log. That line is the only place a \`pt N\` successor can read the correction.
 
 **A bug that turns out to be different from the report is a FINDING, not a wall.** The round ADDS
 the corrected node or observable to the existing flow. It never deletes a node. It never mints a
@@ -137,18 +182,31 @@ A chunk here is done when a named invariant is TRUE. Not when a file exists.
   that path in the chunk's \`FILES\`.
 - **\`FILES\`** must also carry the implementation file you traced the cause to, so the worker fixes
   where the defect IS rather than where it shows.
-- **\`WARD\`** follows that layer:
-  - \`--only lint,typecheck,e2e\` for an e2e chunk.
-  - \`--only lint,typecheck,unit,integration\` when the \`FILES\` include a \`flows/\` or
-    \`startup/\` path.
-  - \`--only lint,typecheck,unit\` otherwise.
+**\`NOTES\` naming the layer is what its worker builds its own ward command from.** You write no ward
+command yourself. Name the layer and the observable \`type\` behind it, and the worker takes the check
+types from there.
+
+### The waves
+
+**Chunks may share a wave on this discipline, with two exceptions.**
+
+1. **An \`e2e\` chunk always gets a wave to itself.** Playwright writes ONE report path per package,
+   so two \`e2e\` runs at once overwrite each other's report and both workers read a result
+   belonging to neither.
+2. **Within ONE bug, the reproducing test's chunk goes in an EARLIER wave than the chunk that fixes
+   it.** Numbering them in order is not enough — the wave is what decides which one actually runs
+   first. A fix landing beside its own repro leaves nothing red to prove the bug was ever real.
+
+**Two chunks belonging to DIFFERENT bugs share a wave freely.** That is the whole payoff of cutting
+on the flow boundary first: two independent defects have two independent root causes, so their
+\`FILES\` lists are disjoint and neither worker can disturb the other's red.
 
 ## When this item has become a wall
 
-**A repro nobody could drive is worth ONE \`rework\` round, not a chain of them.** If your brief's
-operation item reads \`pt 2\` or later, read the previous \`review <n>:\` commit bodies. Compare
-them to your \`REWORK:\` line. If the same observable is still undrivable the same way, do NOT plan
-it again. Do these three instead:
+**A repro nobody could drive is worth ONE \`rework\` round, not a chain of them.** If the operation
+item in \`## Context\` reads \`pt 2\` or later, read the previous \`review <n>:\` commit bodies.
+Compare them to the document's \`## Rework\` section. If the same observable is still undrivable the
+same way, do NOT plan it again. Do these three instead:
 
 1. Say so in \`SUMMARY\`.
 2. Plan the bugs that DO reproduce.
@@ -160,7 +218,7 @@ Plan it again and you spend the whole chain. The quest then blocks on the bugs y
 source.** That inverts the usual red step, because the product code your chunk targets already
 exists and already runs. What is wrong is what it DOES. There is nothing to shell out.
 
-The invariant your chunk makes true is an \`EXPECTED:\` observable your brief quotes verbatim in
+The invariant your chunk makes true is an \`EXPECTED:\` observable your chunk quotes verbatim in
 \`INTENT\`. **Assert THAT sentence**, the outcome the user approved. Never assert an intermediate
 cause you found on the way to it. One observable, one test.
 
@@ -170,7 +228,7 @@ cause you found on the way to it. One observable, one test.
    before you plan the edit. A fix already formed in your head selects an assertion that fits the
    FIX rather than the BUG.
 
-   The layer comes from your brief's \`NOTES\`, not from convenience:
+   The layer comes from your chunk's \`NOTES\`, not from convenience:
 
    - Anything the user only sees through a browser gets a Playwright \`*.e2e.ts\`, colocated in the
      entry flow's folder of the UI package.
@@ -183,7 +241,7 @@ cause you found on the way to it. One observable, one test.
    itself must produce.
 
 2. **Only now, fix it.** Apply the NARROWEST change that makes the observable true **at its real
-   cause**. That is the file your brief names, where the defect is rather than where it shows.
+   cause**. That is the file your chunk names, where the defect is rather than where it shows.
    Resist the rewrite. A refactor that happens to make the test pass hides which line was actually
    wrong from every later reader. Nothing on this quest type re-reviews it. Never land half of a
    fix. If the honest fix is genuinely bigger than your chunk, that is \`NEXT: rework\` with what
@@ -243,17 +301,34 @@ the diagnostic test on disk under \`spike-tmp/\`, which is gitignored. What you 
 readable by the next session. Put exactly what you drove and what you observed in \`RESULT\` and
 \`GOTCHAS\`. Return \`NEXT: rework\`. **Never report a red you did not see.**
 
-### The \`CORRECTED:\` commit marker is yours to write
+### The ward
 
-One situation puts a marker on **the first line of your commit BODY**:
+Your check types follow the LAYER your chunk's \`NOTES\` named — the same layer that decided where
+your reproducing test went:
 
-| What your chunk did | First line of the body |
+| The layer your \`NOTES\` named | \`--only\` |
+|---|---|
+| a Playwright \`.e2e.ts\` | \`lint,e2e\` |
+| a \`flows/\` or \`startup/\` path in your \`FILES\` | \`lint,unit,integration\` |
+| anything else | \`lint,unit\` |
+
+**Your \`FILES\` carry the implementation file too**, not just the test, because your planner traced
+the cause there. Pass both.
+
+### The \`CORRECTED:\` marker is yours to write, in the round log
+
+One situation puts a marker in the block you append at method step 7:
+
+| What your chunk did | The line you append |
 |---|---|
 | Fixed a bug whose real symptom differs from the report | \`CORRECTED:\` |
 
-Your brief's \`NOTES\` is what tells you it applies. That note names both readings: what the report
-claims, and what your planner drove. Write both into the body. That line is the only place a
-\`pt N\` successor can read the correction back. The subject stays \`chunk <n>: <title>\`.`,
+Your chunk's \`NOTES\` is what tells you it applies. That note names both readings: what the report
+claims, and what your planner drove. Write both into that line. **It is the only place a \`pt N\`
+successor can read the correction back**, because the round document is committed with the round and
+your
+reviewer copies the line into the round's commit message as well. A chunk that corrected nothing
+still appends its block, carrying \`none\`.`,
 
   reviewerMarkdown: `This round fixed reported BUGS on a bug-hunt quest, whose spec is ONE FLOW PER BUG. Each flow forks
 at its divergence into two terminals:
@@ -265,7 +340,7 @@ at its divergence into two terminals:
 
 Read those observables yourself with \`get-quest({ questId: 'QUEST_ID', format: 'json' })\`. They
 are your denominator. **Pass \`format: 'json'\`.** The default text render omits \`userRequest\`,
-which section 6 needs. Your brief does not carry it either.
+which section 6 needs. The round document's \`## Context\` carries it too, at the bottom.
 
 **Nothing runs behind this discipline.** The relay tail on a bug-hunt quest is
 \`ward(changed) → ward(full)\` and nothing else: no flow-test role, no browser walk, no manual QA.
@@ -359,9 +434,9 @@ A worker sees only its own chunk. You see the whole round.
 
 Last, go back to the report itself. **Re-read \`userRequest\`, the bug report in the user's own
 words.** Then confirm the test asserts THAT. Not something adjacent that was easier to assert. Read
-\`userRequest\` from the JSON response of the \`get-quest\` call at the top of this block. Nothing
-else you can reach carries it. The text render never emits it. Your brief carries only the header,
-the plan path and the worker returns. Tests drift that way on their own.
+\`userRequest\` from the JSON response of the \`get-quest\` call at the top of this block, or from the
+bottom of the round document's \`## Context\`. The text render never emits it, and the brief that
+dispatched you carries only the path. Tests drift that way on their own.
 
 A report saying "one row per quest file on disk" needs an assertion on the ROW COUNT against the
 file count. Nothing weaker satisfies it. An assertion that some row renders the right text passes

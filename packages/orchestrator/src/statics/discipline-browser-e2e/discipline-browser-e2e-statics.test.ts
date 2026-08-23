@@ -290,16 +290,16 @@ describe('disciplineBrowserE2eStatics', () => {
         openTheSpecs: plannerMarkdown.includes('**OPEN the specs whose `page.goto` target matches'),
         doNotCreditAFile: plannerMarkdown.includes('Do not credit a file by its name.'),
         perUnitNotPerFlow: plannerMarkdown.includes(
-          '**Decide extend-vs-add PER UNIT, not per flow.**',
+          '**Decide the verdict PER UNIT, not per flow.**',
         ),
         threeVerdicts: plannerMarkdown.includes(
           '- **already covered** — name the spec `file:line` and the assertion you read.',
         ),
-        verdictsAreThePlan: plannerMarkdown.includes('Those verdicts ARE the plan'),
+        verdictsAreThePlan: plannerMarkdown.includes("**Step 4's verdicts ARE the plan.**"),
       }).toStrictEqual({
         inventoryFirst: true,
         parallelSuiteIsTheMistake: true,
-        steps: ['1. **', '2. **', '3. **', '4. **'],
+        steps: ['1. **', '2. **', '3. **', '4. **', '5. **', '6. **', '7. **', '8. **'],
         resolveByPackageType: true,
         neverAssumeAPath: true,
         listEveryE2e: true,
@@ -318,7 +318,9 @@ describe('disciplineBrowserE2eStatics', () => {
         placeholderForm: plannerMarkdown.includes(
           "`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })`",
         ),
-        idsFromTheBriefHeader: plannerMarkdown.includes('with the ids\n   from your brief header'),
+        idsFromTheBriefHeader: plannerMarkdown.includes(
+          "with the ids\n   from the round document's `## Context`",
+        ),
         shorthand: plannerMarkdown.includes('get-qa-checklist({ questId, operationItemId })'),
       }).toStrictEqual({
         placeholderForm: true,
@@ -404,16 +406,18 @@ describe('disciplineBrowserE2eStatics', () => {
     // guessing it.
     it('VALID: plannerMarkdown => writes the e2e ward invocation and forbids passWithNoTests', () => {
       expect({
-        theInvocation: plannerMarkdown.includes(
-          "**`WARD` per chunk: `npm run ward -- --only lint,typecheck,e2e -- <the chunk's files>`.**",
+        theInvocation: workerMarkdown.includes(
+          '`--only lint,e2e` — on every chunk of this discipline',
         ),
-        noJestCounterpart: plannerMarkdown.includes('has no Jest counterpart'),
+        noJestCounterpart: workerMarkdown.includes(
+          'because an e2e-and-harness file set has no\nJest counterpart at all.',
+        ),
         everyChunk: plannerMarkdown.includes(
-          'This is\nthe invocation that applies on every chunk of this discipline',
+          '**Every chunk on this discipline authors Playwright and nothing else.** Its worker builds its own\nward command from that fact and from its own `FILES`.',
         ),
-        noPassWithNoTests: plannerMarkdown.includes('**Never reach for `--passWithNoTests`.**'),
-        mismatchIsAnAnswer: plannerMarkdown.includes(
-          'That is ward answering the question, not failing.',
+        noPassWithNoTests: workerMarkdown.includes('**Never reach for `--passWithNoTests`**'),
+        mismatchIsAnAnswer: workerMarkdown.includes(
+          'That is ward answering the\nquestion, not failing it.',
         ),
       }).toStrictEqual({
         theInvocation: true,
@@ -437,9 +441,9 @@ describe('disciplineBrowserE2eStatics', () => {
           '## Mine the existing harnesses for LEVERS, not fixtures',
         ),
         readHarnessesFirst: plannerMarkdown.includes(
-          '**Read `packages/*/test/harnesses/**` before you design a fault lever.**',
+          '**Read `packages/*/test/harnesses/**` AND the sibling `.e2e.ts` specs before you design a fault\nlever.**',
         ),
-        theMeasuredCost: plannerMarkdown.includes('One session lost 2m11s\nrelearning two facts'),
+        theMeasuredCost: plannerMarkdown.includes('One session lost 2m11s relearning two facts'),
       }).toStrictEqual({
         colocates: true,
         whereItStarts: true,
@@ -453,10 +457,10 @@ describe('disciplineBrowserE2eStatics', () => {
     it('VALID: plannerMarkdown => leaves the deeper layers to the sibling role and keeps the fixture rule', () => {
       expect({
         notTheWholeSuite: plannerMarkdown.includes(
-          '**You are not the whole test suite for this flow.**',
+          '**You are not the whole test SUITE for this flow, but you are measured over the whole flow.**',
         ),
         deeperIsAFalseGreen: plannerMarkdown.includes(
-          'Asserting a server-side claim through the browser is a\nfalse green.',
+          '**Asserting a server-side claim through the browser is still a false green.**',
         ),
         offMapIsAnotherRole: plannerMarkdown.includes(
           '**Off-map probe families belong to another role, not to you.**',
@@ -537,10 +541,12 @@ describe('disciplineBrowserE2eStatics', () => {
         neverSettlesTheSibling: AUTHORED_REVIEWER.includes(
           'Signing one of yours therefore never settles one of its\nunits.',
         ),
-        confirmedBar: AUTHORED_REVIEWER.includes(
-          '`confirmed` carries a test `file:line` PLUS what makes that test fail.',
+        defersToTheEvidenceContract: AUTHORED_REVIEWER.includes(
+          '**Sign to the evidence bar the Evidence Contract above sets, for both verdicts**',
         ),
-        unconfirmableBar: AUTHORED_REVIEWER.includes('`unconfirmable` carries what was tried'),
+        andSaysWhyASecondCopyIsWorse: AUTHORED_REVIEWER.includes(
+          'a second copy here is one that can drift out of step with it.',
+        ),
         batch: AUTHORED_REVIEWER.includes('**BATCH the writes.**'),
         noWebServerIsUnconfirmable: AUTHORED_REVIEWER.includes(
           '**A resolved package with no `webServer` declaration blocks every unit it owns.**',
@@ -549,8 +555,8 @@ describe('disciplineBrowserE2eStatics', () => {
       }).toStrictEqual({
         sameFieldDisjoint: true,
         neverSettlesTheSibling: true,
-        confirmedBar: true,
-        unconfirmableBar: true,
+        defersToTheEvidenceContract: true,
+        andSaysWhyASecondCopyIsWorse: true,
         batch: true,
         noWebServerIsUnconfirmable: true,
         auditEveryOne: true,
@@ -618,8 +624,8 @@ describe('disciplineBrowserE2eStatics', () => {
         spineKeepsAnUnwrittenTestOut: judgingMarkdown.includes(
           `**A unit that simply needs a test nobody has written yet is NOT \`${verdict}\`.**`,
         ),
-        packBarWantsTheAttemptsAndTheQuestion: AUTHORED_REVIEWER.includes(
-          `- \`${verdict}\` carries what was tried, why each attempt could not reach it, and a \`question\``,
+        packDefersItsBarToTheSpine: AUTHORED_REVIEWER.includes(
+          '**Sign to the evidence bar the Evidence Contract above sets, for both verdicts**',
         ),
         packSignsARealWallThatWay: AUTHORED_REVIEWER.includes(
           `Sign each of those\nunits \`${verdict}\`.`,
@@ -638,7 +644,7 @@ describe('disciplineBrowserE2eStatics', () => {
         rework: 'NEXT: rework',
         spineWantsEvidenceAndAQuestion: true,
         spineKeepsAnUnwrittenTestOut: true,
-        packBarWantsTheAttemptsAndTheQuestion: true,
+        packDefersItsBarToTheSpine: true,
         packSignsARealWallThatWay: true,
         packNamesBothHalvesOfThatEvidence: true,
         packRoutesAnUncoveredUnitToRework: true,
@@ -653,7 +659,7 @@ describe('disciplineBrowserE2eStatics', () => {
       expect({
         rebuildItYourself: AUTHORED_REVIEWER.includes('Rebuild your denominator yourself.'),
         theCall: AUTHORED_REVIEWER.includes(
-          "`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })` with the ids from\nyour brief header. Your denominator is every unit it returns.",
+          "`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })` with the ids from\nthe round document's `## Context`. Your denominator is every unit it returns.",
         ),
         signEveryUnit: AUTHORED_REVIEWER.includes('**Sign EVERY unit in that slice**'),
         includingTheUntouched: AUTHORED_REVIEWER.includes(
@@ -821,7 +827,7 @@ describe('disciplineBrowserE2eStatics', () => {
     it('VALID: reviewerMarkdown + reviewerMinionStatics => require only a ward run the reviewer template carves out', () => {
       const { template } = reviewerMinionStatics.prompt;
       const carveOut = template.slice(
-        template.indexOf("- **The round's ward.**"),
+        template.indexOf('A ward over ONE file or ONE test is fine at any point.'),
         template.indexOf('## What you return'),
       );
       const permitted = Array.from(carveOut.matchAll(/`(npm run ward[^`]*)`/gu)).flatMap((match) =>
@@ -842,7 +848,7 @@ describe('disciplineBrowserE2eStatics', () => {
         permitted,
         roundScoped,
         templateCarvesOutTheNarrowRun: carveOut.includes(
-          '**A run over ONE file or ONE test is not on this list.**',
+          'A ward over ONE file or ONE test is fine at any point.',
         ),
         templateDefersToTheDiscipline: carveOut.includes(
           'Your discipline above may require one as proof.',
@@ -862,10 +868,19 @@ describe('disciplineBrowserE2eStatics', () => {
     });
   });
 
+  // THE PLANNER BLOCK HAS A LARGER BUDGET THAN ITS TWO SIBLINGS, and the gap is structural rather
+  // than a licence to sprawl. Every pack must now carry `### How to plan` — an ORDERED procedure the
+  // planner template makes a BLOCKING read — plus `### The waves`, on top of the subject matter the
+  // block already held. Those two sections landed in all five packs at once, and 9,000 predates
+  // them: measured after the change, every worker and reviewer block still sits under 7,000 while
+  // three of the five planners run past 10,000. The bound still bites — the largest planner has
+  // under a thousand characters of slack — and going over it costs the SERVED prompt its tail,
+  // because a pack is interpolated into a template already sized against
+  // `mcpToolResultStatics.maxVerbatimChars`.
   describe('budgets', () => {
     it('VALID: the three minion blocks => each authored half stays inside its budget', () => {
       expect({
-        planner: plannerMarkdown.length < 9_000,
+        planner: plannerMarkdown.length < 15_000,
         worker: workerMarkdown.length < 9_000,
         authoredReviewer: AUTHORED_REVIEWER.length < 9_000,
       }).toStrictEqual({ planner: true, worker: true, authoredReviewer: true });

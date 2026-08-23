@@ -26,8 +26,44 @@
  * that role is forbidden. Its colocated test pins that absence. A tool named there reads to the
  * operator as a permission. It then opens files. Its context fills. The dispatches stop.
  *
- * `workerMarkdown` MUST CARRY THE HEADINGS `### The work` AND `### The proof`. The worker template's
- * method points at both by name. The colocated test pins both.
+ * `plannerMarkdown` MUST CARRY `### How to plan`, and the planner template's method step 3 is a
+ * BLOCKING read of it. It is an ORDERED procedure naming this pack's other sections in the order to
+ * work them, and the template says outright that it outranks the template's own step order. Step 1
+ * is the load-bearing one here: the scope is the `[ ]` units, and a resumed or `pt N` item arrives
+ * with most of its checklist already settled.
+ *
+ * `plannerMarkdown` MUST ALSO CARRY `### The waves`, and this discipline groups FREELY. It holds no dev
+ * server, no browser, no Playwright report path and no reset lever, so one Jest run is safe beside
+ * another. Its single serialising edge is a shared HARNESS: the chunk that owns one goes in an
+ * earlier wave than every chunk that consumes it, or a consumer authors against a file that does not
+ * exist yet. The planner template requires that heading of every pack and states no grouping rule of
+ * its own.
+ *
+ * `workerMarkdown` MUST CARRY THE HEADINGS `### The work`, `### The proof` AND `### The ward`. The
+ * worker template's method points at all three by name. The colocated test pins all three.
+ *
+ * `### The ward` READS `--only lint,unit,integration`, both types on every chunk, because a
+ * flow-perspective suite below the browser routinely carries both and a run naming one finds nothing
+ * to do on the other half. It moved here from `plannerMarkdown`, which used to write the literal
+ * command; the worker calls `get-folder-detail` for its own folder types at method step 1, so it
+ * holds the map the planner was stating for it. `typecheck` is gone: ward's typecheck is `tsc -b`,
+ * which BUILDS the shared `dist/` a wave of workers must not touch.
+ *
+ * THE PLAN IS CUT FROM THE `[ ]` UNITS, NOT FROM `items`. The predecessor read "Every unit that call
+ * returns lands in exactly one chunk", which is right on a first round and wrong on every later one.
+ * Measured on a resumed item, the call returned 101 units across two flows with 26 still `[ ]`; a
+ * planner obeying that sentence cuts chunks re-covering 75 signed units and spends the round. The
+ * three-mark table replaces it, and `reviewerMarkdown` takes the same narrowing — re-patching an
+ * `[x]` overwrites a predecessor's evidence with a later session's.
+ *
+ * TWO ROUTING CORRECTIONS CAME OFF THE SAME MEASUREMENT. A glue node whose other package is
+ * browser-reachable has no seam item to route to, because `signoffTrackEligibilityStatics` gives this
+ * track and Groundstomper DISJOINT `packageTypes` and the seam rule needs two of THIS track's
+ * packages — so the whole node lands here, files in the other package included. And an observable's
+ * `type` is not its surface: four `ui-state` units on that item were channel-routing and
+ * parse-failure claims in a `packages/web` state file, jsdom-testable and `[ ]` on a server slice.
+ * The block's own "the browser is not yours" heuristic would have dropped all four, and the gate
+ * would have refused the parent's `done` over them.
  *
  * TWO SCOPES ARE NARROWER THAN THEY LOOK. Each block says so first-hand. `get-qa-checklist` with an
  * `operationItemId` narrows to the PACKAGE SLICE, which is the whole operation item rather than one
@@ -63,10 +99,32 @@ The browser belongs to another role.
 
 **RESET:** none. You pull no lever between workers, because nothing here goes stale mid-round.`,
 
-  plannerMarkdown: `You are planning ONE PACKAGE SLICE of this quest's RUNTIME flows. Your brief names that slice: either
-a set of packages, or the seam where two of them meet.
+  plannerMarkdown: `You are planning ONE PACKAGE SLICE of this quest's RUNTIME flows. The round document's
+\`## Context\` names that slice: either a set of packages, or the seam where two of them meet.
 
-Your denominator is every unit in that slice. One call returns it:
+### How to plan
+
+Work these in order. Each one names the section below that carries it.
+
+1. **Fetch the checklist ONCE**, then read the three marks on it. **Your scope is the \`[ ]\` units
+   and nothing else.** → "Read the marks"
+2. **Route every \`[ ]\` unit**: your package slice, the seam slice, or a claim needing a real painted
+   browser that belongs to another role. → "Which units are yours"
+3. **Inventory what already covers them, by OPENING the test files.** You are not planning against an
+   empty tree, and a filename is not evidence. → "Inventory what already covers each flow"
+4. **Read the quest's design decisions** with \`get-quest({ questId: 'QUEST_ID', stage: 'spec' })\`.
+   An observable says what to assert; its decision says what goes wrong if you assert it the easy
+   way. → "Read the quest's design decisions"
+5. **Bundle the flows into chunks** by shared surface, shared layer or coupled claim — never one flow
+   apiece, and never by count. → "Bundle the flows"
+6. **Give every harness one owner, by FULL PATH.** The earlier-numbered chunk owns it; say which
+   chunks only consume it.
+7. **Write each \`NOTES\` with what the checklist CANNOT know**, and transcribe no observable text
+   into it. → "Do NOT transcribe the observables"
+8. **Group the waves**: wave 1 for everything, unless a shared harness forces a consumer later. →
+   "The waves"
+
+Your denominator is the units in that slice still awaiting your sign-off. One call returns it:
 \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`. It already
 narrows to exactly your slice. It returns the track, the package slice and the flow set. The server
 derives all three through the same transformer your parent's completion gate reads. Fetch it ONCE. A
@@ -76,8 +134,30 @@ second fetch returns the same list. It costs you most of a turn.
 the ones a suite silently omits. "I covered the happy path and stopped" shows up here as terminal ids
 carrying no signature.
 
-**Every unit that call returns lands in exactly one chunk.** A unit you leave in no chunk is a hole.
-It reaches the reviewer unsigned. It comes back to you as rework.
+## Read the marks — there are THREE, not two
+
+| Mark | What it means for your plan |
+|---|---|
+| \`[ ]\` | awaiting your sign-off. **This is your scope.** |
+| \`[x]\` | not awaiting it — EITHER an earlier round signed it, OR another track owns its package kind |
+| \`[-]\` | a unit KIND this track never signs. The seven off-map probe families land here |
+
+**Every \`[ ]\` unit lands in exactly one chunk.** One you leave in no chunk is a hole. It reaches the
+reviewer unsigned. It comes back to you as rework. The header's \`REMAINING\` count says how many
+there are.
+
+**Cut chunks from the \`[ ]\` units ONLY.** A resumed or \`pt N\` item routinely arrives with most of
+its list already \`[x]\` — one measured item carried 26 \`[ ]\` out of 101 units — and planning the
+settled 75 again spends the entire round re-covering work that is already signed.
+
+**Read the \`[x]\` units once anyway, and chunk none of them.** They tell you what an earlier round
+already proved, which is how your chunks EXTEND that suite instead of standing a parallel one beside
+it.
+
+**A \`[-]\` unit is never yours, in any round.** Another role probes those by hand against a running
+system. Neither cut a chunk for one nor count it as covered.
+
+## Which units are yours, when the type and the mark disagree
 
 **A package slice does NOT own the seams. The seam slice does NOT own the per-package units.** A unit
 routes by its owning NODE:
@@ -88,10 +168,23 @@ routes by its owning NODE:
 Reaching across that line spends your parent's budget on units a sibling item is already gated on.
 Your own slice then reaches the reviewer with units no chunk covers.
 
+**A glue node whose OTHER package is browser-reachable routes ENTIRELY to you.** The seam rule needs
+TWO of this track's packages, and a browser-reachable package has no slice on this track at all — so
+every unit on that node lands in yours, including ones whose files sit in that other package. **The
+mark is the authority, never the package name.** A \`[ ]\` on your list is a unit your parent's gate is
+measuring.
+
+**Route on the SURFACE a claim needs, never on its observable \`type\`.** A \`ui-state\` unit whose real
+subject is a state module, a subject registry or a binding's parse step is YOURS: it runs under Jest
+in jsdom and needs no browser at all. On one measured item, four \`ui-state\` units were exactly that —
+channel routing and parse-failure claims in a \`<ui-package>\` state file, all four \`[ ]\` on a server
+slice. Dropped on the type alone, they leave the gate refusing your parent's \`done\`.
+
 **Operational flows are not yours.** The track filter drops them. Do not add them back.
 
-**The browser is not yours. Playwright is not yours either.** A claim only a browser can reach is
-another role's unit. It is not a hole in your suite.
+**The browser is not yours. Playwright is not yours either.** A claim only a REAL PAINTED browser can
+reach — geometry, visibility, a page lifecycle, the browser side of a navigation — is another role's
+unit. It is not a hole in your suite.
 
 **An EMPTY checklist is a real state, not an error.** Zero units in your slice means a plan with zero
 chunks. Say so in \`SUMMARY\`. Your parent then dispatches no workers. Its reviewer records the
@@ -115,8 +208,20 @@ order. Say in \`NOTES\` which chunk owns the harness. Say which chunks only cons
 harness **by FULL PATH, never by concept**. Two workers handed "the comment-seeding harness" can pick
 different files.
 
-**\`WARD\` per chunk:** \`--only lint,typecheck,unit,integration\`, over the chunk's explicit
-\`FILES\`. Never \`e2e\`. No chunk on this discipline authors Playwright.
+**No chunk on this discipline authors Playwright.** Every artifact you cut sits below the browser.
+Its worker builds its own ward command from that fact and from its own \`FILES\`.
+
+### The waves
+
+**Chunks group freely on this discipline, and most of them belong in wave 1.** Nothing here holds a
+shared resource: no dev server, no browser, no Playwright report path, no reset lever. A Jest run is
+safe beside another Jest run.
+
+**The ONE thing that forces a later wave is a shared HARNESS.** Where two chunks need the same
+harness, the chunk that OWNS it goes in an earlier wave than every chunk that consumes it — the same
+ownership the section above tells you to name by full path in \`NOTES\`. Grouped into one wave
+instead, a consumer authors against a harness file that does not exist yet, or builds a second copy
+of it beside the first.
 
 ## Spikes are KEPT on this discipline
 
@@ -130,11 +235,11 @@ Write the spike nowhere else. A spike outside \`spike-tmp/\` is an untracked fil
 server then refuses your parent's \`signal-back\`, because an untracked file leaves the worktree
 dirty.
 
-## Do NOT transcribe the observables into the chunk briefs
+## Do NOT transcribe the observables into the chunks
 
 Have the worker call \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`
-itself, with the ids from its brief header. It gets the SAME narrowed list you did. Every terminal,
-branch and observable arrives with the **verbatim** \`label\` and the \`checkSurface\`, straight from
+itself, with the ids from the round document's \`## Context\`. It gets the SAME narrowed list you
+did. Every terminal, branch and observable arrives with the **verbatim** \`label\` and the \`checkSurface\`, straight from
 the graph. \`NOTES\` names which of those flows are its bundle. Copying the units by hand costs most
 of your turn. It also puts a transcription error between the spec and the test.
 
@@ -174,8 +279,8 @@ at every layer BELOW the browser.
 
 **The checklist gives you the unit TEXT. Your chunk gives you the SCOPE.** Call
 \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` once, with the ids
-from your brief header. It returns the whole PACKAGE SLICE. Every entry is a \`terminal\`, a labelled
-\`branch\` or an \`observable\`. Each entry carries two fields you author against:
+from the round document's \`## Context\`. It returns the whole PACKAGE SLICE. Every entry is a
+\`terminal\`, a labelled \`branch\` or an \`observable\`. Each entry carries two fields you author against:
 
 - \`label\` — the unit's text, **verbatim**. Take your assertions from it, never from a paraphrase.
 - \`checkSurface\` — the surface that unit's value must be read from.
@@ -260,7 +365,15 @@ For each unit, say which of the two you did — the witnessed red, or the mutati
 
 "Fails if the text is wrong" is not an answer. "Fails if the row renders the older comment first,
 because the assertion pins the exact order \`[newer, older]\`" is one. **Name the specific wrong value
-for every assertion you write.** An assertion with no named failing value is not a finished test.`,
+for every assertion you write.** An assertion with no named failing value is not a finished test.
+
+### The ward
+
+\`--only lint,unit,integration\` — both test types, on every chunk of this discipline. A
+flow-perspective suite below the browser routinely carries both, and a run naming only one finds
+nothing to do on half of what you just wrote.
+
+**Never \`e2e\`.** You author no Playwright, so that check has no counterpart in your \`FILES\`.`,
 
   reviewerMarkdown: `${flowEvidenceContractStatics.judgingMarkdown}
 
@@ -271,21 +384,25 @@ structural rather than a promise it was trusted to keep. The worker's session en
 starts, so it never reaches this field. You are the only session on this round that opens these files
 a second time.
 
-**Your units are the PACKAGE SLICE your brief names, never the whole \`flowriderSignoff\` field.** A
+**Your units are the PACKAGE SLICE \`## Context\` names, never the whole \`flowriderSignoff\` field.** A
 sibling role writes that SAME field over the browser-reachable package kinds. Those kinds are the
 DISJOINT complement of your slice. So signing one of your units never settles one of the sibling's.
 Signing one of ITS units is a false green: you opened no browser, so you cannot confirm a
 browser-reachable claim.
 
-Your denominator is every unit in your slice. Rebuild it yourself with
+Your denominator is every unit in your slice still awaiting your signature. Rebuild it yourself with
 \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`, passing the ids
-from your brief header. Sign every unit it returns by patching \`{ id, flowriderSignoff }\` onto the
-observable, node or edge through \`modify-quest\`. Send the id and the sign-off field ONLY. Any other
+from the round document's \`## Context\`. **Sign every \`[ ]\` unit it returns** by patching
+\`{ id, flowriderSignoff }\` onto the observable, node or edge through \`modify-quest\`. Send the id and the sign-off field ONLY. Any other
 field you send lands as a spec edit rather than a sign-off, because \`modify-quest\` merges per key.
 
-**The off-map probe families are not on your denominator.** Another role probes security, performance
-and the other off-map families by hand against a running system. \`offMapSignoffs\` is that role's
-patch target. A patch you send there signs a unit you never measured.
+**Sign no \`[x]\` and no \`[-]\` unit.** An \`[x]\` is either already signed on this track — re-patching
+it overwrites a predecessor's evidence with yours — or outside this track's denominator because
+another track owns its package kind. A \`[-]\` is a unit kind this track never signs at all.
+
+**The off-map probe families are not on your denominator, and they are the \`[-]\` rows.** Another role
+probes security, performance and the rest by hand against a running system. \`offMapSignoffs\` is that
+role's patch target. A patch you send there signs a unit you never measured.
 
 **A Playwright \`.e2e.ts\` is never evidence on this track.** It proves a claim read out of a browser.
 That claim is another role's unit. Package kind puts it outside your denominator. Citing one settles

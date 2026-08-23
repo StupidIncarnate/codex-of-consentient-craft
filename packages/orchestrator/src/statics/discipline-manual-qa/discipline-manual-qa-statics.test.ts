@@ -93,11 +93,13 @@ describe('disciplineManualQaStatics', () => {
         ),
         bothValues: operatorMarkdown.includes('`Dev Server Command`\nand `Dev Server URL`'),
         exactlyOneServer: operatorMarkdown.includes('Run ONE, in this order:'),
-        standItUpBeforeStep3: operatorMarkdown.includes('1. Stand it up before step 3.'),
+        standItUpBeforeThePlanner: operatorMarkdown.includes(
+          '1. Stand it up before you dispatch your planner.',
+        ),
         ownItAllSession: operatorMarkdown.includes('2. Own it for the whole session.'),
-        everyBrief: operatorMarkdown.includes('3. Put both values in EVERY minion brief.'),
-        minionFetchCarriesNeither: operatorMarkdown.includes(
-          "A minion's own fetch carries neither.",
+        nothingExtraInABrief: operatorMarkdown.includes('3. Put nothing extra in a brief for it'),
+        becauseTheDocumentCarriesThem: operatorMarkdown.includes(
+          "both values are already in the round document's\n   `## Context`.",
         ),
         tearItDownBeforeYouSignal: operatorMarkdown.includes('4. Tear it down before you signal.'),
         noWorkerMayBounceIt: operatorMarkdown.includes(
@@ -116,10 +118,10 @@ describe('disciplineManualQaStatics', () => {
         namingIsThePermission: true,
         bothValues: true,
         exactlyOneServer: true,
-        standItUpBeforeStep3: true,
+        standItUpBeforeThePlanner: true,
         ownItAllSession: true,
-        everyBrief: true,
-        minionFetchCarriesNeither: true,
+        nothingExtraInABrief: true,
+        becauseTheDocumentCarriesThem: true,
         tearItDownBeforeYouSignal: true,
         noWorkerMayBounceIt: true,
         scopedKill: true,
@@ -207,7 +209,7 @@ describe('disciplineManualQaStatics', () => {
         expectBeforeYouDrive: work.includes('**Learn the expected value BEFORE you drive.**'),
         rationalisesOtherwise: work.includes('rationalises whatever it sees'),
         driveTheRealSurface: work.includes(
-          '**Drive the route by hand at the surface the brief names.**',
+          '**Drive the route by hand at the surface your chunk names.**',
         ),
         theRealBrowser: work.includes('- a real browser — click the real elements'),
         theRealEndpoint: work.includes(
@@ -487,10 +489,10 @@ describe('disciplineManualQaStatics', () => {
           '**4. Establish the real browser surface before planning any browser slice.**',
         ),
         probeWhatYouWillDrive: plannerMarkdown.includes(
-          '**Probing `tabs_context_mcp` therefore\ndoes NOT test usability. Probe the tool you will actually drive with.**',
+          '**Probe the tool you will actually drive with.**',
         ),
         playwrightNodeApiFallback: plannerMarkdown.includes(
-          'driving Chromium through the **Playwright Node API**',
+          'needs the **Playwright Node API** from a\nthrowaway `.js`/`.py` driver even where `navigate` works',
         ),
         noBrowserIsUnconfirmable: plannerMarkdown.includes(
           'every `ui-state` unit is `unconfirmable`. Its evidence is "no\nbrowser attached".',
@@ -523,7 +525,9 @@ describe('disciplineManualQaStatics', () => {
         intoEveryChunk: plannerMarkdown.includes(
           "Put every fact below into EVERY chunk's `NOTES`.",
         ),
-        ipv6: plannerMarkdown.includes('**The dev server binds IPv6-only.**'),
+        ipv6: plannerMarkdown.includes(
+          '**The dev server binds IPv6-only, on `dungeonmaster.localhost`**',
+        ),
         webSocketOffline: plannerMarkdown.includes(
           '**`context.setOffline(true)` does NOT close an established WebSocket in Chromium.**',
         ),
@@ -540,9 +544,7 @@ describe('disciplineManualQaStatics', () => {
         curlRetry: plannerMarkdown.includes(
           'curl -sf --retry 15 --retry-delay 2 --retry-connrefused',
         ),
-        diagnosticNotKept: plannerMarkdown.includes(
-          '**Your spike is DIAGNOSTIC on this discipline, not kept.**',
-        ),
+        diagnosticNotKept: plannerMarkdown.includes('**Your spike is DIAGNOSTIC here, not kept.**'),
       }).toStrictEqual({
         heading: true,
         intoEveryChunk: true,
@@ -559,17 +561,19 @@ describe('disciplineManualQaStatics', () => {
 
     // The ward command per chunk is a lookup, so the block states it as a table rather than a
     // paragraph. Each row pins one fix location against the command it earns.
-    it('VALID: plannerMarkdown => writes a ward command per chunk, keyed on where a fix would land', () => {
+    it('VALID: workerMarkdown => keys its ward check types on where a fix would land', () => {
       expect({
-        byWhereAFixLands: plannerMarkdown.includes(
-          '**`WARD` per chunk, by where a fix would land.**',
+        byWhereAFixLands: workerMarkdown.includes(
+          'Your check types follow where\nyour fix landed — or, on a clean walk, where one would have:',
         ),
-        pureLogic: plannerMarkdown.includes('| pure logic | `--only lint,typecheck,unit` |'),
-        flowsAndStartup: plannerMarkdown.includes(
-          '| a `flows/` or `startup/` path in `FILES` | `--only lint,typecheck,unit,integration` |',
+        pureLogic: workerMarkdown.includes(
+          '| pure logic, and a clean walk that changed nothing | `lint,unit` |',
         ),
-        paintedGeometry: plannerMarkdown.includes(
-          '| painted geometry, provable only in a real browser | `--only lint,typecheck,e2e` |',
+        flowsAndStartup: workerMarkdown.includes(
+          '| a `flows/` or `startup/` path in your `FILES` | `lint,unit,integration` |',
+        ),
+        paintedGeometry: workerMarkdown.includes(
+          '| painted geometry, provable only in a real browser | `lint,e2e` |',
         ),
       }).toStrictEqual({
         byWhereAFixLands: true,
@@ -750,8 +754,8 @@ describe('disciplineManualQaStatics', () => {
     });
 
     // CROSS-FILE PAIR — `reviewerMinionStatics`' "What is not yours" ward entry ←→ this pack's
-    // mutation audit. That entry BANS a second round-scoped ward and, inside the same bullet,
-    // EXEMPTS a run over ONE file or ONE test and a revert-to-see-whether-a-test-fails, then defers
+    // mutation audit. That entry bans only the BARE whole-repo run — the round's own `--staged` is
+    // that session's to run now — and it PERMITS a run over ONE file or ONE test and a revert-to-see-whether-a-test-fails, then defers
     // to whatever the discipline requires as proof. This audit is made of exactly those runs: break
     // one production line, run that ONE test file, revert by editing. It asks for no round-scoped
     // ward of its own, which is why `--staged` must not appear in this block at all.
@@ -761,10 +765,11 @@ describe('disciplineManualQaStatics', () => {
     // incapable of failing then clears the final gate with nobody behind it to notice.
     it('VALID: the mutation audit => asks only for runs the reviewer template exempts from its ward ban', () => {
       expect({
-        templateSendsTheRoundsWardToTheParent:
-          REVIEWER_TEMPLATE_NOT_YOURS.includes("**The round's ward.**"),
-        templateExemptsAOneFileOrOneTestRun: REVIEWER_TEMPLATE_NOT_YOURS.includes(
-          '**A run over ONE file or ONE test is not on this list.**',
+        templateBansOnlyTheWholeRepoWard: REVIEWER_TEMPLATE_NOT_YOURS.includes(
+          '- **The whole-repo `npm run ward`, bare.**',
+        ),
+        templatePermitsAOneFileOrOneTestRun: REVIEWER_TEMPLATE_NOT_YOURS.includes(
+          'A ward over ONE file or ONE test is fine at any point.',
         ),
         templatePermitsARevertToSeeATestFail: REVIEWER_TEMPLATE_NOT_YOURS.includes(
           '- you revert a line to see whether a test fails;',
@@ -779,8 +784,8 @@ describe('disciplineManualQaStatics', () => {
         ),
         packAsksForARoundScopedWardOfItsOwn: reviewerMarkdown.includes('--staged'),
       }).toStrictEqual({
-        templateSendsTheRoundsWardToTheParent: true,
-        templateExemptsAOneFileOrOneTestRun: true,
+        templateBansOnlyTheWholeRepoWard: true,
+        templatePermitsAOneFileOrOneTestRun: true,
         templatePermitsARevertToSeeATestFail: true,
         templateDefersToTheDiscipline: true,
         packBreaksOneProductionLine: true,
@@ -849,10 +854,19 @@ describe('disciplineManualQaStatics', () => {
     });
   });
 
+  // THE PLANNER BLOCK HAS A LARGER BUDGET THAN ITS TWO SIBLINGS, and the gap is structural rather
+  // than a licence to sprawl. Every pack must now carry `### How to plan` — an ORDERED procedure the
+  // planner template makes a BLOCKING read — plus `### The waves`, on top of the subject matter the
+  // block already held. Those two sections landed in all five packs at once, and 9,000 predates
+  // them: measured after the change, every worker and reviewer block still sits under 7,000 while
+  // three of the five planners run past 10,000. The bound still bites — the largest planner has
+  // under a thousand characters of slack — and going over it costs the SERVED prompt its tail,
+  // because a pack is interpolated into a template already sized against
+  // `mcpToolResultStatics.maxVerbatimChars`.
   describe('budgets', () => {
     it('VALID: the three minion blocks => each stay inside their budget', () => {
       expect({
-        planner: plannerMarkdown.length < 9_000,
+        planner: plannerMarkdown.length < 15_000,
         worker: workerMarkdown.length < 9_000,
         reviewer: reviewerMarkdown.length < 9_000,
       }).toStrictEqual({ planner: true, worker: true, reviewer: true });

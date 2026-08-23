@@ -26,18 +26,54 @@
  * reviewer to sign every unit in that slice. Drop either half and the round fails its parent's gate.
  * The next round earns the identical refusal. The round after that spends a pt attempt.
  *
+ * `UNREACHABLE` IS THE FOURTH PER-UNIT VERDICT, and it exists because the pack used to close every
+ * exit on the same unit. The planner block said "Leave that part to the sibling"; the reviewer block
+ * said "Sign EVERY unit in that slice"; and the reviewer's audit said to reopen any `unconfirmable`
+ * handing a unit to somebody else. Measured on a real quest, one groundstomper item's denominator was
+ * 50 of 57 units and included `Math.floor(process.uptime())` at serve time, a resolved port, a
+ * `dungeonmasterHomeFindBroker` home path, a 5000ms broadcast interval and a 500 raised by snapshot
+ * assembly throwing. Leave them, sign them, and the verdict that says "the sibling owns this" is the
+ * one to reopen — three instructions with no legal disposition between them.
+ *
+ * THE FIX SORTS BY SURFACE RATHER THAN BY OWNERSHIP, which is the axis a browser session can actually
+ * measure. Most of those units ARE browser-reachable once `page.request` and `page.on('websocket')`
+ * are named: a body field the page fetched is observable even though the server computed it. What is
+ * genuinely out of reach is a manufactured server failure, and `page.route` cannot supply it because
+ * the intercept ban forbids exactly that. So the reviewer's audit now keys on ASSIGNMENT-versus-
+ * SURFACE instead of on the word `unconfirmable`, and an honest surface wall stands.
+ *
  * `operatorMarkdown` IS TWO FIELDS, `RESOURCE` and `RESET`. Both read "none" on this discipline. The
  * server an e2e run needs comes up from the project's Playwright `webServer` config. It goes down
- * with the run. This operator is therefore given no dev server. `plannerMarkdown` holds the narrowed
- * ward invocation this role always uses, because the planner writes every chunk's `WARD` line.
- * `operatorMarkdown` names no code-reading, search or standards tool at all. The colocated test pins
+ * with the run. This operator is therefore given no dev server. The narrowed ward invocation this
+ * role always uses lives in `workerMarkdown` under `### The ward`, because the WORKER builds its own
+ * command. `operatorMarkdown` names no code-reading, search or standards tool at all. The colocated test pins
  * that absence. The operator keeps a context small enough to run the whole loop to its end. A pack
  * that hands the operator a tool the template forbade burns that headroom.
  *
- * `workerMarkdown` MUST CARRY THE HEADINGS `### The work` AND `### The proof`. The worker template's
- * method points at both by name. On this discipline `### The proof` is mostly MUTATION rather than
- * red-first, because the behaviour a walk covers usually already works. That is why a template
- * hard-coding red-first was wrong for four packs out of five.
+ * `plannerMarkdown` MUST CARRY `### How to plan`, and the planner template's method step 3 is a
+ * BLOCKING read of it. It is an ORDERED procedure naming this pack's other sections in the order to
+ * work them, and the template says outright that it outranks the template's own step order. On this
+ * pack that heading was PROMOTED onto the inventory list that already existed rather than written
+ * beside it, then extended past step 4 to cover surfaces, spec placement, levers and waves — a
+ * second ordered list next to the first is two procedures that can disagree about which comes first.
+ *
+ * `plannerMarkdown` MUST ALSO CARRY `### The waves`, and on this discipline it reads SERIAL: one
+ * chunk per wave. Every chunk here runs Playwright, and Playwright writes one report path per package, so
+ * a second run overwrites the first's report mid-write and both workers read a result describing
+ * neither run. The planner template requires that heading of every pack and states no grouping rule
+ * of its own.
+ *
+ * `workerMarkdown` MUST CARRY THE HEADINGS `### The work`, `### The proof` AND `### The ward`. The
+ * worker template's method points at all three by name. On this discipline `### The proof` is mostly
+ * MUTATION rather than red-first, because the behaviour a walk covers usually already works. That is
+ * why a template hard-coding red-first was wrong for four packs out of five.
+ *
+ * `### The ward` READS `--only lint,e2e`, and it moved here from `plannerMarkdown`, which used to
+ * write a literal command into every chunk. A worker calls `get-folder-detail` for its own folder
+ * types at its method step 1, so it holds the map the planner was stating on its behalf. `typecheck`
+ * is gone from the command: ward's typecheck is `tsc -b`, which BUILDS the shared `dist/`. The
+ * `DISCOVERY MISMATCH` note travelled with it, because the session that sees that message is the one
+ * that must not "fix" it with `--passWithNoTests`.
  *
  * `flowEvidenceContractStatics.judgingMarkdown` is INTERPOLATED, not copied. Every verification
  * track already judges against it. A pack-local copy drifts the next time the false-green catalogue
@@ -63,8 +99,11 @@ Nothing carries over between workers to go stale.`,
 specs and nothing else. **You are not planning against an empty test tree.** One flow is routinely
 covered by several existing specs already. This step exists to find them.
 
+### How to plan
+
 **Inventory before you author.** A parallel suite standing beside one that already covered the path
-is the most expensive mistake this role can make. A green run hides it. Work in this order:
+is the most expensive mistake this role can make. A green run hides it. Work these in order; a step
+that names a section at its end is telling you which section below carries it:
 
 1. **Resolve the e2e-eligible packages from \`packagesAffected\` by \`packageType\`.** Those are the
    browser-reachable kinds. The result is a SET. It may hold several packages. It may hold none.
@@ -81,19 +120,32 @@ is the most expensive mistake this role can make. A green run hides it. Work in 
    those specs import too. Do not credit a file by its name. A filename that sounds like your flow
    routinely asserts something else entirely.
 
-4. **Decide extend-vs-add PER UNIT, not per flow.** Take the units from
+4. **Decide the verdict PER UNIT, not per flow.** Take the units from
    \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`, with the ids
-   from your brief header. Give each unit ONE of three verdicts:
+   from the round document's \`## Context\`. Give each unit ONE of four verdicts:
 
    - **already covered** — name the spec \`file:line\` and the assertion you read.
    - **extend** — name the spec file the case goes into.
    - **add** — name the new file. Say why no existing spec is the right home.
+   - **unreachable** — no browser can reach the surface at all. See the next section. Cut no chunk.
 
    A whole flow marked "add" while three specs already walk its entry route is a wrong answer. A
    whole flow marked "extend" into a spec that asserts something unrelated is wrong the other way.
 
-Those verdicts ARE the plan. An "extend" chunk names the spec it edits. An "add" chunk names the file
-it creates. A chunk's \`UNITS\` are the terminal, branch and observable ids one spec must cover. The
+5. **Sort the below-browser units by SURFACE**, not by whose job they feel like. Chunk the ones a
+   browser can genuinely observe; mark the rest UNREACHABLE in \`SUMMARY\` and cut them no chunk. →
+   "Your denominator is the WHOLE flow"
+
+6. **Place each spec** at \`<e2e-package>/src/flows/<route>/<feature>.e2e.ts\`, one chunk per spec
+   file, and never two chunks on one path. → "Where a spec lives"
+
+7. **Mine the existing harnesses for LEVERS** before you design a fault of your own, and name every
+   lever you found in the owning chunk's \`NOTES\`. → "Mine the existing harnesses"
+
+8. **Give every chunk its own wave.** This discipline is serial. → "The waves"
+
+**Step 4's verdicts ARE the plan.** An "extend" chunk names the spec it edits. An "add" chunk names
+the file it creates. A chunk's \`UNITS\` are the terminal, branch and observable ids one spec must cover. The
 reviewer reads those ids. It takes the set difference against them, never against what it remembers.
 
 **An "already covered" unit needs no chunk. It still needs a signature.** Write its id into the
@@ -104,10 +156,33 @@ flow. Never over the units you cut into chunks. **A unit in no chunk is still a 
 must sign.** Leave one unsigned and the gate refuses the signal. The next round earns the identical
 refusal. The round after that spends a pt attempt on the same untouched unit.
 
-**You are not the whole test suite for this flow.** A sibling role owns every layer below the
-browser. That sibling runs ahead of you. Where the flow goes deeper than the browser, say so in
-\`SUMMARY\`. Leave that part to the sibling. Asserting a server-side claim through the browser is a
-false green.
+## Your denominator is the WHOLE flow, below-browser units included
+
+**You are not the whole test SUITE for this flow, but you are measured over the whole flow.** A
+sibling role authors every layer below the browser, and its sign-off lands in the same FIELD as
+yours over a disjoint package slice — so it never settles one of your units. Your parent's \`done\`
+is recomputed over every eligible unit on this item's flow. A unit whose value is produced
+server-side reaches your reviewer needing a signature whatever that sibling did.
+
+**So sort those units by SURFACE, and never by whose job the work feels like.**
+
+- **Reachable through the browser.** A value the page displays, a request the page makes, a frame
+  the page receives. \`page.request\`, \`page.on('websocket')\` and the rendered DOM reach further
+  than they look: a body field the page fetched is browser-reachable even though the server computed
+  it, and a broadcast interval is browser-reachable by timing two frames. **Chunk it.**
+- **Unreachable from a browser at all.** The surface itself is out of reach — forcing the server to
+  throw during assembly, reading a process value no response carries, inspecting state no frame
+  exposes. Name it in \`SUMMARY\` as UNREACHABLE with the reason. **Cut no chunk.** Your reviewer
+  signs it \`unconfirmable\` on that reason.
+
+**UNREACHABLE is a claim about the SURFACE, never about whose job it is.** "The sibling track owns
+this" is routing, and your reviewer's audit reopens it. "No browser can make snapshot assembly
+throw" is a wall, and it stands. **\`page.route\` is not the escape hatch either** — the intercept ban
+below forbids faking your own backend, so a unit that only a manufactured server failure would reach
+is UNREACHABLE rather than interceptable.
+
+**Asserting a server-side claim through the browser is still a false green.** Reachable means the
+browser genuinely observes the value, not that a spec can be written whose name mentions it.
 
 **Off-map probe families belong to another role, not to you.** Those families are hostile-input, perf
 and their siblings. They sit outside your denominator. **One rule here was never handed off.** You
@@ -130,10 +205,27 @@ One chunk covers one \`.e2e.ts\` file's worth of walk. It owns the paths from th
 terminals that spec owns. **Two chunks must never name the same spec path.** That is how one worker's
 cases vanish under another's.
 
-**\`WARD\` per chunk: \`npm run ward -- --only lint,typecheck,e2e -- <the chunk's files>\`.** This is
-the invocation that applies on every chunk of this discipline, because an e2e-and-harness file set
-has no Jest counterpart. **Never reach for \`--passWithNoTests\`.** Expect a \`DISCOVERY MISMATCH\`
-on the checks that had nothing to do. That is ward answering the question, not failing.
+**Every chunk on this discipline authors Playwright and nothing else.** Its worker builds its own
+ward command from that fact and from its own \`FILES\`.
+
+**A \`.e2e.ts\` may DECLARE NO FUNCTION**, so anything your walk needs computed goes in a
+\`.harness.ts\` and the chunk that owns it lists that path in \`FILES\`. \`forbid-non-exported-functions\`
+rejects a helper declared in a spec, and the pre-edit hook refuses the write outright — so a chunk
+whose \`INTENT\` needs one (parsing a rendered duration back to a number, deriving an expected token)
+fails at EDIT time, before its worker can even run the test. Decide that when you cut the chunk.
+Authoring a NEW harness is in scope for this discipline; editing a harness a sibling item owns is
+not.
+
+### The waves
+
+**Every chunk goes in its OWN wave. This discipline is SERIAL.** Write the index one chunk per line
+— \`1: 1\`, \`2: 2\`, \`3: 3\`.
+
+Every chunk here runs \`e2e\`, and **no two \`e2e\` runs may share a wave.** Playwright writes ONE
+report path per package. A second run against that package overwrites the first one's report while
+it is still being written, so both workers end up reading a report that describes neither run. A
+worker that reads a red belonging to its sibling spends the rest of its turn chasing a defect that
+is not there.
 
 **A resolved package declaring no \`webServer\` blocks every unit it owns.** Say so in \`SUMMARY\`.
 Your reviewer signs each of those units \`unconfirmable\`. It names the missing config.
@@ -142,10 +234,12 @@ Your reviewer signs each of those units \`unconfirmable\`. It names the missing 
 
 A lever is a recipe for forcing a fault: closing a socket, breaking the network, moving a clock. A
 prior role has usually already paid for the ones your walk needs.
-**Read \`packages/*/test/harnesses/**\` before you design a fault lever.** Name the lever you found
-in the owning chunk's \`NOTES\`, so its worker never rediscovers it. One session lost 2m11s
-relearning two facts. \`context.setOffline(true)\` does NOT close an established WebSocket in
-Chromium. Closing Vite's HMR socket reloads the document.
+**Read \`packages/*/test/harnesses/**\` AND the sibling \`.e2e.ts\` specs before you design a fault
+lever.** Both, because a lever only lands in a harness once someone shares it — the two facts below
+are recorded in a SPEC, and a planner that reads only the harness directory concludes nobody has
+solved this. Name the lever you found in the owning chunk's \`NOTES\`, so its worker never
+rediscovers it. One session lost 2m11s relearning two facts. \`context.setOffline(true)\` does NOT
+close an established WebSocket in Chromium. Closing Vite's HMR socket reloads the document.
 
 ## Spikes are DIAGNOSTIC on this discipline, not kept
 
@@ -161,7 +255,7 @@ else is an untracked file. An untracked file refuses your parent's signal. Name 
 owning chunk's \`NOTES\` too, so its worker can see what was already tried there.`,
 
   workerMarkdown: `Your chunk is **Playwright \`.e2e.ts\` specs**. That is one spec file's worth of a browser walk. Your
-brief names the file and the \`MIRROR\` to follow. It also names any harness lever a planner already
+chunk names the file and the \`MIRROR\` to follow. It also names any harness lever a planner already
 found, so you do not rediscover it.
 
 **Never edit the Playwright config. Never edit a harness a sibling item owns.** A sibling item walks
@@ -230,7 +324,15 @@ behaviour already works. On this discipline that covers most cases.
 5. the witnessed red itself, saying whether it came from red-first or from a mutation you reverted
 
 **Name the failing value for every assertion you list.** An assertion with no named failing value is
-not proven to bite.`,
+not proven to bite.
+
+### The ward
+
+\`--only lint,e2e\` — on every chunk of this discipline, because an e2e-and-harness file set has no
+Jest counterpart at all.
+
+**Expect a \`DISCOVERY MISMATCH\` on \`lint\`'s counterpart checks. That is ward answering the
+question, not failing it.** **Never reach for \`--passWithNoTests\`** to quiet it.`,
 
   reviewerMarkdown: `${flowEvidenceContractStatics.judgingMarkdown}
 
@@ -238,18 +340,15 @@ not proven to bite.`,
 
 You write \`flowriderSignoff\` over the browser-reachable package kinds. The sibling role writes the
 SAME field over the DISJOINT complement. Signing one of yours therefore never settles one of its
-units. Sign to the same bar:
-
-- \`confirmed\` carries a test \`file:line\` PLUS what makes that test fail.
-- \`unconfirmable\` carries what was tried, why each attempt could not reach it, and a \`question\`
-  someone else can pick up.
+units. **Sign to the evidence bar the Evidence Contract above sets, for both verdicts** — it is in
+this prompt already, and a second copy here is one that can drift out of step with it.
 
 **BATCH the writes.** One \`modify-quest\` call carries many. Never one call per unit.
 
 Rebuild your denominator yourself. Call
 \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` with the ids from
-your brief header. Your denominator is every unit it returns. That call already narrows to this
-item's flow and package slice.
+the round document's \`## Context\`. Your denominator is every unit it returns. That call already
+narrows to this item's flow and package slice.
 **Sign EVERY unit in that slice**, including the ones this round never touched. Your parent's
 \`done\` is measured over every eligible unit on this item's flow. Never over the units the plan cut
 into chunks. A unit with no chunk still reaches that gate needing your signature.
@@ -260,13 +359,23 @@ assertion. Sign \`confirmed\` with that \`file:line\` and what makes that assert
 it on the plan's word. Where the plan named no spec for a unit and no chunk covered it either, that
 is \`NEXT: rework\` naming the unit.
 
+**A unit the planner marked UNREACHABLE is signed \`unconfirmable\` on that reason, and it stands.**
+Its \`evidence\` is what the browser surface cannot do — no browser can force snapshot assembly to
+throw, no frame carries that process value — and its \`question\` names what would reach it. Confirm
+the reason yourself before you sign: a value the page fetches IS reachable, and a broadcast interval
+IS timeable from \`page.on('websocket')\`. Where the planner called something unreachable that a spec
+could actually observe, that is \`NEXT: rework\` naming the unit.
+
 **A resolved package with no \`webServer\` declaration blocks every unit it owns.** Sign each of those
 units \`unconfirmable\`. The missing config is both the evidence and the question.
 
 **AUDIT EVERY \`unconfirmable\`, a predecessor's included.** An \`unconfirmable\` closes a unit
 permanently while sounding responsible. A session that merely deferred the work hides it there.
-Reopen any whose evidence hands the unit to somebody else rather than naming a wall. You own every
-unit you reopen.
+**Reopen any whose evidence names an ASSIGNMENT rather than a SURFACE.** "The sibling track owns
+this", "that layer is below the browser" and "a flowrider test covers it" are routing notes — the
+sibling writes the same field over a different package slice and settles nothing of yours, so those
+units are still yours and you own every one you reopen. **A wall stated as a surface stands**: name
+what the browser cannot observe and why, and that verdict is finished.
 
 ## False greens to hunt in a browser walk
 

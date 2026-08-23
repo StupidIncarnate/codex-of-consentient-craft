@@ -17,22 +17,17 @@ const has = (needle: string): boolean => template.includes(needle);
 const OPERATOR = operatorPromptStatics.prompt.template;
 const PLANNER = plannerMinionStatics.prompt.template;
 
-const FLAT_TEMPLATE = template.replace(/\s+/gu, ' ');
-
-// The chunk format, off the PLANNER's own plan-file fence. That minion writes the fields; this one
-// reads them back out of its brief.
-const PLAN_FENCE_OPENS = PLANNER.indexOf('```', PLANNER.indexOf('## The plan file'));
+// The chunk format, off the PLANNER's own plan fence. That minion writes the fields into the round
+// document; this one reads them back out of the same document.
+const PLAN_FENCE_OPENS = PLANNER.indexOf('```', PLANNER.indexOf('## What you append'));
 const PLAN_FENCE = PLANNER.slice(
   PLAN_FENCE_OPENS + 3,
   PLANNER.indexOf('```', PLAN_FENCE_OPENS + 3),
 );
 const PLAN_CHUNK_FIELDS = Array.from(
-  PLAN_FENCE.slice(PLAN_FENCE.indexOf('## chunk 1')).matchAll(/^([A-Z]+):/gmu),
+  PLAN_FENCE.slice(PLAN_FENCE.indexOf('### chunk 1')).matchAll(/^([A-Z]+):/gmu),
 ).map((match) => match[1] ?? '');
-const PLAN_CHUNK_ENUMERATION = `\`${PLAN_CHUNK_FIELDS.slice(0, -1).join('`, `')}\` and \`${
-  PLAN_CHUNK_FIELDS[PLAN_CHUNK_FIELDS.length - 1] ?? ''
-}\``;
-const CHUNK_FIELDS_THIS_BRIEF_NAMES = Array.from(
+const CHUNK_FIELDS_THIS_TEMPLATE_NAMES = Array.from(
   template.matchAll(/^- \*\*`([A-Z]+)`\*\* —/gmu),
 ).map((match) => match[1] ?? '');
 
@@ -61,29 +56,42 @@ const SECOND_ARM_ACTION = OPERATOR_ROUTED_ROWS.filter((row) => row.value === SEC
   .map((row) => row.action)
   .join('');
 
-// The header the operator mandates at the top of EVERY minion brief, sweep briefs included.
-const HEADER_OPENS = OPERATOR.indexOf(
+// The operator's brief fence — the WHOLE grammar of every brief it writes. Three keys, and two of
+// them are the two shapes this minion is dispatched under.
+const BRIEF_FENCE_OPENS = OPERATOR.indexOf(
   '```',
-  OPERATOR.indexOf('**Open every brief with this header.**'),
+  OPERATOR.indexOf(
+    '**A brief takes the lines below that\napply to it, in the order they appear here.**',
+  ),
 );
-const OPERATOR_BRIEF_HEADER = OPERATOR.slice(
-  HEADER_OPENS + 3,
-  OPERATOR.indexOf('```', HEADER_OPENS + 3),
+const OPERATOR_BRIEF_FENCE = OPERATOR.slice(
+  BRIEF_FENCE_OPENS + 3,
+  OPERATOR.indexOf('```', BRIEF_FENCE_OPENS + 3),
 );
-const OPERATOR_HEADER_FIELDS = Array.from(
-  OPERATOR_BRIEF_HEADER.matchAll(/(?:^|· )([A-Za-z][A-Za-z ]*):/gmu),
-).map((match) => match[1] ?? '');
+const BRIEF_KEYS = Array.from(OPERATOR_BRIEF_FENCE.matchAll(/^([A-Z]+):/gmu)).map(
+  (match) => match[1] ?? '',
+);
 
-// The operator's step 9 — the one step that dispatches THIS minion with no chunk at all.
+// The operator's sweep step — the one step that dispatches THIS minion with no chunk at all.
+// Bounded by the sentences either side of it rather than by its step number, so a renumber over
+// there does not silently slice an empty string here.
 const OPERATOR_SWEEP_STEP = OPERATOR.slice(
-  OPERATOR.indexOf('**9. `git status`.**'),
-  OPERATOR.indexOf('**10. `git push`.**'),
+  OPERATOR.indexOf('`git status`.** Nothing should be listed'),
+  OPERATOR.indexOf('## The NEXT table'),
 );
-// The half of that step that dispatches THIS minion. The rest of it dispatches a reviewer to
-// commit what survives, and that half legitimately says `SKIP WARD`.
-const OPERATOR_SWEEP_WORKER_HALF = OPERATOR_SWEEP_STEP.slice(
-  0,
-  OPERATOR_SWEEP_STEP.indexOf('Then dispatch ONE'),
+
+// THE ROUND-LOG APPEND. The PLANNER writes the region's header; this template appends under it, and
+// two discipline packs point at the step number below. All three needles are parsed rather than
+// written down, so a rename or a renumber fails here instead of sending a marker to a heading no
+// file carries.
+const ROUND_LOG_HEADING =
+  /^(?<heading>## Round log)$/mu.exec(PLANNER)?.groups?.heading ??
+  'THE PLANNER WRITES NO ROUND-LOG HEADING';
+const APPEND_STEP_NUMBER =
+  /^(?<n>\d+)\. \*\*APPEND YOUR REPORT/mu.exec(template)?.groups?.n ?? 'THIS TEMPLATE HAS NO STEP';
+const APPEND_STEP = template.slice(
+  template.indexOf(`${APPEND_STEP_NUMBER}. **APPEND YOUR REPORT`),
+  template.indexOf('**A brief carrying a `SECTION:` line'),
 );
 
 describe('workerMinionStatics', () => {
@@ -106,7 +114,9 @@ describe('workerMinionStatics', () => {
       disciplineOnItsOwnLine: /^\$DISCIPLINE$/mu.test(template),
       disciplineComesFirst: template.indexOf('$DISCIPLINE') < template.indexOf('$ARGUMENTS'),
       argumentsIsTheTail: template.endsWith('$ARGUMENTS'),
-      questIdHeading: /^## The quest id$/mu.test(template),
+      questIdHeading: /^## The quest id — everything else is in the round document$/mu.test(
+        template,
+      ),
     }).toStrictEqual({
       disciplineCount: 1,
       argumentsCount: 1,
@@ -121,34 +131,85 @@ describe('workerMinionStatics', () => {
     expect(template.length).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
   });
 
-  // The chunk reaches a minion through its parent's spawn message, never through `$ARGUMENTS`.
+  // THE BRIEF IS TWO LINES AND THE ASSIGNMENT IS ON DISK. Its predecessor was handed its whole
+  // chunk pasted into the spawn message — a copy made by the one session that may not open the file
+  // that would show a dropped line, and one that hid the sibling chunks saying which paths are not
+  // this worker's.
+  it('VALID: the opening => names the three brief lines and the five things the document gives it', () => {
+    const table = template.slice(
+      template.indexOf('| Where | What it gives you |'),
+      template.indexOf('Your own chunk carries five fields:'),
+    );
+
+    expect({
+      threeLines: has(
+        '**Besides the `get-agent-prompt` call that brought you here, your brief is three lines**, and\neverything you need is behind them:',
+      ),
+      theFence: has('PLAN:  .quest-plans/<operationItemId>-round-<n>.md\nWAVE:  <n>\nCHUNK: <n>'),
+      readItWhole: has('**Read that document FIRST, whole.** Five things in it are yours:'),
+      context: table.includes(
+        "| `## Context` | your parent's ENTIRE Operation Context — ids, ledger, flows, packages, the user request |",
+      ),
+      itsOwnChunk: table.includes(
+        '| `### chunk <n>` under `## Plan` | YOUR chunk, and the only one you execute |',
+      ),
+      theSiblings: table.includes(
+        '| every OTHER `### chunk` | whose paths are not yours to touch |',
+      ),
+      theWavesIndex: table.includes(
+        '| `WAVES:` under `## Plan` | which chunks run BESIDE you, right now, in this same worktree |',
+      ),
+      theRoundLog: table.includes(
+        '| `## Round log` | the empty region at the bottom where your report goes, at step 7 |',
+      ),
+    }).toStrictEqual({
+      threeLines: true,
+      theFence: true,
+      readItWhole: true,
+      context: true,
+      itsOwnChunk: true,
+      theSiblings: true,
+      theWavesIndex: true,
+      theRoundLog: true,
+    });
+  });
+
+  // The assignment reaches a minion through the round document, never through `$ARGUMENTS`.
   // `agentPromptGetBroker`'s minion-fetch branch substitutes `Quest ID: <uuid>` and nothing else.
   // That is deliberate. To substitute anything richer, the fetch would need a `workItemId`.
   // `subagentStopNeedsBlockGuard` would then hold the minion open until it signalled on its
   // PARENT's operation item. This section used to be headed "## Briefing", which told a worker its
   // briefing was one id.
-  it('VALID: the last section => says the chunk is elsewhere and this line is the authoritative id', () => {
+  it('VALID: the last section => says the chunk is in the document and this line is the authoritative id', () => {
     expect({
-      honestHeading: /^## The quest id$/mu.test(template),
+      honestHeading: /^## The quest id — everything else is in the round document$/mu.test(
+        template,
+      ),
       noBriefingHeading: /^## Briefing$/mu.test(template),
-      briefIsTheSpawnMessage: has(
-        "**Your BRIEF is your parent's spawn message, not this section.**",
+      briefIsTheSpawnMessage: has("**Your BRIEF is your parent's spawn message**"),
+      andItIsAPathPlusTwoNumbers: has(
+        'and it is a `PLAN:` path plus a `WAVE:` and\n`CHUNK:` pair.',
       ),
-      namesTheChunkFields: has(
-        '`INTENT`, `FILES`, `UNITS`, `MIRROR`, `WARD` and `NOTES` — all arrive there',
+      theAssignmentIsInTheDocument: has(
+        'Your chunk, your context and the ids are in the document at\nthat path, not here and not in the brief.',
       ),
-      oneLineOnly: has('carries exactly one line'),
-      thisOneWins: has('the quest id, THIS one is right'),
-      sweepIsNotAMissingChunk: has('is not a sweep brief'),
-      doNotReconstruct: has('Do not try to reconstruct one from here.'),
+      oneLineOnly: has('It carries exactly one line.'),
+      thisOneWins: has(
+        'Where that\nline and the document disagree about the quest id, THIS one is right.',
+      ),
+      aMissingChunkIsRework: has(
+        "If your parent's message names no path, or the document holds no `### chunk <n>` matching your\n`CHUNK:` line, say so in your return and return `NEXT: rework`.",
+      ),
+      doNotReconstruct: has('Do not\ntry to reconstruct an assignment from here.'),
     }).toStrictEqual({
       honestHeading: true,
       noBriefingHeading: false,
       briefIsTheSpawnMessage: true,
-      namesTheChunkFields: true,
+      andItIsAPathPlusTwoNumbers: true,
+      theAssignmentIsInTheDocument: true,
       oneLineOnly: true,
       thisOneWins: true,
-      sweepIsNotAMissingChunk: true,
+      aMissingChunkIsRework: true,
       doNotReconstruct: true,
     });
   });
@@ -191,13 +252,19 @@ describe('workerMinionStatics', () => {
       position: template.indexOf(banHeadline),
       headingLength: '# worker-minion\n\n'.length,
       namesTheCorruption: has('corrupt the shared `dist/`'),
-      escalateInsteadOfBuilding: has('If you think you need a build, say\nso in your return.'),
+      escalateInsteadOfBuilding: has('If you think you need a build, say so in your report.'),
+      // Names the REVIEWER, not "your parent". The operator runs neither command, so a worker told
+      // "your parent already built" would be looking for output no session produced.
+      theReviewerBuildsAtTheEnd: has(
+        "**You NEVER run `npm run build`.** The round's `reviewer-minion` builds at the END, once, after\nevery worker has returned",
+      ),
     }).toStrictEqual({
       ban: true,
       position: '# worker-minion\n\n'.length,
       headingLength: '# worker-minion\n\n'.length,
       namesTheCorruption: true,
       escalateInsteadOfBuilding: true,
+      theReviewerBuildsAtTheEnd: true,
     });
   });
 
@@ -209,20 +276,22 @@ describe('workerMinionStatics', () => {
   // 3 and 4 now name two pack headings and state neither method. Every pack's colocated test pins
   // that it carries both.
   describe('the method is discipline-neutral and defers to two named pack headings', () => {
-    it('VALID: template => numbers its steps 1 through 6, contiguously', () => {
+    // Two discipline packs point a worker at "method step N" for its round-log append, and the sweep
+    // paragraph names that number too. All three read it off this list, so a step inserted anywhere
+    // above it renumbers the append and sends those pointers at the ward step instead.
+    it('VALID: template => numbers its steps 1 through 7, contiguously, ending on the append', () => {
       const method = template.slice(
         template.indexOf('## Method'),
-        template.indexOf('**Some briefs carry no chunk'),
+        template.indexOf('**Some briefs carry `SECTION: Sweep`'),
       );
 
-      expect(Array.from(method.matchAll(/^\d\. \*\*/gmu)).map((match) => match[0])).toStrictEqual([
-        '1. **',
-        '2. **',
-        '3. **',
-        '4. **',
-        '5. **',
-        '6. **',
-      ]);
+      expect({
+        steps: Array.from(method.matchAll(/^\d\. \*\*/gmu)).map((match) => match[0]),
+        andTheLastOneIsTheAppend: `${APPEND_STEP_NUMBER}. **`,
+      }).toStrictEqual({
+        steps: ['1. **', '2. **', '3. **', '4. **', '5. **', '6. **', '7. **'],
+        andTheLastOneIsTheAppend: '7. **',
+      });
     });
 
     it('VALID: steps 3 and 4 => name the pack headings rather than stating a method of their own', () => {
@@ -254,29 +323,37 @@ describe('workerMinionStatics', () => {
     // A worker that narrows `--only` itself is guessing at a repo-specific folder-type map. A
     // worker that widens it to a directory makes ward auto-background the run. That worker's own
     // turn then never finishes.
-    it('VALID: step 6 => runs the brief WARD command verbatim and treats DISCOVERY MISMATCH as not-a-failure', () => {
+    it('VALID: step 6 => builds its own ward command and treats DISCOVERY MISMATCH as not-a-failure', () => {
       expect({
-        verbatim: has("**Run your brief's `WARD` command, VERBATIM.**"),
-        noNarrowing: has('Do not narrow it. Do not widen it. Do not substitute your own.'),
-        plannerWroteIt: has(
-          "Your planner\n   wrote it from this chunk's folder types, and it carries `lint` plus tests and never\n   `typecheck`.",
+        buildItYourself: has(
+          '**BUILD your ward command, then run it.** Two things make it, and neither is a guess:',
+        ),
+        theCheckTypesComeFromTheDiscipline: has(
+          "- **The check types** come from your discipline's **`### The ward`** section above.",
+        ),
+        theScopeIsTheFilesList: has(
+          '- **The scope** is your `FILES` list, every path, spelled out.',
+        ),
+        theInvocation: has(
+          'npm run ward -- --only <the checks your discipline names> -- <every path in your FILES>',
         ),
         fixUntilZero: has('Fix until it exits 0.'),
         mismatchIsNotAFailure: has('**That is\n   not a failure.**'),
         quoteIt: has('Quote it in your `WARD:` line.'),
         doNotEditTheCommand: has('Do not edit the command to make the message go away.'),
-        notYoursToChoose: has(
-          "**Choosing your own ward scope** — your brief's `WARD` line is a literal.",
+        notYoursToWiden: has(
+          '**Widening your ward past your `FILES`** — the scope is your own paths and nothing else.',
         ),
       }).toStrictEqual({
-        verbatim: true,
-        noNarrowing: true,
-        plannerWroteIt: true,
+        buildItYourself: true,
+        theCheckTypesComeFromTheDiscipline: true,
+        theScopeIsTheFilesList: true,
+        theInvocation: true,
         fixUntilZero: true,
         mismatchIsNotAFailure: true,
         quoteIt: true,
         doNotEditTheCommand: true,
-        notYoursToChoose: true,
+        notYoursToWiden: true,
       });
     });
   });
@@ -299,10 +376,10 @@ describe('workerMinionStatics', () => {
           '**A broken usage site outside your `FILES` is `rework`, never a fix you make.**',
         ),
         whyNotFixIt: has(
-          'A sibling chunk may own them, and two workers writing one path undo each\n   other.',
+          'A sibling chunk may own them, and two workers writing one path\n   undo each other.',
         ),
         nothingToSearchIsOneLine: has(
-          'Where your `NOTES` names nothing and you changed nothing others use, say so in one line\n   and move on.',
+          'Where your `NOTES` names nothing and you changed nothing others use, say so in\n   one line and move on.',
         ),
       }).toStrictEqual({
         theStep: true,
@@ -340,80 +417,169 @@ describe('workerMinionStatics', () => {
 
     it('VALID: template => bans typecheck in any ward run, and names where it moved to', () => {
       expect({
-        theBan: has('- **`typecheck`, in any ward run** — it is absent from your `WARD` line'),
+        theBan: has(
+          "- **`typecheck`, in any ward run** — your discipline's `### The ward` section never names it, and\n  you never add it.",
+        ),
         becauseItBuilds: has(
-          "Ward's\n  typecheck runs `tsc -b`, which BUILDS, and the first line of this prompt says why you never do\n  that.",
+          "Ward's typecheck runs `tsc -b`, which BUILDS, and the first line of this prompt\n  says why you never do that.",
         ),
         stepFiveCoversIt: has('Step 5 is how you cover what a typecheck would have caught.'),
-        theParentTypechecks: has('Your parent typechecks the whole\n  round after the last wave.'),
+        theReviewerTypechecks: has(
+          "Your\n  round's reviewer typechecks the whole round at the end.",
+        ),
+        andSiblingChunksAreNotItsEither: has(
+          '- **Any other chunk in the plan.** You read them to know which paths are not yours. You execute one.',
+        ),
       }).toStrictEqual({
         theBan: true,
         becauseItBuilds: true,
         stepFiveCoversIt: true,
-        theParentTypechecks: true,
+        theReviewerTypechecks: true,
+        andSiblingChunksAreNotItsEither: true,
       });
     });
 
-    // The operator's step 9 dispatches this same minion at a dirty tree with no chunk at all.
-    // Without this paragraph, the worker reads that brief as a malformed one.
-    it('VALID: template => handles the chunkless sweep brief its parent dispatches at a dirty tree', () => {
+    // THE REPORT'S HOME. Everything this session has to say about its chunk goes into the round
+    // document, under the region its planner left empty. The parent never holds a word of it: the
+    // parent may not open a source file, so it could check nothing it carried.
+    //
+    // `>>` IS THE LOAD-BEARING PART, and the template says so in those characters. `Edit` and
+    // `Write` both read the whole file and write it back, so of two siblings appending in one wave
+    // the second one back erases the first. That is also why the region sits at the BOTTOM of the
+    // document rather than under each chunk's own section, where it would read better and race.
+    it('VALID: step 7 => appends the whole report with >>, to the region the planner leaves empty', () => {
       expect({
-        notAMistake: has('**Some briefs carry no chunk. That is not a mistake.**'),
-        threeThingsChange: has('brief, three things change:'),
-        chunkFieldReadsNone: has('- `CHUNK:` reads `none — sweep`.'),
-        noWardLine: has('- There is no `WARD` line to run and no usage sites to check.'),
-        deleteScratchLeaveWork: has(
-          '**Delete what is scratch. Leave what is real work exactly where it is**',
+        appendsToThePlannersOwnRegion: APPEND_STEP.includes(
+          `**APPEND YOUR REPORT to the round document's \`${ROUND_LOG_HEADING}\`, as your LAST act.**`,
         ),
-        nameItForTheCommitter: has(
-          'name\nit in your return so the session that commits knows what it is looking at',
+        theDocumentIsTheOnlyPlaceItExists: APPEND_STEP.includes(
+          '**This report\n   is your whole account of the chunk, and that document is the only place it exists.**',
         ),
-        onlyAccount: has('Your return is the only account of what happened to those paths'),
+        theParentNeverSeesIt: APPEND_STEP.includes(
+          'Your parent never sees it — it may not open a source file',
+        ),
+        // Two `###` headings in one document, and they must never be spellable the same way: a
+        // reviewer told to read "chunk 3" out of a file carrying two of them grades the report
+        // against itself.
+        theReportHeadingIsItsOwn: APPEND_STEP.includes('### report — chunk <n>'),
+        andTheTemplateSaysWhyItIsNotTheChunkHeading: APPEND_STEP.includes(
+          '**The heading is `### report — chunk <n>`, never `### chunk <n>`.**',
+        ),
+        andThePlannerReallyUsesTheOtherSpelling: PLAN_FENCE.includes('### chunk 1 — '),
+        neverEditNeverWrite: APPEND_STEP.includes(
+          '**Append with `>>`. Never `Edit` and never `Write` that file.**',
+        ),
+        andWhyThoseTwoRace: APPEND_STEP.includes(
+          'Those two READ the whole file\n   and write it back.',
+        ),
+        theQuotedHeredoc: APPEND_STEP.includes(
+          "cat >> <the PLAN: path from your brief> <<'REPORT'",
+        ),
+        theDisciplineOwnsWhichMarkers: APPEND_STEP.includes(
+          "**`MARKERS:` is what your discipline's `### The work` asks you to DECLARE.**",
+        ),
+        aChunkWithNoBlockCannotBeGraded: APPEND_STEP.includes(
+          '**A chunk with no block is a chunk nobody can grade.**',
+        ),
+        theReviewerCarriesTheMarkersOnward: APPEND_STEP.includes(
+          "Your reviewer copies every marker into the round's\n   one commit message",
+        ),
+        andNothingAboveTheHeadingIsTouched: APPEND_STEP.includes(
+          `Touch nothing above \`${ROUND_LOG_HEADING}\`.`,
+        ),
+        whichTheFilesBanCarvesOutByName: has(
+          `**The round document is the one file outside your \`FILES\` you touch, in one way only: you APPEND to\nits \`${ROUND_LOG_HEADING}\`.** Step ${APPEND_STEP_NUMBER} says how.`,
+        ),
+        andNoWorkerCommitIsBackWithIt: has('git commit'),
       }).toStrictEqual({
-        notAMistake: true,
-        threeThingsChange: true,
-        chunkFieldReadsNone: true,
-        noWardLine: true,
-        deleteScratchLeaveWork: true,
-        nameItForTheCommitter: true,
-        onlyAccount: true,
+        appendsToThePlannersOwnRegion: true,
+        theDocumentIsTheOnlyPlaceItExists: true,
+        theParentNeverSeesIt: true,
+        theReportHeadingIsItsOwn: true,
+        andTheTemplateSaysWhyItIsNotTheChunkHeading: true,
+        andThePlannerReallyUsesTheOtherSpelling: true,
+        neverEditNeverWrite: true,
+        andWhyThoseTwoRace: true,
+        theQuotedHeredoc: true,
+        theDisciplineOwnsWhichMarkers: true,
+        aChunkWithNoBlockCannotBeGraded: true,
+        theReviewerCarriesTheMarkersOnward: true,
+        andNothingAboveTheHeadingIsTouched: true,
+        whichTheFilesBanCarvesOutByName: true,
+        andNoWorkerCommitIsBackWithIt: false,
+      });
+    });
+
+    // A `SECTION:` brief is NOT this minion's. Both kinds — the operator's step 6 sweep and a
+    // re-review after a refused signal — go to the `reviewer-minion`. Deciding a path is scratch and
+    // leaving it out of the commit are ONE judgement, and this session commits nothing; a worker sent
+    // here would report on files it may not open, on a tree still dirty. The template answers that
+    // brief explicitly rather than leaving a worker to improvise on one with no chunk behind it.
+    it('VALID: template => refuses a SECTION brief outright rather than improvising on it', () => {
+      expect({
+        notYours: has(
+          '**A brief carrying a `SECTION:` line instead of the `WAVE:` and `CHUNK:` pair is NOT yours.**',
+        ),
+        bothKindsGoToTheReviewer: has(
+          'That is a sweep or a re-review, and both go to a `reviewer-minion`.',
+        ),
+        becauseSortingAndCommittingAreOneJudgement: has(
+          'Deciding a path is scratch and\nleaving it out of the commit are one judgement, and you commit nothing.',
+        ),
+        andItReturnsRework: has(
+          'If your brief carries a\n`SECTION:` line, say so in your return and return `NEXT: rework`. Do not sweep.',
+        ),
+      }).toStrictEqual({
+        notYours: true,
+        bothKindsGoToTheReviewer: true,
+        becauseSortingAndCommittingAreOneJudgement: true,
+        andItReturnsRework: true,
       });
     });
   });
 
   describe('what it returns', () => {
-    it('VALID: template => carries every return field, with NEXT last', () => {
+    it('VALID: template => returns two lines, and never the report', () => {
       const returnBlock = template.slice(
-        template.indexOf('CHUNK:  <the chunk number'),
-        template.indexOf('**`NEXT:` is the last line'),
+        template.indexOf('CHUNK: <the chunk number'),
+        template.indexOf('**Never paste the report into your return.**'),
       );
 
       expect({
-        chunk: returnBlock.includes('CHUNK:'),
+        chunk: returnBlock.includes(
+          'CHUNK: <the chunk number from your brief> — logged to <the document path>',
+        ),
+        next: returnBlock.includes(
+          'NEXT:  continue | rework — <what is not done> | wall — <what a human must change>',
+        ),
+        // Every one of these is a REPORT field now. It lives in the document, not in the return.
         result: returnBlock.includes('RESULT:'),
-        commit: returnBlock.includes('COMMIT:'),
         files: returnBlock.includes('FILES:'),
         evidence: returnBlock.includes('EVIDENCE:'),
         usages: returnBlock.includes('USAGES:'),
         gotchas: returnBlock.includes('GOTCHAS:'),
         ward: returnBlock.includes('WARD:'),
-        next: returnBlock.includes(
-          'NEXT:   continue | rework — <what is not done> | wall — <what a human must change>',
+        commit: returnBlock.includes('COMMIT:'),
+        neverPasteIt: has('**Never paste the report into your return.**'),
+        becauseTheParentCannotCheckIt: has(
+          'Your parent may not open a source file, so it cannot\ncheck a word of it.',
         ),
-        evidenceDefersToThePack: returnBlock.includes(
-          'what your discipline\'s "### The proof" section asks you to show',
+        andTheReviewerIsAlreadyReadingIt: has(
+          'It would carry that text to your reviewer, which is already reading it off disk.',
         ),
       }).toStrictEqual({
         chunk: true,
-        result: true,
-        commit: false,
-        files: true,
-        evidence: true,
-        usages: true,
-        gotchas: true,
-        ward: true,
         next: true,
-        evidenceDefersToThePack: true,
+        result: false,
+        files: false,
+        evidence: false,
+        usages: false,
+        gotchas: false,
+        ward: false,
+        commit: false,
+        neverPasteIt: true,
+        becauseTheParentCannotCheckIt: true,
+        andTheReviewerIsAlreadyReadingIt: true,
       });
     });
 
@@ -428,7 +594,9 @@ describe('workerMinionStatics', () => {
         greenWardIsNotEnough: has('A green ward alone is not that\n  proof. Step 4 is the proof.'),
         reworkMeaning: has('something about this chunk is not done'),
         parentDoesNotAct: has('**Your parent does not act on this.**'),
-        reviewerDecides: has('Your parent hands it\n  to your reviewer.'),
+        reviewerDecides: has(
+          'Your REVIEWER settles\n  it: it reads your report out of the round document and opens the files you actually wrote',
+        ),
         wallIsEnvironmentOnly: has('an environment wall no session of any role could pass'),
         wallHaltsTheQuest: has('**This halts the whole quest.**'),
         wrongForFutureWork: has(
@@ -450,19 +618,23 @@ describe('workerMinionStatics', () => {
 
     it('VALID: template => refuses a faked green and demands an honest failure report', () => {
       expect({
-        sayItPlainly: has('say so plainly in `RESULT`'),
-        leaveItInTheTree: has('Leave what\nyou wrote in the tree.'),
-        whatBrokeInGotchas: has('Put what you tried and where it broke in `GOTCHAS`'),
-        noFakeGreen: has('**Do not fake a green\nward. Do not report a check you did not run.**'),
-        plausibleReturnIsRefused: has(
-          'A return that only sounds right sends the round the wrong way.',
+        sayItPlainly: has("say so plainly in your report's\n`RESULT:`"),
+        leaveItInTheTree: has('Leave what you wrote in the tree.'),
+        whatBrokeInGotchas: has('Put what you tried and where it broke in\n`GOTCHAS:`'),
+        noFakeGreen: has('**Do not fake a green ward. Do not report a check you did not run.**'),
+        theReviewerGradesTheReport: has(
+          'Your reviewer\ngrades that report against the files themselves',
+        ),
+        plausibleReportCostsARound: has(
+          'so a report that only sounds right costs the round\na pass it did not need',
         ),
       }).toStrictEqual({
         sayItPlainly: true,
         leaveItInTheTree: true,
         whatBrokeInGotchas: true,
         noFakeGreen: true,
-        plausibleReturnIsRefused: true,
+        theReviewerGradesTheReport: true,
+        plausibleReportCostsARound: true,
       });
     });
   });
@@ -470,12 +642,15 @@ describe('workerMinionStatics', () => {
   describe('what is not yours', () => {
     it('VALID: template => bans the build, all of git, typecheck, the Agent tool and the whole-repo ward', () => {
       expect({
-        build: has('- **`npm run build`** — see the first line. Your parent owns it.'),
+        build: has(
+          "- **`npm run build`** — see the first line. Your round's REVIEWER owns it, at the end.",
+        ),
         allGit: has('- **Git, all of it**'),
         typecheck: has('- **`typecheck`, in any ward run**'),
         agentTool: has('- **The `Agent` tool** — you are a LEAF, so you summon no sub-agent.'),
         wholeRepoWard: has('- **The whole-repo `npm run ward`**'),
-        wardScope: has('- **Choosing your own ward scope**'),
+        wardScope: has('- **Widening your ward past your `FILES`**'),
+        siblingChunks: has('- **Any other chunk in the plan.**'),
       }).toStrictEqual({
         build: true,
         allGit: true,
@@ -483,6 +658,7 @@ describe('workerMinionStatics', () => {
         agentTool: true,
         wholeRepoWard: true,
         wardScope: true,
+        siblingChunks: true,
       });
     });
 
@@ -492,9 +668,9 @@ describe('workerMinionStatics', () => {
         wiringIsInScope: has('That\nwiring is part of your assignment'),
         noReplanning: has('Do NOT re-plan the round'),
         lastWriteWins: has(
-          'Two workers writing one path undo each other, because the last write wins.',
+          'two workers writing one path undo each other, because the last write wins',
         ),
-        sayInsteadOfReaching: has('say so in your return. Do NOT edit it yourself.'),
+        sayInsteadOfReaching: has('say so in your report. Do NOT edit it yourself.'),
       }).toStrictEqual({
         stayInside: true,
         wiringIsInScope: true,
@@ -507,81 +683,75 @@ describe('workerMinionStatics', () => {
 
   // ============================================================================================
   // CROSS-FILE AGREEMENTS. Each test spans this file and one other statics file, and derives its
-  // needle from that other file's live value. A chunk field, a sweep subject and a `NEXT:` value
+  // needle from that other file's live value. A chunk field, a section heading and a `NEXT:` value
   // are all plain prose on both sides: until these landed, a reword of either side stayed green.
   // ============================================================================================
   describe('agreements with the planner beside it and the operator above it', () => {
-    // SPANS planner-minion-statics.ts (it WRITES the chunk) ↔ this file (it READS the chunk out of
-    // its brief). The operator copies that section verbatim and cannot read either side, so a
-    // field renamed in the plan fence reaches this session under a name its own brief inventory
+    // SPANS planner-minion-statics.ts (it WRITES the chunk into the document) ↔ this file (it READS
+    // the chunk back out of the same document). Neither session's parent can read either side, so a
+    // field renamed in the plan fence reaches this session under a name its own field inventory
     // does not list, and the field it does list arrives never.
-    it('VALID: {planner chunk format, worker brief} => names every chunk field the planner writes, spelled identically', () => {
+    it('VALID: {planner chunk format, worker field inventory} => names every chunk field the planner writes, spelled identically', () => {
       expect({
         thePlannerWritesThisManyChunkFields: PLAN_CHUNK_FIELDS.length,
-        fieldsThePlannerWritesAndThisBriefNeverNames: PLAN_CHUNK_FIELDS.filter(
-          (field) => !CHUNK_FIELDS_THIS_BRIEF_NAMES.includes(field),
+        andThisTemplateSaysHowMany: has('Your own chunk carries five fields:'),
+        fieldsThePlannerWritesAndThisTemplateNeverNames: PLAN_CHUNK_FIELDS.filter(
+          (field) => !CHUNK_FIELDS_THIS_TEMPLATE_NAMES.includes(field),
         ),
-        fieldsThisBriefNamesAndNoPlanCarries: CHUNK_FIELDS_THIS_BRIEF_NAMES.filter(
+        fieldsThisTemplateNamesAndNoPlanCarries: CHUNK_FIELDS_THIS_TEMPLATE_NAMES.filter(
           (field) => !PLAN_CHUNK_FIELDS.includes(field),
-        ),
-        theQuestIdSectionEnumeratesTheSameOnesInOrder: FLAT_TEMPLATE.includes(
-          `its ${PLAN_CHUNK_ENUMERATION} — all arrive there`,
         ),
         thePlannerMakesTheFilesFieldOwnership: PLANNER.includes(
           '**`FILES` is OWNERSHIP. Two chunks must never list the same path.**',
         ),
         andThisTemplateHoldsItsWorkerToThatSameField: has(
-          'Do NOT touch a file outside your `FILES` list.',
+          'Do NOT touch a file outside your `FILES` list',
         ),
         bothSidesNameTheSameConsequence: has(
-          'Two workers writing one path undo each other, because the last write wins.',
+          'two workers writing one path undo each other, because the last write wins',
         ),
       }).toStrictEqual({
-        thePlannerWritesThisManyChunkFields: 7,
-        fieldsThePlannerWritesAndThisBriefNeverNames: [],
-        fieldsThisBriefNamesAndNoPlanCarries: [],
-        theQuestIdSectionEnumeratesTheSameOnesInOrder: true,
+        thePlannerWritesThisManyChunkFields: 5,
+        andThisTemplateSaysHowMany: true,
+        fieldsThePlannerWritesAndThisTemplateNeverNames: [],
+        fieldsThisTemplateNamesAndNoPlanCarries: [],
         thePlannerMakesTheFilesFieldOwnership: true,
         andThisTemplateHoldsItsWorkerToThatSameField: true,
         bothSidesNameTheSameConsequence: true,
       });
     });
 
-    // SPANS operator-prompt-statics.ts step 9 ↔ the chunkless-sweep paragraph here. Step 9 is the
-    // one place this minion is dispatched with no chunk: the operator cannot commit a dirty tree
-    // itself and cannot open the paths either, so it hands them to a worker to sort, then to a
-    // reviewer to commit what survived. Neither side can see the other. If step 9 stopped sending a
-    // chunkless brief, this paragraph would cover a dispatch that no longer happens while the real
-    // one read as malformed.
-    it('VALID: {operator step 9, worker sweep brief} => the chunkless sweep the operator dispatches is the one this template describes', () => {
+    // SPANS operator-prompt-statics.ts's sweep step ↔ this template's refusal. That step is the one
+    // place a `SECTION:` brief is written, and it goes to a REVIEWER: a worker commits nothing, which
+    // is what makes a WAVE of them safe and equally what makes it the wrong session for a sweep. If
+    // that step started sending the sweep here, this template's refusal would bounce a real dispatch.
+    it('VALID: {operator sweep step, worker refusal} => the operator sends its sweep to a reviewer, not here', () => {
       expect({
-        theSweepStepDispatchesThisMinionWithHeaderAndPathsOnly: OPERATOR_SWEEP_WORKER_HALF.includes(
-          'Dispatch ONE `worker-minion` whose whole brief is the header\nplus those paths.',
+        theSweepStepWritesThePathsIntoTheDocument: OPERATOR_SWEEP_STEP.includes(
+          'APPEND a `## Sweep` section naming every path `git status` listed, one per line.',
+        ),
+        andDispatchesAReviewerOnThatSection: OPERATOR_SWEEP_STEP.includes(
+          'Then dispatch\nONE `reviewer-minion` on `SECTION: Sweep`',
+        ),
+        andSaysWhyItIsNotAWorkers: OPERATOR_SWEEP_STEP.includes(
+          '**A sweep goes to a REVIEWER, never to a worker.**',
         ),
         andCarriesNoChunkFieldAtAll: PLAN_CHUNK_FIELDS.filter((field) =>
-          OPERATOR_SWEEP_WORKER_HALF.includes(field),
+          OPERATOR_SWEEP_STEP.includes(field),
         ),
-        soThisTemplateSaysAChunklessBriefIsNotAMistake: has(
-          '**Some briefs carry no chunk. That is not a mistake.**',
+        soThisTemplateRefusesASectionBrief: has(
+          '**A brief carrying a `SECTION:` line instead of the `WAVE:` and `CHUNK:` pair is NOT yours.**',
         ),
-        andThatThosePathsAreTheFilesList: has("- The brief's paths ARE your `FILES`."),
-        theOperatorSendsTheCommitToAReviewerInstead: OPERATOR_SWEEP_STEP.includes(
-          'Then dispatch ONE\n`reviewer-minion` to commit what survived',
+        andNamesTheReviewerAsItsOwner: has(
+          'That is a sweep or a re-review, and both go to a `reviewer-minion`.',
         ),
-        soThisTemplateNamesNoSubjectOfItsOwn: template.includes('- Your subject is'),
-        andThisTemplateExpectsNoWardOnASweep: has(
-          '- There is no `WARD` line to run and no usage sites to check.',
-        ),
-        whichIsWhyTheSweepStepSendsNoWardCommand: OPERATOR_SWEEP_WORKER_HALF.includes('WARD'),
       }).toStrictEqual({
-        theSweepStepDispatchesThisMinionWithHeaderAndPathsOnly: true,
+        theSweepStepWritesThePathsIntoTheDocument: true,
+        andDispatchesAReviewerOnThatSection: true,
+        andSaysWhyItIsNotAWorkers: true,
         andCarriesNoChunkFieldAtAll: [],
-        soThisTemplateSaysAChunklessBriefIsNotAMistake: true,
-        andThatThosePathsAreTheFilesList: true,
-        theOperatorSendsTheCommitToAReviewerInstead: true,
-        soThisTemplateNamesNoSubjectOfItsOwn: false,
-        andThisTemplateExpectsNoWardOnASweep: true,
-        whichIsWhyTheSweepStepSendsNoWardCommand: false,
+        soThisTemplateRefusesASectionBrief: true,
+        andNamesTheReviewerAsItsOwner: true,
       });
     });
 
@@ -607,10 +777,11 @@ describe('workerMinionStatics', () => {
           '**`continue` and `rework` do the same thing, deliberately.**',
         ),
         soThisTemplateSaysTheParentDoesNotActOnIt: has('**Your parent does not act on this.**'),
-        andHandsItToTheReviewerInstead: has('Your parent hands it\n  to your reviewer.'),
-        andTheOperatorReallyDoesHandItOver: OPERATOR.includes(
-          '<every worker return from step 5, VERBATIM and in dispatch order>',
+        andHandsItToTheReviewerInstead: has(
+          'Your REVIEWER settles\n  it: it reads your report out of the round document and opens the files you actually wrote',
         ),
+        // The parent forwards NOTHING now: the reviewer reads this session's report off disk.
+        andTheOperatorForwardsNothingItself: OPERATOR.includes('**You forward nothing**'),
       }).toStrictEqual({
         valuesThisTemplateDeclaresThatTheOperatorCannotRoute: [],
         valuesTheOperatorRoutesThatThisTemplateNeverOffers: [],
@@ -620,35 +791,36 @@ describe('workerMinionStatics', () => {
         theOperatorSaysThatIsDeliberate: true,
         soThisTemplateSaysTheParentDoesNotActOnIt: true,
         andHandsItToTheReviewerInstead: true,
-        andTheOperatorReallyDoesHandItOver: true,
+        andTheOperatorForwardsNothingItself: true,
       });
     });
 
-    // SPANS operator-prompt-statics.ts (the header it mandates on every brief) ↔ the last section
-    // here. This session's own fetch substitutes one line — the Quest ID — so everything else it
-    // holds came from that header, and the last section is where the two are reconciled when they
-    // disagree. A header that stopped carrying the quest id would leave this arbitration pointing
-    // at a field nobody sends.
-    it('VALID: {operator brief header, worker} => arbitrates against a header field the operator really sends', () => {
+    // SPANS operator-prompt-statics.ts (its brief fence) ↔ the last section here. This session's own
+    // fetch substitutes one line — the Quest ID — and its brief carries three keys at most, so
+    // everything else it holds came out of the document. The last section is where the fetched line
+    // and the document are reconciled when they disagree.
+    it('VALID: {operator brief fence, worker} => reads the keys that fence sends it, refuses SECTION, and arbitrates the quest id', () => {
       expect({
-        headerCarriesTheQuestId: OPERATOR_HEADER_FIELDS.includes('Quest ID'),
-        thisTemplateArbitratesAgainstIt: has(
-          "Where that line and your parent's header disagree\nabout the quest id, THIS one is right.",
+        theFenceCarriesTheseKeys: BRIEF_KEYS,
+        thisTemplateReadsTheChunkKey: has('CHUNK: <n>'),
+        andTheSectionKeyIsRefused: has(
+          '**A brief carrying a `SECTION:` line instead of the `WAVE:` and `CHUNK:` pair is NOT yours.**',
         ),
-        headerCarriesEveryIdTheRoundStamps: OPERATOR_HEADER_FIELDS.filter((field) =>
-          field.endsWith('ID'),
-        ).length,
-        theOperatorSaysTheBriefIsTheOnlyContext: OPERATOR.includes(
-          '**Your brief is the ONLY quest context a minion gets.**',
+        thisTemplateArbitratesAgainstTheServerLine: has(
+          'Where that\nline and the document disagree about the quest id, THIS one is right.',
+        ),
+        theOperatorSaysTheDocumentIsTheOnlyContext: OPERATOR.includes(
+          '**The round document is the ONLY quest context a minion gets.**',
         ),
         andThisTemplateSaysTheSameFromTheOtherSide: has(
-          "**Your BRIEF is your parent's spawn message, not this section.**",
+          'Your chunk, your context and the ids are in the document at\nthat path, not here and not in the brief.',
         ),
       }).toStrictEqual({
-        headerCarriesTheQuestId: true,
-        thisTemplateArbitratesAgainstIt: true,
-        headerCarriesEveryIdTheRoundStamps: 3,
-        theOperatorSaysTheBriefIsTheOnlyContext: true,
+        theFenceCarriesTheseKeys: ['PLAN', 'WAVE', 'CHUNK', 'SECTION'],
+        thisTemplateReadsTheChunkKey: true,
+        andTheSectionKeyIsRefused: true,
+        thisTemplateArbitratesAgainstTheServerLine: true,
+        theOperatorSaysTheDocumentIsTheOnlyContext: true,
         andThisTemplateSaysTheSameFromTheOtherSide: true,
       });
     });

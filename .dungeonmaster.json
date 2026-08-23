@@ -12,6 +12,7 @@
     "buildCommand": "npm run build",
     "devCommand": "npm run dev",
     "port": 4750,
+    "webPort": 4751,
     "readinessPath": "/",
     "readinessTimeoutMs": 45000
   }

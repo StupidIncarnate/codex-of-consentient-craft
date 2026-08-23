@@ -68,7 +68,7 @@ describe('standardsReviewConcernsStatics', () => {
 
   describe('the scope that frames one round', () => {
     // Each of the other three scopes fails this session in its own direction:
-    //   1. `working-tree` finds nothing once the workers have committed their pieces.
+    //   1. `working-tree` finds nothing, because this session committed the round one step earlier.
     //   2. `commit` sees one piece out of the round's several.
     //   3. `quest` buries the round in work already dispositioned.
     it("VALID: markdown => makes scope 'unpushed' the only scope this reviewer may pass", () => {
@@ -81,16 +81,17 @@ describe('standardsReviewConcernsStatics', () => {
         definesTheScope: has(
           'It measures\neverything committed in this worktree and not yet pushed',
         ),
-        namesTheBoundary: has('because your parent pushes once at the end of each round'),
-        noIdToPass: has('You pass\nno id. You name no range.'),
+        namesTheBoundary: has('because you have not pushed yet — you push as your LAST act'),
+        noIdToPass: has('You pass no id. You name no range.'),
         workingTreeFindsNothing: has('| `working-tree` | NOTHING'),
         commitSeesOnePiece: has('| `commit` | the last commit alone'),
         questBuriesTheRound: has('| `quest` | every file every session has ever touched'),
         unitIdGrammar: has('| `<implPath>:<concern>` | the id of one unit |'),
-        // The round's ward is `npm run ward -- --staged`. This enumeration is `scope: 'unpushed'`.
-        // Both mean "what origin does not have yet", so the two tools cannot disagree about what
-        // the round was. The parent's single push per round resets both at once.
-        sameBoundaryAsTheRoundWard: has("the SAME boundary the round's"),
+        // The round's ward is `npm run ward -- --staged`, and THIS SESSION runs it — the operator
+        // used to. This enumeration is `scope: 'unpushed'`. Both mean "what origin does not have
+        // yet", so the two cannot disagree about what the round was. The parent's single push per
+        // round resets both at once.
+        sameBoundaryAsItsOwnRoundWard: has('That is the SAME boundary your OWN'),
         theStagedCommand: has('`npm run ward -- --staged` used'),
         // The enumeration happens AFTER this session's own fix commit, never before. It reads
         // COMMITTED history. The parent's completion gate measures a range that includes that
@@ -108,7 +109,7 @@ describe('standardsReviewConcernsStatics', () => {
         commitSeesOnePiece: true,
         questBuriesTheRound: true,
         unitIdGrammar: true,
-        sameBoundaryAsTheRoundWard: true,
+        sameBoundaryAsItsOwnRoundWard: true,
         theStagedCommand: true,
         enumerateAfterTheFixCommit: true,
       });

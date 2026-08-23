@@ -65,7 +65,7 @@ export const agentPromptGetBrokerProxy = (): {
   setupDevServerConfig: (params: {
     config: ReturnType<ReturnType<typeof dungeonmasterConfigResolveAdapterProxy>['makeRealConfig']>;
   }) => void;
-  setupDevServer: (params: { devCommand: string; port: number }) => void;
+  setupDevServer: (params: { devCommand: string; port: number; webPort?: number }) => void;
   setupNoDevServerConfig: () => void;
   getDevServerConfigStartPath: () => ReturnType<
     ReturnType<typeof dungeonmasterConfigResolveAdapterProxy>['getResolvedStartPath']
@@ -215,8 +215,18 @@ export const agentPromptGetBrokerProxy = (): {
 
     // Stage a resolved config carrying a devServer block from raw command + port. Builds the
     // config via the config stub internally so siege dev-server tests don't construct contracts.
-    setupDevServer: ({ devCommand, port }: { devCommand: string; port: number }): void => {
-      const config = configProxy.makeConfigWithArgs({ devServer: { devCommand, port } } as never);
+    setupDevServer: ({
+      devCommand,
+      port,
+      webPort,
+    }: {
+      devCommand: string;
+      port: number;
+      webPort?: number;
+    }): void => {
+      const config = configProxy.makeConfigWithArgs({
+        devServer: { devCommand, port, ...(webPort === undefined ? {} : { webPort }) },
+      } as never);
       configProxy.setupConfigResolved({ startPath: DEV_SERVER_CONFIG_START_PATH, config });
     },
 

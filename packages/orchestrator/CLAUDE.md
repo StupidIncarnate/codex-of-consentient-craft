@@ -384,6 +384,78 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   operation item — completing the parent's scope and advancing the relay while the parent is still working. The
   no-workItemId fetch is what keeps minions outside that guard.
 
+## Editing or Creating a Prompt in `statics/`
+
+Every statics file in this package holding agent-facing markdown — the four minion templates,
+`operator-prompt-statics`, the five `discipline-*` packs, `agent-operating-rules-statics`,
+`standards-review-concerns-statics`, the bespoke `spiritmender` / `warpgate` / `dumpster-*` prompts —
+is **TEXT INJECTED INTO A MODEL'S CONTEXT WINDOW.** It is not documentation, not a README, and not a
+page anyone opens. Six rules follow from that. Each one cost a real defect.
+
+### 1. No reader-interface verbs
+
+The whole prompt arrives as one blob of text. **Nothing scrolls, nothing is clicked, no tab is
+opened, and nobody skims.** Write "the section under `## Your discipline` further down this page",
+never "scroll to it". `below`, `above` and `further down` are fine — they describe position in the
+text, which is real. The one legitimate `click` in this tree is in `disciplineManualQaStatics`, whose
+worker genuinely is driving a browser.
+
+### 2. A section does ONE job, and its heading names that job
+
+The implementation pack once carried a heading reading "Your denominator is the `## Context`
+section", under which sat both the acceptance-target list AND the seam markers — repair authority and
+scope routing, which are not a denominator and cannot be graded against. Welded together, the seam
+observables read as part of the measured set. Two headings fixed it.
+
+### 3. A heading the TEMPLATE points at is a contract on ALL FIVE packs
+
+The generic templates are shared by five disciplines and can state no subject matter of their own, so
+they point at pack headings by name:
+
+| Template | Headings it requires of every pack |
+|---|---|
+| `planner-minion-statics` | `### How to plan`, `### The waves` |
+| `worker-minion-statics` | `### The work`, `### The proof`, `### The ward` |
+| `operator-prompt-statics` | the two FIELDS `RESOURCE` and `RESET` |
+
+**Adding a pointer means adding that heading to all five packs in the same change**, and writing
+`MUST CARRY` into each pack's docblock and the template's. A pointer at a heading one pack lacks
+hands that session an instruction to read something that is not there, and nothing errors.
+
+### 4. Check the RENDERER before promising a session what it will be handed
+
+A prompt that enumerates what a session receives is a claim about a transformer, and those
+transformers gate nearly every block on non-emptiness. `codeweaverScopeBlockTransformer` renders
+`Your nodes` and `Must satisfy` only when the item has nodes, filters `Design decisions` by those
+same node ids, and derives `Seams` from them — so a FOUNDATION cell (`flowIds: []`) receives exactly
+ONE of the five headings its pack promised it, and the design decisions governing the contracts it
+authors reach only the flow cells that consume them. **Trace the render for the DEGENERATE case** —
+no flow, no package, no unit, an empty diff — never the happy one.
+
+### 5. Validate by DRY-RUNNING the prompt against a real quest
+
+**Reading a prompt tells you whether it is coherent. Only a dry run tells you whether it works.**
+Pick a live quest, take a real `operationItemId` off its ledger, and walk the prompt as that role
+against what the tools actually return: `get-quest`, `get-qa-checklist({ questId, operationItemId })`,
+and the scope block the transformer renders. Do it for EVERY discipline the change touches — the
+packs diverge exactly where it matters, and a fix that reads well on one is often wrong on the next.
+
+That pass finds what a read cannot. One audited two-flow feature quest surfaced four defects in an
+afternoon: a below-browser planner told to chunk 101 units when 26 were outstanding; seven off-map
+probe families rendered `[x] already settled` on a track whose `unitKinds` cannot sign them; a
+browser-e2e item whose 50-unit denominator held server-side units its own pack told it to leave to
+the sibling, with its reviewer's audit reopening the only honest verdict left; and a manual-QA pack
+demanding a reset lever for `process.uptime()`, which nothing but a server restart rewinds and no
+worker may restart.
+
+### 6. Prompts change in FAMILIES, never one file
+
+A template edit is unfinished until all five packs agree with it, and a pack edit is unfinished until
+the template's pointer still resolves. The colocated tests pin heading names and length budgets, and
+those budgets are load-bearing: a pack is interpolated into a template already sized against
+`mcpToolResultStatics.maxVerbatimChars`, and going over that ceiling costs the served prompt its
+TAIL. The session then runs without whatever that tail gated, and nothing reports a failure.
+
 ## Quest Pipeline
 
 ```

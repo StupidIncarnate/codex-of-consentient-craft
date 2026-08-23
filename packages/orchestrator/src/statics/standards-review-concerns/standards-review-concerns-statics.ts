@@ -63,15 +63,15 @@ The tool returns one unit per implementation file crossed with one concern.
 The ids are DERIVED from the tree, so the tool reproduces them byte-identically on every run.
 
 **\`scope: 'unpushed'\` is the only correct scope for you. You must pass it.** It measures
-everything committed in this worktree and not yet pushed. That is the SAME boundary the round's
-\`npm run ward -- --staged\` used, because your parent pushes once at the end of each round. You pass
-no id. You name no range. Git already knows where the round began.
+everything committed in this worktree and not yet pushed. That is the SAME boundary your OWN
+\`npm run ward -- --staged\` used, because you have not pushed yet — you push as your LAST act, after
+the verdict commit. You pass no id. You name no range. Git already knows where the round began.
 
 Each of the other three scopes fails you in its own direction.
 
 | Scope | What it hands you instead |
 |---|---|
-| \`working-tree\` | NOTHING. Every worker committed its own chunk before you were summoned. |
+| \`working-tree\` | NOTHING. You committed the whole round yourself, at the step before this one. |
 | \`commit\` | the last commit alone, one chunk out of the round's several |
 | \`quest\` | every file every session has ever touched. That buries this round in work already dispositioned. |
 

@@ -199,10 +199,10 @@ describe('agentOperatingRulesStatics', () => {
   });
 
   // AXIS 3 IS WHETHER THE READER RUNS A WARD AT ALL, and it cuts across both families. `wardScoped`
-  // names the two forms and lets the reader's own prompt pick: an operator runs `--staged` once per
-  // round, a worker runs the named-file form over its chunk. `wardNone` goes to the planner and the
-  // reviewer, which run none. One ward per round is also what makes a wave of parallel workers safe,
-  // because ward's typecheck is `tsc -b`, which builds.
+  // names the two forms and lets the reader's own prompt pick: a REVIEWER runs `--staged` over the
+  // whole round, a worker runs the named-file form over its chunk. `wardNone` goes to the OPERATOR
+  // and the PLANNER, which run neither that nor a build. One build per round is what makes a wave of
+  // parallel workers safe, because ward's typecheck is `tsc -b`, which builds.
   describe('axis 3: ward ownership', () => {
     // The scoping rule has to cover BOTH legitimate forms. A worker runs the named-file form. A
     // reviewer runs `--staged`. Name only one of them, and the other reads as a violation of the
@@ -239,30 +239,48 @@ describe('agentOperatingRulesStatics', () => {
       });
     });
 
-    // Reader-neutral, because two different minions take it. A body naming one of them by role
-    // reads as somebody else's rule to the other, and a rule that is not addressed to you is one
-    // you can talk yourself out of.
-    it('VALID: {wardNone} => runs no ward at all, and names the PARENT as the one that does', () => {
+    // Reader-neutral about the READER, because two different sessions take it — an operator and a
+    // planner. A body naming one of them by role reads as somebody else's rule to the other, and a
+    // rule that is not addressed to you is one you can talk yourself out of.
+    //
+    // It is deliberately specific about the RUNNER. Neither reader has a parent that runs the
+    // round's ward, so "your PARENT runs it" would point both of them at nobody. It names the
+    // `reviewer-minion`, and it names the BUILD alongside the ward, because one session owns both.
+    it('VALID: {wardNone} => runs neither command, and names the reviewer as the session that runs both', () => {
       expect({
-        parentRunsIt: agentOperatingRulesStatics.wardNone.includes(
-          "Your PARENT runs the round's ward, once, as `npm run ward -- --staged`",
+        bansTheBuildToo: agentOperatingRulesStatics.wardNone.includes(
+          '**[WARD] You run NO build, NO ward, NO test and NO check of any kind.**',
         ),
-        theBriefCarriesTheResult: agentOperatingRulesStatics.wardNone.includes(
-          'Where there is a result for you to act on, your brief carries it.',
+        theReviewerRunsThem: agentOperatingRulesStatics.wardNone.includes(
+          "The round's `reviewer-minion` runs both, ONCE",
+        ),
+        andOnlyAfterItReadsTheFiles: agentOperatingRulesStatics.wardNone.includes(
+          'after every worker has returned AND after it has opened every file the round produced',
+        ),
+        namesBothCommandsInOrder: agentOperatingRulesStatics.wardNone.includes(
+          '`npm run build`, then `npm run ward -- --staged`',
         ),
         overridesBothSnippets: agentOperatingRulesStatics.wardNone.includes(
           'OVERRIDES both the `<dungeonmaster-ward>` and the `<dungeonmaster-ward-discipline>` snippets',
         ),
         namesTheCost: agentOperatingRulesStatics.wardNone.includes(
-          "compete with your parent's for the same tree",
+          "keeps a wave of parallel workers off each other's tree",
         ),
-        namesNoSingleRole: agentOperatingRulesStatics.wardNone.includes('REVIEWER'),
+        andWhyThatSessionIsTheRightOne: agentOperatingRulesStatics.wardNone.includes(
+          'the only one with every file open',
+        ),
+        namesNeitherReaderByRole: /\b(OPERATOR|PLANNER)\b/u.test(
+          agentOperatingRulesStatics.wardNone,
+        ),
       }).toStrictEqual({
-        parentRunsIt: true,
-        theBriefCarriesTheResult: true,
+        bansTheBuildToo: true,
+        theReviewerRunsThem: true,
+        andOnlyAfterItReadsTheFiles: true,
+        namesBothCommandsInOrder: true,
         overridesBothSnippets: true,
         namesTheCost: true,
-        namesNoSingleRole: false,
+        andWhyThatSessionIsTheRightOne: true,
+        namesNeitherReaderByRole: false,
       });
     });
   });

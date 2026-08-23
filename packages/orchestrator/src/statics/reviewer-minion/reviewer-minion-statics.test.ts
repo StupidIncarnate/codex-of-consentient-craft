@@ -1,6 +1,8 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+import { disciplineBugReproStatics } from '../discipline-bug-repro/discipline-bug-repro-statics';
+import { disciplineImplementationStatics } from '../discipline-implementation/discipline-implementation-statics';
 import { operatorPromptStatics } from '../operator-prompt/operator-prompt-statics';
 import { plannerMinionStatics } from '../planner-minion/planner-minion-statics';
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
@@ -10,9 +12,11 @@ const { template } = reviewerMinionStatics.prompt;
 
 const has = (needle: string): boolean => template.includes(needle);
 
+// Bounded at `## The sweep brief`, not at `## What is not yours`: the sweep section carries a
+// numbered list of its own, and a slice running past it counts those as method steps.
 const METHOD = template.slice(
   template.indexOf('## Method — in this order'),
-  template.indexOf('## What is not yours'),
+  template.indexOf('## The sweep brief'),
 );
 
 // ================================================================================================
@@ -23,46 +27,38 @@ const METHOD = template.slice(
 const OPERATOR = operatorPromptStatics.prompt.template;
 const PLANNER = plannerMinionStatics.prompt.template;
 
-// The operator's ROUND brief for this minion, and its POST-REFUSAL brief — the only two dispatches
-// this template is ever read under.
-const ROUND_BRIEF_OPENS = OPERATOR.indexOf(
+// The operator's brief fence — the WHOLE grammar of every brief it writes. Its `SECTION:` row names
+// the two dispatches this template handles differently from a plain round.
+const BRIEF_FENCE_OPENS = OPERATOR.indexOf(
   '```',
-  OPERATOR.indexOf('**7. Dispatch ONE `reviewer-minion`**'),
+  OPERATOR.indexOf(
+    '**A brief takes the lines below that\napply to it, in the order they appear here.**',
+  ),
 );
-const OPERATOR_ROUND_BRIEF = OPERATOR.slice(
-  ROUND_BRIEF_OPENS + 3,
-  OPERATOR.indexOf('```', ROUND_BRIEF_OPENS + 3),
+const OPERATOR_BRIEF_FENCE = OPERATOR.slice(
+  BRIEF_FENCE_OPENS + 3,
+  OPERATOR.indexOf('```', BRIEF_FENCE_OPENS + 3),
 );
-const REFUSAL_BRIEF_OPENS = OPERATOR.indexOf(
-  '```',
-  OPERATOR.indexOf('Dispatch ONE more `reviewer-minion`:'),
+const BRIEF_KEYS = Array.from(OPERATOR_BRIEF_FENCE.matchAll(/^([A-Z]+):/gmu)).map(
+  (match) => match[1] ?? '',
 );
-const OPERATOR_REFUSAL_BRIEF = OPERATOR.slice(
-  REFUSAL_BRIEF_OPENS + 3,
-  OPERATOR.indexOf('```', REFUSAL_BRIEF_OPENS + 3),
-);
-const REFUSAL_BRIEF_LINES = OPERATOR_REFUSAL_BRIEF.split('\n').filter((line) => line !== '');
+const SECTION_VALUES = (
+  /^SECTION: (?<values>[A-Za-z |-]+?) +←/mu.exec(OPERATOR_BRIEF_FENCE)?.groups?.values ?? ''
+)
+  .split('|')
+  .map((value) => value.trim());
 
-// The header the operator mandates at the top of both of those briefs.
-const HEADER_OPENS = OPERATOR.indexOf(
-  '```',
-  OPERATOR.indexOf('**Open every brief with this header.**'),
-);
-const OPERATOR_BRIEF_HEADER = OPERATOR.slice(
-  HEADER_OPENS + 3,
-  OPERATOR.indexOf('```', HEADER_OPENS + 3),
-);
-
-// The three post-refusal overrides, read out of THIS template's own instructions and then looked
-// for in the brief the operator actually writes.
-const REFUSAL_LITERAL =
-  /\*\*Read a `([^`]+)` line before anything else in the brief\.\*\*/u.exec(template)?.[1] ??
-  'THIS TEMPLATE KEYS ON NO REFUSAL LINE';
-const SCOPE_LITERAL =
-  /instead when your brief says\s+`([^`]+)`\.\*\*/u.exec(template)?.[1] ??
-  'THIS TEMPLATE KEYS ON NO SCOPE LINE';
+// The section the operator APPENDS after a refused signal, and the `SECTION:` value it dispatches
+// the re-review under. Both are read off the operator, then looked for here.
+const REFUSAL_SECTION =
+  /APPEND a `(?<section>## [A-Za-z-]+)` section to the round document/u.exec(OPERATOR)?.groups
+    ?.section ?? 'THE OPERATOR APPENDS NO REFUSAL SECTION';
+const REFUSAL_DISPATCH =
+  /dispatch ONE more `reviewer-minion` on `(?<line>SECTION: [A-Za-z-]+)`/u.exec(OPERATOR)?.groups
+    ?.line ?? 'THE OPERATOR DISPATCHES NO RE-REVIEW';
 const SCOPE_ARGUMENT =
-  /\*\*Use `scope: '([a-z]+)'` instead/u.exec(template)?.[1] ?? 'THIS TEMPLATE PASSES NO SCOPE';
+  /\*\*Use `scope: '(?<scope>[a-z]+)'` instead/u.exec(template)?.groups?.scope ??
+  'THIS TEMPLATE PASSES NO SCOPE';
 
 // The operator's routing table: the only reader of the last line this template writes.
 const OPERATOR_NEXT_TABLE = OPERATOR.slice(
@@ -95,28 +91,41 @@ const WRAPPED_MENU_CONTINUATIONS = template
   .split('\n')
   .filter((line) => OPERATOR_ROUTED_VALUES.some((value) => line.startsWith(`| ${value}`)));
 
-// The plan file: the PLANNER writes it, this session grades against it.
-const PLAN_FENCE_OPENS = PLANNER.indexOf('```', PLANNER.indexOf('## The plan file'));
+// The plan section: the PLANNER appends it, this session grades against it.
+const PLAN_FENCE_OPENS = PLANNER.indexOf('```', PLANNER.indexOf('## What you append'));
 const PLAN_FENCE = PLANNER.slice(
   PLAN_FENCE_OPENS + 3,
   PLANNER.indexOf('```', PLAN_FENCE_OPENS + 3),
 );
 const PLAN_FIELDS = Array.from(PLAN_FENCE.matchAll(/^([A-Z]+):/gmu)).map((match) => match[1] ?? '');
 const PLAN_PATH =
-  /^## The plan file — `([^`]+)`$/mu.exec(PLANNER)?.[1] ?? 'THE PLANNER NAMES NO PLAN PATH';
+  /^## What you append — to the `PLAN:` path, at `(?<path>[^`]+)`$/mu.exec(PLANNER)?.groups?.path ??
+  'THE PLANNER NAMES NO PLAN PATH';
 const GRADED_FIELD =
   /\*\*`([A-Z]+)` is what the reviewer grades the chunk against\*\*/u.exec(PLANNER)?.[1] ??
   'THE PLANNER NAMES NO GRADED FIELD';
 const STEP_TWO = template.slice(
-  template.indexOf('2. **Read the PLAN FILE**'),
+  template.indexOf('2. **Read the ROUND DOCUMENT**'),
   template.indexOf('3. **OPEN EVERY FILE'),
 );
 const FIELDS_STEP_TWO_GRADES = Array.from(
   new Set(Array.from(STEP_TWO.matchAll(/`([A-Z]+)`/gu)).map((match) => match[1] ?? '')),
 );
 
-// The subject every worker on the round commits under, and the id this session's checklist call
-// needs — both of which reach it from somewhere else entirely.
+// THE ROUND LOG, and the markers that reach this session through it. The PLANNER writes the
+// region's header. The two packs that ask a worker to DECLARE something own the marker vocabulary,
+// as a table row each. Both sides are parsed off those live values: a pack that adds a marker this
+// template never names would otherwise ship a line the round commit silently drops.
+const ROUND_LOG_HEADING =
+  /^(?<heading>## Round log)$/mu.exec(PLANNER)?.groups?.heading ??
+  'THE PLANNER WRITES NO ROUND-LOG HEADING';
+const MARKER_ROW = /^\| .+ \| `(?<marker>[A-Z]+:)` \|$/gmu;
+const MARKERS = [
+  ...disciplineImplementationStatics.workerMarkdown.matchAll(MARKER_ROW),
+  ...disciplineBugReproStatics.workerMarkdown.matchAll(MARKER_ROW),
+].map((match) => match.groups?.marker ?? '');
+
+// The id this session's checklist call needs, and the section it reads that id out of.
 const CHECKLIST_ID =
   /get-blight-checklist\(\{ questId: '([A-Z_]+)'/u.exec(template)?.[1] ??
   'THIS TEMPLATE NAMES NO QUEST ID';
@@ -141,7 +150,7 @@ describe('reviewerMinionStatics', () => {
       disciplineOnItsOwnLine: /^\$DISCIPLINE$/mu.test(template),
       disciplineComesFirst: template.indexOf('$DISCIPLINE') < template.indexOf('$ARGUMENTS'),
       argumentsIsTheTail: template.endsWith('$ARGUMENTS'),
-      questIdHeading: /^## The quest id — everything else is in your parent's brief$/mu.test(
+      questIdHeading: /^## The quest id — everything else is in the round document$/mu.test(
         template,
       ),
     }).toStrictEqual({
@@ -158,80 +167,129 @@ describe('reviewerMinionStatics', () => {
     expect(template.length).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
   });
 
+  // THE BRIEF IS ONE PATH AND EVERYTHING ELSE IS ON DISK. The predecessor was handed every worker
+  // return pasted into its brief — text the operator could not check a word of, made by the one
+  // session forbidden to open a file. The document now holds all of it: the operator's context, the
+  // planner's plan, every worker's report.
+  it('VALID: the opening => names all five document sections and who writes each', () => {
+    const table = template.slice(
+      template.indexOf('| Section | Written by | What it gives you |'),
+      template.indexOf('**Nothing else on this quest carries any of it.**'),
+    );
+
+    expect({
+      theBriefIsOnePath: has(
+        '**Your brief carries ONE thing: the `PLAN:` path of the round document.**',
+      ),
+      writtenByThreeKindsOfSession: has(
+        'That single file holds the entire round, written by three kinds of session in turn:',
+      ),
+      context: table.includes('| `## Context` | your parent |'),
+      rework: table.includes('| `## Rework` | your parent |'),
+      plan: table.includes('| `## Plan` | the `planner-minion` |'),
+      roundLog: table.includes('| `## Round log` | each `worker-minion` |'),
+      sweepAndReReview: table.includes('| `## Sweep` / `## Re-review` | your parent |'),
+      nothingElseCarriesIt: has('**Nothing else on this quest carries any of it.**'),
+      theRoundIsUncommitted: has('**No worker committed anything**'),
+    }).toStrictEqual({
+      theBriefIsOnePath: true,
+      writtenByThreeKindsOfSession: true,
+      context: true,
+      rework: true,
+      plan: true,
+      roundLog: true,
+      sweepAndReReview: true,
+      nothingElseCarriesIt: true,
+      theRoundIsUncommitted: true,
+    });
+  });
+
   // `$ARGUMENTS` RESOLVES TO ONE LINE for a minion, not to a briefing.
   // `agentPromptGetBroker`'s minion-fetch branch substitutes `Quest ID: <uuid>` and nothing else.
   // It substitutes nothing richer because anything richer needs a `workItemId`. A minion that
   // passed a `workItemId` would be held open by `subagentStopNeedsBlockGuard` until it signalled on
-  // its PARENT's operation item. So the worker returns arrive in the parent's spawn message, and
-  // nowhere else. The section used to be headed "## Briefing", which told a reviewer its briefing
-  // was one id.
-  it('VALID: the last section => says the worker returns are elsewhere and this line is the authoritative id', () => {
+  // its PARENT's operation item. So everything else reaches this session off disk. The section used
+  // to be headed "## Briefing", which told a reviewer its briefing was one id.
+  it('VALID: the last section => says the whole round is on disk and this line is the authoritative id', () => {
     expect({
-      honestHeading: /^## The quest id — everything else is in your parent's brief$/mu.test(
+      honestHeading: /^## The quest id — everything else is in the round document$/mu.test(
         template,
       ),
       noBriefingHeading: /^## Briefing$/mu.test(template),
       briefIsTheSpawnMessage: has(
         "**Your BRIEF is your parent's spawn message, not this section.**",
       ),
-      namesWhatArrivesThere: has(
-        "- the header;\n- the plan file's path;\n- the `WARD:` block from your parent's own run;\n- every worker return;\n- any `REFUSAL:` / `SCOPE: quest` line.",
+      itIsShort: has(
+        'It is SHORT — a `PLAN:` path, and\non two kinds of dispatch a `SECTION:` line naming `Sweep` or `Re-review`.',
       ),
+      nothingElseArrives: has('**Nothing else arrives,\nand nothing else should.**'),
+      // No `WARD:` block in the inventory: this session runs the ward itself, at step 5. A block
+      // listed here that the parent never sends is how a session concludes its brief arrived broken
+      // and grades the round degraded.
+      everythingElseIsOffDisk: has(
+        "The plan, every worker's report, the three ids and any refusal all reach\nyou out of the document itself, at step 2.",
+      ),
+      aPathOnlyBriefIsWorking: has('A brief that carries only a path is the brief working.'),
       oneLineOnly: has('It carries exactly one line.'),
-      thisOneWins: has('the quest id, THIS one is right'),
-      noReturnsIsSaidInVerdict: has('say so in `VERDICT`'),
-      canStillReadTheRound: has("You can still read the plan\nfile and the round's commits."),
+      thisOneWins: has(
+        'Where that line and the document\ndisagree about the quest id, THIS one is right.',
+      ),
     }).toStrictEqual({
       honestHeading: true,
       noBriefingHeading: false,
       briefIsTheSpawnMessage: true,
-      namesWhatArrivesThere: true,
+      itIsShort: true,
+      nothingElseArrives: true,
+      everythingElseIsOffDisk: true,
+      aPathOnlyBriefIsWorking: true,
       oneLineOnly: true,
       thisOneWins: true,
-      noReturnsIsSaidInVerdict: true,
-      canStillReadTheRound: true,
     });
   });
 
-  // A REFUSED `signal-back` sends the parent back with ONE more reviewer. That brief carries the
-  // refusal message verbatim, beside `SCOPE: quest` and `SKIP WARD`. The message is `signal-back`'s
-  // own list of the outstanding units. No tool hands it back. A template that never mentioned it
-  // left the one session that could act on the list unable to find it. The same brief carries no
-  // worker returns BY CONSTRUCTION. So the template names it as the exception to the "no worker
-  // returns" fallback, instead of letting the session grade itself degraded.
-  it('VALID: the last section => reads REFUSAL first and treats its units as the re-review scope', () => {
+  // A REFUSED `signal-back` sends the parent back with ONE more reviewer. The refusal message is
+  // `signal-back`'s own list of the outstanding units, and no tool hands it back — so the parent
+  // APPENDS it to the round document and dispatches on `SECTION: Re-review`. A template that never
+  // mentioned that section left the one session that could act on the list unable to find it.
+  it('VALID: the last section => reads the re-review section first and treats its units as the scope', () => {
     expect({
-      inTheBriefInventory: has('any `REFUSAL:` / `SCOPE: quest` line.'),
-      readItFirst: has('**Read a `REFUSAL:` line before anything else in the brief.**'),
+      readItFirst: has(
+        `**On a \`${REFUSAL_DISPATCH}\` brief, read the document's \`${REFUSAL_SECTION}\` section before anything\nelse.**`,
+      ),
       verbatimFromSignalBack: has(
-        'It is the message `signal-back` threw\nat your parent, verbatim.',
+        'It is the message `signal-back` threw at your parent, verbatim.',
       ),
       namesTheOutstandingUnits: has(
-        'It names every unit still carrying no disposition or no sign-off.',
+        'It names every unit still\ncarrying no disposition or no sign-off.',
       ),
-      thoseUnitsAreTheScope: has('**Those\nnamed units ARE the scope of this re-review.**'),
-      settleEachOne: has('Settle each one. Write its record.'),
-      noToolHandsItBack: has('No tool hands that\nlist back to you.'),
-      losingItRepeatsTheRefusal: has('your parent earns the identical refusal a second time'),
-      refusalBriefIsNotDegraded: has(
-        '**A brief\ncarrying `REFUSAL:` is the one exception.** That re-review is not a degraded round.',
+      thoseUnitsAreTheScope: has('**Those named units ARE the scope of this re-review.**'),
+      settleEachOne: has('Settle\neach one. Write its record.'),
+      questScopeAtStepEight: has(
+        `Enumerate under \`scope: '${SCOPE_ARGUMENT}'\` at step 8, because that round is\nalready pushed and \`unpushed\` comes back empty.`,
       ),
-      noReturnsByConstruction: has('it carries no worker returns by construction'),
+      noToolHandsItBack: has('No tool hands that list back to you'),
+      theDocumentIsTheOnlyCopy: has(
+        'listed it once, and the document is now the only place it exists',
+      ),
+      reReviewIsNotDegraded: has('**A re-review is not a degraded round.**'),
       gradedAgainstTheRefusalsUnits: has(
-        "against the refusal's units, the plan file and the commits",
+        "Grade it against the refusal's units, the `## Plan` and the\ncommits.",
+      ),
+      itsRoundLogIsNotItsToGrade: has(
+        'Its `## Round log` belongs to a round you are not re-grading.',
       ),
     }).toStrictEqual({
-      inTheBriefInventory: true,
       readItFirst: true,
       verbatimFromSignalBack: true,
       namesTheOutstandingUnits: true,
       thoseUnitsAreTheScope: true,
       settleEachOne: true,
+      questScopeAtStepEight: true,
       noToolHandsItBack: true,
-      losingItRepeatsTheRefusal: true,
-      refusalBriefIsNotDegraded: true,
-      noReturnsByConstruction: true,
+      theDocumentIsTheOnlyCopy: true,
+      reReviewIsNotDegraded: true,
       gradedAgainstTheRefusalsUnits: true,
+      itsRoundLogIsNotItsToGrade: true,
     });
   });
 
@@ -249,8 +307,8 @@ describe('reviewerMinionStatics', () => {
       turnEndRole: false,
       turnEndMinion: true,
       background: true,
-      wardScoped: false,
-      wardNone: true,
+      wardScoped: true,
+      wardNone: false,
       delegationSynchronous: false,
       delegationSpike: false,
       delegationLeafBan: true,
@@ -302,7 +360,9 @@ describe('reviewerMinionStatics', () => {
 
     it('VALID: template => defines all three NEXT values and the two ways to get the line wrong', () => {
       expect({
-        continueMeaning: has('| `continue` | Ends its own session. |'),
+        continueMeaning: has(
+          '| `continue` | Ends its own session. **It is the ONLY line that ends it.** |',
+        ),
         continueConditions: has(
           "**Write `continue` when all three of these hold:**\n\n- every chunk's `INTENT` is true;\n- every unit carries a disposition;\n- the ward is green.",
         ),
@@ -310,13 +370,11 @@ describe('reviewerMinionStatics', () => {
           'A round that produced nothing at all still earns `continue`',
         ),
         reworkLoops: has(
-          "| `rework` | Runs the whole loop again, with your text as the next planner's entire scope. |",
+          "| `rework` | Runs the whole loop again, with your text as the next planner's entire scope. There is no cap on how many times. |",
         ),
         inChunkTerms: has("in the plan's own chunk terms"),
-        paddingSpendsARound: has('**Padding it spends a round the quest cannot afford.**'),
-        budgetOfThreeRoundsInThisSession: has(
-          'against a budget of three rounds inside this\n  session',
-        ),
+        paddingSpendsARound: has('**Padding it spends a whole round on nothing.**'),
+        theParentHasNoRoundCap: has('**Your parent has no round cap**'),
         hidingLeavesTheDefect: has('**Hiding a real remainder leaves the defect in the branch.**'),
         nothingRunsAfterYou: has('Nothing runs after you.'),
         wallHaltsTheQuest: has('| `wall` | Halts the entire quest. |'),
@@ -335,7 +393,7 @@ describe('reviewerMinionStatics', () => {
         reworkLoops: true,
         inChunkTerms: true,
         paddingSpendsARound: true,
-        budgetOfThreeRoundsInThisSession: true,
+        theParentHasNoRoundCap: true,
         hidingLeavesTheDefect: true,
         nothingRunsAfterYou: true,
         wallHaltsTheQuest: true,
@@ -357,20 +415,22 @@ describe('reviewerMinionStatics', () => {
     //
     // A hard-coded "three pt attempts" told half the reviewers something their own discipline pack
     // contradicts.
-    it('VALID: the padding cost => bounds the rounds everywhere and hedges the pt attempts', () => {
+    it('VALID: the padding cost => names what a padded round really costs, and caps nothing', () => {
       expect({
-        roundsBoundIsPerSession: has('against a budget of three rounds inside this\n  session'),
-        partialRestartsTheScope: has(
-          'A spent budget is a `partial`, which starts the whole scope again in a fresh session.',
+        theParentHasNoRoundCap: has('**Your parent has no round cap**'),
+        soItJustRunsTheRound: has(
+          'so it does not\n  refuse the round — it just runs it, and the next reviewer inherits whatever you padded.',
         ),
-        ptBoundIsConditional: has("Where this role's pt chain is bounded"),
-        spentChainBlocks: has('A spent chain blocks the quest instead of continuing.'),
+        andTheCostIsWallClockAndContext: has(
+          'Every\n  round you add is wall-clock the quest pays for and a context the next session has to reconstruct\n  from git.',
+        ),
+        noRoundBudgetClaim: has('budget of three rounds'),
         noHardCodedThreeAttempts: has('three pt attempts'),
       }).toStrictEqual({
-        roundsBoundIsPerSession: true,
-        partialRestartsTheScope: true,
-        ptBoundIsConditional: true,
-        spentChainBlocks: true,
+        theParentHasNoRoundCap: true,
+        soItJustRunsTheRound: true,
+        andTheCostIsWallClockAndContext: true,
+        noRoundBudgetClaim: false,
         noHardCodedThreeAttempts: false,
       });
     });
@@ -395,6 +455,11 @@ describe('reviewerMinionStatics', () => {
         fixNeedsAWitnessedRed: has(
           'A `FIXES MADE` line with no witnessed red is a change, not a fix.',
         ),
+        // The `rework` text is not just handed back — the parent writes it into the NEXT round's
+        // document, where the next planner reads it as its whole scope.
+        reworkGoesIntoTheNextDocument: has(
+          "Your `rework` text is the next planner's entire scope — your parent writes it into the next round\ndocument's `## Rework` section verbatim.",
+        ),
       }).toStrictEqual({
         verdict: true,
         chunks: true,
@@ -405,6 +470,7 @@ describe('reviewerMinionStatics', () => {
         wholeMenuOnOneLine: true,
         noAdjectives: true,
         fixNeedsAWitnessedRed: true,
+        reworkGoesIntoTheNextDocument: true,
       });
     });
 
@@ -435,9 +501,6 @@ describe('reviewerMinionStatics', () => {
           'It dispatches a full round into\nthe environment wall you just reported.',
         ),
         writeNothingBeneathIt: has('Write nothing beneath it.'),
-        reworkStaysInsideThatLine: has(
-          "Your `rework` text is the next planner's entire scope. Write it in the plan's chunk terms.",
-        ),
       }).toStrictEqual({
         exactlyOneNextLine: 1,
         noLineStartsWithTheWallArm: false,
@@ -447,7 +510,6 @@ describe('reviewerMinionStatics', () => {
         fallsThroughToRework: true,
         andDispatchesIntoTheWall: true,
         writeNothingBeneathIt: true,
-        reworkStaysInsideThatLine: true,
       });
     });
   });
@@ -457,29 +519,42 @@ describe('reviewerMinionStatics', () => {
   // The predecessor said BOTH "commit everything before you enumerate" AND "write each disposition
   // as you finish each file". Both cannot hold. A session that enumerates last writes every
   // disposition in one batch at the end, which is exactly what the anti-batch rule forbids. So the
-  // commits split in two: the fixes first, then the verdict. The verdict commit touches no
+  // commits split in two: the round first, then the verdict. The verdict commit touches no
   // implementation file, so it creates no new unit.
   describe('the method order', () => {
-    it('VALID: template => numbers its steps 1 through 11, contiguously', () => {
-      expect(Array.from(METHOD.matchAll(/^\d+\. \*\*/gmu)).map((match) => match[0])).toStrictEqual([
-        '1. **',
-        '2. **',
-        '3. **',
-        '4. **',
-        '5. **',
-        '6. **',
-        '7. **',
-        '8. **',
-        '9. **',
-        '10. **',
-        '11. **',
-      ]);
+    // The PUSH is step 11, after both commits, and the return is step 12. Publishing before the
+    // verdict commit would put a round on origin with no verdict attached to it.
+    it('VALID: template => numbers its steps 1 through 12, contiguously, and pushes at 11', () => {
+      expect({
+        steps: Array.from(METHOD.matchAll(/^\d+\. \*\*/gmu)).map((match) => match[0]),
+        pushAfterBothCommits:
+          METHOD.indexOf('**COMMIT your verdict.**') < METHOD.indexOf('**`git push`.** Bare'),
+        andReturnLast:
+          METHOD.indexOf('**`git push`.** Bare') < METHOD.indexOf('**Return the block below.**'),
+      }).toStrictEqual({
+        steps: [
+          '1. **',
+          '2. **',
+          '3. **',
+          '4. **',
+          '5. **',
+          '6. **',
+          '7. **',
+          '8. **',
+          '9. **',
+          '10. **',
+          '11. **',
+          '12. **',
+        ],
+        pushAfterBothCommits: true,
+        andReturnLast: true,
+      });
     });
 
-    it('VALID: the method => commits fixes BEFORE it enumerates, and commits the verdict after', () => {
+    it('VALID: the method => commits the round BEFORE it enumerates, and commits the verdict after', () => {
       expect({
-        fixCommitBeforeEnumerate:
-          METHOD.indexOf('**COMMIT your fixes**') <
+        roundCommitBeforeEnumerate:
+          METHOD.indexOf('**COMMIT THE WHOLE ROUND**') <
           METHOD.indexOf('**ENUMERATE the review units.**'),
         enumerateBeforeDispositions:
           METHOD.indexOf('**ENUMERATE the review units.**') <
@@ -487,13 +562,69 @@ describe('reviewerMinionStatics', () => {
         dispositionsBeforeVerdictCommit:
           METHOD.indexOf('**Write a disposition for every unit') <
           METHOD.indexOf('**COMMIT your verdict.**'),
-        wardBeforeFixing:
-          METHOD.indexOf("**Run the round's ward") < METHOD.indexOf('**FIX what you can'),
+        readTheFilesBeforeBuilding:
+          METHOD.indexOf('**OPEN EVERY FILE THE ROUND PRODUCED.**') <
+          METHOD.indexOf('**NOW BUILD, THEN WARD'),
+        buildBeforeFixing:
+          METHOD.indexOf('**NOW BUILD, THEN WARD') < METHOD.indexOf('**FIX what you can'),
       }).toStrictEqual({
-        fixCommitBeforeEnumerate: true,
+        roundCommitBeforeEnumerate: true,
         enumerateBeforeDispositions: true,
         dispositionsBeforeVerdictCommit: true,
-        wardBeforeFixing: true,
+        readTheFilesBeforeBuilding: true,
+        buildBeforeFixing: true,
+      });
+    });
+
+    // THE MARKERS' ONE ROUTE OUT OF THE ROUND. A worker's return carries two lines, and no worker
+    // commits, so an `ADJUSTED:` / `ADDED:` / `REPAIR:` / `CORRECTED:` line survives the round only
+    // by this pair: step 2 READS the region its workers appended to, step 7 TRANSCRIBES it into the
+    // round's one commit. Drop either half and a round that moved a target the user approved lands
+    // with nothing anywhere saying so. Both needles for the region come off the PLANNER's live
+    // value, since that minion writes the header.
+    it('VALID: {step 2, step 7} => reads the round log its workers appended to, then commits what it found', () => {
+      expect({
+        stepTwoReadsTheRegionThePlannerWrote: STEP_TWO.includes(
+          `**Then read the \`${ROUND_LOG_HEADING}\` at the BOTTOM of the document.**`,
+        ),
+        andSaysThatReportReachesItNowhereElse: STEP_TWO.includes(
+          '**That is the entire worker\n   report and it reaches you nowhere else**',
+        ),
+        andSaysWhyTheParentNeverHeldIt: STEP_TWO.includes(
+          'your parent never held it, because your parent may not\n   open a source file',
+        ),
+        // Two `###` headings live in one document. A reviewer that read them as the same heading
+        // would grade a worker's report against itself.
+        andKeepsTheTwoHeadingsApart: STEP_TWO.includes(
+          "**A `### report — chunk 3` heading is a REPORT and a `### chunk 3` heading\n   is the PLAN's**; do not grade one against itself.",
+        ),
+        andHandsTheMarkersToStepSeven: STEP_TWO.includes(
+          'Step 7 is where\n   you carry those lines onward.',
+        ),
+        stepSevenCopiesEveryMarkerVerbatim: has(
+          `**Copy every marker line from step 2's \`${ROUND_LOG_HEADING}\` into that body, verbatim.**`,
+        ),
+        thePacksDeclareThisManyMarkers: MARKERS.length,
+        andThisTemplateNamesEveryOne: MARKERS.filter((marker) => !has(`\`${marker}\``)),
+        andSaysThisCommitIsWhereAHumanReadsIt: has(
+          '**This commit is where a human reads that the round moved a target**',
+        ),
+        aNoneBlockAddsNothing: has('A block reading `none` puts no line in the body.'),
+        aMissingReportIsAFinding: STEP_TWO.includes(
+          '**A chunk in that index with no report in the round log is a chunk that reported\n   nothing.**',
+        ),
+      }).toStrictEqual({
+        stepTwoReadsTheRegionThePlannerWrote: true,
+        andSaysThatReportReachesItNowhereElse: true,
+        andSaysWhyTheParentNeverHeldIt: true,
+        andKeepsTheTwoHeadingsApart: true,
+        andHandsTheMarkersToStepSeven: true,
+        stepSevenCopiesEveryMarkerVerbatim: true,
+        thePacksDeclareThisManyMarkers: 4,
+        andThisTemplateNamesEveryOne: [],
+        andSaysThisCommitIsWhereAHumanReadsIt: true,
+        aNoneBlockAddsNothing: true,
+        aMissingReportIsAFinding: true,
       });
     });
 
@@ -505,8 +636,9 @@ describe('reviewerMinionStatics', () => {
           "A\n   wave of them runs at once, and concurrent commits in one worktree collide on git's index lock —\n   measured at three surviving out of twelve.",
         ),
         theirsAndYours: has(
-          'So every file this round produced is sitting in the\n   tree right now, theirs and your fixes together.',
+          'So every file this round produced is sitting in the\n   tree right now, theirs and your fixes together',
         ),
+        andTheDocumentItself: has('and the round document carries every report they\n   appended'),
         addAll: has('Run `git add -A`, then commit with the subject'),
         subject: has('`round <n>: <what the round made true>`'),
         onePerChunkInTheBody: has('one line per chunk in the body saying what landed'),
@@ -526,6 +658,7 @@ describe('reviewerMinionStatics', () => {
         noWorkerCommitted: true,
         theWaveIsWhy: true,
         theirsAndYours: true,
+        andTheDocumentItself: true,
         addAll: true,
         subject: true,
         onePerChunkInTheBody: true,
@@ -565,78 +698,112 @@ describe('reviewerMinionStatics', () => {
   });
 
   // The reviewer owns the round's ward. It needs no file list for that run. `--staged` is every
-  // check type over every source file that origin does not have yet. That IS the round, because the
-  // parent pushes once at the end of each one. `scope: 'unpushed'` measures the identical boundary.
+  // check type over every source file that origin does not have yet. That IS the round, because
+  // this session pushes once at the end of it. `scope: 'unpushed'` measures the identical boundary.
   // The two tools therefore cannot disagree about what the round was.
-  describe('the round ward', () => {
-    it('VALID: step 5 => READS the parent --staged result and runs none of its own', () => {
+  describe('the round build and ward', () => {
+    // THIS SESSION RUNS BOTH, AND IT IS THE ONLY ONE ON THE QUEST THAT DOES. The ORDER is what makes
+    // it the right one: step 3 has already opened every file, so an error the build names is a
+    // step-6 fix in this same turn rather than the next round's scope. The step bans running either
+    // EARLY, in the other direction — a compiler's error list read first becomes the thing the
+    // session looks for, and the defect the compiler cannot name is the one it then misses. That
+    // class of defect is the entire reason this session opens files at all.
+    it('VALID: step 5 => runs the build then the --staged ward, and only after reading every file', () => {
       expect({
-        readIt: has("5. **READ the round's ward result out of your brief.**"),
-        theParentRanIt: has(
-          'Your parent ran `npm run ward -- --staged`\n   after the last wave and pasted the output in verbatim.',
-        ),
+        theStep: has('5. **NOW BUILD, THEN WARD — and not one step earlier.**'),
+        afterReadingEveryFile: has('You have just read every file.'),
+        bothCommandsInOrder: has('npm run build\n   npm run ward -- --staged'),
+        eachAsItsOwnCommand: has('each as its OWN command with nothing chained after it'),
+        foregroundWithTimeout: has('Foreground, `timeout: 600000`.'),
+        wardRejectsCompanions: has('ward rejects both\n   alongside `--staged`'),
         everyCheckType: has(
-          'That is every check type over every source\n   file origin does not have yet, which IS this round.',
+          'That scope is every check type over every source file origin does not have\n   yet, which IS this round',
         ),
-        youRunNone: has('**You run none yourself**'),
-        theOnlyTypecheck: has(
-          "that one run of\n   your parent's is the only thing that has TYPECHECKED anything",
+        theOnlySessionThatRunsEither: has(
+          '**You are the ONLY session on this quest that runs either command.**',
         ),
-        soThatIsWhereContractBreaksShow: has(
-          'so a broken contract or a stale\n   call site shows up there and nowhere else',
+        becauseAWaveWouldRaceIt: has(
+          "a WAVE of them runs at once, `tsc` writes one shared `dist/` per package, and\n   ward's typecheck is `tsc -b`, which BUILDS",
         ),
-        aMissingBlockIsSaidOutLoud: has(
-          '**A brief carrying no ward block is one your parent could not run.**',
+        theOnlyTypecheck: has('**This is the\n   first and only TYPECHECK the round gets**'),
+        afterIsThePoint: has('**Running them AFTER you read the files is the point.**'),
+        aStragglerIsAFixNotARound: has(
+          'A build straggler is a fix you make at\n   step 6, in this turn, with the file already open',
         ),
-        andYouStillGrade: has('grade what you can from the files themselves'),
-        andRunsNoCommandOfItsOwn: has("**Run the round's ward: `npm run ward -- --staged`.**"),
+        andWhyRunningThemEarlyIsWorse: has(
+          'you would then read every file\n   looking for what the compiler already named',
+        ),
+        aSweepBriefSkipsIt: has(
+          '**A `SECTION: Sweep` brief runs a different job entirely.** See **The sweep brief** below. Skip\n   this step on it.',
+        ),
+        andItsPathsAreInTheDocument: has(
+          "wrote them into the document's `## Sweep`\nsection, one per line.",
+        ),
       }).toStrictEqual({
-        readIt: true,
-        theParentRanIt: true,
+        theStep: true,
+        afterReadingEveryFile: true,
+        bothCommandsInOrder: true,
+        eachAsItsOwnCommand: true,
+        foregroundWithTimeout: true,
+        wardRejectsCompanions: true,
         everyCheckType: true,
-        youRunNone: true,
+        theOnlySessionThatRunsEither: true,
+        becauseAWaveWouldRaceIt: true,
         theOnlyTypecheck: true,
-        soThatIsWhereContractBreaksShow: true,
-        aMissingBlockIsSaidOutLoud: true,
-        andYouStillGrade: true,
-        andRunsNoCommandOfItsOwn: false,
+        afterIsThePoint: true,
+        aStragglerIsAFixNotARound: true,
+        andWhyRunningThemEarlyIsWorse: true,
+        aSweepBriefSkipsIt: true,
+        andItsPathsAreInTheDocument: true,
       });
     });
 
-    // The reviewer cannot check its own fixes, because it runs no ward. The parent's second
-    // `--staged` is that check, and it is keyed on this session's own `FIXES MADE` block.
-    it('VALID: step 6 => hands its fixes to the parent to re-check rather than re-running a ward', () => {
+    // NOTHING RUNS AFTER THIS SESSION, so a fix it makes at step 6 is graded by nothing unless it
+    // re-runs the pair itself. The cap is TWO passes: a compile error still standing after the second
+    // is one the next planner should be cutting a chunk for, not one worth a third attempt against a
+    // three-round budget.
+    it('VALID: step 6 => re-runs the pair to check its own fixes, capped at twice', () => {
       expect({
-        cannotRecheck: has('**You cannot re-run the ward to check your own fixes.**'),
-        listThemInFixesMade: has(
-          'List every one of them in the\n   `FIXES MADE` block of your return instead.',
+        recheckYourOwnFixes: has(
+          '**CHECK YOUR OWN FIXES: run `npm run build` and `npm run ward -- --staged` once more.**',
         ),
-        theParentRerunsIt: has(
-          'Your parent re-runs `npm run ward -- --staged` after\n   you, precisely because you made fixes',
+        onlyIfYouChangedSomething: has('Only if\n   you changed something at this step'),
+        becauseNobodyRunsAfterYou: has(
+          'Nobody runs either\n   command after you, so this second pass is the only thing that grades what you just wrote.',
         ),
-        stillRedIsNextRoundsScope: has("a still-red result becomes the next round's scope"),
-        unfixableIsRework: has(
-          'A red\n   you could not fix at all is your `NEXT: rework`, carrying the failing output verbatim.',
+        cappedAtTwice: has('**Run that pair TWICE at most.**'),
+        andStop: has('Fix, re-run, and stop.'),
+        stillRedIsRework: has(
+          'A red still standing after the second pass\n   is your `NEXT: rework`, carrying the failing output VERBATIM',
+        ),
+        notAThirdAttempt: has('not a third attempt'),
+        listThemInFixesMade: has('List every fix you made in the `FIXES MADE` block either way.'),
+        andTheOldHandOffToTheParentIsGone: has(
+          '**You cannot re-run the ward to check your own fixes.**',
         ),
       }).toStrictEqual({
-        cannotRecheck: true,
+        recheckYourOwnFixes: true,
+        onlyIfYouChangedSomething: true,
+        becauseNobodyRunsAfterYou: true,
+        cappedAtTwice: true,
+        andStop: true,
+        stillRedIsRework: true,
+        notAThirdAttempt: true,
         listThemInFixesMade: true,
-        theParentRerunsIt: true,
-        stillRedIsNextRoundsScope: true,
-        unfixableIsRework: true,
+        andTheOldHandOffToTheParentIsGone: false,
       });
     });
 
     // The parent dispatches the post-push re-review after it has pushed, so the `unpushed` window
-    // is empty. That exception is keyed on a literal the parent writes into the brief, so it is not
-    // a judgement this session makes.
-    it('VALID: template => carries the post-push scope exception, keyed on a literal', () => {
+    // is empty. That exception is keyed on the `SECTION:` value the parent writes into the brief,
+    // so it is not a judgement this session makes.
+    it('VALID: template => carries the post-push scope exception, keyed on the brief section', () => {
       expect({
         scopeQuest: has(
-          "**Use `scope: 'quest'` instead when your brief says\n   `SCOPE: quest`.**",
+          `**Use \`scope: '${SCOPE_ARGUMENT}'\` instead on a\n   \`${REFUSAL_DISPATCH}\` brief.**`,
         ),
-        scopeQuestReason: has('where `unpushed` comes back empty'),
-        sameBoundary: has("`unpushed` is the same boundary your parent's `--staged` run used"),
+        scopeQuestReason: has('That round is already pushed, so `unpushed` comes back empty.'),
+        sameBoundary: has('`unpushed` is the same boundary your OWN `--staged` run used at step 5'),
         cannotDisagree: has('so the two\n   cannot disagree about what this round was'),
       }).toStrictEqual({
         scopeQuest: true,
@@ -679,10 +846,17 @@ describe('reviewerMinionStatics', () => {
   // read it. On `bug-repro` the planner records there that the reported symptom was wrong, and what
   // it actually drove. The pack says in as many words that "the reviewer then checks the test
   // against the right one". No reviewer can do that from the chunk fields alone.
-  it('VALID: step 2 => verifies against the plan SUMMARY as well as every chunk field', () => {
+  it('VALID: step 2 => reads the ids and verifies against the plan SUMMARY as well as every chunk field', () => {
     expect({
+      theThreeIds: has('**`## Context` carries the three ids**'),
+      onItsFirstThreeLines: has(
+        'on its first three lines: `Quest ID:`,\n   `Work Item ID:` and `Operation Item ID:`. Read them from there.',
+      ),
+      andWhyRetypingOneCosts: has(
+        'UUID-validated — a wrong one is a REJECTED write, not a degraded one.',
+      ),
       summaryAndChunks: has(
-        'You verify the round against its `SUMMARY`\n   and its chunks: each `INTENT`, each `FILES` list, each `UNITS` list.',
+        "**`## Plan` is what you verify the round against**: its `SUMMARY`, and each chunk's\n   `INTENT`, `FILES` list and `UNITS` list.",
       ),
       whatTheSummaryCarries: has(
         'The `SUMMARY` carries what this round makes true, the shape of the approach, and any design\n   decision the planner settled.',
@@ -697,9 +871,12 @@ describe('reviewerMinionStatics', () => {
         'A chunk built against the scope that correction replaced is `NEXT: rework`',
       ),
       claimNotSubstitute: has(
-        "**A worker's return is a\n   CLAIM about that plan, never a substitute for it.**",
+        "**A worker's report is a CLAIM about that plan, never\n   a substitute for it.**",
       ),
     }).toStrictEqual({
+      theThreeIds: true,
+      onItsFirstThreeLines: true,
+      andWhyRetypingOneCosts: true,
       summaryAndChunks: true,
       whatTheSummaryCarries: true,
       itCarriesCorrections: true,
@@ -753,23 +930,52 @@ describe('reviewerMinionStatics', () => {
     });
   });
 
-  it('VALID: template => bans the build, destructive git, the Agent tool and any other ward', () => {
+  // THE BUILD, THE `--staged` WARD AND THE PUSH ARE ALL THIS SESSION'S — steps 5, 6 and 11 — so the
+  // list says by name that none of them is on it. An entry banning one would contradict the method
+  // above it, and a prompt that contradicts itself is resolved by whichever line the agent reads
+  // first. What the list DOES ban is the WHOLE-REPO bare run, the dispatcher's own ledger item,
+  // and any rewrite of the document three other sessions wrote.
+  it('VALID: template => bans destructive git, the Agent tool, the whole-repo ward and rewriting the document', () => {
     expect({
-      build: has('- **`npm run build`** — your parent already built'),
       destructiveGit: has('- **Destructive `git`**'),
-      theRoundIsUncommittedWhenYouArrive: has(
-        "The whole round is UNCOMMITTED when you arrive, so any of those verbs discards work no\n  commit is holding — every worker's, not just your own.",
+      andPushIsNotOnThatList: has(
+        '- **Destructive `git`** — no `stash`, no `reset`, no `checkout --`, no `clean`, no `rebase`.',
       ),
-      commitsAreRequired: has('**Committing the round and your\n  verdict is NOT on this list.**'),
+      theRoundIsUncommittedWhenYouArrive: has(
+        "The whole round is UNCOMMITTED when you arrive, so any of those verbs discards work no commit is\n  holding — every worker's, not just your own.",
+      ),
+      commitsAreRequired: has(
+        '**Your two commits and your push are NOT\n  on this list.** Those are steps 7, 10 and 11. All three are required.',
+      ),
       agentTool: has('- **The `Agent` tool** — you are a LEAF.'),
-      theRoundsWardIsTheParents: has("- **The round's ward.**"),
+      wholeRepoWardOnly: has('- **The whole-repo `npm run ward`, bare.**'),
+      itIsTheDispatchersItem: has(
+        'The dispatcher runs that regression pass itself, as its\n  own ledger item, after your parent signals.',
+      ),
+      neitherOfItsOwnTwoIsBanned: has(
+        '**Neither\n  `npm run build` nor `npm run ward -- --staged` is on this list**',
+      ),
+      butRunningThemEarlyIs: has('- **Running either one BEFORE step 5.**'),
+      andWhy: has(
+        'A compiler error list read early\n  becomes the thing you look for, and the defect it cannot name is the one you then miss.',
+      ),
+      rewritingTheDocument: has('- **Rewriting any section of the round document.**'),
+      itReadsAndCommitsIt: has('You READ all of it and you COMMIT it. You\n  add nothing to it'),
+      noStaleBuildBan: has('- **`npm run build`** — your parent already built'),
     }).toStrictEqual({
-      build: true,
       destructiveGit: true,
+      andPushIsNotOnThatList: true,
       theRoundIsUncommittedWhenYouArrive: true,
       commitsAreRequired: true,
       agentTool: true,
-      theRoundsWardIsTheParents: true,
+      wholeRepoWardOnly: true,
+      itIsTheDispatchersItem: true,
+      neitherOfItsOwnTwoIsBanned: true,
+      butRunningThemEarlyIs: true,
+      andWhy: true,
+      rewritingTheDocument: true,
+      itReadsAndCommitsIt: true,
+      noStaleBuildBan: false,
     });
   });
 
@@ -780,31 +986,25 @@ describe('reviewerMinionStatics', () => {
   // - `manual-qa` breaks a production line and runs the one test file to see whether it fails;
   // - `browser-e2e` reads `npm run ward -- detail <runId>` on an implausibly fast green.
   //
-  // Step 6's own red-first instruction contradicted that entry too. What the ban forbids is a
-  // second WHOLE-ROUND ward. It also forbids a different scope for the round's own pass.
-  it('VALID: the ward ban => sends the round-scoped run to the parent and permits a single-file one', () => {
+  // Step 6's own red-first instruction contradicted that entry too. A NARROW run stays permitted at
+  // any point, and three discipline packs assert against this carve-out from their own side.
+  it('VALID: the ward ban => still permits a single-file run, at any point', () => {
     expect({
-      theParentRunsItTwice: has(
-        'Your parent runs it, once, before it dispatches you, and once more after\n  you.',
-      ),
-      noStagedOfYourOwn: has(
-        "Do not run `--staged` yourself and do not run the round's pass under some other scope.",
-      ),
-      narrowRunIsNotBanned: has('**A run over ONE file or ONE test is not on this list.**'),
+      narrowRunIsFineAtAnyPoint: has('A ward over ONE file or ONE test is fine at any point.'),
       witnessingARed: has('- you witness a red before you fix it;'),
       provingAMutation: has('- you revert a line to see whether a test fails;'),
       readingAPriorRunsDetail: has('- you read a prior run with `npm run ward -- detail <runId>`.'),
       disciplineMayRequireIt: has('Your discipline above may require one as proof.'),
       noBlanketBan: has("Any ward but step 5's"),
+      noHandOffToTheParent: has('Your parent runs it, once, before it dispatches you'),
     }).toStrictEqual({
-      theParentRunsItTwice: true,
-      noStagedOfYourOwn: true,
-      narrowRunIsNotBanned: true,
+      narrowRunIsFineAtAnyPoint: true,
       witnessingARed: true,
       provingAMutation: true,
       readingAPriorRunsDetail: true,
       disciplineMayRequireIt: true,
       noBlanketBan: false,
+      noHandOffToTheParent: false,
     });
   });
 
@@ -830,44 +1030,42 @@ describe('reviewerMinionStatics', () => {
 
   // ============================================================================================
   // CROSS-FILE AGREEMENTS. Each test spans this file and one other statics file, and derives its
-  // needle from that other file's live value. An override literal, a plan field and a `NEXT:`
-  // value are all plain prose on both sides: until these landed, a reword of either side stayed
-  // green while the two files quietly stopped agreeing.
+  // needle from that other file's live value. A section heading, a plan field and a `NEXT:` value
+  // are all plain prose on both sides: until these landed, a reword of either side stayed green
+  // while the two files quietly stopped agreeing.
   // ============================================================================================
   describe('agreements with the operator above it and the two minions beside it', () => {
-    // SPANS operator-prompt-statics.ts (it WRITES the post-refusal brief) ↔ this file (it is the
-    // only reader). Two overrides ride in that brief and each changes what this session does:
-    // `REFUSAL:` carries the outstanding units no tool hands back, and `SCOPE: quest` widens the
-    // enumeration that would otherwise come back empty. Both are matched by SPELLING. Reword one on
-    // either side and this session silently runs the default path, earning its parent the identical
-    // refusal. There is no `SKIP WARD` on either side any more: this session runs no ward at all.
-    it('VALID: {operator post-refusal brief, reviewer} => handles both overrides the operator writes, spelled identically', () => {
+    // SPANS operator-prompt-statics.ts (it APPENDS the re-review section and dispatches on it) ↔
+    // this file (the only reader of either). The refusal message is `signal-back`'s own list of the
+    // outstanding units and no tool hands it back, so a rename of that section on one side leaves
+    // this session enumerating the default window and earning its parent the identical refusal.
+    it('VALID: {operator refusal path, reviewer} => reads the section the operator appends, under the value it dispatches', () => {
       expect({
-        operatorWritesTheRefusalLine: REFUSAL_BRIEF_LINES.filter((line) =>
-          line.startsWith(REFUSAL_LITERAL),
-        ).length,
-        operatorWritesTheScopeLineExactly: REFUSAL_BRIEF_LINES.includes(SCOPE_LITERAL),
-        theScopeLinesValueIsTheArgumentThisTemplatePasses: SCOPE_LITERAL.endsWith(SCOPE_ARGUMENT),
-        theBriefInventoryHereListsBoth: has(
-          `any \`${REFUSAL_LITERAL}\` / \`${SCOPE_LITERAL}\` line.`,
+        theSectionTheOperatorAppends: REFUSAL_SECTION,
+        theValueItDispatchesUnder: REFUSAL_DISPATCH,
+        thatValueIsOneTheBriefFenceDeclares: SECTION_VALUES.some((value) =>
+          REFUSAL_DISPATCH.endsWith(value),
         ),
-        theOperatorSaysThatScopeLineIsNotOptional: OPERATOR.includes(
-          `**\`${SCOPE_LITERAL}\` is not optional here.**`,
+        thisTemplateReadsThatSectionFirst: has(
+          `read the document's \`${REFUSAL_SECTION}\` section before anything\nelse.**`,
         ),
-        andBothSidesGiveTheSameReason: OPERATOR.includes(
-          "The reviewer's usual not-yet-pushed window is EMPTY,\nbecause you pushed at step 10.",
+        andWidensTheScopeOnThatSameValue: has(
+          `**Use \`scope: '${SCOPE_ARGUMENT}'\` instead on a\n   \`${REFUSAL_DISPATCH}\` brief.**`,
         ),
-        whichIsWhatThisTemplateCallsIt: has('where `unpushed` comes back empty'),
+        theOperatorSaysWhyItMustBeVerbatim: OPERATOR.includes(
+          '**Word for word, because that message is the only copy that will ever exist.**',
+        ),
+        andBothSidesSayNoToolRepeatsIt: has('No tool hands that list back to you'),
         theOperatorNoLongerWritesASkipWardLine: OPERATOR.includes('SKIP WARD'),
         andThisTemplateNoLongerReadsOne: has('SKIP WARD'),
       }).toStrictEqual({
-        operatorWritesTheRefusalLine: 1,
-        operatorWritesTheScopeLineExactly: true,
-        theScopeLinesValueIsTheArgumentThisTemplatePasses: true,
-        theBriefInventoryHereListsBoth: true,
-        theOperatorSaysThatScopeLineIsNotOptional: true,
-        andBothSidesGiveTheSameReason: true,
-        whichIsWhatThisTemplateCallsIt: true,
+        theSectionTheOperatorAppends: '## Re-review',
+        theValueItDispatchesUnder: 'SECTION: Re-review',
+        thatValueIsOneTheBriefFenceDeclares: true,
+        thisTemplateReadsThatSectionFirst: true,
+        andWidensTheScopeOnThatSameValue: true,
+        theOperatorSaysWhyItMustBeVerbatim: true,
+        andBothSidesSayNoToolRepeatsIt: true,
         theOperatorNoLongerWritesASkipWardLine: false,
         andThisTemplateNoLongerReadsOne: false,
       });
@@ -913,12 +1111,12 @@ describe('reviewerMinionStatics', () => {
       });
     });
 
-    // SPANS planner-minion-statics.ts (it WRITES the plan fence) ↔ this file (it grades the round
-    // against that fence). Every field named in step 2 has to be a field the plan really carries,
+    // SPANS planner-minion-statics.ts (it APPENDS the plan) ↔ this file (it grades the round
+    // against that plan). Every field named in step 2 has to be a field the plan really carries,
     // and step 4's set difference has to subtract the field the planner declares this session
     // grades by. Rename one in the plan and this session verifies against a heading that is not
-    // in the file it just opened.
-    it('VALID: {planner plan file, reviewer method} => grades against fields the plan actually carries', () => {
+    // in the document it just opened.
+    it('VALID: {planner plan format, reviewer method} => grades against fields the plan actually carries', () => {
       expect({
         thePlannerWritesThisManyFields: PLAN_FIELDS.length,
         fieldsStepTwoNamesThatNoPlanCarries: FIELDS_STEP_TWO_GRADES.filter(
@@ -929,56 +1127,60 @@ describe('reviewerMinionStatics', () => {
         andStepFourSubtractsThatExactField: has(
           `subtracting each chunk's \`${GRADED_FIELD}\` list`,
         ),
-        theOperatorSendsThePlanPathRatherThanThePlan: OPERATOR_ROUND_BRIEF.includes(
+        theOperatorSendsThePlanPathRatherThanThePlan: OPERATOR_BRIEF_FENCE.includes(
           `PLAN: ${PLAN_PATH}`,
         ),
-        soThisTemplateTakesThePathFromTheBriefAndHardcodesNone: template.includes(PLAN_PATH),
-        andReadsTheFileAtWhateverPathArrives: has(
-          '**Read the PLAN FILE** at the path your brief names.',
+        soThisTemplateHardcodesNoPath: template.includes(PLAN_PATH),
+        andReadsTheDocumentAtWhateverPathArrives: has(
+          '2. **Read the ROUND DOCUMENT** at the path your brief names, whole, top to bottom.',
         ),
       }).toStrictEqual({
-        thePlannerWritesThisManyFields: 8,
+        thePlannerWritesThisManyFields: 7,
         fieldsStepTwoNamesThatNoPlanCarries: [],
         stepTwoNamesThisMany: 4,
         thePlannerDeclaresWhichFieldThisSessionGradesBy: true,
         andStepFourSubtractsThatExactField: true,
         theOperatorSendsThePlanPathRatherThanThePlan: true,
-        soThisTemplateTakesThePathFromTheBriefAndHardcodesNone: false,
-        andReadsTheFileAtWhateverPathArrives: true,
+        soThisTemplateHardcodesNoPath: false,
+        andReadsTheDocumentAtWhateverPathArrives: true,
       });
     });
 
-    // SPANS operator-prompt-statics.ts step 7 ↔ the opening of this file. Three things reach this
-    // session from outside and nothing else carries any of them: the worker returns (which exist
-    // NOWHERE else once the operator's turn ends), the parent's own `--staged` ward output, and the
-    // quest id its checklist call needs. Each is produced by a file this one cannot see.
-    it('VALID: {operator step 7 brief, reviewer} => expects exactly what that step sends', () => {
+    // SPANS operator-prompt-statics.ts's brief fence ↔ the opening of this file. The brief carries
+    // a path and at most one more line, so everything this session grades against comes off disk.
+    //
+    // BOTH SIDES ARE ASSERTED EMPTY OF A `WARD:` BLOCK. This session runs its own build and ward at
+    // step 5; a brief promising a block nobody writes sends it looking, and it then grades a brief it
+    // believes incomplete as a degraded round.
+    it('VALID: {operator brief fence, reviewer} => expects exactly what that fence sends, and no ward block', () => {
       expect({
-        theOperatorSendsTheReturnsVerbatimAndInOrder: OPERATOR_ROUND_BRIEF.includes(
-          '<every worker return from step 5, VERBATIM and in dispatch order>',
+        theFenceCarriesTheseKeys: BRIEF_KEYS,
+        theOperatorSendsNoWorkerReturns: OPERATOR.includes('every worker return'),
+        andSaysItForwardsNeither: OPERATOR.includes('**You forward nothing**'),
+        andThisTemplateReadsThemOffDiskInstead: has(
+          `**Then read the \`${ROUND_LOG_HEADING}\` at the BOTTOM of the document.**`,
         ),
-        andThisTemplateExpectsThemThatWay: has(
-          'It also carries every\n`worker-minion` return from this round, verbatim, in dispatch order.',
+        theOperatorSendsNoWardOutput: OPERATOR_BRIEF_FENCE.includes('WARD:'),
+        andThisTemplateRunsOneRatherThanReadingIt: has(
+          '5. **NOW BUILD, THEN WARD — and not one step earlier.**',
         ),
-        theOperatorSaysTheyExistNowhereElse: OPERATOR.includes(
-          'Those returns exist NOWHERE else — not on the quest, not in git',
+        andTheOperatorSaysThatSessionOwnsBoth: OPERATOR.includes(
+          'your REVIEWER builds, once, after it reads the round',
         ),
-        theOperatorSendsItsOwnWardOutput: OPERATOR_ROUND_BRIEF.includes(
-          "WARD:   <step 6's output, verbatim>",
-        ),
-        andThisTemplateReadsItRatherThanRunningOne: has(
-          "5. **READ the round's ward result out of your brief.**",
-        ),
-        theBriefHeaderCarriesTheIdTheChecklistCallNeeds: OPERATOR_BRIEF_HEADER.includes(
-          `Quest ID: ${CHECKLIST_ID}`,
+        // The quest id is the ONE placeholder this template names. It arrives on the fetch line of
+        // the brief fence and again in the document's `## Context`.
+        theFenceCarriesTheIdTheChecklistCallNeeds: OPERATOR_BRIEF_FENCE.includes(
+          `questId: '${CHECKLIST_ID}'`,
         ),
       }).toStrictEqual({
-        theOperatorSendsTheReturnsVerbatimAndInOrder: true,
-        andThisTemplateExpectsThemThatWay: true,
-        theOperatorSaysTheyExistNowhereElse: true,
-        theOperatorSendsItsOwnWardOutput: true,
-        andThisTemplateReadsItRatherThanRunningOne: true,
-        theBriefHeaderCarriesTheIdTheChecklistCallNeeds: true,
+        theFenceCarriesTheseKeys: ['PLAN', 'WAVE', 'CHUNK', 'SECTION'],
+        theOperatorSendsNoWorkerReturns: false,
+        andSaysItForwardsNeither: true,
+        andThisTemplateReadsThemOffDiskInstead: true,
+        theOperatorSendsNoWardOutput: false,
+        andThisTemplateRunsOneRatherThanReadingIt: true,
+        andTheOperatorSaysThatSessionOwnsBoth: true,
+        theFenceCarriesTheIdTheChecklistCallNeeds: true,
       });
     });
   });

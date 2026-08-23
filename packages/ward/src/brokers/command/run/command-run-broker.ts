@@ -20,6 +20,7 @@ import { commandRunLayerFolderBroker } from './command-run-layer-folder-broker';
 import { commandRunLayerGitScopeBroker } from './command-run-layer-git-scope-broker';
 import { commandRunLayerSingleBroker } from './command-run-layer-single-broker';
 import { commandRunLayerMultiBroker } from './command-run-layer-multi-broker';
+import { passthroughNormalizeTransformer } from '../../../transformers/passthrough-normalize/passthrough-normalize-transformer';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
 import { isProjectReferencesModeGuard } from '../../../guards/is-project-references-mode/is-project-references-mode-guard';
 import { hasCheckDiscoveryMismatchGuard } from '../../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
@@ -34,7 +35,20 @@ export const commandRunBroker = async ({
   config: WardConfig;
   rootPath: AbsoluteFilePath;
 }): Promise<AdapterResult> => {
-  const resolvedConfig = await commandRunLayerGitScopeBroker({ config, rootPath });
+  const gitScopedConfig = await commandRunLayerGitScopeBroker({ config, rootPath });
+
+  // Every path reaching a check runner is repo-relative with no `./`, because that is the ONE form
+  // `hasPassthroughMatchGuard` matches against a package prefix. Both other spellings of the same
+  // file — `./packages/…` and the absolute path — matched no package, spawned no child, and left
+  // the run reporting `WARN 0 files run` at exit 0. See passthroughNormalizeTransformer.
+  const normalizedPassthrough = passthroughNormalizeTransformer({
+    passthrough: gitScopedConfig.passthrough,
+    rootPath,
+  });
+  const resolvedConfig: WardConfig =
+    normalizedPassthrough === undefined
+      ? gitScopedConfig
+      : { ...gitScopedConfig, passthrough: normalizedPassthrough };
 
   const workspaces = await workspaceDiscoverBroker({ rootPath });
 

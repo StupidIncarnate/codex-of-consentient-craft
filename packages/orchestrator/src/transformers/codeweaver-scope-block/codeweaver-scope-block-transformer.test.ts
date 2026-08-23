@@ -21,12 +21,13 @@ const { plannerMarkdown } = disciplineImplementationStatics;
 // tells the planner to QUOTE. `discipline-implementation-statics.test.ts` parses it identically, so
 // the two sides cannot disagree about what an enumerated name is.
 const CONTEXT_SECTION = plannerMarkdown.slice(
-  plannerMarkdown.indexOf('## Your denominator is the `CONTEXT:` block in your brief'),
+  plannerMarkdown.indexOf('## Your denominator is the `## Context` section of the round document'),
   plannerMarkdown.indexOf('## Cut the cell into CHUNKS'),
 );
 
+// The pack lists the headings as a TABLE now, one row each, rather than a numbered list.
 const ENUMERATED_CONTEXT_HEADINGS = Array.from(
-  CONTEXT_SECTION.matchAll(/^\d\. `(?<heading>[^`]+)`/gmu),
+  CONTEXT_SECTION.matchAll(/^\| `(?<heading>[^`]+)` \|/gmu),
 ).map((match) => match.groups?.heading ?? '');
 
 const SHARED_ENTRY = QuestPackageEntryStub({

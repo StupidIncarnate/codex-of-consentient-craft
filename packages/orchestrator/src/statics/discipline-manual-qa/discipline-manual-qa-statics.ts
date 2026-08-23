@@ -19,6 +19,37 @@
  * `### The proof` by name. This pack states the walk directly, instead of arguing with a TDD script
  * that four disciplines out of five do not run.
  *
+ * `workerMarkdown` MUST CARRY `### The work`, `### The proof` AND `### The ward`. The worker
+ * template's method points at all three by name. `### The ward` moved here from `plannerMarkdown`,
+ * which used to write a literal command into every chunk; the worker calls `get-folder-detail` for
+ * its own folder types at method step 1 and holds that map first-hand. It keys off where a fix
+ * LANDED rather than where one might, and it still runs on a clean walk that changed nothing —
+ * otherwise a walk-only round gets no check at all. `typecheck` is gone from every row: ward's
+ * typecheck is `tsc -b`, which BUILDS the shared `dist/`.
+ *
+ * `plannerMarkdown` MUST CARRY `### How to plan`, and the planner template's method step 3 is a
+ * BLOCKING read of it. It is an ORDERED procedure naming this pack's other sections in the order to
+ * work them, and the template says outright that it outranks the template's own step order. Step 2
+ * is the load-bearing one here: the real browser surface has to be established before a single
+ * browser slice is planned, because this repo denies the Chrome MCP ASYMMETRICALLY — `tabs_context`
+ * answers while `navigate` does not — so a planner that leaves it to the workers has each of them
+ * rediscover the Playwright-Node-API fallback separately, mid-walk.
+ *
+ * `plannerMarkdown`'s `### The waves` SECTION IS WHY THIS DISCIPLINE IS SERIAL, and it is the
+ * strictest of the five. Every chunk gets its own wave. One dev server and one reset lever cannot
+ * serve two walks at once, and a worker resetting the canvas mid-walk hands its sibling a clean
+ * result that describes a system nobody set up. Neither worker can detect that, and nothing re-walks
+ * a slice. The planner template requires this heading of every pack and states no grouping rule of
+ * its own.
+ *
+ * THE RESET LEVER HAS A DECLARED "NO LEVER" CASE, because the instrument the block demands does not
+ * exist on every flow. Measured on a real quest, a flow's whole subject was a server's own
+ * `process.uptime()` — monotonic, rewindable only by restarting the process, which `operatorMarkdown`
+ * reserves to the parent and `workerMarkdown` forbids the worker outright. "If you cannot get back to
+ * a clean known state, that is chunk 1" sends that planner to build a lever for a quantity that has
+ * none. Worse, two of the flow's units are DELTA measurements that need the counter running, so a
+ * working reset would have destroyed them.
+ *
  * THE PIPELINE SHAPE IS WHAT KEEPS THE VERIFIER INDEPENDENT. The monolithic siegemaster prompt
  * carried "A fresh walker verifies a fix, never the walker that made it" as a paragraph. The
  * audited quest shows what that paragraph achieved. That session walked 39 of 60 units INLINE,
@@ -45,9 +76,10 @@ export const disciplineManualQaStatics = {
   operatorMarkdown: `**RESOURCE: the dev server. Naming it here IS your permission to run it.** \`Dev Server Command\`
 and \`Dev Server URL\` sit in your Operation Context. Run ONE, in this order:
 
-1. Stand it up before step 3.
+1. Stand it up before you dispatch your planner.
 2. Own it for the whole session.
-3. Put both values in EVERY minion brief. A minion's own fetch carries neither.
+3. Put nothing extra in a brief for it — both values are already in the round document's
+   \`## Context\`.
 4. Tear it down before you signal.
 
 **No worker may start, restart or stop it.** **Kill only what you started.** Match port AND cwd, or
@@ -62,9 +94,9 @@ track on this one flow clears. Prior sessions pulled it ZERO times in 334 audite
 rounds signed 52 units against pre-fix code.`,
 
   plannerMarkdown: `Your item is the manual QA of ONE FLOW. Its units come from
-\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`. Both ids sit in
-your brief header. Read the whole checklist: every unit, every walk path, and the surface each
-observable is checked at.
+\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`. Both ids sit on
+the first lines of the round document's \`## Context\`. Read the whole checklist: every unit, every
+walk path, and the surface each observable is checked at.
 
 **Paths are the ITINERARY. Units are the DEFINITION OF DONE.** Twenty observables can stack on one
 node. This role fails most often by covering every path and leaving its units unmeasured.
@@ -78,6 +110,26 @@ system. Nobody else probes either one.
 consumer or a server-only route. \`curl\` and the real CLI are QA instruments, exactly as a browser
 is.
 
+### How to plan
+
+Work these in order. Each one names the section below that carries it.
+
+1. **Read the whole checklist** — every unit, every walk path, every check surface.
+2. **Establish the REAL browser surface before you plan a single browser slice**, by probing the tool
+   you will actually drive with rather than one that happens to answer. → instrument 4 under "Then
+   design the instruments"
+3. **Cut SLICES, not paths** — one walk path plus the units sitting on it, or one dense node's stack
+   of them. Prefer the smaller slice. → "Cut slices, not paths"
+4. **Design every instrument each slice needs, as a command or a recipe**: the reset lever, the
+   canvas, the fault lever. **A worker cannot invent one**, and two workers invent them differently.
+   → "Then design the instruments"
+5. **Where the state cannot be rewound at all, write \`NO RESET LEVER\`** with the reason, and name
+   the precondition its worker CAN establish instead.
+6. **Put the durable environment facts into EVERY chunk's \`NOTES\`.** → "Durable environment
+   knowledge"
+7. **Give every chunk its own wave.** This discipline is strictly serial, and the reason is a
+   resource your parent owns. → "The waves"
+
 ## Cut slices, not paths
 
 A chunk here is a SLICE. That is one walk path plus the units sitting on it, or a group of units
@@ -87,20 +139,31 @@ stacked on one dense node. Two of its fields have a fixed meaning here:
 |---|---|
 | \`UNITS\` | the checklist's ids, verbatim |
 | \`FILES\` | the implementation files the walk drives through |
+| \`MIRROR\` | the nearest existing WALK — a spec or driver whose route and levers match. A walk authors no file, so never a shape to copy |
 
 \`FILES\` names implementation files because that is where its worker fixes what the walk finds.
 
 **Prefer the smaller slice.** A worker that reports on eight units carefully beats one that skims
 thirty. A skimmed unit yields no measurement. Nothing re-walks that slice, so the skim is permanent.
 
-**\`WARD\` per chunk, by where a fix would land.** Write one over the chunk's \`FILES\`, because a
-walk that changes nothing still needs a command its worker can run and get a clean answer from:
+**\`FILES\` is what its worker wards over**, so name the implementation files the walk drives through
+even on a slice you expect to come back clean. Its worker builds its own ward command from them. You
+write none.
 
-| Where a fix would land | The command to write |
-|---|---|
-| pure logic | \`--only lint,typecheck,unit\` |
-| a \`flows/\` or \`startup/\` path in \`FILES\` | \`--only lint,typecheck,unit,integration\` |
-| painted geometry, provable only in a real browser | \`--only lint,typecheck,e2e\` |
+### The waves
+
+**Every chunk goes in its OWN wave. This discipline is strictly SERIAL.** Write the index one chunk
+per line — \`1: 1\`, \`2: 2\`, \`3: 3\` — however independent two slices look.
+
+There is ONE dev server and ONE reset lever on this round, and your parent owns both. Two workers
+walking at once share them. Worker A resets the canvas out from under worker B mid-walk, and
+everything B measured after that describes a system nobody set up. **Neither worker can tell that
+happened**, so B reports a clean walk it never really got. Nothing re-walks that slice, so the false
+green is permanent.
+
+**Your parent also pulls the reset lever BETWEEN workers**, whenever one reports a fix. That lever
+clears this whole flow's sign-off track, so it only means anything with exactly ONE walk in flight.
+Group two chunks into a wave and you take that lever away from your parent for the length of it.
 
 ## Then design the instruments, because a worker cannot
 
@@ -111,6 +174,20 @@ description. Each worker invents a missing instrument differently, so no two wal
 must start from its own known precondition. A branch that fails because the previous walk dirtied
 state is a FALSE finding. A branch that passes only because prior state masked the bug is a FALSE
 green. If you cannot get back to a clean known state, that is chunk 1.
+
+**Where the state genuinely cannot be rewound, say so and design the precondition instead.** Some
+flows run on a value NO lever resets — a process uptime, a monotonic counter, a wall clock, an
+append-only log. **Restarting the process is not the answer here.** There is one dev server, your
+parent owns it, no worker may bounce it, and a restart changes what every later chunk measures.
+Write \`NO RESET LEVER\` into that chunk's \`NOTES\` with the reason, then name the precondition its
+worker CAN establish: a fresh page load, a fresh socket, a fresh request, or a starting value it
+records and compares against later.
+
+**Then check which of that chunk's units DEPEND on the value moving.** An "advances after a tick"
+unit needs the counter running, so a reset would destroy the measurement rather than enable it. Say
+in \`NOTES\` which units are measured as a DELTA from a recorded start rather than against a fixed
+expected value. A worker that reset something monotonic between its two reads has no delta left to
+report and no way to notice.
 
 **2. A DISCRIMINATING canvas. Never inherit the e2e suite's fixture.** A canvas is the seeded data a
 walk runs against. Every blind spot found on this repo traced back to a benign fixture holding a
@@ -126,12 +203,15 @@ those now. Hand the recipe to the worker. A unit nobody can force ends as an \`u
 sign-off carrying a real reason and a real question. Never skip one quietly.
 
 **4. Establish the real browser surface before planning any browser slice.** In this repo the
-Claude-in-Chrome MCP is frequently DENIED. It is denied asymmetrically: \`tabs_context_mcp\` answers
-while \`navigate\` returns \`Permission denied by user\`. **Probing \`tabs_context_mcp\` therefore
-does NOT test usability. Probe the tool you will actually drive with.** When the browser is
-unreachable, the working surface is driving Chromium through the **Playwright Node API** from a
-throwaway \`.js\`/\`.py\` driver. Say so in the plan, rather than leaving each worker to rediscover
-it. With no browser surface at all, every \`ui-state\` unit is \`unconfirmable\`. Its evidence is "no
+Claude-in-Chrome MCP is frequently DENIED, and asymmetrically: \`tabs_context_mcp\` answers while
+\`navigate\` returns \`Permission denied by user\`. **Probe the tool you will actually drive with.**
+
+**Answering is not sufficing.** It carries no request interception and no WebSocket routing, so a
+unit forced by a substituted response or an injected frame needs the **Playwright Node API** from a
+throwaway \`.js\`/\`.py\` driver even where \`navigate\` works — and its permission is PER SITE, so no
+probe settles the app's origin until a server is up. **Make the driver primary; name it per slice.**
+
+With no browser surface at all, every \`ui-state\` unit is \`unconfirmable\`. Its evidence is "no
 browser attached". That run is DEGRADED. Your reviewer says so in its verdict commit. **Never
 declare "no browser" as a way to skip the harder walk.**
 
@@ -139,7 +219,8 @@ declare "no browser" as a way to skip the harder walk.**
 
 Put every fact below into EVERY chunk's \`NOTES\`. Each one cost a prior session real time:
 
-- **The dev server binds IPv6-only.** Node's \`fetch\` fails against it where \`curl\` succeeds.
+- **The dev server binds IPv6-only, on \`dungeonmaster.localhost\`** — \`getent hosts\` gives \`::1\`
+  and nothing else, so Node's \`fetch\` fails where \`curl\` succeeds. Drive \`http://[::1]:<port>\`.
 - **\`context.setOffline(true)\` does NOT close an established WebSocket in Chromium.** Closing
   Vite's HMR socket reloads the document.
 - **Importing the orchestrator barrel boots real intervals and fs watchers.** It hung one driver for
@@ -149,17 +230,18 @@ Put every fact below into EVERY chunk's \`NOTES\`. Each one cost a prior session
   else they are untracked files. An untracked file blocks your parent's signal. Poll with
   \`curl -sf --retry 15 --retry-delay 2 --retry-connrefused\` rather than a hand-rolled loop.
 
-**Your spike is DIAGNOSTIC on this discipline, not kept.** Remove any probe you added to product
-code before you return. Write what it measured into the chunk's \`NOTES\`.
+**Your spike is DIAGNOSTIC here, not kept.** Remove any probe you added to product code; write what
+it measured into \`NOTES\`.
 
-## The dev server values belong in every chunk's \`NOTES\`
+## Do NOT transcribe the dev server values into a chunk
 
-Your parent puts \`Dev Server Command\` and \`Dev Server URL\` in your brief. Copy both into every
-chunk's \`NOTES\`. A worker's own fetch carries neither.`,
+Both are in the round document's \`## Context\`, which every worker on this round reads. A second
+copy inside a chunk's \`NOTES\` is one that can disagree with the first.`,
 
-  workerMarkdown: `You hand-drive ONE SLICE of one flow against a dev server your parent already started. Your brief
-names the units with their verbatim text, the route, the Dev Server URL, a reset lever, a fault
-lever and a canvas. The last three are the instruments your planner designed:
+  workerMarkdown: `You hand-drive ONE SLICE of one flow against a dev server your parent already started. Your chunk
+names the units with their verbatim text, the route, a reset lever, a fault lever and a canvas; the
+\`Dev Server URL\` is in the round document's \`## Context\`. The last three are the instruments your
+planner designed:
 
 | Instrument | What it is |
 |---|---|
@@ -178,13 +260,13 @@ green suite is a claim about that system, never a measurement of it.
 
 ### The work
 
-1. **Reset before EVERY path**, with the reset lever your brief names.
+1. **Reset before EVERY path**, with the reset lever your chunk names.
 
 2. **Learn the expected value BEFORE you drive.** Read the implementation your slice runs through.
    Write down the exact string, status, count, order or bound each unit claims. A worker that reads
    the page first and forms its expectation afterwards rationalises whatever it sees.
 
-3. **Drive the route by hand at the surface the brief names.**
+3. **Drive the route by hand at the surface your chunk names.**
    - a real browser — click the real elements
    - an endpoint — \`curl\` it, then read the real status and the real body
    - a CLI — run the real command, then read its stdout and its exit code
@@ -264,7 +346,18 @@ so nodes read as invisible with zero-ish boxes. Before you measure geometry:
 3. Measure.
 
 **ZERO DEFECTS IS A GOOD ANSWER.** A complete walk record with nothing found is \`NEXT: continue\`.
-Do not manufacture a finding to look productive.`,
+Do not manufacture a finding to look productive.
+
+### The ward
+
+**A walk that changed nothing still runs one**, over your \`FILES\`. Your check types follow where
+your fix landed — or, on a clean walk, where one would have:
+
+| Where the fix landed | \`--only\` |
+|---|---|
+| painted geometry, provable only in a real browser | \`lint,e2e\` |
+| a \`flows/\` or \`startup/\` path in your \`FILES\` | \`lint,unit,integration\` |
+| pure logic, and a clean walk that changed nothing | \`lint,unit\` |`,
 
   reviewerMarkdown: `This round produced WALKS, not only files. Judge each worker return as a CLAIM. Then settle every
 unit it touched on the \`siegemasterSignoff\` track.

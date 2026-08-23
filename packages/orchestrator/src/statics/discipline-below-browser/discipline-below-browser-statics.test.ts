@@ -244,8 +244,11 @@ describe('disciplineBelowBrowserStatics', () => {
         terminalsAreUnits: plannerMarkdown.includes(
           'Terminals and labelled branches are units too.',
         ),
-        everyUnitInOneChunk: plannerMarkdown.includes(
-          '**Every unit that call returns lands in exactly one chunk.**',
+        everyOutstandingUnitInOneChunk: plannerMarkdown.includes(
+          '**Every `[ ]` unit lands in exactly one chunk.**',
+        ),
+        andSettledOnesAreNotChunked: plannerMarkdown.includes(
+          '**Cut chunks from the `[ ]` units ONLY.**',
         ),
         routingByNode: plannerMarkdown.includes(
           '**A package slice does NOT own the seams. The seam slice does NOT own the per-package units.**',
@@ -260,7 +263,8 @@ describe('disciplineBelowBrowserStatics', () => {
       }).toStrictEqual({
         itemsAreWider: true,
         terminalsAreUnits: true,
-        everyUnitInOneChunk: true,
+        everyOutstandingUnitInOneChunk: true,
+        andSettledOnesAreNotChunked: true,
         routingByNode: true,
         crossingCostsTheBudget: true,
         operationalNotYours: true,
@@ -280,11 +284,11 @@ describe('disciplineBelowBrowserStatics', () => {
         skimIsInvisible: plannerMarkdown.includes('The skim is invisible in a green run'),
         earlierOwnsTheHarness: plannerMarkdown.includes('the EARLIER-NUMBERED one owns it'),
         fullPathNotConcept: plannerMarkdown.includes('**by FULL PATH, never by concept**'),
-        wardLine: plannerMarkdown.includes(
-          '**`WARD` per chunk:** `--only lint,typecheck,unit,integration`',
+        noPlaywrightChunk: plannerMarkdown.includes(
+          '**No chunk on this discipline authors Playwright.** Every artifact you cut sits below the browser.',
         ),
-        neverE2e: plannerMarkdown.includes(
-          'Never `e2e`. No chunk on this discipline authors Playwright.',
+        andTheWorkerBuildsItsOwnWard: plannerMarkdown.includes(
+          'Its worker builds its own ward command from that fact and from its own `FILES`.',
         ),
       }).toStrictEqual({
         bundleNotOneFlow: true,
@@ -295,8 +299,8 @@ describe('disciplineBelowBrowserStatics', () => {
         skimIsInvisible: true,
         earlierOwnsTheHarness: true,
         fullPathNotConcept: true,
-        wardLine: true,
-        neverE2e: true,
+        noPlaywrightChunk: true,
+        andTheWorkerBuildsItsOwnWard: true,
       });
     });
 
@@ -335,9 +339,9 @@ describe('disciplineBelowBrowserStatics', () => {
     it('VALID: plannerMarkdown => refuses to transcribe the units and lists what the tool cannot know', () => {
       expect({
         doNotTranscribe: plannerMarkdown.includes(
-          '## Do NOT transcribe the observables into the chunk briefs',
+          '## Do NOT transcribe the observables into the chunks',
         ),
-        sameNarrowedList: plannerMarkdown.includes('It gets the SAME narrowed list you did'),
+        sameNarrowedList: plannerMarkdown.includes('It gets the SAME narrowed list you'),
         transcriptionError: plannerMarkdown.includes(
           'puts a transcription error between the spec and the test',
         ),
@@ -427,7 +431,7 @@ describe('disciplineBelowBrowserStatics', () => {
           'That is\nstructural rather than a promise it was trusted to keep',
         ),
         theSliceNotTheField: AUTHORED_REVIEWER.includes(
-          '**Your units are the PACKAGE SLICE your brief names, never the whole `flowriderSignoff` field.**',
+          '**Your units are the PACKAGE SLICE `## Context` names, never the whole `flowriderSignoff` field.**',
         ),
         siblingOwnsTheComplement: AUTHORED_REVIEWER.includes(
           'sibling role writes that SAME field over the browser-reachable package kinds. Those kinds are the\nDISJOINT complement of your slice.',
@@ -439,7 +443,7 @@ describe('disciplineBelowBrowserStatics', () => {
           'Signing one of ITS units is a false green: you opened no browser, so you cannot confirm a\nbrowser-reachable claim.',
         ),
         rebuildItYourself: AUTHORED_REVIEWER.includes(
-          'Your denominator is every unit in your slice. Rebuild it yourself with',
+          'Your denominator is every unit in your slice still awaiting your signature. Rebuild it yourself with',
         ),
         idAndFieldOnly: AUTHORED_REVIEWER.includes('Send the id and the sign-off field ONLY.'),
         batch: AUTHORED_REVIEWER.includes('**BATCH the writes.**'),
@@ -470,16 +474,16 @@ describe('disciplineBelowBrowserStatics', () => {
     it('VALID: reviewerMarkdown => patches observables, nodes and edges, and never offMapSignoffs', () => {
       expect({
         patchTargets: AUTHORED_REVIEWER.includes(
-          'patching `{ id, flowriderSignoff }` onto the\nobservable, node or edge through `modify-quest`',
+          'patching\n`{ id, flowriderSignoff }` onto the observable, node or edge through `modify-quest`',
         ),
         offMapIsNotADenominator: AUTHORED_REVIEWER.includes(
-          '**The off-map probe families are not on your denominator.**',
+          '**The off-map probe families are not on your denominator, and they are the `[-]` rows.**',
         ),
         offMapBelongsToAnotherRole: AUTHORED_REVIEWER.includes(
-          'Another role probes security, performance\nand the other off-map families by hand against a running system.',
+          'Another role\nprobes security, performance and the rest by hand against a running system.',
         ),
         neverPatchOffMapSignoffs: AUTHORED_REVIEWER.includes(
-          "`offMapSignoffs` is that role's\npatch target. A patch you send there signs a unit you never measured.",
+          "`offMapSignoffs` is that\nrole's patch target. A patch you send there signs a unit you never measured.",
         ),
       }).toStrictEqual({
         patchTargets: true,
@@ -589,9 +593,9 @@ describe('disciplineBelowBrowserStatics', () => {
         theSiblingWritesTheSameField: new Set(bothTracksFields).size === 1,
         theTwoTracksShareNoPackageKind: new Set(bothTracksKinds).size === bothTracksKinds.length,
         namesTheSliceNotTheField: AUTHORED_REVIEWER.includes(
-          `**Your units are the PACKAGE SLICE your brief names, never the whole \`${field}\` field.**`,
+          `**Your units are the PACKAGE SLICE \`## Context\` names, never the whole \`${field}\` field.**`,
         ),
-        patchesThatField: AUTHORED_REVIEWER.includes(`patching \`{ id, ${field} }\` onto the`),
+        patchesThatField: AUTHORED_REVIEWER.includes(`\`{ id, ${field} }\` onto the observable`),
         claimsTheOtherTracksField: AUTHORED_REVIEWER.includes(siegemaster.signoffField),
       }).toStrictEqual({
         theSiblingWritesTheSameField: true,
@@ -642,10 +646,19 @@ describe('disciplineBelowBrowserStatics', () => {
     });
   });
 
+  // THE PLANNER BLOCK HAS A LARGER BUDGET THAN ITS TWO SIBLINGS, and the gap is structural rather
+  // than a licence to sprawl. Every pack must now carry `### How to plan` — an ORDERED procedure the
+  // planner template makes a BLOCKING read — plus `### The waves`, on top of the subject matter the
+  // block already held. Those two sections landed in all five packs at once, and 9,000 predates
+  // them: measured after the change, every worker and reviewer block still sits under 7,000 while
+  // three of the five planners run past 10,000. The bound still bites — the largest planner has
+  // under a thousand characters of slack — and going over it costs the SERVED prompt its tail,
+  // because a pack is interpolated into a template already sized against
+  // `mcpToolResultStatics.maxVerbatimChars`.
   describe('budgets', () => {
     it('VALID: the three minion blocks => each authored half stays inside its budget', () => {
       expect({
-        planner: plannerMarkdown.length < 9_000,
+        planner: plannerMarkdown.length < 15_000,
         authoredWorker: AUTHORED_WORKER.length < 9_000,
         authoredReviewer: AUTHORED_REVIEWER.length < 9_000,
       }).toStrictEqual({ planner: true, authoredWorker: true, authoredReviewer: true });

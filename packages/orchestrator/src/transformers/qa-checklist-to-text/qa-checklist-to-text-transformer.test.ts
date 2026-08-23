@@ -330,7 +330,7 @@ describe('qaChecklistToTextTransformer', () => {
         }).split('\n');
 
         expect(lines.find((line) => line.startsWith('## UNITS'))).toBe(
-          `## UNITS — [ ] awaiting your \`${track}Signoff\`, [x] already settled on the ${track} track`,
+          `## UNITS — [ ] awaiting your \`${track}Signoff\` (the field THIS track writes), [x] not awaiting it, [-] not on the ${track} track at all`,
         );
       },
     );
@@ -349,7 +349,7 @@ describe('qaChecklistToTextTransformer', () => {
       }).split('\n');
 
       expect(lines.find((line) => line.startsWith('## UNITS'))).toBe(
-        '## UNITS — [ ] awaiting your `flowriderSignoff`, [x] already settled on the groundstomper track',
+        '## UNITS — [ ] awaiting your `flowriderSignoff` (the field THIS track writes), [x] not awaiting it, [-] not on the groundstomper track at all',
       );
     });
   });
