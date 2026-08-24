@@ -162,8 +162,16 @@ dropped from that list, because ESLint reports a "file ignored" error for a non-
 **Empty file set:** when git reports no files (nothing changed, or nothing unpushed), the run has no file scope and
 every check runs against every file — the same as a bare `npm run ward`.
 
-**Special case:** Typecheck always runs `tsc --noEmit` on the entire package regardless of file scope. There is no way
-to typecheck individual files with tsc.
+**Special case:** Typecheck always runs on the entire package regardless of file scope. There is no way to typecheck
+individual files with tsc.
+
+**Typecheck is the one check that WRITES.** In multi-package mode with project references, `command-run-broker` runs
+`checkCommandsStatics.typecheckRefs` — `tsc -b --listFiles`, once, from the repo root — instead of the per-package
+`tsc --noEmit`. `tsc -b` is BUILD mode: it emits into each package's `outDir` and writes `.tsbuildinfo`, so a ward run
+that includes `typecheck` is a build by another name. Two of them at once corrupt the shared `dist/`. That is why the
+orchestrator lets exactly one session per round run a ward, and why a worker's scoped ward carries `lint` plus tests
+and never `typecheck`. The non-emitting per-package path is still reachable: a project-references cycle makes
+`command-run-broker` fall back to it.
 
 ## Underlying Commands
 

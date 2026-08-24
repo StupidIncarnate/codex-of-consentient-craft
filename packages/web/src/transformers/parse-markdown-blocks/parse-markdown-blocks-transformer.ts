@@ -4,6 +4,13 @@
  * hard-wraps its prose must not render with a break at every wrap point, and only something
  * holding a buffer across lines can tell a wrap from a deliberate blank line.
  *
+ * `preserveLineBreaks` is for text whose newlines are STRUCTURE rather than wrapping — tool output,
+ * where one logical item is one line and its continuations are indented under it. The buffer still
+ * runs (blank lines still separate paragraphs, so the spacing is unchanged); it just joins on `\n`
+ * and keeps each line's indentation instead of flattening both into single spaces. Rejoining that
+ * text turns a contract ledger into one run-on sentence and drops the indentation that said which
+ * property belonged to which contract.
+ *
  * Everything inside a fence is passed through verbatim — a fence containing `# heading` or `- item`
  * is code, not structure — so this is also the only place that decides where a fence ends.
  *
@@ -25,10 +32,17 @@ const QUOTE = /^ {0,3}>\s?(.*)$/u;
 const RULE = /^(?:-{3,}|\*{3,}|_{3,})$/u;
 const BULLET_MARKER = /^[-*+]$/u;
 
-export const parseMarkdownBlocksTransformer = ({ text }: { text: string }): MarkdownBlock[] => {
+export const parseMarkdownBlocksTransformer = ({
+  text,
+  preserveLineBreaks = false,
+}: {
+  text: string;
+  preserveLineBreaks?: boolean;
+}): MarkdownBlock[] => {
   const blocks: MarkdownBlock[] = [];
   const paragraph: MarkdownSourceLine[] = [];
   const fenced: MarkdownSourceLine[] = [];
+  const paragraphJoiner = preserveLineBreaks ? '\n' : ' ';
   let fenceLanguage: MarkdownSourceLine | null = null;
 
   for (const line of text.split('\n')) {
@@ -69,7 +83,7 @@ export const parseMarkdownBlocksTransformer = ({ text }: { text: string }): Mark
       blocks.push(
         markdownBlockContract.parse({
           kind: 'paragraph',
-          spans: parseMarkdownSpansTransformer({ text: paragraph.join(' ') }),
+          spans: parseMarkdownSpansTransformer({ text: paragraph.join(paragraphJoiner) }),
         }),
       );
       paragraph.length = 0;
@@ -126,7 +140,9 @@ export const parseMarkdownBlocksTransformer = ({ text }: { text: string }): Mark
     }
 
     if (trimmed !== '') {
-      paragraph.push(markdownSourceLineContract.parse(trimmed));
+      // Untrimmed under preserveLineBreaks: the leading whitespace is what says this line is a
+      // continuation of the one above it, and trimming it flattens a nested ledger into a list.
+      paragraph.push(markdownSourceLineContract.parse(preserveLineBreaks ? line : trimmed));
     }
   }
 
@@ -145,7 +161,7 @@ export const parseMarkdownBlocksTransformer = ({ text }: { text: string }): Mark
     blocks.push(
       markdownBlockContract.parse({
         kind: 'paragraph',
-        spans: parseMarkdownSpansTransformer({ text: paragraph.join(' ') }),
+        spans: parseMarkdownSpansTransformer({ text: paragraph.join(paragraphJoiner) }),
       }),
     );
   }

@@ -111,9 +111,11 @@ describe('agentNameToPromptTransformer', () => {
       },
     );
 
-    // The `model:` line in the template is where the operator reads the model it passes to the
-    // Agent tool, and this switch is the registry it has to agree with. Drift between the two IS
-    // the defect: one blanket `sonnet` here ran the planner and the reviewer off-model.
+    // The per-minion model table in the template is where the operator reads the model it passes to
+    // the Agent tool, and this switch is the registry it has to agree with. Drift between the two
+    // IS the defect: one blanket `sonnet` here ran the planner and the reviewer off-model. The
+    // needle is a whole table ROW, so a row that loses its model cell fails here rather than
+    // matching on the minion name alone.
     it.each(OPERATOR_ROLE_CASES)(
       'VALID: {agent: %s} => the per-minion models its prompt names match the models this transformer returns',
       (role) => {
@@ -130,7 +132,7 @@ describe('agentNameToPromptTransformer', () => {
             return [
               minionName,
               model,
-              prompt.includes(`\`${minionName}\` → \`model: "${model}"\``),
+              prompt.includes(`| \`${minionName}\` | \`model: "${model}"\` |`),
             ];
           }),
         ).toStrictEqual([

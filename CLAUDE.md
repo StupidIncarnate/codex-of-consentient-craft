@@ -5,6 +5,9 @@ repo, so eslint never fires on anything in it — an eslint experiment run there
 exists at the root of this repo and keeps scratch files inside both the permission scope and the linted tree. Temp dirs
 that *tests* create are the exception — those belong in the OS `/tmp`, via `installTestbedCreateBroker`.
 
+**Critical: Do not ever record what was in code. That's git's job. The only historics you should ever record is tricky syntax
+that caused bugs and hard-earned lessons about the repo and its code.
+
 **Handoff and design docs go in `<repoRoot>/scrolls/`.** Anything written for a human or a future session to pick up —
 cross-session handoffs, dogfood runbooks, design proposals, the `scrolls/design/`
 prototype app — belongs there, and is committed with the repo.

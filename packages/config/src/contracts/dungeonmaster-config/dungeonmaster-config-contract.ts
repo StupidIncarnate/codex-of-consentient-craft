@@ -68,6 +68,18 @@ export const dungeonmasterConfigContract = z
           .min(configDefaultsStatics.devServer.port.min)
           .max(configDefaultsStatics.devServer.port.max)
           .brand<'DevServerPort'>(),
+        // The port a BROWSER loads the app from, when that is not `port`. A project whose dev
+        // command starts an API and a bundler serves the API on `port` and the app somewhere else —
+        // this repo's vite binds `portResolveBroker() + 1` and proxies `/api` and `/ws` back — so
+        // the one URL a hands-on QA session is handed has to be this one, not the API origin.
+        // Optional, and absent means the app IS on `port`, which is the single-server shape.
+        webPort: z
+          .number()
+          .int()
+          .min(configDefaultsStatics.devServer.port.min)
+          .max(configDefaultsStatics.devServer.port.max)
+          .brand<'DevServerWebPort'>()
+          .optional(),
         buildCommand: z
           .string()
           .min(1)

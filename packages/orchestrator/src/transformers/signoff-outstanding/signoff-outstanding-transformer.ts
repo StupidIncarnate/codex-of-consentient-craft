@@ -28,7 +28,10 @@
  *   to prove), not because the gate was skipped.
  * - `declared` (groundstomper, siegemaster) — one item per flow, so the item's `flowIds` ARE its
  *   COVERAGE SCOPE and the gate measures exactly the flow the session's own
- *   `get-qa-checklist({ questId, flowId, track })` call answers for. Measuring a groundstomper item
+ *   `get-qa-checklist({ questId, operationItemId })` call answers for. That call names the item and
+ *   nothing else: `getQaChecklistInputContract` is `.strict()`, and `operationItemId` replaced
+ *   `track`, `flowId` and `packageNames` as separate arguments, so the tool derives the flows and
+ *   the track from the item through this same transformer. Measuring a groundstomper item
  *   over every runtime flow instead makes the FIRST of several sibling items unsignable: its
  *   `packageScope` is `intersection`, so every sibling flow sharing one of its UI packages lands in
  *   its denominator. An item declaring no flows matches nothing and is not gated, which is what

@@ -385,6 +385,34 @@ describe('dungeonmaster-config-contract', () => {
       expect(parsed.devServer?.readinessTimeoutMs).toBe(60000);
     });
 
+    it('VALID: devServer with webPort => keeps it alongside port', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 4750,
+          webPort: 4751,
+        },
+      });
+
+      expect(parsed.devServer?.port).toBe(4750);
+      expect(parsed.devServer?.webPort).toBe(4751);
+    });
+
+    it('EMPTY: devServer without webPort => leaves it undefined so the app is read as being on port', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
+        },
+      });
+
+      expect(parsed.devServer?.webPort).toBe(undefined);
+    });
+
     it('INVALID: devServer with empty devCommand => throws validation error', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({

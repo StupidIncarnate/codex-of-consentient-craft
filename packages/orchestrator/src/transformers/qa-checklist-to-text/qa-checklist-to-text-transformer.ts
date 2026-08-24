@@ -21,10 +21,24 @@
  *
  * The `[x]`/`[ ]` column is the resume property made visible: a later session sees at a glance what
  * a predecessor actually landed, rather than reconstructing it from prose in a commit body.
+ *
+ * THERE IS A THIRD MARK, `[-]`, AND IT EXISTS BECAUSE `[x]` WAS LYING. A unit leaves
+ * `remainingItemIds` for two unrelated reasons: it was SIGNED on the calling track, or it was never
+ * on that track's denominator at all. Rendered identically, the second reads to a planner as "an
+ * earlier round already proved this". Measured on a real quest, every one of the seven off-map
+ * probe families rendered `[x] already settled on the flowrider track` — a track whose `unitKinds`
+ * excludes off-map entirely, so nothing had settled anything. A Flowrider planner reading that
+ * concludes this quest's only security and performance coverage is done.
+ *
+ * `[-]` is UNIT-KIND ineligibility alone, because that is the only one of the six exclusions in
+ * `signoffTrackEligibilityStatics` this file can compute — it holds the items and the track, and
+ * nothing about the packages a unit's node is tagged with. The other exclusions (package kind, flow
+ * type, provenance) still land in `[x]`, so the caption says in as many words that `[x]` covers both
+ * meanings rather than claiming the one it used to.
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, QaChecklist } from '@dungeonmaster/shared/contracts';
+import type { ContentText, QaChecklist, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
@@ -57,6 +71,12 @@ export const qaChecklistToTextTransformer = ({
 
   const signoffField =
     track === undefined ? undefined : signoffTrackEligibilityStatics.byTrack[track].signoffField;
+  // Annotated rather than inferred: `byTrack[track]` with a union `track` yields a UNION of readonly
+  // tuples, and `.includes` is generic in its element type, so TS rejects the call as having no
+  // signature compatible across the members. Widening to the item's own `kind` union — never to
+  // `string` — collapses that to one array type while keeping every member assignable.
+  const trackUnitKinds: readonly QaChecklistItem['kind'][] | undefined =
+    track === undefined ? undefined : signoffTrackEligibilityStatics.byTrack[track].unitKinds;
   const remainingCaption =
     signoffField === undefined
       ? 'no sign-off yet on the track you are signing'
@@ -64,7 +84,14 @@ export const qaChecklistToTextTransformer = ({
   const unitsCaption =
     signoffField === undefined
       ? '## UNITS — [ ] outstanding on your track, [x] already settled on it'
-      : `## UNITS — [ ] awaiting your \`${signoffField}\`, [x] already settled on the ${String(track)} track`;
+      : [
+          `## UNITS — [ ] awaiting your \`${signoffField}\` (the field THIS track writes), [x] not awaiting it, [-] not on the ${String(track)} track at all`,
+          '[x] says ONLY that this unit is not yours to sign right now. It is EITHER already signed on',
+          `the ${String(track)} track, OR outside that track's denominator because another track owns its`,
+          'package kind. Never read it as "an earlier session already proved this the way you would have".',
+          `[-] is a unit KIND the ${String(track)} track never signs. Do not cover it, and do not count it`,
+          'as covered — another role owns it end to end.',
+        ].join('\n');
 
   const header = [
     `# QA CHECKLIST — flow \`${String(checklist.flowId)}\` "${String(checklist.flowName)}"`,
@@ -128,7 +155,9 @@ export const qaChecklistToTextTransformer = ({
         '',
         `### ${title} (${items.length})`,
         ...items.map((item) => {
-          const mark = remaining.has(String(item.id)) ? '[ ]' : '[x]';
+          const offTrackKind = trackUnitKinds !== undefined && !trackUnitKinds.includes(item.kind);
+          const settledMark = offTrackKind ? '[-]' : '[x]';
+          const mark = remaining.has(String(item.id)) ? '[ ]' : settledMark;
           const type = item.observableType === undefined ? '' : `  [${item.observableType}]`;
           return `${mark} ${String(item.id)}${type}\n    ${String(item.label)}`;
         }),

@@ -244,11 +244,16 @@ export const agentPromptGetBroker = async ({
     if (config?.devServer === undefined) {
       return undefined;
     }
-    const { devCommand, port } = config.devServer;
+    // `webPort` when the project declares one, `port` otherwise. This value is the URL a
+    // hands-on QA session LOADS IN A BROWSER — `disciplineManualQaStatics` sends its workers
+    // straight to it to click real elements — so on a project that serves its API and its app on
+    // different ports, `port` is the wrong one and the walk lands on an API that renders nothing.
+    // The single-server shape declares no `webPort` and is unaffected.
+    const { devCommand, port, webPort } = config.devServer;
     return {
       devCommand: devCommandContract.parse(devCommand),
       devServerUrl: devServerUrlContract.parse(
-        `http://${environmentStatics.hostname}:${String(port)}`,
+        `http://${environmentStatics.hostname}:${String(webPort ?? port)}`,
       ),
     };
   })();

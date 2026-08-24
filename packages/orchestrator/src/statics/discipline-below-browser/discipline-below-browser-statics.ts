@@ -1,252 +1,503 @@
 /**
- * PURPOSE: The discipline pack for flow-perspective coverage BELOW the browser — the four
- * `$DISCIPLINE` blocks the generic operator/planner/worker/reviewer templates interpolate when
- * the dispatched role is `flowrider`. Reach for this over `discipline-browser-e2e` when the claim is
- * provable without a browser, and over the whole-quest packs when the item is a PACKAGE SLICE: every
- * scope sentence here is narrower than the quest, because `relayTailFanOutTransformer`
- * (`fanOutBy: 'package'`) mints one item per package the runtime nodes tag whose kind this track
- * owns plus ONE seam item, and `packageScope: 'partition'` splits the denominator the same way.
+ * PURPOSE: The discipline pack for flow-perspective coverage BELOW the browser. It holds the four
+ * `$DISCIPLINE` blocks the generic operator, planner, worker and reviewer templates interpolate when
+ * the dispatched role is `flowrider`. Pick this pack over `discipline-browser-e2e` when a test can
+ * prove the claim without a browser. Pick it over the whole-quest packs when the item is a PACKAGE
+ * SLICE.
  *
  * USAGE:
  * disciplineBelowBrowserStatics.operatorMarkdown;
- * // Returns the four-field block that lands under the operator's `## Your discipline`
+ * // Returns the two-field block that lands under the operator's `## Your discipline`
  *
- * WHAT REPLACED WHAT: the monolithic Flowrider prompt asked ONE session to plan, bundle, dispatch,
- * verify, sign off, commit and signal. A post-mortem measured that load causing it to drop its
- * mandated coverage minion and sign all 27 of its own sign-offs. `reviewerMarkdown` is where that
- * grading job lives now, and the thing that fixed it is structural rather than textual: the reviewer
- * is a SEPARATE session from the worker, so "whoever authored the tests never signs its own work"
- * stopped being an instruction that can be ignored and became the shape of the pipeline.
+ * EVERY SCOPE SENTENCE HERE IS NARROWER THAN THE QUEST. `relayTailFanOutTransformer`
+ * (`fanOutBy: 'package'`) mints one item per package the runtime nodes tag whose kind this track
+ * owns. One more item covers the seam where two such packages meet. A role's denominator is the set
+ * of units it must settle, and `packageScope: 'partition'` splits that set the same way.
  *
- * `operatorMarkdown` IS FOUR FIELDS — `SCOPE`, `RESOURCE`, `RESET`, `EMPTY` — and on this discipline
- * two of them are simply "none", which is the honest answer and the point: this role's operator
- * starts no server and pulls no lever, so it carries almost nothing. What that block used to hold —
- * the per-package-versus-seam routing rule, that terminals and branches are units too, that
- * operational flows are filtered out — was material the operator could only forward, and it now sits
- * in the planner, worker and reviewer blocks. It names none of the code-reading tools that role is
- * forbidden, and its colocated test pins that absence: a discipline that hands a tool back is how the
- * operator's context fills up and the dispatches stop.
+ * `operatorMarkdown` IS TWO FIELDS: `RESOURCE` and `RESET`. Both read "none" here. The operator
+ * starts no server. It pulls no lever. So it carries almost nothing. Three rules the block used to
+ * hold moved into the planner, worker and reviewer blocks:
  *
- * `workerMarkdown` MUST CARRY THE HEADINGS `### The work` AND `### The proof`, which the worker
- * template's method points at by name. The colocated test pins both.
+ * - how a unit routes between a package slice and the seam slice
+ * - that terminals and labelled branches are units too
+ * - that the track filter drops operational flows
+ *
+ * The operator could only forward that material. The block also names none of the code-reading tools
+ * that role is forbidden. Its colocated test pins that absence. A tool named there reads to the
+ * operator as a permission. It then opens files. Its context fills. The dispatches stop.
+ *
+ * `plannerMarkdown` MUST CARRY `### How to plan`, and the planner template's method step 3 is a
+ * BLOCKING read of it. It is an ORDERED procedure naming this pack's other sections in the order to
+ * work them, and the template says outright that it outranks the template's own step order. Step 1
+ * is the load-bearing one here: the scope is the `[ ]` units, and a resumed or `pt N` item arrives
+ * with most of its checklist already settled.
+ *
+ * `plannerMarkdown` MUST ALSO CARRY `### What a unit binds to`, because the planner template makes
+ * every `UNITS` row bind one unit to one `<target>` and states no subject matter of its own. A target
+ * here is the test file PLUS the layer, written `<path> (<layer>)`, and the layer half is what
+ * settles this pack's own routing trap before a worker has to: an observable's `type` is not its
+ * surface, and four `ui-state` units on one measured item were `module`-layer claims in a state file.
+ * A row reading `(module)` records that decision. A row with no layer leaves the worker to re-decide
+ * it, and its cheapest answer is to drop the unit as the sibling track's.
+ *
+ * `plannerMarkdown` MUST ALSO CARRY `### The waves`, and this discipline groups FREELY. It holds no dev
+ * server, no browser, no Playwright report path and no reset lever, so one Jest run is safe beside
+ * another. Its single serialising edge is a shared HARNESS: the chunk that owns one goes in an
+ * earlier wave than every chunk that consumes it, or a consumer authors against a file that does not
+ * exist yet. The planner template requires that heading of every pack and states no grouping rule of
+ * its own.
+ *
+ * `workerMarkdown` MUST CARRY THE HEADINGS `### The work`, `### The proof` AND `### The ward`. The
+ * worker template's method points at all three by name. The colocated test pins all three.
+ *
+ * `### The ward` READS `--only lint,unit,integration`, both types on every chunk, because a
+ * flow-perspective suite below the browser routinely carries both and a run naming one finds nothing
+ * to do on the other half. It moved here from `plannerMarkdown`, which used to write the literal
+ * command; the worker calls `get-folder-detail` for its own folder types at method step 1, so it
+ * holds the map the planner was stating for it. `typecheck` is gone: ward's typecheck is `tsc -b`,
+ * which BUILDS the shared `dist/` a wave of workers must not touch.
+ *
+ * THE PLAN IS CUT FROM THE `[ ]` UNITS, NOT FROM `items`. The predecessor read "Every unit that call
+ * returns lands in exactly one chunk", which is right on a first round and wrong on every later one.
+ * Measured on a resumed item, the call returned 101 units across two flows with 26 still `[ ]`; a
+ * planner obeying that sentence cuts chunks re-covering 75 signed units and spends the round. The
+ * three-mark table replaces it, and `reviewerMarkdown` takes the same narrowing — re-patching an
+ * `[x]` overwrites a predecessor's evidence with a later session's.
+ *
+ * TWO ROUTING CORRECTIONS CAME OFF THE SAME MEASUREMENT. A glue node whose other package is
+ * browser-reachable has no seam item to route to, because `signoffTrackEligibilityStatics` gives this
+ * track and Groundstomper DISJOINT `packageTypes` and the seam rule needs two of THIS track's
+ * packages — so the whole node lands here, files in the other package included. And an observable's
+ * `type` is not its surface: four `ui-state` units on that item were channel-routing and
+ * parse-failure claims in a `packages/web` state file, jsdom-testable and `[ ]` on a server slice.
+ * The block's own "the browser is not yours" heuristic would have dropped all four, and the gate
+ * would have refused the parent's `done` over them.
+ *
+ * TWO SCOPES ARE NARROWER THAN THEY LOOK. Each block says so first-hand. `get-qa-checklist` with an
+ * `operationItemId` narrows to the PACKAGE SLICE, which is the whole operation item rather than one
+ * chunk of it. So `workerMarkdown` takes its own scope from the INTERSECTION of that list with its
+ * chunk's `UNITS` and the bundle its `NOTES` names. TWO roles also write `flowriderSignoff`.
+ * `signoffTrackEligibilityStatics.byTrack` gives `flowrider` and `groundstomper` the same
+ * `signoffField` over disjoint `packageTypes`, so `reviewerMarkdown` says it signs this slice rather
+ * than the field. Both corrections replace a sentence that read wider than the data. Either one left
+ * alone would have signed a unit nobody covered.
+ *
+ * OFF-MAP FAMILIES ARE NOT ON THIS TRACK. `unitKinds` for `flowrider` is `terminal`, `branch` and
+ * `observable`. Only `siegemaster` carries `off-map`. So `offMapSignoffs` is not a patch target here.
+ * `reviewerMarkdown` names that absence rather than leaving it to be inferred.
  *
  * THE TWO SHARED BLOCKS ARE IMPORTED, NEVER COPIED. `flowEvidenceContractStatics.authoringMarkdown`
- * is the spine of `workerMarkdown` and `.judgingMarkdown` is the spine of `reviewerMarkdown`; a
- * copy would let the method a worker authors by and the criteria a reviewer rejects by drift apart
- * silently, which is the one drift neither session could detect. What is authored here is only the
- * delta each session needs on top of them.
+ * is the spine of `workerMarkdown`. `.judgingMarkdown` is the spine of `reviewerMarkdown`. What is
+ * authored below is only the difference each session needs on top of those two. A copy would let the
+ * method a worker authors by drift away from the criteria a reviewer rejects by. Neither session
+ * could ever notice.
+ *
+ * WHAT REPLACED WHAT: the monolithic Flowrider prompt asked ONE session to plan, bundle, dispatch,
+ * verify, sign off, commit and signal. A post-mortem measured what that load did. The session dropped
+ * its mandated coverage minion. It signed all 27 of its own sign-offs. `reviewerMarkdown` is where
+ * that grading job lives now. The repair is structural rather than textual. A SEPARATE reviewer
+ * session grades what the worker wrote. The worker reaches no sign-off field.
  */
 
 import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
 
 export const disciplineBelowBrowserStatics = {
-  operatorMarkdown: `**RESOURCE:** none. This track's suites need no dev server and start none; the browser belongs to
-another role entirely.
+  operatorMarkdown: `**RESOURCE:** none. Your workers start no dev server, because a suite below the browser needs none.
+The browser belongs to another role.
 
-**RESET:** none. Nothing here goes stale mid-round, so there is no lever to pull between workers.`,
+**RESET:** none. You pull no lever between workers, because nothing here goes stale mid-round.`,
 
-  plannerMarkdown: `You are planning ONE PACKAGE SLICE of this quest's RUNTIME flows — the packages your brief names,
-or the seam between two of them. Your denominator call —
-\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` — already narrows
-to exactly that slice, and it carries the track, the package slice and the flow set, all derived
-server-side by the same transformer your parent's completion gate uses. Budget for it honestly — even
-one slice is not a cheap call — and fetch it ONCE.
+  plannerMarkdown: `You are planning ONE PACKAGE SLICE of this quest's RUNTIME flows. The round document's
+\`## Context\` names that slice: either a set of packages, or the seam where two of them meet.
 
-**\`items\` is WIDER than the observables. Terminals and labelled branches are units too**, and they
-are what a suite silently omits — "I covered the happy path and stopped" shows up here as terminal
-ids carrying no signature. **Every unit it returns lands in exactly one chunk**; a unit in none is a
-hole that reaches the reviewer unsigned and comes back as rework.
+### How to plan
 
-**A package slice does NOT own the seams, and the seam slice does NOT own the per-package units.** A
-unit routes by its owning NODE — one of this track's packages on it means that package's slice, two
-mean the seam slice. Reaching across that line spends your parent's budget on units a sibling item is
-gated on while your own denominator stays short of empty.
+**Your template runs six stages. This says what each one MEANS on a package slice**, and names the
+section below that carries it. Where this and the template disagree about ORDER, this wins.
 
-**Operational flows are not yours.** The track filter drops them; do not add them back.
+**Stage 1, orient.** The round document's \`## Context\` names your slice: a set of packages, or the
+seam where two of them meet.
 
-**The browser is not yours and neither is Playwright.** A claim only a browser can reach is another
-role's unit, not a hole in your suite.
+**Stage 2, explore.** **Fetch the checklist ONCE** —
+\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` — and read the
+three marks on it. **Your scope is the \`[ ]\` units and nothing else.** Route each one: your package
+slice, the seam slice, or a claim needing a real painted browser. **Then send your explorers to
+INVENTORY what already covers those units, and require them to OPEN the test files** — you are not
+planning against an empty tree, and a filename is not evidence. Read the quest's design decisions in
+the same stage. → "Read the marks", "Which units are yours", "Inventory what already covers each
+flow", "Read the quest's design decisions"
+
+**Stage 3, the surface.** Every \`[ ]\` unit lands on a TEST FILE plus the LAYER it asserts at.
+**The layer half is what settles this pack's routing trap before a worker has to.** → "What a unit
+binds to"
+
+**Stage 4, the chain.** Your chain is HARNESS ownership, and it is also the completeness check: a
+harness two chunks need with no owner, a bundle whose fixtures nothing seeds, a flow whose terminal
+no test reaches. **Name every harness by FULL PATH**; two workers handed "the seeding harness" pick
+different files.
+
+**Stage 5, check.** The cheapest thing a checker catches here is a file your inventory credited that
+does not assert what you claimed — the false green a predecessor shipped by naming three test files
+in a commit message having opened none of them.
+
+**Stage 6, cut.** Bundle the flows into chunks by shared surface, shared layer or coupled claim —
+never one flow apiece, never by count. Then \`NOTES\` with what the checklist CANNOT know, and the
+waves. → "Bundle the flows", "Do NOT transcribe the observables", "The waves"
+
+## Read the marks — there are THREE, not two
+
+| Mark | What it means for your plan |
+|---|---|
+| \`[ ]\` | awaiting your sign-off. **This is your scope.** |
+| \`[x]\` | not awaiting it — EITHER an earlier round signed it, OR another track owns its package kind |
+| \`[-]\` | a unit KIND this track never signs. The seven off-map probe families land here |
+
+**Every \`[ ]\` unit lands in exactly one chunk.** One you leave in no chunk is a hole. It reaches the
+reviewer unsigned. It comes back to you as rework. The header's \`REMAINING\` count says how many
+there are.
+
+**Cut chunks from the \`[ ]\` units ONLY.** A resumed or \`pt N\` item routinely arrives with most of
+its list already \`[x]\` — one measured item carried 26 \`[ ]\` out of 101 units — and planning the
+settled 75 again spends the entire round re-covering work that is already signed.
+
+**Read the \`[x]\` units once anyway, and chunk none of them.** They tell you what an earlier round
+already proved, which is how your chunks EXTEND that suite instead of standing a parallel one beside
+it.
+
+**A \`[-]\` unit is never yours, in any round.** Another role probes those by hand against a running
+system. Neither cut a chunk for one nor count it as covered.
+
+## Which units are yours, when the type and the mark disagree
+
+**A package slice does NOT own the seams. The seam slice does NOT own the per-package units.** A unit
+routes by its owning NODE:
+
+- ONE of this track's packages tags that node — the unit routes to that package's slice.
+- TWO of them tag it — the unit routes to the seam slice.
+
+Reaching across that line spends your parent's budget on units a sibling item is already gated on.
+Your own slice then reaches the reviewer with units no chunk covers.
+
+**A glue node whose OTHER package is browser-reachable routes ENTIRELY to you.** The seam rule needs
+TWO of this track's packages, and a browser-reachable package has no slice on this track at all — so
+every unit on that node lands in yours, including ones whose files sit in that other package. **The
+mark is the authority, never the package name.** A \`[ ]\` on your list is a unit your parent's gate is
+measuring.
+
+**Route on the SURFACE a claim needs, never on its observable \`type\`.** A \`ui-state\` unit whose real
+subject is a state module, a subject registry or a binding's parse step is YOURS: it runs under Jest
+in jsdom and needs no browser at all. On one measured item, four \`ui-state\` units were exactly that —
+channel routing and parse-failure claims in a \`<ui-package>\` state file, all four \`[ ]\` on a server
+slice. Dropped on the type alone, they leave the gate refusing your parent's \`done\`.
+
+**Operational flows are not yours.** The track filter drops them. Do not add them back.
+
+**The browser is not yours. Playwright is not yours either.** A claim only a REAL PAINTED browser can
+reach — geometry, visibility, a page lifecycle, the browser side of a navigation — is another role's
+unit. It is not a hole in your suite.
 
 **An EMPTY checklist is a real state, not an error.** Zero units in your slice means a plan with zero
-chunks and a \`SUMMARY\` saying so — your parent dispatches no workers and its reviewer records the
+chunks. Say so in \`DECISIONS\`. Your parent then dispatches no workers. Its reviewer records the
 finding. **Do NOT widen the call to find something to cover.**
 
-## Bundle the flows — by what makes a worker efficient, never by count
+## Bundle the flows by what makes a worker efficient, never by count
 
 A chunk is a BUNDLE of flows, never one flow apiece. Group by:
 
-- **Shared surface or harness** — flows driving the same routes, queues, widgets or fixtures, so ONE
-  worker builds the harness once instead of three building three.
+- **Shared surface or harness** — flows driving the same routes, queues, widgets or fixtures. ONE
+  worker then builds the harness once, instead of three workers building three.
 - **Shared layer** — server flows together, queue flows together, CLI and file-system flows together.
-- **Coupled observables** — two flows claiming the SAME state from opposite sides go into one chunk,
-  so the pair is proven consistent instead of twice from one side.
-- **Split anything too big to hold.** A bundle much past ~25 observables is one a worker will skim,
-  and the skim is invisible in a green run: the tests it did write pass, the ones it silently dropped
-  were never named. Err smaller.
+- **Coupled observables** — two flows claiming the SAME state from opposite sides go into one chunk.
+  That worker then proves the two sides agree, instead of proving one side twice.
+- **Split anything too big for one worker.** A worker skims any bundle much past ~25 observables.
+  The skim is invisible in a green run. The tests it did write pass. It never names the ones it
+  silently dropped. Cut the bundle smaller.
 
-If two chunks need the same harness, the EARLIER-NUMBERED one owns it — chunk order is dependency
-order. Say in \`NOTES\` which is which, and name the harness **by FULL PATH, never by concept** — two
-workers given "the comment-seeding harness" can reach opposite answers about which file that is.
+If two chunks need the same harness, the EARLIER-NUMBERED one owns it. Chunk order is dependency
+order. Say in \`NOTES\` which chunk owns the harness. Say which chunks only consume it. Name the
+harness **by FULL PATH, never by concept**. Two workers handed "the comment-seeding harness" can pick
+different files.
 
-**\`WARD\` per chunk:** \`--only lint,typecheck,unit,integration\`, over the chunk's explicit
-\`FILES\`. Never \`e2e\` — no chunk on this discipline authors Playwright.
+**No chunk on this discipline authors Playwright.** Every artifact you cut sits below the browser.
+Its worker builds its own ward command from that fact and from its own \`FILES\`.
 
-## Do NOT transcribe the observables into the chunk briefs
+### What a unit binds to
+
+A \`<target>\` here is **the test file that asserts the unit, plus the LAYER it asserts at**, written
+as \`<path> (<layer>)\`. Both halves are load-bearing, and the layer is the half a planner drops:
+
+| The layer | What it means here |
+|---|---|
+| \`route\` | a real HTTP request against a real handler |
+| \`queue\` | a real message produced, and the sink that drains it |
+| \`module\` | a state module, a subject registry or a transformer, under Jest |
+| \`jsdom\` | a binding or a widget rendered without a real browser |
+
+**Naming the layer is how you settle the \`ui-state\` routing question BEFORE a worker has to.** That
+section above tells you an observable's \`type\` is not its surface — four \`ui-state\` units on one
+measured item were channel-routing and parse-failure claims in a state file, all of them jsdom-testable
+and all of them \`[ ]\` on a server slice. A row reading \`(module)\` says you decided that. A row with
+no layer leaves its worker to re-decide it, and the worker's easiest answer is to skip it as somebody
+else's.
+
+**The row's clause is the SHAPE of the assertion, never the unit's text.** The worker fetches the
+verbatim \`label\` from the checklist itself, which is why the section below forbids transcribing it.
+What it cannot fetch is which seam you meant: "asserts the 500 body carries a non-empty \`error\`"
+against "asserts the binding drops to null when the parse throws".
+
+**A terminal or a labelled branch binds exactly as an observable does.** Those are the units a suite
+silently omits, so a terminal with no row is the hole this discipline fails through.
+
+**A claim only a REAL PAINTED browser reaches has no target here** — geometry, visibility, a page
+lifecycle, the browser side of a navigation. Those are \`out-of-medium\` rows naming the sibling
+track. Do not leave them out of the plan instead; a unit in no row reads as one nobody noticed.
+
+### The waves
+
+**Chunks group freely on this discipline, and most of them belong in wave 1.** Nothing here holds a
+shared resource: no dev server, no browser, no Playwright report path, no reset lever. A Jest run is
+safe beside another Jest run.
+
+**The ONE thing that forces a later wave is a shared HARNESS.** Where two chunks need the same
+harness, the chunk that OWNS it goes in an earlier wave than every chunk that consumes it — the same
+ownership the section above tells you to name by full path in \`NOTES\`. Grouped into one wave
+instead, a consumer authors against a harness file that does not exist yet, or builds a second copy
+of it beside the first.
+
+**PHASES here are the HARNESS boundary and nothing else.** Where one chunk owns a harness others
+consume, that chunk is phase 1 and its consumers are phase 2 — the gate then reads the harness once,
+before several suites are written against it. **Where no harness is shared, the whole round is ONE
+phase.** Bundles that neither import nor drive each other gate nothing by being split, and a phase
+per bundle buys a review pass that has nothing new to read.
+
+## Spikes are KEPT on this discipline
+
+A harness recipe you got working is the pattern its worker extends, never a probe you throw away.
+Spike when reading cannot tell you whether a route, a queue, a spawned process or a real file system
+can be driven from a Jest test at all. Leave the working driver under \`spike-tmp/\`, which is
+gitignored. Its worker then extends a driver that already ran, instead of re-deriving one. Name that
+path in the owning chunk's \`NOTES\`.
+
+Write the spike nowhere else. A spike outside \`spike-tmp/\` is an untracked file no chunk owns. The
+server then refuses your parent's \`signal-back\`, because an untracked file leaves the worktree
+dirty.
+
+## Do NOT transcribe the observables into the chunks
 
 Have the worker call \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`
-itself, with the ids from its brief header. It gets the SAME narrowed list you did — every terminal,
-branch and observable with the **verbatim** \`label\` and the \`checkSurface\`, straight from the
-graph — and \`NOTES\` names which of those flows are its bundle. Copying the units by hand costs most
-of your turn and puts a transcription error between the spec and the test.
+itself, with the ids from the round document's \`## Context\`. It gets the SAME narrowed list you
+did. Every terminal, branch and observable arrives with the **verbatim** \`label\` and the \`checkSurface\`, straight from
+the graph. \`NOTES\` names which of those flows are its bundle. Copying the units by hand costs most
+of your turn. It also puts a transcription error between the spec and the test.
 
 What \`NOTES\` carries is what the tool CANNOT know:
 
 - **why these flows group** — the shared surface, layer or coupled claim behind the bundle
-- **what already covers them** — files you OPENED, cited by path; "nothing" said explicitly when
-  that is the truth
-- **which harness is whose** — by FULL PATH, and whether the chunk OWNS it or only consumes it
-- **how far the worker's authority runs** — what it may change beyond tests, what it must not touch
-  because a sibling chunk owns it, and that an architectural fix is reported rather than taken
+- **what already covers them** — files you OPENED, cited by path. Say "nothing" explicitly when that
+  is the truth
+- **which harness is whose** — by FULL PATH. Say whether the chunk OWNS it or only consumes it
+- **how far the worker's authority runs** — what it may change beyond tests. What it must not touch,
+  because a sibling chunk owns it. That it REPORTS an architectural fix rather than making it
 - **the design decision governing each observable**, with its rationale QUOTED
 - **the discriminating and hostile fixtures** the bundle needs
 
-## Read the quest's design decisions — \`get-quest({ questId: 'QUEST_ID', stage: 'spec' })\`
+## Read the quest's design decisions with \`get-quest({ questId: 'QUEST_ID', stage: 'spec' })\`
 
-Each carries the rationale behind an observable and a \`Relates to:\` list naming the nodes and
-observables it governs. **An observable's text says what to assert; its design decision says what
-goes wrong if you assert it the easy way.** A worker handed one without the other writes the easy
-assertion, and the easy assertion is the one that stays green through the defect.
+Each decision carries the rationale behind an observable. Each also carries a \`Relates to:\` list
+naming the nodes and observables it governs. **An observable's text says what to assert. Its design
+decision says what goes wrong if you assert it the easy way.** A worker handed one without the other
+writes the easy assertion. The easy assertion is the one that stays green through the defect.
 
-## Inventory what already covers each flow — BY OPENING THE TEST FILES
+## Inventory what already covers each flow, by OPENING THE TEST FILES
 
-You are not planning against an empty test tree. Earlier roles and prior sessions of this one covered
-part of it, and the right chunk EXTENDS that rather than standing a parallel suite beside it.
+You are not planning against an empty test tree. Earlier roles and prior sessions of this one already
+covered part of it. Your chunks EXTEND that coverage. A parallel suite standing beside the existing
+one is the wrong chunk.
 
-**Do not credit a filename — this role has shipped a false green by naming three test files in a
-commit message having opened none of them.** Open each one, confirm what it actually asserts, and
-write the paths you READ into \`NOTES\`. A \`MIRROR\` is a sibling suite or harness you opened, never
-a plausible-looking path.
+**Do not credit a filename.** A predecessor on this role named three test files in a commit message.
+It had opened none of them. That shipped a false green. A \`MIRROR\` is a sibling suite or harness you
+opened, never a plausible-looking path. Open each file. Confirm what it actually asserts. Write into
+\`NOTES\` every path you READ.
 
-Name in \`SUMMARY\` which bundle you expect to come back with rework, and why.`,
+Name in \`DECISIONS\` which bundle you expect to come back as rework. Say why.`,
 
-  workerMarkdown: `Your chunk is a BUNDLE of this quest's RUNTIME flows, and your output is that bundle's
-flow-perspective suite at every layer BELOW the browser.
+  workerMarkdown: `Your chunk is a BUNDLE of this quest's RUNTIME flows. You write that bundle's flow-perspective suite
+at every layer BELOW the browser.
 
-**Your scope comes from a tool, not from prose.** Call
+**The checklist gives you the unit TEXT. Your chunk gives you the SCOPE.** Call
 \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` once, with the ids
-from your brief header — that one argument carries the track, the flows and the package slice, so
-there is nothing to assemble and nothing to omit. The \`items\` that come back are what you owe —
-every \`terminal\`, every labelled \`branch\`, every \`observable\` with its **verbatim** \`label\` and
-the \`checkSurface\` its value must be read from. Take your assertions from those labels, never from a
-paraphrase. \`pathsTruncated: true\` means the path list is INCOMPLETE and belongs in \`GOTCHAS\`;
-\`remainingItemIds\` is your parent's gate count, not your scope.
+from the round document's \`## Context\`. It returns the whole PACKAGE SLICE. Every entry is a
+\`terminal\`, a labelled \`branch\` or an \`observable\`. Each entry carries two fields you author against:
 
-**You sign NOTHING.** A separate reviewer session writes this track after you — a signature from the
-session that wrote the test would satisfy the gate the moment you returned.
+- \`label\` — the unit's text, **verbatim**. Take your assertions from it, never from a paraphrase.
+- \`checkSurface\` — the surface that unit's value must be read from.
+
+**That list is WIDER than your chunk. The surplus belongs to a sibling worker.** You owe the
+INTERSECTION: the entries whose ids your chunk's \`UNITS\` names, over the bundle of flows its
+\`NOTES\` names. Look each of your ids up in the list. Author against the entry you find.
+
+Taking the whole slice instead goes wrong two ways:
+
+1. You write outside your \`FILES\` to cover a sibling's unit. The later write wins, so one of you
+   loses the work.
+2. You report a sibling's unit as uncovered in \`NEXT: rework\`. That spends a round on a chunk the
+   plan already scheduled.
+
+Read two more fields off that response:
+
+- \`pathsTruncated: true\` — the path list is INCOMPLETE. Say so in \`GOTCHAS\`.
+- \`remainingItemIds\` — your parent's gate count. It is never your scope.
+
+**You sign NOTHING.** A separate reviewer session signs this track after you. If you signed a unit,
+your parent's completion gate would clear the moment you returned. Nobody would have re-read your
+work.
 
 ### The work
 
-1. **Choose the modality per OBSERVABLE**, by the rules below, and write Jest \`.test.ts\` /
+1. **Choose the modality per OBSERVABLE**, by the rules below. Write Jest \`.test.ts\` /
    \`.integration.test.ts\` against real routes, real queues, real file systems and real processes —
    never a mock of the system under test.
 
-2. **One test per path to EVERY terminal, and every branch taken.** An error / 4xx / rejection
-   terminal is a first-class path, never optional; "I covered the happy path and stopped" is how this
-   discipline fails.
+2. **Write one test per path to EVERY terminal. Write one per branch taken.** An error / 4xx /
+   rejection terminal is a first-class path, never optional. "I covered the happy path and stopped"
+   is how this discipline fails.
 
-3. **Seed fixtures that can fail.** At least two of anything an assertion discriminates, and at least
-   one hostile member per input class. **Fixtures decide whether your suite can fail at all.**
+3. **Seed fixtures that can fail.** Seed at least two of anything an assertion discriminates. Seed at
+   least one hostile member per input class. **A suite seeded with one benign value of each thing
+   cannot fail at all.**
 
-4. **Close an implementation hole your own testing exposes.** A test going red because behaviour is
-   genuinely missing — a missing guard, an unhandled branch, a wrong default, an off-by-one, a field
-   the server never returns — is a real finding, and closing it is usually yours. **Fix it
-   RED-FIRST**, then check every other place that value renders or that logic runs, and report every
-   such change with the red you witnessed and the ripple you checked. **Close the hole; do not
-   rebuild the feature** — an architectural fix, a changed contract, a refactor spanning packages, or
-   anything needing a product decision goes in \`NEXT: rework\` with its proving test left red.
-   **Never bend the implementation to make a test pass**, and never weaken, skip or delete a test to
-   reach green: both certify the break instead of fixing it.
+4. **Close an implementation hole your own testing exposes.** A test going red because the behaviour
+   is genuinely missing is a real finding — a missing guard, an unhandled branch, a wrong default, an
+   off-by-one, a field the server never returns. You usually close that hole yourself. **Fix it
+   RED-FIRST.** Then check every other place that value renders or that logic runs. Report the
+   change, the red you witnessed, and the other places you checked. **Close the hole. Do not rebuild
+   the feature.** Hand these four up in \`NEXT: rework\`, leaving the proving test red:
 
-**You author NO Playwright and you start no server.** A \`.e2e.ts\` is another role's output and the
-Playwright config is shared scaffolding an edit of yours would race. A claim only a browser can
-observe — a painted \`ui-state\`, a page-lifecycle \`cache-state\`, the browser side of an
-\`api-call\` — is not in your denominator: name it in \`GOTCHAS\` and author the layer underneath it
-that IS yours.
+   - an architectural fix
+   - a changed contract
+   - a refactor spanning packages
+   - anything needing a product decision
+
+   **Never bend the implementation to make a test pass.** Never weaken, skip or delete a test to
+   reach green. Both leave the defect in the code while the suite reports success.
+
+**You author NO Playwright. You start no server.** A \`.e2e.ts\` file is another role's output. An
+edit of yours to the Playwright config would race a sibling session's, because every session on this
+quest shares one such file. A claim only a browser can observe is not one of your units — a painted
+\`ui-state\`, a page-lifecycle \`cache-state\`, the browser side of an \`api-call\`. Author the layer
+underneath that claim, which IS yours. Name the claim itself in \`GOTCHAS\`.
 
 ${flowEvidenceContractStatics.authoringMarkdown}
 
 ### The proof
 
-Every test you write owes a **witnessed red**, and \`EVIDENCE\` carries it per unit alongside the
-other four items of the evidence contract: the unit id with its verbatim text, the test \`file:line\`,
-the assertion quoted, and **what makes it fail** — the specific wrong value that turns it red.
+Every test you write owes a **witnessed red**. \`EVIDENCE\` carries that red per unit, alongside the
+other four items of the evidence contract:
+
+1. the unit id, with its verbatim text
+2. the test \`file:line\`
+3. the assertion, quoted
+4. **what makes it fail** — the specific wrong value that turns it red
 
 **Where red-first is impossible because the behaviour already works, prove the test bites by
-MUTATION**: break the production line it guards, run it, capture the red, then revert BY EDITING the
-line back — never \`git checkout --\` — and confirm \`git diff\` on that file is empty. Say which of
-the two you did.
+MUTATION.** Do these five, in order:
 
-"Fails if the text is wrong" is not an answer; "fails if the row renders the older comment first,
-because the assertion pins the exact order \`[newer, older]\`" is. **An agent that cannot say what
-would make its assertion fail has not written a test — it has written a sentence that happens to be
-true.**`,
+1. Break the production line the test guards.
+2. Run the test.
+3. Capture the red output.
+4. Revert BY EDITING the line back. Never \`git checkout --\`.
+5. Confirm \`git diff\` on that file is empty.
+
+For each unit, say which of the two you did — the witnessed red, or the mutation.
+
+"Fails if the text is wrong" is not an answer. "Fails if the row renders the older comment first,
+because the assertion pins the exact order \`[newer, older]\`" is one. **Name the specific wrong value
+for every assertion you write.** An assertion with no named failing value is not a finished test.
+
+### The ward
+
+\`--only lint,unit,integration\` — both test types, on every chunk of this discipline. A
+flow-perspective suite below the browser routinely carries both, and a run naming only one finds
+nothing to do on half of what you just wrote.
+
+**Never \`e2e\`.** You author no Playwright, so that check has no counterpart in your \`FILES\`.`,
 
   reviewerMarkdown: `${flowEvidenceContractStatics.judgingMarkdown}
 
-## You are the only writer of the \`flowriderSignoff\` track
+## You sign this track's units
 
-The session that authored these tests is not you, and it signed nothing. That is not an instruction
-it was trusted to keep — it is the shape of the pipeline, and it is the only reason your signature
-means anything.
+The worker authored these tests. It signed nothing, because its own prompt forbids signing. That is
+structural rather than a promise it was trusted to keep. The worker's session ends before yours
+starts, so it never reaches this field. You are the only session on this round that opens these files
+a second time.
 
-Rebuild the denominator yourself:
-\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`, the ids from your
-brief header. Sign every unit in that slice by patching \`{ id, flowriderSignoff }\`
-onto the observable, node, edge or \`offMapSignoffs\` entry through \`modify-quest\` — the id and the
-sign-off field ONLY, because the merge is per-key and any other field you send is a spec edit rather
-than a sign-off.
+**Your units are the PACKAGE SLICE \`## Context\` names, never the whole \`flowriderSignoff\` field.** A
+sibling role writes that SAME field over the browser-reachable package kinds. Those kinds are the
+DISJOINT complement of your slice. So signing one of your units never settles one of the sibling's.
+Signing one of ITS units is a false green: you opened no browser, so you cannot confirm a
+browser-reachable claim.
 
-**A Playwright \`.e2e.ts\` is never evidence on this track.** It proves a claim read out of a browser,
-which is another role's unit and outside this denominator by package kind, so citing one settles
-nothing and reopens the question of whether the unit has a test at all.
+Your denominator is every unit in your slice still awaiting your signature. Rebuild it yourself with
+\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`, passing the ids
+from the round document's \`## Context\`. **Sign every \`[ ]\` unit it returns** by patching
+\`{ id, flowriderSignoff }\` onto the observable, node or edge through \`modify-quest\`. Send the id and the sign-off field ONLY. Any other
+field you send lands as a spec edit rather than a sign-off, because \`modify-quest\` merges per key.
 
-**BATCH the writes.** ONE \`modify-quest\` call carrying many sign-offs, never one per unit: 45 units
-signed one at a time is 45 quest writes, 45 outbox appends, 45 WebSocket broadcasts and 45 browser
-refetches of a file that grows with every one of them.
+**Sign no \`[x]\` and no \`[-]\` unit.** An \`[x]\` is either already signed on this track — re-patching
+it overwrites a predecessor's evidence with yours — or outside this track's denominator because
+another track owns its package kind. A \`[-]\` is a unit kind this track never signs at all.
 
-**A unit nobody can settle after real effort is \`unconfirmable\`, with evidence and a \`question\`** —
-not left unsigned. Nothing server-side reopens an unsigned unit: the completion gate refuses your
-parent's \`done\` while any unit carries no sign-off, so a permanently unprovable one left blank
-burns the pt chain to its budget and blocks the quest. Deferral hides in \`unconfirmable\`, which is
-why the audit below exists — but an honest one CLEARS, and a blank never does.
+**The off-map probe families are not on your denominator, and they are the \`[-]\` rows.** Another role
+probes security, performance and the rest by hand against a running system. \`offMapSignoffs\` is that
+role's patch target. A patch you send there signs a unit you never measured.
+
+**A Playwright \`.e2e.ts\` is never evidence on this track.** It proves a claim read out of a browser.
+That claim is another role's unit. Package kind puts it outside your denominator. Citing one settles
+nothing. Nobody then learns whether the unit has a test.
+
+**BATCH the writes.** ONE \`modify-quest\` call carries many sign-offs, never one per unit. Signing 45
+units one at a time costs 45 quest writes, 45 outbox appends, 45 WebSocket broadcasts and 45 browser
+refetches. Each write lengthens the file the next refetch must download.
+
+**A unit nobody can settle after real effort is \`unconfirmable\`, carrying evidence and a
+\`question\`.** Never leave it unsigned. Nothing server-side reopens an unsigned unit. The completion
+gate refuses your parent's \`done\` while any unit carries no sign-off. A permanently unprovable unit
+left blank therefore spends the pt chain to its budget. It then blocks the quest.
+
+An honest \`unconfirmable\` CLEARS that gate. A blank one never does. A session can also defer real
+work by writing \`unconfirmable\`, which is why the audit below exists.
 
 **AUDIT EVERY \`unconfirmable\`, a predecessor's included.** Reopen any whose evidence names an
-ASSIGNMENT rather than a WALL — "outside my probe paths", "that surface belongs to the sibling
-track", "a session authorized to probe it would find the test" are routing notes, not measurements.
-What you reopen, you own.
+ASSIGNMENT rather than a WALL. "Outside my probe paths", "that surface belongs to the sibling track"
+and "a session authorized to probe it would find the test" are routing notes, not measurements. A
+unit you reopen is yours to settle.
 
-## Two passes, and say which claims got which
+## Run two passes over the claims
 
-**Pass A — structural, on 100% of claims.** Cheap and mechanical, so there is no excuse to sample
-it: every unit id in scope appears exactly once carrying all five evidence items, every file named
-exists, and every cited test is a \`.test.ts\` or \`.integration.test.ts\` reusing an existing harness
-rather than hand-rolling one.
+Say which claims got which pass.
+
+**Pass A — structural, on 100% of claims.** Sample none of it. Pass A is cheap and mechanical. Check
+three things:
+
+1. Every unit id in scope appears exactly once, carrying all five evidence items.
+2. Every file named exists.
+3. Every cited test is a \`.test.ts\` or an \`.integration.test.ts\`. It reuses an existing harness
+   rather than hand-rolling one.
 
 **Pass B — semantic, by opening the file.** MANDATORY, no sampling, for:
 
 - every claim whose asserted layer disagrees with its unit's \`checkSurface\`
 - every claim proved only at the outermost layer on a flow that reaches deeper
-- every fix made
+- every fix the worker made
 - every claim you simply find surprising
 
-Then a **NAMED random sample of the remainder** — state its size and its ids in \`CHUNKS\`. *A sample
-you do not name is a silent cap, and reads to the next session as "all of this was checked".*
+Then take a **NAMED random sample of the remainder**. State its size and its ids in \`CHUNKS\`. An
+unnamed sample reads to the next session as "all of this was checked".
 
-## The intercept ban binds AUTHORED specs — and this track is authoring
+## The intercept ban binds every AUTHORED spec, including yours
 
-Two roles read this rule and reached opposite verdicts on six units, so it is settled here. **A
-suite must not \`page.route\` its own backend.** A hand-driven MEASUREMENT in a live browser MAY
-patch the fetch boundary to force a value, and the resulting sign-off names the lever it pulled.
-You are authoring, so the ban binds you: **never sign a unit \`confirmed\` on evidence from an
-intercepted route.**`,
+This rule is settled here. Two roles read it and reached opposite verdicts on six units. **A suite
+must not \`page.route\` its own backend.** A hand-driven MEASUREMENT in a live browser MAY patch the
+fetch boundary to force a value. That sign-off names the patch it applied. The ban binds you, because
+this track authors. **Never sign a unit \`confirmed\` on evidence from an intercepted route.**`,
 } as const;

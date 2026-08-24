@@ -2,6 +2,74 @@ import { parseMarkdownBlocksTransformer } from './parse-markdown-blocks-transfor
 import { parseMarkdownBlocksTransformerProxy } from './parse-markdown-blocks-transformer.proxy';
 
 describe('parseMarkdownBlocksTransformer', () => {
+  describe('preserveLineBreaks', () => {
+    // The real shape of a `get-quest` contracts section: one contract per line, its properties
+    // indented beneath it, no blank line between them. Rejoined, the whole ledger becomes one
+    // run-on sentence and nothing says which property belonged to which contract.
+    it('VALID: {indented continuation lines, preserveLineBreaks} => keeps the breaks and the indent', () => {
+      const text =
+        '#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.';
+
+      const blocks = parseMarkdownBlocksTransformer({ text, preserveLineBreaks: true });
+
+      expect(blocks).toStrictEqual([
+        {
+          kind: 'paragraph',
+          spans: [
+            {
+              kind: 'text',
+              text: '#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {same text, default} => rejoins into one line, which is the defect', () => {
+      const text = '#health-snapshot — HealthSnapshot\n  status: HealthStatus — Literal marker.';
+
+      const blocks = parseMarkdownBlocksTransformer({ text });
+
+      expect(blocks).toStrictEqual([
+        {
+          kind: 'paragraph',
+          spans: [
+            {
+              kind: 'text',
+              text: '#health-snapshot — HealthSnapshot status: HealthStatus — Literal marker.',
+            },
+          ],
+        },
+      ]);
+    });
+
+    // The buffer still runs under preserveLineBreaks, so a blank line still ends a paragraph. That
+    // is what keeps section spacing identical instead of every line becoming its own block.
+    it('VALID: {blank line between runs, preserveLineBreaks} => still splits into two paragraphs', () => {
+      const blocks = parseMarkdownBlocksTransformer({
+        text: 'first\n  indented\n\nsecond',
+        preserveLineBreaks: true,
+      });
+
+      expect(blocks).toStrictEqual([
+        { kind: 'paragraph', spans: [{ kind: 'text', text: 'first\n  indented' }] },
+        { kind: 'paragraph', spans: [{ kind: 'text', text: 'second' }] },
+      ]);
+    });
+
+    it('VALID: {headings and rules around a run, preserveLineBreaks} => block structure is unchanged', () => {
+      const blocks = parseMarkdownBlocksTransformer({
+        text: '## Contracts\n\n#a — one\n  prop: two',
+        preserveLineBreaks: true,
+      });
+
+      expect(blocks).toStrictEqual([
+        { kind: 'heading', level: 2, spans: [{ kind: 'text', text: 'Contracts' }] },
+        { kind: 'paragraph', spans: [{ kind: 'text', text: '#a — one\n  prop: two' }] },
+      ]);
+    });
+  });
+
   describe('paragraphs', () => {
     it('VALID: {single line} => returns one paragraph', () => {
       parseMarkdownBlocksTransformerProxy();

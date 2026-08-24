@@ -72,7 +72,11 @@ export const ToolResultContentWidget = ({
               </Text>
             )}
             {part.kind === 'markdown' ? (
-              <MarkdownTextWidget content={part.source} />
+              // A tool's answer is machine-formatted: its newlines and indentation are what say one
+              // logical item ended and which continuations belong to it. Rejoining them the way an
+              // agent's hard-wrapped prose wants turns a quest's contract ledger into a single
+              // run-on sentence with every nesting level flattened out of it.
+              <MarkdownTextWidget content={part.source} preserveLineBreaks={true} />
             ) : (
               <Text
                 ff="monospace"

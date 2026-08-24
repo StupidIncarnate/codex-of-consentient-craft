@@ -88,7 +88,7 @@ export const questGetBlightChecklistBroker = async ({
   // `HEAD~1` is the LAST COMMIT and nothing else. It is no longer any session's whole output — each
   // worker-minion commits its own piece and the reviewer commits its verdict, so a round lands
   // several commits and a session lands several rounds — which is exactly why the reviewer uses
-  // `plan` and the signal-back gate uses `since-ref`. What survives here is the narrow reading a
+  // `unpushed` and the signal-back gate uses `since-ref`. What survives here is the narrow reading a
   // caller auditing landed history wants: one commit, on its own.
   //
   // Two degenerate cases are handled by the ledger rather than by persisted bookkeeping: a reading

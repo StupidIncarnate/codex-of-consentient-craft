@@ -258,25 +258,27 @@ export const QuestHandleSignalBackResponder = async ({
       });
 
       if (outstanding.length > 0) {
-        // The signalling role IS the DENOMINATOR track, and `signoffTrackEligibilityStatics` is what
-        // maps that to the ONE field it writes. Two lookups, not one: the tool call has to name the
-        // denominator (there are three) so the session reads back the set this gate just measured,
-        // while the remedy has to name the field (there are two) so it writes to the right column.
-        // Groundstomper is where they differ — it writes `flowriderSignoff` over the package kinds
-        // Flowrider does NOT measure, so naming `flowrider` in the tool call would hand it the exact
-        // complement of its own remainder.
+        // The REMEDY has to name the sign-off FIELD the reviewer writes, and there are two of them.
+        // `signoffTrackEligibilityStatics` maps the signalling role to its one field. The role is
+        // not that field: Groundstomper writes `flowriderSignoff`, over the package kinds Flowrider
+        // does NOT measure.
         const track =
           linkedOperation.role === 'groundstomper' || linkedOperation.role === 'siegemaster'
             ? linkedOperation.role
             : 'flowrider';
         const { signoffField } = signoffTrackEligibilityStatics.byTrack[track];
-        // The item's own slice rides along, because the gate narrowed by it and the tool will not
-        // unless it is asked to. A reproduction call missing it reads the whole quest.
-        const packageArg =
-          linkedOperation.packageNames.length === 0
-            ? ''
-            : `, packageNames: [${linkedOperation.packageNames.map((name) => `'${String(name)}'`).join(', ')}]`;
-        const checklistTool = `get-qa-checklist({ track: '${track}'${packageArg} })`;
+        // The REPRODUCTION CALL names the operation item, and that one argument is the whole scope.
+        // The item carries the track (its role), its flows and its packages, and the tool derives
+        // all three through the transformer this gate just ran — so the list the session reads back
+        // is the list refused here.
+        //
+        // Two keys, and only these two. `getQaChecklistInputContract` is `.strict()` and accepts
+        // `questId` (required), `operationItemId` and `flowId`. `operationItemId` REPLACED `track`,
+        // `flowId` and `packageNames` as separate arguments, so naming either of those here hands
+        // the agent a call that fails zod parsing. The agent then has no route back to the
+        // outstanding units, and its only move is to downgrade to `partial` — which spends a pt
+        // attempt against a bounded chain and walks the item toward a blocked quest.
+        const checklistTool = `get-qa-checklist({ questId: '${String(questId)}', operationItemId: '${String(linkedOperation.id)}' })`;
 
         throw new Error(
           [
@@ -310,8 +312,8 @@ export const QuestHandleSignalBackResponder = async ({
       //
       // THE RANGE IS WHAT MAKES IT MEASURABLE. Every minion commits its own work as it goes, so at
       // signal time the tree is clean by construction — a `working-tree` reading is empty, a
-      // `commit` one sees one piece, and a `plan` one sees one round. None measures an item. What can
-      // is `<the item's own recorded startRef>..HEAD`: the fork point stamped by
+      // `commit` one sees one piece, and an `unpushed` one sees one round. None measures an item.
+      // What can is `<the item's own recorded startRef>..HEAD`: the fork point stamped by
       // `agentPromptGetBroker` the first time this item was served its prompt, never moved
       // afterwards, so the range covers every round the item ran rather than the one it ended on.
       //

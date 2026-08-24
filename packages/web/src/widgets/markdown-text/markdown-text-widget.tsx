@@ -17,10 +17,18 @@ import { MarkdownBlockLayerWidget } from './markdown-block-layer-widget';
 
 export interface MarkdownTextWidgetProps {
   content: MarkdownSource;
+  // Raise for text whose newlines are structure rather than wrapping — tool output, where one
+  // logical item is one line and its continuations are indented beneath it. Agent prose leaves it
+  // down, so a hard-wrapped message still reflows to the panel instead of breaking at its author's
+  // wrap column.
+  preserveLineBreaks?: boolean;
 }
 
-export const MarkdownTextWidget = ({ content }: MarkdownTextWidgetProps): React.JSX.Element => {
-  const blocks = parseMarkdownBlocksTransformer({ text: content });
+export const MarkdownTextWidget = ({
+  content,
+  preserveLineBreaks = false,
+}: MarkdownTextWidgetProps): React.JSX.Element => {
+  const blocks = parseMarkdownBlocksTransformer({ text: content, preserveLineBreaks });
 
   return (
     <Box data-testid="MARKDOWN_TEXT">

@@ -132,6 +132,53 @@ describe('ToolResultContentWidget', () => {
     });
   });
 
+  describe('a reply whose newlines are structure', () => {
+    // `get-quest` renders one contract per line with its properties indented beneath it. Rejoining
+    // that the way an agent's hard-wrapped prose wants produced a single run-on sentence with every
+    // nesting level flattened out — the whole reason tool results parse with preserveLineBreaks.
+    it('VALID: {indented ledger under a heading} => keeps every break and indent', () => {
+      ToolResultContentWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolResultContentWidget
+            content={ToolResultDisplayContentStub({
+              value:
+                '## Contracts\n\n#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.',
+            })}
+            color={DIM}
+          />
+        ),
+      });
+
+      expect(
+        screen.queryAllByTestId('MARKDOWN_PARAGRAPH').map((node) => node.textContent),
+      ).toStrictEqual([
+        '#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.',
+      ]);
+    });
+
+    // textContent reports the newlines whether or not CSS would collapse them, so the style is
+    // asserted separately — without pre-wrap the browser renders the run as one line and every
+    // assertion above still passes.
+    it('VALID: {indented ledger} => the paragraph declares pre-wrap so the browser keeps them', () => {
+      ToolResultContentWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolResultContentWidget
+            content={ToolResultDisplayContentStub({
+              value: '## Contracts\n\n#a — one\n  prop: two',
+            })}
+            color={DIM}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('MARKDOWN_PARAGRAPH').style.whiteSpace).toBe('pre-wrap');
+    });
+  });
+
   describe('a plain markdown reply', () => {
     it('VALID: {markdown document, no JSON} => renders formatted with no caption', () => {
       ToolResultContentWidgetProxy();

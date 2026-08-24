@@ -245,6 +245,57 @@ describe('agentPromptGetBroker', () => {
       expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
     });
 
+    it('VALID: {role: siegemaster, devServer declares webPort} => Dev Server URL carries the WEB port, not the API port', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-3333-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'ffffffff-3333-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'siegemaster',
+        text: 'manual QA + review flowrider suite',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'siegemaster',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400, webPort: 4401 });
+
+      const result = await agentPromptGetBroker({
+        agent: 'siegemaster',
+        questId: quest.id,
+        workItemId,
+      });
+
+      // 4401, never 4400. This is the one URL a hands-on QA session loads in a BROWSER, and the
+      // API origin renders no app — so the whole prompt is compared, which is what proves the
+      // API port appears nowhere in it.
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [siegemaster] manual QA + review flowrider suite',
+        '',
+        'Operations ledger (in order):',
+        '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
+        '',
+        'Dev Server Command: npm run dev',
+        `Dev Server URL: http://${environmentStatics.hostname}:4401`,
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+    });
+
     it('VALID: {role: siegemaster, operation linked} => resolves config from a repo-root config FILE path, not the bare cwd directory', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-2222-4222-9333-444444444444' });

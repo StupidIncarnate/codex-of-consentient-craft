@@ -1160,12 +1160,18 @@ describe('QuestHandleSignalBackResponder', () => {
       );
     });
 
-    // The refusal has to hand back a call that REPRODUCES the list it just measured. Naming the
-    // sign-off field there would send a groundstomper session to `track: 'flowrider'`, whose package
-    // kinds are the exact complement of its own — it would read zero, signal `done` again, and be
-    // refused again on the same unit with no way to see it. The item's own slice rides along for the
-    // same reason: the gate narrowed by it and the tool will not unless asked.
-    it("ERROR: {groundstomper item declaring packageNames, 'done'} => the refusal names get-qa-checklist with the DENOMINATOR track and that slice", async () => {
+    // The refusal has to hand back a call that REPRODUCES the list it just measured, and that call
+    // has to PARSE. `getQaChecklistInputContract` is `.strict()` and accepts `questId` (required),
+    // `operationItemId` and `flowId` — `operationItemId` replaced `track`, `flowId` and
+    // `packageNames` as separate arguments. A refusal naming `track` or `packageNames` is rejected
+    // by zod before the tool runs, so the session never sees the outstanding units and its only move
+    // is to downgrade to `partial`.
+    //
+    // The regex below is anchored on both braces, so it pins the exact key set: an extra key, a
+    // missing `questId`, or a reintroduced `track` all fail here. Importing the contract itself to
+    // parse the call is not available — `@dungeonmaster/mcp` depends on `@dungeonmaster/orchestrator`
+    // and no file in this package imports it, so the reverse import would be a workspace cycle.
+    it("ERROR: {groundstomper item declaring packageNames, 'done'} => the refusal names get-qa-checklist with the questId and the operation item id, and no other key", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       proxy.setupQuest({
@@ -1210,11 +1216,16 @@ describe('QuestHandleSignalBackResponder', () => {
           operationStatus: 'done',
         }),
       ).rejects.toThrow(
-        /Read the same list back with get-qa-checklist\(\{ track: 'groundstomper', packageNames: \['ui-app'\] \}\)\./u,
+        new RegExp(
+          `Read the same list back with get-qa-checklist\\(\\{ questId: 'add-auth', operationItemId: '${OP1_ID}' \\}\\)\\.`,
+          'u',
+        ),
       );
     });
 
-    it("ERROR: {groundstomper item declaring NO packageNames, 'done'} => the reproduction call carries the track alone", async () => {
+    // The slice rides on the id rather than being spelled out, so an item declaring packages and an
+    // item declaring none get the SAME two-key call. The tool reads `packageNames` off the item.
+    it("ERROR: {groundstomper item declaring NO packageNames, 'done'} => the same two-key call, because the item id carries the slice", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       proxy.setupQuest({
@@ -1258,7 +1269,10 @@ describe('QuestHandleSignalBackResponder', () => {
           operationStatus: 'done',
         }),
       ).rejects.toThrow(
-        /Read the same list back with get-qa-checklist\(\{ track: 'groundstomper' \}\)\./u,
+        new RegExp(
+          `Read the same list back with get-qa-checklist\\(\\{ questId: 'add-auth', operationItemId: '${OP1_ID}' \\}\\)\\.`,
+          'u',
+        ),
       );
     });
 
