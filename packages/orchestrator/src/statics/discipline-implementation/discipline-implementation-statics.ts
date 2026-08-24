@@ -75,6 +75,17 @@
  * is the load-bearing one here: WHICH CELL you are decides which of the five `## Context` headings
  * your document rendered at all, and a foundation cell reads nothing like a flow cell.
  *
+ * `plannerMarkdown` MUST ALSO CARRY `### What a unit binds to`. Here a target is the PRODUCT file,
+ * never the colocated test: every chunk writes its test in the same pass, so naming it would put one
+ * identical fact in every row. The SPLIT case is the common one — a broker parses and its binding
+ * renders the parse, and one observable covers both halves.
+ *
+ * ITS `### How to plan` IS INDEXED BY THE TEMPLATE'S SIX STAGES rather than being a procedure of its
+ * own. The template explores with sub-agents, writes a SURFACE, builds the import chain over it,
+ * checks both, and only then cuts chunks; this pack says what each of those means on an
+ * implementation cell. A second free-standing procedure beside the template's would be two orders
+ * that can disagree about which comes first.
+ *
  * `plannerMarkdown` MUST ALSO CARRY `### The waves`, and this discipline groups FREELY. It holds no dev
  * server, no browser, no Playwright report path and no reset lever. Its only serialising edge is
  * IMPORT dependency, which is the order the chunk numbers already carry — contracts before the
@@ -119,39 +130,50 @@ builds on it. A foundation cell is never an empty one.
 
 ### How to plan
 
-Work these in order. Each one names the section below that carries it.
+**Your template runs six stages. This says what each one MEANS here**, and names the section below
+that carries it. Where this and the template disagree about ORDER, this wins.
 
-1. **Establish WHICH CELL you are** — a (package, flow) pair, or a flow-less FOUNDATION cell. The
-   headings your round document actually rendered are what tell you, and the two cells read
-   differently. → "Your denominator"
-2. **Read your acceptance targets**: every observable under \`Must satisfy\`, and every property
-   description under \`Contracts you own\`. **On a foundation cell, fetch the design decisions with
-   \`get-quest\` as well** — no heading in your document carries them. → "A FOUNDATION cell"
-3. **Act on every \`Seams\` marker BEFORE you cut anything.** It decides which of the other side's
-   observables are yours to build, yours to verify, or nobody's business but the next session's. →
-   "Seams"
-4. **Open the real code for every target**, and read each already-built export off disk rather than
-   off the spec's description of it.
-5. **Cut chunks in IMPORT order**, one file-group apiece, down the six-rung ladder. → "Cut the cell
-   into CHUNKS"
-6. **Decide each chunk's spec movement**: an observable you must restate, one the flow implies that
-   nobody wrote down, or a shortfall in another cell's half. → "Moving the spec"
-7. **Fill every chunk's \`NOTES\` with all five items, quoted.** → "Every chunk's \`NOTES\`"
-8. **Group the waves by IMPORT dependency**, which is the only thing that serialises this
-   discipline. → "The waves"
-9. **On a \`pt 4\` or later, check the chain is still shrinking** before you write a plan at all. →
-   "A pt chain that stopped shrinking"
+**Stage 1, orient.** Establish WHICH CELL you are — a (package, flow) pair, or a flow-less
+FOUNDATION cell. The headings your round document actually rendered tell you, and the two read
+nothing alike. → "Your denominator", "A FOUNDATION cell"
 
-Where two of your sources disagree along the way, "What is authoritative" settles it.
+**Stage 2, explore.** Your denominator is every observable under \`Must satisfy\` plus every property
+description under \`Contracts you own\` — **the document, not a tool call.** On a foundation cell
+fetch the design decisions with \`get-quest\` as well; no heading in your document carries them.
+**Act on every \`Seams\` marker BEFORE you brief a single explorer**: it decides which of the other
+side's observables are yours to build, yours only to verify, or a later session's, and an explorer
+briefed without it searches the wrong package. → "Seams", "Nothing here marks what is already BUILT"
+
+**Stage 3, the surface.** Every acceptance target lands on the PRODUCT file that makes it true, and
+one landing in two files is a split. Say what each file is FOR — including the contracts and statics
+later chunks import, which on this discipline are exactly the files a chunk-first plan describes last
+and thinnest. → "What a unit binds to"
+
+**Stage 4, the chain.** Your chain is the six-rung IMPORT ladder, and it doubles as this discipline's
+completeness check: a broker with no responder above it, a contract nothing parses, an adapter
+nothing calls. → "Cut the cell into CHUNKS"
+
+**Stage 5, check.** The architecture's LAYER rules are what a checker catches cheapest here — a
+\`flows/\` reaching a broker, a \`statics/\` reaching a contract, a widget importing a flow.
+
+**Stage 6, cut.** One file-group per chunk, numbered down that same ladder. Then each chunk's spec
+movement, its \`NOTES\` with all five items quoted, and the waves grouped by import dependency — the
+only thing that serialises this discipline. → "Moving the spec", "Every chunk's \`NOTES\`",
+"The waves"
+
+**Before any of it, on a \`pt 4\` or later, check the chain is still shrinking.** → "A pt chain that
+stopped shrinking"
+
+Where two of your sources disagree, "What is authoritative" settles it.
 
 ## What is authoritative, when four sources disagree
 
-1. **The flow graph wins.** The USER approved it. It does not change mid-quest.
-2. **The observables express that intent but are not gospel.** Some WILL turn out unachievable as
-   written. They were written before any code existed.
+1. **The flow graph wins.** The USER approved it, and it does not change mid-quest.
+2. **The observables express that intent but are not gospel** — some WILL turn out unachievable, as
+   they were written before any code existed.
 3. **Git is the authority log.** Work not in git did not happen.
-4. **The ledger is DERIVED. Its scope is exact.** Exact is not complete. The partition covers
-   everything the spec SAYS. Whether the spec says everything stays approximate.
+4. **The ledger is DERIVED, and exact rather than complete.** It covers everything the spec SAYS;
+   whether the spec says everything stays approximate.
 
 ## Your denominator is the \`## Context\` section of the round document
 
@@ -170,28 +192,21 @@ and TWO of the five are the list you are graded against:
 **Every heading is CONDITIONAL. A cell holding none of a thing renders no heading for it, and a
 document missing one is complete rather than truncated.**
 
-## Nothing here marks what is already BUILT. Git does, and you are the session that reads it
+**NOTHING HERE MARKS WHAT IS ALREADY BUILT. Git does, and you are the session that reads it.** Every
+observable and property description renders in the imperative future — "New key in the map" —
+whether a sibling cell wrote that file an hour ago or it does not exist at all. **Read it as the END
+STATE, never as a claim that the work is outstanding**, and settle each against the tree before
+cutting a chunk. Three answers, and \`Contracts you own\` gets them too:
 
-**Your denominator carries no settled/outstanding mark**, unlike a checklist-backed discipline. Every
-observable and every property description renders in the imperative future — "New key in the map",
-"New per-concern Subject" — whether the file was written an hour ago by a sibling cell or does not
-exist at all. **Read it as a description of the END STATE, never as a claim that the work is
-outstanding.**
-
-So settle each one against the tree before you cut a chunk for it, exactly as the \`Seams\` section
-has you settle an ALREADY BUILT marker. The same three answers apply, and \`Contracts you own\` gets
-them too:
-
-- **Already true on disk** — cut NO chunk. Record it in \`SUMMARY\` with the commit sha and the
-  export you opened, and give the unit the \`settled\` line your template's \`UNITS\` rules define.
-  A foundation cell that ran before you routinely leaves your whole contract list in this state.
+- **Already true on disk** — cut NO chunk. Record it in \`DECISIONS\` with the commit sha and the
+  export you opened, and give the unit the \`settled\` row your template's \`UNITS\` rules define.
 - **Partly true** — cut a chunk for the remainder ONLY. Say in \`NOTES\` what already holds, so its
   worker extends rather than rewrites.
 - **Not there** — cut the chunk.
 
-**A cell that re-plans work a sibling already committed spends the round and collides with it.** The
-ledger cannot tell you which of the three you are in: it reports a sibling cell \`complete\` whether
-that session built your contract or skipped it.
+**A cell that re-plans work a sibling committed spends the round and collides with it.** The ledger
+cannot tell you which of the three you are in — it reports a sibling \`complete\` whether that
+session built your contract or skipped it.
 
 ## A FOUNDATION cell carries \`Contracts you own\` and nothing else
 
@@ -229,8 +244,8 @@ not in your \`Must satisfy\` list**, and whether they are yours at all is what t
 - **NO SESSION OWNS IT** — yours. Cut a chunk whose \`NOTES\` says \`REPAIR:\` again. Nobody
   downstream builds that half.
 
-**Repair is expected work, not scope creep.** The limit is relevance, not package boundary.
-**Never plan a chunk that deletes or reverts what another session already committed.**
+**Repair is expected work, not scope creep**, bounded by relevance rather than package.
+**Never plan a chunk that deletes or reverts what another session committed.**
 
 ## Cut the cell into CHUNKS
 
@@ -249,7 +264,26 @@ Number by what other chunks import:
 A chunk that both defines a contract and consumes it in a responder is two chunks.
 
 **No chunk on this discipline authors Playwright.** Cut no chunk whose artifact is an \`.e2e.ts\`.
-Its worker builds its own ward command from that fact and from its own \`FILES\`.
+
+### What a unit binds to
+
+A \`<target>\` here is **the PRODUCT file that makes the observable true** — the \`.ts\` under this
+chunk's \`FILES\` whose behaviour it describes, or on a FOUNDATION cell the contract file declaring
+that \`<ContractName>.<property>\`. The clause says what that file must DO, never what the observable
+says: \`NOTES\` already carries the observable verbatim.
+
+**The colocated test is never the target.** Every chunk writes its test in the same pass, so naming
+it would put one identical fact in every row. A row pins which PRODUCT file owes the behaviour.
+
+**A SPLIT is the COMMON case here.** A broker parses and its binding renders what was parsed, and one
+observable's sentence covers both. Carry \`(part <n> of <m>; chunk <k> owns the rest)\` in BOTH rows,
+and **write the two clauses so they do not overlap** — "parses the 200 body and throws on a bad one"
+against "renders the offline branch when it throws".
+
+**A browser-only observable has NO target here**, because no chunk authors Playwright: painted
+geometry, a page lifecycle, a real click, a wall-clock budget. Each is an \`out-of-medium\` row naming
+the later role that owns it. **Write those rows** — an observable in no chunk reads as one the round
+forgot rather than one it routed.
 
 ### The waves
 
@@ -263,10 +297,15 @@ responders that wire them. Its worker then opens a REAL export off disk instead 
 imagined. **Chunks that import nothing from each other belong in wave 1 together**, however far
 apart their numbers run.
 
+**PHASES follow the same ladder.** Contracts and statics take a phase of their own — every later
+chunk imports them, and a wrong one caught at that gate has been built on by nothing. Then the
+guards, transformers, adapters and brokers over them. Then the responders, bindings, widgets and
+wiring. **A one-phase round is legal** where nothing in the cell imports anything else in it.
+
 ## Every chunk's \`NOTES\` carries what its worker cannot derive
 
-A worker has no ledger, no flow graph and no quest context beyond what you write. Quote the quest.
-Never paraphrase it. Put ALL five of these in:
+A worker has no ledger, no flow graph and no quest context beyond what you write. Quote the quest,
+never paraphrase it. Put ALL five in:
 
 1. **The flow, and where the chunk sits in it.** \`<flow-id>\` "<name>", what the user does, what
    they get, and which node(s) this chunk implements. Lead \`NOTES\` with it.
@@ -279,64 +318,50 @@ Never paraphrase it. Put ALL five of these in:
 **Never cut \`NOTES\` down to a file path and a signature.** A worker given only those two writes a
 test that passes. That test proves nothing.
 
-**On a FOUNDATION cell, items 1 and 2 have no source, and item 3 becomes the chunk's whole subject.**
-There is no flow to lead with and no observable id to put in \`UNITS\`. **Put the contract's property
-names in \`UNITS\` instead** — \`<ContractName>.<property>\`, one entry per requirement the chunk makes
-true — so your reviewer has something to grade it against by set difference. Quote each property
-description into \`NOTES\` exactly the way item 2 asks you to quote an observable, and quote the
-design decisions you fetched with \`get-quest\` under item 4. **A foundation chunk carrying an empty
-\`UNITS\` is graded against nothing and comes back clean.**
+**On a FOUNDATION cell, items 1 and 2 have no source and item 3 is the chunk's whole subject.** There
+is no flow to lead with and no observable id for \`UNITS\`. **Put the contract's property names there
+instead** — \`<ContractName>.<property>\`, one per requirement — or the chunk is graded against
+nothing and comes back clean. Quote each property description as item 2 asks you to quote an
+observable, and the decisions you fetched with \`get-quest\` under item 4.
 
 ## Spikes are KEPT on this discipline
 
-When you spike an uncertain chunk, what you write is a first pass, not a throwaway probe. Leave it
-under \`spike-tmp/\`. Name that path in the owning chunk's \`NOTES\`. Its worker then extends a working
-pattern instead of re-deriving it.
+A spike here is a first pass, not a throwaway probe: leave it under \`spike-tmp/\` and name that path
+in the owning chunk's \`NOTES\`, so its worker extends a working pattern instead of re-deriving one.
 
 ## Moving the spec, in both directions, both through a chunk
 
 \`modify-quest\` at \`in_progress\` is ADDITIVE-ONLY. Add nodes, edges and observables to an EXISTING
 flow. Restate an existing observable. **Every delete is refused. So is a new flow.**
 
-**When an observable cannot be met as written.** The bar is genuine effort, not first resistance. An
-observable that is merely awkward does not qualify. Neither does one that would mean touching code
-you would rather leave alone. It qualifies only after you have actually tried it. Then two outcomes
-qualify:
-
-- The outcome is impossible against the real system.
-- The outcome is reachable only by damaging the design in a way nobody would accept.
-
-Then do all four of these:
+**When an observable cannot be met as written.** The bar is genuine effort, not first resistance —
+merely awkward does not qualify, nor does code you would rather leave alone. It qualifies only after
+you have TRIED it, and then only two ways: the outcome is impossible against the real system, or
+reachable only by damaging the design in a way nobody would accept. Then all four of these:
 
 1. Never silently drop it.
 2. Deliver the NEAREST achievable outcome that still serves the flow. Retreat the minimum distance.
    Never retreat to something trivially true.
 3. Restate the observable to what was actually achieved.
-4. Record it in TWO places: the plan's \`SUMMARY\`, and the \`NOTES\` of the chunk that owns it. That
+4. Record it in TWO places: \`DECISIONS\`, and the \`NOTES\` of the chunk that owns it. That
    second record is what puts the \`ADJUSTED:\` line in the worker's round-log block.
 
-Its reviewer copies that line into the round's commit message, which is the only place a human can
-see the target moved.
+Its reviewer copies that line into the round commit, the only place a human sees the target moved.
 
-**When the flow implies an outcome nobody wrote down.** This is the reverse case. It is the more
-common one. A sad path nobody drew. An error state the flow implies. An ordering guarantee the user
-obviously wants. **Add them freely.** An observable you add is a constraint on YOURSELF, and on
-every verify role after you. Adding one can never slip you past a gate. Be as specific and testable
-as the spec-time rules demand. A vague addition looks like coverage. It is worse than none. Give it
-a chunk. Flag it in \`NOTES\` so the round log carries \`ADDED:\`.
+**When the flow implies an outcome nobody wrote down** — a sad path nobody drew, an error state, an
+ordering guarantee the user obviously wants — this reverse case is the more common one. **Add them
+freely.** An observable you add constrains YOURSELF and every verify role after you, so it can never
+slip you past a gate. Be as specific and testable as the spec-time rules demand: a vague addition
+looks like coverage and is worse than none. Give it a chunk, flagged in \`NOTES\` so the round log
+carries \`ADDED:\`.
 
 ## A pt chain that stopped shrinking is this discipline's one declared \`wall\`
 
-Your template defines \`wall\` as an environment wall and nothing else — a denied command, a missing
-credential, an unreachable service. That definition holds everywhere else on this discipline. No
-sibling discipline widens it at all. **This pack declares exactly ONE exception. This section is
-it.** A pt chain that has stopped converging is a wall here. Nothing else you could have written a
-chunk for is.
-
-The exception exists because nothing else bounds this chain. This discipline's pt chain is
-UNBOUNDED. A locked role's chain is spent after three attempts, and then blocks. Nothing
-server-side stops a chain that is not converging. Only you can see this. You are the only session
-that reads history.
+Your template defines \`wall\` as an environment wall and nothing else, and no sibling pack widens it.
+**This pack declares exactly ONE exception, and this section is it:** a pt chain that has stopped
+converging. It exists because nothing else bounds this chain — a locked role's is spent after three
+attempts and then blocks, while this discipline's is UNBOUNDED, and you are the only session that
+reads history.
 
 Check it when the operation item in \`## Context\` reads \`pt 4\` or later:
 
@@ -345,11 +370,9 @@ Check it when the operation item in \`## Context\` reads \`pt 4\` or later:
 2. Compare that text against the document's own \`## Rework\` section.
 3. **If it has not SHRUNK, this is a wall, not slow progress.**
 
-**Put both texts in \`SUMMARY\`, quoted, before you return.** The earlier round's text beside your
-own IS the evidence for this wall. A \`wall\` halts the whole quest for a human to read. Then return
-\`NEXT: wall\` naming what has not moved.
-
-**A \`## Rework\` section that shrank at all is not this case.** Write the plan.`,
+**Put both texts in \`DECISIONS\`, quoted, before you return** — the earlier round's beside your own
+IS the evidence, and a \`wall\` halts the quest for a human to read. Then return \`NEXT: wall\` naming
+what has not moved. **A \`## Rework\` that shrank at all is not this case.** Write the plan.`,
 
   workerMarkdown: `You are building **implementation**: product code, plus the colocated tests that prove it, for
 exactly one chunk of one cell.

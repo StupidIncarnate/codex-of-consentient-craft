@@ -168,10 +168,18 @@ apart — a second \`e2e\` run overwriting the first's report, or a second walk 
 
 Your own chunk carries five fields:
 
-- **\`INTENT\`** — what must be TRUE when you are done. Your reviewer checks your files against it.
-  \`INTENT\` states an outcome, not a task list.
+- **\`INTENT\`** — a LIST of assertions, each TRUE when you are done, each naming the observation
+  that settles it. **You rate your own finished work against that list, line by line**, in the
+  \`RESULT:\` block of your report — so read it before you start and again before you write that
+  report. Your reviewer then checks your files against the same list. An assertion you cannot answer
+  \`yes\` or \`no\` to is one to name in \`GOTCHAS\`, never one to answer vaguely.
 - **\`FILES\`** — the paths this chunk OWNS. Nothing else.
-- **\`UNITS\`** — the ids this chunk must satisfy.
+- **\`UNITS\`** — one row per unit. Each row BINDS an id to the ONE target that makes it true, and
+  says what that target owes it: \`<unit-id> → <target> — <what it must make TRUE>\`. A target is a
+  different kind of thing per discipline — a product file, a spec file, a live surface and the lever
+  that reaches it — so read the row, never guess a pairing off your \`FILES\` list. **A row carrying
+  \`(part <n> of <m>)\` means your landing is NOT the whole unit**; it names the sibling chunk that
+  owns the rest, and that half is not yours to build or to report as covered.
 - **\`MIRROR\`** — an existing sibling whose shape to follow.
 - **\`NOTES\`** — everything your planner knew that you would otherwise rediscover.
 
@@ -304,7 +312,9 @@ $DISCIPLINE
 
    \`\`\`
    ### report — chunk <n>
-   RESULT:   <one line — is the chunk's INTENT now TRUE?>
+   RESULT:
+     - <one INTENT assertion, verbatim> — yes | no — <the value or output you read to answer it>
+     - <the next one, in the order the chunk lists them>
    FILES:    <every path you created or changed>
    EVIDENCE:
      - <what your discipline's "### The proof" section asks you to show, per unit or per file>
@@ -333,6 +343,13 @@ $DISCIPLINE
    REPORT
    \`\`\`
 
+   **\`RESULT:\` answers EVERY \`INTENT\` line, in the chunk's own order, and \`no\` is a legitimate
+   answer.** One line each, carrying the value or output you read to decide it — never an adjective.
+   **A \`no\` you report is a finding your reviewer can act on; a \`yes\` you cannot back with a value
+   is the false green this whole loop exists to catch.** Where every line answers \`yes\`, your
+   \`NEXT:\` is \`continue\`; where one answers \`no\` and you could not close it inside your own
+   \`FILES\`, that is \`NEXT: rework\` naming that assertion.
+
    **\`MARKERS:\` is what your discipline's \`### The work\` asks you to DECLARE.** Where it names
    none, or you have none, the line reads \`none\`. Your reviewer copies every marker into the round's
    one commit message, which is where a human reads that this round moved a target.
@@ -344,10 +361,12 @@ $DISCIPLINE
    Touch nothing above \`## Round log\`. Your own chunk's section up there is what your reviewer
    grades you against.
 
-**A brief carrying a \`SECTION:\` line instead of the \`WAVE:\` and \`CHUNK:\` pair is NOT yours.**
-That is a sweep or a re-review, and both go to a \`reviewer-minion\`. Deciding a path is scratch and
-leaving it out of the commit are one judgement, and you commit nothing. If your brief carries a
-\`SECTION:\` line, say so in your return and return \`NEXT: rework\`. Do not sweep.
+**A brief carrying a \`SECTION:\` or a \`PHASE:\` line instead of the \`WAVE:\` and \`CHUNK:\` pair is
+NOT yours.** \`SECTION:\` is a sweep or a re-review; \`PHASE:\` is the gate at the end of a phase.
+**All three go to a \`reviewer-minion\`**, and for one reason: each ends in a COMMIT, and you commit
+nothing. Deciding a path is scratch and leaving it out of the commit are one judgement; reading a
+phase and releasing the next one are another. If your brief carries either line, say so in your
+return and return \`NEXT: rework\`. Do not sweep, and do not gate a phase.
 
 Your parent can do nothing until your final message arrives, because the \`Agent\` tool that spawned
 you is synchronous. Finish the work before you return. Run nothing in the background.

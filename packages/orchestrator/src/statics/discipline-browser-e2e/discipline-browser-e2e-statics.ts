@@ -21,10 +21,18 @@
  * signal-back completion gate measures every eligible unit on the item's OWN flow, because
  * `operationSignoffScopeTransformer` gives this track `flowScope: 'declared'`. Never the units the
  * plan cut into chunks. A unit an existing spec already covers therefore reaches that gate needing a
- * signature. `plannerMarkdown` records those ids in `SUMMARY` beside the spec that covers them.
- * `reviewerMarkdown` names the `get-qa-checklist` call that rebuilds the slice. It also tells the
- * reviewer to sign every unit in that slice. Drop either half and the round fails its parent's gate.
- * The next round earns the identical refusal. The round after that spends a pt attempt.
+ * signature. `plannerMarkdown` gives every such unit a `settled` `UNITS` row carrying the spec
+ * `file:line` that covers it. `reviewerMarkdown` names the `get-qa-checklist` call that rebuilds the
+ * slice. It also tells the reviewer to sign every unit in that slice. Drop either half and the round
+ * fails its parent's gate. The next round earns the identical refusal. The round after that spends a
+ * pt attempt.
+ *
+ * THE FOUR STEP-4 VERDICTS ARE FOUR `UNITS` ROW SHAPES, and `### What a unit binds to` is where the
+ * mapping lives. They used to be split across two records: "add" and "extend" reached the reviewer as
+ * chunks, while "already covered" and "unreachable" reached it as free prose. Two records of one
+ * verdict can disagree, and the reviewer grades the chunks — so a unit whose only mention was a
+ * prose line reached the completion gate with no signature. All four are rows now, and this pack
+ * says outright not to restate them anywhere else.
  *
  * `UNREACHABLE` IS THE FOURTH PER-UNIT VERDICT, and it exists because the pack used to close every
  * exit on the same unit. The planner block said "Leave that part to the sibling"; the reviewer block
@@ -101,60 +109,67 @@ covered by several existing specs already. This step exists to find them.
 
 ### How to plan
 
-**Inventory before you author.** A parallel suite standing beside one that already covered the path
-is the most expensive mistake this role can make. A green run hides it. Work these in order; a step
-that names a section at its end is telling you which section below carries it:
+**Your template runs six stages. This says what each one MEANS for a browser walk**, and names the
+section below that carries it. Where this and the template disagree about ORDER, this wins.
 
-1. **Resolve the e2e-eligible packages from \`packagesAffected\` by \`packageType\`.** Those are the
-   browser-reachable kinds. The result is a SET. It may hold several packages. It may hold none.
-   Never assume a package path from a name you recognised. **An EMPTY set means this item was
-   seeded in error.** Write a plan with zero chunks whose \`SUMMARY\` says exactly that. Commit it.
-   Return \`NEXT: continue\`. Zero units in scope gets the same answer. Neither is a wall. Neither
-   is a reason to widen anything.
+**Stage 1, orient.** **Resolve the e2e-eligible packages from \`packagesAffected\` by
+\`packageType\`.** The result is a SET; it may hold several packages or none. Never assume a package
+path from a name you recognised. **An EMPTY set means this item was seeded in error** — write a
+zero-chunk plan whose \`DECISIONS\` say exactly that, and return \`continue\`. Zero units in scope
+gets the same answer. Neither is a wall.
 
-2. **List every \`.e2e.ts\` in those packages.** Run
-   \`discover({ glob: '<e2e-package>/src/**/*.e2e.ts' })\`, one call per resolved package. That list
-   is the whole existing surface you might extend.
+**Stage 2, explore.** **You are not planning against an empty test tree**, and a parallel suite
+standing beside one that already walked the path is the most expensive mistake this role can make.
+Send explorers to list every \`.e2e.ts\` in those packages and OPEN the ones whose \`page.goto\`
+target matches this flow's entry node, along with the harnesses those specs import. **A filename that
+sounds like your flow routinely asserts something else.** Mine the same sweep for LEVERS — a recipe
+for forcing a fault is usually already paid for. → "Mine the existing harnesses"
 
-3. **OPEN the specs whose \`page.goto\` target matches this flow's entry node.** Open the harnesses
-   those specs import too. Do not credit a file by its name. A filename that sounds like your flow
-   routinely asserts something else entirely.
+**Stage 3, the surface.** **Decide the verdict PER UNIT, not per flow** — already covered, extend,
+add, or unreachable — and each verdict is one \`UNITS\` row naming its spec. Sort the below-browser
+units by SURFACE rather than by whose job they feel like. → "What a unit binds to", "Your denominator
+is the WHOLE flow"
 
-4. **Decide the verdict PER UNIT, not per flow.** Take the units from
-   \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`, with the ids
-   from the round document's \`## Context\`. Give each unit ONE of four verdicts:
+**Stage 4, the chain.** Your chain is spec → harness. A walk needing a lever no harness carries, or a
+computed helper a spec may not declare, is a missing \`.harness.ts\` rather than a missing edge. →
+"Where a spec lives"
 
-   - **already covered** — name the spec \`file:line\` and the assertion you read.
-   - **extend** — name the spec file the case goes into.
-   - **add** — name the new file. Say why no existing spec is the right home.
-   - **unreachable** — no browser can reach the surface at all. See the next section. Cut no chunk.
+**Stage 5, check.** The cheapest catch here is an "already covered" row citing a spec that asserts
+something else, and an "unreachable" that a \`page.request\` or \`page.on('websocket')\` could in fact
+observe.
 
-   A whole flow marked "add" while three specs already walk its entry route is a wrong answer. A
-   whole flow marked "extend" into a spec that asserts something unrelated is wrong the other way.
+**Stage 6, cut.** One chunk per \`.e2e.ts\`, placed at
+\`<e2e-package>/src/flows/<route>/<feature>.e2e.ts\`, and **every chunk in its own wave**. →
+"Where a spec lives", "The waves"
 
-5. **Sort the below-browser units by SURFACE**, not by whose job they feel like. Chunk the ones a
-   browser can genuinely observe; mark the rest UNREACHABLE in \`SUMMARY\` and cut them no chunk. →
-   "Your denominator is the WHOLE flow"
+### What a unit binds to
 
-6. **Place each spec** at \`<e2e-package>/src/flows/<route>/<feature>.e2e.ts\`, one chunk per spec
-   file, and never two chunks on one path. → "Where a spec lives"
+A \`<target>\` here is **the ONE \`.e2e.ts\` spec that walks the unit**. Step 4's four verdicts are
+four row shapes, and every unit in your denominator takes exactly one of them:
 
-7. **Mine the existing harnesses for LEVERS** before you design a fault of your own, and name every
-   lever you found in the owning chunk's \`NOTES\`. → "Mine the existing harnesses"
+| The verdict | The row |
+|---|---|
+| add | \`- <id> → <the new spec path> — <the assertion that spec must carry>\` |
+| extend | \`- <id> → <the existing spec path> — <the case you are adding to it>\` |
+| already covered | \`- settled <id> at <sha> → <spec>:<line> — <the assertion you read there>\` |
+| unreachable | \`- out-of-medium <id> — no browser can <the surface wall>; the reviewer signs it \`unconfirmable\`\` |
 
-8. **Give every chunk its own wave.** This discipline is serial. → "The waves"
+**Those rows are the ONE record of the four verdicts. Do not restate them in \`DECISIONS\` as well.** Two
+copies of one verdict can disagree, and the reviewer reads the chunks.
 
-**Step 4's verdicts ARE the plan.** An "extend" chunk names the spec it edits. An "add" chunk names
-the file it creates. A chunk's \`UNITS\` are the terminal, branch and observable ids one spec must cover. The
-reviewer reads those ids. It takes the set difference against them, never against what it remembers.
+**A \`settled\` row and an \`extend\` row point at the SAME kind of path, and the difference is the
+whole inventory step.** \`settled\` says the assertion is on disk right now and names the line.
+\`extend\` says the file is the right home and the case is not in it yet. A row that claims \`settled\`
+on a spec you did not open is the false green this discipline's inventory step exists to stop.
 
-**An "already covered" unit needs no chunk. It still needs a signature.** Write its id into the
-\`SUMMARY\` beside the spec \`file:line\` that covers it. Your reviewer opens that spec. It reads the
-assertion. It signs the unit \`confirmed\` on the existing spec's evidence. It can only do that for a
-unit your plan named. Your parent's \`done\` is measured over EVERY eligible unit on this item's
-flow. Never over the units you cut into chunks. **A unit in no chunk is still a unit the reviewer
-must sign.** Leave one unsigned and the gate refuses the signal. The next round earns the identical
-refusal. The round after that spends a pt attempt on the same untouched unit.
+**What makes an \`out-of-medium\` row legitimate is settled below, under "Your denominator is the
+WHOLE flow": the claim is about the SURFACE and never about whose job it is.** Sort by that rule
+first, then write the row.
+
+**Two chunks may never carry the same bare unit id**, because two specs walking one unit is the
+duplicate path your reviewer rejects on sight. Where a unit genuinely needs two specs — an entry walk
+and a recovery walk — use the template's \`(part <n> of <m>)\` marker so the split is declared rather
+than looking like a duplicate.
 
 ## Your denominator is the WHOLE flow, below-browser units included
 
@@ -164,6 +179,13 @@ yours over a disjoint package slice — so it never settles one of your units. Y
 is recomputed over every eligible unit on this item's flow. A unit whose value is produced
 server-side reaches your reviewer needing a signature whatever that sibling did.
 
+**Your parent's \`done\` is measured over EVERY eligible unit on this flow, NEVER over the units you
+cut into chunks. A unit that gets no new spec is still a unit your reviewer must sign** — which is
+why an "already covered" verdict takes a \`settled\` row naming the spec \`file:line\`, and an
+"unreachable" one takes an \`out-of-medium\` row naming the wall. Leave a unit out of both and the
+gate refuses the signal, the next round earns the identical refusal, and the round after that spends
+a pt attempt on the same untouched unit.
+
 **So sort those units by SURFACE, and never by whose job the work feels like.**
 
 - **Reachable through the browser.** A value the page displays, a request the page makes, a frame
@@ -172,8 +194,8 @@ server-side reaches your reviewer needing a signature whatever that sibling did.
   it, and a broadcast interval is browser-reachable by timing two frames. **Chunk it.**
 - **Unreachable from a browser at all.** The surface itself is out of reach — forcing the server to
   throw during assembly, reading a process value no response carries, inspecting state no frame
-  exposes. Name it in \`SUMMARY\` as UNREACHABLE with the reason. **Cut no chunk.** Your reviewer
-  signs it \`unconfirmable\` on that reason.
+  exposes. **Cut no chunk. Write it as an \`out-of-medium\` row** in the chunk nearest it, carrying
+  the reason. Your reviewer signs it \`unconfirmable\` on that reason.
 
 **UNREACHABLE is a claim about the SURFACE, never about whose job it is.** "The sibling track owns
 this" is routing, and your reviewer's audit reopens it. "No browser can make snapshot assembly
@@ -227,8 +249,15 @@ it is still being written, so both workers end up reading a report that describe
 worker that reads a red belonging to its sibling spends the rest of its turn chasing a defect that
 is not there.
 
-**A resolved package declaring no \`webServer\` blocks every unit it owns.** Say so in \`SUMMARY\`.
-Your reviewer signs each of those units \`unconfirmable\`. It names the missing config.
+**PHASES group specs by the LEVER they share, never one phase per spec.** Every chunk here is
+already its own wave, so a phase per chunk would gate after every single spec and buy nothing. Put
+the chunk that AUTHORS a new harness in a phase ahead of every spec that uses it: the gate then
+reads that lever once, before three specs are written against a recipe that may not fire. **Where
+you authored no harness, the whole round is ONE phase.**
+
+**A resolved package declaring no \`webServer\` blocks every unit it owns.** Say so in \`DECISIONS\`,
+which is where a whole-package fact belongs, and give each unit it blocks its own \`out-of-medium\`
+row naming that missing config. Your reviewer signs each of those units \`unconfirmable\`.
 
 ## Mine the existing harnesses for LEVERS, not fixtures
 
@@ -353,13 +382,12 @@ narrows to this item's flow and package slice.
 \`done\` is measured over every eligible unit on this item's flow. Never over the units the plan cut
 into chunks. A unit with no chunk still reaches that gate needing your signature.
 
-**A unit the planner marked "already covered" is signed on the EXISTING spec's evidence.** The plan's
-\`SUMMARY\` names each one with the spec \`file:line\` that covers it. Open that spec. Read the
-assertion. Sign \`confirmed\` with that \`file:line\` and what makes that assertion fail. Do not sign
-it on the plan's word. Where the plan named no spec for a unit and no chunk covered it either, that
-is \`NEXT: rework\` naming the unit.
+**A unit on a \`settled\` row is signed on the EXISTING spec's evidence.** That row names the spec
+\`file:line\` that covers it. Open that spec. Read the assertion. Sign \`confirmed\` with that
+\`file:line\` and what makes that assertion fail. Do not sign it on the plan's word. Where a unit has
+no row in any chunk and no spec covering it either, that is \`NEXT: rework\` naming the unit.
 
-**A unit the planner marked UNREACHABLE is signed \`unconfirmable\` on that reason, and it stands.**
+**A unit on an \`out-of-medium\` row is signed \`unconfirmable\` on that reason, and it stands.**
 Its \`evidence\` is what the browser surface cannot do — no browser can force snapshot assembly to
 throw, no frame carries that process value — and its \`question\` names what would reach it. Confirm
 the reason yourself before you sign: a value the page fetches IS reachable, and a broadcast interval

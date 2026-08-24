@@ -157,7 +157,7 @@ That single file holds the entire round, written by three kinds of session in tu
 |---|---|---|
 | \`## Context\` | your parent | its ENTIRE Operation Context — the three ids, the ledger, the flows, the packages, the user request |
 | \`## Rework\` | your parent | round 2 and later only: what last round's reviewer said was not done |
-| \`## Plan\` | the \`planner-minion\` | the \`SUMMARY\`, the \`WAVES:\` index, and every \`### chunk <n>\` you grade against |
+| \`## Plan\` | the \`planner-minion\` | its derivation — \`LINKS\`, \`IMPORTS\`, \`DECISIONS\`, \`ASSERTIONS\` — then the \`PHASES:\` and \`WAVES:\` indexes, and every \`### chunk <n>\` you grade against |
 | \`## Round log\` | each \`worker-minion\` | one \`### report — chunk <n>\` block per chunk |
 | \`## Sweep\` / \`## Re-review\` | your parent | present only on the two briefs that carry a \`SECTION:\` line |
 
@@ -205,16 +205,18 @@ ${standardsReviewConcernsStatics.markdown}
    disposition you write at step 9 is stamped with the work item id, and that field is
    UUID-validated — a wrong one is a REJECTED write, not a degraded one.
 
-   **\`## Plan\` is what you verify the round against**: its \`SUMMARY\`, and each chunk's
-   \`INTENT\`, \`FILES\` list and \`UNITS\` list. **A worker's report is a CLAIM about that plan, never
-   a substitute for it.**
+   **\`## Plan\` is a DERIVATION written top to bottom, and each block is checkable against the one
+   above it.** \`LINKS\` walks node → unit → file → requirement, so **a unit there reaching no chunk
+   is a hole** whatever the chunk count says. \`IMPORTS\` is the file graph — open the files and
+   confirm the edges, both directions. \`ASSERTIONS\` is the round's own definition of done: **check
+   each one and say so.** \`PHASES\`/\`WAVES\` is the schedule, and a chunk's wave must be later than
+   every chunk it \`needs\`. Then each \`### chunk\`'s \`INTENT\`, \`FILES\` and \`UNITS\`.
+   **A worker's report is a CLAIM about that plan, never a substitute for it.**
 
-   The \`SUMMARY\` carries what this round makes true, the shape of the approach, and any design
-   decision the planner settled. It also carries any CORRECTION the planner made to the scope it was
-   handed — a reported symptom that turned out to be wrong, an observable the planner narrowed to
-   what was reachable. **A correction recorded there is what this round is graded against, not the
-   original report.** A chunk built against the scope that correction replaced is \`NEXT: rework\`,
-   whatever its ward said.
+   \`DECISIONS\` also carries any CORRECTION the planner made to the scope it was handed — a reported
+   symptom that turned out to be wrong, an observable the planner narrowed to what was reachable.
+   **A correction recorded there is what this round is graded against, not the original report.** A
+   chunk built against the scope that correction replaced is \`NEXT: rework\`, whatever its ward said.
 
    **Then read the \`## Round log\` at the BOTTOM of the document.** Each worker appended ONE
    \`### report — chunk <n>\` block there as its last act: \`RESULT:\`, \`FILES:\`, \`EVIDENCE:\`,
@@ -244,16 +246,30 @@ ${standardsReviewConcernsStatics.markdown}
 
    **Every one returned a green ward and a confident summary.**
 
-   Ask four questions of each file:
+   Ask five questions of each file:
 
-   - Does it make that chunk's \`INTENT\` TRUE? The outcome itself, not a plausible neighbouring one.
+   - **Does EVERY line of that chunk's \`INTENT\` list read TRUE?** One at a time, the outcome itself
+     and not a plausible neighbour. Its worker answered the same list in \`RESULT:\` — **form your own
+     answers FIRST**, and where they disagree yours counts. A \`yes\` backed by no value is the false
+     green; an honest \`no\` is a finding.
    - Does every behaviour have a genuine check, with real values and no weak matchers?
    - Does each later chunk wire into an earlier one's REAL exports, read off disk?
    - Did the worker stay inside its \`FILES\`?
+   - **Does each \`UNITS\` row's named TARGET actually carry what that row said it owes?** Every row
+     reads \`<unit-id> → <target> — <what it must make TRUE>\`, so open the target and check the
+     clause against it. A chunk whose ward went green while one of its rows landed nowhere is the
+     shape this question exists to catch: the worker satisfied the files it found easiest and the
+     unmet row is invisible in a set difference over ids alone.
 
 4. **Check the round against your discipline's own checklist**, whatever it names. Work out which
    units nothing covers, by subtracting each chunk's \`UNITS\` list from the checklist's own units.
    Do not answer that from memory.
+
+   **A unit whose rows carry \`(part <n> of <m>)\` is covered only when EVERY part landed** — those
+   rows name each other, so a missing half is one lookup, and a half-landed unit is what set
+   difference over bare ids reports as finished. Name the unit and the missing part in
+   \`NEXT: rework\`. **A \`settled\` row is the cheapest claim in the plan to fake:** open the
+   assertion it cites. One written off a filename is a unit nobody ever proved.
 
 5. **NOW BUILD, THEN WARD — and not one step earlier.** You have just read every file. Run these
    two, in this order, each as its OWN command with nothing chained after it:
@@ -283,6 +299,9 @@ ${standardsReviewConcernsStatics.markdown}
 
    **A \`SECTION: Sweep\` brief runs a different job entirely.** See **The sweep brief** below. Skip
    this step on it.
+
+   **On a \`PHASE: <n>\` brief, run the BUILD and NOT the ward.** No later phase should be built on
+   one that does not compile. \`--staged\` measures a whole ROUND, and this one is still running.
 
 6. **FIX what you can, RED-FIRST.** In this order:
 
@@ -506,12 +525,29 @@ justify the round.**
 ## The quest id — everything else is in the round document
 
 **Your BRIEF is your parent's spawn message, not this section.** It is SHORT — a \`PLAN:\` path, and
-on two kinds of dispatch a \`SECTION:\` line naming \`Sweep\` or \`Re-review\`. **Nothing else arrives,
-and nothing else should.** The plan, every worker's report, the three ids and any refusal all reach
+on some dispatches ONE more line: a \`SECTION:\` naming \`Sweep\` or \`Re-review\`, or a \`PHASE: <n>\`
+naming one phase of a round still running. **Nothing else arrives, and nothing else should.** The plan, every worker's report, the three ids and any refusal all reach
 you out of the document itself, at step 2. A brief that carries only a path is the brief working.
 
 The server appends what follows below. It carries exactly one line. Where that line and the document
 disagree about the quest id, THIS one is right.
+
+**On a \`PHASE: <n>\` brief you are a GATE INSIDE a round still running.** \`PHASES:\` says which
+waves that phase holds and \`WAVES:\` turns those into chunk numbers; **those chunks are your whole
+scope.** Later phases have not run, so reporting their files missing is reporting the schedule.
+
+| On a phase brief | |
+|---|---|
+| open every file the phase produced, against each chunk's \`INTENT\` | yes — the point of the gate |
+| \`npm run build\` | yes |
+| \`npm run ward -- --staged\`, sign-offs, dispositions | **no** — those measure a whole round |
+| commit | yes, subject \`phase <n>: <what it made true>\` |
+
+**You exist because a wrong foundation used to reach the end of the round**, imported by every wave
+after it before anyone re-read it. **Read \`IMPORTS\` and give the files with the most \`needed by\`
+edges your longest pass** — a planner writes those earliest and thinnest. **Your \`NEXT:\` decides
+whether the next phase runs**; \`rework\` stops the round where it stands, which is cheap here and
+expensive three phases later.
 
 **On a \`SECTION: Re-review\` brief, read the document's \`## Re-review\` section before anything
 else.** It is the message \`signal-back\` threw at your parent, verbatim. It names every unit still

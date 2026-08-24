@@ -319,21 +319,48 @@ DOC
 **2. Dispatch ONE \`planner-minion\`**, briefed with the FIRST TWO lines under Minion dispatch
 protocol below and nothing else. Then apply the NEXT table.
 
-**3. Read the document back.** \`Read\` that same path. Under \`## Plan\` your planner left a
-\`WAVES:\` index — one line per wave, \`<wave>: <chunk numbers>\` — above the numbered chunks.
-**That index is the only thing you take from the file.** It is your whole dispatch schedule:
+**3. Read the document back.** \`Read\` that same path. Under \`## Plan\` your planner left TWO
+indexes, BELOW the numbered chunks and just above \`## Round log\`. **Those two are the only thing
+you take from the file.** Together they are your whole dispatch schedule:
 
 \`\`\`
+PHASES:
+  1: waves 1-2 — the contracts and statics every later phase imports
+  2: wave 3 — the logic over them
+
 WAVES:
   1: 1, 2, 5
   2: 3, 4
   3: 6
 \`\`\`
 
-**4. Dispatch \`worker-minion\`s WAVE BY WAVE, in \`WAVES:\` order.** **Every chunk on one wave's line
-goes out in a SINGLE assistant message, one \`Agent\` call each** — so wave 1 above is three calls in
-one message. They then run at the same time. Wait for all of them to return. Apply the NEXT table to
-each return. Only then dispatch the next wave.
+**\`PHASES:\` is the outer loop; \`WAVES:\` is the inner one.** A phase names a RANGE of waves, and a
+wave names the chunk numbers that run together — so phase 1 above is chunks 1, 2 and 5, then chunks
+3 and 4. **Read both indexes exactly as your planner wrote them. Never re-cut either one.**
+
+**4. Run the PHASES in order. Inside each phase, dispatch \`worker-minion\`s WAVE BY WAVE, then GATE
+the phase with ONE \`reviewer-minion\` before the next phase starts.**
+
+**Every chunk on one wave's line goes out in a SINGLE assistant message, one \`Agent\` call each** —
+so wave 1 above is three calls in one message. They then run at the same time. Wait for all of them
+to return. Apply the NEXT table to each return. Only then dispatch the next wave.
+
+**When a phase's last wave has returned, dispatch ONE \`reviewer-minion\` briefed with the FIRST TWO
+lines under Minion dispatch protocol below PLUS a \`PHASE:\` line naming that phase number.** It
+opens every file the phase produced, builds, fixes what it can, and commits the phase under
+\`phase <n>: <what the phase made true>\`. Then apply the NEXT table to its return.
+
+\`\`\`
+PHASE: <the phase number you just finished>
+\`\`\`
+
+**That gate is the whole reason phases exist.** Without it every wave runs and one session grades all
+of them at the end, so a contract that was wrong in the first phase has been imported by every phase
+after it before anyone re-read it. **A phase reviewer returning \`rework\` stops the round where it
+stands** — do not start the next phase. That is the NEXT table's answer, and it is cheap here and
+expensive three phases later.
+
+**\`PHASES: none\` runs no phases and no gates.** Go to step 5.
 
 **A worker's brief is the fetch line and the \`PLAN:\` path from Minion dispatch protocol below, plus
 that section's \`WAVE:\` and \`CHUNK:\` lines.** Those two carry the assignment:
@@ -364,9 +391,11 @@ planner found.
 **If your discipline names a RESET lever, pull it whenever a worker reports a fix.** Pull it before
 you dispatch the next wave. A reset costs no round and no attempt from your item's retry budget.
 
-**5. Dispatch ONE \`reviewer-minion\`** over everything the round produced, briefed with the FIRST
-TWO lines under Minion dispatch protocol below and nothing else — no \`WAVE:\`, no \`CHUNK:\`, no
-\`SECTION:\`. **You forward nothing** — a worker's return to you is a chunk number and a \`NEXT:\`
+**5. Dispatch ONE FINAL \`reviewer-minion\`** over everything the round produced, briefed with the
+FIRST TWO lines under Minion dispatch protocol below and nothing else — no \`WAVE:\`, no \`CHUNK:\`,
+no \`SECTION:\`, and **no \`PHASE:\`, which is what makes this one the whole-round brief.** Your phase
+gates each read and committed their own phase; this session is the only one that wards the round,
+writes your discipline's sign-offs, and records the standing concerns' dispositions. **You forward nothing** — a worker's return to you is a chunk number and a \`NEXT:\`
 line, and every report it wrote is already in the document. Then apply the NEXT table.
 
 **6. \`git status\`.** Nothing should be listed, because your reviewer committed the round.
@@ -492,16 +521,20 @@ leaving the rest to refuse you again.
 ## Minion dispatch protocol
 
 Dispatch every minion with \`subagent_type: "general-purpose"\`. **A brief takes the lines below that
-apply to it, in the order they appear here.** The first two are in every brief. **\`SECTION:\`
-REPLACES the \`WAVE:\`/\`CHUNK:\` pair — no brief ever carries both.**
+apply to it, in the order they appear here.** The first two are in every brief. **\`SECTION:\` and
+\`PHASE:\` each REPLACE the \`WAVE:\`/\`CHUNK:\` pair, and no brief ever carries two of the three.**
 
 \`\`\`
 Call get-agent-prompt({ agent: '<planner-minion|worker-minion|reviewer-minion>', questId: 'QUEST_ID', discipline: '$MY_DISCIPLINE' }) FIRST, then follow what it returns exactly.
 PLAN: .quest-plans/<operationItemId>-round-<n>.md
 WAVE: <n>                     ← a worker on a plan chunk, always beside CHUNK
 CHUNK: <n>                    ← a worker on a plan chunk, and nothing else
+PHASE: <n>                    ← a REVIEWER only: the step 4 gate at the end of one phase
 SECTION: Sweep | Re-review    ← a REVIEWER only: the step 6 sweep, or a re-review after a refused signal
 \`\`\`
+
+**A reviewer brief carrying NONE of those three is the step 5 whole-round review**, and that absence
+is the only thing that tells it so.
 
 **Write the \`PLAN:\` path RESOLVED — the real operation item id, the real round number.** No minion
 can build it: its fetch hands back no operation item id, and nothing tells it which round you are

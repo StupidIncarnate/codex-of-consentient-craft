@@ -50,8 +50,26 @@
  * AXIS 2 SPLITS THE MINION FAMILY, on whether the reader may delegate. A leaf minion that spawns its
  * own sub-agent produces a grandchild whose conclusions no gate ever reads. The parent verifies the
  * minion's FILES rather than a grandchild's summary. A post-mortem measured what that shape costs:
- * 3m55s of a 10m20s minion run. Only a planning minion takes `delegationSpike`, and only to try a
- * pattern it cannot plan against without trying it.
+ * 3m55s of a 10m20s minion run. Only a planning minion takes `delegationSpike`, for two bounded
+ * things: a pattern it cannot plan against without trying it, and ONE review of its finished draft.
+ *
+ * THE DRAFT REVIEW IS THERE BECAUSE NOTHING ELSE CHECKS A PLAN. The operator reads the plan but is
+ * forbidden every source file, so it cannot compare that plan to the tree; the round's reviewer
+ * arrives after every worker has already executed against it. So the one session that could catch a
+ * wrong plan is the one that wrote it, which is the shape "the author never grades its own work"
+ * exists to prevent everywhere else in this pipeline.
+ *
+ * THE KEY NAME IS NOW NARROWER THAN THE RULE. It should read `delegationPlanner`; the rename is
+ * deferred so the colocated test keeps compiling, and is owed the next time this file is touched.
+ * `delegationSynchronous` is misnamed in the other direction and for the same reason: the tool it
+ * describes is ASYNCHRONOUS, and both rules now say so.
+ *
+ * BOTH DELEGATION RULES USED TO CLAIM THE `Agent` TOOL WAS SYNCHRONOUS. It is not. The call returns
+ * "launched" and a notification delivers the result later. A planner that believed the old wording
+ * improvised `sleep 90 → 120 → 150 → 240` around its own draft reviewer: 600 seconds of sleeping on
+ * a 2,066-second run, reading the answer 257 seconds after it landed. The ban on polling is written
+ * into both rules in the same shape as the ward-discipline snippet's ban on `sleep N && tail`,
+ * because a prompt that merely states the truth leaves the agent to invent the waiting strategy.
  *
  * AXIS 3 IS WHETHER THE READER RUNS A BUILD AND A WARD AT ALL, and it cuts across both families
  * rather than down one. `wardScoped` names the two scoped forms and says the reader's own prompt
@@ -94,9 +112,13 @@ Three mechanics in the \`<dungeonmaster-ward-discipline>\` snippet apply to you 
 
 const wardNone = `**[WARD] You run NO build, NO ward, NO test and NO check of any kind.** The round's \`reviewer-minion\` runs both, ONCE, after every worker has returned AND after it has opened every file the round produced: \`npm run build\`, then \`npm run ward -- --staged\` — every check type over every source file origin does not have yet. That range IS the round. This OVERRIDES both the \`<dungeonmaster-ward>\` and the \`<dungeonmaster-ward-discipline>\` snippets you were handed at session start. Neither is addressed to a session that runs neither. ONE session per round runs them, and that is what keeps a wave of parallel workers off each other's tree: \`tsc\` writes one shared \`dist/\` per package, and ward's typecheck is \`tsc -b\`, which BUILDS. That session is also the only one that can FIX what they turn up, because it is the only one with every file open.`;
 
-const delegationSynchronous = `**[DELEGATION] You do NOT break [BACKGROUND] by awaiting a helper you spawn.** The \`Agent\`/Task tool is SYNCHRONOUS. [BACKGROUND] forbids ending your turn on a backgrounded *shell* command. A sub-agent returns its result inline, as a tool result, inside the same turn. You stay alive. You read what it returns. You carry on. If your role's prompt tells you to delegate isolated work, decide it EARLY. The model will not reliably stop to delegate deep into a long turn. Brief the helper fully. Then wait. You lose nothing by waiting, because your turn never ended.`;
+const delegationSynchronous = `**[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS. Its return says the helper was LAUNCHED — that return is not the result.** The result reaches you later, on its own, as a completion notification. **Never \`sleep\`. Never poll. Never re-run a command to check whether it finished.** Every one of those burns wall-clock while the answer is already coming: one measured session spent 600 seconds sleeping and read its helper's answer 257 seconds after that answer existed. **Do not end your turn while a helper is still out**, either — your own final message is terminal, and a result that lands after it reaches nobody. [BACKGROUND] forbids ending your turn on a backgrounded *shell* command, and this is the same rule from the other side: a shell task nothing wakes you for, versus a helper that wakes you without being asked. If your role's prompt tells you to delegate isolated work, decide it EARLY — the model will not reliably stop to delegate deep into a long turn. Brief the helper fully, then let the notification reach you.`;
 
-const delegationSpike = `**[DELEGATION] You may delegate a SPIKE, and only a spike.** This is not general permission to delegate. The \`Agent\`/Task tool is SYNCHRONOUS, which is the only reason a spike is possible at all. You do not break [BACKGROUND] by awaiting a helper. The helper returns its result inline, as a tool result, within the same turn. You lose nothing by waiting. A spike tries a pattern nobody in this repo has built yet. You run one to learn whether the pattern works BEFORE you commit a plan to it. You may NOT delegate your whole assignment to a helper. Read what the spike found. Decide what it means. Write that decision into YOUR plan in your own words. Never pass a helper's conclusions up as your own output.`;
+const delegationSpike = `**[DELEGATION] You delegate EXPLORATION and CHECKING. You never delegate JUDGEMENT.** Three uses, and nothing else. **EXPLORERS**, several at once, to find what already exists in a tree too large for one session to read — this is the normal case and the reason you may delegate at all. **CHECKERS**, to test what you have written against the real tree. **A SPIKE**, rarely, to try a pattern nobody in this repo has built yet, when you cannot plan against it without trying it.
+
+**They report. You rule.** A helper hands you paths, line numbers and contradictions. What those MEAN for the plan is yours alone, and you write it in your own words. **Never pass a helper's conclusions up as your own output**, and never hand a helper the whole assignment — a plan assembled from summaries is a plan nobody read the code for.
+
+**Every one of them is ASYNCHRONOUS.** The \\\`Agent\\\` call returns the moment the helper launches, and that return is NOT its answer — a completion notification brings the answer later, on its own. **Dispatch siblings in ONE message so they run at once. Never \\\`sleep\\\`, never poll, never re-run a command to see whether one is done.** A measured planner spent 600 seconds sleeping and read its helper's report 257 seconds after that report existed — a third of its entire run.`;
 
 const delegationLeafBan = `**[DELEGATION] You are a LEAF. Do NOT call the \`Agent\`/Task tool.** Everything you need is in your briefing and on disk. A sub-agent you spawn produces work your parent cannot review, because your parent reads YOUR files, not your helper's conclusions. A leaf that delegates spends its parent's time on a result nobody grades. If you genuinely cannot finish your assignment without work outside it, say so in your return. Let your parent decide.`;
 

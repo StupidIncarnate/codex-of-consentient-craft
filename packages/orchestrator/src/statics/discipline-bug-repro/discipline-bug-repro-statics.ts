@@ -61,6 +61,18 @@
  * `done` while any review unit the work item committed carries no disposition in
  * `planningNotes.blightLedger`. No session opens these files after the reviewer in this pack. The
  * mutation check it runs is the entire proof that a reproduction ever happened.
+ *
+ * `plannerMarkdown` MUST ALSO CARRY `### What a unit binds to`, because the planner template makes
+ * every `UNITS` row bind one unit to one `<target>` and states no subject matter of its own. This is
+ * the pack where the SPLIT is structural rather than occasional: one `EXPECTED:` observable always
+ * binds twice, to the reproducing test and to the traced cause, in two chunks the wave order keeps
+ * apart. Both rows therefore carry the template's `(part <n> of <m>)` marker. Without it the two
+ * chunks share one bare id, and set difference subtracts it the moment EITHER lands — so a repro with
+ * no fix behind it, and a fix with nothing red proving the bug was real, both read as covered.
+ *
+ * THE FIX HALF'S TARGET IS WHERE THE DEFECT IS, NEVER WHERE IT SHOWS, which is what the pack's own
+ * drive-the-repro-first step buys. A widget renders the wrong row count and the transformer feeding
+ * it is the target; a row naming the widget sends its worker to patch the symptom.
  */
 
 export const disciplineBugReproStatics = {
@@ -97,25 +109,39 @@ list. Nothing else on this discipline measures what the round had to make true.
 
 ### How to plan
 
-Work these in order. **Order matters more here than on any sibling discipline**: a plan written
-before you have driven the repro names the file the symptom is VISIBLE in, and that is routinely not
-the file the defect is in.
+**Your template runs six stages. This says what each one MEANS on a bug hunt**, and names the section
+below that carries it. Where this and the template disagree about ORDER, this wins. **Order matters
+more here than on any sibling discipline**: a plan written before the repro was DRIVEN names the file
+the symptom is VISIBLE in, and that is routinely not the file the defect is in.
 
-1. **Read the report** — \`userRequest\`, \`designDecisions\` and \`packagesAffected\` — out of the
-   \`get-quest({ format: 'json' })\` call above.
-2. **List every \`EXPECTED:\` observable across every flow.** That list is your denominator, and each
-   entry becomes exactly one failing test.
-3. **DRIVE each repro yourself.** Trace symptom → wire → contract until you can name a \`file:line\`
-   and say how that line produces what the user reported. → "Reproduce before you plan the fix"
-4. **Cut on the FLOW boundary first**, one bug per group, before you cut anything inside a bug. →
-   "Partition by BUG first"
-5. **Inside one bug, number the reproducing-test chunk BEFORE the chunk that fixes it.**
-6. **Name the LAYER in every chunk's \`NOTES\`**, and put the implementation file you traced into its
-   \`FILES\` beside the test. → "What every chunk must name"
-7. **Group the waves**: an \`e2e\` chunk alone, repro ahead of fix inside one bug, different bugs
-   together. → "The waves"
-8. **On a \`pt 2\` or later, check you are not sending an undrivable repro round again.** → "When
-   this item has become a wall"
+**Stage 1, orient.** Read the report — \`userRequest\`, \`designDecisions\` and \`packagesAffected\` —
+out of \`get-quest({ questId: 'QUEST_ID', format: 'json' })\`. **Pass \`format: 'json'\`**; the text
+render omits \`userRequest\`.
+
+**Stage 2, explore.** **List every \`EXPECTED:\` observable across every flow — that is your
+denominator** — then **DRIVE each repro.** One explorer per BUG, tracing symptom → wire → contract
+with \`discover\`, \`get-project-map\` and \`Read\`, reading real code at every hop. **An explorer
+stops only when it can name a \`file:line\` and say how that line produces what the user reported.**
+Your own diagnostic probe stays under \`spike-tmp/\` and comes out before you return. → "Reproduce
+before you plan the fix"
+
+**Stage 3, the surface.** Every \`EXPECTED:\` observable binds TWICE — to the reproducing test at the
+layer its \`type\` decides, and to the implementation file the trace ended at. **The fix half is
+where the defect IS, never where it SHOWS.** → "What a unit binds to", "What every chunk must name"
+
+**Stage 4, the chain.** Your chain is the CAUSAL one your explorers walked: symptom → wire →
+contract. A bug whose chain stops before a named \`file:line\` is a bug you have not reproduced, and
+planning its fix names the wrong file.
+
+**Stage 5, check.** The cheapest catch here is a cause file that does not actually produce the
+symptom, and a repro layer that cannot observe it — a jsdom test for something only a browser paints.
+
+**Stage 6, cut.** Cut on the FLOW boundary first, one bug per group, and only then inside a bug —
+**the reproducing test's chunk numbered AND waved before the chunk that fixes it.** One phase per
+bug. → "Partition by BUG first", "The waves"
+
+**Before any of it, on a \`pt 2\` or later, check you are not sending an undrivable repro round
+again.** → "When this item has become a wall"
 
 ## Partition by BUG first, then inside a bug
 
@@ -152,7 +178,7 @@ code before you return. Otherwise a worker spends its whole turn re-deriving the
 already found.
 
 If the trace shows the report is wrong about the symptom, plan against what you OBSERVED. Name both
-readings in \`SUMMARY\`: what the report claims, and what you drove. The reviewer then checks the
+readings in \`DECISIONS\`: what the report claims, and what you drove. The reviewer then checks the
 test against the right one. Say in the owning chunk's \`NOTES\` that its worker logs \`CORRECTED:\`
 in the round log. That line is the only place a \`pt N\` successor can read the correction.
 
@@ -186,6 +212,36 @@ A chunk here is done when a named invariant is TRUE. Not when a file exists.
 command yourself. Name the layer and the observable \`type\` behind it, and the worker takes the check
 types from there.
 
+### What a unit binds to
+
+**Every \`EXPECTED:\` observable here binds TWICE, and the split is structural rather than
+occasional.** One chunk writes the test that reproduces the bug; a later chunk fixes the cause. That
+is two landings of one unit, so both rows carry the template's \`(part <n> of <m>; chunk <k> owns the
+rest)\` marker naming each other:
+
+\`\`\`
+- <expected-obs-id> → <the reproducing test path> (part 1 of 2; chunk <k> owns the fix)
+    — the assertion that goes red on unchanged source
+- <expected-obs-id> → <the traced cause file> (part 2 of 2; chunk <j> owns the repro)
+    — the line that produces the reported symptom, and what it must produce instead
+\`\`\`
+
+Without the marker the two chunks carry one bare id, and set difference subtracts it the moment
+EITHER lands — so a repro with no fix behind it, or a fix with nothing red proving the bug was real,
+both read as covered.
+
+| The half | Its target | Its clause |
+|---|---|---|
+| repro | the test path, at the layer \`NOTES\` names | the assertion, and the \`ACTUAL:\` value it prints against unchanged source |
+| fix | the implementation file you traced the cause to | the \`file:line\` that produces the symptom |
+
+**The fix half's target is where the defect IS, never where it SHOWS.** That is the whole payoff of
+driving the repro before you plan: a widget renders the wrong row count and the transformer feeding it
+is the target. A row pointing at the widget sends its worker to patch the symptom.
+
+**A chunk with no \`EXPECTED:\` observable of its own takes \`UNITS: none — <why it exists>\`** — a
+fixture two tests share, or a contract the fix needs first. It is graded on its \`INTENT\` alone.
+
 ### The waves
 
 **Chunks may share a wave on this discipline, with two exceptions.**
@@ -201,6 +257,13 @@ types from there.
 on the flow boundary first: two independent defects have two independent root causes, so their
 \`FILES\` lists are disjoint and neither worker can disturb the other's red.
 
+**PHASES here are ONE PER BUG, and the boundary is the flow boundary you already cut on.** A bug's
+repro chunk and its fix chunk are the two waves inside its phase, so the gate lands exactly where it
+is worth landing: after a fix, with the reproducing test still in front of the session that reads
+it. **That gate is what confirms the red was real** before the next bug's repro starts and the
+evidence for this one scrolls out of reach. Two bugs whose waves you grouped still take two phases —
+the waves may share, the gates may not.
+
 ## When this item has become a wall
 
 **A repro nobody could drive is worth ONE \`rework\` round, not a chain of them.** If the operation
@@ -208,7 +271,7 @@ item in \`## Context\` reads \`pt 2\` or later, read the previous \`review <n>:\
 Compare them to the document's \`## Rework\` section. If the same observable is still undrivable the
 same way, do NOT plan it again. Do these three instead:
 
-1. Say so in \`SUMMARY\`.
+1. Say so in \`DECISIONS\`.
 2. Plan the bugs that DO reproduce.
 3. Let the reviewer record the undrivable one as an open question.
 

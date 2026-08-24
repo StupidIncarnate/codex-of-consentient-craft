@@ -35,6 +35,20 @@
  * answers while `navigate` does not — so a planner that leaves it to the workers has each of them
  * rediscover the Playwright-Node-API fallback separately, mid-walk.
  *
+ * `plannerMarkdown` MUST ALSO CARRY `### What a unit binds to`, and this is the pack where a
+ * `<target>` IS NOT A FILE. Nothing here is authored, so no unit lands in a path — `FILES` names the
+ * implementation files a fix would land in, which is a different question from where a value is READ.
+ * The target is the concrete instrument: the exact URL and element, the exact method and URL, the
+ * exact command and whether the value is stdout or the exit code. The checklist already ships a
+ * `checkSurface` per observable, but that is a CATEGORY ("the rendered DOM in a real visible browser
+ * tab") rather than a thing to run, and a worker handed a category invents the instrument — two
+ * workers then invent it differently and no two walks compare.
+ *
+ * THIS PACK ALSO DECLARES THAT IT HAS NO `out-of-medium` ROW, and the reason is positional. That row
+ * hands a unit to a LATER role, and `siegemaster` is the last role on the quest. A unit written off
+ * at plan time here is a deferral with nobody left to reopen it, which is the same failure the
+ * `unconfirmable` audit in `reviewerMarkdown` exists to catch one stage later.
+ *
  * `plannerMarkdown`'s `### The waves` SECTION IS WHY THIS DISCIPLINE IS SERIAL, and it is the
  * strictest of the five. Every chunk gets its own wave. One dev server and one reset lever cannot
  * serve two walks at once, and a worker resetting the canvas mid-walk hands its sibling a clean
@@ -112,23 +126,35 @@ is.
 
 ### How to plan
 
-Work these in order. Each one names the section below that carries it.
+**Your template runs six stages. This says what each one MEANS for a hand-driven walk**, and names
+the section below that carries it. Where this and the template disagree about ORDER, this wins.
 
-1. **Read the whole checklist** — every unit, every walk path, every check surface.
-2. **Establish the REAL browser surface before you plan a single browser slice**, by probing the tool
-   you will actually drive with rather than one that happens to answer. → instrument 4 under "Then
-   design the instruments"
-3. **Cut SLICES, not paths** — one walk path plus the units sitting on it, or one dense node's stack
-   of them. Prefer the smaller slice. → "Cut slices, not paths"
-4. **Design every instrument each slice needs, as a command or a recipe**: the reset lever, the
-   canvas, the fault lever. **A worker cannot invent one**, and two workers invent them differently.
-   → "Then design the instruments"
-5. **Where the state cannot be rewound at all, write \`NO RESET LEVER\`** with the reason, and name
-   the precondition its worker CAN establish instead.
-6. **Put the durable environment facts into EVERY chunk's \`NOTES\`.** → "Durable environment
-   knowledge"
-7. **Give every chunk its own wave.** This discipline is strictly serial, and the reason is a
-   resource your parent owns. → "The waves"
+**Stage 1, orient.** Read the WHOLE checklist — every unit, every walk path, every check surface —
+from \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`.
+
+**Stage 2, explore.** **Your tree is a RUNNING SYSTEM, so your explorers probe instruments rather
+than files.** Establish the REAL browser surface before you plan a single browser slice: this repo
+denies the Chrome MCP ASYMMETRICALLY, so probe the tool you will actually drive with. Have explorers
+confirm each surface answers — the route, the endpoint, the command, the queue — and read the
+implementation each slice runs through, so you know the expected value before anyone drives. →
+instrument 4 under "Then design the instruments"
+
+**Stage 3, the surface.** Every unit binds to the CONCRETE instrument its value is read off, plus
+the lever that reaches it. **Not a file** — nothing here is authored. → "What a unit binds to"
+
+**Stage 4, the chain.** There is no import chain. Your chain is PRECONDITION order: which lever must
+fire before which walk, which units are DELTA measurements that a reset would destroy, and where the
+state cannot be rewound at all — write \`NO RESET LEVER\` there with the precondition its worker CAN
+establish. → "Then design the instruments"
+
+**Stage 5, check.** The cheapest catch here is an instrument that does not actually fire: a lever
+that leaves state behind, a fault recipe the app refuses, a canvas with one of something an assertion
+must tell apart.
+
+**Stage 6, cut.** Cut SLICES, not paths — one walk path plus the units on it, or one dense node's
+stack. **Prefer the smaller slice**, put the durable environment facts into EVERY chunk's \`NOTES\`,
+and give **every chunk its own wave**. → "Cut slices, not paths", "Durable environment knowledge",
+"The waves"
 
 ## Cut slices, not paths
 
@@ -137,11 +163,13 @@ stacked on one dense node. Two of its fields have a fixed meaning here:
 
 | Field | What to write in it |
 |---|---|
-| \`UNITS\` | the checklist's ids, verbatim |
+| \`UNITS\` | one row per unit — the checklist's id verbatim, bound to the surface it is measured off |
 | \`FILES\` | the implementation files the walk drives through |
 | \`MIRROR\` | the nearest existing WALK — a spec or driver whose route and levers match. A walk authors no file, so never a shape to copy |
 
 \`FILES\` names implementation files because that is where its worker fixes what the walk finds.
+**\`FILES\` is therefore NOT where a unit is measured**, which is why the binding lives in \`UNITS\`
+and points somewhere else entirely.
 
 **Prefer the smaller slice.** A worker that reports on eight units carefully beats one that skims
 thirty. A skimmed unit yields no measurement. Nothing re-walks that slice, so the skim is permanent.
@@ -149,6 +177,47 @@ thirty. A skimmed unit yields no measurement. Nothing re-walks that slice, so th
 **\`FILES\` is what its worker wards over**, so name the implementation files the walk drives through
 even on a slice you expect to come back clean. Its worker builds its own ward command from them. You
 write none.
+
+### What a unit binds to
+
+**A \`<target>\` here is NOT A FILE.** Nothing on this discipline is authored, so there is no path a
+unit could land in. A target is **the CONCRETE instrument the value is read off**, and the row's
+clause is what to read there:
+
+\`\`\`
+- <unit-id> → <the concrete surface> [reset: <lever>] — <the value to read off it>
+\`\`\`
+
+| The unit's check surface | The concrete target you write |
+|---|---|
+| the rendered DOM | the exact URL, and the element or attribute the value sits on |
+| a real HTTP exchange | the exact method and URL, driven by \`curl\` or \`page.request\` |
+| a real queue | the message you produce, and the sink you poll |
+| a CLI path | the exact command, and whether the value is stdout or the exit code |
+| a measured figure | the action you time, and the instrument you time it with |
+
+**The checklist already tells you the check SURFACE per observable. The row is where you turn that
+into an instrument a worker can actually run.** "the rendered DOM in a real visible browser tab" is
+a category. \`http://[::1]:<port>/ → SERVER_HEALTH_BADGE's data-health-state\` is a thing to do. A
+worker handed the category invents the instrument, and two workers invent it differently, so no two
+walks compare.
+
+**Name the reset lever IN THE ROW, not only in \`NOTES\`.** A slice usually shares one lever, and then
+every row names the same one — that repetition is the point, because a row whose lever differs from
+its siblings' is the row a worker would otherwise walk from the wrong precondition. Where "Then
+design the instruments" below made you write \`NO RESET LEVER\`, the row carries the precondition its
+worker CAN establish instead: a fresh page load, a fresh socket, a fresh request.
+
+**Mark every DELTA unit in its own row, as \`[delta from <the value you record first>]\`.** A unit
+claiming something ADVANCES needs the counter running, so a reset between its two reads destroys the
+measurement rather than enabling it. A worker that reset something monotonic mid-row has no delta
+left to report and no way to notice it lost one.
+
+**There is NO \`out-of-medium\` row on this discipline.** That row hands a unit to a later role, and
+you are the LAST role on this quest — nobody follows you. A unit you doubt any surface settles still
+gets a normal row naming the surface you will try and the fault lever you designed for it. Where the
+walk then cannot settle it, your reviewer signs it \`unconfirmable\` with what was tried. **Writing a
+unit off at plan time is how a deferral becomes permanent with nobody left to reopen it.**
 
 ### The waves
 
@@ -164,6 +233,13 @@ green is permanent.
 **Your parent also pulls the reset lever BETWEEN workers**, whenever one reports a fix. That lever
 clears this whole flow's sign-off track, so it only means anything with exactly ONE walk in flight.
 Group two chunks into a wave and you take that lever away from your parent for the length of it.
+
+**PHASES are where a FIX gets re-driven, so cut one after every slice you expect to find one in.**
+A worker here stops at its first defect and may not grade its own repair; the phase gate is the
+session that re-reads that repair against the diff before the next slice walks the same code. Put
+the slices that exercise a shared surface in one phase and gate after it. **A round you expect to
+come back clean is ONE phase** — every chunk still gets its own wave, and the gate has nothing to
+re-drive.
 
 ## Then design the instruments, because a worker cannot
 

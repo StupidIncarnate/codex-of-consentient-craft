@@ -32,6 +32,14 @@
  * is the load-bearing one here: the scope is the `[ ]` units, and a resumed or `pt N` item arrives
  * with most of its checklist already settled.
  *
+ * `plannerMarkdown` MUST ALSO CARRY `### What a unit binds to`, because the planner template makes
+ * every `UNITS` row bind one unit to one `<target>` and states no subject matter of its own. A target
+ * here is the test file PLUS the layer, written `<path> (<layer>)`, and the layer half is what
+ * settles this pack's own routing trap before a worker has to: an observable's `type` is not its
+ * surface, and four `ui-state` units on one measured item were `module`-layer claims in a state file.
+ * A row reading `(module)` records that decision. A row with no layer leaves the worker to re-decide
+ * it, and its cheapest answer is to drop the unit as the sibling track's.
+ *
  * `plannerMarkdown` MUST ALSO CARRY `### The waves`, and this discipline groups FREELY. It holds no dev
  * server, no browser, no Playwright report path and no reset lever, so one Jest run is safe beside
  * another. Its single serialising edge is a shared HARNESS: the chunk that owns one goes in an
@@ -104,35 +112,37 @@ The browser belongs to another role.
 
 ### How to plan
 
-Work these in order. Each one names the section below that carries it.
+**Your template runs six stages. This says what each one MEANS on a package slice**, and names the
+section below that carries it. Where this and the template disagree about ORDER, this wins.
 
-1. **Fetch the checklist ONCE**, then read the three marks on it. **Your scope is the \`[ ]\` units
-   and nothing else.** → "Read the marks"
-2. **Route every \`[ ]\` unit**: your package slice, the seam slice, or a claim needing a real painted
-   browser that belongs to another role. → "Which units are yours"
-3. **Inventory what already covers them, by OPENING the test files.** You are not planning against an
-   empty tree, and a filename is not evidence. → "Inventory what already covers each flow"
-4. **Read the quest's design decisions** with \`get-quest({ questId: 'QUEST_ID', stage: 'spec' })\`.
-   An observable says what to assert; its decision says what goes wrong if you assert it the easy
-   way. → "Read the quest's design decisions"
-5. **Bundle the flows into chunks** by shared surface, shared layer or coupled claim — never one flow
-   apiece, and never by count. → "Bundle the flows"
-6. **Give every harness one owner, by FULL PATH.** The earlier-numbered chunk owns it; say which
-   chunks only consume it.
-7. **Write each \`NOTES\` with what the checklist CANNOT know**, and transcribe no observable text
-   into it. → "Do NOT transcribe the observables"
-8. **Group the waves**: wave 1 for everything, unless a shared harness forces a consumer later. →
-   "The waves"
+**Stage 1, orient.** The round document's \`## Context\` names your slice: a set of packages, or the
+seam where two of them meet.
 
-Your denominator is the units in that slice still awaiting your sign-off. One call returns it:
-\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\`. It already
-narrows to exactly your slice. It returns the track, the package slice and the flow set. The server
-derives all three through the same transformer your parent's completion gate reads. Fetch it ONCE. A
-second fetch returns the same list. It costs you most of a turn.
+**Stage 2, explore.** **Fetch the checklist ONCE** —
+\`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` — and read the
+three marks on it. **Your scope is the \`[ ]\` units and nothing else.** Route each one: your package
+slice, the seam slice, or a claim needing a real painted browser. **Then send your explorers to
+INVENTORY what already covers those units, and require them to OPEN the test files** — you are not
+planning against an empty tree, and a filename is not evidence. Read the quest's design decisions in
+the same stage. → "Read the marks", "Which units are yours", "Inventory what already covers each
+flow", "Read the quest's design decisions"
 
-**\`items\` is WIDER than the observables.** Terminals and labelled branches are units too. Those are
-the ones a suite silently omits. "I covered the happy path and stopped" shows up here as terminal ids
-carrying no signature.
+**Stage 3, the surface.** Every \`[ ]\` unit lands on a TEST FILE plus the LAYER it asserts at.
+**The layer half is what settles this pack's routing trap before a worker has to.** → "What a unit
+binds to"
+
+**Stage 4, the chain.** Your chain is HARNESS ownership, and it is also the completeness check: a
+harness two chunks need with no owner, a bundle whose fixtures nothing seeds, a flow whose terminal
+no test reaches. **Name every harness by FULL PATH**; two workers handed "the seeding harness" pick
+different files.
+
+**Stage 5, check.** The cheapest thing a checker catches here is a file your inventory credited that
+does not assert what you claimed — the false green a predecessor shipped by naming three test files
+in a commit message having opened none of them.
+
+**Stage 6, cut.** Bundle the flows into chunks by shared surface, shared layer or coupled claim —
+never one flow apiece, never by count. Then \`NOTES\` with what the checklist CANNOT know, and the
+waves. → "Bundle the flows", "Do NOT transcribe the observables", "The waves"
 
 ## Read the marks — there are THREE, not two
 
@@ -187,7 +197,7 @@ reach — geometry, visibility, a page lifecycle, the browser side of a navigati
 unit. It is not a hole in your suite.
 
 **An EMPTY checklist is a real state, not an error.** Zero units in your slice means a plan with zero
-chunks. Say so in \`SUMMARY\`. Your parent then dispatches no workers. Its reviewer records the
+chunks. Say so in \`DECISIONS\`. Your parent then dispatches no workers. Its reviewer records the
 finding. **Do NOT widen the call to find something to cover.**
 
 ## Bundle the flows by what makes a worker efficient, never by count
@@ -211,6 +221,37 @@ different files.
 **No chunk on this discipline authors Playwright.** Every artifact you cut sits below the browser.
 Its worker builds its own ward command from that fact and from its own \`FILES\`.
 
+### What a unit binds to
+
+A \`<target>\` here is **the test file that asserts the unit, plus the LAYER it asserts at**, written
+as \`<path> (<layer>)\`. Both halves are load-bearing, and the layer is the half a planner drops:
+
+| The layer | What it means here |
+|---|---|
+| \`route\` | a real HTTP request against a real handler |
+| \`queue\` | a real message produced, and the sink that drains it |
+| \`module\` | a state module, a subject registry or a transformer, under Jest |
+| \`jsdom\` | a binding or a widget rendered without a real browser |
+
+**Naming the layer is how you settle the \`ui-state\` routing question BEFORE a worker has to.** That
+section above tells you an observable's \`type\` is not its surface — four \`ui-state\` units on one
+measured item were channel-routing and parse-failure claims in a state file, all of them jsdom-testable
+and all of them \`[ ]\` on a server slice. A row reading \`(module)\` says you decided that. A row with
+no layer leaves its worker to re-decide it, and the worker's easiest answer is to skip it as somebody
+else's.
+
+**The row's clause is the SHAPE of the assertion, never the unit's text.** The worker fetches the
+verbatim \`label\` from the checklist itself, which is why the section below forbids transcribing it.
+What it cannot fetch is which seam you meant: "asserts the 500 body carries a non-empty \`error\`"
+against "asserts the binding drops to null when the parse throws".
+
+**A terminal or a labelled branch binds exactly as an observable does.** Those are the units a suite
+silently omits, so a terminal with no row is the hole this discipline fails through.
+
+**A claim only a REAL PAINTED browser reaches has no target here** — geometry, visibility, a page
+lifecycle, the browser side of a navigation. Those are \`out-of-medium\` rows naming the sibling
+track. Do not leave them out of the plan instead; a unit in no row reads as one nobody noticed.
+
 ### The waves
 
 **Chunks group freely on this discipline, and most of them belong in wave 1.** Nothing here holds a
@@ -222,6 +263,12 @@ harness, the chunk that OWNS it goes in an earlier wave than every chunk that co
 ownership the section above tells you to name by full path in \`NOTES\`. Grouped into one wave
 instead, a consumer authors against a harness file that does not exist yet, or builds a second copy
 of it beside the first.
+
+**PHASES here are the HARNESS boundary and nothing else.** Where one chunk owns a harness others
+consume, that chunk is phase 1 and its consumers are phase 2 — the gate then reads the harness once,
+before several suites are written against it. **Where no harness is shared, the whole round is ONE
+phase.** Bundles that neither import nor drive each other gate nothing by being split, and a phase
+per bundle buys a review pass that has nothing new to read.
 
 ## Spikes are KEPT on this discipline
 
@@ -272,7 +319,7 @@ It had opened none of them. That shipped a false green. A \`MIRROR\` is a siblin
 opened, never a plausible-looking path. Open each file. Confirm what it actually asserts. Write into
 \`NOTES\` every path you READ.
 
-Name in \`SUMMARY\` which bundle you expect to come back as rework. Say why.`,
+Name in \`DECISIONS\` which bundle you expect to come back as rework. Say why.`,
 
   workerMarkdown: `Your chunk is a BUNDLE of this quest's RUNTIME flows. You write that bundle's flow-perspective suite
 at every layer BELOW the browser.
