@@ -9,6 +9,7 @@
 export const apiRoutesStatics = {
   health: {
     check: '/api/health',
+    status: '/api/health/status',
   },
   quests: {
     list: '/api/quests',
