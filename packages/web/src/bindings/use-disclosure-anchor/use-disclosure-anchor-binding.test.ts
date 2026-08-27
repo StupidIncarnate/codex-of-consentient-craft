@@ -52,6 +52,43 @@ describe('useDisclosureAnchorBinding', () => {
       result.current.holdAnchor();
 
       expect(proxy.isHeld()).toBe(true);
+
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(true);
+
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(false);
+    });
+  });
+
+  describe('frame-controlled release', () => {
+    it('VALID: {holdAnchor, one frame advanced} => still held', () => {
+      const proxy = useDisclosureAnchorBindingProxy();
+      proxy.setupReleased();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useDisclosureAnchorBinding(),
+      });
+      result.current.holdAnchor();
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(true);
+    });
+
+    it('VALID: {holdAnchor, two frames advanced} => released', () => {
+      const proxy = useDisclosureAnchorBindingProxy();
+      proxy.setupReleased();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useDisclosureAnchorBinding(),
+      });
+      result.current.holdAnchor();
+      proxy.advanceFrame();
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(false);
     });
   });
 
