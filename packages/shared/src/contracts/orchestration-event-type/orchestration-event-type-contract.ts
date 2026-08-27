@@ -1,5 +1,9 @@
 /**
- * PURPOSE: Defines the event types emitted by the orchestrator event bus
+ * PURPOSE: The one frame-type vocabulary the orchestrator bus, the server relay and the web channel
+ * all agree on, so a name added here is a name all three may use. Membership does NOT mean "travels
+ * the in-memory bus": some members are per-subscription and some originate in the server, so read
+ * this as the shared namespace rather than as one emitter's output. Reach for this over
+ * `wsMessageContract` when you want the vocabulary itself rather than the envelope carrying it.
  *
  * USAGE:
  * orchestrationEventTypeContract.parse('phase-change');
