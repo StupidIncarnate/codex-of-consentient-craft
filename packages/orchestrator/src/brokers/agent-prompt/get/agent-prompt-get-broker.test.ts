@@ -2,7 +2,6 @@ import {
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
-  QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
   RelatedDataItemStub,
@@ -10,52 +9,139 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 
+import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { disciplineBelowBrowserStatics } from '../../../statics/discipline-below-browser/discipline-below-browser-statics';
-import { disciplineImplementationStatics } from '../../../statics/discipline-implementation/discipline-implementation-statics';
-import { disciplineManualQaStatics } from '../../../statics/discipline-manual-qa/discipline-manual-qa-statics';
-import { operatorPromptStatics } from '../../../statics/operator-prompt/operator-prompt-statics';
-import { plannerMinionStatics } from '../../../statics/planner-minion/planner-minion-statics';
-import { reviewerMinionStatics } from '../../../statics/reviewer-minion/reviewer-minion-statics';
-import { workerMinionStatics } from '../../../statics/worker-minion/worker-minion-statics';
+import { codeweaverPlannerMinionStatics } from '../../../statics/codeweaver-planner-minion/codeweaver-planner-minion-statics';
+import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { codeweaverReviewerMinionStatics } from '../../../statics/codeweaver-reviewer-minion/codeweaver-reviewer-minion-statics';
+import { codeweaverWorkerMinionStatics } from '../../../statics/codeweaver-worker-minion/codeweaver-worker-minion-statics';
+import { flowriderPlannerMinionStatics } from '../../../statics/flowrider-planner-minion/flowrider-planner-minion-statics';
+import { flowriderPromptStatics } from '../../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { flowriderReviewerMinionStatics } from '../../../statics/flowrider-reviewer-minion/flowrider-reviewer-minion-statics';
+import { flowriderWorkerMinionStatics } from '../../../statics/flowrider-worker-minion/flowrider-worker-minion-statics';
+import { groundstomperPlannerMinionStatics } from '../../../statics/groundstomper-planner-minion/groundstomper-planner-minion-statics';
+import { groundstomperReviewerMinionStatics } from '../../../statics/groundstomper-reviewer-minion/groundstomper-reviewer-minion-statics';
+import { groundstomperWorkerMinionStatics } from '../../../statics/groundstomper-worker-minion/groundstomper-worker-minion-statics';
+import { pesteaterPlannerMinionStatics } from '../../../statics/pesteater-planner-minion/pesteater-planner-minion-statics';
+import { pesteaterReviewerMinionStatics } from '../../../statics/pesteater-reviewer-minion/pesteater-reviewer-minion-statics';
+import { pesteaterWorkerMinionStatics } from '../../../statics/pesteater-worker-minion/pesteater-worker-minion-statics';
+import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
+import { siegemasterPlannerMinionStatics } from '../../../statics/siegemaster-planner-minion/siegemaster-planner-minion-statics';
+import { siegemasterPromptStatics } from '../../../statics/siegemaster-prompt/siegemaster-prompt-statics';
+import { siegemasterReviewerMinionStatics } from '../../../statics/siegemaster-reviewer-minion/siegemaster-reviewer-minion-statics';
+import { siegemasterWorkerMinionStatics } from '../../../statics/siegemaster-worker-minion/siegemaster-worker-minion-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
-import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
 
-// One template serves all five operation-owning roles; only the pack at `$DISCIPLINE` and the bare
-// discipline id at `$MY_DISCIPLINE` differ. Function-form replacement, never the string form: pack
-// markdown can carry `$&` / `` $` `` / `$'`.
-// `$DISCIPLINE` substitutes once and `$MY_DISCIPLINE` substitutes EVERYWHERE, which is why the two
-// use different methods: the template quotes the bare discipline id both into the
-// `get-agent-prompt` call its minions must make and into the header every minion brief opens with,
-// and `.replace` with a string pattern would resolve only the first of those.
-const IMPLEMENTATION_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineImplementationStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('implementation');
-const BELOW_BROWSER_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('below-browser');
-const MANUAL_QA_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineManualQaStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('manual-qa');
+// Every minion name, paired with the model it runs on and the ONE file it is served. The templates
+// are READ from each statics rather than transcribed, so a prompt edited in place is compared
+// against its new text.
+const MINION_PROMPTS = new Map([
+  ['chaoswhisperer-gap-minion', ['sonnet', chaoswhispererGapMinionStatics.prompt.template]],
+  ['codeweaver-planner-minion', ['opus', codeweaverPlannerMinionStatics.prompt.template]],
+  ['codeweaver-worker-minion', ['sonnet', codeweaverWorkerMinionStatics.prompt.template]],
+  ['codeweaver-reviewer-minion', ['opus', codeweaverReviewerMinionStatics.prompt.template]],
+  ['pesteater-planner-minion', ['opus', pesteaterPlannerMinionStatics.prompt.template]],
+  ['pesteater-worker-minion', ['sonnet', pesteaterWorkerMinionStatics.prompt.template]],
+  ['pesteater-reviewer-minion', ['opus', pesteaterReviewerMinionStatics.prompt.template]],
+  ['flowrider-planner-minion', ['opus', flowriderPlannerMinionStatics.prompt.template]],
+  ['flowrider-worker-minion', ['sonnet', flowriderWorkerMinionStatics.prompt.template]],
+  ['flowrider-reviewer-minion', ['opus', flowriderReviewerMinionStatics.prompt.template]],
+  ['groundstomper-planner-minion', ['opus', groundstomperPlannerMinionStatics.prompt.template]],
+  ['groundstomper-worker-minion', ['sonnet', groundstomperWorkerMinionStatics.prompt.template]],
+  ['groundstomper-reviewer-minion', ['opus', groundstomperReviewerMinionStatics.prompt.template]],
+  ['siegemaster-planner-minion', ['opus', siegemasterPlannerMinionStatics.prompt.template]],
+  ['siegemaster-worker-minion', ['sonnet', siegemasterWorkerMinionStatics.prompt.template]],
+  ['siegemaster-reviewer-minion', ['opus', siegemasterReviewerMinionStatics.prompt.template]],
+]);
+
+// The case LISTS are derived from the classification statics, never transcribed — a prompt added
+// there joins every matrix below on the day it is added. A minion added without a row in the map
+// above still gets a case here, and fails against an empty expectation rather than being skipped.
+const ROLE_NAMES = [...agentPromptClassificationStatics.roleNames];
+const MINION_FETCH_CASES = agentPromptClassificationStatics.minionNames.map((name) => [
+  name,
+  ...(MINION_PROMPTS.get(name) ?? []),
+]);
+
+// Every minion the workItemId refusal binds: the ROUND minions, which is `minionNames` minus the
+// spec-phase gap minion. That one runs before any operation item exists, so there is no round for a
+// stray workItemId to advance and the broker exempts it by name — the case below the matrix.
+const ROUND_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
+  (name) => name !== 'chaoswhisperer-gap-minion',
+);
+
+// Siegemaster ALONE stands a dev server up, so the honest denominator for "nobody else resolves
+// one" is every OTHER role rather than the two the old suite happened to name.
+const NON_SIEGEMASTER_ROLE_NAMES = agentPromptClassificationStatics.roleNames.filter(
+  (name) => name !== 'siegemaster',
+);
 
 // Two DIFFERENT worktree HEADs, so a stamp that moved is distinguishable from one that held.
 const FIRST_ROUND_SHA = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0';
 const LATER_ROUND_SHA = 'ffffffffeeeeeeeeddddddddccccccccbbbbbbbb';
 
 describe('agentPromptGetBroker', () => {
-  describe('full {agent, questId, workItemId} path', () => {
-    it('VALID: {agent: chaoswhisperer-gap-minion, questId, workItemId} => returns prompt with $ARGUMENTS substituted', async () => {
+  describe('minion-fetch path — { agent, questId } and nothing else', () => {
+    // NOTHING is staged on the proxy here, and that IS the assertion about quest loading: the
+    // find-quest-path and quest-load chains throw on an unstaged address, so a broker that loaded
+    // the quest could never reach a returned prompt at all. The empty stamp list and the absent
+    // git argv say the same thing about the start-ref spawn.
+    it.each(MINION_FETCH_CASES)(
+      'VALID: {agent: %s, questId, no workItemId} => serves that minion its own template with $ARGUMENTS replaced by the quest id, loading no quest',
+      async (agent, model, template) => {
+        const proxy = agentPromptGetBrokerProxy();
+        const questId = QuestIdStub({ value: 'add-auth' });
+
+        const result = await agentPromptGetBroker({ agent, questId });
+
+        expect({
+          result,
+          stamped: proxy.getStampedWorkItems(),
+          gitArgs: proxy.getGitSpawnedArgs(),
+        }).toStrictEqual({
+          result: {
+            name: agent,
+            model,
+            prompt: template.replace('$ARGUMENTS', () => `Quest ID: ${String(questId)}`),
+          },
+          stamped: [],
+          gitArgs: undefined,
+        });
+      },
+    );
+  });
+
+  // REFUSAL 1. The workItemId is what puts the caller inside `subagentStopNeedsBlockGuard`, which
+  // holds its turn open until it calls `signal-back` — and the only item a minion could signal on
+  // is its PARENT's, completing the parent's scope mid-round. The message is asserted WHOLE because
+  // the wording is the protection: softened to a generic "bad arguments" it would send the minion
+  // off to fix the one argument that was not its mistake.
+  describe('a round minion may not be given a workItemId, not even its parent’s', () => {
+    it.each(ROUND_MINION_NAMES)(
+      'ERROR: {agent: %s, questId, workItemId} => throws naming the workItemId as the fault',
+      async (agent) => {
+        agentPromptGetBrokerProxy();
+        const questId = QuestIdStub({ value: 'add-auth' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7070-4222-9333-444444444444' });
+
+        await expect(agentPromptGetBroker({ agent, questId, workItemId })).rejects.toThrow(
+          `agentPromptGetBroker: minion "${agent}" must NOT be given a workItemId — not even its parent's. Fetch with { agent, questId } only: a workItemId puts the minion inside subagentStopNeedsBlockGuard, which holds its turn open until it calls signal-back, and the only item it could signal on is its parent's operation item — completing the parent's scope while the parent is still working`,
+        );
+      },
+    );
+
+    // The one exemption, and it is a spec-phase fact rather than a leniency: the gap minion runs
+    // before any operation item exists, so a workItemId it carries can advance no relay. It is
+    // served the work-item context block — Quest ID AND Work Item ID — exactly as it was before the
+    // prompts were split per role.
+    it('VALID: {agent: chaoswhisperer-gap-minion, questId, workItemId} => is served its template with Quest ID and Work Item ID substituted', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
       const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        packagesAffected: [QuestPackageEntryStub({ name: 'orchestrator' })],
         workItems: [workItem],
       });
       proxy.setupQuestFound({ quest });
@@ -71,61 +157,28 @@ describe('agentPromptGetBroker', () => {
       expect(result).toStrictEqual({
         name: 'chaoswhisperer-gap-minion',
         model: 'sonnet',
-        prompt: chaoswhispererGapMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          () => expectedArgs,
+        ),
       });
-    });
-
-    it('ERROR: {agent, questId, workItemId not on quest} => throws workItem-not-found error', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          }),
-        ],
-      });
-      proxy.setupQuestFound({ quest });
-
-      const missingId = QuestWorkItemIdStub({ value: 'ffffffff-1111-4222-9333-444444444444' });
-
-      await expect(
-        agentPromptGetBroker({
-          agent: 'chaoswhisperer-gap-minion',
-          questId: quest.id,
-          workItemId: missingId,
-        }),
-      ).rejects.toThrow(/workItem .* not found on quest/u);
     });
   });
 
-  describe('session id capture path', () => {
-    it('VALID: {agent, questId, workItemId} => broker returns substituted prompt WITHOUT persisting sessionId (Fallback B defer-to-line-emit)', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
+  // REFUSAL 2. A role name is dispatched as its own work item by /dumpster-launch; without the id
+  // there is no operation item to resolve and no session for the stop guard to hold open.
+  describe('a role must supply its workItemId', () => {
+    it.each(ROLE_NAMES)(
+      'ERROR: {agent: %s, questId, no workItemId} => throws role-requires-a-workItemId naming the role',
+      async (agent) => {
+        agentPromptGetBrokerProxy();
+        const questId = QuestIdStub({ value: 'add-auth' });
 
-      const result = await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
-        questId: quest.id,
-        workItemId,
-      });
-
-      // Returned prompt is the chaoswhisperer-gap-minion template with $ARGUMENTS substituted...
-      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
-
-      expect(result.prompt).toBe(
-        chaoswhispererGapMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-      // ... and the work item on disk still has no sessionId (broker did not call quest-persist).
-      // workItem.sessionId is undefined under Fallback B until chat-line convergence picks it up.
-      expect(workItem.sessionId).toBe(undefined);
-    });
+        await expect(agentPromptGetBroker({ agent, questId })).rejects.toThrow(
+          `agentPromptGetBroker: role "${agent}" requires a workItemId`,
+        );
+      },
+    );
   });
 
   describe('operation-context relay path', () => {
@@ -176,8 +229,33 @@ describe('agentPromptGetBroker', () => {
         // resolves through at spawn time, so a literal here could report one model while the
         // dispatched child ran another.
         model: roleToModelStatics.codeweaver,
-        prompt: IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
+    });
+
+    it('ERROR: {agent: codeweaver, questId, workItemId not on quest} => throws workItem-not-found error', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+          }),
+        ],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const missingId = QuestWorkItemIdStub({ value: 'ffffffff-1111-4222-9333-444444444444' });
+
+      await expect(
+        agentPromptGetBroker({
+          agent: 'codeweaver',
+          questId: quest.id,
+          workItemId: missingId,
+        }),
+      ).rejects.toThrow(
+        `agentPromptGetBroker: workItem ${String(missingId)} not found on quest ${String(quest.id)}`,
+      );
     });
 
     it('ERROR: {role: codeweaver, relatedDataItems empty} => rejects with no-resolvable-operations-ref error', async () => {
@@ -242,7 +320,9 @@ describe('agentPromptGetBroker', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+      expect(result.prompt).toBe(
+        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
     });
 
     it('VALID: {role: siegemaster, devServer declares webPort} => Dev Server URL carries the WEB port, not the API port', async () => {
@@ -293,7 +373,9 @@ describe('agentPromptGetBroker', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+      expect(result.prompt).toBe(
+        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
     });
 
     it('VALID: {role: siegemaster, operation linked} => resolves config from a repo-root config FILE path, not the bare cwd directory', async () => {
@@ -376,11 +458,13 @@ describe('agentPromptGetBroker', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+      expect(result.prompt).toBe(
+        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
     });
   });
 
-  describe('flowrider dev-server delivery', () => {
+  describe('flowrider is served no dev server even when one is configured', () => {
     it('EDGE: {role: flowrider, devServer config available} => prompt has NO Dev Server lines (Playwright webServer owns it)', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3030-4222-9333-444444444444' });
@@ -424,192 +508,43 @@ describe('agentPromptGetBroker', () => {
       ].join('\n');
 
       expect(result.prompt).toBe(
-        BELOW_BROWSER_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+        flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
-    });
-
-    it('EDGE: {role: flowrider} => does not resolve dev-server config at all', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3131-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3131-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'flowrider',
-        text: 'author the flow-perspective test suites',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'flowrider',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        operations: [operation],
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
-      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
-
-      await agentPromptGetBroker({ agent: 'flowrider', questId: quest.id, workItemId });
-
-      expect(proxy.getDevServerConfigStartPath()).toBe(undefined);
     });
   });
 
+  // The dev server is Siegemaster's ALONE — it stands one up by hand at its Gate 5 and owns it for
+  // the whole session. Every OTHER role is cycled here rather than the two the old suite named, so
+  // a role added to `roleNames` cannot quietly start resolving a config nobody meant it to have.
   describe('dev-server resolution scoping', () => {
-    it('EDGE: {role: codeweaver} => does not resolve dev-server config', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3030-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'eeeeeeee-3030-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'codeweaver',
-        text: 'core: config load+validate adapter',
-        status: 'pending',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'codeweaver',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        operations: [operation],
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
-
-      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
-
-      expect(proxy.getDevServerConfigStartPath()).toBe(undefined);
-    });
-  });
-
-  describe('minion-fetch path (no workItemId)', () => {
-    it('VALID: {minion agent, questId, no workItemId} => returns served template with Quest ID substituted', async () => {
-      agentPromptGetBrokerProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-
-      const result = await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
-        questId,
-      });
-
-      expect(result).toStrictEqual({
-        name: 'chaoswhisperer-gap-minion',
-        model: 'sonnet',
-        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          `Quest ID: ${String(questId)}`,
-        ),
-      });
-    });
-
-    it.each([
-      ['planner-minion', 'opus', plannerMinionStatics, 'plannerMarkdown'] as const,
-      ['worker-minion', 'sonnet', workerMinionStatics, 'workerMarkdown'] as const,
-      ['reviewer-minion', 'opus', reviewerMinionStatics, 'reviewerMarkdown'] as const,
-    ])(
-      'VALID: {agent: %s, questId, discipline, no workItemId} => serves the template with that discipline pack substituted, on %s',
-      async (agent, model, statics, packKey) => {
-        agentPromptGetBrokerProxy();
-        const questId = QuestIdStub({ value: 'add-auth' });
-
-        const result = await agentPromptGetBroker({
-          agent,
-          questId,
-          discipline: 'below-browser',
-        });
-
-        expect(result).toStrictEqual({
-          name: agent,
-          model,
-          prompt: statics.prompt.template
-            .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics[packKey])
-            .replace('$ARGUMENTS', () => `Quest ID: ${String(questId)}`),
-        });
-      },
-    );
-
-    // Serving a generic minion without its discipline would hand the agent the literal token
-    // `$DISCIPLINE` in place of every instruction it has — a session that runs and does nothing.
-    it.each(['planner-minion', 'worker-minion', 'reviewer-minion'])(
-      'ERROR: {agent: %s, questId, no discipline} => throws naming every valid discipline',
-      async (agent) => {
-        agentPromptGetBrokerProxy();
-        const questId = QuestIdStub({ value: 'add-auth' });
-
-        await expect(agentPromptGetBroker({ agent, questId })).rejects.toThrow(
-          /requires a discipline — one of: implementation \| bug-repro \| below-browser \| browser-e2e \| manual-qa/u,
-        );
-      },
-    );
-
-    it('ERROR: {agent: chaoswhisperer-gap-minion, questId, discipline} => throws takes-no-discipline', async () => {
-      agentPromptGetBrokerProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-
-      await expect(
-        agentPromptGetBroker({
-          agent: 'chaoswhisperer-gap-minion',
-          questId,
-          discipline: 'implementation',
-        }),
-      ).rejects.toThrow(/minion "chaoswhisperer-gap-minion" takes no discipline/u);
-    });
-
-    it('ERROR: {role agent, questId, no workItemId} => throws role-requires-workItemId', async () => {
-      agentPromptGetBrokerProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-
-      await expect(agentPromptGetBroker({ agent: 'codeweaver', questId })).rejects.toThrow(
-        /role "codeweaver" requires a workItemId/u,
-      );
-    });
-  });
-
-  describe('a generic minion may not name a workItemId', () => {
-    // The work-item branch ignores `discipline` entirely, so falling through refused these calls
-    // for "no discipline" — pointing the caller at the one argument that was not its mistake. The
-    // workItemId IS the mistake: it puts the caller inside `subagentStopNeedsBlockGuard`.
-    it.each([
-      ['planner-minion', 'implementation'] as const,
-      ['worker-minion', 'below-browser'] as const,
-      ['reviewer-minion', 'manual-qa'] as const,
-    ])(
-      'ERROR: {agent: %s, workItemId AND discipline} => throws naming the workItemId as the fault',
-      async (agent, discipline) => {
-        const proxy = agentPromptGetBrokerProxy();
-        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7070-4222-9333-444444444444' });
-        const quest = QuestStub({
-          id: QuestIdStub({ value: 'add-auth' }),
-          workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver' })],
-        });
-        proxy.setupQuestFound({ quest });
-
-        await expect(
-          agentPromptGetBroker({ agent, questId: quest.id, workItemId, discipline }),
-        ).rejects.toThrow(
-          /must NOT be given a workItemId — not even its parent's\. Fetch with \{ agent, questId, discipline \} only: a workItemId puts the minion inside subagentStopNeedsBlockGuard/u,
-        );
-      },
-    );
-
-    it.each(['planner-minion', 'worker-minion', 'reviewer-minion'])(
-      'ERROR: {agent: %s, workItemId, no discipline} => throws on the workItemId, not on the missing discipline',
+    it.each(NON_SIEGEMASTER_ROLE_NAMES)(
+      'EDGE: {role: %s, devServer config available} => does not resolve dev-server config at all',
       async (agent) => {
         const proxy = agentPromptGetBrokerProxy();
-        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7171-4222-9333-444444444444' });
+        const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3030-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'eeeeeeee-3030-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: agent,
+          text: 'core: config load+validate adapter',
+          status: 'pending',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: agent,
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
         const quest = QuestStub({
           id: QuestIdStub({ value: 'add-auth' }),
-          workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver' })],
+          operations: [operation],
+          workItems: [workItem],
         });
         proxy.setupQuestFound({ quest });
+        proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
 
-        await expect(
-          agentPromptGetBroker({ agent, questId: quest.id, workItemId }),
-        ).rejects.toThrow(/must NOT be given a workItemId/u);
+        await agentPromptGetBroker({ agent, questId: quest.id, workItemId });
+
+        expect(proxy.getDevServerConfigStartPath()).toBe(undefined);
       },
     );
   });
@@ -621,19 +556,30 @@ describe('agentPromptGetBroker', () => {
     it('VALID: {work item with no startRef, worktree HEAD readable} => stamps that sha onto the item and reads it with `git rev-parse HEAD`', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5050-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5050-4222-9333-444444444444' });
+      const relatedDataItems = [
+        RelatedDataItemStub({ value: `operations/${String(operationId)}` }),
+      ];
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+        operations: [OperationItemStub({ id: operationId, role: 'codeweaver' })],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems,
+          }),
+        ],
       });
       proxy.setupQuestFound({ quest });
       proxy.setupWorktreeHead({ sha: FIRST_ROUND_SHA });
 
-      await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
-        questId: quest.id,
-        workItemId,
-      });
+      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
 
+      // The WHOLE work item is compared, which is what proves the stamp writes `startRef` and
+      // nothing else — no sessionId, no agentId. Session identity is captured by the JSONL watcher
+      // off the sub-agent's first line, never by this broker.
       expect({
         stamped: proxy.getStampedWorkItems(),
         gitArgs: proxy.getGitSpawnedArgs(),
@@ -644,6 +590,7 @@ describe('agentPromptGetBroker', () => {
               id: workItemId,
               role: 'codeweaver',
               status: 'in_progress',
+              relatedDataItems,
               startRef: FIRST_ROUND_SHA,
             }),
           ],
@@ -659,13 +606,16 @@ describe('agentPromptGetBroker', () => {
     it('VALID: {second fetch for a work item that already carries a startRef} => nothing is stamped and git is never read', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5151-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5151-4222-9333-444444444444' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
+        operations: [OperationItemStub({ id: operationId, role: 'codeweaver' })],
         workItems: [
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
             status: 'in_progress',
+            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
             startRef: FIRST_ROUND_SHA,
           }),
         ],
@@ -673,11 +623,7 @@ describe('agentPromptGetBroker', () => {
       proxy.setupQuestFound({ quest });
       proxy.setupWorktreeHead({ sha: LATER_ROUND_SHA });
 
-      await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
-        questId: quest.id,
-        workItemId,
-      });
+      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
 
       expect({
         stamped: proxy.getStampedWorkItems(),
@@ -692,17 +638,31 @@ describe('agentPromptGetBroker', () => {
     it('VALID: {quest.json already stamped by the time the persist takes the lock} => the update callback returns no change, so git ran but nothing was written', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5252-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5252-4222-9333-444444444444' });
+      const relatedDataItems = [
+        RelatedDataItemStub({ value: `operations/${String(operationId)}` }),
+      ];
       const questAtFetch = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
-      });
-      const questUnderLock = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [OperationItemStub({ id: operationId, role: 'codeweaver' })],
         workItems: [
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
             status: 'in_progress',
+            relatedDataItems,
+          }),
+        ],
+      });
+      const questUnderLock = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [OperationItemStub({ id: operationId, role: 'codeweaver' })],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems,
             startRef: FIRST_ROUND_SHA,
           }),
         ],
@@ -713,7 +673,7 @@ describe('agentPromptGetBroker', () => {
       proxy.setupWorktreeHead({ sha: LATER_ROUND_SHA });
 
       await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
+        agent: 'codeweaver',
         questId: questAtFetch.id,
         workItemId,
       });
@@ -730,17 +690,22 @@ describe('agentPromptGetBroker', () => {
     it('EMPTY: {quest with no worktree of its own} => nothing is stamped and git is never read', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5353-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5353-4222-9333-444444444444' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+        operations: [OperationItemStub({ id: operationId, role: 'codeweaver' })],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          }),
+        ],
       });
       proxy.setupQuestFound({ quest });
 
-      await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
-        questId: quest.id,
-        workItemId,
-      });
+      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
 
       expect({
         stamped: proxy.getStampedWorkItems(),
@@ -754,84 +719,109 @@ describe('agentPromptGetBroker', () => {
     it('ERROR: {cwd resolution throws} => nothing is stamped and the prompt still serves', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5555-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5555-4222-9333-444444444444' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+        operations: [
+          OperationItemStub({
+            id: operationId,
+            role: 'codeweaver',
+            text: 'core: config load+validate adapter',
+            status: 'pending',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          }),
+        ],
       });
       proxy.setupQuestFound({ quest });
       proxy.setupCwdUnresolvable();
 
       const result = await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
+        agent: 'codeweaver',
         questId: quest.id,
         workItemId,
       });
+
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
 
       expect({
         stamped: proxy.getStampedWorkItems(),
         prompt: result.prompt,
       }).toStrictEqual({
         stamped: [],
-        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`,
-        ),
+        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
 
     it('EMPTY: {worktree resolves but `git rev-parse HEAD` fails} => nothing is stamped and the prompt still serves', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5454-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5454-4222-9333-444444444444' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+        operations: [
+          OperationItemStub({
+            id: operationId,
+            role: 'codeweaver',
+            text: 'core: config load+validate adapter',
+            status: 'pending',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          }),
+        ],
       });
       proxy.setupQuestFound({ quest });
       proxy.setupWorktreeHeadUnreadable();
 
       const result = await agentPromptGetBroker({
-        agent: 'chaoswhisperer-gap-minion',
+        agent: 'codeweaver',
         questId: quest.id,
         workItemId,
       });
+
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
 
       expect({
         stamped: proxy.getStampedWorkItems(),
         prompt: result.prompt,
       }).toStrictEqual({
         stamped: [],
-        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`,
-        ),
+        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
-  });
-
-  describe('a role may not name its own discipline', () => {
-    // A role's discipline is derived from its role. Accepting one off the call would let a
-    // dispatched session fetch a sibling discipline's instructions for its own operation item.
-    it.each(['codeweaver', 'pesteater', 'flowrider', 'groundstomper', 'siegemaster'])(
-      'ERROR: {agent: %s, discipline supplied} => throws must-not-be-given-a-discipline',
-      async (agent) => {
-        const proxy = agentPromptGetBrokerProxy();
-        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-9090-4222-9333-444444444444' });
-        const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
-        const quest = QuestStub({
-          id: QuestIdStub({ value: 'add-auth' }),
-          workItems: [workItem],
-        });
-        proxy.setupQuestFound({ quest });
-
-        await expect(
-          agentPromptGetBroker({
-            agent,
-            questId: quest.id,
-            workItemId,
-            discipline: 'manual-qa',
-          }),
-        ).rejects.toThrow(/must not be given a discipline/u);
-      },
-    );
   });
 });

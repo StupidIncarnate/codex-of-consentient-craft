@@ -2,130 +2,141 @@
  * PURPOSE: Holds the five standing review concerns — craft, perf, dedup, integrity, test-cases —
  * that a reviewer takes against whatever its round produced. It also holds the disposition
  * vocabulary the reviewer records them under. Use this rather than writing the concerns into a
- * discipline pack. The five are DISCIPLINE-INDEPENDENT, so a pack-local copy drifts from the rest.
+ * role's own reviewer prompt. The five are ROLE-INDEPENDENT, so a per-prompt copy drifts from the
+ * rest.
  *
  * USAGE:
  * standardsReviewConcernsStatics.markdown;
- * // Returns the concerns block `reviewer-minion-statics` interpolates beside its `$DISCIPLINE` slot
+ * // Returns the concerns block each of the five `<role>-reviewer-minion-statics` prompts
+ * // interpolates whole — codeweaver, pesteater, flowrider, groundstomper and siegemaster
  *
- * WHY NOT ONE COPY PER DISCIPLINE PACK. Craft, perf, dedup, integrity and test-cases read the same
+ * WHY NOT ONE COPY PER REVIEWER PROMPT. Craft, perf, dedup, integrity and test-cases read the same
  * against implementation, integration tests, Playwright specs and a manual-QA walk's fixes. None of
- * the five names a discipline. A concern you sharpen for one discipline goes wrong for the other
- * four. You would also edit five copies every time a duplicate detector changes what it finds, or
- * `get-blight-checklist` starts withholding a concern. Any copy you forget to edit keeps serving
+ * the five names one role's subject matter. A concern you sharpen for one role goes wrong for the
+ * other four. You would also edit five copies every time a duplicate detector changes what it finds,
+ * or `get-blight-checklist` starts withholding a concern. Any copy you forget to edit keeps serving
  * its old wording to the next agent.
  *
- * WHY NOT INLINE IN THE REVIEWER TEMPLATE. That template carries a method plus a return block other
+ * WHY NOT INLINE IN EACH REVIEWER PROMPT. Those prompts carry a method plus a return block other
  * agents parse. This block carries subject matter. It also moves on its own schedule: a concern's
- * wording changes when the tooling under it changes, not when the reviewer's method does. This file
- * splits the way `flow-evidence-contract-statics` splits, so each half gets a colocated test over
- * its own content. Neither test has to reach through a template that also carries a wire contract.
+ * wording changes when the tooling under it changes, not when a reviewer's method does. This file
+ * splits the way `flow-evidence-contract-statics` splits, so the block gets a colocated test over
+ * its own content — one that does not have to reach through a prompt also carrying a wire contract.
+ * That test is the ONLY one over this text: none of the five reviewer prompts has a colocated test
+ * of its own.
  *
  * WHY A SUB-AGENT CARRIES THESE RATHER THAN A SESSION OF THEIR OWN. A standards review dispatched
  * as its own session pays a full preamble on every pass. One quest spent 13 sessions, 718 turns and
  * ~370k tokens of preamble that way. Those sessions produced three cosmetic changes. The reviewer
  * already has the files open, so no second session has to load them again.
+ *
+ * BUDGET: five reviewer prompts interpolate this block WHOLE, so one character here is five
+ * characters served, and four of the five clear `mcpToolResultStatics.maxVerbatimChars` by only two
+ * to four thousand characters — siegemaster tightest, then pesteater, flowrider and groundstomper,
+ * with only codeweaver's margin comfortable. Those margins shrink on every edit to a reviewer
+ * prompt, so measure `<role>ReviewerMinionStatics.prompt.template.length` against 50,000 rather than
+ * trusting a figure written here. Over that ceiling the MCP layer
+ * writes the prompt to a file and hands the agent an error stub instead of its instructions — a
+ * silent dispatch failure. Every sentence in the served
+ * text must therefore change what a reader DOES; rationale that only explains why a rule is right
+ * belongs down here, where it costs the five readers nothing.
+ *
+ * THE FLOOR IS ABOUT 8.8k, AND THE COLOCATED TEST IS WHY. It pins ~5.8k of the served text as exact
+ * substring needles, and what is left over is section headings the heading-list assertion requires,
+ * table headers, the four concern-defining lists, and the grammatical glue joining one pinned
+ * sentence to the next. A trim below that is a rule, a disposition value, a concern or a measured
+ * rationale coming out — measure before promising a number. What the trim from 10.5k to 8.8k
+ * moved down:
+ *
+ * - THE CHECKLIST IDS ARE DERIVED FROM THE TREE, so every run reproduces them byte-identically.
+ *   That is why a reviewer never invents or normalizes an id — but the derivation changes nothing
+ *   a reviewer DOES, so the served text just states the id grammar.
+ * - `scope: 'working-tree'` TAKES NO ID AND NO RANGE because the round is simply what is uncommitted:
+ *   the reviewer's own push is the boundary, and git maintains `@{upstream}..HEAD` for it.
+ * - SIMPLIFICATION SITS UNDER `perf` RATHER THAN `craft` because the reader takes both against one
+ *   reading of the file; which heading it lives under changes nothing about the finding.
+ * - A MISSING TEST CASE IS CHEAPEST TO CATCH in the round that introduced the branch, which is why
+ *   `test-cases` is a standing concern rather than a later role's sweep.
+ * - A PURPOSE CARRYING RETURN SHAPES, THROW BEHAVIOUR OR PARAMETER TYPES drifts because all three
+ *   are derivable from the code beneath it. The rule survives in the served text; the reason is here.
+ * - `integrity` AGAINST A BRAND-NEW FILE asks whether its changed exports still mean to consumers
+ *   what they did, when the only consumer arrives in the same round — the second half of why the
+ *   gating's measured ZERO is a property of the QUESTION. The served text keeps the `perf` half,
+ *   which is the shorter and the more obviously vacuous of the two.
+ * - THE OTHER THREE CONCERNS ON A DECLARATION-SHAPED FILE each have a worked instance: `craft` finds
+ *   a `.refine` message that is wrong, `dedup` a second contract duplicating the first. The served
+ *   text keeps only the `test-cases` one, because that is the concern a reviewer is likeliest to
+ *   read as inapplicable to a stub or a proxy.
  */
 
 export const standardsReviewConcernsStatics = {
   markdown: `## The standing concerns
 
-These five concerns are yours every round, whatever your discipline says.
+**The per-file questions your own prompt sets, and the five concerns below, are ONE reading**: open
+each file once and take them all against it before you move to the next.
 
-Your discipline above and the five concerns below are ONE reading, not two passes. Open each file
-once. Take all five against it before you move to the next.
+Skip every mechanical rule, and pure syntactic test structure with it. Lint already enforces both.
+Mechanical: naming, imports, exports, destructuring, return types, no-any, proxy colocation, stub
+usage, no-console, silent catches, unused and unreachable code. Structure: name prefixes,
+\`{input} => {expected}\` titles, \`describe\` shape. What is left is the judgement a linter cannot make.
 
-Skip every mechanical rule. Lint already enforces all of them. Skip pure syntactic test structure
-too, for the same reason.
-
-| What you skip | The rules lint already enforces |
-|---|---|
-| Mechanical rules | naming, imports, exports, destructuring, return types, no-any, proxy colocation, stub usage, no-console, silent catches, unused and unreachable code |
-| Pure syntactic test structure | name prefixes, \`{input} => {expected}\` titles, \`describe\` shape |
-
-What is left is the judgement a linter cannot make.
-
-**Your surface is the files THIS ROUND produced.** Enumerate it at your method's ENUMERATE step.
-Commit your own fixes before you enumerate, never after.
+**Your surface is the files THIS ROUND produced, and they are UNCOMMITTED when you enumerate.** No
+worker commits anything, so the whole round sits in the working tree until you commit it — which you
+do once, after this enumeration and after the records it produces.
 
 \`\`\`
-get-blight-checklist({ questId: 'QUEST_ID', scope: 'unpushed' })
+get-blight-checklist({ questId: 'QUEST_ID', scope: 'working-tree' })
 \`\`\`
 
-The tool returns one unit per implementation file crossed with one concern.
+\`<implPath>:<concern>\` is the id of one unit — one implementation file crossed with one concern.
 
-| In the checklist | What it means |
-|---|---|
-| \`<implPath>:<concern>\` | the id of one unit |
-| \`[x]\` | that unit already carries a disposition |
-| \`[ ]\` | that unit is still remaining |
-
-The ids are DERIVED from the tree, so the tool reproduces them byte-identically on every run.
-
-**\`scope: 'unpushed'\` is the only correct scope for you. You must pass it.** It measures
-everything committed in this worktree and not yet pushed. That is the SAME boundary your OWN
-\`npm run ward -- --staged\` used, because you have not pushed yet — you push as your LAST act, after
-the verdict commit. You pass no id. You name no range. Git already knows where the round began.
-
-Each of the other three scopes fails you in its own direction.
+**On a whole-round brief, \`scope: 'working-tree'\` is the only correct scope and you must pass it.**
+It measures everything changed since \`HEAD\` and not yet committed, **including untracked files** —
+and a round is mostly net-new files, which no \`git diff\` reports at all. You pass no id and name no
+range.
 
 | Scope | What it hands you instead |
 |---|---|
-| \`working-tree\` | NOTHING. You committed the whole round yourself, at the step before this one. |
-| \`commit\` | the last commit alone, one chunk out of the round's several |
-| \`quest\` | every file every session has ever touched. That buries this round in work already dispositioned. |
+| \`unpushed\` | the PLAN COMMIT and nothing else — your planner committed the round document, and no worker committed a line of code |
+| \`commit\` | that same plan commit, alone |
+| \`quest\` | every file every session has ever touched, already dispositioned |
 
-**There is ONE exception: \`SCOPE: quest\`.** Your brief says so in as many words. That brief is the
-post-push re-review. There, \`unpushed\` is empty. An empty scope dispositions nothing. \`quest\`
-over-reports instead: units already dispositioned come back marked done. You re-read those rather
-than miss a new one. \`quest\` is also the only agent-facing scope that still spans a pushed round.
+**Enumerate BEFORE you commit, never after.** Once you commit, \`working-tree\` is empty and this
+call dispositions nothing.
+
+**There is ONE exception, and you know it by the brief line \`SECTION: Re-review\`.** That brief is
+the post-push re-review, where the round is long since committed and the working tree is clean, so
+you pass \`scope: 'quest'\` instead. It over-reports — units earlier rounds dispositioned come back
+marked done — and it is the only agent-facing scope that still spans a pushed round. **Your own
+prompt names the step that makes the call.**
 
 ### craft
 
-- **Logic vs signature.** Read these three, in this order:
-
-  1. the name
-  2. the parameter and return contracts
-  3. the body
-
-  Judge whether the three agree. A \`findLatest\` that returns the first match is a finding.
+- **Logic vs signature.** Read the name, then the parameter and return contracts, then the body, and
+  judge whether the three agree. A \`findLatest\` that returns the first match is a finding.
 - **Useful error context.** A thrown error naming no path, no id and no upstream cause leaves the
   next reader nothing to act on.
-- **PURPOSE header vs body.** Lint checks that the header EXISTS. Nothing checks that it is TRUE.
-  No test and no typecheck reads a comment. So a header written before the body is false in the
-  round that wrote the code. \`discover --verbose\` then serves it as that file's primary
-  description to every later agent. Four shapes to flag:
-
-  1. a return-shape claim the code contradicts
-  2. a validation claim the contract does not make
-  3. a claim derived from the NAME rather than the body
-  4. a PURPOSE that only restates the signature
-
-  For shape 2, read the zod chain itself. Read what each \`.refine()\` tests. Never take the
-  \`.refine()\` message as the claim. Correct the PURPOSE to what the code does NOW. Never change the
-  code to match the comment, unless the code is independently wrong on its own terms. A PURPOSE must
-  not carry return shapes, throw behaviour, or parameter types. All of that is derivable, so all of
-  it drifts.
+- **PURPOSE header vs body.** Lint checks the header EXISTS; nothing checks it is TRUE, because no
+  test and no typecheck reads a comment. A false header is not inert: \`discover --verbose\` then
+  serves it as that file's primary description to every later agent. Four shapes to flag: (1) a
+  return-shape claim the code contradicts; (2) a validation claim the contract does not make; (3) a
+  claim derived from the NAME rather than the body; (4) a PURPOSE that only restates the signature.
+  For shape 2, read the zod chain itself and what each \`.refine()\` tests; never take the
+  \`.refine()\` message as the claim. Correct the PURPOSE to what the code does NOW, never the code
+  to match the comment unless the code is independently wrong. Keep return shapes, throws and
+  parameter types out of a PURPOSE.
 
 ### perf
 
 Flag four shapes:
 
-1. **Quadratic loops** — \`.filter(... .find(...))\`, a loop over A with an inner \`.find\` on B,
-   repeated \`indexOf\`/\`includes\` inside a loop.
+1. **Quadratic loops** — \`.filter(... .find(...))\`, repeated \`indexOf\`/\`includes\` in a loop.
 2. **N+1** — a per-item \`await\` on a DB/HTTP/filesystem call that could batch.
 3. **Sync I/O in async code** — \`readFileSync\` or \`execSync\` on a hot path.
-4. **Unbounded work** — a loop with no cap, scanning or accumulating caller-supplied or on-disk
-   data. A function that recurses with no depth bound over data you do not control counts too.
+4. **Unbounded work** — a loop or a recursion with no cap over caller-supplied or on-disk data.
 
-Plus **simplification**: does the code say the same thing more directly? Look for four more shapes:
-
-1. an abstraction nothing needs
-2. a generalization written too early
-3. a conditional chain that flattens to one expression
-4. a hand-rolled scan where a \`Map\`/\`Set\` lookup does the same work in one pass
-
-Simplification sits under perf rather than under craft because you read the code once for both.
+Plus **simplification**: an abstraction nothing needs, a conditional chain that flattens to one
+expression, a hand-rolled scan where a \`Map\`/\`Set\` lookup does it in one pass.
 
 **Judge the hot path.**
 
@@ -137,51 +148,47 @@ Simplification sits under perf rather than under craft because you read the code
 
 ### dedup
 
-- **Against existing repo code** — new code reimplementing something that already exists.
-- **Within this round** — two new files here doing the same work under different names.
+New code reimplementing what the repo already has, or two new files here doing one job under two
+names.
 
-**Search REPO-WIDE, never within the round's own files.** If you scope the search to what this
-round changed, two sessions ship the same function twice. The earlier one is already on disk. A
-repo-wide \`discover\` grep from here sees it. A scoped grep never can.
+**Search REPO-WIDE, never within the round's own files.** Scope your search to the round and two
+sessions ship the same function twice: the earlier is already on disk, where only a repo-wide
+\`discover\` grep sees it.
 
 This repo's duplicate detector at \`packages/tooling/src/brokers/duplicate-detection/\` finds
-duplicate **string and regex literals ONLY**. It compares no AST shapes at all. So a clean run from
-it says nothing about the duplicate code you are looking for. Structural duplication is YOUR
-judgement. Show your work. Name both implementations. State what you compared: parameters, return
-shapes, control flow. Never report that the text looked similar.
+duplicate **string and regex literals ONLY** and compares no AST shapes, so a clean run from it says
+nothing about the duplicate code you are looking for. Structural duplication is YOUR judgement: name
+both implementations and state what you compared — parameters, return shapes, control flow. Never
+report that the text looked similar.
 
 ### integrity
 
-A signature sweep re-reads every consumer of a changed export to check it still compiles.
-**Skip that sweep entirely.** \`ward\` and \`tsc\` already catch every consumer that stops COMPILING.
-What you own is the change that typechecks and still MEANS something different:
+**Skip the signature sweep entirely** — \`ward\` and \`tsc\` already catch every consumer that stops
+COMPILING. What you own is the change that typechecks and still MEANS something different:
 
 - **Semantic change behind an unchanged signature** — same parameters, same return type, different
-  meaning. The meaning that moved is units, ordering, whether a bound is inclusive, what an empty
-  array now signifies, or which of two equally-typed ids a caller must pass. \`discover\` grep the
-  export name to enumerate consumers across the monorepo. Then read each call site against the NEW
-  meaning.
-- **Stubs and fixtures that keep a suite green** instead of encoding the new behaviour. Read the
-  contracts in \`@dungeonmaster/shared\` hardest of all. Their branded types break their consumers
-  silently at parse time. A \`.default(...)\` papering over a break may itself be the defect.
+  meaning: units, ordering, whether a bound is inclusive, what an empty array now signifies.
+  \`discover\` grep the export name to enumerate consumers across the monorepo, then read each call
+  site against the NEW meaning.
+- **Stubs and fixtures that keep a suite green** instead of encoding the new behaviour. Read
+  \`@dungeonmaster/shared\`'s contracts hardest: branded types break consumers silently at parse
+  time, and a \`.default(...)\` papering over a break may itself be the defect.
 
 ### test-cases
 
-**Did every branch this round ADDED get a test at all?** Walk the new and changed control flow:
+**Did every branch this round ADDED get a test at all?** Walk the new and changed control flow —
 each \`if\`/\`else\`, each \`switch\` arm, each ternary, each optional chain, each \`try\`/\`catch\`, each
-early return. Ask whether a test exercises it. This is the narrowest question the round's own files
-can answer without leaving them. Did the conditional written here get a case at all? A branch with
-no case is a finding, whether or not some higher-level observable covers it. It is also cheapest to
-catch now, in the round that introduced it.
+early return — and ask whether a test exercises it. **A branch with no case is a finding**, whether
+or not some higher-level observable covers it.
 
 Judge the assertion too, not just its presence. A test that asserts \`rendered\` or \`was called\`
-proves nothing. It counts as NO case. Write the missing case yourself where you can.
+proves nothing and counts as NO case. Write the missing case yourself where you can.
 
 ### Dead code is NOT one of your concerns
 
 Do not go hunting orphans. Whether an export has a consumer is a property of the whole import graph
 AFTER every later round lands. You cannot answer that from inside one round. Deleting an export
-while you fix something else is fine. It is still not a unit you owe a disposition on.
+while you fix something else is fine. That deletion is still not a unit you owe a disposition on.
 
 ### Two concerns are withheld from declaration-shaped files
 
@@ -190,21 +197,12 @@ The checklist itself withholds \`perf\` and \`integrity\` from declaration-shape
 \`blight-concern-gating-statics.ts\` holds that rule.
 
 **When those two units do not appear for such a file, the tool withheld them deliberately.** Do not
-review them anyway. Do not record their absence as a gap.
+review them anyway, and do not record their absence as a gap. Across 88 review units of exactly that
+file mix, \`perf\` and \`integrity\` produced ZERO findings. That ZERO comes from the question itself:
+\`perf\` against a zod schema asks whether a declaration has a quadratic loop.
 
-A count backs that rule, not a guess. Across 88 review units of exactly that file mix, \`perf\` and
-\`integrity\` produced ZERO findings. That ZERO comes from the question itself. \`perf\` against a
-zod schema asks whether a declaration has a quadratic loop. \`integrity\` against a brand-new file
-asks whether its changed exports still mean to consumers what they did. The only consumer arrives
-in the same round. Neither question can come back with anything but "n/a".
-
-The other three concerns apply to those files in full.
-
-| Concern | What it can still find in a declaration-shaped file |
-|---|---|
-| \`craft\` | a \`.refine\` message that is wrong |
-| \`dedup\` | a second contract duplicating the first |
-| \`test-cases\` | a branch added to a proxy or a stub, shipping with no case |
+The other three concerns apply to those files in full. \`test-cases\` alone still finds a branch
+added to a proxy or a stub that ships with no case.
 
 ## Record a disposition for every unit
 
@@ -212,23 +210,23 @@ The other three concerns apply to those files in full.
 |---|---|
 | \`reviewed\` | you checked the concern against this unit. It holds. |
 | \`fixed\` | you found a real defect here. You corrected it in place. |
-| \`routed\` | a real finding needing a decision this round cannot make. Name it in your \`NEXT: rework\` line, or it goes nowhere. |
+| \`routed\` | a real finding needing a decision this round cannot make. Name it in your \`NEXT: rework\` line, or no later session ever acts on it. |
 | \`recorded\` | you handed a real finding to a named owner outside this quest. It is not closed this round. |
 | \`gap\` | no one can assess the concern at this layer. Say precisely why. |
 
-**You have no way to ask the user anything.** You are a sub-agent inside your parent's turn. No
-human sees your questions. Nothing resumes you with an answer. Answer your own question, or hand it
-up in \`NEXT: rework\`.
+**You have no way to ask the user anything.** You are a sub-agent inside your parent's turn, so no
+human sees your questions and nothing resumes you with an answer. Answer your own question, or hand
+it up in \`NEXT: rework\`.
 
-**Every one of these clears a unit.** \`gap\` and \`recorded\` are honest answers, so you can always
-complete the record truthfully. A unit with NO entry at all is never acceptable. This is not a style
-note. The completion gate recomputes this ledger against everything your parent's work item
-committed. It REFUSES your parent's \`done\` while any unit carries no entry. A unit you skip stops
-your parent's session from ending.
+**Every one of these dispositions clears a unit**, \`gap\` and \`recorded\` included, so you can
+always complete the record truthfully. **A unit with NO entry is never acceptable**: the completion
+gate recomputes this ledger against everything your parent's work item committed and REFUSES your
+parent's \`done\` while any unit carries no entry, so a unit you skip stops your parent's session
+from ending.
 
 **These dispositions are the one thing you do NOT batch.** Write each one immediately after you
 finish that concern for that file. A session that dies at file four otherwise loses every
-disposition it earned. Nothing behind you re-derives them.
+disposition it recorded, and nothing behind you re-derives them.
 
 \`\`\`
 modify-quest({ questId: 'QUEST_ID', planningNotes: { blightLedger: [
@@ -237,8 +235,6 @@ modify-quest({ questId: 'QUEST_ID', planningNotes: { blightLedger: [
     observedBy: 'reviewer-minion', workItemId: '<the work item id your briefing names>' }
 ]}})
 \`\`\`
-
-Two dispositions carry one extra field each.
 
 | Disposition | Extra field |
 |---|---|

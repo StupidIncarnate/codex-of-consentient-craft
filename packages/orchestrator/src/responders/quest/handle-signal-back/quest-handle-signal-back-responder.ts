@@ -82,7 +82,7 @@ import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-u
 import { blightCoverageOutstandingTransformer } from '../../../transformers/blight-coverage-outstanding/blight-coverage-outstanding-transformer';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
-import { roleToDisciplineStatics } from '../../../statics/role-to-discipline/role-to-discipline-statics';
+import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { signoffTrackEligibilityStatics } from '../../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 
@@ -92,12 +92,10 @@ import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-s
 const OUTSTANDING_PREVIEW_LIMIT = 15;
 
 // The five roles that run a planner/worker/reviewer round over an operation item. Read from
-// `roleToDisciplineStatics` rather than listed here, so a role added to that map is covered by both
-// gates below the day it is added — the same reason `isChatWorkItemRoleGuard` reads
+// `agentPromptClassificationStatics` rather than listed here, so a role added there is covered by
+// both gates below the day it is added — the same reason `isChatWorkItemRoleGuard` reads
 // `workItemRoleStatics.chat` instead of growing an `||` chain.
-const OPERATOR_ROLES = Object.keys(
-  roleToDisciplineStatics,
-) as readonly (keyof typeof roleToDisciplineStatics)[];
+const OPERATOR_ROLES = agentPromptClassificationStatics.operatorRoleNames;
 
 // Whose `done` is gated on their round's output being reviewed unit by unit. Membership, not a name
 // chain: a role that runs a review round is a role whose round has to be covered.
@@ -350,20 +348,16 @@ export const QuestHandleSignalBackResponder = async ({
         const outstandingUnits = blightCoverageOutstandingTransformer({ checklist });
 
         if (outstandingUnits.length > 0) {
-          // The scope a reviewer-minion actually uses. `working-tree` would answer EMPTY here —
-          // every worker commits its own piece, so nothing under review is uncommitted by the time
-          // a reviewer runs — and an empty surface dispositions nothing, which is precisely the
-          // state this gate is refusing. Naming the wrong call in the refusal would send the agent
-          // to re-run the thing that produced the refusal.
-          const reviewerCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'unpushed' })`;
-          // …and `unpushed` is EMPTY by the time this refusal can fire, because the operator's
-          // gate 9 pushes before gate 10 signals. A fresh reviewer sent to that scope enumerates
-          // nothing, dispositions nothing, and earns the identical refusal — so the message has to
-          // name the one agent-facing scope that still spans the range this gate measured.
-          // `since-ref` is server-only and no agent can compute this item's `startRef`; `quest`
-          // over-reports (units already dispositioned come back marked done) rather than missing
-          // any, which is the safe direction for a caller trying to clear a refusal.
-          const afterPushCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'quest' })`;
+          // `quest` IS THE ONLY AGENT-FACING SCOPE THAT STILL SPANS WHAT THIS GATE MEASURED, and
+          // naming any other one sends the agent to re-run the thing that produced the refusal.
+          // A reviewer's own scope is `working-tree`, but every round's reviewer commits and pushes
+          // before the operator reaches step 7 — so by the time a refusal can fire, `working-tree`
+          // is empty and so is `unpushed`. A fresh reviewer sent to either enumerates nothing,
+          // dispositions nothing, and earns this identical refusal. `since-ref` is server-only and
+          // no agent can compute this item's `startRef`. `quest` over-reports — units already
+          // dispositioned come back marked done — which is the safe direction for a caller trying
+          // to clear a refusal.
+          const clearingCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'quest' })`;
 
           throw new Error(
             [
@@ -375,13 +369,13 @@ export const QuestHandleSignalBackResponder = async ({
                 .map((id) => `  - ${String(id)}`),
               ...(outstandingUnits.length > OUTSTANDING_PREVIEW_LIMIT
                 ? [
-                    `  … and ${String(outstandingUnits.length - OUTSTANDING_PREVIEW_LIMIT)} more — the reviewer-minion's own ${reviewerCall} enumerates its round's share of them.`,
+                    `  … and ${String(outstandingUnits.length - OUTSTANDING_PREVIEW_LIMIT)} more — a reviewer's ${clearingCall} enumerates every one of them.`,
                   ]
                 : []),
               '',
               'Do ONE of these, then signal again:',
-              `  1. Dispatch a \`reviewer-minion\` over the output this round produced. It calls \`${reviewerCall}\` for its own scope and writes each verdict to \`quest.planningNotes.blightLedger\` via modify-quest.`,
-              `     IF YOU HAVE ALREADY PUSHED this round, that scope is EMPTY and will disposition nothing — brief the reviewer to use \`${afterPushCall}\` instead, which still spans the range measured above. It over-reports: units already dispositioned come back marked done, so it re-reads rather than missing any.`,
+              `  1. Dispatch a \`reviewer-minion\` over the output this item produced, and BRIEF IT TO CALL \`${clearingCall}\`. That is NOT the \`scope: 'working-tree'\` its own prompt names: every round of yours is committed and pushed by now, so \`working-tree\` is empty and would disposition nothing. It writes each verdict to \`quest.planningNotes.blightLedger\` via modify-quest.`,
+              `     \`scope: 'quest'\` over-reports — units earlier rounds already dispositioned come back marked done — so it re-reads rather than missing any.`,
               '     EVERY disposition clears a unit — `gap` and `recorded` with a real reason count exactly as `reviewed` does. This gate refuses ABSENCE, not honesty.',
               '     A unit listed above that no round of yours touched belongs to an earlier round of THIS item; the same reviewer clears it, because a disposition is keyed on the unit and not on who wrote it.',
               "  2. Signal operationStatus: 'partial' instead, which hands the un-reviewed remainder to a fresh session of your role.",

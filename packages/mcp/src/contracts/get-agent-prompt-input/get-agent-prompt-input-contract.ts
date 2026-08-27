@@ -3,58 +3,41 @@
  *
  * USAGE:
  * getAgentPromptInputContract.parse({ agent: 'codeweaver', questId, workItemId });
- * // Returns validated get-agent-prompt input
+ * // Returns validated get-agent-prompt input for a relay role
  *
- * getAgentPromptInputContract.parse({ agent: 'worker-minion', questId, discipline: 'implementation' });
- * // Returns validated get-agent-prompt input for a minion, which has no workItemId to derive a
- * // discipline from
+ * getAgentPromptInputContract.parse({ agent: 'codeweaver-worker-minion', questId });
+ * // Returns validated get-agent-prompt input for a minion, which has no work item of its own
  *
- * WHEN-TO-USE: `workItemId` is optional because a parent-summoned sub-agent minion (planner-minion,
- * worker-minion, reviewer-minion, chaoswhisperer-gap-minion) has no work item of its own — it
- * fetches its served methodology with `{ agent, questId }` only. The orchestrator broker enforces
- * that role names (dispatched as their own work item) DO supply a workItemId.
+ * WHEN-TO-USE: `workItemId` is optional because a parent-summoned minion has no work item — it
+ * fetches with `{ agent, questId }` only, and its parent briefs the round's context inline. The
+ * orchestrator broker enforces the other half: a ROLE name, dispatched as its own work item, must
+ * supply one, and a minion that passes one is refused by name.
  *
- * This is a SERVED schema — an agent reads the `discipline` names out of it and passes one back — so
- * a list that drifts from the orchestrator's own `disciplineContract` publishes a value
- * `agentPromptGetBroker` then refuses, and nothing in either package would fail until an agent tried
- * it. `DISCIPLINE_NAMES` is therefore pinned with `satisfies readonly Discipline[]`: a rename or a
- * removal on the orchestrator side fails THIS package's typecheck. The pin is a TYPE import rather
- * than reading `disciplineContract.options` at runtime because this package module-mocks
- * `@dungeonmaster/orchestrator` wholesale in its adapter proxies — a value imported from that barrel
- * reads as `undefined` inside every unit test here, which would collapse this enum to "matches
- * nothing" and reject the very calls it exists to accept.
+ * THERE IS NO `discipline` ARGUMENT. Every prompt is one file named for whose it is —
+ * `codeweaver-planner-minion`, `siegemaster-reviewer-minion`, and so on for all twenty — so the
+ * agent name alone selects the text. It used to be a served enum of five pack names that filled a
+ * `$DISCIPLINE` placeholder in a shared template, pinned here with `satisfies readonly Discipline[]`
+ * against the orchestrator's own contract so a rename on that side failed THIS package's typecheck.
+ * The placeholder, the packs and the pin are all gone with it.
  */
-import type { Discipline } from '@dungeonmaster/orchestrator';
 import { z } from 'zod';
 
 import { questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
-
-const DISCIPLINE_NAMES = [
-  'implementation',
-  'bug-repro',
-  'below-browser',
-  'browser-e2e',
-  'manual-qa',
-] as const satisfies readonly Discipline[];
 
 export const getAgentPromptInputContract = z.object({
   agent: z
     .string()
     .min(1)
     .brand<'AgentPromptInputAgent'>()
-    .describe('Agent name (e.g. codeweaver, planner-minion, reviewer-minion)'),
+    .describe(
+      'Agent name. A relay role (codeweaver, pesteater, flowrider, groundstomper, siegemaster, spiritmender, warpgate) or a minion named for the role that summons it (e.g. codeweaver-planner-minion, siegemaster-reviewer-minion).',
+    ),
   workItemId: questWorkItemIdContract
     .optional()
     .describe(
-      'Work item the calling sub-agent was dispatched against (omitted by summoned minions)',
+      "Work item the calling sub-agent was dispatched against. Supplied by a relay role; OMITTED by a summoned minion, which has no work item of its own and is refused if it passes its parent's.",
     ),
   questId: questIdContract.describe('Quest the calling sub-agent is working on'),
-  discipline: z
-    .enum(DISCIPLINE_NAMES)
-    .optional()
-    .describe(
-      "Which discipline pack fills the shared prompt template's $DISCIPLINE placeholder. REQUIRED for planner-minion / worker-minion / reviewer-minion — those fetch with { agent, questId } only and have no workItemId to derive a discipline from. MUST be OMITTED for an operator role, whose discipline is derived server-side from its own role, and for chaoswhisperer-gap-minion.",
-    ),
 });
 
 export type GetAgentPromptInput = z.infer<typeof getAgentPromptInputContract>;

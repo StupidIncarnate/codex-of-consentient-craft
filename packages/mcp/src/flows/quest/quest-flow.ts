@@ -121,7 +121,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-blight-checklist' as never,
     description:
-      "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. A reviewer-minion calls this with scope: 'unpushed', which frames exactly the commits its round produced; the other scopes measure the whole quest, the last commit alone, or the uncommitted working tree. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
+      "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file crossed with each applicable standards concern, paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. The `scope` parameter chooses WHICH changes are measured — the uncommitted working tree, what is committed here but not yet pushed, the last commit alone, or the whole quest from its pinned baseRef. Those four are NOT interchangeable and answer four different questions: read `scope`'s own description for what each one measures, and pass the one YOUR prompt names. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
     inputSchema: getBlightChecklistSchema as never,
     handler: async ({ args }) =>
       QuestHandleResponder({ tool: 'get-blight-checklist' as never, args }),

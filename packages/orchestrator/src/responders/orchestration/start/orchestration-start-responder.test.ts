@@ -50,9 +50,9 @@ const PROCESS_ID = `proc-${SEEDED_UUIDS[0]}`;
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
 // Feature quests seed implementation ops at Start as well: the ONE codeweaver seed carries
-// `fanOutBy: 'implementation'`, so the derived per-cell ledger is minted here rather than authored
+// `fanOutBy: 'implementation'`, so the derived per-package ledger is minted here rather than authored
 // at spec time. QuestStub declares one flow with no tagged nodes, no packagesAffected and no
-// contracts, so there is no (package, flow) cell and no foundation package to derive — the fan-out
+// contracts, so no package resolves from either input — the fan-out
 // falls back to ONE whole-quest item. Implementation items consume uuids first, then the verify
 // tail, then the single first work item.
 const QUEST_STUB_FLOW_ID = 'login-flow';

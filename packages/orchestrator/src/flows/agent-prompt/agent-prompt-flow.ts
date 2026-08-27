@@ -18,17 +18,14 @@ export const AgentPromptFlow = {
     agent,
     questId,
     workItemId,
-    discipline,
   }: {
     agent: string;
     questId: QuestId;
     workItemId?: QuestWorkItemId;
-    discipline?: 'implementation' | 'bug-repro' | 'below-browser' | 'browser-e2e' | 'manual-qa';
   }): Promise<AgentPromptResult> =>
     AgentPromptGetResponder({
       agent,
       questId,
       ...(workItemId !== undefined && { workItemId }),
-      ...(discipline !== undefined && { discipline }),
     }),
 };

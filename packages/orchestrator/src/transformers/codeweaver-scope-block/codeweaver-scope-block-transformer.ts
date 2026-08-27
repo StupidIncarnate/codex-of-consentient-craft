@@ -8,9 +8,9 @@
  * // Returns ContentText[] lines to splice into the agent's Operation Context, empty when the item
  * // declares no package (nothing to scope)
  *
- * WHY THIS IS NOT ON THE OPERATION ITEM. The ledger stores only the cell key — one package, one flow
- * (or none, for a foundation item) — and the item's `text` is a label. Two things break if the scope
- * is written into that text at Start instead:
+ * WHY THIS IS NOT ON THE OPERATION ITEM. The ledger stores only the slice key — ONE PACKAGE, plus
+ * every flow it tags a node in — and the item's `text` is a label. Two things break if the scope is
+ * written into that text at Start instead:
  *
  * 1. **The spec grows underneath the ledger.** Codeweaver holds additive spec authority and so do
  *    Flowrider and Siegemaster: they may add observables and nodes to an existing flow mid-quest. An
@@ -90,17 +90,14 @@ export const codeweaverScopeBlockTransformer = ({
     }
   }
 
-  // Contracts route by PATH, never by node, because a foundation item has no node at all — and on
-  // the quest that motivated this the whole `shared` scope was nine contracts against zero tagged
-  // nodes. A flow cell still gets the contracts anchored to ITS nodes, so a contract is named to
-  // the session that builds the thing it describes. Routing is per-PROPERTY as well as per-
-  // contract: one contract can legitimately deliver into several packages, and each session is
-  // shown only its own share of it.
+  // Contracts route by PATH, and by path ALONE — never by which node they are anchored to. The
+  // item is one whole package, so every contract resolving to it is that package's foundation
+  // whether or not this package tags the node the contract hangs off. Filtering by node here is
+  // what the flow-cell ledger used to do, and it left a contract anchored to a sibling's node
+  // reaching no session at all. Routing is per-PROPERTY as well as per-contract: one contract can
+  // legitimately deliver into several packages, and each session is shown only its own share.
   const contracts = quest.contracts.flatMap((contract) => {
     if (contract.status === 'existing') {
-      return [];
-    }
-    if (operationItem.flowIds.length > 0 && !scopedNodeIds.has(String(contract.nodeId))) {
       return [];
     }
     const ownsTheFile =
@@ -140,27 +137,41 @@ export const codeweaverScopeBlockTransformer = ({
     );
   }
 
+  // A decision reaches this session when it governs one of its NODES or one of its CONTRACTS. The
+  // contract half is why the second set exists: a contract routes by path, so a package can own one
+  // anchored to a node it does not tag, and matching on nodes alone rendered no decision at all for
+  // a package whose whole scope is contracts. That session was then told to call
+  // `get-quest({ stage: 'spec' })` and pair decisions to contracts by name itself — a second copy of
+  // the same data, fetched by hand, that could disagree with this one.
+  const contractNodeIds = new Set(contracts.map(({ contract }) => String(contract.nodeId)));
   const decisions = quest.designDecisions.filter((decision) =>
-    decision.relatedNodeIds.some((nodeId) => scopedNodeIds.has(String(nodeId))),
+    decision.relatedNodeIds.some(
+      (nodeId) => scopedNodeIds.has(String(nodeId)) || contractNodeIds.has(String(nodeId)),
+    ),
   );
 
   if (decisions.length > 0) {
     lines.push(
       contentTextContract.parse(''),
-      contentTextContract.parse('Design decisions constraining your nodes:'),
+      contentTextContract.parse('Design decisions constraining your scope:'),
       ...decisions.map((decision) =>
         contentTextContract.parse(`  - ${String(decision.title)} — ${String(decision.rationale)}`),
       ),
     );
   }
 
-  // SEAMS. A glue node tags more than one package, and every package it tags has its own cell for
-  // this flow — so the other half is somebody's declared scope, not a gap. What the session needs
-  // is WHOSE and WHETHER IT HAS RUN, and only the ledger answers that: the relay dispatches in
-  // ledger order, so a sibling cell still `pending` is a session yet to come and one already
-  // `complete` is code that can be opened right now. Telling a provider to "verify the consumer's
-  // half exists" is unsatisfiable, and telling a consumer nothing about a provider that pivoted is
-  // how a seam ships broken.
+  // SEAMS. A glue node tags more than one package, and every package it tags has its own item
+  // carrying this flow — so the other half is somebody's declared scope, not a gap. What the
+  // session needs is WHOSE and WHETHER IT HAS RUN, and only the ledger answers that: the relay
+  // dispatches in ledger order, so a sibling item still `pending` is a session yet to come and one
+  // already `complete` is code that can be opened right now. Telling a provider to "verify the
+  // consumer's half exists" is unsatisfiable, and telling a consumer nothing about a provider that
+  // pivoted is how a seam ships broken.
+  //
+  // The FLOW still narrows the sibling match, even though one item now covers a package's every
+  // flow. An item that does not carry this flow does not render this node in its own scope either,
+  // so it genuinely owns no half here — which is exactly what a node added to the flow after Start
+  // looks like, the ledger being derived once and never re-derived.
   const seams = scopedNodes.flatMap(({ flow, node }) =>
     node.packages
       .filter((name) => String(name) !== ownPackageText)

@@ -137,8 +137,8 @@ describe('QuestRunRiftcarverResponder', () => {
         timestamp: FIXED_TIMESTAMP,
       },
       // The push rides here, immediately after the git context is recorded and BEFORE the mirror
-      // and the build: `@{upstream}` has to resolve from the moment the quest exists, because a
-      // reviewer-minion's `scope: 'unpushed'` is `@{upstream}..HEAD` and has no range without it.
+      // and the build: the branch has to be tracked before the first round runs, because every
+      // `<role>-reviewer-minion` prompt writes a bare `git push` with no `-u` on it.
       {
         role: 'assistant',
         type: 'text',

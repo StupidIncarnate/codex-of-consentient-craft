@@ -80,7 +80,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
-        "Contract 'SessionToken' declares source 'packages/cli/src/contracts/session-token/session-token-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+        "Contract 'SessionToken' declares source 'packages/cli/src/contracts/session-token/session-token-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
 
@@ -98,7 +98,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
-        "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+        "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
 
@@ -116,7 +116,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
-        "Contract 'SessionToken' declares source 'packages/shared/src/contracts/session-token/session-token-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+        "Contract 'SessionToken' declares source 'packages/shared/src/contracts/session-token/session-token-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
 
@@ -146,8 +146,8 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
-        "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
-        "Contract 'HookEvent' declares source 'packages/hooks/src/contracts/hook-event/hook-event-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+        "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+        "Contract 'HookEvent' declares source 'packages/hooks/src/contracts/hook-event/hook-event-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
   });
@@ -294,12 +294,12 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
-        "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+        "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
   });
 
-  describe('agrees with packageForPathTransformer, the generator that mints the foundation item', () => {
+  describe('agrees with packageForPathTransformer, the generator that routes a contract to its package', () => {
     // The gate and the generator read the SAME resolution. A divergence would refuse work that
     // does route, or pass work that does not, so both are asserted in one breath here.
     it('VALID: {a source under a nested declared package} => the generator resolves it to the inner package and the gate passes it', () => {
@@ -313,14 +313,12 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       expect({
-        mintsFoundationItemFor: String(
-          packageForPathTransformer({ path: source, packagesAffected }),
-        ),
+        routesTo: String(packageForPathTransformer({ path: source, packagesAffected })),
         violations: questContractSourceCoverageViolationsTransformer({
           contracts: [contract],
           packagesAffected,
         }).map((offender) => String(offender)),
-      }).toStrictEqual({ mintsFoundationItemFor: 'chart', violations: [] });
+      }).toStrictEqual({ routesTo: 'chart', violations: [] });
     });
 
     it('INVALID: {a source a sibling directory only appears to cover} => the generator resolves nothing and the gate refuses it', () => {
@@ -334,17 +332,15 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       expect({
-        mintsFoundationItemFor: String(
-          packageForPathTransformer({ path: source, packagesAffected }),
-        ),
+        routesTo: String(packageForPathTransformer({ path: source, packagesAffected })),
         violations: questContractSourceCoverageViolationsTransformer({
           contracts: [contract],
           packagesAffected,
         }).map((offender) => String(offender)),
       }).toStrictEqual({
-        mintsFoundationItemFor: 'undefined',
+        routesTo: 'undefined',
         violations: [
-          "Contract 'Series' declares source 'packages/web-extra/src/contracts/series/series-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+          "Contract 'Series' declares source 'packages/web-extra/src/contracts/series/series-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
         ],
       });
     });

@@ -9,25 +9,31 @@ import {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
+import { codeweaverPlannerMinionStatics } from '../../statics/codeweaver-planner-minion/codeweaver-planner-minion-statics';
 import { codeweaverScopeBlockTransformer } from './codeweaver-scope-block-transformer';
 
-const { plannerMarkdown } = disciplineImplementationStatics;
+const PLANNER_TEMPLATE = codeweaverPlannerMinionStatics.prompt.template;
 
-// THE PACK'S SIDE OF THE `CONTEXT:` HEADING PAIR, parsed off the live `plannerMarkdown` rather than
+// THE PROMPT'S SIDE OF THE `## Context` HEADING PAIR, parsed off the live template rather than
 // copied into a list here — a copy drifts exactly the way the prose drifts, which is the failure
-// this pin closes. The section is bounded by its own two `##` headings; inside it the pack numbers
-// the headings it tells the planner to look for, and item 4's name is the one its `NOTES` checklist
-// tells the planner to QUOTE. `discipline-implementation-statics.test.ts` parses it identically, so
-// the two sides cannot disagree about what an enumerated name is.
-const CONTEXT_SECTION = plannerMarkdown.slice(
-  plannerMarkdown.indexOf('## Your denominator is the `## Context` section of the round document'),
-  plannerMarkdown.indexOf('## Cut the cell into CHUNKS'),
+// this pin closes. The enumeration moved when the discipline packs were split into one prompt per
+// (role, phase): it used to be `disciplineImplementationStatics.plannerMarkdown`, and it is now
+// stage 1 of `codeweaver-planner-minion`, the session that reads the block this transformer emits.
+// The section is bounded by its own two `###` stage headings; inside it the prompt tables the
+// headings it tells the planner to look for, and the fourth row's name is the one item 4 of the
+// chunk `NOTES` checklist tells the planner to QUOTE.
+const CONTEXT_SECTION = PLANNER_TEMPLATE.slice(
+  PLANNER_TEMPLATE.indexOf(
+    '### Stage 1 — Read your piece, classify its seams, and start your explorers',
+  ),
+  PLANNER_TEMPLATE.indexOf('### Stage 2 — Read while your explorers run: the standards, and git'),
 );
 
-// The pack lists the headings as a TABLE now, one row each, rather than a numbered list.
+// The prompt lists the headings as a TABLE, one row each, indented under stage 1's numbered step —
+// hence the leading `\s*`, which the un-indented pack table did not need. The only other table in
+// that stage keys its rows on prose rather than on a backticked name, so it cannot collide.
 const ENUMERATED_CONTEXT_HEADINGS = Array.from(
-  CONTEXT_SECTION.matchAll(/^\| `(?<heading>[^`]+)` \|/gmu),
+  CONTEXT_SECTION.matchAll(/^\s*\| `(?<heading>[^`]+)` \|/gmu),
 ).map((match) => match.groups?.heading ?? '');
 
 const SHARED_ENTRY = QuestPackageEntryStub({
@@ -175,11 +181,11 @@ describe('codeweaverScopeBlockTransformer', () => {
     });
   });
 
-  describe('a flow cell', () => {
-    it('VALID: {a server cell with its own observable, contract and design decision} => renders all four blocks and drops everything belonging to the other side', () => {
+  describe('a package item', () => {
+    it('VALID: {a server item with its own observable, contracts and design decisions} => renders all four blocks and drops everything belonging to the other package', () => {
       const operationItem = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        text: 'Codeweaver: build this slice — server: auth-flow',
+        text: 'Codeweaver: build this slice — package: server',
         flowIds: ['auth-flow'],
         packageNames: ['server'],
       });
@@ -225,7 +231,7 @@ describe('codeweaverScopeBlockTransformer', () => {
             source: 'packages/server/src/contracts/quest-status/quest-status-contract.ts',
             nodeId: 'submit-credentials',
           }),
-          // Routes to `web` by source, so it is the other cell's contract.
+          // Routes to `web` by source, so it is the other package's contract.
           QuestContractEntryStub({
             id: 'dashboard-props',
             name: 'DashboardProps',
@@ -234,7 +240,9 @@ describe('codeweaverScopeBlockTransformer', () => {
             source: 'packages/web/src/contracts/dashboard-props/dashboard-props-contract.ts',
             nodeId: 'redirect-to-dashboard',
           }),
-          // Right package, wrong node: anchored outside this cell's nodes.
+          // This package's path, anchored to a node it does not tag. It renders: a contract routes
+          // by PATH alone, and the decision governing THAT node comes with it. The per-cell ledger
+          // dropped this pair and minted a separate flow-less item to carry them.
           QuestContractEntryStub({
             id: 'audit-record',
             name: 'AuditRecord',
@@ -290,9 +298,12 @@ describe('codeweaverScopeBlockTransformer', () => {
         'Contracts you own — every property description is a requirement:',
         '  - SessionToken (data, new) [packages/server/src/contracts/session-token/session-token-contract.ts]',
         '      value: The signed token, opaque to the browser',
+        '  - AuditRecord (data, new) [packages/server/src/contracts/audit-record/audit-record-contract.ts]',
+        '      email: User email for authentication',
         '',
-        'Design decisions constraining your nodes:',
+        'Design decisions constraining your scope:',
         '  - Sign sessions with HS256 — verification stays in-process for the single-node deployment',
+        '  - Dashboard renders optimistically — the redirect must not wait on the first data fetch',
       ]);
     });
   });
@@ -510,13 +521,16 @@ describe('codeweaverScopeBlockTransformer', () => {
     });
   });
 
-  describe('a foundation item', () => {
+  describe('a package whose whole scope is contracts', () => {
     // `shared` on the quest that motivated this had zero tagged nodes and nine contracts, so
-    // contracts route by `source` path and a flow-less item still has a scope to render.
-    it('VALID: {flowIds: [] on a shared foundation item} => renders its contracts and no nodes, observables, decisions or seams', () => {
+    // contracts route by `source` path and a flow-less item still has a scope to render. The
+    // DECISIONS matter as much: they are anchored to nodes this package does not tag, so matching
+    // them on scoped nodes alone rendered none at all and the prompt sent this session off to call
+    // `get-quest({ stage: 'spec' })` and pair them to its contracts by hand.
+    it('VALID: {flowIds: [] on a shared package item} => renders its contracts AND the decisions governing the nodes they anchor to, with no nodes, observables or seams', () => {
       const operationItem = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        text: 'Codeweaver: build this slice — shared: foundation',
+        text: 'Codeweaver: build this slice — package: shared',
         flowIds: [],
         packageNames: ['shared'],
       });
@@ -601,6 +615,9 @@ describe('codeweaverScopeBlockTransformer', () => {
         '      value: The signed token, opaque to the browser',
         '  - QuestStatus (data, modified) [packages/shared/src/contracts/quest-status/quest-status-contract.ts]',
         '      status: Gains the merging member',
+        '',
+        'Design decisions constraining your scope:',
+        '  - Dashboard renders optimistically — the redirect must not wait on the first data fetch',
       ]);
     });
   });
@@ -610,7 +627,7 @@ describe('codeweaverScopeBlockTransformer', () => {
     // shared and two of its properties name files that live in web. Routing the whole contract by
     // its own path alone hands every property to shared, and the web deliverables — which no
     // observable anywhere carries — reach no session at all.
-    it('VALID: {a property declaring its own source in another package} => the web foundation item renders that contract and only the properties that land in web', () => {
+    it('VALID: {a property declaring its own source in another package} => the web item renders that contract and only the properties that land in web', () => {
       const operationItem = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         text: 'Codeweaver: build this slice — web: foundation',
@@ -709,25 +726,27 @@ describe('codeweaverScopeBlockTransformer', () => {
     });
   });
 
-  // CROSS-FILE PAIR — this transformer ←→ `disciplineImplementationStatics.plannerMarkdown`. What
-  // this transformer splices into the `CONTEXT:` section of a codeweaver operator's prompt is the
-  // planner's WHOLE denominator: the pack tells it "no checklist tool answers it", enumerates the
-  // headings this file emits so the planner can find its acceptance targets inside a block its
-  // parent pasted in whole, and its chunk-`NOTES` checklist depends on item 4 — `Design decisions
-  // constraining your nodes` — by name, telling the planner to quote that text rather than call
-  // `get-quest` for it.
+  // CROSS-FILE PAIR — this transformer ←→ `codeweaverPlannerMinionStatics`. What this transformer
+  // splices into the `## Context` section of the round document is the planner's WHOLE denominator:
+  // the prompt tells it the list is already there and no tool fetches it, enumerates the headings
+  // this file emits so the planner can find its acceptance targets inside a block its parent pasted
+  // in whole, and its chunk-`NOTES` checklist depends on item 4 — `Design decisions constraining
+  // your nodes` — by name, telling the planner to quote that text rather than call `get-quest`
+  // for it.
   //
   // The pin lives on THIS side because it is the only side that can hold both halves live:
   // `folderConfigStatics.statics.allowedImports` is `['statics/']`, so a test under `statics/`
-  // cannot import a transformer at all, while a test under `transformers/` may import statics.
+  // cannot import a transformer at all, while a test under `transformers/` may import statics. With
+  // `codeweaver-planner-minion` carrying no colocated test of its own, this is the ONLY thing
+  // holding the two sides together.
   //
   // What breaks if they diverge: nothing. Silently. An added, dropped, renamed or reordered heading
-  // leaves the pack's enumeration stale, the planner hunts for a heading nothing renders, finds no
-  // acceptance targets under it, and plans the cell against the ledger's label — the one source the
-  // pack's own authority order puts LAST. An audit already caught this once, with the pack listing
-  // four while this file emitted five, and the missing one was precisely the heading the `NOTES`
-  // checklist told the planner to quote.
-  describe('the CONTEXT: headings the implementation pack enumerates', () => {
+  // leaves the prompt's enumeration stale, the planner hunts for a heading nothing renders, finds no
+  // acceptance targets under it, and plans the piece against the ledger's label — the one source the
+  // prompt's own authority order puts LAST. An audit already caught this once, with the prompt
+  // listing four while this file emitted five, and the missing one was precisely the heading the
+  // `NOTES` checklist told the planner to quote.
+  describe('the ## Context headings the codeweaver planner prompt enumerates', () => {
     it('VALID: {a cell exercising all five sections} => every heading it emits is opened by the enumerated name at that position', () => {
       const operationItem = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',

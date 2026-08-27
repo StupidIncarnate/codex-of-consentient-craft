@@ -3,12 +3,19 @@
  *
  * USAGE:
  * npm run ward -- --only integration -- packages/orchestrator/src/flows/agent-prompt/agent-prompt-flow.integration.test.ts
+ *
+ * This is a WIRING test, not a second copy of the broker's branch matrix. Two shapes reach the
+ * flow — a minion fetching with `{ agent, questId }` and touching no disk at all, and a role
+ * fetching with a `workItemId` whose operation context is read back off a REAL quest.json this
+ * test seeded. The broker's own suite owns the refusals, the start-ref stamp and the dev-server
+ * scoping.
  */
 
 import { BaseNameStub, installTestbedCreateBroker } from '@dungeonmaster/testing';
 import {
   OperationItemIdStub,
   OperationItemStub,
+  QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
   RelatedDataItemStub,
@@ -16,57 +23,36 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
-import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
+import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { questSeedHarness } from '../../../test/harnesses/quest-seed/quest-seed.harness';
 
 import { AgentPromptFlow } from './agent-prompt-flow';
-import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
-
-// Codeweaver is served the shared operator template with the implementation pack
-// already substituted at `$DISCIPLINE` and that discipline's id at `$MY_DISCIPLINE`. Function-form
-// replacement, never the string form: pack markdown is authored prose that can carry
-// `$&` / `` $` `` / `$'`.
-// `$DISCIPLINE` substitutes once and `$MY_DISCIPLINE` substitutes EVERYWHERE — the template quotes
-// the bare discipline id both into the `get-agent-prompt` call its minions must make and into the
-// header every minion brief opens with, and `.replace` would resolve only the first of those.
-const IMPLEMENTATION_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineImplementationStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('implementation');
 
 describe('AgentPromptFlow', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const seeder = questSeedHarness();
 
   describe('valid agent names', () => {
-    it('VALID: {agent: chaoswhisperer-gap-minion, questId, workItemId} => returns substituted prompt with Quest ID + Work Item ID', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-chaos' }),
-      });
-      const env = envHarness.setupHome({ tempDir: testbed.guildPath });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
-      const quest = QuestStub({ workItems: [workItem] });
-      seeder.seed({ tempDir: testbed.guildPath, quest });
+    // No testbed and no seeded quest: a minion fetch reads nothing off disk, and this test serving
+    // a prompt without a quest existing anywhere is what says so end to end.
+    it('VALID: {agent: chaoswhisperer-gap-minion, questId, no workItemId} => returns the gap-minion template with Quest ID substituted', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
 
       const result = await AgentPromptFlow.get({
         agent: 'chaoswhisperer-gap-minion',
-        questId: quest.id,
-        workItemId,
+        questId,
       });
-
-      env.restore();
-      testbed.cleanup();
-
-      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
 
       expect(result).toStrictEqual({
         name: 'chaoswhisperer-gap-minion',
         model: 'sonnet',
-        prompt: chaoswhispererGapMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          () => `Quest ID: ${String(questId)}`,
+        ),
       });
     });
 
@@ -119,7 +105,7 @@ describe('AgentPromptFlow', () => {
         // resolves through at spawn time, so a literal here could report one model while the
         // dispatched child ran another.
         model: roleToModelStatics.codeweaver,
-        prompt: IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
+        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
   });
@@ -148,7 +134,7 @@ describe('AgentPromptFlow', () => {
       expect(awaited).toBeInstanceOf(Error);
     });
 
-    it('ERROR: {agent: codeweaver, questId, workItemId, no operations reference} => rejects with no-resolvable-operations-ref error', async () => {
+    it('ERROR: {agent: codeweaver, questId, workItemId, no operations reference} => rejects naming the work item that carries no operations/<id> ref', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-no-op-ref' }),
       });
@@ -168,7 +154,9 @@ describe('AgentPromptFlow', () => {
       env.restore();
       testbed.cleanup();
 
-      expect(awaited).toBeInstanceOf(Error);
+      expect(String(awaited)).toBe(
+        `Error: workItemToPromptTransformer: codeweaver work item ${String(workItemId)} has no resolvable operations/<id> reference`,
+      );
     });
   });
 });

@@ -79,7 +79,7 @@ export const questSaveInvariantsTransformer = ({
     });
 
     // Scoped to feature quests: only a feature quest derives one codeweaver item per package, so
-    // only there does an unresolvable contract source cost a whole foundation scope. A bug-hunt's
+    // only there does an unresolvable contract source reach no session at all. A bug-hunt's
     // single orchestrator-seeded pesteater item covers the quest whatever its contracts say, and
     // refusing one for a path that routes nothing would be a gate with no consequence behind it.
     if (quest.questType === 'feature') {

@@ -46,8 +46,8 @@ export const operationItemContract = z.object({
     .describe(
       'The quest flows this item lands on, so a session knows where on the spine it is working. ' +
         'For most roles this is a NON-BINDING pointer and not a permission boundary — the flows ' +
-        'are the acceptance target for the whole quest and every session reads all of them. A ' +
-        'foundational item that serves the whole spec legitimately carries none, and one flow may ' +
+        'are the acceptance target for the whole quest and every session reads all of them. An ' +
+        'item whose whole scope is contracts legitimately carries none, and one flow may ' +
         'be referenced by several items when its layers are built in separate sessions. Two roles ' +
         'read it harder. On a `siegemaster` item this list IS its COVERAGE SCOPE: the signal-back ' +
         'completion gate refuses `done` while any verification unit on these flows carries no ' +

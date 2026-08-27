@@ -237,9 +237,11 @@ describe('slashCommandsStatics', () => {
     });
 
     it('VALID: dumpsterHunt.body => packagesAffected entries use the object shape with the ./ location prefix', () => {
+      // This sentence wraps in the command body, and where it wraps is not the claim. Both sides
+      // are whitespace-flattened so a re-flow of the paragraph reds nothing that is still true.
       const needle =
-        "`location` written\nWITH the `./` prefix (`'./packages/<name>'`, never the bare `'packages/<name>'`)";
-      const { body } = slashCommandsStatics.dumpsterHunt;
+        "`location` written WITH the `./` prefix (`'./packages/<name>'`, never the bare `'packages/<name>'`)";
+      const body = slashCommandsStatics.dumpsterHunt.body.replace(/\s+/gu, ' ');
       const foundIndex = body.indexOf(needle);
 
       expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);

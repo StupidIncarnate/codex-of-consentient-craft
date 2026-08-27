@@ -169,7 +169,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
 
-**Pick ONE mode, never both.** Foreground: call Bash without \`run_in_background\` and let it block, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). Background: \`run_in_background: true\`, then wait for the task-notification and read the output once. NEVER \`sleep N && tail\` loops or re-reading a partial output file — that races the real completion event. (A \`pgrep -f "<term>"\` poll loop matches its OWN command line, so it never exits and burns the whole timeout.)
+**Run it in the FOREGROUND, and just let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). A hook BLOCKS a backgrounded ward run, so there is no second mode and no output file anyone has to wait on — the call returns when ward is finished. Do not build a waiting strategy around it.
 
 **Run it ONCE.** Choose the right flags the first time; never re-run the same checks a second way, or follow a scoped run with a full one.
 

@@ -103,9 +103,20 @@ describe('agentRoleContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    // The generic minions are parameterized by a discipline their parent hands them, so none can
-    // ever hold an operation item of its own.
-    it.each(['planner-minion', 'worker-minion', 'reviewer-minion'])(
+    // A minion is summoned by a parent inside that parent's turn and owns no work item, so none can
+    // ever hold an operation item of its own. Both spellings are pinned: the bare names the generic
+    // trio used, and the role-prefixed ones that replaced them — a role-prefixed minion LOOKS like a
+    // role, which is exactly why it has to be refused here.
+    it.each([
+      'planner-minion',
+      'worker-minion',
+      'reviewer-minion',
+      'codeweaver-planner-minion',
+      'codeweaver-worker-minion',
+      'codeweaver-reviewer-minion',
+      'siegemaster-reviewer-minion',
+      'chaoswhisperer-gap-minion',
+    ])(
       'INVALID: %s => throws validation error (a minion is never a dispatchable role)',
       (value) => {
         expect(() => {

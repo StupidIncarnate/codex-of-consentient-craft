@@ -41,6 +41,9 @@ export const mcpToolsStatics = {
       'get-server-config',
       'reset-flow-signoffs',
       'get-quest-summary',
+      'get-planner-information',
+      'get-worker-information',
+      'get-reviewer-information',
     ] as const,
   },
 } as const;

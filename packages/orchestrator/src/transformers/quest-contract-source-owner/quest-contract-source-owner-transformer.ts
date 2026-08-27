@@ -2,7 +2,7 @@
  * PURPOSE: Resolves the package ONE piece of a quest contract lands in — the contract itself, or a
  * single property of it. Reach for this over calling `packageForPathTransformer` on
  * `contract.source` directly: that answers for the contract's own file only, and it is the answer
- * the save-time gate, the derived ledger's foundation items and the codeweaver scope block must all
+ * the save-time gate, the derived ledger's package items and the codeweaver scope block must all
  * give identically or a contract one of them refuses is one another silently drops.
  *
  * A contract's `source` is one-to-one, but a contract is one-to-many. Measured on a real quest, a

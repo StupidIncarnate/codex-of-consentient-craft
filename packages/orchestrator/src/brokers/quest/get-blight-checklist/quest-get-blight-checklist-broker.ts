@@ -15,21 +15,21 @@
  * The five scopes answer five different questions and are not interchangeable:
  * - `quest` measures the whole review surface from the pinned `quest.baseRef`
  * - `commit` measures ONE session's committed output (`HEAD~1`)
- * - `unpushed` measures ONE ROUND — `@{upstream}..HEAD`, everything committed here and not yet
- *   published. It is the reviewer-minion's scope: worker-minions commit their own pieces, so by the
- *   time a reviewer runs there is nothing uncommitted for `working-tree` to find, and several
- *   commits have landed since, so `commit` sees only the last of them. The operator pushes once
- *   at the end of each round, which is what makes "unpushed" mean "this round" — a boundary git
- *   maintains itself, with no id threaded through a prompt and nothing for an agent to get wrong.
- *   A branch tracking no upstream (a quest carved before riftcarver pushed) falls back to the
- *   quest's `baseRef` — over-reporting the surface rather than under-reporting it, because a
- *   reviewer shown too much re-reads a file that is already dispositioned, while one shown too
- *   little never opens a file nobody has read.
- * - `working-tree` measures what is changed but NOT YET COMMITTED. Alone among the five it needs no
- *   review base, only HEAD, so it answers on a quest with no pinned `baseRef`; and alone among the
- *   five it cannot be a `git diff`, which reports tracked paths only — `gitWorkingTreeFilesBroker`
- *   unions in the untracked additions. It survives for a caller measuring an uncommitted surface;
- *   it is NO LONGER the reviewer-minion's scope, since that session's subject is now committed.
+ * - `unpushed` measures `@{upstream}..HEAD` — everything committed here and not yet published. It was
+ *   the reviewer-minion's scope while worker-minions committed their own pieces; they no longer do, so
+ *   a round now reaches its reviewer entirely uncommitted and this range holds the PLANNER's commit of
+ *   the round document and nothing else. A reviewer passing it enumerates one markdown file and reads
+ *   green. `working-tree` is that session's scope now. What survives here is a caller whose subject
+ *   really is published-or-not. A branch tracking no upstream (a quest carved before riftcarver
+ *   pushed) falls back to the quest's `baseRef` — over-reporting the surface rather than
+ *   under-reporting it, because a caller shown too much re-reads a file that is already
+ *   dispositioned, while one shown too little never opens a file nobody has read.
+ * - `working-tree` measures what is changed but NOT YET COMMITTED, and IS the reviewer-minion's scope:
+ *   no worker commits anything, so a whole round sits here until its reviewer commits it once at the
+ *   end. Alone among the five it needs no review base, only HEAD, so it answers on a quest with no
+ *   pinned `baseRef`; and alone among the five it cannot be a `git diff`, which reports tracked paths
+ *   only — `gitWorkingTreeFilesBroker` unions in the untracked additions, which a fresh round is
+ *   mostly made of. A caller must enumerate BEFORE committing; afterwards this scope is empty.
  * - `since-ref` measures from a base the CALLER names, in `sinceRef`. It exists for a caller whose
  *   base is neither the quest's nor a fixed offset from HEAD: the signal-back review-coverage gate
  *   measures one WORK ITEM's whole output, which is every commit since that item's recorded
@@ -85,11 +85,11 @@ export const questGetBlightChecklistBroker = async ({
   const quest = await questLoadBroker({ questFilePath });
   const { baseRef } = quest;
 
-  // `HEAD~1` is the LAST COMMIT and nothing else. It is no longer any session's whole output — each
-  // worker-minion commits its own piece and the reviewer commits its verdict, so a round lands
-  // several commits and a session lands several rounds — which is exactly why the reviewer uses
-  // `unpushed` and the signal-back gate uses `since-ref`. What survives here is the narrow reading a
-  // caller auditing landed history wants: one commit, on its own.
+  // `HEAD~1` is the LAST COMMIT and nothing else. It is no longer any session's whole output — the
+  // planner commits the round document and the reviewer commits the round, so a session lands several
+  // commits across several rounds — which is exactly why the reviewer uses `working-tree` and the
+  // signal-back gate uses `since-ref`. What survives here is the narrow reading a caller auditing
+  // landed history wants: one commit, on its own.
   //
   // Two degenerate cases are handled by the ledger rather than by persisted bookkeeping: a reading
   // that lands on a commit whose units already carry dispositions comes back with an empty
@@ -98,9 +98,9 @@ export const questGetBlightChecklistBroker = async ({
   // caller has to remember where the last one stopped.
   //
   // `working-tree` is measured from HEAD alone and is checked FIRST, ahead of the `baseRef` guard,
-  // because it is the one scope that needs no review base: a session reviewing its own uncommitted
-  // work has HEAD whether or not anyone ever pinned one, and gating it on `baseRef` would return
-  // null — read downstream as "nothing to review" — for exactly the surface that has the most.
+  // because it is the one scope that needs no review base: a reviewer reading the uncommitted round
+  // has HEAD whether or not anyone ever pinned one, and gating it on `baseRef` would return null —
+  // read downstream as "nothing to review" — for exactly the surface that has the most in it.
   //
   // `since-ref` is likewise checked ahead of the `baseRef` guard, because the base it measures from
   // is the caller's own and the quest's pinned one is irrelevant to it.

@@ -110,11 +110,19 @@ export const relayTailFanOutTransformer = ({
       quest.packageGraph.map((graphEntry) => [String(graphEntry.id), graphEntry.depth]),
     );
 
-    // One cell per (package, flow), over BOTH flow types. The verification `package` branch below
-    // filters to `runtime` because an operational flow has nothing repeatable for a suite to
-    // assert — but an operational flow is still implementation work, and filtering here would
-    // delete an init/migration flow's entire scope from the ledger with nothing failing to say so.
-    const cellFlowsByPackage = new Map<unknown, FlowId[]>();
+    // ONE ITEM PER PACKAGE, carrying every flow it tags a node in — over BOTH flow types. The
+    // verification `package` branch below filters to `runtime` because an operational flow has
+    // nothing repeatable for a suite to assert; an operational flow is still implementation work,
+    // and filtering here would delete an init/migration flow's whole scope from the ledger with
+    // nothing failing to say so.
+    //
+    // This used to be one item per (package, flow) CELL plus a separate flow-less FOUNDATION item
+    // holding that package's contracts. Both halves are one item now, and the ordering the split
+    // bought — a package's contracts landing before the flows built on them — is its planner's
+    // `PHASES` instead, where the round's own phase gate re-reads the foundation before anything
+    // sits on it. A cell ledger made that a property of dispatch order across several sessions,
+    // which is a coarser instrument for the same guarantee and cost one session per flow to get.
+    const flowsByPackage = new Map<unknown, FlowId[]>();
     const packageNamesByKey = new Map<unknown, PackageName>();
     for (const flow of quest.flows) {
       for (const node of flow.nodes) {
@@ -129,20 +137,21 @@ export const relayTailFanOutTransformer = ({
         for (const name of node.packages) {
           const key = String(name);
           packageNamesByKey.set(key, name);
-          const flowIds = cellFlowsByPackage.get(key) ?? [];
+          const flowIds = flowsByPackage.get(key) ?? [];
           if (!flowIds.some((flowId) => String(flowId) === String(flow.id))) {
             flowIds.push(flow.id);
           }
-          cellFlowsByPackage.set(key, flowIds);
+          flowsByPackage.set(key, flowIds);
         }
       }
     }
 
-    // The FOUNDATION half, and the only reason a package with zero tagged nodes gets an item at
-    // all. On the quest that motivated this, `shared` tagged no node and owned nine contracts —
-    // the status enum, the transitions table, the role roster — so a partition read off node tags
-    // alone would have derived no shared scope whatsoever.
-    const foundationPackages = new Map<unknown, PackageName>();
+    // Contracts add a package that node tags alone would have missed, and that is the only reason
+    // a package with zero tagged nodes gets an item at all. On the quest that motivated this,
+    // `shared` tagged no node and owned nine contracts — the status enum, the transitions table,
+    // the role roster — so a partition read off node tags alone derived no shared scope whatsoever.
+    // Such a package keeps an EMPTY flow list, which the scope block renders as contracts and no
+    // nodes.
     for (const contract of quest.contracts) {
       // An `existing` contract is reference material the spec points at, not work this quest does,
       // so it mints nothing. `questContractSourceCoverageViolationsTransformer` refuses an
@@ -170,68 +179,44 @@ export const relayTailFanOutTransformer = ({
       ];
       for (const owner of owners) {
         if (owner !== undefined) {
-          foundationPackages.set(String(owner), owner);
-          packageNamesByKey.set(String(owner), owner);
+          const key = String(owner);
+          packageNamesByKey.set(key, owner);
+          if (!flowsByPackage.has(key)) {
+            flowsByPackage.set(key, []);
+          }
         }
       }
     }
 
-    const flowIndexById = new Map(quest.flows.map((flow, index) => [String(flow.id), index]));
-
-    const ordered = [
-      ...[...foundationPackages.values()].map((name) => ({
-        name,
-        // A foundation item carries NO flow, and that reads correctly downstream: the codeweaver
-        // prompt already treats an empty flow list as "foundation the whole spec rests on".
-        flowIds: [] as FlowId[],
-        isFoundation: true,
-        flowIndex: -1,
-      })),
-      ...[...cellFlowsByPackage.entries()].flatMap(([key, flowIds]) => {
+    const ordered = [...flowsByPackage.entries()]
+      .flatMap(([key, flowIds]) => {
         const name = packageNamesByKey.get(key);
-        return name === undefined
-          ? []
-          : flowIds.map((flowId) => ({
-              name,
-              flowIds: [flowId],
-              isFoundation: false,
-              flowIndex: flowIndexById.get(String(flowId)) ?? 0,
-            }));
-      }),
-    ].sort((left, right) => {
-      const leftRank = rankByPackage.get(String(left.name)) ?? unrankedTier;
-      const rightRank = rankByPackage.get(String(right.name)) ?? unrankedTier;
-      if (leftRank !== rightRank) {
-        return leftRank - rightRank;
-      }
-      const depthDelta =
-        (depthByPackage.get(String(left.name)) ?? 0) -
-        (depthByPackage.get(String(right.name)) ?? 0);
-      if (depthDelta !== 0) {
-        return depthDelta;
-      }
-      const nameDelta = String(left.name).localeCompare(String(right.name));
-      if (nameDelta !== 0) {
-        return nameDelta;
-      }
-      // Within one package, its contracts land before the flows built on top of them, and its flow
-      // cells follow the order the flows are declared in.
-      return left.isFoundation === right.isFoundation
-        ? left.flowIndex - right.flowIndex
-        : Number(right.isFoundation) - Number(left.isFoundation);
-    });
+        return name === undefined ? [] : [{ name, flowIds }];
+      })
+      .sort((left, right) => {
+        const leftRank = rankByPackage.get(String(left.name)) ?? unrankedTier;
+        const rightRank = rankByPackage.get(String(right.name)) ?? unrankedTier;
+        if (leftRank !== rightRank) {
+          return leftRank - rightRank;
+        }
+        const depthDelta =
+          (depthByPackage.get(String(left.name)) ?? 0) -
+          (depthByPackage.get(String(right.name)) ?? 0);
+        if (depthDelta !== 0) {
+          return depthDelta;
+        }
+        return String(left.name).localeCompare(String(right.name));
+      });
 
     if (ordered.length > 0) {
-      return ordered.map((cell) => ({
+      return ordered.map((slice) => ({
         // The text is a LABEL, not the scope. What the session must satisfy — the nodes, the
         // verbatim observables, the contracts — is rendered live at dispatch by
         // `workItemToPromptTransformer`, because a scope baked in here is a snapshot: an observable
         // a mid-quest session ADDS to a flow would be invisible to every item minted before it.
-        text: textContract.parse(
-          `${entry.text} — ${String(cell.name)}: ${cell.isFoundation ? 'foundation' : String(cell.flowIds[0])}`,
-        ),
-        flowIds: cell.flowIds,
-        packageNames: [cell.name],
+        text: textContract.parse(`${entry.text} — package: ${String(slice.name)}`),
+        flowIds: slice.flowIds,
+        packageNames: [slice.name],
       }));
     }
 

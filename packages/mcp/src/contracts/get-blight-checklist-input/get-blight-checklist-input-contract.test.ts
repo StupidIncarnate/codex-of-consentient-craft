@@ -27,10 +27,10 @@ describe('getBlightChecklistInputContract', () => {
       ).toStrictEqual({ questId: 'add-auth', scope: 'quest' });
     });
 
-    // Survives for a caller whose subject really is uncommitted. It is no longer the reviewer's
-    // scope: worker-minions commit their own pieces, so by the time a reviewer runs this reading
-    // finds nothing at all.
-    it("VALID: {questId, scope: 'working-tree'} => parses, so a caller measuring uncommitted changes can still ask", () => {
+    // THE REVIEWER-MINION'S SCOPE. No worker commits anything, so a whole round sits uncommitted
+    // until its reviewer commits it once at the end — and this is the only scope that sees it, the
+    // only one that unions in untracked files, and the only one needing no review base.
+    it("VALID: {questId, scope: 'working-tree'} => parses, so a reviewer can scope to its uncommitted round", () => {
       expect(
         getBlightChecklistInputContract.parse(
           GetBlightChecklistInputStub({ questId: 'add-auth', scope: 'working-tree' }),
@@ -38,9 +38,10 @@ describe('getBlightChecklistInputContract', () => {
       ).toStrictEqual({ questId: 'add-auth', scope: 'working-tree' });
     });
 
-    // The reviewer-minion's scope. It names no id and carries no argument beyond the scope itself:
-    // the operator pushes at the end of each round, so git already knows where the round began.
-    it("VALID: {questId, scope: 'unpushed'} => parses, so a reviewer can scope to its own round", () => {
+    // NO LONGER the reviewer's scope. Before that session commits, `@{upstream}..HEAD` holds the
+    // planner's commit of the round document and nothing else. It stays parseable for a caller whose
+    // subject really is published-or-not.
+    it("VALID: {questId, scope: 'unpushed'} => parses, so a caller measuring unpublished commits can ask", () => {
       expect(
         getBlightChecklistInputContract.parse(
           GetBlightChecklistInputStub({ questId: 'add-auth', scope: 'unpushed' }),

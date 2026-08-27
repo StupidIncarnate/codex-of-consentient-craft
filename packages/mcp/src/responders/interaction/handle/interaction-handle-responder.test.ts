@@ -236,31 +236,31 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
-    // A minion has no workItemId, so `discipline` is the only way its share of the planner/worker/
-    // reviewer template's $DISCIPLINE placeholder reaches the orchestrator. Dropping it here would
-    // silently hand the minion a prompt with the literal token still in it.
-    it("VALID: {agent: 'worker-minion', questId, discipline: 'implementation', no workItemId} => forwards discipline to the adapter", async () => {
+    // A round minion's name is the whole selection — there is no `discipline` left to forward. What
+    // the responder must NOT forward is a workItemId: that is what `subagentStopNeedsBlockGuard`
+    // reads as proof the caller owes a signal-back, and the only item a minion could signal on is
+    // its parent's. So the key is absent from the adapter call, not merely undefined.
+    it("VALID: {agent: 'codeweaver-worker-minion', questId, no workItemId} => forwards {agent, questId} alone to the adapter", async () => {
       const proxy = InteractionHandleResponderProxy();
       const expectedResult = AgentPromptResultStub({
-        name: 'worker-minion',
-        prompt: 'You are worker-minion.',
+        name: 'codeweaver-worker-minion',
+        prompt: 'You are codeweaver-worker-minion.',
       });
       const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
       proxy.setupAgentPromptReturns({
-        agent: 'worker-minion',
+        agent: 'codeweaver-worker-minion',
         questId,
         result: expectedResult,
       });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-agent-prompt' }),
-        args: { agent: 'worker-minion', questId, discipline: 'implementation' },
+        args: { agent: 'codeweaver-worker-minion', questId },
       });
 
       expect(proxy.getLastAgentPromptCallArgs()).toStrictEqual({
-        agent: 'worker-minion',
+        agent: 'codeweaver-worker-minion',
         questId,
-        discipline: 'implementation',
       });
       expect(result).toStrictEqual({
         content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],

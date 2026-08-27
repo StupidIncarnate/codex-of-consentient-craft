@@ -4,12 +4,19 @@ import { InteractionFlow } from './interaction-flow';
 
 describe('InteractionFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 3 registrations with correct tool names', () => {
+    it('VALID: returns 6 registrations with correct tool names', () => {
       const registrations = InteractionFlow();
 
       const names = registrations.map(({ name }) => name);
 
-      expect(names).toStrictEqual(['signal-back', 'ask-user-question', 'get-agent-prompt']);
+      expect(names).toStrictEqual([
+        'signal-back',
+        'ask-user-question',
+        'get-agent-prompt',
+        'get-planner-information',
+        'get-worker-information',
+        'get-reviewer-information',
+      ]);
     });
 
     it('VALID: each registration has a handler function', () => {
@@ -17,7 +24,14 @@ describe('InteractionFlow', () => {
 
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
-      expect(handlerTypes).toStrictEqual(['function', 'function', 'function']);
+      expect(handlerTypes).toStrictEqual([
+        'function',
+        'function',
+        'function',
+        'function',
+        'function',
+        'function',
+      ]);
     });
 
     it('VALID: each registration has a non-empty description', () => {
@@ -29,6 +43,9 @@ describe('InteractionFlow', () => {
         'Signals the CLI with step completion status, progress, or blocking conditions',
         "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The questions are surfaced to the user's browser and their answers arrive as the next user message in the session. Use when running headless (no interactive terminal).",
         'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.',
+        "Returns everything a PLANNER minion needs that does not depend on which kind of work it is planning: the round document and how to read and append to it, the brief lines that address it, the plan blocks in the order they are built, a chunk's five fields, the two dispatch indexes, its operating rules, the commit it makes, and the two values its `NEXT:` line may carry. Every `<role>-planner-minion` calls this once, before anything else; its own prompt carries what the work IS. Takes no arguments.",
+        "Returns everything a WORKER minion needs that does not depend on which kind of work its chunk is: the round document and where its report goes, the brief lines that address it, a chunk's five fields read as the session executing one, its operating rules, the build and git bans that make a wave of workers safe to run at once, and the two lines it returns. Every `<role>-worker-minion` calls this once, before anything else; its own prompt carries what doing the chunk MEANS and what proves it. Takes no arguments.",
+        "Returns everything a REVIEWER minion needs that does not depend on which kind of work the round produced: the round document, the plan blocks and chunk fields it grades against, the two dispatch indexes, its operating rules, the build-and-ward pair only it runs, the five standing review concerns and how to record a disposition per unit, the round's commit subjects, and how to write the `NEXT:` line that decides the round. Every `<role>-reviewer-minion` calls this once, before anything else; its own prompt carries what it asks of each file and what it signs. Takes no arguments.",
       ]);
     });
 
@@ -37,7 +54,14 @@ describe('InteractionFlow', () => {
 
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
-      expect(schemaTypes).toStrictEqual(['object', 'object', 'object']);
+      expect(schemaTypes).toStrictEqual([
+        'object',
+        'object',
+        'object',
+        'object',
+        'object',
+        'object',
+      ]);
     });
   });
 
@@ -54,17 +78,25 @@ describe('InteractionFlow', () => {
       // source-shape assertion (same pattern slash-commands-statics.test.ts uses for the
       // removed-needle check) catches the regression deterministically with one harness
       // file read.
+      // THREE of the six registrations here carry meta, not all six: `signal-back`,
+      // `ask-user-question` and `get-agent-prompt` each identify their calling sub-agent from
+      // `_meta.claudecode/toolUseId`. The three information tools take no arguments and serve the same
+      // text to every caller, so they destructure `{ args }` alone — counted separately below so a
+      // future drop shows up as the number it changed rather than hiding inside one total.
       const source = String(readInteractionFlowSource());
 
       const destructurePattern = /handler: async \(\{ args, meta \}\)/gu;
       const spreadPattern = /\.\.\.\(meta !== undefined && \{ meta \}\)/gu;
+      const argsOnlyPattern = /handler: async \(\{ args \}\)/gu;
       const destructures = [...source.matchAll(destructurePattern)];
       const spreads = [...source.matchAll(spreadPattern)];
+      const argsOnly = [...source.matchAll(argsOnlyPattern)];
 
-      expect({ destructures: destructures.length, spreads: spreads.length }).toStrictEqual({
-        destructures: 3,
-        spreads: 3,
-      });
+      expect({
+        destructures: destructures.length,
+        spreads: spreads.length,
+        argsOnly: argsOnly.length,
+      }).toStrictEqual({ destructures: 3, spreads: 3, argsOnly: 3 });
     });
   });
 });

@@ -20,15 +20,15 @@
  * now works in its OWN git worktree, so a stray checkout by another role happens inside that
  * quest's tree and cannot disturb the base branch or another quest.
  *
- * `push` is granted because an OPERATOR pushes once per round at its gate 9, and the whole
- * review-scope design rests on that push landing: a `reviewer-minion` measures its round with
- * `get-blight-checklist({ scope: 'unpushed' })` — `@{upstream}..HEAD` — so an unpushed round is a
- * round the NEXT reviewer reads as its own. Denied, the operator reads its own prompt's mandated
- * step coming back `This command requires approval`, which its Operating Rule 5 defines as an
- * environment wall — so the most COMPLIANT reading of a denial turns the first round of the first
- * operator item into an `operationStatus: 'blocked'` and halts the quest. Publishing the quest's
- * own branch is not history rewriting: it is how the relay hands work forward, exactly as the
- * commit is.
+ * `push` is granted because a `<role>-reviewer-minion` pushes once at the end of every round, as
+ * the last thing it does. Riftcarver published the branch itself at carve time, so what each of
+ * these pushes lands is that round's own commit — the only way the round leaves the worktree.
+ * Denied, the reviewer reads its own prompt's mandated step coming back `This command requires
+ * approval`, which its `[WALL]` operating rule defines as an environment wall; the most COMPLIANT
+ * reading of that denial is `NEXT: wall`, its operator turns that into an
+ * `operationStatus: 'blocked'`, and the first round of the first operator item halts the quest.
+ * Publishing the quest's own branch is not history rewriting: it is how the relay hands work
+ * forward, exactly as the commit is.
  *
  * `stash`, `reset` and `rebase` stay denied for everyone — those DISCARD or REWRITE work on a
  * branch several sessions share, and the operator that would have to notice cannot open a file to

@@ -20,7 +20,7 @@ import {
   workItemRoleStatics,
 } from '@dungeonmaster/shared/statics';
 
-import { roleToDisciplineStatics } from '../../../statics/role-to-discipline/role-to-discipline-statics';
+import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 import { QuestHandleSignalBackResponderProxy } from './quest-handle-signal-back-responder.proxy';
@@ -59,11 +59,9 @@ const OUTSTANDING_UNIT_ID = 'packages/orchestrator/src/bar/bar-broker.ts:craft';
 
 // The five roles that run a planner/worker/reviewer round, read from the same static the responder
 // reads, so a role added there joins the review-coverage matrix instead of going untested.
-const REVIEWED_ROLES = Object.keys(
-  roleToDisciplineStatics,
-) as readonly (keyof typeof roleToDisciplineStatics)[];
+const REVIEWED_ROLES = agentPromptClassificationStatics.operatorRoleNames;
 
-// The two roles outside that map whose session still writes code and therefore still owes a clean
+// The two roles outside that list whose session still writes code and therefore still owes a clean
 // tree before it signals — the other half of the commit-before-signal matrix.
 const NON_REVIEWED_COMMITTING_ROLES = ['spiritmender', 'warpgate'] as const;
 

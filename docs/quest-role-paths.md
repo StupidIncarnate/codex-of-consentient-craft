@@ -73,10 +73,10 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
 - **Fixpoint** — the `pt N` chain for `ward`. A red run completes its ward operation item and spawns a fresh `pt N+1`
   ward continuation (with a spiritmender spliced in ahead of it — see "The sad paths in detail" § (b)); a run that
   comes back green ends the chain. Convergence IS the verdict: a fresh run that came back green is acceptance.
-- **Operator role** — one of the five roles in `roleToDisciplineStatics` (`codeweaver→implementation`,
-  `pesteater→bug-repro`, `flowrider→below-browser`, `groundstomper→browser-e2e`, `siegemaster→manual-qa`). All five are
-  served ONE template, `operatorPromptStatics`, with their discipline pack interpolated at
-  `$DISCIPLINE`. **The session never opens a source file**; it runs a **round loop** (below) and signals. Only
+- **Operator role** — one of the five names in `agentPromptClassificationStatics.operatorRoleNames`: `codeweaver`,
+  `pesteater`, `flowrider`, `groundstomper`, `siegemaster`. Each is served its OWN prompt file,
+  `<role>-prompt-statics.ts`; there is no shared template and `discipline` is not an argument to anything.
+  **The session never opens a source file**; it runs a **round loop** (below) and signals. Only
   `spiritmender` and `warpgate` keep bespoke prompts and run no round.
 - **Round loop** — the unit of work inside ONE operator session, capped at **3 rounds**:
   `build → planner-minion → read the plan back → worker-minions ONE AT A TIME → reviewer-minion → build → scoped ward
@@ -762,9 +762,10 @@ Two deliberate asymmetries with (a):
   to prevent (a role that signals `partial` at a wall burns its whole pt budget on sessions that cannot succeed, then
   blocks anyway with nothing recorded about why).
 
-Roles learn to reach for this via `agentOperatingRulesStatics` Rule 5, embedded in every file-changing prompt (Rule 5
-is one of the four blocks shared verbatim across all three variants — `markdown`, `delegatingMinionMarkdown` and
-`leafMinionMarkdown` — so a minion reports the same wall to its parent that a role reports to the orchestrator).
+Roles learn to reach for this via the `[WALL]` operating rule, carried inline under `## Operating Rules` in every
+file-changing prompt and in each of the three `*-information` payloads a minion fetches. A role's `[WALL]` sends it to
+`operationStatus: 'blocked'` and a minion's sends it to `NEXT: wall`, which its parent turns into that same signal — so
+a minion reports the same wall to its parent that a role reports to the orchestrator.
 
 ### (e) dirty worktree → signal REFUSED — the commit-before-signal gate
 
@@ -792,7 +793,7 @@ to say any of it happened.
 
 On `done` from any of the five operator roles, `signal-back` also refuses while NO
 `quest.planningNotes.blightLedger` entry carries THAT work item's id. Membership is read off
-`roleToDisciplineStatics` rather than listed, so a role added to that map is gated the day it is added — the same
+`agentPromptClassificationStatics.operatorRoleNames` rather than listed, so a role added to that list is gated the day it is added — the same
 reason `isChatWorkItemRoleGuard` reads `workItemRoleStatics.chat` instead of growing an `||` chain. Every disposition
 clears: `gap` and `recorded` with a real reason count exactly as `reviewed` does, so the gate refuses absence, not
 honesty. The two ways out are to dispatch a `reviewer-minion` over the round's output, or to signal `partial` and hand
@@ -887,7 +888,8 @@ dispatchable while the wreckage is still in place.
 - **REL-6e — Review coverage.** `signal-back` THROWS on `done` from any of the five operator roles while NO
   `planningNotes.blightLedger` entry carries THAT work item's id — the trace a `reviewer-minion` round leaves. Every
   disposition clears (`gap` and `recorded` with a real reason count as `reviewed` does); what it refuses is absence.
-  Membership is read off `roleToDisciplineStatics`, so a role added to that map is gated the day it is added.
+  Membership is read off `agentPromptClassificationStatics.operatorRoleNames`, so a role added to that list is gated
+  the day it is added.
   `partial` is the honest alternative, and it hands the round's scope to a fresh session.
 - **REL-6f — Gates precede mutation, idempotency precedes gates.** All three gates run BEFORE any write, so a refusal
   leaves the work item and its operation item exactly as they were and the session can fix and signal again. The

@@ -12,8 +12,9 @@
  *
  * TWO CALLERS, ONE ORDERING. Riftcarver pushes once with `setUpstream` while carving, so every
  * later push is the bare form and no session ever has to decide whether `-u` is needed. That is
- * also what makes `@{upstream}..HEAD` resolvable for the whole life of the quest, which is the
- * range a reviewer-minion's `scope: 'unpushed'` review surface is measured over.
+ * what lets all five `<role>-reviewer-minion` prompts write `git push` with nothing after it: the
+ * branch is already tracked before the first round runs, so there is no first-push case to spell
+ * out and get wrong.
  *
  * IT DOES NOT THROW. A push that fails leaves a perfectly good worktree with all its commits — only
  * the publication is missing — so the outcome is routed by the caller rather than taking the

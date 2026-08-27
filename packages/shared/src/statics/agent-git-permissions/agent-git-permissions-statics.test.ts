@@ -40,10 +40,11 @@ describe('agentGitPermissionsStatics', () => {
       expect(mergeRole).toStrictEqual(['Bash(git checkout:*)', 'Bash(git merge:*)']);
     });
 
-    // An operator's gate 9 pushes once per round, and its reviewer measures that round as
-    // `@{upstream}..HEAD`. Denying it makes the prompt's own mandated step come back
-    // `This command requires approval`, which Operating Rule 5 defines as an environment wall.
-    it('VALID: {allow} => grants the round push an operator gate 9 makes', () => {
+    // A `<role>-reviewer-minion` pushes once at the end of every round, as the last thing it does,
+    // and that push is the only way the round leaves the worktree. Denying it makes the reviewer's
+    // own mandated step come back `This command requires approval`, which its `[WALL]` operating
+    // rule defines as an environment wall — so the round returns `NEXT: wall` and the quest halts.
+    it("VALID: {allow} => grants the push a round's reviewer makes to publish it", () => {
       const { allow } = agentGitPermissionsStatics;
 
       expect(allow.filter((entry) => entry === 'Bash(git push:*)')).toStrictEqual([

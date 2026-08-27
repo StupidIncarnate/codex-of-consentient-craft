@@ -20,43 +20,27 @@ import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name
 import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
 import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { disciplineBelowBrowserStatics } from '../../statics/discipline-below-browser/discipline-below-browser-statics';
-import { disciplineBugReproStatics } from '../../statics/discipline-bug-repro/discipline-bug-repro-statics';
-import { disciplineImplementationStatics } from '../../statics/discipline-implementation/discipline-implementation-statics';
-import { disciplineManualQaStatics } from '../../statics/discipline-manual-qa/discipline-manual-qa-statics';
-import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
+import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
-import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
+import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
+import { roundProtocolStatics } from '../../statics/round-protocol/round-protocol-statics';
+import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 
-// The relay path serves ONE template to all five operation-owning roles; what tells a codeweaver
-// dispatch from a siegemaster one is only the pack substituted at `$DISCIPLINE` and the bare
-// discipline id at `$MY_DISCIPLINE`. Function-form replacement, never the string form: pack
-// markdown is authored prose that can carry `$&` / `` $` `` / `$'`, which the string form would
-// expand against the match.
-// `$DISCIPLINE` substitutes once and `$MY_DISCIPLINE` substitutes EVERYWHERE, which is why the two
-// use different methods: the template quotes the bare discipline id both into the
-// `get-agent-prompt` call its minions must make and into the header every minion brief opens with,
-// and `.replace` with a string pattern would resolve only the first of those.
-const IMPLEMENTATION_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineImplementationStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('implementation');
-const BUG_REPRO_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineBugReproStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('bug-repro');
-const BELOW_BROWSER_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineBelowBrowserStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('below-browser');
-const MANUAL_QA_OPERATOR_TEMPLATE = operatorPromptStatics.prompt.template
-  .replace('$DISCIPLINE', () => disciplineManualQaStatics.operatorMarkdown)
-  .split('$MY_DISCIPLINE')
-  .join('manual-qa');
+// Each of the five operation-owning roles now has its OWN prompt file, and the relay path resolves
+// it through `roleToPromptTemplateTransformer`. There is no shared template, no `$DISCIPLINE` pack
+// and no `$MY_DISCIPLINE` id left to substitute: what tells a codeweaver dispatch from a siegemaster
+// one is the whole document, not one interpolated block. Each is read LIVE off its statics here — a
+// copied excerpt would drift the moment a prompt is edited, and every assertion below compares the
+// entire served string.
+const CODEWEAVER_TEMPLATE = codeweaverPromptStatics.prompt.template;
+const PESTEATER_TEMPLATE = pesteaterPromptStatics.prompt.template;
+const FLOWRIDER_TEMPLATE = flowriderPromptStatics.prompt.template;
+const SIEGEMASTER_TEMPLATE = siegemasterPromptStatics.prompt.template;
 
 // Fixture scale for the MCP tool-result budget below, calibrated against a real dogfood quest
 // (e0210063): a 21-item ledger rendering to 6,444 characters, seven flows, five affected packages,
@@ -100,10 +84,12 @@ const ELISION_NOTICE_PLURAL =
 const ELISION_NOTICE_SINGULAR =
   "... 1 earlier complete operation item elided to fit the prompt budget — call get-quest({ questId, stage: 'implementation' }) for the full ledger.";
 
-// The three minions parameterized by a discipline. They own no work item and are served by
-// `agentPromptGetBroker`'s minion branch; reaching THIS transformer they can only be refused,
-// because it has no discipline to resolve their `$DISCIPLINE` placeholder with.
-const GENERIC_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
+// The fifteen minions of a round — three phases each, for all five operator roles. They own no work
+// item and are served by `agentPromptGetBroker`'s minion branch, which passes no workItemId at all;
+// reaching THIS transformer means a caller echoed its parent's id, and the branch below still serves
+// them their own prompt with the minimal substitution. Derived by subtracting the one minion outside
+// the trio rather than listed, so a sixth operator role's three arrive here covered.
+const ROUND_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
   (minionName) => minionName !== 'chaoswhisperer-gap-minion',
 );
 
@@ -129,17 +115,15 @@ const INTERSECTION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter(
   (role) => signoffTrackEligibilityStatics.byTrack[role].packageScope === 'intersection',
 );
 
-// The roles served `operatorPromptStatics`, derived from the map that decides it, so a
-// sixth discipline added there is covered by the ban assertion below without anyone remembering to
-// list it. Everything under this heading — the pack, the gates, the minion protocol AND the
-// `$ARGUMENTS` block this transformer builds — sits BELOW the template's exhaustive tool table, so
-// it is the region a leak can hide in.
-const OPERATOR_TEMPLATE_ROLES = Object.keys(
-  roleToDisciplineStatics,
-) as (keyof typeof roleToDisciplineStatics)[];
-const DISCIPLINE_HEADING = '## Your discipline';
-// Case-sensitive word matches: `browser-e2e`'s pack legitimately says `DISCOVERY MISMATCH` about a
-// scoped ward run, which is the ward output and not the `discover` tool.
+// The heading that opens the region BELOW every operator prompt's tool table. All five interpolate
+// `roundProtocolStatics.document` directly under that table, so the heading is taken off the shared
+// block itself rather than typed here — a renamed section then fails at the split arity below
+// instead of quietly scanning an empty region. Everything under it — the round document, the script,
+// the minion dispatch protocol AND the `$ARGUMENTS` block this transformer builds — is the region a
+// leak can hide in.
+const [ROUND_DOCUMENT_HEADING] = roundProtocolStatics.document.split('\n');
+// Case-sensitive word matches, so an uppercase `DISCOVERY MISMATCH` in a ward-output quote is not
+// read as the `discover` tool.
 const FORBIDDEN_OPERATOR_TOOLS = [
   'get-architecture',
   'get-syntax-rules',
@@ -190,29 +174,39 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    // The three generic minions carry a `$DISCIPLINE` placeholder and this transformer has no
-    // discipline to fill it with — they are served by agentPromptGetBroker's minion branch, which
-    // demands one. A refusal here is what stops a caller that echoes a workItemId from being handed
-    // a prompt whose every instruction is still the literal token.
-    it.each(GENERIC_MINION_NAMES)(
-      'ERROR: {agent: %s, workItemId echoed} => throws rather than serving an unparameterized prompt',
+    // Every round minion now carries its OWN prompt — its parent's subject matter is baked into the
+    // file, so there is no placeholder left for this transformer to be missing a value for. What
+    // stopped the generic trio being served here was exactly that missing value; with it gone, a
+    // caller that echoes its parent's workItemId gets the same minimal substitution
+    // `chaoswhisperer-gap-minion` gets, into the minion's own prompt. Derived from `minionNames`, so
+    // a prompt added there is asserted the day it is added.
+    it.each(ROUND_MINION_NAMES)(
+      'VALID: {agent: %s, workItemId echoed} => substitutes Quest ID + Work Item ID into that minion’s own prompt',
       (minionName) => {
-        const workItem = WorkItemStub({ role: 'siegemaster' });
-        const quest = QuestStub({ workItems: [workItem] });
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7777-4222-9333-444444444444' });
+        const workItem = WorkItemStub({ id: workItemId, role: 'siegemaster' });
+        const quest = QuestStub({ id: questId, workItems: [workItem] });
 
-        expect(() =>
-          workItemToPromptTransformer({
-            quest,
-            workItem,
-            agentName: AgentPromptNameStub({ value: minionName }),
-          }),
-        ).toThrow(/must be summoned with a discipline/u);
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: minionName }),
+        });
+
+        const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
+
+        expect(result.prompt).toBe(
+          agentNameToPromptTransformer({
+            agent: AgentPromptNameStub({ value: minionName }),
+          }).prompt.replace('$ARGUMENTS', expectedArgs),
+        );
       },
     );
   });
 
   describe('pesteater takes the full relay path, exactly like its four sibling operators', () => {
-    it('VALID: {agent + role: pesteater, one linked operation} => substitutes the operation-relay $ARGUMENTS into the bug-repro template', () => {
+    it('VALID: {agent + role: pesteater, one linked operation} => substitutes the operation-relay $ARGUMENTS into pesteater’s own prompt', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-6666-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'dddddddd-6666-4222-9333-444444444444' });
@@ -253,9 +247,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        BUG_REPRO_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(PESTEATER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it('ERROR: {agent + role: pesteater, empty relatedDataItems} => throws no-resolvable-operations-ref error', () => {
@@ -363,9 +355,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
     });
 
     it('VALID: {operation text containing $` and $& sequences} => substitutes them verbatim instead of expanding them against the match', () => {
@@ -410,9 +400,7 @@ describe('workItemToPromptTransformer', () => {
 
       // split/join, never String.replace(string, string) — building the expectation with the very
       // bug under test would corrupt it identically and pass vacuously.
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it('VALID: {operation with flowIds} => renders the flows the item lands on, flagged as a starting point not a boundary', () => {
@@ -455,9 +443,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it('EDGE: {operation with empty flowIds} => omits the flows block entirely rather than printing an empty one', () => {
@@ -497,9 +483,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it('VALID: {codeweaver operation with packageNames} => renders the reading order, flagged as not a boundary', () => {
@@ -542,9 +526,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it.each(PARTITION_TRACK_ROLES)(
@@ -689,9 +671,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it('VALID: {quest with packagesAffected entries} => renders each entry with its changeType and packageType', () => {
@@ -751,9 +731,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     // Every operator holds an item whose flow list IS its scope rather than a reading order — but
@@ -953,9 +931,7 @@ describe('workItemToPromptTransformer', () => {
           'Add authentication to the application',
         ].join('\n');
 
-        expect(result.prompt).toBe(
-          IMPLEMENTATION_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
-        );
+        expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
       });
     });
 
@@ -1009,7 +985,7 @@ describe('workItemToPromptTransformer', () => {
           'Add authentication to the application',
         ].join('\n');
 
-        expect(result.prompt).toBe(MANUAL_QA_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+        expect(result.prompt).toBe(SIEGEMASTER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
       });
 
       // Flowrider never starts a server — Playwright's own `webServer` config owns the one its e2e
@@ -1056,9 +1032,7 @@ describe('workItemToPromptTransformer', () => {
           'Add authentication to the application',
         ].join('\n');
 
-        expect(result.prompt).toBe(
-          BELOW_BROWSER_OPERATOR_TEMPLATE.replace('$ARGUMENTS', expectedArgs),
-        );
+        expect(result.prompt).toBe(FLOWRIDER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
       });
     });
 
@@ -1368,9 +1342,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it('EDGE: {ledger one item over maxRenderedItems} => elides the single oldest complete item and names it in the singular', () => {
@@ -1432,9 +1404,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
     it('VALID: {40-item pt-chain ledger} => elides the oldest complete run only, keeping the own item and every non-complete item', () => {
@@ -1508,9 +1478,7 @@ describe('workItemToPromptTransformer', () => {
         'Add authentication to the application',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        IMPLEMENTATION_OPERATOR_TEMPLATE.split('$ARGUMENTS').join(expectedArgs),
-      );
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
   });
 
@@ -1529,13 +1497,16 @@ describe('workItemToPromptTransformer', () => {
     });
   });
 
-  // The tool table near the top of the operator template is EXHAUSTIVE, and the whole design
-  // rests on it: a session that searches source runs out of room mid-loop and starts hand-coding
-  // the remainder. Measuring the template or a pack ALONE cannot catch a breach, because the
-  // `$ARGUMENTS` block this transformer builds is spliced in below both — and that block is the
-  // part an agent acts on first.
+  // The tool table near the top of every operator prompt is EXHAUSTIVE, and the whole design rests
+  // on it: a session that searches source runs out of room mid-loop and starts hand-coding the
+  // remainder. Measuring a prompt ALONE cannot catch a breach, because the `$ARGUMENTS` block this
+  // transformer builds is spliced in below it — and that block is the part an agent acts on first.
+  //
+  // Membership is `operatorRoleNames`, read from the statics rather than listed, so a sixth operator
+  // role is covered by this ban the day it is added. That list is what `roleToDisciplineStatics`
+  // left behind: its keys were the only thing this assertion ever wanted.
   describe('the operator tool-surface ban survives assembly', () => {
-    it.each(OPERATOR_TEMPLATE_ROLES)(
+    it.each(agentPromptClassificationStatics.operatorRoleNames)(
       'VALID: {agent: %s, operation item declaring packageNames} => the assembled prompt names no forbidden tool below the tool table',
       (role) => {
         const operationItemId = OperationItemIdStub({
@@ -1559,7 +1530,7 @@ describe('workItemToPromptTransformer', () => {
         const quest = QuestStub({ operations: [operation], workItems: [workItem] });
 
         const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName: role });
-        const sections = String(prompt).split(DISCIPLINE_HEADING);
+        const sections = String(prompt).split(String(ROUND_DOCUMENT_HEADING));
         const [, belowToolTable] = sections;
         const namedTools = FORBIDDEN_OPERATOR_TOOLS.filter((tool) =>
           new RegExp(`\\b${tool}\\b`, 'u').test(String(belowToolTable)),

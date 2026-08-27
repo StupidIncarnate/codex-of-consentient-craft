@@ -12,7 +12,7 @@
  * FIRST entry is `riftcarver` for either type: the branch, the worktree and the preflight build are
  * the head of the relay, so the workspace is forged when the quest is next in line rather than
  * inside the Start POST. After it, bug-hunt seeds its pesteater item, and feature seeds a codeweaver
- * item that fans out into one slice per (package, flow) cell plus a foundation item per package.
+ * item that fans out into one slice per PACKAGE.
  * ChaosWhisperer authors no part of the ledger — `operations` is off its modify-quest allowlist, and
  * the partition is DERIVED from the flow nodes' package tags and the contracts' source paths
  * instead. `relayTail` is the fixed verify chain appended after the implementation items. Adding a
@@ -26,9 +26,12 @@
  *   flows land nowhere a browser can reach seeds none at all.
  * - `package` — one item per package the quest's node tags name, plus one seam item for the units
  *   whose node spans more than one.
- * - `implementation` — one item per (package, flow) cell across BOTH flow types, plus one flow-less
- *   foundation item per package holding the contracts whose `source` resolves to it. Ordered by
- *   package KIND tier, then manifest depth. This is the derived codeweaver ledger.
+ * - `implementation` — one item per PACKAGE, carrying every flow it tags a node in across BOTH flow
+ *   types, plus every contract whose `source` resolves to it. A package owning contracts and tagging
+ *   no node still gets an item, with an empty flow list. Ordered by package KIND tier, then manifest
+ *   depth. This is the derived codeweaver ledger. Its planner orders the contracts ahead of the
+ *   flows built on them, in its own `PHASES`; a per-(package, flow) ledger used to buy that ordering
+ *   with one session per flow plus a separate flow-less foundation item per package.
  *
  * An entry that OMITS the field seeds exactly one item, which is why it is absent rather than
  * carrying a "none" member: the shape mirrors `wardMode`, read at the seed site with an `in` check.
@@ -58,7 +61,7 @@ export const questTypeRegistryStatics = {
       },
       {
         role: 'codeweaver',
-        // Fanned out into one item per (package, flow) cell plus a foundation item per package.
+        // Fanned out into one item per PACKAGE, carrying its flows and its contracts together.
         // `locked: false` keeps the pt chain unbounded — see the `locked` note above.
         text: 'Codeweaver: build this slice',
         fanOutBy: 'implementation',

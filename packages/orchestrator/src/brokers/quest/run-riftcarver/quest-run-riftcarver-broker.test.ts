@@ -511,8 +511,8 @@ describe('questRunRiftcarverBroker', () => {
 
   describe('PUSH — the step that makes every later push a bare one', () => {
     // Pushing at CARVE time is what removes the branching decision from every session downstream:
-    // `@{upstream}` resolves from the moment the quest exists, so a reviewer-minion's
-    // `scope: 'unpushed'` always has a range and no operator ever has to decide about `-u`.
+    // the branch is tracked before the first round runs, so every `<role>-reviewer-minion` prompt
+    // writes a bare `git push` and no session ever has to decide about `-u`.
     it('VALID: {fresh carve, branch tracks nothing} => pushes with -u so the branch is tracked from the start', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });

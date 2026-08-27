@@ -93,7 +93,7 @@
  * 5. PROVENANCE. A role that runs strictly AFTER a track cannot produce work that track was able to
  *    sign. The relay order is derived from `questTypeRegistryStatics.feature`: the intake role is
  *    `chaoswhisperer`, and `startImplementationOps` seeds ONE `codeweaver` item carrying
- *    `fanOutBy: 'implementation'` — the derived per-(package, flow) ledger `relayTailFanOutTransformer`
+ *    `fanOutBy: 'implementation'` — the derived per-PACKAGE ledger `relayTailFanOutTransformer`
  *    expands at Start, not a plan ChaosWhisperer authors. `relayTail` runs
  *    ward → flowrider → groundstomper → siegemaster → ward; the five standards concerns are reviewed
  *    by a reviewer-minion INSIDE each committing session's own turn rather than by a relay role, so

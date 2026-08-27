@@ -1,98 +1,64 @@
-import { AgentRoleStub } from '../../contracts/agent-role/agent-role.stub';
-import { DisciplineStub } from '../../contracts/discipline/discipline.stub';
-import { operatorPromptStatics } from '../../statics/operator-prompt/operator-prompt-statics';
-import { roleToDisciplineStatics } from '../../statics/role-to-discipline/role-to-discipline-statics';
+import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
+import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { groundstomperPromptStatics } from '../../statics/groundstomper-prompt/groundstomper-prompt-statics';
+import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
+import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
-import { disciplineToPackTransformer } from '../discipline-to-pack/discipline-to-pack-transformer';
 import { roleToPromptTemplateTransformer } from './role-to-prompt-template-transformer';
 
-type OrchestratorRole = keyof typeof roleToDisciplineStatics;
+type RoleName = Parameters<typeof roleToPromptTemplateTransformer>[0]['role'];
 
-// Read off the role map rather than listed here: a role added there and forgotten in a hand-written
-// case list is served an unparameterized template with nothing failing.
-const OPERATOR_ROLE_CASES = (
-  Object.keys(roleToDisciplineStatics) as readonly OrchestratorRole[]
-).map((role) => [role, roleToDisciplineStatics[role]] as const);
+// Each role's own `<role>-prompt` file, read live rather than copied. `satisfies Record<RoleName,
+// unknown>` is the test-side twin of this transformer's `never` default: a role added to
+// `agentPromptClassificationStatics.roleNames` with no template here fails to compile, which is the
+// only thing that stops the derived case list below from silently skipping it.
+const EXPECTED_TEMPLATE_BY_ROLE = {
+  codeweaver: codeweaverPromptStatics.prompt.template,
+  pesteater: pesteaterPromptStatics.prompt.template,
+  flowrider: flowriderPromptStatics.prompt.template,
+  groundstomper: groundstomperPromptStatics.prompt.template,
+  siegemaster: siegemasterPromptStatics.prompt.template,
+  spiritmender: spiritmenderPromptStatics.prompt.template,
+  warpgate: warpgatePromptStatics.prompt.template,
+} as const satisfies Record<RoleName, unknown>;
+
+// Derived from the same list `agentRoleContract` builds its enum from — a hand-written seven would
+// go stale the day an eighth role is dispatched.
+const EVERY_ROLE_CASE = agentPromptClassificationStatics.roleNames.map(
+  (role) => [role, EXPECTED_TEMPLATE_BY_ROLE[role]] as const,
+);
 
 describe('roleToPromptTemplateTransformer', () => {
-  describe('every operation-owning role gets the same template with its own discipline pack', () => {
-    it.each(OPERATOR_ROLE_CASES)(
-      'VALID: {role: %s} => returns the operator template with the %s pack substituted at $DISCIPLINE',
-      (role, discipline) => {
-        const result = roleToPromptTemplateTransformer({ role: AgentRoleStub({ value: role }) });
+  describe('every dispatched role gets the prompt file that carries its own name', () => {
+    it.each(EVERY_ROLE_CASE)(
+      'VALID: {role: %s} => returns that role own prompt template',
+      (role, template) => {
+        const result = roleToPromptTemplateTransformer({ role });
 
-        expect(String(result)).toBe(
-          operatorPromptStatics.prompt.template
-            .replace(
-              '$DISCIPLINE',
-              () =>
-                disciplineToPackTransformer({ discipline: DisciplineStub({ value: discipline }) })
-                  .operatorMarkdown,
-            )
-            // `$MY_DISCIPLINE` substitutes EVERYWHERE, not once: the template quotes the bare
-            // discipline id into the `get-agent-prompt` call its minions must make AND into the
-            // header every minion brief opens with.
-            .split('$MY_DISCIPLINE')
-            .join(discipline),
-        );
+        expect(String(result)).toBe(template);
       },
     );
+  });
 
-    it.each(OPERATOR_ROLE_CASES)(
-      'VALID: {role: %s} => returned template carries no unresolved $DISCIPLINE or $MY_DISCIPLINE token',
+  describe('the template is handed over unsubstituted', () => {
+    // This is the path `workItemToPromptTransformer` serves a dispatched role through, and the
+    // `$ARGUMENTS` it leaves standing is where that transformer writes the work item's operation
+    // context. A template arriving here with the slot already spent would leave the session with no
+    // scope at all. `$DISCIPLINE` / `$MY_DISCIPLINE` are the tokens the retired generic template
+    // carried; nothing substitutes either any more, so either one surviving in a served prompt is a
+    // literal string handed to an agent in place of its instructions.
+    it.each(agentPromptClassificationStatics.roleNames)(
+      'VALID: {role: %s} => returned template carries one $ARGUMENTS and no discipline token',
       (role) => {
-        const result = roleToPromptTemplateTransformer({ role: AgentRoleStub({ value: role }) });
+        const result = roleToPromptTemplateTransformer({ role });
 
         expect({
+          argumentsSlots: String(result).split('$ARGUMENTS').length - 1,
           discipline: String(result).split('$DISCIPLINE').length - 1,
           myDiscipline: String(result).split('$MY_DISCIPLINE').length - 1,
-        }).toStrictEqual({ discipline: 0, myDiscipline: 0 });
-      },
-    );
-
-    // This transformer is the path `work-item-to-prompt-transformer` actually serves a role
-    // through, so a `$MY_DISCIPLINE` fixed only in the agent-name switch would leave the literal
-    // token in every dispatched session's prompt and every minion fetch would be refused.
-    it.each(OPERATOR_ROLE_CASES)(
-      'VALID: {role: %s} => tells its minions to fetch with that role own discipline id',
-      (role, discipline) => {
-        const result = roleToPromptTemplateTransformer({ role: AgentRoleStub({ value: role }) });
-
-        expect(
-          String(result)
-            .replace(/^[\s\S]*?discipline: '/u, '')
-            .replace(/'[\s\S]*$/u, ''),
-        ).toBe(discipline);
-      },
-    );
-  });
-
-  describe('the two bespoke-template roles', () => {
-    it('VALID: {role: spiritmender} => returns the spiritmender template verbatim', () => {
-      const result = roleToPromptTemplateTransformer({
-        role: AgentRoleStub({ value: 'spiritmender' }),
-      });
-
-      expect(String(result)).toBe(spiritmenderPromptStatics.prompt.template);
-    });
-
-    it('VALID: {role: warpgate} => returns the warpgate template verbatim', () => {
-      const result = roleToPromptTemplateTransformer({
-        role: AgentRoleStub({ value: 'warpgate' }),
-      });
-
-      expect(String(result)).toBe(warpgatePromptStatics.prompt.template);
-    });
-  });
-
-  describe('retired role names are not valid agent roles', () => {
-    it.each(['blightscout', 'pathseeker', 'pathseeker-surface', 'lawbringer'])(
-      'INVALID: {role: "%s"} => throws parsing the role',
-      (value) => {
-        expect(() => {
-          AgentRoleStub({ value: value as never });
-        }).toThrow(/Invalid enum value/u);
+        }).toStrictEqual({ argumentsSlots: 1, discipline: 0, myDiscipline: 0 });
       },
     );
   });

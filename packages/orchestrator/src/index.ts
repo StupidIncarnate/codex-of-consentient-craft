@@ -61,12 +61,16 @@ export type { DispatchPlayResponse } from './contracts/dispatch-play-response/di
 
 // Prompt statics - re-exported for CLI package
 export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';
-export { operatorPromptStatics } from './statics/operator-prompt/operator-prompt-statics';
-export { plannerMinionStatics } from './statics/planner-minion/planner-minion-statics';
-export { workerMinionStatics } from './statics/worker-minion/worker-minion-statics';
-export { reviewerMinionStatics } from './statics/reviewer-minion/reviewer-minion-statics';
 export { spiritmenderPromptStatics } from './statics/spiritmender-prompt/spiritmender-prompt-statics';
 export { toolDisplayConfigStatics } from './statics/tool-display-config/tool-display-config-statics';
+
+// Minion family information - re-exported for the MCP package, which serves each of these whole
+// through its own tool. One payload per family, taking no argument: what it holds is true of every
+// planner, every worker or every reviewer, and what differs by discipline stays in that role's own
+// prompt.
+export { plannerInformationStatics } from './statics/planner-information/planner-information-statics';
+export { workerInformationStatics } from './statics/worker-information/worker-information-statics';
+export { reviewerInformationStatics } from './statics/reviewer-information/reviewer-information-statics';
 
 // Stream transformers for parsing Claude stream-json output
 export { sessionIdExtractorTransformer } from './transformers/session-id-extractor/session-id-extractor-transformer';
@@ -84,15 +88,6 @@ export { orchestrationProcessesState } from './state/orchestration-processes/orc
 // Contracts - exported for use by CLI and other packages
 export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
 export type { AgentRole } from './contracts/agent-role/agent-role-contract';
-
-// The discipline union this package owns, exported as a TYPE ONLY. The MCP `get-agent-prompt` tool
-// schema hand-lists the same five names and pins them with `satisfies readonly Discipline[]`, so a
-// rename or a removal here fails that package's typecheck instead of shipping a served enum the
-// orchestrator then refuses. It is a type rather than the `disciplineContract` VALUE deliberately:
-// the MCP package module-mocks `@dungeonmaster/orchestrator` wholesale in its adapter proxies, so a
-// value imported from this barrel reads as `undefined` inside every one of its unit tests, while a
-// type import is erased before that can happen.
-export type { Discipline } from './contracts/discipline/discipline-contract';
 
 export { isoTimestampContract } from './contracts/iso-timestamp/iso-timestamp-contract';
 export type { IsoTimestamp } from './contracts/iso-timestamp/iso-timestamp-contract';

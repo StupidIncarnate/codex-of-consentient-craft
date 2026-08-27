@@ -1,11 +1,9 @@
-import { roleToDisciplineStatics } from '../role-to-discipline/role-to-discipline-statics';
+import { agentPromptClassificationStatics } from '../agent-prompt-classification/agent-prompt-classification-statics';
 import { roleToModelStatics } from './role-to-model-statics';
 
-// The five operation-owning roles, read from the map that defines them rather than retyped — a
-// sixth discipline added there is a sixth operator this test covers the day it lands.
-const OPERATOR_ROLES = Object.keys(
-  roleToDisciplineStatics,
-) as readonly (keyof typeof roleToModelStatics)[];
+// The five operation-owning roles, read from the list that defines them rather than retyped — a
+// sixth operator role added there is one this test covers the day it lands.
+const OPERATOR_ROLES = agentPromptClassificationStatics.operatorRoleNames;
 
 describe('roleToModelStatics', () => {
   it('VALID: exports exact role→model mapping', () => {

@@ -66,7 +66,7 @@ describe('QuestFlow', () => {
         'Lists all registered guilds with their IDs, names, paths, and quest counts.',
         "Returns a quest's `planningNotes`: the `operationPlans` a planner-minion persisted, the per-unit `blightLedger` a reviewer-minion writes, and the durable `questNotes` side channel. An operator calls this to read its round's plan back off the quest — the planner returns a 3-5 line pointer, never the plan body, so this is the only place the pieces themselves exist.",
         "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. The `planner-minion` and `reviewer-minion` of a Flowrider, Groundstomper or Siegemaster round call this instead of reading the spec and enumerating by hand. **Pass `operationItemId` — it IS the scope.** Everything the denominator depends on already lives on that item (its role is the track, plus its flowIds and packageNames), and the server derives all of it with the SAME transformer the signal-back completion gate uses, so REMAINING here is exactly what your parent's `done` will be measured against. There is nothing else to pass and no way to widen it by accident. An item whose role has no sign-off track (codeweaver, pesteater) is told so plainly: its denominator is the scope block already in its Operation Context. `flowId` alone is the un-scoped browse form for a caller that owns no operation item, and may never be combined with `operationItemId`.",
-        "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. A reviewer-minion calls this with scope: 'unpushed', which frames exactly the commits its round produced; the other scopes measure the whole quest, the last commit alone, or the uncommitted working tree. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
+        "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file crossed with each applicable standards concern, paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. The `scope` parameter chooses WHICH changes are measured — the uncommitted working tree, what is committed here but not yet pushed, the last commit alone, or the whole quest from its pinned baseRef. Those four are NOT interchangeable and answer four different questions: read `scope`'s own description for what each one measures, and pass the one YOUR prompt names. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
         'Creates a new quest seeded with the supplied userRequest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id, but the caller MUST pass the original user request text so it is captured on the quest from the moment of creation.',
         'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | run-ward | idle. Long-polls internally up to ~25s.',
         'Runs `npm run ward` synchronously in changed or full mode and persists the result onto the named work item. Blocks until ward exits.',
@@ -110,12 +110,15 @@ describe('QuestFlow', () => {
       // The exact match proves the registration wired the get-blight-checklist input contract
       // (not some other contract, and not a hand-written stand-in schema) through zodToJsonSchema.
       // `scope` reaching the PUBLISHED schema is what makes the tool usable by the caller it exists
-      // for: the contract is `.strict()`, and a reviewer-minion passes `scope: 'unpushed'` on every
-      // call — so a schema without the property rejects every one of those calls outright. There is
-      // deliberately NO id argument to go with it: git already knows where the round began, because
-      // the orchestrator pushes at the end of each one. `since-ref` is likewise absent from the
-      // enum: its only caller is the server-side signal-back gate, and no agent can compute the
-      // work-item `startRef` it measures from.
+      // for: the contract is `.strict()`, and a reviewer-minion passes `scope: 'working-tree'` on
+      // every call — so a schema without the property rejects every one of those calls outright.
+      // THE DESCRIPTION IS THE ONLY THING THAT TELLS AN AGENT WHICH SCOPE IS ITS OWN, so it is pinned
+      // in full rather than by a substring: it said `unpushed` for as long as worker-minions committed
+      // their own chunks, and kept saying it after they stopped — by which point that range held the
+      // planner's round-document commit and nothing else. There is deliberately NO id argument: the
+      // round is simply what is uncommitted. `since-ref` is likewise absent from the enum — its only
+      // caller is the server-side signal-back gate, and no agent can compute the work-item `startRef`
+      // it measures from.
       expect(registration?.inputSchema).toStrictEqual({
         type: 'object',
         properties: {
@@ -128,7 +131,7 @@ describe('QuestFlow', () => {
             type: 'string',
             enum: ['quest', 'commit', 'working-tree', 'unpushed'],
             description:
-              "Which diff to enumerate. 'unpushed' measures ONE ROUND — everything committed in this worktree and not yet pushed — and is the reviewer-minion's scope: worker-minions commit their own pieces, so a working-tree reading finds nothing, and a commit reading sees only the last of the round's several commits. The operator pushes once at the end of each round, which is what makes unpushed mean this round. 'working-tree' measures everything changed since HEAD that is NOT YET COMMITTED, INCLUDING untracked files, for a caller whose subject really is uncommitted. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's landed output, for a caller auditing history. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched.",
+              "Which diff to enumerate. 'working-tree' measures ONE ROUND — everything changed since HEAD and NOT YET COMMITTED, INCLUDING untracked files — and is the reviewer-minion's scope: no worker commits anything, so a round reaches its reviewer entirely uncommitted and the reviewer commits once at the end. Enumerate before that commit, or this scope is empty. 'unpushed' measures what is committed in this worktree and not yet pushed (@{upstream}..HEAD); before a reviewer commits, that is the planner's round-document commit and nothing else. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's landed output, for a caller auditing history. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched, and is what a post-push re-review passes.",
           },
         },
         required: ['questId'],

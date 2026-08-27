@@ -1,17 +1,18 @@
 /**
  * PURPOSE: Names every `new`/`modified` contract — and every one of its properties — whose `source`
  * path sits under none of the packages the quest declared. The derived codeweaver ledger reads
- * those paths to mint each package's FOUNDATION item — the flow-less scope holding its contracts —
- * so a source resolving nowhere is work that silently reaches no operation item at all.
+ * those paths to route each contract into its package's implementation item — and to MINT that item
+ * for a package no flow node tags at all — so a source resolving nowhere is work that silently
+ * reaches no operation item.
  *
  * A PROPERTY carries the same risk as the contract, because a property may declare its own
  * `source`: that is how one contract delivers into several packages, and it is the only carrier a
- * deliverable has when no observable mentions it. An unroutable property path therefore mints no
- * foundation item either, and is refused by property name so the author knows which line to fix.
+ * deliverable has when no observable mentions it. An unroutable property path therefore reaches no
+ * package either, and is refused by property name so the author knows which line to fix.
  *
  * This is the contract-side twin of `questNodePackageCoverageViolationsTransformer`, and the two
- * exist for the same reason at two different gates: a node tag routes the units a flow cell owns,
- * and a contract source routes the units no flow node can carry. `shared` on the quest that
+ * exist for the same reason at two different gates: a node tag routes the units a package's flows
+ * own, and a contract source routes the units no flow node can carry. `shared` on the quest that
  * motivated this had ZERO tagged nodes and NINE contracts, so without this check its entire scope —
  * the status enum, the transitions table, the role roster — would derive to no item.
  *
@@ -46,14 +47,14 @@ export const questContractSourceCoverageViolationsTransformer = ({
       continue;
     }
 
-    // The SAME resolution the derived ledger mints foundation items through. Sharing it is what
+    // The SAME resolution the derived ledger routes contracts through. Sharing it is what
     // makes this gate meaningful: a contract this refuses is exactly a contract the generator
     // would have dropped, and a divergence between the two would refuse work that does route, or
     // pass work that does not.
     if (questContractSourceOwnerTransformer({ contract, packagesAffected }) === undefined) {
       offenders.push(
         errorMessageContract.parse(
-          `Contract '${String(contract.name)}' declares source '${String(contract.source)}', which sits under no package in quest.packagesAffected. The implementation ledger mints each package's foundation item from these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.`,
+          `Contract '${String(contract.name)}' declares source '${String(contract.source)}', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.`,
         ),
       );
     }

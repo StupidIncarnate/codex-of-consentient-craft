@@ -129,10 +129,10 @@ describe('relayTailFanOutTransformer', () => {
   });
 
   describe("fanOutBy: 'implementation'", () => {
-    // Cell membership is "this package TAGS a node in this flow". Awarding a glue node to a single
-    // owner minted no cell for the other side whenever that node was its ONLY node in the flow —
+    // Membership is "this package TAGS a node in this flow". Awarding a glue node to a single owner
+    // minted nothing for the other side whenever that node was its ONLY node in the flow —
     // measured on a real quest as four observables reaching no session's scope at all.
-    it('VALID: {a glue node that is the consumer’s ONLY node in the flow} => BOTH packages get a cell for that flow', () => {
+    it('VALID: {a glue node that is the consumer’s ONLY node in the flow} => BOTH packages get an item carrying that flow', () => {
       const quest = QuestStub({
         packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
         flows: [
@@ -160,14 +160,65 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Codeweaver: build this slice — server: quest-start-worktree',
+          text: 'Codeweaver: build this slice — package: server',
           flowIds: ['quest-start-worktree'],
           packageNames: ['server'],
         },
         {
-          text: 'Codeweaver: build this slice — web: quest-start-worktree',
+          text: 'Codeweaver: build this slice — package: web',
           flowIds: ['quest-start-worktree'],
           packageNames: ['web'],
+        },
+      ]);
+    });
+
+    // The collapse itself: a package's flows and its contracts are ONE item. The predecessor minted
+    // three here — a flow-less foundation item plus a cell per flow — and paid a whole session and
+    // a reviewer pass to order the contracts ahead of the flows that import them. That ordering is
+    // the planner's `PHASES` now, inside this one item.
+    it('VALID: {one package tagged on two flows and owning a contract} => ONE item carrying both flows', () => {
+      const quest = QuestStub({
+        packagesAffected: [SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'flow-a',
+            name: 'Flow A',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'node-a', label: 'Node A', packages: ['server'] })],
+          }),
+          FlowStub({
+            id: 'flow-b',
+            name: 'Flow B',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'node-b', label: 'Node B', packages: ['server'] })],
+          }),
+        ],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'session-token',
+            name: 'SessionToken',
+            kind: 'data',
+            status: 'new',
+            source: 'packages/server/src/contracts/session-token/session-token-contract.ts',
+            nodeId: 'node-a',
+            properties: [
+              {
+                name: 'value',
+                type: 'SessionTokenValue',
+                description: 'The signed token, opaque to the browser',
+              },
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: CODEWEAVER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Codeweaver: build this slice — package: server',
+          flowIds: ['flow-a', 'flow-b'],
+          packageNames: ['server'],
         },
       ]);
     });
@@ -232,7 +283,7 @@ describe('relayTailFanOutTransformer', () => {
     // A contract's `source` is one-to-one, but a contract is one-to-many. This one is anchored in
     // server and its second property's real file lives in web; routing the whole contract by the
     // contract's own path hands both properties to server and no web session ever sees the second.
-    it('VALID: {a contract property declaring its own source in another package} => that package gets a foundation item too', () => {
+    it('VALID: {a contract property declaring its own source in another package} => that package gets an item too, on contracts alone', () => {
       const quest = QuestStub({
         packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
         flows: [],
@@ -267,19 +318,19 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Codeweaver: build this slice — server: foundation',
+          text: 'Codeweaver: build this slice — package: server',
           flowIds: [],
           packageNames: ['server'],
         },
         {
-          text: 'Codeweaver: build this slice — web: foundation',
+          text: 'Codeweaver: build this slice — package: web',
           flowIds: [],
           packageNames: ['web'],
         },
       ]);
     });
 
-    it("VALID: {a property with no source of its own} => it inherits the contract's, minting only that one foundation item", () => {
+    it("VALID: {a property with no source of its own} => it inherits the contract's, minting only that one item", () => {
       const quest = QuestStub({
         packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
         flows: [],
@@ -306,7 +357,7 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Codeweaver: build this slice — server: foundation',
+          text: 'Codeweaver: build this slice — package: server',
           flowIds: [],
           packageNames: ['server'],
         },

@@ -344,7 +344,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('derived codeweaver implementation ops', () => {
-    it('VALID: {two packages each tagged by one node in one flow, plus a foundation contract} => one codeweaver item per (package, flow) cell plus one foundation item, package-tier ranked with the foundation item ahead of its package’s flow cell', () => {
+    it('VALID: {two packages each tagged by one node in one flow, plus a contract resolving to one of them} => one codeweaver item per PACKAGE, package-tier ranked, the contract riding its own package’s item', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -397,21 +397,14 @@ describe('questBuildRelayGraphBroker', () => {
           })),
       ).toStrictEqual([
         {
-          text: 'Codeweaver: build this slice — server: foundation',
-          status: 'pending',
-          locked: false,
-          flowIds: [],
-          packageNames: ['server'],
-        },
-        {
-          text: 'Codeweaver: build this slice — server: auth-flow',
+          text: 'Codeweaver: build this slice — package: server',
           status: 'pending',
           locked: false,
           flowIds: ['auth-flow'],
           packageNames: ['server'],
         },
         {
-          text: 'Codeweaver: build this slice — web: auth-flow',
+          text: 'Codeweaver: build this slice — package: web',
           status: 'pending',
           locked: false,
           flowIds: ['auth-flow'],
@@ -420,7 +413,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {one package tagged by a node on each of two flows} => the same package gets one codeweaver item per flow, ordered by flow declaration order', () => {
+    it('VALID: {one package tagged by a node on each of two flows} => ONE codeweaver item carrying both, in flow declaration order', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -454,13 +447,8 @@ describe('questBuildRelayGraphBroker', () => {
           .map(({ text, flowIds, packageNames }) => ({ text, flowIds, packageNames })),
       ).toStrictEqual([
         {
-          text: 'Codeweaver: build this slice — server: flow-a',
-          flowIds: ['flow-a'],
-          packageNames: ['server'],
-        },
-        {
-          text: 'Codeweaver: build this slice — server: flow-b',
-          flowIds: ['flow-b'],
+          text: 'Codeweaver: build this slice — package: server',
+          flowIds: ['flow-a', 'flow-b'],
           packageNames: ['server'],
         },
       ]);

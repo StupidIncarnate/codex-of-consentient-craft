@@ -3,7 +3,16 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 import { blightConcernGatingStatics } from '../blight-concern-gating/blight-concern-gating-statics';
 import { standardsReviewConcernsStatics } from './standards-review-concerns-statics';
 
-const has = (needle: string): boolean => standardsReviewConcernsStatics.markdown.includes(needle);
+// PROSE COMPARES IGNORE WRAPPING. `has` collapses every whitespace run — spaces, newlines, indent —
+// on BOTH sides before it matches, so a needle written on one line finds its sentence however the
+// markdown happens to wrap. Re-flowing a paragraph in the statics file then reds nothing that is
+// still true, which is why no needle below carries an escaped newline. Anything measuring the real
+// bytes reads `standardsReviewConcernsStatics.markdown` directly instead.
+const WHITESPACE_RUN = /\s+/gu;
+const FLAT_MARKDOWN = standardsReviewConcernsStatics.markdown.replace(WHITESPACE_RUN, ' ');
+
+const has = (needle: string): boolean =>
+  FLAT_MARKDOWN.includes(needle.replace(WHITESPACE_RUN, ' '));
 
 describe('standardsReviewConcernsStatics', () => {
   it('VALID: exported value => is exactly one markdown block and nothing else', () => {
@@ -34,13 +43,11 @@ describe('standardsReviewConcernsStatics', () => {
     // already emits. It then spends the whole pass on them.
     it('VALID: markdown => keeps only the judgement a linter cannot make', () => {
       expect({
-        skipEveryMechanicalRule: has('Skip every mechanical rule.'),
-        lintOwnsMechanical: has('Lint already enforces all of them.'),
+        skipEveryMechanicalRule: has('Skip every mechanical rule'),
+        syntacticTestStructureToo: has('and pure syntactic test structure with it'),
+        lintOwnsMechanical: has('Lint already enforces both.'),
         namesTheRules: has(
           'naming, imports, exports, destructuring, return types, no-any, proxy colocation, stub usage, no-console, silent catches, unused and unreachable code',
-        ),
-        syntacticTestStructureToo: has(
-          'Skip pure syntactic test structure\ntoo, for the same reason.',
         ),
         namesTheTestStructureRules: has(
           'name prefixes, `{input} => {expected}` titles, `describe` shape',
@@ -48,9 +55,9 @@ describe('standardsReviewConcernsStatics', () => {
         skipAllOfIt: has('What is left is the judgement a linter cannot make.'),
       }).toStrictEqual({
         skipEveryMechanicalRule: true,
+        syntacticTestStructureToo: true,
         lintOwnsMechanical: true,
         namesTheRules: true,
-        syntacticTestStructureToo: true,
         namesTheTestStructureRules: true,
         skipAllOfIt: true,
       });
@@ -59,80 +66,88 @@ describe('standardsReviewConcernsStatics', () => {
     it('VALID: markdown => reads the discipline and the concerns as one reading, not two passes', () => {
       expect({
         oneReading: has(
-          'Your discipline above and the five concerns below are ONE reading, not two passes.',
+          '**The per-file questions your own prompt sets, and the five concerns below, are ONE reading**',
         ),
-        allFivePerFile: has('Take all five against it before you move to the next.'),
+        allFivePerFile: has('take them all against it before you move to the next'),
       }).toStrictEqual({ oneReading: true, allFivePerFile: true });
     });
   });
 
   describe('the scope that frames one round', () => {
-    // Each of the other three scopes fails this session in its own direction:
-    //   1. `working-tree` finds nothing, because this session committed the round one step earlier.
-    //   2. `commit` sees one piece out of the round's several.
+    // THE ROUND IS UNCOMMITTED WHEN THIS RUNS, so `working-tree` is the only scope that can see it.
+    // This block said `unpushed` for as long as worker-minions committed their own chunks. They no
+    // longer do, and the text outlived the premise: before its reviewer commits, `@{upstream}..HEAD`
+    // holds the PLANNER's commit of the round document and nothing else, so `unpushed` handed back a
+    // checklist over one markdown file — green-looking, with not a line of the round's code in it.
+    // Each of the other three scopes still fails this session in its own direction:
+    //   1. `unpushed` sees the plan commit alone.
+    //   2. `commit` sees that same plan commit.
     //   3. `quest` buries the round in work already dispositioned.
-    it("VALID: markdown => makes scope 'unpushed' the only scope this reviewer may pass", () => {
+    it("VALID: markdown => makes scope 'working-tree' the only scope this reviewer may pass", () => {
       expect({
-        surfaceIsThisRound: has('**Your surface is the files THIS ROUND produced.**'),
-        theCall: has("get-blight-checklist({ questId: 'QUEST_ID', scope: 'unpushed' })"),
+        surfaceIsThisRound: has(
+          '**Your surface is the files THIS ROUND produced, and they are UNCOMMITTED when you enumerate.**',
+        ),
+        theCall: has("get-blight-checklist({ questId: 'QUEST_ID', scope: 'working-tree' })"),
         onlyCorrectScope: has(
-          "**`scope: 'unpushed'` is the only correct scope for you. You must pass it.**",
+          "**On a whole-round brief, `scope: 'working-tree'` is the only correct scope and you must pass it.**",
         ),
-        definesTheScope: has(
-          'It measures\neverything committed in this worktree and not yet pushed',
-        ),
-        namesTheBoundary: has('because you have not pushed yet — you push as your LAST act'),
-        noIdToPass: has('You pass no id. You name no range.'),
-        workingTreeFindsNothing: has('| `working-tree` | NOTHING'),
-        commitSeesOnePiece: has('| `commit` | the last commit alone'),
+        definesTheScope: has('It measures everything changed since `HEAD` and not yet committed'),
+        // `git diff` in every form reports TRACKED paths only, and a fresh round is mostly net-new
+        // files — so a scope blind to untracked additions returns green having opened none of them.
+        namesUntracked: has('**including untracked files**'),
+        noIdToPass: has('You pass no id and name no range'),
+        unpushedSeesThePlanCommit: has('| `unpushed` | the PLAN COMMIT and nothing else'),
+        commitSeesTheSame: has('| `commit` | that same plan commit, alone |'),
         questBuriesTheRound: has('| `quest` | every file every session has ever touched'),
-        unitIdGrammar: has('| `<implPath>:<concern>` | the id of one unit |'),
-        // The round's ward is `npm run ward -- --staged`, and THIS SESSION runs it — the operator
-        // used to. This enumeration is `scope: 'unpushed'`. Both mean "what origin does not have
-        // yet", so the two cannot disagree about what the round was. The parent's single push per
-        // round resets both at once.
-        sameBoundaryAsItsOwnRoundWard: has('That is the SAME boundary your OWN'),
-        theStagedCommand: has('`npm run ward -- --staged` used'),
-        // The enumeration happens AFTER this session's own fix commit, never before. It reads
-        // COMMITTED history. The parent's completion gate measures a range that includes that
-        // commit. An earlier version of this block said both "commit everything first" and
-        // "disposition as you go", which cannot both hold.
-        enumerateAfterTheFixCommit: has('Commit your own fixes before you enumerate, never after.'),
+        unitIdGrammar: has(
+          '`<implPath>:<concern>` is the id of one unit — one implementation file crossed with one concern.',
+        ),
+        // ORDER, and it is the whole of why this scope works. Commit first and `working-tree` is
+        // empty, which reads downstream as "nothing to review" and dispositions nothing.
+        enumerateBeforeTheCommit: has('**Enumerate BEFORE you commit, never after.**'),
+        namesWhatCommittingFirstCosts: has('this call dispositions nothing'),
+        // Pinned ABSENT: the scope this replaced, and the premise that justified it.
+        stillMandatesUnpushed: has("`scope: 'unpushed'` is the only correct scope"),
+        stillClaimsWorkersCommitted: has('the workers already committed the round'),
       }).toStrictEqual({
         surfaceIsThisRound: true,
         theCall: true,
         onlyCorrectScope: true,
         definesTheScope: true,
-        namesTheBoundary: true,
+        namesUntracked: true,
         noIdToPass: true,
-        workingTreeFindsNothing: true,
-        commitSeesOnePiece: true,
+        unpushedSeesThePlanCommit: true,
+        commitSeesTheSame: true,
         questBuriesTheRound: true,
         unitIdGrammar: true,
-        sameBoundaryAsItsOwnRoundWard: true,
-        theStagedCommand: true,
-        enumerateAfterTheFixCommit: true,
+        enumerateBeforeTheCommit: true,
+        namesWhatCommittingFirstCosts: true,
+        stillMandatesUnpushed: false,
+        stillClaimsWorkersCommitted: false,
       });
     });
 
     // The post-push re-review is the only brief that may read a wider scope. This block names that
     // brief in the same words the brief itself uses, so a session cannot reason its way to `quest`
     // on its own.
-    it("VALID: markdown => opens 'SCOPE: quest' only to the brief that names it", () => {
+    it("VALID: markdown => opens scope 'quest' only to the brief that names it", () => {
       expect({
-        theOneException: has('**There is ONE exception: `SCOPE: quest`.**'),
-        theBriefSaysSo: has('Your brief says so in as many words.'),
-        unpushedIsEmptyThere: has('`unpushed` is empty. An empty scope dispositions nothing.'),
-        questOverReports: has(
-          '`quest`\nover-reports instead: units already dispositioned come back marked done.',
+        theOneException: has(
+          '**There is ONE exception, and you know it by the brief line `SECTION: Re-review`.**',
         ),
-        spansAPushedRound: has('the only agent-facing scope that still spans a pushed round'),
+        theTreeIsCleanThere: has('the working tree is clean, so'),
+        questOverReports: has(
+          'It over-reports — units earlier rounds dispositioned come back marked done',
+        ),
+        spansAPushedRound: has('it is the only agent-facing scope that still spans a pushed round'),
+        thePromptNamesTheStep: has('**Your own prompt names the step that makes the call.**'),
       }).toStrictEqual({
         theOneException: true,
-        theBriefSaysSo: true,
-        unpushedIsEmptyThere: true,
+        theTreeIsCleanThere: true,
         questOverReports: true,
         spansAPushedRound: true,
+        thePromptNamesTheStep: true,
       });
     });
   });
@@ -160,10 +175,10 @@ describe('standardsReviewConcernsStatics', () => {
       expect({
         heading: has('**PURPOSE header vs body.**'),
         lintOnlyChecksExistence: has(
-          'Lint checks that the header EXISTS. Nothing checks that it is TRUE.\n  No test and no typecheck reads a comment.',
+          'Lint checks the header EXISTS; nothing checks it is TRUE, because no test and no typecheck reads a comment.',
         ),
         discoverServesIt: has(
-          "`discover --verbose` then serves it as that file's primary\n  description to every later agent",
+          "`discover --verbose` then serves it as that file's primary description to every later agent",
         ),
         fourShapes: has('Four shapes to flag:'),
         shapeReturn: has('a return-shape claim the code contradicts'),
@@ -171,7 +186,7 @@ describe('standardsReviewConcernsStatics', () => {
         // Judge shape 2 against what the zod chain tests, never against the message the `.refine()`
         // carries. A message is a claim about the check, not the check.
         readTheZodChainNotTheMessage: has(
-          'read the zod chain itself. Read what each `.refine()` tests. Never take the\n  `.refine()` message as the claim.',
+          'read the zod chain itself and what each `.refine()` tests; never take the `.refine()` message as the claim.',
         ),
         shapeFromName: has('a claim derived from the NAME rather than the body'),
         shapeRestatesSignature: has('a PURPOSE that only restates the signature'),
@@ -216,12 +231,12 @@ describe('standardsReviewConcernsStatics', () => {
         namesTheFailure: has('two sessions ship the same function twice'),
         detectorPath: has('`packages/tooling/src/brokers/duplicate-detection/`'),
         literalsOnly: has('duplicate **string and regex literals ONLY**'),
-        noAstComparison: has('It compares no AST shapes at all.'),
+        noAstComparison: has('and compares no AST shapes'),
         cleanRunSaysNothing: has(
-          'So a clean run from\nit says nothing about the duplicate code you are looking for',
+          'so a clean run from it says nothing about the duplicate code you are looking for',
         ),
         showYourWork: has(
-          'Name both implementations. State what you compared: parameters, return\nshapes, control flow. Never report that the text looked similar.',
+          'name both implementations and state what you compared — parameters, return shapes, control flow. Never report that the text looked similar.',
         ),
       }).toStrictEqual({
         repoWide: true,
@@ -241,15 +256,15 @@ describe('standardsReviewConcernsStatics', () => {
         toolsOwnCompilation: has(
           '`ward` and `tsc` already catch every consumer that stops COMPILING.',
         ),
-        skipTheSweep: has('**Skip that sweep entirely.**'),
+        skipTheSweep: has('**Skip the signature sweep entirely**'),
         whatIsLeft: has(
           'What you own is the change that typechecks and still MEANS something different:',
         ),
         semanticShapes: has(
-          'units, ordering, whether a bound is inclusive, what an empty\n  array now signifies',
+          'units, ordering, whether a bound is inclusive, what an empty array now signifies',
         ),
         enumerateConsumers: has(
-          '`discover` grep the\n  export name to enumerate consumers across the monorepo.',
+          '`discover` grep the export name to enumerate consumers across the monorepo',
         ),
         stubsKeepingSuitesGreen: has('**Stubs and fixtures that keep a suite green**'),
       }).toStrictEqual({
@@ -268,11 +283,11 @@ describe('standardsReviewConcernsStatics', () => {
       expect({
         everyAddedBranch: has('**Did every branch this round ADDED get a test at all?**'),
         walksTheControlFlow: has(
-          'each `if`/`else`, each `switch` arm, each ternary, each optional chain, each `try`/`catch`, each\nearly return',
+          'each `if`/`else`, each `switch` arm, each ternary, each optional chain, each `try`/`catch`, each early return',
         ),
         judgeTheAssertion: has('Judge the assertion too, not just its presence'),
         vacuousCountsAsNone: has(
-          'A test that asserts `rendered` or `was called`\nproves nothing. It counts as NO case.',
+          'A test that asserts `rendered` or `was called` proves nothing and counts as NO case.',
         ),
         writeTheMissingCase: has('Write the missing case yourself where you can.'),
       }).toStrictEqual({
@@ -287,10 +302,10 @@ describe('standardsReviewConcernsStatics', () => {
     it('VALID: markdown => puts dead code outside this pass entirely', () => {
       expect({
         namesTheReason: has(
-          'a property of the whole import graph\nAFTER every later round lands. You cannot answer that from inside one round.',
+          'a property of the whole import graph AFTER every later round lands. You cannot answer that from inside one round.',
         ),
         doNotHunt: has('Do not go hunting orphans.'),
-        noDispositionOwed: has('It is still not a unit you owe a disposition on.'),
+        noDispositionOwed: has('That deletion is still not a unit you owe a disposition on.'),
       }).toStrictEqual({
         namesTheReason: true,
         doNotHunt: true,
@@ -312,11 +327,13 @@ describe('standardsReviewConcernsStatics', () => {
         withheldDeliberately: has(
           '**When those two units do not appear for such a file, the tool withheld them deliberately.**',
         ),
-        doNotReviewAnyway: has('Do not\nreview them anyway. Do not record their absence as a gap.'),
-        theMeasurement: has(
-          'Across 88 review units of exactly that file mix, `perf` and\n`integrity` produced ZERO findings',
+        doNotReviewAnyway: has(
+          'Do not review them anyway, and do not record their absence as a gap.',
         ),
-        propertyOfTheQuestion: has('That ZERO comes from the question itself.'),
+        theMeasurement: has(
+          'Across 88 review units of exactly that file mix, `perf` and `integrity` produced ZERO findings',
+        ),
+        propertyOfTheQuestion: has('That ZERO comes from the question itself'),
         otherThreeStillApply: has('The other three concerns apply to those files in full.'),
       }).toStrictEqual({
         namesTheGatedPair: true,
@@ -368,7 +385,7 @@ describe('standardsReviewConcernsStatics', () => {
         // minion runs inside its parent's turn, so no human sees the question and nothing resumes
         // it with an answer. It now routes through the one channel the parent does read.
         routed: has(
-          '| `routed` | a real finding needing a decision this round cannot make. Name it in your `NEXT: rework` line, or it goes nowhere. |',
+          '| `routed` | a real finding needing a decision this round cannot make. Name it in your `NEXT: rework` line, or no later session ever acts on it. |',
         ),
         recorded: has(
           '| `recorded` | you handed a real finding to a named owner outside this quest. It is not closed this round. |',
@@ -376,24 +393,24 @@ describe('standardsReviewConcernsStatics', () => {
         noQuestionTool: has('ask-user-question'),
         saysWhyNoQuestions: has('**You have no way to ask the user anything.**'),
         insideTheParentsTurn: has(
-          "You are a sub-agent inside your parent's turn. No\nhuman sees your questions",
+          "You are a sub-agent inside your parent's turn, so no human sees your questions",
         ),
-        answerItOrHandItUp: has('Answer your own question, or hand it\nup in `NEXT: rework`.'),
+        answerItOrHandItUp: has('Answer your own question, or hand it up in `NEXT: rework`.'),
         gap: has('| `gap` | no one can assess the concern at this layer. Say precisely why. |'),
-        allFiveClear: has('**Every one of these clears a unit.**'),
+        allFiveClear: has('**Every one of these dispositions clears a unit**'),
         honestAnswers: has(
-          '`gap` and `recorded` are honest answers, so you can always\ncomplete the record truthfully',
+          '`gap` and `recorded` included, so you can always complete the record truthfully',
         ),
-        absenceIsRefused: has('A unit with NO entry at all is never acceptable.'),
+        absenceIsRefused: has('**A unit with NO entry is never acceptable**'),
         // A style note gets skipped. A named consequence does not. The completion gate rebuilds
         // this ledger against everything the parent's work item committed and refuses its `done`
         // per unit, so a skipped unit stops the parent's session from ending. The block names it
         // as "the completion gate" rather than by tool, because the last describe below forbids
         // this markdown from ever putting the word `signal-back` in front of a minion.
         namesTheParentsGate: has(
-          "The completion gate recomputes this ledger against everything your parent's work item\ncommitted. It REFUSES your parent's `done` while any unit carries no entry.",
+          "the completion gate recomputes this ledger against everything your parent's work item committed and REFUSES your parent's `done` while any unit carries no entry",
         ),
-        namesWhatSkippingCosts: has("A unit you skip stops\nyour parent's session from ending."),
+        namesWhatSkippingCosts: has("so a unit you skip stops your parent's session from ending"),
       }).toStrictEqual({
         reviewed: true,
         fixed: true,
@@ -417,12 +434,12 @@ describe('standardsReviewConcernsStatics', () => {
       expect({
         theOneThingNotBatched: has('**These dispositions are the one thing you do NOT batch.**'),
         immediatelyPerConcern: has(
-          'Write each one immediately after you\nfinish that concern for that file',
+          'Write each one immediately after you finish that concern for that file',
         ),
         deathAtFileFour: has(
-          'A session that dies at file four otherwise loses every\ndisposition it earned',
+          'A session that dies at file four otherwise loses every disposition it recorded',
         ),
-        nothingReDerivesThem: has('Nothing behind you re-derives them.'),
+        nothingReDerivesThem: has('nothing behind you re-derives them'),
       }).toStrictEqual({
         theOneThingNotBatched: true,
         immediatelyPerConcern: true,
@@ -439,7 +456,7 @@ describe('standardsReviewConcernsStatics', () => {
         evidenceIsConcrete: has("evidence: '<the concrete thing observed — never an adjective>'"),
         observedByIsTheMinion: has("observedBy: 'reviewer-minion'"),
         workItemFromBriefing: has("workItemId: '<the work item id your briefing names>'"),
-        rippleAndOwner: has('| `fixed` | `rippleSites` |\n| `recorded` | `owner` |'),
+        rippleAndOwner: has('| `fixed` | `rippleSites` | | `recorded` | `owner` |'),
         serverStampsTheTime: has(
           'Write no timestamp field. The server stamps the time. It ignores any value you supply.',
         ),

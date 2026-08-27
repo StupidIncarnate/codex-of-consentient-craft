@@ -44,10 +44,9 @@ describe('orchestrator', () => {
       'modifyQuestInputContract',
       'modifyQuestResultContract',
       'nextStepContract',
-      'operatorPromptStatics',
       'orchestrationEventsState',
       'orchestrationProcessesState',
-      'plannerMinionStatics',
+      'plannerInformationStatics',
       'questFindQuestPathBroker',
       'questFolderFindBroker',
       'questGetBroker',
@@ -62,7 +61,7 @@ describe('orchestrator', () => {
       'questStageContract',
       'questSummaryContract',
       'questUserAddBroker',
-      'reviewerMinionStatics',
+      'reviewerInformationStatics',
       'sessionIdExtractorTransformer',
       'signalFromStreamTransformer',
       'slotCountContract',
@@ -78,7 +77,7 @@ describe('orchestrator', () => {
       'toolInputToDisplayTransformer',
       'verifyQuestCheckContract',
       'workItemIdContract',
-      'workerMinionStatics',
+      'workerInformationStatics',
     ]);
   });
 });
