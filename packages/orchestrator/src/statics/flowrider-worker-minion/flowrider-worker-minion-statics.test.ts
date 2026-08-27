@@ -279,7 +279,9 @@ describe('flowriderWorkerMinionStatics', () => {
         needle: '**A duplicate case is worse than no case**',
         text: workflow,
       }),
-      auditPrecedesTheWriting: workflow.indexOf('AUDIT what is already in the file') < workflow.indexOf('**Write one test per path to EVERY end node'),
+      auditPrecedesTheWriting:
+        workflow.indexOf('AUDIT what is already in the file') <
+        workflow.indexOf('**Write one test per path to EVERY end node'),
       reportCarriesAudit: hasIn({ needle: 'AUDIT:', text: TEMPLATE }),
       reportCarriesMocks: hasIn({
         needle: '<what the files you touched mock> — <the OUTSIDE service it replaces>',

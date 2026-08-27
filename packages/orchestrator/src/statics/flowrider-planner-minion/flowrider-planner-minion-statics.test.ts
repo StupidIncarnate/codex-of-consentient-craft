@@ -122,8 +122,7 @@ describe('flowriderPlannerMinionStatics', () => {
         text: beforeTheWorkflow,
       }),
       codeweaverProvedTheSeam: hasIn({
-        needle:
-          'Where one of its chunks wired two pieces together, that chunk proved THAT SEAM.',
+        needle: 'Where one of its chunks wired two pieces together, that chunk proved THAT SEAM.',
         text: beforeTheWorkflow,
       }),
       thisRoundCoversTheWholePath: hasIn({
