@@ -752,3 +752,7 @@ export * from './src/contracts/operation-plan-id/operation-plan-id.stub';
 
 export * from './src/contracts/operation-plan/operation-plan-contract';
 export * from './src/contracts/operation-plan/operation-plan.stub';
+
+// Health Contracts
+export * from './src/contracts/health-status-payload/health-status-payload-contract';
+export * from './src/contracts/health-status-payload/health-status-payload.stub';

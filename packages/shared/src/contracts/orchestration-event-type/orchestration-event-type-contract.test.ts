@@ -8,28 +8,40 @@ describe('orchestrationEventTypeContract', () => {
     expect(type).toBe('phase-change');
   });
 
-  it.each([
-    'phase-change',
-    'slot-update',
-    'progress-update',
-    'process-complete',
-    'process-failed',
-    'chat-output',
-    'chat-complete',
-    'quest-created',
-    'quest-modified',
-    'quest-load-failed',
-    'quest-persisted',
-    'clarification-request',
-    'chat-history-complete',
-    'quest-session-linked',
-    'chat-session-started',
-    'execution-queue-updated',
-    'execution-queue-error',
-    'rate-limits-updated',
-    'dispatch-state-changed',
-  ] as const)('VALID: {value: %s} => parses successfully', (type) => {
-    expect(orchestrationEventTypeContract.parse(type)).toBe(type);
+  describe('enum membership', () => {
+    it('VALID: {options} => exposes all 22 members in order, health-status last', () => {
+      expect(orchestrationEventTypeContract.options).toStrictEqual([
+        'phase-change',
+        'slot-update',
+        'progress-update',
+        'process-complete',
+        'process-failed',
+        'chat-output',
+        'chat-complete',
+        'quest-created',
+        'quest-modified',
+        'quest-load-failed',
+        'quest-persisted',
+        'quest-paused',
+        'quest-resumed',
+        'clarification-request',
+        'chat-history-complete',
+        'quest-session-linked',
+        'chat-session-started',
+        'execution-queue-updated',
+        'execution-queue-error',
+        'rate-limits-updated',
+        'dispatch-state-changed',
+        'health-status',
+      ]);
+    });
+
+    it.each(orchestrationEventTypeContract.options)(
+      'VALID: {value: %s} => parses successfully',
+      (type) => {
+        expect(orchestrationEventTypeContract.parse(type)).toBe(type);
+      },
+    );
   });
 
   it('INVALID: {value: "invalid"} => throws validation error', () => {
