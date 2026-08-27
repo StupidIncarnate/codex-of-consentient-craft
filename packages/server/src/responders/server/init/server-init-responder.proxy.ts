@@ -57,6 +57,7 @@ registerModuleMock({
 });
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { healthHeartbeatStartBrokerProxy } from '../../../brokers/health-heartbeat/start/health-heartbeat-start-broker.proxy';
 import { orchestratorFindQuestByWorkItemIdAdapterProxy } from '../../../adapters/orchestrator/find-quest-by-work-item-id/orchestrator-find-quest-by-work-item-id-adapter.proxy';
 import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
 import { honoCreateNodeWebSocketAdapterProxy } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
@@ -102,6 +103,7 @@ export const ServerInitResponderProxy = (): {
     questPath: AbsoluteFilePath;
     guildId: GuildId;
   }) => void;
+  triggerHealthHeartbeat: () => void;
 } => {
   const dateSpy = registerSpyOn({
     object: Date.prototype,
@@ -126,6 +128,11 @@ export const ServerInitResponderProxy = (): {
   // must wire up a mock even when individual tests don't exercise the lookup.
   orchestratorFindQuestByWorkItemIdAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
+  // Default snapshot values so a test that never touches the heartbeat can still call
+  // triggerHealthHeartbeat() without process.uptime()/readFileSync throwing on an unstaged
+  // call — mirrors the dateSpy default above and the portProxy default below.
+  const healthHeartbeatProxy = healthHeartbeatStartBrokerProxy();
+  healthHeartbeatProxy.setupSnapshot({ uptimeSeconds: 120, version: '1.0.0' });
   questWaitForSessionStampBrokerProxy();
   const webBundleProxy = webBundleResponseBrokerProxy();
   designProcessStateProxy();
@@ -204,6 +211,9 @@ export const ServerInitResponderProxy = (): {
       guildId: GuildId;
     }): void => {
       findQuestPathProxy.returns({ questId, questPath, guildId });
+    },
+    triggerHealthHeartbeat: (): void => {
+      healthHeartbeatProxy.triggerTick();
     },
   };
 };

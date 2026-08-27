@@ -94,9 +94,16 @@ describe('ServerInitResponder', () => {
     });
 
     it('EDGE: {empty buffer at flush interval} => no broadcast occurs', () => {
-      jest.useFakeTimers();
-
+      // Construct the proxy (and the registerSpyOn dispatcher it installs on
+      // globalThis.setInterval, chunk 9's health-heartbeat timer adapter) BEFORE
+      // switching to fake timers. Reversing this order lets the dispatcher's
+      // passthrough capture jest's FAKE setInterval as its "real" target — that
+      // stale reference then leaks past this test's own useRealTimers() call and
+      // permanently breaks every later test's REAL flush-interval registration in
+      // this file, since a later restoreAllMocks() restores globalThis.setInterval
+      // back to the orphaned fake instead of the true native function.
       const proxy = ServerInitResponderProxy();
+      jest.useFakeTimers();
       proxy.callResponder();
 
       const sendMock = jest.fn();
@@ -784,6 +791,70 @@ describe('ServerInitResponder', () => {
       const bCount = sendB.mock.calls.length;
 
       expect({ aCount, bCount }).toStrictEqual({ aCount: 1, bCount: 1 });
+    });
+  });
+
+  describe('health-status heartbeat', () => {
+    it('VALID: {client completes /ws upgrade, sends no subscription message} => receives the next health-status frame', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      proxy.triggerHealthHeartbeat();
+
+      const parsedFrame = JSON.parse(String(sendMock.mock.calls[0]?.[0])) as unknown;
+
+      expect(parsedFrame).toStrictEqual({
+        type: 'health-status',
+        payload: { status: 'ok', uptimeSeconds: 120, version: '1.0.0' },
+        timestamp: '2024-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('VALID: {one client subscribed to a quest, one holding no subscription} => both receive the same health-status frame', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questIdX = QuestIdStub({ value: 'quest-health-heartbeat' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdX, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendSubscribed = jest.fn();
+      const sendUnsubscribed = jest.fn();
+      const subscribedClient = WsClientStub({ send: sendSubscribed });
+      const unsubscribedClient = WsClientStub({ send: sendUnsubscribed });
+      proxy.simulateConnection({ client: subscribedClient });
+      proxy.simulateConnection({ client: unsubscribedClient });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
+        ws: subscribedClient,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendSubscribed.mockClear();
+      sendUnsubscribed.mockClear();
+
+      proxy.triggerHealthHeartbeat();
+
+      const subscribedFrame = JSON.parse(String(sendSubscribed.mock.calls[0]?.[0])) as unknown;
+      const unsubscribedFrame = JSON.parse(String(sendUnsubscribed.mock.calls[0]?.[0])) as unknown;
+
+      expect({ subscribedFrame, unsubscribedFrame }).toStrictEqual({
+        subscribedFrame: {
+          type: 'health-status',
+          payload: { status: 'ok', uptimeSeconds: 120, version: '1.0.0' },
+          timestamp: '2024-01-01T00:00:00.000Z',
+        },
+        unsubscribedFrame: {
+          type: 'health-status',
+          payload: { status: 'ok', uptimeSeconds: 120, version: '1.0.0' },
+          timestamp: '2024-01-01T00:00:00.000Z',
+        },
+      });
     });
   });
 

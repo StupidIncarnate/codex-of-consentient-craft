@@ -31,6 +31,7 @@ import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestr
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { healthHeartbeatStartBroker } from '../../../brokers/health-heartbeat/start/health-heartbeat-start-broker';
 import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker';
 import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/web-bundle-response-broker';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
@@ -86,6 +87,13 @@ export const ServerInitResponder = ({
   // (execution-queue-updated, execution-queue-error, phase-change, slot-update,
   // progress-update, process-complete, process-failed, quest-persisted) can fan out.
   const clients = new Set<WsClient>();
+  // Emits a health-status frame every healthHeartbeatStatics.emitIntervalMs to every entry in
+  // `clients`, unconditionally — the badge keeps listening in every rendered state (including
+  // DEGRADED/OFFLINE) so a recovered server moves it back to ONLINE with no click and no reload.
+  // Started here (before onOpen can add a client) so a client that only completes the upgrade is
+  // already inside the broadcast set the first tick reads. Stopped in the SIGTERM/SIGINT handlers
+  // below, beside the existing flushIntervalHandle teardown.
+  const healthHeartbeat = healthHeartbeatStartBroker({ clients });
   // Per-quest subscriptions: a client subscribed to questId X receives only the
   // PER_QUEST_EVENT_TYPES events whose payload carries that questId.
   const clientSubscriptions = new Map<WsClient, Set<QuestId>>();
@@ -847,6 +855,7 @@ export const ServerInitResponder = ({
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     clearInterval(flushIntervalHandle);
+    healthHeartbeat.stop();
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);
@@ -854,6 +863,7 @@ export const ServerInitResponder = ({
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     clearInterval(flushIntervalHandle);
+    healthHeartbeat.stop();
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);
