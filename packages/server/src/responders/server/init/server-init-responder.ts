@@ -31,9 +31,11 @@ import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestr
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { healthHeartbeatEmitBroker } from '../../../brokers/health/heartbeat-emit/health-heartbeat-emit-broker';
 import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker';
 import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/web-bundle-response-broker';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
+import { healthHeartbeatStatics } from '../../../statics/health-heartbeat/health-heartbeat-statics';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -799,6 +801,23 @@ export const ServerInitResponder = ({
     }
   }, FLUSH_INTERVAL_MS);
 
+  // Unconditional, unfiltered fan-out: every connected client gets every frame, regardless
+  // of quest subscription — the badge subscribes at mount, before any quest exists to
+  // subscribe to. Ticks only (no frame at t=0), so a client's first frame always arrives on
+  // the next 10-second boundary rather than at connect time. One throw (e.g. a version-read
+  // failure) must not kill the interval, so the tick is wrapped and the failure logged —
+  // this is the only logging the heartbeat does; a line per successful tick would drown the
+  // orchestration log every 10 seconds forever.
+  const heartbeatIntervalHandle = setInterval(() => {
+    try {
+      healthHeartbeatEmitBroker({ clients });
+    } catch (error: unknown) {
+      processDevLogAdapter({ message: `Health heartbeat emit failed: ${String(error)}` });
+    }
+  }, healthHeartbeatStatics.emit.intervalMs);
+  // Avoid keeping the process alive solely for this timer in test runtimes.
+  heartbeatIntervalHandle.unref();
+
   orchestratorOutboxWatchAdapter({
     onQuestChanged: ({ questId }) => {
       orchestratorLoadQuestAdapter({ questId })
@@ -847,6 +866,7 @@ export const ServerInitResponder = ({
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     clearInterval(flushIntervalHandle);
+    clearInterval(heartbeatIntervalHandle);
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);
@@ -854,6 +874,7 @@ export const ServerInitResponder = ({
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     clearInterval(flushIntervalHandle);
+    clearInterval(heartbeatIntervalHandle);
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);

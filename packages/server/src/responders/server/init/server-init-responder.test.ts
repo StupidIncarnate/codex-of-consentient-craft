@@ -1220,4 +1220,174 @@ describe('ServerInitResponder', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  // Flow: health-badge, nodes #subscribe-heartbeat, #server-emits, #relay-broadcast. The
+  // badge subscribes at mount, before any quest exists to subscribe to — so every connected
+  // client must receive the heartbeat, whether or not it ever sends a message. jest.useFakeTimers()
+  // is called BEFORE proxy.callResponder() in every test below: the heartbeat's setInterval is
+  // registered inside callResponder(), and a real setInterval created before fake timers are
+  // engaged cannot be wrapped retroactively (the same constraint the pre-existing flush-interval
+  // test at the top of this file already respects).
+  describe('health-status heartbeat', () => {
+    it('VALID: {client connects, sends no message} => receives 1 health-status frame at 10s, 3 at 30s, still 3 at 35s, each an exact health-status envelope', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.stagesHealthHeartbeat({ uptime: 100, version: '0.1.0' });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(10000);
+      const callsAt10s = [...sendMock.mock.calls];
+
+      jest.advanceTimersByTime(20000);
+      const callsAt30s = [...sendMock.mock.calls];
+
+      jest.advanceTimersByTime(5000);
+      const callsAt35s = [...sendMock.mock.calls];
+
+      jest.useRealTimers();
+
+      const expectedFrame = JSON.stringify({
+        type: 'health-status',
+        payload: { status: 'ok', uptimeSeconds: 100, version: '0.1.0' },
+        timestamp: '2024-01-01T00:00:00.000Z',
+      });
+
+      expect({ callsAt10s, callsAt30s, callsAt35s }).toStrictEqual({
+        callsAt10s: [[expectedFrame]],
+        callsAt30s: [[expectedFrame], [expectedFrame], [expectedFrame]],
+        callsAt35s: [[expectedFrame], [expectedFrame], [expectedFrame]],
+      });
+    });
+
+    it('VALID: {two clients, one plain and one that sent a subscribe-quest message} => both receive the identical three health-status frames', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.stagesHealthHeartbeat({ uptime: 200, version: '0.1.0' });
+      const questId = QuestIdStub({ value: 'quest-heartbeat-subscribed' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendA = jest.fn();
+      const sendB = jest.fn();
+      const clientA = WsClientStub({ send: sendA });
+      const clientB = WsClientStub({ send: sendB });
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateConnection({ client: clientB });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: clientB,
+      });
+
+      jest.advanceTimersByTime(30000);
+      jest.useRealTimers();
+
+      const expectedFrame = JSON.stringify({
+        type: 'health-status',
+        payload: { status: 'ok', uptimeSeconds: 200, version: '0.1.0' },
+        timestamp: '2024-01-01T00:00:00.000Z',
+      });
+
+      expect({ aCalls: sendA.mock.calls, bCalls: sendB.mock.calls }).toStrictEqual({
+        aCalls: [[expectedFrame], [expectedFrame], [expectedFrame]],
+        bCalls: [[expectedFrame], [expectedFrame], [expectedFrame]],
+      });
+    });
+
+    // Covers the catch arm of the per-tick try/catch. The fault is injected by NOT calling
+    // stagesHealthHeartbeat before the first tick: healthStatusBrokerProxy's registerSpyOn over
+    // process.uptime carries no catch-all, so an unstaged read throws inside the tick — the same
+    // shape a real version-read failure takes. Without the catch, that throw escapes
+    // advanceTimersByTime and errors this test; with it, the interval must survive to deliver the
+    // next tick, which is the behaviour the wrapper exists for.
+    it('ERROR: {first heartbeat tick throws} => the throw is swallowed and the next tick still delivers a frame', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(10000);
+      const callsAfterThrowingTick = [...sendMock.mock.calls];
+
+      proxy.stagesHealthHeartbeat({ uptime: 300, version: '0.1.0' });
+      jest.advanceTimersByTime(10000);
+      const callsAfterRecoveredTick = [...sendMock.mock.calls];
+
+      jest.useRealTimers();
+
+      const expectedFrame = JSON.stringify({
+        type: 'health-status',
+        payload: { status: 'ok', uptimeSeconds: 300, version: '0.1.0' },
+        timestamp: '2024-01-01T00:00:00.000Z',
+      });
+
+      expect({ callsAfterThrowingTick, callsAfterRecoveredTick }).toStrictEqual({
+        callsAfterThrowingTick: [],
+        callsAfterRecoveredTick: [[expectedFrame]],
+      });
+    });
+  });
+
+  describe('health-status heartbeat interval teardown', () => {
+    it('VALID: {SIGTERM received} => stops emitting further health-status frames', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.stagesHealthHeartbeat({ uptime: 50, version: '0.1.0' });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(10000);
+      const countBeforeSignal = sendMock.mock.calls.length;
+
+      proxy.triggerSigterm();
+      jest.advanceTimersByTime(30000);
+      const countAfterSignal = sendMock.mock.calls.length;
+
+      jest.useRealTimers();
+
+      expect({ countBeforeSignal, countAfterSignal }).toStrictEqual({
+        countBeforeSignal: 1,
+        countAfterSignal: 1,
+      });
+    });
+
+    it('VALID: {SIGINT received} => stops emitting further health-status frames', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.stagesHealthHeartbeat({ uptime: 50, version: '0.1.0' });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(10000);
+      const countBeforeSignal = sendMock.mock.calls.length;
+
+      proxy.triggerSigint();
+      jest.advanceTimersByTime(30000);
+      const countAfterSignal = sendMock.mock.calls.length;
+
+      jest.useRealTimers();
+
+      expect({ countBeforeSignal, countAfterSignal }).toStrictEqual({
+        countBeforeSignal: 1,
+        countAfterSignal: 1,
+      });
+    });
+  });
 });

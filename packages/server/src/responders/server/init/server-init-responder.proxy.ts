@@ -66,6 +66,7 @@ import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrato
 import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy';
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
+import { healthHeartbeatEmitBrokerProxy } from '../../../brokers/health/heartbeat-emit/health-heartbeat-emit-broker.proxy';
 import { questWaitForSessionStampBrokerProxy } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.proxy';
 import { webBundleResponseBrokerProxy } from '../../../brokers/web-bundle/response/web-bundle-response-broker.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
@@ -85,6 +86,9 @@ export const ServerInitResponderProxy = (): {
   simulateConnection: (params: { client: WsClient }) => void;
   simulateMessage: (params: { data: string; ws: WsClient }) => void;
   simulateDisconnect: (params: { ws: WsClient }) => void;
+  stagesHealthHeartbeat: (params: { uptime: number; version: string }) => void;
+  triggerSigterm: () => void;
+  triggerSigint: () => void;
   setupLoadQuestSuccess: (params: { quest: Quest }) => void;
   setupLoadQuestFailure: (params: { questId: QuestId; error: Error }) => void;
   setupReplaySuccess: () => void;
@@ -109,6 +113,16 @@ export const ServerInitResponderProxy = (): {
     passthrough: true,
   });
   dateSpy.calledWith([]).returns('2024-01-01T00:00:00.000Z');
+  // Also keeps process.uptime and the version adapter's fs read mocked for every OTHER
+  // test in this file — without this child, a heartbeat tick that somehow fired during an
+  // unrelated test would hit the real process.uptime()/fs.readFileSync() instead of a mock.
+  const healthHeartbeatProxy = healthHeartbeatEmitBrokerProxy();
+  // SIGTERM/SIGINT handlers call process.exit(0); without this, firing a signal in a test
+  // would exit the Jest worker for real.
+  const exitSpy = registerSpyOn({ object: process, method: 'exit', passthrough: true });
+  exitSpy.calledWith([]).implement((() => {
+    // Prevent actual process exit in tests
+  }) as never);
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   const serveProxy = honoServeAdapterProxy();
   const eventsOnProxy = orchestratorEventsOnAdapterProxy();
@@ -164,6 +178,15 @@ export const ServerInitResponderProxy = (): {
     },
     simulateDisconnect: ({ ws }: { ws: WsClient }): void => {
       wsProxy.simulateDisconnect({ ws });
+    },
+    stagesHealthHeartbeat: ({ uptime, version }: { uptime: number; version: string }): void => {
+      healthHeartbeatProxy.stagesHealth({ uptime, version });
+    },
+    triggerSigterm: (): void => {
+      process.emit('SIGTERM');
+    },
+    triggerSigint: (): void => {
+      process.emit('SIGINT');
     },
     // Keyed on the quest's own id: every real caller (subscribe-quest, replay-quest-history,
     // the outbox onQuestChanged handler) resolves `orchestratorLoadQuestAdapter({ questId })`
