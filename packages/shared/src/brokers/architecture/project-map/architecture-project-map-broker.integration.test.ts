@@ -13,19 +13,25 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
 import { processCwdAdapter } from '../../../adapters/process/cwd/process-cwd-adapter';
 
+const cwd = String(processCwdAdapter());
+const projectRoot = AbsoluteFilePathStub({
+  value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
+});
+const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
+const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => PackageNameStub({ value: entry.name }));
+
+// One whole-monorepo scan, awaited by every all-packages test below. The scan walks each
+// package's source tree and re-reads a given source file once per import edge into it — ~5s
+// per call under ts-jest — while its output is byte-identical call to call, so the tests share
+// a single promise. `jest/no-hooks` forbids beforeAll and `jest/require-hook` exempts `const`
+// declarations, which is why this is a module-scope const rather than a hook or a helper.
+const allPackagesMap = architectureProjectMapBroker({ projectRoot, packages: allPackages });
+
 describe('architectureProjectMapBroker (integration with real monorepo)', () => {
   it('VALID: {real monorepo, packages: [all]} => classifies every package by its architecture role', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => PackageNameStub({ value: entry.name }));
-
-    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     const expectedHeaders = [
       '# server [http-backend]',
@@ -45,17 +51,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => library packages are filtered out (project-inventory shows them)', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => PackageNameStub({ value: entry.name }));
-
-    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     const libraryHeaders = ['# shared [library]', '# config [library]', '# testing [library]'];
     const present = libraryHeaders.filter((header) => lines.includes(header));
@@ -64,33 +60,13 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits Boot header', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => PackageNameStub({ value: entry.name }));
-
-    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l === '## Boot')).toBe(true);
   });
 
   it('VALID: {real monorepo, packages: [all]} => renders adapter chain entries by their export name', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => PackageNameStub({ value: entry.name }));
-
-    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l.endsWith('→ orchestratorGetQuestAdapter'))).toBe(true);
     expect(lines.some((l) => l.endsWith('→ orchestratorStartQuestAdapter'))).toBe(true);
@@ -98,17 +74,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits exactly one --- separator after URL pairing block before first package', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => PackageNameStub({ value: entry.name }));
-
-    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
     const urlBlockIdx = lines.findIndex((l) => l.startsWith('**URL pairing convention**'));
     const after = lines.slice(urlBlockIdx + 1, urlBlockIdx + 5);
 
@@ -116,17 +82,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits pointer footer at the end with no EDGES section', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => PackageNameStub({ value: entry.name }));
-
-    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l === '## EDGES')).toBe(false);
     expect(lines[lines.length - 1]).toBe(
@@ -135,11 +91,6 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [cli]} => renders only cli section, omits other packages', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-
     const result = await architectureProjectMapBroker({
       projectRoot,
       packages: [PackageNameStub({ value: 'cli' })],
@@ -153,11 +104,6 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo} => orchestrator section inlines runChatLayerBroker under orchestration-loop', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-
     const result = await architectureProjectMapBroker({
       projectRoot,
       packages: [PackageNameStub({ value: 'orchestrator' })],
@@ -168,11 +114,6 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo} => mcp section does NOT include phantom from-string imports inside testing-patterns markdown', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-
     const result = await architectureProjectMapBroker({
       projectRoot,
       packages: [PackageNameStub({ value: 'mcp' })],
@@ -184,27 +125,12 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => at least one package emits an Unreferenced section', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => PackageNameStub({ value: entry.name }));
-
-    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l === '## Unreferenced')).toBe(true);
   });
 
   it('VALID: {real monorepo} => web section renders binding broker chain by export name (questQueueBroker)', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-
     const result = await architectureProjectMapBroker({
       projectRoot,
       packages: [PackageNameStub({ value: 'web' })],
@@ -215,11 +141,6 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('INVALID: {real monorepo, packages: [nonexistent]} => throws with valid-names list', async () => {
-    const cwd = String(processCwdAdapter());
-    const projectRoot = AbsoluteFilePathStub({
-      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-    });
-
     await expect(
       architectureProjectMapBroker({
         projectRoot,
