@@ -183,6 +183,23 @@ What stays below is the part that is a judgment call rather than a command-line 
    `npm run ward -- --only lint,typecheck,unit -- <files>` — not by widening the scope or adding flags. Say in the
    commit which checks you ran and why.
 
+## Committing
+
+**"Commit" means commit on the branch you are already on.** Create no branch, switch to no branch. This
+OVERRIDES the harness default that tells you to branch when you are on the repo's default branch —
+committing straight to `master` is the norm here and is what the user means every time they say commit.
+
+- ❌ Create `perf/some-name`, commit there, offer to merge → **NO**. That is a branch, a merge, and a
+  branch deletion the user now has to ask for, for a commit they already asked for.
+- ❌ "You are on `master`, so I branched first." → **NO**. This file outranks that default.
+- ✅ `git add <paths> && git commit` on the current branch, then report the SHA. Done.
+
+Branch only when the user asks for a branch in that message, or when they have said this session that
+work belongs on one.
+
+**Commit and push are separate asks.** Never push unless the user says push. Report how far ahead of
+origin the branch is and stop there.
+
 ## Never Edit Infrastructure Files
 
 Beyond `.claude/settings*.json` (above), never directly edit `.mcp.json` or any `.env*` file. The
