@@ -13,6 +13,7 @@ import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { isWorkspaceRouteGuard } from '../../guards/is-workspace-route/is-workspace-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
+import { HealthBadgeWidget } from '../health-badge/health-badge-widget';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
 import { QuestQueueBarWidget } from '../quest-queue-bar/quest-queue-bar-widget';
@@ -21,6 +22,7 @@ import { RateLimitsStackWidget } from '../rate-limits-stack/rate-limits-stack-wi
 const TRANSITION_DURATION = '0.4s';
 const TRANSITION_EASING = 'ease-out';
 const QUEST_TOP_PADDING = 40;
+const LOGO_ROW_RIGHT_CELL_GAP = 12;
 
 const defaultMaxWidth = cssPixelsContract.parse(mapFrameStatics.defaultMaxWidth);
 const unrestrictedMaxWidth = cssPixelsContract.parse(mapFrameStatics.unrestrictedMaxWidth);
@@ -53,7 +55,8 @@ export const AppWidget = (): React.JSX.Element => {
         }}
       />
 
-      {/* Logo row: logo horizontally centered via flex spacers, rate-limits stack right-aligned */}
+      {/* Logo row: logo horizontally centered via flex spacers, health badge and rate-limits
+          stack right-aligned */}
       <div
         style={{
           padding: '12px 16px',
@@ -71,8 +74,10 @@ export const AppWidget = (): React.JSX.Element => {
             minWidth: 0,
             display: 'flex',
             justifyContent: 'flex-end',
+            gap: LOGO_ROW_RIGHT_CELL_GAP,
           }}
         >
+          <HealthBadgeWidget />
           <RateLimitsStackWidget />
         </div>
       </div>

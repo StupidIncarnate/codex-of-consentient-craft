@@ -1,9 +1,10 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { HealthStatusPayloadStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
 import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { useHealthStatusBinding } from '../../bindings/use-health-status/use-health-status-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { useRateLimitsBinding } from '../../bindings/use-rate-limits/use-rate-limits-binding';
@@ -12,9 +13,9 @@ import { webSocketChannelState } from '../../state/web-socket-channel/web-socket
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 
 describe('shared websocket connection', () => {
-  it('VALID: {chat + queue + rate-limits bindings mounted together} => exactly one WebSocket is opened', async () => {
-    // Register MSW handlers for the HTTP calls the queue and rate-limits bindings
-    // make on mount. Without handlers, MSW's onUnhandledRequest:'error' throws.
+  it('VALID: {chat + queue + rate-limits + health bindings mounted together} => exactly one WebSocket is opened', async () => {
+    // Register MSW handlers for the HTTP calls the queue, rate-limits and health-status
+    // bindings make on mount. Without handlers, MSW's onUnhandledRequest:'error' throws.
     const queueEndpoint = StartEndpointMock.listen({
       method: 'get',
       url: webConfigStatics.api.routes.questsQueue,
@@ -26,6 +27,14 @@ describe('shared websocket connection', () => {
       url: webConfigStatics.api.routes.rateLimits,
     });
     rateLimitsEndpoint.resolves({ data: { snapshot: null } });
+
+    const healthStatusEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.healthStatus,
+    });
+    healthStatusEndpoint.resolves({
+      data: HealthStatusPayloadStub({ status: 'ok', uptimeSeconds: 11520, version: '1.4.0' }),
+    });
 
     // Spy on the WebSocket constructor so every `new globalThis.WebSocket(...)`
     // call is intercepted and counted. Installed before bindings mount so the
@@ -65,7 +74,7 @@ describe('shared websocket connection', () => {
 
     const questId = QuestIdStub({ value: 'test-quest' });
 
-    // Mount all three WS-consuming bindings simultaneously.
+    // Mount all four WS-consuming bindings simultaneously.
     const { result: chatResult } = testingLibraryRenderHookAdapter({
       renderCallback: () => useQuestChatBinding({ questId }),
     });
@@ -75,8 +84,11 @@ describe('shared websocket connection', () => {
     const { result: rateLimitsResult } = testingLibraryRenderHookAdapter({
       renderCallback: () => useRateLimitsBinding(),
     });
+    const { result: healthResult } = testingLibraryRenderHookAdapter({
+      renderCallback: () => useHealthStatusBinding(),
+    });
 
-    // Wait until both HTTP-backed bindings finish loading (which confirms all
+    // Wait until all three HTTP-backed bindings finish loading (which confirms all
     // useEffect calls — including the WS constructor — have run), then assert
     // their complete idle state in one pass.
     await testingLibraryWaitForAdapter({
@@ -90,6 +102,10 @@ describe('shared websocket connection', () => {
         expect(rateLimitsResult.current).toStrictEqual({
           snapshot: null,
           isLoading: false,
+        });
+        expect(healthResult.current).toStrictEqual({
+          badgeState: { state: 'online', uptimeSeconds: 11520 },
+          retry: expect.any(Function),
         });
       },
     });
@@ -115,7 +131,7 @@ describe('shared websocket connection', () => {
       stopFollowupChat: expect.any(Function),
     });
 
-    // After Phase 1, all three bindings share one WebSocket connection via the
+    // After Phase 1, all four bindings share one WebSocket connection via the
     // singleton webSocketChannelState — exactly one constructor call is expected.
     expect(socketConstructions).toStrictEqual([true]);
   });

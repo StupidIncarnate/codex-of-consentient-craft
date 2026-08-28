@@ -37,6 +37,78 @@ const renderApp = (): void => {
 };
 
 describe('AppWidget', () => {
+  describe('health badge mounting', () => {
+    it('VALID: {mount at /} => HEALTH_BADGE testid is in the DOM', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isHealthBadgeVisible()).toBe(true);
+      });
+
+      expect(proxy.isHealthBadgeVisible()).toBe(true);
+    });
+
+    it('VALID: {navigate to session-view route} => HEALTH_BADGE testid stays in the DOM', async () => {
+      const proxy = AppWidgetProxy();
+      const guild = GuildListItemStub({
+        id: 'c1d2e3f4-a5b6-7890-cdef-123456789ab0',
+        name: 'Badge Nav Guild',
+      });
+      const sessions = [SessionListItemStub({ sessionId: 'badge-s1', questId: 'quest-badge' })];
+
+      proxy.setupGuilds({ guilds: [guild] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      proxy.setupSessions({ sessions });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.selectAllSessionsFilter();
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_badge-s1' });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isSessionViewVisible()).toBe(true);
+      });
+
+      expect(proxy.isHealthBadgeVisible()).toBe(true);
+    });
+  });
+
   describe('queue bar mounting', () => {
     it('VALID: {queue has entries} => QuestQueueBarWidget is mounted and visible', async () => {
       const proxy = AppWidgetProxy();

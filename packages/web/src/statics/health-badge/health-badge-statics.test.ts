@@ -9,6 +9,7 @@ describe('healthBadgeStatics', () => {
       checking: 'CHECKING',
       testId: 'HEALTH_BADGE',
       silenceThresholdMs: 30000,
+      silenceTickMs: 1000,
       offlineTitleUnreachable: 'No response from server',
       offlineTitleServerError: 'Server returned',
       offlineTitleSilence: 'No heartbeat for 30 seconds',

@@ -16,6 +16,8 @@ import type {
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { healthBadgeStatics } from '../../statics/health-badge/health-badge-statics';
+import { HealthBadgeWidgetProxy } from '../health-badge/health-badge-widget.proxy';
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
 import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
 import { HomeContentWidgetProxy } from '../home-content/home-content-widget.proxy';
@@ -61,6 +63,7 @@ export const AppWidgetProxy = (): {
   clickLogoLink: () => Promise<void>;
   isLogoLinkVisible: () => boolean;
   isQuestQueueBarVisible: () => boolean;
+  isHealthBadgeVisible: () => boolean;
   clearStorage: () => void;
 } => {
   LogoWidgetProxy();
@@ -70,6 +73,7 @@ export const AppWidgetProxy = (): {
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
   RateLimitsStackWidgetProxy();
+  HealthBadgeWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -132,6 +136,7 @@ export const AppWidgetProxy = (): {
     },
     isLogoLinkVisible: (): boolean => screen.queryByTestId('LOGO_LINK') !== null,
     isQuestQueueBarVisible: (): boolean => screen.queryByTestId('QUEST_QUEUE_BAR') !== null,
+    isHealthBadgeVisible: (): boolean => screen.queryByTestId(healthBadgeStatics.testId) !== null,
     clearStorage: (): void => {
       homeProxy.clearStorage();
     },
