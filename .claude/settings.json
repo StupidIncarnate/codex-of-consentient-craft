@@ -260,7 +260,10 @@
       "Bash(kill:*)",
       "Bash(lsof:*)",
       "Bash(ps:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "mcp__dungeonmaster__get-planner-information",
+      "mcp__dungeonmaster__get-worker-information",
+      "mcp__dungeonmaster__get-reviewer-information"
     ],
     "deny": [
       "Bash(sed:*)"
