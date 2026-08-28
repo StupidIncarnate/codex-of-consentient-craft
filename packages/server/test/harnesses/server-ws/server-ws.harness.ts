@@ -14,8 +14,8 @@
  * which harnesses are barred from importing (lint-enforced: "Harnesses and proxies use different
  * mock mechanisms"). So this harness never intercepts the transport at all: it calls the REAL
  * ServerFlow fully unmocked, then finds the listener it just bound by scanning
- * `process._getActiveHandles()` (undocumented but long-relied-on — it's what Jest's own
- * `detectOpenHandles` reads to report a leaked listener) for a `net.Server` whose own
+ * `process._getActiveHandles()` (a real, long-standing Node API that is deliberately
+ * undocumented and absent from `@types/node`) for a `net.Server` whose own
  * `.address().port` matches the free port this harness chose. That IS the handle
  * ServerInitResponder's `nodeWebSocket.injectWebSocket` attached the `/ws` upgrade to, so closing
  * it in afterEach closes the genuine listener.
@@ -83,8 +83,15 @@ const findListeningServerByPort = async (params: {
     return found;
   }
   if (Date.now() >= deadline) {
+    const listeningPorts = activeHandles
+      .filter((handle): handle is Server => handle instanceof Server && handle.listening)
+      .map((handle) => {
+        const address = handle.address();
+        return typeof address === 'object' && address !== null ? String(address.port) : 'unknown';
+      });
     throw new Error(
-      'server-ws harness: no listening server found for the bound port before the deadline',
+      `server-ws harness: no listening server found on port ${String(port)} before the deadline; ` +
+        `active listening servers were on ports [${listeningPorts.join(', ')}]`,
     );
   }
   await new Promise((resolve) => {
@@ -111,7 +118,14 @@ const pollForHealthStatusFrame = async (params: {
     return parseHealthStatusFrame(found);
   }
   if (Date.now() >= deadline) {
-    throw new Error('server-ws harness: no health-status frame arrived before the deadline');
+    const collectedTypes = getMessages().map(
+      (raw) => wsMessageContract.parse(JSON.parse(raw)).type,
+    );
+    throw new Error(
+      'server-ws harness: no health-status frame arrived before the deadline; ' +
+        `this client collected ${String(collectedTypes.length)} frame(s) of type ` +
+        `[${collectedTypes.join(', ')}]`,
+    );
   }
   await new Promise((resolve) => {
     setTimeout(resolve, HEALTH_STATUS_POLL_INTERVAL_MS);
