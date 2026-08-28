@@ -752,3 +752,8 @@ export * from './src/contracts/operation-plan-id/operation-plan-id.stub';
 
 export * from './src/contracts/operation-plan/operation-plan-contract';
 export * from './src/contracts/operation-plan/operation-plan.stub';
+
+// Health Status Contracts (the health-status heartbeat body, shared by the server that emits
+// it and the web channel that renders it)
+export * from './src/contracts/health-status-payload/health-status-payload-contract';
+export * from './src/contracts/health-status-payload/health-status-payload.stub';
