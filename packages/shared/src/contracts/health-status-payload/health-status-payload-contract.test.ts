@@ -32,6 +32,20 @@ describe('healthStatusPayloadContract', () => {
         version: '0.1.0',
       });
     });
+
+    it('EDGE: {uptimeSeconds: 0} => parses a server that has just started', () => {
+      const parsed = healthStatusPayloadContract.parse({
+        status: 'ok',
+        uptimeSeconds: 0,
+        version: '0.1.0',
+      });
+
+      expect(parsed).toStrictEqual({
+        status: 'ok',
+        uptimeSeconds: 0,
+        version: '0.1.0',
+      });
+    });
   });
 
   describe('invalid payloads', () => {
@@ -100,6 +114,16 @@ describe('healthStatusPayloadContract', () => {
           version: '0.1.0',
         }),
       ).toThrow(/Expected number, received string/u);
+    });
+
+    it('INVALID: {version: 42} => throws validation error', () => {
+      expect(() =>
+        healthStatusPayloadContract.parse({
+          status: 'ok',
+          uptimeSeconds: 11520,
+          version: 42,
+        }),
+      ).toThrow(/Expected string, received number/u);
     });
 
     it("EMPTY: {version: ''} => throws validation error", () => {
