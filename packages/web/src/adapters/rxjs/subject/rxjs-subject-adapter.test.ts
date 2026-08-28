@@ -118,4 +118,26 @@ describe('rxjsSubjectAdapter', () => {
     expect(aReceived).toStrictEqual([one]);
     expect(bReceived).toStrictEqual([one, two]);
   });
+
+  it('VALID: {no subscriber} => observed is false', () => {
+    rxjsSubjectAdapterProxy();
+
+    const subject = rxjsSubjectAdapter<WsMessage>();
+
+    expect(subject.observed()).toBe(false);
+  });
+
+  it('VALID: {one live subscriber, then unsubscribed} => observed is true while subscribed and false after', () => {
+    rxjsSubjectAdapterProxy();
+
+    const subject = rxjsSubjectAdapter<WsMessage>();
+    const sub = subject.observable.subscribe(() => undefined);
+    const whileSubscribed = subject.observed();
+
+    sub.unsubscribe();
+    const afterUnsubscribe = subject.observed();
+
+    expect(whileSubscribed).toBe(true);
+    expect(afterUnsubscribe).toBe(false);
+  });
 });

@@ -15,12 +15,14 @@ export const rxjsSubjectAdapterProxy = (): {
     next: (value: T) => void;
     observable: Observable<T>;
     complete: () => void;
+    observed: () => boolean;
   };
 } => ({
   create: <T>(): {
     next: (value: T) => void;
     observable: Observable<T>;
     complete: () => void;
+    observed: () => boolean;
   } => {
     const subject = new Subject<T>();
     return {
@@ -31,6 +33,7 @@ export const rxjsSubjectAdapterProxy = (): {
       complete: (): void => {
         subject.complete();
       },
+      observed: (): boolean => subject.observed,
     };
   },
 });

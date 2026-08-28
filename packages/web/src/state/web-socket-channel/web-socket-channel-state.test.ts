@@ -1,5 +1,6 @@
 import {
   GuildIdStub,
+  HealthStatusPayloadStub,
   ProcessIdStub,
   QuestIdStub,
   SessionIdStub,
@@ -339,6 +340,56 @@ describe('webSocketChannelState', () => {
       expect(captured[0]).toStrictEqual(WardDetailResponseStub({ wardResultId }));
     });
 
+    it('VALID: {health-status ws message} => healthStatus$ emits parsed payload synchronously', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: ReturnType<typeof HealthStatusPayloadStub>[] = [];
+      const sub = webSocketChannelState.healthStatus$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'health-status',
+          payload: HealthStatusPayloadStub({ uptimeSeconds: 11520 }),
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      // Asserted right after deliverMessage returns, with nothing awaited in between — proving
+      // the parse-and-push happens inside the same synchronous dispatchInbound call.
+      expect(captured[0]).toStrictEqual(HealthStatusPayloadStub({ uptimeSeconds: 11520 }));
+    });
+
+    it('INVALID: {health-status ws message missing uptimeSeconds} => healthStatus$ emits nothing', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: ReturnType<typeof HealthStatusPayloadStub>[] = [];
+      const sub = webSocketChannelState.healthStatus$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'health-status',
+          payload: { status: 'ok', version: '0.1.0' },
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(captured).toStrictEqual([]);
+    });
+
     it('INVALID: {malformed json envelope} => no observable emits', () => {
       const proxy = webSocketChannelStateProxy();
       proxy.setupEmpty();
@@ -566,6 +617,56 @@ describe('webSocketChannelState', () => {
       proxy.triggerReconnectFlush();
 
       expect(webSocketChannelState.isConnected()).toBe(false);
+    });
+  });
+
+  describe('health-status subscription tracking', () => {
+    it('VALID: {no subscriber, then one subscribes, then unsubscribes} => hasHealthStatusSubscribers tracks each state', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const beforeSubscribe = webSocketChannelState.hasHealthStatusSubscribers();
+
+      const sub = webSocketChannelState.healthStatus$().subscribe(() => undefined);
+      const whileSubscribed = webSocketChannelState.hasHealthStatusSubscribers();
+
+      sub.unsubscribe();
+      const afterUnsubscribe = webSocketChannelState.hasHealthStatusSubscribers();
+
+      expect(beforeSubscribe).toBe(false);
+      expect(whileSubscribed).toBe(true);
+      expect(afterUnsubscribe).toBe(false);
+    });
+  });
+
+  describe('health-status survives reconnect', () => {
+    it('VALID: {subscriber taken before close} => receives the first health-status frame delivered after reconnect', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: ReturnType<typeof HealthStatusPayloadStub>[] = [];
+      const sub = webSocketChannelState.healthStatus$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.triggerClose();
+      proxy.triggerReconnect();
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'health-status',
+          payload: HealthStatusPayloadStub({ uptimeSeconds: 11580 }),
+          timestamp: '2025-01-01T00:00:01.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(captured[0]).toStrictEqual(HealthStatusPayloadStub({ uptimeSeconds: 11580 }));
     });
   });
 

@@ -10,13 +10,14 @@
 
 import type {
   GuildId,
+  HealthStatusPayload,
   ProcessId,
   Quest,
   QuestId,
   SessionId,
   WardResult,
 } from '@dungeonmaster/shared/contracts';
-import { wsMessageContract } from '@dungeonmaster/shared/contracts';
+import { healthStatusPayloadContract, wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
 import { rxjsMergeAdapter } from '../../adapters/rxjs/merge/rxjs-merge-adapter';
@@ -62,6 +63,7 @@ const internalState: {
   dispatchStateChangedSubject: SubjectAdapter<undefined>;
   wardDetailResponseSubject: SubjectAdapter<WardDetailResponse>;
   opensSubject: SubjectAdapter<undefined>;
+  healthStatusSubject: SubjectAdapter<HealthStatusPayload>;
 } = {
   socket: null,
   url: null,
@@ -78,6 +80,7 @@ const internalState: {
   dispatchStateChangedSubject: rxjsSubjectAdapter<undefined>(),
   wardDetailResponseSubject: rxjsSubjectAdapter<WardDetailResponse>(),
   opensSubject: rxjsSubjectAdapter<undefined>(),
+  healthStatusSubject: rxjsSubjectAdapter<HealthStatusPayload>(),
 };
 
 export const webSocketChannelState = {
@@ -186,6 +189,10 @@ export const webSocketChannelState = {
     if (envelope.data.type === 'dispatch-state-changed') {
       internalState.dispatchStateChangedSubject.next(undefined);
     }
+    if (envelope.data.type === 'health-status') {
+      const payload = healthStatusPayloadContract.safeParse(envelope.data.payload);
+      if (payload.success) internalState.healthStatusSubject.next(payload.data);
+    }
   },
 
   isConnected: (): boolean => internalState.isOpen,
@@ -207,6 +214,10 @@ export const webSocketChannelState = {
     internalState.dispatchStateChangedSubject.observable,
   wardDetailResponse$: (): ChannelObservable<WardDetailResponse> =>
     internalState.wardDetailResponseSubject.observable,
+  healthStatus$: (): ChannelObservable<HealthStatusPayload> =>
+    internalState.healthStatusSubject.observable,
+
+  hasHealthStatusSubscribers: (): boolean => internalState.healthStatusSubject.observed(),
 
   opens$: (): ChannelObservable<undefined> =>
     rxjsMergeAdapter<undefined>({

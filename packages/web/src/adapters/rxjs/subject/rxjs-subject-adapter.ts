@@ -15,6 +15,7 @@ export const rxjsSubjectAdapter = <T>(): {
   next: (value: T) => void;
   observable: Observable<T>;
   complete: () => void;
+  observed: () => boolean;
 } => {
   const subject = new Subject<T>();
   return {
@@ -25,5 +26,6 @@ export const rxjsSubjectAdapter = <T>(): {
     complete: (): void => {
       subject.complete();
     },
+    observed: (): boolean => subject.observed,
   };
 };
