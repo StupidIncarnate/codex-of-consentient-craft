@@ -1,7 +1,16 @@
-import { HealthStatusPayloadStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { screen } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
+import {
+  DispatchStateStub,
+  HealthStatusPayloadStub,
+  QuestIdStub,
+} from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
 import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
 import { useHealthStatusBinding } from '../../bindings/use-health-status/use-health-status-binding';
@@ -10,7 +19,9 @@ import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-q
 import { useRateLimitsBinding } from '../../bindings/use-rate-limits/use-rate-limits-binding';
 import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
+import { healthBadgeStatics } from '../../statics/health-badge/health-badge-statics';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
+import { AppWidget } from './app-widget';
 
 describe('shared websocket connection', () => {
   it('VALID: {chat + queue + rate-limits + health bindings mounted together} => exactly one WebSocket is opened', async () => {
@@ -134,5 +145,104 @@ describe('shared websocket connection', () => {
     // After Phase 1, all four bindings share one WebSocket connection via the
     // singleton webSocketChannelState — exactly one constructor call is expected.
     expect(socketConstructions).toStrictEqual([true]);
+  });
+});
+
+describe('health badge rendered in the app shell', () => {
+  it('VALID: {mount, then one health-status frame} => badge carries the testid, the seed is exactly one request with no query string, and the frame moves the rendered text from ONLINE 3h 12m to ONLINE 3h 13m with no further request', async () => {
+    // Rendering the WHOLE AppWidget mounts four HTTP-backed bindings (queue, rate-limits,
+    // dispatch-toggle inside the queue bar, and health), and MSW runs with
+    // onUnhandledRequest:'error' — every one of the four needs a handler or the render throws,
+    // even though the empty queue keeps DispatchToggleWidget from ever actually mounting.
+    const queueEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.questsQueue,
+    });
+    queueEndpoint.resolves({ data: { entries: [] } });
+
+    const rateLimitsEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.rateLimits,
+    });
+    rateLimitsEndpoint.resolves({ data: { snapshot: null } });
+
+    const dispatchEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.orchestrationDispatch,
+    });
+    dispatchEndpoint.resolves({ data: { state: DispatchStateStub({ mode: 'paused' }) } });
+
+    const healthStatusEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.healthStatus,
+    });
+    healthStatusEndpoint.resolves({
+      data: HealthStatusPayloadStub({ status: 'ok', uptimeSeconds: 11520, version: '1.4.0' }),
+    });
+
+    // Address is the URL (fetchGetWithStatusAdapter's first arg) — a query string appended to
+    // the seed request would fail this exact-string address and the callsMatching read below
+    // would come back empty, which MSW's own getRequestCount() cannot tell apart from a
+    // no-query-string request since MSW matches a handler URL irrespective of search params.
+    const fetchSpy = registerSpyOn({ object: globalThis, method: 'fetch', passthrough: true });
+
+    // Reset the channel singleton so a stale connection left by an earlier test in this file
+    // cannot leak into this case. dispatchInbound below never depends on isOpen/connect, so no
+    // WebSocket spy or connect() call is needed — only the subject-push path is under test.
+    webSocketChannelState.clear();
+
+    // Trivial child route so useGuildsBinding (and its GET /api/guilds call) never mounts — the
+    // health badge's seed/heartbeat path is what this case proves, not the guild list.
+    await testingLibraryActAsyncAdapter({
+      callback: async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route element={<AppWidget />}>
+                  <Route path="/" element={<div data-testid="TRIVIAL_ROUTE" />} />
+                </Route>
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
+      },
+    });
+
+    await testingLibraryWaitForAdapter({
+      callback: () => {
+        expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('ONLINE 3h 12m');
+      },
+    });
+
+    expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('ONLINE 3h 12m');
+
+    const seedFetchUrls = fetchSpy
+      .callsMatching([webConfigStatics.api.routes.healthStatus])
+      .map((call) => call[0]);
+
+    expect(seedFetchUrls).toStrictEqual([webConfigStatics.api.routes.healthStatus]);
+
+    // dispatchInbound is the PUBLIC member web-socket-channel-state exposes for exactly this: a
+    // parsed frame object, pushed straight into the health-status subject the badge already
+    // subscribed to at mount — no proxy needed to reach it.
+    await testingLibraryActAsyncAdapter({
+      callback: async () => {
+        webSocketChannelState.dispatchInbound({
+          type: 'health-status',
+          payload: HealthStatusPayloadStub({
+            status: 'ok',
+            uptimeSeconds: 11580,
+            version: '1.4.0',
+          }),
+          timestamp: '2026-07-28T10:00:00.000Z',
+        });
+        await Promise.resolve();
+      },
+    });
+
+    expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('ONLINE 3h 13m');
+    expect(healthStatusEndpoint.getRequestCount()).toBe(1);
   });
 });
