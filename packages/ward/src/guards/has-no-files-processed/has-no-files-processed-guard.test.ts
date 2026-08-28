@@ -1,4 +1,5 @@
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
+import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
 import { hasNoFilesProcessedGuard } from './has-no-files-processed-guard';
@@ -157,6 +158,118 @@ describe('hasNoFilesProcessedGuard', () => {
       });
 
       expect(hasNoFilesProcessedGuard({ wardResult })).toBe(false);
+    });
+  });
+
+  // A CRASHED CHILD MEASURED NOTHING, so its zero is a placeholder rather than a reading.
+  // `commandRunLayerChildCrashBroker` synthesises a failing ProjectResult with `filesCount` left at
+  // its contract default of 0 for a child ward that died without writing a readable result. Read
+  // literally, that zero printed "they are on disk, and every file-scoped check in this run reported
+  // 0 files" underneath the crash report, sending the reader to inspect paths that were never the
+  // problem.
+  describe('packages whose child ward crashed', () => {
+    it('VALID: {lint has one crashed project and nothing else} => returns false', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [ProjectResultStub({ status: 'fail', filesCount: 0 })],
+          }),
+        ],
+      });
+
+      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(false);
+    });
+
+    it('VALID: {every file-scoped check holds only crashed projects} => returns false', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [ProjectResultStub({ status: 'fail', filesCount: 0 })],
+          }),
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [ProjectResultStub({ status: 'fail', filesCount: 0 })],
+          }),
+        ],
+      });
+
+      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(false);
+    });
+
+    // A CRASH DOES NOT BUY THE REST OF THE RUN AN ALIBI. One package died and another really did
+    // look at the scope and find nothing in it — two separate problems, and the second is still
+    // true, so it is still reported.
+    it('VALID: {lint has one crashed project and one that really processed nothing} => returns true', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({ status: 'fail', filesCount: 0 }),
+              ProjectResultStub({ status: 'pass', filesCount: 0 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(true);
+    });
+
+    it('VALID: {unit holds only a crashed project, lint really processed nothing} => returns true', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({ checkType: 'lint', status: 'pass', projectResults: [] }),
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [ProjectResultStub({ status: 'fail', filesCount: 0 })],
+          }),
+        ],
+      });
+
+      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(true);
+    });
+
+    it('VALID: {lint has one crashed project and one that processed a file} => returns false', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({ status: 'fail', filesCount: 0 }),
+              ProjectResultStub({ status: 'pass', filesCount: 1 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(false);
+    });
+
+    // A REAL FAILURE IS A MEASUREMENT. eslint reporting errors on a file it opened is a project
+    // that processed something, so the check keeps counting — only the finding-less fail of a dead
+    // process is dropped.
+    it('VALID: {lint failed with errors and processed nothing} => returns true', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({ status: 'fail', filesCount: 0, errors: [ErrorEntryStub()] }),
+            ],
+          }),
+        ],
+      });
+
+      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(true);
     });
   });
 

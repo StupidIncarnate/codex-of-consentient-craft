@@ -233,6 +233,12 @@ Three things make that predicate survive the runs it must not redden:
   make the answer `false` for every run that includes typecheck.
 - **A skipped check is not evidence.** Jest's "No tests found" becomes `status: 'skip'`, and a non-e2e-eligible package
   skips e2e outright. A run left with no file-scoped check at all (`--only typecheck`) therefore does not fail.
+- **A crashed project is not evidence either.** `commandRunLayerChildCrashBroker` synthesises a failing `ProjectResult`
+  whose `filesCount` is the contract default 0, so a child ward that died would otherwise print the NO CHECK PROCESSED
+  block under its own crash report — two true statements, the wrong cause. `hasNoFilesProcessedGuard` drops crashed
+  results via `isCrashedProjectResultGuard`, per project result: a package that really did look at the scope and find
+  nothing still counts, and only a check whose EVERY project result crashed loses its vote. An empty `projectResults`
+  keeps its vote, because no child spawning at all is the shape the guard exists for.
 - **The answer is run-level, not per-path.** `--findRelatedTests` reports the related TEST file rather than the source
   file it was handed, and `ProjectResult` records `filesCount` (a count) plus `onlyProcessed` (a set difference against
   discovery) — never the processed list. One check processing anything clears the whole scope.

@@ -342,5 +342,42 @@ describe('commandRunBroker', () => {
         exitCalls: [],
       });
     });
+
+    // A CRASH IS A DIFFERENT CAUSE FROM AN UNCHECKED PATH, and it used to be reported as both: the
+    // ProjectResult `commandRunLayerChildCrashBroker` synthesises for a dead child carries
+    // `filesCount` 0, so the caller-typed scope above fired too and printed "they are on disk, and
+    // every file-scoped check in this run reported 0 files" underneath the crash report. Both
+    // sentences were true and the cause was wrong. Pinning the WHOLE stdout list is what proves the
+    // unprocessed-path block is absent rather than merely reworded.
+    it('VALID: {caller-typed path scope and a crashed child} => reports the crash and no unprocessed-path guidance', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackageCrash();
+      proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/index.ts' }) });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'], passthrough: ['src/index.ts'] });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: process.exitCode,
+      }).toStrictEqual({
+        stdoutCalls: [
+          [
+            'run: 1739625600000-a38e',
+            'lint:      FAIL  0 files run',
+            '',
+            '--- lint ---',
+            'test-pkg',
+            '  (crash) []',
+            '',
+          ].join('\n'),
+          '\nFull error details: npm run ward -- detail 1739625600000-a38e <filePath>\n',
+        ],
+        exitCode: 2,
+      });
+    });
   });
 });
