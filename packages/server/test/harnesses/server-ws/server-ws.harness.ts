@@ -27,6 +27,9 @@
  * client.send(JSON.stringify({ type: 'subscribe-quest', questId }));
  * const frame = await client.waitForHealthStatusFrame({ timeoutMs: 15000 });
  * // frame.payload.uptimeSeconds / .version / frame.timestamp
+ * const records = await client.waitForHealthStatusFrames({ count: 3, timeoutMs: 35000 });
+ * // records[i].raw / .arrivedAt / .isBinary — the exact snapshot held the instant the count-th
+ * // health-status message existed, for asserting emit spacing, uptime advance and wire shape
  */
 import { Server } from 'net';
 
@@ -133,6 +136,68 @@ const pollForHealthStatusFrame = async (params: {
   return pollForHealthStatusFrame({ getMessages, deadline });
 };
 
+// One inbound message this client's socket received: its raw text (already
+// contentTextContract-validated), the wall-clock instant it arrived (a Date built inside the
+// 'message' handler itself, so it reflects ARRIVAL rather than whenever a caller later reads it —
+// never a raw number, so this field stays outside ban-primitives' reach), and whether the ws
+// frame carried the binary flag.
+interface WsMessageRecord {
+  raw: ContentText;
+  arrivedAt: Date;
+  isBinary: boolean;
+}
+
+// One collected health-status frame, fully parsed, alongside its WsMessageRecord metadata. A
+// test file may import no contract of its own (enforce-contract-usage-in-tests allows stubs
+// only), so `parsed` — built here, harness-side, off the same trusted parseHealthStatusFrame
+// `waitForHealthStatusFrame` (singular) already uses — is how a caller reads a frame's live
+// type/uptimeSeconds/version/timestamp without ever importing wsMessageContract or
+// healthStatusPayloadContract itself. `raw` stays alongside it for the UNSTRIPPED wire text.
+type HealthStatusFrameRecord = WsMessageRecord & {
+  parsed: ReturnType<typeof parseHealthStatusFrame>;
+};
+
+// Recursive poll (never while(true)) for the Nth health-status frame across this client's WHOLE
+// message history. A silent client (server-flow.integration.test.ts's fixture for this waiter)
+// receives nothing else, so the array this hands back the instant the count-th health-status
+// record exists IS the client's whole history at that instant — callers must use that returned
+// snapshot directly rather than re-reading the client afterwards, where a further heartbeat may
+// already have landed between the wait resolving and the caller's own read. Parsing every
+// currently-held record (not just the health-status-typed ones) into a HealthStatusFrameRecord
+// at that point is deliberate: a stray non-health-status message on this same socket would throw
+// out of `parseHealthStatusFrame` right here, which is the honest failure for a caller that
+// promised a silent client.
+const pollForHealthStatusFrames = async (params: {
+  getRecords: () => readonly WsMessageRecord[];
+  count: number;
+  deadline: number;
+}): Promise<readonly HealthStatusFrameRecord[]> => {
+  const { getRecords, count, deadline } = params;
+  const records = getRecords();
+  const healthStatusCount = records.filter(
+    (record) =>
+      wsMessageContract.parse(JSON.parse(record.raw)).type ===
+      orchestrationEventTypeContract.enum['health-status'],
+  ).length;
+  if (healthStatusCount >= count) {
+    return records.map((record) => ({ ...record, parsed: parseHealthStatusFrame(record.raw) }));
+  }
+  if (Date.now() >= deadline) {
+    const collectedTypes = records.map(
+      (record) => wsMessageContract.parse(JSON.parse(record.raw)).type,
+    );
+    throw new Error(
+      `server-ws harness: only ${String(healthStatusCount)} of ${String(count)} health-status ` +
+        `frames arrived before the deadline; this client collected ${String(collectedTypes.length)} ` +
+        `frame(s) of type [${collectedTypes.join(', ')}]`,
+    );
+  }
+  await new Promise((resolve) => {
+    setTimeout(resolve, HEALTH_STATUS_POLL_INTERVAL_MS);
+  });
+  return pollForHealthStatusFrames({ getRecords, count, deadline });
+};
+
 export const serverWsHarness = (): {
   afterEach: () => Promise<void>;
   start: () => Promise<void>;
@@ -142,6 +207,10 @@ export const serverWsHarness = (): {
     waitForHealthStatusFrame: (params: {
       timeoutMs: number;
     }) => Promise<ReturnType<typeof parseHealthStatusFrame>>;
+    waitForHealthStatusFrames: (params: {
+      count: number;
+      timeoutMs: number;
+    }) => Promise<readonly HealthStatusFrameRecord[]>;
   }>;
 } => {
   let capturedServer: Server | undefined;
@@ -191,11 +260,15 @@ export const serverWsHarness = (): {
       waitForHealthStatusFrame: (params: {
         timeoutMs: number;
       }) => Promise<ReturnType<typeof parseHealthStatusFrame>>;
+      waitForHealthStatusFrames: (params: {
+        count: number;
+        timeoutMs: number;
+      }) => Promise<readonly HealthStatusFrameRecord[]>;
     }> => {
       if (boundPort === undefined) {
         throw new Error('server-ws harness: call start() before openClient()');
       }
-      const messages: ContentText[] = [];
+      const records: WsMessageRecord[] = [];
       // ServerInitResponder binds via environmentStatics.hostname ('dungeonmaster.localhost'),
       // not '127.0.0.1' — connecting to a plain loopback literal here hits ECONNREFUSED because
       // it is a different address than the one the OS actually bound the listener to.
@@ -213,22 +286,38 @@ export const serverWsHarness = (): {
         });
       });
 
-      socket.on('message', (data) => {
-        messages.push(contentTextContract.parse(String(data)));
+      socket.on('message', (data, isBinary) => {
+        records.push({
+          raw: contentTextContract.parse(String(data)),
+          arrivedAt: new Date(),
+          isBinary,
+        });
       });
 
       return {
         send: (data: string): void => {
           socket.send(data);
         },
-        getMessages: (): readonly ContentText[] => messages,
+        getMessages: (): readonly ContentText[] => records.map((record) => record.raw),
         waitForHealthStatusFrame: async ({
           timeoutMs,
         }: {
           timeoutMs: number;
         }): Promise<ReturnType<typeof parseHealthStatusFrame>> =>
           pollForHealthStatusFrame({
-            getMessages: () => messages,
+            getMessages: () => records.map((record) => record.raw),
+            deadline: Date.now() + timeoutMs,
+          }),
+        waitForHealthStatusFrames: async ({
+          count,
+          timeoutMs,
+        }: {
+          count: number;
+          timeoutMs: number;
+        }): Promise<readonly HealthStatusFrameRecord[]> =>
+          pollForHealthStatusFrames({
+            getRecords: () => records,
+            count,
             deadline: Date.now() + timeoutMs,
           }),
       };

@@ -63,5 +63,95 @@ describe('ServerFlow', () => {
 
       expect([silentFrame, subscribedFrame]).toStrictEqual([expectedFrame, expectedFrame]);
     }, 20000);
+
+    it('VALID: {one real client, silent, held open across the emit interval} => collects three health-status frames spaced ten seconds apart, each with a strictly higher uptime, and an unstripped wire envelope', async () => {
+      await serverWs.start();
+
+      // A single SILENT client: sending anything (e.g. subscribe-quest) earns a reply frame of
+      // its own before any heartbeat, which would break check-frame-crosses-wire's "nothing but
+      // three health-status messages" assertion below (NOTES 6).
+      const client = await serverWs.openClient();
+
+      // `waitForHealthStatusFrames` hands back the exact snapshot it held the instant the
+      // third health-status frame existed — every assertion below reads THAT snapshot, never a
+      // fresh call to the client, so a fourth heartbeat landing after the wait cannot inflate
+      // what these assertions see (hazard d).
+      const records = await client.waitForHealthStatusFrames({ count: 3, timeoutMs: 35000 });
+      // noUncheckedIndexedAccess makes every index read `T | undefined`; `!` is how this repo's
+      // own test files assert an index a prior wait already proved exists (e.g.
+      // mcp-server-flow.integration.test.ts's `firstContent!.text`) — the ESLint config turns
+      // `no-non-null-assertion` off for `**/*.test.ts` for exactly this.
+      const first = records[0]!;
+      const second = records[1]!;
+      const third = records[2]!;
+
+      // health-badge:observable:check-emit-interval — the whole-second gaps between the three
+      // RECORDED ARRIVAL instants are exactly ten seconds each, read off `arrivedAt` (never off
+      // each frame's own server-stamped `timestamp`, which a batched flush would satisfy —
+      // DECISIONS).
+      expect([
+        Math.round((second.arrivedAt.getTime() - first.arrivedAt.getTime()) / 1000),
+        Math.round((third.arrivedAt.getTime() - second.arrivedAt.getTime()) / 1000),
+      ]).toStrictEqual([10, 10]);
+
+      // health-badge:observable:check-emit-payload-advances — each frame's raw text,
+      // JSON.parsed and compared WHOLE against exactly {type, payload, timestamp} built from
+      // that frame's own live uptime/version (neither can be pinned to a literal), proves the
+      // payload carries exactly {status, uptimeSeconds, version} and nothing else; the second
+      // half is uptimeSeconds strictly increasing frame over frame with no fixed delta —
+      // Math.floor(process.uptime()) across a 10 000ms interval can land on 9, 10 or 11
+      // depending on where the ticks fall inside a second (DECISIONS).
+      const firstRaw: unknown = JSON.parse(first.raw);
+      const secondRaw: unknown = JSON.parse(second.raw);
+      const thirdRaw: unknown = JSON.parse(third.raw);
+
+      expect(firstRaw).toStrictEqual(
+        WsMessageStub({
+          type: OrchestrationEventTypeStub({ value: 'health-status' }),
+          payload: HealthStatusPayloadStub({
+            uptimeSeconds: first.parsed.payload.uptimeSeconds,
+            version: first.parsed.payload.version,
+          }),
+          timestamp: first.parsed.timestamp,
+        }),
+      );
+      expect(secondRaw).toStrictEqual(
+        WsMessageStub({
+          type: OrchestrationEventTypeStub({ value: 'health-status' }),
+          payload: HealthStatusPayloadStub({
+            uptimeSeconds: second.parsed.payload.uptimeSeconds,
+            version: second.parsed.payload.version,
+          }),
+          timestamp: second.parsed.timestamp,
+        }),
+      );
+      expect(thirdRaw).toStrictEqual(
+        WsMessageStub({
+          type: OrchestrationEventTypeStub({ value: 'health-status' }),
+          payload: HealthStatusPayloadStub({
+            uptimeSeconds: third.parsed.payload.uptimeSeconds,
+            version: third.parsed.payload.version,
+          }),
+          timestamp: third.parsed.timestamp,
+        }),
+      );
+      expect([
+        second.parsed.payload.uptimeSeconds > first.parsed.payload.uptimeSeconds,
+        third.parsed.payload.uptimeSeconds > second.parsed.payload.uptimeSeconds,
+      ]).toStrictEqual([true, true]);
+
+      // health-badge:observable:check-frame-crosses-wire — the three whole-envelope
+      // comparisons above already prove the RAW text carries exactly {type, payload,
+      // timestamp}; what remains is the transport-level half: every message reached this
+      // client as a non-binary text frame, and — since both comparisons below are against the
+      // WHOLE `records` array rather than three plucked entries — it received nothing but these
+      // three health-status messages, no fourth member either way.
+      expect(records.map((record) => record.isBinary)).toStrictEqual([false, false, false]);
+      expect(records.map((record) => record.parsed.type)).toStrictEqual([
+        'health-status',
+        'health-status',
+        'health-status',
+      ]);
+    }, 60000);
   });
 });

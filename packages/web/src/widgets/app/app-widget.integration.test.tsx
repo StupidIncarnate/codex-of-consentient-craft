@@ -10,6 +10,7 @@ import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
 import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
@@ -244,5 +245,307 @@ describe('health badge rendered in the app shell', () => {
 
     expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('ONLINE 3h 13m');
     expect(healthStatusEndpoint.getRequestCount()).toBe(1);
+  });
+});
+
+describe('badge crosses a real socket drop and comes back on a frame, not a click', () => {
+  it('VALID: {socket closes, 30s of silence elapses, a second socket reconnects and delivers a frame} => badge moves ONLINE -> OFFLINE -> a DIFFERENT ONLINE, through a real second socket, with exactly one seed request the whole time', async () => {
+    // Rendering the WHOLE AppWidget mounts four HTTP-backed bindings, and MSW runs with
+    // onUnhandledRequest:'error' — every one of the four needs a handler or the render throws.
+    const queueEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.questsQueue,
+    });
+    queueEndpoint.resolves({ data: { entries: [] } });
+
+    const rateLimitsEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.rateLimits,
+    });
+    rateLimitsEndpoint.resolves({ data: { snapshot: null } });
+
+    const dispatchEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.orchestrationDispatch,
+    });
+    dispatchEndpoint.resolves({ data: { state: DispatchStateStub({ mode: 'paused' }) } });
+
+    // Staged as a failure so the badge can NEVER read an ONLINE string off the seed itself —
+    // every ONLINE reading in this case is then attributable to a frame and to nothing else.
+    const healthStatusEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.healthStatus,
+    });
+    healthStatusEndpoint.responds({ status: 500, body: { error: 'server exploded' } });
+
+    // The fetch spy, not MSW's own request counter, is what proves "no retry and no second seed"
+    // below — an MSW counter depends on a response having settled, which this case never awaits.
+    const fetchSpy = registerSpyOn({ object: globalThis, method: 'fetch', passthrough: true });
+
+    webSocketChannelState.clear();
+
+    // Captured straight off each fake socket's onmessage/onclose SETTER as the real adapter code
+    // assigns them, rather than stored as a tracked object — the reconnect is proven by these two
+    // handlers coming from two DIFFERENT `WebSocket` constructions, addressed via onceFor/calledWith
+    // below, never by re-reading a shared array. Defaulted to a no-op (never to null) so reading them
+    // later needs no nullable narrowing — a `let` reassigned only from inside an uninvoked closure is
+    // exactly the shape that trips TS's flow analysis into narrowing a nullable capture to `never`.
+    let firstOnMessage: (event: MessageEvent) => void = (): void => undefined;
+    let firstOnClose: () => void = (): void => undefined;
+    let secondOnMessage: (event: MessageEvent) => void = (): void => undefined;
+    let socketConstructionCount = 0;
+
+    const wsSpy = registerSpyOn({ object: globalThis as never, method: 'WebSocket' });
+    (globalThis.WebSocket as unknown as { OPEN: typeof WebSocket.OPEN }).OPEN = WebSocket.OPEN;
+
+    // The FIRST construction only — onceFor is what lets this address hand back a DIFFERENT fake
+    // socket than every construction after it, without a conditional inside the implementation.
+    wsSpy.onceFor([WsUrlStub({ value: 'ws://localhost/ws' })]).implement((() => {
+      socketConstructionCount += 1;
+      return {
+        set onopen(handler: () => void) {
+          handler();
+        },
+        get onopen(): () => void {
+          return () => {};
+        },
+        set onmessage(handler: (event: MessageEvent) => void) {
+          firstOnMessage = handler;
+        },
+        get onmessage(): (event: MessageEvent) => void {
+          return () => {};
+        },
+        set onclose(handler: () => void) {
+          firstOnClose = handler;
+        },
+        get onclose(): () => void {
+          return () => {};
+        },
+        readyState: WebSocket.OPEN as typeof WebSocket.OPEN,
+        close: (): void => {},
+        send: (): void => {},
+      };
+    }) as never);
+
+    // Every construction after the first — the channel's own reconnect lands here.
+    wsSpy.calledWith([WsUrlStub({ value: 'ws://localhost/ws' })]).implement((() => {
+      socketConstructionCount += 1;
+      return {
+        set onopen(handler: () => void) {
+          handler();
+        },
+        get onopen(): () => void {
+          return () => {};
+        },
+        set onmessage(handler: (event: MessageEvent) => void) {
+          secondOnMessage = handler;
+        },
+        get onmessage(): (event: MessageEvent) => void {
+          return () => {};
+        },
+        onclose: null as (() => void) | null,
+        readyState: WebSocket.OPEN as typeof WebSocket.OPEN,
+        close: (): void => {},
+        send: (): void => {},
+      };
+    }) as never);
+
+    // connect() constructs the first socket synchronously, before the render even starts — the
+    // channel's connection lifecycle is independent of AppWidget, which never calls connect itself.
+    webSocketChannelState.connect({ url: WsUrlStub({ value: 'ws://localhost/ws' }) });
+
+    // Fake clock installed BEFORE render, real timers restored before the case ends, inline — no
+    // hooks. Modern fake timers fake Date too, so the binding's own Date.now()/toISOString() stamps
+    // move with it, which is what lands the 30-second silence boundary exactly.
+    jest.useFakeTimers({ now: new Date('2026-07-28T10:00:00.000Z').getTime() });
+
+    await testingLibraryActAsyncAdapter({
+      callback: async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route element={<AppWidget />}>
+                  <Route path="/" element={<div data-testid="TRIVIAL_ROUTE" />} />
+                </Route>
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
+      },
+    });
+
+    testingLibraryActAdapter({
+      callback: () => {
+        firstOnMessage({
+          data: JSON.stringify({
+            type: 'health-status',
+            payload: HealthStatusPayloadStub({
+              status: 'ok',
+              uptimeSeconds: 11520,
+              version: '1.4.0',
+            }),
+            timestamp: '2026-07-28T10:00:00.000Z',
+          }),
+        } as MessageEvent);
+      },
+    });
+
+    expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('ONLINE 3h 12m');
+
+    // The drop: called directly, not wrapped in act — it only flips plain module state on the
+    // channel singleton (isOpen, socket, a scheduled reconnect timer), never a React state setter.
+    firstOnClose();
+
+    // ONE advance fires both: the channel's OWN reconnect at t+3000 (constructing socket #2 through
+    // the same spy) and the badge's silence flip at t+30000 — no openConnection() call from the test.
+    testingLibraryActAdapter({
+      callback: () => {
+        jest.advanceTimersByTime(30000);
+      },
+    });
+
+    expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('OFFLINE');
+    expect(socketConstructionCount).toBe(2);
+
+    // The restoring frame arrives through the SECOND recorded socket, with a DIFFERENT uptimeSeconds
+    // than frame one — proving this ONLINE reading came from the post-reconnect frame and not a stale
+    // re-render of the first.
+    testingLibraryActAdapter({
+      callback: () => {
+        secondOnMessage({
+          data: JSON.stringify({
+            type: 'health-status',
+            payload: HealthStatusPayloadStub({
+              status: 'ok',
+              uptimeSeconds: 11580,
+              version: '1.4.0',
+            }),
+            timestamp: '2026-07-28T10:00:30.000Z',
+          }),
+        } as MessageEvent);
+      },
+    });
+
+    expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('ONLINE 3h 13m');
+
+    jest.useRealTimers();
+
+    const seedFetchUrls = fetchSpy
+      .callsMatching([webConfigStatics.api.routes.healthStatus])
+      .map((call) => call[0]);
+
+    expect(seedFetchUrls).toStrictEqual([webConfigStatics.api.routes.healthStatus]);
+  });
+
+  it('VALID: {one frame delivered inside a synchronous act} => badge text updates in that same tick, under 1 second of wall-clock time', async () => {
+    const queueEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.questsQueue,
+    });
+    queueEndpoint.resolves({ data: { entries: [] } });
+
+    const rateLimitsEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.rateLimits,
+    });
+    rateLimitsEndpoint.resolves({ data: { snapshot: null } });
+
+    const dispatchEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.orchestrationDispatch,
+    });
+    dispatchEndpoint.resolves({ data: { state: DispatchStateStub({ mode: 'paused' }) } });
+
+    // A 500 seed means the OFFLINE reading below cannot be the "checking" branch settling lucky —
+    // it is the seed's own failure branch, and the ONLINE reading after it can only be the frame.
+    const healthStatusEndpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: webConfigStatics.api.routes.healthStatus,
+    });
+    healthStatusEndpoint.responds({ status: 500, body: { error: 'server exploded' } });
+
+    webSocketChannelState.clear();
+
+    let firstOnMessage: (event: MessageEvent) => void = (): void => undefined;
+
+    const wsSpy = registerSpyOn({ object: globalThis as never, method: 'WebSocket' });
+    (globalThis.WebSocket as unknown as { OPEN: typeof WebSocket.OPEN }).OPEN = WebSocket.OPEN;
+
+    wsSpy.calledWith([WsUrlStub({ value: 'ws://localhost/ws' })]).implement((() => {
+      return {
+        set onopen(handler: () => void) {
+          handler();
+        },
+        get onopen(): () => void {
+          return () => {};
+        },
+        set onmessage(handler: (event: MessageEvent) => void) {
+          firstOnMessage = handler;
+        },
+        get onmessage(): (event: MessageEvent) => void {
+          return () => {};
+        },
+        onclose: null as (() => void) | null,
+        readyState: WebSocket.OPEN as typeof WebSocket.OPEN,
+        close: (): void => {},
+        send: (): void => {},
+      };
+    }) as never);
+
+    webSocketChannelState.connect({ url: WsUrlStub({ value: 'ws://localhost/ws' }) });
+
+    // Real timers throughout this case — the claim under test is wall-clock elapsed time, which a
+    // faked clock cannot measure.
+    await testingLibraryActAsyncAdapter({
+      callback: async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route element={<AppWidget />}>
+                  <Route path="/" element={<div data-testid="TRIVIAL_ROUTE" />} />
+                </Route>
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
+      },
+    });
+
+    await testingLibraryWaitForAdapter({
+      callback: () => {
+        expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('OFFLINE');
+      },
+    });
+
+    const beforeFrameAt = Date.now();
+
+    // The expect immediately below reads the badge with NOTHING awaited between the synchronous
+    // act and the read — an `await waitFor` here would hide whether the move took 5ms or 5s, which
+    // is the entire content of "within 1 second".
+    testingLibraryActAdapter({
+      callback: () => {
+        firstOnMessage({
+          data: JSON.stringify({
+            type: 'health-status',
+            payload: HealthStatusPayloadStub({
+              status: 'ok',
+              uptimeSeconds: 11520,
+              version: '1.4.0',
+            }),
+            timestamp: '2026-07-28T10:00:00.000Z',
+          }),
+        } as MessageEvent);
+      },
+    });
+
+    expect(screen.getByTestId(healthBadgeStatics.testId).textContent).toBe('ONLINE 3h 12m');
+
+    const elapsedMs = Date.now() - beforeFrameAt;
+
+    expect(elapsedMs).toBeLessThan(1000);
   });
 });
