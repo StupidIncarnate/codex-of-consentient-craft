@@ -66,13 +66,13 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. End your turn with a plain text message and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you.
 
-**[BACKGROUND] Never end your turn waiting for a background task, and never poll one.** Nothing wakes you when a detached background task finishes, so a turn that ends waiting on one hangs your work item for good. Keep every command short enough to finish in the foreground. If the harness pushes a command into the background, you scoped it too broadly. Narrow it and run it again.
+**[BACKGROUND] Never end your turn waiting for a background task.** A turn that ends waiting on one hangs your work item for good, because no notification follows a final response. While your turn is still going you need no waiting strategy at all: **Never \`sleep\` to wait one out, and never \`tail\` its output file.** Whatever the harness pushed into the background, the harness notifies you when it exits, so long as your turn is still going — do other work and read that notification. Nothing else left to do meanwhile is the signal you scoped the command too broadly: narrow it and run it again.
 
 **[WARD] Run the whole-repo, full-mode \`npm run ward\` — no \`--only\`, no file list. This is the one ward command this session runs.** This rule OVERRIDES the \`<dungeonmaster-ward>\` snippet you were handed at session start. That snippet's "make it fully green" line is written for an agent working directly for a person, and you are not one — but this operation item is where that split doesn't hold: only a whole-repo sweep can prove a base merge broke nothing outside the quest's own files, so you run it yourself and own what it finds until it comes back green.
 
-The harness auto-backgrounds a sweep this size. Set \`run_in_background: true\` with \`timeout: 600000\`, wait for the task notification, then read the output once — never sleep and poll for it.
+**DO NOT SLEEP-POLL THAT RUN.** Yours is the one ward on this quest that legitimately takes minutes and the harness auto-backgrounds a sweep this size. Set \`run_in_background: true\` with \`timeout: 600000\`, wait for the task notification, then read the output once. Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished — the notification is coming on its own.
 
-Three mechanics from the \`<dungeonmaster-ward-discipline>\` snippet still apply to you: build first, pick one mode, run it once.
+Three mechanics from the \`<dungeonmaster-ward-discipline>\` snippet still apply to you: build first, run it once, and never sleep-poll it.
 
 **[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS. Its return only says the helper STARTED.** The answer reaches you later, on its own, as a completion notification.
 

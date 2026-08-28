@@ -335,6 +335,13 @@ to your parent and your planner.
    case of yours to red, and step 12 says what its \`EVIDENCE:\` line carries instead. **Never
    manufacture a red for a case you did not write.**
 
+   **Run them the one way you run anything: scoped ward over the paths you just wrote.**
+   \`npm run ward -- -- ./packages/<pkg>/src/flows/<name>/<name>-flow.integration.test.ts\` — the same
+   command shape your ward step spends over your whole \`FILES\`, narrowed here to what you are proving.
+   **Never the \`run-ward\` MCP tool for this.** Its \`mode: 'changed'\` reads like "the files I changed"
+   and is not: it is the dispatcher's quest gate, it grades the whole branch, and the red you WANTED
+   here lands on your parent's work item as that item's verdict.
+
    Each test you wrote needs a **witnessed red**, and \`EVIDENCE\` carries it per unit alongside the
    other four items:
 

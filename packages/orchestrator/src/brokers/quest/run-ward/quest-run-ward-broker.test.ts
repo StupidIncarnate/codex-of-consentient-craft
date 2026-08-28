@@ -34,6 +34,13 @@ const FLOWRIDER_OP_ID = '22222222-2222-4222-8222-222222222222';
 const WARD_WORK_ITEM_ID = 'a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5';
 const PENDING_WORK_ITEM_ID = 'b2b2b2b2-c3c3-d4d4-e5e5-f6f6f6f6f6f6';
 
+// A LIVE codeweaver session — the shape a worker minion hands over when it calls run-ward with its
+// parent's workItemId to capture red-phase TDD evidence.
+const CODEWEAVER_OP_ID = '33333333-3333-4333-8333-333333333333';
+const CODEWEAVER_WORK_ITEM_ID = '44444444-4444-4444-8444-444444444444';
+const CODEWEAVER_STARTED_AT = '2024-01-15T09:07:52.000Z';
+const CODEWEAVER_REFUSAL_MESSAGE = `run-ward refused: work item ${CODEWEAVER_WORK_ITEM_ID} on quest add-auth has role "codeweaver", not "ward". run-ward is the dispatcher's tool for a ward work item: it stamps the named item in_progress, resets its startedAt, and writes ward's exit code onto it as a terminal status — so aimed at any other item it marks a session that is still running failed with errorMessage "ward_failed". To capture ward evidence for your own chunk, run ward yourself from Bash instead: npm run ward -- -- <your own files>`;
+
 const WARD_DETAIL_JSON = '{"checks":[]}';
 
 describe('questRunWardBroker', () => {
@@ -929,6 +936,112 @@ describe('questRunWardBroker', () => {
           ],
         }),
       );
+    });
+  });
+
+  // The broker applies ward's verdict to whatever work item the call names. Both dispatchers only
+  // ever name a `ward` item, so a call naming anything else came from an agent that reached for the
+  // MCP tool by hand — and letting it through terminalizes a session that is still running.
+  describe('target work item must be a ward item', () => {
+    it('VALID: {work item role: ward} => spawns ward and terminalizes that item, so the dispatcher is never refused', async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupQuest({
+        quest: QuestStub({
+          id: questId,
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({
+              id: WARD_OP_ID,
+              role: 'ward',
+              text: 'verify build (changed)',
+              status: 'in_progress',
+              locked: true,
+              wardMode: 'changed',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: workItemId,
+              role: 'ward',
+              status: 'pending',
+              spawnerType: 'command',
+              relatedDataItems: [`operations/${WARD_OP_ID}`],
+              wardMode: 'changed',
+            }),
+          ],
+        }),
+      });
+      proxy.wardExits({
+        exitCode: ExitCodeStub({ value: 0 }),
+        runId: FileNameStub({ value: '1739625600000-a3f1' }),
+        detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
+      });
+
+      await questRunWardBroker({
+        questId,
+        workItemId,
+        mode: 'changed',
+        onLine: () => undefined,
+      });
+
+      expect({
+        wardArgs: proxy.getSpawnedWardArgs(),
+        statusWrites: proxy.getPersistedWorkItemStatusesInWriteOrder({ workItemId }),
+      }).toStrictEqual({
+        wardArgs: ['run', '--changed'],
+        statusWrites: ['in_progress', 'complete'],
+      });
+    });
+
+    it('ERROR: {work item role: codeweaver} => throws naming the role, spawns nothing, and leaves the live item at its own status and startedAt', async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: CODEWEAVER_WORK_ITEM_ID });
+      const codeweaverItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
+        startedAt: CODEWEAVER_STARTED_AT,
+      });
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupQuest({
+        quest: QuestStub({
+          id: questId,
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({
+              id: CODEWEAVER_OP_ID,
+              role: 'codeweaver',
+              text: 'implement auth in packages/server',
+              status: 'in_progress',
+              locked: true,
+            }),
+          ],
+          workItems: [codeweaverItem],
+        }),
+      });
+      proxy.wardExits({
+        exitCode: ExitCodeStub({ value: 1 }),
+        runId: FileNameStub({ value: '1739625600000-a3f1' }),
+        detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
+      });
+
+      await expect(
+        questRunWardBroker({ questId, workItemId, mode: 'changed', onLine: () => undefined }),
+      ).rejects.toThrow(new Error(CODEWEAVER_REFUSAL_MESSAGE));
+
+      expect({
+        wardArgs: proxy.getSpawnedWardArgs(),
+        statusWrites: proxy.getPersistedWorkItemStatusesInWriteOrder({ workItemId }),
+        workItems: proxy.getPersistedQuest().workItems,
+      }).toStrictEqual({
+        wardArgs: undefined,
+        statusWrites: [],
+        workItems: [codeweaverItem],
+      });
     });
   });
 

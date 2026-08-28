@@ -22,6 +22,7 @@ import type { FileTiming } from '../../../contracts/file-timing/file-timing-cont
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
 import { eslintStatsParseTransformer } from '../../../transformers/eslint-stats-parse/eslint-stats-parse-transformer';
 import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
+import { isEslintIgnoredResultGuard } from '../../../guards/is-eslint-ignored-result/is-eslint-ignored-result-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 
 export const checkRunLintBroker = async ({
@@ -64,8 +65,12 @@ export const checkRunLintBroker = async ({
     const jsonSlice = extractJsonArrayTransformer({ output: result.output });
     const parsed: unknown = JSON.parse(jsonSlice);
     if (Array.isArray(parsed)) {
-      filesCount = parsed.length;
-      fileTimings = eslintStatsParseTransformer({ eslintResults: parsed });
+      // AN IGNORED PATH IS NOT A LINTED FILE. ESLint replies with a full result entry for an
+      // explicitly-passed path its config ignores, so the raw array length counted files it never
+      // opened — and a scope made entirely of them reported `1 files passed` at exit 0.
+      const linted = parsed.filter((entry) => !isEslintIgnoredResultGuard({ entry }));
+      filesCount = linted.length;
+      fileTimings = eslintStatsParseTransformer({ eslintResults: linted });
     }
   } catch {
     // non-JSON output, filesCount stays 0

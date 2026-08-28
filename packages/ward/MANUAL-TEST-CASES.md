@@ -177,7 +177,7 @@ All failures require modifying source files — see linked detail for exact chan
 | [8a](#8a-single-pattern-match)                      | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts`                   | jest gets `--testNamePattern`     |
 | [8b](#8b-multiple-patterns-with-pipe)               | `--only unit --onlyTests "EMPTY\|VALID" -- .../transformer.test.ts`            | jest gets alternation             |
 | [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts`          | FAIL — 0 tests matched anywhere   |
-| [8c-bis](#8c-bis-pattern-that-matches-only-one-package) | `--only unit --onlyTests "<a ward test name>"`                            | PASS — other packages skip        |
+| [8c-bis](#8c-bis-pattern-with-no-file-scope)        | `--only unit --onlyTests "<a ward test name>"`                                 | REJECTED at parse time            |
 | [8d](#8d---onlytests-ignored-by-lint-and-typecheck) | `--only lint,typecheck --onlyTests "foo" -- packages/ward`                     | lint/tc ignore it                 |
 | [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "delegates" -- packages/ward`                  | int respects it                   |
 | [8f](#8f---onlytests-with-multi-files)              | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts .../guard.test.ts` | runs on both, filters by name     |
@@ -1055,7 +1055,7 @@ npm run ward -- --only unit --onlyTests "XYZNONEXISTENT" -- packages/ward/src/tr
 - Exit code: non-zero
 - Ward detects `numPassedTests === 0` in every package the pattern reached and fails the run once, at the end
 
-#### 8c-bis. Pattern that matches only one package
+#### 8c-bis. Pattern with no file scope
 
 ```bash
 npm run ward -- --only unit --onlyTests "returns config with onlyTests pattern"
@@ -1063,10 +1063,12 @@ npm run ward -- --only unit --onlyTests "returns config with onlyTests pattern"
 
 **Expected:**
 
-- Only `@dungeonmaster/ward` holds a test by that name; every other package runs jest and matches nothing
-- Live: `unit @dungeonmaster/ward PASS ...`, every other package `unit ... skip`
-- Summary: `unit: PASS 1 packages ...`
-- Exit code: 0 — a name that lives in one package is not a per-package failure everywhere else
+- `cliArgsParseTransformer` throws before any check runs — nothing is spawned and no result is saved
+- First line: `Error: --onlyTests requires a file scope: add -- <files>`
+- The error names the fix: `npm run ward -- --only unit --onlyTests "my test" -- packages/ward/src/foo.test.ts`
+- Exit code: non-zero, and the whole invocation returns in well under a second
+
+A bare separator is not a file scope, so `npm run ward -- --only unit --onlyTests "x" --` is rejected the same way.
 
 #### 8d. --onlyTests ignored by lint and typecheck
 

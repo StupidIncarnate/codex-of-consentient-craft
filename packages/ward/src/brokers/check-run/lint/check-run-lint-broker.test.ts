@@ -117,6 +117,95 @@ describe('checkRunLintBroker', () => {
     });
   });
 
+  // ESLint ANSWERS FOR A FILE IT REFUSED TO LINT. Hand it a path its config ignores and it emits a
+  // full result entry carrying one ruleId-less warning — so the JSON array length counted a file
+  // nothing was checked in, and `npm run ward -- --only lint -- packages/web/src/jest-dom.d.ts`
+  // reported `1 files passed` for a file eslint never opened.
+  describe('files eslint ignores', () => {
+    it('VALID: {eslint reports one file-ignored warning} => counts zero files', async () => {
+      const eslintOutput = JSON.stringify([
+        {
+          filePath: '/project/src/jest-dom.d.ts',
+          messages: [
+            {
+              ruleId: null,
+              fatal: false,
+              severity: 1,
+              message:
+                'File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning.',
+              nodeType: null,
+            },
+          ],
+          suppressedMessages: [],
+          errorCount: 0,
+          warningCount: 1,
+        },
+      ]);
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: eslintOutput });
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 0,
+          discoveredCount: 0,
+          rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {one ignored file alongside one linted file} => counts only the linted file', async () => {
+      const eslintOutput = JSON.stringify([
+        {
+          filePath: '/project/src/jest-dom.d.ts',
+          messages: [
+            {
+              ruleId: null,
+              fatal: false,
+              severity: 1,
+              message:
+                'File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning.',
+              nodeType: null,
+            },
+          ],
+          suppressedMessages: [],
+          errorCount: 0,
+          warningCount: 1,
+        },
+        { filePath: '/project/src/index.ts', messages: [], errorCount: 0, warningCount: 0 },
+      ]);
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: eslintOutput });
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          discoveredCount: 1,
+          rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+  });
+
   describe('stderr contamination', () => {
     it('VALID: {eslint passes with stderr warnings} => returns correct filesCount', async () => {
       const eslintOutput = JSON.stringify([

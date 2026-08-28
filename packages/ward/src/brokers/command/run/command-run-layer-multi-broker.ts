@@ -97,7 +97,15 @@ export const commandRunLayerMultiBroker = async ({
       }
 
       if (config.onlyTests) {
-        spawnArgs.push('--onlyTests', String(config.onlyTests));
+        // The child is already narrowed — this handler runs once per folder `filteredFolders`
+        // picked — so it must not be held to the rule that a HUMAN typing `--onlyTests` names the
+        // files too. Without the marker, a whole-package arg (`-- packages/ward`) slices to an
+        // empty per-file list, the `--` below is skipped, and the child dies at CLI-parse time.
+        spawnArgs.push(
+          '--onlyTests',
+          String(config.onlyTests),
+          wardSpawnCommandStatics.parentScopedFlag,
+        );
       }
 
       if (hasPassthrough && config.passthrough) {
@@ -131,10 +139,23 @@ export const commandRunLayerMultiBroker = async ({
       const pkgRootPath = absoluteFilePathContract.parse(folder.path);
       const childRunId = extractChildRunIdTransformer({ output: spawnResult.output });
 
-      const result = await storageLoadBroker({
-        rootPath: pkgRootPath,
-        ...(childRunId === null ? {} : { runId: childRunId }),
-      });
+      // ONLY THIS RUN'S ID MAY BE LOADED. `storageLoadBroker` with no `runId` returns the NEWEST
+      // file in the package's `.ward/`, which is the PREVIOUS run — so a child that died before
+      // printing its `run: <id>` summary line was reported as whatever that package last managed
+      // to do, at exit 0. Reproduced live with a child killed at CLI-parse time: `unit: PASS 1
+      // packages (163 discovered) 2.0s` for a run whose whole wall clock was 0.2s, byte-identical
+      // across consecutive invocations. It also defeats `hasNoFilesProcessedGuard`, because the
+      // stale result claims files were processed.
+      //
+      // A child that reached its summary ALWAYS printed the line — `commandRunBroker` writes the
+      // summary and the result file from the same `wardResult`, and the two paths that return
+      // before it (an empty file scope, a path not on disk) write neither, so a missing id means
+      // no result of this run's exists to merge. `stdout` alone is captured, on `close` rather
+      // than `exit`, so nothing colours or truncates the line out from under the match.
+      const result =
+        childRunId === null
+          ? null
+          : await storageLoadBroker({ rootPath: pkgRootPath, runId: childRunId });
 
       if (result !== null) {
         return result;

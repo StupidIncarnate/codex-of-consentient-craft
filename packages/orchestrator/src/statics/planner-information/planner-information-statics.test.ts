@@ -124,21 +124,44 @@ describe('plannerInformationStatics', () => {
     });
 
     // A PLANNER FANS OUT EXPLORERS AND THEN WAITS, which is exactly the shape [BACKGROUND] governs: a
-    // turn that ends waiting on a detached task hangs the work item for good, because nothing wakes it.
-    // This rule was nearly lost — it was in four of the five planner prompts and absent from the fifth,
-    // so an "identical across all five" filter dropped it while building this payload.
+    // turn that ends waiting on a detached task hangs the work item for good, because no notification
+    // follows a final response. This rule was nearly lost — it was in four of the five planner prompts
+    // and absent from the fifth, so an "identical across all five" filter dropped it while building
+    // this payload.
+    //
+    // THE RULE USED TO SAY NOTHING WAKES YOU, and that is false — the harness notifies a still-running
+    // turn when a backgrounded command exits. Sessions acted on the falsehood: two reviewers on quest
+    // a7520e60 answered a backgrounded ward with `sleep 90` and then `sleep 240`, tailing its output
+    // file by hand, for 815 seconds of sleeps across that one quest. `dropsTheOldFalsehood` is what
+    // keeps it from coming back.
     it('VALID: served payload => carries the [BACKGROUND] rule its explorers make necessary', () => {
       expect({
         theRule: hasIn({
-          needle:
-            '**[BACKGROUND] Never end your turn waiting for a background task, and never poll one.**',
+          needle: '**[BACKGROUND] Never end your turn waiting for a background task.**',
           text: MARKDOWN,
         }),
         namesTheCost: hasIn({
-          needle: 'a turn that ends waiting on one hangs your work item for good',
+          needle: 'turn that ends waiting on one hangs your work item for good',
           text: MARKDOWN,
         }),
-      }).toStrictEqual({ theRule: true, namesTheCost: true });
+        neverSleepNeverTail: hasIn({
+          needle: '**Never `sleep` to wait one out, and never `tail` its output file.**',
+          text: MARKDOWN,
+        }),
+        theHarnessNotifies: hasIn({
+          needle: 'the harness notifies you when it exits, so long as your turn is still going',
+          text: MARKDOWN,
+        }),
+        dropsTheOldFalsehood: !MARKDOWN.includes(
+          'Nothing wakes you when a detached background task',
+        ),
+      }).toStrictEqual({
+        theRule: true,
+        namesTheCost: true,
+        neverSleepNeverTail: true,
+        theHarnessNotifies: true,
+        dropsTheOldFalsehood: true,
+      });
     });
 
     // Only the reviewer builds and wards a round: `tsc` writes one shared `dist/` per package, and
@@ -175,6 +198,46 @@ describe('plannerInformationStatics', () => {
           text: MARKDOWN,
         }),
       }).toStrictEqual({ exactlyTwo: true, neverRework: true, unplannableIsAChunk: true });
+    });
+
+    // A CLEAN PLAN IS THE EASIEST RETURN TO END IN PROSE, because the session genuinely is finished:
+    // the document is written, the commit is in, and there is nothing left to report. A return that
+    // stops on the `PLAN:` line reaches a parent that matches a word it never found, and its routing
+    // table reads that absence as `rework` — so the parent re-plans a round whose plan is already
+    // committed. This pins the two lines as a closed set from both ends: nothing before them, nothing
+    // after the `NEXT:` line.
+    it('VALID: served payload => makes the two lines the whole return, `NEXT:` never dropped', () => {
+      expect({
+        bothLinesAndNothingElse: hasIn({
+          needle: '**Both lines go, in that order, and nothing goes with them**',
+          text: MARKDOWN,
+        }),
+        namesWhatDoesNotGoWithThem: hasIn({
+          needle:
+            'no opening preamble, no summary of what you found, and nothing at all after the `NEXT:` line',
+          text: MARKDOWN,
+        }),
+        neverPasteThePlan: hasIn({
+          needle: '**Never paste the plan, or any block of it, into your return.**',
+          text: MARKDOWN,
+        }),
+        neverDropTheNextLine: hasIn({
+          needle:
+            '**The `NEXT:` line is the one line you can never leave off, and a clean plan is where it is easiest to.**',
+          text: MARKDOWN,
+        }),
+        stoppingEarlyReadsAsRework: hasIn({
+          needle:
+            'A return that stops after the `PLAN:` line reaches your parent as `rework` over a plan that is already written and committed.',
+          text: MARKDOWN,
+        }),
+      }).toStrictEqual({
+        bothLinesAndNothingElse: true,
+        namesWhatDoesNotGoWithThem: true,
+        neverPasteThePlan: true,
+        neverDropTheNextLine: true,
+        stoppingEarlyReadsAsRework: true,
+      });
     });
 
     // THE PRECEDENCE RULE WAS IN ONE PROMPT, NOT FIVE, so the "identical across all five" filter that

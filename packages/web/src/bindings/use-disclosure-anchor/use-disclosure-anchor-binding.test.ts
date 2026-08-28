@@ -52,6 +52,67 @@ describe('useDisclosureAnchorBinding', () => {
       result.current.holdAnchor();
 
       expect(proxy.isHeld()).toBe(true);
+
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(true);
+
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(false);
+    });
+  });
+
+  describe('frame-controlled release', () => {
+    it('VALID: {holdAnchor, one frame advanced} => still held', () => {
+      const proxy = useDisclosureAnchorBindingProxy();
+      proxy.setupReleased();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useDisclosureAnchorBinding(),
+      });
+      result.current.holdAnchor();
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(true);
+    });
+
+    it('VALID: {holdAnchor, two frames advanced} => released', () => {
+      const proxy = useDisclosureAnchorBindingProxy();
+      proxy.setupReleased();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useDisclosureAnchorBinding(),
+      });
+      result.current.holdAnchor();
+      proxy.advanceFrame();
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(false);
+    });
+
+    // A reader opening one disclosure and a later one is two INDEPENDENT release chains, and the
+    // second must still get its own two frames. This is what pins the drain to advancing one frame
+    // of the chain rather than replaying every frame it has ever recorded: a replaying drain runs
+    // the drained chain's release again here, and `release()` floors at 0, so the second hold is
+    // wiped by the first one's echo.
+    it('VALID: {a released hold, then a second hold, one frame advanced} => the second hold survives', () => {
+      const proxy = useDisclosureAnchorBindingProxy();
+      proxy.setupReleased();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useDisclosureAnchorBinding(),
+      });
+      result.current.holdAnchor();
+      proxy.advanceFrame();
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(false);
+
+      result.current.holdAnchor();
+      proxy.advanceFrame();
+
+      expect(proxy.isHeld()).toBe(true);
     });
   });
 

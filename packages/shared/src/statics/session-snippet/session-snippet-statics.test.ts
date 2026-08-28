@@ -40,9 +40,53 @@ describe('sessionSnippetStatics', () => {
     );
   });
 
+  // A WARD RUN THAT CROSSES ITS TIMEOUT IS BACKGROUNDED BY THE HARNESS, AND THE HARNESS NOTIFIES.
+  // The old wording claimed a hook blocked that outright — "there is no second mode and no output
+  // file anyone has to wait on" — so an agent that hit the real thing had no rule covering it and
+  // invented one. Two reviewers on one quest sleep-polled the output file (`sleep 90`, then
+  // `sleep 240`), 815 seconds of sleeps in total. The ban on ENDING a turn to wait still holds: a
+  // notification cannot follow a final response.
+  it('VALID: wardDiscipline snippet => bans sleeping on a ward run and names the exit notification', () => {
+    expect({
+      neverSleepNeverTail: sessionSnippetStatics.wardDiscipline.includes(
+        '**Never `sleep` on a ward run, and never `tail` its output file.**',
+      ),
+      notifiesOnExit: sessionSnippetStatics.wardDiscipline.includes(
+        'it notifies you when the run exits',
+      ),
+      dropsTheOldFalsehood: sessionSnippetStatics.wardDiscipline.indexOf(
+        'there is no second mode and no output file anyone has to wait on',
+      ),
+    }).toStrictEqual({
+      neverSleepNeverTail: true,
+      notifiesOnExit: true,
+      dropsTheOldFalsehood: -1,
+    });
+  });
+
+  // THE FILE-SCOPED FORM IS THE ONE MOST SESSIONS ACTUALLY NEED, and it is the one a reader cannot
+  // derive from the flags table: `-- <files>` with no `--only` lets ward decide which checks apply to
+  // those paths, which is what a worker proving one chunk wants. The snippet sits ~6 bytes under its
+  // 2048 cap, so this example is exactly the kind of line a later trim would take first.
+  it('VALID: ward snippet => shows the multi-file scoped invocation and how to spell the paths', () => {
+    expect({
+      multiFileExample: sessionSnippetStatics.ward.includes(
+        'npm run ward -- -- pkg/a.ts pkg/a.test.ts',
+      ),
+      wardPicksTheChecks: sessionSnippetStatics.ward.includes('ward picks the checks'),
+      howToSpellThem: sessionSnippetStatics.ward.includes(
+        'Pass every path you touched after `--`. Repo-relative, no `./`.',
+      ),
+    }).toStrictEqual({
+      multiFileExample: true,
+      wardPicksTheChecks: true,
+      howToSpellThem: true,
+    });
+  });
+
   it('VALID: ward snippet => defers FULL-run ownership to the role rather than mandating green', () => {
     expect(sessionSnippetStatics.ward).toMatch(
-      /^\*\*Zero tolerance:\*\* Never assume a failure is pre-existing — investigate and fix every one\. Whether a FULL run is yours to make green depends on your role; see the ward-discipline snippet\.$/mu,
+      /^\*\*Zero tolerance:\*\* Never assume a failure is pre-existing — investigate and fix every one\. Whether a FULL run is yours to make green depends on your role; see ward-discipline\.$/mu,
     );
   });
 

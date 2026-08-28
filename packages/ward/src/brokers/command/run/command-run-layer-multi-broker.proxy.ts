@@ -10,6 +10,7 @@ import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-stati
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
+import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
@@ -31,6 +32,12 @@ export const commandRunLayerMultiBrokerProxy = (): {
   setupSpawnWithNullLoad: (params: {
     rootPath: AbsoluteFilePath;
     projectFolder: ProjectFolder;
+  }) => void;
+  setupCrashedChildOverStaleResult: (params: {
+    rootPath: AbsoluteFilePath;
+    projectFolder: ProjectFolder;
+    childStdout: string;
+    staleResultContent: string;
   }) => void;
   setupNoSpawns: (params: { rootPath: AbsoluteFilePath }) => void;
   getStderrCalls: () => unknown[];
@@ -139,6 +146,38 @@ export const commandRunLayerMultiBrokerProxy = (): {
         rootPath: absoluteFilePathContract.parse(projectFolder.path),
         runId,
         error: new Error('ENOENT'),
+      });
+      saveProxy.setupSuccess({ rootPath, runId });
+      pruneProxy.setupEmpty({ rootPath });
+    },
+
+    // A child that died before printing its summary line, in a package whose `.ward/` still holds
+    // the result of an EARLIER run. Both are staged: the crashed spawn, and a loadable latest-run
+    // file that a bare "load newest" would happily return as this run's outcome.
+    setupCrashedChildOverStaleResult: ({
+      rootPath,
+      projectFolder,
+      childStdout,
+      staleResultContent,
+    }: {
+      rootPath: AbsoluteFilePath;
+      projectFolder: ProjectFolder;
+      childStdout: string;
+      staleResultContent: string;
+    }): void => {
+      const command = String(resolveWardBin({ rootPath }));
+      streamProxy.setupSuccess({
+        command,
+        exitCode: ExitCodeStub({ value: 1 }),
+        stdout: childStdout,
+        stderr: '',
+      });
+      const staleRunId = RunIdStub({ value: '1739000000000-01de' });
+      loadProxy.setupLatestRun({
+        rootPath: absoluteFilePathContract.parse(projectFolder.path),
+        entries: [`run-${staleRunId}.json`],
+        latestEntry: `run-${staleRunId}.json`,
+        content: staleResultContent,
       });
       saveProxy.setupSuccess({ rootPath, runId });
       pruneProxy.setupEmpty({ rootPath });

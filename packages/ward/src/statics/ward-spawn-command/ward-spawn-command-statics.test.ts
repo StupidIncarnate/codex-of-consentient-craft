@@ -5,6 +5,7 @@ describe('wardSpawnCommandStatics', () => {
     expect(wardSpawnCommandStatics).toStrictEqual({
       bin: 'dungeonmaster-ward',
       baseArgs: ['run'],
+      parentScopedFlag: '--parentScoped',
     });
   });
 });

@@ -177,6 +177,13 @@ Everything above that header belongs to your parent and your planner.
 6. **Run it and get the red. THAT RED IS THE ONLY PROOF YOUR TEST BITES**, which is why it is a step of
    its own rather than a moment inside the build.
 
+   **Run it the one way you run anything: scoped ward over the paths you just wrote.**
+   \`npm run ward -- -- ./packages/<pkg>/src/<path>.test.ts ./packages/<pkg>/src/<path>.ts\` — the same
+   command shape your ward step spends over your whole \`FILES\`, narrowed here to what you are proving.
+   **Never the \`run-ward\` MCP tool for this.** Its \`mode: 'changed'\` reads like "the files I changed"
+   and is not: it is the dispatcher's quest gate, it grades the whole branch, and the red you WANTED
+   here lands on your parent's work item as that item's verdict.
+
    **The red you need is a WRONG VALUE:** the assertion ran, reached the code, and disagreed with it.
    An import error, a missing export or a type error proves only that the file was not there yet. If
    you cannot produce a wrong-value red, the assertion is not testing what you think it is. Fix the

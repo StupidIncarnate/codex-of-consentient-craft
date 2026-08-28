@@ -104,27 +104,43 @@ describe('cliArgsParseTransformer', () => {
   });
 
   describe('--onlyTests flag', () => {
-    it('VALID: {args: ["--onlyTests", "my test"]} => returns config with onlyTests pattern', () => {
+    it('VALID: {args: ["--onlyTests", "my test", "--", "file.ts"]} => returns config with onlyTests pattern', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'my test' })],
+        args: [
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'my test' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+        ],
       });
 
-      expect(result).toStrictEqual({ onlyTests: 'my test' });
+      expect(result).toStrictEqual({
+        onlyTests: 'my test',
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
     });
 
-    it('VALID: {args: ["--onlyTests", "foo|bar|baz"]} => supports regex alternation', () => {
+    it('VALID: {args: ["--onlyTests", "foo|bar|baz", "--", "file.ts"]} => supports regex alternation', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'foo|bar|baz' })],
+        args: [
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'foo|bar|baz' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+        ],
       });
 
-      expect(result).toStrictEqual({ onlyTests: 'foo|bar|baz' });
+      expect(result).toStrictEqual({
+        onlyTests: 'foo|bar|baz',
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
     });
 
-    it('VALID: {args: ["--only", "unit", "--onlyTests", "my test"]} => combines with --only', () => {
+    it('VALID: {args: ["--only", "unit", "--onlyTests", "my test", "--", "file.ts"]} => combines with --only', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
@@ -133,10 +149,16 @@ describe('cliArgsParseTransformer', () => {
           CliArgStub({ value: 'unit' }),
           CliArgStub({ value: '--onlyTests' }),
           CliArgStub({ value: 'my test' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
         ],
       });
 
-      expect(result).toStrictEqual({ only: ['unit'], onlyTests: 'my test' });
+      expect(result).toStrictEqual({
+        only: ['unit'],
+        onlyTests: 'my test',
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
     });
 
     it('EDGE: {args: ["--onlyTests"]} => onlyTests with no value is ignored', () => {
@@ -147,6 +169,139 @@ describe('cliArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({});
+    });
+  });
+
+  describe('--onlyTests requires a file scope', () => {
+    it('INVALID: {--onlyTests "my test"} => throws because nothing scopes the run to files', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'my test' })],
+        }),
+      ).toThrow(/^--onlyTests requires a file scope: add -- <files>$/mu);
+    });
+
+    it('INVALID: {--only unit --onlyTests "my test"} => --only is a check filter, not a file scope', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [
+            CliArgStub({ value: '--only' }),
+            CliArgStub({ value: 'unit' }),
+            CliArgStub({ value: '--onlyTests' }),
+            CliArgStub({ value: 'my test' }),
+          ],
+        }),
+      ).toThrow(/^--onlyTests requires a file scope: add -- <files>$/mu);
+    });
+
+    it('INVALID: {--onlyTests "my test" --} => a bare separator sets no file scope and is rejected', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [
+            CliArgStub({ value: '--onlyTests' }),
+            CliArgStub({ value: 'my test' }),
+            CliArgStub({ value: '--' }),
+          ],
+        }),
+      ).toThrow(/^--onlyTests requires a file scope: add -- <files>$/mu);
+    });
+
+    it('INVALID: {--onlyTests "my test"} => error shows the scoped invocation to use instead', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'my test' })],
+        }),
+      ).toThrow(
+        /^ {2}npm run ward -- --only unit --onlyTests "my test" -- packages\/ward\/src\/foo\.test\.ts$/mu,
+      );
+    });
+
+    it('VALID: {--onlyTests "my test" -- file.ts} => a file list scopes the run and it is accepted', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'my test' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        onlyTests: 'my test',
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
+    });
+  });
+
+  describe('--parentScoped exempts a child ward from the file-scope rule', () => {
+    it('VALID: {--only unit --onlyTests "my test" --parentScoped} => accepted without a file list', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'unit' }),
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'my test' }),
+          CliArgStub({ value: '--parentScoped' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit'], onlyTests: 'my test' });
+    });
+
+    it('VALID: {--parentScoped} => the marker leaves no trace in the config', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--parentScoped' })],
+      });
+
+      expect(result).toStrictEqual({});
+    });
+
+    it('VALID: {--onlyTests "my test" --parentScoped -- file.ts} => a file list still lands as passthrough', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'my test' }),
+          CliArgStub({ value: '--parentScoped' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'src/index.test.ts' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        onlyTests: 'my test',
+        passthrough: ['src/index.test.ts'],
+      });
+    });
+
+    it('INVALID: {--staged --onlyTests "my test" --parentScoped} => the git scope rejection still wins', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [
+            CliArgStub({ value: '--staged' }),
+            CliArgStub({ value: '--onlyTests' }),
+            CliArgStub({ value: 'my test' }),
+            CliArgStub({ value: '--parentScoped' }),
+          ],
+        }),
+      ).toThrow(/^--staged cannot be combined with: --onlyTests$/mu);
     });
   });
 
@@ -769,7 +924,7 @@ describe('cliArgsParseTransformer', () => {
   });
 
   describe('combined flags', () => {
-    it('VALID: {--only lint --onlyTests "x"} => returns config with both options', () => {
+    it('VALID: {--only lint --onlyTests "x" -- file.ts} => returns config with all three options', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
@@ -778,12 +933,15 @@ describe('cliArgsParseTransformer', () => {
           CliArgStub({ value: 'lint' }),
           CliArgStub({ value: '--onlyTests' }),
           CliArgStub({ value: 'my test' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
         ],
       });
 
       expect(result).toStrictEqual({
         only: ['lint'],
         onlyTests: 'my test',
+        passthrough: ['packages/ward/src/index.test.ts'],
       });
     });
   });

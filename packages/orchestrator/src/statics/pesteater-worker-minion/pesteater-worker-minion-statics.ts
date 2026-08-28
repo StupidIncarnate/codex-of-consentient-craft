@@ -221,7 +221,16 @@ at step 5 is the other, and git ignores that directory.
 
 5. **Run it against UNCHANGED source, then prove that red was a REPRODUCTION.** Nothing else on this
    quest checks that your test ever failed, which is why this is a step of its own rather than a moment
-   inside the fix. Read the failure output, then answer both of these:
+   inside the fix.
+
+   **Run it the one way you run anything: scoped ward over the paths you just wrote.**
+   \`npm run ward -- -- ./packages/<pkg>/src/<path>.test.ts ./packages/<pkg>/src/<path>.ts\` — the same
+   command shape your ward step spends over your whole \`FILES\`, narrowed here to what you are proving.
+   **Never the \`run-ward\` MCP tool for this.** Its \`mode: 'changed'\` reads like "the files I changed"
+   and is not: it is the dispatcher's quest gate, it grades the whole branch, and the red you WANTED
+   here lands on your parent's work item as that item's verdict.
+
+   Read the failure output, then answer both of these:
 
    - Does the failure come from YOUR ASSERTION, on the line that asserts the observable?
    - Does the actual value it prints match the \`ACTUAL:\` symptom the report describes? An empty panel

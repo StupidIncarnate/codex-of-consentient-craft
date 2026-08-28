@@ -45,7 +45,7 @@ All flags apply to the `run` subcommand.
 | Flag                                         | Description                                                                             |
 |----------------------------------------------|-----------------------------------------------------------------------------------------|
 | `--only lint,typecheck,unit,integration,e2e` | Comma-separated list of check types to run. Omit to run all five.                       |
-| `--onlyTests <regex>`                        | Filter tests by name pattern. Maps to Jest `--testNamePattern` and Playwright `--grep`. |
+| `--onlyTests <regex>`                        | Filter tests by name pattern. Requires a `-- <files>` scope. Maps to Jest `--testNamePattern` and Playwright `--grep`. |
 | `--changed`                                  | Run every check type over the files that differ from the local default branch.          |
 | `--staged`                                   | Run every check type over the files origin does not have yet.                           |
 | `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths.                  |
@@ -68,11 +68,49 @@ To narrow a run, drop the git scope flag and say what you want directly: `npm ru
 **`--onlyTests` accepts a regex pattern.** Use `|` for alternation: `--onlyTests "foo|bar"` runs tests matching either
 name. Ignored by lint and typecheck check types.
 
+### `--onlyTests` requires a `-- <files>` scope
+
+`--onlyTests` is a test NAME filter and scopes nothing on its own. `filteredFolders` in
+`commandRunLayerMultiBroker` narrows on `passthrough` alone, so without a file list ward spawns a child in every
+workspace package, and the pattern reaches Jest as `--testNamePattern`, which filters at EXECUTION — after each package
+has collected and transformed every test file it owns. Measured: an unscoped `--only unit --onlyTests` run took **355s
+across 13 packages and 2560 transformed files to run 4 tests**; `web` and `shared` each paid over two minutes to report
+`skip`. `cliArgsParseTransformer` therefore rejects `--onlyTests` without a trailing `-- <files>` list, naming the fix.
+
+A **bare `--` sets no passthrough**, so it is not a file scope and does not satisfy the rule.
+
+**A child ward is exempt, and only a child.** `commandRunLayerMultiBroker` spawns one child per
+package `filteredFolders` already picked, so the monorepo sweep the rule prevents cannot happen
+there — and a whole-package arg (`-- packages/ward`) slices to an empty per-file list, so there is
+nothing left to put after the child's own `--`. The parent therefore appends
+`wardSpawnCommandStatics.parentScopedFlag` alongside `--onlyTests`, and `cliArgsParseTransformer`
+reads it as a LOCAL BOOLEAN that suppresses this one rule. It is deliberately not a `WardConfig`
+field: it scopes nothing, so `isFileScopeRequestedGuard` and `isExplicitPathScopeGuard` would have
+no honest classification for it. It is also absent from the flag list the unknown-flag error
+prints — nobody types it by hand.
+
+The rejection lives after the git scope checks, so `--changed`/`--staged` keep winning: those two already reject
+`--onlyTests` outright, and their caller gets one error about the flag they typed rather than a second one demanding a
+file list they are forbidden to pass.
+
+```bash
+npm run ward -- --only unit --onlyTests "my test" -- packages/ward/src/foo.test.ts   # correct
+npm run ward -- --only unit --onlyTests "my test"                                    # rejected
+npm run ward -- --only unit --onlyTests "my test" --                                 # rejected
+```
+
 **`--onlyTests` is judged across the whole run, not per package.** A test name usually lives in exactly one package, so
-in multi-package mode every other package reports zero matches. Those packages are reported as `skip`. The run fails
-with `--onlyTests pattern "X" matched 0 tests in any package` only when no package the pattern reached matched
-anything — which is what a typo or a stale test name looks like. This means `npm run ward -- --only unit --onlyTests
-"my test"` works without a `-- <path>` scope.
+in multi-package mode every other package the scope reached reports zero matches. Those packages are reported as `skip`.
+The run fails with `--onlyTests pattern "X" matched 0 tests in any package` only when no package the pattern reached
+matched anything — which is what a typo or a stale test name looks like.
+
+**A scoped run that reaches no package at all is a different silence, and `hasUnmatchedTestNamePatternGuard` does not
+catch it.** Every early return that skips before a runner is spawned — `discoveredCount === 0`, `no matching unit test
+files in passthrough`, a package that is not e2e-eligible — records NO `testNamePatternMatch`, so `reached.length` is 0
+and the guard's own precondition fails. Reproduced live: `--only e2e --onlyTests "XYZNONEXISTENT" -- <a ward test file>`
+exits 0 having run nothing, because `@dungeonmaster/ward` is not e2e-eligible. `hasCheckDiscoveryMismatchGuard` and
+`hasNoFilesProcessedGuard` cover the neighbouring shapes but not this one: the first needs `discoveredCount > 0`, and
+the second drops checks whose status is `skip`.
 
 ## Common Invocation Patterns
 
@@ -113,11 +151,11 @@ npm run ward -- --changed
 # All checks, scoped to everything origin does not have yet — the pre-push gate
 npm run ward -- --staged
 
-# Run only tests matching a name pattern
-npm run ward -- --only unit --onlyTests "my specific test"
+# Run only tests matching a name pattern — the -- <files> scope is required
+npm run ward -- --only unit --onlyTests "my specific test" -- packages/hooks/src/foo.test.ts
 
 # Run tests matching multiple patterns (regex alternation)
-npm run ward -- --only test --onlyTests "user|auth"
+npm run ward -- --only test --onlyTests "user|auth" -- packages/hooks
 
 # Combine file scoping with test name filtering
 npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks
@@ -159,8 +197,60 @@ The two git scope flags resolve to a plain file list before any check runs, so f
 `--changed` and `--staged` are indistinguishable from a `-- <files>` passthrough. Non-source paths (`.md`, `.json`) are
 dropped from that list, because ESLint reports a "file ignored" error for a non-source file handed to it explicitly.
 
-**Empty file set:** when git reports no files (nothing changed, or nothing unpushed), the run has no file scope and
-every check runs against every file — the same as a bare `npm run ward`.
+**Empty file set: the run is EMPTY, not wide.** When a run ASKED for a file scope and has zero source files left
+(nothing changed, nothing unpushed, or an explicitly empty `-- <files>` list), `command-run-broker` prints
+`fileScopeEmptyStatics.message` and returns before any check runs — exit 0, no result saved, so `ward detail <runId>`
+has nothing to load and `wardDetailBroker` answers `null`.
+
+**The two halves are different questions, asked of different objects.** Whether a file scope was REQUESTED comes from
+`isFileScopeRequestedGuard`, over the config the caller handed in; whether it RESOLVED comes from `passthrough` on the
+config the git scope layer returned. A git scope that DID resolve to files is an ordinary scoped run and still runs.
+
+**Every `wardConfigContract` field is classified in `isFileScopeRequestedGuard`**, as
+`satisfies Record<keyof WardConfig, WardScopeKind>` over `fileScope` / `typeFilter` / `testNameFilter`. Adding a field
+to the contract without a kind fails `tsc`; so does a kind outside the union, or a leftover key for a field the
+contract no longer has. A new FILE-SCOPING flag therefore inherits the empty-scope short-circuit the day it is added,
+and cannot be forgotten at a call site — there is no list of flag names spelled anywhere in the broker.
+
+**Do not express "no files" by leaving `passthrough` unset.** `hasPassthrough` is
+`Array.isArray(passthrough) && length > 0` in five separate places, so an unset list — and an empty one — both read
+there as "no file scope", which is the whole repo. The lesson cost real time: a round reviewer pushes its own round,
+so the NEXT reviewer's `--staged` has nothing left to measure, and on quest a7520e60 one such run swept 13 packages
+including e2e in 858s while another crossed the 600s harness timeout. Both were read as the round's green verdict.
+
+**A path that exists and that no check processed FAILS the run — but only when the caller typed it.** After the summary
+prints, `commandRunBroker` asks two questions: `isExplicitPathScopeGuard` over the config the CALLER handed in, and
+`hasNoFilesProcessedGuard` over the finished `WardResult`. Both true means the scope named real paths and every
+file-scoped check still reported zero files — `npm run ward -- --only lint -- scripts/build-workspaces.mjs`, where
+`scripts/**` is in eslint.config.js `ignores` and belongs to no workspace package. Ward prints
+`noFilesProcessedStatics` naming the paths and exits 1.
+
+Three things make that predicate survive the runs it must not redden:
+
+- **Typecheck does not count.** It is classified `false` in `hasNoFilesProcessedGuard`'s
+  `satisfies Record<CheckType, boolean>` table, because `tsc` has no per-file mode:
+  `--only typecheck -- scripts/build-workspaces.mjs` reports 6145 files for a path tsc never saw. Counting it would
+  make the answer `false` for every run that includes typecheck.
+- **A skipped check is not evidence.** Jest's "No tests found" becomes `status: 'skip'`, and a non-e2e-eligible package
+  skips e2e outright. A run left with no file-scoped check at all (`--only typecheck`) therefore does not fail.
+- **The answer is run-level, not per-path.** `--findRelatedTests` reports the related TEST file rather than the source
+  file it was handed, and `ProjectResult` records `filesCount` (a count) plus `onlyProcessed` (a set difference against
+  discovery) — never the processed list. One check processing anything clears the whole scope.
+
+**Git-derived paths are exempt, and that is why the guard reads `config` and not `resolvedConfig`.**
+`commandRunLayerGitScopeBroker` writes a `--changed`/`--staged` diff into the same `passthrough` field an explicit
+`-- <files>` list lands in, so the field alone cannot say who asked. `isExplicitPathScopeGuard` answers false whenever
+`changed` or `staged` is set — a diff legitimately holds root-level files nothing lints, and reddening those would
+break the pre-push gate. Like `isFileScopeRequestedGuard` it classifies every `wardConfigContract` field
+(`satisfies Record<keyof WardConfig, WardPathOrigin>`), so a second way to name paths cannot be added without deciding
+whether a human typed it.
+
+**ESLint answers for files it refused to lint, and those do not count as processed.** Hand eslint an explicitly-named
+path its config ignores and it emits a FULL result entry — same shape as a linted file, `errorCount: 0`, one
+ruleId-less severity-1 "File ignored…" warning — so the JSON array length counted files it never opened and
+`--only lint -- packages/web/src/jest-dom.d.ts` reported `1 files passed`. `isEslintIgnoredResultGuard` filters those
+out of `filesCount`/`discoveredCount` in `checkRunLintBroker`. Only an explicit path produces the entry; a directory
+walk skips ignored files silently, which is why a whole-repo run never showed the miscount.
 
 **Special case:** Typecheck always runs on the entire package regardless of file scope. There is no way to typecheck
 individual files with tsc.
@@ -215,6 +305,16 @@ start-ward.ts (entry point, routes subcommands)
     -> storage-save-broker (persists WardResult to disk)
     -> storage-prune-broker (cleans old results)
 ```
+
+**A child's result is loaded BY ID or not at all.** `storageLoadBroker` called without a `runId` returns the newest
+file in that package's `.ward/` — the PREVIOUS run — so `commandRunLayerMultiBroker` only ever asks for the id the
+child printed on its `run: <id>` summary line, and treats a missing id as a crash
+(`commandRunLayerChildCrashBroker`). Skipping that distinction reported a child killed at CLI-parse time as whatever
+the package last managed to do, at exit 0: `unit: PASS 1 packages (163 discovered) 2.0s` for a run whose entire wall
+clock was 0.2s, byte-identical across consecutive invocations. It defeats `hasNoFilesProcessedGuard` too, because the
+stale result claims files were processed. A child that reached its summary always printed the line — the summary and
+the result file come from the same `wardResult` — and the two paths that return before it (an empty file scope, a path
+not on disk) write neither, so a missing id means no result of this run exists to merge.
 
 In multi-package mode, `orchestrate-run-all-broker` spawns a child ward process in each workspace package and
 aggregates their results. Check types are iterated sequentially. Results are aggregated into a `WardResult` and saved

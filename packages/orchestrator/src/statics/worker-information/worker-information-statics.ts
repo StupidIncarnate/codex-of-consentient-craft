@@ -162,9 +162,15 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[TURN END] Never call \`signal-back\`. Your final message is how you finish.** You have no work item of your own. The \`workItemId\` in your briefing belongs to your PARENT, so signalling on it would finish that job for your parent and start the next one while your parent is still working. Every path through this prompt ends the same way: you return your block as your final message. That covers a clean pass and a wall you could not get past. The LAST line of that block is always \`NEXT:\`. Your parent is waiting on that message. It reads the \`NEXT:\` line, acts on that one word, and opens no file to check the rest.
 
-**[BACKGROUND] Never end your turn waiting for a background task, and never poll one.** Nothing wakes you when a detached background task finishes, so a turn that ends waiting on one hangs your work item for good. Keep every command short enough to finish in the foreground. If the harness pushes a command into the background, you scoped it too broadly. Narrow it and run it again.
+**[BACKGROUND] Never end your turn waiting for a background task.** A turn that ends waiting on one hangs your work item for good, because no notification follows a final response. While your turn is still going you need no waiting strategy at all: **Never \`sleep\` to wait one out, and never \`tail\` its output file.** Whatever the harness pushed into the background, the harness notifies you when it exits, so long as your turn is still going — do other work and read that notification. Nothing else left to do meanwhile is the signal you scoped the command too broadly: narrow it and run it again.
 
-**[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This rule OVERRIDES the \`<dungeonmaster-ward>\` snippet you were handed at session start. That snippet's "make it fully green" line is written for an agent working directly for a person, and you are not one. The whole-repo run is a separate work item that runs after you.
+**[WARD] Your ward is SCOPED BY FILE, in the foreground, with \`timeout: 600000\`.** Whatever ward command your own prompt names, you pass it \`-- <the files you touched>\` and nothing else. Never \`--changed\`, never \`--staged\`, never a bare whole-repo \`npm run ward\` — each of those three grades the whole tree, which is a separate work item that runs after you, and none of them is scoped to what you built.
+
+**DO NOT SLEEP-POLL A WARD RUN.** Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished. A run that crosses \`timeout: 600000\` is backgrounded by the harness, which notifies you when it exits — and a ward scoped to one chunk's files does not take ten minutes, so one that does is the scope telling you it is wrong.
+
+**\`mcp__dungeonmaster__run-ward\` is NOT yours, in any mode.** That MCP tool is the dispatcher gate, not a way to run a check: it writes a ward result onto the work item your parent owns, and a red one there fails that item and dispatches a repair session against work you were still in the middle of. A red you wanted as EVIDENCE is a scoped Bash run like every other. \`mode: 'changed'\` reads like "the files I changed" and is not — it is every file the branch changed, graded as the quest gate.
+
+This rule OVERRIDES the \`<dungeonmaster-ward>\` snippet you were handed at session start. That snippet's "make it fully green" line is written for an agent working directly for a person, and you are not one.
 
 Three mechanics from the \`<dungeonmaster-ward-discipline>\` snippet still apply to you: never \`cd\` into a package, run it once, and read a \`No tests found\` or \`DISCOVERY MISMATCH\` on your scoped run as a SKIP rather than a regression. **That snippet's FIRST mechanic — "build first" — does NOT apply, and it is the one you will assume does.** You build nothing, so there is no build to put first; your REVIEWER builds at the end, once, after every worker has returned.
 
@@ -208,6 +214,13 @@ NEXT:  continue | rework — <what is not done> | wall — <what a person must c
 **Never paste the report into your return.** Your parent may not open a source file, so it cannot
 check a word of it, and your reviewer is already reading it off disk. The same body would go to a
 session that cannot act on it, and your parent needs that context to finish dispatching the round.
+
+**Nothing goes after the \`NEXT:\` line either** — no closing summary, no parting remark, no next
+step offered. Those two lines are the whole return.
+
+**Both lines go on every path out of your turn, the clean chunk most of all.** A return that stops
+after the \`CHUNK:\` line reaches your parent as \`rework\` over work that is finished, and your
+parent cannot open the files to find out otherwise.
 
 Write \`rework\`, naming what is not done in chunk terms, for any of the four below. **Your own prompt
 adds more, and every one it adds is as binding as these:**

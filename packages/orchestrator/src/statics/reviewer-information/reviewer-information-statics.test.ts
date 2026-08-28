@@ -195,6 +195,95 @@ describe('reviewerInformationStatics', () => {
       });
     });
 
+    // THIS IS THE SESSION THAT SLEEP-POLLED. `--staged` is the longest command any minion runs, so
+    // this is the one payload whose reader routinely meets the 600s timeout, and the [BACKGROUND]
+    // rule alone was not enough: on quest a7520e60 two reviewers answered a backgrounded ward with
+    // `sleep 90` and then `sleep 240`, tailing its output file by hand. The ban is restated on
+    // [WARD] itself, where a reviewer reading about its own ward will meet it.
+    it('VALID: served payload => bans sleep-polling the ward run on the [WARD] rule itself', () => {
+      expect({
+        theBan: hasIn({ needle: '**DO NOT SLEEP-POLL A WARD RUN.**', text: MARKDOWN }),
+        namesAllThreeInventions: hasIn({
+          needle:
+            'Never `sleep` beside it, never `tail` its output file, and never re-run it to find out whether the first one finished.',
+          text: MARKDOWN,
+        }),
+        theHarnessNotifies: hasIn({
+          needle: 'is backgrounded by the harness, which notifies you when it exits',
+          text: MARKDOWN,
+        }),
+      }).toStrictEqual({
+        theBan: true,
+        namesAllThreeInventions: true,
+        theHarnessNotifies: true,
+      });
+    });
+
+    // AN EMPTY WARD IS NOT A GREEN ONE, and this reader is the one that turns a ward result into a
+    // `VERDICT`. `--staged` comes back empty for a round that genuinely changed nothing, and ward now
+    // runs no checks at all there rather than sweeping the repo — so the line the reviewer quotes as
+    // its evidence has to be one that actually measured something.
+    it('VALID: served payload => refuses an empty ward run as evidence of a green round', () => {
+      expect({
+        theHeading: hasIn({
+          needle: '**A ward that reports 0 files in scope has proven NOTHING.**',
+          text: MARKDOWN,
+        }),
+        emptyNotGreen: hasIn({
+          needle: 'That is an empty run, not a green one',
+          text: MARKDOWN,
+        }),
+      }).toStrictEqual({ theHeading: true, emptyNotGreen: true });
+    });
+
+    // THE THIRD WAY TO GET THE OUTCOME WRONG IS TO LEAVE THE LINE OFF, and this reader is the one it
+    // costs most: its `continue` is the only line that ends the parent's session, so a verdict that
+    // reads yes and then trails into prose is read as `rework` and buys a whole further round that
+    // re-derives what this session already proved. The clean round is where it happens, because a
+    // session with a green ward and every chunk accepted has the most to summarise and the least
+    // reason to think the shape of its return still matters.
+    it('VALID: served payload => makes `NEXT:` the last line and bans a closing paragraph', () => {
+      expect({
+        placementHasItsOwnHeading: hasIn({
+          needle: '### Where it goes, and what may not go with it',
+          text: MARKDOWN,
+        }),
+        valueChoiceHasItsOwn: hasIn({ needle: '### Which value it carries', text: MARKDOWN }),
+        lastLineEveryPath: hasIn({
+          needle:
+            '**It is the LAST line of your return, on every path out of your turn — the clean round most of all.**',
+          text: MARKDOWN,
+        }),
+        theBlockIsTheBound: hasIn({
+          needle:
+            'Your return is the block your own `## What you return` lays out and nothing besides it',
+          text: MARKDOWN,
+        }),
+        namesWhatDoesNotGoBeside: hasIn({
+          needle:
+            'no opening preamble, no closing paragraph after the `NEXT:` line, no summary of the round, no parting remark',
+          text: MARKDOWN,
+        }),
+        verdictYesThenProseIsRework: hasIn({
+          needle:
+            '**A `VERDICT` reading yes that then ends in prose reaches your parent as `rework`**',
+          text: MARKDOWN,
+        }),
+        namesTheCost: hasIn({
+          needle: 'spends a whole further round re-deriving what you already proved',
+          text: MARKDOWN,
+        }),
+      }).toStrictEqual({
+        placementHasItsOwnHeading: true,
+        valueChoiceHasItsOwn: true,
+        lastLineEveryPath: true,
+        theBlockIsTheBound: true,
+        namesWhatDoesNotGoBeside: true,
+        verdictYesThenProseIsRework: true,
+        namesTheCost: true,
+      });
+    });
+
     // Both ways of lying with the `NEXT:` line cost the quest something, and they cost it in opposite
     // directions — padding spends a whole round on nothing, hiding leaves the defect in the branch
     // because nothing runs after this session.

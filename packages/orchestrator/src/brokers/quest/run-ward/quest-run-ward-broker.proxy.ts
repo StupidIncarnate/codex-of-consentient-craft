@@ -64,6 +64,7 @@ import { questBlockOnFailureBrokerProxy } from '../block-on-failure/quest-block-
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
+import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { questOperationsUpdateBrokerProxy } from '../operations-update/quest-operations-update-broker.proxy';
 
@@ -141,6 +142,10 @@ export const questRunWardBrokerProxy = (): {
   wardDetailBrokerProxy();
   questAdvanceBrokerProxy();
   questFindQuestPathBrokerProxy();
+  // The role gate loads the quest through the real questLoadBroker; its own reads land on the
+  // virtual store below (the fs adapter module is automocked above), so this child exists to
+  // satisfy enforce-proxy-child-creation and stages nothing of its own.
+  questLoadBrokerProxy();
   questModifyBrokerProxy();
   questOperationsUpdateBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the module mock above supplies the actual

@@ -231,6 +231,38 @@ describe('pesteaterWorkerMinionStatics', () => {
   // decision with a wrong answer, taken by the session least able to check it, and its cost is a check
   // that silently never ran on the file just written. Pinned from both sides: the command shape must
   // be there, and no `--only`, no check-type list and no derivation table may come back.
+  // THE COMMAND HAS TO SIT WHERE THE NEED IS. The red step tells a worker to run something and the
+  // ward step names what to run with, and a real worker met the first with the second still several
+  // steps away: it reached for `run-ward` — a tool whose `mode: 'changed'` reads like "the files I
+  // changed" — wrote a failing ward result onto its parent's work item, and the orchestrator closed a
+  // healthy item as `ward_failed` 65 seconds later. The worker named the mistake itself 76 seconds
+  // after that, so the gap was proximity, not comprehension. Both halves are pinned: the command is
+  // AT the red step, and it still comes before the ward step that spends it over the whole `FILES`.
+  it('VALID: served template => names the scoped command at the red step, not only at the ward step', () => {
+    expect({
+      namesTheCommandAtTheRedStep: hasIn({
+        needle: 'the one way you run anything: scoped ward over the paths you just wrote.',
+        text: TEMPLATE,
+      }),
+      closesTheMcpRouteThere: hasIn({
+        needle: '**Never the `run-ward` MCP tool for this.**',
+        text: TEMPLATE,
+      }),
+      saysWhereItsRedWouldLand: hasIn({
+        needle: "lands on your parent's work item as that item's verdict",
+        text: TEMPLATE,
+      }),
+      commandComesBeforeTheWardStep:
+        TEMPLATE.indexOf('the one way you run anything') <
+        TEMPLATE.indexOf('**Run ward over your `FILES`'),
+    }).toStrictEqual({
+      namesTheCommandAtTheRedStep: true,
+      closesTheMcpRouteThere: true,
+      saysWhereItsRedWouldLand: true,
+      commandComesBeforeTheWardStep: true,
+    });
+  });
+
   it('VALID: served template => wards its FILES and names no check type', () => {
     expect({
       passesOnlyPaths: hasIn({

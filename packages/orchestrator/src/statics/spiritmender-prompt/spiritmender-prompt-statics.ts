@@ -81,9 +81,11 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. End your turn with a plain text message and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you.
 
-**[BACKGROUND] Never end your turn waiting for a background task, and never poll one.** Nothing wakes you when a detached background task finishes, so a turn that ends waiting on one hangs your work item for good. Keep every command short enough to finish in the foreground. If the harness pushes a command into the background, you scoped it too broadly. Narrow it and run it again.
+**[BACKGROUND] Never end your turn waiting for a background task.** A turn that ends waiting on one hangs your work item for good, because no notification follows a final response. While your turn is still going you need no waiting strategy at all: **Never \`sleep\` to wait one out, and never \`tail\` its output file.** Whatever the harness pushed into the background, the harness notifies you when it exits, so long as your turn is still going — do other work and read that notification. Nothing else left to do meanwhile is the signal you scoped the command too broadly: narrow it and run it again.
 
 **[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This rule OVERRIDES the \`<dungeonmaster-ward>\` snippet you were handed at session start. That snippet's "make it fully green" line is written for an agent working directly for a person, and you are not one. The whole-repo run is a separate work item that runs after you.
+
+**DO NOT SLEEP-POLL A WARD RUN.** Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished. A run that crosses \`timeout: 600000\` is backgrounded by the harness, which notifies you when it exits.
 
 Run it scoped to the files you name: \`npm run ward -- --only <checks> -- <file1> <file2>\`. Every path must be a FILE, never a bare directory (\`-- packages/<pkg>\`). A directory pulls in the whole package, and the harness then pushes the run into the background, which strands your turn. See [BACKGROUND].
 

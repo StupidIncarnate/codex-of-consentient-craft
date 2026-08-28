@@ -167,7 +167,37 @@ describe('workerInformationStatics', () => {
           needle: '**Your own prompt adds more, and every one it adds is as binding as these:**',
           text: MARKDOWN,
         }),
-      }).toStrictEqual({ twoLines: true, neverPaste: true, listIsPartial: true });
+        // `Never paste the report` closed the top of the return and left the bottom open. A closing
+        // summary or a sign-off is what a session appends once its chunk is done, and every one of
+        // them pushes the `NEXT:` line off the end — which the parent reads as `rework` over work
+        // that landed. The clean chunk is the case to name, because it is the one with nothing left
+        // to say and therefore the one that stops early.
+        nothingAfterTheNextLine: hasIn({
+          needle: '**Nothing goes after the `NEXT:` line either**',
+          text: MARKDOWN,
+        }),
+        namesWhatDoesNotFollow: hasIn({
+          needle: 'no closing summary, no parting remark, no next step offered',
+          text: MARKDOWN,
+        }),
+        bothLinesEveryPath: hasIn({
+          needle: '**Both lines go on every path out of your turn, the clean chunk most of all.**',
+          text: MARKDOWN,
+        }),
+        stoppingEarlyReadsAsRework: hasIn({
+          needle:
+            'A return that stops after the `CHUNK:` line reaches your parent as `rework` over work that is finished',
+          text: MARKDOWN,
+        }),
+      }).toStrictEqual({
+        twoLines: true,
+        neverPaste: true,
+        listIsPartial: true,
+        nothingAfterTheNextLine: true,
+        namesWhatDoesNotFollow: true,
+        bothLinesEveryPath: true,
+        stoppingEarlyReadsAsRework: true,
+      });
     });
 
     // No chunk carries a ward command. Without this line a worker looks for a `WARD:` field its
@@ -183,6 +213,71 @@ describe('workerInformationStatics', () => {
           text: MARKDOWN,
         }),
       ).toBe(true);
+    });
+
+    // THE BAN IS SHARED EVEN THOUGH THE COMMAND IS NOT. The test above keeps this file from naming
+    // what a worker calls, because three of the five call something else. What every worker shares is
+    // which forms are CLOSED, and one of them is a TOOL rather than a command: a real worker reached
+    // for `run-ward` mid-chunk to capture its red, that call wrote a failing ward result onto its
+    // PARENT's work item, and the orchestrator closed a healthy item as `ward_failed` 65 seconds
+    // later. The old wording banned "the bare whole-repo `npm run ward`", which a `mode: 'changed'`
+    // MCP call is not, so nothing the worker had been served said no.
+    it('VALID: served payload => closes every ward form a scoped run is not, the MCP tool included', () => {
+      expect({
+        scopedByFiles: hasIn({
+          needle:
+            'Whatever ward command your own prompt names, you pass it `-- <the files you touched>` and nothing else.',
+          text: MARKDOWN,
+        }),
+        namesTheMcpTool: hasIn({
+          needle: '**`mcp__dungeonmaster__run-ward` is NOT yours, in any mode.**',
+          text: MARKDOWN,
+        }),
+        writesToTheParentsItem: hasIn({
+          needle:
+            'it writes a ward result onto the work item your parent owns, and a red one there fails that item',
+          text: MARKDOWN,
+        }),
+        bansBothGitScopeFlags: hasIn({
+          needle: 'Never `--changed`, never `--staged`, never a bare whole-repo `npm run ward`',
+          text: MARKDOWN,
+        }),
+      }).toStrictEqual({
+        scopedByFiles: true,
+        namesTheMcpTool: true,
+        writesToTheParentsItem: true,
+        bansBothGitScopeFlags: true,
+      });
+    });
+
+    // THE HARNESS DOES WAKE YOU, and the old sentence said it does not. That falsehood is what a
+    // reviewer acted on when its own ward crossed the 600s timeout: it `sleep 90`ed, then `sleep
+    // 240`ed, tailing the output file by hand, because its rules told it no notification was coming.
+    // 815 seconds of one quest went into sleeps on that premise. What stays true is the ban on ENDING
+    // a turn to wait — the notification cannot follow a final response.
+    it('VALID: served payload => says a backgrounded command notifies rather than needing a poll', () => {
+      expect({
+        neverSleepNeverTail: hasIn({
+          needle: '**Never `sleep` to wait one out, and never `tail` its output file.**',
+          text: MARKDOWN,
+        }),
+        theHarnessNotifies: hasIn({
+          needle: 'the harness notifies you when it exits, so long as your turn is still going',
+          text: MARKDOWN,
+        }),
+        stillNeverEndTheTurn: hasIn({
+          needle: '**[BACKGROUND] Never end your turn waiting for a background task.**',
+          text: MARKDOWN,
+        }),
+        dropsTheOldFalsehood: !MARKDOWN.includes(
+          'Nothing wakes you when a detached background task',
+        ),
+      }).toStrictEqual({
+        neverSleepNeverTail: true,
+        theHarnessNotifies: true,
+        stillNeverEndTheTurn: true,
+        dropsTheOldFalsehood: true,
+      });
     });
 
     // THE COLLISION SET IS THE WAVE, AND THIS IS THE ONE PLACE IT IS STATED. Five prompts carried a

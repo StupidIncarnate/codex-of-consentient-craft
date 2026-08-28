@@ -119,7 +119,7 @@ Call all three tools, read their output, THEN plan your approach.`,
 
   ward: `## Ward Quality Commands
 
-**ALWAYS use \`npm run ward\`.** Never invoke \`npx jest\`, \`npx eslint\`, \`npx tsc\`, \`npx playwright\`, or \`npm test\` directly — pick the matching check type below instead.
+**ALWAYS use \`npm run ward\`.** Never \`npx jest\`/\`eslint\`/\`tsc\`/\`playwright\` or \`npm test\` — pick a check type below.
 
 ### Check Types
 
@@ -137,29 +137,31 @@ Call all three tools, read their output, THEN plan your approach.`,
 | Flag | Description |
 |------|-------------|
 | \`--only lint,typecheck,unit\` | Comma-separated check types. Omit for all. |
-| \`--onlyTests <regex>\` | Filter tests by name. Supports \`\\|\` alternation. |
+| \`--onlyTests <regex>\` | Filter tests by name. \`\\|\` alternates. |
 | \`-- file1 file2\` | Passthrough file paths (after \`--\`). |
-| \`--changed\` | All checks, on files differing from local default branch. |
+| \`--changed\` | All checks, on files differing from local default. |
 | \`--staged\` | All checks, on files origin lacks. Pre-push gate. |
 
-**\`--changed\` and \`--staged\` run ALONE.** Each takes its file set from git, so ward rejects either one combined with \`--only\`, \`--onlyTests\`, \`-- <files>\`, or the other. To narrow a run, drop the flag and scope it yourself.
+**\`--changed\` and \`--staged\` run ALONE** — each takes its file set from git, so ward rejects them combined with \`--only\`, \`--onlyTests\`, \`-- <files>\`, or each other. To narrow, drop the flag and scope it yourself.
+
+**Either resolving to 0 files runs NOTHING**: ward says so and exits 0 — empty, not green.
 
 ### Common Invocations
 
 \`\`\`bash
-npm run ward                                          # All checks
-npm run ward -- --only unit -- path/to/file.test.ts   # Single test file
-npm run ward -- --only unit --onlyTests "my test"     # Tests by name
-npm run ward -- -- packages/hooks                     # Single package
-npm run ward -- --changed                             # Changed files, all checks
-npm run ward -- --staged                              # Unpushed work, all checks
+npm run ward                                  # All checks
+npm run ward -- -- pkg/a.ts pkg/a.test.ts     # THESE FILES — ward picks the checks
+npm run ward -- --only unit -- pkg/a.test.ts  # These files, one check type
+npm run ward -- --only unit --onlyTests "x" -- pkg/  # By name, SCOPED
+npm run ward -- -- packages/hooks             # One package
+npm run ward -- --staged                      # Unpushed work
 \`\`\`
 
-### Inspecting Failures
+Pass every path you touched after \`--\`. Repo-relative, no \`./\`.
 
-\`npm run ward -- detail <runId>\` for full error output and jest diffs.
+**Inspecting failures:** \`npm run ward -- detail <runId>\` for full errors and jest diffs.
 
-**Zero tolerance:** Never assume a failure is pre-existing — investigate and fix every one. Whether a FULL run is yours to make green depends on your role; see the ward-discipline snippet.`,
+**Zero tolerance:** Never assume a failure is pre-existing — investigate and fix every one. Whether a FULL run is yours to make green depends on your role; see ward-discipline.`,
 
   wardDiscipline: `## Ward Invocation Discipline
 
@@ -169,7 +171,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
 
-**Run it in the FOREGROUND, and just let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). A hook BLOCKS a backgrounded ward run, so there is no second mode and no output file anyone has to wait on — the call returns when ward is finished. Do not build a waiting strategy around it.
+**Run it in the FOREGROUND and let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). **Never \`sleep\` on a ward run, and never \`tail\` its output file.** A run that crosses that timeout is backgrounded by the harness, and it notifies you when the run exits — do other work and read that notification. Never END your turn waiting, because no notification follows a final response.
 
 **Run it ONCE.** Choose the right flags the first time; never re-run the same checks a second way, or follow a scoped run with a full one.
 

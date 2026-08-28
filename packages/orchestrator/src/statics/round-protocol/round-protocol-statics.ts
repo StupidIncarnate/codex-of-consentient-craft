@@ -95,7 +95,10 @@
  * - A PASTED CHUNK in a brief hides the sibling chunks that say which paths are NOT that worker's,
  *   and can disagree with the document the worker is really working from.
  * - THE `NEXT:` LINE is the only control signal in a return; everything above it is evidence for the
- *   reviewer and for the next round's planner.
+ *   reviewer and for the next round's planner. The served text spends characters on the MISSING-line
+ *   case rather than the malformed one, because a return that simply ends in prose is the shape a
+ *   session lands in when it believes it is finished: the parent's routing table reads the absence as
+ *   `rework`, and the round it then spends cannot repair a defect that lives in a message.
  * - THE OPERATION ITEM ID IN THE PATH matters because several pieces of work run on one quest, each
  *   opening at its own round 1, and they all share one worktree — bare `round-1.md` would collide.
  * - NO MINION CAN BUILD A `PLAN:` PATH: its own fetch hands back no operation item id, and nothing
@@ -123,8 +126,10 @@
  *   27,000 characters of shared text, and roughly 32,000 for the two reviewers that also take
  *   `flowEvidenceContractStatics.judgingMarkdown` — so a duplicated sentence costs it twice.
  *   `nextLine` restates neither the `[WALL]` operating rule (the wall vocabulary, and the
- *   restartable wall being `rework`) nor `[TURN END]` (a return ending on one line its parent acts
- *   on) — every minion reads both off the `*-information` payload its first step fetches;
+ *   restartable wall being `rework`) nor the rest of `[TURN END]` (no `signal-back`, the parent's
+ *   `workItemId`, the final message being how a turn finishes) — every minion reads both off the
+ *   `*-information` payload its first step fetches. What `nextLine` owes on top of `[TURN END]` is
+ *   the EVERY-PATH claim and its measured cost, which is why those sit here rather than there;
  *   `commitSubjects` does not restate the completion-gate paragraph in
  *   `standardsReviewConcernsStatics`. Each of those arrives at the same reader from the other block,
  *   in longer form.
@@ -353,10 +358,30 @@ NEXT: wall — <what a person must change>
 
 **The parent matches the FIRST WORD of the LAST line.** Nothing else in a return is a control signal.
 
-**A minion writes \`NEXT:\` on ONE line and makes it the last line.** A \`wall\` option wrapped onto
-a second line starts with \`|\`, which matches none of the three — the parent then reads the return
-as carrying no \`NEXT:\` at all, treats that as \`rework\`, and dispatches a full round into the wall
-the minion just reported. Nothing goes beneath that line.
+### The line is mandatory on every path, the clean pass most of all
+
+**A minion writes \`NEXT:\` on ONE line and makes it the last line.** It writes one on EVERY path out
+of its turn — a clean pass, a partial, a wall, a turn that found nothing left to do. No outcome ends
+in prose instead.
+
+**A return carrying no \`NEXT:\` line is read as \`rework\`**: the parent finds no word to match, and
+its routing table has one entry for that. Measured on one such return — a final reviewer that
+accepted every chunk, got a green ward, committed and pushed, and then ended in prose — its parent
+spent a whole further round on it: a planner that cut ZERO chunks, then a reviewer that re-derived
+the same verdict. 35 minutes and two sessions, for a \`plan round 2: 0 chunks\` commit and an
+\`--allow-empty\` one. No chunk could have repaired it, because the defect was in a return message
+rather than in the tree.
+
+A \`wall\` option wrapped onto a second line is that same case: the wrapped part starts with \`|\`,
+which matches none of the three, so the parent reads the return as carrying no \`NEXT:\` at all and
+dispatches a full round into the wall just reported.
+
+### The return is that block and nothing besides
+
+**A minion returns exactly the block its own \`## What you return\` lays out, ending on \`NEXT:\`.**
+Nothing goes beneath that line. Nothing goes beside the block either — no opening preamble, no
+closing summary of the work, no parting remark, no next step offered. What any later session needs
+is already in the round document and in the commit.
 
 A worker's \`rework\` is a CLAIM about its own chunk. **Only the REVIEWER's line decides the
 round**, because the reviewer reads every worker's report AND opens the files.`;

@@ -681,6 +681,83 @@ describe('roundProtocolStatics', () => {
       ).toBe(true);
     });
 
+    // A RETURN THAT SIMPLY ENDS IN PROSE IS THE SHAPE A FINISHED SESSION LANDS IN, and it is the one
+    // the format rules above never covered: they describe a `NEXT:` line that is present and
+    // malformed. The parent's routing table reads an ABSENT line as `rework`, so the cleanest
+    // possible round buys a whole further round that cannot repair anything — the defect is in a
+    // message, and no chunk reaches a message. The measured figures are the point of the paragraph:
+    // a rule with no cost beside it is one a session weighs against finishing its turn.
+    it('VALID: nextLine => makes the line mandatory on every path, clean pass included', () => {
+      const text = roundProtocolStatics.nextLine;
+
+      expect({
+        theHeading: hasIn({
+          needle: '### The line is mandatory on every path, the clean pass most of all',
+          text,
+        }),
+        everyPath: hasIn({ needle: 'It writes one on EVERY path out of its turn', text }),
+        namesTheCleanPass: hasIn({
+          needle: 'a clean pass, a partial, a wall, a turn that found nothing left to do',
+          text,
+        }),
+        proseIsNotAnOutcome: hasIn({ needle: 'No outcome ends in prose instead.', text }),
+        absenceReadsAsRework: hasIn({
+          needle: '**A return carrying no `NEXT:` line is read as `rework`**',
+          text,
+        }),
+        measuredCost: hasIn({ needle: '35 minutes and two sessions', text }),
+        measuredCommits: hasIn({
+          needle: 'for a `plan round 2: 0 chunks` commit and an `--allow-empty` one',
+          text,
+        }),
+        noChunkReachesAMessage: hasIn({
+          needle: 'the defect was in a return message rather than in the tree',
+          text,
+        }),
+      }).toStrictEqual({
+        theHeading: true,
+        everyPath: true,
+        namesTheCleanPass: true,
+        proseIsNotAnOutcome: true,
+        absenceReadsAsRework: true,
+        measuredCost: true,
+        measuredCommits: true,
+        noChunkReachesAMessage: true,
+      });
+    });
+
+    // "Nothing goes beneath that line" answered only half of it: a summary paragraph, a sign-off or
+    // an offer of next steps is what a session appends when it has finished and wants to be helpful,
+    // and each one pushes the `NEXT:` line off the end of the return. The bound is the block the
+    // reader's own `## What you return` lays out — every minion family has one — so the rule names
+    // that section rather than counting lines, which differ across the three families.
+    it('VALID: nextLine => bounds the return to the block and nothing besides', () => {
+      const text = roundProtocolStatics.nextLine;
+
+      expect({
+        theHeading: hasIn({ needle: '### The return is that block and nothing besides', text }),
+        theBlockIsTheBound: hasIn({
+          needle:
+            '**A minion returns exactly the block its own `## What you return` lays out, ending on `NEXT:`.**',
+          text,
+        }),
+        namesWhatDoesNotGoBeside: hasIn({
+          needle:
+            'Nothing goes beside the block either — no opening preamble, no closing summary of the work, no parting remark, no next step offered.',
+          text,
+        }),
+        theEvidenceIsElsewhere: hasIn({
+          needle: 'already in the round document and in the commit',
+          text,
+        }),
+      }).toStrictEqual({
+        theHeading: true,
+        theBlockIsTheBound: true,
+        namesWhatDoesNotGoBeside: true,
+        theEvidenceIsElsewhere: true,
+      });
+    });
+
     // The routing column is the WORKER's answer only. For a reviewer, `continue` is the one line
     // that ends the parent's session and `rework` runs the whole loop again — opposite places, both
     // written as "goes to its next step" before this. And the holder does not stop dispatching on a

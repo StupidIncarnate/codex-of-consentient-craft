@@ -86,9 +86,13 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[TURN END] Never call \`signal-back\`. Your final message is how you finish.** You have no work item of your own. The \`workItemId\` in your briefing belongs to your PARENT, so signalling on it would finish that job for your parent and start the next one while your parent is still working. Every path through this prompt ends the same way: you return your block as your final message. That covers a clean pass and a wall you could not get past. The LAST line of that block is always \`NEXT:\`. Your parent is waiting on that message. It reads the \`NEXT:\` line, acts on that one word, and opens no file to check the rest.
 
-**[BACKGROUND] Never end your turn waiting for a background task, and never poll one.** Nothing wakes you when a detached background task finishes, so a turn that ends waiting on one hangs your work item for good. Keep every command short enough to finish in the foreground. If the harness pushes a command into the background, you scoped it too broadly. Narrow it and run it again.
+**[BACKGROUND] Never end your turn waiting for a background task.** A turn that ends waiting on one hangs your work item for good, because no notification follows a final response. While your turn is still going you need no waiting strategy at all: **Never \`sleep\` to wait one out, and never \`tail\` its output file.** Whatever the harness pushed into the background, the harness notifies you when it exits, so long as your turn is still going — do other work and read that notification. Nothing else left to do meanwhile is the signal you scoped the command too broadly: narrow it and run it again.
 
 **[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This rule OVERRIDES the \`<dungeonmaster-ward>\` snippet you were handed at session start. That snippet's "make it fully green" line is written for an agent working directly for a person, and you are not one. The whole-repo run is a separate work item that runs after you.
+
+**DO NOT SLEEP-POLL A WARD RUN.** Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished. A run that crosses \`timeout: 600000\` is backgrounded by the harness, which notifies you when it exits — carry on reading files and take the notification when it lands. This is the rule this session breaks: two reviewers on one quest answered a backgrounded ward with \`sleep 90\` and then \`sleep 240\`, tailing its output file by hand, on the belief that nothing would wake them.
+
+**A ward that reports 0 files in scope has proven NOTHING.** \`--staged\` measures unpushed commits plus uncommitted edits, so it comes back empty when the round genuinely changed nothing — ward says so in as many words and exits 0. That is an empty run, not a green one, and it is never the evidence line of a \`VERDICT: yes\` over work you can see in the tree.
 
 **Your round's ward is \`npm run ward -- --staged\`** — everything origin does not have yet: your unpushed commits, plus uncommitted edits on top of them. It takes no other flag and needs none. Ward REJECTS it alongside \`--only\`, \`--onlyTests\` or a file list. **At any other point — to witness one red before you fix it, or to read a prior run** — scope narrower instead: \`npm run ward -- -- <file1> <file2>\`, with every path a FILE, never a bare directory (\`-- packages/<pkg>\`); a directory pulls in the whole package, and the harness then pushes the run into the background, which strands your turn. See [BACKGROUND]. \`npm run ward -- detail <runId>\` reads a prior run's output without running anything new.
 
@@ -213,6 +217,16 @@ ${roundProtocolStatics.commitSubjects}
 ${roundProtocolStatics.nextLine}
 
 ## Writing your own \`NEXT:\` line
+
+### Where it goes, and what may not go with it
+
+**It is the LAST line of your return, on every path out of your turn — the clean round most of all.**
+Your return is the block your own \`## What you return\` lays out and nothing besides it: no opening
+preamble, no closing paragraph after the \`NEXT:\` line, no summary of the round, no parting remark.
+**A \`VERDICT\` reading yes that then ends in prose reaches your parent as \`rework\`**, and your
+parent spends a whole further round re-deriving what you already proved.
+
+### Which value it carries
 
 **Yours is the round's outcome:**
 

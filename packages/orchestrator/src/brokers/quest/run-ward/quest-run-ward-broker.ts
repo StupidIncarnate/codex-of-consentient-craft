@@ -56,6 +56,7 @@ import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/sta
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questRunWardResultContract } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 import type { QuestRunWardResult } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
+import { runWardRefusalStatics } from '../../../statics/run-ward-refusal/run-ward-refusal-statics';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
@@ -64,6 +65,7 @@ import { questAdvanceBroker } from '../advance/quest-advance-broker';
 import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
+import { questLoadBroker } from '../load/quest-load-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 
@@ -93,6 +95,35 @@ export const questRunWardBroker = async ({
   const startPath = absoluteFilePathContract.parse(resolution.cwd);
 
   const { questPath } = await questFindQuestPathBroker({ questId });
+
+  // 0. GATE — everything below applies ward's verdict to whatever work item this call NAMES: the
+  //    stamp at step 1 resets `startedAt`, and step 5 writes a terminal status plus `ward_failed` /
+  //    `ward_crashed`. Both dispatchers only ever name a `ward` item, so a call naming any other
+  //    role came from an agent that reached for the MCP tool by hand — a worker minion capturing
+  //    red-phase evidence passes its PARENT's workItemId, and a red run then marks a session that
+  //    is still running `failed`, splices a spiritmender behind it, and answers the session's later
+  //    `signal-back` with `{success: true}` onto an already-failed item. The refusal THROWS so the
+  //    message rides back to that agent instead of being swallowed.
+  //
+  //    `role === 'ward'` and NOT `isCommandWorkItemRoleGuard`: the command set also holds
+  //    `riftcarver`, whose item this broker would corrupt in exactly the same way.
+  //
+  //    A workItemId that is on no work item at all is NOT refused — the ward run still records its
+  //    result on the quest, which is the pre-existing "ward work item missing" behaviour.
+  const questFilePath = filePathContract.parse(
+    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+  );
+  const targetWorkItem = (await questLoadBroker({ questFilePath })).workItems.find(
+    (item) => item.id === workItemId,
+  );
+  if (targetWorkItem !== undefined && targetWorkItem.role !== runWardRefusalStatics.requiredRole) {
+    throw new Error(
+      runWardRefusalStatics.messageTemplate
+        .replace('$WORK_ITEM_ID', () => String(workItemId))
+        .replace('$QUEST_ID', () => String(questId))
+        .replace('$ROLE', () => targetWorkItem.role),
+    );
+  }
 
   // 1. Mark the work item running BEFORE spawning. Ward can run for minutes; without this the row
   //    reads `pending` the whole time, indistinguishable from "nothing is happening". The agent

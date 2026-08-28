@@ -83,7 +83,7 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[TURN END] Never call \`signal-back\`. Your final message is how you finish.** You have no work item of your own. The \`workItemId\` in your briefing belongs to your PARENT, so signalling on it would finish that job for your parent and start the next one while your parent is still working. Every path through this prompt ends the same way: you return your block as your final message. That covers a clean pass and a wall you could not get past. The LAST line of that block is always \`NEXT:\`. Your parent is waiting on that message. It reads the \`NEXT:\` line, acts on that one word, and opens no file to check the rest.
 
-**[BACKGROUND] Never end your turn waiting for a background task, and never poll one.** Nothing wakes you when a detached background task finishes, so a turn that ends waiting on one hangs your work item for good. Keep every command short enough to finish in the foreground. If the harness pushes a command into the background, you scoped it too broadly. Narrow it and run it again.
+**[BACKGROUND] Never end your turn waiting for a background task.** A turn that ends waiting on one hangs your work item for good, because no notification follows a final response. While your turn is still going you need no waiting strategy at all: **Never \`sleep\` to wait one out, and never \`tail\` its output file.** Whatever the harness pushed into the background, the harness notifies you when it exits, so long as your turn is still going — do other work and read that notification. Nothing else left to do meanwhile is the signal you scoped the command too broadly: narrow it and run it again.
 
 **[WARD] You run no build, no ward, no test and no check of any kind.** The round's REVIEWER runs the build and the ward, once, after every worker has returned and after opening every file the round produced: \`npm run build\`, then \`npm run ward -- --staged\`. This rule OVERRIDES both the \`<dungeonmaster-ward>\` and the \`<dungeonmaster-ward-discipline>\` snippets you were handed at session start; neither is written for a session that runs neither command.
 
@@ -145,6 +145,15 @@ ${roundProtocolStatics.nextLine}
 PLAN: .quest-plans/<operationItemId>-round-<n>.md — <count> chunks
 NEXT: continue
 \`\`\`
+
+**Both lines go, in that order, and nothing goes with them** — no opening preamble, no summary of
+what you found, and nothing at all after the \`NEXT:\` line. **Never paste the plan, or any block of
+it, into your return.** Your parent may not open a source file, so it can check no word of it, and
+the document you committed is where every session that CAN read it goes.
+
+**The \`NEXT:\` line is the one line you can never leave off, and a clean plan is where it is easiest
+to.** A return that stops after the \`PLAN:\` line reaches your parent as \`rework\` over a plan that
+is already written and committed.
 
 **You have exactly TWO values**, not three. \`continue\` covers every plan you were able to write, zero
 chunks included. The other is:

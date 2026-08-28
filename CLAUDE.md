@@ -141,12 +141,20 @@ is produced the next time someone runs `npm run init`.
 
 **Ward is a root-level monorepo script.** These rules apply to ALL agents, including sub-agents in worktrees.
 
-The **mechanics** of invoking ward — build first and unpiped, never `cd` into a package, pick ONE of
-foreground/background and never the hybrid, `timeout: 600000`, run it once, and why a `No tests found` /
-`DISCOVERY MISMATCH` on a scoped run is a skip rather than a regression — live in the
+The **mechanics** of invoking ward — build first and unpiped, never `cd` into a package, run it in the foreground
+with `timeout: 600000`, never sleep-poll it, run it once, and why a `No tests found` / `DISCOVERY MISMATCH` on a
+scoped run is a skip rather than a regression — live in the
 `<dungeonmaster-ward-discipline>` session snippet (`sessionSnippetStatics.wardDiscipline`), which every session and
 every sub-agent receives at start, in this repo and in every repo `dungeonmaster init` has touched. Fix them THERE, not
 here; a copy in this file would drift from the one the agents actually read.
+
+**DO NOT SLEEP-POLL A WARD RUN.** This one is repeated here because it is the mechanic sessions invent their way
+around, and the invention costs whole minutes. Never `sleep` beside a ward run, never `tail` its output file, and
+never re-run it to find out whether the first one finished. A run that crosses `timeout: 600000` is backgrounded by
+the harness, **which notifies you when it exits** — carry on with other work and take the notification when it lands.
+Measured on quest a7520e60: two reviewers answered a backgrounded ward with `sleep 90` and then `sleep 240`, tailing
+the output file by hand, because the snippet then claimed no notification was coming. 815 seconds of that quest went
+into sleeps.
 
 What stays below is the part that is a judgment call rather than a command-line mechanic.
 

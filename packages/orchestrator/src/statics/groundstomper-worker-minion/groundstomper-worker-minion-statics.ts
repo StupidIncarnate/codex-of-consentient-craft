@@ -250,6 +250,13 @@ to your parent and your planner.
    one:** break the production line the case guards, run the spec, capture the red, then put the line
    back BY EDITING it back, never with \`git checkout --\`. In that order, every time.
 
+   **Run the spec the one way you run anything: scoped ward over the paths you just wrote.**
+   \`npm run ward -- -- ./packages/<pkg>/src/flows/<route>/<feature>.e2e.ts\` — the same command shape
+   your ward step spends over your whole \`FILES\`, narrowed here to what you are proving.
+   **Never the \`run-ward\` MCP tool for this.** Its \`mode: 'changed'\` reads like "the files I changed"
+   and is not: it is the dispatcher's quest gate, it grades the whole branch, and the red you WANTED
+   here lands on your parent's work item as that item's verdict.
+
    That line is almost never inside your own \`FILES\`, because your files are the specs. Three bounds
    hold, and all three are required:
 

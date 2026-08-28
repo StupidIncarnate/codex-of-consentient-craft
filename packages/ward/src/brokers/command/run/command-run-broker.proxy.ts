@@ -1,6 +1,8 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { projectReferencesSyncBrokerProxy } from '../../project-references/sync/project-references-sync-broker.proxy';
 import { checkRunTypecheckRefsBrokerProxy } from '../../check-run/typecheck-refs/check-run-typecheck-refs-broker.proxy';
@@ -11,6 +13,7 @@ import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub'
 import type { TestNamePatternMatch } from '../../../contracts/test-name-pattern-match/test-name-pattern-match-contract';
 import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
 import { commandRunLayerGitScopeBrokerProxy } from './command-run-layer-git-scope-broker.proxy';
+import { commandRunLayerPathCheckBrokerProxy } from './command-run-layer-path-check-broker.proxy';
 import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
 import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
 
@@ -27,8 +30,14 @@ const LINT_ERROR_REPORT = JSON.stringify([
 
 export const commandRunBrokerProxy = (): {
   setupSinglePackagePass: () => void;
+  setupSinglePackageLintPassWithNoFiles: () => void;
   setupSinglePackageFail: () => void;
   setupSinglePackageCrash: () => void;
+  setupStagedWithNothingUnpushed: () => void;
+  setupChangedWithNothingChanged: () => void;
+  setupStagedWithOneUnpushedFile: () => void;
+  setupExistingPath: ({ filePath }: { filePath: FilePath }) => void;
+  setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
   setupMultiPackageOnlyTests: (params: { matches: TestNamePatternMatch[] }) => void;
   getStdoutCalls: () => unknown[];
@@ -45,7 +54,8 @@ export const commandRunBrokerProxy = (): {
   registerSpyOn({ object: process.stderr, method: 'write' }).calledWith([]).returns(true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
-  commandRunLayerGitScopeBrokerProxy();
+  const gitScopeProxy = commandRunLayerGitScopeBrokerProxy();
+  const pathCheckProxy = commandRunLayerPathCheckBrokerProxy();
   projectReferencesSyncBrokerProxy();
   checkRunTypecheckRefsBrokerProxy();
   const folderProxy = commandRunLayerFolderBrokerProxy();
@@ -62,6 +72,14 @@ export const commandRunBrokerProxy = (): {
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
       singleProxy.setupAllChecksPass({ projectFolder: singlePackageProjectFolder });
     },
+    // ESLint answers `[]` — the shape it really produces for a file list it visited and found
+    // nothing to lint in, and the shape behind `lint: WARN 0 files run`. Lint alone, so the summary
+    // carries one check line and no discovery mismatch (discoveredCount is 0 too).
+    setupSinglePackageLintPassWithNoFiles: (): void => {
+      workspaceProxy.setupSinglePackage();
+      folderProxy.setupReturnsPackage({ name: 'test-pkg' });
+      singleProxy.setupLintOnlyPass({ projectFolder: singlePackageProjectFolder });
+    },
     setupSinglePackageFail: (): void => {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
@@ -74,6 +92,33 @@ export const commandRunBrokerProxy = (): {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
       singleProxy.setupLintOnlyFail({ projectFolder: singlePackageProjectFolder, stdout: '[]' });
+    },
+    // git answers with an empty diff, which is what a branch whose every commit is already pushed
+    // reports for `--staged`. Pair it with a pass setup: the run those mocks describe is the
+    // whole-repo one this scope must NOT fall through to.
+    setupStagedWithNothingUnpushed: (): void => {
+      gitScopeProxy.setupUnpushedFiles({ diffOutput: '' });
+    },
+    setupChangedWithNothingChanged: (): void => {
+      gitScopeProxy.setupChangedFiles({ diffOutput: '' });
+    },
+    // The unpushed diff resolves to `src/index.ts`, and the path-check layer asks disk about it by
+    // absolute path — so the method that produces the path is the one that declares it exists.
+    // Splitting those two would leave a caller staging a git diff whose file the next layer then
+    // reports missing.
+    setupStagedWithOneUnpushedFile: (): void => {
+      gitScopeProxy.setupUnpushedFiles({ diffOutput: 'src/index.ts\n' });
+      pathCheckProxy.setupExistingPath({
+        filePath: filePathContract.parse('/project/src/index.ts'),
+      });
+    },
+    // Address the ABSOLUTE path — `rootPath` joined to the repo-relative arg — because that is what
+    // the path-check layer hands the adapter. Everything not named here answers "on disk".
+    setupExistingPath: ({ filePath }: { filePath: FilePath }): void => {
+      pathCheckProxy.setupExistingPath({ filePath });
+    },
+    setupMissingPath: ({ filePath }: { filePath: FilePath }): void => {
+      pathCheckProxy.setupMissingPath({ filePath });
     },
     setupMultiPackagePass: ({
       packageCount,
