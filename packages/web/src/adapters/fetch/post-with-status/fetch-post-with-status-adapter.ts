@@ -9,8 +9,8 @@
  * // result = { status, ok, body } — body is JSON-parsed when possible, else raw text.
  */
 
-import { fetchPostWithStatusResultContract } from '../../../contracts/fetch-post-with-status-result/fetch-post-with-status-result-contract';
-import type { FetchPostWithStatusResult } from '../../../contracts/fetch-post-with-status-result/fetch-post-with-status-result-contract';
+import { fetchWithStatusResultContract } from '../../../contracts/fetch-with-status-result/fetch-with-status-result-contract';
+import type { FetchWithStatusResult } from '../../../contracts/fetch-with-status-result/fetch-with-status-result-contract';
 
 export const fetchPostWithStatusAdapter = async ({
   url,
@@ -18,7 +18,7 @@ export const fetchPostWithStatusAdapter = async ({
 }: {
   url: string;
   body: unknown;
-}): Promise<FetchPostWithStatusResult> => {
+}): Promise<FetchWithStatusResult> => {
   const response = await globalThis.fetch(url, {
     method: 'POST',
     headers: {
@@ -38,7 +38,7 @@ export const fetchPostWithStatusAdapter = async ({
     }
   }
 
-  return fetchPostWithStatusResultContract.parse({
+  return fetchWithStatusResultContract.parse({
     status: response.status,
     ok: response.ok,
     body: parsedBody,

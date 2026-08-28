@@ -1145,3 +1145,86 @@ WAVES:
   6: 13
 
 ## Round log
+
+### report — chunk 2
+RESULT:
+  - healthBadgeStatics exports exactly nine properties: online, degraded, offline, checking, testId, silenceThresholdMs, offlineTitleUnreachable, offlineTitleServerError, offlineTitleSilence. — yes — read the file: object literal has exactly these nine keys, nothing else; the colocated test's single toStrictEqual pins the whole object and is green.
+  - healthBadgeStatics.testId is the string 'HEALTH_BADGE' and silenceThresholdMs is the number 30000. — yes — `testId: 'HEALTH_BADGE'`, `silenceThresholdMs: 30000` in the exported object.
+  - offlineTitleUnreachable is exactly 'No response from server' and offlineTitleSilence is exactly 'No heartbeat for 30 seconds'. — yes — both string literals match verbatim in the file.
+  - offlineTitleServerError is the prefix 'Server returned', with no code and no trailing space; chunk 8 appends the status. — yes — `offlineTitleServerError: 'Server returned'`, no trailing space, no code appended.
+  - The colocated test is ONE it holding a single toStrictEqual over the whole exported object, so a tenth key cannot land unasserted. — yes — health-badge-statics.test.ts has exactly one `it()` with one `expect(healthBadgeStatics).toStrictEqual({...})` naming all nine keys.
+FILES:    ./packages/web/src/statics/health-badge/health-badge-statics.ts, ./packages/web/src/statics/health-badge/health-badge-statics.test.ts
+EVIDENCE:
+  - "healthBadgeStatics VALID: exported value => matches expected shape" — first run against an empty-object shell (`export const healthBadgeStatics = {} as const;`) printed `- Expected - 11 / + Received + 1` with `+ Object {}` against the full nine-key expected object — a genuine wrong-value red, not an import/type error.
+USAGES:   grepped `healthBadgeStatics` via discover — the only hits are this chunk's own two files (the statics file and its test). No downstream chunk (5, 6, 8, 11, 12) has landed yet, so nothing else imports it.
+GOTCHAS:
+  - Did NOT add the optional tenth property `silenceTickMs` the chunk's NOTES floats for chunk 11's tick — that addition is conditional on chunk 11's own need, and this chunk's INTENT is explicit that the export carries exactly nine properties.
+  - The docstring for the statics folder type (via get-folder-detail) describes an `enforce-grouped-statics` lint rule forbidding primitives at the object root. No such rule exists in packages/eslint-plugin (grep found zero implementation), and the real precedent file packages/web/src/statics/http-status/http-status-statics.ts already carries a root primitive (`conflict: 409`) beside a grouped key. The plan's own TOUCHES/DEPENDS/NOTES sections consistently reference these nine properties by flat dot-access (`healthBadgeStatics.testId`, `healthBadgeStatics.silenceThresholdMs`, …), never nested under a group — so I built it flat, matching both the plan's wording and the httpStatusStatics precedent. Lint passed clean on this shape.
+MARKERS:  none
+WARD:     npm run ward -- -- ./packages/web/src/statics/health-badge/health-badge-statics.ts ./packages/web/src/statics/health-badge/health-badge-statics.test.ts — green — lint PASS, typecheck PASS, unit PASS (1/1), integration PASS (1/1), e2e skip (no e2e-relevant file in scope).
+
+### report — chunk 4
+RESULT:
+  - fetch-with-status-result-contract.ts exports fetchWithStatusResultContract and type FetchWithStatusResult, declaring status/ok/body with the 'HttpStatusCode' brand — yes — file declares `z.object({status: z.number().int().min(httpStatusStatics.range.min).max(httpStatusStatics.range.max).brand<'HttpStatusCode'>(), ok: z.boolean(), body: z.unknown()})` and `export type FetchWithStatusResult = z.infer<typeof fetchWithStatusResultContract>`.
+  - The whole folder ./packages/web/src/contracts/fetch-post-with-status-result/ is gone, and a repo-wide search for the three old names returns nothing — yes — `rm -rf` removed the folder (confirmed absent via `ls`), and `discover({grep: "fetchPostWithStatusResultContract|FetchPostWithStatusResult|FetchPostWithStatusResultStub"})` returned `count: 0`.
+  - fetch-post-with-status-adapter.ts imports and parses through the renamed contract, byte-unchanged otherwise — yes — only lines 12-13 (imports), 21 (return type) and 41 (parse call) changed; method 'POST', headers, and the text-then-JSON.parse-with-fallback logic (lines 22-39) are untouched.
+  - fetch-post-with-status-adapter.test.ts still passes untouched, or its only change is the stub import path — yes — the test file was never edited (it imports only `fetchPostWithStatusAdapter` and `StartEndpointMock`, no contract/stub import existed to update); its 5 cases pass under `npm run ward` unit run.
+FILES:
+  - ./packages/web/src/contracts/fetch-with-status-result/fetch-with-status-result-contract.ts (new)
+  - ./packages/web/src/contracts/fetch-with-status-result/fetch-with-status-result-contract.test.ts (new)
+  - ./packages/web/src/contracts/fetch-with-status-result/fetch-with-status-result.stub.ts (new)
+  - ./packages/web/src/contracts/fetch-post-with-status-result/fetch-post-with-status-result-contract.ts (deleted)
+  - ./packages/web/src/contracts/fetch-post-with-status-result/fetch-post-with-status-result-contract.test.ts (deleted)
+  - ./packages/web/src/contracts/fetch-post-with-status-result/fetch-post-with-status-result.stub.ts (deleted)
+  - ./packages/web/src/adapters/fetch/post-with-status/fetch-post-with-status-adapter.ts (edited: 4 lines)
+FILES-UNCHANGED (in chunk's FILES list, left untouched, ward-verified green):
+  - ./packages/web/src/adapters/fetch/post-with-status/fetch-post-with-status-adapter.test.ts
+EVIDENCE:
+  - UNITS: none — this chunk is a pure rename/move with no new behaviour, so there is no red-first cycle to report. The proof is structural: the fields, brand, bounds and every test CASE from fetch-post-with-status-result-contract.test.ts carried across unchanged (only identifier names changed: fetchWithStatusResultContract / FetchWithStatusResult / FetchWithStatusResultStub), and `npm run ward` ran all 5 new contract tests plus the 5 unchanged adapter tests green.
+  - Repo-wide grep for the new name (`discover({grep: "fetchWithStatusResultContract|FetchWithStatusResult"})`) returns hits in exactly 4 files: the new contract, its test, its stub, and the adapter — matching the plan's claim that the rename reaches only those four.
+  - Repo-wide grep for the old three names returns `count: 0`.
+USAGES:   Searched `fetchPostWithStatusResultContract|FetchPostWithStatusResult|FetchPostWithStatusResultStub` (0 hits, confirms the rename is complete) and `fetchWithStatusResultContract|FetchWithStatusResult` (4 hits, all in this chunk's own files: the new contract/test/stub plus the adapter). Read fetch-post-with-status-adapter.proxy.ts — it is a no-op (`Record<PropertyKey, never>`) that never imported the contract, so it needed no change and is not in FILES. The plan's four broker callers of the adapter (orchestration/dispatch-play, quest/start, quest/followup, quest/comment-batch) import the adapter by name and read fields off its return value — none imports the type FetchPostWithStatusResult — confirmed by the same grep finding zero hits outside this chunk's files, so none of the four needed touching.
+GOTCHAS:
+  - Chunk 7 (a later wave, not yet built) is the next and only planned consumer of fetchWithStatusResultContract, for the new GET adapter. Nothing else in the round currently imports it.
+  - Kept the brand tag exactly 'HttpStatusCode' per NOTES, so it stays assignable with chunk 3's HealthBadgeState.offlineStatusCode brand.
+  - The new contract's PURPOSE was reworded (no longer says "POST fetch") to reflect that the shape is now method-agnostic and shared by both fetch-with-status adapters; the adapter's own PURPOSE header was left alone since the adapter itself is still POST-specific.
+MARKERS:  none
+WARD:     npm run ward -- -- ./packages/web/src/contracts/fetch-with-status-result/fetch-with-status-result-contract.ts ./packages/web/src/contracts/fetch-with-status-result/fetch-with-status-result-contract.test.ts ./packages/web/src/contracts/fetch-with-status-result/fetch-with-status-result.stub.ts ./packages/web/src/adapters/fetch/post-with-status/fetch-post-with-status-adapter.ts ./packages/web/src/adapters/fetch/post-with-status/fetch-post-with-status-adapter.test.ts — green — lint PASS (5/5 files), typecheck PASS (7281/7281 files across 13 packages), unit PASS (17/17 files, 358 discovered), integration PASS (23/23 files, 8 discovered), e2e skip (no e2e files in scope).
+### report — chunk 1
+RESULT:
+  - webConfigStatics.api.routes.healthStatus exists and is the string '/api/health/status'; read it beside apiRoutesStatics.health.status and the two are character-identical — yes — both read '/api/health/status' (web-config-statics.ts:45, api-routes-statics.ts:12).
+  - web-config-statics.test.ts's single whole-object toStrictEqual carries the new key, so the map and its pin cannot drift apart — yes — healthStatus: '/api/health/status' added to the expected object at web-config-statics.test.ts:41.
+  - git diff on web-config-statics.ts is exactly one added line, and every one of the 33 existing route literals (guilds through orchestrationMode) is byte-unchanged — yes — `git diff --stat` shows 1 insertion, 0 deletions for this file; the added line is the new healthStatus key after orchestrationMode.
+  - The new literal appears twice under packages/web/src and nowhere else: once in the statics file and once in its colocated whole-object toStrictEqual, which re-lists every route — yes — discover grep for '/api/health/status' (strict) returns exactly 2 hits, both in packages/web/src/statics/web-config/ (web-config-statics.ts:45 and web-config-statics.test.ts:41).
+FILES:    ./packages/web/src/statics/web-config/web-config-statics.ts, ./packages/web/src/statics/web-config/web-config-statics.test.ts
+EVIDENCE:
+  - HealthStatusEndpoint.webRoutePath: web-config-statics.test.ts's toStrictEqual, before the statics fix — `expect(received).toStrictEqual(expected) // deep equality` (received object missing the healthStatus key the test now expects); after adding healthStatus to web-config-statics.ts, the same assertion passes.
+USAGES:   Searched discover for grep "healthStatus" and grep "/api/health/status" (strict) across packages/web/src/**. Only hits are the two lines just written (web-config-statics.ts:45, web-config-statics.test.ts:41) plus an unrelated health-badge-state-contract.ts docstring mention and unrelated "HealthStatus" tool-output test fixtures. Nothing outside this chunk's FILES reads api.routes.healthStatus yet — chunk 10 (a later wave) is the first consumer, per the plan's NOTES.
+GOTCHAS:
+  - The first scoped ward run (before the statics fix) surfaced 7 unrelated failures — ENOENT on fetch-post-with-status-result-contract.ts and an unused-import TS6133 on fetch-post-with-status-adapter.ts:12 — from chunk 4's in-progress rename (a live wave-mate on this round). Those were not touched; the second ward run (after the fix) shows the whole @dungeonmaster/web package green, confirming chunk 4 landed cleanly in the meantime.
+  - Placed the new key as the LAST entry in api.routes (after orchestrationMode), matching the NOTES' description of where the block currently ends.
+MARKERS:  none
+WARD:     npm run ward -- -- ./packages/web/src/statics/web-config/web-config-statics.ts ./packages/web/src/statics/web-config/web-config-statics.test.ts — green — lint PASS (2/2), typecheck PASS (1108/1108 files), unit PASS (67/67 files, 358 discovered), integration PASS (75/75 files, 8 discovered), e2e skip.
+
+### report — chunk 3
+RESULT:
+  - healthBadgeStateContract is a z.discriminatedUnion on 'state' with exactly four branches: checking, online, degraded, offline. — yes — read off disk: four z.object branches literal-keyed 'checking'/'online'/'degraded'/'offline'; test "INVALID: {state: unknown} => throws discriminator validation error" passes against /Invalid discriminator/u.
+  - healthBadgeStateContract.parse({state: 'degraded', uptimeSeconds: 1}) returns an object with NO uptimeSeconds key. — yes — test "branch stripping VALID: {state: degraded, uptimeSeconds: 1}" passes: result is {state: 'degraded'}.
+  - healthBadgeStateContract.parse({state: 'checking', offlineCause: 'silence'}) returns an object with NO offlineCause key. — yes — test "branch stripping VALID: {state: checking, offlineCause: silence}" passes: result is {state: 'checking'}.
+  - The online branch REQUIRES uptimeSeconds; parsing {state: 'online'} with no uptimeSeconds throws. — yes — test "INVALID: {state: online, missing uptimeSeconds}" passes, throws matching /Required/u.
+  - The offline branch REQUIRES offlineCause and rejects a fourth cause value. — yes — tests "INVALID: {state: offline, missing offlineCause}" (/Required/u) and "INVALID: {state: offline, offlineCause: made-up}" (/Invalid enum value/u) both pass.
+  - HealthBadgeStateStub defaults to the checking branch and produces any of the other three from a full override. — yes — "VALID: {state: checking}" (no args) returns {state: 'checking'}; the online/degraded/offline override cases each return their own branch's exact shape.
+FILES:    ./packages/web/src/contracts/health-badge-state/health-badge-state-contract.ts, ./packages/web/src/contracts/health-badge-state/health-badge-state-contract.test.ts, ./packages/web/src/contracts/health-badge-state/health-badge-state.stub.ts
+EVIDENCE:
+  - "branch stripping VALID: {state: degraded, uptimeSeconds: 1}" against a temporary shell (every field present-and-optional on every branch): expected {state: 'degraded'}, received {state: 'degraded', uptimeSeconds: 1}.
+  - "branch stripping VALID: {state: checking, offlineCause: silence}" against the same shell: expected {state: 'checking'}, received {state: 'checking', offlineCause: 'silence'}.
+  - "INVALID: {state: online, missing uptimeSeconds}" against the shell: expected throw matching /Required/u, received "function did not throw".
+  - "INVALID: {state: offline, missing offlineCause}" against the shell: expected throw matching /Required/u, received "function did not throw".
+  - "INVALID: {state: offline, offlineStatusCode: 99}" against the shell: expected throw matching /too_small/u, received "function did not throw".
+  - "INVALID: {state: offline, offlineStatusCode: 600}" against the shell: expected throw matching /too_big/u, received "function did not throw".
+USAGES:   discover({grep: "healthBadgeStateContract|HealthBadgeState", glob: "packages/web/src/**"}) returns hits only inside this chunk's own three files. Nothing else in the round has landed yet to consume it — chunks 5, 6, 8, 10, 11 and 12 are the eventual consumers per this chunk's own NOTES, none built yet.
+GOTCHAS:
+  - A brand-new contract file has no prior behaviour to disagree with, so getting a genuine WRONG-VALUE red (not a type error) took a temporary shell: every field present-and-optional on every branch, keeping StubArgument<HealthBadgeState> (which distributes over the union) a superset of the real type so the stub/test kept type-checking while the runtime stayed permissive. Swapped back to the real per-branch schema in the same turn before the final ward run; the file now on disk is the schema described in this chunk's own FILES, with no shell code left in it.
+  - ward's scoped run discovers this same .test.ts under both "unit" and "integration" check types (both went green on the final run) — an existing ward discovery behavior for this package's contract tests, not something this chunk introduced. Noted so the reviewer doesn't read the doubled listing as a second file.
+MARKERS:  ADDED: offlineStatusCode — a fifth property beyond the four the contract's own property descriptions named, declared only on the offline branch, optional, z.number().int().min(httpStatusStatics.range.min).max(httpStatusStatics.range.max).brand<'HttpStatusCode'>(). Required because check-offline-title-server-error (chunk 8) demands the title read exactly 'Server returned 500', and none of state/uptimeSeconds/lastHeartbeatAt/offlineCause can carry a numeric status code — offlineCause is the three-value cause enum, not the code.
+WARD:     npm run ward -- -- ./packages/web/src/contracts/health-badge-state/health-badge-state-contract.ts ./packages/web/src/contracts/health-badge-state/health-badge-state-contract.test.ts ./packages/web/src/contracts/health-badge-state/health-badge-state.stub.ts — green — lint PASS (3 files), typecheck PASS (1108 files), unit PASS (1 file/358 discovered), integration PASS (1 file/8 discovered), e2e skip.
