@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Compares a heartbeat's age against the badge's silence threshold from two plain
  * numbers, so the 29s/30s boundary is provable with no timer. Reach for this over an inline
- * comparison at the call site because chunk 11's tick and this guard's own tests both need the
- * same boundary logic to agree on the inclusive edge.
+ * comparison at the call site because useHealthStatusBinding's silence tick and this guard's own
+ * tests both need the same boundary logic to agree on the inclusive edge.
  *
  * USAGE:
  * isHeartbeatSilentGuard({ lastHeartbeatAt, now: Date.now() });

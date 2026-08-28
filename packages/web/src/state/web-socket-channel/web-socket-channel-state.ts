@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Single shared WebSocket connection per browser tab. All WS-consuming bindings (chat, queue, rate-limits, dispatch-state, session-replay, ward-detail) subscribe to typed observables on this state instead of opening their own sockets. Inbound frames are parsed once at the channel boundary and routed to per-concern Subjects so consumers never see event-type discriminator strings. Owns the connection lifecycle and reconnect.
+ * PURPOSE: Single shared WebSocket connection per browser tab. All WS-consuming bindings (chat, queue, rate-limits, dispatch-state, session-replay, ward-detail, health-status) subscribe to typed observables on this state instead of opening their own sockets. Inbound frames are parsed once at the channel boundary and routed to per-concern Subjects so consumers never see event-type discriminator strings. Owns the connection lifecycle and reconnect.
  *
  * USAGE:
  * webSocketChannelState.connect({ url: WsUrlStub({ value: 'ws://host/ws' }) });
