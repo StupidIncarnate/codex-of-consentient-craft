@@ -156,6 +156,35 @@ const pollForFrameCount = async ({
   return pollForFrameCount({ getFrames, count, deadline });
 };
 
+// Recursive poll (never while(true)) for the health-status frame at a specific index
+// (0-based, oldest first). A spec reading `capturedFrames[index]` directly would get
+// `CapturedHealthStatusFrame | undefined` under noUncheckedIndexedAccess, and narrowing that
+// inside a spec's test() body needs an `if`, which jest/no-conditional-in-test forbids — same
+// reasoning as lastSeedResponse() below, applied per-index instead of "most recent".
+const pollForFrameAtIndex = async ({
+  getFrames,
+  index,
+  deadline,
+}: {
+  getFrames: () => readonly CapturedHealthStatusFrame[];
+  index: number;
+  deadline: number;
+}): Promise<CapturedHealthStatusFrame> => {
+  const frame = getFrames().at(index);
+  if (frame !== undefined) {
+    return frame;
+  }
+  if (Date.now() >= deadline) {
+    throw new Error(
+      `health-badge harness: no health-status frame at index ${String(index)} arrived before the deadline`,
+    );
+  }
+  await new Promise((resolve) => {
+    setTimeout(resolve, FRAME_POLL_INTERVAL_MS);
+  });
+  return pollForFrameAtIndex({ getFrames, index, deadline });
+};
+
 // Recursive poll (never while(true)) for the most recent observed seed response record. Takes a
 // getter rather than closing over the array directly, mirroring pollForFrameCount above.
 const pollForLastSeedRecord = async ({
@@ -180,6 +209,37 @@ const pollForLastSeedRecord = async ({
   return pollForLastSeedRecord({ getRecords, deadline });
 };
 
+// Recursive poll (never while(true)) for the seed response record at a specific index (0-based,
+// oldest first). A caller needing THE SECOND response distinctly from the first (e.g. the one a
+// retry click produced) cannot use pollForLastSeedRecord for that: a failed request against a cut
+// wire never fires a `response` event at all, so the record log can sit at length 1 for the whole
+// offline portion of a walk, and ".at(-1) !== undefined" would then resolve immediately against
+// that stale first record instead of waiting for the genuinely new one. Polling a fixed index
+// waits for THAT position to be filled, the same reasoning frameAt applies to captured frames.
+const pollForSeedRecordAtIndex = async ({
+  getRecords,
+  index,
+  deadline,
+}: {
+  getRecords: () => readonly RawSeedResponseRecord[];
+  index: number;
+  deadline: number;
+}): Promise<RawSeedResponseRecord> => {
+  const record = getRecords().at(index);
+  if (record !== undefined) {
+    return record;
+  }
+  if (Date.now() >= deadline) {
+    throw new Error(
+      `health-badge harness: no GET /api/health/status response at index ${String(index)} arrived before the deadline`,
+    );
+  }
+  await new Promise((resolve) => {
+    setTimeout(resolve, FRAME_POLL_INTERVAL_MS);
+  });
+  return pollForSeedRecordAtIndex({ getRecords, index, deadline });
+};
+
 export const healthBadgeHarness = ({
   page,
 }: {
@@ -191,12 +251,14 @@ export const healthBadgeHarness = ({
   titleText: () => Promise<BadgeTitle>;
   getSeedResponses: () => Promise<readonly CapturedSeedResponse[]>;
   lastSeedResponse: () => Promise<ObservedSeedResponse>;
+  seedResponseAt: (params: { index: number; timeoutMs: number }) => Promise<ObservedSeedResponse>;
   getSeedRequestCount: () => readonly Date[];
   waitForFrames: (params: {
     count: number;
     timeoutMs: number;
   }) => Promise<readonly CapturedHealthStatusFrame[]>;
   lastFrame: () => CapturedHealthStatusFrame | undefined;
+  frameAt: (params: { index: number; timeoutMs: number }) => Promise<CapturedHealthStatusFrame>;
   expectedOnlineLabel: (params: { uptimeSeconds: number }) => BadgeTextNonNull;
   elapsedSinceLastFrameAndLabel: () => Promise<{ elapsedMs: NowMs; label: BadgeText }>;
   cutWire: () => Promise<void>;
@@ -315,6 +377,32 @@ export const healthBadgeHarness = ({
       };
     },
 
+    // The seed response record at a fixed index (0-based, oldest first), fully defined — throws if
+    // it never arrives within timeoutMs rather than handing back a stale "latest so far". Reach
+    // for this over lastSeedResponse() when a walk needs a SPECIFIC later response distinctly
+    // from whichever came before it (e.g. the response a retry click produces after an earlier
+    // click's request failed against a cut wire and never reached this log at all).
+    seedResponseAt: async ({
+      index,
+      timeoutMs,
+    }: {
+      index: number;
+      timeoutMs: number;
+    }): Promise<ObservedSeedResponse> => {
+      const record = await pollForSeedRecordAtIndex({
+        getRecords: () => seedResponseRecords,
+        index,
+        deadline: Date.now() + timeoutMs,
+      });
+      const raw = await record.jsonPromise;
+      const payload = healthStatusPayloadContract.parse(raw);
+      return {
+        httpStatus: record.httpStatus,
+        status: payload.status,
+        uptimeSeconds: payload.uptimeSeconds,
+      };
+    },
+
     // One Date per observed GET .../api/health/status request, oldest first. Named "Count" because
     // that is what every caller reads off it (`.length`) — kept as a list rather than a
     // pre-computed number so this file never writes a raw `number` return type.
@@ -334,6 +422,23 @@ export const healthBadgeHarness = ({
       }),
 
     lastFrame: (): CapturedHealthStatusFrame | undefined => capturedFrames.at(-1),
+
+    // The frame at a specific index, fully defined — throws if it never arrives within
+    // timeoutMs rather than handing back `| undefined` for a spec to narrow. Reach for this
+    // over lastFrame() when a walk needs TWO OR MORE distinct frames by position (the Nth
+    // real frame), not just whichever is newest right now.
+    frameAt: async ({
+      index,
+      timeoutMs,
+    }: {
+      index: number;
+      timeoutMs: number;
+    }): Promise<CapturedHealthStatusFrame> =>
+      pollForFrameAtIndex({
+        getFrames: () => capturedFrames,
+        index,
+        deadline: Date.now() + timeoutMs,
+      }),
 
     // Arithmetic the spec may not declare for itself — a helper in a .e2e.ts file is rejected by
     // forbid-non-exported-functions before the write lands — matching formatUptimeTransformer's own
