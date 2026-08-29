@@ -11,11 +11,21 @@ const FRAME_WAIT_TIMEOUT_MS = 15_000;
 // is cut, so this assertion must outlast a genuine 30 real seconds.
 const OFFLINE_ASSERTION_TIMEOUT_MS = 40_000;
 const SILENCE_TEST_TIMEOUT_MS = 90_000;
+// health-badge-statics.ts silenceThresholdMs — the floor half of the window this round's unit
+// requires: the ONLINE-hold sample below must measure an elapsed strictly greater than this.
+const STILL_ONLINE_FLOOR_MS = 20_000;
+// The MIDPOINT of that window, 5 seconds clear of each edge. The elapsed-gated sampler can only
+// OVERSHOOT this instant, never undershoot it, so the floor above cannot fail; the threshold
+// below is protected by the same 5 seconds against an evaluate round trip of tens of ms.
+const STILL_ONLINE_SAMPLE_AT_MS = 25_000;
+// health-badge-statics.ts silenceThresholdMs — the badge only goes OFFLINE at 30s of silence, so
+// the ONLINE-hold sample below must measure an elapsed strictly less than this.
+const SILENCE_THRESHOLD_MS = 30_000;
 
 test.describe('Health Badge Silence', () => {
   test.describe.configure({ timeout: SILENCE_TEST_TIMEOUT_MS });
 
-  test('VALID: {wire cut and every /ws socket force-closed after a real frame} => badge flips OFFLINE after 30 real seconds of genuine heartbeat silence', async ({
+  test('VALID: {wire cut and every /ws socket force-closed after a real frame} => badge holds its ONLINE label through most of the silence, then flips OFFLINE after 30 real seconds of genuine heartbeat silence', async ({
     page,
   }) => {
     const hb = healthBadgeHarness({ page });
@@ -43,6 +53,22 @@ test.describe('Health Badge Silence', () => {
     // script never intercepted WebSocket construction, and the rest of this walk would exercise
     // nothing real.
     expect(closedSockets.length).toBeGreaterThan(0);
+
+    // The badge must still read ONLINE partway through the silence, not merely flip OFFLINE
+    // after 30s regardless of the threshold's actual value. Sampled at the window's midpoint —
+    // above the 20s floor and below the 30s threshold — with the elapsed and the label read in
+    // ONE evaluate, and the expected label re-derived from THIS sample's own frame so nothing
+    // races a second read that could pick a different one.
+    const hold = await hb.labelAtElapsedSinceLastFrame({ minElapsedMs: STILL_ONLINE_SAMPLE_AT_MS });
+    expect({
+      elapsedAboveFloor: hold.elapsedMs > STILL_ONLINE_FLOOR_MS,
+      elapsedBelowThreshold: hold.elapsedMs < SILENCE_THRESHOLD_MS,
+      label: hold.label,
+    }).toStrictEqual({
+      elapsedAboveFloor: true,
+      elapsedBelowThreshold: true,
+      label: hb.expectedOnlineLabel({ uptimeSeconds: hold.uptimeSeconds }),
+    });
 
     // 30 real seconds of genuine silence follow: the socket is closed so no frame can arrive,
     // and the wire is cut so the channel's own reconnect can never land and restart the

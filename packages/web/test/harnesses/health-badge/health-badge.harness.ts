@@ -296,6 +296,11 @@ export const healthBadgeHarness = ({
   }) => Promise<CapturedHealthStatusFrame>;
   expectedOnlineLabel: (params: { uptimeSeconds: number }) => BadgeTextNonNull;
   elapsedSinceLastFrameAndLabel: () => Promise<{ elapsedMs: NowMs; label: BadgeText }>;
+  labelAtElapsedSinceLastFrame: (params: { minElapsedMs: number }) => Promise<{
+    elapsedMs: NowMs;
+    label: BadgeText;
+    uptimeSeconds: HealthStatusPayload['uptimeSeconds'];
+  }>;
   cutWire: () => Promise<void>;
   restoreWire: () => Promise<void>;
   closeBackendSockets: () => Promise<readonly unknown[]>;
@@ -514,6 +519,39 @@ export const healthBadgeHarness = ({
       }
       const sample = await page.evaluate(sampleNowAndLabelBrowserFn, HEALTH_BADGE_TEST_ID);
       return { elapsedMs: sample.now - last.arrivedAt.getTime(), label: sample.label };
+    },
+
+    // Same single-evaluate sample as elapsedSinceLastFrameAndLabel, but WAITS until at least
+    // minElapsedMs has passed since the last frame's own arrival before taking it, and returns
+    // that frame's uptimeSeconds alongside — so a caller sampling near the silence threshold reads
+    // the expected label and the measured elapsed off the SAME frame, with no second lookup that
+    // could pick a different one. Reach for this over elapsedSinceLastFrameAndLabel() when the
+    // sample must land at a specific elapsed rather than whatever elapsed happens to be right now.
+    labelAtElapsedSinceLastFrame: async ({
+      minElapsedMs,
+    }: {
+      minElapsedMs: number;
+    }): Promise<{
+      elapsedMs: NowMs;
+      label: BadgeText;
+      uptimeSeconds: HealthStatusPayload['uptimeSeconds'];
+    }> => {
+      const last = capturedFrames.at(-1);
+      if (last === undefined) {
+        throw new Error(
+          'health-badge harness: labelAtElapsedSinceLastFrame called before any health-status frame arrived',
+        );
+      }
+      const arrivedAtMs = last.arrivedAt.getTime();
+      await new Promise((resolve) => {
+        setTimeout(resolve, Math.max(0, minElapsedMs - (Date.now() - arrivedAtMs)));
+      });
+      const sample = await page.evaluate(sampleNowAndLabelBrowserFn, HEALTH_BADGE_TEST_ID);
+      return {
+        elapsedMs: sample.now - arrivedAtMs,
+        label: sample.label,
+        uptimeSeconds: last.uptimeSeconds,
+      };
     },
 
     // A true network outage, never a faked response — page.route() is lint-banned in .e2e.ts
