@@ -11,8 +11,9 @@ const FRAME_WAIT_TIMEOUT_MS = 15_000;
 // is cut, so this assertion must outlast a genuine 30 real seconds.
 const OFFLINE_ASSERTION_TIMEOUT_MS = 40_000;
 const SILENCE_TEST_TIMEOUT_MS = 90_000;
-// health-badge-statics.ts silenceThresholdMs — the floor half of the window this round's unit
-// requires: the ONLINE-hold sample below must measure an elapsed strictly greater than this.
+// 10 seconds BELOW health-badge-statics.ts silenceThresholdMs, and not itself a statics reading —
+// it is the floor of the window the ONLINE-hold sample is graded against, so a badge whose
+// threshold were anything at or under 20s reads OFFLINE here instead of its ONLINE label.
 const STILL_ONLINE_FLOOR_MS = 20_000;
 // The MIDPOINT of that window, 5 seconds clear of each edge. The elapsed-gated sampler can only
 // OVERSHOOT this instant, never undershoot it, so the floor above cannot fail; the threshold
