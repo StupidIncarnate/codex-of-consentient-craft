@@ -153,5 +153,24 @@ describe('ServerFlow', () => {
         'health-status',
       ]);
     }, 60000);
+
+    // The deadline arm of `waitForHealthStatusFrames` — the one branch the multi-frame waiter adds
+    // that the case above never reaches, because that case always gets its three frames. It is
+    // worth a case of its own: a wait that HANGS instead of throwing surfaces as Jest's
+    // `thrown: ""` against the test file, naming neither the wait that stalled nor what the client
+    // had actually received, and this suite's other cases each sit behind a 20-60 second timeout.
+    it('ERROR: {one real client, more frames demanded than the emit interval can deliver} => rejects naming how many of the demanded frames arrived and which types were collected', async () => {
+      await serverWs.start();
+
+      const client = await serverWs.openClient();
+
+      // 500ms is far inside the 10 000ms emit interval, so a silent client has collected exactly
+      // nothing by the time the deadline passes — 0 of 99 and an empty type list are the only
+      // values this can produce, which is what lets the whole message be pinned rather than
+      // matched loosely.
+      await expect(client.waitForHealthStatusFrames({ count: 99, timeoutMs: 500 })).rejects.toThrow(
+        /^server-ws harness: only 0 of 99 health-status frames arrived before the deadline; this client collected 0 frame\(s\) of type \[\]$/u,
+      );
+    }, 20000);
   });
 });
