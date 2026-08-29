@@ -185,6 +185,37 @@ const pollForFrameAtIndex = async ({
   return pollForFrameAtIndex({ getFrames, index, deadline });
 };
 
+// Recursive poll (never while(true)) for the first captured frame whose uptime renders as a LATER
+// minute than one the caller already read. The badge's label is `Xh Ym` and frames are ~10s apart,
+// so two consecutive frames render the identical string five times out of six — waiting for the
+// minute to roll is the only way a browser can watch the rendered label actually MOVE, and a badge
+// latched to the first frame it ever saw is invisible to any assertion taken before it does.
+const pollForFrameWithLaterMinute = async ({
+  getFrames,
+  afterMinute,
+  deadline,
+}: {
+  getFrames: () => readonly CapturedHealthStatusFrame[];
+  afterMinute: number;
+  deadline: number;
+}): Promise<CapturedHealthStatusFrame> => {
+  const frame = getFrames().find(
+    (candidate) => Math.floor(candidate.uptimeSeconds / SECONDS_PER_MINUTE) > afterMinute,
+  );
+  if (frame !== undefined) {
+    return frame;
+  }
+  if (Date.now() >= deadline) {
+    throw new Error(
+      `health-badge harness: no health-status frame past uptime minute ${String(afterMinute)} arrived before the deadline`,
+    );
+  }
+  await new Promise((resolve) => {
+    setTimeout(resolve, FRAME_POLL_INTERVAL_MS);
+  });
+  return pollForFrameWithLaterMinute({ getFrames, afterMinute, deadline });
+};
+
 // Recursive poll (never while(true)) for the most recent observed seed response record. Takes a
 // getter rather than closing over the array directly, mirroring pollForFrameCount above.
 const pollForLastSeedRecord = async ({
@@ -259,6 +290,10 @@ export const healthBadgeHarness = ({
   }) => Promise<readonly CapturedHealthStatusFrame[]>;
   lastFrame: () => CapturedHealthStatusFrame | undefined;
   frameAt: (params: { index: number; timeoutMs: number }) => Promise<CapturedHealthStatusFrame>;
+  frameWithLaterUptimeMinute: (params: {
+    afterUptimeSeconds: number;
+    timeoutMs: number;
+  }) => Promise<CapturedHealthStatusFrame>;
   expectedOnlineLabel: (params: { uptimeSeconds: number }) => BadgeTextNonNull;
   elapsedSinceLastFrameAndLabel: () => Promise<{ elapsedMs: NowMs; label: BadgeText }>;
   cutWire: () => Promise<void>;
@@ -437,6 +472,24 @@ export const healthBadgeHarness = ({
       pollForFrameAtIndex({
         getFrames: () => capturedFrames,
         index,
+        deadline: Date.now() + timeoutMs,
+      }),
+
+    // The first frame whose uptime renders as a LATER minute than `afterUptimeSeconds` does — the
+    // frame at which a correct badge's visible label has to change. Reach for this over frameAt()
+    // when a walk needs the label to MOVE rather than merely to be recomputed: the label is
+    // `Xh Ym`, consecutive frames are ~10s apart, so an assertion taken across two of them compares
+    // a string against itself and passes just as well on a badge latched to its first frame.
+    frameWithLaterUptimeMinute: async ({
+      afterUptimeSeconds,
+      timeoutMs,
+    }: {
+      afterUptimeSeconds: number;
+      timeoutMs: number;
+    }): Promise<CapturedHealthStatusFrame> =>
+      pollForFrameWithLaterMinute({
+        getFrames: () => capturedFrames,
+        afterMinute: Math.floor(afterUptimeSeconds / SECONDS_PER_MINUTE),
         deadline: Date.now() + timeoutMs,
       }),
 
