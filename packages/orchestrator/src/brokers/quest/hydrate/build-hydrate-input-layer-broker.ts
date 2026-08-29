@@ -11,7 +11,6 @@ import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
 import { questHydrateStrategyStatics } from '../../../statics/quest-hydrate-strategy/quest-hydrate-strategy-statics';
-import { flowsStripObservablesTransformer } from '../../../transformers/flows-strip-observables/flows-strip-observables-transformer';
 
 export const buildHydrateInputLayerBroker = ({
   blueprint,
@@ -52,15 +51,8 @@ export const buildHydrateInputLayerBroker = ({
     {},
   );
 
-  const flowsAdditions: Partial<ModifyQuestInput> = (() => {
-    if (strategy.flowsMode === 'no-observables') {
-      return { flows: flowsStripObservablesTransformer({ flows: blueprint.flows }) };
-    }
-    if (strategy.flowsMode === 'full') {
-      return { flows: blueprint.flows };
-    }
-    return {};
-  })();
+  const flowsAdditions: Partial<ModifyQuestInput> =
+    strategy.flowsMode === 'full' ? { flows: blueprint.flows } : {};
 
   return modifyQuestInputContract.parse({
     ...basePayload,

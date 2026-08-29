@@ -37,7 +37,7 @@ export const questHydrateStrategyStatics = {
       // never declared. Both are writable from `explore_flows`, which is the window ChaosWhisperer
       // builds the entry list in for the same reason.
       blueprintFields: ['designDecisions', 'packagesAffected'],
-      flowsMode: 'no-observables',
+      flowsMode: 'full',
     },
     flows_approved: {
       fromStatus: 'review_flows',

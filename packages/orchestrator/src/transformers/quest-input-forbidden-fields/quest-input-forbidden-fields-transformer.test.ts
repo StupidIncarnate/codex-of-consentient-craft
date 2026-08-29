@@ -137,7 +137,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
   });
 
-  describe('flowsRule: no-observables', () => {
+  describe('flowsRule: full during flow authoring (an observable the user named while reviewing the draft)', () => {
     it('VALID: {explore_flows + flows[].nodes[].observables: []} => permits empty observables array', () => {
       const node = FlowNodeStub({ id: 'login' as never, observables: [] });
       const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
@@ -153,7 +153,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {explore_flows + flows with non-empty observables} => rejects observables', () => {
+    it('VALID: {explore_flows + flows with a populated observable} => permits it, so a user-named assertion lands before Gate #1', () => {
       const observable = FlowObservableStub({ id: 'redirects' as never });
       const node = FlowNodeStub({ id: 'login' as never, observables: [observable] });
       const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
@@ -166,9 +166,24 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'explore_flows',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Observables not allowed in flow 'login-flow' node 'login' in status 'explore_flows' (Phase 4 work — embed observables after flows are approved)",
-      ]);
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it("VALID: {review_flows back-transition to explore_flows + flows with a populated observable} => permits it on the same call that carries the rest of the user's changes", () => {
+      const observable = FlowObservableStub({ id: 'redirects' as never });
+      const node = FlowNodeStub({ id: 'login' as never, observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const input = ModifyQuestInputStub({ flows: [flow], status: 'explore_flows' });
+      const currentQuest = QuestStub({ status: 'review_flows' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'review_flows',
+        nextStatus: 'explore_flows',
+      });
+
+      expect(offenders).toStrictEqual([]);
     });
   });
 

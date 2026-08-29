@@ -32,7 +32,7 @@ describe('questStatusInputAllowlistStatics', () => {
           'comments',
           'status',
         ],
-        flowsRule: 'no-observables',
+        flowsRule: 'full',
         allowedPlanningNotesFields: [],
       },
       review_flows: {
@@ -41,7 +41,7 @@ describe('questStatusInputAllowlistStatics', () => {
           toStatus: 'explore_flows',
           fields: ['flows', 'designDecisions', 'packagesAffected'],
         },
-        flowsRule: 'no-observables',
+        flowsRule: 'full',
         allowedPlanningNotesFields: [],
       },
       flows_approved: {
@@ -221,6 +221,16 @@ describe('questStatusInputAllowlistStatics', () => {
 
   it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightLedger, questNotes and operationPlans)", () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
+  });
+
+  describe('flowsRule across the flow-authoring loop (a user-named observable must land before Gate #1)', () => {
+    it('VALID: {status: explore_flows} => flowsRule is full, so an observable the user asked for during flow review can be persisted on its node', () => {
+      expect(questStatusInputAllowlistStatics.explore_flows.flowsRule).toBe('full');
+    });
+
+    it("VALID: {status: review_flows} => flowsRule is full, so the back-transition carrying the user's changes can carry an observable with them", () => {
+      expect(questStatusInputAllowlistStatics.review_flows.flowsRule).toBe('full');
+    });
   });
 
   describe("'packagesAffected' allowlist during flow authoring (tags are written with the node)", () => {

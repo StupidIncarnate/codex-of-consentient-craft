@@ -509,6 +509,11 @@ ChaosWhisperer (the slash-command-loaded session) executes the prompt in order:
   ├─ Phase 1: Discovery ──────── explore codebase, interview user → status: explore_flows
   ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory) → status: review_flows
   ├─ Phase 3: Gate #1 ─────────── user approves flows → status: flows_approved
+  │     │  `explore_flows` and `review_flows` both carry `flowsRule: 'full'`, so an observable the
+  │     │  USER names while reading the flow draft lands on its node here rather than waiting for
+  │     │  Phase 4. Nothing in a payload separates a user-named observable from an agent-invented
+  │     │  one, so the phase is held by `dumpsterCreatePromptStatics` (which authors none of its own
+  │     │  before Gate #1), never by the allowlist.
   ├─ Phase 4: Observables ─────── embedded in flow nodes → status: explore_observables → review_observables
   │     │  ChaosWhisperer authors NO ledger at all — `operations` is off the modify-quest allowlist
   │     │  entirely, for every role at every status. The codeweaver ledger is DERIVED at Start Quest

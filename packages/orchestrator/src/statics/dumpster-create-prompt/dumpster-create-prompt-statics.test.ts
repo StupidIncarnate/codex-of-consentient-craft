@@ -220,6 +220,56 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(template.indexOf('Ward result: `{ type: "process-state"')).toBe(-1);
   });
 
+  describe('observables the user asks for during flow review', () => {
+    it('VALID: prompt template => carries the review_flows section that permits a user-named observable before Gate #1', () => {
+      const needle = '#### Observables the user asks for during flow review';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => tells the agent to write the user-named observable on the node in the same back-transition', () => {
+      const needle =
+        '**When the user names an observable while reading this draft — "add an observable that the token is set", "assert the 401 renders the error copy" — write it onto the node NOW, in the same back-transition that carries their other changes.**';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => bounds the exception to what the user named, leaving the rest of the sweep to explore_observables', () => {
+      const needle =
+        "**Add ONLY what the user named. Do not fill in the node's other assertions, its neighbours', or the flow's.**";
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => the NEVER rule bans self-authored observables before Gate #1 rather than every observable', () => {
+      const needle =
+        '- NEVER author observables of your OWN before flows are approved. An observable the USER names while reviewing the flow draft is the exception, and the only one';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('INVALID: prompt template => no longer claims the allowlist rejects observables before flows_approved', () => {
+      expect(template.indexOf("observables can't be embedded in nodes before")).toBe(-1);
+    });
+
+    it('VALID: prompt template => tells the explore_observables sweep to keep an observable the user already gave', () => {
+      const needle =
+        "A node may already carry one the user named during flow review — keep it, and add the rest of that node's assertions around it rather than restating or replacing it.";
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+
   it('VALID: prompt template => explains that option label and description become the persisted rationale text', () => {
     const needle =
       'The option `label` and `description` values you write become the persisted `rationale` text on each design decision.';

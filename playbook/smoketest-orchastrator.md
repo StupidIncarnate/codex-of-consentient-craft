@@ -118,8 +118,9 @@ your working tree.
 gate wants **non-empty `flows` and nothing else**, so the minimum viable spec is one flow with two nodes.
 
 The per-status allowlist decides which fields a call may carry, so the flow must land while the quest is at
-`explore_flows` (`flowsRule: 'no-observables'` there — do not send observables). Node `packages` tags must draw from
-`packagesAffected`, which is why both ride the same call.
+`explore_flows` (`flowsRule: 'full'` there, observables included — send none anyway, so the walk exercises the same
+bare-spine draft ChaosWhisperer produces). Node `packages` tags must draw from `packagesAffected`, which is why both
+ride the same call.
 
 ```
 1. create-quest({ userRequest: '<why this quest exists>' })        → { questId, guildSlug }

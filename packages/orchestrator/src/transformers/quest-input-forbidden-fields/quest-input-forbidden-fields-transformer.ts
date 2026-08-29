@@ -17,8 +17,7 @@
  *   it is rejected BY NAME (`Sub-field 'planningNotes.<x>' not allowed`). `'all'` imposes no sub-field gating.
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
- *     'full'                     -> any flow shape is allowed
- *     'no-observables'           -> flows OK, but flows[].nodes[].observables must not contain entries (length 0)
+ *     'full'                     -> any flow shape is allowed, embedded observables included
  *     'additive-only'            -> delegates to questFlowAdditiveOnlyViolationsTransformer (what the
  *                                   payload may change) AND questSignoffUnknownUnitViolationsTransformer
  *                                   (that every unit it signs already exists). Both return offenders,
@@ -133,28 +132,6 @@ export const questInputForbiddenFieldsTransformer = ({
   }
 
   if (flowsRule === 'full') {
-    return offenders;
-  }
-
-  if (flowsRule === 'no-observables') {
-    for (const flow of inputFlows) {
-      const flowId = String(flow.id);
-      const nodes = 'nodes' in flow ? flow.nodes : undefined;
-      if (nodes === undefined) {
-        continue;
-      }
-      for (const node of nodes) {
-        const nodeId = String(node.id);
-        const observables = 'observables' in node ? node.observables : undefined;
-        if (observables !== undefined && observables.length > 0) {
-          offenders.push(
-            errorMessageContract.parse(
-              `Observables not allowed in flow '${flowId}' node '${nodeId}' in status '${currentStatus}' (Phase 4 work — embed observables after flows are approved)`,
-            ),
-          );
-        }
-      }
-    }
     return offenders;
   }
 

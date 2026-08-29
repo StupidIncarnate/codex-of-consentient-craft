@@ -17,7 +17,6 @@
  * - flowsRule: nested-path rule for `flows` input
  *     'forbidden'                -> flows input is never allowed (rejected by field-level check)
  *     'full'                     -> any flow mutation (add/delete/restructure) allowed
- *     'no-observables'           -> flows allowed but every flows[].nodes[].observables must be empty (length 0)
  *     'additive-only'            -> an execution agent may only ADD to the spine, never shrink it:
  *                                   node/edge/observable ADD allowed on an EXISTING flow, plus
  *                                   wording/type updates on existing observables; every DELETE is
@@ -35,7 +34,7 @@
  *                          payload is accepted even though `planningNotes` is NOT in allowedFields.
  */
 
-export type QuestStatusFlowsRule = 'forbidden' | 'full' | 'no-observables' | 'additive-only';
+export type QuestStatusFlowsRule = 'forbidden' | 'full' | 'additive-only';
 
 export type QuestStatusPlanningNotesField = 'blightLedger' | 'questNotes';
 
@@ -61,9 +60,19 @@ export const questStatusInputAllowlistStatics = {
   // `packages` tag is authored WITH the node and must draw from a name this list already holds.
   // Without it Chaos cannot state the entry and the tag in one call, and the tag is refused for
   // naming a package the quest never declared.
+  //
+  // `flowsRule: 'full'` — observables included — across the WHOLE flow-authoring loop, this status
+  // and the `review_flows` back-edge below. The user reads the first flow draft in the browser and
+  // comments on it ("add an observable that X"); Chaos answers that comment by returning here and
+  // persisting the node with the observable on it. A rule stripping observables from this payload
+  // would refuse the one edit the user just asked for, and refuse it on every later call of this
+  // status too, so a user-named observable could never land before Gate #1. What keeps Chaos from
+  // authoring the REST of Phase 4 here is `dumpsterCreatePromptStatics`, not this rule: nothing in
+  // a payload distinguishes an observable the user named from one the agent invented, so the
+  // validator was never the thing that could hold that phase.
   explore_flows: {
     allowedFields: ['title', 'flows', 'designDecisions', 'packagesAffected', 'comments', 'status'],
-    flowsRule: 'no-observables',
+    flowsRule: 'full',
     allowedPlanningNotesFields: [],
   },
   // `packagesAffected` joins the back-edge for the same reason it joins `explore_flows`: the user
@@ -76,7 +85,7 @@ export const questStatusInputAllowlistStatics = {
       toStatus: 'explore_flows',
       fields: ['flows', 'designDecisions', 'packagesAffected'],
     },
-    flowsRule: 'no-observables',
+    flowsRule: 'full',
     allowedPlanningNotesFields: [],
   },
   flows_approved: {
