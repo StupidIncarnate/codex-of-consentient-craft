@@ -614,9 +614,25 @@ All six are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts
 Assertions branch RIGHT as their own always-visible `FLOW_OBSERVABLE_NODE` cards. ELK has no native
 "satellite to the right" in layered/DOWN mode (edge-connected children get pushed to the next layer),
 so it is custom: ELK lays out only the flow spine and the widget positions observables at
-`parentX + node.width + gap`. Reserve the space by inflating each flow node's ELK **height** (not
-width — width would zig-zag the spine, since ELK centers nodes) and widening `spacing.nodeNode`. The
-flow-node badge counts CONTRACTS, not observables; the detail popup is contracts-only.
+`parentX + node.width + gap`. The flow-node badge counts CONTRACTS, not observables; the detail popup
+is contracts-only.
+
+**A column is invisible to ELK, so its space is reserved on two axes by two different mechanisms,
+and BOTH have to hold.** Height: inflate the owning node's ELK box to the column's height (not its
+width — width would zig-zag the spine, since ELK centers nodes in their layer). Width: `spacing`,
+and it takes **two** knobs, not one. `spacing.nodeNode` holds off a neighbouring CARD;
+`spacing.edgeNode` holds off the dummy ELK layered splits every multi-layer edge into, and a layer
+that a long edge or back-edge crosses has one of those between its cards — so that pair is spaced by
+`edgeNode` (twice, either side of the zero-width dummy) and `nodeNode` never applies to it, however
+large it is. Size only `nodeNode` to the column and every flow carrying a back-edge paints assertion
+cards on top of node cards; `elk-layout-statics.test.ts` pins the min of the two against
+`observable.gap + observable.width`.
+
+Per-node ELK options are the shape this wants and elkjs does not implement them: `elk.margins` /
+`org.eclipse.elk.margins`, `spacing.individual` and `nodeSize.minimum` were each measured leaving
+the layout byte-identical, so don't reach for them again. Real ELK is also mocked in jest
+(`^elkjs$` → `__mocks__/elkjs-mock.cjs`), so no unit test can catch a spacing regression by laying a
+graph out — the statics invariant is the guard.
 
 ## Do NOT move react/@mantine from `dependencies` to `devDependencies`
 

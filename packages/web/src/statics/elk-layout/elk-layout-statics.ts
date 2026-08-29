@@ -4,8 +4,16 @@
  * right of each flow node, and the ELK spacing knobs. This is the single source of truth for flow
  * node size: the FLOW_NODE card is rendered to EXACTLY `node.width` (border-box) and its FULL label
  * wraps within it, so each rendered card fits inside the non-overlapping rectangle ELK reserves for
- * it. Assertion cards branch to the right at `node.width + observable.gap`; ELK reserves each flow
- * node enough height to clear its whole assertion column so a column never overlaps a lower node.
+ * it.
+ *
+ * An assertion column is NOT an ELK child — it is painted at `node.width + observable.gap` from its
+ * card — so ELK reserves its space along both axes indirectly, and each axis has its own mechanism:
+ *   - HEIGHT: the owning node's ELK box is inflated to the column's full height (elkLayoutAdapter),
+ *     so a column never reaches a lower layer.
+ *   - WIDTH: `spacing.nodeNode` AND `spacing.edgeNode`, which must BOTH exceed the column's span.
+ *     See the note on `spacing` — a same-layer neighbour is held off by one or the other depending
+ *     on whether a routed edge passes between them, and getting only the first of the two right is
+ *     what put assertion cards on top of node cards.
  *
  * USAGE:
  * elkLayoutStatics.node.width;
@@ -65,16 +73,39 @@ export const elkLayoutStatics = {
       buffer: 10,
     },
   },
-  // Layout spacing handed to ELK (px). nodeNode spreads same-layer siblings apart; it exceeds both
-  // an edge-label box (`edgeLabel.maxWidth`) AND an assertion column (`observable.gap +
-  // observable.width`) so neither collides between same-layer siblings. nodeNodeBetweenLayers gives
-  // a wrapped multi-line label vertical room between layers. edgeNode/edgeEdge are the clearances
-  // ELK keeps when it ROUTES an edge past a node / alongside another edge — each edge is drawn along
-  // ELK's routed bend points (see xyflowEdgeAdapter), so ELK's own clearance keeps edges off cards.
+  // Layout spacing handed to ELK (px).
+  //
+  // **`nodeNode` and `edgeNode` are BOTH horizontal clearance to the right of a card, and the
+  // assertion column needs whichever one applies — so both must exceed `observable.gap +
+  // observable.width` (276).** That is the whole width reservation: the column is not an ELK child,
+  // so nothing but this pair keeps a neighbour out of it. Which one applies depends on what ELK put
+  // next to the card IN ITS LAYER, and there are two possibilities, not one:
+  //   - another card              -> `nodeNode`
+  //   - a routed edge's dummy     -> `edgeNode`, TWICE (once either side of the zero-width dummy)
+  // ELK layered breaks every multi-layer edge into a per-layer dummy, so any layer a long edge or a
+  // back-edge passes through has one sitting between its cards — and a pair split that way is
+  // spaced by `edgeNode`, never by `nodeNode`, however large `nodeNode` is. Measured on a real
+  // 19-node quest flow: a back-edge dummy between two same-layer terminals put them `2 x edgeNode`
+  // apart while `nodeNode` was 300, so anything under half the column span there paints the left
+  // card's assertions across the right card, and raising `nodeNode` does not move either of them.
+  // `elkLayoutStatics.test.ts` pins the min of the two against the column span.
+  //
+  // Per-node ELK options would express this better — the node genuinely occupies card + column —
+  // but elkjs honours none of them: `org.eclipse.elk.margins`, `spacing.individual` and
+  // `nodeSize.minimum` were each measured leaving the layout byte-identical. Reserving the column in
+  // the node's WIDTH is the other alternative and is rejected for the reason it always was: ELK
+  // centers a node in its layer, so a card-plus-column box zig-zags the spine against the cards that
+  // have no column.
+  //
+  // nodeNodeBetweenLayers gives a wrapped multi-line label vertical room between layers; the column
+  // needs nothing from it, because a column's HEIGHT is reserved on its own node's ELK box (see
+  // elkLayoutAdapter) and so never leaves that node's layer. edgeEdge is the clearance ELK keeps
+  // between two routed edges. Each edge is drawn along ELK's routed bend points (see
+  // xyflowEdgeAdapter), so ELK's own clearances also keep the edges themselves off the cards.
   spacing: {
     nodeNode: 300,
     nodeNodeBetweenLayers: 140,
-    edgeNode: 90,
+    edgeNode: 300,
     edgeEdge: 20,
   },
   // Wrapping branch-edge label box: `maxWidth` bounds the box's width so its text wraps rather than
