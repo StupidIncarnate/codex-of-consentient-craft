@@ -45,6 +45,34 @@ describe('webBundleResponseBroker', () => {
     });
   });
 
+  it('VALID: {pathname: "/favicon.svg"} => serves the root static file as image/svg+xml at 200', async () => {
+    const proxy = webBundleResponseBrokerProxy();
+    const contents = FileContentsStub({ value: '<svg viewBox="0 0 16 16"></svg>' });
+    proxy.setupFileContents({ contents });
+
+    const result = await webBundleResponseBroker({ pathname: '/favicon.svg' });
+
+    expect(result).toStrictEqual({
+      body: contents,
+      contentType: 'image/svg+xml',
+      status: 200,
+    });
+  });
+
+  it('EDGE: {pathname: "/logo.svg" not a named root file} => SPA fallback to index.html', async () => {
+    const proxy = webBundleResponseBrokerProxy();
+    const contents = FileContentsStub({ value: '<!doctype html>' });
+    proxy.setupFileContents({ contents });
+
+    const result = await webBundleResponseBroker({ pathname: '/logo.svg' });
+
+    expect(result).toStrictEqual({
+      body: contents,
+      contentType: 'text/html; charset=utf-8',
+      status: 200,
+    });
+  });
+
   it('EDGE: {pathname: "/assets/../secret" traversal} => treated as SPA route (index.html)', async () => {
     const proxy = webBundleResponseBrokerProxy();
     const contents = FileContentsStub({ value: '<!doctype html>' });

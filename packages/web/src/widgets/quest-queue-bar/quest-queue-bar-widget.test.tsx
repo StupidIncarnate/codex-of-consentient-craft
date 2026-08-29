@@ -31,6 +31,30 @@ describe('QuestQueueBarWidget', () => {
     });
   });
 
+  describe('layout', () => {
+    it('VALID: {1 entry} => bar is sticky and unshrinkable, so it reserves its own height', async () => {
+      const proxy = QuestQueueBarWidgetProxy();
+      proxy.setupEntries({
+        entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'Alpha' })],
+      });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestQueueBarWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      const bar = await findByTestId('QUEST_QUEUE_BAR');
+
+      expect({ position: bar.style.position, flexShrink: bar.style.flexShrink }).toStrictEqual({
+        position: 'sticky',
+        flexShrink: '0',
+      });
+    });
+  });
+
   describe('collapsed view', () => {
     it('VALID: {1 entry} => renders Quest 1/1 — title', async () => {
       const proxy = QuestQueueBarWidgetProxy();

@@ -7,6 +7,10 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 const GUILD_PATH = '/tmp/dm-e2e-exec-queue-stream';
 const QUEUE_TIMEOUT = 9_000;
 
+// Sentinel the overlap probe returns when either element is absent, so a missing bar fails the
+// assertion with a value that says WHICH way it failed rather than reading as a clean 0.
+const MISSING_ELEMENT = -1;
+
 // A feature quest needs a Chaos-authored codeweaver operation item on its ledger before it can be
 // approved and before Start can seed the relay from it. Fixed ids so each quest carries a distinct
 // ledger row.
@@ -99,6 +103,24 @@ test.describe('Execution Queue Streaming', () => {
       'Queue Stream Quest One',
       { timeout: QUEUE_TIMEOUT },
     );
+
+    // 5b. The bar is IN FLOW: the app column's first content starts at or below the bar's bottom
+    //     edge. `position: fixed` takes the bar out of flow, so everything the app laid out at y=0
+    //     renders UNDERNEATH it — on a quest route, where the top spacer is shorter than the bar,
+    //     that is the logo with its top half covered. Measured rather than asserted on the style,
+    //     because a bar that reserves height and one that paints over the page can carry the same
+    //     `top: 0`; only the geometry separates them, and only a real browser has geometry.
+    const overlapPixels = await page.evaluate((missing: number) => {
+      const bar = globalThis.document.querySelector('[data-testid="QUEST_QUEUE_BAR"]');
+      const content = globalThis.document.querySelector('[data-testid="APP_SPACER_TOP"]');
+      if (bar === null || content === null) {
+        return missing;
+      }
+      const covered = bar.getBoundingClientRect().bottom - content.getBoundingClientRect().top;
+      return Math.max(0, Math.round(covered));
+    }, MISSING_ELEMENT);
+
+    expect(overlapPixels).toBe(0);
 
     // 6. Enqueue a second quest and verify the count updates to 1/2.
     //    The second quest can live under the same guild — it just needs a

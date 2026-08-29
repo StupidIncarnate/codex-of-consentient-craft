@@ -334,11 +334,48 @@ mostly does not distinguish anything: every shell call is `Bash` and every MCP c
 server prefix, and leaves everything else alone.
 
 The dim slot is `toolRowSummaryTransformer`, which shortens paths before truncating — elision is
-what buys the width, so `git diff -- a b c` shows three arguments where the raw form was cut off
-inside the first. **Shortening is collapsed-only.** `web/…/tool-row-widget.tsx` names a file to a
-human and no longer resolves to one, so the expanded detail renders `formatToolInputTransformer`
-output untouched. Do not shorten in the detail, and do not feed `ShortenedPathText` to anything
-that opens, compares, or resolves a path.
+what buys the width, so `git diff -- a b c` shows three arguments where the raw form was cut off inside the first.
+`web/…/tool-row-widget.tsx` names a file to a human and no longer resolves to one, so **the untouched value must always
+be one disclosure away**, and `ShortenedPathText` must never reach anything that opens, compares, or resolves a path.
+
+**Both shorteners cut from the middle, and which one you want depends on whose budget it is.**
+`shortenPathsTransformer` owns the collapsed row, where one width is shared among however many paths the line carries,
+so it cuts every path down to two named segments regardless of how much room is left. `elideMiddleTransformer` owns a
+single over-long field in the OPEN row, where the budget is that field's own `longFieldLimit`, so it keeps as much of
+the head as fits and drops only what it must. Do not swap them: the row shortener applied to one field throws away
+segments the width could have paid for, and the field shortener applied to a summary line leaves it wider than the row.
+
+**Neither one ever cuts the tail.** A path's last segment is its filename, so a tail cut spends the whole budget on
+directories the reader could already guess and drops the only part naming the file —
+`.../server-health-badge-in-the-app-top-bar-try-2-a7520e60/.q...` was the live symptom.
+`elideMiddleTransformer` also stops its head at the FIRST segment that will not fit rather than skipping it for a later
+one, because splicing two segments that were never adjacent reads as a contiguous path to a directory nobody has, with
+nothing on screen to say otherwise.
+
+### An ARGUMENT with newlines in it is a document, and gets the surface a result gets
+
+The open row splits its fields on one test — `field.value.includes('\n')`. A single-line value keeps the inline
+`key: value` form. A multi-line one gets a `bg-deep` block captioned with its key, drawn by `ToolResultContentWidget`,
+which is the same widget the row's RESULT goes through: a `.md` write renders as headings and lists, a `.ts` write
+declines `isMarkdownContentGuard` and stays verbatim with its line breaks intact. So a file body reads the same whether
+the agent wrote it or read it back, and the shared widget is why neither side can drift.
+
+**The test is the newline, not the tool name.** Bash's `command` was the only field with a code surface for a long time,
+and every other argument — a Write's `content`, an Edit's `old_string`, a Task's `prompt`, a heredoc — fell to the
+inline form, whose `<Text>` collapses every newline into one italic run. A 900-line round document rendered as a single
+unbroken sentence. A per-tool allowlist just moves the day the next tool is missing from it. Bash keeps ONE clause of
+its own, so a one-line `npm run ward` still gets the code surface it always had; that clause is the exception, and a new
+tool needs no entry anywhere.
+
+**A block preview cuts by LINE, `blockFieldLineLimit` of them.** The preview is handed to the markdown parser, and a
+document cut by character count strands it mid-heading, where half a mark renders as the wrong mark.
+`blockFieldCharLimit` is only the backstop for the file that offers no line break to cut on — a minified bundle is one
+line, and the line limit alone would render all of it. Both live in `contentTruncationConfigStatics` beside
+`longFieldLimit`, which still caps the inline form; they are not interchangeable, because the inline form is measuring
+how much fits on one line and this one is measuring how much of a document to show.
+
+Every field toggle calls `holdAnchor()` — see the disclosure-anchor section below. A row can carry several, so they all
+anchor the row HEADER, the one element there is exactly one of.
 
 ## `MarkdownTextWidget` is the only place agent-authored markdown is rendered
 

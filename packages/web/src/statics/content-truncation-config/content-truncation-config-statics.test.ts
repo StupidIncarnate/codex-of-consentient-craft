@@ -6,6 +6,8 @@ describe('contentTruncationConfigStatics', () => {
       charLimit: 200,
       lineLimit: 8,
       longFieldLimit: 120,
+      blockFieldLineLimit: 12,
+      blockFieldCharLimit: 1200,
       msDivisor: 1000,
     });
   });

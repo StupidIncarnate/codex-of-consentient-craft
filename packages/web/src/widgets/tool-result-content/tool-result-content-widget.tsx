@@ -1,15 +1,17 @@
 /**
- * PURPOSE: The one place a tool's ANSWER is drawn, so the three surfaces that show one — the tool
- * row, the inline result under a call, and a result whose call never arrived — cannot drift on what
- * counts as readable. Its default is deliberately to change nothing: a reply that already reads as
- * the text it is renders exactly as a bare `<Text>` would, and only a reply carrying an escaped
- * document inside JSON, or a body written as markdown, is restructured. Mount this rather than
- * `MarkdownTextWidget` directly — that one assumes its input IS markdown, and a tool result is only
- * sometimes markdown and is a build log or a diff at least as often.
+ * PURPOSE: The one place a tool's PAYLOAD is drawn, so the four surfaces carrying one — the tool
+ * row's result, the inline result under a call, a result whose call never arrived, and a multi-line
+ * ARGUMENT the call was made with — cannot drift on what counts as readable. A Write's file body
+ * and a `get-quest` reply pose the same question, so they get the same answer. Its default is
+ * deliberately to change nothing: a payload that already reads as the text it is renders exactly as
+ * a bare `<Text>` would, and only one carrying an escaped document inside JSON, or a body written
+ * as markdown, is restructured. Mount this rather than `MarkdownTextWidget` directly — that one
+ * assumes its input IS markdown, and a payload is only sometimes markdown and is a build log, a
+ * diff or a TypeScript file at least as often.
  *
  * USAGE:
  * <ToolResultContentWidget content={toolResult.content} color={colors['text-dim']} />
- * // Renders the reply verbatim, or as captioned per-property units when it needs the help
+ * // Renders the payload verbatim, or as captioned per-property units when it needs the help
  */
 
 import { Box, Text } from '@mantine/core';

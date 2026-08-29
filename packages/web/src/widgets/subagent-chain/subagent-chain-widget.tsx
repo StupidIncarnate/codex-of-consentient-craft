@@ -15,7 +15,6 @@ import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor
 import type {
   ChatEntryGroup,
   SingleGroup,
-  SubagentChainGroup,
 } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
@@ -24,6 +23,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
 import { computeMergedItemTailIndexTransformer } from '../../transformers/compute-merged-item-tail-index/compute-merged-item-tail-index-transformer';
+import { collectPairTailEntriesTransformer } from '../../transformers/collect-pair-tail-entries/collect-pair-tail-entries-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
@@ -164,7 +164,7 @@ export const SubagentChainWidget = ({
                 : tailStartIndex >= lastIndex
                   ? [lastIndex]
                   : [tailStartIndex, lastIndex];
-            const visibleIndices = showAllEarlier ? allIndices : tailIndices;
+            const visibleIndices = new Set(showAllEarlier ? allIndices : tailIndices);
             const collapsedVisibleCount =
               mergedItems.length === 0
                 ? 0
@@ -188,17 +188,45 @@ export const SubagentChainWidget = ({
                 />
               ) : null;
 
-            const renderedItems = visibleIndices.map((index) => {
+            // Walk innerGroups IN ORDER so a nested chain paints where its Task fired, between the
+            // lines its parent wrote either side of it. Rendering every single entry and then every
+            // nested chain — two passes — put a background agent launched three lines in below its
+            // parent's last line, however long that transcript ran.
+            // `mergedCursor` tracks which mergedItems entry the next single maps to: a tool_result
+            // already paired into a tool-pair consumed no merged item of its own, so it advances
+            // nothing. The tail window still decides which SINGLES show; a nested chain always
+            // renders, because it carries its own collapse.
+            const pairTails = collectPairTailEntriesTransformer({ entries: singleEntries });
+            const renderedItems: (React.JSX.Element | null)[] = [];
+            let mergedCursor = 0;
+
+            for (const [position, inner] of group.innerGroups.entries()) {
+              if (inner.kind === 'subagent-chain') {
+                renderedItems.push(
+                  <SubagentChainWidget
+                    key={`inner-${String(position)}`}
+                    group={inner}
+                    stickyTop={innerStickyTop}
+                  />,
+                );
+                continue;
+              }
+
+              if (pairTails.has(inner.entry)) continue;
+
+              const index = mergedCursor;
+              mergedCursor += 1;
+
               const item = mergedItems[index];
               const annotation = annotations[index];
-              if (item === undefined) return null;
+              if (item === undefined || !visibleIndices.has(index)) continue;
 
               if (item.kind === 'tool-pair') {
                 const toolUseEntry = item.toolUse;
 
-                return (
+                renderedItems.push(
                   <ToolRowWidget
-                    key={`inner-${String(index)}`}
+                    key={`inner-${String(position)}`}
                     stickyTop={innerStickyTop}
                     toolUse={toolUseEntry as Extract<typeof toolUseEntry, { type: 'tool_use' }>}
                     {...(item.toolResult === null
@@ -212,21 +240,22 @@ export const SubagentChainWidget = ({
                     annotation.resultTokenBadgeLabel === null
                       ? {}
                       : { resultTokenBadgeLabel: annotation.resultTokenBadgeLabel })}
-                  />
+                  />,
                 );
+                continue;
               }
 
-              return (
+              renderedItems.push(
                 <ChatMessageWidget
-                  key={`inner-${String(index)}`}
+                  key={`inner-${String(position)}`}
                   entry={item.entry}
                   {...(annotation?.tokenBadgeLabel === undefined ||
                   annotation.tokenBadgeLabel === null
                     ? {}
                     : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
-                />
+                />,
               );
-            });
+            }
 
             return (
               <>
@@ -235,15 +264,6 @@ export const SubagentChainWidget = ({
               </>
             );
           })()}
-          {group.innerGroups
-            .filter((ig): ig is SubagentChainGroup => ig.kind === 'subagent-chain')
-            .map((nested, index) => (
-              <SubagentChainWidget
-                key={`nested-chain-${String(index)}`}
-                group={nested}
-                stickyTop={innerStickyTop}
-              />
-            ))}
           {group.taskNotification === null ? null : (
             <ChatMessageWidget entry={group.taskNotification} />
           )}

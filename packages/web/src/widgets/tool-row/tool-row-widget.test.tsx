@@ -535,6 +535,217 @@ describe('ToolRowWidget', () => {
     });
   });
 
+  // A Write's `content`, an Edit's `new_string` and a heredoc are documents, and the inline
+  // `key: value` form collapses every newline in them into one italic run-on. They take the same
+  // surface a tool's ANSWER takes, so a file body reads the same whether the agent wrote it or
+  // read it back.
+  describe('multi-line argument fields', () => {
+    it('VALID: {Write, markdown content} => renders the document rather than one collapsed run', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({
+          file_path: '/quest-plans/round-1.md',
+          content: '# Round 1\n\n## Context\nQuest ID: a7520e60\n',
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(
+        screen.queryAllByTestId('MARKDOWN_HEADING').map((node) => node.textContent),
+      ).toStrictEqual(['Round 1', 'Context']);
+    });
+
+    // The same guard the result side uses, for the same reason: most of what gets written is
+    // source, and rejoining its lines into paragraphs would lose the only copy of the file.
+    it('VALID: {Write, source content} => stays verbatim, so the lines are not rejoined', () => {
+      ToolRowWidgetProxy();
+      const source = 'export const a = 1;\nexport const b = 2;\n';
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({ file_path: '/src/a.ts', content: source }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe(source);
+      expect(screen.queryAllByTestId('MARKDOWN_TEXT')).toStrictEqual([]);
+    });
+
+    it('VALID: {Write, multi-line content} => captions the block with the field key', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({
+          file_path: '/src/a.ts',
+          content: 'const a = 1;\nconst b = 2;',
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(
+        screen.queryAllByTestId('TOOL_ROW_FIELD_LABEL').map((node) => node.textContent),
+      ).toStrictEqual(['content']);
+    });
+
+    // A caption over a one-line command repeats what the row already said, so the block form keeps
+    // its surface and drops its label — which is exactly how a Bash row rendered before.
+    it('VALID: {Bash, single-line command} => takes the code surface with no caption', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Bash',
+        toolInput: '{"command":"npm run ward"}',
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_BLOCK_FIELD').textContent).toBe('npm run ward');
+      expect(screen.queryByTestId('TOOL_ROW_FIELD_LABEL')).toBe(null);
+    });
+
+    it('VALID: {Read, single-line path} => stays inline and takes no code surface', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Read',
+        toolInput: '{"file_path":"/src/index.ts"}',
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL').textContent).toBe('file_path: /src/index.ts');
+      expect(screen.queryByTestId('TOOL_ROW_BLOCK_FIELD')).toBe(null);
+    });
+  });
+
+  describe('inline argument fields', () => {
+    // A tail cut spends the whole budget on the directories a reader could already guess and drops
+    // the filename, which is the only part that says WHICH file the call touched.
+    it('VALID: {Write, path over the inline budget} => elides the middle so the filename survives', () => {
+      ToolRowWidgetProxy();
+      const filePath =
+        '/home/brutus-home/projects/codex-of-consentient-craft/worktrees/server-health-badge-in-the-app-top-bar-try-2-a7520e60/.quest-plans/bde72c7a-6c21-4986-a91e-c8d154c0c8cc-round-1.md';
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({ file_path: filePath }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL').textContent).toBe(
+        'file_path: /home/brutus-home/projects/codex-of-consentient-craft/worktrees/…/bde72c7a-6c21-4986-a91e-c8d154c0c8cc-round-1.mdshow more',
+      );
+    });
+
+    // The elided form is the collapsed half of a disclosure, so the untouched path a reader copies
+    // has to be one click away — the elision names a file to a human and resolves to nothing.
+    it('VALID: {elided path, show more} => reveals the path untouched', async () => {
+      ToolRowWidgetProxy();
+      const filePath =
+        '/home/brutus-home/projects/codex-of-consentient-craft/worktrees/server-health-badge-in-the-app-top-bar-try-2-a7520e60/.quest-plans/bde72c7a-6c21-4986-a91e-c8d154c0c8cc-round-1.md';
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({ file_path: filePath }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_FIELD_TOGGLE'));
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL').textContent).toBe(
+        `file_path: ${filePath}show less`,
+      );
+    });
+
+    it('VALID: {path within the inline budget} => renders untouched with no toggle', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Read',
+        toolInput: '{"file_path":"/src/index.ts"}',
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL').textContent).toBe('file_path: /src/index.ts');
+      expect(screen.queryByTestId('TOOL_ROW_FIELD_TOGGLE')).toBe(null);
+    });
+  });
+
+  describe('multi-line argument previews', () => {
+    // Cutting a document by character count strands it mid-heading, and the markdown parser
+    // downstream draws half a mark as the wrong mark — so the preview is whole LINES.
+    it('VALID: {content over the line limit} => previews whole lines and offers the rest', async () => {
+      ToolRowWidgetProxy();
+      const lines = Array.from({ length: 30 }, (_, index) => `line ${String(index)}`);
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({ file_path: '/src/a.ts', content: lines.join('\n') }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe(
+        lines.slice(0, 12).join('\n'),
+      );
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_FIELD_TOGGLE'));
+
+      expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe(lines.join('\n'));
+    });
+
+    // The backstop for the file that offers no line break to cut on — a minified bundle is one
+    // line, so the line limit alone would render the whole thing.
+    it('VALID: {content under the line limit but far over the char limit} => cuts at the char ceiling', () => {
+      ToolRowWidgetProxy();
+      const content = `${'x'.repeat(4000)}\nsecond line`;
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({ file_path: '/src/bundle.js', content }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe('x'.repeat(1200));
+    });
+
+    it('VALID: {content within both limits} => renders whole and offers no toggle', () => {
+      ToolRowWidgetProxy();
+      const content = 'const a = 1;\nconst b = 2;';
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({ file_path: '/src/a.ts', content }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe(content);
+      expect(screen.queryByTestId('TOOL_ROW_FIELD_TOGGLE')).toBe(null);
+    });
+  });
+
   describe('disclosure anchoring', () => {
     // Collapsing a row the reader scrolled deep into has to carry them back to the header they
     // clicked, and the auto-scroll's ResizeObserver would otherwise read the shrink as new output
@@ -552,6 +763,31 @@ describe('ToolRowWidget', () => {
       expect(proxy.isAutoScrollHeld()).toBe(false);
 
       await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
+
+      expect(proxy.isAutoScrollHeld()).toBe(true);
+    });
+
+    // The field toggle grows the row from the middle, so it needs the hold as much as the chevron
+    // does — and it anchors the row HEADER, because several fields can each carry a toggle and a
+    // callback ref would keep only the last of them.
+    it('VALID: {click a field toggle} => puts the auto-scroll on hold', async () => {
+      const proxy = ToolRowWidgetProxy();
+      proxy.setupAutoScrollReleased();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Write',
+        toolInput: JSON.stringify({
+          file_path: '/src/a.ts',
+          content: Array.from({ length: 30 }, (_, index) => `line ${String(index)}`).join('\n'),
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
+      });
+
+      expect(proxy.isAutoScrollHeld()).toBe(false);
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_FIELD_TOGGLE'));
 
       expect(proxy.isAutoScrollHeld()).toBe(true);
     });

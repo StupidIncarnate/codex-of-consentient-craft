@@ -41,10 +41,14 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
     <div
       data-testid="QUEST_QUEUE_BAR"
       style={{
-        position: 'fixed',
+        // `sticky`, never `fixed`. A fixed bar is out of flow, so it paints ON TOP of whatever the
+        // app laid out at y=0 — which is the logo row, sliced in half by the bar for the whole time
+        // a quest is running. Sticky keeps the pin AND reserves the height, so the page starts below
+        // the bar. `flexShrink: 0` is what stops the app's flex column squeezing that reserved band
+        // back to nothing; the widget returns null on an empty queue, so it costs no space then.
+        position: 'sticky',
         top: 0,
-        left: 0,
-        right: 0,
+        flexShrink: 0,
         zIndex: 1100,
         backgroundColor: colors['bg-raised'],
         borderBottom: `${BORDER_WIDTH}px solid ${colors.border}`,

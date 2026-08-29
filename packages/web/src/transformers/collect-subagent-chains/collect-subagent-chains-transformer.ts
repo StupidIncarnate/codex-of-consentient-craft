@@ -30,6 +30,11 @@ export const collectSubagentChainsTransformer = ({
   const consumed = new Set<ChatEntry>();
   const groups: ChatEntryGroup[] = [];
   const chainsByAgentId = new Map<ChainAgentId, SubagentChainGroup>();
+  // Where each entry sits in the transcript. A nested chain is inserted at the position of the Task
+  // line that launched it, so it lands between the parent's own lines rather than after all of them.
+  // Built by inference rather than an explicit `Map<ChatEntry, number>` so no branded index contract
+  // has to be parsed once per entry on a render path that runs over whole transcripts.
+  const entryOrder = new Map(entries.map((candidate, position) => [candidate, position] as const));
   let normalBuffer: ChatEntry[] = [];
 
   for (const entry of entries) {
@@ -154,7 +159,22 @@ export const collectSubagentChainsTransformer = ({
         normalBuffer = [];
         groups.push(chain as ChatEntryGroup);
       } else {
-        parentChain.innerGroups.push(chain);
+        // The parent's innerGroups were built from its WHOLE bucket the moment its own Task line was
+        // reached, so they already hold every line the parent went on to write after this launch.
+        // Appending here would put a chain the parent launched at line 26 of 326 below all 326 —
+        // hundreds of rows from the acknowledgement that announced it. Insert before the first
+        // sibling the parent wrote LATER than this Task instead.
+        const taskPosition = entryOrder.get(entry) ?? entries.length;
+        const successorIndex = parentChain.innerGroups.findIndex((sibling) => {
+          const anchor = sibling.kind === 'single' ? sibling.entry : sibling.taskToolUse;
+          const siblingPosition = anchor === null ? -1 : (entryOrder.get(anchor) ?? -1);
+          return siblingPosition > taskPosition;
+        });
+        parentChain.innerGroups.splice(
+          successorIndex === -1 ? parentChain.innerGroups.length : successorIndex,
+          0,
+          chain,
+        );
       }
     } else {
       normalBuffer.push(entry);

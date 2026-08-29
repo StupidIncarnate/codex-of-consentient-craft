@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Builds the HTTP response for a non-API GET request in single-port (published) mode.
  *   Serves a static file from the built @dungeonmaster/web bundle when the request targets an asset
- *   under /assets/; otherwise returns index.html so the SPA client router renders the route.
+ *   under /assets/ or one of webBundleRootStaticPathsStatics; otherwise returns index.html so the
+ *   SPA client router renders the route.
  *
  * USAGE:
  * const { body, contentType, status } = await webBundleResponseBroker({ pathname: '/codex/quest/x' });
@@ -15,6 +16,7 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { webBundleDistPathAdapter } from '../../../adapters/web-bundle/dist-path/web-bundle-dist-path-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { webBundleRootStaticPathsStatics } from '../../../statics/web-bundle-root-static-paths/web-bundle-root-static-paths-statics';
 import {
   webBundleContentTypeTransformer,
   type WebBundleContentType,
@@ -43,11 +45,13 @@ export const webBundleResponseBroker = async ({
     };
   }
 
-  // Static build output lives under /assets/*; every other GET path is a client-router route and
-  // must receive index.html (SPA fallback). A '..' segment can only come from a crafted URL — never
-  // the built bundle — so it is treated as a route, never a read outside dist.
-  const isAsset = pathname.startsWith('/assets/') && !pathname.includes('..');
-  const relativePath = filePathContract.parse(isAsset ? pathname : INDEX_HTML_PATH);
+  // Static build output lives under /assets/*, plus the root files webBundleRootStaticPathsStatics
+  // names; every other GET path is a client-router route and must receive index.html (SPA fallback).
+  // A '..' segment can only come from a crafted URL — never the built bundle — so it is treated as a
+  // route, never a read outside dist.
+  const isRootStatic = webBundleRootStaticPathsStatics.paths.some((path) => path === pathname);
+  const isStatic = (pathname.startsWith('/assets/') || isRootStatic) && !pathname.includes('..');
+  const relativePath = filePathContract.parse(isStatic ? pathname : INDEX_HTML_PATH);
 
   const filepath = filePathContract.parse(pathJoinAdapter({ paths: [distPath, relativePath] }));
   const body = await fsReadFileAdapter({ filepath });

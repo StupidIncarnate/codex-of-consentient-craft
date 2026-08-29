@@ -28,6 +28,7 @@ import { toolResultDisplayContentContract } from '../../contracts/tool-result-di
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
+import { elideMiddleTransformer } from '../../transformers/elide-middle/elide-middle-transformer';
 import { formatToolInputTransformer } from '../../transformers/format-tool-input/format-tool-input-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { toolDisplayLabelTransformer } from '../../transformers/tool-display-label/tool-display-label-transformer';
@@ -267,12 +268,45 @@ export const ToolRowWidget = ({
           {detailFields.length > 0 ? (
             <Box mt={4}>
               {detailFields.map((field, index) => {
-                const isBashCommand = toolName === 'Bash' && field.key === 'command';
                 const isFieldExpanded = expandedFields[index] === true;
+                const isMultiLine = field.value.includes('\n');
+                // A shell command takes the code surface whether or not it wraps: it is a literal
+                // the reader may copy, and a one-line `npm run ward` already rendered there. Every
+                // other argument earns that surface by BEING a document — a one-line value has no
+                // structure for the surface to preserve, and boxing it costs a row of chrome to
+                // repeat what the inline form already said.
+                const isBlockField =
+                  isMultiLine || (toolName === 'Bash' && field.key === 'command');
 
-                if (isBashCommand) {
+                if (isBlockField) {
+                  // Cut by LINE first, so the preview is a shorter document rather than a fragment
+                  // stopping mid-heading — this string is parsed as markdown downstream, and half a
+                  // mark renders as the wrong mark. The character ceiling only catches the file
+                  // that offers no line break to cut on, such as a minified bundle.
+                  const preview = field.value
+                    .split('\n')
+                    .slice(0, contentTruncationConfigStatics.blockFieldLineLimit)
+                    .join('\n')
+                    .slice(0, contentTruncationConfigStatics.blockFieldCharLimit);
+                  // The preview is a prefix of the value, so a shorter one is a truncated one.
+                  const isPreviewShort = preview.length < field.value.length;
+
                   return (
-                    <Box key={field.key}>
+                    <Box key={field.key} data-testid="TOOL_ROW_BLOCK_FIELD">
+                      {isMultiLine ? (
+                        <Text
+                          ff="monospace"
+                          fw={600}
+                          data-testid="TOOL_ROW_FIELD_LABEL"
+                          style={{
+                            fontSize: DETAIL_FONT_SIZE,
+                            color: colors['text-dim'],
+                            marginBottom: 2,
+                          }}
+                        >
+                          {field.key}
+                        </Text>
+                      ) : null}
                       <Box
                         style={{
                           backgroundColor: colors['bg-deep'],
@@ -281,22 +315,18 @@ export const ToolRowWidget = ({
                           marginBottom: 2,
                         }}
                       >
-                        <Text
-                          ff="monospace"
-                          style={{
-                            fontSize: DETAIL_FONT_SIZE,
-                            color: colors['text-dim'],
-                            whiteSpace: 'pre-wrap',
-                          }}
-                        >
-                          {field.isLong && !isFieldExpanded
-                            ? `${field.value.slice(0, contentTruncationConfigStatics.longFieldLimit)}...`
-                            : field.value}
-                        </Text>
+                        <ToolResultContentWidget
+                          content={toolResultDisplayContentContract.parse(
+                            isFieldExpanded ? field.value : preview,
+                          )}
+                          color={colors['text-dim']}
+                          fontSize={RESULT_FONT_SIZE}
+                        />
                       </Box>
-                      {field.isLong ? (
+                      {isPreviewShort ? (
                         <Text
                           ff="monospace"
+                          data-testid="TOOL_ROW_FIELD_TOGGLE"
                           style={{
                             fontSize: DETAIL_FONT_SIZE,
                             color: colors.primary,
@@ -331,12 +361,18 @@ export const ToolRowWidget = ({
                   >
                     {field.key}:{' '}
                     {field.isLong && !isFieldExpanded
-                      ? `${field.value.slice(0, contentTruncationConfigStatics.longFieldLimit)}...`
+                      ? String(
+                          elideMiddleTransformer({
+                            text: field.value,
+                            limit: contentTruncationConfigStatics.longFieldLimit,
+                          }),
+                        )
                       : field.value}
                     {field.isLong ? (
                       <Text
                         component="span"
                         ff="monospace"
+                        data-testid="TOOL_ROW_FIELD_TOGGLE"
                         style={{
                           fontSize: DETAIL_FONT_SIZE,
                           color: colors.primary,
@@ -344,6 +380,11 @@ export const ToolRowWidget = ({
                           marginLeft: 4,
                         }}
                         onClick={() => {
+                          // Same anchor as the block form's toggle, for the same reason: every
+                          // disclosure in the transcript holds the auto-scroll before it changes
+                          // height, or the ResizeObserver reads the growth as new output arriving
+                          // and throws the reader to the bottom of the panel.
+                          holdAnchor();
                           setExpandedFields({ ...expandedFields, [index]: !isFieldExpanded });
                         }}
                       >

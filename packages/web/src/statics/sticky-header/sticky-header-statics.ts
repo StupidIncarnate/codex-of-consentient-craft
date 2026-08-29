@@ -24,8 +24,9 @@ export const stickyHeaderStatics = {
   // screen. Subtracting the pin offset orders them without any level having to know its own depth,
   // because the offset already grows with every level. The floor keeps a deeply nested header off
   // zero, where it would paint behind its own container's background and vanish while pinned.
-  // The whole band stays below QuestQueueBarWidget's 1100: that bar is pinned to the window rather
-  // than to a panel, so a header that outranked it would slide over the app's own chrome.
+  // The whole band stays below QuestQueueBarWidget's 1100: that bar pins at the top of the entire
+  // app column rather than inside a panel, so a header that outranked it would slide over the app's
+  // own chrome.
   zIndexBase: 100,
   zIndexFloor: 1,
 } as const;
