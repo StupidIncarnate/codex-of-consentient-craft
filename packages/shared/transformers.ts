@@ -116,3 +116,14 @@ export * from './src/transformers/quest-package-entry-kinds/quest-package-entry-
 // coverage gate and the derived codeweaver ledger, which must agree on where a path lands or a
 // contract refused by the gate would be one the generator silently dropped.
 export * from './src/transformers/package-for-path/package-for-path-transformer';
+
+// One PIECE of a quest contract -> its owning package (the contract's own file, or one property's).
+// Lives beside package-for-path because the save-time coverage gate, the derived codeweaver ledger
+// and the per-package flow slice all route contracts through this ONE answer.
+export * from './src/transformers/quest-contract-source-owner/quest-contract-source-owner-transformer';
+
+// packagesAffected -> the one-line summary every agent-facing block shares
+export * from './src/transformers/quest-package-entries-to-text/quest-package-entries-to-text-transformer';
+
+// A single flow, rendered whole, for the role that owns it (get-quest's flowId/packageName slice)
+export * from './src/transformers/quest-flow-slice/quest-flow-slice-transformer';

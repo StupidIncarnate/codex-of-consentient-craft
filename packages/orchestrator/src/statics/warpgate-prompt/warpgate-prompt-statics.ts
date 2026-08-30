@@ -64,9 +64,7 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 ### Rules to follow
 
-**[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. End your turn with a plain text message and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you.
-
-**[BACKGROUND] Never end your turn waiting for a background task.** A turn that ends waiting on one hangs your work item for good, because no notification follows a final response. While your turn is still going you need no waiting strategy at all: **Never \`sleep\` to wait one out, and never \`tail\` its output file.** Whatever the harness pushed into the background, the harness notifies you when it exits, so long as your turn is still going — do other work and read that notification. Nothing else left to do meanwhile is the signal you scoped the command too broadly: narrow it and run it again.
+**[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. Finish with nothing outstanding and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you. A turn you end while a helper or a command is still out is a different thing — see [DELEGATION].
 
 **[WARD] Run the whole-repo, full-mode \`npm run ward\` — no \`--only\`, no file list. This is the one ward command this session runs.** This rule OVERRIDES the \`<dungeonmaster-ward>\` snippet you were handed at session start. That snippet's "make it fully green" line is written for an agent working directly for a person, and you are not one — but this operation item is where that split doesn't hold: only a whole-repo sweep can prove a base merge broke nothing outside the quest's own files, so you run it yourself and own what it finds until it comes back green.
 
@@ -74,11 +72,11 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 Three mechanics from the \`<dungeonmaster-ward-discipline>\` snippet still apply to you: build first, run it once, and never sleep-poll it.
 
-**[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS. Its return only says the helper STARTED.** The answer reaches you later, on its own, as a completion notification.
+**[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session.
 
-**Never \`sleep\`. Never poll. Never re-run a command to check whether a helper finished.** The answer is already on its way, and every one of those burns your turn waiting for something that is coming anyway.
+**Never \`sleep\`. Never poll. Never re-run a command to check whether it finished.** The answer is already on its way, and every one of those burns your turn waiting for something that is coming anyway.
 
-**Do not end your turn while a helper is still out.** Your own final message is terminal, so nobody gets a result that lands after it. [BACKGROUND] forbids ending your turn on a backgrounded shell command; this is the same rule from the other side.
+**With everything you can do done and a helper still out, end your turn on a plain message and no tool call.** The notification brings you back. Waiting inside the turn buys nothing.
 
 If your prompt tells you to delegate isolated work, decide EARLY. You will not reliably stop to delegate deep into a long turn. Brief the helper fully, then let the notification reach you.
 
@@ -147,7 +145,7 @@ After the intake merge, run a full-mode ward in the worktree: \`npm run ward\`, 
 session runs.** You are checking that a BASE MERGE did not break something outside the quest's
 own files. A scoped run cannot see that.
 
-Run it the way [BACKGROUND] allows, because the harness auto-backgrounds a whole-repo run. Do these
+The harness auto-backgrounds a whole-repo run, so [DELEGATION] governs it. Do these
 three things, in order:
 
 1. Set \`run_in_background: true\`.

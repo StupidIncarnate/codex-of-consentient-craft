@@ -16,15 +16,6 @@
  * boundary, addressed on the git argv, so the commit-before-signal gate exercises the genuine
  * tracked ∪ untracked union rather than a stubbed file list.
  *
- * `questGetBlightChecklistBroker` is module-mocked for the SAME reason as `questCwdResolveBroker`:
- * it drives its own find-quest-path + load + cwd-resolve chain onto the shared file-path addresses
- * this proxy's FIFO read queue already serves, so composing it would make every test's staging
- * order mirror real execution order across two more nested proxies. What these tests verify is
- * what the responder DOES with an outstanding set; how that set is computed is
- * `quest-get-blight-checklist-broker.test.ts`. It answers `null` by default — the unmeasurable
- * surface `blightCoverageOutstandingTransformer` reads as "nothing outstanding" — so the
- * review-coverage gate is transparent until a test stages a remainder with setupReviewRemainder.
- *
  * USAGE:
  * const proxy = QuestHandleSignalBackResponderProxy();
  * proxy.setupSignalFlow({ quest, questAfterOutcome });
@@ -49,11 +40,7 @@
  */
 
 import type { QuestStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
-import {
-  blightChecklistContract,
-  questContract,
-  repoRootCwdContract,
-} from '@dungeonmaster/shared/contracts';
+import { questContract, repoRootCwdContract } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { gitWorkingTreeFilesBrokerProxy } from '../../../brokers/git/working-tree-files/git-working-tree-files-broker.proxy';
@@ -61,18 +48,12 @@ import { questAdvanceBrokerProxy } from '../../../brokers/quest/advance/quest-ad
 import { questBlockOnFailureBrokerProxy } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker.proxy';
 import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
-import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker';
-import { questGetBlightChecklistBrokerProxy } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questOperationsUpdateBrokerProxy } from '../../../brokers/quest/operations-update/quest-operations-update-broker.proxy';
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 
 registerModuleMock({
   module: '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker',
-});
-
-registerModuleMock({
-  module: '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker',
 });
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -82,10 +63,6 @@ type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 const WORKTREE_CWD = repoRootCwdContract.parse('/home/user/.dungeonmaster/worktrees/test-quest');
 const REPO_ROOT_CWD = repoRootCwdContract.parse('/home/user/projects/demo');
-// The `baseRef` echoed back on a staged checklist. No test asserts it — the ref the GATE measured
-// with is read off getReviewChecklistCallArgs, which is the argument the responder chose, not the
-// value this mock hands back.
-const REVIEW_START_REF = '0000000000000000000000000000000000000000';
 
 export const QuestHandleSignalBackResponderProxy = (): {
   callResponder: typeof QuestHandleSignalBackResponder;
@@ -97,11 +74,6 @@ export const QuestHandleSignalBackResponderProxy = (): {
     trackedFiles: readonly string[];
     untrackedFiles: readonly string[];
   }) => RepoRootCwd;
-  setupReviewRemainder: (params: {
-    dispositionedItemIds: readonly string[];
-    remainingItemIds: readonly string[];
-  }) => void;
-  getReviewChecklistCallArgs: () => readonly unknown[];
   getCwdResolveCallArgs: () => readonly unknown[];
   getGitSpawnedArgsList: () => readonly unknown[];
   setupResponderUuids: (params: {
@@ -127,11 +99,9 @@ export const QuestHandleSignalBackResponderProxy = (): {
   const workingTreeProxy = gitWorkingTreeFilesBrokerProxy();
 
   // Wired to satisfy enforce-proxy-child-creation (the implementation imports
-  // questCwdResolveBroker and questGetBlightChecklistBroker) — never staged. The module mocks above
-  // are the real staging mechanism; see the docblock for why composing their own fs simulations is
-  // unsafe here.
+  // questCwdResolveBroker) — never staged. The module mock above is the real staging mechanism; see
+  // the docblock for why composing its own fs simulation is unsafe here.
   questCwdResolveBrokerProxy();
-  questGetBlightChecklistBrokerProxy();
 
   // Default: the resolution a quest carrying no `worktreePath` really gets, so the
   // commit-before-signal gate skips and no git command runs. setupWorktree overrides it.
@@ -139,14 +109,6 @@ export const QuestHandleSignalBackResponderProxy = (): {
     typeof questCwdResolveBroker
   >;
   mockedCwdResolve.mockResolvedValue({ kind: 'repo-root', cwd: REPO_ROOT_CWD });
-
-  // Default: an UNMEASURABLE review surface, which the responder's transformer reads as nothing
-  // outstanding — so the review-coverage gate never fires unless a test both gives the work item a
-  // startRef and stages a remainder here.
-  const mockedReviewChecklist = questGetBlightChecklistBroker as jest.MockedFunction<
-    typeof questGetBlightChecklistBroker
-  >;
-  mockedReviewChecklist.mockResolvedValue(null);
 
   // The pt-continuation operation id is minted in the responder's own update callback, so the
   // dispatch stack matches this proxy's handle (advance's id is minted in quest-advance-broker
@@ -218,39 +180,6 @@ export const QuestHandleSignalBackResponderProxy = (): {
       workingTreeProxy.setupWorkingTree({ trackedFiles, untrackedFiles });
       return WORKTREE_CWD;
     },
-
-    // The review surface the gate measures over `<startRef>..HEAD`, expressed the way the checklist
-    // really comes back: every unit is an item, and the ones with no blightLedger disposition are
-    // also in `remainingItemIds`. Staging both halves keeps the accept case honest — a checklist
-    // with items and an EMPTY remainder is a fully-dispositioned round, not an unmeasured one.
-    setupReviewRemainder: ({
-      dispositionedItemIds,
-      remainingItemIds,
-    }: {
-      dispositionedItemIds: readonly string[];
-      remainingItemIds: readonly string[];
-    }): void => {
-      mockedReviewChecklist.mockResolvedValue(
-        blightChecklistContract.parse({
-          baseRef: REVIEW_START_REF,
-          // A unit id IS `<implPath>:<concern>`, so both halves are split back out of it rather
-          // than taken as separate arguments — a staged unit whose id disagreed with its own
-          // implPath is a shape the real builder cannot produce.
-          items: [...dispositionedItemIds, ...remainingItemIds].map((id) => ({
-            id,
-            implPath: id.split(':')[0],
-            concern: id.split(':')[1],
-            pairedFiles: [],
-            label: `${id.split(':')[1] ?? ''} — staged review unit`,
-          })),
-          remainingItemIds: [...remainingItemIds],
-        }),
-      );
-    },
-
-    // Every argument set the gate handed the checklist broker — the scope and sinceRef it measured
-    // with are the whole point of the range, so a test asserts them rather than trusting them.
-    getReviewChecklistCallArgs: (): readonly unknown[] => mockedReviewChecklist.mock.calls,
 
     // Raw call args, not a count — the test derives .length itself (ban-primitives forbids a raw
     // number return type here).

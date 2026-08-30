@@ -18,7 +18,7 @@ export const createQuestInputContract = z
     questType: questTypeContract
       .optional()
       .describe(
-        "Which pipeline this quest follows. Omit for the default feature pipeline; set to 'bug-hunt' (the /dumpster-hunt intake) to seed the PestEater regression pipeline.",
+        "Which pipeline this quest follows. Omit for the default feature pipeline; set to 'bug-hunt' (the /dumpster-hunt intake) to seed the bug-hunt regression pipeline.",
       ),
   })
   .strict();

@@ -13,7 +13,6 @@ import { askUserQuestionBrokerProxy } from '../../../brokers/ask/user-question/a
 import { signalBackBrokerProxy } from '../../../brokers/signal/back/signal-back-broker.proxy';
 import { orchestratorGetAgentPromptAdapterProxy } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter.proxy';
 import { orchestratorHandleSignalBackAdapterProxy } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter.proxy';
-import { orchestratorMinionInformationAdapterProxy } from '../../../adapters/orchestrator/minion-information/orchestrator-minion-information-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
 import { InteractionHandleResponder } from './interaction-handle-responder';
 import { ResolveSubagentIdentityLayerResponderProxy } from './resolve-subagent-identity-layer-responder.proxy';
@@ -62,10 +61,6 @@ export const InteractionHandleResponderProxy = (): {
   // stamp's result is never read, so this stages an explicit wildcard resolve too.
   modifyProxy.returns({ result: ModifyQuestResultStub() });
   const layerProxy = ResolveSubagentIdentityLayerResponderProxy();
-  // Nothing to stage: the information adapter reads three literal statics and mocking them would
-  // assert against a fixture rather than the text the tool really serves. Declared so the
-  // enforce-proxy-child-creation rule sees every child of this responder.
-  orchestratorMinionInformationAdapterProxy();
 
   return {
     callResponder: InteractionHandleResponder,

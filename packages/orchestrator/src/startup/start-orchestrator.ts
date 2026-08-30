@@ -186,10 +186,20 @@ export const StartOrchestrator = {
   getQuest: async ({
     questId,
     stage,
+    flowId,
+    packageName,
   }: {
     questId: string;
     stage?: string;
-  }): Promise<GetQuestResult> => QuestFlow.get({ questId, ...(stage !== undefined && { stage }) }),
+    flowId?: string;
+    packageName?: string;
+  }): Promise<GetQuestResult> =>
+    QuestFlow.get({
+      questId,
+      ...(stage !== undefined && { stage }),
+      ...(flowId !== undefined && { flowId }),
+      ...(packageName !== undefined && { packageName }),
+    }),
 
   getPlanningNotes: async ({
     questId,
@@ -208,10 +218,10 @@ export const StartOrchestrator = {
     QuestFlow.getSummary({ questId }),
 
   // `operationItemId` IS the scope: the item carries the track (its `role`), its `flowIds` and its
-  // `packageNames`, and the same derivation the signal-back completion gate uses turns them into a
+  // `packageNames`, and the same derivation every reader of this coverage uses turns them into a
   // denominator. It replaced three hand-passed arguments that each let a caller ask a DIFFERENT
-  // question from the one the gate answers, every one of them failing by over-reporting so the
-  // remainder never emptied while `done` went on being refused.
+  // question from the one this scope answers, every one of them failing by over-reporting so the
+  // remainder never emptied, with nothing naming the cause.
   getQaChecklist: async ({
     questId,
     operationItemId,
@@ -227,7 +237,7 @@ export const StartOrchestrator = {
       ...(flowId !== undefined && { flowId }),
     }),
 
-  // `scope` rides all the way out to the MCP tool because a reviewer-minion running inside its
+  // `scope` rides all the way out to the MCP tool because a reviewer running inside its
   // parent's turn is graded on the WORKING TREE, while a caller auditing a landed commit wants
   // `commit` and one auditing the whole branch wants `quest` — a caller that could not name the
   // scope would read a different denominator than the one it is answering for.
@@ -366,9 +376,9 @@ export const StartOrchestrator = {
   stopFollowupChat: async ({ questId }: { questId: QuestId }): Promise<{ stopped: boolean }> =>
     FollowupChatStopFlow({ questId }),
 
-  // Agent prompt methods. `discipline` is an explicit param because a minion (planner-minion /
-  // worker-minion / reviewer-minion) fetches with no workItemId — there is no work item to derive
-  // one from server-side, so the caller must name it.
+  // Agent prompt methods. `discipline` is an explicit param because a parent-summoned sub-agent (a
+  // `<role>-reviewer`, `siegemaster-walker`, or `chaoswhisperer-gap-minion`) fetches with no
+  // workItemId — there is no work item to derive one from server-side, so the caller must name it.
   getAgentPrompt: async ({
     agent,
     questId,

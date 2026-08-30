@@ -1,7 +1,7 @@
 /**
  * PURPOSE: One atomic verification unit as enumerated straight off a flow graph — its derived id,
- * the graph element it anchors to, that element's verbatim source text, and the two verification
- * tracks' sign-offs on it
+ * the graph element it anchors to, that element's verbatim source text, and every verification
+ * track's sign-off on it
  *
  * USAGE:
  * qaVerificationUnitContract.parse({
@@ -14,20 +14,22 @@
  * // Returns: QaVerificationUnit — the `terminal` variant
  *
  * This is the SHARED enumeration `qaChecklistBuildTransformer` and `signoffOutstandingTransformer`
- * both consume, which is what makes "the ids the completion gate refuses on are the ids
+ * both consume, which is what makes "the ids a track's outstanding count names are the ids
  * get-qa-checklist printed" a structural fact rather than a convention two files have to keep.
  * The unit carries no `label` and no `checkSurface`: composing those (the branch grammar, the
  * spec-hole sentence for a blank observable, the per-kind and per-outcome-type check surfaces) is
- * the checklist renderer's job, and the gate never needs them.
+ * the checklist renderer's job, and the outstanding count never needs them.
  *
  * A DISCRIMINATED UNION on `kind`, not one object with ten optionals. Each consumer narrows once
  * and then reads required fields — a flat optional shape would force `?? ` fallbacks on every
  * anchor the caller already knows is present, and those fallbacks are unreachable branches that
  * cannot be tested honestly.
  *
- * `flowriderSignoff` and `siegemasterSignoff` sit on EVERY variant, at the same names the sign-offs
- * carry on the flow itself, so the gate reads one field per track across the whole enumeration
- * without branching on kind. `addedBy` lives on the `observable` variant alone because provenance
+ * `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff` sit on EVERY variant, at the same
+ * names the sign-offs carry on the flow itself, so every reader reads one field per track across the
+ * whole enumeration without branching on kind. The `off-map` variant carries all three even though
+ * `flowOffMapSignoffContract` declares only two: the shape is uniform so a reader never branches,
+ * and the codeweaver column simply stays absent there because off-map is outside its `unitKinds`. `addedBy` lives on the `observable` variant alone because provenance
  * is the only axis observables have and nodes/edges/off-map families do not.
  */
 
@@ -48,6 +50,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 const trackSignoffShape = {
+  codeweaverSignoff: signoffContract.optional(),
   flowriderSignoff: signoffContract.optional(),
   siegemasterSignoff: signoffContract.optional(),
 };

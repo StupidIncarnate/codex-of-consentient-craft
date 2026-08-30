@@ -19,7 +19,10 @@ describe('flowGraphToTextTransformer', () => {
 
       const result = flowGraphToTextTransformer({ flow });
 
-      expect(result).toStrictEqual(['[#login-page] Login Page (state)', '  (terminal)']);
+      expect(result).toStrictEqual([
+        '[#login-page] Login Page (state) {auth-service}',
+        '  (terminal)',
+      ]);
     });
   });
 
@@ -43,9 +46,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state)',
+        '[#login-page] Login (state) {auth-service}',
         '  \u2192[#dashboard]',
-        '  [#dashboard] Dashboard (state)',
+        '  [#dashboard] Dashboard (state) {auth-service}',
         '    (terminal)',
       ]);
     });
@@ -72,9 +75,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#check] Check (decision)',
+        '[#check] Check (decision) {auth-service}',
         '  \u2192"yes" [#success]',
-        '  [#success] Success (terminal)',
+        '  [#success] Success (terminal) {auth-service}',
         '    (terminal)',
       ]);
     });
@@ -97,9 +100,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#start] Start (state)',
+        '[#start] Start (state) {auth-service}',
         '  \u2192[#middle]',
-        '  [#middle] Middle (action)',
+        '  [#middle] Middle (action) {auth-service}',
         '    \u2192 [#start] \u21A9',
       ]);
     });
@@ -122,13 +125,13 @@ describe('flowGraphToTextTransformer', () => {
 
       const result = flowGraphToTextTransformer({ flow });
 
-      expect(result[0]).toBe('[#a] A (state)');
+      expect(result[0]).toBe('[#a] A (state) {auth-service}');
       expect(result).toStrictEqual([
-        '[#a] A (state)',
+        '[#a] A (state) {auth-service}',
         '  \u2192[#c]',
-        '  [#c] C (state) \u2190 MERGE',
+        '  [#c] C (state) {auth-service} \u2190 MERGE',
         '    (terminal)',
-        '[#b] B (state)',
+        '[#b] B (state) {auth-service}',
         '  \u2192 [#c] \u21A9',
       ]);
     });
@@ -147,7 +150,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#start] Start (state)',
+        '[#start] Start (state) {auth-service}',
         '  \u2192 other-node \u2197 cross-flow',
       ]);
     });
@@ -177,7 +180,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state)',
+        '[#login-page] Login (state) {auth-service}',
         '  > #shows-form: shows login form [ui-state]',
         '  (terminal)',
       ]);
@@ -211,7 +214,10 @@ describe('flowGraphToTextTransformer', () => {
 
       const result = flowGraphToTextTransformer({ flow });
 
-      expect(result).toStrictEqual(['[#login-page] Login (state) [F✓]', '  (terminal)']);
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state) {auth-service} [F✓]',
+        '  (terminal)',
+      ]);
     });
 
     it('VALID: {node signed by both tracks} => node line carries both marks', () => {
@@ -231,7 +237,10 @@ describe('flowGraphToTextTransformer', () => {
 
       const result = flowGraphToTextTransformer({ flow });
 
-      expect(result).toStrictEqual(['[#login-page] Login (state) [F✓ S✓]', '  (terminal)']);
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state) {auth-service} [F✓ S✓]',
+        '  (terminal)',
+      ]);
     });
 
     it('VALID: {node unconfirmable on siegemaster} => renders the verdict mark, never the evidence', () => {
@@ -254,7 +263,10 @@ describe('flowGraphToTextTransformer', () => {
 
       const result = flowGraphToTextTransformer({ flow });
 
-      expect(result).toStrictEqual(['[#login-page] Login (state) [S?]', '  (terminal)']);
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state) {auth-service} [S?]',
+        '  (terminal)',
+      ]);
     });
 
     it('VALID: {observable signed and added mid-quest} => observable line carries provenance then marks', () => {
@@ -282,7 +294,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state)',
+        '[#login-page] Login (state) {auth-service}',
         '  > #crash-on-bleh: POST /api/auth/login returns 400 for a non-JSON body [api-call] +siegemaster [S✓]',
         '  (terminal)',
       ]);
@@ -311,7 +323,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state)',
+        '[#login-page] Login (state) {auth-service}',
         '  > #shows-form: shows login form [ui-state]',
         '  (terminal)',
       ]);
@@ -338,9 +350,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#check] Check (decision)',
+        '[#check] Check (decision) {auth-service}',
         '  →"yes" [#success] [F✓]',
-        '  [#success] Success (terminal)',
+        '  [#success] Success (terminal) {auth-service}',
         '    (terminal)',
       ]);
     });
@@ -371,9 +383,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#start] Start (state)',
+        '[#start] Start (state) {auth-service}',
         '  →[#middle]',
-        '  [#middle] Middle (action)',
+        '  [#middle] Middle (action) {auth-service}',
         '    → [#start] ↩ [F✓ S?]',
       ]);
     });
@@ -403,7 +415,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state)',
+        '[#login-page] Login (state) {auth-service}',
         '  (terminal)',
         'off-map: concurrency [S✓] | hostile-input [F✓ S?]',
       ]);
@@ -446,10 +458,10 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#check] Check (decision)',
+        '[#check] Check (decision) {auth-service}',
         '  > #shows-form: shows login form [ui-state]',
         '  →"yes" [#success]',
-        '  [#success] Success (terminal)',
+        '  [#success] Success (terminal) {auth-service}',
         '    (terminal)',
       ]);
     });
@@ -465,7 +477,295 @@ describe('flowGraphToTextTransformer', () => {
 
       const result = flowGraphToTextTransformer({ flow });
 
-      expect(result).toStrictEqual(['[#start] Start (state)', '  → other-node ↗ cross-flow']);
+      expect(result).toStrictEqual([
+        '[#start] Start (state) {auth-service}',
+        '  → other-node ↗ cross-flow',
+      ]);
+    });
+  });
+
+  describe('package tags on the node line', () => {
+    it('VALID: {node tagging two packages} => renders both names in one brace group', () => {
+      const flow = FlowStub({
+        entryPoint: 'post-chat' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'post-chat' as never,
+            label: 'POST the message' as never,
+            type: 'action',
+            packages: ['web' as never, 'server' as never],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#post-chat] POST the message (action) {web, server}',
+        '  (terminal)',
+      ]);
+    });
+  });
+
+  describe('ownPackage marks, it never filters', () => {
+    it('VALID: {ownPackage: web} => every node still renders, and only web nodes carry the mark', () => {
+      const flow = FlowStub({
+        entryPoint: 'send-pressed' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'send-pressed' as never,
+            label: 'Send pressed' as never,
+            type: 'action',
+            packages: ['web' as never],
+          }),
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'action',
+            packages: ['server' as never],
+          }),
+          FlowNodeStub({
+            id: 'clear-composer' as never,
+            label: 'Composer clears' as never,
+            type: 'terminal',
+            packages: ['web' as never, 'server' as never],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'e-one' as never,
+            from: 'send-pressed' as never,
+            to: 'write-image-file' as never,
+          }),
+          FlowEdgeStub({
+            id: 'e-two' as never,
+            from: 'write-image-file' as never,
+            to: 'clear-composer' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
+
+      expect(result).toStrictEqual([
+        '[#send-pressed] Send pressed (action) {web} ◀ YOURS',
+        '  →[#write-image-file]',
+        '  [#write-image-file] Write each image (action) {server}',
+        '    →[#clear-composer]',
+        '    [#clear-composer] Composer clears (terminal) {web, server} ◀ YOURS',
+        '      (terminal)',
+      ]);
+    });
+
+    it('VALID: {ownPackage: web, node carrying both sides} => own observables verbatim, foreign ones collapsed per package', () => {
+      const flow = FlowStub({
+        entryPoint: 'post-chat' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'post-chat' as never,
+            label: 'POST the message' as never,
+            type: 'action',
+            packages: ['web' as never, 'server' as never, 'shared' as never],
+            observables: [
+              FlowObservableStub({
+                id: 'progress-bar-tracks-bytes' as never,
+                description: 'the progress bar advances as bytes are sent' as never,
+                type: 'ui-state',
+                package: 'web' as never,
+              }),
+              FlowObservableStub({
+                id: 'body-carries-ordered-images' as never,
+                description: 'the request body carries the images in paste order' as never,
+                type: 'api-call',
+                package: 'server' as never,
+              }),
+              FlowObservableStub({
+                id: 'images-dir-name-is-shared' as never,
+                description: 'the images directory name is read from shared statics' as never,
+                type: 'custom',
+                package: 'shared' as never,
+              }),
+              FlowObservableStub({
+                id: 'rejects-a-sixth-image' as never,
+                description: 'a sixth image answers 400' as never,
+                type: 'api-call',
+                package: 'server' as never,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
+
+      expect(result).toStrictEqual([
+        '[#post-chat] POST the message (action) {web, server, shared} ◀ YOURS',
+        '  > #progress-bar-tracks-bytes: the progress bar advances as bytes are sent [ui-state]',
+        '  > (2 observable(s) attributed to server — not yours)',
+        '  > (1 observable(s) attributed to shared — not yours)',
+        '  (terminal)',
+      ]);
+    });
+
+    it('EMPTY: {no ownPackage} => every observable renders verbatim and no collapse line appears', () => {
+      const flow = FlowStub({
+        entryPoint: 'post-chat' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'post-chat' as never,
+            label: 'POST the message' as never,
+            type: 'action',
+            packages: ['web' as never, 'server' as never],
+            observables: [
+              FlowObservableStub({
+                id: 'progress-bar-tracks-bytes' as never,
+                description: 'the progress bar advances as bytes are sent' as never,
+                type: 'ui-state',
+                package: 'web' as never,
+              }),
+              FlowObservableStub({
+                id: 'body-carries-ordered-images' as never,
+                description: 'the request body carries the images in paste order' as never,
+                type: 'api-call',
+                package: 'server' as never,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#post-chat] POST the message (action) {web, server}',
+        '  > #progress-bar-tracks-bytes: the progress bar advances as bytes are sent [ui-state]',
+        '  > #body-carries-ordered-images: the request body carries the images in paste order [api-call]',
+        '  (terminal)',
+      ]);
+    });
+  });
+
+  describe('outbound cross-flow edges resolve against otherFlows', () => {
+    it('VALID: {labelled edge into another flow} => the label rides the line and the target is resolved under it', () => {
+      const flow = FlowStub({
+        id: 'paste-image-into-composer' as never,
+        entryPoint: 'draft-restored' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'draft-restored' as never,
+            label: 'Draft restored' as never,
+            type: 'terminal',
+            packages: ['web' as never],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'restored-draft-to-send' as never,
+            from: 'draft-restored' as never,
+            to: 'send-message-with-images:send-pressed' as never,
+            label: 'sends the restored draft' as never,
+          }),
+        ],
+      });
+      const target = FlowStub({
+        id: 'send-message-with-images' as never,
+        name: 'Send a message carrying images' as never,
+        entryPoint: 'send-pressed' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'send-pressed' as never,
+            label: 'User presses Enter' as never,
+            type: 'action',
+            packages: ['web' as never],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, otherFlows: [flow, target] });
+
+      expect(result).toStrictEqual([
+        '[#draft-restored] Draft restored (terminal) {web}',
+        '  →"sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
+        '    target: [#send-pressed] User presses Enter (action) {web} in flow #send-message-with-images "Send a message carrying images"',
+        '    Your scope ENDS at the hand-off: prove the edge fires and the target flow is entered, not what it does next.',
+      ]);
+    });
+
+    it('EMPTY: {no otherFlows} => the qualified target stays a bare stub', () => {
+      const flow = FlowStub({
+        id: 'paste-image-into-composer' as never,
+        entryPoint: 'draft-restored' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'draft-restored' as never,
+            label: 'Draft restored' as never,
+            type: 'terminal',
+            packages: ['web' as never],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'restored-draft-to-send' as never,
+            from: 'draft-restored' as never,
+            to: 'send-message-with-images:send-pressed' as never,
+            label: 'sends the restored draft' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#draft-restored] Draft restored (terminal) {web}',
+        '  →"sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
+      ]);
+    });
+
+    it('EDGE: {otherFlows given but the target flow holds no such node} => the stub renders with no resolution lines', () => {
+      const flow = FlowStub({
+        id: 'paste-image-into-composer' as never,
+        entryPoint: 'draft-restored' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'draft-restored' as never,
+            label: 'Draft restored' as never,
+            type: 'terminal',
+            packages: ['web' as never],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'restored-draft-to-send' as never,
+            from: 'draft-restored' as never,
+            to: 'send-message-with-images:renamed-away' as never,
+          }),
+        ],
+      });
+      const target = FlowStub({
+        id: 'send-message-with-images' as never,
+        name: 'Send a message carrying images' as never,
+        entryPoint: 'send-pressed' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'send-pressed' as never,
+            label: 'User presses Enter' as never,
+            type: 'action',
+            packages: ['web' as never],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, otherFlows: [target] });
+
+      expect(result).toStrictEqual([
+        '[#draft-restored] Draft restored (terminal) {web}',
+        '  → send-message-with-images:renamed-away ↗ cross-flow',
+      ]);
     });
   });
 });

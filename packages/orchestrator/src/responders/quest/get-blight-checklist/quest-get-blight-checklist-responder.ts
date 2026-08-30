@@ -11,7 +11,7 @@
  * turning either into a failure would push it toward inventing scope.
  *
  * `scope` is carried rather than fixed here because the caller decides which diff it is answering
- * for: a reviewer-minion is graded on ONE ROUND and passes `unpushed`, while a caller auditing a
+ * for: a reviewer is graded on one pass and passes `unpushed`, while a caller auditing a
  * landed commit wants `commit` and one auditing the whole branch wants `quest`.
  */
 

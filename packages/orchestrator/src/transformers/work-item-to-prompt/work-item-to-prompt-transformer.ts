@@ -11,14 +11,17 @@
  * replaced by one notice line naming the exact count and pointing at `get-quest`; the agent's own
  * item and every `in_progress` / `pending` item are always rendered.
  *
+ * AN OPERATOR'S SPEC IS NOT IN THIS BLOCK. Each of the three operator roles gets the exact
+ * `get-quest` call PER FLOW its item owns, spelled out with the ids substituted, and fetches its own
+ * scope with it. Two tool results are two separate 50,000-character budgets; rendering the scope
+ * inline measured 61,501 characters for one real item and spilled the whole prompt to a file.
+ *
  * **Path discrimination — minion vs role:** the agent name is run through
- * `workItemRoleContract.safeParse`. If it fails, the caller is one of the sixteen parent-summoned
- * minions and receives a minimal "Quest ID + Work Item ID" substitution; the parent briefs the
- * round's context inline. None of them THROWS here any more — each minion prompt is one literal
- * file rather than a template awaiting a discipline, so there is no unresolvable placeholder left
- * for this transformer to refuse. EVERY role takes the relay path below, `pesteater` included — as
- * an operator it needs its operation item, the ledger, `packagesAffected` and the user request
- * exactly as its four siblings do.
+ * `workItemRoleContract.safeParse`. If it fails, the caller is one of the parent-summoned minions
+ * and receives a minimal "Quest ID + Work Item ID" substitution; the parent briefs the context
+ * inline. None of them THROWS here — each minion prompt is one literal file rather than a template
+ * awaiting a discipline, so there is no unresolvable placeholder left for this transformer to
+ * refuse. EVERY role takes the relay path below.
  *
  * Every parent prompt instructs its minion to fetch with `{ agent, questId }` and NO `workItemId`,
  * which routes to `agentPromptGetBroker`'s minion-fetch branch (a bare `Quest ID:` substitution, no
@@ -42,17 +45,16 @@ import {
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
+import { questPackageEntriesToTextTransformer } from '@dungeonmaster/shared/transformers';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
-import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { codeweaverScopeBlockTransformer } from '../codeweaver-scope-block/codeweaver-scope-block-transformer';
-import { questPackageEntriesToTextTransformer } from '../quest-package-entries-to-text/quest-package-entries-to-text-transformer';
 import { roleToPromptTemplateTransformer } from '../role-to-prompt-template/role-to-prompt-template-transformer';
 
 export const workItemToPromptTransformer = ({
@@ -181,11 +183,11 @@ export const workItemToPromptTransformer = ({
   ];
 
   // The ONE lookup both scope blocks below read. A role `signoffTrackEligibilityStatics.byTrack`
-  // defines a denominator for is an OPERATOR: the completion gate measures its item against a
-  // computed scope, so what the item declares is that scope rather than a reading order. Resolved
-  // from the statics rather than a hand-written role list, so a track added there cannot silently
-  // fall through to the advisory wording — which is exactly how groundstomper ended up being told
-  // its one flow was "a starting point, NOT a boundary" while its gate measured it on that flow.
+  // defines a denominator for is an OPERATOR: its item's declared flows/packages ARE that computed
+  // scope, so what the item declares is that scope rather than a reading order. Resolved from the
+  // statics rather than a hand-written role list, so a track added there cannot silently fall
+  // through to the advisory wording — an operator told its one flow is "a starting point, NOT a
+  // boundary" while its own coverage is measured on exactly that flow.
   const trackEligibility = new Map(Object.entries(signoffTrackEligibilityStatics.byTrack)).get(
     workItem.role,
   );
@@ -195,9 +197,7 @@ export const workItemToPromptTransformer = ({
   // the contract's describe(). What the pointer MEANS differs by role: an operator's item IS its
   // scope, so every flow listed is theirs to account for; every other role gets a non-binding
   // starting point, and treating it as a boundary is the failure mode to avoid (an item serving the
-  // whole spec carries no flows at all). The caveat does NOT hand an operator the seams — a
-  // flowrider item is a package slice and the glue units belong to the seam item, so a line
-  // claiming them here would contradict the prompt it is interpolated into.
+  // whole spec carries no flows at all).
   if (linkedOperation.flowIds.length > 0) {
     parts.push(
       contentTextContract.parse(''),
@@ -206,7 +206,7 @@ export const workItemToPromptTransformer = ({
       ),
       contentTextContract.parse(
         isSignoffTrackRole
-          ? '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where your role has minions.)'
+          ? '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where the work is wider than one session.)'
           : '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
       ),
     );
@@ -215,27 +215,15 @@ export const workItemToPromptTransformer = ({
   // The packages this item lands in. This block is the highest-leverage line in the whole
   // substitution: without it every session re-derives its own landing site with `discover` and
   // `get-project-map` calls its siblings already made. It reads three ways, and the difference is
-  // why each gets its own line. For an operator the list IS the coverage slice the completion gate
-  // measures, and HOW it narrows is that track's own `packageScope` — a `partition` track's items
-  // are the package dimension, so a glue unit belongs to the seam item; an `intersection` track's
-  // are not, and it has no seam item, so telling one to disown its glue units would tell it to skip
-  // exactly what its gate then refuses it for. For every other role the list is a pre-work reading
-  // order, binding nothing.
+  // why each gets its own line. For an operator the list IS the coverage slice, and it narrows by
+  // INTERSECTION (`packageScope`) — no track has a seam item, so a glue unit is the item's own and
+  // telling it to disown one would tell it to skip exactly what its own track owns. For every other
+  // role the list is a pre-work reading order, binding nothing.
   if (linkedOperation.packageNames.length > 0) {
-    // A role with no track gets an advisory rather than a scope, and WHICH advisory turns on
-    // whether this role runs a ROUND. Each of those five prompts carries an EXHAUSTIVE tool table
-    // that forbids `discover` / `get-project-map` outright, so naming them here would hand the
-    // session a tool its own prompt banned a few screens earlier — and this is the line an agent
-    // acts on. Membership is read from `operatorRoleNames` rather than listed, so a sixth operator
-    // role cannot fall through to the searching wording. `spiritmender` and `warpgate` keep bespoke
-    // prompts that DO tell them to search.
-    const runsARound = agentPromptClassificationStatics.operatorRoleNames.some(
-      (name) => name === workItem.role,
-    );
-    const nonTrackPackageAdvisory = runsARound
-      ? '(Name these packages in every minion brief you write — the planner and the workers point their own searches here instead of guessing. NOT a boundary: a minion may touch another package if the work needs it.)'
-      : '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)';
-
+    // A role with no track gets an advisory rather than a scope. Every role that briefs sub-agents
+    // also owns a track — `signoffTrackEligibilityStatics.byTrack`'s keys ARE
+    // `agentPromptClassificationStatics.operatorRoleNames` — so the advisory branch is reached only
+    // by `spiritmender` and `warpgate`, whose bespoke prompts do tell them to search.
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(
@@ -243,25 +231,78 @@ export const workItemToPromptTransformer = ({
       ),
       contentTextContract.parse(
         trackEligibility === undefined
-          ? nonTrackPackageAdvisory
-          : trackEligibility.packageScope === 'partition'
-            ? '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)'
-            : '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
+          ? '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)'
+          : '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
       ),
     );
   }
 
-  // Codeweaver only, and the reason its operation item can afford to be a bare label. The ledger
-  // stores the cell key; the SCOPE — nodes, verbatim observables, contracts, the seams it sits on —
-  // is rendered here from the quest as it stands at dispatch, so an observable a mid-quest session
-  // ADDS reaches every codeweaver dispatched after it. Baked into `text` at Start it would not.
+  // THE SPEC IS A SECOND TOOL RESULT, NOT PART OF THIS ONE. Rendered inline, the `web` item of a
+  // real quest measured 43,660 characters of scope — 61,501 with the prompt around it — against
+  // `mcpToolResultStatics.maxVerbatimChars` (50,000), and an over-budget MCP result is written to a
+  // file and answered with an error stub, so the session begins holding a path instead of its
+  // instructions. A pointer costs a few hundred characters and buys the flow its own 50,000.
+  //
+  // The calls are SPELLED OUT rather than described, because a session that has to compose the call
+  // itself composes `get-quest({ questId, stage: 'spec' })` — which is the 69,180-character render
+  // this exists to avoid. Only the three operator roles get the block: they are the roles whose item
+  // IS a flow scope (`signoffTrackEligibilityStatics.byTrack`), and `packageName` goes only to
+  // codeweaver, whose item is one package's half of ONE flow — so its list is a single call, beside
+  // the foundation call below.
+  if (isSignoffTrackRole) {
+    const packageArgument =
+      workItem.role === 'codeweaver' && linkedOperation.packageNames[0] !== undefined
+        ? `, packageName: '${String(linkedOperation.packageNames[0])}'`
+        : '';
+    const flowCalls = linkedOperation.flowIds.map((flowId) =>
+      contentTextContract.parse(
+        `  get-quest({ questId: '${String(quest.id)}', flowId: '${String(flowId)}'${packageArgument} })`,
+      ),
+    );
+    // A codeweaver item routes contracts by PATH, so a package can own one anchored to a node on a
+    // flow it does not tag — and a package with contracts and no tagged node has no flow call at
+    // all. The foundation call is what reaches those, and it is the ONLY call such an item makes.
+    const foundationCall =
+      workItem.role === 'codeweaver' && linkedOperation.packageNames[0] !== undefined
+        ? [
+            contentTextContract.parse(
+              `  get-quest({ questId: '${String(quest.id)}', packageName: '${String(linkedOperation.packageNames[0])}' })   <- every contract your package owns, across every flow`,
+            ),
+          ]
+        : [];
+    const calls =
+      flowCalls.length === 0 && foundationCall.length === 0
+        ? [
+            contentTextContract.parse(
+              `  get-quest({ questId: '${String(quest.id)}', stage: 'spec' })   <- this item names no flow, so there is no slice to take`,
+            ),
+          ]
+        : [...flowCalls, ...foundationCall];
+
+    parts.push(
+      contentTextContract.parse(''),
+      contentTextContract.parse('Your spec is NOT in this block. Fetch it one flow at a time:'),
+      ...calls,
+      contentTextContract.parse(
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+      ),
+      contentTextContract.parse(
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+      ),
+      contentTextContract.parse('recorded. Make the call for a flow BEFORE you work it.'),
+    );
+  }
+
+  // Codeweaver only, and the one thing about its scope no flow render can answer. A glue node's
+  // other half belongs to a sibling item, and whether that session has already run is a fact about
+  // the LEDGER — so "verify it exists" is only ever asked about code that could already exist.
   if (workItem.role === 'codeweaver') {
     parts.push(...codeweaverScopeBlockTransformer({ quest, operationItem: linkedOperation }));
   }
 
-  // Siegemaster only. Neither authoring role starts a server — Groundstomper's e2e run brings one
-  // up from Playwright's own `webServer` config and tears it down again, and Flowrider never touches
-  // a browser at all — so these lines would be dead context for both.
+  // Siegemaster only. Flowrider starts no server of its own — its Playwright runs bring one up from
+  // the project's own `webServer` config and tear it down again — so these lines would be dead
+  // context for it.
   if (workItem.role === 'siegemaster' && devServer !== undefined) {
     parts.push(
       contentTextContract.parse(''),
@@ -304,7 +345,7 @@ export const workItemToPromptTransformer = ({
   // Quest-level background, appended last so the role's own operating context (item, ledger, dev
   // server, failed ward) stays at the top. Both fields live on the quest but in NO get-quest stage,
   // so without this they reach zero execution sessions. The request is the intent BEHIND the flows
-  // — an agent repairing a gap the bucket partition missed needs to know what the flows are for.
+  // — an agent repairing a gap the slicing missed needs to know what the flows are for.
   if (quest.packagesAffected.length > 0) {
     parts.push(
       contentTextContract.parse(''),

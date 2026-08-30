@@ -67,14 +67,6 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('bughunt');
     });
 
-    it('VALID: pesteater => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'pesteater' });
-
-      const result = workItemRoleContract.parse(role);
-
-      expect(result).toBe('pesteater');
-    });
-
     it('VALID: {default} => defaults to codeweaver', () => {
       const role = WorkItemRoleStub();
 
@@ -86,6 +78,18 @@ describe('workItemRoleContract', () => {
     it('INVALID: unknown role => throws validation error', () => {
       expect(() => {
         workItemRoleContract.parse('unknown_role');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: pesteater => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('pesteater');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: groundstomper => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('groundstomper');
       }).toThrow(/Invalid enum value/u);
     });
 

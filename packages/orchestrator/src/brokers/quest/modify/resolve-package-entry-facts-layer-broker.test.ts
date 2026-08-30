@@ -52,8 +52,8 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
         changeType: 'edit',
       });
       const newEntry = QuestPackageEntryStub({
-        name: 'groundstomp',
-        location: './packages/groundstomp',
+        name: 'queue-runner',
+        location: './packages/queue-runner',
         changeType: 'new',
         usedBy: ['orchestrator'],
       });
@@ -246,15 +246,15 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
     it("VALID: {new entry declaring 'frontend-react'} => keeps the declared type, nothing on disk to detect", async () => {
       const proxy = resolvePackageEntryFactsLayerBrokerProxy();
       proxy.setupDetectedPackage({
-        packageRoot: '/home/testuser/projects/assayer/packages/groundstomp',
+        packageRoot: '/home/testuser/projects/assayer/packages/queue-runner',
         srcDirNames: ['brokers'],
       });
 
       const facts = await resolvePackageEntryFactsLayerBroker({
         entries: [
           QuestPackageEntryStub({
-            name: 'groundstomp',
-            location: './packages/groundstomp',
+            name: 'queue-runner',
+            location: './packages/queue-runner',
             changeType: 'new',
             packageType: 'frontend-react',
             usedBy: ['orchestrator'],
@@ -265,8 +265,8 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
 
       expect(facts.stampedEntries).toStrictEqual([
         {
-          name: 'groundstomp',
-          location: './packages/groundstomp',
+          name: 'queue-runner',
+          location: './packages/queue-runner',
           changeType: 'new',
           packageType: 'frontend-react',
           packageTypes: ['frontend-react'],

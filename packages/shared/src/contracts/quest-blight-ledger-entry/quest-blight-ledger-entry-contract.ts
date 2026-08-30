@@ -7,7 +7,7 @@
  *   itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
  *   disposition: 'reviewed',
  *   evidence: 'handleSubmit rethrows the network error with the request url attached',
- *   observedBy: 'reviewer-minion',
+ *   observedBy: 'reviewer',
  *   workItemId: '...', createdAt: '...',
  * });
  * // Returns: QuestBlightLedgerEntry — one entry in quest.planningNotes.blightLedger[]
@@ -15,11 +15,12 @@
  * This exists so coverage is COMPUTED rather than remembered. A review unit is one changed file
  * crossed with one of the five concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
  * session resumes against what a predecessor actually landed instead of re-reviewing the whole diff
- * from a pass whose accuracy degrades as context fills. `itemId` is what the signal-back
- * review-coverage gate reads: an orchestrator role's `done` is refused while any unit its own
- * commits produced carries no entry here. Coverage is keyed on the UNIT, never on the author, so an
- * earlier round's disposition still clears a file a later round touched again — `workItemId` is
- * provenance and a filter for the ledger's readers, not the gate's key.
+ * from a pass whose accuracy degrades as context fills. `itemId` is what `get-blight-checklist`
+ * reads: it reports which unit its own commits produced still carries no entry here. This is
+ * guidance a reviewer takes on its own initiative — nothing refuses a `done` over it. Coverage is
+ * keyed on the UNIT, never on the author, so an earlier pass's disposition still clears a file a
+ * later pass touched again — `workItemId` is provenance and a filter for the ledger's readers, not
+ * a measuring key.
  *
  * `evidence` is required on every disposition and is never an adjective: for `reviewed`/`fixed` it
  * is the concrete thing observed, and for `gap`/`recorded`/`routed` it is the specific reason.

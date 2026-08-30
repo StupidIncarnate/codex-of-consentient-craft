@@ -16,14 +16,14 @@
  * - backTransitionFields?: extra fields permitted ONLY when transitioning to the given toStatus
  * - flowsRule: nested-path rule for `flows` input
  *     'forbidden'                -> flows input is never allowed (rejected by field-level check)
- *     'full'                     -> any flow mutation (add/delete/restructure) allowed
- *     'additive-only'            -> an execution agent may only ADD to the spine, never shrink it:
- *                                   node/edge/observable ADD allowed on an EXISTING flow, plus
- *                                   wording/type updates on existing observables; every DELETE is
- *                                   refused, and a whole new flow is refused. Adding constrains the
- *                                   agent further (a branch it discovered, an assertion it owes),
- *                                   so it cannot be used to slip past a gate; deleting or replacing
- *                                   a flow could erase the acceptance target the agent is judged on.
+ *     'full'                     -> any flow mutation (add/delete/restructure) allowed. An execution
+ *                                   agent that discovers the spec is wrong corrects it in place, so
+ *                                   `in_progress` carries this too. One integrity check survives the
+ *                                   opening and is NOT a permission rule — see
+ *                                   `questInputForbiddenFieldsTransformer`, which refuses a sign-off
+ *                                   naming a unit id the graph does not hold under every rule alike,
+ *                                   because the upsert would append that id as a phantom unit rather
+ *                                   than reject it.
  * - allowedPlanningNotesFields: per-status rule for `planningNotes.*` sub-field writes
  *     readonly Field[]  -> sub-field allowlist: when `planningNotes` is written, every sub-field present must
  *                          appear in this array, otherwise the write is rejected BY NAME (`Sub-field
@@ -34,7 +34,7 @@
  *                          payload is accepted even though `planningNotes` is NOT in allowedFields.
  */
 
-export type QuestStatusFlowsRule = 'forbidden' | 'full' | 'additive-only';
+export type QuestStatusFlowsRule = 'forbidden' | 'full';
 
 export type QuestStatusPlanningNotesField = 'blightLedger' | 'questNotes';
 
@@ -150,12 +150,22 @@ export const questStatusInputAllowlistStatics = {
   in_progress: {
     // packagesAffected is writable here because a session repairing a gap the bucket partition
     // missed can pull in a package the spec never listed, and every later session reads that field.
-    allowedFields: ['contracts', 'toolingRequirements', 'flows', 'packagesAffected', 'status'],
-    flowsRule: 'additive-only',
+    // designDecisions is writable here for the same reason: a pass that discovers a design
+    // question the spec never answered records the decision where every later session reads it,
+    // rather than losing it to a round document nobody outside that operation item ever opens.
+    allowedFields: [
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'designDecisions',
+      'packagesAffected',
+      'status',
+    ],
+    flowsRule: 'full',
     // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields:
-    // a reviewer-minion writes the per-unit `blightLedger` mid-run — the dispositions its parent's
-    // own signal-back review-coverage gate is computed against — and a planner-minion writes
-    // `operationPlans`, the plan its operator reads back rather than holding in context. Every
+    // the reviewer writes the per-unit `blightLedger` mid-run — one disposition per standards
+    // concern it takes over the working tree — and the operator itself writes
+    // `operationPlans`, the plan it reads back rather than holding in context. Every
     // execution role also appends `questNotes`, the durable side channel for open questions,
     // tooling errors, out-of-scope observations, and walk resets; this is the only status those
     // roles run at, so it is the only status that need accept them. Verification sign-offs are not

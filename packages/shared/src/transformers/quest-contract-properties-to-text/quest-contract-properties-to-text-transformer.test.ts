@@ -61,6 +61,43 @@ describe('questContractPropertiesToTextTransformer', () => {
     });
   });
 
+  describe('a property naming its own source file', () => {
+    it('VALID: {property with source} => the path renders in brackets before the description', () => {
+      const result = questContractPropertiesToTextTransformer({
+        properties: [
+          {
+            name: 'questImagesDirName' as never,
+            type: 'DirectoryName' as never,
+            description: 'The directory a quest writes pasted images into' as never,
+            source: 'packages/shared/src/statics/locations/locations-statics.ts' as never,
+          },
+        ],
+        depth: 1,
+      });
+
+      expect(result).toStrictEqual([
+        '  questImagesDirName: DirectoryName [packages/shared/src/statics/locations/locations-statics.ts] — The directory a quest writes pasted images into',
+      ]);
+    });
+
+    it('EMPTY: {property with no source} => no brackets, so the line is unchanged', () => {
+      const result = questContractPropertiesToTextTransformer({
+        properties: [
+          {
+            name: 'questImagesDirName' as never,
+            type: 'DirectoryName' as never,
+            description: 'The directory a quest writes pasted images into' as never,
+          },
+        ],
+        depth: 1,
+      });
+
+      expect(result).toStrictEqual([
+        '  questImagesDirName: DirectoryName — The directory a quest writes pasted images into',
+      ]);
+    });
+  });
+
   describe('depth', () => {
     it('VALID: {depth: 0} => no indentation', () => {
       const result = questContractPropertiesToTextTransformer({

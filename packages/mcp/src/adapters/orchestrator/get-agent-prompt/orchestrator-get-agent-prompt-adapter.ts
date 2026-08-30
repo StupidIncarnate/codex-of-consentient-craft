@@ -5,7 +5,7 @@
  * const augmented = await orchestratorGetAgentPromptAdapter({ agent: 'codeweaver', questId, workItemId });
  * // Returns AgentPromptResult whose prompt has the work-item context block appended
  *
- * const minionPrompt = await orchestratorGetAgentPromptAdapter({ agent: 'codeweaver-worker-minion', questId });
+ * const minionPrompt = await orchestratorGetAgentPromptAdapter({ agent: 'codeweaver-reviewer', questId });
  * // Returns AgentPromptResult for a minion, which has no work item of its own
  */
 

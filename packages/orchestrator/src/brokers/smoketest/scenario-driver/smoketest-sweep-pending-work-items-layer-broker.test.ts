@@ -234,11 +234,10 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
     });
   });
 
-  describe('settles the completion gate before the scripted signal lands', () => {
-    // Without this, the scripted siegemaster signals `done`, the server-side gate recomputes the
-    // outstanding units, finds nine unsigned, and THROWS. The session never signals successfully,
-    // orphan recovery spends its resets on it, and the quest blocks — which is why no smoketest
-    // reached `complete` and the whole terminal path went uncovered.
+  describe('fabricates sign-offs before the scripted signal lands', () => {
+    // Nothing gates the scripted siegemaster's `done` on its (nonexistent) real sign-offs — but
+    // without this, the fixture quest left on disk would show nine permanently unsigned units,
+    // indistinguishable from a real coverage hole to a human reading it later.
     it('VALID: {pending siegemaster linked to a gated operation item} => the persisted quest carries a confirmed fixture sign-off on the terminal and the observable', async () => {
       const proxy = smoketestSweepPendingWorkItemsLayerBrokerProxy();
       proxy.setupQuestFound({ quest: questWithGatedSiegemaster });

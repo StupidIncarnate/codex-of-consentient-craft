@@ -190,8 +190,8 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         packagesAffected: [
           QuestPackageEntryStub({
-            name: 'groundstomp' as never,
-            location: './packages/groundstomp' as never,
+            name: 'queue-runner' as never,
+            location: './packages/queue-runner' as never,
             changeType: 'new',
             packageType: 'programmatic-service',
             usedBy: ['ui-app' as never, 'api-service' as never],
@@ -202,7 +202,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^groundstomp — new, programmatic-service \[\.\/packages\/groundstomp\]$/mu,
+        /^queue-runner — new, programmatic-service \[\.\/packages\/queue-runner\]$/mu,
       );
       expect(result).toMatch(/^ {2}Used by: ui-app, api-service$/mu);
     });
@@ -261,7 +261,7 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).toMatch(/^## Flow: #login-flow \u2014 "Login Flow"$/mu);
       expect(result).toMatch(/^Scope: authentication$/mu);
       expect(result).toMatch(/^Entry: login-page \| Exits: dashboard$/mu);
-      expect(result).toMatch(/^\[#login-page\] Login Page \(state\)$/mu);
+      expect(result).toMatch(/^\[#login-page\] Login Page \(state\) \{auth-service\}$/mu);
       expect(result).toMatch(/^ {2}> #shows-form: shows login form \[ui-state\]$/mu);
     });
 
@@ -301,7 +301,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/^\[#login-page\] Login Page \(state\) \[F\u2713\]$/mu);
+      expect(result).toMatch(
+        /^\[#login-page\] Login Page \(state\) \{auth-service\} \[F\u2713\]$/mu,
+      );
     });
 
     it('VALID: {node signed by both tracks} => the node line carries both marks', () => {
@@ -325,7 +327,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/^\[#login-page\] Login Page \(state\) \[F\u2713 S\u2713\]$/mu);
+      expect(result).toMatch(
+        /^\[#login-page\] Login Page \(state\) \{auth-service\} \[F\u2713 S\u2713\]$/mu,
+      );
     });
 
     it('VALID: {observable unconfirmable and added mid-quest} => provenance then the verdict mark', () => {
@@ -452,7 +456,7 @@ describe('questToTextDisplayTransformer', () => {
           '## Flow: #login-flow \u2014 "Login Flow"',
           'Entry: login-page | Exits: /dashboard',
           '',
-          '[#login-page] Login Page (state)',
+          '[#login-page] Login Page (state) {auth-service}',
           '  > #shows-form: shows login form [ui-state]',
           '  (terminal)',
           '',

@@ -236,30 +236,30 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
-    // A round minion's name is the whole selection — there is no `discipline` left to forward. What
+    // A minion's name is the whole selection — there is no `discipline` to forward. What
     // the responder must NOT forward is a workItemId: that is what `subagentStopNeedsBlockGuard`
     // reads as proof the caller owes a signal-back, and the only item a minion could signal on is
     // its parent's. So the key is absent from the adapter call, not merely undefined.
-    it("VALID: {agent: 'codeweaver-worker-minion', questId, no workItemId} => forwards {agent, questId} alone to the adapter", async () => {
+    it("VALID: {agent: 'codeweaver-reviewer', questId, no workItemId} => forwards {agent, questId} alone to the adapter", async () => {
       const proxy = InteractionHandleResponderProxy();
       const expectedResult = AgentPromptResultStub({
-        name: 'codeweaver-worker-minion',
-        prompt: 'You are codeweaver-worker-minion.',
+        name: 'codeweaver-reviewer',
+        prompt: 'You are codeweaver-reviewer.',
       });
       const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
       proxy.setupAgentPromptReturns({
-        agent: 'codeweaver-worker-minion',
+        agent: 'codeweaver-reviewer',
         questId,
         result: expectedResult,
       });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-agent-prompt' }),
-        args: { agent: 'codeweaver-worker-minion', questId },
+        args: { agent: 'codeweaver-reviewer', questId },
       });
 
       expect(proxy.getLastAgentPromptCallArgs()).toStrictEqual({
-        agent: 'codeweaver-worker-minion',
+        agent: 'codeweaver-reviewer',
         questId,
       });
       expect(result).toStrictEqual({

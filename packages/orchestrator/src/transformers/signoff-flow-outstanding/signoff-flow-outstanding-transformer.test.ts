@@ -220,20 +220,7 @@ describe('signoffFlowOutstandingTransformer', () => {
       },
     );
 
-    it('VALID: {groundstomper, terminal carries flowriderSignoff} => cleared, because Groundstomper writes that same field', () => {
-      const flow = FlowStub({
-        id: 'login-flow',
-        flowType: 'runtime',
-        nodes: [
-          FlowNodeStub({ id: 'dashboard', label: 'Dashboard', flowriderSignoff: SignoffStub() }),
-        ],
-        edges: [],
-      });
-
-      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([]);
-    });
-
-    it('VALID: {groundstomper, terminal carries siegemasterSignoff only} => still outstanding, because the other field never settles it', () => {
+    it('VALID: {flowrider, terminal carries siegemasterSignoff only} => still outstanding, because the other field never settles it', () => {
       const flow = FlowStub({
         id: 'login-flow',
         flowType: 'runtime',
@@ -243,13 +230,13 @@ describe('signoffFlowOutstandingTransformer', () => {
         edges: [],
       });
 
-      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'flowrider' })).toStrictEqual([
         'login-flow:terminal:dashboard',
       ]);
     });
 
     it.each(SIGNOFF_VERDICTS)(
-      'VALID: {groundstomper, flowriderSignoff verdict: %s} => cleared, because the gate refuses ABSENCE and not honesty',
+      'VALID: {flowrider, flowriderSignoff verdict: %s} => cleared, because the gate refuses ABSENCE and not honesty',
       (verdict) => {
         const flow = FlowStub({
           id: 'login-flow',
@@ -260,7 +247,7 @@ describe('signoffFlowOutstandingTransformer', () => {
               label: 'Dashboard',
               flowriderSignoff: SignoffStub({
                 verdict,
-                evidence: 'the Playwright walk stops at the dashboard route, which never renders',
+                evidence: 'the walk stops at the dashboard route, which never renders',
                 question: 'does the dashboard need a seeded session before it can render at all?',
               }),
             }),
@@ -268,13 +255,11 @@ describe('signoffFlowOutstandingTransformer', () => {
           edges: [],
         });
 
-        expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual(
-          [],
-        );
+        expect(signoffFlowOutstandingTransformer({ flow, track: 'flowrider' })).toStrictEqual([]);
       },
     );
 
-    it('VALID: {groundstomper, an observable addedBy siegemaster} => excluded, exactly as it is for flowrider', () => {
+    it('VALID: {flowrider, an observable addedBy siegemaster} => excluded, because that role runs after this track', () => {
       const flow = FlowStub({
         id: 'login-flow',
         flowType: 'runtime',
@@ -289,7 +274,7 @@ describe('signoffFlowOutstandingTransformer', () => {
         edges: [],
       });
 
-      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([]);
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'flowrider' })).toStrictEqual([]);
     });
   });
 
@@ -300,10 +285,10 @@ describe('signoffFlowOutstandingTransformer', () => {
       expect(signoffFlowOutstandingTransformer({ flow, track: 'flowrider' })).toStrictEqual([]);
     });
 
-    it('EMPTY: {node-less, edge-less flow} => groundstomper has zero units too, because off-map is not its charter either', () => {
+    it('EMPTY: {node-less, edge-less flow} => codeweaver has zero units too, because off-map is not its charter either', () => {
       const flow = FlowStub({ id: 'login-flow', flowType: 'runtime', nodes: [], edges: [] });
 
-      expect(signoffFlowOutstandingTransformer({ flow, track: 'groundstomper' })).toStrictEqual([]);
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'codeweaver' })).toStrictEqual([]);
     });
 
     it('EMPTY: {node-less, edge-less flow} => siegemaster still owns every off-map family', () => {

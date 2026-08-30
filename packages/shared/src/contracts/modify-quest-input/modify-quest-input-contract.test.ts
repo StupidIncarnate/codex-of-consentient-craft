@@ -762,7 +762,7 @@ describe('modifyQuestInputContract', () => {
   });
 
   // Regression guard: modifyQuestInputContract originally had no `operationPlans` field at all, so
-  // a planner-minion's plan was silently stripped by planningNotes' non-strict .partial() shape —
+  // a planning sub-agent's plan was silently stripped by planningNotes' non-strict .partial() shape —
   // parse succeeded, the field just vanished, with no error anywhere. This pins the field surviving
   // parsing the same way its blightLedger/questNotes siblings above do.
   it('VALID: {planningNotes with an operationPlan} => survives parsing instead of being stripped', () => {

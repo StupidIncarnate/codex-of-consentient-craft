@@ -10,9 +10,9 @@
 import { orchestratorCreateQuestAdapterProxy } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter.proxy';
 import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
 import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
-import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
+import { GetQuestLayerResponderProxy } from './get-quest-layer-responder.proxy';
 import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
 import { QuestSummaryLayerResponderProxy } from './quest-summary-layer-responder.proxy';
 import { ResetFlowSignoffsLayerResponderProxy } from './reset-flow-signoffs-layer-responder.proxy';
@@ -154,7 +154,7 @@ export const QuestHandleResponderProxy = (): {
     projectDir: '/default/cwd',
   });
 
-  const getQuestProxy = orchestratorGetQuestAdapterProxy();
+  const getQuestProxy = GetQuestLayerResponderProxy();
   const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
   const startQuestProxy = orchestratorStartQuestAdapterProxy();
   const getQuestStatusProxy = orchestratorGetQuestStatusBrokerProxy();
@@ -181,11 +181,11 @@ export const QuestHandleResponderProxy = (): {
       questId: string;
       result: GetQuestResult;
     }): void => {
-      getQuestProxy.returns({ questId, result });
+      getQuestProxy.setupReturns({ questId, result });
     },
 
     setupGetQuestThrows: ({ questId, error }: { questId: string; error: Error }): void => {
-      getQuestProxy.throws({ questId, error });
+      getQuestProxy.setupThrows({ questId, error });
     },
 
     setupModifyQuestReturns: ({

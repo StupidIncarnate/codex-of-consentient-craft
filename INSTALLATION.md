@@ -96,13 +96,13 @@ dungeonmaster clean
 2. **Agent Orchestration**: The system sequentially spawns specialized Claude instances:
    - **Riftcarver**: Carves the quest branch, worktree and preflight build
    - **Codeweaver**: Implements each slice of the quest
-   - **Flowrider**: Authors the flow-perspective test suites below the browser
-   - **Groundstomper**: Authors the Playwright walk for each browser-reachable flow
+   - **Flowrider**: Authors the test suites that prove each flow, in the browser and below it
    - **Siegemaster**: Hand-drives each flow against a running system and grades its suite
    - **Spiritmender**: Fixes any errors that occur
 
-   Each of those coding roles runs a planner → workers → reviewer round internally, and the reviewer also takes the
-   standing standards concerns (craft, performance, duplication, integrity, test cases) over the round's output.
+   Each of those coding roles briefs sub-agents to do the work a piece at a time and summons its own reviewer before
+   it commits, and that reviewer also takes the standing standards concerns (craft, performance, duplication,
+   integrity, test cases) over the pass's output.
 
 3. **Progress Tracking**: Visual progress indicators show agent activity
 

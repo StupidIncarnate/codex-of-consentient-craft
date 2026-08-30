@@ -95,7 +95,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000004',
             role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suites below the browser',
+            text: 'Flowrider: author the test suites that prove this flow — flow: login-flow',
             status: 'pending',
             locked: true,
             flowIds: ['login-flow'],
@@ -131,7 +131,7 @@ describe('questBuildRelayGraphBroker', () => {
       });
     });
 
-    it('VALID: {feature quest with two untagged flows, no packagesAffected} => the derived codeweaver item is the whole-quest fallback, flowrider gets ONE whole-quest item, and siegemaster gets one item PER FLOW so each flow gets its own pt budget and completion gate', () => {
+    it('VALID: {feature quest with two untagged flows, no packagesAffected} => the derived codeweaver item is the whole-quest fallback, and flowrider + siegemaster EACH get one item PER FLOW so every flow gets its own pt budget and completion gate', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -164,8 +164,13 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites below the browser',
-          flowIds: ['send-comment', 'view-comments'],
+          text: 'Flowrider: author the test suites that prove this flow — flow: send-comment',
+          flowIds: ['send-comment'],
+        },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the test suites that prove this flow — flow: view-comments',
+          flowIds: ['view-comments'],
         },
         {
           role: 'siegemaster',
@@ -181,7 +186,10 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {feature quest with 2 runtime + 1 operational untagged flow} => flowrider carries ONLY the 2 runtime ids, siegemaster gets one item PER FLOW including the operational one', () => {
+    // The flow fan-out cuts each seed over the flow types ITS OWN track measures
+    // (`signoffTrackEligibilityStatics.byTrack`), so the two roles come out of the same quest with
+    // different item counts: siegemaster measures both types, flowrider `runtime` alone.
+    it('VALID: {feature quest with 2 runtime + 1 operational untagged flow} => siegemaster gets one item per flow and flowrider gets one for the RUNTIME flows only', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -219,8 +227,13 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites below the browser',
-          flowIds: ['send-comment', 'view-comments'],
+          text: 'Flowrider: author the test suites that prove this flow — flow: send-comment',
+          flowIds: ['send-comment'],
+        },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the test suites that prove this flow — flow: view-comments',
+          flowIds: ['view-comments'],
         },
         {
           role: 'siegemaster',
@@ -241,10 +254,12 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    // The ungated-quest hole: flowrider's `flowIds` is ADVISORY, so an all-operational quest still
-    // gets a flowrider item — with an EMPTY list — and the Phase-2 gate derives its own denominator
-    // from the quest's runtime flows rather than from this list.
-    it('EMPTY: {feature quest whose every flow is operational} => flowrider item exists with EMPTY flowIds, siegemaster still gets one item per operational flow', () => {
+    // An operational flow is hand-checked at its end state — there is nothing repeatable for a
+    // flow-perspective suite to assert on it — so `byTrack.flowrider.flowTypes` is `runtime` alone
+    // and a quest drawn entirely in operational flows seeds NO flowrider item whatsoever. Every
+    // one it seeded would carry a denominator of zero units, which is a session dispatched to do
+    // nothing and a ledger row that can never be signed.
+    it('VALID: {feature quest whose every flow is operational} => siegemaster gets one item per flow and flowrider gets NONE', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -284,11 +299,6 @@ describe('questBuildRelayGraphBroker', () => {
         },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
-          role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites below the browser',
-          flowIds: [],
-        },
-        {
           role: 'siegemaster',
           text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
           flowIds: ['register-lint-rule'],
@@ -302,7 +312,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it("EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so the off-map `hostile-input` and `perf` probe families — this quest's only security and performance coverage — keep an owner", () => {
+    it("EMPTY: {feature quest with no flows} => siegemaster still gets ONE item with empty flowIds, so the off-map `hostile-input` and `perf` probe families — this quest's only security and performance coverage — keep an owner, while flowrider gets none", () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -329,11 +339,6 @@ describe('questBuildRelayGraphBroker', () => {
         },
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
-          role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites below the browser',
-          flowIds: [],
-        },
-        {
           role: 'siegemaster',
           text: 'Siegemaster: manual-QA this flow and review its test suite',
           flowIds: [],
@@ -344,7 +349,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('derived codeweaver implementation ops', () => {
-    it('VALID: {two packages each tagged by one node in one flow, plus a contract resolving to one of them} => one codeweaver item per PACKAGE, package-tier ranked, the contract riding its own package’s item', () => {
+    it('VALID: {two packages each tagged by one node in one flow, plus a contract resolving to one of them} => one codeweaver item per (package, flow) CELL, package-tier ranked, the contract riding its own package’s cell', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -397,14 +402,14 @@ describe('questBuildRelayGraphBroker', () => {
           })),
       ).toStrictEqual([
         {
-          text: 'Codeweaver: build this slice — package: server',
+          text: 'Codeweaver: build this slice — package: server · flow: auth-flow',
           status: 'pending',
           locked: false,
           flowIds: ['auth-flow'],
           packageNames: ['server'],
         },
         {
-          text: 'Codeweaver: build this slice — package: web',
+          text: 'Codeweaver: build this slice — package: web · flow: auth-flow',
           status: 'pending',
           locked: false,
           flowIds: ['auth-flow'],
@@ -413,7 +418,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {one package tagged by a node on each of two flows} => ONE codeweaver item carrying both, in flow declaration order', () => {
+    it('VALID: {one package tagged by a node on each of two flows} => ONE codeweaver item PER FLOW, in flow declaration order', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -447,16 +452,24 @@ describe('questBuildRelayGraphBroker', () => {
           .map(({ text, flowIds, packageNames }) => ({ text, flowIds, packageNames })),
       ).toStrictEqual([
         {
-          text: 'Codeweaver: build this slice — package: server',
-          flowIds: ['flow-a', 'flow-b'],
+          text: 'Codeweaver: build this slice — package: server · flow: flow-a',
+          flowIds: ['flow-a'],
+          packageNames: ['server'],
+        },
+        {
+          text: 'Codeweaver: build this slice — package: server · flow: flow-b',
+          flowIds: ['flow-b'],
           packageNames: ['server'],
         },
       ]);
     });
   });
 
-  describe('package-sliced dispatch', () => {
-    it('VALID: {tagged nodes across two runtime flows} => one flowrider item per package it owns PLUS a seam item, none for the frontend package, one groundstomper item per e2e-eligible flow, siegemaster unchanged at one per flow', () => {
+  describe('flow-sliced dispatch (flowrider + siegemaster)', () => {
+    // Node package tags decide the derived codeweaver ledger (see the describe block above); flowrider
+    // and siegemaster ignore them entirely — both fan out purely by `flow`, one item per quest flow,
+    // whatever packages its nodes happen to tag.
+    it('VALID: {tagged nodes across two runtime flows, three packages affected} => flowrider and siegemaster each get ONE item PER FLOW, unaffected by which packages the flow’s nodes tag', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -492,7 +505,7 @@ describe('questBuildRelayGraphBroker', () => {
       });
 
       // codeweaver items are the derived-implementation-ops concern (see the describe block above);
-      // filtered out here so this test stays scoped to flowrider/groundstomper/siegemaster fan-out.
+      // filtered out here so this test stays scoped to flowrider/siegemaster fan-out.
       expect(
         result.operations
           .filter((operation) => operation.role !== 'codeweaver')
@@ -512,27 +525,15 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [], packageNames: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
+          text: 'Flowrider: author the test suites that prove this flow — flow: send-comment',
           flowIds: ['send-comment'],
-          packageNames: ['server'],
+          packageNames: [],
         },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites below the browser — package: cli',
+          text: 'Flowrider: author the test suites that prove this flow — flow: sweep-rows',
           flowIds: ['sweep-rows'],
-          packageNames: ['cli'],
-        },
-        {
-          role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suites below the browser — seam: server + cli',
-          flowIds: ['sweep-rows'],
-          packageNames: ['server', 'cli'],
-        },
-        {
-          role: 'groundstomper',
-          text: 'Groundstomper: author the browser walk for this flow — flow: send-comment',
-          flowIds: ['send-comment'],
-          packageNames: ['web'],
+          packageNames: [],
         },
         {
           role: 'siegemaster',
@@ -548,64 +549,6 @@ describe('questBuildRelayGraphBroker', () => {
         },
         { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [], packageNames: [] },
       ]);
-    });
-
-    it('EMPTY: {a runtime flow whose only tagged package is an http-backend} => NO groundstomper item is seeded, because a browser can reach nothing on it', () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-
-      const quest = QuestStub({
-        packagesAffected: [SERVER_PACKAGE],
-        flows: [
-          FlowStub({
-            id: 'sweep-rows',
-            name: 'Sweep rows',
-            flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'batch', label: 'Batch', packages: ['server'] })],
-          }),
-        ],
-      });
-
-      const result = questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [],
-        now: IsoTimestampStub(),
-      });
-
-      expect(
-        result.operations
-          .filter((operation) => operation.role !== 'codeweaver')
-          .map(({ role }) => role),
-      ).toStrictEqual(['riftcarver', 'ward', 'flowrider', 'siegemaster', 'ward']);
-    });
-
-    it('EMPTY: {a runtime flow whose only tagged package is a frontend-react} => NO flowrider item is seeded, because every unit on it is the browser track’s', () => {
-      const proxy = questBuildRelayGraphBrokerProxy();
-      proxy.setupUuids({ ids: UUIDS });
-
-      const quest = QuestStub({
-        packagesAffected: [WEB_PACKAGE],
-        flows: [
-          FlowStub({
-            id: 'send-comment',
-            name: 'Send comment',
-            flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] })],
-          }),
-        ],
-      });
-
-      const result = questBuildRelayGraphBroker({
-        quest,
-        priorWorkItemIds: [],
-        now: IsoTimestampStub(),
-      });
-
-      expect(
-        result.operations
-          .filter((operation) => operation.role !== 'codeweaver')
-          .map(({ role }) => role),
-      ).toStrictEqual(['riftcarver', 'ward', 'groundstomper', 'siegemaster', 'ward']);
     });
   });
 
@@ -729,8 +672,12 @@ describe('questBuildRelayGraphBroker', () => {
     });
   });
 
+  // A bug-hunt shares its ENTIRE relay with a feature quest — riftcarver, the derived codeweaver
+  // ledger, ward, flowrider, siegemaster, ward — differing only in intake, which this broker never
+  // reads. These tests exist to prove that sharing holds, not to re-derive coverage the describe
+  // blocks above already pin.
   describe('bug-hunt quest', () => {
-    it('VALID: {bug-hunt quest, empty operations} => riftcarver is first actionable and its work item is a command spawner; pesteater seeds pending carrying the node tags, ahead of the 2-item verify tail', () => {
+    it('VALID: {bug-hunt quest, empty operations} => riftcarver is first actionable and its work item is a command spawner; the relay seeds identically to a feature quest — derived codeweaver, ward, flowrider, siegemaster, ward', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -766,10 +713,11 @@ describe('questBuildRelayGraphBroker', () => {
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000002',
-            role: 'pesteater',
-            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+            role: 'codeweaver',
+            text: 'Codeweaver: build this slice — package: web · flow: repro-crash',
             status: 'pending',
-            locked: true,
+            locked: false,
+            flowIds: ['repro-crash'],
             packageNames: ['web'],
           }),
           OperationItemStub({
@@ -782,6 +730,22 @@ describe('questBuildRelayGraphBroker', () => {
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000004',
+            role: 'flowrider',
+            text: 'Flowrider: author the test suites that prove this flow — flow: repro-crash',
+            status: 'pending',
+            locked: true,
+            flowIds: ['repro-crash'],
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000005',
+            role: 'siegemaster',
+            text: 'Siegemaster: manual-QA this flow and review its test suite — flow: repro-crash',
+            status: 'pending',
+            locked: true,
+            flowIds: ['repro-crash'],
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000006',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -791,7 +755,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000007' }),
             role: 'riftcarver',
             status: 'pending',
             spawnerType: 'command',
@@ -803,7 +767,7 @@ describe('questBuildRelayGraphBroker', () => {
       });
     });
 
-    it('VALID: {node tags spread across two flows, one package repeated} => the seeded pesteater item carries the UNION of the node tags, first-tagged order, once each', () => {
+    it('VALID: {bug-hunt quest, node tags spread across two flows, one package repeated} => codeweaver fans out ONE ITEM PER CELL exactly as a feature quest does, tier-ordered, the repeated package getting one item per flow', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -837,16 +801,34 @@ describe('questBuildRelayGraphBroker', () => {
       });
 
       expect(
-        result.operations.map(({ role, packageNames }) => ({ role, packageNames })),
+        result.operations
+          .filter((operation) => operation.role === 'codeweaver')
+          .map(({ text, flowIds, packageNames }) => ({ text, flowIds, packageNames })),
       ).toStrictEqual([
-        { role: 'riftcarver', packageNames: [] },
-        { role: 'pesteater', packageNames: ['web', 'server', 'cli'] },
-        { role: 'ward', packageNames: [] },
-        { role: 'ward', packageNames: [] },
+        {
+          text: 'Codeweaver: build this slice — package: server · flow: repro-crash',
+          flowIds: ['repro-crash'],
+          packageNames: ['server'],
+        },
+        {
+          text: 'Codeweaver: build this slice — package: web · flow: repro-crash',
+          flowIds: ['repro-crash'],
+          packageNames: ['web'],
+        },
+        {
+          text: 'Codeweaver: build this slice — package: web · flow: expected-behaviour',
+          flowIds: ['expected-behaviour'],
+          packageNames: ['web'],
+        },
+        {
+          text: 'Codeweaver: build this slice — package: cli · flow: expected-behaviour',
+          flowIds: ['expected-behaviour'],
+          packageNames: ['cli'],
+        },
       ]);
     });
 
-    it('EMPTY: {bug-hunt quest with no flows to tag} => the pesteater item still seeds, declaring no packages', () => {
+    it('EMPTY: {bug-hunt quest with no flows to tag} => the derived codeweaver item still seeds declaring no packages, and the shared tail mints the siegemaster whole-quest item alone', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -871,8 +853,9 @@ describe('questBuildRelayGraphBroker', () => {
         })),
       ).toStrictEqual([
         { role: 'riftcarver', status: 'in_progress', packageNames: [] },
-        { role: 'pesteater', status: 'pending', packageNames: [] },
+        { role: 'codeweaver', status: 'pending', packageNames: [] },
         { role: 'ward', status: 'pending', packageNames: [] },
+        { role: 'siegemaster', status: 'pending', packageNames: [] },
         { role: 'ward', status: 'pending', packageNames: [] },
       ]);
     });

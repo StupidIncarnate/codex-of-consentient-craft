@@ -6,7 +6,7 @@
  * blightConcernContract.parse('craft');
  * // Returns: BlightConcern enum value
  *
- * The reviewer-minion's question is "is the changed CODE well-made?", asked once per round inside
+ * The reviewer's question is "is the changed CODE well-made?", asked once per pass inside
  * its orchestrator's own turn rather than once per quest. The hands-on walk track belongs to
  * Siegemaster, whose off-map `hostile-input` probe proves security by sending a real payload rather
  * than reading for one.
@@ -31,8 +31,8 @@
  *   observable-level gate would
  *
  * Whole-import-graph questions — orphan exports, dead files — are NOT here and are not owned
- * anywhere: a per-file crossing can never see the graph, and the whole-diff minion that used to ask
- * is deleted in favour of a deterministic tool.
+ * anywhere: a per-file crossing can never see the graph, so that question waits on a deterministic
+ * tool rather than being asked by any whole-diff role.
  */
 
 import { z } from 'zod';

@@ -22,7 +22,7 @@ describe('questSummaryUnconfirmableContract', () => {
     });
 
     it.each(signoffDenominatorTrackContract.options)(
-      'VALID: {track: %s} => every denominator track can record an unconfirmable, groundstomper included',
+      'VALID: {track: %s} => every denominator track can record an unconfirmable',
       (track) => {
         expect(QuestSummaryUnconfirmableStub({ track }).track).toBe(track);
       },

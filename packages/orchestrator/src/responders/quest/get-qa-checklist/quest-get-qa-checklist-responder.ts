@@ -13,9 +13,9 @@
  * // Returns { success: true, data: '<exactly the scope that item is measured over>' }
  *
  * `operationItemId` IS the scope — the track, the flows and the package slice all come off the item
- * through the same derivation the signal-back completion gate uses, so the two answers cannot drift.
- * The track it resolved comes back with the checklists because the RENDER needs it: the sign-off
- * caption names the field, and the empty case reads differently per track.
+ * through the same derivation every reader of this coverage shares, so the render and the quest
+ * summary cannot drift. The track it resolved comes back with the checklists because the RENDER
+ * needs it: the sign-off caption names the field, and the empty case reads differently per track.
  *
  * A quest with no flows, or a flowId not on the quest, returns a plain statement of that rather
  * than an error — "this flow has nothing to verify" is a real answer a verification session needs
@@ -23,8 +23,8 @@
  * scope. An authoring track over a quest whose flows are all operational lands in that same empty
  * case, and says so in its own words rather than the generic no-flows one: those tracks are
  * measured over runtime flows alone, so "nothing to walk" there is a real, signable state and not a
- * hole. Which tracks those are is read off the same `flowTypes` list the gate reads, never from a
- * role name here.
+ * hole. Which tracks those are is read off the same `flowTypes` list every denominator reader
+ * shares, never from a role name here.
  */
 
 import {
@@ -68,14 +68,14 @@ export const QuestGetQaChecklistResponder = async ({
       );
 
     // An item whose ROLE has no sign-off track resolves to no scope, which is not the same fact as
-    // a quest with no flows: `codeweaver` and `pesteater` are measured on the scope block rendered
-    // into their Operation Context, so the honest answer names that rather than reading as "nothing
-    // to verify" — which a session would act on by signalling done over unbuilt scope.
+    // a quest with no flows: `spiritmender` and `warpgate` are measured on what their own prompt
+    // hands them, so the honest answer names that rather than reading as "nothing to verify" —
+    // which a session would act on by signalling done over unfinished scope.
     if (operationItemId !== undefined && track === undefined) {
       return {
         success: true,
         data: contentTextContract.parse(
-          `That operation item's role has no sign-off track, so no checklist measures it. Its denominator is the scope block already rendered into the Operation Context — its nodes, its verbatim observables, its contracts and its Seams. There is no tool to hunt for.`,
+          `That operation item's role has no sign-off track, so no checklist measures it. What it must do is stated in its own prompt and its Operation Context. There is no tool to hunt for.`,
         ),
       };
     }
@@ -86,7 +86,7 @@ export const QuestGetQaChecklistResponder = async ({
         data: contentTextContract.parse(
           flowId === undefined
             ? isRuntimeOnlyTrack
-              ? `This quest has no runtime flows, so the ${track} track has nothing to walk. That is a real state, not an error — operational flows are verified by Siegemaster checking their end state, never by an authored suite. Your gate still binds and it yields zero units, so commit the record and signal done.`
+              ? `This quest has no runtime flows, so the ${track} track has nothing to walk. That is a real state, not an error — operational flows are verified by Siegemaster checking their end state, never by an authored suite. Your denominator is zero units, so commit the record and signal done.`
               : 'This quest has no flows, so there is nothing to verify. That is a real state, not an error — your track has zero units to sign, so commit the record and signal done.'
             : `No flow \`${flowId}\` on this quest. Call get-qa-checklist with no flowId to list every flow that does exist.`,
         ),

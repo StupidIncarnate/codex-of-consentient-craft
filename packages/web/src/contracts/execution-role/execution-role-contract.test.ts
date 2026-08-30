@@ -15,10 +15,10 @@ describe('executionRoleContract', () => {
       expect(result).toBe('ward');
     });
 
-    it('VALID: {value: "pesteater"} => parses pesteater role', () => {
-      const result = executionRoleContract.parse('pesteater');
+    it('VALID: {value: "siegemaster"} => parses siegemaster role', () => {
+      const result = executionRoleContract.parse('siegemaster');
 
-      expect(result).toBe('pesteater');
+      expect(result).toBe('siegemaster');
     });
 
     it('VALID: {value: "flowrider"} => parses flowrider role', () => {

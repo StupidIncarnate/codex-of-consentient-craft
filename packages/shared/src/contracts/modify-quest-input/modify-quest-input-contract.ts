@@ -12,8 +12,9 @@
  * The server-side merge (questItemDeepMergeTransformer) only touches fields present in the update, so partial-patch
  * is the safe shape for editing entries another minion may have written.
  *
- * The two sign-off fields on the flow shapes — `flowriderSignoff` and `siegemasterSignoff` on an observable, a node,
- * an edge, and on each `offMapSignoffs` entry — are `.nullish()` HERE while the persisted contracts keep them
+ * The sign-off fields on the flow shapes — `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff` on an
+ * observable, a node and an edge, and the latter two on each `offMapSignoffs` entry — are `.nullish()` HERE while the
+ * persisted contracts keep them
  * `.optional()`. `null` is the clear marker a reset writes: `{ id, siegemasterSignoff: null }` says "take this track's
  * sign-off off this unit", which `.optional()` alone cannot express, because omitting the key is how a patch says
  * "leave it alone". questItemDeepMergeTransformer reads an update value of `null` as "remove this key" rather than
@@ -22,8 +23,7 @@
  *
  * The package fields are threaded through the flow shapes DELIBERATELY, not by accident of reuse.
  * Only the top object is `.strict()`; the flow/node/observable unions are `.extend().partial()`
- * objects, which STRIP an unrecognised key instead of rejecting it — the behaviour
- * `questFlowAdditiveOnlyViolationsTransformer` relies on. A node's `packages` therefore has to reach
+ * objects, which STRIP an unrecognised key instead of rejecting it. A node's `packages` therefore has to reach
  * this contract through `flowNodeContract` itself, and an observable's `package` has to be declared
  * here, or the field is silently dropped on every write and the persisted quest never sees it.
  * Threading them makes the tags SURVIVE; it does not make them mandatory, because a node missing
@@ -123,6 +123,7 @@ const fullFlowObservable = flowObservableContract.extend({
     .describe(
       'The package this observable is read in. Omit it when the owning node tags exactly one package — the save resolves it from the node. On a node tagging more than one there is nothing to inherit and the omission is refused, so state which side of the seam this one sits on.',
     ),
+  codeweaverSignoff: signoffForUpsertContract.nullish(),
   flowriderSignoff: signoffForUpsertContract.nullish(),
   siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
@@ -140,6 +141,7 @@ const deletableObservableContract = z.union([
 // through flowNodeContract, and by the save-invariants tier that names the offending node.
 const fullFlowNode = flowNodeContract.extend({
   observables: z.array(deletableObservableContract).optional(),
+  codeweaverSignoff: signoffForUpsertContract.nullish(),
   flowriderSignoff: signoffForUpsertContract.nullish(),
   siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
@@ -151,6 +153,7 @@ const deletableNodeContract = z.union([
 ]);
 
 const fullFlowEdge = flowEdgeContract.extend({
+  codeweaverSignoff: signoffForUpsertContract.nullish(),
   flowriderSignoff: signoffForUpsertContract.nullish(),
   siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
@@ -297,7 +300,7 @@ export const modifyQuestInputContract = z
         blightLedger: z
           .array(questBlightLedgerEntryForUpsertContract)
           .describe(
-            'Blight checklist dispositions to merge into quest.planningNotes.blightLedger, keyed on itemId (changed file crossed with concern) — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a continuation session can correct a predecessor. This is the only write path for the ledger the completion gate enforces.',
+            'Blight checklist dispositions to merge into quest.planningNotes.blightLedger, keyed on itemId (changed file crossed with concern) — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a continuation session can correct a predecessor. This is the only write path for that ledger, and the ledger is the durable record of what a reviewer decided about each unit: `get-blight-checklist` reads it back to say which units still carry no disposition.',
           )
           .optional(),
         questNotes: z
@@ -309,13 +312,13 @@ export const modifyQuestInputContract = z
         operationPlans: z
           .array(operationPlanForUpsertContract)
           .describe(
-            "Planner sub-agent plans to merge into quest.planningNotes.operationPlans, keyed on the plan's own id — a plan re-stated under the same id REPLACES its prior entry, while a re-planned round carries a fresh id and its own `round`, so a rejected round's plan stays for audit alongside the round that superseded it. This is the write path the operator reads back with get-quest-planning-notes instead of holding the plan body in its own context.",
+            "Planner sub-agent plans to merge into quest.planningNotes.operationPlans, keyed on the plan's own id — a plan re-stated under the same id REPLACES its prior entry, while a re-planned pass carries a fresh id and its own `round`, so a rejected pass's plan stays for audit alongside the pass that superseded it. This is the write path the operator reads back with get-quest-planning-notes instead of holding the plan body in its own context.",
           )
           .optional(),
       })
       .partial()
       .describe(
-        'The per-unit standards-review ledger a reviewer-minion writes, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes. Verification sign-offs are NOT here — `flowriderSignoff` / `siegemasterSignoff` are written through `flows`, on the element that carries them.',
+        'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes. Verification sign-offs are NOT here — `flowriderSignoff` / `siegemasterSignoff` are written through `flows`, on the element that carries them.',
       )
       .optional(),
   })

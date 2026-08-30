@@ -41,7 +41,7 @@
  * - `chaoswhisperer` — feature spec intake (/dumpster-create). Chat.
  * - `glyphsmith` — design intake. Chat.
  * - `bughunt` — bug-hunt regression intake (/dumpster-hunt), the chaoswhisperer counterpart. Chat.
- *   Distinct from `pesteater`, which Start Quest seeds as the bug-hunt implementation item.
+ *   The implementation that follows it is `codeweaver`, the same role a feature quest seeds.
  * - `tavernkeeper` — post-quest follow-up conversation about a finished quest. Chat, and the one
  *   member of `postQuestChat` — it is not the thread the main composer resumes; it has its own
  *   composer in the FOLLOW-UP tab. Alone among the roles it is also excluded from quest status
@@ -54,11 +54,8 @@
  * - `codeweaver` — implementation relay worker; one session per codeweaver operation item.
  * - `ward` — a quality gate run. Like `riftcarver` a member of `command` rather than an agent role.
  * - `spiritmender` — inserted after a red ward to repair it.
- * - `flowrider` — verify operator that authors the flow-perspective test suites below the browser.
- * - `groundstomper` — verify operator that authors the Playwright e2e walk; one item per runtime
- *   flow that touches an e2e-eligible package.
+ * - `flowrider` — verify operator that authors the test suites proving a flow; one item per flow.
  * - `siegemaster` — verify operator that hand-walks each flow; one item per flow.
- * - `pesteater` — bug-hunt implementation: writes a failing test first, then fixes it.
  * - `warpgate` — merges the quest branch home into the base branch. NOT chat: it is dispatched from
  *   the operations ledger like any relay role, and it is real work with a real failure mode.
  */
@@ -74,9 +71,7 @@ export const workItemRoleStatics = {
     'ward',
     'spiritmender',
     'flowrider',
-    'groundstomper',
     'siegemaster',
-    'pesteater',
     'warpgate',
   ],
   chat: ['chaoswhisperer', 'glyphsmith', 'bughunt', 'tavernkeeper'],

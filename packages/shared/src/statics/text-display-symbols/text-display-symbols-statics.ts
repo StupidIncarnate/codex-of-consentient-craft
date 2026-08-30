@@ -28,6 +28,30 @@ export const textDisplaySymbolsStatics = {
     '  _delete:true  removes the entity when sent via modify-quest',
     '---',
   ],
+  // Suffixes a node the caller's own package tags, in a per-package flow slice. A slice MARKS
+  // rather than FILTERS: cutting a package's nodes out of the graph deletes the edges between
+  // them, and a measured case left one package three orphan nodes and no graph at all.
+  ownedNode: '◀ YOURS',
+  // The KEY for a per-flow slice. It is NOT `legendLines`: a slice carries three symbols the whole
+  // quest render has no equivalent for (the package tag set, the owned-node mark, the collapsed
+  // foreign-observable count) and none of the modify-quest guidance, because a session reading its
+  // own flow is reading it to build against, not to edit.
+  flowSliceLegendLines: [
+    '---',
+    'KEY:',
+    '  [#id] label (type) {pkgs}   flow node, its kind, and the packages it lands in',
+    '  ◀ YOURS                     this node lands in YOUR package',
+    '  > #id: text [type]          observable attached to the node above',
+    '  > (N observable(s) …)       observables attributed to another package, collapsed',
+    '  → [#id]                     edge to next node',
+    '  →"label"                    labeled edge (decision branch — each one is a unit)',
+    '  ↩                           back-reference — node defined earlier, not repeated',
+    '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
+    '  ← MERGE                     node reachable from multiple paths',
+    '  (terminal)                  end state, no outgoing edges',
+    '  [C✓ F✓ S?]                  sign-offs already recorded (Codeweaver/Flowrider/Siegemaster)',
+    '---',
+  ],
   sectionHeaders: {
     designDecisions: '## Design Decisions',
     contracts: '## Contracts',
@@ -49,6 +73,7 @@ export const textDisplaySymbolsStatics = {
   // A marker is emitted ONLY where a sign-off exists, so an unsigned unit's line carries no marker
   // and no placeholder column.
   signoffTrackMarks: {
+    codeweaver: 'C',
     flowrider: 'F',
     siegemaster: 'S',
   },

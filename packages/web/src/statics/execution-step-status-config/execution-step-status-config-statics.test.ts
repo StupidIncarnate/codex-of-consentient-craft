@@ -25,9 +25,7 @@ describe('executionStepStatusConfigStatics', () => {
         ward: 'warning',
         spiritmender: 'primary',
         flowrider: 'primary',
-        groundstomper: 'primary',
         siegemaster: 'primary',
-        pesteater: 'primary',
         warpgate: 'primary',
       },
       statusConfig: {

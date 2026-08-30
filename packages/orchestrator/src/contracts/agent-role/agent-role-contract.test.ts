@@ -35,28 +35,12 @@ describe('agentRoleContract', () => {
       expect(result).toBe('siegemaster');
     });
 
-    it('VALID: groundstomper => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'groundstomper' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('groundstomper');
-    });
-
     it('VALID: warpgate => parses successfully', () => {
       const role = AgentRoleStub({ value: 'warpgate' });
 
       const result = agentRoleContract.parse(role);
 
       expect(result).toBe('warpgate');
-    });
-
-    it('VALID: pesteater => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'pesteater' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('pesteater');
     });
   });
 
@@ -103,18 +87,23 @@ describe('agentRoleContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
+    it.each(['groundstomper', 'pesteater'])(
+      'INVALID: %s => throws validation error (removed role)',
+      (value) => {
+        expect(() => {
+          agentRoleContract.parse(value);
+        }).toThrow(/Invalid enum value/u);
+      },
+    );
+
     // A minion is summoned by a parent inside that parent's turn and owns no work item, so none can
-    // ever hold an operation item of its own. Both spellings are pinned: the bare names the generic
-    // trio used, and the role-prefixed ones that replaced them — a role-prefixed minion LOOKS like a
-    // role, which is exactly why it has to be refused here.
+    // ever hold an operation item of its own. A role-prefixed minion LOOKS like a role, which is
+    // exactly why it has to be refused here.
     it.each([
-      'planner-minion',
-      'worker-minion',
-      'reviewer-minion',
-      'codeweaver-planner-minion',
-      'codeweaver-worker-minion',
-      'codeweaver-reviewer-minion',
-      'siegemaster-reviewer-minion',
+      'codeweaver-reviewer',
+      'flowrider-reviewer',
+      'siegemaster-reviewer',
+      'siegemaster-walker',
       'chaoswhisperer-gap-minion',
     ])(
       'INVALID: %s => throws validation error (a minion is never a dispatchable role)',

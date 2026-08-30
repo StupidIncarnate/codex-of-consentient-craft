@@ -10,13 +10,12 @@
  *
  * const mine = await orchestratorGetQaChecklistAdapter({
  *   questId,
- *   track: 'groundstomper',
  *   operationItemId: 'a1b2…',
  * });
  * // Returns exactly the scope that operation item is measured over
  *
  * `operationItemId` is the whole scope: the track, the flows and the package slice are derived from
- * the item server-side, by the same transformer the signal-back completion gate uses. Every optional
+ * the item server-side, by the same transformer every reader of this coverage uses. Every optional
  * key is spread conditionally because `exactOptionalPropertyTypes` makes an explicit `undefined` a
  * type error downstream, not a no-op.
  */

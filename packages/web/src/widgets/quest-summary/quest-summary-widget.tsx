@@ -9,8 +9,9 @@
  * // Seeds from GET /api/quests/:questId/summary and repaints on that quest's quest-modified
  * // broadcasts, so a sign-off write lands here without a reload
  *
- * IT SHOWS WHAT `quest.status` DOES NOT. A quest reaches `complete` once both tracks have SIGNED
- * every unit, and `unconfirmable` signs a unit exactly as `confirmed` does — so a green quest can
+ * IT SHOWS WHAT `quest.status` DOES NOT. A quest reaches `complete` when its operations ledger
+ * drains, not when its three tracks (codeweaver, flowrider, siegemaster) have SIGNED every unit,
+ * and `unconfirmable` signs a unit exactly as `confirmed` does — so a complete quest can still
  * carry real holes, scope nobody approved, and unanswered questions. Every section here is one of
  * those blind spots, which is why an empty section renders its own "none" line rather than
  * disappearing: "nobody recorded any" and "nobody looked" must not read the same.

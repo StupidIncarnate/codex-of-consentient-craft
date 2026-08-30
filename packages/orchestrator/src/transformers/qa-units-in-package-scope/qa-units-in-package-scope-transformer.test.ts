@@ -8,10 +8,17 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
+import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { qaUnitsInPackageScopeTransformer } from './qa-units-in-package-scope-transformer';
 
-// Two packages of DIFFERENT kinds, so the kind narrowing and the name narrowing can be told apart:
-// `ui-app` is browser-reachable and `api-service` is not.
+type SignoffTrack = keyof typeof signoffTrackEligibilityStatics.byTrack;
+
+// Derived from the eligibility map rather than listed, so a fourth denominator is covered by the
+// kind-narrowing matrix below the day it is declared.
+const TRACKS = Object.keys(signoffTrackEligibilityStatics.byTrack) as SignoffTrack[];
+
+// Two packages of DIFFERENT kinds, so a narrowing that keyed on kind could be told from one that
+// keys on name: `ui-app` is browser-reachable and `api-service` is not.
 const UI_PACKAGE = PackageNameStub({ value: 'ui-app' });
 const API_PACKAGE = PackageNameStub({ value: 'api-service' });
 const GHOST_PACKAGE = PackageNameStub({ value: 'ghost-package' });
@@ -79,43 +86,6 @@ const FLOW = FlowStub({
 
 const UNITS = qaUnitEnumerateTransformer({ flow: FLOW });
 
-// A package whose hono adapter outranks its widgets folder in the detector's priority table: the
-// display LABEL is `http-backend` while the stamped kind set carries the browser surface as well.
-const HYBRID_PACKAGE = PackageNameStub({ value: 'storefront' });
-
-const HYBRID_PACKAGES_AFFECTED = [
-  QuestPackageEntryStub({
-    name: HYBRID_PACKAGE,
-    location: `./packages/${HYBRID_PACKAGE}`,
-    changeType: 'edit',
-    packageType: 'http-backend',
-    packageTypes: ['http-backend', 'frontend-react'],
-  }),
-  QuestPackageEntryStub({
-    name: API_PACKAGE,
-    location: `./packages/${API_PACKAGE}`,
-    changeType: 'edit',
-    packageType: 'http-backend',
-  }),
-];
-
-const HYBRID_FLOW = FlowStub({
-  id: 'checkout-flow',
-  flowType: 'runtime',
-  nodes: [
-    FlowNodeStub({
-      id: 'cart',
-      label: 'Cart',
-      packages: [HYBRID_PACKAGE],
-      observables: [FlowObservableStub({ id: 'shows-cart' })],
-    }),
-    FlowNodeStub({ id: 'charge', label: 'Charge', packages: [API_PACKAGE] }),
-  ],
-  edges: [],
-});
-
-const HYBRID_UNITS = qaUnitEnumerateTransformer({ flow: HYBRID_FLOW });
-
 // Everything that hangs off no resolvable node — the off-map families and the orphan branch. They
 // are over-included on purpose: excluding a unit whose owning node cannot be read would empty a
 // denominator on incomplete data, which is the one failure this narrowing must not cause.
@@ -137,148 +107,48 @@ describe('qaUnitsInPackageScopeTransformer', () => {
   });
 
   describe('narrowing by the track’s package KINDS', () => {
-    it('VALID: {flowrider, packagesAffected} => drops the UI-only observable and keeps the glue, the backend and the unresolvable', () => {
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'flowrider',
-          packagesAffected: PACKAGES_AFFECTED,
-        }).map((unit) => String(unit.id)),
-      ).toStrictEqual([
-        'login-flow:terminal:auth-error',
-        'login-flow:terminal:ghost-screen',
-        'login-flow:branch:submit-invalid',
-        'login-flow:branch:to-ghost',
-        'login-flow:branch:orphan-branch',
-        ...UNROUTABLE_UNIT_IDS.filter((id) => id.split(':')[1] === 'off-map'),
-      ]);
-    });
+    // Every track carries the FULL package-kind list, so resolving a node's tags to kinds removes
+    // nothing from any denominator. Asserted per track rather than once: a track that quietly
+    // dropped a kind from its list would silently stop owning every unit landing in it, and the
+    // gate would then read that hole as satisfied.
+    it.each(TRACKS)(
+      'VALID: {track: %s, packagesAffected} => keeps every unit, because no track narrows by kind',
+      (track) => {
+        expect(
+          qaUnitsInPackageScopeTransformer({
+            flow: FLOW,
+            units: UNITS,
+            track,
+            packagesAffected: PACKAGES_AFFECTED,
+          }).map((unit) => String(unit.id)),
+        ).toStrictEqual(UNITS.map((unit) => String(unit.id)));
+      },
+    );
 
-    it('VALID: {groundstomper, packagesAffected} => keeps the UI observable and the glue, and drops the backend terminal', () => {
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'groundstomper',
-          packagesAffected: PACKAGES_AFFECTED,
-        }).map((unit) => String(unit.id)),
-      ).toStrictEqual([
-        'login-flow:terminal:ghost-screen',
-        'login-flow:branch:submit-invalid',
-        'login-flow:branch:to-ghost',
-        'login-flow:branch:orphan-branch',
-        'login-flow:observable:shows-form',
-        ...UNROUTABLE_UNIT_IDS.filter((id) => id.split(':')[1] === 'off-map'),
-      ]);
-    });
-
-    it('VALID: {a node tagged with a package packagesAffected never declares} => stays on both authoring tracks, because an unresolvable kind must not empty a denominator', () => {
-      expect({
-        flowrider: qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'flowrider',
-          packagesAffected: PACKAGES_AFFECTED,
-        })
-          .map((unit) => String(unit.id))
-          .filter((id) => id === 'login-flow:terminal:ghost-screen'),
-        groundstomper: qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'groundstomper',
-          packagesAffected: PACKAGES_AFFECTED,
-        })
-          .map((unit) => String(unit.id))
-          .filter((id) => id === 'login-flow:terminal:ghost-screen'),
-      }).toStrictEqual({
-        flowrider: ['login-flow:terminal:ghost-screen'],
-        groundstomper: ['login-flow:terminal:ghost-screen'],
-      });
-    });
-  });
-
-  describe('partition scope — one name is a per-package slice, more than one is the seam slice', () => {
-    it('VALID: {flowrider, packageNames: [api-service]} => owns the units whose node tags that package ALONE, never the glue', () => {
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'flowrider',
-          packageNames: [API_PACKAGE],
-        }).map((unit) => String(unit.id)),
-      ).toStrictEqual(['login-flow:terminal:auth-error', ...UNROUTABLE_UNIT_IDS]);
-    });
-
-    it('VALID: {flowrider, packageNames: [ui-app]} => owns the UI-only node’s observable and nothing the glue node holds', () => {
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'flowrider',
-          packageNames: [UI_PACKAGE],
-        }).map((unit) => String(unit.id)),
-      ).toStrictEqual([
-        'login-flow:branch:orphan-branch',
-        'login-flow:observable:shows-form',
-        ...UNROUTABLE_UNIT_IDS.filter((id) => id.split(':')[1] === 'off-map'),
-      ]);
-    });
-
-    it('VALID: {flowrider, packageNames: [ui-app, api-service]} => the SEAM slice: the glue node’s branches and no single-tagged unit at all', () => {
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'flowrider',
-          packageNames: [UI_PACKAGE, API_PACKAGE],
-        }).map((unit) => String(unit.id)),
-      ).toStrictEqual([
-        'login-flow:branch:submit-invalid',
-        'login-flow:branch:to-ghost',
-        ...UNROUTABLE_UNIT_IDS,
-      ]);
-    });
-
-    // The slicer mints no seam item for a glue node that lands on ONE side of this track, so the
-    // per-package item on that side has to own it. Reading the node's RAW arity instead leaves the
-    // glue units owned by no flowrider item at all — the hole the package narrowing exists to close.
-    it('VALID: {flowrider, packagesAffected, packageNames: [api-service]} => owns the glue node whose only in-kind package is that one', () => {
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'flowrider',
-          packagesAffected: PACKAGES_AFFECTED,
-          packageNames: [API_PACKAGE],
-        }).map((unit) => String(unit.id)),
-      ).toStrictEqual([
-        'login-flow:terminal:auth-error',
-        'login-flow:branch:submit-invalid',
-        'login-flow:branch:to-ghost',
-        ...UNROUTABLE_UNIT_IDS,
-      ]);
-    });
-
-    it('VALID: {flowrider, packageNames naming a package no node tags alone} => owns nothing routable, rather than falling back to the whole flow', () => {
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: FLOW,
-          units: UNITS,
-          track: 'flowrider',
-          packageNames: [UNUSED_PACKAGE],
-        }).map((unit) => String(unit.id)),
-      ).toStrictEqual(UNROUTABLE_UNIT_IDS);
-    });
+    it.each(TRACKS)(
+      'VALID: {track: %s, a node tagged with a package packagesAffected never declares} => stays, because an unresolvable kind must not empty a denominator',
+      (track) => {
+        expect(
+          qaUnitsInPackageScopeTransformer({
+            flow: FLOW,
+            units: UNITS,
+            track,
+            packagesAffected: PACKAGES_AFFECTED,
+          })
+            .map((unit) => String(unit.id))
+            .filter((id) => id === 'login-flow:terminal:ghost-screen'),
+        ).toStrictEqual(['login-flow:terminal:ghost-screen']);
+      },
+    );
   });
 
   describe('intersection scope — an item owns every unit its packages touch, glue included', () => {
-    it('VALID: {groundstomper, packageNames: [ui-app]} => keeps the glue node’s branches, because there is no groundstomper seam item to catch them', () => {
+    it('VALID: {flowrider, packageNames: [ui-app]} => keeps the glue node’s branches, because no track has a seam item to catch them', () => {
       expect(
         qaUnitsInPackageScopeTransformer({
           flow: FLOW,
           units: UNITS,
-          track: 'groundstomper',
+          track: 'flowrider',
           packageNames: [UI_PACKAGE],
         }).map((unit) => String(unit.id)),
       ).toStrictEqual([
@@ -318,81 +188,8 @@ describe('qaUnitsInPackageScopeTransformer', () => {
     });
   });
 
-  describe('a package carrying more than one kind', () => {
-    it('VALID: {a node tagged with a package that is BOTH http-backend and browser-reachable} => its units stay on BOTH authoring tracks, so neither half of the package is lost', () => {
-      expect({
-        flowrider: qaUnitsInPackageScopeTransformer({
-          flow: HYBRID_FLOW,
-          units: HYBRID_UNITS,
-          track: 'flowrider',
-          packagesAffected: HYBRID_PACKAGES_AFFECTED,
-        })
-          .map((unit) => String(unit.id))
-          .filter((id) => id === 'checkout-flow:observable:shows-cart'),
-        groundstomper: qaUnitsInPackageScopeTransformer({
-          flow: HYBRID_FLOW,
-          units: HYBRID_UNITS,
-          track: 'groundstomper',
-          packagesAffected: HYBRID_PACKAGES_AFFECTED,
-        })
-          .map((unit) => String(unit.id))
-          .filter((id) => id === 'checkout-flow:observable:shows-cart'),
-      }).toStrictEqual({
-        flowrider: ['checkout-flow:observable:shows-cart'],
-        groundstomper: ['checkout-flow:observable:shows-cart'],
-      });
-    });
-
-    it('VALID: {a sibling node tagged with the single-kind backend package} => stays on Flowrider and is dropped by Groundstomper, so the hybrid case is not just a disabled narrowing', () => {
-      expect({
-        flowrider: qaUnitsInPackageScopeTransformer({
-          flow: HYBRID_FLOW,
-          units: HYBRID_UNITS,
-          track: 'flowrider',
-          packagesAffected: HYBRID_PACKAGES_AFFECTED,
-        })
-          .map((unit) => String(unit.id))
-          .filter((id) => id === 'checkout-flow:terminal:charge'),
-        groundstomper: qaUnitsInPackageScopeTransformer({
-          flow: HYBRID_FLOW,
-          units: HYBRID_UNITS,
-          track: 'groundstomper',
-          packagesAffected: HYBRID_PACKAGES_AFFECTED,
-        })
-          .map((unit) => String(unit.id))
-          .filter((id) => id === 'checkout-flow:terminal:charge'),
-      }).toStrictEqual({
-        flowrider: ['checkout-flow:terminal:charge'],
-        groundstomper: [],
-      });
-    });
-
-    it('EMPTY: {the same entry with its kind set cleared} => the declared label alone decides, and Groundstomper loses the unit — which is the state this set exists to fix', () => {
-      const unstamped = [
-        QuestPackageEntryStub({
-          name: HYBRID_PACKAGE,
-          location: `./packages/${HYBRID_PACKAGE}`,
-          changeType: 'edit',
-          packageType: 'http-backend',
-          packageTypes: [],
-        }),
-      ];
-
-      expect(
-        qaUnitsInPackageScopeTransformer({
-          flow: HYBRID_FLOW,
-          units: HYBRID_UNITS,
-          track: 'groundstomper',
-          packagesAffected: unstamped,
-        })
-          .map((unit) => String(unit.id))
-          .filter((id) => id === 'checkout-flow:observable:shows-cart'),
-      ).toStrictEqual([]);
-    });
-  });
-
   describe('the two narrowings compose', () => {
-    it('VALID: {flowrider, packagesAffected AND packageNames: [ui-app]} => the kind narrowing removes the UI observable the name narrowing selected, leaving nothing routable', () => {
+    it('VALID: {flowrider, packagesAffected AND packageNames: [ui-app]} => the kind narrowing removes nothing, so the name narrowing alone decides', () => {
       expect(
         qaUnitsInPackageScopeTransformer({
           flow: FLOW,
@@ -401,7 +198,13 @@ describe('qaUnitsInPackageScopeTransformer', () => {
           packagesAffected: PACKAGES_AFFECTED,
           packageNames: [UI_PACKAGE],
         }).map((unit) => String(unit.id)),
-      ).toStrictEqual(UNROUTABLE_UNIT_IDS);
+      ).toStrictEqual([
+        'login-flow:branch:submit-invalid',
+        'login-flow:branch:to-ghost',
+        'login-flow:branch:orphan-branch',
+        'login-flow:observable:shows-form',
+        ...UNROUTABLE_UNIT_IDS.filter((id) => id.split(':')[1] === 'off-map'),
+      ]);
     });
   });
 });

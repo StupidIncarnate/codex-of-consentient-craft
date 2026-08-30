@@ -201,8 +201,8 @@ describe('QuestChatContentLayerWidget', () => {
 
     it('VALID: {Create Bug selected, first message sent} => POSTs questType bug-hunt', async () => {
       // The selection has to reach the wire: the server derives the intake role (bughunt vs
-      // chaoswhisperer) and the whole PestEater pipeline from this field alone, so a picker that
-      // renders but never POSTs its value silently creates a feature quest.
+      // chaoswhisperer) from this field alone, so a picker that renders but never POSTs its value
+      // silently creates a feature quest instead of a bug-hunt one.
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'node' });
       proxy.setupNewQuest({

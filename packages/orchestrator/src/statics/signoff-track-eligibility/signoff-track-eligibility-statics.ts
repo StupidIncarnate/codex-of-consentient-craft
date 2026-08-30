@@ -10,108 +10,88 @@
  * // Returns the origins Flowrider could have signed — `siegemaster` is absent
  * signoffTrackEligibilityStatics.byTrack.flowrider.flowTypes;
  * // Returns the flow types Flowrider is measured over — `operational` is absent
- * signoffTrackEligibilityStatics.byTrack.groundstomper.flowScope;
- * // Returns whether a Groundstomper item's own `flowIds` are its scope — `declared`
- * signoffTrackEligibilityStatics.byTrack.groundstomper.packageTypes;
- * // Returns the package kinds a browser can walk — Groundstomper is measured over those alone
+ * signoffTrackEligibilityStatics.byTrack.flowrider.flowScope;
+ * // Returns whether a Flowrider item's own `flowIds` are its scope — `declared`
  * signoffTrackEligibilityStatics.byTrack.flowrider.packageScope;
- * // Returns how a Flowrider item's own `packageNames` slice its denominator — `partition`
+ * // Returns how a Flowrider item's own `packageNames` narrow its denominator — `intersection`
  *
  * `byTrack` is keyed by the ROLE whose denominator each entry defines — the list
  * `signoffTracksStatics.denominators` names and `signoffDenominatorTrackContract` validates, which
- * is NOT the same list as the sign-off FIELDS. There are two fields — `flowriderSignoff` and
- * `siegemasterSignoff`, named by `signoffTracksStatics.fields`, validated by `signoffTrackContract`
- * and rendered by `textDisplaySymbolsStatics.signoffTrackMarks` — and three denominators over them:
- * Flowrider and Groundstomper both write `flowriderSignoff`, over disjoint `packageTypes`. Anything
- * needing "the two sign-off fields" reads that list, never these keys.
+ * is NOT the same list as the sign-off FIELDS. The fields — `codeweaverSignoff`,
+ * `flowriderSignoff` and `siegemasterSignoff` — are named by `signoffTracksStatics.fields`,
+ * validated by `signoffTrackContract` and rendered by `textDisplaySymbolsStatics.signoffTrackMarks`.
+ * Anything needing "the sign-off fields" reads that list, never these keys.
  *
- * `signoffField` IS THAT MANY-TO-ONE MAP, carried here rather than re-derived per consumer. Indexing
- * it makes a new `byTrack` key a COMPILE error at every measuring site, whereas the two-way ternary
- * it replaces silently routed every unnamed track to the field it does not write.
+ * `signoffField` IS THE MANY-TO-ONE MAP between the two, carried here rather than re-derived per
+ * consumer. Indexing it makes a new `byTrack` key a COMPILE error at every measuring site, whereas
+ * a ternary silently routes every unnamed track to a field it does not write.
  *
- * SIX SEPARATE EXCLUSIONS live here as DATA so the completion gate carries no role branches of
- * its own.
+ * FIVE SEPARATE EXCLUSIONS live here as DATA so no consumer of a denominator carries role branches
+ * of its own.
  *
  * 0. FLOW TYPE. An operational flow is a one-time task sequence whose end state is hand-checked;
  *    there is nothing repeatable for a flow-perspective suite to assert, so Flowrider is measured
- *    over `runtime` flows alone, and Groundstomper inherits that exclusion. Siegemaster verifies
- *    both, which is why it carries the full list rather than an absent field: "measures every type"
- *    is a statement, not a default.
+ *    over `runtime` flows alone. Siegemaster verifies both, which is why it carries the full list
+ *    rather than an absent field: "measures every type" is a statement, not a default. Codeweaver
+ *    carries the full list for a different reason: it BUILDS both types, and an operational flow's
+ *    code is unit-testable exactly as a runtime flow's is — what an operational flow lacks is a
+ *    repeatable end-to-end walk, not assertable units.
  *
  * 1. FLOW SLICE. Rule 0 narrows by TYPE, which is a property of the track. This one says whether an
- *    individual operation item's own `flowIds` narrow it further, which is a property of the
- *    DIMENSION the relay sliced that track's items on (`questTypeRegistryStatics.feature.relayTail`
- *    `fanOutBy`), and the tracks slice differently:
- *
- *    - `declared` — Groundstomper (`fanOutBy: 'e2e-flow'`) and Siegemaster (`fanOutBy: 'flow'`) get
- *      ONE item per flow, each carrying that flow alone, so the item's `flowIds` ARE its coverage
- *      scope and the gate measures exactly the flow
- *      `get-qa-checklist({ questId, operationItemId })` answers for — that ONE id carries the track,
- *      the flows and the packages, and it REPLACED `track` and `packageNames` as separate arguments.
- *      Measuring such an item over every flow of an eligible type instead makes the first of
- *      several sibling items unable to signal `done` at all — every sibling flow sharing one of its
- *      packages lands in its denominator — which is the spent-pt-chain failure the slicing exists
- *      to remove. An item declaring NO flows matches nothing and is not gated, which is what keeps
- *      a flow-less quest and any pre-gate item completable.
- *    - `every-eligible` — Flowrider (`fanOutBy: 'package'`) is sliced on the PACKAGE dimension, so
- *      an item's flow list is a by-product of where its package happens to land rather than a slice
- *      of the flow dimension, and the whole-quest fallback item legitimately carries none. Reading
- *      `flowIds` there would leave that item ungated; the narrowing that means something for it is
- *      rule 4.
+ *    individual operation item's own `flowIds` narrow it further, and EVERY track reads `declared`
+ *    because every track's items are sliced on the flow dimension: Flowrider and Siegemaster get
+ *    one item per flow (`fanOutBy: 'flow'`), and Codeweaver
+ *    (`fanOutBy: 'implementation'`, on `startImplementationOps` rather than `relayTail`) gets one
+ *    item per (PACKAGE, FLOW) cell — one package's half of one flow — plus a single flow-less item
+ *    for a package that owns contracts and tags no node anywhere. The item's `flowIds` ARE its
+ *    coverage scope, and it is exactly the flows
+ *    `get-qa-checklist({ questId, operationItemId })` answers for — that ONE id carries the track,
+ *    the flows and the packages, and it REPLACED `track` and `packageNames` as separate arguments.
+ *    Scoping such an item over every flow of an eligible type instead hands the first of several
+ *    sibling items a work list several sessions were meant to split between them. An item declaring
+ *    NO flows matches nothing, which is what keeps a flow-less quest and any track-less item
+ *    completable.
  *
  * 2. UNIT KIND. The off-map probe families are Siegemaster's charter: they are the breakage classes
  *    a flow graph structurally cannot draw, probed by hand against a running system, which is not
- *    what a Flowrider or Groundstomper test suite is for. Counting them against either would report
- *    a hole no session of that role could ever close.
+ *    what a Codeweaver or Flowrider test suite is for. Counting them against either would report a
+ *    hole no session of that role could ever close.
  *
- * 3. PACKAGE KIND. A unit routes by the packages its owning NODE is tagged with. Groundstomper
- *    drives a browser, so it can only prove a unit landing in a package a browser can reach —
- *    `frontend-react` and `frontend-ink`. Flowrider owns everything else. The two lists are
- *    DISJOINT and their union is Siegemaster's, which is what stops one unit being counted against
- *    both authoring roles and stops a unit falling between them. Naming the KINDS rather than the
- *    packages is what lets this run in a repo with several UI packages, or none.
+ * 3. PACKAGE KIND. A unit routes by the packages its owning NODE is tagged with, and all three
+ *    tracks carry the SAME full list: each one is measured over every package kind the quest can
+ *    touch. Naming the KINDS rather than the packages is what lets this run in a repo with several
+ *    UI packages, or none. The three lists overlapping is not double-counting — a different KIND of
+ *    proof over the same unit is exactly what a separate column is for.
  *
  * 4. PACKAGE SLICE. Rule 3 narrows by KIND, which is a property of the track. This one narrows by
- *    the NAMES an individual operation item declares, which is a property of how that track's items
- *    were sliced at Start, and the two tracks slice differently:
- *
- *    - `partition` — Flowrider's items ARE the package dimension: one item per package tagged alone
- *      on a runtime node, plus ONE seam item for the glue. So an item is measured over the units
- *      whose owning node tags exactly its one package, and the seam item over the units whose node
- *      tags two or more. Every unit lands in exactly one item, which is what makes a per-item pt
- *      budget mean something; an at-least-one reading would double-own every glue unit and leave the
- *      seam item — the honest replacement for the whole-quest reconcile — owning nothing distinct.
- *    - `intersection` — Groundstomper's items are one per e2e-eligible runtime FLOW, and their
- *      `packageNames` are the browser-reachable packages that flow touches, not a slice of the
- *      package dimension. An item is measured over every unit whose node tags any of them, glue
- *      nodes included: there is no groundstomper seam item to catch a glue unit that a partition
- *      reading would drop, and a two-UI-package glue node is outside Flowrider's `packageTypes`
- *      as well, so dropping it here would leave it owned by nobody. Siegemaster declares no package
- *      names at all, so the value never binds — stated rather than omitted, because "this track
- *      does not partition" is a claim, not a default.
+ *    the NAMES an individual operation item declares, and every track reads `intersection`: an item
+ *    is measured over every unit whose owning node tags any of its names, GLUE NODES INCLUDED. No
+ *    track mints a separate seam item, so a glue unit dropped here would be owned by nobody.
+ *    Siegemaster declares no package names at all, so the value never binds — stated rather than
+ *    omitted, because "this track does not partition" is a claim, not a default.
  *
  * 5. PROVENANCE. A role that runs strictly AFTER a track cannot produce work that track was able to
  *    sign. The relay order is derived from `questTypeRegistryStatics.feature`: the intake role is
  *    `chaoswhisperer`, and `startImplementationOps` seeds ONE `codeweaver` item carrying
- *    `fanOutBy: 'implementation'` — the derived per-PACKAGE ledger `relayTailFanOutTransformer`
+ *    `fanOutBy: 'implementation'` — the derived per-CELL ledger `relayTailFanOutTransformer`
  *    expands at Start, not a plan ChaosWhisperer authors. `relayTail` runs
- *    ward → flowrider → groundstomper → siegemaster → ward; the five standards concerns are reviewed
- *    by a reviewer-minion INSIDE each committing session's own turn rather than by a relay role, so
- *    no standards review appears in this registry-derived order at all.
- *    `questBuildRelayGraphBroker` concatenates them as
- *    `[...settledExisting, ...implementationOps, ...tailOps]`, giving:
+ *    ward → flowrider → siegemaster → ward; the five standards concerns are reviewed by a reviewer
+ *    INSIDE each committing session's own turn rather than by a relay role, so no standards review
+ *    appears in this registry-derived order at all. `questBuildRelayGraphBroker` concatenates them
+ *    as `[...settledExisting, ...implementationOps, ...tailOps]`, giving:
  *
- *        spec (present at approval) → chaoswhisperer → codeweaver → flowrider → groundstomper
- *        → siegemaster
+ *        spec (present at approval) → chaoswhisperer → codeweaver → flowrider → siegemaster
  *
- *    So an observable with `addedBy: 'siegemaster'` is excluded from both authoring tracks and
- *    nothing else is. `operator` is out-of-band — a human writing an observable in at any point —
- *    and counts for every track, as does `spec`. `groundstomper` is deliberately absent from
- *    `observableOriginContract`: it extends the browser walk for units the graph already carries
- *    and holds no additive spec authority, so no observable can ever name it as an origin.
+ *    So an observable with `addedBy: 'siegemaster'` is excluded from Codeweaver and Flowrider
+ *    alike, and nothing else is. `operator` is out-of-band — a human writing an observable in at
+ *    any point — and counts for every track, as does `spec`. Codeweaver's list is Flowrider's
+ *    rather than a shorter one: a `flowrider` origin reaches a codeweaver session on a LATER `pt N`
+ *    continuation of that package, and dropping it would park such an observable outside every
+ *    codeweaver denominator permanently.
  *
- * `questTypeRegistryStatics['bug-hunt'].relayTail` carries none of the three operator roles, so no
- * track's gate ever binds on a bug-hunt quest.
+ * BOTH QUEST TYPES RUN THIS RELAY. `questTypeRegistryStatics['bug-hunt']` seeds the same
+ * `codeweaver` implementation item and the same flowrider/siegemaster tail, so every rule here
+ * binds on a bug-hunt quest exactly as it does on a feature one.
  *
  * This is DATA only (statics may import statics, never contracts). `unitKinds` stays 1:1 with
  * `qaChecklistKindContract`'s options, the siegemaster `observableOrigins` 1:1 with
@@ -119,7 +99,7 @@
  * options, and the siegemaster `packageTypes` 1:1 with `packageTypeContract`'s options; the
  * colocated test's full-value assertion is what pins that.
  *
- * Inclusion LISTS rather than a `Record<kind, {flowrider: boolean, siegemaster: boolean}>` matrix:
+ * Inclusion LISTS rather than a `Record<kind, Record<track, boolean>>` matrix:
  * under `as const` a matrix types `byUnitKind.terminal.flowrider` as the literal `true`, which
  * `@typescript-eslint/no-unnecessary-condition` reports as an always-truthy condition at the call
  * site. Lists read into a `Set` sidestep that and read as what they are.
@@ -127,29 +107,41 @@
 
 export const signoffTrackEligibilityStatics = {
   byTrack: {
-    flowrider: {
-      signoffField: 'flowriderSignoff',
-      flowTypes: ['runtime'],
-      flowScope: 'every-eligible',
+    codeweaver: {
+      signoffField: 'codeweaverSignoff',
+      flowTypes: ['runtime', 'operational'],
+      flowScope: 'declared',
       unitKinds: ['terminal', 'branch', 'observable'],
       packageTypes: [
         'http-backend',
         'mcp-server',
+        'frontend-react',
+        'frontend-ink',
         'hook-handlers',
         'eslint-plugin',
         'cli-tool',
         'programmatic-service',
         'library',
       ],
-      packageScope: 'partition',
+      packageScope: 'intersection',
       observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
     },
-    groundstomper: {
+    flowrider: {
       signoffField: 'flowriderSignoff',
       flowTypes: ['runtime'],
       flowScope: 'declared',
       unitKinds: ['terminal', 'branch', 'observable'],
-      packageTypes: ['frontend-react', 'frontend-ink'],
+      packageTypes: [
+        'http-backend',
+        'mcp-server',
+        'frontend-react',
+        'frontend-ink',
+        'hook-handlers',
+        'eslint-plugin',
+        'cli-tool',
+        'programmatic-service',
+        'library',
+      ],
       packageScope: 'intersection',
       observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
     },

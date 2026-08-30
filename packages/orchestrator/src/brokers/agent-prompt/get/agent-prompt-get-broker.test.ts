@@ -11,25 +11,14 @@ import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/sha
 
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPlannerMinionStatics } from '../../../statics/codeweaver-planner-minion/codeweaver-planner-minion-statics';
 import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { codeweaverReviewerMinionStatics } from '../../../statics/codeweaver-reviewer-minion/codeweaver-reviewer-minion-statics';
-import { codeweaverWorkerMinionStatics } from '../../../statics/codeweaver-worker-minion/codeweaver-worker-minion-statics';
-import { flowriderPlannerMinionStatics } from '../../../statics/flowrider-planner-minion/flowrider-planner-minion-statics';
+import { codeweaverReviewerStatics } from '../../../statics/codeweaver-reviewer/codeweaver-reviewer-statics';
 import { flowriderPromptStatics } from '../../../statics/flowrider-prompt/flowrider-prompt-statics';
-import { flowriderReviewerMinionStatics } from '../../../statics/flowrider-reviewer-minion/flowrider-reviewer-minion-statics';
-import { flowriderWorkerMinionStatics } from '../../../statics/flowrider-worker-minion/flowrider-worker-minion-statics';
-import { groundstomperPlannerMinionStatics } from '../../../statics/groundstomper-planner-minion/groundstomper-planner-minion-statics';
-import { groundstomperReviewerMinionStatics } from '../../../statics/groundstomper-reviewer-minion/groundstomper-reviewer-minion-statics';
-import { groundstomperWorkerMinionStatics } from '../../../statics/groundstomper-worker-minion/groundstomper-worker-minion-statics';
-import { pesteaterPlannerMinionStatics } from '../../../statics/pesteater-planner-minion/pesteater-planner-minion-statics';
-import { pesteaterReviewerMinionStatics } from '../../../statics/pesteater-reviewer-minion/pesteater-reviewer-minion-statics';
-import { pesteaterWorkerMinionStatics } from '../../../statics/pesteater-worker-minion/pesteater-worker-minion-statics';
+import { flowriderReviewerStatics } from '../../../statics/flowrider-reviewer/flowrider-reviewer-statics';
 import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
-import { siegemasterPlannerMinionStatics } from '../../../statics/siegemaster-planner-minion/siegemaster-planner-minion-statics';
 import { siegemasterPromptStatics } from '../../../statics/siegemaster-prompt/siegemaster-prompt-statics';
-import { siegemasterReviewerMinionStatics } from '../../../statics/siegemaster-reviewer-minion/siegemaster-reviewer-minion-statics';
-import { siegemasterWorkerMinionStatics } from '../../../statics/siegemaster-worker-minion/siegemaster-worker-minion-statics';
+import { siegemasterReviewerStatics } from '../../../statics/siegemaster-reviewer/siegemaster-reviewer-statics';
+import { siegemasterWalkerStatics } from '../../../statics/siegemaster-walker/siegemaster-walker-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
@@ -39,21 +28,10 @@ import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
 // against its new text.
 const MINION_PROMPTS = new Map([
   ['chaoswhisperer-gap-minion', ['sonnet', chaoswhispererGapMinionStatics.prompt.template]],
-  ['codeweaver-planner-minion', ['opus', codeweaverPlannerMinionStatics.prompt.template]],
-  ['codeweaver-worker-minion', ['sonnet', codeweaverWorkerMinionStatics.prompt.template]],
-  ['codeweaver-reviewer-minion', ['opus', codeweaverReviewerMinionStatics.prompt.template]],
-  ['pesteater-planner-minion', ['opus', pesteaterPlannerMinionStatics.prompt.template]],
-  ['pesteater-worker-minion', ['sonnet', pesteaterWorkerMinionStatics.prompt.template]],
-  ['pesteater-reviewer-minion', ['opus', pesteaterReviewerMinionStatics.prompt.template]],
-  ['flowrider-planner-minion', ['opus', flowriderPlannerMinionStatics.prompt.template]],
-  ['flowrider-worker-minion', ['sonnet', flowriderWorkerMinionStatics.prompt.template]],
-  ['flowrider-reviewer-minion', ['opus', flowriderReviewerMinionStatics.prompt.template]],
-  ['groundstomper-planner-minion', ['opus', groundstomperPlannerMinionStatics.prompt.template]],
-  ['groundstomper-worker-minion', ['sonnet', groundstomperWorkerMinionStatics.prompt.template]],
-  ['groundstomper-reviewer-minion', ['opus', groundstomperReviewerMinionStatics.prompt.template]],
-  ['siegemaster-planner-minion', ['opus', siegemasterPlannerMinionStatics.prompt.template]],
-  ['siegemaster-worker-minion', ['sonnet', siegemasterWorkerMinionStatics.prompt.template]],
-  ['siegemaster-reviewer-minion', ['opus', siegemasterReviewerMinionStatics.prompt.template]],
+  ['codeweaver-reviewer', ['sonnet', codeweaverReviewerStatics.prompt.template]],
+  ['flowrider-reviewer', ['sonnet', flowriderReviewerStatics.prompt.template]],
+  ['siegemaster-reviewer', ['sonnet', siegemasterReviewerStatics.prompt.template]],
+  ['siegemaster-walker', ['sonnet', siegemasterWalkerStatics.prompt.template]],
 ]);
 
 // The case LISTS are derived from the classification statics, never transcribed — a prompt added
@@ -65,10 +43,10 @@ const MINION_FETCH_CASES = agentPromptClassificationStatics.minionNames.map((nam
   ...(MINION_PROMPTS.get(name) ?? []),
 ]);
 
-// Every minion the workItemId refusal binds: the ROUND minions, which is `minionNames` minus the
-// spec-phase gap minion. That one runs before any operation item exists, so there is no round for a
-// stray workItemId to advance and the broker exempts it by name — the case below the matrix.
-const ROUND_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
+// Every minion the workItemId refusal binds: `minionNames` minus the spec-phase gap minion. That
+// one runs before any operation item exists, so there is no relay for a stray workItemId to advance
+// and the broker exempts it by name — the case below the matrix.
+const OPERATOR_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
   (name) => name !== 'chaoswhisperer-gap-minion',
 );
 
@@ -118,8 +96,8 @@ describe('agentPromptGetBroker', () => {
   // is its PARENT's, completing the parent's scope mid-round. The message is asserted WHOLE because
   // the wording is the protection: softened to a generic "bad arguments" it would send the minion
   // off to fix the one argument that was not its mistake.
-  describe('a round minion may not be given a workItemId, not even its parent’s', () => {
-    it.each(ROUND_MINION_NAMES)(
+  describe('a minion may not be given a workItemId, not even its parent’s', () => {
+    it.each(OPERATOR_MINION_NAMES)(
       'ERROR: {agent: %s, questId, workItemId} => throws naming the workItemId as the fault',
       async (agent) => {
         agentPromptGetBrokerProxy();
@@ -219,6 +197,12 @@ describe('agentPromptGetBroker', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -313,6 +297,12 @@ describe('agentPromptGetBroker', () => {
         'Operations ledger (in order):',
         '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Dev Server Command: npm run dev',
         `Dev Server URL: http://${environmentStatics.hostname}:4400`,
         '',
@@ -365,6 +355,12 @@ describe('agentPromptGetBroker', () => {
         '',
         'Operations ledger (in order):',
         '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
         '',
         'Dev Server Command: npm run dev',
         `Dev Server URL: http://${environmentStatics.hostname}:4401`,
@@ -454,6 +450,12 @@ describe('agentPromptGetBroker', () => {
         'Operations ledger (in order):',
         '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -502,6 +504,12 @@ describe('agentPromptGetBroker', () => {
         '',
         'Operations ledger (in order):',
         '1. [>] [flowrider] author the flow-perspective test suites  <-- YOUR OPERATION ITEM',
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
@@ -757,6 +765,12 @@ describe('agentPromptGetBroker', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -810,6 +824,12 @@ describe('agentPromptGetBroker', () => {
         '',
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',

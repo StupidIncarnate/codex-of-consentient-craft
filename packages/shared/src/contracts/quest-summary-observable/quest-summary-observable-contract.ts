@@ -20,9 +20,9 @@
  * the one question a summary has to be able to answer without diffing two quest files.
  *
  * `id` is the DERIVED verification unit id (`<flowId>:observable:<observableId>`), not the raw
- * observable id, so an entry here addresses the same unit `get-qa-checklist` prints and the
- * completion gate refuses on. `observableId` is kept alongside it because that is what a
- * modify-quest write names.
+ * observable id, so an entry here addresses the same unit `get-qa-checklist` prints and a track's
+ * own work list names. `observableId` is kept alongside it because that is what a modify-quest write
+ * names.
  *
  * `addedBy` is never `spec` here: a `spec` origin means the observable was in the flow at approval,
  * which is the absence of drift, and listing it would bury the four real additions under forty.

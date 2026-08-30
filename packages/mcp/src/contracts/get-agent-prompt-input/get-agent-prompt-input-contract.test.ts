@@ -107,38 +107,37 @@ describe('getAgentPromptInputContract', () => {
     }).toThrow(/too_small/u);
   });
 
-  // The fifteen round minions are named for the role that summons them, and the name alone selects
-  // the prompt. Each is summoned by its parent rather than dispatched against a work item, so the
-  // whole input is the name plus the quest.
-  it("VALID: {agent: 'codeweaver-worker-minion', questId} => parses a per-role round minion with no workItemId", () => {
+  // A minion is named for the role that summons it, and the name alone selects the prompt. It is
+  // summoned by its parent rather than dispatched against a work item, so the whole input is the
+  // name plus the quest.
+  it("VALID: {agent: 'codeweaver-reviewer', questId} => parses a per-role minion with no workItemId", () => {
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 
     const result = getAgentPromptInputContract.parse({
-      agent: 'codeweaver-worker-minion',
+      agent: 'codeweaver-reviewer',
       questId,
     });
 
     expect(result).toStrictEqual({
-      agent: 'codeweaver-worker-minion',
+      agent: 'codeweaver-reviewer',
       questId,
     });
   });
 
-  // `discipline` chose which of five packs filled a shared template's `$DISCIPLINE` placeholder.
-  // Per-role prompts removed the placeholder, the packs and the field together. A stale caller still
-  // sending it is NOT refused — the schema is not `.strict()`, so the key is dropped and the
-  // orchestrator is handed `{agent, questId}` and nothing else.
-  it("VALID: {agent: 'siegemaster-reviewer-minion', discipline: 'manual-qa'} => strips the removed discipline field", () => {
+  // `discipline` is not an argument in any form: the agent name alone selects the prompt. A stale
+  // caller still sending it is NOT refused — the schema is not `.strict()`, so the key is dropped
+  // and the orchestrator is handed `{agent, questId}` and nothing else.
+  it("VALID: {agent: 'siegemaster-walker', discipline: 'manual-qa'} => strips the unrecognised discipline field", () => {
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 
     const result = getAgentPromptInputContract.parse({
-      agent: 'siegemaster-reviewer-minion',
+      agent: 'siegemaster-walker',
       questId,
       discipline: 'manual-qa',
     });
 
     expect(result).toStrictEqual({
-      agent: 'siegemaster-reviewer-minion',
+      agent: 'siegemaster-walker',
       questId,
     });
   });

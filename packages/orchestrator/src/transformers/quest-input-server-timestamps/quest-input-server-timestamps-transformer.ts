@@ -57,7 +57,7 @@ export const questInputServerTimestampsTransformer = ({
                       return {
                         // A node signs on its own account AND contains observables that sign on
                         // theirs, so both levels are stamped — the batched
-                        // `{id, flowriderSignoff, observables: [...]}` shape a reviewer-minion
+                        // `{id, flowriderSignoff, observables: [...]}` shape a reviewer
                         // writes is one call carrying sign-offs at two depths.
                         ...signoffElementStampTransformer({ element: node, at }),
                         ...(observables === undefined

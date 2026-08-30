@@ -1,10 +1,10 @@
 import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 
-import { flowriderReviewerMinionStatics } from '../flowrider-reviewer-minion/flowrider-reviewer-minion-statics';
-import { flowriderWorkerMinionStatics } from '../flowrider-worker-minion/flowrider-worker-minion-statics';
-import { groundstomperReviewerMinionStatics } from '../groundstomper-reviewer-minion/groundstomper-reviewer-minion-statics';
+import { codeweaverPromptStatics } from '../codeweaver-prompt/codeweaver-prompt-statics';
+import { flowriderPromptStatics } from '../flowrider-prompt/flowrider-prompt-statics';
+import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-reviewer-statics';
+import { siegemasterWalkerStatics } from '../siegemaster-walker/siegemaster-walker-statics';
 import { signoffTrackEligibilityStatics } from '../signoff-track-eligibility/signoff-track-eligibility-statics';
-import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
 import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
 
 // PROSE COMPARES IGNORE WRAPPING. Both halves are bound with every whitespace run — spaces,
@@ -75,25 +75,23 @@ describe('flowEvidenceContractStatics', () => {
       );
     });
 
-    it('VALID: judgingMarkdown => defines exactly two per-track verdicts, both of which clear the gate', () => {
+    it('VALID: judgingMarkdown => defines exactly two per-track verdicts over three tracks', () => {
       expect({
-        heading: /^## Verdicts — every unit carries TWO independent sign-offs$/mu.test(
-          flowEvidenceContractStatics.judgingMarkdown,
-        ),
+        heading:
+          /^## Verdicts — a unit carries one sign-off per track, and there are three$/mu.test(
+            flowEvidenceContractStatics.judgingMarkdown,
+          ),
         perTrack: judgingMarkdown.includes(
           'A unit is settled PER TRACK, never once for everybody.',
         ),
-        bothTracksMustSign: judgingMarkdown.includes(
-          'A unit is done only when BOTH tracks have signed it.',
+        codeweaverIsAUnitTest: judgingMarkdown.includes(
+          '| `codeweaverSignoff` | proven by a unit test, beside the code |',
         ),
-        bothVerdictsClear: judgingMarkdown.includes(
-          '**Both verdicts CLEAR the completion gate — it refuses an ABSENT sign-off and nothing else.**',
+        flowriderIsAFlowTest: judgingMarkdown.includes(
+          '| `flowriderSignoff` | proven by a flow-perspective test |',
         ),
-        confirmedNeedsAFailure: judgingMarkdown.includes(
-          'a test `file:line` PLUS what makes that test fail',
-        ),
-        confirmedIsMeasuredForSiegemaster: judgingMarkdown.includes(
-          'Siegemaster: the value you measured off the running system.',
+        siegemasterIsMeasured: judgingMarkdown.includes(
+          '| `siegemasterSignoff` | holds when a person drives the real system |',
         ),
         unconfirmableNeedsAQuestion: judgingMarkdown.includes(
           'the contract refuses an `unconfirmable` carrying none.',
@@ -101,17 +99,55 @@ describe('flowEvidenceContractStatics', () => {
       }).toStrictEqual({
         heading: true,
         perTrack: true,
-        bothTracksMustSign: true,
-        bothVerdictsClear: true,
-        confirmedNeedsAFailure: true,
-        confirmedIsMeasuredForSiegemaster: true,
+        codeweaverIsAUnitTest: true,
+        flowriderIsAFlowTest: true,
+        siegemasterIsMeasured: true,
         unconfirmableNeedsAQuestion: true,
+      });
+    });
+
+    // NO GATE COUNTS SIGN-OFFS ANY MORE. The completion gate that refused a parent's `done` over an
+    // absent sign-off is deleted, so the pressure that made a session reach for a verdict it could
+    // not back is gone with it. This block has to say so, or a reader carries the old incentive:
+    // sign something rather than leave a unit blank. The FALSE pins below name the three claims the
+    // deleted gate made, so none of them can drift back in.
+    it('VALID: judgingMarkdown => tells a reader an unsigned unit is honest, and claims no gate', () => {
+      expect({
+        unsignedIsHonest: judgingMarkdown.includes(
+          '**An unsigned unit is honest, and nothing refuses a `done` over one.**',
+        ),
+        noGateCounts: judgingMarkdown.includes('No gate counts sign-offs.'),
+        leaveItUnsigned: judgingMarkdown.includes(
+          'leave a unit you did not reach unsigned rather than reaching for a verdict that closes it',
+        ),
+        missingTestIsNotUnconfirmable: judgingMarkdown.includes(
+          '**A unit that simply needs a test nobody has written yet is NOT `unconfirmable`.**',
+        ),
+        missingTestGoesToRework: judgingMarkdown.includes('put it in your `NEXT: rework` line'),
+        aVerdictClosesTheUnit: judgingMarkdown.includes('A verdict CLOSES a unit'),
+        blankNeverClears: judgingMarkdown.includes(
+          'A blank sign-off is the one thing that never clears',
+        ),
+        gateRefusesTheParentsDone: judgingMarkdown.includes(
+          "the completion gate refuses your parent's `done`",
+        ),
+        blankSpendsThePtChain: judgingMarkdown.includes('the pt chain spends itself against it'),
+      }).toStrictEqual({
+        unsignedIsHonest: true,
+        noGateCounts: true,
+        leaveItUnsigned: true,
+        missingTestIsNotUnconfirmable: true,
+        missingTestGoesToRework: true,
+        aVerdictClosesTheUnit: true,
+        blankNeverClears: false,
+        gateRefusesTheParentsDone: false,
+        blankSpendsThePtChain: false,
       });
     });
 
     // No third verdict exists to hold a measured defect. Signing one as a verdict would leave the
     // unit's own positive expectation unanswered, because a defect is the INVERSE of an observable.
-    // The defect goes into the spec as its own observable. There it carries its own two sign-offs.
+    // The defect goes into the spec as its own observable, where it takes its tracks' sign-offs.
     it('VALID: judgingMarkdown => routes a measured defect to a new observable rather than a third verdict', () => {
       expect({
         newObservable: judgingMarkdown.includes(
@@ -120,71 +156,27 @@ describe('flowEvidenceContractStatics', () => {
         inverseExpectation: judgingMarkdown.includes(
           'is the INVERSE expectation and belongs in the spec.',
         ),
-        carriesItsOwnSignoffs: judgingMarkdown.includes(
-          'it arrives unsigned and then carries its own two sign-offs like every other unit.',
+        takesItsTracksSignoffs: judgingMarkdown.includes(
+          "it arrives unsigned and then takes its tracks' sign-offs like every other unit.",
         ),
         noOtherVerdicts: judgingMarkdown.includes(
-          '**There is no `defect`, `deferred`, `gap` or `recorded` SIGN-OFF verdict**',
+          '**There is no `defect`, `deferred`, `gap` or `recorded` SIGN-OFF verdict.**',
         ),
-        // Without that qualifier, the two blocks read as one vocabulary contradicting itself. The
-        // same composed reviewer prompt carries the standing concerns' disposition table, where
-        // `gap` and `recorded` are honest answers that CLEAR a unit.
-        dispositionsAreADifferentRecord: judgingMarkdown.includes(
-          "the standing concerns' `blightLedger` dispositions are a separate record with a vocabulary of their own.",
+        twoIsTheWholeVocabulary: judgingMarkdown.includes(
+          '`confirmed` and `unconfirmable` are the whole vocabulary.',
         ),
         provenanceIsSeparate: judgingMarkdown.includes('**Provenance is a SEPARATE axis.**'),
+        // The blight ledger and its five dispositions are deleted. A reference to them here sends a
+        // reader to a record that no longer exists and a tool that no longer answers.
+        namesTheDeletedLedger: judgingMarkdown.includes('blightLedger'),
       }).toStrictEqual({
         newObservable: true,
         inverseExpectation: true,
-        carriesItsOwnSignoffs: true,
+        takesItsTracksSignoffs: true,
         noOtherVerdicts: true,
-        dispositionsAreADifferentRecord: true,
+        twoIsTheWholeVocabulary: true,
         provenanceIsSeparate: true,
-      });
-    });
-
-    // The gate refuses an ABSENT sign-off. `signoffOutstandingTransformer` returns every unit whose
-    // track field is `undefined`. BOTH verdicts clear one. The machinery routes a blank nowhere. It
-    // refuses the parent's `done`. It spends the pt chain. The two discipline packs that embed this
-    // block say exactly that, ~120 rendered lines further down the same served prompt. This closing
-    // paragraph used to tell the reviewer the opposite.
-    it('VALID: judgingMarkdown => closes an unsettleable unit with `unconfirmable` rather than leaving it blank', () => {
-      expect({
-        blankIsTheOneThingThatNeverClears: judgingMarkdown.includes(
-          '**A blank sign-off is the one thing that never clears.**',
-        ),
-        blankRoutesNothingBack: judgingMarkdown.includes(
-          'Nothing server-side reopens an unsigned unit',
-        ),
-        blankRefusesTheParentsDone: judgingMarkdown.includes(
-          "the completion gate refuses your parent's `done` while a unit carries no sign-off",
-        ),
-        blankSpendsThePtChain: judgingMarkdown.includes('the pt chain spends itself against it'),
-        honestVerdictClears: judgingMarkdown.includes(
-          'An honest `unconfirmable` clears that gate.',
-        ),
-        // A verdict CLOSES the unit, so it can never stand in for a test that is merely still
-        // unwritten. The old close reached for that half. This pin keeps it.
-        missingTestIsNotUnconfirmable: judgingMarkdown.includes(
-          '**A unit that simply needs a test nobody has written yet is NOT `unconfirmable`.**',
-        ),
-        missingTestGoesToRework: judgingMarkdown.includes('put it in your `NEXT: rework` line'),
-        aVerdictClosesTheUnit: judgingMarkdown.includes('A verdict CLOSES a unit permanently'),
-        // This string names the claim the paragraph replaced. Nothing reopens an unsigned unit, so
-        // no later pass ever picks the work up.
-        noRoutesBackClaim: judgingMarkdown.includes(
-          'an unsigned unit routes the work back to another pass',
-        ),
-      }).toStrictEqual({
-        blankIsTheOneThingThatNeverClears: true,
-        blankRoutesNothingBack: true,
-        blankRefusesTheParentsDone: true,
-        blankSpendsThePtChain: true,
-        honestVerdictClears: true,
-        missingTestIsNotUnconfirmable: true,
-        missingTestGoesToRework: true,
-        aVerdictClosesTheUnit: true,
-        noRoutesBackClaim: false,
+        namesTheDeletedLedger: false,
       });
     });
 
@@ -319,21 +311,19 @@ describe('flowEvidenceContractStatics', () => {
   // different half to a different session. Nothing typechecks that split, and no test but these
   // ones spans this file and the files that read it. Every needle below is READ off the value the
   // consumer interpolates, never copied into a second place where it could drift quietly.
-  describe('the three prompts that interpolate these halves', () => {
-    // PAIR: `flowEvidenceContractStatics` and its three consumers. The two REVIEWER prompts take
-    // the judging half and must never take the authoring one — a reviewer does not need the method
-    // that produced the artifact it grades — and the flowrider WORKER prompt takes the authoring
-    // half alone. A second copy of either half puts the same thousands of characters into two
-    // prompts at once, and a copy drifts away from the value the other consumers still
-    // interpolate. No session notices.
-    it('VALID: all three prompts => carry each half in exactly the prompt that needs it, once each', () => {
+  describe('the two prompts that interpolate these halves', () => {
+    // PAIR: `flowEvidenceContractStatics` and its two consumers. The flowrider OPERATOR chooses the
+    // layer for every unit on its flow, so it takes the authoring half; the flowrider REVIEWER
+    // grades the suite that came back, so it takes the judging half. Neither takes both — a reviewer
+    // does not need the method that produced the artifact it grades, and a copy of either half in a
+    // second prompt drifts away from the value the other consumer still interpolates, silently.
+    it('VALID: both prompts => carry each half in exactly the prompt that needs it, once each', () => {
       // RAW on both sides: this counts BYTE-EXACT interpolations of each half into a prompt.
       const { judgingMarkdown: rawJudging, authoringMarkdown: rawAuthoring } =
         flowEvidenceContractStatics;
       const templates = [
-        flowriderReviewerMinionStatics.prompt.template,
-        groundstomperReviewerMinionStatics.prompt.template,
-        flowriderWorkerMinionStatics.prompt.template,
+        flowriderReviewerStatics.prompt.template,
+        flowriderPromptStatics.prompt.template,
       ];
 
       expect({
@@ -345,25 +335,24 @@ describe('flowEvidenceContractStatics', () => {
         authoringPerPrompt: templates.map((template) => template.split(rawAuthoring).length - 1),
       }).toStrictEqual({
         neitherHalfContainsTheOther: [false, false],
-        judgingPerPrompt: [1, 1, 0],
-        authoringPerPrompt: [0, 0, 1],
+        judgingPerPrompt: [1, 0],
+        authoringPerPrompt: [0, 1],
       });
     });
 
-    // PAIR: this block's verdict vocabulary and what each reviewer prompt AUTHORS ITSELF. The two
-    // verdicts come off the bullets here; the four refused words come off the sentence that refuses
-    // them. Both prompts restate the vocabulary in their own words, so the token is what has to
-    // agree. A prompt that signed a `gap` — or left a unit blank — settles nothing: the completion
-    // gate refuses an ABSENT sign-off, so the parent's `done` is refused, the round spends its pt
-    // chain to its budget, and the quest blocks.
+    // PAIR: this block's verdict vocabulary and the three prompts that actually WRITE a sign-off.
+    // Those are not the three operators. Codeweaver and Flowrider sign from their sub-agents' PROVED
+    // lines, wave by wave — but Siegemaster signs nothing: its WALKER does, because it is the only
+    // session that ever drives the running system, and by the time anything else reads the record
+    // that system state is gone. Only the flowrider prompt interpolates this half, so the other two
+    // restate the vocabulary in their own words and the TOKEN is what has to agree. A prompt that
+    // signed a `gap` or a `deferred` would write a verdict `signoffContract` rejects, and the write
+    // fails at parse time.
     //
-    // BOTH shared blocks are subtracted byte-exactly before the count, and each for its own reason.
-    // This half is subtracted so the prompt is measured on its own words rather than on the text it
-    // is being checked against. `standardsReviewConcernsStatics` is subtracted because its
-    // disposition table legitimately spells `gap` and `recorded` — a DIFFERENT record with a
-    // vocabulary of its own, which is exactly what the sentence in this half says.
-    it('VALID: both reviewer prompts => sign in the verdict vocabulary this block defines, and name no refused one', () => {
-      // RAW: the verdict bullets are line-anchored, and the shared blocks are subtracted byte-exactly.
+    // The judging half is subtracted byte-exactly from the flowrider prompt before the count, so
+    // that prompt is measured on its own words rather than on the text it is being checked against.
+    it('VALID: all three SIGNING prompts => sign in this vocabulary, and name no refused verdict', () => {
+      // RAW: the verdict bullets are line-anchored, and the shared half is subtracted byte-exactly.
       const { judgingMarkdown: rawJudging } = flowEvidenceContractStatics;
       const verdicts = Array.from(rawJudging.matchAll(/^- \*\*`([a-z]+)`\*\* —/gmu)).flatMap(
         (match) => match.slice(1),
@@ -374,11 +363,10 @@ describe('flowEvidenceContractStatics', () => {
           .matchAll(/`([a-z]+)`/gu),
       ).flatMap((match) => match.slice(1));
       const authoredHalves = [
-        flowriderReviewerMinionStatics.prompt.template,
-        groundstomperReviewerMinionStatics.prompt.template,
-      ].map((template) =>
-        template.split(rawJudging).join('').split(standardsReviewConcernsStatics.markdown).join(''),
-      );
+        codeweaverPromptStatics.prompt.template,
+        flowriderPromptStatics.prompt.template,
+        siegemasterWalkerStatics.prompt.template,
+      ].map((template) => template.split(rawJudging).join(''));
 
       expect({
         verdicts,
@@ -398,34 +386,28 @@ describe('flowEvidenceContractStatics', () => {
     });
 
     // PAIR: this block's sign-off FIELD names and `signoffTrackEligibilityStatics.byTrack`, which
-    // assigns them — three denominators over two fields, because Flowrider and Groundstomper both
-    // write `flowriderSignoff`. The names are read off the data. A third field added there and
-    // never named here would leave that track judged against a contract that does not mention it.
+    // assigns them. The names are read off the data, so a track added there and never named here
+    // would leave that track judged against a contract that does not mention it. Each track now owns
+    // exactly one field, which is what the three-row table in the verdicts section renders.
     it('VALID: judgingMarkdown => names every sign-off field the eligibility statics assign, and no other', () => {
       const tracks = Object.values(signoffTrackEligibilityStatics.byTrack);
       const fields = Array.from(new Set(tracks.map((track) => track.signoffField))).sort();
 
       expect({
         fields,
-        moreDenominatorsThanFields: tracks.length > fields.length,
         fieldsThisBlockNeverNames: fields.filter(
           (field) => !judgingMarkdown.includes(`\`${field}\``),
         ),
-        bothTracksMustSign: judgingMarkdown.includes(
-          'A unit is done only when BOTH tracks have signed it.',
-        ),
       }).toStrictEqual({
-        fields: ['flowriderSignoff', 'siegemasterSignoff'],
-        moreDenominatorsThanFields: true,
+        fields: ['codeweaverSignoff', 'flowriderSignoff', 'siegemasterSignoff'],
         fieldsThisBlockNeverNames: [],
-        bothTracksMustSign: true,
       });
     });
 
     // PAIR: this block's provenance sentence and
     // `signoffTrackEligibilityStatics.byTrack.siegemaster.observableOrigins` — the only track
     // measured over every origin, so its list is the full one. `addedBy` is a SEPARATE axis from
-    // the verdict, and a stale list here hands a reviewer an origin the gate does not count.
+    // the verdict, and a stale list here hands a reviewer an origin nothing else recognises.
     it('VALID: judgingMarkdown => lists exactly the observable origins the eligibility statics carry', () => {
       const sentence = judgingMarkdown.slice(
         judgingMarkdown.indexOf('Its values are'),

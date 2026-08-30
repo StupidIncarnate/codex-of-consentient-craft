@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Applies the two PACKAGE narrowings a verification denominator carries — the track's
- * package KINDS and the operation item's own declared package NAMES — in one place, so the
- * completion gate, `get-qa-checklist` and the quest summary cannot disagree about which units an
+ * package KINDS and the operation item's own declared package NAMES — in one place, so
+ * `get-qa-checklist` and the quest summary cannot disagree about which units an
  * item is measured over. Reach for this whenever a caller holds units plus a track;
  * `signoffFlowOutstandingTransformer` is the caller that also applies kind, provenance and
  * sign-off state on top.
@@ -16,8 +16,8 @@
  * or an observable, and the node an edge LEAVES for a branch, since that is where the decision is
  * taken. An off-map family hangs off no node.
  *
- * NAMES AND KINDS ARE INDEPENDENT INPUTS. `packagesAffected` resolves a node's names to KINDS and is
- * what splits Groundstomper from Flowrider; `packageNames` is the item's own slice and needs no
+ * NAMES AND KINDS ARE INDEPENDENT INPUTS. `packagesAffected` resolves a node's names to KINDS, which
+ * is what a track's `packageTypes` narrows on; `packageNames` is the item's own slice and needs no
  * resolution at all, so an item still narrows correctly on a quest whose `packagesAffected` is
  * empty or lags its node tags.
  *
@@ -25,13 +25,11 @@
  * hono adapter is browser-reachable AND an http-backend — and each entry's stamped set is what says
  * so, since the detector's priority table names a single winner and returns.
  *
- * HOW `packageNames` NARROWS is `signoffTrackEligibilityStatics.byTrack[track].packageScope`, so the
- * seam rule is data rather than a role comparison here. Under `partition` a one-name item owns the
- * units whose node tags exactly that package — measured over the packages the track's own KINDS
- * cover, the same subset `relayTailFanOutTransformer` slices on — and a many-name item owns the
- * glue units, which is what makes Flowrider's N per-package items plus one seam item a true
- * partition, each with a pt budget that means something. Under `intersection` an item owns every
- * unit whose node tags any of its names, glue included.
+ * `packageNames` NARROWS BY INTERSECTION for every track — an item owns every unit whose node tags
+ * ANY of its names, glue included. No track mints a seam item, so a glue unit a stricter reading
+ * dropped would be owned by nobody at all. Each track declares that as
+ * `signoffTrackEligibilityStatics.byTrack[track].packageScope`, so a track that needs a different
+ * rule declares it there and gets a branch here rather than a role comparison.
  *
  * NOTHING IS EXCLUDED ON DATA THAT CANNOT BE RESOLVED. A unit hanging off no node, a node the flow
  * does not carry, and a node tagged with a package absent from `packagesAffected` all stay in. A
@@ -102,29 +100,6 @@ export const qaUnitsInPackageScopeTransformer = ({
 
     if (declaredNames.size === 0) {
       return true;
-    }
-
-    if (eligibility.packageScope === 'partition') {
-      // The item's ARITY is the marker, and it is the one `relayTailFanOutTransformer` already
-      // writes: a per-package slice carries exactly one name, the seam slice carries the union of
-      // the glue packages. So one name owns the units whose node tags that package ALONE, and more
-      // than one owns the glue. Reading a per-package item as "any node including my package"
-      // instead would hand every glue unit to two items at once, and leave the seam item — the
-      // honest replacement for the whole-quest reconcile — owning nothing of its own.
-      //
-      // ALONE is measured over the packages THIS TRACK OWNS, not over the raw tag list, because
-      // that is the set the slicer mints from. A node spanning a frontend and a backend package is
-      // glue on the graph but lands on ONE side of this track, so its units belong to that side's
-      // per-package item; reading its raw arity instead leaves them owned by no item at all, since
-      // the seam item narrows its own names the same way and would not be the one that owned them.
-      const owningInKind = owningPackages.filter((name) => {
-        const kinds = packageKindsByName.get(name);
-        return kinds === undefined || kinds.some((kind) => eligiblePackageTypes.has(kind));
-      });
-
-      return owningInKind.length > 1
-        ? declaredNames.size > 1
-        : declaredNames.size === 1 && owningInKind.every((name) => declaredNames.has(name));
     }
 
     return owningPackages.some((name) => declaredNames.has(name));

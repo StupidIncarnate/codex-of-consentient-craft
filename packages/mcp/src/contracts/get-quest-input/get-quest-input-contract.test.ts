@@ -1,3 +1,5 @@
+import { getQuestInputConflictsStatics } from '@dungeonmaster/shared/statics';
+
 import { getQuestInputContract } from './get-quest-input-contract';
 import { GetQuestInputStub } from './get-quest-input.stub';
 
@@ -63,9 +65,60 @@ describe('getQuestInputContract', () => {
         format: 'text',
       });
     });
+
+    it('VALID: {questId with flowId and packageName} => parses the codeweaver slice call', () => {
+      const input = GetQuestInputStub({
+        questId: 'add-auth',
+        flowId: 'login-flow',
+        packageName: 'web',
+      });
+
+      const result = getQuestInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        flowId: 'login-flow',
+        packageName: 'web',
+        format: 'text',
+      });
+    });
+
+    it('VALID: {questId with packageName alone} => parses the foundation-view call', () => {
+      const input = GetQuestInputStub({ questId: 'add-auth', packageName: 'shared' });
+
+      const result = getQuestInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        packageName: 'shared',
+        format: 'text',
+      });
+    });
   });
 
   describe('invalid inputs', () => {
+    // The wrapper re-applies the shared contract's rejection because a `ZodEffects` cannot be
+    // `.extend()`ed with `format` — so this is the half an MCP caller actually hits.
+    it('INVALID: {flowId with stage} => throws naming the call to make instead', () => {
+      expect(() => {
+        return getQuestInputContract.parse({
+          questId: 'add-auth',
+          flowId: 'login-flow',
+          stage: 'planning',
+        });
+      }).toThrow(getQuestInputConflictsStatics.flowIdWithStage);
+    });
+
+    it('INVALID: {packageName with stage} => throws naming the call to make instead', () => {
+      expect(() => {
+        return getQuestInputContract.parse({
+          questId: 'add-auth',
+          packageName: 'web',
+          stage: 'spec',
+        });
+      }).toThrow(getQuestInputConflictsStatics.packageNameWithStage);
+    });
+
     it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
         return getQuestInputContract.parse({ questId: '' });

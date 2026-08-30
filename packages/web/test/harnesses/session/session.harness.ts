@@ -191,13 +191,20 @@ export const sessionHarness = ({
   // Pre-seeds a depth-2 nested sub-agent session on disk: sub-agent A (spawned by the
   // main session) itself spawns sub-agent B. The main `<sessionId>.jsonl` fires Task(A)
   // and completes it (registers realA->toolUseIdA). `subagents/agent-<realA>.jsonl` carries
-  // A's own text PLUS the Task(B) launch and B's completion (registers realB->toolUseIdB and
-  // the nested parent-chain link). `subagents/agent-<realB>.jsonl` carries B's nested marker
-  // text. On replay the broker's PASS 1a/1c pre-scan resolves both translations + the nested
-  // parent-chain so B's entries (and the Task(B) launcher) attach to chain B nested inside
-  // chain A. Timestamps are monotonically increasing across all three files so the replay's
-  // timestamp sort produces Task(A) < Task(B) < B-marker in PASS 2 (chain A must exist before
-  // chain B reparents under it).
+  // A's own text, THEN the Task(B) launch, then B's completion (registers realB->toolUseIdB
+  // and the nested parent-chain link). `subagents/agent-<realB>.jsonl` carries B's nested
+  // marker text. On replay the broker's PASS 1a/1c pre-scan resolves both translations + the
+  // nested parent-chain so B's entries (and the Task(B) launcher) attach to chain B nested
+  // inside chain A. Timestamps are monotonically increasing across all three files so the
+  // replay's timestamp sort produces Task(A) < Task(B) < B-marker in PASS 2 (chain A must
+  // exist before chain B reparents under it).
+  //
+  // A's own text sorting BEFORE its Task(B) line is load-bearing, not incidental:
+  // `collectSubagentChainsTransformer` splices a nested chain in at the position of the Task
+  // that launched it, so anything the parent wrote LATER renders below the whole nested chain.
+  // Writing first and launching second is what leaves chain B as the last thing in chain A's
+  // body, which is the only arrangement where scrolling the transcript to its foot lands INSIDE
+  // the nested chain — the precondition every sticky-header measurement depends on.
   createNestedSubagentSessionFiles: (params: {
     sessionId: string;
     parentRealAgentId: string;
@@ -863,10 +870,23 @@ export const sessionHarness = ({
     const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
     fs.mkdirSync(subagentDir, { recursive: true });
 
-    // Sub-agent A's JSONL: the nested Task(B) launch, A's own text, then B's completion
+    // Sub-agent A's JSONL: A's own text, the nested Task(B) launch, then B's completion
     // tool_result (carries tool_use_result.agentId = realB; lives in A's file so the replay
-    // pre-scan tags it as a nested parent-chain candidate keyed on container = realA).
+    // pre-scan tags it as a nested parent-chain candidate keyed on container = realA). A writes
+    // before it launches, so chain B is the LAST thing in chain A's rendered body — see the
+    // interface comment above for why that ordering is the fixture's whole point.
     const agentALines = [
+      JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: parentText }],
+            usage: { input_tokens: 60, output_tokens: 20 },
+          },
+        }),
+        uuid: `${sessionId}-agent-a-text`,
+        timestamp: tsFor(2),
+      }),
       JSON.stringify({
         ...AssistantTaskToolUseStreamLineStub({
           message: {
@@ -886,17 +906,6 @@ export const sessionHarness = ({
           },
         }),
         uuid: `${sessionId}-task-b`,
-        timestamp: tsFor(2),
-      }),
-      JSON.stringify({
-        ...AssistantTextStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [{ type: 'text', text: parentText }],
-            usage: { input_tokens: 60, output_tokens: 20 },
-          },
-        }),
-        uuid: `${sessionId}-agent-a-text`,
         timestamp: tsFor(3),
       }),
       JSON.stringify({

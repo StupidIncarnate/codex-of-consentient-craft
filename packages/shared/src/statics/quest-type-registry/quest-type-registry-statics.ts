@@ -11,27 +11,32 @@
  * implementation operation items the orchestrator seeds at Start, and BOTH quest types use it. Its
  * FIRST entry is `riftcarver` for either type: the branch, the worktree and the preflight build are
  * the head of the relay, so the workspace is forged when the quest is next in line rather than
- * inside the Start POST. After it, bug-hunt seeds its pesteater item, and feature seeds a codeweaver
- * item that fans out into one slice per PACKAGE.
+ * inside the Start POST. After it BOTH types seed the same `codeweaver` item, which fans out into
+ * one slice per (PACKAGE, FLOW) cell.
  * ChaosWhisperer authors no part of the ledger — `operations` is off its modify-quest allowlist, and
  * the partition is DERIVED from the flow nodes' package tags and the contracts' source paths
  * instead. `relayTail` is the fixed verify chain appended after the implementation items. Adding a
  * new quest type = one entry here + the type added to questTypeContract.
  *
+ * THE TWO TYPES SHARE ONE RELAY. A bug-hunt's intake writes flows and observables exactly as a
+ * feature's does, so the same three operators verify them; what differs is the intake — its slash
+ * command and its `initialWorkItemRole` — and nothing after it.
+ *
  * `fanOutBy` is how ONE seed becomes N operation items, expressed as data so the relay's expansion
  * reads a field instead of matching role names:
  *
- * - `flow` — one item per quest flow, of either flow type, each carrying a single `flowId`.
- * - `e2e-flow` — one item per RUNTIME flow that touches an e2e-eligible package, so a quest whose
- *   flows land nowhere a browser can reach seeds none at all.
- * - `package` — one item per package the quest's node tags name, plus one seam item for the units
- *   whose node spans more than one.
- * - `implementation` — one item per PACKAGE, carrying every flow it tags a node in across BOTH flow
- *   types, plus every contract whose `source` resolves to it. A package owning contracts and tagging
- *   no node still gets an item, with an empty flow list. Ordered by package KIND tier, then manifest
- *   depth. This is the derived codeweaver ledger. Its planner orders the contracts ahead of the
- *   flows built on them, in its own `PHASES`; a per-(package, flow) ledger used to buy that ordering
- *   with one session per flow plus a separate flow-less foundation item per package.
+ * - `flow` — one item per quest flow the SEED'S OWN ROLE is measured over, each carrying a single
+ *   `flowId`. Which flow types those are is the verification track's own
+ *   `signoffTrackEligibilityStatics.byTrack[role].flowTypes`, read there rather than restated here
+ *   so the ledger and that track's own work list cannot disagree: siegemaster takes both types,
+ *   flowrider `runtime` alone. With no eligible flow the role keeps one whole-quest item only when
+ *   it owns the off-map probe families, which no drawn flow can carry.
+ * - `implementation` — one item per (PACKAGE, FLOW) CELL, wherever a package tags a node on that
+ *   flow, across BOTH flow types. A package owning contracts and tagging NO node anywhere still gets
+ *   exactly one item, with an empty flow list; a package that does tag nodes gets cells alone, and
+ *   its contracts reach it through the `packageName`-only `get-quest` call. Ordered by package KIND
+ *   tier, then manifest depth, then name, with one package's cells in flow declaration order. This
+ *   is the derived codeweaver ledger.
  *
  * An entry that OMITS the field seeds exactly one item, which is why it is absent rather than
  * carrying a "none" member: the shape mirrors `wardMode`, read at the seed site with an `in` check.
@@ -61,7 +66,7 @@ export const questTypeRegistryStatics = {
       },
       {
         role: 'codeweaver',
-        // Fanned out into one item per PACKAGE, carrying its flows and its contracts together.
+        // Fanned out into one item per (PACKAGE, FLOW) cell — one package's half of one flow.
         // `locked: false` keeps the pt chain unbounded — see the `locked` note above.
         text: 'Codeweaver: build this slice',
         fanOutBy: 'implementation',
@@ -72,42 +77,28 @@ export const questTypeRegistryStatics = {
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
       {
         role: 'flowrider',
-        // Fanned out per PACKAGE: every runtime flow on a relay-scale quest spans the same handful
-        // of packages, so slicing by flow reduces nothing while slicing by package gives each
-        // session a scope one context can hold.
-        text: 'Flowrider: author the flow-perspective test suites below the browser',
-        fanOutBy: 'package',
-      },
-      {
-        role: 'groundstomper',
-        // Fanned out per RUNTIME flow that touches an e2e-eligible package. A Playwright test is a
-        // path walk, so the flow is the unit; a flow landing in no browser-reachable package seeds
-        // no item, because there is nothing for a browser to walk.
-        text: 'Groundstomper: author the browser walk for this flow',
-        fanOutBy: 'e2e-flow',
+        // Fanned out to ONE item per RUNTIME flow. A flow is what a suite walks end to end, so it
+        // is the unit; per-flow items mean per-flow pt budgets and a per-flow work list. The
+        // runtime narrowing is not stated here — it is this role's own `flowTypes` in
+        // signoffTrackEligibilityStatics, which the fan-out reads.
+        text: 'Flowrider: author the test suites that prove this flow',
+        fanOutBy: 'flow',
       },
       {
         role: 'siegemaster',
         // Fanned out to ONE item per quest flow by questBuildRelayGraphBroker, which appends
-        // "— flow: <id>". Per-flow items mean per-flow pt budgets and a per-flow completion gate:
-        // a whole-quest item put every flow behind one budget of 3 and one session's context.
+        // "— flow: <id>"; its track measures both flow types, so no flow is dropped. Per-flow items
+        // mean per-flow pt budgets and a per-flow work list: a whole-quest item put every
+        // flow behind one budget of 3 and one session's context.
         text: 'Siegemaster: manual-QA this flow and review its test suite',
         fanOutBy: 'flow',
       },
       // No standards-review item: the five standards concerns are reviewed INSIDE each committing
-      // session's own turn, by the reviewer-minion its operator summons, rather than by a
-      // separate relay role scheduled here.
+      // session's own turn, by the reviewer its operator summons, rather than by a separate relay
+      // role scheduled here.
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
-    roles: [
-      'riftcarver',
-      'codeweaver',
-      'ward',
-      'flowrider',
-      'groundstomper',
-      'siegemaster',
-      'spiritmender',
-    ],
+    roles: ['riftcarver', 'codeweaver', 'ward', 'flowrider', 'siegemaster', 'spiritmender'],
   },
   'bug-hunt': {
     intakeSlashCommandFileName: 'dumpster-hunt.md',
@@ -119,14 +110,29 @@ export const questTypeRegistryStatics = {
         text: 'Riftcarver: carve the quest branch, worktree and preflight build',
       },
       {
-        role: 'pesteater',
-        text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+        role: 'codeweaver',
+        // The SAME seed `feature` carries. A bug-hunt intake produces flows and observables, so the
+        // fan-out has the same input and the fix is built the same way — the reproducing test is
+        // the first thing that package's session writes.
+        text: 'Codeweaver: build this slice',
+        fanOutBy: 'implementation',
+        locked: false,
       },
     ],
     relayTail: [
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
+      {
+        role: 'flowrider',
+        text: 'Flowrider: author the test suites that prove this flow',
+        fanOutBy: 'flow',
+      },
+      {
+        role: 'siegemaster',
+        text: 'Siegemaster: manual-QA this flow and review its test suite',
+        fanOutBy: 'flow',
+      },
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
-    roles: ['riftcarver', 'pesteater', 'ward', 'spiritmender'],
+    roles: ['riftcarver', 'codeweaver', 'ward', 'flowrider', 'siegemaster', 'spiritmender'],
   },
 } as const;

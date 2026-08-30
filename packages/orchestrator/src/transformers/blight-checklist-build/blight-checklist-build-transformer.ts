@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Decomposes a diff's changed files into the complete, deterministically-enumerated
- * standards-review surface a `reviewer-minion` works — every changed impl file, with its
+ * standards-review surface a reviewer works — every changed impl file, with its
  * test/proxy/stub companions collapsed onto it, crossed with every BlightConcern — and reports which
  * of those units still carry no disposition in the quest's blight ledger
  *
@@ -56,8 +56,8 @@
  * a contract companion and this rule has no other case to serve. Stripping alone instead invents an
  * impl path — `torch-fuel.stub.ts` becomes a group headed `torch-fuel.ts`, a file that does not
  * exist — which pads the review surface with unopenable paths while the real `-contract.ts` group
- * sits beside it, and the completion gate cannot tell the difference because it checks for the
- * ABSENCE of a disposition, never whether the unit's path resolves.
+ * sits beside it, and the checklist itself cannot tell the difference: `remainingItemIds` reports
+ * the ABSENCE of a disposition, never whether the unit's path resolves.
  */
 
 import {

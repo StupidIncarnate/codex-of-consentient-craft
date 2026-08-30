@@ -3,8 +3,12 @@ import { SignoffTrackStub } from './signoff-track.stub';
 
 describe('signoffTrackContract', () => {
   describe('enum membership', () => {
-    it('VALID: {options} => exposes exactly the two independent tracks', () => {
-      expect(signoffTrackContract.options).toStrictEqual(['flowrider', 'siegemaster']);
+    it('VALID: {options} => exposes exactly the independent sign-off columns, in relay order', () => {
+      expect(signoffTrackContract.options).toStrictEqual([
+        'codeweaver',
+        'flowrider',
+        'siegemaster',
+      ]);
     });
 
     it.each(signoffTrackContract.options)(

@@ -17,16 +17,15 @@
  * denominator entirely, so it is absent from all three numbers rather than sitting in `outstanding`
  * as a hole no Flowrider session could ever close.
  *
- * `id` IS THE DENOMINATOR TRACK, NOT THE SIGN-OFF FIELD, which is why a quest renders THREE rows
- * over two columns: Flowrider and Groundstomper both write `flowriderSignoff`, over `packageTypes`
- * that are disjoint, so a row per field would fuse two roles' work into one number that neither
- * one's completion gate computes. Keyed on the denominator, each row narrows by its own package
- * kinds and the three rows partition the flow's units between them.
+ * `id` IS THE DENOMINATOR TRACK, NOT THE SIGN-OFF FIELD. A row per field would fuse into one number
+ * the work of every role that writes that field, and no single role's own work list computes it.
+ * Keyed on the denominator, each row narrows by its own package kinds and the rows partition the
+ * flow's units between them.
  *
  * `tracks` is an id-bearing array rather than a `Record<SignoffDenominatorTrack, …>`. Every other
  * per-key collection on a quest is an id-bearing array for the same reason: the quest deep-merge
  * upserts array elements by `id` and replaces a plain object value wholesale, and a reader that
- * maps over `tracks` keeps working when a fourth denominator lands.
+ * maps over `tracks` keeps working when a further denominator lands.
  *
  * There is deliberately no `total`: it is `confirmed + unconfirmable + outstanding` by construction,
  * and a stored total is a second source of truth that can disagree with the three it summarises.
@@ -46,12 +45,12 @@ export const questSummaryTrackCountsContract = z.object({
   unconfirmable: signoffUnitCountContract
     .default(0)
     .describe(
-      'Units this track signed `unconfirmable` — settled, not proven. These clear the completion gate, so they only surface here and in `QuestSummary.unconfirmable`.',
+      'Units this track signed `unconfirmable` — settled, not proven. They only surface here and in `QuestSummary.unconfirmable`.',
     ),
   outstanding: signoffUnitCountContract
     .default(0)
     .describe(
-      "Units in this track's denominator carrying NO sign-off from it. This is the number the signal-back completion gate refuses `done` on.",
+      "Units in this track's denominator carrying NO sign-off from it — this track's work list. Nothing refuses a `done` over it.",
     ),
 });
 

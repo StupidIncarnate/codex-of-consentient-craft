@@ -4,22 +4,7 @@
  * `operationStatus` and is applied here server-side (authoritative — an agent cannot forget to
  * patch the ledger, because agents never write the ledger at all):
  *
- * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`. For a
- *   `flowrider`, `groundstomper` or `siegemaster` item this is GATED: the responder recomputes the
- *   signalling role's own scope — the flow graph's verification units measured against THAT role's
- *   sign-off track (`flowriderSignoff` / `siegemasterSignoff`) — and refuses `done` (by throwing,
- *   so the agent sees why) while any unit carries no sign-off on that track. Completion is a
- *   computed fact rather than the agent's recollection of its own pass. The two sign-off FIELDS are
- *   INDEPENDENT: neither reads the other's, so one unit can be outstanding for one and settled for
- *   the other — and the three DENOMINATORS over them are disjoint, Flowrider and Groundstomper
- *   splitting `flowriderSignoff` by package kind. Both verdicts clear a unit — `confirmed` and
- *   `unconfirmable` alike — so the gate is always satisfiable honestly; it refuses absence, not
- *   honesty. An item held by any of the five operator roles is additionally gated PER UNIT on
- *   REVIEW COVERAGE: the responder rebuilds the standards-review checklist over
- *   `<the item's recorded startRef>..HEAD` — every commit this item made, across all its rounds —
- *   and refuses `done` while any unit carries no `planningNotes.blightLedger` disposition. Every
- *   disposition clears a unit, `gap` and `recorded` exactly as `reviewed`, so this gate too refuses
- *   absence rather than honesty.
+ * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`.
  * - `operationStatus: 'partial'` → the linked operation item is marked `complete` AND a
  *   "pt N: {text}" continuation item (same role, locked flag preserved) is appended immediately
  *   after it — duplicate-on-partial keeps the strict 1:1 operation-item↔work-item invariant and an
@@ -76,14 +61,10 @@ import { gitWorkingTreeFilesBroker } from '../../../brokers/git/working-tree-fil
 import { questAdvanceBroker } from '../../../brokers/quest/advance/quest-advance-broker';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
 import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker';
-import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
-import { blightCoverageOutstandingTransformer } from '../../../transformers/blight-coverage-outstanding/blight-coverage-outstanding-transformer';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
-import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
-import { signoffTrackEligibilityStatics } from '../../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 
 // How many outstanding unit ids (or dirty paths) to name inline before deferring to the tool that
@@ -92,14 +73,10 @@ import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-s
 const OUTSTANDING_PREVIEW_LIMIT = 15;
 
 // The five roles that run a planner/worker/reviewer round over an operation item. Read from
-// `agentPromptClassificationStatics` rather than listed here, so a role added there is covered by
-// both gates below the day it is added — the same reason `isChatWorkItemRoleGuard` reads
+// `agentPromptClassificationStatics` rather than listed here, so a role added to it joins
+// CODE_CHANGING_ROLES below automatically — the same reason `isChatWorkItemRoleGuard` reads
 // `workItemRoleStatics.chat` instead of growing an `||` chain.
 const OPERATOR_ROLES = agentPromptClassificationStatics.operatorRoleNames;
-
-// Whose `done` is gated on their round's output being reviewed unit by unit. Membership, not a name
-// chain: a role that runs a review round is a role whose round has to be covered.
-const REVIEWED_ROLES: ReadonlySet<OperationItem['role']> = new Set(OPERATOR_ROLES);
 
 // Every role whose session ends by CHANGING CODE, and therefore owes a commit before it signals.
 // The five operator roles plus the two bespoke-prompt workers that also write code and commit.
@@ -193,10 +170,8 @@ export const QuestHandleSignalBackResponder = async ({
   // worktree of its own — a hydrated quest, or one seeded before worktrees — SKIPS the check
   // rather than failing it: that is a real state, not a violation.
   //
-  // The resolution is taken ONCE, here, and read again by the review-coverage gate below: both
-  // measure the same checkout, and resolving twice would load the quest a second time to answer a
-  // question already answered. `undefined` means the signalling role owes no git measurement at
-  // all, which is why the review gate can key on `?.kind` without repeating the role test.
+  // `undefined` means the signalling role owes no git measurement at all — a chat role or a
+  // COMMAND role never resolves a cwd and therefore never pays this gate's git cost.
   const resolution =
     gatedOperation !== undefined && CODE_CHANGING_ROLES.has(gatedOperation.role)
       ? await questCwdResolveBroker({ questId })
@@ -223,166 +198,6 @@ export const QuestHandleSignalBackResponder = async ({
           '  2. Discard what you did not mean to keep (`git restore` / `git clean`) so the tree is clean either way.',
         ].join('\n'),
       );
-    }
-  }
-
-  // COMPLETION GATE — likewise runs BEFORE any mutation, so a refused `done` persists nothing.
-  //
-  // `done` from a flowrider, groundstomper or siegemaster item means "every verification unit in my
-  // scope carries MY track's sign-off". A session's memory of its own coverage is precisely what
-  // fails: a pass walks part of its scope across a long serial run and reports done. The claim is
-  // therefore recomputed here from the flow graph, read against the signalling role's own sign-off
-  // field.
-  //
-  // ONE call covers ALL THREE verification denominators. `signoffOutstandingTransformer` keys on the
-  // linked item's role internally (flowrider and groundstomper → `flowriderSignoff` over disjoint
-  // package kinds, siegemaster → `siegemasterSignoff`, every other role → nothing outstanding), so a
-  // second per-track branch here would only restate what it already decides — and the denominators
-  // are independent, so the same unit can be outstanding for one and settled for another.
-  //
-  // Both verdicts clear a unit — `confirmed` and `unconfirmable` alike — so the gate is always
-  // satisfiable honestly; what it refuses is scope with no sign-off at all.
-  //
-  // Throwing (rather than returning) is deliberate and matches the unloadable-quest case above: the
-  // error rides the awaited signal-back path back through the MCP tool to the agent, where it is
-  // visible and actionable, instead of being silently swallowed as a success.
-  if (operationStatus === undefined || operationStatus === 'done') {
-    const linkedOperation = gatedOperation;
-
-    if (linkedOperation !== undefined) {
-      const outstanding = signoffOutstandingTransformer({
-        quest: result.quest,
-        operationItem: linkedOperation,
-      });
-
-      if (outstanding.length > 0) {
-        // The REMEDY has to name the sign-off FIELD the reviewer writes, and there are two of them.
-        // `signoffTrackEligibilityStatics` maps the signalling role to its one field. The role is
-        // not that field: Groundstomper writes `flowriderSignoff`, over the package kinds Flowrider
-        // does NOT measure.
-        const track =
-          linkedOperation.role === 'groundstomper' || linkedOperation.role === 'siegemaster'
-            ? linkedOperation.role
-            : 'flowrider';
-        const { signoffField } = signoffTrackEligibilityStatics.byTrack[track];
-        // The REPRODUCTION CALL names the operation item, and that one argument is the whole scope.
-        // The item carries the track (its role), its flows and its packages, and the tool derives
-        // all three through the transformer this gate just ran — so the list the session reads back
-        // is the list refused here.
-        //
-        // Two keys, and only these two. `getQaChecklistInputContract` is `.strict()` and accepts
-        // `questId` (required), `operationItemId` and `flowId`. `operationItemId` REPLACED `track`,
-        // `flowId` and `packageNames` as separate arguments, so naming either of those here hands
-        // the agent a call that fails zod parsing. The agent then has no route back to the
-        // outstanding units, and its only move is to downgrade to `partial` — which spends a pt
-        // attempt against a bounded chain and walks the item toward a blocked quest.
-        const checklistTool = `get-qa-checklist({ questId: '${String(questId)}', operationItemId: '${String(linkedOperation.id)}' })`;
-
-        throw new Error(
-          [
-            `signal-back refused: operationStatus 'done' means every verification unit in your scope carries YOUR OWN track's sign-off (\`${signoffField}\`), and ${String(outstanding.length)} still carry none. The other track is measured separately and is never read here, so its sign-offs cannot settle yours. Read the same list back with ${checklistTool}.`,
-            '',
-            'Outstanding units:',
-            ...outstanding.slice(0, OUTSTANDING_PREVIEW_LIMIT).map((id) => `  - ${String(id)}`),
-            ...(outstanding.length > OUTSTANDING_PREVIEW_LIMIT
-              ? [
-                  `  … and ${String(outstanding.length - OUTSTANDING_PREVIEW_LIMIT)} more — call ${checklistTool} for the full list.`,
-                ]
-              : []),
-            '',
-            'Do ONE of these, then signal again:',
-            // The remedy has to be one the SIGNALLING session may actually perform. An operator's
-            // own tool table forbids it "writing a test, a fix, or a sign-off yourself" — it never
-            // opened the files these units are about — so naming the write directly sends it to
-            // break its own prompt. The reviewer-minion is the session that signs, on every round.
-            `  1. Dispatch a \`reviewer-minion\` over the outstanding units. It writes a \`${signoffField}\` on each via modify-quest — \`confirmed\` with \`evidence\` (a test file:line plus what makes that test fail, or the value it measured off the running system), or \`unconfirmable\` with \`evidence\` of what was tried and why it was out of reach plus a \`question\` someone else can pick up. BOTH verdicts clear this gate; what it refuses is the ABSENCE of a sign-off, never an honest one.`,
-            '     BATCH the writes: ONE modify-quest call carrying many sign-offs, never one call per unit.',
-            "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
-            '     A unit you genuinely cannot close is `unconfirmable`, not pt work — pt-chaining a permanently unprovable unit only burns the chain to its maxAttempts and blocks the quest.',
-          ].join('\n'),
-        );
-      }
-
-      // REVIEW-COVERAGE GATE — the same PER-UNIT shape as the sign-off gate above, over the
-      // standards-review surface instead of the flow graph. Every changed file this work item
-      // committed, crossed with each applicable concern, has to carry a disposition in
-      // `planningNotes.blightLedger`; `done` is refused while any unit carries none.
-      //
-      // THE RANGE IS WHAT MAKES IT MEASURABLE. Every minion commits its own work as it goes, so at
-      // signal time the tree is clean by construction — a `working-tree` reading is empty, a
-      // `commit` one sees one piece, and an `unpushed` one sees one round. None measures an item.
-      // What can is `<the item's own recorded startRef>..HEAD`: the fork point stamped by
-      // `agentPromptGetBroker` the first time this item was served its prompt, never moved
-      // afterwards, so the range covers every round the item ran rather than the one it ended on.
-      //
-      // Coverage is cumulative and per UNIT, not per author: a file first reviewed in round 1 and
-      // touched again in round 3 keys on the same `<implPath>:<concern>` id, so the round-1
-      // disposition still clears it. The gate measures whether the surface was reviewed, never who
-      // reviewed it.
-      //
-      // TWO states SKIP rather than refuse, and each is real: no recorded `startRef` (a hydrated
-      // quest, an item that predates the field, an item whose worktree never resolved) leaves no
-      // range to measure, and no worktree resolving leaves no checkout to measure it in. An EMPTY
-      // range is neither — it PASSES honestly, because a round that committed nothing has nothing
-      // to review, the same reading `git commit --allow-empty` gets from the commit gate above.
-      //
-      // The quest's pinned `baseRef` is deliberately NOT one of them. It is the base the `quest`
-      // and `commit` scopes measure from, and `since-ref` reads the caller's ref instead — so
-      // testing it here would skip a gate that had everything it needed, turning an unreviewed
-      // round into a silent pass on the one outcome this gate exists to refuse.
-      //
-      // It is a gate rather than a prompt line for the reason the post-mortem measured directly:
-      // the computed `scope: 'commit'` parameter was passed correctly 30 times out of 30 because a
-      // named consequence was bolted to it, while the prose instruction to "record dispositions as
-      // you go" was ignored 13 times out of 13. A concern that lives only in a prompt is skipped.
-      if (
-        REVIEWED_ROLES.has(linkedOperation.role) &&
-        resolution?.kind === 'worktree' &&
-        signaledItem.startRef !== undefined
-      ) {
-        const checklist = await questGetBlightChecklistBroker({
-          questId,
-          scope: 'since-ref',
-          sinceRef: signaledItem.startRef,
-        });
-        const outstandingUnits = blightCoverageOutstandingTransformer({ checklist });
-
-        if (outstandingUnits.length > 0) {
-          // `quest` IS THE ONLY AGENT-FACING SCOPE THAT STILL SPANS WHAT THIS GATE MEASURED, and
-          // naming any other one sends the agent to re-run the thing that produced the refusal.
-          // A reviewer's own scope is `working-tree`, but every round's reviewer commits and pushes
-          // before the operator reaches step 7 — so by the time a refusal can fire, `working-tree`
-          // is empty and so is `unpushed`. A fresh reviewer sent to either enumerates nothing,
-          // dispositions nothing, and earns this identical refusal. `since-ref` is server-only and
-          // no agent can compute this item's `startRef`. `quest` over-reports — units already
-          // dispositioned come back marked done — which is the safe direction for a caller trying
-          // to clear a refusal.
-          const clearingCall = `get-blight-checklist({ questId: '${String(questId)}', scope: 'quest' })`;
-
-          throw new Error(
-            [
-              `signal-back refused: operationStatus 'done' means every review unit your commits produced carries a disposition in \`quest.planningNotes.blightLedger\`, and ${String(outstandingUnits.length)} still carry none. The surface measured is \`${String(signaledItem.startRef)}..HEAD\` — every commit THIS work item made, across all of its rounds, not just the last one.`,
-              '',
-              'Outstanding units:',
-              ...outstandingUnits
-                .slice(0, OUTSTANDING_PREVIEW_LIMIT)
-                .map((id) => `  - ${String(id)}`),
-              ...(outstandingUnits.length > OUTSTANDING_PREVIEW_LIMIT
-                ? [
-                    `  … and ${String(outstandingUnits.length - OUTSTANDING_PREVIEW_LIMIT)} more — a reviewer's ${clearingCall} enumerates every one of them.`,
-                  ]
-                : []),
-              '',
-              'Do ONE of these, then signal again:',
-              `  1. Dispatch a \`reviewer-minion\` over the output this item produced, and BRIEF IT TO CALL \`${clearingCall}\`. That is NOT the \`scope: 'working-tree'\` its own prompt names: every round of yours is committed and pushed by now, so \`working-tree\` is empty and would disposition nothing. It writes each verdict to \`quest.planningNotes.blightLedger\` via modify-quest.`,
-              `     \`scope: 'quest'\` over-reports — units earlier rounds already dispositioned come back marked done — so it re-reads rather than missing any.`,
-              '     EVERY disposition clears a unit — `gap` and `recorded` with a real reason count exactly as `reviewed` does. This gate refuses ABSENCE, not honesty.',
-              '     A unit listed above that no round of yours touched belongs to an earlier round of THIS item; the same reviewer clears it, because a disposition is keyed on the unit and not on who wrote it.',
-              "  2. Signal operationStatus: 'partial' instead, which hands the un-reviewed remainder to a fresh session of your role.",
-            ].join('\n'),
-          );
-        }
-      }
     }
   }
 
@@ -462,15 +277,11 @@ export const QuestHandleSignalBackResponder = async ({
           ? budgets.codeweaver.maxAttempts
           : role === 'flowrider'
             ? budgets.flowrider.maxAttempts
-            : role === 'groundstomper'
-              ? budgets.groundstomper.maxAttempts
-              : role === 'siegemaster'
-                ? budgets.siegemaster.maxAttempts
-                : role === 'pesteater'
-                  ? budgets.pesteater.maxAttempts
-                  : role === 'warpgate'
-                    ? budgets.warpgate.maxAttempts
-                    : budgets.spiritmender.maxAttempts;
+            : role === 'siegemaster'
+              ? budgets.siegemaster.maxAttempts
+              : role === 'warpgate'
+                ? budgets.warpgate.maxAttempts
+                : budgets.spiritmender.maxAttempts;
       })();
       // The pt budget gates `partial` only. An environment wall always appends its continuation:
       // the quest blocks either way, and withholding the append would leave the operation with no
@@ -490,10 +301,10 @@ export const QuestHandleSignalBackResponder = async ({
       }
 
       // `flowIds` AND `packageNames` ride along with the role and lock. Both carry scope: a
-      // flow-scoped item (siegemaster/groundstomper) whose continuation lost its flows, or a
-      // package-sliced item (codeweaver/flowrider) whose continuation lost its packages, hands the
-      // fresh session no slice at all — so it silently works the whole quest instead of the
-      // remainder the `partial` was about.
+      // flow-sliced item (flowrider/siegemaster) whose continuation lost its flows, or a
+      // package-sliced item (codeweaver) whose continuation lost its packages, hands the fresh
+      // session no slice at all — so it silently works the whole quest instead of the remainder
+      // the `partial` was about.
       const continuations = needsContinuation
         ? [
             operationItemContract.parse({

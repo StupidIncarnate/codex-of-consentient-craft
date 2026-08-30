@@ -325,7 +325,9 @@ describe('questSaveInvariantsTransformer', () => {
       expect(failures).toStrictEqual([]);
     });
 
-    it('VALID: {-> approved, bug-hunt quest whose contract source resolves nowhere} => the contract-source rule is scoped to feature quests', () => {
+    // Both quest types derive one codeweaver item per package from the contracts' `source` paths,
+    // so an unresolvable source reaches no session on either — the rule is not scoped by type.
+    it('INVALID: {-> approved, bug-hunt quest whose contract source resolves nowhere} => the same named Contract Source Coverage check', () => {
       const quest = QuestStub({
         questType: 'bug-hunt',
         packagesAffected: [
@@ -355,7 +357,14 @@ describe('questSaveInvariantsTransformer', () => {
         nextStatus: 'approved',
       });
 
-      expect(failures).toStrictEqual([]);
+      expect(failures).toStrictEqual([
+        {
+          name: 'Contract Source Coverage',
+          passed: false,
+          details:
+            "Contract 'MergeStatus' declares source 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+        },
+      ]);
     });
 
     it('VALID: {-> approved, ledger covers the spine and every observable is attributed} => returns empty array', () => {

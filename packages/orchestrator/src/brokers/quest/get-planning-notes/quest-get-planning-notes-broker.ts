@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Loads a quest's whole `planningNotes` object off disk. Reach for this over `get-quest`
  * when the caller wants the plan/ledger side channel without paying for the spec: an operator
- * reads back the plan its `planner-minion` persisted here, never having opened a
- * source file itself.
+ * reads back the plan a planning sub-agent persisted here, rather than reconstructing it from
+ * scratch.
  *
  * USAGE:
  * const notes = await questGetPlanningNotesBroker({ questId });

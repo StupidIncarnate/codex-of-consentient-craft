@@ -10,8 +10,9 @@
  * THE UPSERT IS WHY THIS EXISTS. `questArrayUpsertTransformer` APPENDS any update whose id it does
  * not find, which is exactly right for the additive spec authority — an execution agent records a
  * branch it discovered by sending a new node. Applied to a sign-off it is a silent corruption: a
- * mistyped observable id creates a SECOND graph home for one logical unit, and the completion gate
- * then counts that phantom forever. You cannot have verified something that did not exist.
+ * mistyped observable id creates a SECOND graph home for one logical unit, and every reader of that
+ * track's coverage counts that phantom forever. You cannot have verified something that did not
+ * exist.
  *
  * THE CHECK IS POSITIONAL, not "is this id anywhere on the quest". A node's id must resolve on the
  * flow the payload nests it under, an observable's on that node, an edge's on that flow — otherwise

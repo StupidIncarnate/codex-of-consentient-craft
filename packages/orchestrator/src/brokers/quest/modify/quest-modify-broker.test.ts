@@ -1298,8 +1298,8 @@ describe('questModifyBroker', () => {
 
       proxy.setupQuestFound({ quest });
 
-      // Every field OperationPlanStub carries except the timestamp — the payload the planner-minion
-      // prompt now tells the agent to send.
+      // Every field OperationPlanStub carries except the timestamp — the payload the operator's
+      // prompt tells the agent to send.
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         planningNotes: {

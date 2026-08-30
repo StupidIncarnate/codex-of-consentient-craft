@@ -19,8 +19,8 @@
  * });
  * // Returns: QuestSummaryUnconfirmable — one element of QuestSummary.unconfirmable[]
  *
- * `unconfirmable` CLEARS THE COMPLETION GATE, which is exactly why it needs its own list. The gate
- * refuses the ABSENCE of a sign-off, not an honest one, so a quest can reach `complete` with real
+ * `unconfirmable` SETTLES A UNIT WITHOUT PROVING IT, which is exactly why it needs its own list.
+ * Nothing on a quest refuses the ABSENCE of a sign-off, so a quest can reach `complete` with real
  * holes in it and every one of those holes is an `unconfirmable` verdict. Nothing else surfaces
  * them: the flow counts say how many, and this says which, why, and what someone would have to
  * answer to close it.
@@ -33,10 +33,10 @@
  * unconfirmable on more than one, for different reasons, and a unit-only id would collide.
  *
  * `track` IS THE DENOMINATOR TRACK, NOT THE SIGN-OFF FIELD. Which role hit the wall is what a reader
- * needs in order to route the question, and Flowrider and Groundstomper both write
- * `flowriderSignoff` — so naming the field would leave "who could not confirm this" ambiguous
- * between a suite author and a browser walker whose remedies have nothing in common. Their
- * `packageTypes` are disjoint, so no single unit is ever attributed to both.
+ * needs in order to route the question, and more than one role can write one field — so naming the
+ * field would leave "who could not confirm this" ambiguous between roles whose remedies have
+ * nothing in common. Denominators narrow by disjoint `packageTypes`, so no single unit is ever
+ * attributed to two.
  */
 
 import { z } from 'zod';

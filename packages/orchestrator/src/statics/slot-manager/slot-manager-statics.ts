@@ -21,13 +21,7 @@ export const slotManagerStatics = {
   flowrider: {
     maxAttempts: 3,
   },
-  groundstomper: {
-    maxAttempts: 3,
-  },
   siegemaster: {
-    maxAttempts: 3,
-  },
-  pesteater: {
     maxAttempts: 3,
   },
   spiritmender: {
@@ -40,8 +34,8 @@ export const slotManagerStatics = {
     maxAttempts: 3,
   },
   // NOT a server-enforced budget — unlike every `maxAttempts`/`maxRetries`/`maxResets` in this file,
-  // nothing server-side counts rounds. This is the plan→work→review loop cap baked into
-  // `operatorPromptStatics`' prose, honoured by the operator SESSION on its own
+  // nothing server-side counts rounds. This is the brief→work→review loop cap each operator prompt
+  // carries in its own prose, honoured by the operator SESSION on its own
   // recognizance inside ONE relay dispatch — never read or enforced by `quest-handle-signal-back-responder`
   // or any other server code. Conflating it with a role's `maxAttempts` above is the exact confusion
   // this comment exists to head off: they are TWO DIFFERENT BOUNDS ON TWO DIFFERENT THINGS. A session

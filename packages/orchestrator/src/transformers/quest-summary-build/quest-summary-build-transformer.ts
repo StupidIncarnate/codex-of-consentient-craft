@@ -9,14 +9,15 @@
  *
  * questSummaryBuildTransformer({ quest, packageNames: operationItem.packageNames });
  * // The same summary narrowed to ONE operation item's package slice, so its numbers are the ones
- * // that item's completion gate will compute
+ * // that item's own work list will compute
  *
  * PURE. It reads the quest it is handed and nothing else, so the same quest file always produces the
  * same summary and a caller can build one from an in-memory quest without touching disk.
  *
- * WHY THIS EXISTS. A quest reaches `complete` when both tracks have SIGNED every unit, and
- * `unconfirmable` signs a unit exactly as `confirmed` does — the completion gate refuses the ABSENCE
- * of a verdict, never an honest one. So `status: complete` is compatible with real holes, real scope
+ * WHY THIS EXISTS. A quest reaches `complete` when its operations ledger drains, not when its three
+ * sign-off tracks (codeweaver, flowrider, siegemaster) finish signing every unit — and
+ * `unconfirmable` signs a unit exactly as `confirmed` does, clearing the ABSENCE of a verdict rather
+ * than demanding an honest one. So `status: complete` is compatible with real holes, real scope
  * nobody approved, and real unanswered questions, and none of that is legible from a quest file
  * without re-deriving the enumeration by hand.
  *
@@ -29,26 +30,23 @@
  * - UNIT KIND. The off-map probe families are Siegemaster's charter and are absent from the
  *   authoring tracks' unit kinds, so they never land in their numbers.
  * - PROVENANCE. This is the subtle one. The relay runs
- *   spec → chaoswhisperer → codeweaver → flowrider → groundstomper → siegemaster, so an observable a
- *   Siegemaster walker added mid-walk did not exist while the authoring tracks were working and can
- *   never receive their sign-off. `observableOrigins` omits `siegemaster` on both for exactly that
+ *   spec → chaoswhisperer → codeweaver → flowrider → siegemaster, so an observable a Siegemaster
+ *   walker added mid-walk did not exist while the authoring tracks were working and can never
+ *   receive their sign-off. `observableOrigins` omits `siegemaster` on both for exactly that
  *   reason, and filtering on it is what keeps such an observable out of their `outstanding` instead
  *   of parking it there forever. NO TIMESTAMP IS COMPARED — `at` records when a sign-off was
  *   written, not when a role's item completed, and ordering roles by wall-clock would break the
  *   moment a resumed session wrote out of order.
  * - PACKAGE KIND. A ROW IS KEYED ON THE DENOMINATOR TRACK, so `quest.packagesAffected` IS passed and
- *   each row narrows to the package kinds its own role measures. Flowrider and Groundstomper both
- *   write `flowriderSignoff` over kinds that are DISJOINT and whose union is Siegemaster's, so the
- *   three rows partition a flow's units between them: nothing counted twice, and nothing — the
- *   browser-reachable half included — left counted in no row. A single row per sign-off FIELD would
- *   fuse the two roles into one number neither one's completion gate computes.
+ *   each row narrows to the package kinds its own role measures. A single row per sign-off FIELD
+ *   would fuse every role writing that field into one number no single track's work list computes.
  *
- * `outstanding` IS TAKEN FROM `signoffFlowOutstandingTransformer`, the same call the signal-back
- * completion gate and `get-qa-checklist` both make, handed the same `packagesAffected`. The number a
- * reader sees here is therefore the number that will refuse a `done`, rather than a second
- * derivation that can drift from it. `packageNames` is the operation item's own slice and is
- * threaded on top when a caller holds one, because such a caller is asking exactly "what will MY
- * gate say".
+ * `outstanding` IS TAKEN FROM `signoffFlowOutstandingTransformer`, the same call
+ * `signoffOutstandingTransformer` and `get-qa-checklist` both make, handed the same
+ * `packagesAffected`. The number a reader sees here is therefore the same number that item's own
+ * work list reports, rather than a second derivation that can drift from it. `packageNames` is the
+ * operation item's own slice and is threaded on top when a caller holds one, because such a caller
+ * is asking exactly "what does MY work list say".
  *
  * `midQuestObservables` DELIBERATELY IGNORES TRACK ELIGIBILITY. It answers "what did this quest grow
  * after the user approved it", which is a provenance question, not a coverage one — a Siegemaster

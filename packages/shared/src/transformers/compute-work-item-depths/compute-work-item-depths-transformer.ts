@@ -27,7 +27,7 @@ export const computeWorkItemDepthsTransformer = ({
   // back-edges and out-of-set deps are skipped, so a dependency cycle resolves to a finite depth.
   // A plain Kahn topo-sort would never dequeue cycle members and would collapse the cycle plus
   // everything transitively downstream of it to depth 0 — inverting the floor order (e.g.
-  // flowrider/groundstomper/siegemaster rendering above codeweaver).
+  // flowrider/siegemaster rendering above codeweaver).
   for (const item of items) {
     if (depths.has(item.id)) continue;
 

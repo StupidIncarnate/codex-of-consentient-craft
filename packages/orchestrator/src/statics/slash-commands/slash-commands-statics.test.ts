@@ -139,9 +139,9 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterCreate.body => assigns Playwright ownership to Groundstomper alone, never Siegemaster', () => {
+    it('VALID: dumpsterCreate.body => assigns Playwright ownership to Flowrider, never Siegemaster', () => {
       const needle =
-        'Groundstomper owns Playwright and only Playwright; Flowrider owns the integration and unit suites below the browser.';
+        '**Flowrider** authors the whole test suite that proves a flow — Playwright browser walks alongside the integration and unit suites below the browser.';
       const { body } = slashCommandsStatics.dumpsterCreate;
       const foundIndex = body.indexOf(needle);
 

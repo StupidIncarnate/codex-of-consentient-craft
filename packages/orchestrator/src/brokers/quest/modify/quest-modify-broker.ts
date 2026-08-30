@@ -419,7 +419,7 @@ export const questModifyBroker = async ({
               });
             // The DETECTOR owns `packageType` for a package that already exists — an author
             // declaring one is guessing, and everything downstream (e2e eligibility, the
-            // groundstomper fan-out, the dependency graph) reads this field as if it were measured.
+            // codeweaver build order, the dependency graph) reads this field as if it were measured.
             // Only a 'new' entry keeps what it declared, because there is nothing on disk to
             // measure.
             quest.packagesAffected = stampedEntries;

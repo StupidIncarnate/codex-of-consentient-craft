@@ -95,8 +95,8 @@ export const questResetFlowSignoffsBroker = async ({
         );
       }
 
-      // The operation item's flowIds ARE a siegemaster item's coverage scope (the same list the
-      // signal-back completion gate measures `done` against), so a flow outside it belongs to a
+      // The operation item's flowIds ARE a siegemaster item's coverage scope — its work list, read
+      // by `get-qa-checklist` and the quest summary alike — so a flow outside it belongs to a
       // different session's budget and a different session's walk.
       const inScope = operationItem.flowIds.some((scoped) => scoped === flowId);
       if (!inScope) {

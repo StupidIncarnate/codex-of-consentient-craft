@@ -5,7 +5,7 @@
  * flowNodeContract.parse({id: 'login-page', label: 'Login Page', type: 'state', packages: ['auth-service'], observables: []});
  * // Returns: FlowNode object
  *
- * The two sign-offs are TOP-LEVEL SIBLING fields rather than a nested `signoffs` block, because
+ * The sign-offs are TOP-LEVEL SIBLING fields rather than a nested `signoffs` block, because
  * `questItemDeepMergeTransformer` replaces any non-id-bearing object value WHOLESALE — a nested
  * block would let a Siegemaster write delete Flowrider's sign-off while reporting success, whereas
  * sibling keys merge per-key. They are `.optional()` and not `.default()` because `questModifyBroker`
@@ -39,6 +39,7 @@ export const flowNodeContract = z.object({
       "The packages this node lands in, every one of them also present in quest.packagesAffected. Authored with the node, because the observables that would hint at it do not exist yet. A node carrying more than one is a seam: it spans a package boundary, and it owns the glue verification units no single-package slice can. This list is what routes a node's terminal and branch units, which carry no observable to read a package from.",
     ),
   observables: z.array(flowObservableContract).default([]),
+  codeweaverSignoff: signoffContract.optional(),
   flowriderSignoff: signoffContract.optional(),
   siegemasterSignoff: signoffContract.optional(),
 });

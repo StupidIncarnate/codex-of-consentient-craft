@@ -55,8 +55,8 @@ describe('dumpsterHuntPromptStatics', () => {
     expect(mint.indexOf('chat=hidden')).toBe(-1);
   });
 
-  it('VALID: template => references the PestEater agent that fixes after Start', () => {
-    const needle = 'PestEater';
+  it('VALID: template => routes the fix to the codeweaver session that owns the package it lands in', () => {
+    const needle = 'the codeweaver session that owns the package the fix lands in';
     const foundIndex = template.indexOf(needle);
 
     expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
@@ -65,7 +65,8 @@ describe('dumpsterHuntPromptStatics', () => {
   describe('one flow per bug', () => {
     // A mirrored actual-state/expected-state PAIR duplicates the whole repro path across two
     // flows, hides which step diverges, and gives a two-bug report four flows the reader has to
-    // pair up by name. One flow per bug, forking at the divergence, is the shape PestEater reads.
+    // pair up by name. One flow per bug, forking at the divergence, is the shape the codeweaver
+    // session that owns the package the fix lands in reads.
     it('VALID: template => headlines ONE flow per bug', () => {
       const needle =
         'You capture a reported bug as a small, testable specification: **ONE flow per bug**.';
@@ -98,7 +99,8 @@ describe('dumpsterHuntPromptStatics', () => {
   describe('ACTUAL / EXPECTED terminal nodes', () => {
     // There is no contract field for actual-vs-expected — `flowNodeContract` carries id/label/
     // type/packages/observables and nothing else — so the LABEL prefix is the whole indicator, and
-    // PestEater greps for exactly these two strings.
+    // the codeweaver session that owns the package the fix lands in greps for exactly these two
+    // strings.
     it('VALID: template => names the two terminal labels as the actual/expected indicator', () => {
       const needle =
         '**The two terminal LABELS are the actual/expected indicator.** There is no field for it. Prefix them verbatim: `ACTUAL: ` on the terminal describing what the user sees today, `EXPECTED: ` on the terminal describing what should happen.';
@@ -135,11 +137,12 @@ describe('dumpsterHuntPromptStatics', () => {
       expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
     });
 
-    // An observable is a positive expectation and PestEater turns each one into a test, so one on
-    // the broken branch asks for a test that asserts the bug.
+    // An observable is a positive expectation and the codeweaver session that owns the package the
+    // fix lands in turns each one into a test, so one on the broken branch asks for a test that
+    // asserts the bug.
     it('VALID: template => forbids an observable on an ACTUAL node, with the reason', () => {
       const needle =
-        '- NEVER put an observable on an `ACTUAL:` node. An observable is a positive expectation and PestEater turns each one into a test, so an observable on the broken branch asks for a test that asserts the bug.';
+        '- NEVER put an observable on an `ACTUAL:` node. An observable is a positive expectation and the codeweaver session that owns the package the fix lands in turns each one into a test, so an observable on the broken branch asks for a test that asserts the bug.';
       const foundIndex = template.indexOf(needle);
 
       expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
@@ -207,9 +210,9 @@ describe('dumpsterHuntPromptStatics', () => {
 
   describe('multiple observables', () => {
     // An intake that embeds a single observable crams the whole corrected behavior into one
-    // then[] as a paragraph of "AND [ui-state] ..." clauses. PestEater cannot turn that into one
-    // failing test and the user cannot approve its parts separately, so the prompt must ask for
-    // one observable per outcome.
+    // then[] as a paragraph of "AND [ui-state] ..." clauses. The codeweaver session that owns the
+    // package the fix lands in cannot turn that into one failing test and the user cannot approve
+    // its parts separately, so the prompt must ask for one observable per outcome.
     it('VALID: template => instructs writing as many observables as the behavior has', () => {
       const needle = '**Write as many observables as the corrected behavior actually has.**';
       const foundIndex = template.indexOf(needle);

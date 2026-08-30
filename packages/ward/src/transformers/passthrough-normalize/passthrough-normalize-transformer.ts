@@ -12,11 +12,11 @@
  * `lint: WARN 0 files run` at **exit code 0**. A scoped run that checked nothing looked exactly like
  * a scoped run that passed.
  *
- * THE TWO BROKEN FORMS WERE THE TWO THE ORCHESTRATOR MANDATES. `plannerMinionStatics` tells every
- * planner "`FILES` paths start with `./` or are absolute", and `workerMinionStatics` turns that same
- * list into the worker's ward scope verbatim. So the per-chunk check — the only check a round runs
+ * THE TWO BROKEN FORMS WERE THE TWO THE ORCHESTRATOR MANDATES. Each role's own prompt tells its
+ * sub-agents "`FILES` paths start with `./` or are absolute", and turns that same list into the
+ * sub-agent's ward scope verbatim. So the per-chunk check — the only check a pass runs
  * before its reviewer — passed without executing on any discipline. Measured on a real quest: a
- * worker recorded the no-op in its own commit body and the round still went green.
+ * sub-agent recorded the no-op in its own commit body and the pass still went green.
  *
  * NORMALIZING BEATS REJECTING. All three forms name the same file and a reader cannot tell them
  * apart, so the fix belongs where the ambiguity is resolved rather than in five prompts that each

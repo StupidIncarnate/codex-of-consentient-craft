@@ -92,7 +92,7 @@ describe('warpgatePromptStatics', () => {
         "You are checking that a BASE MERGE did not break something outside the quest's own files. A scoped run cannot see that.",
       ),
       runsItRule2sWay: template.includes(
-        'Run it the way [BACKGROUND] allows, because the harness auto-backgrounds a whole-repo run. Do these three things, in order: 1. Set `run_in_background: true`. 2. Wait for the task notification. 3. Read the output once.',
+        'The harness auto-backgrounds a whole-repo run, so [DELEGATION] governs it. Do these three things, in order: 1. Set `run_in_background: true`. 2. Wait for the task notification. 3. Read the output once.',
       ),
       neverSleepAndTail: template.includes('Do NOT sleep and then tail the output.'),
     }).toStrictEqual({
@@ -232,11 +232,13 @@ describe('warpgatePromptStatics', () => {
       heading: template.includes('## Operating Rules'),
       turnEndRole: template.includes('Call `signal-back` as the last action of your turn, always.'),
       turnEndMinion: template.includes('Never call `signal-back`. Your final message is how you'),
-      background: template.includes('[BACKGROUND] Never end your turn waiting for a background'),
+      turnEndWhileHelperOut: template.includes(
+        '**With everything you can do done and a helper still out, end your turn on a plain message and no tool call.** The notification brings you back.',
+      ),
       wardScoped: template.includes('[WARD] Run ward scoped, in the foreground'),
       wardNone: template.includes('You run no build, no ward, no test and no check of any kind.'),
       delegationSynchronous: template.includes(
-        'The `Agent`/Task tool is ASYNCHRONOUS. Its return only says the helper STARTED.',
+        'The `Agent`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.',
       ),
       delegationSpike: template.includes('You delegate LOOKING and CHECKING.'),
       delegationLeafBan: template.includes('You are the last agent in this chain.'),
@@ -248,7 +250,7 @@ describe('warpgatePromptStatics', () => {
       heading: true,
       turnEndRole: true,
       turnEndMinion: false,
-      background: true,
+      turnEndWhileHelperOut: true,
       wardScoped: false,
       wardNone: false,
       delegationSynchronous: true,

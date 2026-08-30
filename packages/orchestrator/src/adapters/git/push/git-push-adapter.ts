@@ -12,8 +12,8 @@
  *
  * TWO CALLERS, ONE ORDERING. Riftcarver pushes once with `setUpstream` while carving, so every
  * later push is the bare form and no session ever has to decide whether `-u` is needed. That is
- * what lets all five `<role>-reviewer-minion` prompts write `git push` with nothing after it: the
- * branch is already tracked before the first round runs, so there is no first-push case to spell
+ * what lets every `<role>-reviewer` prompt write `git push` with nothing after it: the
+ * branch is already tracked before the first pass runs, so there is no first-push case to spell
  * out and get wrong.
  *
  * IT DOES NOT THROW. A push that fails leaves a perfectly good worktree with all its commits — only

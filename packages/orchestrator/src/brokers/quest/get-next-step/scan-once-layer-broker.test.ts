@@ -104,7 +104,7 @@ describe('scanOnceLayerBroker', () => {
       id: questId,
       status: 'in_progress',
       workItems: [
-        WorkItemStub({ id: orphanId, role: 'pesteater', status: 'in_progress' }),
+        WorkItemStub({ id: orphanId, role: 'flowrider', status: 'in_progress' }),
         WorkItemStub({
           id: dependentId,
           role: 'ward',
@@ -129,9 +129,9 @@ describe('scanOnceLayerBroker', () => {
       agents: [
         {
           questId,
-          role: 'pesteater',
+          role: 'flowrider',
           workItemId: orphanId,
-          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pesteater",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
         },
       ],
     });

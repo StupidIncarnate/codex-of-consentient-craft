@@ -50,144 +50,15 @@ const RANGE_BASE_REF = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as never;
 // the property the gate's satisfiability rests on.
 const HONEST_DISPOSITIONS = ['gap', 'recorded'] as const;
 
-// The review-coverage gate rebuilds the standards-review checklist over `<startRef>..HEAD` — every
-// commit the signalling work item made — and refuses `done` while any unit on it carries no
-// blightLedger disposition. These drive the real responder against a REAL git worktree with REAL
-// commits, because the range IS the measurement: a mocked file list would prove the wiring and
-// nothing about what `git diff <startRef>...HEAD` actually reports across two round commits.
-describe('QuestHandleSignalBackResponder (integration) — review-coverage gate', () => {
+// The review-coverage gate — refusing `done` while any unit a commit touched carried no
+// blightLedger disposition — has been removed from the responder; nothing here reads the ledger to
+// gate completion any more. These still drive the real responder against a REAL git worktree with
+// REAL commits, because that is what proves the acceptance holds regardless of how many files
+// changed or how the ledger was left, rather than the case simply going unexercised.
+describe('QuestHandleSignalBackResponder (integration) — review coverage no longer gates completion', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
   const git = gitWorktreeFixtureHarness();
-
-  it('ERROR: {codeweaver done, two files committed since its startRef and one dispositioned} => refused naming the outstanding unit, and persists NOTHING', async () => {
-    const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-review-refuse' }),
-    });
-    envHarness.setupHome({ tempDir: testbed.guildPath });
-
-    const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
-    await git.initRepoWithPackages({
-      repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
-    });
-
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/review-refuse-a1b2c3d4`,
-    });
-    const branchName = QuestBranchNameStub({ value: 'quest/review-refuse-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
-      cwd: repoPath,
-      worktreePath,
-      branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
-      mode: 'create-branch',
-    });
-
-    // The fork point `agentPromptGetBroker` stamps at the item's FIRST prompt fetch.
-    const startRef = await git.gitRevParseOrNull({
-      repoPath: worktreePath,
-      ref: ErrorMessageStub({ value: 'HEAD' }),
-    });
-
-    // TWO commits after it — one per round. `HEAD~1` would see only the second.
-    await git.commitFile({
-      repoPath: worktreePath,
-      relativePath: ALPHA_FILE,
-      content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
-      message: ErrorMessageStub({ value: 'round 1' }),
-    });
-    await git.commitFile({
-      repoPath: worktreePath,
-      relativePath: BETA_FILE,
-      content: FileContentsStub({ value: 'export const betaBroker = (): number => 2;\n' }),
-      message: ErrorMessageStub({ value: 'round 2' }),
-    });
-
-    const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d1' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-    // Round 1's reviewer dispositioned every unit of ALPHA and never reached BETA. Derived from the
-    // same transformer the checklist is built by, so the ids are the real ones rather than a
-    // hand-typed guess that would leave the gate refusing for the wrong reason.
-    await questHelper.seedInProgressRelay({
-      questId,
-      baseRef: RANGE_BASE_REF,
-      worktreePath,
-      branchName,
-      planningNotes: QuestStub({
-        planningNotes: {
-          blightLedger: blightChecklistBuildTransformer({
-            changedFiles: [ALPHA_FILE],
-            baseRef: RANGE_BASE_REF,
-          }).items.map((item) =>
-            QuestBlightLedgerEntryStub({
-              itemId: item.id,
-              workItemId: cwWorkItemId,
-              createdAt: new Date().toISOString(),
-            }),
-          ),
-        },
-      }).planningNotes,
-      operations: [
-        OperationItemStub({
-          id: cwOpId,
-          role: 'codeweaver',
-          text: 'core: config adapter',
-          status: 'in_progress',
-        }),
-      ],
-      workItems: [
-        WorkItemStub({
-          id: cwWorkItemId,
-          role: 'codeweaver',
-          status: 'in_progress',
-          spawnerType: 'agent',
-          startRef: String(startRef) as never,
-          relatedDataItems: [`operations/${String(cwOpId)}`],
-          dependsOn: [],
-          createdAt: new Date().toISOString(),
-        }),
-      ],
-    });
-
-    const before = await questHelper.readQuestFileRaw({ questId });
-
-    await expect(
-      QuestHandleSignalBackResponder({
-        questId,
-        workItemId: cwWorkItemId,
-        signal: 'complete',
-        operationItemId: cwOpId,
-        operationStatus: 'done',
-      }),
-    ).rejects.toThrow(
-      new RegExp(
-        `signal-back refused: operationStatus 'done' means every review unit your commits produced carries a disposition.*- ${String(BETA_FILE)}:craft.*Dispatch a \`reviewer-minion\``,
-        'su',
-      ),
-    );
-
-    // Byte-identical: a refused gate persists nothing, so the session can dispatch a reviewer and
-    // signal again against the same work item.
-    const after = await questHelper.readQuestFileRaw({ questId });
-    const reloaded = await questHelper.reload({ questId });
-
-    testbed.cleanup();
-
-    expect({
-      unchanged: String(after) === String(before),
-      operationStatus: reloaded.operations.find((op) => op.id === cwOpId)?.status,
-      workItemStatus: reloaded.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
-    }).toStrictEqual({
-      unchanged: true,
-      operationStatus: 'in_progress',
-      workItemStatus: 'in_progress',
-    });
-  }, 30_000);
 
   it('VALID: {codeweaver done, every unit across BOTH round commits dispositioned} => the gate clears and quest.json records the completion with NO review item appended', async () => {
     const testbed = installTestbedCreateBroker({
@@ -884,84 +755,16 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
   }, 30_000);
 });
 
-// signoff-flow-outstanding-transformer.test.ts already cover exhaustively.
+// The flowrider/siegemaster sign-off completion gate — refusing `done` while a track's units
+// carried no sign-off, exhaustively covered at the unit level by
+// signoff-flow-outstanding-transformer.test.ts — has been removed from the responder. These prove
+// `done` now completes regardless of what the persisted flowriderSignoff/siegemasterSignoff
+// columns hold, driven against real seeded quests rather than asserted from a mock.
 describe('QuestHandleSignalBackResponder (integration) — the two sign-off tracks', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
 
-  describe("flowrider: 'done' is refused while runtime units carry no flowriderSignoff", () => {
-    it('ERROR: {done, one unsigned runtime terminal} => throws naming the unit and the field, and persists NOTHING', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'sb-flowrider-refuse' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f1' });
-      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard' })],
-            edges: [],
-          }),
-        ],
-        operations: [
-          OperationItemStub({
-            id: flowOpId,
-            role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
-            status: 'in_progress',
-            locked: true,
-            flowIds: [],
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: flowWorkItemId,
-            role: 'flowrider',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(flowOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      const before = await questHelper.readQuestFileRaw({ questId });
-
-      await expect(
-        QuestHandleSignalBackResponder({
-          questId,
-          workItemId: flowWorkItemId,
-          signal: 'complete',
-          operationItemId: flowOpId,
-          operationStatus: 'done',
-        }),
-      ).rejects.toThrow(
-        /signal-back refused: operationStatus 'done'.*`flowriderSignoff`.*1 still carry none.*- login-flow:terminal:dashboard/su,
-      );
-
-      const after = await questHelper.readQuestFileRaw({ questId });
-      const afterQuest = await questHelper.reload({ questId });
-      const workItem = afterQuest.workItems.find((wi) => wi.id === flowWorkItemId);
-      const operation = afterQuest.operations.find((op) => op.id === flowOpId);
-
-      testbed.cleanup();
-
-      expect(after).toBe(before);
-      expect({
-        workItemStatus: workItem?.status,
-        operationStatus: operation?.status,
-      }).toStrictEqual({ workItemStatus: 'in_progress', operationStatus: 'in_progress' });
-    }, 30_000);
-
+  describe("flowrider: 'done' succeeds whether or not runtime units carry a flowriderSignoff", () => {
     it('VALID: {done, one unit `confirmed` and one `unconfirmable`} => both verdicts clear the gate, operation + work item complete', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-flowrider-admit' }),
@@ -1059,7 +862,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       }).toStrictEqual({ workItemStatus: 'complete', operationStatus: 'complete' });
     }, 30_000);
 
-    it('VALID: {done, every flow OPERATIONAL} => accepted, because the flowrider track is measured over runtime flows alone', async () => {
+    it('VALID: {done, every flow OPERATIONAL, no flowriderSignoff anywhere} => accepted, because nothing gates on sign-off any more — not because of a runtime-only filter', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-flowrider-operational' }),
       });
@@ -1070,9 +873,8 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f3' });
       const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
-      // The SAME unsigned node shape the refusal test above uses — only `flowType` differs, so an
-      // accept here can only come from the runtime filter and not from an unsigned node being
-      // overlooked.
+      // Carries no flowriderSignoff at all — proving this accepts because nothing gates on
+      // sign-off any more, not because of a runtime-flow-only filter still running underneath.
       await questHelper.seedInProgressRelay({
         questId,
         planningNotes: QuestStub({
@@ -1134,156 +936,9 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       expect(result).toStrictEqual({ success: true });
       expect(operation?.status).toBe('complete');
     }, 30_000);
-
-    it("ERROR: {done, the same operational flow PLUS one runtime flow} => refused naming the runtime flow's unit, proving the accept above was zero units and not a skipped gate", async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'sb-flowrider-mixed' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f4' });
-      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        flows: [
-          FlowStub({
-            id: 'rollout-flow',
-            name: 'Rollout Flow',
-            flowType: 'operational',
-            nodes: [FlowNodeStub({ id: 'rule-registered', label: 'Rule registered' })],
-            edges: [],
-          }),
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard' })],
-            edges: [],
-          }),
-        ],
-        operations: [
-          OperationItemStub({
-            id: flowOpId,
-            role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
-            status: 'in_progress',
-            locked: true,
-            flowIds: [],
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: flowWorkItemId,
-            role: 'flowrider',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(flowOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      await expect(
-        QuestHandleSignalBackResponder({
-          questId,
-          workItemId: flowWorkItemId,
-          signal: 'complete',
-          operationItemId: flowOpId,
-          operationStatus: 'done',
-        }),
-      ).rejects.toThrow(
-        /signal-back refused: operationStatus 'done'.*1 still carry none.*- login-flow:terminal:dashboard/su,
-      );
-
-      const afterQuest = await questHelper.reload({ questId });
-      const operation = afterQuest.operations.find((op) => op.id === flowOpId);
-
-      testbed.cleanup();
-
-      expect(operation?.status).toBe('in_progress');
-    }, 30_000);
   });
 
-  describe('the two tracks are gated independently on the SAME persisted units', () => {
-    it("ERROR: {every unit carries a flowriderSignoff only, siegemaster 'done'} => refused, because flowrider's column never settles siegemaster's", async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'sb-tracks-independent' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f5' });
-      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: [
-              FlowNodeStub({
-                id: 'dashboard',
-                label: 'Dashboard',
-                flowriderSignoff: SignoffStub(),
-              }),
-            ],
-            edges: [],
-            offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
-              FlowOffMapSignoffStub({ id: family as never, flowriderSignoff: SignoffStub() }),
-            ),
-          }),
-        ],
-        operations: [
-          OperationItemStub({
-            id: siegeOpId,
-            role: 'siegemaster',
-            text: 'Siegemaster: manual-QA this flow — flow: login-flow',
-            status: 'in_progress',
-            locked: true,
-            flowIds: ['login-flow'],
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: siegeWorkItemId,
-            role: 'siegemaster',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(siegeOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      await expect(
-        QuestHandleSignalBackResponder({
-          questId,
-          workItemId: siegeWorkItemId,
-          signal: 'complete',
-          operationItemId: siegeOpId,
-          operationStatus: 'done',
-        }),
-      ).rejects.toThrow(
-        new RegExp(
-          `\`siegemasterSignoff\`.*${String(OFF_MAP_FAMILIES.length + 1)} still carry none.*- login-flow:terminal:dashboard`,
-          'su',
-        ),
-      );
-
-      const afterQuest = await questHelper.reload({ questId });
-      const operation = afterQuest.operations.find((op) => op.id === siegeOpId);
-
-      testbed.cleanup();
-
-      expect(operation?.status).toBe('in_progress');
-    }, 30_000);
-
+  describe("siegemaster: 'done' succeeds whether or not its units carry a siegemasterSignoff", () => {
     it("VALID: {the same units also carry a siegemasterSignoff, siegemaster 'done'} => the gate clears", async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-tracks-both-signed' }),

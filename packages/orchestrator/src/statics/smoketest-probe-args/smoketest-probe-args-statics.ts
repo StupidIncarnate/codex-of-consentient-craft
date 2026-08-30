@@ -156,19 +156,4 @@ export const smoketestProbeArgsStatics = {
     args: { questId: '{{questId}}' },
     summary: 'mcp-get-quest-summary-probe-ok',
   },
-  'get-planner-information': {
-    mode: 'call',
-    args: {},
-    summary: 'mcp-get-planner-information-probe-ok',
-  },
-  'get-worker-information': {
-    mode: 'call',
-    args: {},
-    summary: 'mcp-get-worker-information-probe-ok',
-  },
-  'get-reviewer-information': {
-    mode: 'call',
-    args: {},
-    summary: 'mcp-get-reviewer-information-probe-ok',
-  },
 } as const;

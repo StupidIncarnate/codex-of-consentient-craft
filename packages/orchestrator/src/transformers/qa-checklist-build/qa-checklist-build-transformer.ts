@@ -7,25 +7,26 @@
  * qaChecklistBuildTransformer({ flow, track: 'flowrider' });
  * // Returns QaChecklist whose `remainingItemIds` are the units awaiting a `flowriderSignoff`
  *
- * THE UNITS THEMSELVES COME FROM `qaUnitEnumerateTransformer`, which the signal-back completion
- * gate reads too. This file owns only the presentation on top of them: the label wording, the check
- * surface, the path walk, and the truncation. Sharing one enumerator is what makes the ids named in
- * a refused `done` the same strings this tool printed — a second derivation would drift silently,
- * and a gate naming ids the checklist never showed is indistinguishable from a hallucinating gate.
+ * THE UNITS THEMSELVES COME FROM `qaUnitEnumerateTransformer`, which the quest summary reads too.
+ * This file owns only the presentation on top of them: the label wording, the check surface, the
+ * path walk, and the truncation. Sharing one enumerator is what makes the ids this tool prints the
+ * same ids every other reader of a track's coverage names — a second derivation would drift
+ * silently.
  *
- * `remainingItemIds` IS MEASURED THE WAY THE CALLER WILL BE JUDGED. Name a `track` and it is
- * `signoffFlowOutstandingTransformer` — the very call the completion gate makes — so the count a
- * session reads here is the count that will refuse its `done`, off-map and late-provenance
- * exclusions included. Omit the track and EVERY unit is outstanding, because sign-offs are held per
- * track and a caller that named none has no column to measure against: a reader with no track in
- * hand (a human, a whole-quest listing) is asking what the flow contains, not what it owes.
+ * `remainingItemIds` IS THE WORK LIST, NOT A GATE. Name a `track` and it is
+ * `signoffFlowOutstandingTransformer` — the same call the quest summary makes — so the count a
+ * session reads here is the count that surface reports too, off-map and late-provenance exclusions
+ * included; nothing refuses a `done` over it. Omit the track and EVERY unit is outstanding, because
+ * sign-offs are held per track and a caller that named none has no column to measure against: a
+ * reader with no track in hand (a human, a whole-quest listing) is asking what the flow contains,
+ * not what it owes.
  *
  * PASS THE PACKAGE SCOPE TOO, or the count over-reports. `packagesAffected` is what resolves a
  * node's tags to the package KINDS the named track measures, and `packageNames` is the operation
  * item's own slice — Flowrider's tail seed fans out to one item per package plus a seam item, and a
- * session reading a whole-quest remainder while its gate clears at zero is exactly the number that
- * makes an operator stop believing the checklist. Both are omitted by a caller holding no quest and
- * no item, and then nothing is narrowed.
+ * session reading a whole-quest remainder instead of its own item's is the number that makes an
+ * operator stop believing the checklist. Both are omitted by a caller holding no quest and no item,
+ * and then nothing is narrowed.
  *
  * NO MODEL IS IN THIS LOOP, and that is the entire point. A session asked to enumerate a
  * 45-observable flow summarises, drops the tail, or paraphrases the wording; this walks the data
@@ -69,8 +70,8 @@ export const qaChecklistBuildTransformer = ({
   packageNames = [],
 }: {
   flow: Flow;
-  // Keyed on the ELIGIBILITY statics rather than `signoffTrackContract`, because there are three
-  // denominators over two sign-off fields and `groundstomper` is one of them. Indexing the same
+  // Keyed on the ELIGIBILITY statics rather than `signoffTrackContract`, because a DENOMINATOR is
+  // not a sign-off field and more than one denominator can share one field. Indexing the same
   // lookup the gate indexes is the compile-time pin that a new track cannot reach this surface
   // without a denominator to measure it against.
   track?: keyof typeof signoffTrackEligibilityStatics.byTrack;

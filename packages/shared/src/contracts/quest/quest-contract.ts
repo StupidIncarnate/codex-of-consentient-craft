@@ -148,7 +148,7 @@ export const questContract = z.object({
         .array(questBlightLedgerEntryContract)
         .default([])
         .describe(
-          "A reviewer-minion's per-unit standards-review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. The signal-back review-coverage gate reads this per unit: an orchestrator role cannot report `done` while any unit its own commits produced — measured over `<the work item's recorded startRef>..HEAD` — carries no entry here.",
+          "A reviewer's per-unit standards-review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. `get-blight-checklist` reads this per unit to report which of a work item's own commits — measured over `<the work item's recorded startRef>..HEAD` — still carry no entry here. This is guidance a reviewer records on its own initiative; nothing refuses a `done` over it.",
         ),
       questNotes: z
         .array(questNoteContract)
@@ -160,7 +160,7 @@ export const questContract = z.object({
         .array(operationPlanContract)
         .default([])
         .describe(
-          "Planner sub-agent outputs, one per plan/work/review round, so the orchestrator session that dispatched a planner can read its plan back off the quest instead of holding it in the dispatching session's own context. Appended, never replaced — a rejected round's plan stays for audit alongside the round that superseded it.",
+          "Planner sub-agent outputs, one per plan/work/review pass, so the orchestrator session that dispatched a planner can read its plan back off the quest instead of holding it in the dispatching session's own context. Appended, never replaced — a rejected pass's plan stays for audit alongside the pass that superseded it.",
         ),
     })
     .default({
@@ -169,7 +169,7 @@ export const questContract = z.object({
       operationPlans: [],
     })
     .describe(
-      'The per-unit standards-review ledger a reviewer-minion writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by its own `flowriderSignoff` / `siegemasterSignoff` on the flow element, which is what both signal-back completion gates recompute.',
+      'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by its own `codeweaverSignoff` / `flowriderSignoff` / `siegemasterSignoff` on the flow element, recomputed by `get-qa-checklist` and the quest summary — neither of which is a gate.',
     ),
   questSource: questSourceContract
     .optional()

@@ -38,7 +38,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
       });
       const workItem = WorkItemStub({
         id: workItemId,
-        role: 'pesteater',
+        role: 'flowrider',
         status: 'pending',
         resume: true,
       });
@@ -47,9 +47,9 @@ describe('buildSpawnInstructionLayerBroker', () => {
 
       expect(result).toStrictEqual({
         questId,
-        role: 'pesteater',
+        role: 'flowrider',
         workItemId,
-        taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pesteater",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
       });
     });
 
@@ -145,14 +145,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
       const sessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
 
       const resumedRoles = (
-        [
-          'codeweaver',
-          'flowrider',
-          'siegemaster',
-          'groundstomper',
-          'spiritmender',
-          'pesteater',
-        ] as const
+        ['codeweaver', 'flowrider', 'siegemaster', 'spiritmender', 'warpgate'] as const
       ).map((role) => {
         const workItem = WorkItemStub({ id: workItemId, role, status: 'pending', sessionId });
         const instruction = buildSpawnInstructionLayerBroker({ questId, workItem });
@@ -163,9 +156,8 @@ describe('buildSpawnInstructionLayerBroker', () => {
         { role: 'codeweaver', resumeSessionId: sessionId },
         { role: 'flowrider', resumeSessionId: sessionId },
         { role: 'siegemaster', resumeSessionId: sessionId },
-        { role: 'groundstomper', resumeSessionId: sessionId },
         { role: 'spiritmender', resumeSessionId: sessionId },
-        { role: 'pesteater', resumeSessionId: sessionId },
+        { role: 'warpgate', resumeSessionId: sessionId },
       ]);
     });
   });

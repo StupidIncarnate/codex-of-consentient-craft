@@ -57,10 +57,10 @@ describe('BlightChecklistLayerResponder', () => {
       });
     });
 
-    // The reviewer-minion's call. Dropping the scope here would silently fall the server back to the
+    // The reviewer's call. Dropping the scope here would silently fall the server back to the
     // whole-quest diff, so the reviewer would read a surface of already-dispositioned files and
-    // report a round it never actually scoped.
-    it("VALID: {questId, scope: 'unpushed'} => forwards the round scope", async () => {
+    // report a pass it never actually scoped.
+    it("VALID: {questId, scope: 'unpushed'} => forwards the pass scope", async () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
         questId: 'add-auth',

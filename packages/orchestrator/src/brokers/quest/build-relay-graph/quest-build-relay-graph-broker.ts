@@ -78,9 +78,9 @@ export const questBuildRelayGraphBroker = ({
     }
   }
 
-  // Implementation seeds expand through the SAME `fanOutBy` transformer the tail uses, so a feature
-  // quest's one codeweaver seed becomes the derived per-cell ledger and bug-hunt's pesteater seed —
-  // which declares no `fanOutBy` — still becomes exactly one item.
+  // Implementation seeds expand through the SAME `fanOutBy` transformer the tail uses, so the one
+  // codeweaver seed becomes the derived per-package ledger while the riftcarver seed — which
+  // declares no `fanOutBy` — still becomes exactly one item.
   //
   // `locked` defaults true and codeweaver sets it false: locking is what enrols an item in its
   // role's `slotManagerStatics` pt budget, and a codeweaver chain must stay unbounded because the
@@ -98,9 +98,9 @@ export const questBuildRelayGraphBroker = ({
         locked,
         flowIds: slice.flowIds,
         // A slice that names its own packages IS the scope. The spine fallback is for a seed that
-        // fans out to one whole-quest item (bug-hunt's pesteater): no author declared anything, so
-        // the node tags are the only statement of where the work lands, and an item seeded without
-        // them reaches its session declaring no packages at all.
+        // fans out to one whole-quest item: no author declared anything, so the node tags are the
+        // only statement of where the work lands, and an item seeded without them reaches its
+        // session declaring no packages at all.
         //
         // A COMMAND role is excluded from that fallback: `packageNames` exists to narrow an agent's
         // search to its slice, and the dispatcher runs a command itself with no prompt to narrow.

@@ -1,22 +1,22 @@
 /**
  * PURPOSE: Decomposes ONE flow into its atomic verification units — every terminal, every labelled
  * decision branch, every embedded observable, and every off-map probe family — carrying each unit's
- * derived id, its graph anchor, its verbatim source text and the two tracks' sign-offs on it
+ * derived id, its graph anchor, its verbatim source text and the three tracks' sign-offs on it
  *
  * USAGE:
  * qaUnitEnumerateTransformer({ flow });
  * // Returns QaVerificationUnit[] in checklist order: terminals, branches, observables, off-map
  *
  * THIS IS THE SINGLE ENUMERATION. `qaChecklistBuildTransformer` renders it for a session and
- * `signoffOutstandingTransformer` measures the completion gate against it, so "the ids a refused
- * `done` names are the ids `get-qa-checklist` printed" holds structurally instead of by two files
- * agreeing to derive the same strings. Ids are computed from the graph, never minted, so
+ * `signoffOutstandingTransformer` measures a track's remainder against it, so "the ids an
+ * outstanding count names are the ids `get-qa-checklist` printed" holds structurally instead of by
+ * two files agreeing to derive the same strings. Ids are computed from the graph, never minted, so
  * re-enumerating an unchanged flow reproduces them byte for byte.
  *
  * NO PATH WALK HAPPENS HERE, deliberately. `qaWalkPathsTransformer` enumerates every simple route
- * through the graph and is unbounded in the number of branches; the completion gate runs
- * synchronously inside signal-back on every `done` from two roles and needs the unit set, never the
- * routes. Keeping the walk out of this file is what stops the gate paying for a render concern.
+ * through the graph and is unbounded in the number of branches; an outstanding-count read can run
+ * synchronously off any track's `done` and needs the unit set, never the routes. Keeping the walk
+ * out of this file is what stops that read paying for a render concern.
  *
  * A TERMINAL IS A NODE WITH NO OUTGOING EDGE, which is not the same set as `type === 'terminal'`:
  * a node an author typed `terminal` may still point onward, and a plain `state` node may be where

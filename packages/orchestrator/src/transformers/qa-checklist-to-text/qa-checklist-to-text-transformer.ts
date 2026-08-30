@@ -48,9 +48,9 @@ export const qaChecklistToTextTransformer = ({
   track,
 }: {
   checklist: QaChecklist;
-  // The DENOMINATOR track, of which there are three, not the sign-off FIELD, of which there are
-  // two — Groundstomper is measured separately from Flowrider and writes the same field, so the
-  // caption below names the field it looks up rather than the track it was handed.
+  // The DENOMINATOR track, not the sign-off FIELD. A denominator that shares another's field is
+  // representable, so the caption below names the field it LOOKS UP rather than the track it was
+  // handed — which is what stops it telling a session to write a column no contract carries.
   track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
 }): ContentText => {
   const remaining = new Set(checklist.remainingItemIds.map(String));

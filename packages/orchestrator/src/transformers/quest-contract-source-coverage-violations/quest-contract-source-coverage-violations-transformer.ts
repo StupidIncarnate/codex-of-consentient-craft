@@ -28,8 +28,7 @@
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-import { questContractSourceOwnerTransformer } from '../quest-contract-source-owner/quest-contract-source-owner-transformer';
+import { questContractSourceOwnerTransformer } from '@dungeonmaster/shared/transformers';
 
 type Quest = ReturnType<typeof QuestStub>;
 

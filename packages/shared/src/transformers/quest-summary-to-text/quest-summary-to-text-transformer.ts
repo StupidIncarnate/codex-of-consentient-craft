@@ -82,16 +82,17 @@ export const questSummaryToTextTransformer = ({
     `# QUEST SUMMARY — \`${String(summary.questId)}\``,
     '',
     'What actually happened on this quest — which is not what `get-quest` or a status answers. A',
-    'quest reaches `complete` once BOTH verification tracks have SIGNED every unit, and',
-    '`unconfirmable` signs a unit exactly as `confirmed` does: the completion gate refuses the',
-    'ABSENCE of a verdict, never an honest one. So a green quest can still carry real holes, real',
-    'scope nobody approved, and real unanswered questions. Every section below is one of those.',
+    'quest reaches `complete` when its operations ledger drains, not when its three verification',
+    'tracks (codeweaver, flowrider, siegemaster) have SIGNED every unit, and',
+    '`unconfirmable` signs a unit exactly as `confirmed` does: it clears the',
+    'ABSENCE of a verdict, never demands an honest one. So a complete quest can still carry real holes,',
+    'real scope nobody approved, and real unanswered questions. Every section below is one of those.',
   ].join('\n');
 
   const coverage = [
     '',
     `## COVERAGE — ${String(summary.flows.length)} flow(s), one row per track that measures each${flowsNotice}`,
-    '`outstanding` is the count the signal-back completion gate refuses `done` on. A track ABSENT',
+    '`outstanding` is that track\'s work list — nothing refuses a `done` over it. A track ABSENT',
     'from a flow does not measure it at all, which is a different statement from measuring it and',
     'finding nothing.',
     ...(flowsShown.length === 0
@@ -129,7 +130,7 @@ export const questSummaryToTextTransformer = ({
   const unconfirmable = [
     '',
     `## UNCONFIRMABLE (${String(summary.unconfirmable.length)}) — settled, NOT proven${unconfirmableNotice}`,
-    'Every entry here CLEARED the completion gate, so this list is the only place it surfaces.',
+    'Every entry here settled a unit without proving it — this list is the only place it surfaces.',
     '`evidence` is why confirmation was out of reach, `question` is what someone has to answer to',
     'close it, and the work item is who to ask. Read this before deciding what is left to do.',
     ...(unconfirmableShown.length === 0

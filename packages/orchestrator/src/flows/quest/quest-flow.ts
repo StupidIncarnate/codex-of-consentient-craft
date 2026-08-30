@@ -4,6 +4,7 @@
  * USAGE:
  * const result = await QuestFlow.add({ title, userRequest, guildId });
  * const quest = await QuestFlow.get({ questId, stage });
+ * const slice = await QuestFlow.get({ questId, flowId, packageName });
  * const items = await QuestFlow.list({ guildId });
  * const listing = await QuestFlow.listWithSkips({ guildId });
  * const fullQuest = await QuestFlow.load({ questId });
@@ -103,8 +104,13 @@ export const QuestFlow = {
   add: async ({ title, userRequest, guildId }: AddParams): Promise<AddResult> =>
     QuestUserAddResponder({ title, userRequest, guildId }),
 
-  get: async ({ questId, stage }: GetParams): Promise<GetResult> =>
-    QuestGetResponder({ questId, ...(stage !== undefined && { stage }) }),
+  get: async ({ questId, stage, flowId, packageName }: GetParams): Promise<GetResult> =>
+    QuestGetResponder({
+      questId,
+      ...(stage !== undefined && { stage }),
+      ...(flowId !== undefined && { flowId }),
+      ...(packageName !== undefined && { packageName }),
+    }),
 
   getPlanningNotes: async ({ questId }: GetPlanningNotesParams): Promise<GetPlanningNotesResult> =>
     QuestGetPlanningNotesResponder({ questId }),

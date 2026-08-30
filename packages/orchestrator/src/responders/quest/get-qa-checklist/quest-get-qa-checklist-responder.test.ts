@@ -102,10 +102,14 @@ describe('QuestGetQaChecklistResponder', () => {
         nodes: [],
         edges: [],
       });
-      // The scope comes off the ITEM now: its role is the track, and a flowrider item is
-      // `flowScope: 'every-eligible'`, so its own flowIds do not narrow the flow set — the track's
-      // `flowTypes` do, and they drop the operational one.
-      const item = OperationItemStub({ id: OP_ID, role: 'flowrider' });
+      // The scope comes off the ITEM: its role is the track, and every track — flowrider included
+      // — is `flowScope: 'declared'`, so the item's own flowIds narrow the flow set first; the
+      // track's `flowTypes` narrow further, dropping the operational one.
+      const item = OperationItemStub({
+        id: OP_ID,
+        role: 'flowrider',
+        flowIds: ['walk-flow', 'rollout-flow'],
+      });
       const quest = QuestStub({ flows: [runtime, operational], operations: [item] });
       proxy.setupQuestFound({ quest });
 
@@ -205,6 +209,7 @@ describe('QuestGetQaChecklistResponder', () => {
       const item = OperationItemStub({
         id: OP_ID,
         role: 'flowrider',
+        flowIds: ['checkout-flow'],
         packageNames: ['api-service'],
       });
       const quest = QuestStub({ packagesAffected, flows: [flow], operations: [item] });
@@ -292,11 +297,11 @@ describe('QuestGetQaChecklistResponder', () => {
       },
     );
 
-    // Not the same fact as "this quest has no flows": these roles are measured on the scope block
-    // rendered into their Operation Context. Reading the generic no-flows line would tell a
-    // codeweaver its scope was empty, which it would act on by signalling done over unbuilt work.
-    it.each(['codeweaver', 'pesteater'] as const)(
-      'EMPTY: {role: %s} => says its denominator is the rendered scope block, not that there is nothing to verify',
+    // Not the same fact as "this quest has no flows": `spiritmender` and `warpgate` are measured on
+    // what their own prompt hands them, not on the flow graph. Reading the generic no-flows line
+    // would read as "your scope is empty," which a session could act on by signalling done early.
+    it.each(['spiritmender', 'warpgate'] as const)(
+      'EMPTY: {role: %s} => says its role has no sign-off track, not that there is nothing to verify',
       async (role) => {
         const proxy = QuestGetQaChecklistResponderProxy();
         const item = OperationItemStub({ id: OP_ID, role });
@@ -313,7 +318,7 @@ describe('QuestGetQaChecklistResponder', () => {
 
         expect(result).toStrictEqual({
           success: true,
-          data: "That operation item's role has no sign-off track, so no checklist measures it. Its denominator is the scope block already rendered into the Operation Context — its nodes, its verbatim observables, its contracts and its Seams. There is no tool to hunt for.",
+          data: "That operation item's role has no sign-off track, so no checklist measures it. What it must do is stated in its own prompt and its Operation Context. There is no tool to hunt for.",
         });
       },
     );

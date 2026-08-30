@@ -46,7 +46,6 @@ describe('orchestrator', () => {
       'nextStepContract',
       'orchestrationEventsState',
       'orchestrationProcessesState',
-      'plannerInformationStatics',
       'questFindQuestPathBroker',
       'questFolderFindBroker',
       'questGetBroker',
@@ -61,7 +60,6 @@ describe('orchestrator', () => {
       'questStageContract',
       'questSummaryContract',
       'questUserAddBroker',
-      'reviewerInformationStatics',
       'sessionIdExtractorTransformer',
       'signalFromStreamTransformer',
       'slotCountContract',
@@ -77,7 +75,6 @@ describe('orchestrator', () => {
       'toolInputToDisplayTransformer',
       'verifyQuestCheckContract',
       'workItemIdContract',
-      'workerInformationStatics',
     ]);
   });
 });

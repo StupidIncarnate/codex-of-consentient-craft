@@ -38,7 +38,7 @@ describe('agentPromptNameContract', () => {
 
     // Every earlier shape of this system, kept so a stale server serving one is a hard failure
     // rather than a silent miss: the per-parent minion families the generic trio replaced, and the
-    // standards-review roles the round's own reviewer absorbed.
+    // standards-review roles the pass's own reviewer absorbed.
     it.each([
       'pathseeker-surface',
       'lawbringer',

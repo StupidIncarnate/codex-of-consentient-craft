@@ -382,13 +382,13 @@ On a SEAM node — one tagging more than one package — every observable states
 
 **\`type\` tags** are read by THREE downstream consumers:
 - **Codeweavers** read them at build time to judge which folder type owns the observable's implementation
-- **The two authoring roles split on whether the outcome is visible through a browser.** Groundstomper owns Playwright and only Playwright; Flowrider owns the integration and unit suites below the browser. The tag is the strongest signal for which of them will be asserting this outcome.
+- **Flowrider** authors the whole test suite that proves a flow — Playwright browser walks alongside the integration and unit suites below the browser. The tag is the strongest signal for which layer of that suite will be asserting this outcome.
 - **Siegemaster** reads the distribution across a flow's observables to pick how it hand-verifies: a browser it drives itself, \`curl\`/CLI/queue traffic, or end-state checks
 
-A flow whose observables are almost all \`ui-state\`/\`api-call\` gets walked in a browser — by Groundstomper's Playwright suite, and again by Siegemaster's hands. A flow whose observables are almost all \`file-exists\`/\`process-state\`/\`custom\` gets Ward + grep + adversarial checks instead, and no browser at all. Picking the right tag is not a cosmetic choice — it decides how the flow gets verified.
+A flow whose observables are almost all \`ui-state\`/\`api-call\` gets walked in a browser — by Flowrider's Playwright suite, and again by Siegemaster's hands. A flow whose observables are almost all \`file-exists\`/\`process-state\`/\`custom\` gets Ward + grep + adversarial checks instead, and no browser at all. Picking the right tag is not a cosmetic choice — it decides how the flow gets verified.
 
-- \`ui-state\` — Visual/DOM changes (→ widgets, → Groundstomper Playwright, → Siegemaster's hand-walk)
-- \`api-call\` — HTTP requests/responses (→ responders, adapters, → Flowrider integration harness, or Groundstomper Playwright when the call is observed through the browser)
+- \`ui-state\` — Visual/DOM changes (→ widgets, → Flowrider Playwright, → Siegemaster's hand-walk)
+- \`api-call\` — HTTP requests/responses (→ responders, adapters, → Flowrider's integration harness, or its Playwright suite when the call is observed through the browser)
 - \`file-exists\` — File system changes (→ brokers, → Siegemaster file-system check)
 - \`process-state\` — Running process state changes (→ Siegemaster process exit/output check)
 - \`log-output\` — Console/log output verification (→ Siegemaster log tail)

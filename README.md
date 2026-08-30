@@ -71,15 +71,14 @@ and delegating to specialized AI agents. Think of it as a party system for your 
   authors flows and observables, gathers `packagesAffected[]`, and gates on your approval
 - **Riftcarver** - Carves the quest's branch, worktree and preflight build before anything else runs
 - **Codeweaver** - Weaves elegant implementations and tests
-- **Flowrider** - Authors the flow-perspective test suites below the browser
-- **Groundstomper** - Authors the Playwright walk for each flow a browser can reach
+- **Flowrider** - Authors the test suites that prove each flow, in the browser and below it
 - **Siegemaster** - Hand-drives each flow against a running system and grades its suite
 - **Spiritmender** - Heals build errors and failed tests
 
-Each of Codeweaver, Flowrider, Groundstomper and Siegemaster runs as an **operator** that never
-opens a source file itself: it summons a planner, then workers one at a time, then a reviewer, and
-commits the round. The reviewer also takes the standing standards concerns — craft, performance,
-duplication, integrity and test cases — over what the round produced.
+Each of Codeweaver, Flowrider and Siegemaster runs as an **operator**: it reads the code, briefs
+sub-agents to do the work a piece at a time, then summons its own reviewer before it commits. That
+reviewer also takes the standing standards concerns — craft, performance, duplication, integrity and
+test cases — over what the pass produced.
 
 ## Usage
 
@@ -183,7 +182,7 @@ on its next pass.
 
 Same flow. The spec phase elicits flows, observables, contracts, and `packagesAffected[]`
 before approval; `/dumpster-launch` then dispatches the operations relay: riftcarver / codeweaver /
-ward / flowrider / groundstomper / siegemaster / ward.
+ward / flowrider / siegemaster / ward.
 
 ## For Monorepos
 

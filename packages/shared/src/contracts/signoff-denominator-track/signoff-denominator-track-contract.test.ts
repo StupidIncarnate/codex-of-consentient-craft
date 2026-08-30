@@ -6,8 +6,8 @@ describe('signoffDenominatorTrackContract', () => {
   describe('valid tracks', () => {
     it('VALID: {options} => three denominators, in relay order', () => {
       expect(signoffDenominatorTrackContract.options).toStrictEqual([
+        'codeweaver',
         'flowrider',
-        'groundstomper',
         'siegemaster',
       ]);
     });
@@ -25,15 +25,16 @@ describe('signoffDenominatorTrackContract', () => {
   });
 
   describe('relationship to the sign-off FIELD contract', () => {
-    // Groundstomper is the member that exists here and nowhere else: it writes `flowriderSignoff`,
-    // so it is no field of its own, but it is measured over its own package kinds, so it is a
-    // denominator of its own. A reader reaching for the wrong enum gets the other's set.
-    it('VALID: {denominators minus fields} => groundstomper alone', () => {
+    // A member that exists here and nowhere else writes a field named after another role, so it is
+    // no field of its own while still being measured over its own package kinds. There is none
+    // today; the assertion is where one would be declared, and a reader reaching for the wrong enum
+    // would then get the other's set.
+    it('VALID: {denominators minus fields} => nothing', () => {
       const fields = new Set(signoffTrackContract.options.map(String));
 
       expect(
         signoffDenominatorTrackContract.options.filter((track) => !fields.has(track)),
-      ).toStrictEqual(['groundstomper']);
+      ).toStrictEqual([]);
     });
 
     it('VALID: {every sign-off field} => is also a denominator, so a field always has a scope', () => {

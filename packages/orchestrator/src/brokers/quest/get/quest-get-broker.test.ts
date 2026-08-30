@@ -216,6 +216,117 @@ describe('questGetBroker', () => {
     });
   });
 
+  describe('flow slicing', () => {
+    it('VALID: {flowId} => returns the rendered slice alongside the quest', async () => {
+      const proxy = questGetBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            name: 'Log in',
+            entryPoint: 'login-page',
+            nodes: [FlowNodeStub({ id: 'login-page', label: 'Login page', packages: ['web'] })],
+            edges: [],
+          }),
+        ],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = GetQuestInputStub({ questId: 'add-auth', flowId: 'login-flow' });
+      const result = await questGetBroker({ input });
+
+      expect(
+        String(result.flowSlice)
+          .split('\n')
+          .filter((line) => line.startsWith('## Flow:')),
+      ).toStrictEqual(['## Flow: #login-flow — "Log in"']);
+    });
+
+    it('VALID: {flowId, packageName} => the slice marks that package’s node', async () => {
+      const proxy = questGetBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            name: 'Log in',
+            entryPoint: 'login-page',
+            nodes: [
+              FlowNodeStub({ id: 'login-page', label: 'Login page', packages: ['web', 'server'] }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = GetQuestInputStub({
+        questId: 'add-auth',
+        flowId: 'login-flow',
+        packageName: 'server',
+      });
+      const result = await questGetBroker({ input });
+
+      expect(
+        String(result.flowSlice)
+          .split('\n')
+          .filter((line) => line.startsWith('[#login-page]')),
+      ).toStrictEqual(['[#login-page] Login page (state) {web, server} ◀ YOURS']);
+    });
+
+    it('VALID: {packageName alone} => returns the foundation view, with no flow graph', async () => {
+      const proxy = questGetBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            name: 'Log in',
+            entryPoint: 'login-page',
+            nodes: [FlowNodeStub({ id: 'login-page', label: 'Login page', packages: ['web'] })],
+            edges: [],
+          }),
+        ],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = GetQuestInputStub({ questId: 'add-auth', packageName: 'web' });
+      const result = await questGetBroker({ input });
+
+      expect(
+        String(result.flowSlice)
+          .split('\n')
+          .filter((line) => line.startsWith('## ')),
+      ).toStrictEqual([
+        '## Flows on this quest — fetch each one you own with get-quest({ questId, flowId })',
+      ]);
+    });
+
+    // The stage path is a SIBLING entry point: a call that names no flow and no package still gets
+    // exactly what it always got, with no rendered slice attached to it.
+    it('EMPTY: {no flowId, no packageName} => no flowSlice on the result at all', async () => {
+      const proxy = questGetBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = GetQuestInputStub({ questId: 'add-auth' });
+      const result = await questGetBroker({ input });
+
+      expect(result.flowSlice).toBe(undefined);
+    });
+  });
+
   describe('quest not found', () => {
     it('ERROR: {questId not exists} => returns not found error', async () => {
       const proxy = questGetBrokerProxy();

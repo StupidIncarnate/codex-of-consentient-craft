@@ -6,6 +6,7 @@ import {
   OperationItemStub,
   QuestPackageEntryStub,
   QuestStub,
+  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
@@ -187,7 +188,152 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
   });
 
-  describe('flowsRule: additive-only', () => {
+  // One of the two checks that survive `flowsRule: 'full'`, and the reason it is not a permission
+  // rule. Every other restriction on an execution agent's flow write is gone — it adds, edits and
+  // deletes freely. A sign-off naming an id the graph does not hold is different in kind: the upsert
+  // APPENDS that id rather than rejecting it, so one logical unit ends up with a second, phantom
+  // home no later read can tell from the real one. These two cases are the only thing holding that.
+  // The payloads are the PATCH shape a signing call really sends — a full observable restated
+  // alongside its sign-off is the coupled edit the sibling check refuses, covered in
+  // `quest-signoff-coupled-edit-violations-transformer.test.ts`.
+  describe('flowsRule: full still refuses a sign-off on a unit the graph does not hold', () => {
+    it('VALID: {in_progress + signs an observable that EXISTS} => returns empty array', () => {
+      const existingFlow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login' as never,
+            observables: [FlowObservableStub({ id: 'redirects' as never })],
+          }),
+        ],
+      });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                observables: [
+                  {
+                    id: 'redirects',
+                    codeweaverSignoff: SignoffStub({
+                      verdict: 'confirmed',
+                      evidence:
+                        'login-widget.test.tsx:31 — red when the redirect target is /' as never,
+                    }),
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('INVALID: {in_progress + signs an observable id the flow does NOT hold} => rejects it by name', () => {
+      const existingFlow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login' as never,
+            observables: [FlowObservableStub({ id: 'redirects' as never })],
+          }),
+        ],
+      });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                observables: [
+                  {
+                    id: 'never-existed',
+                    codeweaverSignoff: SignoffStub({ verdict: 'confirmed' }),
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([
+        "Sign-off on unknown observable 'never-existed' — no observable with that id exists on node 'login' in flow 'login-flow'; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
+      ]);
+    });
+  });
+
+  // The other check that survives `flowsRule: 'full'`. The session that builds an artifact is the
+  // session that signs it, so a payload free to sign a unit and rewrite that same unit in one call
+  // can move the goalposts to whatever it produced. This case is what proves the check is WIRED
+  // here — every key it refuses is enumerated in the sibling transformer's own tests.
+  describe('flowsRule: full still refuses an edit coupled to a sign-off', () => {
+    it('INVALID: {in_progress + signs an observable AND rewrites its description in one call} => rejects the coupled key by name', () => {
+      const existingFlow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login' as never,
+            observables: [FlowObservableStub({ id: 'redirects' as never })],
+          }),
+        ],
+      });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                observables: [
+                  {
+                    id: 'redirects',
+                    description: 'redirects to /home instead',
+                    codeweaverSignoff: SignoffStub({ verdict: 'confirmed' }),
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([
+        "Sign-off on observable 'redirects' on node 'login' in flow 'login-flow' also writes 'description' — an observable carrying a sign-off may carry only its id and its sign-off fields; a sign-off is evidence about the unit as it stands, so one call may not both sign it and rewrite it — send the sign-off and the edit as two separate modify-quest calls",
+      ]);
+    });
+  });
+
+  describe('flowsRule: full at in_progress — an execution agent may restructure a flow, not just add to it', () => {
     it('VALID: {in_progress + replace existing observable wording} => returns empty array', () => {
       const existingObservable = FlowObservableStub({ id: 'redirects' as never });
       const existingNode = FlowNodeStub({
@@ -232,7 +378,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {in_progress + add new flow} => rejects flow add', () => {
+    it('VALID: {in_progress + add new flow} => returns empty array, since flowsRule: full allows a whole new flow', () => {
       const currentQuest = QuestStub({ status: 'in_progress', flows: [] });
       const newFlow = FlowStub({ id: 'brand-new-flow' as never });
       const input = ModifyQuestInputStub({ flows: [newFlow] });
@@ -243,9 +389,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Flow add not allowed in status 'in_progress' (attempted to add flow 'brand-new-flow') — you may add nodes, edges, and observables to an EXISTING flow, but not a new flow",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('VALID: {in_progress + add new node and edge to existing flow} => allowed, a session may record a branch it discovered', () => {
@@ -287,7 +431,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {in_progress + delete existing observable} => rejects observable delete', () => {
+    it('VALID: {in_progress + delete existing observable} => returns empty array, since flowsRule: full allows any flow mutation', () => {
       const existingObservable = FlowObservableStub({ id: 'redirects' as never });
       const existingNode = FlowNodeStub({
         id: 'login' as never,
@@ -325,9 +469,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Observable delete not allowed in status 'in_progress' (attempted to delete observable 'redirects' from node 'login' in flow 'login-flow') — you may add observables, never remove one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('VALID: {in_progress + add new observable to existing node} => allowed, adding only tightens the target', () => {

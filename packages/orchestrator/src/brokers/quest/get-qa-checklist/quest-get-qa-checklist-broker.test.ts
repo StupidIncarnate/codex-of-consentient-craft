@@ -14,9 +14,10 @@ import { signoffOutstandingTransformer } from '../../../transformers/signoff-out
 import { questGetQaChecklistBroker } from './quest-get-qa-checklist-broker';
 import { questGetQaChecklistBrokerProxy } from './quest-get-qa-checklist-broker.proxy';
 
-// A tagged quest: `ui-app` resolves to a browser-reachable kind and `api-service` does not, which is
-// the axis that splits the two authoring denominators. Named nowhere in source — the rule is
-// `packageType`, never a package name.
+// A tagged quest: `ui-app` is a browser-reachable package kind (frontend-react) and `api-service` is
+// not (http-backend). Every track now carries the full nine-member packageTypes list, so neither
+// kind is excluded from any track's denominator — what narrows a checklist to one or the other is
+// the operation item's own declared `packageNames`, never the track.
 const UI_PACKAGE = 'ui-app';
 const API_PACKAGE = 'api-service';
 
@@ -80,7 +81,6 @@ const TAGGED_FLOW = FlowStub({
 const TAGGED_QUEST = QuestStub({ packagesAffected: TAGGED_PACKAGES, flows: [TAGGED_FLOW] });
 
 const OP_ID = 'c1c1c1c1-1111-4222-9333-444444444444';
-const OTHER_OP_ID = 'c2c2c2c2-1111-4222-9333-444444444444';
 
 describe('questGetQaChecklistBroker', () => {
   describe('enumerating a quest', () => {
@@ -262,10 +262,10 @@ describe('questGetQaChecklistBroker', () => {
       ]);
     });
 
-    // A role with NO sign-off track resolves to no scope at all — `codeweaver` and `pesteater` are
+    // A role with NO sign-off track resolves to no scope at all — `spiritmender` and `warpgate` are
     // measured on the scope block rendered into their Operation Context, not on the flow graph. It
     // is distinct from "this quest has no flows", and the responder says so in different words.
-    it.each(['codeweaver', 'pesteater'] as const)(
+    it.each(['spiritmender', 'warpgate'] as const)(
       'EMPTY: {role: %s} => no checklists and no track, because that role has no denominator here',
       async (role) => {
         const proxy = questGetQaChecklistBrokerProxy();
@@ -429,17 +429,15 @@ describe('questGetQaChecklistBroker', () => {
 
   // The number a session reads and the number its gate refuses on MUST be the same number. They are
   // computed by different call chains — this broker for the tool, `signoffOutstandingTransformer`
-  // for signal-back — and a divergence is indistinguishable from a hallucinating gate. Groundstomper
-  // is where it would show first: it writes `flowriderSignoff`, so a tool keyed on the sign-off
-  // FIELD hands it Flowrider's package kinds, which are the exact complement of its own.
+  // for signal-back — and a divergence is indistinguishable from a hallucinating gate.
   describe('the checklist number equals the completion gate number', () => {
-    it('VALID: {a groundstomper item} => the tool and the gate name the SAME browser-reachable units', async () => {
+    it('VALID: {a flowrider item scoped to browser-reachable packages} => the tool and the gate name the SAME units', async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       // ONE item, read by both surfaces. That is the whole claim now: the scope is not passed to
       // either of them, it is derived from this object by the transformer they share.
       const scopeItem = OperationItemStub({
         id: OP_ID as never,
-        role: 'groundstomper',
+        role: 'flowrider',
         status: 'in_progress',
         locked: true,
         flowIds: ['checkout-flow'] as never,
@@ -471,6 +469,7 @@ describe('questGetQaChecklistBroker', () => {
       const scopeItem = OperationItemStub({
         id: OP_ID as never,
         role: 'flowrider',
+        flowIds: ['checkout-flow'] as never,
         packageNames: [API_PACKAGE] as never,
       });
       proxy.setupQuestFound({
@@ -506,61 +505,6 @@ describe('questGetQaChecklistBroker', () => {
           'checkout-flow:observable:obs-charge',
         ],
       ]);
-    });
-
-    // The old failure this file guarded — a groundstomper session handed Flowrider's track name and
-    // reading the exact complement of its own work — is no longer expressible. There is no `track`
-    // argument to get wrong and no `packageNames` to omit: two items of DIFFERENT roles over the
-    // same flow produce the two disjoint halves, and each matches its own gate.
-    it('VALID: {a flowrider and a groundstomper item over one flow} => disjoint halves, each equal to its own gate', async () => {
-      const proxy = questGetQaChecklistBrokerProxy();
-      const flowriderItem = OperationItemStub({
-        id: OP_ID as never,
-        role: 'flowrider',
-        flowIds: ['checkout-flow'] as never,
-        packageNames: [API_PACKAGE] as never,
-      });
-      const groundstomperItem = OperationItemStub({
-        id: OTHER_OP_ID as never,
-        role: 'groundstomper',
-        flowIds: ['checkout-flow'] as never,
-        packageNames: [UI_PACKAGE] as never,
-      });
-      const quest = QuestStub({
-        ...TAGGED_QUEST,
-        operations: [flowriderItem, groundstomperItem],
-      });
-      proxy.setupQuestFound({ quest });
-      proxy.setupQuestFound({ quest });
-
-      const below = await questGetQaChecklistBroker({
-        questId: QuestIdStub({ value: TAGGED_QUEST.id }),
-        operationItemId: OP_ID as never,
-      });
-      const browser = await questGetQaChecklistBroker({
-        questId: QuestIdStub({ value: TAGGED_QUEST.id }),
-        operationItemId: OTHER_OP_ID as never,
-      });
-
-      expect({
-        below: below.checklists[0]?.remainingItemIds,
-        browser: browser.checklists[0]?.remainingItemIds,
-        belowMatchesItsGate:
-          below.checklists[0]?.remainingItemIds.join() ===
-          signoffOutstandingTransformer({ quest, operationItem: flowriderItem }).join(),
-        browserMatchesItsGate:
-          browser.checklists[0]?.remainingItemIds.join() ===
-          signoffOutstandingTransformer({ quest, operationItem: groundstomperItem }).join(),
-      }).toStrictEqual({
-        below: [
-          'checkout-flow:terminal:n-done',
-          'checkout-flow:branch:e-ok',
-          'checkout-flow:observable:obs-charge',
-        ],
-        browser: ['checkout-flow:branch:e-submit', 'checkout-flow:observable:obs-cart'],
-        belowMatchesItsGate: true,
-        browserMatchesItsGate: true,
-      });
     });
   });
 

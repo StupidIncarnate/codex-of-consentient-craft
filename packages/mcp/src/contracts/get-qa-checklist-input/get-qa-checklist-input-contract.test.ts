@@ -11,7 +11,7 @@ describe('getQaChecklistInputContract', () => {
 
     // The scoped form, and the only one a dispatched session should ever use: the operation item
     // carries the track, the flows and the package slice, and the server derives all three with the
-    // same transformer the signal-back completion gate uses.
+    // same transformer every other reader of this coverage uses.
     it('VALID: {questId, operationItemId} => parses the item-scoped form', () => {
       expect(
         getQaChecklistInputContract.parse(
@@ -30,14 +30,14 @@ describe('getQaChecklistInputContract', () => {
   });
 
   describe('the three scope arguments this input no longer takes', () => {
-    // Each of these was a way to ask a DIFFERENT question from the one the completion gate answers,
-    // and every one failed by over-reporting — the remainder simply never reached empty while
-    // `done` went on being refused, with nothing naming the cause. They are gone, and `.strict()`
+    // Each of these was a way to ask a DIFFERENT question from the one this scope answers,
+    // and every one failed by over-reporting — the remainder simply never reached empty,
+    // with nothing naming the cause. They are gone, and `.strict()`
     // turns a stale call into a loud rejection instead of a silently ignored argument.
     it.each([
       ['track', { track: 'flowrider' }],
       ['packageNames', { packageNames: ['ui-app'] }],
-      ['both', { track: 'groundstomper', packageNames: ['ui-app'] }],
+      ['both', { track: 'siegemaster', packageNames: ['ui-app'] }],
     ])('INVALID: {%s} => rejected as an unrecognized key', (_name, extra) => {
       expect(() =>
         getQaChecklistInputContract.parse({ questId: 'add-auth', ...extra } as never),

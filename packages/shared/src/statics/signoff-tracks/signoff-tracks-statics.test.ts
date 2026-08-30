@@ -3,8 +3,8 @@ import { signoffTracksStatics } from './signoff-tracks-statics';
 describe('signoffTracksStatics', () => {
   it('VALID: exported value => the two lists, side by side', () => {
     expect(signoffTracksStatics).toStrictEqual({
-      fields: ['flowrider', 'siegemaster'],
-      denominators: ['flowrider', 'groundstomper', 'siegemaster'],
+      fields: ['codeweaver', 'flowrider', 'siegemaster'],
+      denominators: ['codeweaver', 'flowrider', 'siegemaster'],
     });
   });
 
@@ -18,13 +18,14 @@ describe('signoffTracksStatics', () => {
     );
   });
 
-  // The surplus is the whole reason there are two lists: a role measured on its own units that
-  // writes a column named after another role.
-  it('VALID: {denominators minus fields} => groundstomper alone', () => {
+  // A denominator with no field of its own SHARES another role's column, and the two lists are what
+  // record that. There is no such denominator today, and this asserts the empty difference rather
+  // than dropping the check — the day one lands, the assertion is the place it is declared.
+  it('VALID: {denominators minus fields} => nothing', () => {
     const fields = new Set(signoffTracksStatics.fields.map(String));
 
-    expect(signoffTracksStatics.denominators.filter((track) => !fields.has(track))).toStrictEqual([
-      'groundstomper',
-    ]);
+    expect(signoffTracksStatics.denominators.filter((track) => !fields.has(track))).toStrictEqual(
+      [],
+    );
   });
 });

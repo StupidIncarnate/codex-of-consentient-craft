@@ -76,7 +76,7 @@ describe('computeReadyWorkItemsLayerBroker', () => {
     const floor2bId = QuestWorkItemIdStub({ value: 'c2b07031-0000-4000-8000-000000000000' });
     const floor3Id = QuestWorkItemIdStub({ value: '68b54d56-0000-4000-8000-000000000000' });
 
-    const root = WorkItemStub({ id: rootId, role: 'pesteater', status: 'complete' });
+    const root = WorkItemStub({ id: rootId, role: 'flowrider', status: 'complete' });
     const floor2Done = WorkItemStub({
       id: floor2DoneId,
       role: 'codeweaver',

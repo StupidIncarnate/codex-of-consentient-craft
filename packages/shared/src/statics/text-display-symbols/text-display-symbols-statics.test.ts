@@ -27,6 +27,23 @@ describe('textDisplaySymbolsStatics', () => {
         '  _delete:true  removes the entity when sent via modify-quest',
         '---',
       ],
+      ownedNode: '◀ YOURS',
+      flowSliceLegendLines: [
+        '---',
+        'KEY:',
+        '  [#id] label (type) {pkgs}   flow node, its kind, and the packages it lands in',
+        '  ◀ YOURS                     this node lands in YOUR package',
+        '  > #id: text [type]          observable attached to the node above',
+        '  > (N observable(s) …)       observables attributed to another package, collapsed',
+        '  → [#id]                     edge to next node',
+        '  →"label"                    labeled edge (decision branch — each one is a unit)',
+        '  ↩                           back-reference — node defined earlier, not repeated',
+        '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
+        '  ← MERGE                     node reachable from multiple paths',
+        '  (terminal)                  end state, no outgoing edges',
+        '  [C✓ F✓ S?]                  sign-offs already recorded (Codeweaver/Flowrider/Siegemaster)',
+        '---',
+      ],
       sectionHeaders: {
         designDecisions: '## Design Decisions',
         contracts: '## Contracts',
@@ -41,6 +58,7 @@ describe('textDisplaySymbolsStatics', () => {
       crossFlow: '\u2197 cross-flow',
       merge: '\u2190 MERGE',
       signoffTrackMarks: {
+        codeweaver: 'C',
         flowrider: 'F',
         siegemaster: 'S',
       },
@@ -71,10 +89,11 @@ describe('textDisplaySymbolsStatics', () => {
   // feature on a big quest.
   it('VALID: {marker glyphs} => every track and verdict mark is one character', () => {
     expect([
+      textDisplaySymbolsStatics.signoffTrackMarks.codeweaver.length,
       textDisplaySymbolsStatics.signoffTrackMarks.flowrider.length,
       textDisplaySymbolsStatics.signoffTrackMarks.siegemaster.length,
       textDisplaySymbolsStatics.signoffVerdictMarks.confirmed.length,
       textDisplaySymbolsStatics.signoffVerdictMarks.unconfirmable.length,
-    ]).toStrictEqual([1, 1, 1, 1]);
+    ]).toStrictEqual([1, 1, 1, 1, 1]);
   });
 });

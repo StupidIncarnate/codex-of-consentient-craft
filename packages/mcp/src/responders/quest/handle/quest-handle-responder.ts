@@ -7,12 +7,9 @@
  */
 
 import { questIdContract } from '@dungeonmaster/shared/contracts';
-import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
-import { questStripCommentsTransformer } from '../../../transformers/quest-strip-comments/quest-strip-comments-transformer';
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
 import { orchestratorCreateQuestAdapter } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter';
 import { orchestratorGetNextStepAdapter } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter';
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorGetQuestPlanningNotesAdapter } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter';
 import { orchestratorGetServerConfigAdapter } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter';
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
@@ -22,6 +19,7 @@ import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
+import { GetQuestLayerResponder } from './get-quest-layer-responder';
 import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
 import { ResetFlowSignoffsLayerResponder } from './reset-flow-signoffs-layer-responder';
@@ -34,7 +32,6 @@ import { createQuestInputContract } from '../../../contracts/create-quest-input/
 import { createQuestOutputContract } from '../../../contracts/create-quest-output/create-quest-output-contract';
 import { getNextStepInputContract } from '../../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { getQuestStatusInputContract } from '../../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { getServerConfigOutputContract } from '../../../contracts/get-server-config-output/get-server-config-output-contract';
 import { listQuestsInputContract } from '../../../contracts/list-quests-input/list-quests-input-contract';
@@ -51,6 +48,7 @@ const layerResponders = new Map<
   ToolName,
   (params: { args: Record<string, unknown> }) => Promise<ToolResponse>
 >([
+  [toolNameContract.parse('get-quest'), GetQuestLayerResponder],
   [toolNameContract.parse('get-qa-checklist'), QaChecklistLayerResponder],
   [toolNameContract.parse('get-blight-checklist'), BlightChecklistLayerResponder],
   [toolNameContract.parse('reset-flow-signoffs'), ResetFlowSignoffsLayerResponder],
@@ -69,63 +67,6 @@ export const QuestHandleResponder = async ({
   // identify the calling session deterministically; every other tool ignores it.
   meta?: Record<string, unknown>;
 }): Promise<ToolResponse> => {
-  if (tool === 'get-quest') {
-    const { questId, stage, format } = getQuestInputContract.parse(args);
-
-    try {
-      const result = await orchestratorGetQuestAdapter({
-        questId,
-        ...(stage && { stage }),
-      });
-
-      if (format === 'text' && result.success && result.quest) {
-        // questToTextDisplayTransformer never reads quest.comments — no section renders them —
-        // so the text branch does not need the strip below. It also takes a full Quest, which
-        // the stripped payload the JSON branch builds deliberately is not.
-        return {
-          content: [
-            {
-              type: 'text',
-              // Thread the stage through: it is what lets the renderer omit sections this stage
-              // filtered out instead of printing them as an empty "(none)" section.
-              text: questToTextDisplayTransformer({
-                quest: result.quest,
-                ...(stage && { stage }),
-              }),
-            },
-          ],
-        };
-      }
-
-      // Strip comments before this reaches an agent: a comment is a record for the user, meant
-      // to be seen exactly once as the markdown turn the comment-batch route delivers, never
-      // again via get-quest.
-      const agentPayload = questStripCommentsTransformer({ result });
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(JSON.stringify(agentPayload, null, JSON_INDENT_SPACES)),
-          },
-        ],
-        ...(!result.success && { isError: true }),
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
   if (tool === 'modify-quest') {
     const questId = questIdContract.parse(args.questId);
 

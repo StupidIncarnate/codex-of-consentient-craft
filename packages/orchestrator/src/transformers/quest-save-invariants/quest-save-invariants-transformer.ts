@@ -78,19 +78,16 @@ export const questSaveInvariantsTransformer = ({
       offenders: questObservableAttributionViolationsTransformer({ flows: quest.flows }),
     });
 
-    // Scoped to feature quests: only a feature quest derives one codeweaver item per package, so
-    // only there does an unresolvable contract source reach no session at all. A bug-hunt's
-    // single orchestrator-seeded pesteater item covers the quest whatever its contracts say, and
-    // refusing one for a path that routes nothing would be a gate with no consequence behind it.
-    if (quest.questType === 'feature') {
-      relational.push({
-        name: 'Contract Source Coverage',
-        offenders: questContractSourceCoverageViolationsTransformer({
-          contracts: quest.contracts,
-          packagesAffected: quest.packagesAffected,
-        }),
-      });
-    }
+    // Applies to every quest type: both derive one codeweaver item per package from the contracts'
+    // `source` paths, so a source resolving to no declared package reaches no session at all
+    // whichever type is being saved.
+    relational.push({
+      name: 'Contract Source Coverage',
+      offenders: questContractSourceCoverageViolationsTransformer({
+        contracts: quest.contracts,
+        packagesAffected: quest.packagesAffected,
+      }),
+    });
   }
 
   const relationalChecks = relational.flatMap((rule) =>

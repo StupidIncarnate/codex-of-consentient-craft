@@ -171,8 +171,10 @@ export const stickyHeaderHarness = ({
       nestedText: TALL_TEXT,
     });
 
-    // Timestamps land between chain B's launch (offset 2s) and the main session's completion of
-    // chain A (offset 10s), so the pair sorts INSIDE chain A rather than after it.
+    // Timestamps land between chain B's launch (offset 3s) and the main session's completion of
+    // chain A (offset 10s), so the pair sorts INSIDE chain A rather than after it — as a sibling
+    // BELOW the nested chain, which is where a closed row has to sit for the negative case to
+    // mean anything: it is the last thing in the transcript while three headers above it pin.
     sessions.appendSubagentLine({
       sessionId,
       agentId: parentRealAgentId,

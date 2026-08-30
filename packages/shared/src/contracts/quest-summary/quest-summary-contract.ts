@@ -14,17 +14,20 @@
  * // Returns: QuestSummary — what `StartOrchestrator.getQuestSummary` hands back
  *
  * THIS ANSWERS "WHAT ACTUALLY HAPPENED ON THIS QUEST", which is not a question `quest.json` answers.
- * A finished quest reaches `complete` when both verification tracks have SIGNED every unit — and
- * `unconfirmable` signs a unit just as `confirmed` does, because the completion gate refuses the
- * absence of a verdict rather than an honest one. So a green quest can carry real holes, real scope
- * that nobody approved, and real unanswered questions, and none of them are visible in a status.
- * Each field here is one of those blind spots:
+ * A quest reaches `complete` when its operations ledger drains, not when its three verification
+ * tracks (codeweaver, flowrider, siegemaster) have SIGNED every unit — and `unconfirmable` signs a
+ * unit just as `confirmed` does, clearing the absence of a verdict rather than demanding an honest
+ * one. So a complete quest can still carry real holes, real scope that nobody approved, and real
+ * unanswered questions, and none of them are visible in a status. Each field here is one of those
+ * blind spots:
  *
- * - `flows` is coverage, split per track, because the two tracks are independent: a unit proven by a
- *   test and a unit that held when a human drove it are different facts and neither substitutes.
+ * - `flows` is coverage, split per track, because the tracks are independent: a unit proven by a
+ *   unit test, a unit proven by a flow-perspective test, and a unit that held when a human drove it
+ *   are three different facts and none substitutes for another.
  * - `midQuestObservables` is scope drift — what the quest grew after the user approved a spec that
  *   did not contain it.
- * - `unconfirmable` is the debt the gate let through, with the question that would close each item.
+ * - `unconfirmable` is the debt a settled-not-proven verdict leaves behind, with the question that
+ *   would close each item.
  * - `noteGroups` is everything a role learned that belongs to nobody's verdict.
  *
  * EVERY COLLECTION IS AN ID-BEARING ARRAY, never a `Record`. That is the shape the quest deep-merge
@@ -65,7 +68,7 @@ export const questSummaryContract = z.object({
     .array(questSummaryUnconfirmableContract)
     .default([])
     .describe(
-      'Every `unconfirmable` sign-off on the quest, with the sign-off carried whole so its evidence and its question travel with it. These cleared the completion gate, so this list is the only place they surface.',
+      'Every `unconfirmable` sign-off on the quest, with the sign-off carried whole so its evidence and its question travel with it. This is the only place they surface.',
     ),
   noteGroups: z
     .array(questSummaryNoteGroupContract)

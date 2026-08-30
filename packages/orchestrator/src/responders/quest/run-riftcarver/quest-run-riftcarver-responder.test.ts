@@ -137,8 +137,8 @@ describe('QuestRunRiftcarverResponder', () => {
         timestamp: FIXED_TIMESTAMP,
       },
       // The push rides here, immediately after the git context is recorded and BEFORE the mirror
-      // and the build: the branch has to be tracked before the first round runs, because every
-      // `<role>-reviewer-minion` prompt writes a bare `git push` with no `-u` on it.
+      // and the build: the branch has to be tracked before the first pass runs, because every
+      // `<role>-reviewer` prompt writes a bare `git push` with no `-u` on it.
       {
         role: 'assistant',
         type: 'text',

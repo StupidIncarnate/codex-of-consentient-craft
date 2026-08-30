@@ -72,18 +72,17 @@ const FEATURE_IMPLEMENTATION_EXPECTED = questTypeRegistryStatics.feature.startIm
   }),
 );
 const FEATURE_IMPLEMENTATION_COUNT = FEATURE_IMPLEMENTATION_EXPECTED.length;
-// The verify tail's 1:1 mapping per surviving entry: flowrider falls back to ONE whole-quest item
-// carrying every runtime flow id, siegemaster gets one item per flow (there is one), and
-// groundstomper gets NONE — nothing on that flow lands in a package a browser can reach.
-const FEATURE_TAIL_SEEDED = questTypeRegistryStatics.feature.relayTail.filter(
-  (entry) => entry.role !== 'groundstomper',
-);
+// The verify tail's 1:1 mapping per entry: `flow` fan-out mints one item per quest flow, and
+// QuestStub declares exactly one ('login-flow'), so BOTH flowrider and siegemaster keep the tail's
+// 1:1 shape here — each suffixed with the flow it owns and carrying it in `flowIds`.
+const FEATURE_TAIL_SEEDED = questTypeRegistryStatics.feature.relayTail;
 const FEATURE_TAIL_EXPECTED = FEATURE_TAIL_SEEDED.map((entry, index) => ({
   id: SEEDED_UUIDS[index + 1 + FEATURE_IMPLEMENTATION_COUNT],
   role: entry.role,
-  // Siegemaster fans out to one item per flow, each suffixed with the flow it owns. QuestStub
-  // declares exactly one flow, so the tail keeps its 1:1 shape here and only the text differs.
-  text: entry.role === 'siegemaster' ? `${entry.text} — flow: ${QUEST_STUB_FLOW_ID}` : entry.text,
+  text:
+    entry.role === 'flowrider' || entry.role === 'siegemaster'
+      ? `${entry.text} — flow: ${QUEST_STUB_FLOW_ID}`
+      : entry.text,
   status: 'pending',
   locked: true,
   flowIds: entry.role === 'flowrider' || entry.role === 'siegemaster' ? [QUEST_STUB_FLOW_ID] : [],
@@ -93,8 +92,10 @@ const FEATURE_TAIL_EXPECTED = FEATURE_TAIL_SEEDED.map((entry, index) => ({
 const FEATURE_WORK_ITEM_UUID =
   SEEDED_UUIDS[FEATURE_IMPLEMENTATION_COUNT + FEATURE_TAIL_EXPECTED.length + 1];
 
-// Bug-hunt quests seed the registry's implementation ops first (uuids 1..N), then the tail. The
-// first implementation op is the overall-first pending op, so the relay flips it in_progress.
+// Bug-hunt quests share the ENTIRE relay shape with a feature quest — the registry's implementation
+// ops (riftcarver, then the derived codeweaver seed) first (uuids 1..N), then the identical
+// ward/flowrider/siegemaster/ward tail. The first implementation op is the overall-first pending op,
+// so the relay flips it in_progress.
 const BUG_HUNT_IMPLEMENTATION_COUNT =
   questTypeRegistryStatics['bug-hunt'].startImplementationOps.length;
 const BUG_HUNT_OPS_EXPECTED = [
@@ -103,17 +104,22 @@ const BUG_HUNT_OPS_EXPECTED = [
     role: seed.role,
     text: seed.text,
     status: index === 0 ? 'in_progress' : 'pending',
-    locked: true,
+    locked: 'locked' in seed ? seed.locked : true,
     flowIds: [],
     packageNames: [],
   })),
+  // Same 1:1-with-one-flow shape FEATURE_TAIL_EXPECTED relies on: QuestStub's one flow means
+  // flowrider and siegemaster each mint exactly one item, suffixed with that flow's id.
   ...questTypeRegistryStatics['bug-hunt'].relayTail.map((seed, index) => ({
     id: SEEDED_UUIDS[index + 1 + BUG_HUNT_IMPLEMENTATION_COUNT],
     role: seed.role,
-    text: seed.text,
+    text:
+      seed.role === 'flowrider' || seed.role === 'siegemaster'
+        ? `${seed.text} — flow: ${QUEST_STUB_FLOW_ID}`
+        : seed.text,
     status: 'pending',
     locked: true,
-    flowIds: [],
+    flowIds: seed.role === 'flowrider' || seed.role === 'siegemaster' ? [QUEST_STUB_FLOW_ID] : [],
     packageNames: [],
     ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
   })),
@@ -737,7 +743,7 @@ describe('OrchestrationStartResponder', () => {
   });
 
   describe('bug-hunt relay seed', () => {
-    it('VALID: {approved bug-hunt quest, empty operations} => seeds the pesteater implementation op (in_progress) plus the 4-item locked verify tail', async () => {
+    it('VALID: {approved bug-hunt quest, empty operations} => seeds the shared relay identically to a feature quest — the derived codeweaver implementation op (in_progress) plus the ward → flowrider → siegemaster → ward verify tail', async () => {
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({ id: questId, status: 'approved', questType: 'bug-hunt' });
       const proxy = OrchestrationStartResponderProxy();
@@ -751,7 +757,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     // Riftcarver heads `startImplementationOps` for EVERY quest type, so the first work item a
-    // bug-hunt Start mints is the workspace-preparation command, not pesteater — the branch, the
+    // bug-hunt Start mints is the workspace-preparation command, not codeweaver — the branch, the
     // worktree and the preflight build have to exist before any agent is dispatched into them.
     // `spawnerType: 'command'` is the assertion that matters here: it is what routes this item to
     // the dispatcher's own run path instead of a Claude spawn.

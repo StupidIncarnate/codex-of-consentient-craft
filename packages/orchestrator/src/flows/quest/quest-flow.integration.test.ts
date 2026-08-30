@@ -128,13 +128,16 @@ describe('QuestFlow', () => {
 
       testbed.cleanup();
 
-      // login-flow: 1 terminal + 1 branch + 1 observable + 7 off-map = 10 siegemaster units, of
-      // which the terminal is unconfirmable. The two authoring denominators shed the off-map
-      // families AND the Siegemaster-added observable, leaving the terminal (confirmed) + the branch
-      // (outstanding) each — this quest tags no `packagesAffected`, so no node's package kind
-      // resolves and the flowrider/groundstomper split does not bind, exactly as both their
-      // completion gates read it. deploy-lint-rule is operational, so it carries a siegemaster row
-      // alone: 1 terminal + 7 off-map = 8.
+      // login-flow is runtime, so all three denominators measure it. Units: 1 terminal (dashboard,
+      // the only node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7
+      // off-map families. Codeweaver and Flowrider both shed the off-map families AND the
+      // siegemaster-added observable, leaving terminal + branch each — but they read different
+      // sign-off fields, so Flowrider's terminal (signed `flowriderSignoff`) counts confirmed while
+      // Codeweaver's copy of the same two units carries no `codeweaverSignoff` at all and is fully
+      // outstanding. Siegemaster keeps all 10, of which the terminal is unconfirmable and the other
+      // 9 are outstanding. deploy-lint-rule is operational, so Flowrider drops out entirely: it
+      // carries a codeweaver row (the one terminal, outstanding) and a siegemaster row (1 terminal +
+      // 7 off-map = 8, all outstanding).
       expect(summary).toStrictEqual({
         questId,
         flows: [
@@ -143,8 +146,8 @@ describe('QuestFlow', () => {
             name: 'Login Flow',
             flowType: 'runtime',
             tracks: [
+              { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
               { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
-              { id: 'groundstomper', confirmed: 1, unconfirmable: 0, outstanding: 1 },
               { id: 'siegemaster', confirmed: 0, unconfirmable: 1, outstanding: 9 },
             ],
           },
@@ -152,7 +155,10 @@ describe('QuestFlow', () => {
             id: 'deploy-lint-rule',
             name: 'Deploy the lint rule',
             flowType: 'operational',
-            tracks: [{ id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 8 }],
+            tracks: [
+              { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 1 },
+              { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 8 },
+            ],
           },
         ],
         midQuestObservables: [
@@ -739,13 +745,13 @@ describe('QuestFlow', () => {
     }, 30_000);
 
     // The same spine, the same unroutable contract source, the same declared packages as the
-    // refusal above — only `questType` differs. Contract Source Coverage is scoped to feature
-    // quests because only a feature quest derives one codeweaver item per package; a bug-hunt's
-    // single orchestrator-seeded pesteater item covers the quest whatever its contracts say, so
-    // refusing here would be a gate with no consequence behind it.
-    it('VALID: {bug-hunt quest whose contract source resolves nowhere} => the contract-source rule does not bind and the gate admits it', async () => {
+    // refusal above — only `questType` differs. Contract Source Coverage binds on a bug-hunt quest
+    // exactly as it does on a feature one: bug-hunt runs the SAME relay as a feature quest, deriving
+    // one codeweaver item per (package, flow) cell, so a contract resolving to no declared package
+    // reaches no session on either quest type.
+    it("INVALID: {bug-hunt quest whose contract source resolves nowhere} => refused as 'Contract Source Coverage', same as a feature quest", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-bug-hunt-exempt' }),
+        baseName: BaseNameStub({ value: 'qf-gate-bug-hunt-contract-source' }),
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -822,20 +828,33 @@ describe('QuestFlow', () => {
         input: ModifyQuestInputStub({ questId, status: 'approved' }),
       });
 
-      const afterGate = await questHelper.reload({ questId });
+      const afterRefusal = await questHelper.reload({ questId });
 
       testbed.cleanup();
 
       expect({
         success: result.success,
-        failedChecks: result.failedChecks,
-        questTypeOnDisk: afterGate.questType,
-        statusOnDisk: afterGate.status,
+        error: String(result.error),
+        failedChecks: result.failedChecks!.map((check) => ({
+          name: String(check.name),
+          passed: check.passed,
+          details: String(check.details),
+        })),
+        questTypeOnDisk: afterRefusal.questType,
+        statusOnDisk: afterRefusal.status,
       }).toStrictEqual({
-        success: true,
-        failedChecks: undefined,
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'Contract Source Coverage',
+            passed: false,
+            details:
+              "Contract 'MergeStatus' declares source 'packages/orchestrator/src/contracts/merge-status/merge-status-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
+          },
+        ],
         questTypeOnDisk: 'bug-hunt',
-        statusOnDisk: 'approved',
+        statusOnDisk: 'review_observables',
       });
     }, 30_000);
 
@@ -1474,7 +1493,7 @@ describe('QuestFlow', () => {
   });
 
   describe('operations relay — blocked halts on the environment wall', () => {
-    it('VALID: {pesteater signals complete/blocked} => work item failed with the reason, pt continuation queued for a resume, downstream skipped, quest blocked', async () => {
+    it('VALID: {codeweaver signals complete/blocked} => work item failed with the reason, pt continuation queued for a resume, downstream skipped, quest blocked', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-relay-blocked' }),
       });
@@ -1482,18 +1501,18 @@ describe('QuestFlow', () => {
 
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-      const pestOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b1' });
+      const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b1' });
       const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b2' });
-      const pestWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
       const wardWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
       await questHelper.seedInProgressRelay({
         questId,
         operations: [
           OperationItemStub({
-            id: pestOpId,
-            role: 'pesteater',
-            text: 'hunt the bug',
+            id: cwOpId,
+            role: 'codeweaver',
+            text: 'build core',
             status: 'in_progress',
             locked: true,
           }),
@@ -1508,11 +1527,11 @@ describe('QuestFlow', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: pestWorkItemId,
-            role: 'pesteater',
+            id: cwWorkItemId,
+            role: 'codeweaver',
             status: 'in_progress',
             spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(pestOpId)}`],
+            relatedDataItems: [`operations/${String(cwOpId)}`],
             dependsOn: [],
             createdAt: new Date().toISOString(),
           }),
@@ -1522,7 +1541,7 @@ describe('QuestFlow', () => {
             status: 'pending',
             spawnerType: 'command',
             relatedDataItems: [`operations/${String(wardOpId)}`],
-            dependsOn: [pestWorkItemId],
+            dependsOn: [cwWorkItemId],
             createdAt: new Date().toISOString(),
           }),
         ],
@@ -1530,9 +1549,9 @@ describe('QuestFlow', () => {
 
       await QuestFlow.handleSignalBack({
         questId,
-        workItemId: pestWorkItemId,
+        workItemId: cwWorkItemId,
         signal: 'complete',
-        operationItemId: pestOpId,
+        operationItemId: cwOpId,
         operationStatus: 'blocked',
         blockedReason: BlockedReasonStub({
           value: 'git commit is denied in this dispatched session',
@@ -1540,7 +1559,7 @@ describe('QuestFlow', () => {
       });
 
       const afterBlocked = await QuestGetResponder({ questId });
-      const pestWorkItem = afterBlocked.quest!.workItems.find((wi) => wi.id === pestWorkItemId);
+      const cwWorkItem = afterBlocked.quest!.workItems.find((wi) => wi.id === cwWorkItemId);
       const ptOp = afterBlocked.quest!.operations.find((op) => String(op.text).startsWith('pt 2:'));
 
       testbed.cleanup();
@@ -1553,8 +1572,8 @@ describe('QuestFlow', () => {
           text: String(op.text),
         })),
         signalledWorkItem: {
-          status: pestWorkItem?.status,
-          errorMessage: String(pestWorkItem?.errorMessage),
+          status: cwWorkItem?.status,
+          errorMessage: String(cwWorkItem?.errorMessage),
         },
         downstreamWardStatus: afterBlocked.quest!.workItems.find((wi) => wi.id === wardWorkItemId)
           ?.status,
@@ -1566,8 +1585,8 @@ describe('QuestFlow', () => {
       }).toStrictEqual({
         questStatus: 'blocked',
         operations: [
-          { role: 'pesteater', status: 'complete', text: 'hunt the bug' },
-          { role: 'pesteater', status: 'pending', text: 'pt 2: hunt the bug' },
+          { role: 'codeweaver', status: 'complete', text: 'build core' },
+          { role: 'codeweaver', status: 'pending', text: 'pt 2: build core' },
           { role: 'ward', status: 'pending', text: 'ward (changed)' },
         ],
         signalledWorkItem: {

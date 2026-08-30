@@ -66,41 +66,59 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
   marks that operation item `complete` and appends a NEW `"pt N: {text}"` item (same role, `locked`
   flag preserved) immediately after it; advance creates the next work item against the new item. This
   preserves strict 1:1 and gives an immutable `pt` audit trail instead of reverting a shared item's
-  status.
+  status. **`partial` is a signal the responder still applies generically to any code-changing role**,
+  but the three operator roles' own prompts never choose it — see "Operator session" below.
 - **Environment wall** — `operationStatus: 'blocked'`. Duplicate-on-partial still appends the `pt N`
   continuation, but the work item is marked `failed` with the agent's `blockedReason`, the pt budget is bypassed, and
   the quest halts for the user instead of advancing (see § (d)).
 - **Fixpoint** — the `pt N` chain for `ward`. A red run completes its ward operation item and spawns a fresh `pt N+1`
   ward continuation (with a spiritmender spliced in ahead of it — see "The sad paths in detail" § (b)); a run that
   comes back green ends the chain. Convergence IS the verdict: a fresh run that came back green is acceptance.
-- **Operator role** — one of the five names in `agentPromptClassificationStatics.operatorRoleNames`: `codeweaver`,
-  `pesteater`, `flowrider`, `groundstomper`, `siegemaster`. Each is served its OWN prompt file,
-  `<role>-prompt-statics.ts`; there is no shared template and `discipline` is not an argument to anything.
-  **The session never opens a source file**; it runs a **round loop** (below) and signals. Only
-  `spiritmender` and `warpgate` keep bespoke prompts and run no round.
-- **Round loop** — the unit of work inside ONE operator session, capped at **3 rounds**:
-  `build → planner-minion → read the plan back → worker-minions ONE AT A TIME → reviewer-minion → build → scoped ward
-  → commit the round → loop on the reviewer's REMAINDER`. Only the operator runs `npm run build`, which is why
-  workers are serial: concurrent `tsc` corrupts the shared `dist/`. An empty `REMAINDER` ends the loop.
-- **Minion** — `planner-minion`, `worker-minion`, `reviewer-minion` (generic; all five disciplines summon the same
-  three, parameterized by `discipline` at fetch time) plus the spec-phase `chaoswhisperer-gap-minion`. A minion owns
-  NO work item, fetches with `{ agent, questId, discipline }` and **no `workItemId`**, and **never calls
-  `signal-back`**. Only the planner may spawn a sub-agent, and only for a bounded spike.
-- **Operator convergence** — `flowrider`, `groundstomper` and `siegemaster` do NOT use the fixpoint.
-  They signal on
-  remaining SCOPE, measured **per track**: `done` once every unit in scope is settled on that role's OWN track
-  (`flowriderSignoff` for flowrider and groundstomper over disjoint package kinds, `siegemasterSignoff` for
-  siegemaster), `partial` only when a
-  named remainder is left. Verdicts are per role; **there is no aggregate
-  status** and no unit-level "done" that both roles share. Every one of them runs the round loop, so the reviewer is
-  already the fresh pair of eyes a `pt N` session would supply — authoring a test, walking a path, or landing a fix is
-  the job, not a reason to respawn the role.
-- **Standards review** is NOT a role and NOT a ledger item. The five concerns (`craft`, `perf`, `dedup`, `integrity`,
-  `test-cases`, from `standardsReviewConcernsStatics`) are taken by the `reviewer-minion` of EVERY round, over
-  `get-blight-checklist({ scope: 'working-tree' })`, and recorded in `quest.planningNotes.blightLedger`.
+- **Operator role** — one of the three names in `agentPromptClassificationStatics.operatorRoleNames`: `codeweaver`,
+  `flowrider`, `siegemaster`. Each is served its OWN prompt file, `<role>-prompt-statics.ts`; there is no shared
+  template. All three run on **opus** (`roleToModelStatics`) — each reads code, plans what it hands out, judges what
+  comes back, and decides whether its scope is done, none of which is a lookup a smaller model can safely make.
+  `flowrider` absorbed the role a second, now-deleted test-authoring track once held: it owns every package kind,
+  including browser-reachable ones, and authors the test suites that prove a flow both in the browser and below it.
+  Only `spiritmender` and `warpgate` keep bespoke prompts and run no operator session of their own.
+- **Operator session** — the unit of work inside ONE operator's work item. There is no shared round-loop template
+  and no generic planner/worker/reviewer triad any more: each operator **reads code itself** (`git diff`, the files a
+  change touches — never the whole tree), writes its own working notes, and **briefs generic sub-agents** (plain
+  `general-purpose` `Agent` dispatches, in the operator's own words against what it read) to make the actual edits.
+  When sub-agents return, the operator reads the diff itself and summons exactly ONE **named** reviewer sub-agent —
+  `codeweaver-reviewer`, `flowrider-reviewer`, or `siegemaster-reviewer` (siegemaster also dispatches
+  `siegemaster-walker` to drive the system by hand) — and reads that reviewer's terminal `NEXT:` line: `pass` ends the
+  session (`signal-back` with `done`), `rework` sends the named remainder back out for another pass, `wall` stops the
+  session and signals `blocked`. **The loop is unbounded and `partial` is not on an operator's signal table** — another
+  pass costs a pass inside the same session; a `partial` would cost a whole fresh session that has to reconstruct the
+  remainder out of git. No code-writing sub-agent commits, builds, or wards; the named reviewer is the only session on
+  the pass that runs `npm run build` / `npm run ward -- --staged`, and it alone commits (once) and pushes (bare).
+- **Named sub-agent** — the five sub-agents with a served prompt (`agentPromptClassificationStatics.minionNames`):
+  `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`, `siegemaster-walker`, and the spec-phase
+  `chaoswhisperer-gap-minion`. All five run on **sonnet**. Each fetches with `{ agent, questId }` and **no
+  `workItemId`** — it owns no work item, and it never calls `signal-back`; everything narrower than "which quest" (an
+  operation item id, a flow, a set of paths) reaches it through its parent's own brief. A named sub-agent is a LEAF:
+  it summons no sub-agent of its own. `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` each grade a
+  different subject (product code against the flow; whether a test suite bites; whether a repair touched the cause or
+  just hid the symptom) but share one shape — read every file the pass produced in full, take the five standards
+  concerns in the same pass, fix what is small and clearly theirs, build, ward, commit, push, and answer with a
+  `NEXT:` line. `siegemaster-walker` drives one path through a flow by hand against the running system and changes
+  nothing — no build, no ward, no commit, no git.
+- **Operator convergence** — `codeweaver`, `flowrider` and `siegemaster` do NOT use the ward fixpoint, and do not
+  gate `done` on sign-off completeness. Each operator signals `done` once its own named reviewer's `NEXT:` line reads
+  `pass`, and `blocked` only on an environment wall its reviewer names `wall`. Sign-offs recorded along the way
+  (`codeweaverSignoff`, `flowriderSignoff`, `siegemasterSignoff`) are a durable proof record for the next reader, not
+  a completion gate — **an unsigned unit refuses nothing.** There is no aggregate status across the three tracks.
+- **Standards review** is NOT a role, NOT a ledger item, and writes NOTHING to `quest.json`. The five concerns
+  (`craft`, `perf`, `dedup`, `integrity`, `test-cases`, from `standardsReviewConcernsStatics`) are GUIDANCE — "nothing
+  counts what a reviewer answers here and no gate refuses a signal over a concern nobody took" (the statics file's own
+  words). They are taken by each operator's own named reviewer, in the same reading pass as that reviewer's
+  role-specific judgment, over the files the pass produced; the reviewer fixes what is small and hands up anything
+  structural or needing a decision.
 - **Sign-off** — `{ verdict, evidence, question?, workItemId, at }` on a verification unit, where `verdict` is
-  `confirmed | unconfirmable`. Two independent top-level fields per unit, one per track. See "The two verification
-  tracks" below.
+  `confirmed | unconfirmable`. THREE independent top-level fields, one per track — `codeweaverSignoff`,
+  `flowriderSignoff`, `siegemasterSignoff` — matching THREE denominators (`codeweaver | flowrider | siegemaster`).
+  See "The three verification tracks" below.
 - **Quest note** (`quest.planningNotes.questNotes[]`) — `{ id, kind, role, workItemId, flowId?, unitId?, summary,
   detail, at }` with `kind` one of `open-question | tooling-error | out-of-scope | walk-reset`. A durable side channel
   beside the tracks. **A note NEVER closes a unit.**
@@ -116,83 +134,86 @@ A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`). `ques
 the create-time seed role (`initialWorkItemRole`), the implementation operation items the orchestrator
 seeds at Start (`startImplementationOps`), and the fixed verify tail (`relayTail`).
 `questBuildRelayGraphBroker` mints `startImplementationOps` + `relayTail` as **pending** operation
-items at Start Quest (locked, except the feature `codeweaver` seed — see below).
+items at Start Quest (locked, except the `codeweaver` seed — see below).
 
-| Type       | Intake                              | Implementation ops                                                        | Verify tail (appended at Start, all locked)                     |
-|------------|-------------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------------------|
-| `feature`  | `/dumpster-create` (ChaosWhisperer) | `riftcarver` (always the first entry, exactly one item) then **DERIVED** `codeweaver` items — one `fanOutBy: 'implementation'` seed, never authored | `ward(changed) → flowrider → groundstomper → siegemaster → ward(full)` |
-| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | `riftcarver` (always the first entry, exactly one item) then orchestrator-seeded `pesteater` | `ward(changed) → ward(full)`                     |
+**The two quest types share one relay, byte for byte** — `questTypeRegistryStatics`' own colocated test asserts
+`startImplementationOps`, `relayTail` and `roles` are `toStrictEqual` between `feature` and `bug-hunt`. The ONLY
+difference is the intake: `feature` seeds a `chaoswhisperer` chat item and runs `/dumpster-create`; `bug-hunt` seeds a
+`bughunt` chat item and runs `/dumpster-hunt`. Both then run:
 
-`riftcarver` heads `startImplementationOps` for **both** types, and neither seed carries a `fanOutBy`,
-so each mints exactly one item. Nothing on the ledger can run before it: every later role works
-inside the worktree it creates.
+| Segment | Items |
+|---|---|
+| `startImplementationOps` | `riftcarver` (always first, exactly one item), then ONE `codeweaver` seed (`fanOutBy: 'implementation'`, unlocked) |
+| `relayTail` | `ward(changed)` → ONE `flowrider` seed (`fanOutBy: 'flow'`) → ONE `siegemaster` seed (`fanOutBy: 'flow'`) → `ward(full)`, all locked |
 
-So the full feature relay is:
+`riftcarver` heads `startImplementationOps` for **both** types. Nothing on the ledger can run before it: every later
+role works inside the worktree it creates.
+
+So the full relay, for a feature OR a bug-hunt quest alike, is:
 
 ```
-chaoswhisperer (plan item)
+chaoswhisperer (feature) / bughunt (bug-hunt) — the intake chat item
   → riftcarver (branch + worktree + node_modules mirror + preflight build)
-  → codeweaver ×N (DERIVED at Start, not authored)
+  → codeweaver ×N (DERIVED at Start, one item PER (PACKAGE, FLOW) CELL)
   → ward(changed)
-  → flowrider ×N (one per package it owns + one seam item)
-  → groundstomper ×N (one per runtime flow a browser can reach)
-  → siegemaster ×N (one per flow)
+  → flowrider ×N (DERIVED at Start, one item PER FLOW)
+  → siegemaster ×N (DERIVED at Start, one item PER FLOW)
   → ward(full)
 ```
 
-Every one of `codeweaver`, `flowrider`, `groundstomper`, `siegemaster` and `pesteater` above is an OPERATOR
-session that runs the round loop internally. Its planner/worker/reviewer minions are NOT ledger items and never
-appear on it.
+Every one of `codeweaver`, `flowrider`, `siegemaster` above is an OPERATOR session that reads code, briefs generic
+sub-agents, and summons its own named reviewer internally. None of that internal activity — the sub-agents it briefs,
+the reviewer it summons — is a ledger item or a work item; only the operator's own session is.
 
-and the full bug-hunt relay is:
+**Neither tail seeds a standards-review item, and nothing appends one.** The dispatch order above IS the dispatch
+order at run time — `QuestHandleSignalBackResponder` appends only the `pt N` continuation, and the ward/riftcarver
+brokers only their failure splices. Standards review happens INSIDE each operator session, taken by that session's own
+named reviewer over the files the pass produced, before the reviewer's own commit — and nothing about it is recorded
+in `quest.json`. `questTypeRegistryStatics.relayTail`'s own comment marks the point such a seed would otherwise sit,
+so the absence reads as a decision.
 
-```
-riftcarver
-  → pesteater
-  → ward(changed) → ward(full)
-```
+**`codeweaver` fans out ONE ITEM PER (PACKAGE, FLOW) CELL** (`relayTailFanOutTransformer`,
+`fanOutBy: 'implementation'`, on `startImplementationOps`): a cell exists wherever a package tags at least one node on
+that flow, across both flow types, and its text names both — `— package: <name> · flow: <id>`. A package that tags
+nodes gets cells and nothing else; its contracts reach it at runtime through the `packageName`-only `get-quest` call,
+which routes them by PATH. The ONE flow-less item left belongs to a package that owns a contract (by `source`, or by
+an individual PROPERTY's `source`) and tags no node anywhere — without it those contracts have no owner. Membership is
+"this package TAGS a node in this flow", so a glue node mints a cell on each side — a seam has two halves and each
+side gets its own. Cells are ordered by package KIND tier first (`packageBuildOrderStatics.tiers`), then
+`packageGraph` depth as a tiebreak within a tier, then name, with one package's own cells in the quest's flow
+declaration order — tier outranks depth because manifest depth is Kahn's order over `package.json` edges, which is
+INVERTED across an HTTP seam (this repo's `server` depends on `web` to serve its bundle, so raw depth would rank the
+browser package ahead of the backend route it calls). The `codeweaver` seed is minted UNLOCKED, so its pt chain stays
+unbounded — though in practice the operator's own prompt never emits `partial` at all (see "Operator session" above);
+unbounded matters only if something outside the prompt ever does.
 
-**Neither tail seeds a blight-review item, and nothing appends one.** The dispatch order above IS the dispatch order
-at run time — `QuestHandleSignalBackResponder` appends only the `pt N` continuation, and the ward/riftcarver brokers
-only their failure splices. Standards review happens INSIDE each of those sessions: the `reviewer-minion` of each
-round takes the five concerns over `get-blight-checklist({ scope: 'working-tree' })` before its parent commits, and
-`signal-back`'s review-coverage gate refuses `done` when that left no trace (see "The sad paths in detail" § (f)).
-`questTypeRegistryStatics.feature.relayTail` carries a comment at the point such a seed would otherwise sit, so the
-absence reads as a decision.
+**`flowrider` and `siegemaster` each fan out to ONE ITEM PER FLOW THEIR OWN TRACK MEASURES**
+(`relayTailFanOutTransformer`, `fanOutBy: 'flow'` — the SAME expansion code path for both), each carrying a single
+`flowId` and a text suffixed `— flow: <id>`. The cut reads `signoffTrackEligibilityStatics.byTrack[role].flowTypes`,
+the one place the completion gate reads it from, so the ledger cannot mint an item the gate measures at zero:
+siegemaster takes flows of either type, flowrider `runtime` alone, and an all-operational quest therefore seeds one
+siegemaster item per flow and NO flowrider item at all. Per-flow items give each flow its own pt-chain budget (the
+chain keys on role + base text, and the text carries the flow id).
 
-`flowrider` is an **operator** role that owns test coverage BELOW the browser, and its one registry tail entry fans
-out BY PACKAGE (`relayTailFanOutTransformer`, `fanOutBy: 'package'`): one operation item per package the quest's
-runtime nodes tag whose kind is in `signoffTrackEligibilityStatics.byTrack.flowrider.packageTypes`, plus ONE seam item
-for the glue nodes where two such packages meet. Each item carries its own `packageNames` and therefore its own
-pt-continuation chain, and one session owns that slice across every runtime flow it touches. A node landing only in a
-browser-reachable kind mints no flowrider item — those units belong to `groundstomper` — so a quest whose every runtime
-node is frontend gets none at all; a quest with no runtime node to slice on falls back to a single whole-quest item.
-Its GATE is narrower than its `flowIds` in the other direction too: the `flowrider` track counts RUNTIME flows only,
-because an operational flow is a one-time task sequence whose end state Siegemaster hand-checks and which no test can
-assert.
-`groundstomper` is the **operator that owns Playwright**, and it is the only role that authors `.e2e.ts` files: it
-fans out to ONE OPERATION ITEM PER RUNTIME FLOW that reaches a browser-reachable package, and its round writes
-`flowriderSignoff` over the package kinds Flowrider's list excludes.
-`siegemaster` is also an **operator**, but fans out to ONE OPERATION ITEM PER FLOW instead — each carries a single
-`flowId`, so each flow gets its own pt-continuation chain. Its track counts runtime and operational flows alike, plus
-the seven off-map probe families, which Flowrider's denominator excludes. A flow-less quest still gets exactly one
-siegemaster item, because those off-map families — `hostile-input` and `perf` above all — are where the quest's
-security and performance are established at all, and they belong to no drawn flow.
+With no eligible flow — none drawn, or none of a type this track measures — the role keeps ONE whole-quest item only
+when `off-map` is in its `unitKinds`: the probe families are properties of the built system rather than of any drawn
+flow, so siegemaster keeps this quest's only security (`hostile-input`) and performance (`perf`) coverage owned, while
+flowrider gets nothing rather than a session dispatched against an empty denominator.
 
-`pesteater` is the bug-hunt front and is an operator role like the four above, discipline `bug-repro`. Bug-hunt
-reuses the same flow/observable spec lifecycle (the reproduction path is a flow, the expected behavior is an
-`EXPECTED:` observable the round turns into a failing test). Its tail has no verify roles at all, and no sign-off
-track exists on that discipline, so `signal-back` recomputes no denominator for it — which makes the round's
-`reviewer-minion` the only thing standing between a false green and a shipped bug, and is why the `bug-repro` pack's
-reviewer block is its longest.
+Standards review has **no role and no ledger item on either type**, and writes nothing to `quest.json`. Its five
+concerns (`craft`, `perf`, `dedup`, `integrity`, `test-cases`) are guidance taken by each operator's own named
+reviewer. `blightConcernGatingStatics` withholds `perf` and `integrity` from declaration-shaped files (`-contract.ts`,
+`.stub.ts`, `.proxy.ts`, `.test.ts`, `.e2e.ts`, `.harness.ts`, `index.ts`) — measured across 88 such files, those two
+produced ZERO findings on that file mix, which is a property of the question rather than of the reviewer. Dead-code
+detection is deliberately UNOWNED: whether an export still has a consumer is a property of the whole post-fix import
+graph, which no single session can answer from inside its own scope.
 
-Standards review has **no role and no ledger item on either type.** Its five concerns (`craft`, `perf`, `dedup`,
-`integrity`, `test-cases`) belong to every `reviewer-minion`. Dead-code detection is deliberately UNOWNED pending a
-deterministic orphan-export tool: whether an export still has a consumer is a property of the whole post-fix import
-graph, which no per-file crossing can answer. `blightConcernGatingStatics` further withholds `perf` and `integrity`
-from declaration-shaped files (`-contract.ts`, `.stub.ts`, `.proxy.ts`, `.test.ts`, `.e2e.ts`, `.harness.ts`,
-`index.ts`) — across 88 review units on one real quest those two produced ZERO findings on that file mix, which is a
-property of the question rather than of the reviewer.
+`bug-hunt`'s spec shape is unchanged from before: **ONE FLOW PER BUG** — the reproduction path forks at its last
+shared node into two terminal nodes labelled `ACTUAL: <symptom today>` and `EXPECTED: <what the fix must make real>`,
+with observables sitting on the EXPECTED side only (an observable is a positive expectation, so one on the broken
+branch would ask for a test that asserts the bug). Each EXPECTED observable becomes one failing test, written by the
+**codeweaver** session that owns the package the fix lands in — bug-hunt has no separate implementation role at all;
+its implementation ops are the same derived `codeweaver` items a feature quest gets.
 
 ---
 
@@ -203,7 +224,7 @@ The same relay is driven by two interchangeable dispatchers; both share `questAd
 primary driver.**
 
 | Surface                          | Dispatcher                     | What it does                                                                                                                                        |
-|----------------------------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+|----------------------------------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | Web UI `/queue` page play button | **Node/UI mode (primary)**     | The server-side Node dispatch runner loops `get-next-step` in-process and spawns headless `claude -p` children (one per SpawnInstruction).           |
 | `/dumpster-launch` slash command | **MCP mode**                   | A brainless loop in the user's own Claude session: `get-next-step()` → `Task()` for agents / `run-ward` or `run-riftcarver` MCP tool for a command role → await → repeat. |
 | Web UI "Start Quest" button      | —                              | Calls `OrchestrationStartResponder`: seeds the relay and flips status `approved → in_progress`. **Spawns nothing and touches no git** — pure `quest.json` bookkeeping, so the POST answers in milliseconds and the active dispatcher picks the quest up. |
@@ -230,7 +251,7 @@ direct** — the only manual transitions in the execution phase. Everything afte
 driven by the operations relay.
 
 | Status                                          | Set by                                    | Notes                                                                       |
-|-------------------------------------------------|-------------------------------------------|-----------------------------------------------------------------------------|
+|-------------------------------------------------|--------------------------------------------|-----------------------------------------------------------------------------|
 | `created`                                       | `create-quest`                            | Intake agent's first action; seeds the plan operation item (see below)      |
 | `explore_flows` … `review_observables`          | ChaosWhisperer (via `modify-quest`)       | The only roles that set status directly                                     |
 | `flows_approved`, `approved`, `design_approved` | **User** (APPROVE button)                 | The approval gates; each requires non-empty `flows` — nothing else         |
@@ -239,11 +260,11 @@ driven by the operations relay.
 | `paused`, `abandoned`                           | User                                      | Not derived over — owned by the user                                        |
 
 **The approval gate** (`quest-gate-content-requirements-statics`) requires only non-empty `flows` for
-`flows_approved`, `approved`, and `design_approved` alike — for EVERY quest type. It no longer demands a
-`role:codeweaver` item: the codeweaver ledger is DERIVED at Start (`fanOutBy: 'implementation'`, exactly like
-bug-hunt's `pesteater` always was), not authored at spec time by anyone, so coverage is definitional rather than
-checked — a quest that clears `flows_approved` already carries every input the generator reads. The gate is enforced
-in `quest-modify-broker` (the `approved` transition) and the web approve button.
+`flows_approved`, `approved`, and `design_approved` alike — for EVERY quest type. It demands no ledger item at all:
+the implementation ledger is DERIVED at Start (`fanOutBy: 'implementation'`), not authored at spec time by anyone, so
+coverage is definitional rather than checked — a quest that clears `flows_approved` already carries every input the
+generator reads. The gate is enforced in `quest-modify-broker` (the `approved` transition) and the web approve
+button.
 
 ---
 
@@ -252,12 +273,12 @@ in `quest-modify-broker` (the `approved` transition) and the web approve button.
 Trace one feature quest end to end.
 
 1. **Quest create** (`quest-create-broker`). For a type with an intake agent (feature's
-   `chaoswhisperer`), create seeds ONE **plan** operation item
-   `{ role: chaoswhisperer, text: "Author spec + implementation plan", status: in_progress, locked }`
+   `chaoswhisperer`, bug-hunt's `bughunt`), create seeds ONE **plan** operation item
+   `{ role: <intake role>, text: "Author spec + implementation plan", status: in_progress, locked }`
    and stitches its `operations/<id>` ref into the caller-supplied intake work item. **Every work
    item, from the first, carries exactly one `operations/<id>` link.**
 
-2. **ChaosWhisperer** builds flows / observables / contracts / `packagesAffected[]` — it writes NONE of
+2. **The intake role** builds flows / observables / contracts / `packagesAffected[]` — it writes NONE of
    the operations ledger. `operations` is off the modify-quest allowlist entirely, at every status, so
    there is no `codeweaver` item on the ledger yet at all. The approval gate no longer needs one: it
    only requires non-empty `flows`.
@@ -268,30 +289,23 @@ Trace one feature quest end to end.
      then the status flip and the queue entry. It spawns no child and runs no git, which is what
      keeps the POST at millisecond scale and lets the WebSocket-driven panel swap land instantly.
    - `questBuildRelayGraphBroker` force-completes any non-complete intake (`chaoswhisperer` /
-     `glyphsmith`) operation item, then mints `startImplementationOps` + the fixed verify tail as
-     pending operation items (locked, except the `codeweaver` seed itself — see below) and creates ONE
-     work item for the first actionable (`pending`) operation item — the `riftcarver`, minted
-     `spawnerType: 'command'` off `isCommandWorkItemRoleGuard` — linked `operations/<id>`, depending
-     on the completed chat work items.
+     `glyphsmith` / `bughunt`) operation item, then mints `startImplementationOps` + the fixed verify
+     tail as pending operation items (locked, except the `codeweaver` seed itself — see below) and
+     creates ONE work item for the first actionable (`pending`) operation item — the `riftcarver`,
+     minted `spawnerType: 'command'` off `isCommandWorkItemRoleGuard` — linked `operations/<id>`,
+     depending on the completed chat work items.
    - It stamps **no `baseRef`**. Start runs before any worktree exists, so the only HEAD it could read
      is the server process's own checkout; `riftcarver` is the sole writer of that field and reads it
      from the worktree's own HEAD once the worktree is real.
-   - **This is also where the codeweaver items are born.** `startImplementationOps` for a feature
-     quest is TWO seeds — the `riftcarver` above, then
+   - **This is also where the codeweaver items are born.** `startImplementationOps` for either quest
+     type is TWO seeds — the `riftcarver` above, then
      `{ role: 'codeweaver', fanOutBy: 'implementation', locked: false }`. `questBuildRelayGraphBroker`
-     runs it through `relayTailFanOutTransformer`, which expands it into one item per (package, flow)
-     cell across both flow types, plus one flow-less **foundation** item per package holding the
-     contracts — and the individual contract PROPERTIES, each of which may carry its own `source` —
-     resolving under it (this is the only reason a package with zero tagged
-     nodes gets an item at all). A cell's membership is "this package TAGS a node in this flow", so a
-     glue node appears in BOTH sides' cells: a seam has two halves and each side builds its own, in the
-     tier order below. Items are ordered by package KIND tier (`packageBuildOrderStatics`)
-     first, then `packageGraph` depth as a tiebreak — tier outranks depth because manifest depth is
-     Kahn's order over `package.json` edges, which is INVERTED across an HTTP seam (this repo's
-     `server` depends on `web` to serve its bundle, so raw depth would rank the browser package ahead
-     of the backend route it calls). `locked: false` is why this is the one seed minted unlocked: it
-     enrols an item in its pt budget, and a codeweaver chain has to stay unbounded because the flows
-     are the acceptance target and the work has to land regardless of how many passes it takes.
+     runs it through `relayTailFanOutTransformer`, which expands it into ONE item per (package, flow)
+     CELL across both flow types, plus one flow-less item for a package that owns a contract by
+     `source` and tags no node at all. Cells are ordered by package KIND tier
+     (`packageBuildOrderStatics`) first, then `packageGraph` depth as a tiebreak — tier outranks depth
+     because manifest depth is Kahn's order over `package.json` edges, which is INVERTED across an
+     HTTP seam. `locked: false` is why this is the one seed minted unlocked.
    - The seed is persisted via `questOperationsUpdateBroker` **before** the status flips to
      `in_progress`. Both the seed and the transition are idempotent (a re-Start detects the already-
      appended locked ward tail and skips straight to the transition).
@@ -304,9 +318,11 @@ Trace one feature quest end to end.
    operation completes and advance dispatches the first `codeweaver`; on a red it routes by failure
    class (see the riftcarver path below).
 
-5. **The dispatch loop** picks up that first codeweaver work item. The agent reads its operation item
-   + git + the ledger, verifies it's the right next step, builds, commits a prose handoff, and signals
-   `complete` carrying `operationItemId` + `operationStatus: 'done'`.
+5. **The dispatch loop** picks up that first codeweaver work item. The operator reads its operation
+   item + git + the ledger, verifies it's the right next step, reads its package, writes its own working
+   notes, briefs generic sub-agents to make the edits, reads the diff, summons a `codeweaver-reviewer`,
+   and — once that reviewer's `NEXT:` line reads `pass` — signals `complete` carrying
+   `operationItemId` + `operationStatus: 'done'`.
 
 6. **`QuestHandleSignalBackResponder`**, in ONE atomic `questOperationsUpdateBroker` write, marks the
    work item terminal (`complete`) + the linked operation item `complete`, then calls
@@ -316,19 +332,17 @@ Trace one feature quest end to end.
 7. **Ward operation items** are dispatched as `run-ward` (`spawnerType: 'command'`) and handled by
    `quest-run-ward-broker` (see the ward path below).
 
-8. **Verify roles** run in tail order — `flowrider`, `groundstomper`, then `siegemaster`. All
-   three are
-   **operators**: `flowrider` runs one session per package slice below the browser, `groundstomper` one per
-   browser-reachable runtime flow, each signalling `done` once every unit in
-   scope is settled on their own track; `siegemaster` runs one session PER flow,
-   each signalling on that flow's own scope and its own track. The two flow tracks are INDEPENDENT — an authoring
-   signature does nothing to Siegemaster's gate, and vice versa. Each role's chain is keyed on role + base
-   text — `flowrider` holds one chain per package slice,
-   `groundstomper` and `siegemaster` one PER flow. There is no blight-review item in this tail and none is appended
-   to it: each of these sessions' own `reviewer-minion` takes the standards concerns over its round before that
-   session commits (see "Quest types and their relay tails" above).
-   After `siegemaster` converges, `ward(full)` runs; on green, no `pending` operation item
-   remains and the operation-aware status transformer derives `complete`.
+8. **Verify roles** run in tail order — `flowrider`, then `siegemaster`. Both are **operators**:
+   `flowrider` runs one session per flow, authoring the test suites that prove it in the browser and
+   below it, signalling `done` once its own `flowrider-reviewer` says `pass`; `siegemaster` runs one
+   session PER flow, driving the running system by hand (via `siegemaster-walker`) and repairing what
+   it finds, signalling `done` once its own `siegemaster-reviewer` says `pass`. The two roles' tracks
+   are INDEPENDENT — a `flowriderSignoff` does nothing to `siegemasterSignoff`'s gate, and vice versa.
+   Each role's chain is keyed on role + base text — one chain PER FLOW for each. There is no
+   standards-review item in this tail and none is appended to it: each session's own named reviewer
+   takes the standards concerns before that reviewer's own commit (see "Quest types and their relay
+   tails" above). After `siegemaster` converges, `ward(full)` runs; on green, no `pending` operation
+   item remains and the operation-aware status transformer derives `complete`.
 
 ---
 
@@ -409,158 +423,110 @@ once in § (d) rather than repeated per role: the operation item completes and g
 `pt N` continuation exactly as for `partial`, but the work item is marked `failed` carrying
 `blockedReason`, the pt budget is bypassed, and the quest halts immediately.
 
-**Three gates can REFUSE a signal outright, before any of the above happens**, and none of them is per-role prose —
-each is documented once and applies by membership: the commit-before-signal gate (§ (e)), the sign-off completion gate
-(§ "The two verification tracks"), and the review-coverage gate (§ (f)). A refusal persists nothing, so it is not a
-sad path in the ledger sense — the session fixes what the message names and signals again.
+**One gate can REFUSE a signal outright, before any of the above happens: the commit-before-signal gate** (§ (e)). A
+refusal persists nothing, so it is not a sad path in the ledger sense — the session commits what the message names and
+signals again. There is no separate sign-off-completion gate and no review-coverage gate any more: an unsigned unit
+refuses nothing, and standards review is guidance a named reviewer takes on its own initiative, not something
+`signal-back` checks for.
 
 ### Chat / intake
 
 | Role               | Operation item                          | Happy                                                                    | Sad                                                                 |
 |--------------------|-----------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------|
-| **ChaosWhisperer** | the plan item (seeded `in_progress`, locked) | Authors flows/observables/contracts/`packagesAffected` — never `operations`; at Start Quest `questBuildRelayGraphBroker` force-marks the plan item `complete` AND derives the `codeweaver` items themselves. | No execution sad path. The approval gate rejects `approved`/`flows_approved`/`design_approved` only for empty `flows`; it no longer checks for a `codeweaver` item. |
+| **ChaosWhisperer** | the plan item (seeded `in_progress`, locked) | Authors flows/observables/contracts/`packagesAffected` — never `operations`; at Start Quest `questBuildRelayGraphBroker` force-marks the plan item `complete` AND derives the `codeweaver` items themselves. | No execution sad path. The approval gate rejects `approved`/`flows_approved`/`design_approved` only for empty `flows`; it demands no ledger item. |
+| **BugHunt**        | the plan item (seeded `in_progress`, locked) | Captures the reproduction flow (one flow per bug, `ACTUAL:`/`EXPECTED:` terminal fork) and its observables; force-completed at Start exactly like ChaosWhisperer. Implementation lands on the same derived `codeweaver` items a feature quest gets. | No execution sad path.                                            |
 | **Glyphsmith**     | (optional design phase)                 | Walks `approved → design_approved`; its plan item is force-completed at Start like ChaosWhisperer. | —                                                                  |
 
 ### Implementation
 
-| Role           | Locked? | Happy (`done`)                                                    | Sad (`partial`)                                                                                             |
-|----------------|---------|------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| **Codeweaver** | No (DERIVED at Start, `fanOutBy: 'implementation'`) | operation `complete`, work item `complete`, advance → next operation | operation `complete` + a `pt N` continuation appended (unlocked → **unbounded** pt chain — codeweavers pivot in place freely); advance creates a fresh work item that continues from git |
-| **PestEater** (bug-hunt) | Yes | operation `complete`, advance → `ward(changed)`                | operation `complete` + `pt N` (locked → **bounded** by `slotManagerStatics.pesteater.maxAttempts`); spent chain → `blocked` |
+| Role           | Locked? | Happy (`done`)                                                    | Sad                                                                                                             |
+|----------------|---------|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Codeweaver** | No (DERIVED at Start, `fanOutBy: 'implementation'`, one item PER (PACKAGE, FLOW) CELL) | operation `complete`, work item `complete`, advance → next operation, once its own `codeweaver-reviewer`'s `NEXT:` line reads `pass` | `blocked` on an environment wall its reviewer names `wall` (§ (d)). Its own prompt never signals `partial` — the loop inside the session is unbounded and keyed to the reviewer's `rework` verdict instead — though the responder still applies `partial` generically to any code-changing role if one were ever sent, unbounded here because the item is unlocked |
 
-### Verify / review (feature tail; flowrider, groundstomper, siegemaster all operators, all running the round loop)
+### Verify (feature and bug-hunt tail alike; flowrider and siegemaster, both operators)
 
-Each is a **locked** operation item, and `partial` always appends a `pt N` continuation for a fresh pass — **bounded**
-by `slotManagerStatics.<role>.maxAttempts`, with a spent chain blocking the quest via `quest-block-on-failure-broker`. A
-chain is keyed on role + base text. `flowrider` holds one tail item PER PACKAGE SLICE (its text carries the package
-or the seam's package set); `groundstomper` and `siegemaster` each hold one tail item PER FLOW (its text carries the
-flow id), so each flow gets its own budget. The continuation carries the same `flowIds` AND the same `packageNames`.
+Each is a **locked** operation item, keyed on role + base text — `flowrider` and `siegemaster` each hold one tail item
+PER FLOW (its text carries the flow id), so each flow gets its own budget. The continuation (were `partial` ever sent)
+carries the same `flowIds`.
 
-All three are **operators** and signal on remaining **scope**, never on whether a pass changed code. Each role asks ONE
-question and answers only its own:
+Both are **operators** and signal on their own reviewer's verdict, never on whether a pass changed code, and neither
+gates `done` on sign-off completeness. Each asks ONE question and answers only its own:
 
-- **`flowrider` — is every observable BELOW THE BROWSER proven by a test?** Its scope is the RUNTIME flows, narrowed to
-  the package kinds a browser cannot reach and then to its own item's `packageNames`. It authors Jest work only — no
-  Playwright, no dev server — and signals `done`
-  once every unit in that slice carries a `flowriderSignoff`. Its `worker-minion`s author the suite and its
-  `reviewer-minion` is **the only writer of that track**, because the session that wrote a test cannot be the one that
-  certifies it — a separation that is now the shape of the pipeline rather than an instruction a single session had to
-  keep.
-- **`groundstomper` — does the flow hold when a browser walks it?** Its scope is the ONE runtime flow its item names,
-  narrowed to that flow's browser-reachable packages. It is the sole author of `.e2e.ts` Playwright specs, and its
-  round writes `flowriderSignoff` over the package kinds Flowrider's list excludes. It inventories the
-  existing e2e suite for its flow first, so it extends a spec rather than adding a parallel one.
+- **`flowrider` — is this flow proven by a test, in the browser and below it?** Its scope is the ONE flow its item
+  names. It reads the implementation to learn the exact value each unit claims, chooses a LAYER per unit (Playwright
+  in a real browser, or an integration/unit test below it), briefs sub-agents to author the suite, reads the diff, then
+  summons a `flowrider-reviewer` — the only writer of `flowriderSignoff` on that flow, because the session that wrote a
+  test is not the one that certifies it bites.
 - **`siegemaster` — does it hold when a human drives the real system, and can I break it?** Its scope is the ONE flow
   its item names, runtime or operational, plus the SEVEN off-map breakage families it owns: `re-entry`,
   `concurrency`, `interruption`, `staleness`, `configuration`, `hostile-input`, `perf`. `hostile-input` is where this
   quest's security is established and `perf` is where its performance is measured, both off the running system. It
-  signals `done` once every unit on that flow carries a `siegemasterSignoff`.
+  starts a dev server and owns it for the session, loops `siegemaster-walker` (drive one path, report what broke) and
+  fixer sub-agents (repair what the walker found) until a walk comes back clean, then summons a `siegemaster-reviewer`
+  to grade the repairs before signing `siegemasterSignoff`.
 
-| Role             | Happy (`done`)                                                                                            | Sad (`partial`)                                                                       |
-|------------------|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| **Flowrider**    | advance → the next `flowrider` slice, or `groundstomper` on the last one (every unit in that package slice carries a `flowriderSignoff`) | `pt N` continuation → fresh flowrider pass for that slice, named remainder (bounded)     |
-| **Groundstomper**| advance → the next `groundstomper` item, or `siegemaster` on the last one (every browser-reachable unit on that flow carries a `flowriderSignoff`) | `pt N` continuation → fresh groundstomper pass for that flow, named remainder (bounded) |
-| **Siegemaster**  | advance → the next `siegemaster` item, or `ward(full)` on the last one (every unit on that flow carries a `siegemasterSignoff`) | `pt N` continuation → fresh siegemaster pass for that flow, named remainder (bounded)    |
+| Role             | Happy (`done`)                                                                                            | Sad (`blocked`)                                                                       |
+|------------------|------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| **Flowrider**    | advance → the next `flowrider` item, or `siegemaster` on the last one, once its `flowrider-reviewer` says `pass` | environment wall its reviewer names `wall`; § (d) |
+| **Siegemaster**  | advance → the next `siegemaster` item, or `ward(full)` on the last one, once its `siegemaster-reviewer` says `pass` | environment wall its reviewer names `wall`; § (d) |
 
-**`unconfirmable` is not `partial`.** A unit no session of that role could ever settle is signed `unconfirmable` with
-its question and the pass moves on. Handing it to a `pt N` continuation instead burns the chain to
-`slotManagerStatics.<role>.maxAttempts` on sessions that provably cannot close it, and then blocks the quest with the
-unit still open. `partial` is for scope a fresh session really could finish.
+**`unconfirmable` is not a failure.** A unit no session of that role could ever settle is signed `unconfirmable` with
+its question, and the pass moves on — nothing about that verdict blocks `done`.
 
-### The round loop — the paths INSIDE one operator session
-
-Everything above is the relay BETWEEN sessions. Inside any one of the five operator roles' sessions there is a
-second, bounded loop, and its paths need their own coverage because none of them reaches `signal-back`.
-
-Nine steps, and the operator makes exactly ONE kind of decision across all of them: it matches the FIRST WORD of each
-minion's last line (`NEXT: continue` / `NEXT: rework — …` / `NEXT: wall — …`) against a three-row table. `continue`
-and `rework` both mean "next step"; `wall` means stop dispatching, clean the tree, push and signal `blocked`. **Only the
-REVIEWER's line decides the round** — a worker's `rework` is a claim about its own chunk, and the reviewer is the
-session that reads every worker return AND opens the files.
-
-| Step | What it does                                                                                   | Happy                                                                                                                              | Sad                                                                                                                                                            |
-|------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1    | `npm run build`, its OWN command, unpiped                                                      | exit 0; the output goes into step 3's brief                                                                                        | red; the output goes into step 3's brief unchanged. **The operator does not act on it** — its planner cuts chunk 1 for it                                      |
-| 2    | `git status`                                                                                   | clean; the output goes into step 3's brief                                                                                         | dirty; same. A dead session left work, and reconstructing it is the planner's job                                                                              |
-| 3    | ONE `planner-minion` — brief is the scope block VERBATIM + steps 1 and 2 + last round's rework | `NEXT: continue`, and a plan file committed at `.quest-plans/round-<n>.md`                                                         | `NEXT: wall` → signal `blocked`. Scope the planner cannot plan cleanly is still a CHUNK, never a routing note                                                  |
-| 4    | `Read .quest-plans/round-<n>.md`                                                               | numbered chunks, in dispatch order                                                                                                 | zero chunks is a legal plan — the scope is already true on disk                                                                                                |
-| 5    | `worker-minion` PER CHUNK, **ONE per assistant message**, in the plan's order                  | each chunk done and committed under `chunk <n>: <title>`                                                                           | `NEXT: rework` → carry on; the reviewer settles it. `NEXT: wall` → stop dispatching, go to step 7                                                              |
-| 6    | ONE `reviewer-minion` — brief is EVERY worker return verbatim                                  | `NEXT: continue`; it has run `npm run ward -- --staged`, committed its fixes, enumerated, dispositioned, and committed its verdict | `NEXT: rework` with what is not done, in chunk terms                                                                                                           |
-| 7    | `git status` again                                                                             | clean, because every minion committed its own work                                                                                 | anything listed → ONE sweep `worker-minion` whose brief is those paths. Still dirty → signal `blocked`                                                         |
-| 8    | `git push`, bare                                                                               | pushed; the next round's `--staged` and `unpushed` windows both reset                                                              | —                                                                                                                                                              |
-| 9    | decide, from the REVIEWER's line alone                                                         | `continue` → signal `done`                                                                                                         | `rework` + rounds left → round + 1, back to step 1 with that text as the next planner's `REWORK:`; `rework` + **3 rounds spent** → signal `partial`, naming it |
-
-Round-loop invariants worth asserting:
-
-- **Two `Agent` calls in one assistant message is the bug**, not slowness — that runs the workers concurrently, and
-  concurrent `tsc` corrupts the shared `dist/`. The chunk NUMBER is the dependency order, so there is no "independent"
-  flag anywhere for a session to misread as "safe to run at once".
-- **Only the operator builds, and only the reviewer wards.** Planner, workers and reviewer are all forbidden
-  `npm run build`; the operator is forbidden `npm run ward`. The reviewer runs the round's one `--staged` pass and each
-  worker separately runs the literal `WARD:` command its planner wrote into its chunk, so nobody narrows `--only`.
-- **Every session commits its own work and the operator commits nothing** — workers under `chunk <n>: <title>`, the
-  reviewer twice (`review <n>: fixes`, then `review <n>: <continue|rework>`). The operator's whole git surface is
-  `git status` and one bare `git push`.
-- **The plan is read back from the committed FILE, never from the planner's message.** A pasted plan body defeats the
-  persistence the reviewer and any successor session both depend on.
-- **No minion asks the user anything.** It runs inside its parent's turn, so nothing resumes it with an answer; a
-  decision it cannot make goes up as `NEXT: rework`.
-- **`Agent` coming back actually DENIED is `blocked` (Operating Rule 5), not a licence to hand-code.** A tool that was
-  never called is not a tool that was denied — attempt it once and quote the refusal. And a constraint read out of a
-  predecessor's commit is a CLAIM, not an observation: one session's ad-hoc reading of this exact conflict propagated
-  through three later sessions via `git log` and took the delegation mandate out of all of them.
-
-### The two verification tracks
+### The three verification tracks
 
 Every verification unit — each terminal, each labelled branch, each observable, and each off-map probe family — carries
-**two independent top-level sign-offs**:
+THREE independent top-level sign-offs:
 
 | Field | Written by | Answers |
 |---|---|---|
-| `flowriderSignoff` | the Flowrider round's `reviewer-minion` over its package slice, and the Groundstomper round's over the browser-reachable package kinds — never the worker that authored the test | is this proven by a test? |
-| `siegemasterSignoff` | the Siegemaster round's `reviewer-minion`, over what its workers walked | does this hold when a human drives the real system? |
+| `codeweaverSignoff` | the `codeweaver-reviewer` that grades a codeweaver pass | is this proven by a unit test beside the code? |
+| `flowriderSignoff` | the `flowrider-reviewer` that grades a flowrider pass | is this proven by a flow-perspective test, in the browser or below it? |
+| `siegemasterSignoff` | the `siegemaster-reviewer` that grades a siegemaster pass | does this hold when a person drives the real system? |
 
 Each is `{ verdict, evidence, question?, workItemId, at }` and each `verdict` is one of exactly TWO values:
 
-- **`confirmed`** — Flowrider: a test `file:line` PLUS what makes that test fail (the production line broken, the
-  assertion that went red). Siegemaster: the value measured off the running system.
+- **`confirmed`** — the test `file:line` PLUS what makes that test fail (codeweaver/flowrider), or the value measured
+  off the running system (siegemaster).
 - **`unconfirmable`** — genuinely unable to settle it after real effort. `evidence` says what was tried; a `question`
   is REQUIRED and the contract refuses the verdict without one.
 
-**A unit is done when BOTH sign-off FIELDS have been written.** Both verdicts CLEAR the gate; what the gate refuses is
-the ABSENCE of a sign-off. There are TWO fields (`signoffTrackContract`) and THREE denominators over them
-(`signoffDenominatorTrackContract`), and every difference between the denominators is DATA in
-`signoffTrackEligibilityStatics` rather than role branches in the gate: the authoring ones exclude the off-map families
-(Siegemaster's charter — breakage classes a flow graph cannot draw) and exclude observables whose `addedBy` is
-`siegemaster` (a role that runs strictly after them), and Flowrider and Groundstomper split `flowriderSignoff` between
-them by `packageTypes` — disjoint, and their union is Siegemaster's.
+**An unsigned unit refuses nothing, and there is no gate that counts sign-offs.** What gets marked is what somebody
+actually proved — leave a unit you did not reach unsigned rather than reaching for a verdict that closes it. There are
+THREE fields (`signoffTrackContract`) and THREE denominators (`signoffDenominatorTrackContract`) — `codeweaver |
+flowrider | siegemaster` — kept as separate enums on purpose even though they hold the same three names today: a
+denominator that shares another track's field is representable, and the day one lands the two lists diverge.
+`signoffTrackEligibilityStatics.byTrack` decides which units each denominator could ever have signed: `codeweaver` and
+`siegemaster` cover both `runtime` and `operational` flows, `flowrider` covers `runtime` flows only; only `siegemaster`
+carries `off-map` in its `unitKinds`; every track excludes observables whose `addedBy` postdates it (`flowrider` and
+`codeweaver` both exclude `addedBy: 'siegemaster'`, since siegemaster runs strictly after them). Every track shares
+`packageScope: 'intersection'` (an item owns every unit whose owning node tags any of its packages) and
+`flowScope: 'declared'` (an item is measured on the flows it names).
 
 **A measured defect is a NEW observable, not a third verdict.** An observable is a positive expectation; "send it
 `bleh` and the server crashes instead of returning 400" is the INVERSE expectation, so it is ADDED to the flow through
-the additive spec authority both roles hold, and then carries its own two sign-offs. If it cannot be closed this
-session it sits `unconfirmable` with the reason. There is no `defect`, `deferred`, `gap` or `recorded` verdict.
+the additive spec authority every operator holds, and then carries its own three sign-offs. There is no `defect`,
+`deferred`, `gap` or `recorded` verdict.
 
 **Provenance is a separate axis.** `addedBy` on the observable (`spec | chaoswhisperer | codeweaver | flowrider |
 siegemaster | operator`) answers "was this in the spec at approval, or added mid-quest, and by whom" — never whether
 the unit is settled.
 
 **Sign-offs are written via `modify-quest`, batched.** One call patches `{ id, <track>Signoff }` on many elements at
-once — observables, nodes, edges, and `offMapSignoffs` entries (whose `id` IS the probe family). A signing element may
-carry ONLY `id` plus the sign-off field: a transformer rejects anything else on it, and rejects a sign-off written
-against a unit id that does not already exist. One call per unit is refused by policy, not by the schema — a 45-unit
-flow signed singly is 45 quest writes, 45 outbox appends and 45 browser refetches of a growing file.
+once — observables, nodes, edges, and `offMapSignoffs` entries (whose `id` IS the probe family).
 
-`get-qa-checklist` takes a `track` param and an optional `packageNames`. **`track` names the DENOMINATOR — the role you
-were dispatched as — not the field you write**, so a Groundstomper session passes `groundstomper` even though it writes
-`flowriderSignoff`; passing the sibling's name returns the exact complement of its own units. With either authoring
-track and no `flowId` it returns RUNTIME flows only, and its `remainingItemIds` is the per-track sign-off difference
-over the declared slice — the same set the completion gate recomputes, which is why the gate's refusal quotes the call
-verbatim.
+`get-qa-checklist({ questId, operationItemId })` derives the whole scope — the track, the flows, the packages — from
+the operation item itself, through `operationSignoffScopeTransformer`; `operationItemId` and a bare `flowId` (an
+un-scoped browse form) are mutually exclusive. That id is the only argument a caller needs, and it is the same
+derivation any completion-adjacent reasoning would use, so the number a session reads about its own scope cannot drift
+from the number anyone else computes for it.
 
 ### The reset lever
 
-`reset-flow-signoffs({ questId, workItemId, flowId, reason })` clears **Siegemaster's** track across ONE flow and
-appends a `walk-reset` note to `quest.planningNotes.questNotes`. **Flowrider's track is untouched by it.**
+`reset-flow-signoffs({ questId, workItemId, flowId, reason })` clears **`siegemasterSignoff`** across ONE flow and
+appends a `walk-reset` note to `quest.planningNotes.questNotes`. It throws unless the calling work item's own linked
+operation item has `role: 'siegemaster'` and names that flow in its own `flowIds`. **`flowriderSignoff` and
+`codeweaverSignoff` are untouched by it** — there is no equivalent reset lever for either of those tracks.
 
 It exists because a sign-off is a measurement of a system at a moment. When Siegemaster fixes a defect mid-walk, every
 sign-off already written on that flow describes the code as it stood BEFORE the repair — each is now a claim about a
@@ -597,8 +563,8 @@ riftcarver the streamed text verbatim at `riftcarver-results/<id>.log` via a `ri
 ref. That ref is the only route the execution panel has to the detail.
 
 | Role           | Terminal by | Happy (green, exit 0)                                   | Sad (red, exit ≠ 0)                                                                                          |
-|----------------|-------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| **Riftcarver** | exit code   | `quest-run-riftcarver-broker` marks the carve work item `complete` + the riftcarver operation item `complete`, advance → the first `codeweaver` (feature) or `pesteater` (bug-hunt) | routed by FAILURE CLASS, not by one rule: `repairable` (node_modules / build) with budget left → work item `failed` (`errorMessage: riftcarver_<step>_failed`), operation `complete`, then a **spiritmender** + a **fresh `pt N` riftcarver** spliced after it; `repairable` with the budget spent, `git-state` (base_branch / create), or a permission-denied error at ANY step → `quest-block-on-failure-broker` |
+|----------------|-------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| **Riftcarver** | exit code   | `quest-run-riftcarver-broker` marks the carve work item `complete` + the riftcarver operation item `complete`, advance → the first `codeweaver` | routed by FAILURE CLASS, not by one rule: `repairable` (node_modules / build) with budget left → work item `failed` (`errorMessage: riftcarver_<step>_failed`), operation `complete`, then a **spiritmender** + a **fresh `pt N` riftcarver** spliced after it; `repairable` with the budget spent, `git-state` (base_branch / create), or a permission-denied error at ANY step → `quest-block-on-failure-broker` |
 | **Ward**       | exit code   | `quest-run-ward-broker` marks the ward work item `complete` + the ward operation item `complete`, advance → next role | work item `failed`, ward operation item `complete`, then appends a **spiritmender** operation item + a **fresh ward** operation item (`pt N`, same `wardMode`) AFTER it, advance → the spiritmender runs next (never a ward back-to-back), then the fresh ward re-verifies |
 
 **Riftcarver's steps and their classes.** `create` and `base_branch` are `git-state`; `node_modules`
@@ -620,7 +586,7 @@ holds it together.
 ### Recovery
 
 | Role             | Locked? | Happy (`done`)                                          | Sad (`partial`)                                                             |
-|------------------|---------|--------------------------------------------------------|-----------------------------------------------------------------------------|
+|------------------|---------|----------------------------------------------------------|-------------------------------------------------------------------------------------|
 | **Spiritmender** | Yes     | fixes build/lint/type/test errors; advance → the fresh command re-runs (the `pt N` ward after a ward red, the `pt N` riftcarver after a repairable carve red) | `pt N` continuation → fresh spiritmender pass (bounded by `slotManagerStatics.spiritmender.maxAttempts`) |
 
 ---
@@ -640,7 +606,9 @@ computes `N` from the count of same-base items already on the ledger. Advance th
 work item for the continuation. For a **locked** role the chain is bounded by
 `slotManagerStatics.<role>.maxAttempts`; reaching it blocks the quest instead of appending. An
 **unlocked** codeweaver item is unbounded. The handler is **idempotent**: a redelivered signal for an
-already-terminal work item is a no-op (it will not mint a second `pt N`).
+already-terminal work item is a no-op (it will not mint a second `pt N`). **This mechanism applies to any
+code-changing role that sends `partial`, but the three operator roles' own prompts never do** — see
+"Operator session" in Core concepts.
 
 ### (b) ward red → spiritmender operation item → re-ward — `quest-run-ward-broker`
 
@@ -679,8 +647,8 @@ Three things about that routing are load-bearing:
   `operationPtChainTransformer` keys a chain on role + base text, so naming the attempt is what buys it its own pt
   budget instead of sharing one with every other repair on the quest.
 
-Riftcarver, like ward, runs no round and writes no code, so no standards review is owed for it — and neither reaches
-`signal-back` at all, so neither is bound by the three gates below.
+Riftcarver, like ward, runs no operator session and writes no code, so no standards review is owed for it — and
+neither reaches `signal-back` at all, so neither is bound by the commit-before-signal gate below.
 
 ### (c) orphan → resume — `recover-orphaned-work-items-layer-broker`
 
@@ -762,50 +730,38 @@ Two deliberate asymmetries with (a):
   to prevent (a role that signals `partial` at a wall burns its whole pt budget on sessions that cannot succeed, then
   blocks anyway with nothing recorded about why).
 
-Roles learn to reach for this via the `[WALL]` operating rule, carried inline under `## Operating Rules` in every
-file-changing prompt and in each of the three `*-information` payloads a minion fetches. A role's `[WALL]` sends it to
-`operationStatus: 'blocked'` and a minion's sends it to `NEXT: wall`, which its parent turns into that same signal — so
-a minion reports the same wall to its parent that a role reports to the orchestrator.
+An operator reaches this route when its own named reviewer's `NEXT:` line reads `wall` — an environment block, never a
+scope judgement call. A role's `[WALL]` operating rule sends it to `operationStatus: 'blocked'`.
 
 ### (e) dirty worktree → signal REFUSED — the commit-before-signal gate
 
-The three signal-back gates run BEFORE any mutation, so every refusal below persists NOTHING: the work item stays
-`in_progress`, the operation item stays as it was, and the session fixes what the message names and signals again.
-That is why the refusal is a THROW rather than a returned error — it rides the awaited `signal-back` path back through
-the MCP tool to the agent, where it is visible and actionable, instead of being swallowed as a success.
+This is the ONLY gate `signal-back` runs. It runs BEFORE any mutation, so a refusal persists NOTHING: the work item
+stays `in_progress`, the operation item stays as it was, and the session commits what the message names and signals
+again. That is why the refusal is a THROW rather than a returned error — it rides the awaited `signal-back` path back
+through the MCP tool to the agent, where it is visible and actionable, instead of being swallowed as a success.
 
-This first gate binds every role that changes code: the five operator roles plus `spiritmender` and `warpgate`.
-It applies on **`done`, `partial` AND `blocked` alike** — a blocked quest hands its work forward through git exactly
-as a finished one does, so the outcome that halts is the one that most needs the work durable first. The measurement
-is `gitWorkingTreeFilesBroker`, which unions `git diff HEAD --name-only` with `git ls-files --others
---exclude-standard`: a bare diff reports TRACKED paths only, so the net-new files a worker just wrote — the ones most
-likely to carry the defect — would be invisible to it and a dirty tree would read as clean. The question is **"is the
-tree clean", never "did you make a commit"**: `git commit --allow-empty` satisfies it, so a round that legitimately
-changed nothing still signals. A quest whose cwd does not resolve to a worktree (hydrated, or seeded before
-worktrees) SKIPS the check rather than failing it, and for a role outside the set no git command runs at all.
+It binds every role that changes code: the three operator roles plus `spiritmender` and `warpgate`
+(`agentPromptClassificationStatics.operatorRoleNames` plus those two, read as data rather than listed at the call
+site, so a fourth operator role is covered the day it is added). It applies on **`done`, `partial` AND `blocked`
+alike** — a blocked quest hands its work forward through git exactly as a finished one does, so the outcome that halts
+is the one that most needs the work durable first. The measurement is `gitWorkingTreeFilesBroker`, which unions `git
+diff HEAD --name-only` with `git ls-files --others --exclude-standard`: a bare diff reports TRACKED paths only, so the
+net-new files a sub-agent just wrote — the ones most likely to carry the defect — would be invisible to it and a dirty
+tree would read as clean. The question is **"is the tree clean", never "did you make a commit"**: `git commit
+--allow-empty` satisfies it, so a pass that legitimately changed nothing still signals. A quest whose cwd does not
+resolve to a worktree (hydrated, or seeded before worktrees) SKIPS the check rather than failing it, and for a role
+outside the set no git command runs at all.
+
+**The gate is satisfied by construction, not by the operator's own commit.** Each operator's own named reviewer is the
+one session on the pass that commits, so a dirty tree at signal time is scratch a sub-agent left behind, or work that
+reviewer did not commit — the operator itself never commits and so cannot clear the gate by committing. Its own
+recording step instead reads `git status` and hands every listed path to one more reviewer sub-agent on a sweep brief,
+which opens each path, discards scratch, keeps what is real, and commits what survives.
 
 This is a computed gate rather than a line in the operating rules because the prose version was measured and found
 wanting: a session died ONE gate short of its commit holding a fully verified, twice-green artifact, the re-carve
 destroyed it, and that slice cost 101 minutes of wall-clock for 11 minutes of real work with nothing in `quest.json`
 to say any of it happened.
-
-### (f) `done` with no review trace → signal REFUSED — the review-coverage gate
-
-On `done` from any of the five operator roles, `signal-back` also refuses while NO
-`quest.planningNotes.blightLedger` entry carries THAT work item's id. Membership is read off
-`agentPromptClassificationStatics.operatorRoleNames` rather than listed, so a role added to that list is gated the day it is added — the same
-reason `isChatWorkItemRoleGuard` reads `workItemRoleStatics.chat` instead of growing an `||` chain. Every disposition
-clears: `gap` and `recorded` with a real reason count exactly as `reviewed` does, so the gate refuses absence, not
-honesty. The two ways out are to dispatch a `reviewer-minion` over the round's output, or to signal `partial` and hand
-that scope to a fresh session.
-
-It is deliberately COARSER than the sign-off gate, and the coarseness is forced by the round loop. The operator
-commits per ROUND, so at signal time the tree is clean by construction: a per-unit `working-tree` measurement would be
-empty and a `commit` one would see only the last of several round commits. There is no per-unit precision to be had at
-that point; what IS measurable is whether the round's reviewer ran at all. And it is a gate rather than a prompt line
-for the reason a post-mortem measured directly — a computed parameter with a named consequence bolted to it was passed
-correctly 30 times out of 30, while the prose instruction to "record dispositions as you go" was ignored 13 times out
-of 13.
 
 ---
 
@@ -874,35 +830,27 @@ dispatchable while the wreckage is still in place.
 - **REL-5 — No false complete.** `workItemsToQuestStatusTransformer` never derives `complete` while
   any operation item is `pending`/`in_progress` (the "all work items momentarily terminal, advance not
   yet run" window).
-- **REL-6 — Duplicate-on-partial.** `partial` → operation `complete` + a `pt N` continuation → a fresh work item. A
-  locked role's chain is bounded. What earns `done` is role-dependent: for `ward` it is a fresh run that came back
-  green; for `flowrider`, `groundstomper` and `siegemaster` it is that role's OWN track carrying a sign-off on every
-  unit in its own denominator. Both verdicts
-  (`confirmed`, `unconfirmable`) satisfy a track — the gate refuses ABSENCE, not honesty.
-- **REL-6d — Commit-before-signal.** For any role that changes code (the five operator roles plus `spiritmender`
+- **REL-6 — Duplicate-on-partial.** `partial` → operation `complete` + a `pt N` continuation → a fresh work item,
+  applied by the responder generically to any code-changing role. A locked role's chain is bounded by
+  `slotManagerStatics.<role>.maxAttempts`; an unlocked codeweaver item's chain is unbounded. `codeweaver`, `flowrider`
+  and `siegemaster` signal `done` only once their OWN named reviewer's verdict says `pass` — sign-off completeness on
+  `codeweaverSignoff`/`flowriderSignoff`/`siegemasterSignoff` is never checked by any gate.
+- **REL-6d — Commit-before-signal.** For any role that changes code (the three operator roles plus `spiritmender`
   and `warpgate`), `signal-back` THROWS while the quest worktree carries uncommitted changes — **on `done`, `partial`
   AND `blocked` alike**, and nothing is persisted on the refusal. The measurement unions `git diff HEAD --name-only`
   with `git ls-files --others --exclude-standard`, so a net-new untracked file counts. It asks whether the TREE IS
   CLEAN, never whether a commit was made: `git commit --allow-empty` satisfies it. A quest whose cwd does not resolve
-  to a worktree SKIPS the check rather than failing it, and no git command runs for a role outside that set.
-- **REL-6e — Review coverage.** `signal-back` THROWS on `done` from any of the five operator roles while NO
-  `planningNotes.blightLedger` entry carries THAT work item's id — the trace a `reviewer-minion` round leaves. Every
-  disposition clears (`gap` and `recorded` with a real reason count as `reviewed` does); what it refuses is absence.
-  Membership is read off `agentPromptClassificationStatics.operatorRoleNames`, so a role added to that list is gated
-  the day it is added.
-  `partial` is the honest alternative, and it hands the round's scope to a fresh session.
-- **REL-6f — Gates precede mutation, idempotency precedes gates.** All three gates run BEFORE any write, so a refusal
-  leaves the work item and its operation item exactly as they were and the session can fix and signal again. The
-  already-terminal check runs ahead of all three, so a redelivered signal pays no git cost.
-- **REL-6a — The two flow tracks are independent.** `flowriderSignoff` and `siegemasterSignoff` gate different
-  operation items, and writing one never advances the other's gate. There is no aggregate per-unit status: a unit
-  signed by one track and not the other is a normal mid-quest state, and a `flowrider` item can be `done` while every
-  `siegemaster` item on the same flows is still outstanding.
+  to a worktree SKIPS the check rather than failing it, and no git command runs for a role outside that set. **This is
+  the ONLY gate `signal-back` runs** — there is no separate sign-off-completion gate and no review-coverage gate.
+- **REL-6a — The two verify tracks are independent.** `flowriderSignoff` and `siegemasterSignoff` gate different
+  operation items, and writing one never advances the other's gate — and neither gates `done` at all, since an
+  operator signals off its own reviewer's verdict. There is no aggregate per-unit status: a unit signed by one track
+  and not the other is a normal mid-quest state.
 - **REL-6b — A reset clears one track on one flow.** `reset-flow-signoffs` removes `siegemasterSignoff` from every
-  unit of the named flow, leaves `flowriderSignoff` and every other flow untouched, and appends a `walk-reset`
-  `questNotes` entry. It consumes no pt-chain attempt.
-- **REL-6c — A note never closes a unit.** A `questNotes` entry of any `kind` leaves both tracks' remaining sets
-  unchanged; only a sign-off shrinks them.
+  unit of the named flow, leaves `flowriderSignoff`, `codeweaverSignoff`, and every other flow untouched, and appends
+  a `walk-reset` `questNotes` entry. It consumes no pt-chain attempt.
+- **REL-6c — A note never closes a unit.** A `questNotes` entry of any `kind` leaves every track's sign-off state
+  unchanged; only a sign-off shrinks the remaining set.
 - **REL-7 — Idempotent signal.** A redelivered signal for an already-terminal work item is a no-op
   (no second `pt N`, no second advance side effect).
 
@@ -1016,7 +964,7 @@ dispatchable while the wreckage is still in place.
    created → … → review_observables
 [USER] APPROVE observables (gate requires non-empty flows only) → approved
 [USER] Start Quest → questBuildRelayGraphBroker seeds the riftcarver head item, DERIVES the codeweaver
-        items (fanOutBy: 'implementation') + mints the verify tail (locked, pending),
+        items (fanOutBy: 'implementation', one per (package, flow) cell) + mints the verify tail (locked, pending),
         force-completes the plan item, creates the first work item — the riftcarver
         approved → in_progress   (milliseconds: no spawn, no git, no build)
 [DISPATCHER] Node/UI play button (or /dumpster-launch)
@@ -1024,33 +972,31 @@ dispatchable while the wreckage is still in place.
                                                                baseRef → mirror node_modules → preflight
                                                                build; streams live, log persisted to
                                                                riftcarver-results/<id>.log)
-   ▼ codeweaver ×N (one session each)   → done → advance     (each session = one ROUND LOOP, below)
+   ▼ codeweaver ×N (one session per cell)      → done → advance   (reads code, briefs sub-agents, one
+                                                                    codeweaver-reviewer, sign codeweaverSignoff)
    ▼ ward (changed)   [run-ward]        → green → advance
-   ▼ flowrider (one per package slice)  → done → advance     (round loop; its reviewer-minion is the only
-                                                              writer of that slice of the flowrider track)
-   ▼ groundstomper (one per e2e flow)   → done → advance     (round loop; sole author of .e2e.ts Playwright
-                                                              specs, one browser walk at a time)
-   ▼ siegemaster (one session per flow) → done → advance     (round loop; repeats per flow, resets its own
-                                                              track after each fix)
+   ▼ flowrider (one session per flow)   → done → advance     (reads code, briefs test-writing sub-agents,
+                                                              one flowrider-reviewer, sign flowriderSignoff)
+   ▼ siegemaster (one session per flow) → done → advance     (owns a dev server, loops a siegemaster-walker
+                                                              + fixer sub-agents, one siegemaster-reviewer,
+                                                              sign siegemasterSignoff)
    ▼ ward (full)      [run-ward]        → green → advance
    No pending operation item remains → workItemsToQuestStatusTransformer derives complete ✓
 The dispatcher's next get-next-step picks up the next FIFO quest.
 
-Every "one session" above expands to, at most three times over:
-   build → planner-minion → read the plan back → worker-minion (one at a time) → reviewer-minion
-         → build → scoped ward → COMMIT the round → loop while REMAINDER is non-empty
-   …then signal-back, which refuses `done` unless the tree is clean AND the round's reviewer left a
-   blightLedger entry for this work item.
+Every "one session" above is, at most, an UNBOUNDED loop inside that one session:
+   read code/git → brief generic sub-agents → read the diff → summon the role's own named reviewer
+         → NEXT: pass (signal done) | rework (loop again) | wall (signal blocked)
+   …then signal-back, which refuses only on a dirty worktree — no sign-off-completeness gate, no
+   review-coverage gate.
 ```
 
 **Nothing is interleaved into the diagram at run time.** The ledger a quest starts with is the one it runs, plus `pt N`
-continuations and the ward/riftcarver splices. Standards review is inside each session's own round, before that
-session's commit — not a step between two sessions.
+continuations and the ward/riftcarver splices. Standards review is inside each session's own named reviewer, before
+that reviewer's own commit — not a step between two sessions, and nothing about it is recorded in `quest.json`.
 
-Sad-path insertions that keep the quest `in_progress`: a codeweaver `partial` inserts a `pt N`
-codeweaver; a red ward inserts `spiritmender → fresh ward`; a REPAIRABLE riftcarver red (node_modules
-or build) inserts `spiritmender → pt N riftcarver`, and the pt N skips the git steps it can see are
-already done while re-running the build; a verify role `partial` inserts a `pt N` of that role; a
-server crash resumes the in-flight session. The routes that reach `blocked` are an exhausted bounded
-loop (ward-retry, riftcarver-retry, locked pt-N chain, or orphan recovery), an agent-reported
+Sad-path insertions that keep the quest `in_progress`: a red ward inserts `spiritmender → fresh ward`; a REPAIRABLE
+riftcarver red (node_modules or build) inserts `spiritmender → pt N riftcarver`, and the pt N skips the git steps it
+can see are already done while re-running the build; a server crash resumes the in-flight session. The routes that
+reach `blocked` are an exhausted bounded loop (ward-retry, riftcarver-retry, or orphan recovery), an agent-reported
 environment wall, and a riftcarver `git-state` or permission failure.

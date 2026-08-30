@@ -1,6 +1,7 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
-import { roundProtocolStatics } from '../round-protocol/round-protocol-statics';
+import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
+import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
 
 import { codeweaverPromptStatics } from './codeweaver-prompt-statics';
 
@@ -14,360 +15,226 @@ const hasIn = ({ text, needle }: { text: string; needle: string }): boolean =>
 
 const TEMPLATE = codeweaverPromptStatics.prompt.template;
 
-const SCRIPT = TEMPLATE.slice(TEMPLATE.indexOf('\n## The script'));
-
-const FORBIDDEN_START = TEMPLATE.indexOf('FORBIDDEN — no exceptions');
-
-const FORBIDDEN = TEMPLATE.slice(FORBIDDEN_START, TEMPLATE.indexOf('\n```', FORBIDDEN_START));
-
-// The ALLOWED half is a fenced list whose columns are hand-aligned, so each entry is compared with
-// its whitespace runs collapsed — re-aligning the `←` column must not red a list that still says
-// the same six things.
-const ALLOWED_ENTRIES = TEMPLATE.slice(
-  TEMPLATE.indexOf('ALLOWED — this is the whole list'),
-  FORBIDDEN_START,
-)
-  .split('\n')
-  .map((line) => line.replace(WHITESPACE_RUN, ' ').trim())
-  .filter((line) => line.length > 0)
-  .slice(1);
-
 describe('codeweaverPromptStatics', () => {
-  // THE SERVER SUBSTITUTES THE OPERATION CONTEXT AT `$ARGUMENTS`, and everything this session knows
-  // about its own work item arrives there. A second slot would split that context in two, and a slot
-  // that is not last buries the ledger under instructions the session has already read.
+  // THE SERVER SUBSTITUTES THE OPERATION CONTEXT AT `$ARGUMENTS`. A second slot would split that
+  // context in two, and a slot that is not last buries it under instructions already read.
   it('VALID: served template => carries exactly one $ARGUMENTS slot, and it is last', () => {
     expect({
       count: TEMPLATE.split('$ARGUMENTS').length - 1,
       atTheEnd: TEMPLATE.trimEnd().endsWith('$ARGUMENTS'),
       underItsOwnHeading: hasIn({ needle: '## Operation Context\n\n$ARGUMENTS', text: TEMPLATE }),
-    }).toStrictEqual({ count: 1, atTheEnd: true, underItsOwnHeading: true });
+      placeholder: codeweaverPromptStatics.prompt.placeholders.arguments,
+    }).toStrictEqual({
+      count: 1,
+      atTheEnd: true,
+      underItsOwnHeading: true,
+      placeholder: '$ARGUMENTS',
+    });
   });
 
   // OVER `maxVerbatimChars` THE MCP LAYER SPILLS THE RESULT TO A FILE and hands the agent an error
-  // stub, so the session starts holding a path instead of its script. BYTES, not characters: this
-  // template is full of em-dashes and `←` arrows, which cost three bytes each.
+  // stub. This template has no interpolation left to resolve, so the served text IS this literal.
   it('VALID: served template => fits the MCP verbatim ceiling in bytes', () => {
     expect(Buffer.byteLength(TEMPLATE, 'utf8')).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
   });
 
-  // THE SCRIPT IS THE WHOLE OF WHAT THIS SESSION DOES, and its order is the round loop. Pinning the
-  // heading LINES rather than the count is what catches a step that changed which minion it
-  // dispatches — a planner at step 5 or a reviewer at step 2 reads as a valid seven-step script.
-  it('VALID: served template => names its seven steps in the order the round runs them', () => {
-    expect(Array.from(SCRIPT.matchAll(/^### \d+\. .*$/gmu), (match) => match[0])).toStrictEqual([
-      '### 1. Write the round document',
-      '### 2. Dispatch ONE `codeweaver-planner-minion`',
-      '### 3. Read the document back',
-      '### 4. Run the phases',
-      '### 5. Dispatch ONE FINAL `codeweaver-reviewer-minion`',
-      '### 6. `git status`',
-      '### 7. Signal, or start the next round',
+  // THE HEADING LIST IS THE SHAPE OF THE ROLE. Pinning the LINES rather than the count is what
+  // catches a section silently deleted or renamed.
+  it('VALID: served template => names its nine top-level sections in document order', () => {
+    expect(Array.from(TEMPLATE.matchAll(/^## .+$/gmu), (match) => match[0])).toStrictEqual([
+      '## The words this page uses',
+      '## What you do, and what you never do',
+      '## Operating rules',
+      '## Your tools',
+      '## The script',
+      "## Reading a sub-agent's return",
+      '## Briefing a sub-agent',
+      '## Recording what you claim',
+      '## Operation Context',
     ]);
   });
 
-  // A NUMBERED STEP IS A CLAIM ABOUT ORDER. Two ways to break it without breaking the heading list:
-  // a back-reference pointing past the last step, and a sub-numbered item, which hides an ordering
-  // claim one level down where the two routing tables cannot send anyone.
-  it('VALID: served template => references no step past the last, and numbers no sub-step', () => {
-    const stepNumbers = Array.from(SCRIPT.matchAll(/^### (\d+)\. /gmu), (match) =>
-      Number(match[1]),
-    );
-    const references = Array.from(TEMPLATE.matchAll(/[Ss]tep (\d+)/gu), (match) =>
-      Number(match[1]),
-    );
-
-    expect({
-      referencesPastTheLastStep: references.filter((n) => n > stepNumbers.length),
-      subNumberedItems: Array.from(SCRIPT.matchAll(/^ +\d+\. /gmu), (match) => match[0].trim()),
-    }).toStrictEqual({ referencesPastTheLastStep: [], subNumberedItems: [] });
-  });
-
-  // "You never add anything to that ALLOWED list" is only true if the list is EXHAUSTIVE, so it is
-  // pinned whole rather than by membership. Six entries: the round document three ways, `git status`,
-  // the three minions, and the one signal. Anything a future edit slips in here — a build, a ward, a
-  // `git commit`, a `discover` — reds this test rather than quietly widening the role.
-  it('VALID: served template => keeps the ALLOWED list to exactly those six entries', () => {
-    expect(ALLOWED_ENTRIES).toStrictEqual([
-      'Write on .quest-plans/<operationItemId>-round-<n>.md ← step 1 ONLY, to create it',
-      'cat >> .quest-plans/<operationItemId>-round-<n>.md ← every later write to it, always with >>',
-      'Read on .quest-plans/<operationItemId>-round-<n>.md ← step 3, that ONE path and no other',
-      'git status ← step 6, the sweep, and nowhere else',
-      'Agent(codeweaver-planner-minion | codeweaver-worker-minion | codeweaver-reviewer-minion)',
-      'signal-back ← step 7, once, and it ends your turn',
+  // THE SCRIPT IS THE WHOLE OF WHAT THIS SESSION DOES. A step that changed which action it dispatches would still read as a valid nine-step script if only the count were
+  // pinned, so the exact wording of each numbered heading is pinned instead.
+  it('VALID: served template => names its nine script steps in order', () => {
+    expect(Array.from(TEMPLATE.matchAll(/^### \d+\. .+$/gmu), (match) => match[0])).toStrictEqual([
+      '### 1. Fetch your flow',
+      '### 2. Explore the package',
+      '### 3. Write your map',
+      '### 4. Send the changes out',
+      '### 5. Read what changed',
+      '### 6. Run your reviewer',
+      '### 7. Pass, or go round again',
+      '### 8. Record what you claim, and what you found',
+      '### 9. Signal',
     ]);
   });
 
-  // THIS OPERATOR RUNS NO BUILD AND NO WARD — its REVIEWER does, and `git status` is the only git verb
-  // it holds. `push` is NOT its either, which is the thing a reader coming from the shared round
-  // protocol gets wrong: the reviewer commits the round AND publishes it. Every entry below names a
-  // command a session that read source would reach for, so each is pinned in the FORBIDDEN half.
-  it('VALID: served template => forbids the build, the ward, source reads and every git verb but status', () => {
-    expect({
-      noSource: hasIn({
-        needle: 'Read / Edit / Write on any path but the round document ← you never see source.',
-        text: FORBIDDEN,
-      }),
-      noBuild: hasIn({
-        needle: 'npm run build ← your REVIEWERS build, after reading what they review',
-        text: FORBIDDEN,
-      }),
-      noWard: hasIn({
+  // THIS OPERATOR RUNS NO BUILD AND NO WARD — its REVIEWER does. Both commands are named in the
+  // FORBIDDEN half of the tools table, right after the heading that opens it.
+  it('VALID: served template => lists npm run build and npm run ward under NOT YOURS', () => {
+    expect(
+      hasIn({
         needle:
-          'npm run ward, in EVERY form ← --staged, scoped, --only, a file list: none is yours',
-        text: FORBIDDEN,
+          'NOT YOURS Edit / Write on any path but your map sub-agents write code, not you ScheduleWakeup / ListAgents / any timer the notification IS the wake, see [HELPERS] npm run build see [BUILD] npm run ward, in every form see [BUILD]',
+        text: TEMPLATE,
       }),
-      noGitHistory: hasIn({
-        needle: "git log / git diff / git show ← git is your PLANNER's to read, status included",
-        text: FORBIDDEN,
-      }),
-      noCommitAndNoPush: hasIn({
-        needle:
-          'git add / git commit / git push ← your REVIEWER commits the round and publishes it',
-        text: FORBIDDEN,
-      }),
-      // The checklist measures the verify tracks, and implementation signs none of them — so it is
-      // refused outright here rather than deferred to a minion, unlike on flowrider and siegemaster.
-      noQaChecklist: hasIn({
-        needle: "get-qa-checklist ← it measures another role's track, never this round's",
-        text: FORBIDDEN,
-      }),
-    }).toStrictEqual({
-      noSource: true,
-      noBuild: true,
-      noWard: true,
-      noGitHistory: true,
-      noCommitAndNoPush: true,
-      noQaChecklist: true,
-    });
+    ).toBe(true);
   });
 
-  // `tsc` WRITES ONE SHARED `dist/` PER PACKAGE and ward's typecheck is `tsc -b`, which builds — so a
-  // second builder hands every sibling session type errors that are not real. That is why only the
-  // reviewer runs either, and why [WARD] has to override the two ward snippets every session in this
-  // repo is handed at start: neither of those is written for a session that runs neither command.
-  it('VALID: served template => hands the build and the ward to a reviewer, overriding the session snippets', () => {
+  // ONLY THE REVIEWER'S `NEXT:` LINE DECIDES THE PASS. Pinned as the exact three-row table so a
+  // fourth value slipping in, or one of the three being dropped, reds this test.
+  it("VALID: served template => routes the reviewer's NEXT: line through exactly pass, rework and wall", () => {
     expect({
-      runsNeither: hasIn({
-        needle: '**[WARD] You run no build, no ward, no test and no check of any kind.**',
-        text: TEMPLATE,
-      }),
-      namesTheReviewersPair: hasIn({
-        needle: '`npm run build`, then `npm run ward -- --staged`',
-        text: TEMPLATE,
-      }),
-      overridesTheSnippets: hasIn({
+      pass: hasIn({
         needle:
-          'This rule OVERRIDES both the `<dungeonmaster-ward>` and the `<dungeonmaster-ward-discipline>` snippets you were handed at session start',
+          '| `pass` | go to step 8, and copy its `FINDINGS:` into your signal — anything it named for someone else survives nowhere else |',
         text: TEMPLATE,
       }),
-      saysWhyOnlyOne: hasIn({
-        needle: "`tsc` writes one shared `dist/` per package, and ward's typecheck is `tsc -b`",
+      rework: hasIn({
+        needle: '| `rework` | go back to step 4 and send out exactly what it named |',
         text: TEMPLATE,
       }),
-    }).toStrictEqual({
-      runsNeither: true,
-      namesTheReviewersPair: true,
-      overridesTheSnippets: true,
-      saysWhyOnlyOne: true,
-    });
+      wall: hasIn({ needle: '| `wall` | go to step 8 and signal `blocked` |', text: TEMPLATE }),
+      noCap: hasIn({
+        needle: '**There is no cap. Keep going until your reviewer says `pass`.**',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ pass: true, rework: true, wall: true, noCap: true });
   });
 
-  // A WAVE IS THE ONLY THING TWO `Agent` CALLS IN ONE MESSAGE ARE FOR, and the PLAN decides which
-  // chunks share one. A wave the operator grouped itself has had its collision check made by nobody —
-  // the planner is the session that opened the files and said those chunks are safe together.
-  it('VALID: served template => dispatches a WAVE in one message and lets the plan pick the waves', () => {
+  // A SUB-AGENT'S OWN `rework` IS A CLAIM ABOUT ITS OWN CHANGE, NOT A VERDICT ON THE PASS — so this
+  // table routes it back into step 4 rather than ending anything, and a missing line reads as rework.
+  it("VALID: served template => reads a sub-agent's return and treats a missing NEXT: line as rework", () => {
     expect({
-      oneMessagePerWave: hasIn({
+      pass: hasIn({ needle: '| `pass` | move on |', text: TEMPLATE }),
+      rework: hasIn({
         needle:
-          "**Every chunk on one wave's line goes out in a SINGLE assistant message, one `Agent` call each**",
+          '| `rework` | it could not finish. Read what it says is left, and send that out again. |',
         text: TEMPLATE,
       }),
-      neverGroupsThemItself: hasIn({
-        needle: 'the plan itself — you never group chunks yourself',
-        text: TEMPLATE,
-      }),
-      neverTwoWavesAtOnce: hasIn({
+      wall: hasIn({
         needle:
-          '**Never put two waves in one message, and never a planner or a reviewer beside anything else.**',
+          '| `wall` | stop sending work out. Let anything already running finish, then go to step 8. |',
         text: TEMPLATE,
       }),
-      phaseGateClosesEachPhase: hasIn({
-        needle:
-          "**When a phase's last wave has returned, dispatch ONE `codeweaver-reviewer-minion`**",
+      missingLine: hasIn({
+        needle: '| nothing starting `NEXT:` | treat it as `rework`, and say so when you signal |',
         text: TEMPLATE,
       }),
-      emptyPlanIsRealPlan: hasIn({
-        needle: '**`PHASES: none` and `WAVES: none` are a real plan, not an error.**',
+    }).toStrictEqual({ pass: true, rework: true, wall: true, missingLine: true });
+  });
+
+  // A WAVE OF SUB-AGENTS RUNNING WARD AT ONCE COLLIDES ON THE SHARED `dist/` IF ANY OF THEM
+  // TYPECHECKS — ward's typecheck is `tsc -b`, a build. Scoping to `lint,test` keeps that out; the
+  // reviewer's `--staged` run is where typecheck happens, once, after every sub-agent has finished.
+  it("VALID: served template => scopes a sub-agent's own ward run to lint,test and forbids it from building", () => {
+    expect({
+      scopedRun: hasIn({
+        needle: "npm run ward -- --only lint,test -- <this brief's own paths>",
+        text: TEMPLATE,
+      }),
+      namesWhyLintTestOnly: hasIn({
+        needle: '`--only lint,test` keeps typecheck out, and typecheck is the one that builds',
+        text: TEMPLATE,
+      }),
+      neverBuild: hasIn({ needle: 'no npm run build', text: TEMPLATE }),
+      neverRunWardMcpTool: hasIn({
+        needle: 'no run-ward MCP tool',
         text: TEMPLATE,
       }),
     }).toStrictEqual({
-      oneMessagePerWave: true,
-      neverGroupsThemItself: true,
-      neverTwoWavesAtOnce: true,
-      phaseGateClosesEachPhase: true,
-      emptyPlanIsRealPlan: true,
+      scopedRun: true,
+      namesWhyLintTestOnly: true,
+      neverBuild: true,
+      neverRunWardMcpTool: true,
     });
   });
 
-  // ONLY THE REVIEWER'S `NEXT:` LINE DECIDES THE ROUND. A worker's `rework` is a claim about its own
-  // chunk and moves the script forward; the reviewer is the session that settles it, because it read
-  // every worker return AND opened the files. Pinned as the four routing rows plus the two signal
-  // rows, because a routing table that treated a worker's `rework` as a verdict would restart the
-  // round mid-wave and lose every chunk still out.
-  it('VALID: served template => routes every NEXT: value and lets only the reviewer decide the round', () => {
+  // A BRIEF THAT LEAVES SOMETHING OUT PRODUCES A CHANGE THAT LEAVES IT OUT TOO, so the dispatch
+  // shape — the exact type and model — is pinned rather than left to a session's judgement.
+  it('VALID: served template => dispatches a sub-agent with subagent_type general-purpose and model sonnet', () => {
+    expect(
+      hasIn({
+        needle: 'Dispatch with `subagent_type: "general-purpose"` and `model: "sonnet"`.',
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
+  // THE REVIEWER'S BRIEF NAMES ITS OWN PROMPT AND CARRIES NO `workItemId` — a sub-agent holding this
+  // session's work item id could signal on it and complete the work early.
+  it('VALID: served template => briefs the reviewer via get-agent-prompt naming codeweaver-reviewer with no workItemId', () => {
     expect({
-      continueGoesOn: hasIn({ needle: '| `continue` | go to the next step |', text: TEMPLATE }),
-      reworkGoesOn: hasIn({ needle: '| `rework` | go to the next step |', text: TEMPLATE }),
-      wallStopsDispatching: hasIn({
+      fetchLine: hasIn({
         needle:
-          '| `wall` | **STOP dispatching.** Let the rest of the wave finish, then go to step 6 and carry on in order. Step 7 signals `blocked`, naming that text and every chunk you had not dispatched yet. |',
+          "Call get-agent-prompt({ agent: 'codeweaver-reviewer', questId: 'QUEST_ID' }) FIRST, then follow what it returns exactly.",
         text: TEMPLATE,
       }),
-      missingLineIsRework: hasIn({
-        needle: '| no `NEXT:` line at all | treat it as `rework`, and say so in your signal |',
-        text: TEMPLATE,
-      }),
-      reviewerContinueIsDone: hasIn({ needle: '| `continue` | `done` |', text: TEMPLATE }),
-      reviewerReworkIsAnotherRound: hasIn({
+      neverAddYours: hasIn({
         needle:
-          "| `rework` | **Do not signal.** Start round + 1 at step 1, writing that text into the new document's `## Rework` |",
+          '**That fetch carries no `workItemId`. Never add yours.** A sub-agent holding your work item id could\nsignal on it and complete your work while you are still running.',
         text: TEMPLATE,
       }),
-      noRoundCap: hasIn({
-        needle: '**There is NO round cap. Keep going until your reviewer returns `continue`.**',
+    }).toStrictEqual({ fetchLine: true, neverAddYours: true });
+  });
+
+  // THE ORCHESTRATOR OWNS THE LEDGER; THIS SESSION ONLY REPORTS AN OUTCOME ON IT — `operationStatus`
+  // is what carries that outcome on the one `signal-back` call this role ever makes.
+  it('VALID: served template => signals complete carrying operationStatus done or blocked', () => {
+    expect({
+      done: hasIn({
+        needle:
+          "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })",
         text: TEMPLATE,
       }),
+      blocked: hasIn({
+        needle: "operationStatus: 'blocked', blockedReason:",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ done: true, blocked: true });
+  });
+
+  // THIS ROLE READS CODE AND JUDGES A DIFF; IT NEITHER GRADES A TEST SUITE NOR THE STANDING
+  // CONCERNS. Neither shared reviewer block belongs here — only `codeweaver-reviewer` takes one.
+  it('VALID: served template => carries none of the three shared reviewer/authoring blocks', () => {
+    expect({
+      judging: hasIn({ needle: flowEvidenceContractStatics.judgingMarkdown, text: TEMPLATE }),
+      authoring: hasIn({ needle: flowEvidenceContractStatics.authoringMarkdown, text: TEMPLATE }),
+      standards: hasIn({ needle: standardsReviewConcernsStatics.markdown, text: TEMPLATE }),
+    }).toStrictEqual({ judging: false, authoring: false, standards: false });
+  });
+
+  // THE ROUND PROTOCOL IS GONE FROM THIS ROLE. This operator scripts its own steps directly rather
+  // than dispatching a planner/worker/reviewer trio over a shared round document, so none of that
+  // vocabulary — nor a sibling operation-owning role's name — belongs in its text.
+  it('VALID: served template => carries no round-protocol or sibling-role vocabulary', () => {
+    expect({
+      roundDocument: hasIn({ needle: 'round document', text: TEMPLATE }),
+      plannerMinion: hasIn({ needle: 'planner-minion', text: TEMPLATE }),
+      workerMinion: hasIn({ needle: 'worker-minion', text: TEMPLATE }),
+      groundstomper: hasIn({ needle: 'groundstomper', text: TEMPLATE }),
+      pesteater: hasIn({ needle: 'pesteater', text: TEMPLATE }),
+      blightLedger: hasIn({ needle: 'blightLedger', text: TEMPLATE }),
+      getBlightChecklist: hasIn({ needle: 'get-blight-checklist', text: TEMPLATE }),
+      getPlannerInformation: hasIn({ needle: 'get-planner-information', text: TEMPLATE }),
+      getWorkerInformation: hasIn({ needle: 'get-worker-information', text: TEMPLATE }),
+      getReviewerInformation: hasIn({ needle: 'get-reviewer-information', text: TEMPLATE }),
+      phases: hasIn({ needle: 'PHASES', text: TEMPLATE }),
+      waves: hasIn({ needle: 'WAVES', text: TEMPLATE }),
     }).toStrictEqual({
-      continueGoesOn: true,
-      reworkGoesOn: true,
-      wallStopsDispatching: true,
-      missingLineIsRework: true,
-      reviewerContinueIsDone: true,
-      reviewerReworkIsAnotherRound: true,
-      noRoundCap: true,
+      roundDocument: false,
+      plannerMinion: false,
+      workerMinion: false,
+      groundstomper: false,
+      pesteater: false,
+      blightLedger: false,
+      getBlightChecklist: false,
+      getPlannerInformation: false,
+      getWorkerInformation: false,
+      getReviewerInformation: false,
+      phases: false,
+      waves: false,
     });
-  });
-
-  // `partial` COSTS A WHOLE FRESH SESSION that has to reconstruct the remainder out of git to arrive
-  // where this one already is, and this item is seeded UNLOCKED, so nothing bounds how often that
-  // repeats. Both roads to it are a SECOND failure of the same kind — a reviewer's `rework` is never
-  // one, which is the sentence a session reaches for when a round goes badly.
-  it('VALID: served template => reaches partial from exactly two second failures', () => {
-    expect({
-      notFromRework: hasIn({
-        needle:
-          "**`partial` is not on this table, and a reviewer's `rework` never makes it the right signal.**",
-        text: TEMPLATE,
-      }),
-      secondRefusal: hasIn({ needle: '**A second refusal is `partial`.**', text: TEMPLATE }),
-      secondEmptyPlan: hasIn({
-        needle:
-          '**Still no `## Plan` on the second read: go to step 6, then signal `partial`, naming that two planners left the document with no plan in it.**',
-        text: TEMPLATE,
-      }),
-      theFileSettlesIt: hasIn({
-        needle: "**The FILE settles this, never the planner's `NEXT:` line**",
-        text: TEMPLATE,
-      }),
-    }).toStrictEqual({
-      notFromRework: true,
-      secondRefusal: true,
-      secondEmptyPlan: true,
-      theFileSettlesIt: true,
-    });
-  });
-
-  // FIVE PROTOCOL BLOCKS ARE INTERPOLATED AND TWO ARE WITHHELD. Codeweaver reads the two indexes off
-  // the document and never a plan block or a chunk field, so `planBlocks` and `chunkFields` are
-  // pinned ABSENT — pasting either back would add ~5,700 characters of text this session cannot act
-  // on. Each block is pinned by IDENTITY, so re-wording one in `roundProtocolStatics` stays pinned.
-  it('VALID: served template => interpolates the five protocol blocks it reads and withholds the two it does not', () => {
-    expect({
-      document: hasIn({ needle: roundProtocolStatics.document, text: TEMPLATE }),
-      indexes: hasIn({ needle: roundProtocolStatics.indexes, text: TEMPLATE }),
-      commitSubjects: hasIn({ needle: roundProtocolStatics.commitSubjects, text: TEMPLATE }),
-      nextLine: hasIn({ needle: roundProtocolStatics.nextLine, text: TEMPLATE }),
-      briefKeys: hasIn({ needle: roundProtocolStatics.briefKeys, text: TEMPLATE }),
-      planBlocks: hasIn({ needle: roundProtocolStatics.planBlocks, text: TEMPLATE }),
-      chunkFields: hasIn({ needle: roundProtocolStatics.chunkFields, text: TEMPLATE }),
-    }).toStrictEqual({
-      document: true,
-      indexes: true,
-      commitSubjects: true,
-      nextLine: true,
-      briefKeys: true,
-      planBlocks: false,
-      chunkFields: false,
-    });
-  });
-
-  // EACH BLOCK SITS BESIDE THE SECTION THAT USES IT. Stacked as one run they put nearly nine thousand
-  // characters between the tool table and step 1, and the session holds every one of them with no
-  // idea yet what it is for. This order IS the script's order — document, indexes and commit
-  // subjects for steps 1, 3 and 6; the `NEXT:` line above the table that reads it; the brief lines
-  // above the dispatch protocol that assembles one.
-  it('VALID: served template => places those five blocks in the order the script needs them', () => {
-    expect(TEMPLATE.indexOf(roundProtocolStatics.document)).toBeLessThan(
-      TEMPLATE.indexOf(roundProtocolStatics.indexes),
-    );
-    expect(TEMPLATE.indexOf(roundProtocolStatics.indexes)).toBeLessThan(
-      TEMPLATE.indexOf(roundProtocolStatics.commitSubjects),
-    );
-    expect(TEMPLATE.indexOf(roundProtocolStatics.commitSubjects)).toBeLessThan(
-      TEMPLATE.indexOf(roundProtocolStatics.nextLine),
-    );
-    expect(TEMPLATE.indexOf(roundProtocolStatics.nextLine)).toBeLessThan(
-      TEMPLATE.indexOf(roundProtocolStatics.briefKeys),
-    );
-  });
-
-  // IMPLEMENTATION SIGNS NO TRACK, so the completion gate rebuilds ONE record over this item and not
-  // two. Its three verify siblings carry a two-row table here; a copy of that table on this prompt
-  // would promise a sign-off row that could only ever read "not you", and the commonest refusal on
-  // this role — a file that landed in an EARLIER round — would be the one left unexplained. Pinned
-  // from both sides: the one-record wording present, the sibling's table header absent.
-  it('VALID: served template => describes the single record implementation is alone in rebuilding', () => {
-    expect({
-      oneRecord: hasIn({
-        needle:
-          'it rebuilds the record your rounds were supposed to leave behind — every file your work changed, crossed with each standing review concern',
-        text: TEMPLATE,
-      }),
-      reviewerWritesIt: hasIn({
-        needle: '**Your reviewer writes that record. Nothing else does, and you cannot.**',
-        text: TEMPLATE,
-      }),
-      spansEveryRound: hasIn({
-        needle:
-          'over every commit your work item has made, every round of this session and not only the last',
-        text: TEMPLATE,
-      }),
-      siblingsTwoRowTable: hasIn({
-        needle: '| What it rebuilds | Who was supposed to fill it in |',
-        text: TEMPLATE,
-      }),
-    }).toStrictEqual({
-      oneRecord: true,
-      reviewerWritesIt: true,
-      spansEveryRound: true,
-      siblingsTwoRowTable: false,
-    });
-  });
-
-  // THE `RESOURCE`/`RESET` CONTRACT TABLE IS GONE, and it must not come back. This work starts no
-  // server and has no reset command, so a two-field table nothing fills in was a structure with
-  // nothing in it — one sentence beside the ALLOWED list says the same thing, and the two field
-  // names are pinned ABSENT so the empty structure cannot be restored as boilerplate.
-  it('VALID: served template => replaces the empty RESOURCE/RESET table with one sentence', () => {
-    expect({
-      theSentence: hasIn({
-        needle:
-          '**You never add anything to that ALLOWED list.** This work runs no server and starts none, and there is no reset command to run between waves',
-        text: TEMPLATE,
-      }),
-      resourceField: hasIn({ needle: 'RESOURCE', text: TEMPLATE }),
-      resetField: hasIn({ needle: 'RESET', text: TEMPLATE }),
-    }).toStrictEqual({ theSentence: true, resourceField: false, resetField: false });
   });
 });

@@ -548,27 +548,27 @@ describe('dumpsterCreatePromptStatics', () => {
   });
 
   describe('e2e ownership in the type-tag routing', () => {
-    it('VALID: prompt template => routes ui-state to Groundstomper Playwright and to the Siegemaster hand-walk', () => {
+    it('VALID: prompt template => routes ui-state to Flowrider Playwright and to the Siegemaster hand-walk', () => {
       const needle =
-        "- `ui-state` — Visual/DOM changes (→ widgets, → Groundstomper Playwright, → Siegemaster's hand-walk)";
+        "- `ui-state` — Visual/DOM changes (→ widgets, → Flowrider Playwright, → Siegemaster's hand-walk)";
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
 
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: prompt template => routes api-call to the Flowrider integration harness or Groundstomper Playwright', () => {
+    it('VALID: prompt template => routes api-call to the Flowrider integration harness or its Playwright suite', () => {
       const needle =
-        '- `api-call` — HTTP requests/responses (→ responders, adapters, → Flowrider integration harness, or Groundstomper Playwright when the call is observed through the browser)';
+        "- `api-call` — HTTP requests/responses (→ responders, adapters, → Flowrider's integration harness, or its Playwright suite when the call is observed through the browser)";
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
 
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: prompt template => splits the authoring roles on whether the outcome is visible through a browser', () => {
+    it('VALID: prompt template => assigns Flowrider the whole test suite proving a flow, browser walks included', () => {
       const needle =
-        '**The two authoring roles split on whether the outcome is visible through a browser.** Groundstomper owns Playwright and only Playwright; Flowrider owns the integration and unit suites below the browser.';
+        '**Flowrider** authors the whole test suite that proves a flow — Playwright browser walks alongside the integration and unit suites below the browser.';
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
 
@@ -578,6 +578,10 @@ describe('dumpsterCreatePromptStatics', () => {
     it('VALID: prompt template => never routes Playwright to Siegemaster', () => {
       expect(template.indexOf('Siegemaster Playwright')).toBe(-1);
       expect(template.indexOf('tells Siegemaster to run Playwright')).toBe(-1);
+    });
+
+    it('INVALID: prompt template => no longer mentions the deleted Groundstomper role', () => {
+      expect(template.indexOf('Groundstomper')).toBe(-1);
     });
   });
 });

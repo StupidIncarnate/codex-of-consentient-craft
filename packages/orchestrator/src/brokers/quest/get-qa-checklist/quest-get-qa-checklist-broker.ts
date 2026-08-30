@@ -10,31 +10,28 @@
  * const all = await questGetQaChecklistBroker({ questId });
  * // Returns one QaChecklist per flow on the quest, with no track applied
  *
- * WHEN-TO-USE: the `planner-minion` and `reviewer-minion` of a Flowrider, Groundstomper or
- * Siegemaster round ask this instead of reading the spec and enumerating by hand.
+ * WHEN-TO-USE: a Codeweaver, Flowrider or Siegemaster session — and the reviewer it summons — asks
+ * this instead of reading the spec and enumerating by hand.
  *
  * **`operationItemId` IS THE SCOPE, and it is the only correct way to ask.** The item already
  * carries the three things that define the answer — `role` (the track), `flowIds` and
  * `packageNames` — and `operationSignoffScopeTransformer` derives them, which is the SAME
- * derivation the signal-back completion gate uses. So the number a session reads here and the
- * number that refuses its `done` are the same number by construction, rather than two computations
- * a caller has to keep in step.
+ * derivation every other reader of this coverage uses. Nothing refuses a `done` over this number —
+ * it is a work list, not a gate.
  *
  * It replaced three hand-passed arguments, each of which was a way to ask a different question from
- * the one the gate would answer: naming the sibling `track` returned the exact complement of the
+ * the one this scope answers: naming a sibling `track` returned the exact complement of the
  * caller's work; omitting `packageNames` did not error but silently WIDENED the measurement to the
- * whole quest; and `flowId` did the same for the two `declared` tracks. All three failed by
- * over-reporting, so the remainder never emptied while the gate went on refusing — with nothing
- * anywhere naming the cause.
+ * whole quest; and `flowId` did the same for the item's own flow slice. All three failed by
+ * over-reporting, so the remainder never emptied, with nothing anywhere naming the cause.
  *
  * It is also what makes the call reachable from a MINION at all. A minion's `get-agent-prompt`
  * fetch hands it the Quest ID and nothing else, so a scope it must assemble from three values only
  * its parent holds is a scope it cannot assemble; an id its briefing names is one it can.
  *
- * A role with NO sign-off track — `codeweaver`, `pesteater` — resolves to no scope, and the broker
- * says so by returning an empty array. Those disciplines are measured on the scope block rendered
- * into their Operation Context, not on the flow graph, which is why their packs tell them no
- * checklist tool answers their denominator.
+ * A role with NO sign-off track — `spiritmender`, `warpgate` — resolves to no scope, and the broker
+ * says so by returning an empty array. Neither is measured on the flow graph at all, which is why
+ * their prompts tell them no checklist tool answers a denominator of theirs.
  *
  * With no `operationItemId` the whole quest is enumerated with no track applied — the read-only
  * shape for a human or a caller that owns no item. An unknown `flowId` yields an empty array rather
@@ -84,8 +81,7 @@ export const questGetQaChecklistBroker = async ({
     }
 
     // `null` means this role is measured on something other than the flow graph. An empty array is
-    // the honest rendering of that: the caller's discipline names no checklist denominator, and the
-    // completion gate likewise refuses it nothing.
+    // the honest rendering of that: the caller's discipline names no checklist denominator at all.
     const scope = operationSignoffScopeTransformer({ quest, operationItem });
 
     if (scope === null) {

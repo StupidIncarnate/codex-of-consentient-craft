@@ -15,26 +15,25 @@
  * The five scopes answer five different questions and are not interchangeable:
  * - `quest` measures the whole review surface from the pinned `quest.baseRef`
  * - `commit` measures ONE session's committed output (`HEAD~1`)
- * - `unpushed` measures `@{upstream}..HEAD` — everything committed here and not yet published. It was
- *   the reviewer-minion's scope while worker-minions committed their own pieces; they no longer do, so
- *   a round now reaches its reviewer entirely uncommitted and this range holds the PLANNER's commit of
- *   the round document and nothing else. A reviewer passing it enumerates one markdown file and reads
- *   green. `working-tree` is that session's scope now. What survives here is a caller whose subject
- *   really is published-or-not. A branch tracking no upstream (a quest carved before riftcarver
- *   pushed) falls back to the quest's `baseRef` — over-reporting the surface rather than
- *   under-reporting it, because a caller shown too much re-reads a file that is already
- *   dispositioned, while one shown too little never opens a file nobody has read.
- * - `working-tree` measures what is changed but NOT YET COMMITTED, and IS the reviewer-minion's scope:
- *   no worker commits anything, so a whole round sits here until its reviewer commits it once at the
+ * - `unpushed` measures `@{upstream}..HEAD` — everything committed here and not yet published. No
+ *   sub-agent commits its own piece, so a pass reaches its reviewer entirely uncommitted and this
+ *   range holds the operator's commit of the round document and nothing else. A reviewer passing it
+ *   enumerates one markdown file and reads green. `working-tree` is that session's real scope. What
+ *   survives here is a caller whose subject really is published-or-not. A branch tracking no upstream
+ *   (a quest carved before riftcarver pushed) falls back to the quest's `baseRef` — over-reporting
+ *   the surface rather than under-reporting it, because a caller shown too much re-reads a file that
+ *   is already dispositioned, while one shown too little never opens a file nobody has read.
+ * - `working-tree` measures what is changed but NOT YET COMMITTED, and IS the reviewer's scope: no
+ *   sub-agent commits anything, so a whole pass sits here until its reviewer commits it once at the
  *   end. Alone among the five it needs no review base, only HEAD, so it answers on a quest with no
  *   pinned `baseRef`; and alone among the five it cannot be a `git diff`, which reports tracked paths
- *   only — `gitWorkingTreeFilesBroker` unions in the untracked additions, which a fresh round is
+ *   only — `gitWorkingTreeFilesBroker` unions in the untracked additions, which a fresh pass is
  *   mostly made of. A caller must enumerate BEFORE committing; afterwards this scope is empty.
  * - `since-ref` measures from a base the CALLER names, in `sinceRef`. It exists for a caller whose
- *   base is neither the quest's nor a fixed offset from HEAD: the signal-back review-coverage gate
- *   measures one WORK ITEM's whole output, which is every commit since that item's recorded
- *   `startRef` — several round commits, not the one `commit` would see, and not the empty set
- *   `working-tree` sees once the round has committed. The ref rides its own parameter rather than
+ *   base is neither the quest's nor a fixed offset from HEAD: it measures one WORK ITEM's whole
+ *   output, which is every commit since that item's recorded
+ *   `startRef` — several pass commits, not the one `commit` would see, and not the empty set
+ *   `working-tree` sees once the pass has committed. The ref rides its own parameter rather than
  *   overriding `scope`, so the other three scopes never read it and a caller has to say which
  *   question it is asking.
  *
@@ -68,7 +67,7 @@ export const questGetBlightChecklistBroker = async ({
   questId: QuestId;
   // `commit` measures the LAST COMMIT alone — one session's output. `working-tree` measures what is
   // changed but not yet committed. `since-ref` measures from the ref `sinceRef` names. `unpushed`
-  // measures ONE ROUND — committed here, not yet published. `quest` keeps the original
+  // measures ONE PASS — committed here, not yet published. `quest` keeps the original
   // `baseRef`-to-HEAD reading for any caller that wants the full review surface.
   scope?: 'quest' | 'commit' | 'working-tree' | 'since-ref' | 'unpushed';
   // Read by `scope: 'since-ref'` and by nothing else, so the other scopes cannot change behaviour
@@ -86,8 +85,8 @@ export const questGetBlightChecklistBroker = async ({
   const { baseRef } = quest;
 
   // `HEAD~1` is the LAST COMMIT and nothing else. It is no longer any session's whole output — the
-  // planner commits the round document and the reviewer commits the round, so a session lands several
-  // commits across several rounds — which is exactly why the reviewer uses `working-tree` and the
+  // operator commits the round document and the reviewer commits the pass, so a session lands several
+  // commits across several passes — which is exactly why the reviewer uses `working-tree` and the
   // signal-back gate uses `since-ref`. What survives here is the narrow reading a caller auditing
   // landed history wants: one commit, on its own.
   //
@@ -98,7 +97,7 @@ export const questGetBlightChecklistBroker = async ({
   // caller has to remember where the last one stopped.
   //
   // `working-tree` is measured from HEAD alone and is checked FIRST, ahead of the `baseRef` guard,
-  // because it is the one scope that needs no review base: a reviewer reading the uncommitted round
+  // because it is the one scope that needs no review base: a reviewer reading the uncommitted pass
   // has HEAD whether or not anyone ever pinned one, and gating it on `baseRef` would return null —
   // read downstream as "nothing to review" — for exactly the surface that has the most in it.
   //

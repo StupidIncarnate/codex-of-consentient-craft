@@ -13,9 +13,7 @@ describe('workItemRoleStatics', () => {
         'ward',
         'spiritmender',
         'flowrider',
-        'groundstomper',
         'siegemaster',
-        'pesteater',
         'warpgate',
       ],
       chat: ['chaoswhisperer', 'glyphsmith', 'bughunt', 'tavernkeeper'],
@@ -65,9 +63,9 @@ describe('workItemRoleStatics', () => {
     expect(nonChatPostQuestChatRoles).toStrictEqual([]);
   });
 
-  it('VALID: groundstomper => is not a chat role, not excluded from status derivation, and not post-quest chat', () => {
-    const groundstomperIndex = workItemRoleStatics.names.indexOf('groundstomper');
-    const role = workItemRoleStatics.names[groundstomperIndex];
+  it('VALID: flowrider => is not a chat role, not excluded from status derivation, and not post-quest chat', () => {
+    const flowriderIndex = workItemRoleStatics.names.indexOf('flowrider');
+    const role = workItemRoleStatics.names[flowriderIndex];
     const isChatRole = workItemRoleStatics.chat.some((chatRole) => chatRole === role);
     const isExcludedRole = workItemRoleStatics.excludedFromStatusDerivation.some(
       (excludedRole) => excludedRole === role,

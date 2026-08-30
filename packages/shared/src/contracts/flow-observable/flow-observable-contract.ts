@@ -11,14 +11,15 @@
  * origin for every observable a quest file already carries, and a REQUIRED field with no default
  * would make each persisted quest.json fail at `questContract.parse`.
  *
- * `flowriderSignoff` and `siegemasterSignoff` are TOP-LEVEL SIBLING fields, deliberately not a
- * nested `signoffs: {flowrider, siegemaster}` block. `questItemDeepMergeTransformer` recurses only
- * into arrays of id-bearing objects and replaces every other object value WHOLESALE, so a nested
- * block written by Siegemaster would delete Flowrider's sign-off while the write still reports
- * `success: true`. As sibling keys the merge is a per-key overwrite, which is exactly the semantics
- * two independent tracks need: each writes its own field and neither can clobber the other.
+ * `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff` are TOP-LEVEL SIBLING fields,
+ * deliberately not a nested `signoffs: {codeweaver, flowrider, siegemaster}` block.
+ * `questItemDeepMergeTransformer` recurses only into arrays of id-bearing objects and replaces every
+ * other object value WHOLESALE, so a nested block written by Siegemaster would delete Flowrider's
+ * sign-off while the write still reports `success: true`. As sibling keys the merge is a per-key
+ * overwrite, which is exactly the semantics independent tracks need: each writes its own field and
+ * none can clobber another.
  *
- * Both sign-offs are `.optional()` rather than `.default()`. `questModifyBroker` re-parses the whole
+ * Every sign-off is `.optional()` rather than `.default()`. `questModifyBroker` re-parses the whole
  * quest on every write, so a default materialises into the persisted JSON for every observable in
  * the file — measured at +116% file size on a real quest with zero sign-offs written. An absent
  * field means unsigned.
@@ -47,6 +48,7 @@ export const flowObservableContract = z.object({
   ),
   designRef: z.string().brand<'DesignRef'>().optional(),
   addedBy: observableOriginContract.default('spec'),
+  codeweaverSignoff: signoffContract.optional(),
   flowriderSignoff: signoffContract.optional(),
   siegemasterSignoff: signoffContract.optional(),
 });

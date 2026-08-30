@@ -39,7 +39,7 @@ export const blightChecklistContract = z.object({
     .array(blightChecklistItemIdContract)
     .default([])
     .describe(
-      'The units carrying no entry in quest.planningNotes.blightLedger — what a reviewer-minion still has to disposition on this round.',
+      'The units carrying no entry in quest.planningNotes.blightLedger — what a reviewer still has to disposition on this pass.',
     ),
 });
 

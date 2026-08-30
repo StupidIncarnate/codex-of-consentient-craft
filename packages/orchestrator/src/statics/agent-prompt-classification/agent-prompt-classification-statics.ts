@@ -14,68 +14,45 @@
  * build their enums from, so the lists cannot drift apart.
  *
  * EVERY PROMPT IS ONE FILE, AND ITS NAME SAYS WHOSE IT IS. There is no generic template and no
- * discipline pack. Each of the five operation-owning roles has its own prompt, and each summons
- * three minions named after it — `codeweaver-planner-minion`, `codeweaver-worker-minion`,
- * `codeweaver-reviewer-minion`, and the same three for `pesteater`, `flowrider`, `groundstomper`
- * and `siegemaster`. Twenty files, one per (role, phase).
+ * discipline pack. The three operator roles — `codeweaver`, `flowrider`, `siegemaster` — brief
+ * GENERIC sub-agents for the bulk of their work, so the only named minions are the ones whose
+ * instructions cannot be written into a brief: each operator's own `<role>-reviewer`, and
+ * `siegemaster-walker`, which drives a live system by hand. `chaoswhisperer-gap-minion` sits
+ * outside that set entirely — it runs in the SPEC phase, before any operation item exists.
  *
- * The generic trio this replaced — a `planner-minion` / `worker-minion` / `reviewer-minion` served
- * with a `$DISCIPLINE` placeholder a pack filled in — cost a reader two files and a substitution to
- * answer "what is this agent actually told". It also cost every session four answers it could not
- * use: a shared template that had to hedge across five kinds of work stated all five, and a
- * manual-QA worker was served eight sentences that were simply false for it, among them "your files
- * are the tests" to a session that writes no file at all.
- *
- * `roleNames` and `minionNames` are DISJOINT, and the mechanical stakes are unchanged: a minion
- * added to `roleNames` would widen `agentRoleContract` with a role no operation item can ever hold;
- * a role added to `minionNames` would let it fetch without a `workItemId` and escape
+ * `roleNames` and `minionNames` are DISJOINT, and the mechanical stakes are what enforce it: a
+ * minion added to `roleNames` would widen `agentRoleContract` with a role no operation item can
+ * ever hold; a role added to `minionNames` would let it fetch without a `workItemId` and escape
  * `subagentStopNeedsBlockGuard`, which is what holds a work-item session open until it signals.
  *
- * `operatorRoleNames` is the five roles that run a planner/worker/reviewer round. Membership is
- * READ from here rather than listed at each call site, so a sixth operator role is covered by the
- * signal-back gates and the prompt renderer the day it is added — the same reason
- * `isChatWorkItemRoleGuard` reads `workItemRoleStatics.chat` instead of growing an `||` chain. It
- * replaced `roleToDisciplineStatics`, whose keys were the only thing those call sites ever wanted.
+ * `operatorRoleNames` is the roles that own an operation item and brief sub-agents to do its work.
+ * Membership is READ from here rather than listed at each call site, so a fourth operator role is
+ * covered by the signal-back gates and the prompt renderer the day it is added — the same reason
+ * `isChatWorkItemRoleGuard` reads `workItemRoleStatics.chat` instead of growing an `||` chain.
  */
 
 export const agentPromptClassificationStatics = {
   promptNames: [
     'chaoswhisperer-gap-minion',
     'codeweaver',
-    'codeweaver-planner-minion',
-    'codeweaver-worker-minion',
-    'codeweaver-reviewer-minion',
-    'pesteater',
-    'pesteater-planner-minion',
-    'pesteater-worker-minion',
-    'pesteater-reviewer-minion',
+    'codeweaver-reviewer',
     'flowrider',
-    'flowrider-planner-minion',
-    'flowrider-worker-minion',
-    'flowrider-reviewer-minion',
-    'groundstomper',
-    'groundstomper-planner-minion',
-    'groundstomper-worker-minion',
-    'groundstomper-reviewer-minion',
+    'flowrider-reviewer',
     'siegemaster',
-    'siegemaster-planner-minion',
-    'siegemaster-worker-minion',
-    'siegemaster-reviewer-minion',
+    'siegemaster-reviewer',
+    'siegemaster-walker',
     'spiritmender',
     'warpgate',
   ],
   roleNames: [
-    /** The five operation-owning roles. Each one owns a work item, opens no source file, and drives
-     * a round through its own three minions. Their prompts share no template — see
-     * `operatorRoleNames` below, which is this same five for the call sites that only want
-     * membership. */
+    /** The three operation-owning roles. Each one owns a work item and briefs sub-agents rather
+     * than writing the work itself — see `operatorRoleNames` below, which is this same three for
+     * the call sites that only want membership. */
     'codeweaver',
-    'pesteater',
     'flowrider',
-    'groundstomper',
     'siegemaster',
     /** Spiritmender — the relay worker dispatched on a ward red or a repairable riftcarver red. A
-     * repair is not an operation grouping, so it runs no round and summons no minion. */
+     * repair is not an operation grouping, so it briefs nobody and summons no minion. */
     'spiritmender',
     /** Warpgate — merge relay worker, dispatched from the ledger like any other role; lands the
      * quest branch on the base branch. `tavernkeeper` is deliberately absent from every list here —
@@ -83,27 +60,17 @@ export const agentPromptClassificationStatics = {
     'warpgate',
   ],
   minionNames: [
-    /** ChaosWhisperer summons this during the SPEC phase, long before any operation item exists. It
-     * belongs to no round and has no planner/worker/reviewer siblings. */
+    /** ChaosWhisperer summons this during the SPEC phase, long before any operation item exists. */
     'chaoswhisperer-gap-minion',
-    /** The three phases of one round, five times over. A minion's name carries its parent's role
-     * because its prompt carries that role's subject matter — there is nothing generic left for a
-     * bare `planner-minion` to name. */
-    'codeweaver-planner-minion',
-    'codeweaver-worker-minion',
-    'codeweaver-reviewer-minion',
-    'pesteater-planner-minion',
-    'pesteater-worker-minion',
-    'pesteater-reviewer-minion',
-    'flowrider-planner-minion',
-    'flowrider-worker-minion',
-    'flowrider-reviewer-minion',
-    'groundstomper-planner-minion',
-    'groundstomper-worker-minion',
-    'groundstomper-reviewer-minion',
-    'siegemaster-planner-minion',
-    'siegemaster-worker-minion',
-    'siegemaster-reviewer-minion',
+    /** One reviewer per operator role. A reviewer's name carries its parent's role because its
+     * prompt carries that role's subject matter — there is nothing generic left for a bare
+     * `reviewer` to name, and the reviewer is the only sub-agent on a pass that verifies anything. */
+    'codeweaver-reviewer',
+    'flowrider-reviewer',
+    'siegemaster-reviewer',
+    /** Siegemaster alone has a second named minion: a walk against a running system is driven by
+     * hand, and no brief can stand in for the instructions that takes. */
+    'siegemaster-walker',
   ],
-  operatorRoleNames: ['codeweaver', 'pesteater', 'flowrider', 'groundstomper', 'siegemaster'],
+  operatorRoleNames: ['codeweaver', 'flowrider', 'siegemaster'],
 } as const;

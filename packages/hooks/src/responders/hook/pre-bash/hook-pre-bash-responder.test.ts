@@ -2,7 +2,6 @@ import { HookPreBashResponder } from './hook-pre-bash-responder';
 import { HookPreBashResponderProxy } from './hook-pre-bash-responder.proxy';
 import { HookDataStub } from '../../../contracts/hook-data/hook-data.stub';
 import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
-import { wardBackgroundBlockMessageStatics } from '../../../statics/ward-background-block-message/ward-background-block-message-statics';
 
 describe('HookPreBashResponder', () => {
   describe('piped ward commands', () => {
@@ -319,7 +318,7 @@ describe('HookPreBashResponder', () => {
   });
 
   describe('background ward block', () => {
-    it('VALID: {command: "npm run ward", run_in_background: true} => blocks with foreground guidance', () => {
+    it('VALID: {command: "npm run ward -- --only unit", run_in_background: true} => not blocked, enforces timeout', () => {
       HookPreBashResponderProxy();
       const hookData = HookDataStub({
         tool_name: 'Bash',
@@ -329,23 +328,9 @@ describe('HookPreBashResponder', () => {
       const result = HookPreBashResponder({ input: hookData });
 
       expect(result).toStrictEqual({
-        shouldBlock: true,
-        message: wardBackgroundBlockMessageStatics.blockMessage,
-      });
-    });
-
-    it('VALID: {command: "dungeonmaster-ward", run_in_background: true} => blocks with foreground guidance', () => {
-      HookPreBashResponderProxy();
-      const hookData = HookDataStub({
-        tool_name: 'Bash',
-        tool_input: { command: 'dungeonmaster-ward run', run_in_background: true },
-      });
-
-      const result = HookPreBashResponder({ input: hookData });
-
-      expect(result).toStrictEqual({
-        shouldBlock: true,
-        message: wardBackgroundBlockMessageStatics.blockMessage,
+        shouldBlock: false,
+        updatedCommand: 'npm run ward -- --only unit',
+        updatedTimeout: 600_000,
       });
     });
 

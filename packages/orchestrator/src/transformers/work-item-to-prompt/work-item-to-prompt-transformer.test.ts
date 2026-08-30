@@ -23,22 +23,19 @@ import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
-import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { roundProtocolStatics } from '../../statics/round-protocol/round-protocol-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 
-// Each of the five operation-owning roles now has its OWN prompt file, and the relay path resolves
-// it through `roleToPromptTemplateTransformer`. There is no shared template, no `$DISCIPLINE` pack
-// and no `$MY_DISCIPLINE` id left to substitute: what tells a codeweaver dispatch from a siegemaster
-// one is the whole document, not one interpolated block. Each is read LIVE off its statics here — a
-// copied excerpt would drift the moment a prompt is edited, and every assertion below compares the
-// entire served string.
+// Each operation-owning role has its OWN prompt file, and the relay path resolves it through
+// `roleToPromptTemplateTransformer`. There is no shared template and no placeholder left to
+// substitute beyond `$ARGUMENTS`: what tells a codeweaver dispatch from a siegemaster one is the
+// whole document, not one interpolated block. Each is read LIVE off its statics here — a copied
+// excerpt would drift the moment a prompt is edited, and every assertion below compares the entire
+// served string.
 const CODEWEAVER_TEMPLATE = codeweaverPromptStatics.prompt.template;
-const PESTEATER_TEMPLATE = pesteaterPromptStatics.prompt.template;
 const FLOWRIDER_TEMPLATE = flowriderPromptStatics.prompt.template;
 const SIEGEMASTER_TEMPLATE = siegemasterPromptStatics.prompt.template;
 
@@ -84,12 +81,12 @@ const ELISION_NOTICE_PLURAL =
 const ELISION_NOTICE_SINGULAR =
   "... 1 earlier complete operation item elided to fit the prompt budget — call get-quest({ questId, stage: 'implementation' }) for the full ledger.";
 
-// The fifteen minions of a round — three phases each, for all five operator roles. They own no work
-// item and are served by `agentPromptGetBroker`'s minion branch, which passes no workItemId at all;
-// reaching THIS transformer means a caller echoed its parent's id, and the branch below still serves
-// them their own prompt with the minimal substitution. Derived by subtracting the one minion outside
-// the trio rather than listed, so a sixth operator role's three arrive here covered.
-const ROUND_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
+// Every minion an operator summons. They own no work item and are served by
+// `agentPromptGetBroker`'s minion branch, which passes no workItemId at all; reaching THIS
+// transformer means a caller echoed its parent's id, and the branch below still serves them their
+// own prompt with the minimal substitution. Derived by subtracting the one minion outside that set
+// rather than listed, so a fourth operator role's reviewer arrives here covered.
+const OPERATOR_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
   (minionName) => minionName !== 'chaoswhisperer-gap-minion',
 );
 
@@ -97,42 +94,42 @@ type SignoffTrackRole = keyof typeof signoffTrackEligibilityStatics.byTrack;
 
 // Every role the eligibility statics defines a denominator for. Its item IS its scope — the
 // completion gate measures that item against a computed set — so both scope blocks read it as
-// accountability rather than as a reading order. Derived here, never listed, because a track added
-// to the statics and forgotten in a hand-written role list is exactly how groundstomper came to be
-// told its one flow was "a starting point, NOT a boundary" while its gate measured it on that flow.
+// accountability rather than as a reading order. Derived here, never listed: a track added to the
+// statics and forgotten in a hand-written role list is told its one flow is "a starting point, NOT
+// a boundary" while its gate measures it on exactly that flow.
 const SIGNOFF_TRACK_ROLES = Object.keys(
   signoffTrackEligibilityStatics.byTrack,
 ) as SignoffTrackRole[];
 
-// The two ways an operator's `packageNames` narrow its denominator. A `partition` track's items ARE
-// the package dimension, so its glue units belong to a seam item; an `intersection` track has no
-// seam item, so telling one to disown its glue units tells it to skip exactly what its gate then
-// refuses it for.
-const PARTITION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter(
-  (role) => signoffTrackEligibilityStatics.byTrack[role].packageScope === 'partition',
-);
-const INTERSECTION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter(
-  (role) => signoffTrackEligibilityStatics.byTrack[role].packageScope === 'intersection',
+// How an operator's `packageNames` narrow its denominator. Every track reads `intersection`: it has
+// no seam item, so telling one to disown its glue units tells it to skip exactly what its gate then
+// refuses it for. Derived rather than listed, so a track declaring a different rule fails this
+// matrix instead of silently being served the wrong sentence.
+// Read through a `Set<string>` rather than compared to the literal: every declared `packageScope`
+// is `'intersection'` today, so a direct comparison is an always-true condition lint rejects — and
+// hard-coding the role list instead is the staleness this derivation exists to prevent.
+const INTERSECTION_PACKAGE_SCOPES = new Set(['intersection'].map(String));
+const INTERSECTION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter((role) =>
+  INTERSECTION_PACKAGE_SCOPES.has(signoffTrackEligibilityStatics.byTrack[role].packageScope),
 );
 
-// The heading that opens the region BELOW every operator prompt's tool table. All five interpolate
-// `roundProtocolStatics.document` directly under that table, so the heading is taken off the shared
-// block itself rather than typed here — a renamed section then fails at the split arity below
-// instead of quietly scanning an empty region. Everything under it — the round document, the script,
-// the minion dispatch protocol AND the `$ARGUMENTS` block this transformer builds — is the region a
-// leak can hide in.
-const [ROUND_DOCUMENT_HEADING] = roundProtocolStatics.document.split('\n');
-// Case-sensitive word matches, so an uppercase `DISCOVERY MISMATCH` in a ward-output quote is not
-// read as the `discover` tool.
-const FORBIDDEN_OPERATOR_TOOLS = [
-  'get-architecture',
-  'get-syntax-rules',
-  'get-testing-patterns',
-  'discover',
-  'get-project-map',
-  'get-project-inventory',
-  'get-folder-detail',
-];
+// The spec-pointer line each operator gets for an item declaring `web` and no flow. Codeweaver is
+// the only role handed a `packageName`, and the only one whose contracts can live off its flows —
+// so its call is the foundation view, while the other two are told there is no slice to take.
+const INTERSECTION_POINTER_CALL_BY_ROLE = new Map([
+  [
+    'codeweaver',
+    "  get-quest({ questId: 'my-quest', packageName: 'web' })   <- every contract your package owns, across every flow",
+  ],
+  [
+    'flowrider',
+    "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+  ],
+  [
+    'siegemaster',
+    "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+  ],
+]);
 
 describe('workItemToPromptTransformer', () => {
   describe('minion path (agent name is not a WorkItemRole)', () => {
@@ -174,13 +171,12 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    // Every round minion now carries its OWN prompt — its parent's subject matter is baked into the
-    // file, so there is no placeholder left for this transformer to be missing a value for. What
-    // stopped the generic trio being served here was exactly that missing value; with it gone, a
-    // caller that echoes its parent's workItemId gets the same minimal substitution
+    // Every minion carries its OWN prompt — its parent's subject matter is baked into the file, so
+    // there is no placeholder left for this transformer to be missing a value for. A caller that
+    // echoes its parent's workItemId therefore gets the same minimal substitution
     // `chaoswhisperer-gap-minion` gets, into the minion's own prompt. Derived from `minionNames`, so
     // a prompt added there is asserted the day it is added.
-    it.each(ROUND_MINION_NAMES)(
+    it.each(OPERATOR_MINION_NAMES)(
       'VALID: {agent: %s, workItemId echoed} => substitutes Quest ID + Work Item ID into that minion’s own prompt',
       (minionName) => {
         const questId = QuestIdStub({ value: 'my-quest' });
@@ -203,65 +199,6 @@ describe('workItemToPromptTransformer', () => {
         );
       },
     );
-  });
-
-  describe('pesteater takes the full relay path, exactly like its four sibling operators', () => {
-    it('VALID: {agent + role: pesteater, one linked operation} => substitutes the operation-relay $ARGUMENTS into pesteater’s own prompt', () => {
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-6666-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'dddddddd-6666-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'pesteater',
-        text: 'reproduce every bug on the report',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'pesteater',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: questId,
-        questType: 'bug-hunt',
-        operations: [operation],
-        workItems: [workItem],
-      });
-
-      const result = workItemToPromptTransformer({
-        quest,
-        workItem,
-        agentName: AgentPromptNameStub({ value: 'pesteater' }),
-      });
-
-      const expectedArgs = [
-        `Quest ID: ${String(questId)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [pesteater] reproduce every bug on the report',
-        '',
-        'Operations ledger (in order):',
-        '1. [>] [pesteater] reproduce every bug on the report  <-- YOUR OPERATION ITEM',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
-      ].join('\n');
-
-      expect(result.prompt).toBe(PESTEATER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
-    });
-
-    it('ERROR: {agent + role: pesteater, empty relatedDataItems} => throws no-resolvable-operations-ref error', () => {
-      const workItem = WorkItemStub({ role: 'pesteater', relatedDataItems: [] });
-      const quest = QuestStub({ questType: 'bug-hunt', workItems: [workItem] });
-
-      expect(() =>
-        workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: 'pesteater' }),
-        }),
-      ).toThrow(/has no resolvable operations\/<id> reference/u);
-    });
   });
 
   describe('command roles (run by the dispatcher, never served by get-agent-prompt)', () => {
@@ -351,6 +288,12 @@ describe('workItemToPromptTransformer', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -394,6 +337,12 @@ describe('workItemToPromptTransformer', () => {
         'Operations ledger (in order):',
         `1. [ ] [codeweaver] ${dollarText}  <-- YOUR OPERATION ITEM`,
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -403,7 +352,7 @@ describe('workItemToPromptTransformer', () => {
       expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
-    it('VALID: {operation with flowIds} => renders the flows the item lands on, flagged as a starting point not a boundary', () => {
+    it('VALID: {operation with flowIds} => renders the flows the item lands on, flagged as its unit of accountability', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8888-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8888-4222-9333-444444444444' });
@@ -436,8 +385,15 @@ describe('workItemToPromptTransformer', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] web: the queue bar and send  <-- YOUR OPERATION ITEM',
         '',
-        'Flows your operation item lands on: #send-queued-comment-batch, #view-persisted-comments',
-        '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
+        'Your flows: #send-queued-comment-batch, #view-persisted-comments',
+        '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where the work is wider than one session.)',
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', flowId: 'send-queued-comment-batch' })",
+        "  get-quest({ questId: 'my-quest', flowId: 'view-persisted-comments' })",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
@@ -479,6 +435,12 @@ describe('workItemToPromptTransformer', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -486,7 +448,7 @@ describe('workItemToPromptTransformer', () => {
       expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
-    it('VALID: {codeweaver operation with packageNames} => renders the reading order, flagged as not a boundary', () => {
+    it('VALID: {codeweaver operation with packageNames} => renders the list as its coverage slice', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8882-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8882-4222-9333-444444444444' });
@@ -519,8 +481,14 @@ describe('workItemToPromptTransformer', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
         '',
-        'Packages your operation item lands in: shared, server',
-        '(Name these packages in every minion brief you write — the planner and the workers point their own searches here instead of guessing. NOT a boundary: a minion may touch another package if the work needs it.)',
+        'Your packages: shared, server',
+        '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', packageName: 'shared' })   <- every contract your package owns, across every flow",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
@@ -529,61 +497,64 @@ describe('workItemToPromptTransformer', () => {
       expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
     });
 
-    it.each(PARTITION_TRACK_ROLES)(
-      'VALID: {role: %s, operation with packageNames} => renders the list as a PARTITION slice, handing the seams to the seam item',
-      (role) => {
-        const questId = QuestIdStub({ value: 'my-quest' });
-        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8883-4222-9333-444444444444' });
-        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8883-4222-9333-444444444444' });
-        const operation = OperationItemStub({
-          id: operationId,
-          role,
-          text: 'author the suites',
-          status: 'pending',
-          packageNames: ['server'],
-        });
-        const workItem = WorkItemStub({
-          id: workItemId,
-          role,
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-        });
-        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+    // A role with NO sign-off track gets the OTHER wording: a reading order rather than a coverage
+    // slice, and one that names the search tools, because its own prompt tells it to search.
+    // `spiritmender` and `warpgate` are the only roles that reach this branch —
+    // `signoffTrackEligibilityStatics.byTrack`'s keys are exactly the operator roles.
+    it('VALID: {spiritmender operation with packageNames} => renders the list as a reading order, flagged as not a boundary', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8884-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8884-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'spiritmender',
+        text: 'fix ward failures',
+        status: 'pending',
+        packageNames: ['shared', 'server'],
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: questId,
+        operations: [operation],
+        workItems: [workItem],
+        wardResults: [],
+      });
 
-        const result = workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: role }),
-        });
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+      });
 
-        const expectedArgs = [
-          `Quest ID: ${String(questId)}`,
-          `Work Item ID: ${String(workItemId)}`,
-          `Operation Item ID: ${String(operationId)}`,
-          `Your operation item: [${role}] author the suites`,
-          '',
-          'Operations ledger (in order):',
-          `1. [ ] [${role}] author the suites  <-- YOUR OPERATION ITEM`,
-          '',
-          'Your packages: server',
-          '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)',
-          '',
-          'Original user request (the intent behind the flows):',
-          'Add authentication to the application',
-        ].join('\n');
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [spiritmender] fix ward failures',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [spiritmender] fix ward failures  <-- YOUR OPERATION ITEM',
+        '',
+        'Packages your operation item lands in: shared, server',
+        '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
 
-        expect(result.prompt).toBe(
-          agentNameToPromptTransformer({ agent: AgentPromptNameStub({ value: role }) })
-            .prompt.split('$ARGUMENTS')
-            .join(expectedArgs),
-        );
-      },
-    );
+      expect(result.prompt).toBe(
+        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
 
-    // The partition wording tells a session that a unit spanning two of its packages is somebody
-    // else's. For an `intersection` track that sentence is false and expensive: there is no seam
-    // item on its track, `qaUnitsInPackageScopeTransformer` keeps every glue unit in its
-    // denominator, and the completion gate then refuses it for skipping exactly what this block
-    // told it to skip.
+    // A wording that told a session a unit spanning two of its packages is somebody else's would be
+    // false and expensive: no track has a seam item, `qaUnitsInPackageScopeTransformer` keeps every
+    // glue unit in the item's denominator, and the completion gate then refuses the item for
+    // skipping exactly what this block told it to skip.
     it.each(INTERSECTION_TRACK_ROLES)(
       'VALID: {role: %s, operation with packageNames} => renders the list as an INTERSECTION slice, keeping the glue units rather than disowning them',
       (role) => {
@@ -622,6 +593,12 @@ describe('workItemToPromptTransformer', () => {
           'Your packages: web',
           '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
           '',
+          'Your spec is NOT in this block. Fetch it one flow at a time:',
+          String(INTERSECTION_POINTER_CALL_BY_ROLE.get(role)),
+          'Each call returns that flow whole — every node, every edge with its branch label, every',
+          'observable, the contracts and design decisions that govern it, and the sign-offs already',
+          'recorded. Make the call for a flow BEFORE you work it.',
+          '',
           'Original user request (the intent behind the flows):',
           'Add authentication to the application',
         ].join('\n');
@@ -633,6 +610,67 @@ describe('workItemToPromptTransformer', () => {
         );
       },
     );
+
+    // THE REAL CODEWEAVER SHAPE: ONE flow and one package — the (package, flow) cell the
+    // implementation fan-out mints. So the pointer block is exactly TWO calls: the flow slice, and
+    // the foundation call behind it. Every call is spelled out with the ids already substituted,
+    // because a session left to compose the call itself composes
+    // `get-quest({ questId, stage: 'spec' })` — the whole-quest render this pointer exists to avoid.
+    // The foundation call rides last: a contract routes by PATH, so a package can own one anchored
+    // to a node on a flow it does not tag, and no per-flow call would ever reach it.
+    it('VALID: {role: codeweaver, one flow and one package} => spells out the flow call plus the foundation call', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7777-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-7777-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'Codeweaver: build this slice — package: web · flow: send-queued-comment-batch',
+        status: 'in_progress',
+        flowIds: ['send-queued-comment-batch'],
+        packageNames: ['web'],
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] Codeweaver: build this slice — package: web · flow: send-queued-comment-batch',
+        '',
+        'Operations ledger (in order):',
+        '1. [>] [codeweaver] Codeweaver: build this slice — package: web · flow: send-queued-comment-batch  <-- YOUR OPERATION ITEM',
+        '',
+        'Your flows: #send-queued-comment-batch',
+        '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where the work is wider than one session.)',
+        '',
+        'Your packages: web',
+        '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', flowId: 'send-queued-comment-batch', packageName: 'web' })",
+        "  get-quest({ questId: 'my-quest', packageName: 'web' })   <- every contract your package owns, across every flow",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+    });
 
     it('EDGE: {operation with empty packageNames} => omits the packages block entirely', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
@@ -666,6 +704,12 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
@@ -701,8 +745,8 @@ describe('workItemToPromptTransformer', () => {
             packageType: 'frontend-react',
           }),
           QuestPackageEntryStub({
-            name: 'groundstomp',
-            location: './packages/groundstomp',
+            name: 'queue-runner',
+            location: './packages/queue-runner',
             changeType: 'new',
             packageType: 'programmatic-service',
             usedBy: ['orchestrator'],
@@ -725,7 +769,13 @@ describe('workItemToPromptTransformer', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
         '',
-        'Packages affected (whole quest): web (edit, frontend-react), groundstomp (new, programmatic-service)',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
+        'Packages affected (whole quest): web (edit, frontend-react), queue-runner (new, programmatic-service)',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
@@ -777,7 +827,14 @@ describe('workItemToPromptTransformer', () => {
             `1. [>] [${role}] verify every quest flow  <-- YOUR OPERATION ITEM`,
             '',
             'Your flows: #send-queued-comment-batch, #view-persisted-comments',
-            '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where your role has minions.)',
+            '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where the work is wider than one session.)',
+            '',
+            'Your spec is NOT in this block. Fetch it one flow at a time:',
+            "  get-quest({ questId: 'my-quest', flowId: 'send-queued-comment-batch' })",
+            "  get-quest({ questId: 'my-quest', flowId: 'view-persisted-comments' })",
+            'Each call returns that flow whole — every node, every edge with its branch label, every',
+            'observable, the contracts and design decisions that govern it, and the sign-offs already',
+            'recorded. Make the call for a flow BEFORE you work it.',
             '',
             'Original user request (the intent behind the flows):',
             'Add authentication to the application',
@@ -927,6 +984,12 @@ describe('workItemToPromptTransformer', () => {
           'Operations ledger (in order):',
           '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
           '',
+          'Your spec is NOT in this block. Fetch it one flow at a time:',
+          "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+          'Each call returns that flow whole — every node, every edge with its branch label, every',
+          'observable, the contracts and design decisions that govern it, and the sign-offs already',
+          'recorded. Make the call for a flow BEFORE you work it.',
+          '',
           'Original user request (the intent behind the flows):',
           'Add authentication to the application',
         ].join('\n');
@@ -978,6 +1041,12 @@ describe('workItemToPromptTransformer', () => {
           'Operations ledger (in order):',
           '1. [>] [siegemaster] manual-QA every quest flow  <-- YOUR OPERATION ITEM',
           '',
+          'Your spec is NOT in this block. Fetch it one flow at a time:',
+          "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+          'Each call returns that flow whole — every node, every edge with its branch label, every',
+          'observable, the contracts and design decisions that govern it, and the sign-offs already',
+          'recorded. Make the call for a flow BEFORE you work it.',
+          '',
           'Dev Server Command: npm run dev',
           'Dev Server URL: http://localhost:3000',
           '',
@@ -1027,6 +1096,12 @@ describe('workItemToPromptTransformer', () => {
           '',
           'Operations ledger (in order):',
           '1. [>] [flowrider] author the flow-perspective test suites  <-- YOUR OPERATION ITEM',
+          '',
+          'Your spec is NOT in this block. Fetch it one flow at a time:',
+          "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+          'Each call returns that flow whole — every node, every edge with its branch label, every',
+          'observable, the contracts and design decisions that govern it, and the sign-offs already',
+          'recorded. Make the call for a flow BEFORE you work it.',
           '',
           'Original user request (the intent behind the flows):',
           'Add authentication to the application',
@@ -1338,6 +1413,12 @@ describe('workItemToPromptTransformer', () => {
         ),
         `16. [>] [codeweaver] ${LEDGER_ITEM_TEXT}  <-- YOUR OPERATION ITEM`,
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -1399,6 +1480,12 @@ describe('workItemToPromptTransformer', () => {
           (_unused, offset) => `${String(2 + offset)}. [x] [codeweaver] ${LEDGER_ITEM_TEXT}`,
         ),
         `17. [>] [codeweaver] ${LEDGER_ITEM_TEXT}  <-- YOUR OPERATION ITEM`,
+        '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
@@ -1474,6 +1561,12 @@ describe('workItemToPromptTransformer', () => {
           (_unused, offset) => `${String(36 + offset)}. [ ] [codeweaver] ${LEDGER_ITEM_TEXT}`,
         ),
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        "  get-quest({ questId: 'my-quest', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');
@@ -1502,52 +1595,6 @@ describe('workItemToPromptTransformer', () => {
   // remainder. Measuring a prompt ALONE cannot catch a breach, because the `$ARGUMENTS` block this
   // transformer builds is spliced in below it — and that block is the part an agent acts on first.
   //
-  // Membership is `operatorRoleNames`, read from the statics rather than listed, so a sixth operator
-  // role is covered by this ban the day it is added. That list is what `roleToDisciplineStatics`
-  // left behind: its keys were the only thing this assertion ever wanted.
-  describe('the operator tool-surface ban survives assembly', () => {
-    it.each(agentPromptClassificationStatics.operatorRoleNames)(
-      'VALID: {agent: %s, operation item declaring packageNames} => the assembled prompt names no forbidden tool below the tool table',
-      (role) => {
-        const operationItemId = OperationItemIdStub({
-          value: 'eeeeeeee-4444-4222-9333-444444444444',
-        });
-        const operation = OperationItemStub({
-          id: operationItemId,
-          role,
-          text: 'orchestrator: thread the operation ledger through the dispatch scan',
-          status: 'in_progress',
-          flowIds: ['send-queued-comment-batch'],
-          packageNames: ['orchestrator', 'shared'],
-        });
-        const workItem = WorkItemStub({
-          id: QuestWorkItemIdStub({ value: 'ffffffff-4444-4222-9333-444444444444' }),
-          role,
-          relatedDataItems: [
-            RelatedDataItemStub({ value: `operations/${String(operationItemId)}` }),
-          ],
-        });
-        const quest = QuestStub({ operations: [operation], workItems: [workItem] });
-
-        const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName: role });
-        const sections = String(prompt).split(String(ROUND_DOCUMENT_HEADING));
-        const [, belowToolTable] = sections;
-        const namedTools = FORBIDDEN_OPERATOR_TOOLS.filter((tool) =>
-          new RegExp(`\\b${tool}\\b`, 'u').test(String(belowToolTable)),
-        );
-
-        // The split arity rides in the same assertion so a renamed heading fails loudly instead of
-        // making the tool scan vacuously green over an empty region.
-        const toolTableFound = sections.length === 2;
-
-        expect({ toolTableFound, namedTools }).toStrictEqual({
-          toolTableFound: true,
-          namedTools: [],
-        });
-      },
-    );
-  });
-
   describe('MCP tool-result budget', () => {
     it.each(agentPromptClassificationStatics.roleNames)(
       'VALID: {agent: %s, relay-scale quest} => served MCP block stays within the verbatim budget',

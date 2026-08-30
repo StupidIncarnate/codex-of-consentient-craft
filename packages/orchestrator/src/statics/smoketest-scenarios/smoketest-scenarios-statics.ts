@@ -3,8 +3,7 @@
  * with a per-role script of canned prompt names and a final-state assertion. Every scenario drives the
  * reactive operations relay: the scenario driver stamps a canned signal prompt on each pending work
  * item as the relay creates it one at a time (codeweaver -> flowrider -> siegemaster; ward is skipped
- * via the blueprint's skipRoles and groundstomper fans to zero items because the minimal blueprint's
- * only package is not e2e-eligible), and each canned agent signals `complete` with an operationStatus
+ * via the blueprint's skipRoles), and each canned agent signals `complete` with an operationStatus
  * so the orchestrator advances (done) or spawns a pt continuation (partial) until the quest completes.
  *
  * USAGE:
@@ -27,6 +26,13 @@ import { smoketestBlueprintsStatics } from '../smoketest-blueprints/smoketest-bl
 // Every relay role that receives a scripted agent work item once ward is skipped. The scenario
 // driver dispenses these per role, one per work item, as the relay creates them in order. Each role
 // signals `complete` (operationStatus done) so the orchestrator advances to the next operation item.
+//
+// The `flowrider` entry is dispensed only because the blueprint's flow is `runtime` — the tail's
+// flow fan-out cuts each seed over the flow types its own track measures, and flowrider measures
+// that type alone. All three scenarios script the role, so an operational blueprint would leave
+// this entry undispensed in every one of them and `orchReachesFlowrider`'s work-item assertion
+// unsatisfiable. The `flowType` line in the blueprint carries the reason; do not change it without
+// reading these scripts.
 const relayScripts = {
   codeweaver: ['signalDone'],
   flowrider: ['signalDone'],

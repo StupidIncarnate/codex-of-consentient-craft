@@ -442,9 +442,9 @@ export * from './src/contracts/get-quest-input/get-quest-input.stub';
 export * from './src/contracts/modify-quest-input/modify-quest-input-contract';
 export * from './src/contracts/modify-quest-input/modify-quest-input.stub';
 
-// QA Checklist Contracts (Siegemaster's computed coverage — the deterministic enumeration of a
-// flow into atomic verification units. Coverage is settled by the per-unit `flowriderSignoff` /
-// `siegemasterSignoff` on the flow element itself, which is what the completion gate recomputes)
+// QA Checklist Contracts (the deterministic enumeration of a flow into atomic verification units.
+// Coverage is settled by the per-unit `codeweaverSignoff` / `flowriderSignoff` / `siegemasterSignoff`
+// on the flow element itself, which `get-qa-checklist` and the quest summary both recompute)
 export * from './src/contracts/qa-checklist-kind/qa-checklist-kind-contract';
 export * from './src/contracts/qa-checklist-kind/qa-checklist-kind.stub';
 
@@ -463,7 +463,7 @@ export * from './src/contracts/qa-walk-path/qa-walk-path.stub';
 export * from './src/contracts/qa-checklist/qa-checklist-contract';
 export * from './src/contracts/qa-checklist/qa-checklist.stub';
 
-// Standards-Review Ledger Contracts (the per-unit review ledger a reviewer-minion writes — every
+// Standards-Review Ledger Contracts (the per-unit review ledger a reviewer writes — every
 // changed file crossed with each applicable concern, keyed so coverage is computed not remembered)
 export * from './src/contracts/blight-concern/blight-concern-contract';
 export * from './src/contracts/blight-concern/blight-concern.stub';
@@ -483,9 +483,10 @@ export * from './src/contracts/blight-checklist/blight-checklist.stub';
 export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 
-// Sign-off Contracts (two independent verification tracks — Flowrider at the test layer,
-// Siegemaster off the running system — each recorded on its own top-level field, with provenance
-// carried on a separate axis so a track is never charged for units it could not have reached)
+// Sign-off Contracts (three independent verification tracks — Codeweaver in the unit tests beside
+// the code, Flowrider at the flow/test layer, Siegemaster off the running system — each recorded on
+// its own top-level field, with provenance carried on a separate axis so a track is never charged
+// for units it could not have reached)
 export * from './src/contracts/signoff-verdict/signoff-verdict-contract';
 export * from './src/contracts/signoff-verdict/signoff-verdict.stub';
 
@@ -517,8 +518,8 @@ export * from './src/contracts/quest-note/quest-note-contract';
 export * from './src/contracts/quest-note/quest-note.stub';
 
 // Quest Summary Contracts (what actually happened on a quest: per-flow/per-track sign-off coverage,
-// the observables added after approval, every `unconfirmable` verdict the completion gate let
-// through, and the side-channel notes grouped by kind. Shared rather than orchestrator-local
+// the observables added after approval, every `unconfirmable` verdict — settled without being
+// proven — and the side-channel notes grouped by kind. Shared rather than orchestrator-local
 // because the web renders the same shape the orchestrator computes)
 export * from './src/contracts/quest-summary-track-counts/quest-summary-track-counts-contract';
 export * from './src/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';

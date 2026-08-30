@@ -10,18 +10,26 @@
  * - Top-level fields not in allowlist (and not in backTransitionFields when nextStatus matches the carveout) are rejected.
  * - planningNotes acceptance: a `planningNotes` payload is accepted when either (a) `planningNotes` is in
  *   `allowedFields` or (b) the status's `allowedPlanningNotesFields` is `'all'` (only `in_progress`, where
- *   planner-minions write operationPlans and reviewer-minions write blightLedger). Otherwise the whole
+ *   operators write operationPlans and reviewers write blightLedger). Otherwise the whole
  *   field is rejected with the blunt `Field 'planningNotes' not allowed`.
  * - planningNotes sub-field allowlist: enforced ONLY for statuses that accept planningNotes via (a) and carry
  *   a finite `allowedPlanningNotesFields` array. Every sub-field present must appear in that array; any outside
  *   it is rejected BY NAME (`Sub-field 'planningNotes.<x>' not allowed`). `'all'` imposes no sub-field gating.
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
- *     'full'                     -> any flow shape is allowed, embedded observables included
- *     'additive-only'            -> delegates to questFlowAdditiveOnlyViolationsTransformer (what the
- *                                   payload may change) AND questSignoffUnknownUnitViolationsTransformer
- *                                   (that every unit it signs already exists). Both return offenders,
- *                                   and both sets are appended.
+ *     'full'                     -> any flow shape is allowed: add, edit and delete alike, embedded
+ *                                   observables included. ONE check still runs — see below.
+ *
+ * TWO CHECKS RUN ON EVERY ALLOWED `flows` WRITE, UNDER `'full'` INCLUDED, because each polices
+ * something the allowlist never did and neither becomes acceptable by opening a status up:
+ *   `questSignoffUnknownUnitViolationsTransformer` — WHAT MAY BE ADDRESSED. A sign-off naming an id
+ *     the graph does not hold is APPENDED by the upsert as a brand-new unit, so one logical unit
+ *     gets a second, phantom home that no later read can tell from the real one.
+ *   `questSignoffCoupledEditViolationsTransformer` — WHAT MAY RIDE ALONG. The session that builds an
+ *     artifact is the session that signs it, so an element free to carry a sign-off and an edit in
+ *     one payload can move the goalposts to whatever it produced and leave only the agreement on
+ *     the quest.
+ * Both are data corruption rather than an over-wide permission.
  */
 import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
@@ -33,7 +41,7 @@ import {
   questStatusInputAllowlistStatics,
   type QuestStatusFlowsRule,
 } from '../../statics/quest-status-input-allowlist/quest-status-input-allowlist-statics';
-import { questFlowAdditiveOnlyViolationsTransformer } from '../quest-flow-additive-only-violations/quest-flow-additive-only-violations-transformer';
+import { questSignoffCoupledEditViolationsTransformer } from '../quest-signoff-coupled-edit-violations/quest-signoff-coupled-edit-violations-transformer';
 import { questSignoffUnknownUnitViolationsTransformer } from '../quest-signoff-unknown-unit-violations/quest-signoff-unknown-unit-violations-transformer';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -71,7 +79,7 @@ export const questInputForbiddenFieldsTransformer = ({
   //      `allowedPlanningNotesFields` array then gates each sub-field by name below.
   //  (b) ungated — `allowedPlanningNotesFields` is `'all'` (only `in_progress`): `planningNotes`
   //      is accepted even though it is NOT in `allowedFields`, with no sub-field gating —
-  //      planner-minions write operationPlans and reviewer-minions write blightLedger while the
+  //      operators write operationPlans and reviewers write blightLedger while the
   //      quest runs.
   //  (c) wholesale forbidden — neither (created/approved/explore_*/...); any `planningNotes` write
   //      is rejected with the blunt top-level message, since no sub-field is ever permitted there.
@@ -131,22 +139,12 @@ export const questInputForbiddenFieldsTransformer = ({
     return offenders;
   }
 
-  if (flowsRule === 'full') {
-    return offenders;
-  }
-
-  // flowsRule === 'additive-only'
-  const additiveViolations = questFlowAdditiveOnlyViolationsTransformer({
-    inputFlows,
-    currentQuest,
-    currentStatus,
-  });
-  // The additive rule polices what a payload may CHANGE; this one polices what it may ADDRESS. A
-  // sign-off against an id the graph does not hold would be appended as a new unit by the upsert,
-  // giving one logical unit a second, phantom home the completion gate then counts forever.
-  const unknownUnitViolations = questSignoffUnknownUnitViolationsTransformer({
-    inputFlows,
-    currentQuest,
-  });
-  return [...offenders, ...additiveViolations, ...unknownUnitViolations];
+  // flowsRule === 'full'. The payload may add, edit and delete freely; what it may not do is sign a
+  // unit the graph does not hold (the upsert would APPEND that id rather than reject it), or sign a
+  // unit and rewrite that same unit in the one call.
+  return [
+    ...offenders,
+    ...questSignoffUnknownUnitViolationsTransformer({ inputFlows, currentQuest }),
+    ...questSignoffCoupledEditViolationsTransformer({ inputFlows }),
+  ];
 };

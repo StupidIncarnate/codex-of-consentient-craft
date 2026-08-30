@@ -11,7 +11,7 @@ import { questSummaryLimitsStatics } from '../../statics/quest-summary-limits/qu
 import { questSummaryToTextTransformer } from './quest-summary-to-text-transformer';
 
 // One realistic quest: seven flows carrying 281 verification units between them. The counts are the
-// per-flow unit totals the two tracks partition, and they sum to 281.
+// per-flow unit totals the tracks partition, and they sum to 281.
 const REAL_QUEST_FLOW_UNIT_COUNTS = [45, 52, 38, 41, 33, 47, 25];
 
 describe('questSummaryToTextTransformer', () => {
@@ -24,11 +24,11 @@ describe('questSummaryToTextTransformer', () => {
       expect(lines[0]).toBe('# QUEST SUMMARY — `add-auth`');
     });
 
-    it('VALID: {any summary} => states that an unconfirmable verdict clears the completion gate', () => {
+    it('VALID: {any summary} => states that an unconfirmable verdict clears the absence of a verdict', () => {
       const lines = questSummaryToTextTransformer({ summary: QuestSummaryStub() }).split('\n');
 
       expect(lines.find((line) => line.startsWith('`unconfirmable` signs a unit'))).toBe(
-        '`unconfirmable` signs a unit exactly as `confirmed` does: the completion gate refuses the',
+        '`unconfirmable` signs a unit exactly as `confirmed` does: it clears the',
       );
     });
   });

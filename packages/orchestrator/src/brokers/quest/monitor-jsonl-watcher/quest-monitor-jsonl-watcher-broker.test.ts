@@ -770,9 +770,10 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-prune-minion' });
       const activeQuestId = QuestIdStub({ value: 'prune-minion-quest' });
 
-      // A parent-summoned minion (planner-minion, worker-minion, reviewer-minion, …) owns no work
-      // item, so `isAgentIdActive` is false for its realAgentId for the whole run. Its tail
-      // exists only because the scan prompt-paired it, and prune must leave it alone.
+      // A parent-summoned sub-agent (a `<role>-reviewer`, `siegemaster-walker`,
+      // `chaoswhisperer-gap-minion`, …) owns no work item, so `isAgentIdActive` is false for its
+      // realAgentId for the whole run. Its tail exists only because the scan prompt-paired it,
+      // and prune must leave it alone.
       const TASK_LINE =
         '{"type":"assistant","uuid":"task-line","timestamp":"2026-05-13T10:03:00.000Z","message":{"content":[{"type":"tool_use","id":"toolu_minion","name":"Agent","input":{"prompt":"audit the diff for dead code"}}]}}';
       // Claude CLI writes the Task's `input.prompt` verbatim as the minion JSONL's first line.

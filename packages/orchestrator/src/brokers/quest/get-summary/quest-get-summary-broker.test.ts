@@ -65,11 +65,10 @@ describe('questGetSummaryBroker', () => {
           name: 'Login Flow',
           flowType: 'runtime',
           tracks: [
+            // Codeweaver reads a field of its own (`codeweaverSignoff`), untouched here, so it
+            // stays fully outstanding while Flowrider's own field is half signed.
+            { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
-            // This quest tags no `packagesAffected`, so no node's package kind resolves and the
-            // two denominators over `flowriderSignoff` both still own every unit — the same
-            // over-inclusion both their completion gates apply.
-            { id: 'groundstomper', confirmed: 1, unconfirmable: 0, outstanding: 1 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },

@@ -27,13 +27,8 @@ describe('questTypeRegistryStatics', () => {
           { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
           {
             role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suites below the browser',
-            fanOutBy: 'package',
-          },
-          {
-            role: 'groundstomper',
-            text: 'Groundstomper: author the browser walk for this flow',
-            fanOutBy: 'e2e-flow',
+            text: 'Flowrider: author the test suites that prove this flow',
+            fanOutBy: 'flow',
           },
           {
             role: 'siegemaster',
@@ -42,15 +37,7 @@ describe('questTypeRegistryStatics', () => {
           },
           { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
         ],
-        roles: [
-          'riftcarver',
-          'codeweaver',
-          'ward',
-          'flowrider',
-          'groundstomper',
-          'siegemaster',
-          'spiritmender',
-        ],
+        roles: ['riftcarver', 'codeweaver', 'ward', 'flowrider', 'siegemaster', 'spiritmender'],
       },
       'bug-hunt': {
         intakeSlashCommandFileName: 'dumpster-hunt.md',
@@ -61,15 +48,27 @@ describe('questTypeRegistryStatics', () => {
             text: 'Riftcarver: carve the quest branch, worktree and preflight build',
           },
           {
-            role: 'pesteater',
-            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+            role: 'codeweaver',
+            text: 'Codeweaver: build this slice',
+            fanOutBy: 'implementation',
+            locked: false,
           },
         ],
         relayTail: [
           { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
+          {
+            role: 'flowrider',
+            text: 'Flowrider: author the test suites that prove this flow',
+            fanOutBy: 'flow',
+          },
+          {
+            role: 'siegemaster',
+            text: 'Siegemaster: manual-QA this flow and review its test suite',
+            fanOutBy: 'flow',
+          },
           { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
         ],
-        roles: ['riftcarver', 'pesteater', 'ward', 'spiritmender'],
+        roles: ['riftcarver', 'codeweaver', 'ward', 'flowrider', 'siegemaster', 'spiritmender'],
       },
     });
   });
@@ -108,21 +107,16 @@ describe('questTypeRegistryStatics', () => {
   // The exact `fanOutBy` values are pinned by the full-value assertion above; this pins WHICH roles
   // carry one at all, so a seed that grows into N items can never do it by a role-name match at the
   // seed site instead of by declaring it here.
-  it('VALID: feature relayTail => declares a fan-out on exactly the three operator roles', () => {
-    const declaresFanOut = questTypeRegistryStatics.feature.relayTail
-      .filter((entry) => 'fanOutBy' in entry)
-      .map((entry) => entry.role);
+  it.each(QUEST_TYPES)(
+    'VALID: {questType: %s} relayTail => declares a fan-out on exactly the two tail operators',
+    (questType) => {
+      const declaresFanOut = questTypeRegistryStatics[questType].relayTail
+        .filter((entry) => 'fanOutBy' in entry)
+        .map((entry) => entry.role);
 
-    expect(declaresFanOut).toStrictEqual(['flowrider', 'groundstomper', 'siegemaster']);
-  });
-
-  it('VALID: bug-hunt relayTail => declares no fan-out, so every tail seed is exactly one item', () => {
-    const declaresFanOut = questTypeRegistryStatics['bug-hunt'].relayTail
-      .filter((entry) => 'fanOutBy' in entry)
-      .map((entry) => entry.role);
-
-    expect(declaresFanOut).toStrictEqual([]);
-  });
+      expect(declaresFanOut).toStrictEqual(['flowrider', 'siegemaster']);
+    },
+  );
 
   // Nothing the relay dispatches has a workspace to run in until riftcarver has carved one, so its
   // position is an invariant of every quest type rather than a property of either one.
@@ -155,19 +149,22 @@ describe('questTypeRegistryStatics', () => {
     },
   );
 
-  // PestEater writes the reproducing e2e itself, so a bug-hunt groundstomper item would own scope
-  // that is already claimed — and its relay carries neither operator role for one to sit between.
-  it('VALID: bug-hunt => seeds no groundstomper, flowrider, or siegemaster item', () => {
-    const entry = questTypeRegistryStatics['bug-hunt'];
-    const tailRoles = entry.relayTail.map((seed) => seed.role);
-    const implRoles = entry.startImplementationOps.map((seed) => seed.role);
-    const operatorRoles = ['groundstomper', 'flowrider', 'siegemaster'];
+  // A bug-hunt intake writes flows and observables exactly as a feature intake does, so the same
+  // three operators verify them. The two types differ ONLY in their intake — everything the relay
+  // seeds after riftcarver is identical, and this is what holds them together.
+  it('VALID: {both quest types} => seed the same implementation ops, tail and roles', () => {
+    const { feature } = questTypeRegistryStatics;
+    const bugHunt = questTypeRegistryStatics['bug-hunt'];
 
     expect({
-      tail: tailRoles.filter((role) => operatorRoles.includes(role)),
-      implementation: implRoles.filter((role) => operatorRoles.includes(role)),
-      declared: entry.roles.filter((role) => operatorRoles.includes(role)),
-    }).toStrictEqual({ tail: [], implementation: [], declared: [] });
+      startImplementationOps: bugHunt.startImplementationOps,
+      relayTail: bugHunt.relayTail,
+      roles: bugHunt.roles,
+    }).toStrictEqual({
+      startImplementationOps: feature.startImplementationOps,
+      relayTail: feature.relayTail,
+      roles: feature.roles,
+    });
   });
 
   it('VALID: every intake role => is a chat role, so its session drives the chat panel', () => {

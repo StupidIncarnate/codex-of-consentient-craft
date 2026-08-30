@@ -6,11 +6,10 @@
  * // Returns: 'feature' as QuestType
  *
  * 'feature' is the Dumpster Explorer feature-development pipeline (flows → observables → the
- * codeweaver op items DERIVED at Start → the operations-relay chain). 'bug-hunt' is the
- * regression pipeline (PestEater writes a failing test first, fixes, then ward(changed) →
- * ward(full)). The active type
- * selects the intake slash command, the Start-Quest work-item graph, and the role set —
- * see questTypeRegistryStatics.
+ * codeweaver op items DERIVED at Start → the operations-relay chain). 'bug-hunt' is the regression
+ * pipeline, whose intake draws the repro as a flow and then runs that SAME relay. The active type
+ * selects the intake slash command and the create-time seed role; everything after riftcarver is
+ * shared — see questTypeRegistryStatics.
  */
 
 import { z } from 'zod';

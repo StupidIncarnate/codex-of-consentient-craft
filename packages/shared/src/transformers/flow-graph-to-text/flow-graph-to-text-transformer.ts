@@ -6,6 +6,20 @@
  * flowGraphToTextTransformer({flow: FlowStub({nodes: [...], edges: [...]})});
  * // Returns: ContentText[] with indented flow graph lines
  *
+ * flowGraphToTextTransformer({flow, ownPackage, otherFlows: quest.flows});
+ * // The same graph, with `ownPackage`'s nodes marked, every other package's observables collapsed
+ * // to a count, and each cross-flow edge's target resolved out of `otherFlows`
+ *
+ * EVERY NODE LINE CARRIES ITS `{packages}`. A node's package tags are what route its terminal and
+ * branch verification units — those carry no observable to read a package from — so a graph without
+ * them cannot be reconciled against the ledger that slices work by package.
+ *
+ * `ownPackage` MARKS, IT NEVER FILTERS. Measured on a real quest: filtering one flow to the three
+ * nodes `shared` tags keeps ZERO of the six edges between them and hands that session three orphan
+ * nodes with no graph; another package's own accept/reject decision node has both its labelled
+ * edges pointing at nodes it does not tag, so filtering deletes the decision out of the node that
+ * owns it. Marking costs a suffix per line and keeps the graph a graph.
+ *
  * SIGN-OFFS RENDER HERE OR AN AGENT NEVER SEES THEM. `format: 'text'` is the default every
  * get-quest returns, so a verdict that lives only in the JSON is invisible to the roles whose
  * prompts tell them to read their own track. Each of the three render sites — the node line, the
@@ -28,14 +42,30 @@ import type { ContentText } from '../../contracts/content-text/content-text-cont
 import type { Flow } from '../../contracts/flow/flow-contract';
 import type { FlowNodeId } from '../../contracts/flow-node-id/flow-node-id-contract';
 import { flowNodeIdContract } from '../../contracts/flow-node-id/flow-node-id-contract';
+import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
 import { signoffMarkersToTextTransformer } from '../signoff-markers-to-text/signoff-markers-to-text-transformer';
 
 const SYM = textDisplaySymbolsStatics;
 const INITIAL_DEPTH = 0;
 const DEPTH_INCREMENT = 1;
+const CROSS_FLOW_HANDOFF_NOTE =
+  'Your scope ENDS at the hand-off: prove the edge fires and the target flow is entered, not what it does next.';
 
-export const flowGraphToTextTransformer = ({ flow }: { flow: Flow }): ContentText[] => {
+export const flowGraphToTextTransformer = ({
+  flow,
+  ownPackage,
+  otherFlows,
+}: {
+  flow: Flow;
+  // The package whose nodes are marked and whose observables stay verbatim. Omitted for a whole-
+  // quest render and for the flowrider/siegemaster slice, both of which own every package on the
+  // flow and would read a mark on every line as noise.
+  ownPackage?: PackageName | undefined;
+  // The other flows on the quest, so a `flowId:nodeId` edge target can be resolved into a real
+  // node. Omitted, the marker renders exactly as it always has — a bare stub.
+  otherFlows?: readonly Flow[] | undefined;
+}): ContentText[] => {
   const nodeMap = new Map(flow.nodes.map((n) => [n.id, n] as const));
   const outgoingEdges = new Map(
     flow.nodes.map(
@@ -47,6 +77,21 @@ export const flowGraphToTextTransformer = ({ flow }: { flow: Flow }): ContentTex
       (n) => [n.id, flow.edges.filter((e) => String(e.to) === String(n.id)).length] as const,
     ),
   );
+  // Keyed by the exact `flowId:nodeId` string an edge carries, so the lookup is the edge value
+  // itself rather than a re-split of it.
+  const crossFlowTargets = new Map(
+    (otherFlows ?? [])
+      .filter((other) => String(other.id) !== String(flow.id))
+      .flatMap((other) =>
+        // Joined rather than interpolated so the key stays a plain string: a template literal
+        // narrows to `${string}:${string}`, which no edge value read off the quest can be looked up
+        // with.
+        other.nodes.map(
+          (node) => [[other.id, node.id].map(String).join(':'), { flow: other, node }] as const,
+        ),
+      ),
+  );
+  const ownPackageText = ownPackage === undefined ? undefined : String(ownPackage);
 
   const visited = new Set<FlowNodeId>();
   const lines: ContentText[] = [];
@@ -92,26 +137,61 @@ export const flowGraphToTextTransformer = ({ flow }: { flow: Flow }): ContentTex
 
       const isMerge = (incomingCounts.get(nodeId) ?? 0) > 1;
       const mergeMarker = isMerge ? ` ${SYM.merge}` : '';
+      const packagesPart = ` {${node.packages.map((name) => String(name)).join(', ')}}`;
+      const ownMarker =
+        ownPackageText !== undefined &&
+        node.packages.some((name) => String(name) === ownPackageText)
+          ? ` ${SYM.ownedNode}`
+          : '';
       const nodeSignoffMarker = signoffMarkersToTextTransformer({
+        codeweaverSignoff: node.codeweaverSignoff,
         flowriderSignoff: node.flowriderSignoff,
         siegemasterSignoff: node.siegemasterSignoff,
       });
       lines.push(
         contentTextContract.parse(
-          `${indent}[#${nodeId}] ${node.label} (${node.type})${mergeMarker}${String(nodeSignoffMarker)}`,
+          `${indent}[#${nodeId}] ${node.label} (${node.type})${packagesPart}${mergeMarker}${ownMarker}${String(nodeSignoffMarker)}`,
         ),
       );
 
-      for (const obs of node.observables) {
+      const ownObservables =
+        ownPackageText === undefined
+          ? node.observables
+          : node.observables.filter((obs) => String(obs.package) === ownPackageText);
+
+      for (const obs of ownObservables) {
         const originMarker =
           obs.addedBy === 'spec' ? '' : ` ${SYM.observableOriginPrefix}${obs.addedBy}`;
         const obsSignoffMarker = signoffMarkersToTextTransformer({
+          codeweaverSignoff: obs.codeweaverSignoff,
           flowriderSignoff: obs.flowriderSignoff,
           siegemasterSignoff: obs.siegemasterSignoff,
         });
         lines.push(
           contentTextContract.parse(
             `${indent}${SYM.indent}> #${obs.id}: ${obs.description} [${obs.type}]${originMarker}${String(obsSignoffMarker)}`,
+          ),
+        );
+      }
+
+      // A foreign observable collapses to a COUNT rather than vanishing. Its text is a sibling
+      // session's acceptance target and repeating it invites this session to build it; dropping it
+      // silently would read as a node with nothing expected of it, which is how a seam ships with
+      // one half unbuilt. Order is first appearance on the node, so two renders of one quest agree.
+      const foreignPackages = [
+        ...new Set(
+          node.observables
+            .map((obs) => String(obs.package))
+            .filter((name) => ownPackageText !== undefined && name !== ownPackageText),
+        ),
+      ];
+      for (const foreignPackage of foreignPackages) {
+        const foreignCount = node.observables.filter(
+          (obs) => String(obs.package) === foreignPackage,
+        ).length;
+        lines.push(
+          contentTextContract.parse(
+            `${indent}${SYM.indent}> (${String(foreignCount)} observable(s) attributed to ${foreignPackage} — not yours)`,
           ),
         );
       }
@@ -127,19 +207,41 @@ export const flowGraphToTextTransformer = ({ flow }: { flow: Flow }): ContentTex
       for (const edge of edges) {
         const toIdParsed = flowNodeIdContract.safeParse(edge.to);
         const edgeToStr = String(edge.to);
+        const labelPart = edge.label ? `"${String(edge.label)}" ` : '';
+        // The unlabelled cross-flow line keeps its single space after the arrow: a qualified
+        // `flowId:nodeId` target is not bracketed, so without it the id runs straight into the arrow.
+        const crossFlowLabelPart = edge.label ? `"${String(edge.label)}" ` : ' ';
         const edgeSignoffMarker = String(
           signoffMarkersToTextTransformer({
+            codeweaverSignoff: edge.codeweaverSignoff,
             flowriderSignoff: edge.flowriderSignoff,
             siegemasterSignoff: edge.siegemasterSignoff,
           }),
         );
 
         if (!toIdParsed.success) {
+          // A qualified `flowId:nodeId` target fails the node-id regex on the colon, which is what
+          // makes this the ONE place an outbound cross-flow edge is rendered. The label rides the
+          // line because a labelled cross-flow edge mints a real branch unit, and a session cannot
+          // write evidence for a branch whose name it never saw.
           lines.push(
             contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow} ${edgeToStr} ${SYM.crossFlow}${edgeSignoffMarker}`,
+              `${indent}${SYM.indent}${SYM.rightArrow}${crossFlowLabelPart}${edgeToStr} ${SYM.crossFlow}${edgeSignoffMarker}`,
             ),
           );
+          const target = crossFlowTargets.get(edgeToStr);
+          if (target !== undefined) {
+            lines.push(
+              contentTextContract.parse(
+                `${indent}${SYM.indent}${SYM.indent}target: [#${String(target.node.id)}] ${String(target.node.label)} (${target.node.type}) {${target.node.packages.map((name) => String(name)).join(', ')}} in flow #${String(target.flow.id)} "${String(target.flow.name)}"`,
+              ),
+            );
+            lines.push(
+              contentTextContract.parse(
+                `${indent}${SYM.indent}${SYM.indent}${CROSS_FLOW_HANDOFF_NOTE}`,
+              ),
+            );
+          }
           continue;
         }
 
@@ -151,18 +253,16 @@ export const flowGraphToTextTransformer = ({ flow }: { flow: Flow }): ContentTex
         if (isCrossFlow) {
           lines.push(
             contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow} ${edgeToStr} ${SYM.crossFlow}${edgeSignoffMarker}`,
+              `${indent}${SYM.indent}${SYM.rightArrow}${crossFlowLabelPart}${edgeToStr} ${SYM.crossFlow}${edgeSignoffMarker}`,
             ),
           );
         } else if (isBackRef) {
-          const labelPart = edge.label ? `"${String(edge.label)}" ` : '';
           lines.push(
             contentTextContract.parse(
               `${indent}${SYM.indent}${SYM.rightArrow}${labelPart} [#${edgeToStr}] ${SYM.backRef}${edgeSignoffMarker}`,
             ),
           );
         } else {
-          const labelPart = edge.label ? `"${String(edge.label)}" ` : '';
           lines.push(
             contentTextContract.parse(
               `${indent}${SYM.indent}${SYM.rightArrow}${labelPart}[#${String(toId)}]${edgeSignoffMarker}`,
@@ -183,6 +283,10 @@ export const flowGraphToTextTransformer = ({ flow }: { flow: Flow }): ContentTex
       id: family.id,
       marker: String(
         signoffMarkersToTextTransformer({
+          // `flowOffMapSignoffContract` carries no codeweaver column: the seven probe families are
+          // breakage classes a flow graph structurally cannot draw, so nothing a unit test asserts
+          // reaches them and no codeweaver sign-off can ever exist to render.
+          codeweaverSignoff: undefined,
           flowriderSignoff: family.flowriderSignoff,
           siegemasterSignoff: family.siegemasterSignoff,
         }),

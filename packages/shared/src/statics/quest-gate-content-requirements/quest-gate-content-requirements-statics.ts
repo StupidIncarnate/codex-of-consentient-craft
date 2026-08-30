@@ -7,14 +7,10 @@
  *
  * A requirement is a dot-path string: the field must exist, and an array field must be non-empty.
  *
- * `approved` used to carry a second, richer form — { field, contains: { key, value }, questTypes } —
- * demanding an operations ledger with at least one role:codeweaver item, because ChaosWhisperer
- * authored that ledger at spec time. It no longer does: the codeweaver items are DERIVED at Start
- * from the flow nodes' package tags and the contracts' source paths (`fanOutBy: 'implementation'`),
- * exactly as a bug-hunt's pesteater item always was. Coverage is definitional now rather than
- * checked, so the gate has nothing to demand — a quest that clears `flows_approved` already carries
- * every input the generator reads. `hasQuestGateContentGuard` lost the object branch with it, since
- * nothing was left to type it.
+ * `approved` demands nothing beyond `flows`, and that is deliberate: the codeweaver items are
+ * DERIVED at Start from the flow nodes' package tags and the contracts' source paths
+ * (`fanOutBy: 'implementation'`), so coverage is definitional rather than checked — a quest that
+ * clears `flows_approved` already carries every input the generator reads.
  *
  * What DID stay checkable moved to `questSaveInvariantsTransformer` as `Contract Source Coverage`:
  * a contract's `source` must resolve to a declared package, or it reaches no implementation item at

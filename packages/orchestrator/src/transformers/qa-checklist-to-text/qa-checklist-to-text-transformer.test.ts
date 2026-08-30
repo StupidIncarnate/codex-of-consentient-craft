@@ -8,11 +8,11 @@ import { qaCheckSurfaceStatics, textDisplaySymbolsStatics } from '@dungeonmaster
 
 import { qaChecklistToTextTransformer } from './qa-checklist-to-text-transformer';
 
-// The two SIGN-OFF FIELDS a unit can carry, derived from the render marks — one mark per track, so
-// its keys are 1:1 with signoffTrackContract's options and a test file cannot import the contract
+// The SIGN-OFF FIELDS a unit can carry, derived from the render marks — one mark per field, so its
+// keys are 1:1 with signoffTrackContract's options and a test file cannot import the contract
 // itself. Deliberately NOT `signoffTrackEligibilityStatics.byTrack`: that map is keyed by the ROLE
-// whose denominator it defines, and Groundstomper has a denominator of its own while writing
-// Flowrider's field.
+// whose denominator it defines, and a denominator that shares another role's field is
+// representable there.
 const SIGNOFF_TRACKS = Object.keys(textDisplaySymbolsStatics.signoffTrackMarks);
 
 describe('qaChecklistToTextTransformer', () => {
@@ -70,32 +70,6 @@ describe('qaChecklistToTextTransformer', () => {
         expect(lines[3]).toBe(`REMAINING (awaiting your \`${track}Signoff\`): 1 of 2`);
       },
     );
-
-    // Groundstomper is the ONE case where the two lookups differ: it is its own denominator and it
-    // writes Flowrider's field. A render that took the handed value for both would tell the session
-    // to write a `groundstomperSignoff` no contract carries.
-    it('VALID: {track: groundstomper} => REMAINING names `flowriderSignoff`, the field it actually writes', () => {
-      const lines = qaChecklistToTextTransformer({
-        track: 'groundstomper',
-        checklist: QaChecklistStub({
-          flowId: 'a-flow',
-          flowName: 'A Flow',
-          entryPoint: '/entry',
-          items: [
-            QaChecklistItemStub({ id: 'a-flow:observable:check-one' }),
-            QaChecklistItemStub({
-              id: 'a-flow:terminal:end-node',
-              kind: 'terminal',
-              label: 'The end',
-            }),
-          ],
-          remainingItemIds: ['a-flow:observable:check-one'],
-          paths: [],
-        }),
-      }).split('\n');
-
-      expect(lines[3]).toBe('REMAINING (awaiting your `flowriderSignoff`): 1 of 2');
-    });
 
     it("VALID: {any checklist} => states that the other track's sign-off never settles yours", () => {
       const lines = qaChecklistToTextTransformer({
@@ -334,24 +308,6 @@ describe('qaChecklistToTextTransformer', () => {
         );
       },
     );
-
-    // The legend carries BOTH values because they differ here: the column to write is Flowrider's,
-    // the denominator already settled is Groundstomper's own.
-    it('VALID: {track: groundstomper} => the legend names `flowriderSignoff` and the groundstomper track', () => {
-      const lines = qaChecklistToTextTransformer({
-        track: 'groundstomper',
-        checklist: QaChecklistStub({
-          flowId: 'a-flow',
-          items: [QaChecklistItemStub({ id: 'a-flow:observable:check-one' })],
-          remainingItemIds: [],
-          paths: [],
-        }),
-      }).split('\n');
-
-      expect(lines.find((line) => line.startsWith('## UNITS'))).toBe(
-        '## UNITS — [ ] awaiting your `flowriderSignoff` (the field THIS track writes), [x] not awaiting it, [-] not on the groundstomper track at all',
-      );
-    });
   });
 
   describe('unit sections', () => {

@@ -10,7 +10,7 @@
  * IT REFETCHES RATHER THAN READING THE BROADCAST QUEST. `quest-modified` carries the whole quest,
  * but the summary is COMPUTED from that quest's flow graph by the orchestrator, not stored on it —
  * deriving it in the browser would be a second implementation of the per-track eligibility rules that
- * can drift from the one the completion gate uses. The broadcast is the trigger; the endpoint is the
+ * can drift from the orchestrator's own. The broadcast is the trigger; the endpoint is the
  * answer. That chain is what makes a sign-off write repaint the panel: `questPersistBroker` appends to
  * the file outbox, the server's outbox watcher loads the quest and sends `quest-modified` to every
  * client SUBSCRIBED TO THAT QUEST, and `webSocketChannelState` routes it to `questUpdated$`.

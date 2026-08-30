@@ -1,11 +1,11 @@
 /**
- * PURPOSE: Renders the two verification tracks' verdicts on one unit as a compact suffix a graph
- * line can carry
+ * PURPOSE: Renders every verification track's verdict on one unit as a compact suffix a graph line
+ * can carry
  *
  * USAGE:
- * signoffMarkersToTextTransformer({ flowriderSignoff, siegemasterSignoff });
- * // Returns ' [F✓ S?]' — Flowrider confirmed it, Siegemaster could not
- * signoffMarkersToTextTransformer({ flowriderSignoff: undefined, siegemasterSignoff: undefined });
+ * signoffMarkersToTextTransformer({ codeweaverSignoff, flowriderSignoff, siegemasterSignoff });
+ * // Returns ' [C✓ F✓ S?]' — Codeweaver and Flowrider confirmed it, Siegemaster could not
+ * signoffMarkersToTextTransformer({ codeweaverSignoff: undefined, flowriderSignoff: undefined, siegemasterSignoff: undefined });
  * // Returns '' — an unsigned unit carries no marker and no placeholder column
  *
  * THE EMPTY CASE IS THE LOAD-BEARING ONE. An unsigned unit renders as '' rather than as an empty
@@ -31,13 +31,20 @@ import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/te
 const SYM = textDisplaySymbolsStatics;
 
 export const signoffMarkersToTextTransformer = ({
+  codeweaverSignoff,
   flowriderSignoff,
   siegemasterSignoff,
 }: {
+  codeweaverSignoff: Signoff | undefined;
   flowriderSignoff: Signoff | undefined;
   siegemasterSignoff: Signoff | undefined;
 }): ContentText => {
   const marks = [
+    ...(codeweaverSignoff === undefined
+      ? []
+      : [
+          `${SYM.signoffTrackMarks.codeweaver}${SYM.signoffVerdictMarks[codeweaverSignoff.verdict]}`,
+        ]),
     ...(flowriderSignoff === undefined
       ? []
       : [`${SYM.signoffTrackMarks.flowrider}${SYM.signoffVerdictMarks[flowriderSignoff.verdict]}`]),

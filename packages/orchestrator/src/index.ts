@@ -64,14 +64,6 @@ export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/du
 export { spiritmenderPromptStatics } from './statics/spiritmender-prompt/spiritmender-prompt-statics';
 export { toolDisplayConfigStatics } from './statics/tool-display-config/tool-display-config-statics';
 
-// Minion family information - re-exported for the MCP package, which serves each of these whole
-// through its own tool. One payload per family, taking no argument: what it holds is true of every
-// planner, every worker or every reviewer, and what differs by discipline stays in that role's own
-// prompt.
-export { plannerInformationStatics } from './statics/planner-information/planner-information-statics';
-export { workerInformationStatics } from './statics/worker-information/worker-information-statics';
-export { reviewerInformationStatics } from './statics/reviewer-information/reviewer-information-statics';
-
 // Stream transformers for parsing Claude stream-json output
 export { sessionIdExtractorTransformer } from './transformers/session-id-extractor/session-id-extractor-transformer';
 export { signalFromStreamTransformer } from './transformers/signal-from-stream/signal-from-stream-transformer';

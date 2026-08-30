@@ -4,22 +4,22 @@ import { wardAwareConfigIndexTransformer } from './ward-aware-config-index-trans
 
 describe('wardAwareConfigIndexTransformer', () => {
   describe('ward work items', () => {
-    it('VALID: {role: ward, wardMode: full} => returns 10 (FLOOR BOSS)', () => {
+    it('VALID: {role: ward, wardMode: full} => returns 8 (FLOOR BOSS)', () => {
       const workItem = WorkItemStub({ role: 'ward', wardMode: 'full', dependsOn: [] });
       const allItemMap = new Map([[workItem.id, workItem]]);
 
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
 
-      expect(result).toBe(10);
+      expect(result).toBe(8);
     });
 
-    it('VALID: {role: ward, wardMode: changed} => returns 5 (MINI BOSS)', () => {
+    it('VALID: {role: ward, wardMode: changed} => returns 4 (MINI BOSS)', () => {
       const workItem = WorkItemStub({ role: 'ward', wardMode: 'changed', dependsOn: [] });
       const allItemMap = new Map([[workItem.id, workItem]]);
 
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
 
-      expect(result).toBe(5);
+      expect(result).toBe(4);
     });
   });
 
@@ -33,22 +33,22 @@ describe('wardAwareConfigIndexTransformer', () => {
       expect(result).toBe(3);
     });
 
-    it('VALID: {role: flowrider} => returns 7 (GLUEWORKS)', () => {
+    it('VALID: {role: flowrider} => returns 6 (GLUEWORKS)', () => {
       const workItem = WorkItemStub({ role: 'flowrider' });
       const allItemMap = new Map([[workItem.id, workItem]]);
 
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
 
-      expect(result).toBe(7);
+      expect(result).toBe(6);
     });
 
-    it('VALID: {role: groundstomper} => returns 8 (PROVING GROUNDS, straight after GLUEWORKS)', () => {
-      const workItem = WorkItemStub({ role: 'groundstomper' });
+    it('VALID: {role: siegemaster} => returns 7 (ARENA, straight after GLUEWORKS)', () => {
+      const workItem = WorkItemStub({ role: 'siegemaster' });
       const allItemMap = new Map([[workItem.id, workItem]]);
 
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
 
-      expect(result).toBe(8);
+      expect(result).toBe(7);
     });
 
     it('VALID: {role: bughunt} => returns 2 (HOMEBASE entrance, like the other intake roles)', () => {

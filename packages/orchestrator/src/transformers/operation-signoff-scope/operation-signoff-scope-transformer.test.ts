@@ -28,39 +28,29 @@ const scopeFor = ({
   });
 
 describe('operationSignoffScopeTransformer', () => {
-  // `flowrider` is `flowScope: 'every-eligible'` — its items were sliced BY PACKAGE, so its
-  // denominator is every runtime flow whatever the item's own `flowIds` say. The narrowing that
-  // matters for it is the package one, and it rides through untouched.
-  describe('flowrider — sliced by package, so every runtime flow is in scope', () => {
-    it('VALID: {role: flowrider, flowIds: [runtime-a], packageNames: [web]} => every runtime flow, operational dropped', () => {
-      const scope = scopeFor({
-        role: 'flowrider',
-        flowIds: ['runtime-a'],
-        packageNames: ['web'],
-      });
+  // Every track reads `flowScope: 'declared'` — one item per flow (or, for codeweaver, one item per
+  // PACKAGE carrying every flow it tags a node in) — so the item's own `flowIds` list IS its scope
+  // and a sibling item's flow is never in it.
+  describe("declared tracks — the item's own flow list is the scope", () => {
+    it.each(['codeweaver', 'flowrider', 'siegemaster'] as const)(
+      'VALID: {role: %s, flowIds: [runtime-a]} => that flow alone',
+      (role) => {
+        const scope = scopeFor({ role, flowIds: ['runtime-a'] });
 
-      expect({
-        track: scope?.track,
-        flowIds: scope?.flows.map((flow) => String(flow.id)),
-        packageNames: scope?.packageNames.map(String),
-      }).toStrictEqual({
-        track: 'flowrider',
-        flowIds: ['runtime-a', 'runtime-b'],
-        packageNames: ['web'],
-      });
-    });
-  });
+        expect({
+          track: scope?.track,
+          flowIds: scope?.flows.map((flow) => String(flow.id)),
+        }).toStrictEqual({ track: role, flowIds: ['runtime-a'] });
+      },
+    );
 
-  // `groundstomper` and `siegemaster` are `flowScope: 'declared'` — one item per flow, so the
-  // item's own list IS the scope and a sibling item's flow is never in it.
-  describe("the declared tracks — the item's own flow list is the scope", () => {
-    it('VALID: {role: groundstomper, flowIds: [runtime-b]} => that flow alone', () => {
-      const scope = scopeFor({ role: 'groundstomper', flowIds: ['runtime-b'] });
+    // Flowrider's `flowTypes` carries `runtime` alone — an operational flow's end state is
+    // hand-checked rather than asserted by a suite, so a declared operational flow is dropped for
+    // failing the type test, not for being undeclared.
+    it('VALID: {role: flowrider, flowIds: [runtime-a, operational-a]} => the operational flow is dropped, ineligible type', () => {
+      const scope = scopeFor({ role: 'flowrider', flowIds: ['runtime-a', 'operational-a'] });
 
-      expect({
-        track: scope?.track,
-        flowIds: scope?.flows.map((flow) => String(flow.id)),
-      }).toStrictEqual({ track: 'groundstomper', flowIds: ['runtime-b'] });
+      expect(scope?.flows.map((flow) => String(flow.id))).toStrictEqual(['runtime-a']);
     });
 
     // Siegemaster's `flowTypes` carries BOTH types — an operational flow's end state is hand-checked
@@ -74,8 +64,8 @@ describe('operationSignoffScopeTransformer', () => {
       }).toStrictEqual({ track: 'siegemaster', flowIds: ['operational-a'] });
     });
 
-    // The ungated case the completion gate relies on: a declared-track item that names no flow
-    // matches nothing, so it is never refused, with no special case anywhere.
+    // A declared-track item that names no flow matches nothing, with no special case anywhere —
+    // an empty scope is a valid, honest answer, not an error.
     it('EMPTY: {role: siegemaster, flowIds: []} => no flows in scope', () => {
       const scope = scopeFor({ role: 'siegemaster' });
 
@@ -86,12 +76,9 @@ describe('operationSignoffScopeTransformer', () => {
   // `null` is the honest answer, not an error: these roles are measured on something other than the
   // flow graph, and both callers rely on being able to tell that apart from "measured, found empty".
   describe('roles with no sign-off track', () => {
-    it.each(['codeweaver', 'pesteater', 'spiritmender', 'warpgate'] as const)(
-      'VALID: {role: %s} => null',
-      (role) => {
-        expect(scopeFor({ role })).toBe(null);
-      },
-    );
+    it.each(['spiritmender', 'warpgate'] as const)('VALID: {role: %s} => null', (role) => {
+      expect(scopeFor({ role })).toBe(null);
+    });
   });
 
   // The property the whole extraction exists for: the package slice is taken FROM THE ITEM, never

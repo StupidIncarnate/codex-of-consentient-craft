@@ -1,11 +1,15 @@
 /**
- * PURPOSE: Settles, as the harness rather than as an agent, whatever the signal-back completion gate
- * would refuse a scripted smoketest work item for — so a canned one-line prompt that walks nothing
- * can still reach `done` and let the relay drain to a terminal quest.
+ * PURPOSE: Writes a fabricated, honestly-labeled sign-off onto every verification unit a scripted
+ * smoketest work item's track still has open — so the quest.json a scenario leaves behind on disk
+ * reads as fully covered instead of permanently unsigned. Nothing gates a `done` on sign-off
+ * completeness any more, so this is not a workaround for a refusal: a canned prompt reaches `done`
+ * either way. It exists for the durable file itself — a human (or the quest summary) opening a
+ * smoketest quest later sees explicit, confessed fixture evidence rather than blank tracks that
+ * could be mistaken for real, unexplained coverage gaps.
  *
  * USAGE:
  * await smoketestSignOutstandingUnitsBroker({ questId, workItemId });
- * // No-ops unless the work item's linked operation item belongs to a gated track with units left
+ * // No-ops unless the work item's linked operation item belongs to a track with units left
  *
  * WHEN-TO-USE: The smoketest scenario driver, immediately before it stamps a canned prompt override
  * on a pending work item. Production orchestration must never call this — a real session's sign-off
@@ -13,22 +17,17 @@
  * nothing was verified.
  * WHEN-NOT-TO-USE: Anywhere outside the smoketest flow.
  *
- * THE GATE IS NOT WEAKENED, AND MUST NOT BE. It still runs on every scripted `done`, recomputes the
- * outstanding set from the graph, and allows only because there is nothing left — which is the same
- * bar a real session clears. A smoketest branch inside
- * `quest-handle-signal-back-responder` would instead leave the one surface the suite exists to cover
- * untested on every run.
- *
- * WHICH ROLES ARE GATED IS DATA, read out of `signoffTrackEligibilityStatics.byTrack` rather than
+ * WHICH ROLES HAVE A TRACK IS DATA, read out of `signoffTrackEligibilityStatics.byTrack` rather than
  * matched against role names. Today only siegemaster bites, because it is the one track whose
  * `flowTypes` includes `operational` and the minimal blueprint's flow is operational; the day a
- * blueprint gains a runtime flow, flowrider and groundstomper start biting too and this covers them
- * without an edit. The same entry supplies the FIELD to write, which is a many-to-one map — flowrider
- * and groundstomper both write `flowriderSignoff` — so it can never be guessed off the role name.
+ * blueprint gains a runtime flow, codeweaver and flowrider start biting too and this covers them
+ * without an edit. The same entry supplies the FIELD to write, which is a many-to-one map — a
+ * denominator can share another role's field — so it can never be guessed off the role name.
  *
- * The outstanding list comes from `signoffOutstandingTransformer`, the very function the gate calls.
- * A second derivation here could disagree with it, and a harness that signs a different set than the
- * gate measures reproduces the blockage it exists to remove.
+ * The outstanding list comes from `signoffOutstandingTransformer`, the same enumeration
+ * `get-qa-checklist` and the quest summary read. A second derivation here could disagree with them,
+ * and a harness that signs a different set than those surfaces report would leave the fixture quest
+ * looking inconsistent with itself.
  *
  * Bypasses `questModifyBroker` for the reason `questResetFlowSignoffsBroker` does: this is a
  * read-modify-write over whole flows rather than an upsert of a caller-supplied patch. It takes the

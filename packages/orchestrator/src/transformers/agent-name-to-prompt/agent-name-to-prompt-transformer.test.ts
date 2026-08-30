@@ -2,27 +2,14 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPlannerMinionStatics } from '../../statics/codeweaver-planner-minion/codeweaver-planner-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { codeweaverReviewerMinionStatics } from '../../statics/codeweaver-reviewer-minion/codeweaver-reviewer-minion-statics';
-import { codeweaverWorkerMinionStatics } from '../../statics/codeweaver-worker-minion/codeweaver-worker-minion-statics';
-import { flowriderPlannerMinionStatics } from '../../statics/flowrider-planner-minion/flowrider-planner-minion-statics';
+import { codeweaverReviewerStatics } from '../../statics/codeweaver-reviewer/codeweaver-reviewer-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
-import { flowriderReviewerMinionStatics } from '../../statics/flowrider-reviewer-minion/flowrider-reviewer-minion-statics';
-import { flowriderWorkerMinionStatics } from '../../statics/flowrider-worker-minion/flowrider-worker-minion-statics';
-import { groundstomperPlannerMinionStatics } from '../../statics/groundstomper-planner-minion/groundstomper-planner-minion-statics';
-import { groundstomperPromptStatics } from '../../statics/groundstomper-prompt/groundstomper-prompt-statics';
-import { groundstomperReviewerMinionStatics } from '../../statics/groundstomper-reviewer-minion/groundstomper-reviewer-minion-statics';
-import { groundstomperWorkerMinionStatics } from '../../statics/groundstomper-worker-minion/groundstomper-worker-minion-statics';
-import { pesteaterPlannerMinionStatics } from '../../statics/pesteater-planner-minion/pesteater-planner-minion-statics';
-import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { pesteaterReviewerMinionStatics } from '../../statics/pesteater-reviewer-minion/pesteater-reviewer-minion-statics';
-import { pesteaterWorkerMinionStatics } from '../../statics/pesteater-worker-minion/pesteater-worker-minion-statics';
+import { flowriderReviewerStatics } from '../../statics/flowrider-reviewer/flowrider-reviewer-statics';
 import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
-import { siegemasterPlannerMinionStatics } from '../../statics/siegemaster-planner-minion/siegemaster-planner-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
-import { siegemasterReviewerMinionStatics } from '../../statics/siegemaster-reviewer-minion/siegemaster-reviewer-minion-statics';
-import { siegemasterWorkerMinionStatics } from '../../statics/siegemaster-worker-minion/siegemaster-worker-minion-statics';
+import { siegemasterReviewerStatics } from '../../statics/siegemaster-reviewer/siegemaster-reviewer-statics';
+import { siegemasterWalkerStatics } from '../../statics/siegemaster-walker/siegemaster-walker-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
@@ -37,12 +24,11 @@ type PromptName = Parameters<typeof agentNameToPromptTransformer>[0]['agent'];
 // carries: a name added to `agentPromptClassificationStatics.promptNames` with no entry here fails
 // to compile, so the case list below can never quietly skip a new prompt.
 //
-// MODELS. The seven ROLE names read `roleToModelStatics` instead of restating a literal, because
-// that map is what the CLI `--model` flag resolves through at spawn time — `get-agent-prompt` only
-// REPORTS this value, and a literal would let the reported model drift from the one the child
-// actually ran. The minions have no such map, so their models are stated: planner opus, worker
-// sonnet, reviewer opus. Downgrading a reviewer is the expensive mistake — it is the only session
-// on a round that verifies anything.
+// MODELS. The ROLE names read `roleToModelStatics` instead of restating a literal, because that map
+// is what the CLI `--model` flag resolves through at spawn time — `get-agent-prompt` only REPORTS
+// this value, and a literal would let the reported model drift from the one the child actually ran.
+// The minions have no such map, so their models are stated: all sonnet, because a minion arrives
+// with its scope already narrowed by the brief that summoned it.
 const EXPECTED_BY_NAME = {
   'chaoswhisperer-gap-minion': {
     model: 'sonnet',
@@ -53,85 +39,31 @@ const EXPECTED_BY_NAME = {
     model: roleToModelStatics.codeweaver,
     prompt: codeweaverPromptStatics.prompt.template,
   },
-  'codeweaver-planner-minion': {
-    model: 'opus',
-    prompt: codeweaverPlannerMinionStatics.prompt.template,
-  },
-  'codeweaver-worker-minion': {
+  'codeweaver-reviewer': {
     model: 'sonnet',
-    prompt: codeweaverWorkerMinionStatics.prompt.template,
-  },
-  'codeweaver-reviewer-minion': {
-    model: 'opus',
-    prompt: codeweaverReviewerMinionStatics.prompt.template,
-  },
-
-  pesteater: {
-    model: roleToModelStatics.pesteater,
-    prompt: pesteaterPromptStatics.prompt.template,
-  },
-  'pesteater-planner-minion': {
-    model: 'opus',
-    prompt: pesteaterPlannerMinionStatics.prompt.template,
-  },
-  'pesteater-worker-minion': {
-    model: 'sonnet',
-    prompt: pesteaterWorkerMinionStatics.prompt.template,
-  },
-  'pesteater-reviewer-minion': {
-    model: 'opus',
-    prompt: pesteaterReviewerMinionStatics.prompt.template,
+    prompt: codeweaverReviewerStatics.prompt.template,
   },
 
   flowrider: {
     model: roleToModelStatics.flowrider,
     prompt: flowriderPromptStatics.prompt.template,
   },
-  'flowrider-planner-minion': {
-    model: 'opus',
-    prompt: flowriderPlannerMinionStatics.prompt.template,
-  },
-  'flowrider-worker-minion': {
+  'flowrider-reviewer': {
     model: 'sonnet',
-    prompt: flowriderWorkerMinionStatics.prompt.template,
-  },
-  'flowrider-reviewer-minion': {
-    model: 'opus',
-    prompt: flowriderReviewerMinionStatics.prompt.template,
-  },
-
-  groundstomper: {
-    model: roleToModelStatics.groundstomper,
-    prompt: groundstomperPromptStatics.prompt.template,
-  },
-  'groundstomper-planner-minion': {
-    model: 'opus',
-    prompt: groundstomperPlannerMinionStatics.prompt.template,
-  },
-  'groundstomper-worker-minion': {
-    model: 'sonnet',
-    prompt: groundstomperWorkerMinionStatics.prompt.template,
-  },
-  'groundstomper-reviewer-minion': {
-    model: 'opus',
-    prompt: groundstomperReviewerMinionStatics.prompt.template,
+    prompt: flowriderReviewerStatics.prompt.template,
   },
 
   siegemaster: {
     model: roleToModelStatics.siegemaster,
     prompt: siegemasterPromptStatics.prompt.template,
   },
-  'siegemaster-planner-minion': {
-    model: 'opus',
-    prompt: siegemasterPlannerMinionStatics.prompt.template,
-  },
-  'siegemaster-worker-minion': {
+  'siegemaster-reviewer': {
     model: 'sonnet',
-    prompt: siegemasterWorkerMinionStatics.prompt.template,
+    prompt: siegemasterReviewerStatics.prompt.template,
   },
-  'siegemaster-reviewer-minion': {
-    model: 'opus',
-    prompt: siegemasterReviewerMinionStatics.prompt.template,
+  'siegemaster-walker': {
+    model: 'sonnet',
+    prompt: siegemasterWalkerStatics.prompt.template,
   },
 
   spiritmender: {
@@ -144,7 +76,7 @@ const EXPECTED_BY_NAME = {
   },
 } as const satisfies Record<PromptName, unknown>;
 
-// The case list is DERIVED from the name list the contract itself is built from, so a twenty-fourth
+// The case list is DERIVED from the name list the contract itself is built from, so an eleventh
 // prompt is covered the day it is added rather than the day someone remembers this file.
 const EVERY_PROMPT_CASE = agentPromptClassificationStatics.promptNames.map(
   (name) => [name, EXPECTED_BY_NAME[name].model, EXPECTED_BY_NAME[name].prompt] as const,
@@ -165,10 +97,10 @@ describe('agentNameToPromptTransformer', () => {
   });
 
   describe('nothing is interpolated on the way out', () => {
-    // All twenty-three templates carry exactly one `$ARGUMENTS`, where the caller that owns the
-    // operation context substitutes. For a ROLE that caller is `workItemToPromptTransformer`; for a
-    // minion — `chaoswhisperer-gap-minion` included — it is `agentPromptGetBroker`'s minion branch,
-    // which substitutes a bare `Quest ID:` line.
+    // Every template carries exactly one `$ARGUMENTS`, where the caller that owns the operation
+    // context substitutes. For a ROLE that caller is `workItemToPromptTransformer`; for a minion —
+    // `chaoswhisperer-gap-minion` included — it is `agentPromptGetBroker`'s minion branch, which
+    // substitutes a bare `Quest ID:` line.
     it.each(agentPromptClassificationStatics.promptNames)(
       'VALID: {agent: %s} => served prompt still carries exactly one $ARGUMENTS for its caller',
       (name) => {
@@ -178,9 +110,9 @@ describe('agentNameToPromptTransformer', () => {
       },
     );
 
-    // Every prompt is one file holding its own text now. A `$DISCIPLINE` or `$MY_DISCIPLINE` left
-    // in any served prompt would be a token nothing substitutes any more — an agent handed the
-    // literal string where its instructions used to be.
+    // Every prompt is one file holding its own text. A `$DISCIPLINE` or `$MY_DISCIPLINE` left in
+    // any served prompt would be a token nothing substitutes — an agent handed the literal string
+    // where its instructions belong.
     it.each(agentPromptClassificationStatics.promptNames)(
       'VALID: {agent: %s} => served prompt carries no $DISCIPLINE or $MY_DISCIPLINE token',
       (name) => {

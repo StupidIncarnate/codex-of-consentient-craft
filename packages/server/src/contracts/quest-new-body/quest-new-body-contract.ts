@@ -21,7 +21,7 @@ export const questNewBodyContract = z.object({
   questType: questTypeContract
     .optional()
     .describe(
-      "Which pipeline the new quest follows. Omit for the default feature pipeline; 'bug-hunt' seeds the BugHunt intake and the PestEater implementation chain.",
+      "Which pipeline the new quest follows. Omit for the default feature pipeline; 'bug-hunt' seeds the BugHunt intake instead of ChaosWhisperer's — the only way a bug-hunt differs from a feature quest, since both run the identical implementation relay afterward.",
     ),
 });
 

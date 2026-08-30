@@ -19,10 +19,10 @@
  * modify-quest — the ledger is off that allowlist at every status — it is written by
  * `questHydrateBroker`'s direct persist, where an authored implementation item REPLACES the item
  * the flows would otherwise derive for the same role; the hydrator appends the
- * fixed verify tail (flowrider, siegemaster — ward is skipped here) at in_progress. Groundstomper
- * is also part of the tail but fans to zero items, because the quest's only package
- * (`orchestrator`) is not e2e-eligible. There is no standards-review item anywhere in the tail: the
- * five concerns are reviewed by a reviewer-minion inside each committing session's own turn.
+ * fixed verify tail (flowrider, siegemaster — ward is skipped here via `skipRoles`) at in_progress.
+ * WHICH tail roles land is decided by the flow's `flowType`, for the reason stated where that field
+ * is set. There is no standards-review item anywhere in the tail: the five concerns are reviewed by
+ * the reviewer each committing session summons, inside its own turn.
  */
 
 export const smoketestBlueprintsStatics = {
@@ -79,7 +79,12 @@ export const smoketestBlueprintsStatics = {
       {
         id: 'smoketest-signal-flow',
         name: 'Smoketest Signal Flow',
-        flowType: 'operational',
+        // `runtime` because this blueprint exists to drive the WHOLE relay. The tail's flow fan-out
+        // cuts each seed over the flow types its own track measures, and `flowrider` measures
+        // `runtime` alone — so an operational flow here seeds no flowrider item, and every scenario
+        // asserting that role would pass over a relay it never entered. Siegemaster measures both
+        // types, so `runtime` is the one value that keeps all three scripted roles dispatched.
+        flowType: 'runtime',
         entryPoint: 'orchestrator dispatches smoketest agent',
         exitPoints: ['agent signaled complete'],
         nodes: [

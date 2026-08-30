@@ -95,6 +95,12 @@ describe('AgentPromptFlow', () => {
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
         '',
+        'Your spec is NOT in this block. Fetch it one flow at a time:',
+        `  get-quest({ questId: '${String(quest.id)}', stage: 'spec' })   <- this item names no flow, so there is no slice to take`,
+        'Each call returns that flow whole — every node, every edge with its branch label, every',
+        'observable, the contracts and design decisions that govern it, and the sign-offs already',
+        'recorded. Make the call for a flow BEFORE you work it.',
+        '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
       ].join('\n');

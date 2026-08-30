@@ -5,7 +5,7 @@
  * flowEdgeContract.parse({id: 'login-to-dashboard', from: 'login-page', to: 'dashboard', label: 'success'});
  * // Returns: FlowEdge object
  *
- * The two sign-offs are TOP-LEVEL SIBLING fields rather than a nested `signoffs` block, because
+ * The sign-offs are TOP-LEVEL SIBLING fields rather than a nested `signoffs` block, because
  * `questItemDeepMergeTransformer` replaces any non-id-bearing object value WHOLESALE — a nested
  * block would let a Siegemaster write delete Flowrider's sign-off while reporting success, whereas
  * sibling keys merge per-key. They are `.optional()` and not `.default()` because `questModifyBroker`
@@ -24,6 +24,7 @@ export const flowEdgeContract = z.object({
   from: flowEdgeRefContract,
   to: flowEdgeRefContract,
   label: z.string().brand<'FlowEdgeLabel'>().optional(),
+  codeweaverSignoff: signoffContract.optional(),
   flowriderSignoff: signoffContract.optional(),
   siegemasterSignoff: signoffContract.optional(),
 });

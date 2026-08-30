@@ -115,8 +115,8 @@ describe('workItemContextBlockTransformer', () => {
     const quest = QuestStub({
       packagesAffected: [
         QuestPackageEntryStub({
-          name: 'groundstomp',
-          location: './packages/groundstomp',
+          name: 'queue-runner',
+          location: './packages/queue-runner',
           changeType: 'new',
           packageType: 'frontend-ink',
           usedBy: ['orchestrator'],
@@ -137,7 +137,7 @@ describe('workItemContextBlockTransformer', () => {
         `- questId: ${quest.id}`,
         `- workItemId: ${workItem.id}`,
         '- role: codeweaver',
-        '- packagesAffected: groundstomp (new, frontend-ink)',
+        '- packagesAffected: queue-runner (new, frontend-ink)',
       ].join('\n'),
     );
   });

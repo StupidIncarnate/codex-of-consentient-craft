@@ -268,9 +268,9 @@ export const questRunRiftcarverBroker = async ({
       }
 
       // PUSH. Establishes the branch's upstream, once, right after the git context is recorded.
-      // Doing it HERE rather than at the first round's end is what removes the branching decision
-      // from every session downstream: the branch is tracked before the first round runs, so all
-      // five `<role>-reviewer-minion` prompts write a bare `git push` and no session has to decide
+      // Doing it HERE rather than at the first pass's end is what removes the branching decision
+      // from every session downstream: the branch is tracked before the first pass runs, so every
+      // `<role>-reviewer` prompt writes a bare `git push` and no session has to decide
       // whether `-u` is needed.
       //
       // Its done-check reads the REAL WORLD like every other step's: a branch that already tracks

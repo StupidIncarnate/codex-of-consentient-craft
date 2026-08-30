@@ -12,13 +12,13 @@
  */
 
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import { questPackageEntriesToTextTransformer } from '@dungeonmaster/shared/transformers';
 
 import {
   promptTextContract,
   type PromptText,
 } from '../../contracts/prompt-text/prompt-text-contract';
 import { workItemContextBlockStatics } from '../../statics/work-item-context-block/work-item-context-block-statics';
-import { questPackageEntriesToTextTransformer } from '../quest-package-entries-to-text/quest-package-entries-to-text-transformer';
 
 export const workItemContextBlockTransformer = ({
   quest,

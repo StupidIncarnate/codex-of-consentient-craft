@@ -97,14 +97,14 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
       const quest = QuestStub({
         id: QuestIdStub({ value: 'q-one-orphan' }),
         status: 'in_progress',
-        workItems: [WorkItemStub({ id: orphanId, role: 'pesteater', status: 'in_progress' })],
+        workItems: [WorkItemStub({ id: orphanId, role: 'flowrider', status: 'in_progress' })],
       });
       proxy.setupModifyForQuest({ quest });
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
       expect(result.quest.workItems).toStrictEqual([
-        WorkItemStub({ id: orphanId, role: 'pesteater', status: 'pending' }),
+        WorkItemStub({ id: orphanId, role: 'flowrider', status: 'pending' }),
       ]);
     });
 
@@ -115,7 +115,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
         id: QuestIdStub({ value: 'q-orphan-fresh' }),
         status: 'in_progress',
         workItems: [
-          WorkItemStub({ id: orphanId, role: 'pesteater', status: 'in_progress', retryCount: 0 }),
+          WorkItemStub({ id: orphanId, role: 'flowrider', status: 'in_progress', retryCount: 0 }),
         ],
       });
       proxy.setupModifyForQuest({ quest });
@@ -147,7 +147,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
         workItems: [
           WorkItemStub({
             id: orphanId,
-            role: 'pesteater',
+            role: 'flowrider',
             status: 'in_progress',
             retryCount: 0,
             sessionId,

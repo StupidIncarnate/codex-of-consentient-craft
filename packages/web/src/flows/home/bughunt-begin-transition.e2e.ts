@@ -24,19 +24,20 @@ const BUGHUNT_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-0000000000d2';
 const BUGHUNT_OP_TEXT = 'Author spec + implementation plan';
 
 // DERIVED from the registry, never spelled out: a hardcoded
-// ['bughunt','riftcarver','pesteater','ward','ward'] still passes if questBuildRelayGraphBroker
-// seeds a list it matched by role name rather than one it read off the quest's own type. Bug-hunt's
-// startImplementationOps is the `riftcarver` carve followed by a single `pesteater` seed (neither
-// carries fanOutBy, so each fans to exactly one item) and its relayTail is ward(changed) ->
-// ward(full).
+// ['bughunt','riftcarver','codeweaver','ward','flowrider','siegemaster','ward'] still passes if
+// questBuildRelayGraphBroker seeds a list it matched by role name rather than one it read off the
+// quest's own type. Bug-hunt shares the feature relay wholesale — the `riftcarver` carve, the
+// `codeweaver` build (neither carries fanOutBy at this seed-list level, so each fans to exactly one
+// entry here), then relayTail's ward(changed) -> flowrider -> siegemaster -> ward(full).
 const BUG_HUNT_REGISTRY = questTypeRegistryStatics['bug-hunt'];
 const EXPECTED_BUG_HUNT_LEDGER_ROLES = [
   String(BUG_HUNT_REGISTRY.initialWorkItemRole),
   ...BUG_HUNT_REGISTRY.startImplementationOps.map((seed) => String(seed.role)),
   ...BUG_HUNT_REGISTRY.relayTail.map((seed) => String(seed.role)),
 ];
-// Whatever the feature tail carries that bug-hunt's does not — flowrider, groundstomper and
-// siegemaster today, and anything added to feature tomorrow without this test needing an edit.
+// Whatever the feature tail carries that bug-hunt's does not — nothing today, since the two quest
+// types share one relay tail, but this stays derived so a role added to feature alone tomorrow is
+// still caught without this test needing an edit.
 const FEATURE_ONLY_ROLES = questTypeRegistryStatics.feature.relayTail
   .map((seed) => String(seed.role))
   .filter((role) => !EXPECTED_BUG_HUNT_LEDGER_ROLES.includes(role));
@@ -174,11 +175,11 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
 
-    // The seeded relay is the BUG-HUNT one, read off questTypeRegistryStatics['bug-hunt'] rather
-    // than the feature tail. Asserted as the whole ordered list: a subset check ('contains a
-    // pesteater') passes on a ledger that also grew a flowrider and a siegemaster, and the order is
+    // The seeded relay is read off questTypeRegistryStatics['bug-hunt'] rather than assumed
+    // identical to the feature tail. Asserted as the whole ordered list: a subset check ('contains a
+    // codeweaver') passes on a ledger that also grew a flowrider and a siegemaster, and the order is
     // also what pins the carve to the HEAD of the relay — behind the intake item the fixture seeded
-    // and ahead of the pesteater that works in the tree it creates.
+    // and ahead of the codeweaver that builds in the tree it creates.
     expect(questData.quest.operations.map((op: { role: string }) => op.role)).toStrictEqual(
       EXPECTED_BUG_HUNT_LEDGER_ROLES,
     );

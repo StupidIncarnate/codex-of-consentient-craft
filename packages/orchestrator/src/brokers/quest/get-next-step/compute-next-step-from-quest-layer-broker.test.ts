@@ -8,13 +8,16 @@ import {
 import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-quest-layer-broker';
 import { computeNextStepFromQuestLayerBrokerProxy } from './compute-next-step-from-quest-layer-broker.proxy';
 
-// Bug-hunt chain ids (shape seeded at Start Quest by questBuildRelayGraphBroker for the bug-hunt quest type).
-const PESTEATER_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+// Chain ids for a bug-hunt quest's relay tail. questBuildRelayGraphBroker seeds the identical
+// relay shape for both quest types: riftcarver, then codeweaver, then ward(changed) -> flowrider
+// -> siegemaster -> ward(full).
+const CODEWEAVER_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 const WARD_CHANGED_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-const SPIRITMENDER_ID = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
+const FLOWRIDER_ID = QuestWorkItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
+const SIEGEMASTER_ID = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
 const WARD_FULL_ID = QuestWorkItemIdStub({ value: 'eeeeeeee-1111-4222-9333-444444444444' });
 
-const bugHuntItems = ({
+const relayTailItems = ({
   completeIds,
 }: {
   completeIds: readonly ReturnType<typeof QuestWorkItemIdStub>[];
@@ -24,9 +27,9 @@ const bugHuntItems = ({
 
   return [
     WorkItemStub({
-      id: PESTEATER_ID,
-      role: 'pesteater',
-      status: statusFor(PESTEATER_ID),
+      id: CODEWEAVER_ID,
+      role: 'codeweaver',
+      status: statusFor(CODEWEAVER_ID),
       dependsOn: [],
     }),
     WorkItemStub({
@@ -35,13 +38,19 @@ const bugHuntItems = ({
       spawnerType: 'command',
       wardMode: 'changed',
       status: statusFor(WARD_CHANGED_ID),
-      dependsOn: [PESTEATER_ID],
+      dependsOn: [CODEWEAVER_ID],
     }),
     WorkItemStub({
-      id: SPIRITMENDER_ID,
-      role: 'spiritmender',
-      status: statusFor(SPIRITMENDER_ID),
+      id: FLOWRIDER_ID,
+      role: 'flowrider',
+      status: statusFor(FLOWRIDER_ID),
       dependsOn: [WARD_CHANGED_ID],
+    }),
+    WorkItemStub({
+      id: SIEGEMASTER_ID,
+      role: 'siegemaster',
+      status: statusFor(SIEGEMASTER_ID),
+      dependsOn: [FLOWRIDER_ID],
     }),
     WorkItemStub({
       id: WARD_FULL_ID,
@@ -49,7 +58,7 @@ const bugHuntItems = ({
       spawnerType: 'command',
       wardMode: 'full',
       status: statusFor(WARD_FULL_ID),
-      dependsOn: [SPIRITMENDER_ID],
+      dependsOn: [SIEGEMASTER_ID],
     }),
   ];
 };
@@ -241,13 +250,13 @@ describe('computeNextStepFromQuestLayerBroker', () => {
   });
 
   describe('bug-hunt dispatch walk', () => {
-    it('VALID: {pesteater pending} => spawn-agents pesteater first', () => {
+    it('VALID: {codeweaver pending} => spawn-agents codeweaver first', () => {
       computeNextStepFromQuestLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({
         id: questId,
         questType: 'bug-hunt',
-        workItems: bugHuntItems({ completeIds: [] }),
+        workItems: relayTailItems({ completeIds: [] }),
       });
 
       expect(computeNextStepFromQuestLayerBroker({ quest })).toStrictEqual({
@@ -255,21 +264,21 @@ describe('computeNextStepFromQuestLayerBroker', () => {
         agents: [
           {
             questId,
-            role: 'pesteater',
-            workItemId: PESTEATER_ID,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pesteater",\n  workItemId: "${String(PESTEATER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(PESTEATER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+            role: 'codeweaver',
+            workItemId: CODEWEAVER_ID,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${String(CODEWEAVER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(CODEWEAVER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
           },
         ],
       });
     });
 
-    it('VALID: {pesteater complete} => run-ward changed', () => {
+    it('VALID: {codeweaver complete} => run-ward changed', () => {
       computeNextStepFromQuestLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({
         id: questId,
         questType: 'bug-hunt',
-        workItems: bugHuntItems({ completeIds: [PESTEATER_ID] }),
+        workItems: relayTailItems({ completeIds: [CODEWEAVER_ID] }),
       });
 
       expect(computeNextStepFromQuestLayerBroker({ quest })).toStrictEqual({
@@ -280,13 +289,13 @@ describe('computeNextStepFromQuestLayerBroker', () => {
       });
     });
 
-    it('VALID: {through ward(changed)} => spawn-agents spiritmender', () => {
+    it('VALID: {through ward(changed)} => spawn-agents flowrider', () => {
       computeNextStepFromQuestLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({
         id: questId,
         questType: 'bug-hunt',
-        workItems: bugHuntItems({ completeIds: [PESTEATER_ID, WARD_CHANGED_ID] }),
+        workItems: relayTailItems({ completeIds: [CODEWEAVER_ID, WARD_CHANGED_ID] }),
       });
 
       expect(computeNextStepFromQuestLayerBroker({ quest })).toStrictEqual({
@@ -294,22 +303,46 @@ describe('computeNextStepFromQuestLayerBroker', () => {
         agents: [
           {
             questId,
-            role: 'spiritmender',
-            workItemId: SPIRITMENDER_ID,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "spiritmender",\n  workItemId: "${String(SPIRITMENDER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(SPIRITMENDER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+            role: 'flowrider',
+            workItemId: FLOWRIDER_ID,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${String(FLOWRIDER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(FLOWRIDER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
           },
         ],
       });
     });
 
-    it('VALID: {through spiritmender} => run-ward full', () => {
+    it('VALID: {through flowrider} => spawn-agents siegemaster', () => {
       computeNextStepFromQuestLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({
         id: questId,
         questType: 'bug-hunt',
-        workItems: bugHuntItems({
-          completeIds: [PESTEATER_ID, WARD_CHANGED_ID, SPIRITMENDER_ID],
+        workItems: relayTailItems({
+          completeIds: [CODEWEAVER_ID, WARD_CHANGED_ID, FLOWRIDER_ID],
+        }),
+      });
+
+      expect(computeNextStepFromQuestLayerBroker({ quest })).toStrictEqual({
+        type: 'spawn-agents',
+        agents: [
+          {
+            questId,
+            role: 'siegemaster',
+            workItemId: SIEGEMASTER_ID,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "siegemaster",\n  workItemId: "${String(SIEGEMASTER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(SIEGEMASTER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {through siegemaster} => run-ward full', () => {
+      computeNextStepFromQuestLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'fix-bug' });
+      const quest = QuestStub({
+        id: questId,
+        questType: 'bug-hunt',
+        workItems: relayTailItems({
+          completeIds: [CODEWEAVER_ID, WARD_CHANGED_ID, FLOWRIDER_ID, SIEGEMASTER_ID],
         }),
       });
 
@@ -327,8 +360,8 @@ describe('computeNextStepFromQuestLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         questType: 'bug-hunt',
-        workItems: bugHuntItems({
-          completeIds: [PESTEATER_ID, WARD_CHANGED_ID, SPIRITMENDER_ID, WARD_FULL_ID],
+        workItems: relayTailItems({
+          completeIds: [CODEWEAVER_ID, WARD_CHANGED_ID, FLOWRIDER_ID, SIEGEMASTER_ID, WARD_FULL_ID],
         }),
       });
 

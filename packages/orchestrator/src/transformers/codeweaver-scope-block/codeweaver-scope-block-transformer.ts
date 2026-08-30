@@ -1,37 +1,28 @@
 /**
- * PURPOSE: Renders a codeweaver operation item's SCOPE — its nodes, the observables it must satisfy
- * verbatim, the contracts it owns, and the seams it sits on — from the quest as it stands AT
- * DISPATCH, rather than from anything baked into the ledger
+ * PURPOSE: Renders the SEAMS a codeweaver operation item sits on — each node it shares with another
+ * package, and where that package's half of it stands in the relay right now. Reach for this rather
+ * than the flow slice `get-quest({ questId, flowId, packageName })` returns: that render answers
+ * what the spec says, and this one answers a question only the operations LEDGER holds — whose half
+ * the other side of a node is, and whether that session has already run.
  *
  * USAGE:
  * codeweaverScopeBlockTransformer({ quest, operationItem });
  * // Returns ContentText[] lines to splice into the agent's Operation Context, empty when the item
- * // declares no package (nothing to scope)
+ * // declares no package or shares no node with one
  *
- * WHY THIS IS NOT ON THE OPERATION ITEM. The ledger stores only the slice key — ONE PACKAGE, plus
- * every flow it tags a node in — and the item's `text` is a label. Two things break if the scope is
- * written into that text at Start instead:
- *
- * 1. **The spec grows underneath the ledger.** Codeweaver holds additive spec authority and so do
- *    Flowrider and Siegemaster: they may add observables and nodes to an existing flow mid-quest. An
- *    observable added by the third session would be invisible to the seventh, whose text was written
- *    before it existed. Vague prose does not rot this way; a precise snapshot does.
- * 2. **The ledger render is budgeted.** `workItemToPromptTransformer` already elides completed items
- *    to stay under `mcpToolResultStatics.maxVerbatimChars`, because EVERY item's text prints in EVERY
- *    agent's ledger block. A dozen items each carrying verbatim observable text would blow that
- *    budget and start eliding the ledger the elision exists to protect.
+ * WHY THE REST OF THE SCOPE IS NOT HERE. The nodes, the verbatim observables, the contracts and the
+ * design decisions all live in the flow slice, one call per flow. Rendering them into the Operation
+ * Context measured 43,660 characters for the `web` item of a real quest — 61,501 with its prompt
+ * around it, against `mcpToolResultStatics.maxVerbatimChars` (50,000) — and an over-budget prompt is
+ * spilled to a file, so the session starts holding a path instead of its instructions. Two tool
+ * results are two separate budgets; one is one.
  *
  * NODE MEMBERSHIP is "tags my package", the SAME rule the fan-out mints cells by. A glue node is
- * therefore in both sides' scopes, because a seam has two halves and each side builds its own. What
- * this file adds on top is the SEAM block: it reads the ledger to say which session owes the other
- * half and whether that session has already run, so "verify it exists" is only ever asked about
- * code that could already exist.
+ * therefore in both sides' scopes, because a seam has two halves and each side builds its own.
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, OperationItem, Quest } from '@dungeonmaster/shared/contracts';
-
-import { questContractSourceOwnerTransformer } from '../quest-contract-source-owner/quest-contract-source-owner-transformer';
 
 export const codeweaverScopeBlockTransformer = ({
   quest,
@@ -49,116 +40,13 @@ export const codeweaverScopeBlockTransformer = ({
   const scopedFlows = quest.flows.filter((flow) =>
     operationItem.flowIds.some((flowId) => String(flowId) === String(flow.id)),
   );
-  // The flow travels with the node because the seam block below asks a per-FLOW question of the
-  // ledger — "is there a cell for the other side of this node, on this flow, and has it run?"
+  // The flow travels with the node because the seam block asks a per-FLOW question of the ledger —
+  // "is there a cell for the other side of this node, on this flow, and has it run?"
   const scopedNodes = scopedFlows.flatMap((flow) =>
     flow.nodes
       .filter((node) => node.packages.some((name) => String(name) === ownPackageText))
       .map((node) => ({ flow, node })),
   );
-  const scopedNodeIds = new Set(scopedNodes.map(({ node }) => String(node.id)));
-
-  const lines: ContentText[] = [];
-
-  if (scopedNodes.length > 0) {
-    lines.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        `Your nodes (rendered from the spec as it stands right now, not from the ledger): ${scopedNodes.map(({ node }) => `#${String(node.id)}`).join(', ')}`,
-      ),
-    );
-
-    // An observable on a single-package node has its `package` resolved from that node at save time,
-    // so this comparison holds for both shapes: a seam node states each side explicitly, a plain node
-    // has already been filled in.
-    const observables = scopedNodes.flatMap(({ node }) =>
-      node.observables
-        .filter((observable) => String(observable.package) === ownPackageText)
-        .map((observable) => ({ node, observable })),
-    );
-
-    if (observables.length > 0) {
-      lines.push(
-        contentTextContract.parse(''),
-        contentTextContract.parse('Must satisfy — these are YOUR acceptance targets, verbatim:'),
-        ...observables.map(({ node, observable }) =>
-          contentTextContract.parse(
-            `  - ${String(observable.id)} [${observable.type}] on #${String(node.id)}: "${String(observable.description)}"`,
-          ),
-        ),
-      );
-    }
-  }
-
-  // Contracts route by PATH, and by path ALONE — never by which node they are anchored to. The
-  // item is one whole package, so every contract resolving to it is that package's foundation
-  // whether or not this package tags the node the contract hangs off. Filtering by node here is
-  // what the flow-cell ledger used to do, and it left a contract anchored to a sibling's node
-  // reaching no session at all. Routing is per-PROPERTY as well as per-contract: one contract can
-  // legitimately deliver into several packages, and each session is shown only its own share.
-  const contracts = quest.contracts.flatMap((contract) => {
-    if (contract.status === 'existing') {
-      return [];
-    }
-    const ownsTheFile =
-      questContractSourceOwnerTransformer({
-        contract,
-        packagesAffected: quest.packagesAffected,
-      }) === ownPackage;
-    const properties = contract.properties.filter(
-      (property) =>
-        questContractSourceOwnerTransformer({
-          contract,
-          property,
-          packagesAffected: quest.packagesAffected,
-        }) === ownPackage,
-    );
-    // The file is this package's, or at least one property of it is. A package holding only
-    // properties still gets the header, because the contract is where those lines live.
-    return ownsTheFile || properties.length > 0 ? [{ contract, properties }] : [];
-  });
-
-  if (contracts.length > 0) {
-    lines.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse('Contracts you own — every property description is a requirement:'),
-      ...contracts.flatMap(({ contract, properties }) => [
-        contentTextContract.parse(
-          `  - ${String(contract.name)} (${contract.kind}, ${contract.status}) [${String(contract.source)}]`,
-        ),
-        ...properties.map((property) =>
-          contentTextContract.parse(
-            property.source === undefined
-              ? `      ${String(property.name)}: ${String(property.description)}`
-              : `      ${String(property.name)} [${String(property.source)}]: ${String(property.description)}`,
-          ),
-        ),
-      ]),
-    );
-  }
-
-  // A decision reaches this session when it governs one of its NODES or one of its CONTRACTS. The
-  // contract half is why the second set exists: a contract routes by path, so a package can own one
-  // anchored to a node it does not tag, and matching on nodes alone rendered no decision at all for
-  // a package whose whole scope is contracts. That session was then told to call
-  // `get-quest({ stage: 'spec' })` and pair decisions to contracts by name itself — a second copy of
-  // the same data, fetched by hand, that could disagree with this one.
-  const contractNodeIds = new Set(contracts.map(({ contract }) => String(contract.nodeId)));
-  const decisions = quest.designDecisions.filter((decision) =>
-    decision.relatedNodeIds.some(
-      (nodeId) => scopedNodeIds.has(String(nodeId)) || contractNodeIds.has(String(nodeId)),
-    ),
-  );
-
-  if (decisions.length > 0) {
-    lines.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse('Design decisions constraining your scope:'),
-      ...decisions.map((decision) =>
-        contentTextContract.parse(`  - ${String(decision.title)} — ${String(decision.rationale)}`),
-      ),
-    );
-  }
 
   // SEAMS. A glue node tags more than one package, and every package it tags has its own item
   // carrying this flow — so the other half is somebody's declared scope, not a gap. What the
@@ -168,10 +56,11 @@ export const codeweaverScopeBlockTransformer = ({
   // consumer's half exists" is unsatisfiable, and telling a consumer nothing about a provider that
   // pivoted is how a seam ships broken.
   //
-  // The FLOW still narrows the sibling match, even though one item now covers a package's every
-  // flow. An item that does not carry this flow does not render this node in its own scope either,
-  // so it genuinely owns no half here — which is exactly what a node added to the flow after Start
-  // looks like, the ledger being derived once and never re-derived.
+  // The FLOW narrows the sibling match, and with one item per (package, flow) cell that match is
+  // exact: at most one sibling cell can answer for the other half. An item that does not carry this
+  // flow does not render this node in its own scope either, so it genuinely owns no half here —
+  // which is exactly what a node added to the flow after Start looks like, the ledger being derived
+  // once and never re-derived.
   const seams = scopedNodes.flatMap(({ flow, node }) =>
     node.packages
       .filter((name) => String(name) !== ownPackageText)
@@ -199,24 +88,17 @@ export const codeweaverScopeBlockTransformer = ({
       }),
   );
 
-  if (seams.length > 0) {
-    lines.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        'Seams — each line is a node you share with another package, and where that package’s half of it stands:',
-      ),
-      ...seams.flatMap(({ node, other, disposition }) => [
-        contentTextContract.parse(`  - #${String(node.id)} with ${other} — ${disposition}`),
-        ...node.observables
-          .filter((observable) => String(observable.package) === other)
-          .map((observable) =>
-            contentTextContract.parse(
-              `      attributed to ${other} — ${String(observable.id)}: "${String(observable.description)}"`,
-            ),
-          ),
-      ]),
-    );
+  if (seams.length === 0) {
+    return [];
   }
 
-  return lines;
+  return [
+    contentTextContract.parse(''),
+    contentTextContract.parse(
+      'Seams — each line is a node you share with another package, and where that package’s half of it stands:',
+    ),
+    ...seams.map(({ node, other, disposition }) =>
+      contentTextContract.parse(`  - #${String(node.id)} with ${other} — ${disposition}`),
+    ),
+  ];
 };

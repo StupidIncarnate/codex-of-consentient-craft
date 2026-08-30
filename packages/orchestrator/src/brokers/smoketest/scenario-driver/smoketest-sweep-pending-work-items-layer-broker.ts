@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Sweeps every pending work item with no smoketestPromptOverride on a quest, dispenses the next canned prompt per role, settles whatever the completion gate would refuse that role, and stamps the override atomically
+ * PURPOSE: Sweeps every pending work item with no smoketestPromptOverride on a quest, dispenses the next canned prompt per role, writes fabricated sign-offs onto that role's outstanding units so the fixture quest reads as covered, and stamps the override atomically
  *
  * USAGE:
  * await smoketestSweepPendingWorkItemsLayerBroker({ questId, abortSignal, dispense });
@@ -75,13 +75,10 @@ export const smoketestSweepPendingWorkItemsLayerBroker = async ({
           .split(smoketestPlaceholdersStatics.workItemId)
           .join(String(item.id)),
       );
-      // The scripted session this override is about to drive walks nothing and writes no sign-off,
-      // so a role carrying the server-side completion gate would have `done` refused every time,
-      // never signal, and leave the quest to orphan recovery — which is what stops any smoketest
-      // reaching `complete` and leaves the whole terminal path uncovered. The harness settles that
-      // scope itself, BEFORE the stamp, so the sign-offs are on disk by the time the agent signals.
-      // The gate is untouched: it still runs, still recomputes, and allows only because the
-      // denominator is empty.
+      // The scripted session this override is about to drive walks nothing and writes no sign-off
+      // of its own. Nothing gates its `done` on that absence, but the harness fabricates one anyway
+      // — BEFORE the stamp, so it is on disk by the time the agent signals — so the fixture quest
+      // this scenario leaves behind reads as covered instead of permanently blank.
       await smoketestSignOutstandingUnitsBroker({ questId, workItemId: item.id });
       await smoketestStampOverrideBroker({
         questId,

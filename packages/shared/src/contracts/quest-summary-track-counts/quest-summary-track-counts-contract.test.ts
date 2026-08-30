@@ -14,7 +14,7 @@ describe('questSummaryTrackCountsContract', () => {
     });
 
     it.each(signoffDenominatorTrackContract.options)(
-      'VALID: {id: %s} => every denominator track is a legal id, groundstomper included',
+      'VALID: {id: %s} => every denominator track is a legal id',
       (track) => {
         expect(QuestSummaryTrackCountsStub({ id: track }).id).toBe(track);
       },

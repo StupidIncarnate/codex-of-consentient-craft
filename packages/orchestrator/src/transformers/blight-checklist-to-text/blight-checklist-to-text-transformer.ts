@@ -14,7 +14,7 @@
  * file so the path appears ONCE — in the `### {implPath}` heading — and reducing each unit to just
  * its concern name on a `[x]`/`[ ]` line is what brings that back under budget. Because the id can
  * no longer be read off its own line, the header states the grammar for reconstructing it
- * explicitly: heading path + concern name. A `reviewer-minion` writes `itemId` into `blightLedger`
+ * explicitly: heading path + concern name. A reviewer writes `itemId` into `blightLedger`
  * and `blightChecklistBuildTransformer` matches on it exactly, so a reviewer that cannot reconstruct
  * the id correctly leaves the unit reading as remaining however carefully it reviewed it.
  *

@@ -70,8 +70,8 @@ describe('questPackageEntryViolationsTransformer', () => {
       const offenders = questPackageEntryViolationsTransformer({
         entries: [
           QuestPackageEntryStub({
-            name: 'groundstomp',
-            location: './packages/groundstomp',
+            name: 'queue-runner',
+            location: './packages/queue-runner',
             changeType: 'new',
             usedBy: ['orchestrator'],
           }),
@@ -108,8 +108,8 @@ describe('questPackageEntryViolationsTransformer', () => {
       const offenders = questPackageEntryViolationsTransformer({
         entries: [
           QuestPackageEntryStub({
-            name: 'groundstomp',
-            location: './packages/groundstomp',
+            name: 'queue-runner',
+            location: './packages/queue-runner',
             changeType: 'new',
           }),
         ],
@@ -118,7 +118,7 @@ describe('questPackageEntryViolationsTransformer', () => {
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
-        "Package entry 'groundstomp' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on 'groundstomp'.",
+        "Package entry 'queue-runner' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on 'queue-runner'.",
       ]);
     });
 
@@ -126,8 +126,8 @@ describe('questPackageEntryViolationsTransformer', () => {
       const offenders = questPackageEntryViolationsTransformer({
         entries: [
           QuestPackageEntryStub({
-            name: 'groundstomp',
-            location: './packages/groundstomp',
+            name: 'queue-runner',
+            location: './packages/queue-runner',
             changeType: 'new',
             usedBy: [],
           }),
@@ -137,7 +137,7 @@ describe('questPackageEntryViolationsTransformer', () => {
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
-        "Package entry 'groundstomp' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on 'groundstomp'.",
+        "Package entry 'queue-runner' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on 'queue-runner'.",
       ]);
     });
 

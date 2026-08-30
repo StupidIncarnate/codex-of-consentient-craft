@@ -171,7 +171,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
 
-**Run it in the FOREGROUND and let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). **Never \`sleep\` on a ward run, and never \`tail\` its output file.** A run that crosses that timeout is backgrounded by the harness, and it notifies you when the run exits — do other work and read that notification. Never END your turn waiting, because no notification follows a final response.
+**Run it in the FOREGROUND and let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). **Never \`sleep\` on a ward run, and never \`tail\` its output file.** A run that crosses that timeout is backgrounded by the harness, and it notifies you when the run exits — do other work and read that notification. With nothing left to do meanwhile, end your turn; the notification re-enters you.
 
 **Run it ONCE.** Choose the right flags the first time; never re-run the same checks a second way, or follow a scoped run with a full one.
 

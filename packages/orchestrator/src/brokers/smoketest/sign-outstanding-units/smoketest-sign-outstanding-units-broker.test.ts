@@ -26,9 +26,9 @@ const OPERATION_ID = 'cccccccc-cccc-4ccc-accc-cccccccccc01';
 const OPERATION_REF = `operations/${OPERATION_ID}`;
 const FLOW_ID = 'smoketest-signal-flow';
 
-// The two sign-off FIELDS, read off the eligibility entries rather than typed as literals: the map
-// from track to field is many-to-one (flowrider and groundstomper share one field) and lives in one
-// place, so reading it here is what makes this test measure the real routing.
+// The two sign-off FIELDS, read off the eligibility entries rather than typed as literals: each
+// track now owns its own field one-to-one (codeweaver / flowrider / siegemaster), and reading it
+// here is what makes this test measure the real routing rather than a hardcoded guess.
 const SIEGEMASTER_FIELD = signoffTrackEligibilityStatics.byTrack.siegemaster.signoffField;
 const FLOWRIDER_FIELD = signoffTrackEligibilityStatics.byTrack.flowrider.signoffField;
 
@@ -111,6 +111,7 @@ const questFlowriderRuntime = QuestStub({
       text: 'Flowrider: author the flow-perspective test suites below the browser',
       status: 'in_progress',
       locked: true,
+      flowIds: [FLOW_ID],
     }),
   ],
   workItems: [
@@ -133,6 +134,7 @@ const questFlowriderOperational = QuestStub({
       text: 'Flowrider: author the flow-perspective test suites below the browser',
       status: 'in_progress',
       locked: true,
+      flowIds: [FLOW_ID],
     }),
   ],
   workItems: [
@@ -145,21 +147,25 @@ const questFlowriderOperational = QuestStub({
   ],
 });
 
-const questCodeweaver = QuestStub({
+// `spiritmender` — like `warpgate` — carries no `byTrack` entry at all, so it is measured on
+// nothing: the broker's eligibility lookup returns `undefined` for it regardless of what flows or
+// packages the item declares. `codeweaver` no longer illustrates this case, since it is now one of
+// the three gated tracks (`codeweaverSignoff`) alongside flowrider and siegemaster.
+const questSpiritmender = QuestStub({
   id: QUEST_ID,
   flows: [OPERATIONAL_FLOW],
   operations: [
     OperationItemStub({
       id: OPERATION_ID,
-      role: 'codeweaver',
-      text: 'Codeweaver: build the thing',
+      role: 'spiritmender',
+      text: 'Spiritmender: repair the red ward run',
       status: 'in_progress',
     }),
   ],
   workItems: [
     WorkItemStub({
       id: WORK_ITEM_ID,
-      role: 'codeweaver',
+      role: 'spiritmender',
       status: 'pending',
       relatedDataItems: [OPERATION_REF],
     }),
@@ -295,6 +301,14 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
   });
 
   describe('nothing to sign', () => {
+    // STILL REACHABLE, though `relayTailFanOutTransformer` never mints this pairing — it cuts each
+    // flow-fanned seed over its own track's `flowTypes`. Two live routes produce it anyway, and the
+    // broker's own filter is the only thing holding either:
+    //   1. `flowsRule: 'full'` at `in_progress` lets an execution agent EDIT a flow, `flowType`
+    //      included, so a flow can turn operational under a flowrider item already minted over it.
+    //   2. `questHydrateBroker` prepends a blueprint's authored `operations` verbatim, replacing the
+    //      derived items for the roles they name — a blueprint may author a flowrider item over any
+    //      flow it likes, and that ledger never passes through the fan-out at all.
     it('VALID: {flowrider item on an OPERATIONAL-only quest} => persists nothing, because that track measures runtime flows alone', async () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questFlowriderOperational });
@@ -310,9 +324,9 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       });
     });
 
-    it('VALID: {codeweaver item} => persists nothing, because no verification track names that role', async () => {
+    it('VALID: {spiritmender item} => persists nothing, because no verification track names that role', async () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
-      proxy.setupQuestFound({ quest: questCodeweaver });
+      proxy.setupQuestFound({ quest: questSpiritmender });
 
       const result = await smoketestSignOutstandingUnitsBroker({
         questId: QUEST_ID,

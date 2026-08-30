@@ -8,22 +8,15 @@
  * // Returns the evidence contract, a catalogue of known false greens, and the two verdicts a
  * // sign-off may carry
  *
- * THREE PROMPTS INTERPOLATE THESE HALVES, and each gets the half its session needs:
+ * TWO PROMPTS INTERPOLATE THESE HALVES, one each:
  *
- * 1. `flowrider-worker-minion-statics` takes `authoringMarkdown`, because that worker writes the
- *    suite.
- * 2. `flowrider-reviewer-minion-statics` takes `judgingMarkdown`, because that reviewer grades the
- *    suite.
- * 3. `groundstomper-reviewer-minion-statics` takes `judgingMarkdown` alone. `groundstomper`'s WORKER
- *    takes neither half. THIS file's colocated test is what pins all of that — its
- *    `describe('the three prompts that interpolate these halves')` counts byte-exact interpolations
- *    of each half into each of the three templates and asserts `judgingPerPrompt: [1, 1, 0]` and
- *    `authoringPerPrompt: [0, 0, 1]`. None of the three prompts has a colocated test of its own.
+ * 1. `flowriderPromptStatics` takes `authoringMarkdown`. That session chooses the layer for every
+ *    unit on its flow and briefs sub-agents against the choice, so it is the one that needs the
+ *    routing.
+ * 2. `flowriderReviewerStatics` takes `judgingMarkdown`, because it grades the suite that came back.
  *
  * ONE RULE DECIDES THAT SPLIT: a reviewer does not need the method that produced the artifact it
- * grades. The whole planner/worker/reviewer shape rests on that rule. Under the discipline packs
- * this arrangement replaced, each pack carried both halves and the same 8,281 characters went into
- * two prompts at once.
+ * grades. Give it both halves and the how-to competes with the questions it is there to ask.
  *
  * TWO RULES HERE EXIST BECAUSE AN EARLIER TAXONOMY DROPPED WHOLE CLASSES OF OBSERVABLE.
  * `cache-state` (browser storage) appeared in no modality's signal list at all. That taxonomy
@@ -43,17 +36,15 @@
  * has always read the surface off that tool. Its prompts carry no table. These two blocks now match
  * that precedent.
  *
- * `judgingMarkdown` IS BUDGETED, `authoringMarkdown` IS NOT. The judging half goes to the two
- * reviewer prompts carrying the most shared text in the set — a round-protocol primer, the standards
- * concerns and FIVE operating rules under their heading, which with this half is roughly 32,000
- * characters before either prompt writes a word — and they clear
- * `mcpToolResultStatics.maxVerbatimChars` by only three to four thousand characters. Over
- * that ceiling the MCP layer writes the prompt to a file and hands the agent an error stub instead
- * of its instructions, which is a silent dispatch
- * failure. So every sentence in the judging half must change what a reviewer DOES, and one that only
- * explains why a rule is right lives down here instead, where it costs both readers nothing. What
- * the trim from 5,836 to 4,498 moved down — each an EXTRA instance of a shape the served text still
- * states once, or a sentence that reader already holds from another block:
+ * `judgingMarkdown` IS THE BUDGETED HALF. It lands in `flowriderReviewerStatics`, which also carries
+ * `standardsReviewConcernsStatics` — the largest of the three reviewer prompts, and the one to
+ * measure first after an edit to either shared block. Over
+ * `mcpToolResultStatics.maxVerbatimChars` (50,000) the MCP layer writes the prompt to a file and
+ * hands the agent an error stub instead of its instructions, which fails silently. So every sentence
+ * in the judging half must change what a reviewer DOES, and one that only explains why a rule is
+ * right lives down here instead, where it costs both readers nothing. What the trim from 5,836 moved
+ * down — each an EXTRA instance of a shape the served text still states once, or a sentence that
+ * reader already holds from another block:
  *
  * - AN EXISTENCE-ONLY AUDIT reads as thorough because it is exhaustive: matching every observable
  *   id against a `describe` block name covers the whole list while opening no assertion at all.
@@ -120,32 +111,35 @@ Each shape below passes while the observable stays unproven. Each shipped in thi
 - **A guard for an input the product cannot produce.** Legitimate only where the test says plainly
   it is defensive, and never covers a user-facing observable.
 
-## Verdicts — every unit carries TWO independent sign-offs
+## Verdicts — a unit carries one sign-off per track, and there are three
 
-A unit is settled PER TRACK, never once for everybody. \`flowriderSignoff\` means *proven by a test*;
-\`siegemasterSignoff\`, *holds when a human drives the real system*. Each holds
-\`{ verdict, evidence, question?, workItemId, at }\`. A unit is done only when BOTH tracks have signed
-it. **Both verdicts CLEAR the completion gate — it refuses an ABSENT sign-off and nothing else.**
+A unit is settled PER TRACK, never once for everybody. Each field holds
+\`{ verdict, evidence, question?, workItemId, at }\`, and each says something the others do not:
 
-- **\`confirmed\`** — the evidence differs by track. Flowrider: a test \`file:line\` PLUS what makes
-  that test fail. Siegemaster: the value you measured off the running system.
+| Field | What it means | What its \`confirmed\` evidence is |
+|---|---|---|
+| \`codeweaverSignoff\` | proven by a unit test, beside the code | the test \`file:line\`, plus what makes it fail |
+| \`flowriderSignoff\` | proven by a flow-perspective test | the test \`file:line\`, plus what makes it fail |
+| \`siegemasterSignoff\` | holds when a person drives the real system | the value measured off that system |
+
+- **\`confirmed\`** — you settled it, and the evidence above is what settles it.
 - **\`unconfirmable\`** — you could not settle it after real effort. \`evidence\` names what you TRIED
   and why each attempt could not reach the unit. **A \`question\` naming what someone else would need
   is REQUIRED**; the contract refuses an \`unconfirmable\` carrying none.
 
-**A blank sign-off is the one thing that never clears.** Nothing server-side reopens an unsigned
-unit, the completion gate refuses your parent's \`done\` while a unit carries no sign-off, and the
-pt chain spends itself against it. An honest \`unconfirmable\` clears that gate.
+**An unsigned unit is honest, and nothing refuses a \`done\` over one.** No gate counts sign-offs.
+What gets marked is what somebody actually proved, so leave a unit you did not reach unsigned rather
+than reaching for a verdict that closes it.
 
 **A unit that simply needs a test nobody has written yet is NOT \`unconfirmable\`.** It is work
-remaining: put it in your \`NEXT: rework\` line. A verdict CLOSES a unit permanently.
+remaining: put it in your \`NEXT: rework\` line. A verdict CLOSES a unit, and a later session reads a
+signed unit as settled and moves past it.
 
 **A measured defect is a NEW observable, not a third verdict.** An observable is a positive
 expectation, so "send it \`bleh\` and the server crashes instead of returning 400" is the INVERSE
-expectation and belongs in the spec. ADD it with \`modify-quest\`; it arrives unsigned and then
-carries its own two sign-offs like every other unit. **There is no \`defect\`, \`deferred\`, \`gap\` or
-\`recorded\` SIGN-OFF verdict** — the standing concerns' \`blightLedger\` dispositions are a separate
-record with a vocabulary of their own.
+expectation and belongs in the spec. ADD it with \`modify-quest\`; it arrives unsigned and then takes
+its tracks' sign-offs like every other unit. **There is no \`defect\`, \`deferred\`, \`gap\` or
+\`recorded\` SIGN-OFF verdict.** \`confirmed\` and \`unconfirmable\` are the whole vocabulary.
 
 **Provenance is a SEPARATE axis.** \`addedBy\` records who added the observable. Its values are
 \`spec\`, \`chaoswhisperer\`, \`codeweaver\`, \`flowrider\`, \`siegemaster\` and \`operator\`. It never

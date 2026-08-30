@@ -1,17 +1,9 @@
 /**
- * PURPOSE: Handles interaction MCP tool calls (signal-back, ask-user-question, get-agent-prompt, and
- * the three minion-family information tools)
+ * PURPOSE: Handles interaction MCP tool calls (signal-back, ask-user-question, get-agent-prompt)
  *
  * USAGE:
  * const result = await InteractionHandleResponder({ tool: ToolNameStub({ value: 'signal-back' }), args: { signal: 'complete' } });
  * // Returns ToolResponse with interaction result
- *
- * THE THREE INFORMATION TOOLS SHARE ONE BRANCH, through `INFORMATION_FAMILY_BY_TOOL`. Three separate
- * `if` blocks would each cost this function a point of cyclomatic complexity for a body that only
- * looks a static string up; one map plus one branch costs one. Their text is returned RAW, not
- * `JSON.stringify`d like the tool results either side of it: the caller reads the markdown rather than
- * parsing it, and escaping every newline in a document this long would push the reviewer payload
- * towards the 50KB cap the flow's integration test holds it under.
  */
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
@@ -24,19 +16,10 @@ import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/m
 import { getAgentPromptInputContract } from '../../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
 import { ResolveSubagentIdentityLayerResponder } from './resolve-subagent-identity-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
-import { toolNameContract } from '../../../contracts/tool-name/tool-name-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import type { MinionFamily } from '../../../contracts/minion-family/minion-family-contract';
-import { orchestratorMinionInformationAdapter } from '../../../adapters/orchestrator/minion-information/orchestrator-minion-information-adapter';
 
 const JSON_INDENT_SPACES = 2;
-
-const INFORMATION_FAMILY_BY_TOOL: Readonly<Partial<Record<ToolName, MinionFamily>>> = {
-  [toolNameContract.parse('get-planner-information')]: 'planner',
-  [toolNameContract.parse('get-worker-information')]: 'worker',
-  [toolNameContract.parse('get-reviewer-information')]: 'reviewer',
-};
 
 export const InteractionHandleResponder = async ({
   tool,
@@ -47,15 +30,6 @@ export const InteractionHandleResponder = async ({
   args: Record<string, unknown>;
   meta?: Record<string, unknown>;
 }): Promise<ToolResponse> => {
-  const informationFamily = INFORMATION_FAMILY_BY_TOOL[tool];
-  if (informationFamily !== undefined) {
-    return {
-      content: [
-        { type: 'text', text: orchestratorMinionInformationAdapter({ family: informationFamily }) },
-      ],
-    };
-  }
-
   if (tool === 'signal-back') {
     const result = signalBackBroker({
       input: args,

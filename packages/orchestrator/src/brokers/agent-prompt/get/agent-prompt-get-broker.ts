@@ -9,10 +9,10 @@
  * command + URL to the transformer for that role only.
  *
  * Start-ref capture: the FIRST prompt fetch for a work item stamps `workItem.startRef` with the
- * quest worktree's HEAD sha, and no later fetch moves it. That sha is the base the signal-back
- * review-coverage gate rebuilds its blight checklist from, so it has to be recorded by the one
- * server-side surface every dispatched session passes through before it changes anything — the same
- * reason the MCP responder above stamps `sessionId`/`agentId` here rather than trusting the agent.
+ * quest worktree's HEAD sha, and no later fetch moves it. That sha is the base `get-blight-checklist`'s
+ * `since-ref` scope rebuilds its checklist from, so it has to be recorded by the one server-side
+ * surface every dispatched session passes through before it changes anything — the same reason the
+ * MCP responder above stamps `sessionId`/`agentId` here rather than trusting the agent.
  *
  * Session id capture: this broker does NOT persist sessionId itself — MCP stdio carries
  * no per-call session metadata. The capture happens in the JSONL watcher: when each
@@ -24,16 +24,15 @@
  *
  * Minion routing: every prompt is one file named for whose it is, so there is no `discipline`
  * argument left to route on and only one rule survives. A ROLE owns a work item and must supply its
- * `workItemId`; a ROUND MINION has none and is refused BY NAME for passing one — not even its
- * parent's. That refusal names the `workItemId` as the mistake deliberately: a minion carrying one
- * is treated by `subagentStopNeedsBlockGuard` as a work-item session and held open until it calls
+ * `workItemId`; a MINION has none and is refused BY NAME for passing one — not even its parent's.
+ * That refusal names the `workItemId` as the mistake deliberately: a minion carrying one is treated
+ * by `subagentStopNeedsBlockGuard` as a work-item session and held open until it calls
  * `signal-back`, and the only item it could signal on is its PARENT's — completing the parent's
  * scope and advancing the relay while the parent is still working.
  *
- * `chaoswhisperer-gap-minion` is the one exemption, and it predates the per-role prompt split. It
- * runs in the SPEC phase where there is no operation item and no relay to advance, so a caller that
- * supplies a workItemId is served the work-item context block rather than refused. The refusal
- * therefore binds fifteen of the sixteen minion names.
+ * `chaoswhisperer-gap-minion` is the one exemption. It runs in the SPEC phase where there is no
+ * operation item and no relay to advance, so a caller that supplies a workItemId is served the
+ * work-item context block rather than refused. The refusal binds every other minion name.
  *
  * USAGE:
  * const result = await agentPromptGetBroker({ agent: 'codeweaver', questId, workItemId });
@@ -83,7 +82,7 @@ export const agentPromptGetBroker = async ({
   );
 
   // Minion-fetch: a parent-summoned minion has no work item of its own. It fetches with
-  // { agent, questId } only, and its parent briefs the round's context inline. No quest load, no
+  // { agent, questId } only, and its parent briefs the context inline. No quest load, no
   // work-item context block. A ROLE name is dispatched as its own work item by /dumpster-launch and
   // MUST supply a workItemId — reject one that omits it.
   if (workItemId === undefined) {
@@ -99,15 +98,15 @@ export const agentPromptGetBroker = async ({
     });
   }
 
-  // Past this point the caller is on the WORK-ITEM branch. A ROUND minion arriving here has passed
+  // Past this point the caller is on the WORK-ITEM branch. A minion arriving here has passed
   // a workItemId it must never pass, and naming THAT as the mistake is the whole point of refusing
   // it here rather than letting it fall through. The workItemId is what puts the caller inside
   // `subagentStopNeedsBlockGuard`, which holds its turn open until it calls `signal-back` — and the
   // only item it could signal on is its PARENT's, completing the parent's scope and advancing the
   // relay while the parent is still working.
   //
-  // `chaoswhisperer-gap-minion` is exempt, exactly as it was before the prompts were split per
-  // role. It runs in the SPEC phase where there is no operation item and no round to advance, and
+  // `chaoswhisperer-gap-minion` is exempt. It runs in the SPEC phase where there is no operation
+  // item and no relay to advance, and
   // a caller that supplies a workItemId is served the work-item context block rather than refused.
   // Narrowing that here would be a behaviour change wearing a refactor's clothes.
   if (isMinion && parsedAgent !== 'chaoswhisperer-gap-minion') {

@@ -46,6 +46,13 @@ export * from './src/statics/qa-checklist-limits/qa-checklist-limits-statics';
 // before it truncates with a stated count.
 export * from './src/statics/quest-summary-limits/quest-summary-limits-statics';
 
+// Flow slice render bound — the character ceiling get-quest's per-flow render is cut at.
+export * from './src/statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
+
+// The wording get-quest refuses a conflicting argument pair with, shared by the input contract and
+// the MCP wrapper that extends it.
+export * from './src/statics/get-quest-input-conflicts/get-quest-input-conflicts-statics';
+
 // Execution dungeon floor config — the canonical role/floor pipeline order shared by the web floor
 // view and the orchestrator dispatcher.
 export * from './src/statics/execution-floor-config/execution-floor-config-statics';

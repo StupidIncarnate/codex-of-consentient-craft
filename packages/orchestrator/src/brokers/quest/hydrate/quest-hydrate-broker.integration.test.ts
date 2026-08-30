@@ -121,7 +121,7 @@ describe('questHydrateBroker', () => {
     // ward is skipped via the blueprint's skipRoles. The relay creates ONE work item for the first
     // actionable (codeweaver) operation item; the verify tail lives only on the ledger until the
     // relay reaches it. There is NO standards-review item here at all: the five concerns are
-    // reviewed by a reviewer-minion inside each committing session's own turn.
+    // reviewed by a reviewer inside each committing session's own turn.
     expect({
       success: loaded.success,
       status: loaded.quest?.status,

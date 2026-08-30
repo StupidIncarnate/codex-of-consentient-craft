@@ -20,13 +20,7 @@ describe('slotManagerStatics', () => {
       flowrider: {
         maxAttempts: 3,
       },
-      groundstomper: {
-        maxAttempts: 3,
-      },
       siegemaster: {
-        maxAttempts: 3,
-      },
-      pesteater: {
         maxAttempts: 3,
       },
       spiritmender: {

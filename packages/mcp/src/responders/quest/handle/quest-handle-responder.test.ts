@@ -65,6 +65,46 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    // A flow slice is a rendered TEXT product and answers BOTH formats — `format`'s own describe()
+    // says so. Honouring `format: 'json'` here would hand back the whole-quest payload the slice
+    // was asked for instead of, which on a real quest is the over-budget result that gets spilled
+    // to a file and answered with an error stub.
+    it('VALID: {questId, flowId} => returns the rendered slice verbatim, whatever the format asks for', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const questResult = GetQuestResultStub({
+        quest: QuestStub(),
+        flowSlice: '## Flow: #login-flow — "Log in"',
+      });
+      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest' }),
+        args: { questId: 'test-quest-id', flowId: 'login-flow', format: 'json' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: '## Flow: #login-flow — "Log in"' }],
+      });
+    });
+
+    it('VALID: {questId, flowId, packageName} => passes both selectors through to the orchestrator', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const questResult = GetQuestResultStub({
+        quest: QuestStub(),
+        flowSlice: '## Flow: #login-flow — "Log in"',
+      });
+      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest' }),
+        args: { questId: 'test-quest-id', flowId: 'login-flow', packageName: 'web' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: '## Flow: #login-flow — "Log in"' }],
+      });
+    });
+
     it('VALID: {questId, stage} => returns filtered quest data with comments key stripped', async () => {
       const proxy = QuestHandleResponderProxy();
       const quest = QuestStub();
@@ -536,7 +576,7 @@ describe('QuestHandleResponder', () => {
                 itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
                 disposition: 'reviewed',
                 evidence: 'handleSubmit rethrows with the request url attached',
-                observedBy: 'reviewer-minion',
+                observedBy: 'reviewer',
                 workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
                 createdAt: '2024-01-15T10:00:00.000Z',
               },
@@ -556,7 +596,7 @@ describe('QuestHandleResponder', () => {
               itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
               disposition: 'reviewed',
               evidence: 'handleSubmit rethrows with the request url attached',
-              observedBy: 'reviewer-minion',
+              observedBy: 'reviewer',
               workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
               createdAt: '2024-01-15T10:00:00.000Z',
             },

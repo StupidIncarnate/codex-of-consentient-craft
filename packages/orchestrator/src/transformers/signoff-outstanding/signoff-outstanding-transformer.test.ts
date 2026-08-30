@@ -30,12 +30,19 @@ type SignoffTrack = keyof typeof signoffTrackEligibilityStatics.byTrack;
 const OFF_MAP_FAMILIES = Object.keys(qaOffMapProbeStatics.byFamily);
 const OFF_MAP_FAMILY_COUNT = OFF_MAP_FAMILIES.length;
 
-// The tracks the relay cuts out of the FLOW dimension — one item per flow — so the gate measures
-// each item over the flows it declares and no other. Derived from `flowScope` rather than named, so
-// a track that changes how it is sliced is swept in here instead of being silently skipped.
+// The tracks whose items the relay cuts out of the FLOW dimension, so the gate measures each item
+// over the flows it declares and no other. Every track reads `declared`; the list is derived from
+// `flowScope` rather than named, so a track that declares a different rule drops out of these
+// matrices loudly instead of being measured by the wrong one.
+// Read through a `Set<string>` rather than compared to the literal: every declared `flowScope` is
+// `'declared'` today, so a direct comparison is an always-true condition lint rejects — and hard-
+// coding the track list instead is the staleness this derivation exists to prevent.
+const DECLARED_FLOW_SCOPES = new Set(['declared'].map(String));
 const DECLARED_FLOW_SCOPE_TRACKS = (
   Object.keys(signoffTrackEligibilityStatics.byTrack) as SignoffTrack[]
-).filter((track) => signoffTrackEligibilityStatics.byTrack[track].flowScope === 'declared');
+).filter((track) =>
+  DECLARED_FLOW_SCOPES.has(signoffTrackEligibilityStatics.byTrack[track].flowScope),
+);
 
 // Every role the gate must NOT bind: the full role tuple minus the tracks the eligibility statics
 // defines a denominator for. Both halves are derived, so a newly added role OR a newly added track
@@ -43,9 +50,9 @@ const DECLARED_FLOW_SCOPE_TRACKS = (
 const GATED_ROLES = new Set(Object.keys(signoffTrackEligibilityStatics.byTrack));
 const UNGATED_ROLES = workItemRoleStatics.names.filter((role) => !GATED_ROLES.has(role));
 
-// The packages the package-kind fixtures below tag their nodes with, and the kind each resolves to
-// through `quest.packagesAffected`. `ui-app` is browser-reachable and `api-service` is not, which is
-// the whole axis that splits Groundstomper's denominator from Flowrider's.
+// The packages the routing fixtures below tag their nodes with. They are two DIFFERENT names, which
+// is what lets the item's own `packageNames` slice be read: no track narrows by package KIND, so the
+// name is the only axis that moves a unit in or out of an item's denominator.
 const UI_PACKAGE = 'ui-app';
 const API_PACKAGE = 'api-service';
 const PACKAGES_AFFECTED = [
@@ -112,42 +119,50 @@ const PACKAGE_ROUTING_FLOW_EDGES = [
   }),
 ];
 
-// The two branches leaving the GLUE node. Its tags resolve to a browser-reachable kind AND a
-// backend kind, so "at least one of the owning node's kinds is in this track's list" puts them in
-// BOTH denominators — which costs nobody a second sign-off, because the two tracks write the same
-// field and either one closing a seam unit closes it for the other.
+// The two branches leaving the GLUE node. Its tags name BOTH packages, so `intersection` puts them
+// in the denominator of an item naming either one — which is what stops a glue unit belonging to
+// nobody, since no track mints a seam item to hold it instead.
 const GLUE_UNITS = ['login-flow:branch:submit-valid', 'login-flow:branch:submit-invalid'];
-// The browser-reachable slice: the UI terminal, the UI observable, and the seam.
-const GROUNDSTOMPER_UNITS = [
+// What an item naming `ui-app` alone owns: the UI terminal, the UI observable, and the glue.
+const UI_SLICE_UNITS = [
   'login-flow:terminal:dashboard',
   ...GLUE_UNITS,
   'login-flow:observable:shows-form',
 ];
-// Everything a browser cannot reach, plus the same seam: the backend terminal and the branch leaving
-// the backend-only decision node — the node that carries no observables at all and would vanish
-// from any observable-keyed slicer.
-const FLOWRIDER_UNITS = [
+// What an item naming `api-service` alone owns: the backend terminal, the glue, and the branch
+// leaving the backend-only decision node — the node that carries no observables at all and would
+// vanish from any observable-keyed slicer.
+const API_SLICE_UNITS = [
   'login-flow:terminal:auth-error',
   ...GLUE_UNITS,
   'login-flow:branch:rate-limited',
 ];
+// Every on-map unit that flow decomposes into, in checklist order.
+const PACKAGE_ROUTING_ON_MAP_UNITS = [
+  'login-flow:terminal:dashboard',
+  'login-flow:terminal:auth-error',
+  ...GLUE_UNITS,
+  'login-flow:branch:rate-limited',
+  'login-flow:observable:shows-form',
+];
 
-// The Flowrider tail seed, read off the registry rather than restated, so the slices the partition
-// test measures are the ones Start actually mints.
+// The Flowrider tail seed, read off the registry rather than restated, so the per-flow items the
+// flow-slice tests measure are the ones `fanOutBy: 'flow'` actually mints.
 const FLOWRIDER_TAIL_ENTRY = questTypeRegistryStatics.feature.relayTail.filter(
   (entry) => entry.role === 'flowrider',
 );
 
-// The Groundstomper tail seed, for the same reason: the per-flow items the flow-slice tests measure
-// are the ones `fanOutBy: 'e2e-flow'` actually mints, not a hand-built approximation of them.
-const GROUNDSTOMPER_TAIL_ENTRY = questTypeRegistryStatics.feature.relayTail.filter(
-  (entry) => entry.role === 'groundstomper',
-);
+// The Codeweaver implementation seed, for the same reason: the per-PACKAGE items the package-name
+// tests measure are the ones `fanOutBy: 'implementation'` actually mints, not a hand-built
+// approximation of them.
+const CODEWEAVER_IMPLEMENTATION_ENTRY =
+  questTypeRegistryStatics.feature.startImplementationOps.filter(
+    (entry) => entry.role === 'codeweaver',
+  );
 
-// Two runtime flows landing in the SAME browser-reachable package — the shape that seeds two
-// groundstomper items whose `packageNames` are identical, so the flow list is the only thing telling
-// them apart. Groundstomper's `packageScope` is `intersection`, so measuring either item over both
-// flows puts its sibling's units in its own denominator.
+// Two runtime flows landing in the SAME package — the shape that seeds two per-flow items whose
+// package tags are identical, so the flow list is the only thing telling them apart. Measuring
+// either item over both flows would put its sibling's units in its own denominator.
 const SHARED_UI_FLOWS = [
   FlowStub({
     id: 'login-flow',
@@ -164,8 +179,8 @@ const SHARED_UI_FLOWS = [
   }),
 ];
 
-// A second fixture whose packages are BOTH kinds Flowrider measures, so the package-KIND narrowing
-// is a no-op on it and the package-NAME slicing can be read on its own. `validate` is the glue node.
+// A second fixture whose two packages sit in DIFFERENT build tiers, so the order the implementation
+// fan-out mints its per-package items is deterministic and readable. `validate` is the glue node.
 const BACKEND_PACKAGE = 'api-service';
 const LIBRARY_PACKAGE = 'core-lib';
 const BACKEND_PACKAGES_AFFECTED = [
@@ -208,8 +223,10 @@ const SLICEABLE_FLOW = FlowStub({
     FlowEdgeStub({ id: 'invalid', from: 'validate', to: 'rejected', label: 'schema bad' }),
   ],
 });
-// Every unit the whole-quest Flowrider denominator holds on that flow, in checklist order.
-const SLICEABLE_FLOWRIDER_UNITS = [
+// Every on-map unit that flow decomposes into, in checklist order. Codeweaver and Flowrider carry
+// the same `unitKinds` and the same `observableOrigins`, and the flow is `runtime`, so this one list
+// is the whole-flow denominator of both.
+const SLICEABLE_ON_MAP_UNITS = [
   'checkout-flow:terminal:priced',
   'checkout-flow:terminal:rejected',
   'checkout-flow:branch:valid',
@@ -229,7 +246,7 @@ const FLOWRIDER_EXCLUDED_ORIGINS = ALL_OBSERVABLE_ORIGINS.filter(
 
 // The real yardstick a quest of this repo's size produces: 7 flows carrying 19 terminals, 85
 // labelled branches and 128 observables, plus one off-map unit per family per flow — 281 units the
-// gate enumerates synchronously on every `done` from these two roles. Built entirely from stubs,
+// gate enumerates synchronously on every `done` from these roles. Built entirely from stubs,
 // never from ~/.dungeonmaster, which is machine-dependent and would make this a record of one
 // laptop rather than of the yardstick.
 const SCALE_TERMINALS_PER_FLOW = [3, 3, 3, 3, 3, 2, 2];
@@ -368,7 +385,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual(['login-flow:terminal:really-last']);
     });
@@ -391,7 +408,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual(['login-flow:terminal:dashboard']);
     });
@@ -440,7 +457,7 @@ describe('signoffOutstandingTransformer', () => {
     });
   });
 
-  describe('the two tracks are independent', () => {
+  describe('the sign-off fields are independent', () => {
     it('VALID: {every unit signed by siegemaster only} => nothing outstanding for siegemaster, everything still outstanding for flowrider', () => {
       const signoff = SignoffStub();
       const flow = FlowStub({
@@ -478,7 +495,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual([
         'login-flow:terminal:dashboard',
@@ -515,7 +532,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual([]);
       expect(
@@ -529,6 +546,29 @@ describe('signoffOutstandingTransformer', () => {
         'login-flow:observable:shows-form',
         ...OFF_MAP_FAMILIES.map((family) => `login-flow:off-map:${family}`),
       ]);
+    });
+
+    it('VALID: {every on-map unit signed by flowrider only, codeweaver item} => still outstanding, because codeweaver reads a column of its own', () => {
+      const signoff = SignoffStub();
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', flowriderSignoff: signoff }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      expect(
+        signoffOutstandingTransformer({
+          quest,
+          operationItem: OperationItemStub({ role: 'codeweaver', flowIds: ['login-flow'] }),
+        }),
+      ).toStrictEqual(['login-flow:terminal:dashboard']);
     });
   });
 
@@ -554,7 +594,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual([]);
     });
@@ -586,7 +626,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual([]);
     });
@@ -601,7 +641,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual([]);
     });
@@ -648,54 +688,7 @@ describe('signoffOutstandingTransformer', () => {
     });
   });
 
-  describe('flowrider is gated on ROLE, never on flowIds', () => {
-    it('VALID: {flowrider item declaring NO flowIds, a runtime flow on the quest} => still gated, and the runtime flow produces units', () => {
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard' })],
-            edges: [],
-          }),
-        ],
-      });
-
-      expect(
-        signoffOutstandingTransformer({
-          quest,
-          operationItem: OperationItemStub({ role: 'flowrider', flowIds: [] }),
-        }),
-      ).toStrictEqual(['login-flow:terminal:dashboard']);
-    });
-
-    it('VALID: {flowrider item naming only ONE of two runtime flows} => both flows are still counted, because the denominator is the quest, not the item', () => {
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard' })],
-            edges: [],
-          }),
-          FlowStub({
-            id: 'signup-flow',
-            flowType: 'runtime',
-            entryPoint: '/signup',
-            nodes: [FlowNodeStub({ id: 'welcome', label: 'Welcome' })],
-            edges: [],
-          }),
-        ],
-      });
-
-      expect(
-        signoffOutstandingTransformer({
-          quest,
-          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
-        }),
-      ).toStrictEqual(['login-flow:terminal:dashboard', 'signup-flow:terminal:welcome']);
-    });
-
+  describe('flow-TYPE denominator — which flows a track can be measured on at all', () => {
     it('EMPTY: {an ALL-OPERATIONAL quest, flowrider} => gated with zero units, because there is nothing walkable to prove — not because the gate was skipped', () => {
       const quest = QuestStub({
         flows: [
@@ -712,12 +705,12 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['lint-rollout-flow'] }),
         }),
       ).toStrictEqual([]);
     });
 
-    it('VALID: {one operational and one runtime flow, flowrider} => only the runtime flow contributes units', () => {
+    it('VALID: {a flowrider item declaring one operational and one runtime flow} => only the runtime flow contributes units', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -739,9 +732,33 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({
+            role: 'flowrider',
+            flowIds: ['lint-rollout-flow', 'login-flow'],
+          }),
         }),
       ).toStrictEqual(['login-flow:terminal:dashboard']);
+    });
+
+    it('VALID: {the same operational flow on a codeweaver item} => counted, because an operational flow is still code to build', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            id: 'lint-rollout-flow',
+            flowType: 'operational',
+            entryPoint: 'repo root',
+            nodes: [FlowNodeStub({ id: 'rule-registered', label: 'Rule Registered' })],
+            edges: [],
+          }),
+        ],
+      });
+
+      expect(
+        signoffOutstandingTransformer({
+          quest,
+          operationItem: OperationItemStub({ role: 'codeweaver', flowIds: ['lint-rollout-flow'] }),
+        }),
+      ).toStrictEqual(['lint-rollout-flow:terminal:rule-registered']);
     });
 
     it('VALID: {an operational flow scoped to a siegemaster item} => siegemaster covers it, so no flow is left unowned', () => {
@@ -772,8 +789,8 @@ describe('signoffOutstandingTransformer', () => {
     });
   });
 
-  describe('package-kind denominator — a unit routes by its owning NODE, never by its observable', () => {
-    it('VALID: {groundstomper item} => owns the browser-reachable units alone, glue-node branches included', () => {
+  describe('package routing — a unit routes by its owning NODE, never by its observable', () => {
+    it('VALID: {an item naming the backend package} => owns the backend terminal, the glue and the zero-observable decision node’s branch, and NOT the UI observable', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -789,62 +806,16 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'groundstomper', flowIds: ['login-flow'] }),
-        }),
-      ).toStrictEqual(GROUNDSTOMPER_UNITS);
-    });
-
-    it('VALID: {flowrider item, the same flow} => owns the units no browser can reach, including the zero-observable decision node’s branch', () => {
-      const quest = QuestStub({
-        packagesAffected: PACKAGES_AFFECTED,
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: PACKAGE_ROUTING_FLOW_NODES,
-            edges: PACKAGE_ROUTING_FLOW_EDGES,
+          operationItem: OperationItemStub({
+            role: 'flowrider',
+            flowIds: ['login-flow'],
+            packageNames: [API_PACKAGE],
           }),
-        ],
-      });
-
-      expect(
-        signoffOutstandingTransformer({
-          quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
-        }),
-      ).toStrictEqual(FLOWRIDER_UNITS);
-    });
-
-    it('VALID: {siegemaster item, the same flow} => owns every on-map unit both authoring tracks split, plus the off-map families', () => {
-      const quest = QuestStub({
-        packagesAffected: PACKAGES_AFFECTED,
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: PACKAGE_ROUTING_FLOW_NODES,
-            edges: PACKAGE_ROUTING_FLOW_EDGES,
-          }),
-        ],
-      });
-
-      expect(
-        signoffOutstandingTransformer({
-          quest,
-          operationItem: OperationItemStub({ role: 'siegemaster', flowIds: ['login-flow'] }),
         }).map(String),
-      ).toStrictEqual([
-        'login-flow:terminal:dashboard',
-        'login-flow:terminal:auth-error',
-        'login-flow:branch:submit-valid',
-        'login-flow:branch:submit-invalid',
-        'login-flow:branch:rate-limited',
-        'login-flow:observable:shows-form',
-        ...OFF_MAP_FAMILIES.map((family) => `login-flow:off-map:${family}`),
-      ]);
+      ).toStrictEqual(API_SLICE_UNITS);
     });
 
-    it('VALID: {the two authoring items together} => they overlap on exactly the glue node’s units and cover every on-map unit between them, so nothing falls between the two tracks', () => {
+    it('VALID: {an item naming the UI package} => owns the UI terminal, the UI observable and the glue, and NOT the backend-only branch', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -857,33 +828,58 @@ describe('signoffOutstandingTransformer', () => {
         ],
       });
 
-      const groundstomperIds = signoffOutstandingTransformer({
+      expect(
+        signoffOutstandingTransformer({
+          quest,
+          operationItem: OperationItemStub({
+            role: 'flowrider',
+            flowIds: ['login-flow'],
+            packageNames: [UI_PACKAGE],
+          }),
+        }).map(String),
+      ).toStrictEqual(UI_SLICE_UNITS);
+    });
+
+    it('VALID: {the two single-package items together} => they overlap on exactly the glue node’s units and cover every on-map unit between them, so nothing falls between the slices', () => {
+      const quest = QuestStub({
+        packagesAffected: PACKAGES_AFFECTED,
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            flowType: 'runtime',
+            nodes: PACKAGE_ROUTING_FLOW_NODES,
+            edges: PACKAGE_ROUTING_FLOW_EDGES,
+          }),
+        ],
+      });
+
+      const uiIds = signoffOutstandingTransformer({
         quest,
-        operationItem: OperationItemStub({ role: 'groundstomper', flowIds: ['login-flow'] }),
+        operationItem: OperationItemStub({
+          role: 'flowrider',
+          flowIds: ['login-flow'],
+          packageNames: [UI_PACKAGE],
+        }),
       }).map(String);
-      const flowriderIds = signoffOutstandingTransformer({
+      const apiIds = signoffOutstandingTransformer({
         quest,
-        operationItem: OperationItemStub({ role: 'flowrider' }),
+        operationItem: OperationItemStub({
+          role: 'flowrider',
+          flowIds: ['login-flow'],
+          packageNames: [API_PACKAGE],
+        }),
       }).map(String);
-      const siegemasterOnMapIds = signoffOutstandingTransformer({
-        quest,
-        operationItem: OperationItemStub({ role: 'siegemaster', flowIds: ['login-flow'] }),
-      })
-        .map(String)
-        .filter((id) => id.split(':')[1] !== 'off-map');
 
       expect({
-        shared: groundstomperIds.filter((id) => flowriderIds.includes(id)),
-        union: [...new Set([...groundstomperIds, ...flowriderIds])].sort((left, right) =>
-          left.localeCompare(right),
-        ),
+        shared: uiIds.filter((id) => apiIds.includes(id)),
+        union: [...new Set([...uiIds, ...apiIds])].sort((left, right) => left.localeCompare(right)),
       }).toStrictEqual({
         shared: GLUE_UNITS,
-        union: [...siegemasterOnMapIds].sort((left, right) => left.localeCompare(right)),
+        union: [...PACKAGE_ROUTING_ON_MAP_UNITS].sort((left, right) => left.localeCompare(right)),
       });
     });
 
-    it('VALID: {every browser-reachable unit carries a flowriderSignoff} => groundstomper clears and flowrider is left with only its own two, because the field is shared while the slice is not', () => {
+    it('VALID: {every unit the UI slice owns carries a flowriderSignoff} => that item clears while the backend item keeps its own two, because a glue unit closed once is closed for both', () => {
       const signoff = SignoffStub();
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
@@ -951,23 +947,29 @@ describe('signoffOutstandingTransformer', () => {
       });
 
       expect({
-        groundstomper: signoffOutstandingTransformer({
+        ui: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'groundstomper', flowIds: ['login-flow'] }),
+          operationItem: OperationItemStub({
+            role: 'flowrider',
+            flowIds: ['login-flow'],
+            packageNames: [UI_PACKAGE],
+          }),
         }),
-        flowrider: signoffOutstandingTransformer({
+        api: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({
+            role: 'flowrider',
+            flowIds: ['login-flow'],
+            packageNames: [API_PACKAGE],
+          }),
         }),
-        // The seam units the groundstomper session signed are gone from flowrider's list too — one
-        // field, so closing a glue unit from the browser side closes it outright.
       }).toStrictEqual({
-        groundstomper: [],
-        flowrider: ['login-flow:terminal:auth-error', 'login-flow:branch:rate-limited'],
+        ui: [],
+        api: ['login-flow:terminal:auth-error', 'login-flow:branch:rate-limited'],
       });
     });
 
-    it('VALID: {a node tagged with a package absent from packagesAffected} => counted for BOTH authoring tracks, because an unresolvable kind must never empty a denominator', () => {
+    it('VALID: {a node tagged with a package absent from packagesAffected} => counted for every track, because an unresolvable kind must never empty a denominator', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -983,16 +985,16 @@ describe('signoffOutstandingTransformer', () => {
       });
 
       expect({
-        groundstomper: signoffOutstandingTransformer({
+        codeweaver: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'groundstomper', flowIds: ['login-flow'] }),
+          operationItem: OperationItemStub({ role: 'codeweaver', flowIds: ['login-flow'] }),
         }),
         flowrider: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       }).toStrictEqual({
-        groundstomper: ['login-flow:terminal:dashboard'],
+        codeweaver: ['login-flow:terminal:dashboard'],
         flowrider: ['login-flow:terminal:dashboard'],
       });
     });
@@ -1012,50 +1014,12 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'groundstomper', flowIds: ['login-flow'] }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }).map(String),
-      ).toStrictEqual([
-        'login-flow:terminal:dashboard',
-        'login-flow:terminal:auth-error',
-        'login-flow:branch:submit-valid',
-        'login-flow:branch:submit-invalid',
-        'login-flow:branch:rate-limited',
-        'login-flow:observable:shows-form',
-      ]);
+      ).toStrictEqual(PACKAGE_ROUTING_ON_MAP_UNITS);
     });
 
-    it('EMPTY: {groundstomper item, an ALL-OPERATIONAL quest} => gated with zero units, because it inherits the runtime-only exclusion', () => {
-      const quest = QuestStub({
-        packagesAffected: PACKAGES_AFFECTED,
-        flows: [
-          FlowStub({
-            id: 'lint-rollout-flow',
-            flowType: 'operational',
-            entryPoint: 'repo root',
-            nodes: [
-              FlowNodeStub({
-                id: 'rule-registered',
-                label: 'Rule Registered',
-                packages: [UI_PACKAGE],
-              }),
-            ],
-            edges: [],
-          }),
-        ],
-      });
-
-      expect(
-        signoffOutstandingTransformer({
-          quest,
-          operationItem: OperationItemStub({
-            role: 'groundstomper',
-            flowIds: ['lint-rollout-flow'],
-          }),
-        }),
-      ).toStrictEqual([]);
-    });
-
-    it('EDGE: {a labelled edge leaving a node the flow does not carry} => its branch stays in every denominator, because a node that cannot be found resolves to no kind at all', () => {
+    it('EDGE: {a labelled edge leaving a node the flow does not carry} => its branch stays in every denominator, because a node that cannot be found resolves to no package at all', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -1076,21 +1040,25 @@ describe('signoffOutstandingTransformer', () => {
       });
 
       expect({
-        groundstomper: signoffOutstandingTransformer({
+        uiScoped: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'groundstomper', flowIds: ['login-flow'] }),
+          operationItem: OperationItemStub({
+            role: 'flowrider',
+            flowIds: ['login-flow'],
+            packageNames: [UI_PACKAGE],
+          }),
         }),
-        flowrider: signoffOutstandingTransformer({
+        wholeQuest: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       }).toStrictEqual({
-        groundstomper: ['login-flow:branch:orphan-branch'],
-        flowrider: ['login-flow:terminal:dashboard', 'login-flow:branch:orphan-branch'],
+        uiScoped: ['login-flow:branch:orphan-branch'],
+        wholeQuest: ['login-flow:terminal:dashboard', 'login-flow:branch:orphan-branch'],
       });
     });
 
-    it("VALID: {siegemaster item, every node tagged backend-only} => the off-map families still stand, because they hang off no node and are nobody's package", () => {
+    it("VALID: {siegemaster item, every node tagged with a package it does not name} => the off-map families still stand, because they hang off no node and are nobody's package", () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -1106,17 +1074,18 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'siegemaster', flowIds: ['login-flow'] }),
+          operationItem: OperationItemStub({
+            role: 'siegemaster',
+            flowIds: ['login-flow'],
+            packageNames: [UI_PACKAGE],
+          }),
         }),
-      ).toStrictEqual([
-        'login-flow:terminal:dashboard',
-        ...OFF_MAP_FAMILIES.map((family) => `login-flow:off-map:${family}`),
-      ]);
+      ).toStrictEqual(OFF_MAP_FAMILIES.map((family) => `login-flow:off-map:${family}`));
     });
   });
 
   describe('flow-slice denominator — a per-flow item is measured on the flow it names', () => {
-    it('VALID: {groundstomper item naming ONE of two runtime flows sharing a UI package} => only its own flow counts, so a sibling item’s units can never refuse it', () => {
+    it('VALID: {flowrider item naming ONE of two runtime flows sharing a package} => only its own flow counts, so a sibling item’s units can never refuse it', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: SHARED_UI_FLOWS,
@@ -1126,15 +1095,14 @@ describe('signoffOutstandingTransformer', () => {
         signoffOutstandingTransformer({
           quest,
           operationItem: OperationItemStub({
-            role: 'groundstomper',
+            role: 'flowrider',
             flowIds: ['login-flow'],
-            packageNames: [UI_PACKAGE],
           }),
         }),
       ).toStrictEqual(['login-flow:terminal:dashboard']);
     });
 
-    it('VALID: {the sibling groundstomper item, its own flow fully signed} => it clears at zero while the first item is still outstanding, so each flow carries its own gate', () => {
+    it('VALID: {the sibling flowrider item, its own flow fully signed} => it clears at zero while the first item is still outstanding, so each flow carries its own gate', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -1164,19 +1132,11 @@ describe('signoffOutstandingTransformer', () => {
       expect({
         login: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({
-            role: 'groundstomper',
-            flowIds: ['login-flow'],
-            packageNames: [UI_PACKAGE],
-          }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
         signup: signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({
-            role: 'groundstomper',
-            flowIds: ['signup-flow'],
-            packageNames: [UI_PACKAGE],
-          }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['signup-flow'] }),
         }),
       }).toStrictEqual({
         login: ['login-flow:terminal:dashboard'],
@@ -1184,18 +1144,18 @@ describe('signoffOutstandingTransformer', () => {
       });
     });
 
-    it('VALID: {the groundstomper items Start actually mints} => they PARTITION the browser-reachable denominator by flow: every unit owned once, none owned twice, none dropped', () => {
+    it('VALID: {the flowrider items Start actually mints} => they PARTITION the denominator by flow: every unit owned once, none owned twice, none dropped', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: SHARED_UI_FLOWS,
       });
 
-      const slices = relayTailFanOutTransformer({ entry: GROUNDSTOMPER_TAIL_ENTRY[0]!, quest });
+      const slices = relayTailFanOutTransformer({ entry: FLOWRIDER_TAIL_ENTRY[0]!, quest });
       const perSliceIds = slices.map((slice) =>
         signoffOutstandingTransformer({
           quest,
           operationItem: OperationItemStub({
-            role: 'groundstomper',
+            role: 'flowrider',
             flowIds: slice.flowIds.map(String),
             packageNames: slice.packageNames.map(String),
           }),
@@ -1210,13 +1170,13 @@ describe('signoffOutstandingTransformer', () => {
         duplicates: everyOwnedId.filter((id, index) => everyOwnedId.indexOf(id) !== index),
       }).toStrictEqual({
         sliceFlows: [['login-flow'], ['signup-flow']],
-        sliceScopes: [[UI_PACKAGE], [UI_PACKAGE]],
+        sliceScopes: [[], []],
         perSliceIds: [['login-flow:terminal:dashboard'], ['signup-flow:terminal:welcome']],
         duplicates: [],
       });
     });
 
-    it('VALID: {groundstomper item on the glue-node flow} => its GLUE units stay in the denominator, because `intersection` has no seam item to hand them to', () => {
+    it('VALID: {a per-flow item on the glue-node flow} => its GLUE units stay in the denominator, because `intersection` has no seam item to hand them to', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -1240,12 +1200,12 @@ describe('signoffOutstandingTransformer', () => {
         signoffOutstandingTransformer({
           quest,
           operationItem: OperationItemStub({
-            role: 'groundstomper',
+            role: 'flowrider',
             flowIds: ['login-flow'],
             packageNames: [UI_PACKAGE],
           }),
         }).map(String),
-      ).toStrictEqual(GROUNDSTOMPER_UNITS);
+      ).toStrictEqual(UI_SLICE_UNITS);
     });
 
     it.each(DECLARED_FLOW_SCOPE_TRACKS)(
@@ -1268,82 +1228,63 @@ describe('signoffOutstandingTransformer', () => {
         ).toStrictEqual([]);
       },
     );
-
-    it('VALID: {flowrider item naming ONE of the same two flows} => both still count, because its items are sliced on the PACKAGE dimension and its flow list is a by-product', () => {
-      const quest = QuestStub({
-        packagesAffected: BACKEND_PACKAGES_AFFECTED,
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: [
-              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', packages: [BACKEND_PACKAGE] }),
-            ],
-            edges: [],
-          }),
-          FlowStub({
-            id: 'signup-flow',
-            flowType: 'runtime',
-            entryPoint: '/signup',
-            nodes: [FlowNodeStub({ id: 'welcome', label: 'Welcome', packages: [BACKEND_PACKAGE] })],
-            edges: [],
-          }),
-        ],
-      });
-
-      expect(
-        signoffOutstandingTransformer({
-          quest,
-          operationItem: OperationItemStub({
-            role: 'flowrider',
-            flowIds: ['login-flow'],
-            packageNames: [BACKEND_PACKAGE],
-          }),
-        }).map(String),
-      ).toStrictEqual(['login-flow:terminal:dashboard', 'signup-flow:terminal:welcome']);
-    });
   });
 
   describe('package-NAME denominator — the item’s own slice, not the whole quest’s', () => {
-    it('VALID: {the slices Start actually mints} => they PARTITION the whole-quest denominator: every unit owned once, none owned twice, none dropped', () => {
+    it('VALID: {the codeweaver items Start actually mints} => between them they COVER the whole-flow denominator, overlapping on exactly the glue node’s units', () => {
       const quest = QuestStub({
         packagesAffected: BACKEND_PACKAGES_AFFECTED,
         flows: [SLICEABLE_FLOW],
       });
 
-      const slices = relayTailFanOutTransformer({ entry: FLOWRIDER_TAIL_ENTRY[0]!, quest });
+      const slices = relayTailFanOutTransformer({
+        entry: CODEWEAVER_IMPLEMENTATION_ENTRY[0]!,
+        quest,
+      });
       const perSliceIds = slices.map((slice) =>
         signoffOutstandingTransformer({
           quest,
           operationItem: OperationItemStub({
-            role: 'flowrider',
+            role: 'codeweaver',
             flowIds: slice.flowIds.map(String),
             packageNames: slice.packageNames.map(String),
           }),
         }).map(String),
       );
       const everyOwnedId = perSliceIds.flat();
-      const wholeQuestIds = signoffOutstandingTransformer({
+      const wholeFlowIds = signoffOutstandingTransformer({
         quest,
-        operationItem: OperationItemStub({ role: 'flowrider' }),
+        operationItem: OperationItemStub({ role: 'codeweaver', flowIds: ['checkout-flow'] }),
       }).map(String);
 
       expect({
+        // Library before backend: the implementation fan-out sorts on the package build tier, and a
+        // library is a pure provider of the http-backend that consumes it.
         sliceScopes: slices.map((slice) => slice.packageNames.map(String)),
+        sliceFlows: slices.map((slice) => slice.flowIds.map(String)),
         perSliceIds,
-        ownedOnce: [...everyOwnedId].sort((left, right) => left.localeCompare(right)),
-        duplicates: everyOwnedId.filter((id, index) => everyOwnedId.indexOf(id) !== index),
-        wholeQuest: [...wholeQuestIds].sort((left, right) => left.localeCompare(right)),
+        ownedTwice: everyOwnedId.filter((id, index) => everyOwnedId.indexOf(id) !== index),
+        covered: [...new Set(everyOwnedId)].sort((left, right) => left.localeCompare(right)),
+        wholeFlow: [...wholeFlowIds].sort((left, right) => left.localeCompare(right)),
       }).toStrictEqual({
-        sliceScopes: [[BACKEND_PACKAGE], [LIBRARY_PACKAGE], [BACKEND_PACKAGE, LIBRARY_PACKAGE]],
+        sliceScopes: [[LIBRARY_PACKAGE], [BACKEND_PACKAGE]],
+        sliceFlows: [['checkout-flow'], ['checkout-flow']],
         perSliceIds: [
-          ['checkout-flow:terminal:rejected', 'checkout-flow:observable:accepts-order'],
-          ['checkout-flow:terminal:priced'],
-          ['checkout-flow:branch:valid', 'checkout-flow:branch:invalid'],
+          [
+            'checkout-flow:terminal:priced',
+            'checkout-flow:branch:valid',
+            'checkout-flow:branch:invalid',
+          ],
+          [
+            'checkout-flow:terminal:rejected',
+            'checkout-flow:branch:valid',
+            'checkout-flow:branch:invalid',
+            'checkout-flow:observable:accepts-order',
+          ],
         ],
-        ownedOnce: [...SLICEABLE_FLOWRIDER_UNITS].sort((left, right) => left.localeCompare(right)),
-        duplicates: [],
-        wholeQuest: [...SLICEABLE_FLOWRIDER_UNITS].sort((left, right) => left.localeCompare(right)),
+        ownedTwice: ['checkout-flow:branch:valid', 'checkout-flow:branch:invalid'],
+        covered: [...SLICEABLE_ON_MAP_UNITS].sort((left, right) => left.localeCompare(right)),
+        wholeFlow: [...SLICEABLE_ON_MAP_UNITS].sort((left, right) => left.localeCompare(right)),
       });
     });
 
@@ -1377,6 +1318,23 @@ describe('signoffOutstandingTransformer', () => {
               }),
               FlowNodeStub({ id: 'rejected', label: 'Rejected', packages: [BACKEND_PACKAGE] }),
             ],
+            edges: [
+              FlowEdgeStub({ id: 'to-validate', from: 'intake', to: 'validate' }),
+              FlowEdgeStub({
+                id: 'valid',
+                from: 'validate',
+                to: 'priced',
+                label: 'schema ok',
+                flowriderSignoff: signoff,
+              }),
+              FlowEdgeStub({
+                id: 'invalid',
+                from: 'validate',
+                to: 'rejected',
+                label: 'schema bad',
+                flowriderSignoff: signoff,
+              }),
+            ],
           }),
         ],
       });
@@ -1386,6 +1344,7 @@ describe('signoffOutstandingTransformer', () => {
           quest,
           operationItem: OperationItemStub({
             role: 'flowrider',
+            flowIds: ['checkout-flow'],
             packageNames: [BACKEND_PACKAGE],
           }),
         }),
@@ -1422,6 +1381,23 @@ describe('signoffOutstandingTransformer', () => {
                 flowriderSignoff: signoff,
               }),
             ],
+            edges: [
+              FlowEdgeStub({ id: 'to-validate', from: 'intake', to: 'validate' }),
+              FlowEdgeStub({
+                id: 'valid',
+                from: 'validate',
+                to: 'priced',
+                label: 'schema ok',
+                flowriderSignoff: signoff,
+              }),
+              FlowEdgeStub({
+                id: 'invalid',
+                from: 'validate',
+                to: 'rejected',
+                label: 'schema bad',
+                flowriderSignoff: signoff,
+              }),
+            ],
           }),
         ],
       });
@@ -1431,6 +1407,7 @@ describe('signoffOutstandingTransformer', () => {
           quest,
           operationItem: OperationItemStub({
             role: 'flowrider',
+            flowIds: ['checkout-flow'],
             packageNames: [BACKEND_PACKAGE],
           }),
         }),
@@ -1438,6 +1415,7 @@ describe('signoffOutstandingTransformer', () => {
           quest,
           operationItem: OperationItemStub({
             role: 'flowrider',
+            flowIds: ['checkout-flow'],
             packageNames: [LIBRARY_PACKAGE],
           }),
         }),
@@ -1447,7 +1425,7 @@ describe('signoffOutstandingTransformer', () => {
       });
     });
 
-    it('VALID: {the SEAM item} => owns the glue node’s branches alone, and no single-tagged unit at all', () => {
+    it('VALID: {an item naming BOTH packages} => owns the union of the two slices, glue included', () => {
       const quest = QuestStub({
         packagesAffected: BACKEND_PACKAGES_AFFECTED,
         flows: [SLICEABLE_FLOW],
@@ -1458,13 +1436,14 @@ describe('signoffOutstandingTransformer', () => {
           quest,
           operationItem: OperationItemStub({
             role: 'flowrider',
+            flowIds: ['checkout-flow'],
             packageNames: [BACKEND_PACKAGE, LIBRARY_PACKAGE],
           }),
-        }),
-      ).toStrictEqual(['checkout-flow:branch:valid', 'checkout-flow:branch:invalid']);
+        }).map(String),
+      ).toStrictEqual(SLICEABLE_ON_MAP_UNITS);
     });
 
-    it('EMPTY: {an item declaring NO packageNames} => the whole-quest denominator, unchanged', () => {
+    it('EMPTY: {an item declaring NO packageNames} => the whole-flow denominator, unchanged', () => {
       const quest = QuestStub({
         packagesAffected: BACKEND_PACKAGES_AFFECTED,
         flows: [SLICEABLE_FLOW],
@@ -1473,34 +1452,13 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider', packageNames: [] }),
-        }).map(String),
-      ).toStrictEqual(SLICEABLE_FLOWRIDER_UNITS);
-    });
-
-    it('VALID: {a groundstomper item declaring one package} => keeps the glue units, because its items partition FLOWS and no seam item exists to catch them', () => {
-      const quest = QuestStub({
-        packagesAffected: PACKAGES_AFFECTED,
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            flowType: 'runtime',
-            nodes: PACKAGE_ROUTING_FLOW_NODES,
-            edges: PACKAGE_ROUTING_FLOW_EDGES,
-          }),
-        ],
-      });
-
-      expect(
-        signoffOutstandingTransformer({
-          quest,
           operationItem: OperationItemStub({
-            role: 'groundstomper',
-            flowIds: ['login-flow'],
-            packageNames: [UI_PACKAGE],
+            role: 'flowrider',
+            flowIds: ['checkout-flow'],
+            packageNames: [],
           }),
-        }),
-      ).toStrictEqual(GROUNDSTOMPER_UNITS);
+        }).map(String),
+      ).toStrictEqual(SLICEABLE_ON_MAP_UNITS);
     });
   });
 
@@ -1508,14 +1466,23 @@ describe('signoffOutstandingTransformer', () => {
     it.each([
       {
         scope: [BACKEND_PACKAGE],
-        expected: ['checkout-flow:terminal:rejected', 'checkout-flow:observable:accepts-order'],
+        expected: [
+          'checkout-flow:terminal:rejected',
+          'checkout-flow:branch:valid',
+          'checkout-flow:branch:invalid',
+          'checkout-flow:observable:accepts-order',
+        ],
       },
-      { scope: [LIBRARY_PACKAGE], expected: ['checkout-flow:terminal:priced'] },
       {
-        scope: [BACKEND_PACKAGE, LIBRARY_PACKAGE],
-        expected: ['checkout-flow:branch:valid', 'checkout-flow:branch:invalid'],
+        scope: [LIBRARY_PACKAGE],
+        expected: [
+          'checkout-flow:terminal:priced',
+          'checkout-flow:branch:valid',
+          'checkout-flow:branch:invalid',
+        ],
       },
-      { scope: [], expected: SLICEABLE_FLOWRIDER_UNITS },
+      { scope: [BACKEND_PACKAGE, LIBRARY_PACKAGE], expected: SLICEABLE_ON_MAP_UNITS },
+      { scope: [], expected: SLICEABLE_ON_MAP_UNITS },
     ])(
       'VALID: {a flowrider item scoped to $scope} => the completion gate, get-qa-checklist and get-quest-summary report the same remainder',
       ({ scope, expected }) => {
@@ -1523,7 +1490,11 @@ describe('signoffOutstandingTransformer', () => {
           packagesAffected: BACKEND_PACKAGES_AFFECTED,
           flows: [SLICEABLE_FLOW],
         });
-        const operationItem = OperationItemStub({ role: 'flowrider', packageNames: scope });
+        const operationItem = OperationItemStub({
+          role: 'flowrider',
+          flowIds: ['checkout-flow'],
+          packageNames: scope,
+        });
 
         expect({
           gate: signoffOutstandingTransformer({ quest, operationItem }).map(String),
@@ -1575,7 +1546,7 @@ describe('signoffOutstandingTransformer', () => {
         expect(
           signoffOutstandingTransformer({
             quest,
-            operationItem: OperationItemStub({ role: 'flowrider' }),
+            operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
           }),
         ).toStrictEqual(['login-flow:observable:shows-form']);
       },
@@ -1605,7 +1576,7 @@ describe('signoffOutstandingTransformer', () => {
         expect(
           signoffOutstandingTransformer({
             quest,
-            operationItem: OperationItemStub({ role: 'flowrider' }),
+            operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
           }),
         ).toStrictEqual([]);
       },
@@ -1666,7 +1637,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest,
-          operationItem: OperationItemStub({ role: 'flowrider' }),
+          operationItem: OperationItemStub({ role: 'flowrider', flowIds: ['login-flow'] }),
         }),
       ).toStrictEqual(['login-flow:observable:shows-form']);
     });
@@ -1745,9 +1716,9 @@ describe('signoffOutstandingTransformer', () => {
     });
   });
 
-  // The gate runs synchronously inside the signal-back responder on every `done` from these two
-  // roles, so the numbers below are what it actually has to enumerate on a real quest: 281 units
-  // across 7 flows.
+  // The gate runs synchronously inside the signal-back responder on every `done` from these roles,
+  // so the numbers below are what it actually has to enumerate on a real quest: 281 units across
+  // 7 flows.
   describe('scale — a real quest-sized spine', () => {
     it('VALID: {7 flows carrying 19 terminals, 85 branches and 128 observables} => siegemaster enumerates every on-map unit plus one off-map unit per family per flow, flowrider enumerates the on-map units alone, and signing a slice shrinks the set', () => {
       const flows = SCALE_TERMINALS_PER_FLOW.map((terminalCount, flowIndex) =>
@@ -1788,6 +1759,7 @@ describe('signoffOutstandingTransformer', () => {
         }),
       );
       const quest = QuestStub({ flows });
+      const everyFlowId = flows.map((flow) => String(flow.id));
 
       const expectedTerminals = SCALE_TERMINALS_PER_FLOW.reduce((sum, count) => sum + count, 0);
       const expectedBranches = SCALE_BRANCHES_PER_FLOW.reduce((sum, count) => sum + count, 0);
@@ -1799,14 +1771,11 @@ describe('signoffOutstandingTransformer', () => {
 
       const siegemasterIds = signoffOutstandingTransformer({
         quest,
-        operationItem: OperationItemStub({
-          role: 'siegemaster',
-          flowIds: flows.map((flow) => String(flow.id)),
-        }),
+        operationItem: OperationItemStub({ role: 'siegemaster', flowIds: everyFlowId }),
       }).map(String);
       const flowriderIds = signoffOutstandingTransformer({
         quest,
-        operationItem: OperationItemStub({ role: 'flowrider' }),
+        operationItem: OperationItemStub({ role: 'flowrider', flowIds: everyFlowId }),
       }).map(String);
 
       // The fixture IS the yardstick; pin its shape so a typo in the per-flow splits fails loudly
@@ -1864,10 +1833,7 @@ describe('signoffOutstandingTransformer', () => {
       expect(
         signoffOutstandingTransformer({
           quest: partlySignedQuest,
-          operationItem: OperationItemStub({
-            role: 'siegemaster',
-            flowIds: flows.map((flow) => String(flow.id)),
-          }),
+          operationItem: OperationItemStub({ role: 'siegemaster', flowIds: everyFlowId }),
         }).map(String),
       ).toStrictEqual(siegemasterIds.filter((id) => !signedFlowZeroOffMapIds.has(id)));
     });
