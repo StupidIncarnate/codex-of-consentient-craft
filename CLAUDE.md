@@ -197,9 +197,6 @@ committing straight to `master` is the norm here and is what the user means ever
 Branch only when the user asks for a branch in that message, or when they have said this session that
 work belongs on one.
 
-**Commit and push are separate asks.** Never push unless the user says push. Report how far ahead of
-origin the branch is and stop there.
-
 ## Never Edit Infrastructure Files
 
 Beyond `.claude/settings*.json` (above), never directly edit `.mcp.json` or any `.env*` file. The

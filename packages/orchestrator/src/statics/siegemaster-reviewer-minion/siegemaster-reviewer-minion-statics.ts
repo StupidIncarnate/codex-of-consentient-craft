@@ -154,8 +154,11 @@ fix it, and \`npm run ward -- detail <runId>\` reads a prior run.
 5. **Run the mutation audit** over the tests the walks produced, and restore every line you broke.
 
 6. **Account for every unit the round OWED, by subtracting what it covered from what it promised.**
-   \`TOUCHES\` holds the full list. The chunks' \`UNITS\` rows and the \`NO CHUNK\` lines are what
-   comes off it, both read off the document. **Whatever is left over is UNCOVERED, and every one goes
+   \`TOUCHES\` holds the full list. The chunks' \`INTENT\` rows that OPEN WITH A UNIT ID, and the
+   \`NO CHUNK\` lines, are what comes off it, both read off the document. **An \`INTENT\` row carrying
+   no unit id subtracts NOTHING** — it is an assertion the slice owes about how it measured, and you
+   grade it without taking anything off this list. **A row you cannot parse stays on the list as
+   uncovered.** **Whatever is left over is UNCOVERED, and every one goes
    in \`NEXT: rework\`, named.** A row marked \`(part <n> of <m>; chunk <k> owns the rest)\` — a split
    unit — comes off only when BOTH halves landed; where the other half did not, that goes in
    \`NEXT: rework\`, unit and part named.
@@ -279,7 +282,7 @@ the commits; the \`## Round log\` belongs to a round you are not grading again.
 | \`DECISIONS\` | a CORRECTION here moves what you grade the round against. **A chunk walked against the version it replaced is \`NEXT: rework\`.** |
 | \`ASSERTIONS\` | **check each one and say so.** |
 | \`NO CHUNK\` | it reads \`NO CHUNK: none\` every round here, and **any other line is itself the finding**: this round writes nothing, so nothing is \`settled\` on disk, and \`out-of-medium\` hands a unit to a later role, of which there is none. Reopen the unit and walk it. |
-| each \`### chunk\` | its \`INTENT\`, its \`UNITS\` rows, and the exact surface and reset command each row names. |
+| each \`### chunk\` | every \`INTENT\` row — the exact surface and reset command an ID-BEARING one names, and what an ID-LESS one claims about how the readings were taken — and whether its \`TRAPS\` handed its worker the instrument the walk actually needed. **\`TRAPS: none\` on a walk chunk is a finding**, not a clean chunk. |
 | \`PHASES\`/\`WAVES\` | **every chunk belongs in a wave of its OWN** — one dev server and one reset command, which every chunk shares. |
 
 Each worker's \`### report — chunk <n>\` block carries \`RESULT:\` (CLEAN, or DEFECT where it
@@ -294,8 +297,13 @@ report reported nothing: its units were never walked.** Name it in your return a
 
 ### Coverage first — it is mechanical
 
-**Every unit id in a chunk's \`UNITS\` must appear in that worker's \`EVIDENCE\`.** Missing ids are
-not a judgement call. They go straight into \`NEXT: rework\`.
+**Every unit id in a chunk's ID-BEARING \`INTENT\` rows must appear in that worker's \`EVIDENCE\`.**
+Missing ids are not a judgement call. They go straight into \`NEXT: rework\`.
+
+**An ID-LESS row has no id to look for, and is checked in \`RESULT:\` instead** — one line per row, in
+the chunk's own order. Those rows are where a walk states how it was TAKEN. **A \`RESULT:\` line
+answering one with no number leaves the whole slice unproven**, however clean the unit blocks below it
+read.
 
 ### Reject on sight
 
@@ -329,7 +337,7 @@ Each one below is a real hand-wave that shipped on this repo.
 1. **Read \`git diff\` or \`git show\` on the file that worker named. If the change is not in the
    tree, that worker never made the repair** — \`NEXT: rework\`.
 2. **Drive the slice again yourself, from the reset state**, with the reset command that chunk's
-   \`UNITS\` rows name, and read the value off the running system. A later worker's clean walk of the
+   \`INTENT\` rows name, and read the value off the running system. A later worker's clean walk of the
    same slice is a second confirmation, never a substitute for yours.
 3. **The dev server is your parent's.** Never start, restart or stop it, and never bounce the server
    that owns the reset command: a bounce wipes the state under whatever is mid-walk.

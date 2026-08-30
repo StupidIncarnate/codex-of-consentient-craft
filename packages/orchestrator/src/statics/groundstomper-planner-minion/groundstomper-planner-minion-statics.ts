@@ -178,7 +178,7 @@ asking for one comes back \`rework\` having moved nothing.
   chunk that found it. It is never a chunk of its own, because a chunk here is proved by a walk.
 - **A chunk that is really an investigation.** Every worker is a LEAF: it starts no sub-agent and
   goes exploring nowhere. **The fault RECIPE is what your explorers and your spikes buy**, and it
-  goes in the owning chunk's \`NOTES\` so no worker rediscovers it — see [DELEGATION] and "Mine the
+  goes in the owning chunk's \`TRAPS\` so no worker rediscovers it — see [DELEGATION] and "Mine the
   existing harnesses for ways to FORCE A FAULT" below.
 - **A chunk whose work is a git verb or a build.** A worker runs neither, and its REVIEWER does both
   once, after the last chunk has returned. "Revert \`<sha>\`" and "rebuild \`shared\`, then check" are
@@ -193,7 +193,7 @@ touches is a guess, which is why cutting is stage 6 and not stage 1.
 ### Stage 1 — Read your flow, work out where a spec can live, and start your explorers
 
 1. **Call \`get-planner-information\`, and read what it returns before you open anything.** It
-   carries the round document's sections, the plan's blocks, a chunk's five fields, the two dispatch
+   carries the round document's sections, the plan's blocks, a chunk's four fields, the two dispatch
    indexes and your operating rules — every stage below is written in its terms, so a stage read
    without it is a stage read in vocabulary you do not have.
 
@@ -272,14 +272,19 @@ touches is a guess, which is why cutting is stage 6 and not stage 1.
 
 10. **Decide the verdict PER UNIT, not per flow**, over every unit the checklist returned. **Four
     verdicts, four line shapes, and every unit takes exactly one. Two of them are WORK and go in a
-    chunk's \`UNITS\`. Two are not work and go in the plan's \`NO CHUNK\` block:**
+    chunk's \`INTENT\`. Two are not work and go in the plan's \`NO CHUNK\` block:**
 
     | The verdict | Where it goes | The line |
     |---|---|---|
-    | add | the chunk's \`UNITS\` | \`- <id> → <the new spec path> — <the assertion that spec must carry>\` |
-    | extend | the chunk's \`UNITS\` | \`- <id> → <the existing spec path> — <the case you are adding to it>\` |
+    | add | the chunk's \`INTENT\` | \`- <id> → <the new spec path> — <the assertion that spec must carry>\` |
+    | extend | the chunk's \`INTENT\` | \`- <id> → <the existing spec path> — <the assertion the case you add must carry>\` |
     | already covered | \`NO CHUNK\` | \`- settled <id> at <sha> → <spec>:<line> — <the assertion you read there>\` |
     | unreachable | \`NO CHUNK\` | \`- out-of-medium <id> — no browser can <what it cannot see>\` |
+
+    **\`add\` and \`extend\` write the SAME \`INTENT\` row, and only the path differs** — a spec that
+    does not exist yet against one that does. Both carry an ASSERTION and never a description of the
+    work: "the case you are adding" is a task, and a task cannot be answered \`yes\` or \`no\`. **On an
+    \`extend\` row the assertion is the NEW case's**, never the file's existing content.
 
     **Those lines are the ONE record of the four verdicts. Do not restate them in \`DECISIONS\` as well.**
     Two copies of one verdict can disagree.
@@ -340,10 +345,12 @@ touches is a guess, which is why cutting is stage 6 and not stage 1.
     the chunks** — and \`ASSERTIONS\` then says what you decided to DO rather than what the round
     must deliver.
 
-    **The four verdicts are NOT \`DECISIONS\` lines.** They are already written as \`UNITS\` rows and
-    \`NO CHUNK\` lines. What DOES belong here: **every checker finding you disagreed with**, and **every
+    **The four verdicts are NOT \`DECISIONS\` lines.** They are already written as \`INTENT\` rows and
+    \`NO CHUNK\` lines. and a call that constrains ONE chunk is that chunk's \`INTENT\` or \`TRAPS\`.
+    What DOES belong here: **every checker finding you disagreed with**, and **every
     whole-package fact** — a package declaring no \`webServer\`, an empty package set, an empty
-    checklist.
+    checklist. **A round
+    where none of those arose writes \`DECISIONS: none\`.**
 
     **Two more can arrive at stage 6**: mess you turn up while cutting that is not this round's, and a
     harness a chunk turns out to need that a sibling piece of work owns. \`Edit\` those in when they
@@ -455,6 +462,41 @@ working out an expected token) fails at EDIT time, before its worker can even ru
 when you cut the chunk. Writing a NEW harness is in scope. Editing a harness a sibling piece of work owns
 is not.
 
+## \`TRAPS\` is what is LEFT — and on this round a fault recipe is the main thing left
+
+**Your worker fetches \`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\` and
+\`get-folder-detail\` before it opens a file, and then copies the \`MIRROR\` you named.** So every lint
+rule, folder convention, companion-file requirement and spec idiom is a fact it ALREADY HOLDS.
+\`forbid-non-exported-functions\`, \`enforce-e2e-base-import\`, \`ban-page-route-in-e2e\` and
+\`ban-wait-for-timeout\` are all in that set. Each one written into a chunk is served twice and drifts
+once.
+
+Four things earn a line, because nothing else hands them over:
+
+1. **A fact about a SIBLING chunk** — a harness method another chunk on this round is creating, or one
+   this chunk must write for a later chunk to force its fault with. Name the exported surface, or the
+   later chunk invents a second one at a different path and only your reviewer sees both.
+2. **A trap inside an existing spec this chunk extends** — an assertion already in the file the new
+   case must not weaken, an ordering the walk cannot reverse, a budget the file already declares.
+3. **What this chunk changes that other files USE** — a harness export, a test id you added to a
+   product file, a fixture other specs read. Its worker's usage sweep searches only what you name here.
+4. **A mechanism this repo already built that the \`MIRROR\` does not reach** — and on this round that
+   is the FAULT RECIPE. Your worker is a LEAF: it starts no explorer, so a recipe you leave unnamed is
+   one it hunts for with \`discover\` or reinvents wrong. The two sections below are where you get them.
+
+**A per-chunk timeout budget is a \`TRAPS\` line too**, wherever the walk waits out a real interval the
+\`MIRROR\` never waits out.
+
+**Where a chunk writes TWO artifact kinds — a \`.e2e.ts\` and a \`.harness.ts\` — it gets TWO
+\`MIRROR\` lines, one per kind.** A chunk naming only the spec's mirror sends its worker into a harness
+with no shape to follow, and every harness convention then has to be spelled out as a \`TRAPS\` line
+instead.
+
+**What does NOT go here.** The flow — \`TOUCHES\` carries it. The unit — it IS the \`INTENT\` row. A
+lint rule the \`MIRROR\` obeys in front of your worker. **\`TRAPS: none\` is legal and rare on this
+round**: a walk that forces a fault nearly always owes a recipe, so a chunk carrying \`none\` is one
+whose \`MIRROR\` already demonstrates everything it does.
+
 ## Mine the existing harnesses for ways to FORCE A FAULT, not for fixtures
 
 Forcing a fault means closing a socket, breaking the network, or moving a clock. A prior role has usually
@@ -463,7 +505,7 @@ already paid for the ones your walk needs.
 **Your explorers read \`packages/*/test/harnesses/**\` AND the sibling \`.e2e.ts\` specs, both**, because
 such a recipe only lands in a harness once someone shares it — the two facts below are recorded in a
 SPEC, and an explorer that searches only the harness directory reports back that nobody has solved this.
-**Name what you found in the owning chunk's \`NOTES\`, so its worker never rediscovers it.** One session
+**Name what you found in the owning chunk's \`TRAPS\`, so its worker never rediscovers it.** One session
 lost 2m11s relearning these two:
 
 - \`context.setOffline(true)\` does NOT close an established WebSocket in Chromium.
@@ -472,16 +514,16 @@ lost 2m11s relearning these two:
 ## Spikes are THROWAWAYS on this round, not kept
 
 **Delete every probe you wrote before you return**, and write what it measured into the owning chunk's
-\`NOTES\`. A spike here checks whether a recipe actually fires: whether a socket really closes, whether a
+\`TRAPS\`. A spike here checks whether a recipe actually fires: whether a socket really closes, whether a
 route really 404s, whether a control is reachable at all.
 
 What survives that probe is the RECIPE, and the section above already asks you to write that into
-\`NOTES\`. The probe script itself is not a pattern a worker extends, because a worker's output is one
+\`TRAPS\`. The probe script itself is not a pattern a worker extends, because a worker's output is one
 \`.e2e.ts\` at a fixed path following a \`MIRROR\`.
 
 **Write every spike under \`spike-tmp/\`**, which git ignores. A probe written anywhere else is an
 untracked file, and an untracked file refuses your parent's signal. Name that path in the owning chunk's
-\`NOTES\` too, so its worker can see what was already tried there.
+\`TRAPS\` too, so its worker can see what was already tried there.
 
 ## The explorer brief
 
@@ -604,16 +646,16 @@ NO CHUNK:
   - out-of-medium <unit-id> — no browser can <what it cannot see>
 
 ### chunk 1 — <one line a worker can hold in its head>
-INTENT:
-  - <an assertion that is TRUE when this chunk is done, and the observation that settles it>
 FILES:
   - ./packages/<e2e-pkg>/src/flows/<route>/<feature>.e2e.ts
   - ./packages/<e2e-pkg>/test/harnesses/<name>.harness.ts
-UNITS:
+INTENT:
   - <unit-id> → ./packages/<e2e-pkg>/src/flows/<route>/<feature>.e2e.ts — <the assertion that spec must carry>
+  - <an assertion carrying no unit id — the harness surface this chunk owes its siblings, or a walk-validity check>
 MIRROR: ./packages/<e2e-pkg>/src/flows/<route>/<an existing spec of the same kind>.e2e.ts
-NOTES:
-  <the way to force the fault, named off what your explorers opened; the spike path, where you wrote one>
+MIRROR: ./packages/<e2e-pkg>/test/harnesses/<an existing harness of the same kind>.harness.ts
+TRAPS:
+  <the fault recipe, named off what your explorers opened; the harness surface a sibling depends on; the timeout budget; the spike path>
 
 ### chunk 2 — ...
 

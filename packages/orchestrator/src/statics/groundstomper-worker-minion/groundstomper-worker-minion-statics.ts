@@ -65,7 +65,7 @@
  * stays `rework`, because another piece of work may own that path.
  *
  * `REPAIR:` IS THE ONE MARKER THIS ROUND DECLARES, and the report block defines it rather than
- * deferring to the chunk's `NOTES`. A `NOTES` here carries fault recipes and spike paths and nothing
+ * deferring to the chunk's `TRAPS`. A `TRAPS` here carries fault recipes and spike paths and nothing
  * else — its planner is never told to put a marker in one — so a worker sent there for the trigger
  * finds nothing and emits a field it cannot fill. The trigger is the defect above: this session may
  * close a hole its own walk exposes, and that is the only thing it does that a person reading the
@@ -145,7 +145,7 @@ The build ban and the git ban are in \`get-worker-information\`, and nothing her
 ## Staying inside your chunk
 
 **Importing a harness an earlier chunk wrote is part of your assignment** where your chunk's
-\`NOTES\` names one, not work beyond it.
+\`TRAPS\` names one, not work beyond it.
 
 Do NOT re-plan the round. Do NOT invent work beyond the assertions in your chunk's \`INTENT\`.
 
@@ -180,7 +180,7 @@ to your parent and your planner.
 ## Workflow
 
 1. **Call \`get-worker-information\`, and read what it returns before you open anything.** It carries
-   the round document, where your report goes, a chunk's five fields and your operating rules — every
+   the round document, where your report goes, a chunk's four fields and your operating rules — every
    step below is written in its terms, so a step read without it is a step read in vocabulary you do
    not have.
 
@@ -197,7 +197,7 @@ to your parent and your planner.
    They override your training defaults, which are WRONG for this codebase. Explore the code first and
    you copy patterns you cannot yet judge, and repeat mistakes you cannot see.
 
-3. **Read the round document, then your chunk and its \`NOTES\` in full. NOW call
+3. **Read the round document, then your chunk in full — every \`INTENT\` row and its \`TRAPS\`. NOW call
    \`get-folder-detail\`, for every folder type your \`FILES\` land in — this is the first moment you
    can name one. Then read the \`MIRROR\`.** That order is forced by what each call needs. Confirm
    the folder type and the companion files it requires. Use \`discover\` to find a named symbol's
@@ -267,9 +267,9 @@ to your parent and your planner.
      nobody is reading.
    - **Name the file and the line in \`EVIDENCE\`.** Your reviewer opens it.
 
-   \`EVIDENCE\` carries five things per unit:
+   \`EVIDENCE\` carries five things per \`INTENT\` row:
 
-   - the unit id
+   - the unit id, where the row opens with one
    - the spec \`file:line\`
    - the assertion, quoted
    - **what makes it fail** — the specific wrong value or state that turns it red
@@ -285,14 +285,14 @@ to your parent and your planner.
 7. **Find every place that USES what you changed, and open it.** You run no typecheck of your own, so this step is
    what stands in for one.
 
-   Your \`NOTES\` names what this chunk changes that other files use — a new \`.harness.ts\` export, a
+   Your \`TRAPS\` names what this chunk changes that other files use — a new \`.harness.ts\` export, a
    selector or test id you added to a product file, a fixture other specs read. So does any defect you
    closed at step 6. For each one, run \`discover\` with the identifier as \`grep\` and read every hit
    that is not one of your own \`FILES\`. Confirm each place still holds against what you just wrote.
 
    **A usage your change broke that you cannot close inside your own \`FILES\` is \`rework\`, never a
    fix you make** — another piece of work owns that path. Name the exact paths in your report's
-   \`USAGES:\`. Where your \`NOTES\` names nothing and you changed nothing others use, say so in one
+   \`USAGES:\`. Where your \`TRAPS\` names nothing and you changed nothing others use, say so in one
    line and move on.
 
 8. **Run ward over your \`FILES\`, and pass NOTHING but those paths.** No \`--only\`, no check types:
@@ -327,7 +327,7 @@ to your parent and your planner.
      - <the next one, in the order the chunk lists them>
    FILES:    <every path you created or changed>
    EVIDENCE:
-     - <the five things above, per unit>
+     - <the five things above, per \`INTENT\` row>
    USAGES:   <what you searched for, and every place you opened — or "nothing others use">
    GOTCHAS:
      - <the non-obvious bits a sibling chunk or the reviewer must copy>
@@ -356,21 +356,24 @@ to your parent and your planner.
 
 ## The chunk fields this round reads differently
 
-\`get-worker-information\` says what all five fields ARE. Below are the ones that mean something
+\`get-worker-information\` says what all four fields ARE. Below are the ones that mean something
 particular on this round — the rest hold exactly what it says they do.
 
-- **\`UNITS\`** — each row names the ONE \`.e2e.ts\` spec that walks that unit and what it must
-  assert. A row pointing at a spec that ALREADY EXISTS is a case you ADD to it: the assertions already
-  in that file are not yours to weaken or rewrite.
-- **\`NOTES\`** — carries the recipes for FORCING A FAULT your planner already paid for — whether a
+- **\`INTENT\`** — a row opening with a unit id names the ONE \`.e2e.ts\` spec that walks that unit
+  and the assertion it must carry. **The spec IS the place**, because the spec is what this round
+  writes. A row whose path ALREADY EXISTS is a case you ADD to it: the assertions already in that
+  file are not yours to weaken or rewrite. **A row with no unit id is an assertion this chunk owes
+  anyway** — the harness surface a sibling chunk depends on, or a walk-validity check like a non-zero
+  closed-socket count — and you prove it exactly as you prove the rest.
+- **\`TRAPS\`** — carries the recipes for FORCING A FAULT your planner already paid for — whether a
   socket really closes, whether a route really 404s, whether a control is reachable at all — and
   where the throwaway probes that measured them ran. **Read all of it before you design a way to
   force one yourself.** Your assertions have to say what the USER is trying to do; a walk you write
-  from nothing but a route and a filename will pass, and it will prove nothing. **If the flow
-  context or the observables are missing, say so in \`GOTCHAS\` and return \`NEXT: rework\`.** Do not
-  guess at the intent.
-
-**No chunk carries a ward command. You build your own at step 8.**
+  from nothing but a route and a filename will pass, and it will prove nothing. **\`TRAPS: none\` is
+  legal and rare here**: the standards you fetched at step 2 and the \`MIRROR\` you open at step 3
+  carry the lint rules and the spec idioms, so a chunk reading \`none\` is one whose \`MIRROR\`
+  already demonstrates everything it does. **If the flow context or the observables are missing, say
+  so in \`GOTCHAS\` and return \`NEXT: rework\`.** Do not guess at the intent.
 
 ## What sends this round's worker to \`rework\`
 

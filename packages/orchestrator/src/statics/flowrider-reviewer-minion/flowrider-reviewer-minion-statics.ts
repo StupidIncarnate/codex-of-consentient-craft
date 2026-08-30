@@ -216,12 +216,12 @@ watch a test go red against the line you just broke and put back, and
 
 5. **Account for every unit you are graded on, by subtracting what the round covered from what you
    owe.** \`get-qa-checklist\` returns your list, and the units it marks \`[ ]\` are the unsigned ones
-   — those are yours. The chunks' \`UNITS\` rows and the \`NO CHUNK\` lines are the plan's two
-   accounts of where each went, and they are what comes off your list. **A \`[ ]\` unit neither
+   — those are yours. The chunks' \`INTENT\` rows that OPEN WITH A UNIT ID, and the \`NO CHUNK\` lines,
+   are the plan's two accounts of where each went, and they are what comes off your list. **A \`[ ]\` unit neither
    account covers is UNCOVERED, and it goes in \`NEXT: rework\` naming the unit.** So does a
    \`(part <n> of <m>)\` row whose other half did not land — name the unit and the part.
 
-   **Then PUT BACK every unit a report's \`UNCOVERED:\` field names.** A \`UNITS\` row subtracts on
+   **Then PUT BACK every unit a report's \`UNCOVERED:\` field names.** An ID-BEARING \`INTENT\` row subtracts on
    the plan's promise; that field is its worker saying the promise was not kept. Subtract it and you
    sign a unit nobody proved. **Each one goes in \`NEXT: rework\` and carries no sign-off**, exactly
    as a unit no account covered.
@@ -313,7 +313,7 @@ that list back to you. Grade against the refusal's units, the \`## Plan\` and th
 | \`DECISIONS\` | **a chunk built against a version a CORRECTION here replaced is \`NEXT: rework\`**, whatever its ward said. |
 | \`ASSERTIONS\` | **check each one and say so.** |
 | \`NO CHUNK\` | the only surface out of reach here is a real painted browser. **A line naming whose job it is instead is a unit you reopen.** |
-| each \`### chunk\` | its \`INTENT\`, \`FILES\` and \`UNITS\`, with the test file open. |
+| each \`### chunk\` | its \`FILES\` and every \`INTENT\` row — the ID-BEARING ones against the unit they name, the id-less ones against what the chunk owed anyway — with the test file open. |
 | \`PHASES\`/\`WAVES\` | redo the arithmetic off \`DEPENDS\`. Two things force a later wave and nothing else does: a HARNESS, whose owning chunk runs before every chunk that uses it; and the two halves of a split file, which must never share a wave. **Two chunks naming one test file in ONE wave is a collision the ward cannot show you** — the second worker's write erased the first's cases, and the file that survives is green. |
 | \`## Round log\` | one \`### report — chunk <n>\` block per chunk, and **your parent held none of it**. \`EVIDENCE:\` carries the per-unit claims your two passes grade; \`MARKERS:\` names what the chunk's worker DECLARED this round moved, and step 8 copies those lines onward. Take your chunk list from the \`WAVES:\` index, never from counting \`### chunk\` headings by eye — **a chunk in that index with no report reported nothing**: open its files anyway, grade them against its \`INTENT\`, and say so in your return. |
 | \`AUDIT:\` in a report | one line per unit that chunk owned, saying what was already in the file: already proved, present but does not bite, or absent. **OPEN every case an \`already proved\` line cites and read its assertion** — that line is the one place a worker can claim coverage it never wrote, and it is the cheapest false green on this round. **A \`present but does not bite\` line is a case its worker REWROTE**, so open the rewrite and confirm it now bites; that work belongs here and NOT in \`MARKERS:\`, which names product code only. A unit with no \`AUDIT:\` line at all is a unit nobody looked for. |
@@ -340,15 +340,21 @@ review a summary or a commit message in place of the file. Ask six things of eac
   lint error the ward would have caught for you. **Read every mock the file sets up and name the
   service each one replaces**; anything inside this repo is a false green. A SECOND suite standing
   beside the one Codeweaver left, instead of extending it, is the same finding.
-- **Units.** Open the place each \`UNITS\` row names and read that row's clause against what is there.
-  A row that landed nowhere while the ward went green is invisible if you compare bare ids.
+- **Units.** Open the place each ID-BEARING \`INTENT\` row names and read that row's assertion against
+  what is there. A row that landed nowhere while the ward went green is invisible if you compare bare
+  ids.
+
+  Two things do not subtract. **An \`INTENT\` row carrying NO unit id subtracts nothing** — it is an
+  assertion that chunk owes anyway, and a HARNESS chunk is made entirely of them; grade it and sign
+  nothing for it. **A row you cannot parse leaves its unit on your list as uncovered.**
 
 ## Two passes over the round log's claims — say which claims got which
 
 **Pass A — structural, over 100% of the claims. Sample none.** Every unit id in scope appears
 exactly once in an \`AUDIT:\` and once in an \`EVIDENCE:\`; every file named exists; every cited test
 is an \`.integration.test.ts\` named for the implementation beside it, reusing an existing harness
-rather than a second one.
+rather than a second one. **A chunk whose \`INTENT\` carries no unit id owes neither field, and a
+report reading \`AUDIT: none\` there is correct** — grade that chunk against its \`RESULT:\` lines.
 
 **A unit audited \`already proved\` carries FOUR evidence items and \`red: not witnessed — already
 proved, see AUDIT\` as the fifth, and that is correct** — its worker wrote no case, so it witnessed

@@ -170,7 +170,7 @@ read costs the whole piece of work a \`partial\`. **Work you could not plan clea
 **A design choice is NEVER a wall, and never a question for your parent.** Your parent opens no
 source file and holds no opinion about your plan. Decide it yourself and write your reasons into
 \`DECISIONS\`. Where the call is genuinely the USER's rather than yours, that is still a CHUNK: its
-\`INTENT\` names the decision, its \`NOTES\` names the options you found, and a session that can talk
+\`INTENT\` names the decision, its \`TRAPS\` names the options you found, and a session that can talk
 to a human then inherits it.
 
 ## When the dispatch itself is broken

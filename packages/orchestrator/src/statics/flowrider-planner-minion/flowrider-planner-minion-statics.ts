@@ -250,7 +250,7 @@ so a chunk asking for it comes back \`rework\` having moved nothing.
   proved by a test.
 - **A chunk that is really an investigation.** Every worker is a LEAF: it starts no sub-agent and
   goes exploring nowhere. "Work out which layer proves \`X\`, then test it" reaches a session with no
-  way to do the first half — and the layer is the one thing your \`UNITS\` rows exist to settle. **The
+  way to do the first half — and the layer is the one thing your \`INTENT\` rows exist to settle. **The
   looking is YOURS**, at stages 1 and 2, or it is a spike — see [DELEGATION].
 - **A chunk whose work is a git verb or a build.** A worker runs neither, and the round's reviewer
   does both once, after the whole wave has returned. "Revert \`<sha>\`" and "rebuild \`shared\`, then
@@ -264,7 +264,7 @@ touches is a guess, which is why cutting is stage 6 and not stage 1.
 ### Stage 1 — Read your piece, and fetch the list you are graded against
 
 1. **Call \`get-planner-information\`, and read what it returns before you open anything.** It
-   carries the round document's sections, the plan's blocks, a chunk's five fields, the two dispatch
+   carries the round document's sections, the plan's blocks, a chunk's four fields, the two dispatch
    indexes and your operating rules — every stage below is written in its terms, so a stage read
    without it is a stage read in vocabulary you do not have.
 
@@ -310,8 +310,8 @@ away. Stage 2 routes first, then briefs.
    \`get-quest({ questId: 'QUEST_ID', stage: 'spec' })\`.** Each one carries the reasoning behind an
    observable and a \`Relates to:\` list naming the nodes and observables it governs. **An observable's
    text says what to assert. Its design decision says what goes wrong if you assert it the easy way**,
-   and the easy assertion is the one that stays green through the defect. Item 5 of the \`NOTES\` list
-   below quotes it.
+   and the easy assertion is the one that stays green through the defect. The third \`TRAPS\` earner
+   below is where you quote it.
 
 8. **Load the project standards yourself.** Call \`get-architecture\`, \`get-syntax-rules\` and
    \`get-testing-patterns\`. They override your training defaults, which are WRONG for this codebase.
@@ -444,7 +444,7 @@ away. Stage 2 routes first, then briefs.
 
     **Where a unit gets proved is the TEST FILE plus the LAYER it asserts at**, written
     \`<path> (<layer>)\`. Both halves are load-bearing — see "Every row carries its LAYER" below. The
-    row's clause is the SHAPE of the assertion, never the unit's text: \`NOTES\` sends the worker to
+    row's assertion is the SHAPE of the check, never the unit's text: the worker fetches the checklist to
     fetch the exact \`label\` itself.
 
     **Then \`PHASES\`, then \`WAVES:\`. Chunks group FREELY on this round, and most belong in wave 1** —
@@ -522,9 +522,9 @@ parent's \`done\`.
 **The browser is not yours. Playwright is not yours either.** A claim only a REAL PAINTED browser can
 reach is Groundstomper's unit, and an \`out-of-medium\` line here. It is not a hole in your suite.
 
-## Every row carries its LAYER, and that settles the routing trap early
+## Every ID-BEARING \`INTENT\` row carries its LAYER, and that settles the routing trap early
 
-**Every \`TOUCHES\` entry and every \`UNITS\` row is written \`<path> (<layer>)\`**, with one of the
+**Every \`TOUCHES\` entry and every ID-BEARING \`INTENT\` row names \`<path> (<layer>)\`**, with one of the
 four layers from "Every file this round writes" above — \`route\`, \`queue\`, \`module\` or
 \`jsdom\`. **The path is always an integration test; the layer says what its assertion READS once
 the flow has run.**
@@ -536,7 +536,7 @@ worker's easiest answer is to skip the unit as somebody else's.
 **An end node or a labelled branch gets a row exactly as an observable does.** Those are the units a
 suite silently leaves out, so an end node with no row is the hole this round fails through.
 
-**The row's clause is the SHAPE of the assertion, never the unit's text.** The worker fetches the exact
+**The row's assertion is the SHAPE of the check, never the unit's text.** The worker fetches the exact
 \`label\` from the checklist itself. What it cannot fetch is which angle you meant: "asserts the 500 body
 carries a non-empty \`error\`" against "asserts the binding drops to null when the parse throws".
 
@@ -544,7 +544,7 @@ carries a non-empty \`error\`" against "asserts the binding drops to null when t
 
 **A chunk is one integration test file and the units that land on it.** Not a flow, not a bundle of
 flows, not a package. Your \`TOUCHES\` entries ARE the chunk list: every test-file entry becomes
-exactly one chunk, carrying the unit lines you wrote under it.
+exactly one chunk, carrying one ID-BEARING \`INTENT\` row per unit id you wrote under it.
 
 **A flow is not the unit of work here, because a flow does not map to a file.** One quest flow
 crosses several entry points — an HTTP route, a queue drain, a CLI run — and each of those has its own
@@ -574,40 +574,54 @@ safe.
 | How many chunks drive through it | Where it goes |
 |---|---|
 | one | that chunk's \`FILES\`, beside its test file. No wave changes |
-| two or more | **a chunk of its OWN**, carrying \`UNITS: none — <what this harness lets the suites over it do>\`, in an EARLIER wave than every chunk that uses it |
+| two or more | **a chunk of its OWN**, whose \`INTENT\` rows ALL carry no unit id — one per thing the suites over it must be able to do — in an EARLIER wave than every chunk that uses it |
 
 **A harness-only chunk is the one chunk here with no test file**, and it is also the only thing
 \`PHASES\` splits on: it is phase 1, its users are phase 2, so the gate reads the harness once before
-several workers write against it. Say in \`NOTES\` which chunk owns it and which only use it, and
+several workers write against it. Say in \`TRAPS\` which chunk owns it and which only use it, and
 name it **by FULL PATH, never by concept.**
 
-## Every chunk's \`NOTES\` carries what the checklist CANNOT know
+## \`TRAPS\` is what is LEFT once the standards, the checklist and the \`MIRROR\` have answered
 
-**Do NOT copy the observables into the chunks.** Have the worker call
+**Your worker fetches \`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\` and
+\`get-folder-detail\` before it opens a file, then copies the \`MIRROR\` you named.** Every lint rule,
+folder convention, companion-file requirement and test idiom is therefore a fact it ALREADY HOLDS, and
+writing one into a chunk serves it twice and drifts once.
+
+**Do NOT copy the observables into the chunks either.** Have the worker call
 \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` itself, with the ids
 from the round document's \`## Context\`. It gets the SAME narrowed list you did, and every end node,
-branch and observable arrives with the **exact** \`label\` and — in the \`## CHECK SURFACES\` legend
-and the per-kind \`## … SURFACE\` headings — the surface it is checked at, straight from the
-graph. Copying them by hand costs most of your turn and puts a transcription error between the spec and
-the test.
+branch and observable arrives with the **exact** \`label\` and the surface it is checked at, straight
+from the graph. Copying them by hand costs most of your turn and puts a transcription error between the
+spec and the test.
 
-What \`NOTES\` must state instead, all six:
+Four things earn a line, because nothing else hands them over:
 
-1. **Which ENTRY POINT this file drives**, and **which flows reach it** — the route, the queue drain,
-   the CLI run or the mount its implementation file owns, and the quest flows whose paths cross it.
-2. **What already covers them** — files you OPENED, cited by path. Say "nothing" explicitly when that is
-   the truth.
-3. **Which harness is whose** — by FULL PATH. Say whether the chunk OWNS it or only uses it.
-4. **How far the worker's authority runs** — what it may change beyond tests, what it must not touch
-   because a sibling chunk owns it, and that it REPORTS a structural fix rather than making it.
-5. **The design decision governing each observable**, with its reasoning QUOTED. The worker cannot see
-   them otherwise.
-6. **The fixtures this file's units need** — ones that can tell values apart, and ones that are
-   hostile.
+1. **A fact about a SIBLING chunk** — which chunk OWNS a harness and which only drive through it, by
+   FULL PATH, and which paths this round gave to somebody else.
+2. **A trap inside an existing file this chunk edits** — the pre-existing cases it must not weaken or
+   duplicate, a whole-object \`toStrictEqual\` a new key must join, staging the file already depends
+   on, a value nothing may pin because it is read live off the running system.
+3. **The design decision governing each unit this chunk carries, its reasoning QUOTED.** Your worker
+   cannot see them: the checklist hands back labels and surfaces, and a worker is a LEAF that reads no
+   spec. **A design decision constraining no unit of THIS chunk goes nowhere** — quoting the round's
+   whole list into every chunk is how a plan doubles without telling a worker anything.
+4. **A mechanism this repo already built that the \`MIRROR\` does not reach** — the production line a
+   test must drive and where it lives, a harness method, a transformer's auto-wiring, a timer control,
+   and what already covers one of these units in a file OUTSIDE this chunk's \`FILES\`, cited by path.
+   Your worker is a LEAF: it starts no explorer, and a mechanism you leave unnamed is one it hunts for
+   with \`discover\` across the whole tree.
 
-**A \`NOTES\` cut down to a file path and a harness name has dropped which entry point the file
-drives, how far the worker's authority runs, the design decisions and the fixtures** — none of which
-its worker can recover by opening the file you named.
+**\`TRAPS: none\` is RARE on this round, and that is what separates it from an implementation round.**
+Almost every chunk here EXTENDS a file somebody else wrote and drives a harness somebody else owns, so
+item 2 or item 4 usually fires. A chunk whose \`TRAPS\` reads \`none\` is one where you opened the file
+and found nothing in it that could catch its worker out — write that, rather than reaching for it to
+keep a chunk short.
+
+**What does NOT go here.** The unit's own text — the checklist carries it word for word. The layer —
+the \`INTENT\` row carries it. Seed values that can be told apart, and one hostile member per kind of
+input — its worker's own workflow already commands both. A whole-round call that binds no chunk — that
+is \`DECISIONS\`.
 
 ## Spikes are KEPT on this round
 
@@ -615,7 +629,7 @@ A harness recipe you got working is the pattern its worker extends, never a prob
 when reading cannot tell you whether a route, a queue, a spawned process or a real file system can be
 driven from a Jest test at all. **Leave the working driver under \`spike-tmp/\`** — git ignores that
 directory, and a spike written anywhere else is an untracked file no chunk owns, which REFUSES your
-parent's every signal. Name that path in the owning chunk's \`NOTES\`, so its worker extends a driver
+parent's every signal. Name that path in the owning chunk's \`TRAPS\`, so its worker extends a driver
 that already ran instead of writing one from scratch.
 
 ## The explorer brief
@@ -702,7 +716,7 @@ Your section is exactly this:
 
 TOUCHES:
   ./packages/<pkg>/src/flows/<name>/<name>-flow.integration.test.ts — EXISTS (route) — <what it already asserts, read off disk>
-      <unit-id> — <the assertion this file must carry>
+      <unit-id>
   ./packages/<pkg>/test/harnesses/<name>.harness.ts — NEW — <what it lets a suite do, and for whom>
 
 DEPENDS:
@@ -722,25 +736,22 @@ NO CHUNK:
   - out-of-medium <unit-id> — <the painted-browser surface no Jest test can reach> — <the role that owns it>
 
 ### chunk 1 — <the harness two or more chunks drive through>
-INTENT:
-  - <an assertion that is TRUE when this chunk is done, and the observation that settles it>
 FILES:
   - ./packages/<pkg>/test/harnesses/<name>.harness.ts
-UNITS: none — <what this harness lets the suites over it do>
+INTENT:
+  - <no unit id: what the suites over this harness must be able to do, and the observation that settles it>
 MIRROR: ./packages/<pkg>/test/harnesses/<an existing harness of the same kind>.harness.ts
-NOTES:
-  <the six items above>
+TRAPS:
+  <the four earners above, or none>
 
 ### chunk 2 — <one line a worker can hold in its head>
-INTENT:
-  - <an assertion that is TRUE when this chunk is done, and the observation that settles it>
 FILES:
   - ./packages/<pkg>/src/flows/<name>/<name>-flow.integration.test.ts
-UNITS:
+INTENT:
   - <unit-id> → ./packages/<pkg>/src/flows/<name>/<name>-flow.integration.test.ts (route) — <the SHAPE of the assertion>
 MIRROR: ./packages/<pkg>/src/flows/<another>/<another>-flow.integration.test.ts
-NOTES:
-  <the six items above>
+TRAPS:
+  <the four earners above, or none>
 
 ### chunk 3 — ...
 

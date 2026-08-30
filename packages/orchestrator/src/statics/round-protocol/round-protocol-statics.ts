@@ -83,9 +83,21 @@
  *   reviewer is the only session that performs it and was never told what it subtracted from.
  * - `DEPENDS` IS WRITTEN MOST-DEPENDED-ON FIRST because what such a thing must provide is the sum of
  *   what its consumers demand — the completeness check falls out of that order.
- * - TAKING `NO CHUNK` AND THE CHUNKS' `UNITS` OFF THE FULL LIST is how the reviewer computes what the
- *   round left uncovered; the served text states the two write-side rules that arithmetic depends on
- *   rather than the arithmetic four times over.
+ * - TAKING `NO CHUNK` AND THE CHUNKS' ID-BEARING `INTENT` ROWS OFF THE FULL LIST is how the reviewer
+ *   computes what the round left uncovered; the served text states the two write-side rules that
+ *   arithmetic depends on rather than the arithmetic four times over.
+ * - ONE FIELD CARRIES THE UNIT ID AND THE ASSERTION, because they are one requirement in two
+ *   grammars and a chunk that states both states it twice. `INTENT` is the name that survives: it is
+ *   the field `workerInformationStatics` calls "the bound, not the list" — the rule that decides
+ *   whether a worker may touch a file outside its `FILES` — and the one `reviewerInformationStatics`
+ *   computes `continue` from. A bare unit id answers neither question, so a chunk whose targets were
+ *   only ids would leave a worker no scope rule and a reviewer no verdict.
+ * - `TRAPS` IS SCOPED BY WHAT ITS READER ALREADY HOLDS. A worker fetches `get-architecture`,
+ *   `get-syntax-rules`, `get-testing-patterns` and `get-folder-detail` before it opens code, and
+ *   copies a `MIRROR` that lints clean today — so a lint rule or a folder convention restated in a
+ *   chunk is served twice and drifts once. Measured on one round: eight chunks carried two design
+ *   decisions verbatim that bound none of them, and four of one chunk's guardrails argued lint
+ *   legality its own mirror already demonstrated.
  * - THE WAVE ARITHMETIC (one past the highest wave among the chunks owning a `needs` link) is stated
  *   as arithmetic so a reviewer can REDO it off `DEPENDS`; the reviewer prompts carry that
  *   instruction themselves.
@@ -183,10 +195,10 @@ found, and \`PHASES\` and \`WAVES\` come last because they name CHUNK NUMBERS.
 
 | Block | What it is | The test it must pass |
 |---|---|---|
-| \`TOUCHES\` | everything the round touches, found or still to be made — what each is FOR, and every unit landing on it. | an entry with no unit still belongs here. |
-| \`DEPENDS\` | one entry per \`TOUCHES\` entry: everything it \`needs\`, everything that \`needs\` it, and what crosses each link. | it is a COMPLETENESS CHECK, not bookkeeping. The \`needed by\` lines for the most-depended-on entries come FIRST. |
-| \`DECISIONS\` | a call settled while READING, with the evidence that settled it. | it names something that was opened, or it is not a decision. |
-| \`ASSERTIONS\` | a claim true of the WHOLE round when it is done. | a reader can CHECK it and get yes or no — "\`GET /api/health\` answers 200 with exactly seven keys". |
+| \`TOUCHES\` | everything the round touches, found or still to be made — what each is FOR, and the ids of the units landing on it. | an entry with no unit still belongs here. **What each file must DO is its chunk's \`INTENT\`, not this block** — this one is an INDEX, and a clause written twice drifts once. |
+| \`DEPENDS\` | what \`needs\` what, over the entries \`TOUCHES\` names. | it exists to produce \`WAVES\`, so it carries no link it does not order. The most-depended-on entries come FIRST. |
+| \`DECISIONS\` | a call settled while READING that NO chunk carries, with the evidence that settled it. | it names something that was opened, or it is not a decision. **A call that constrains one chunk is that chunk's \`INTENT\` or \`TRAPS\`**, and repeating it here is the same fact in two places. \`DECISIONS: none\` is a legitimate block. |
+| \`ASSERTIONS\` | a claim true of the WHOLE round that no single chunk's \`INTENT\` covers. | a reader can CHECK it and get yes or no — "\`GET /api/health\` answers 200 with exactly seven keys". A line restating one chunk's \`INTENT\` belongs to that chunk alone. |
 | \`NO CHUNK\` | every unit NO chunk covers, one line each, for exactly two reasons. | both are findings about the round, not work in it. |
 
 **\`NO CHUNK\` is the other half of the chunks.** Two line shapes, no others:
@@ -197,8 +209,8 @@ found, and \`PHASES\` and \`WAVES\` come last because they name CHUNK NUMBERS.
 | nothing this round is allowed to use can reach it | \`- out-of-medium <unit-id> — <what cannot be reached, and why>\` |
 
 **\`settled\` and \`out-of-medium\` are literal, and nothing else parses.** **\`TOUCHES\` holds the
-round's full unit list.** \`NO CHUNK\` and the chunks' \`UNITS\` are what is removed from the full
-list; anything unparseable stays on it as uncovered.
+round's full unit list.** \`NO CHUNK\` and the chunks' \`INTENT\` rows that OPEN WITH A UNIT ID are
+what is removed from the full list; anything unparseable stays on it as uncovered.
 
 **A \`settled\` line must state the sha and the assertion actually opened.** It is the cheapest line
 in the plan to fake, and the reviewer opens what it cites. **An \`out-of-medium\` line names the
@@ -217,10 +229,10 @@ write one file are ONE chunk.** A unit split across two takes
 \`(part <n> of <m>; chunk <k> owns the rest)\` in BOTH rows, each naming the other.
 
 **Work the planner cannot plan cleanly still gets a chunk** — a spec that contradicts the tree, a
-bug nobody could reproduce. Its \`INTENT\` names what must be settled and its \`NOTES\` names the
+bug nobody could reproduce. Its \`INTENT\` names what must be settled and its \`TRAPS\` names the
 contradiction. Leaving it out of the plan routes it nowhere.`;
 
-const chunkFields = `## A chunk's five fields
+const chunkFields = `## A chunk's four fields
 
 A chunk is one numbered piece of work, and one worker does one chunk. **The number is its name.**
 The planner numbers chunks from 1 with no gaps, and no chunk section carries a wave of its own —
@@ -228,21 +240,15 @@ The planner numbers chunks from 1 with no gaps, and no chunk section carries a w
 
 \`\`\`
 ### chunk <n> — <one line a worker can hold in its head>
-INTENT:
-  - <an assertion TRUE when this chunk is done, and the observation that settles it>
 FILES:
   - <one path per line>
-UNITS:
-  - <unit-id> → <where it gets proved> — <what that place must make TRUE>
+INTENT:
+  - <unit-id> → <where it gets proved> — <the assertion TRUE when that place makes it true>
+  - <an assertion carrying no unit id, where the chunk owes work no unit names>
 MIRROR: <an existing file of the same kind whose shape this follows>
-NOTES:
-  <everything its worker cannot work out for itself>
+TRAPS: <what its worker cannot find by opening its own FILES or its MIRROR>
 \`\`\`
 
-- **\`INTENT\` is a LIST of assertions, never a sentence about what the chunk is for.** Its worker
-  rates its own work against that list, and the reviewer grades the round against it. **A line
-  nobody can answer \`yes\` or \`no\` to is useless**: "wires the badge into the header" is a task,
-  "\`SERVER_HEALTH_BADGE\` is in the DOM on \`/\`" is an assertion.
 - **\`FILES\` is a COLLISION boundary, and the thing it keeps apart is two writers running AT ONCE.**
   Two chunks IN ONE WAVE must never list the same path they both WRITE: that wave runs at once in one
   worktree, so the second to write a shared file erases the first. **Across waves the ban does not
@@ -250,18 +256,28 @@ NOTES:
   driven through or warded over. **A worker's \`FILES\` GROWS**: anything it has to create or change to
   reach its own \`INTENT\` joins the list, and its own prompt says which paths those are. **Every path
   is a FILE**, never a directory, and starts with \`./\` or is absolute.
-- **Each \`UNITS\` row names the ONE place that makes that unit true.** Its worker reads the row, and
-  never pairs ids against \`FILES\` by eye. A chunk with no unit of its own carries
-  \`UNITS: none — <why this chunk exists>\`, in those words, and nothing else parses.
+- **\`INTENT\` is a LIST of assertions, never a sentence about what the chunk is for.** Its worker
+  rates its own work against that list, and the reviewer grades the round against it. **A line
+  nobody can answer \`yes\` or \`no\` to is useless**: "wires the badge into the header" is a task,
+  "\`SERVER_HEALTH_BADGE\` is in the DOM on \`/\`" is an assertion.
+- **A row opening with a unit id is that unit's ONE home, and names the place that makes it true.**
+  Its worker reads the row, and never pairs ids against \`FILES\` by eye. \`NO CHUNK\` and these rows
+  are what comes off \`TOUCHES\`. **A row carrying no id is an assertion the chunk owes anyway** — an
+  architecture-mandated file, or a piece another chunk's unit cannot be true without. **Every chunk
+  carries at least one row, and \`INTENT: none\` parses nowhere.**
 - **One unit, ONE chunk — unless it is SPLIT, and then BOTH rows say so**, as
   \`(part <n> of <m>; chunk <k> owns the rest)\`, each part naming the other. Two chunks carrying the
   same bare id are both removed from the round's full unit list the moment EITHER lands. **A unit is
   covered only when EVERY part landed.**
-- **\`MIRROR\` is a path somebody OPENED.** Its worker copies one that merely sounded right
-  wholesale.
-- **\`NOTES\` OWES whatever this chunk changes that other files USE** — an exported signature,
-  a contract field, a renamed symbol, a moved path. A chunk whose \`NOTES\` names none of those is
-  claiming nothing outside it uses this work.`;
+- **\`MIRROR\` is a path somebody OPENED**, one per ARTIFACT KIND the chunk writes. Its worker copies
+  one that merely sounded right wholesale, and hunts the tree for a mechanism no mirror names.
+- **\`TRAPS\` is what is LEFT once the standards and the \`MIRROR\` have answered.** Its worker loads
+  the project standards before it opens code and copies a file that lints clean today, so a lint rule,
+  a folder convention, a companion-file requirement or an idiom the mirror demonstrates is a fact it
+  already holds — written here it costs the round twice. What belongs: a fact about a SIBLING chunk, a
+  trap inside an existing file this chunk edits, and whatever this chunk changes that other files USE —
+  an exported signature, a contract field, a renamed symbol, a moved path. **\`TRAPS: none\` is a
+  common and correct answer.**`;
 
 const indexes = `## The two indexes: \`PHASES\` and \`WAVES\`
 

@@ -183,7 +183,7 @@ describe('flowriderWorkerMinionStatics', () => {
         text: TEMPLATE,
       }),
       harnessIsTheClosedCase: hasIn({
-        needle: '**A harness your `NOTES` says a chunk in your wave OWNS is the closed case.**',
+        needle: '**A harness your `TRAPS` says a chunk in your wave OWNS is the closed case.**',
         text: TEMPLATE,
       }),
       restatesTheTable: hasIn({ needle: '| The path | Why nothing collides |', text: TEMPLATE }),
@@ -373,7 +373,7 @@ describe('flowriderWorkerMinionStatics', () => {
         text: TEMPLATE,
       }),
       saysTheToolHoldsTheRest: hasIn({
-        needle: '`get-worker-information` says what all five fields ARE.',
+        needle: '`get-worker-information` says what all four fields ARE.',
         text: TEMPLATE,
       }),
       restatesTheTwiceRule: hasIn({

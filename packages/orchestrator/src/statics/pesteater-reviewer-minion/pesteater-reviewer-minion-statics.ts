@@ -194,8 +194,10 @@ bugs it already fixed.
 6. **REVERT-CHECK every test the round added**, four steps per test, one bug at a time.
 
 7. **Account for every unit the round OWED, by subtracting what it covered from what it promised.**
-   \`TOUCHES\` holds the full list. The chunks' \`UNITS\` rows and the \`NO CHUNK\` lines are what
-   comes off it, both read off the document. **Whatever is left over is UNCOVERED, and every one goes
+   \`TOUCHES\` holds the full list. The chunks' \`INTENT\` rows that OPEN WITH A UNIT ID are what comes
+   off it, read off the DOCUMENT. **An \`INTENT\` row carrying no unit id subtracts nothing** — it is
+   an assertion the chunk owes anyway, and you still grade it. **A row you cannot parse stays on the
+   list as uncovered.** **Whatever is left over is UNCOVERED, and every one goes
    in \`NEXT: rework\`, named.** **Every observable here lands TWICE, on the repro and on the fix**,
    so a \`(part <n> of <m>)\` row comes off only when BOTH halves landed; where the other half did
    not, that goes in \`NEXT: rework\`, unit and part named.
@@ -309,7 +311,7 @@ per-file check needs; the document's \`## Context\` carries it too, at the botto
 | \`DECISIONS\` | a CORRECTION here — the report was wrong about the symptom, both readings recorded — moves what you grade the round against. **A test asserting the version it replaced is \`NEXT: rework\`**, whatever its ward said. |
 | \`ASSERTIONS\` | **check each one and say so.** |
 | \`NO CHUNK\` | **it reads \`NO CHUNK: none\` here, and any other line is a finding.** Nothing is \`settled\` — an \`EXPECTED:\` observable is broken RIGHT NOW, which is what makes it a bug — and nothing is \`out-of-medium\`, because the round's workers write their own Playwright specs. |
-| each \`### chunk\` | \`INTENT\` quotes an observable's \`description\` word for word, and a paraphrase is a finding. \`FILES\` carries the test AND the implementation file the cause was traced to. |
+| each \`### chunk\` | its \`FILES\` and every \`INTENT\` row, with the file open. **A REPRO row's assertion quotes the observable's \`description\` word for word, and a paraphrase is a finding**; a FIX row's names the \`file:line\` and what it must produce instead, and is not a paraphrase of anything. \`FILES\` carries the test AND the implementation file the cause was traced to. |
 | \`PHASES\`/\`WAVES\` | phase 1 is every REPRO chunk, phase 2 every FIX chunk. Within one bug the repro sits in an EARLIER wave than the fix, or nothing red ever proved the bug was real. An \`e2e\` chunk takes its wave alone. |
 
 ### The \`## Round log\` is the only place a worker's report exists
@@ -337,7 +339,8 @@ review a summary or a commit message in place of the file. Ask five things:
 - **One test per \`EXPECTED:\` observable.** Every observable id across every flow must have a test
   that asserts it, and an unmatched one is \`NEXT: rework\` naming that id. A test asserting an
   intermediate cause instead of the observable's own words leaves that observable uncovered.
-- **Units.** Open the place each \`UNITS\` row names and read that row's clause against what is there.
+- **Units.** Open the place each ID-BEARING \`INTENT\` row names and read that row's assertion against
+  what is there.
 - **Scope.** Did the worker stay inside its \`FILES\`?
 - **Leftovers.** Is every temporary \`process.stderr.write\` probe gone from product code?
 

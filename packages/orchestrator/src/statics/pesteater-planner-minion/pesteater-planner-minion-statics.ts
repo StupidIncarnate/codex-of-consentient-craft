@@ -127,9 +127,9 @@ would ask for a test that asserts the bug.
   list**, and both are required — the section **What you append, at your brief's \`PLAN:\` path**
   below is where they happen. Never \`add\` anything but that document, and never \`stash\`,
   \`reset\`, \`checkout --\`, \`clean\`, \`rebase\` or \`push\`.
-- **Writing a \`WARD:\` line into a chunk.** That ward command is each worker's to build, from the
-  LAYER the chunk's \`NOTES\` field named — the same field that decided where its reproducing test
-  goes, so the two can never disagree. What you owe it besides that is that chunk's \`FILES\`, the
+- **Writing a \`WARD:\` line into a chunk.** Each worker builds its own over \`FILES\`, the chunk
+  field naming the paths it owns — ward works out which checks apply to those paths, so the layer is
+  never stated twice. What you owe it besides that is that chunk's \`FILES\`, the
   paths it owns, as explicit FILE paths: a bare directory pulls in the whole package, ward then
   backgrounds the run, and that worker's turn stops there.
 
@@ -161,7 +161,7 @@ is why cutting is stage 6 and not stage 1.
 ### Stage 1 — Read the report, list what you are graded against, and start one explorer per bug
 
 1. **Call \`get-planner-information\`, and read what it returns before you open anything.** It
-   carries the round document's sections, the plan's blocks, a chunk's five fields, the two dispatch
+   carries the round document's sections, the plan's blocks, a chunk's four fields, the two dispatch
    indexes and your operating rules — every stage below is written in its terms, so a stage read
    without it is a stage read in vocabulary you do not have.
 
@@ -233,8 +233,9 @@ is why cutting is stage 6 and not stage 1.
 
    **Never start a sub-agent for that probe.** No gate downstream ever re-reads a sub-agent's conclusion
    about where a bug lives. **Remove every probe you added to product code before you return**, and put
-   what you learned in the owning chunk's \`NOTES\`: the values you saw, and the \`file:line\` where the
-   path goes wrong. Otherwise a worker spends its whole turn finding the root cause you already found.
+   what you learned across the owning chunk in two places: the \`file:line\` where the path goes wrong is
+   the fix row's own assertion in \`INTENT\`, and the VALUES you read go in \`TRAPS\`, which is the only
+   place a LEAF worker can get them. Otherwise a worker spends its whole turn finding the root cause you already found.
 
 ### Stage 3 — Collect, open what they found, then write \`TOUCHES\`: every file this round touches
 
@@ -343,7 +344,7 @@ is why cutting is stage 6 and not stage 1.
 
     | The half | Where it gets proved | Its clause |
     |---|---|---|
-    | repro | the test path, at the layer \`NOTES\` names | the assertion, and the \`ACTUAL:\` value it prints against unchanged source |
+    | repro | the test path, at the layer the type table below picks | the observable's own description word for word, and the \`ACTUAL:\` value it prints against unchanged source |
     | fix | the implementation file you traced the cause to | the \`file:line\` that produces the symptom, and what it must produce instead |
 
     **The fix half points at where the defect IS, never where it SHOWS.** That is what reproducing
@@ -389,35 +390,54 @@ is why cutting is stage 6 and not stage 1.
 
 A chunk here is done when a named claim is TRUE. Not when a file exists.
 
-- **\`UNITS\`** carries the \`id\` of every \`EXPECTED:\` observable the chunk makes true, with its
-  \`(part <n> of <m>)\` marker. **A chunk with no observable id of its own takes
-  \`UNITS: none — <why it exists>\`** — a fixture two tests share, or a contract the fix needs first. It
-  is graded on its \`INTENT\` alone.
-- **\`INTENT\`** quotes that observable's \`description\` WORD FOR WORD, never a paraphrase. The worker
-  asserts the words the user approved, and a paraphrase is how a test ends up asserting something nearby
-  that was easier to assert.
-- **\`NOTES\`** names the LAYER the reproducing test belongs at, and the observable \`type\` that decided
-  it:
-
-  | The observable's \`type\` | Where the test goes |
-  |---|---|
-  | \`ui-state\`, or an \`api-call\` the user only sees through a browser | a Playwright \`*.e2e.ts\`, colocated in the entry flow's folder of a \`frontend-react\` / \`frontend-ink\` package: \`./packages/<ui-pkg>/src/flows/<route>/<feature>.e2e.ts\` |
-  | every other type | a unit or integration test alongside the implementation |
-
-  **Default to e2e for any "I don't see X in the UI" report. On THIS round the worker writes the
-  \`.e2e.ts\` itself**, because nothing else reproduces a browser-only symptom honestly. Put that path in
-  the chunk's \`FILES\`.
-
-  \`NOTES\` also carries what your stage 2 probe saw: the values you read, and the \`file:line\` where
-  the path goes wrong.
+- **\`INTENT\`** carries one row per half of every \`EXPECTED:\` observable the chunk makes true, each
+  opening with that observable's \`id\` and its \`(part <n> of <m>; chunk <k> owns the rest)\` marker.
+  **A repro row's assertion is the observable's \`description\` WORD FOR WORD, never a paraphrase** —
+  its worker asserts the words the user approved, and a paraphrase is how a test ends up asserting
+  something nearby that was easier to assert. A fix row's assertion is the \`file:line\` that produces
+  the symptom, and what it must produce instead.
+- **A chunk with no observable id of its own still carries \`INTENT\` rows** — a fixture two repros
+  share, a contract a fix needs first. Those rows carry no id, subtract nothing from \`TOUCHES\`, and
+  are the whole of what that chunk is graded on. **\`INTENT: none\` parses nowhere**, so a chunk you
+  cannot write a row for is a chunk you have not cut yet.
 - **\`FILES\`** carries the implementation file you traced the cause to as well as the test, so the
   worker fixes where the defect IS rather than where it shows.
+
+## \`TRAPS\` is what is LEFT — and here it is usually your probe
+
+**Your worker fetches \`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\` and
+\`get-folder-detail\` before it opens a file, and then copies the \`MIRROR\` you named.** So every lint
+rule, folder convention and test idiom is a fact it ALREADY HOLDS — and so is the layer, which is a
+path in two of its own fields. Writing any of them into a chunk serves it twice and drifts once.
+
+Five things earn a line, and the FIRST is this round's own:
+
+1. **What your stage 2 probe SAW** — the values you read at the cause. Your worker is a LEAF: it starts
+   no explorer and cannot cheaply re-run your probe, so a value you leave unwritten costs it the turn
+   you already spent buying it.
+2. **A trap inside an existing file this chunk edits** — a whole-object \`toStrictEqual\` a new key
+   must join, an existing test that would go red, a harness the traced file is driven through.
+3. **What this chunk changes that other files USE** — an exported signature, a contract field, a
+   renamed symbol, a moved path. Its worker's usage sweep searches only what you name here.
+4. **A mechanism this repo already built that the \`MIRROR\` does not reach** — a fake-timer control, a
+   proxy method, a Playwright fixture.
+5. **A fact about a SIBLING chunk beyond the split** — a fixture an earlier chunk is creating, and the
+   constraint it puts on this one. The split itself needs no line: the \`(part <n> of <m>)\` marker
+   already names the other half.
+
+**A marker line is a \`TRAPS\` line**: \`CORRECTED:\` reaches the round log only because you told that
+chunk's worker to log one.
+
+**What does NOT go here.** The layer — it is the path in \`INTENT\` and \`FILES\`. The observable — it
+is the \`INTENT\` row. The traced \`file:line\` — it is the fix row's assertion. **\`TRAPS: none\` is a
+correct answer, and a chunk that carries it is not a thin chunk.**
+
 
 ## When what you reproduce is not what the report says
 
 **Plan against what you SAW.** Name both readings in \`DECISIONS\`: what the report claims, and what you
 reproduced. The reviewer then checks the test against the right one. Say in the owning chunk's
-\`NOTES\` that its worker logs \`CORRECTED:\` in the round log, quoting both readings — **that line is
+\`TRAPS\` that its worker logs \`CORRECTED:\` in the round log, quoting both readings — **that line is
 the only place a later session can read the correction back.**
 
 **A bug that turns out to be different from the report is a FINDING, not a wall.** The round ADDS the
@@ -514,9 +534,9 @@ Your section is exactly this:
 TOUCHES:
   BUG <flow-id> — <the symptom the report names>
     ./packages/<pkg>/src/<path>.test.ts — NEW — the test that reproduces it
-        <expected-obs-id> — the assertion, and the \`ACTUAL:\` value it prints on unchanged source
+        <expected-obs-id>
     ./packages/<pkg>/src/<traced>.ts — EXISTS — \`<file>:<line>\` produces the symptom
-        <expected-obs-id> — <what that line must produce instead>
+        <expected-obs-id>
 
 DEPENDS:
   BUG <flow-id> — <the chain your explorer walked, symptom first>
@@ -534,22 +554,21 @@ ASSERTIONS:
 NO CHUNK: none
 
 ### chunk 1 — reproduce <flow-id>: <the symptom, in one line>
-INTENT:
-  - <the \`EXPECTED:\` observable's own description, quoted word for word>
 FILES:
   - ./packages/<pkg>/src/<path>.test.ts
   - ./packages/<pkg>/src/<traced>.ts
-UNITS:
-  - <expected-obs-id> → ./packages/<pkg>/src/<path>.test.ts (part 1 of 2; chunk 2 owns the fix)
-      — the assertion, and the \`ACTUAL:\` value it prints against unchanged source
+INTENT:
+  - <expected-obs-id> (part 1 of 2; chunk 2 owns the fix) → ./packages/<pkg>/src/<path>.test.ts — <the \`EXPECTED:\` observable's own description, quoted word for word>, printing <the \`ACTUAL:\` value> against unchanged source
 MIRROR: ./packages/<pkg>/src/<the nearest existing test of that layer>.test.ts
-NOTES:
-  <the layer and the observable type behind it; the \`file:line\` you traced; the values you saw>
+TRAPS: <the values your probe printed at the cause> — or none
 
 ### chunk 2 — fix <flow-id> at <the traced file>
-UNITS:
-  - <expected-obs-id> → ./packages/<pkg>/src/<traced>.ts (part 2 of 2; chunk 1 owns the repro)
-      — \`<file>:<line>\` produces the reported symptom, and what it must produce instead
+FILES:
+  - ./packages/<pkg>/src/<traced>.ts
+INTENT:
+  - <expected-obs-id> (part 2 of 2; chunk 1 owns the repro) → ./packages/<pkg>/src/<traced>.ts — \`<file>:<line>\` produces the reported symptom, and what it must produce instead
+MIRROR: ./packages/<pkg>/src/<an existing file of the same kind>.ts
+TRAPS: none
 
 PHASES:
   1: wave 1 — every reproducing test, red against unchanged source

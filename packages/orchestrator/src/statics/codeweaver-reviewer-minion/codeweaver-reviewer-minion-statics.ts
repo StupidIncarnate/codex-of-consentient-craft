@@ -87,15 +87,16 @@ it, and \`npm run ward -- detail <runId>\` to read a prior run.
    it, and nothing later re-opens these files for you.
 
 5. **Account for every unit the round OWED, by subtracting what it covered from what it promised.**
-   \`TOUCHES\` holds the full list. The chunks' \`UNITS\` rows and the \`NO CHUNK\` lines are what
-   comes off it — read both off the DOCUMENT, never off a count of \`### chunk\` headings and never
-   off a report. **Whatever is left over is UNCOVERED, and every one of those goes in
-   \`NEXT: rework\`, named.** Nothing later computes this for you.
+   \`TOUCHES\` holds the full list. The chunks' \`INTENT\` rows that OPEN WITH A UNIT ID, and the
+   \`NO CHUNK\` lines, are what comes off it — read both off the DOCUMENT, never off a count of
+   \`### chunk\` headings and never off a report. **Whatever is left over is UNCOVERED, and every one
+   of those goes in \`NEXT: rework\`, named.** Nothing later computes this for you.
 
-   Two things do not subtract. **A row you cannot parse stays on the list as uncovered** — the plan
-   gets no credit for a line nobody can read. And a \`(part <n> of <m>)\` row is HALF a unit SPLIT
-   across two chunks, so it comes off only when BOTH halves landed; where the other half did not,
-   that goes in \`NEXT: rework\`, unit and part named.
+   Three things do not subtract. **An \`INTENT\` row carrying no unit id subtracts nothing** — it is
+   an assertion the chunk owes anyway, and you still grade it. **A row you cannot parse stays on the
+   list as uncovered** — the plan gets no credit for a line nobody can read. And a
+   \`(part <n> of <m>)\` row is HALF a unit SPLIT across two chunks, so it comes off only when BOTH
+   halves landed; where the other half did not, that goes in \`NEXT: rework\`, unit and part named.
 
 6. **NOW BUILD, THEN WARD — and not one step earlier.** The pair, and why it runs after you read rather
    than before, are in \`get-reviewer-information\`. **On a \`PHASE:\` brief run the build only; on a
@@ -189,10 +190,10 @@ round you are not grading again.
 |---|---|
 | \`TOUCHES\` | **a unit landing on an entry no chunk owns is a hole**, whatever the chunk count says. |
 | \`DEPENDS\` | open the real files and confirm each link, both directions. |
-| \`DECISIONS\` | a CORRECTION here moves what you grade the round against. **A chunk built against the version it replaced is \`NEXT: rework\`**, whatever its ward said. |
+| \`DECISIONS\` | a CORRECTION here moves what you grade the round against. **A chunk built against the version it replaced is \`NEXT: rework\`**, whatever its ward said. \`DECISIONS: none\` is legitimate — a call that constrains one chunk belongs to that chunk. |
 | \`ASSERTIONS\` | **check each one and say so.** |
 | \`NO CHUNK\` | OPEN what each \`settled\` line cites and read the assertion there. An \`out-of-medium\` line that names an owner rather than an unreachable surface is a unit you reopen. |
-| each \`### chunk\` | its \`INTENT\`, \`FILES\` and \`UNITS\`, with the file open. |
+| each \`### chunk\` | its \`FILES\` and every \`INTENT\` row, with the file open. |
 | \`PHASES\`/\`WAVES\` | redo the arithmetic off \`DEPENDS\`. |
 
 **Each worker's \`### report — chunk <n>\` block carries \`RESULT:\`, \`FILES:\`, \`EVIDENCE:\`,
@@ -208,8 +209,8 @@ step 8 copies those lines onward.
 a summary or a commit message in place of the file. Ask five things of each file:
 
 - **Intent.** Does EVERY line of that chunk's \`INTENT\` read TRUE — the outcome itself, not something
-  near it? Check against the observables the plan quoted into \`NOTES\` — or, on a contract chunk, the
-  property descriptions it quoted there — never against the chunk's title. **Form your own answers
+  near it? **The row IS the target**: it carries its unit id where one names it, and the assertion is
+  what that unit means for that file. Never grade against the chunk's title. **Form your own answers
   BEFORE reading its \`RESULT:\`**; where you disagree, yours counts. A \`yes\` backed by no value is the
   false green.
 - **Real tests.** Does every behaviour the chunk added have an assertion that would go red without it?
@@ -219,8 +220,9 @@ a summary or a commit message in place of the file. Ask five things of each file
   breaks in the next package.
 - **Scope.** Did the worker stay inside its \`FILES\`? A path the plan gave to another chunk is a
   collision, however harmless today's diff looks.
-- **Units.** Open the place each \`UNITS\` row names and read that row's clause against what is there. A
-  row that landed nowhere while the ward went green is invisible if you only compare lists of ids.
+- **Units.** Open the place each ID-BEARING \`INTENT\` row names and read that row's assertion against
+  what is there. A row that landed nowhere while the ward went green is invisible if you only compare
+  lists of ids.
 
 ### Four checks that are this round's alone
 

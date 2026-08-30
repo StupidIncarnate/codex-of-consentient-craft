@@ -192,7 +192,7 @@ git ignores that directory.
 ## Workflow
 
 1. **Call \`get-worker-information\`, and read what it returns before you open anything.** It carries
-   the round document, where your report goes, a chunk's five fields and your operating rules — every
+   the round document, where your report goes, a chunk's four fields and your operating rules — every
    step below is written in its terms, so a step read without it is a step read in vocabulary you do
    not have.
 
@@ -209,7 +209,7 @@ git ignores that directory.
    They override your training defaults, which are WRONG for this codebase. Explore the code first
    and you copy patterns you cannot yet judge, and repeat mistakes you cannot see.
 
-3. **Read the round document, then your chunk and its \`NOTES\` in full. NOW call
+3. **Read the round document, then your chunk and its \`TRAPS\` in full. NOW call
    \`get-folder-detail\`, for every folder type your \`FILES\` land in — this is the first moment you
    can name one, and it is what tells you which checks those files carry at step 10 and what a fix has
    to look like if you land one. Then read its \`MIRROR\` — the nearest existing walk whose route and
@@ -226,8 +226,8 @@ git ignores that directory.
    happened. **Only you can catch either**, because your parent never opens this file. A mismatch is
    \`NEXT: rework\` naming both numbers, not work done anyway.
 
-4. **Reset before EVERY path**, with the reset command your chunk names. Where your \`NOTES\` reads
-   \`NO RESET\`, establish the starting state it names instead — a fresh page load, a fresh socket, a
+4. **Reset before EVERY path**, with the reset command the \`INTENT\` row you are about to drive names.
+   Where that row reads \`NO RESET\`, establish the starting state it names instead — a fresh page load, a fresh socket, a
    fresh request — and record the starting value you will measure against.
 
 5. **Learn the expected value BEFORE you drive.** Read the implementation your slice runs through and
@@ -286,7 +286,7 @@ git ignores that directory.
    adds it to the flow and signs it, never you.
 
 8. **Write the record as you drive — that record IS your evidence.** Under \`EVIDENCE:\`, one block
-   per unit, in slice order:
+   per ID-BEARING \`INTENT\` row, in the chunk's own order:
 
    \`\`\`
    <unit-id>
@@ -360,7 +360,7 @@ git ignores that directory.
      - <the next one, in the order the chunk lists them>
    FILES:    <every path you changed — or "none — a clean walk changed nothing">
    EVIDENCE: CLEAN | DEFECT
-     - <one block per unit, in slice order, in the shape at step 8>
+     - <one block per ID-BEARING INTENT row, in the chunk's own order, in the shape at step 8>
    USAGES:   <what you searched for, and every place you opened — or "nothing others use">
    GOTCHAS:
      - <the non-obvious bits the next walk or the reviewer must have>
@@ -372,7 +372,7 @@ git ignores that directory.
    and found nothing. \`DEFECT\` when you stopped at a defect and fixed it, so the slice is
    incomplete.
 
-   **\`RESULT:\` answers EVERY \`INTENT\` line, in the chunk's own order, and \`no\` is a legitimate
+   **\`RESULT:\` answers EVERY \`INTENT\` row, in the chunk's own order, and \`no\` is a legitimate
    answer.** One line each, carrying the value you read to decide it, never an adjective. **A \`no\`
    you report is a finding your reviewer can act on. A \`yes\` you cannot back with a value is the
    false green this whole loop exists to catch.**
@@ -400,16 +400,21 @@ is there to tell you which paths and which walks are not yours. **\`## Context\`
 \`Dev Server Command\` and \`Dev Server URL\` your slice runs against** — read them there, and nowhere
 else. No chunk carries a second copy, because a second copy can disagree with the first.
 
+**Read \`DECISIONS\` before you drive, too.** It holds the calls that bind every chunk on this round
+and so belong to none: how this system must be reached, what a probe already established about it,
+what voids a walk on this tree. **Your \`TRAPS\` deliberately does not repeat any of it**, so a fact
+you cannot find in your own chunk is one to look for there rather than one to work out yourself.
+
 ## The chunk fields this round reads differently
 
-\`get-worker-information\` says what all five fields ARE. Below are the ones that mean something
+\`get-worker-information\` says what all four fields ARE. Below are the ones that mean something
 particular on this round — the rest hold exactly what it says they do.
 
 - **\`FILES\` are not files you write.** They are the implementation files your walk drives THROUGH —
   the paths a fix would land in, and the exact scope of the ward you run at step 10. **You measure no
-  unit in a \`FILES\` path**, which is why that binding lives in \`UNITS\` and points somewhere else
-  entirely.
-- **\`UNITS\`** — each row is the exact thing to RUN and the value to read off it:
+  unit in a \`FILES\` path**, which is why an \`INTENT\` row points at a live surface instead and never
+  at one of them.
+- **An ID-BEARING \`INTENT\` row is the exact thing to RUN**:
   \`<unit-id> → <the exact surface> [reset: <the command>] — <the value to read there>\`. Drive the
   row. Never pair a unit against a path in \`FILES\` by eye. **You measure a row carrying
   \`[difference from <a value you record first>]\` as a DIFFERENCE** — record the first value, leave
@@ -418,10 +423,16 @@ particular on this round — the rest hold exactly what it says they do.
 - **\`MIRROR\` is the nearest existing WALK** — a spec or a driver whose route and levers match yours.
   You write no file to a shape here, so read it for how it reaches that route and what it uses to
   force things, never for a shape to copy.
-- **\`NOTES\`** — the reset command (or \`NO RESET\`, with the starting state you establish instead),
-  the recipe that forces a fault the app will not produce on its own, the seed data your walk runs
-  against, the way to reach a real browser, and the environment facts that each cost a previous
-  session real time. **Read all of it before you drive.**
+- **A row with NO unit id is an assertion about HOW you take the readings**, and this round always has
+  one: that the frames were withheld for a forced reading's whole lifetime, that the socket was OPEN
+  while you measured silence, that the page never reloaded under you. **You cannot answer one after
+  the fact** — read every id-less row BEFORE you drive, and collect what it asks for as you go.
+- **\`TRAPS\` is THICK here, and \`TRAPS: none\` would mean nobody probed anything** — the driver to
+  write, the instrument as working code, why \`NO RESET\` holds, the seed data, the fault recipe, the
+  \`file:line\` each expected value was read off, what a sibling chunk drives through your files.
+  **Read all of it before you drive.** Nothing in the standards payloads and nothing in the
+  \`MIRROR\` stands in for it. **Where your \`TRAPS\` says the mirror stops short, believe \`TRAPS\`**:
+  the nearest walk is often the one that reached the state the cheap way.
 
 **No chunk carries a ward command. You build your own at step 10.**
 

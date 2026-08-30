@@ -3,6 +3,21 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 import { workerInformationStatics } from '../worker-information/worker-information-statics';
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
 
+import { codeweaverPlannerMinionStatics } from '../codeweaver-planner-minion/codeweaver-planner-minion-statics';
+import { codeweaverWorkerMinionStatics } from '../codeweaver-worker-minion/codeweaver-worker-minion-statics';
+import { codeweaverReviewerMinionStatics } from '../codeweaver-reviewer-minion/codeweaver-reviewer-minion-statics';
+import { flowriderPlannerMinionStatics } from '../flowrider-planner-minion/flowrider-planner-minion-statics';
+import { flowriderWorkerMinionStatics } from '../flowrider-worker-minion/flowrider-worker-minion-statics';
+import { flowriderReviewerMinionStatics } from '../flowrider-reviewer-minion/flowrider-reviewer-minion-statics';
+import { groundstomperPlannerMinionStatics } from '../groundstomper-planner-minion/groundstomper-planner-minion-statics';
+import { groundstomperWorkerMinionStatics } from '../groundstomper-worker-minion/groundstomper-worker-minion-statics';
+import { groundstomperReviewerMinionStatics } from '../groundstomper-reviewer-minion/groundstomper-reviewer-minion-statics';
+import { pesteaterPlannerMinionStatics } from '../pesteater-planner-minion/pesteater-planner-minion-statics';
+import { pesteaterWorkerMinionStatics } from '../pesteater-worker-minion/pesteater-worker-minion-statics';
+import { pesteaterReviewerMinionStatics } from '../pesteater-reviewer-minion/pesteater-reviewer-minion-statics';
+import { siegemasterPlannerMinionStatics } from '../siegemaster-planner-minion/siegemaster-planner-minion-statics';
+import { siegemasterWorkerMinionStatics } from '../siegemaster-worker-minion/siegemaster-worker-minion-statics';
+import { siegemasterReviewerMinionStatics } from '../siegemaster-reviewer-minion/siegemaster-reviewer-minion-statics';
 import { roundProtocolStatics } from './round-protocol-statics';
 
 // PROSE COMPARES IGNORE WRAPPING. `hasIn` collapses every whitespace run — spaces, newlines, indent
@@ -56,6 +71,36 @@ const COMMIT_SUBJECT_ROWS = Array.from(
   roundProtocolStatics.commitSubjects.matchAll(/^\| `([^`]+)` \| ([^|]+?) \|/gmu),
   (match) => ({ subject: String(match[1]), writer: String(match[2]) }),
 );
+
+// FIFTEEN SERVED TEMPLATES, one per (role, phase). The pair of lists below is what a field rename has
+// to keep empty; see the describe near the foot of this file.
+const MINION_TEMPLATES = [
+  ['codeweaver-planner', codeweaverPlannerMinionStatics.prompt.template],
+  ['codeweaver-worker', codeweaverWorkerMinionStatics.prompt.template],
+  ['codeweaver-reviewer', codeweaverReviewerMinionStatics.prompt.template],
+  ['flowrider-planner', flowriderPlannerMinionStatics.prompt.template],
+  ['flowrider-worker', flowriderWorkerMinionStatics.prompt.template],
+  ['flowrider-reviewer', flowriderReviewerMinionStatics.prompt.template],
+  ['groundstomper-planner', groundstomperPlannerMinionStatics.prompt.template],
+  ['groundstomper-worker', groundstomperWorkerMinionStatics.prompt.template],
+  ['groundstomper-reviewer', groundstomperReviewerMinionStatics.prompt.template],
+  ['pesteater-planner', pesteaterPlannerMinionStatics.prompt.template],
+  ['pesteater-worker', pesteaterWorkerMinionStatics.prompt.template],
+  ['pesteater-reviewer', pesteaterReviewerMinionStatics.prompt.template],
+  ['siegemaster-planner', siegemasterPlannerMinionStatics.prompt.template],
+  ['siegemaster-worker', siegemasterWorkerMinionStatics.prompt.template],
+  ['siegemaster-reviewer', siegemasterReviewerMinionStatics.prompt.template],
+] as const;
+
+const DROPPED_CHUNK_FIELD = /`(?:UNITS|NOTES)`|^(?:UNITS|NOTES):/mu;
+
+const NAMES_A_DROPPED_FIELD = MINION_TEMPLATES.filter(([, template]) =>
+  DROPPED_CHUNK_FIELD.test(template),
+).map(([name]) => name);
+
+const MISSING_A_KEPT_FIELD = MINION_TEMPLATES.filter(
+  ([, template]) => !template.includes('`FILES`') || !template.includes('`INTENT`'),
+).map(([name]) => name);
 
 describe('roundProtocolStatics', () => {
   it('VALID: exported value => is exactly the seven blocks and nothing else', () => {
@@ -363,7 +408,8 @@ describe('roundProtocolStatics', () => {
       expect({
         theDenominator: hasIn({ needle: "**`TOUCHES` holds the round's full unit list.**", text }),
         whatComesOff: hasIn({
-          needle: "`NO CHUNK` and the chunks' `UNITS` are what is removed from the full list",
+          needle:
+            "`NO CHUNK` and the chunks' `INTENT` rows that OPEN WITH A UNIT ID are\nwhat is removed from the full list",
           text,
         }),
         unparseableStaysOn: hasIn({
@@ -377,8 +423,8 @@ describe('roundProtocolStatics', () => {
       });
     });
 
-    it('VALID: chunkFields => names exactly the five fields, in the order the fence writes them', () => {
-      expect(CHUNK_FIELDS).toStrictEqual(['INTENT', 'FILES', 'UNITS', 'MIRROR', 'NOTES']);
+    it('VALID: chunkFields => names exactly the four fields, in the order the fence writes them', () => {
+      expect(CHUNK_FIELDS).toStrictEqual(['FILES', 'INTENT', 'MIRROR', 'TRAPS']);
     });
 
     // `FILES` is ownership, and the split marker is what stops a half-landed unit reading as
@@ -435,9 +481,16 @@ describe('roundProtocolStatics', () => {
           needle: '**A unit is covered only when EVERY part landed.**',
           text,
         }),
-        unitsNoneWording: hasIn({
-          needle:
-            '`UNITS: none — <why this chunk exists>`, in those words, and nothing else parses',
+        // A ROW WITHOUT AN ID IS STILL A ROW. Some files an architecture demands carry no unit at
+        // all — a brand an adapter must return, a transformer a lint rule forces a test through —
+        // and a chunk that could write no assertion for one would hand its worker nothing to prove
+        // and its reviewer nothing to grade. So the id is optional and the row is not.
+        idlessRowIsLegal: hasIn({
+          needle: '**A row carrying no id is an assertion the chunk owes anyway**',
+          text,
+        }),
+        everyChunkHasARow: hasIn({
+          needle: '**Every chunk\ncarries at least one row, and `INTENT: none` parses nowhere.**',
           text,
         }),
       }).toStrictEqual({
@@ -451,29 +504,44 @@ describe('roundProtocolStatics', () => {
         literalMarker: true,
         eachPartNamesTheOther: true,
         everyPartLanded: true,
-        unitsNoneWording: true,
+        idlessRowIsLegal: true,
+        everyChunkHasARow: true,
       });
     });
 
-    // `NOTES` used to read to a worker as a GUARANTEE that every outside usage was listed, and the
-    // worker's usage-sweep step searches only the identifiers `NOTES` names — so an omission
-    // shipped silently. Stated as a DEBT the row owes, a `NOTES` naming nothing is a claim the
-    // worker can test rather than a promise it inherits.
-    it('VALID: chunkFields => states `NOTES` as a debt, never as a guarantee', () => {
+    // `TRAPS` IS BOUNDED BY WHAT ITS READER ALREADY HOLDS, or it refills with the standards. A
+    // worker fetches `get-architecture`, `get-syntax-rules`, `get-testing-patterns` and
+    // `get-folder-detail` before it opens code, and copies a `MIRROR` that lints clean today — so a
+    // lint rule or a folder convention written into a chunk is served to that session twice and
+    // drifts once. Naming `none` as correct is what stops a planner filling the field to look
+    // thorough. The usage debt stays, because the worker's usage sweep searches only what it names.
+    it('VALID: chunkFields => bounds `TRAPS` by what its reader already holds', () => {
       const text = roundProtocolStatics.chunkFields;
 
       expect({
-        owes: hasIn({
-          needle: '**`NOTES` OWES whatever this chunk changes that other files USE**',
+        whatIsLeft: hasIn({
+          needle: '**`TRAPS` is what is LEFT once the standards and the `MIRROR` have answered.**',
           text,
         }),
-        namesNoneIsAClaim: hasIn({
-          needle:
-            'A chunk whose `NOTES` names none of those is claiming nothing outside it uses this work.',
+        alreadyHeld: hasIn({ needle: 'is a fact it\nalready holds', text }),
+        usageDebt: hasIn({
+          needle: 'whatever this chunk changes that other files USE',
           text,
         }),
-        neverAlwaysNames: hasIn({ needle: '**`NOTES` always names', text }),
-      }).toStrictEqual({ owes: true, namesNoneIsAClaim: true, neverAlwaysNames: false });
+        noneIsCorrect: hasIn({
+          needle: '**`TRAPS: none` is a\ncommon and correct answer.**',
+          text,
+        }),
+        // The field is not a place to restate the architecture, and naming it that way is what the
+        // planner reads. A `GUARDRAILS`-shaped heading invited exactly that refill.
+        neverRestateStandards: hasIn({ needle: '**`TRAPS` always names', text }),
+      }).toStrictEqual({
+        whatIsLeft: true,
+        alreadyHeld: true,
+        usageDebt: true,
+        noneIsCorrect: true,
+        neverRestateStandards: false,
+      });
     });
 
     it('VALID: indexes => names both indexes in the fence', () => {
@@ -1045,6 +1113,23 @@ describe('roundProtocolStatics', () => {
           text: standardsReviewConcernsStatics.markdown,
         }),
       }).toStrictEqual({ inPrimer: false, inConcerns: true });
+    });
+  });
+
+  // THE FIELD NAMES ARE A WIRE FORMAT ACROSS FIFTEEN PROMPTS, and a prompt naming a field this block
+  // dropped is a prompt telling its reader to write into nothing. Nothing errors when that happens:
+  // the planner writes a heading its worker never looks for, and the round grades a chunk against a
+  // block nobody read. Each family's own test pins its own wording; only this one sees all fifteen at
+  // once, which is what a field rename actually needs. Both lists are derived at module load for the
+  // same reason every other derivation in this file is — a filter predicate inside an `it` is a
+  // conditional in a test body.
+  describe('no prompt names a field the chunk fence dropped', () => {
+    it('VALID: every minion prompt => names neither `UNITS` nor `NOTES` as a chunk field', () => {
+      expect(NAMES_A_DROPPED_FIELD).toStrictEqual([]);
+    });
+
+    it('VALID: every minion prompt => names both `FILES` and `INTENT`', () => {
+      expect(MISSING_A_KEPT_FIELD).toStrictEqual([]);
     });
   });
 });

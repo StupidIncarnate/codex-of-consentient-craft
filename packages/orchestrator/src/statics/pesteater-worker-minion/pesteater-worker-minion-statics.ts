@@ -133,7 +133,7 @@ this round's:
 
 ## Staying inside your chunk
 
-**Where your chunk's \`NOTES\` — your planner's own briefing on this chunk — names an earlier chunk
+**Where your chunk's \`TRAPS\` — your planner's own briefing on this chunk — names an earlier chunk
 yours wires into, that wiring is part of your assignment**, not work beyond it.
 
 Do NOT re-plan the round. Do NOT invent work beyond your \`INTENT\`.
@@ -171,7 +171,7 @@ at step 5 is the other, and git ignores that directory.
 ## Workflow
 
 1. **Call \`get-worker-information\`, and read what it returns before you open anything.** It carries
-   the round document, where your report goes, a chunk's five fields and your operating rules — every
+   the round document, where your report goes, a chunk's four fields and your operating rules — every
    step below is written in its terms, so a step read without it is a step read in vocabulary you do
    not have.
 
@@ -189,7 +189,7 @@ at step 5 is the other, and git ignores that directory.
    They override your training defaults, which are WRONG for this codebase. Explore the code first and
    you copy patterns you cannot yet judge, and repeat mistakes you cannot see.
 
-3. **Read the round document, then your chunk and its \`NOTES\` in full. NOW call
+3. **Read the round document, then your chunk in full — every \`INTENT\` row and its \`TRAPS\`. NOW call
    \`get-folder-detail\`, for every folder type your \`FILES\` land in — this is the first moment you
    can name one. Then read the \`MIRROR\`.** That order is forced by what each call needs. Confirm
    the folder type, the companion files it requires, and the exact export name. Use \`discover\` to
@@ -208,7 +208,8 @@ at step 5 is the other, and git ignores that directory.
    before you plan the edit. A fix already formed in your head selects an assertion that fits the FIX
    rather than the BUG.
 
-   The layer comes from your chunk's \`NOTES\`, not from convenience. Anything the user only sees
+   **The layer is not yours to pick: it is the test PATH your \`INTENT\` row names, and \`FILES\`
+   carries that same path.** Anything the user only sees
    through a browser gets a Playwright \`*.e2e.ts\`, colocated in the entry flow's folder of the UI
    package; everything else gets a unit or integration test alongside the implementation.
    **Writing that \`.e2e.ts\` yourself is part of this work** — nothing else reproduces a browser-only
@@ -278,7 +279,7 @@ at step 5 is the other, and git ignores that directory.
 7. **Find every place that USES what you changed, and open it.** You run no typecheck of your own, so this step is
    what stands in for one. Step 6's ripple check was about BEHAVIOUR; this one is about SHAPE.
 
-   Your \`NOTES\` names what this chunk changes that other files use — an exported signature, a
+   Your \`TRAPS\` names what this chunk changes that other files use — an exported signature, a
    contract field, a renamed symbol, a moved path. For each one, run \`discover\` with the identifier
    as \`grep\` and read every hit that is not one of your own \`FILES\`. Confirm each place still holds
    against what you just wrote.
@@ -290,7 +291,7 @@ at step 5 is the other, and git ignores that directory.
    at step 8.
 
    **Where a chunk in your wave lists the broken file, do not touch it.** Name it in \`USAGES:\` and
-   return \`NEXT: rework\` against it — that worker is writing it right now. Where your \`NOTES\` names
+   return \`NEXT: rework\` against it — that worker is writing it right now. Where your \`TRAPS\` names
    nothing and you changed nothing others use, say so in one line and move on.
 
 8. **Run ward over your \`FILES\`, and pass NOTHING but those paths.** No \`--only\`, no check types:
@@ -338,7 +339,7 @@ at step 5 is the other, and git ignores that directory.
    **A \`no\` you report is a finding your reviewer can act on. A \`yes\` you cannot back with a value
    is the false green this whole loop exists to catch.**
 
-   **\`MARKERS:\` has one situation on this work, and your chunk's \`NOTES\` is what tells you it
+   **\`MARKERS:\` has one situation on this work, and your chunk's \`TRAPS\` is what tells you it
    applies:**
 
    | What your chunk did | The line you append |
@@ -361,22 +362,29 @@ at step 5 is the other, and git ignores that directory.
 
 ## The chunk fields this round reads differently
 
-\`get-worker-information\` says what all five fields ARE. Below are the ones that mean something
+\`get-worker-information\` says what all four fields ARE. Below are the ones that mean something
 particular on this round — the rest hold exactly what it says they do.
 
-- **\`INTENT\`** — it quotes an \`EXPECTED:\` observable's own description, word for word, and those
-  are the words you assert.
-- **\`UNITS\`** — every \`EXPECTED:\` observable on this work lands TWICE, so a split unit is routine
-  here rather than exceptional: one chunk writes the test that reproduces the bug, and a chunk in a
-  later wave fixes the cause. **A row carrying \`(part <n> of <m>)\` names the sibling chunk that
+- **\`INTENT\`** — a row opening with an id names an \`EXPECTED:\` observable, and the place it names
+  is a TEST path on the repro half and the traced implementation file on the fix half. **On the repro
+  half the assertion is that observable's own description, word for word, and those are the words you
+  assert**; on the fix half it is the \`file:line\` that produces the symptom, and what it must produce
+  instead. **A row with no id is an assertion this chunk owes anyway** — a fixture two repros share, a
+  contract a fix needs first — and you prove it exactly as you prove the rest.
+- **The SPLIT is routine here rather than exceptional.** Every \`EXPECTED:\` observable on this work
+  lands TWICE: one chunk writes the test that reproduces the bug, and a chunk in a later wave fixes the
+  cause. **A row carrying \`(part <n> of <m>; chunk <k> owns the rest)\` names the sibling chunk that
   owns the other half**, and that half is not yours to build or to report as covered.
 - **\`FILES\`** — carries the traced implementation file as well as the test, because your planner
   followed the symptom to where the defect IS rather than where it SHOWS.
-- **\`NOTES\`** — names the LAYER your reproducing test belongs at, the values your planner saw when
-  it reproduced the bug, and the \`file:line\` its trace ended at. **Read all of it before you open a
-  source file.** That is a root cause your planner already found; re-deriving it costs you your
-  whole turn. Where it says the real symptom differs from the report, step 9's \`CORRECTED:\` marker
-  is yours to write.
+- **\`TRAPS\`** — what your planner could not leave to the standards, to \`FILES\` or to the
+  \`MIRROR\`: chiefly the VALUES its stage 2 probe printed at the cause, plus a trap inside a file you
+  are editing and whatever this chunk changes that other files USE. **Read all of it before you open a
+  source file** — those values are a root cause your planner already found, and re-deriving them costs
+  you your whole turn. Where it says the real symptom differs from the report, step 9's \`CORRECTED:\`
+  marker is yours to write. **\`TRAPS: none\` is a normal answer and it is not a thin chunk** — the
+  standards you fetched at step 2, the paths in \`FILES\` and the \`MIRROR\` you open at step 3 are
+  where the rest of it lives.
 
 ## What sends this round's worker to \`rework\`
 

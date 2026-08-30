@@ -83,7 +83,7 @@ this round's:
 
 ## Staying inside your chunk
 
-**Wiring your work into an earlier chunk your \`NOTES\` briefing names is part of your assignment**, not
+**Wiring your work into an earlier chunk your \`TRAPS\` line names is part of your assignment**, not
 work beyond it.
 
 **Which paths are yours is in \`get-worker-information\`** — the other chunks of your own wave are
@@ -98,7 +98,7 @@ your \`INTENT\` needs, and name it in \`GOTCHAS\` so your reviewer reads it as y
 drift.
 
 **Breaking a line to watch it go red is a different thing from a fix, and it has its own bounds.** Where
-your \`NOTES\` says part of this chunk's behaviour ALREADY holds on disk, there is no empty shell — a
+your \`TRAPS\` says part of this chunk's behaviour ALREADY holds on disk, there is no empty shell — a
 signature with no logic — for a new assertion to fail against, and the only way left to show the
 assertion bites is to break the line it guards. So you may edit that line, watch the red, and **put it
 back BY EDITING it back**, never with \`git checkout --\`. Three things bound it, and all three are
@@ -120,7 +120,7 @@ Everything above that header belongs to your parent and your planner.
 ## Workflow
 
 1. **Call \`get-worker-information\`, and read what it returns before you open anything.** It carries
-   the round document, where your report goes, a chunk's five fields and your operating rules — every
+   the round document, where your report goes, a chunk's four fields and your operating rules — every
    step below is written in its terms, so a step read without it is a step read in vocabulary you do
    not have.
 
@@ -137,7 +137,7 @@ Everything above that header belongs to your parent and your planner.
    \`FILES\`, which sits inside a chunk you have not read: your brief carries a path and a chunk NUMBER,
    never the chunk itself. Step 3 calls it.
 
-3. **Read the round document, then your chunk and its \`NOTES\` in full. NOW call
+3. **Read the round document, then your chunk in full — every \`INTENT\` row and its \`TRAPS\`. NOW call
    \`get-folder-detail\`, for every folder type your \`FILES\` land in — this is the first moment you
    can name one. Then read the \`MIRROR\`.** That order is forced by what each call needs. Confirm the
    folder type, the companion files it requires, and the exact export name. Use \`discover\` to find a
@@ -150,10 +150,10 @@ Everything above that header belongs to your parent and your planner.
    second of you to write a shared path erases the first. **Only you can catch either** — the session
    that dispatched you never opens this document. A mismatch is \`NEXT: rework\` naming both numbers.
 
-4. **Write the failing test, driven by what \`UNITS\` names.** Every row needs an assertion that goes
-   red if that behaviour is absent: an observable id from the behaviour \`NOTES\` quotes, a
-   \`<ContractName>.<property>\` row from that property's description, going red in the contract's own
-   parse/shape test. One \`it()\` per assertion, named \`{prefix}: {input} => {expected}\`. Assert real
+4. **Write the failing test, driven by what \`INTENT\` names.** Every row needs an assertion that goes
+   red if that behaviour is absent — the row IS the assertion, and where it opens with a unit id that
+   id is the observable or the \`<ContractName>.<property>\` it settles, going red in the file the row
+   names. One \`it()\` per assertion, named \`{prefix}: {input} => {expected}\`. Assert real
    values through \`toStrictEqual\` / \`toBe\`. Never a weak matcher. Never a placeholder. Create the
    companion files the folder type demands (\`.proxy.ts\`, \`.stub.ts\`) in the same pass.
 
@@ -199,7 +199,7 @@ Everything above that header belongs to your parent and your planner.
 7. **Now write the logic, until green**, following the \`MIRROR\`'s shape: branded contracts on every
    input and return, object-destructured parameters, explicit return types, all imports at the top.
 
-   **When your \`NOTES\` names an already-landed chunk to wire into**, open it. Read the export off disk:
+   **When your \`TRAPS\` names an already-landed chunk to wire into**, open it. Read the export off disk:
    name, parameter shape, return type. If the file disagrees with the plan's summary of it, the file is
    what runs — follow the file and say so in \`GOTCHAS\`. If the export genuinely is not there, return
    \`NEXT: rework\`. Never build a second copy of it alongside.
@@ -210,7 +210,7 @@ Everything above that header belongs to your parent and your planner.
 9. **Find every place that USES what you changed, and open it.** You run no typecheck of your own, so this step is
    what stands in for one.
 
-   Your \`NOTES\` names what this chunk changes that other files use — an exported signature, a contract
+   Your \`TRAPS\` names what this chunk changes that other files use — an exported signature, a contract
    field, a renamed symbol, a moved path. For each one, run \`discover\` with the identifier as \`grep\`
    and read every hit that is not one of your own \`FILES\`. Confirm each place still holds against what
    you just wrote.
@@ -221,7 +221,7 @@ Everything above that header belongs to your parent and your planner.
    \`USAGES:\` and every one you changed in \`FILES:\`, and ward the changed ones with the rest at step 10.
 
    **Where a chunk in your wave lists the broken file, do not touch it.** Name it in \`USAGES:\` and
-   return \`NEXT: rework\` against it — that worker is writing it right now. Where your \`NOTES\` names
+   return \`NEXT: rework\` against it — that worker is writing it right now. Where your \`TRAPS\` names
    nothing and you changed nothing others use, say so in one line and move on.
 
 10. **Run ward over your \`FILES\`, and pass NOTHING but those paths.** No \`--only\`, no check types:
@@ -268,7 +268,7 @@ Everything above that header belongs to your parent and your planner.
    \`no\` you report is a finding your reviewer can act on. A \`yes\` you cannot back with a value is the
    false green this whole loop exists to catch.**
 
-   **\`MARKERS:\` is one line per situation below, followed by what moved.** Your chunk's \`NOTES\` is
+   **\`MARKERS:\` is one line per situation below, followed by what moved.** Your chunk's \`TRAPS\` is
    what tells you one applies; where none does, the line reads \`none\`.
 
    | What your chunk did | The line you append |
@@ -291,21 +291,25 @@ Everything above that header belongs to your parent and your planner.
 
 ## The chunk fields this round reads differently
 
-\`get-worker-information\` says what all five fields ARE. Below are the ones that mean something
+\`get-worker-information\` says what all four fields ARE. Below are the ones that mean something
 particular on this round — the rest hold exactly what it says they do.
 
-- **\`UNITS\`** — each row is an observable id, or a contract chunk's \`<ContractName>.<property>\`, and
-  names the PRODUCT file whose behaviour makes that unit true. That file is never the colocated test: you
-  write that test in the same pass, so naming it would put one identical fact in every row.
-- **\`NOTES\`** — leads with the flow and where your chunk sits in it, then the observables quoted word
-  for word, the contracts you take and return, the design decisions that constrain you, and the
-  already-built exports you wire into. **On a chunk whose subject is a contract the first two have no
-  source, and the contracts are its whole subject.** **Read all of it before you open a source file.**
-  Your assertions have to say what the USER is trying to do; a test you write from nothing but a path and
-  a signature will pass, and it will prove nothing. **A \`NOTES\` missing what its own KIND of chunk
-  needs — a node chunk's flow and observables, a contract chunk's contract, its property descriptions and
-  the decisions constraining them — is \`NEXT: rework\`, named in \`GOTCHAS\`.** Do not guess at the
-  intent.
+- **\`INTENT\`** — a row opening with an id names the PRODUCT file whose behaviour makes that unit
+  true, and the id is an observable or a contract chunk's \`<ContractName>.<property>\`. That file is
+  never the colocated test: you write that test in the same pass, so naming it would put one identical
+  fact in every row. **A row with no id is an assertion this chunk owes anyway** — an
+  architecture-mandated file, or a piece a sibling chunk's unit cannot be true without — and you prove
+  it exactly as you prove the rest.
+- **\`TRAPS\`** — what your planner could not leave to the standards or the \`MIRROR\`: a fact about a
+  sibling chunk, a trap inside a file you are editing, and whatever this chunk changes that other files
+  USE. **\`TRAPS: none\` is a normal answer, and it is not a thin chunk** — the standards you fetched at
+  step 2 and the \`MIRROR\` you open at step 3 are where the rest of it lives.
+
+**What is NOT in your chunk is not missing.** The flow is one line at the top of \`## Plan\`, the
+lint rules and folder conventions are in the three standards payloads, and every idiom your file needs
+is demonstrated by a \`MIRROR\` that lints clean today. **Open the \`MIRROR\` before you decide
+something is unspecified.** What IS \`NEXT: rework\`, named in \`GOTCHAS\`: an \`INTENT\` row you cannot
+answer \`yes\` or \`no\` to, and a \`MIRROR\` path that does not exist. Do not guess at the intent.
 
 ## What sends this round's worker to \`rework\`
 

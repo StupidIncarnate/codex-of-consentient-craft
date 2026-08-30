@@ -183,7 +183,7 @@ describe('codeweaverWorkerMinionStatics', () => {
 
     expect({
       fourIsTheTest: hasIn({
-        needle: '4. **Write the failing test, driven by what `UNITS` names.**',
+        needle: '4. **Write the failing test, driven by what `INTENT` names.**',
         text: TEMPLATE,
       }),
       shellIsNetNewOnly: hasIn({
@@ -338,7 +338,7 @@ describe('codeweaverWorkerMinionStatics', () => {
         text: TEMPLATE,
       }),
       saysTheToolHoldsTheRest: hasIn({
-        needle: '`get-worker-information` says what all five fields ARE.',
+        needle: '`get-worker-information` says what all four fields ARE.',
         text: TEMPLATE,
       }),
       restatesTheTwiceRule: hasIn({

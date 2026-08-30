@@ -190,7 +190,7 @@ describe('siegemasterWorkerMinionStatics', () => {
         text: TEMPLATE,
       }),
       saysTheToolHoldsTheRest: hasIn({
-        needle: '`get-worker-information` says what all five fields ARE.',
+        needle: '`get-worker-information` says what all four fields ARE.',
         text: TEMPLATE,
       }),
       restatesTheTwiceRule: hasIn({

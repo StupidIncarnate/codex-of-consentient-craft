@@ -129,7 +129,7 @@ is a guess, which is why cutting is stage 6 and not stage 1.
 ### Stage 1 — Read your piece, classify its seams, and start your explorers
 
 1. **Call \`get-planner-information\`, and read what it returns before you open anything.** It
-   carries the round document's sections, the plan's blocks, a chunk's five fields, the two dispatch
+   carries the round document's sections, the plan's blocks, a chunk's four fields, the two dispatch
    indexes and your operating rules — every stage below is written in its terms, so a stage read
    without it is a stage read in vocabulary you do not have.
 
@@ -155,7 +155,7 @@ is a guess, which is why cutting is stage 6 and not stage 1.
    | \`Your nodes\` | the route through the flow, not a target |
    | \`Must satisfy\` | your observables, word for word. **Every one is a target.** |
    | \`Contracts you own\` | **every PROPERTY DESCRIPTION under a contract is a requirement**, exactly as an observable is |
-   | \`Design decisions constraining your scope\` | what constrains HOW you meet a target — the ones governing your nodes AND the ones governing your contracts. Item 4 of the \`NOTES\` you write each chunk's worker quotes it. **Never call \`get-quest\` for it — it is already here.** |
+   | \`Design decisions constraining your scope\` | what constrains HOW you meet a target — the ones governing your nodes AND the ones governing your contracts. A chunk carries one only where it CONSTRAINS that chunk, and then in its \`INTENT\` row. **Never call \`get-quest\` for it — it is already here.** |
    | \`Seams\` | routing. Step 5 classifies each marker. |
 
    **Expect fewer than five. Your parent writes a heading only when it has something to put under it**,
@@ -172,7 +172,7 @@ is a guess, which is why cutting is stage 6 and not stage 1.
    | What you find | What you do |
    |---|---|
    | already true on disk | cut NO chunk. Give that target — the plan calls each one a UNIT — a \`settled\` line in \`NO CHUNK\`, carrying the commit sha and the export you opened. |
-   | partly true | cut a chunk for the rest ONLY. Say in \`NOTES\` what already holds, so its worker extends rather than rewrites. |
+   | partly true | cut a chunk for the rest ONLY. Say in \`TRAPS\` what already holds, so its worker extends rather than rewrites. |
    | not there | cut the chunk. |
 
    **The ledger cannot tell you which of the three you are in** — it reports a sibling \`complete\`
@@ -230,7 +230,7 @@ is a guess, which is why cutting is stage 6 and not stage 1.
 
     - **From their EXISTS list: the real export a unit attaches to** — its actual name, parameters and
      return type, read off disk, never the shape its name suggests. **It goes in that chunk's
-     \`NOTES\`**, and its worker builds against what you wrote there. It finds out you were wrong at edit
+     \`TRAPS\`**, and its worker builds against what you wrote there. It finds out you were wrong at edit
      time.
     - **From their NOTHING-YET list: the nearest existing file of the same kind. It goes in that chunk's
      \`MIRROR\`**, so open it before you write it down. A path that merely sounded right is copied
@@ -332,9 +332,11 @@ is a guess, which is why cutting is stage 6 and not stage 1.
 
     **Where a unit gets proved is the PRODUCT file** — the \`.ts{x}\` under that chunk's \`FILES\` whose
     behaviour the observable describes, or for a contract requirement the contract file declaring that
-    \`<ContractName>.<property>\`. The \`UNITS\` row's clause says what that file must DO, never what the
-    observable says: \`NOTES\` already carries the observable word for word. **The colocated test is never
-    the place.**
+    \`<ContractName>.<property>\`. **The colocated test is never the place.** An \`INTENT\` row reads
+    \`<unit-id> → <that file> — <the assertion>\`, and the assertion is what the observable MEANS for
+    that file, stated so a worker can answer it \`yes\` or \`no\`. **Quote the observable's own words
+    inside it where they are the target** — "carries exactly {status, uptimeSeconds, version}" loses the
+    round if it becomes "carries the payload".
 
     **A SPLIT is the COMMON case here.** A broker parses and its binding renders what was parsed, and one
     observable's sentence covers both. **Write the two clauses so they do not overlap** — "parses the 200
@@ -366,8 +368,9 @@ lists your package.** They route by PATH. So \`Contracts you own\` lists things 
 piece mentions, and **every property description under a contract is a requirement, exactly as an
 observable is** — read each as a target and cut chunks from them.
 
-**\`UNITS\` on a contract chunk is \`<ContractName>.<property>\`**, one row per requirement. There is no
-observable id to put there.
+**On a contract chunk an \`INTENT\` row opens with \`<ContractName>.<property>\`**, one row per
+requirement. There is no observable id to put there, and the assertion is what that property must
+DECLARE.
 
 **Cut them FIRST and give them a phase of their own.** Everything else in your piece imports them, a
 wrong contract reaching the end of the round is built on by every wave after it, and the phase gate is
@@ -395,9 +398,9 @@ finish by stage 3, and you cut every chunk named here at stage 6 with the rest.
 
 | The marker says | What you do |
 |---|---|
-| ALREADY BUILT | verify every observable under it against real COMMITTED CODE — never against the ledger, which reports it complete either way, and never against the spec, which says what should exist. A shortfall is yours to repair: cut a chunk whose \`NOTES\` says the worker logs \`REPAIR:\`. |
-| NOT BUILT YET | not yours. Cut your half to the shape the other session will need: the exported signature, the route, the event name. Say in \`NOTES\` what you left for that session. |
-| NO SESSION OWNS IT | yours. Cut a chunk whose \`NOTES\` says \`REPAIR:\` again. Nobody downstream builds that half. |
+| ALREADY BUILT | verify every observable under it against real COMMITTED CODE — never against the ledger, which reports it complete either way, and never against the spec, which says what should exist. A shortfall is yours to repair: cut a chunk whose \`TRAPS\` says the worker logs \`REPAIR:\`. |
+| NOT BUILT YET | not yours. Cut your half to the shape the other session will need: the exported signature, the route, the event name. Say in \`TRAPS\` what you left for that session. |
+| NO SESSION OWNS IT | yours. Cut a chunk whose \`TRAPS\` says \`REPAIR:\` again. Nobody downstream builds that half. |
 
 **Repair is expected work, not scope creep**, bounded by relevance rather than by package. **Never plan a
 chunk that deletes or reverts what another session committed.**
@@ -422,23 +425,34 @@ this round leaves rather than standing a second suite beside it — so leave the
 **The one boundary: Playwright \`.e2e.ts\` belongs to a later role.** It walks one runtime flow through a
 real browser, after this round. Cut no chunk that authors one.
 
-## Every chunk's \`NOTES\` carries what its worker cannot work out for itself
+## \`TRAPS\` is what is LEFT — and on most chunks that is nothing
 
-A worker has no ledger, no flow graph and no quest context beyond what you write. Quote the quest, never
-paraphrase it. Put ALL five in:
+**Your worker fetches \`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\` and
+\`get-folder-detail\` before it opens a file, and then copies the \`MIRROR\` you named.** So every
+lint rule, folder convention, companion-file requirement, brand convention and test idiom is a fact it
+ALREADY HOLDS. Writing one into a chunk serves it twice and drifts once. **\`TRAPS: none\` is the
+common answer, and a chunk that carries it is not a thin chunk.**
 
-1. **The flow, and where the chunk sits in it.** \`<flow-id>\` "<name>", what the user does, what they
-   get, and which node or nodes this chunk implements. Lead \`NOTES\` with it.
-2. **The observables it must satisfy, quoted WORD FOR WORD.** Ids in \`UNITS\`, text in \`NOTES\`. A
-   paraphrase moves the target without anyone noticing.
-3. **The contracts it takes and returns.** Branded names, shapes, and where they live.
-4. **The design decisions that constrain it**, quoted. The worker cannot see them otherwise.
-5. **The already-built exports it wires into.** Exact export names, read off disk, never guessed.
+Four things earn a line, because nothing else hands them over:
 
-**A \`NOTES\` cut down to a file path and a signature has dropped the flow, the observables and the
-design decisions** — the three its worker cannot recover by opening the file you named.
+1. **A fact about a SIBLING chunk** — an export another chunk in this round is creating, and the
+   constraint it puts on this one. "Chunk 7 drives this from a fake-timer tick, so keep it synchronous."
+2. **A trap inside an existing file this chunk edits** — a whole-object \`toStrictEqual\` a new key
+   must join, a comment recording why an ordering matters, an existing test that would go red.
+3. **What this chunk changes that other files USE** — an exported signature, a contract field, a
+   renamed symbol, a moved path. Its worker's usage sweep searches only what you name here.
+4. **A mechanism this repo already built that the \`MIRROR\` does not reach** — a harness, a proxy
+   method, a timer control. Your worker is a LEAF: it starts no explorer, and a mechanism you leave
+   unnamed is one it hunts for with \`discover\` across the whole tree.
 
-**On a chunk whose subject is a contract, items 1 and 2 have no source and item 3 is its whole subject.**
+**A marker line is a \`TRAPS\` line**: \`REPAIR:\`, \`ADJUSTED:\` and \`ADDED:\` reach the round
+log only because you told that chunk's worker to log one.
+
+**What does NOT go here.** The flow — one \`FLOW:\` line above \`TOUCHES\` serves every chunk. The
+observable — it is the \`INTENT\` row. A contract's shape where a line of pseudocode is shorter than
+the prose: write the pseudocode into the \`INTENT\` row instead. **A design decision that does not
+CONSTRAIN this chunk** — quoting one into every chunk because the round has one is how a plan doubles
+without telling a worker anything.
 
 ## Moving the spec, in both directions, both through a chunk
 
@@ -454,20 +468,20 @@ damaging the design in a way nobody would accept. Then do all four of these:
 2. Deliver the NEAREST achievable outcome that still serves the flow, retreating the minimum distance and
    never to something trivially true.
 3. Restate the observable to what was actually achieved.
-4. Record it in \`DECISIONS\` AND in the owning chunk's \`NOTES\`.
+4. Record it in the owning chunk's \`TRAPS\`.
 
 **That fourth record is what puts the \`ADJUSTED:\` line in the worker's round-log block**, which its
 reviewer copies into the round commit.
 
 **When the flow implies an outcome nobody wrote down** — a sad path nobody drew, an error state, an
 ordering guarantee the user obviously wants — **add them freely.** A vague one looks like coverage and is
-worse than none. Give it a chunk, flagged in \`NOTES\` so the round log carries \`ADDED:\`.
+worse than none. Give it a chunk, flagged in \`TRAPS\` so the round log carries \`ADDED:\`.
 
 ## Spikes are KEPT on this round
 
 A spike here is a first pass, not a throwaway probe. **It goes under \`spike-tmp/\`** — git ignores that
 directory, and a spike written anywhere else is an untracked file no chunk owns, which REFUSES your
-parent's every signal. Name that path in the owning chunk's \`NOTES\`.
+parent's every signal. Name that path in the owning chunk's \`TRAPS\`.
 
 ## The explorer brief
 
@@ -559,9 +573,9 @@ Your section is exactly this:
 
 TOUCHES:
   ./packages/<pkg>/src/brokers/<name>/<name>-broker.ts — EXISTS — <what it is for, and the export that makes it the home>
-      <observable-id> — <what this file must do for that observable>
+      <observable-id>   <one id per line and nothing else — what the file must DO is that unit's INTENT row>
   ./packages/<pkg>/src/contracts/<name>/<name>-contract.ts — NEW — <what it will be for>
-      <ContractName>.<property> — <what it must declare>
+      <ContractName>.<property>
 
 DEPENDS:
   ./packages/<pkg>/src/brokers/<name>/<name>-broker.ts
@@ -579,16 +593,14 @@ NO CHUNK:
   - out-of-medium <observable-id> — <the browser-only surface no chunk here can reach> — <the later role that owns it>
 
 ### chunk 1 — <one line a worker can hold in its head>
-INTENT:
-  - <an assertion that is TRUE when this chunk is done, and the observation that settles it>
 FILES:
   - ./packages/<pkg>/src/<path>.ts
   - ./packages/<pkg>/src/<path>.test.ts
-UNITS:
-  - <observable-id> → ./packages/<pkg>/src/<path>.ts — <what that file must DO>
+INTENT:
+  - <observable-id> → ./packages/<pkg>/src/<path>.ts — <the assertion TRUE when that file makes it true>
+  - <an assertion carrying no unit id, where the chunk owes work no unit names>
 MIRROR: ./packages/<pkg>/src/<an existing file of the same kind whose shape this follows>.ts
-NOTES:
-  <the five items above, quoted>
+TRAPS: none
 
 ### chunk 2 — ...
 

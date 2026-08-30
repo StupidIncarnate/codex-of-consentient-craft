@@ -166,8 +166,12 @@ a spec go red against the line you just broke, and \`detail <runId>\` to read a 
 
 5. **Account for every unit you are graded on, by subtracting what the round covered from what you
    owe.** Rebuild your list with the \`get-qa-checklist\` call under
-   \`## What you sign on this track\`, then take the chunks' \`UNITS\` rows and the \`NO CHUNK\` lines
-   off it. **Whatever is left over is UNCOVERED, and every one goes in \`NEXT: rework\`, named.** A
+   \`## What you sign on this track\`, then take the chunks' \`INTENT\` rows that OPEN WITH A UNIT ID,
+   and the \`NO CHUNK\` lines, off it. **Whatever is left over is UNCOVERED, and every one goes in \`NEXT: rework\`, named.**
+
+   Three things do not subtract. **An \`INTENT\` row carrying no unit id subtracts nothing** — it is
+   an assertion the chunk owes anyway, and you still grade it. **A row you cannot parse stays on the
+   list as uncovered** — the plan gets no credit for a line nobody can read. And a
    \`(part <n> of <m>)\` row comes off only when BOTH halves landed; where the other half did not,
    that goes in \`NEXT: rework\` too, unit and part named.
 
@@ -271,10 +275,10 @@ refusal's units, the \`## Plan\` and the commits.
 |---|---|
 | \`TOUCHES\` | one entry is ONE \`.e2e.ts\` spec or one harness. **An EXISTING spec whose \`page.goto\` matches this flow's entry node belongs here even where this round added nothing to it** — a \`settled\` line cites it. |
 | \`DEPENDS\` | spec → harness, both ends opened. **A fault no harness can force is a missing \`.harness.ts\`, never a helper**: \`forbid-non-exported-functions\` refuses a function declared in a \`.e2e.ts\`, at EDIT time. |
-| \`DECISIONS\` | **a chunk built against a version a CORRECTION here replaced is \`NEXT: rework\`**, whatever its ward said. |
+| \`DECISIONS\` | **a chunk built against a version a CORRECTION here replaced is \`NEXT: rework\`**, whatever its ward said. \`DECISIONS: none\` is legitimate — a call that constrains one chunk belongs to that chunk's \`INTENT\` or \`TRAPS\`. |
 | \`ASSERTIONS\` | **check each and say so.** |
 | \`NO CHUNK\` | **an \`out-of-medium\` line naming WHOSE JOB it is rather than what the browser cannot SEE is a unit you reopen.** |
-| each \`### chunk\` | its \`INTENT\` and \`UNITS\`, spec open. **Two chunks naming one spec path is the duplicate walk you reject.** |
+| each \`### chunk\` | its \`FILES\` and every \`INTENT\` row, spec open. **Two chunks naming one spec path is the duplicate walk you reject.** |
 | \`PHASES\`/\`WAVES\` | redo the wave arithmetic off \`DEPENDS\`. **No two chunks here share a wave** — one Playwright report path per package. |
 | \`## Round log\` | **your parent held none of it**, and **a chunk in \`WAVES\` with no report reported nothing** — grade its spec against its \`INTENT\` anyway, and say so in your return. |
 
@@ -284,7 +288,9 @@ refusal's units, the \`## Plan\` and the commits.
 review a summary or a commit message in place of the file. Ask five things of each spec:
 
 - **Intent.** Does EVERY line of that chunk's \`INTENT\` read TRUE — the outcome itself, not something
-  near it? **Answer BEFORE reading its \`RESULT:\`**; where you disagree, yours counts.
+  near it? **The row IS the target**: it carries its unit id where one names it, and the assertion is
+  what that unit means for that spec. Never grade against the chunk's title. **Answer BEFORE reading
+  its \`RESULT:\`**; where you disagree, yours counts.
 - **Every path, not the happy one.** One test per path from the entry node to EVERY end node the chunk
   owns, failures included: an error toast, a 4xx rendering, a rejection. Stopping at the happy path
   surfaces only as end-node ids with no signature.
@@ -293,7 +299,8 @@ review a summary or a commit message in place of the file. Ask five things of ea
 - **Scope.** Did the worker stay inside its \`FILES\`? **A Playwright config or a shared harness edited
   by this round is \`NEXT: rework\` with the owner named**: sibling pieces of work run against this
   same tree, so that edit is last-write-wins.
-- **Units.** Open the place each \`UNITS\` row names and read its clause against what is there. A row
+- **Units.** Open the spec each ID-BEARING \`INTENT\` row names and read that row's assertion against
+  what is there. A row
   that landed nowhere while the ward went green is invisible if you only compare ids.
 
 ${flowEvidenceContractStatics.judgingMarkdown}
@@ -332,7 +339,7 @@ re-signing one overwrites a predecessor's evidence with yours.
 
 | Where the unit sits | How you settle it |
 |---|---|
-| in a chunk's \`UNITS\` | \`confirmed\` on the spec \`file:line\` you opened. |
+| on a chunk's ID-BEARING \`INTENT\` row | \`confirmed\` on the spec \`file:line\` you opened. |
 | on a \`settled\` line | \`confirmed\` on the EXISTING spec's evidence — open the \`file:line\` it names, read the assertion, sign on what YOU read. |
 | on an \`out-of-medium\` line | \`unconfirmable\`, and it stands. **Confirm that reason first** — a value the page FETCHES is reachable through \`page.request\`, a broadcast interval is timeable from \`page.on('websocket')\`, and a unit called unreachable that a spec could observe is \`NEXT: rework\`. |
 | in none of those, covered by no spec | \`NEXT: rework\` naming the unit. |

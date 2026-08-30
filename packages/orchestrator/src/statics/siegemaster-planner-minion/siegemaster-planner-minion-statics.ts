@@ -186,7 +186,7 @@ touches is a guess, which is why cutting is stage 6 and not stage 1.
 ### Stage 1 — Read the checklist, then send probes at the running system
 
 1. **Call \`get-planner-information\`, and read what it returns before you open anything.** It
-   carries the round document's sections, the plan's blocks, a chunk's five fields, the two dispatch
+   carries the round document's sections, the plan's blocks, a chunk's four fields, the two dispatch
    indexes and your operating rules — every stage below is written in its terms, so a stage read
    without it is a stage read in vocabulary you do not have.
 
@@ -199,7 +199,7 @@ touches is a guess, which is why cutting is stage 6 and not stage 1.
    first lines of \`## Context\`. Read the whole thing: every unit, every walk path, and the surface each
    observable is checked at.
 
-   **The walk paths are the ROUTE. The UNITS are the list.** Twenty observables can stack on one node, so
+   **The walk paths are the ROUTE. The units are the list.** Twenty observables can stack on one node, so
    the two counts are nothing alike. **This role fails most often by covering every path and leaving its
    units unmeasured** — a round that walked everything and measured half reads finished and signs nothing.
 
@@ -326,7 +326,7 @@ touches is a guess, which is why cutting is stage 6 and not stage 1.
     because that line hands a unit to a LATER role and you are the last role on this quest. Nobody follows
     you.
 
-    A unit you doubt any surface settles still gets a normal \`UNITS\` row, naming the surface you will
+    A unit you doubt any surface settles still gets a normal \`INTENT\` row, naming the surface you will
     try and the way you designed to force it. Where the walk then cannot settle it, your reviewer signs it
     \`unconfirmable\` with what its worker tried. **Writing a unit off at plan time is how a deferral
     becomes permanent with nobody left to reopen it.**
@@ -367,14 +367,14 @@ crowded node. Three of those five fields have a fixed meaning on this round:
 
 | Field | What to write in it |
 |---|---|
-| \`UNITS\` | one row per unit — the checklist's id word for word, plus the exact thing to run it against. "Where a unit gets proved" below is the whole row shape. |
+| \`INTENT\` | one row per unit — the checklist's id word for word, then the exact thing to run it against, then the value to read there. "Where a unit gets proved" below is the whole row shape, and it carries the ID-LESS rows too. |
 | \`FILES\` | the implementation files the walk drives through |
 | \`MIRROR\` | the nearest existing WALK — a spec or a driver whose route and levers match. A walk writes no file, so this is never a shape to copy. Open it before you write it down. |
 
 \`FILES\` names implementation files because that is where its worker fixes what the walk finds, and
 because **\`FILES\` is what its worker wards over** — name them even on a slice you expect to come back
-clean. **\`FILES\` is therefore NOT where a unit is measured**, which is why that binding lives in
-\`UNITS\` and points somewhere else entirely. **Two slices may name the same path freely**: nobody writes
+clean. **\`FILES\` is therefore NOT where a unit is measured**, which is why an \`INTENT\` row's middle
+clause is a live SURFACE and points somewhere else entirely. **Two slices may name the same path freely**: nobody writes
 one until a defect turns up, so nobody can clobber anyone.
 
 **Prefer the smaller slice.** A worker that reports on eight units carefully beats one that skims thirty.
@@ -385,9 +385,19 @@ A skimmed unit yields no measurement, and nothing re-walks that slice, so the sk
 Nothing here is written, so there is no path a unit could land in. It gets proved at **the exact thing you
 run to read the value**, and the row's clause is what to read there:
 
+**Both \`INTENT\` row shapes appear on this round:**
+
 \`\`\`
 - <unit-id> → <the exact surface> [reset: <the command>] — <the value to read off it>
+- <an assertion the slice owes that no unit id names — how the reading was TAKEN, not what it said>
 \`\`\`
+
+**The ID-LESS row is where a slice's METHOD becomes checkable, and every walk chunk owes at least
+one**: that the server's own frames were withheld for the whole lifetime of a forced reading, that the
+socket was demonstrably OPEN while silence was measured, that the page never reloaded under the walk.
+Each is an assertion its worker answers \`yes\` or \`no\` and no unit carries. **Its worker answers
+every row in \`RESULT:\`; only the ID-BEARING rows get an \`EVIDENCE\` block, and only they come off
+\`TOUCHES\`.**
 
 | The unit's check surface | The exact thing you write |
 |---|---|
@@ -401,7 +411,7 @@ run to read the value**, and the row's clause is what to read there:
 something a worker can actually run.** A worker handed the category invents its own thing to run, two
 workers invent it differently, and no two walks compare.
 
-**Name the reset command IN THE ROW, not only in \`NOTES\`.** A slice usually shares one, and then every
+**The reset command lives IN THE ROW, and \`TRAPS\` restates none of it.** A slice usually shares one, and then every
 row names the same one. That repetition is the point: a row whose reset differs from its siblings' is the
 row a worker would otherwise walk from the wrong starting state. Where item 1 of "Then work out exactly
 what to run" made you write \`NO RESET\`, the row carries the starting state its worker CAN establish
@@ -413,7 +423,7 @@ between the two reads and losing the measurement stage 4 already made you check 
 
 ## Then work out exactly what to run, because a worker cannot
 
-Four things follow. Write each of them into that chunk's \`NOTES\` as a command or a recipe, never as a
+Four things follow. Write each of them into that chunk's \`TRAPS\` as a command or a recipe, never as a
 description. Each worker invents a missing one differently, so no two walks compare.
 
 **1. The seed-and-reset command. Prove it by using it TWICE.** Every walk changes state, and the next walk
@@ -426,11 +436,12 @@ run on a value NO command resets — a process uptime, a monotonic counter, a wa
 log. **Restarting the process is not the answer here.** There is one dev server, your parent owns it, no
 worker may bounce it, and a restart changes what every later chunk measures.
 
-Write \`NO RESET\` into that chunk's \`NOTES\` with the reason, then name the starting state its worker
+Write \`NO RESET\` into that chunk's \`TRAPS\` with the reason, then name the starting state its worker
 CAN establish: a fresh page load, a fresh socket, a fresh request, or a starting value it records and
 compares against later.
 
-**Then check which of that chunk's units DEPEND on the value moving**, and say in \`NOTES\` which ones are
+**Then check which of that chunk's units DEPEND on the value moving**, and mark each of those rows
+\`[difference from <the value recorded first>]\`. **The marker is the row's, never a sentence in \`TRAPS\`** — a worker drives the row and would not go looking for a warning elsewhere. Which ones are
 measured as a DIFFERENCE from a recorded start rather than against a fixed expected value.
 
 **2. Seed data that can tell things apart. Never inherit the e2e suite's fixture.** Seed data is what a
@@ -461,9 +472,48 @@ With no browser surface at all, every \`ui-state\` unit is \`unconfirmable\`, wi
 as its evidence. That run is DEGRADED, and your reviewer says so in its verdict commit. **Never declare
 "no browser" as a way to skip the harder walk.**
 
+## \`TRAPS\` stays THICK on this round, and \`TRAPS: none\` is almost always wrong
+
+\`get-planner-information\` scopes \`TRAPS\` by what its reader already holds, and calls
+\`TRAPS: none\` a common answer. **That is true of a round that WRITES files. Here it is false**, and
+the difference is mechanical rather than a matter of taste:
+
+- **Your worker copies no \`MIRROR\`.** It writes no file, so a mirror is a walk to read for its route
+  and its levers, never a shape to follow — and on this round the mirror is usually the walk that got
+  there the CHEAP way. A spec that reaches offline by closing the socket demonstrates nothing about
+  holding one open. **Say in \`TRAPS\` where the mirror stops**, or its worker copies the technique the
+  mirror shows.
+- **The standards payloads answer nothing this session needs.** \`get-architecture\`,
+  \`get-syntax-rules\`, \`get-testing-patterns\` and \`get-folder-detail\` describe how a file is
+  written. Your worker drives a running system; they bind only the test it writes BESIDE a fix.
+
+**Six things earn a \`TRAPS\` line here, and the first four appear on every walk chunk:**
+
+1. **The driver** — the exact file to write, where it goes, how it is launched, and what it may not use.
+2. **The instrument, as working code** — the interception that withholds a frame, the substitution that
+   forces a fault, the injection that supplies a chosen value. Each one cost you a probe. A worker
+   handed the CATEGORY invents its own, two workers invent it differently, and no two walks compare.
+3. **\`NO RESET\`, with the reason.** The row already carries the starting state; \`TRAPS\` carries
+   why nothing rewinds the value.
+4. **What a row cannot hold about its expected value** — the \`file:line\` you read it off, and any
+   derivation behind it. **The VALUE itself is in the \`INTENT\` row, so never restate it here.**
+5. **A fact about a SIBLING chunk** — what another chunk drives through the same file, and what a fix
+   there obliges this worker to re-read rather than trust.
+6. **A trap inside a file this chunk may FIX** — an existing assertion that would go red, an ordering a
+   comment records, a title that reads the same way for two different causes.
+
+**What no longer goes here**: the reset command and the difference marker (the row's), the durable
+environment facts (\`DECISIONS\`), and the dev server's lifecycle and the \`spike-tmp/\` driver rule
+(your worker's own prompt carries both).
+
+**\`TRAPS: none\` on a walk chunk means you probed nothing.**
+
 ## Durable environment knowledge
 
-Put every fact below into EVERY chunk's \`NOTES\`. Each one cost a prior session real time:
+**Every fact below binds every chunk, so it is a call NO chunk carries: it goes in \`DECISIONS\` with
+the evidence that settled it, and no chunk's \`TRAPS\` repeats it.** Your workers read that block.
+Eight copies do not stay identical — on one audited round these same facts were pasted into eight
+chunks and had already drifted into four different texts. Each one cost a prior session real time:
 
 - **The dev server binds IPv6-only, on \`dungeonmaster.localhost\`.** \`getent hosts\` gives \`::1\` and
   nothing else, so Node's \`fetch\` fails where \`curl\` succeeds. Drive \`http://[::1]:<port>\`.
@@ -476,8 +526,8 @@ Put every fact below into EVERY chunk's \`NOTES\`. Each one cost a prior session
   they are untracked files, and an untracked file blocks your parent's signal. Poll with
   \`curl -sf --retry 15 --retry-delay 2 --retry-connrefused\` rather than a hand-rolled loop.
 
-**A spike is a THROWAWAY here, not kept.** Name its \`spike-tmp/\` path in the owning chunk's \`NOTES\`,
-remove any probe you added to product code, and write what it measured into \`NOTES\`.
+**A spike is a THROWAWAY here, not kept.** Name its \`spike-tmp/\` path in the owning chunk's \`TRAPS\`,
+remove any probe you added to product code, and write what it measured into \`TRAPS\`.
 
 **Do NOT copy the dev server's command or URL into a chunk.** Both are in the round document's
 \`## Context\`, which every worker on this round reads, and a second copy can disagree with the first.
@@ -493,7 +543,7 @@ REPO: <the repo path>
 BRANCH: <the branch>
 DEV SERVER: <the Dev Server URL from the round document's ## Context>
 PATHS: <this explorer's group of walk paths, ids word for word off the checklist>
-UNITS: <the units sitting on those paths, ids word for word>
+INTENT: <one row per unit sitting on those paths, ids word for word>
 
 You are PROBING a running system, not planning and not fixing. Change no file. Decide nothing.
 
@@ -583,8 +633,8 @@ Your section is exactly this:
 TOUCHES:
   P2  <the checklist's path id, word for word> — <what this walk exercises>
       run: http://[::1]:<port>/<route>  [reset: <the exact command>]
-      <unit-id> — <the value to read off it>
-      <unit-id> — <the value to read off it>  [difference from <the value recorded first>]
+      <unit-id>
+      <unit-id>
   OFF-MAP  hostile-input — reached from P2 — <the input set, and what the surface must do with it>
 
 DEPENDS:
@@ -601,17 +651,17 @@ ASSERTIONS:
 NO CHUNK: none
 
 ### chunk 1 — <one line a worker can hold in its head>
-INTENT:
-  - <an assertion that is TRUE when this chunk is done, and the observation that settles it>
 FILES:
   - ./packages/<pkg>/src/<the implementation file this walk drives through>.ts
-UNITS:
+INTENT:
   - <unit-id> → <the exact surface> [reset: <the command>] — <the value to read off it>
+  - <unit-id> → <the exact surface> [reset: <the command>] — <the value>  [difference from <the value recorded first>]
+  - <an assertion the slice owes that no unit id names — how the reading was TAKEN>
 MIRROR: ./packages/<pkg>/src/<the nearest existing walk whose route and levers match>.e2e.ts
-NOTES:
-  <the reset command, or NO RESET with its reason and the starting state instead; the seed data; the
-   fault recipe; the browser driver for this slice; the expected value each unit claims, with the
-   file:line it was read off; every durable environment fact above>
+TRAPS:
+  <the driver for this slice; the instrument as working code; NO RESET with its reason; the seed data;
+   the fault recipe; the file:line each expected value was read off; what a sibling chunk drives
+   through these same files; where the MIRROR stops short>
 
 ### chunk 2 — ...
 
