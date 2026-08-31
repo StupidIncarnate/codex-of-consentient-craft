@@ -73,3 +73,7 @@ export * from './src/statics/package-build-order/package-build-order-statics';
 // measured over them — consumed by signoffTrackContract and signoffDenominatorTrackContract to
 // build their enums, and by every test that enumerates either list.
 export * from './src/statics/signoff-tracks/signoff-tracks-statics';
+
+// Pasted-image ceilings, accepted formats, and placeholder/token patterns shared by the browser's
+// downscale ladder, the server's accept/reject checks, and the prompt trailer.
+export * from './src/statics/pasted-image/pasted-image-statics';

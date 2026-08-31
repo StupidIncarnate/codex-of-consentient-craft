@@ -753,3 +753,10 @@ export * from './src/contracts/operation-plan-id/operation-plan-id.stub';
 
 export * from './src/contracts/operation-plan/operation-plan-contract';
 export * from './src/contracts/operation-plan/operation-plan.stub';
+
+// Pasted Image Media Type Contracts
+export * from './src/contracts/pasted-image-media-type/pasted-image-media-type-contract';
+export * from './src/contracts/pasted-image-media-type/pasted-image-media-type.stub';
+
+export * from './src/contracts/pasted-image-upload/pasted-image-upload-contract';
+export * from './src/contracts/pasted-image-upload/pasted-image-upload.stub';
