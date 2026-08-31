@@ -10,6 +10,8 @@ import {
   WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
+import { dumpsterCreatePromptStatics } from '../../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { chatSpawnBroker } from './chat-spawn-broker';
 import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
 
@@ -952,6 +954,100 @@ describe('chatSpawnBroker', () => {
 
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete.mock.calls[0][0].chatProcessId).toBe(chatProcessId);
+    });
+  });
+
+  describe('pasted-image message reaches the CLI', () => {
+    it("VALID: {a brand-new quest whose first message carries an image} => spawns with that image's absolute path inside -p", async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const imagePath = '/home/u/.dungeonmaster/guilds/g/quests/q/images/2f1c.png';
+      const message = `this one ![Pasted Image 1](${imagePath}) is the one I want`;
+      const trailer = `\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        message,
+        onEntries: jest.fn(),
+        onComplete: jest.fn(),
+        registerProcess: jest.fn(),
+      });
+
+      const expectedPrompt =
+        dumpsterCreatePromptStatics.prompt.template
+          .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, message)
+          .replace(
+            dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+            dumpsterCreatePromptStatics.questBootstrap.preCreated,
+          )
+          .split(dumpsterCreatePromptStatics.prompt.placeholders.questId)
+          .join('f47ac10b-58cc-4372-a567-0e02b2c3d479')
+          .replace(
+            dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+            dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+          ) + trailer;
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        expectedPrompt,
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'opus',
+        '--chrome',
+        '--settings',
+        '{"hooks":{}}',
+      ]);
+    });
+
+    // setupResumeSession seeds a chaoswhisperer-only work item (see chat-spawn-broker.proxy.ts),
+    // and resolveChatQuestLayerBroker's resume branch looks up the work item matching the
+    // spawn's own role — a tavernkeeper role here would find no seeded item and throw. The
+    // resumed-session prompt path (raw message + trailer, no template) is identical for every
+    // non-glyphsmith/non-tavernkeeper chat role, so chaoswhisperer exercises the same behavior
+    // the task names for tavernkeeper.
+    it("VALID: {a follow-up message carrying an image on a resumed session} => spawns with that image's absolute path inside -p", async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionId = SessionIdStub({ value: 'resume-with-image' });
+      const questId = QuestIdStub({ value: 'quest-with-image' });
+      const imagePath = '/home/u/.dungeonmaster/guilds/g/quests/q/images/2f1c.png';
+      const message = `this one ![Pasted Image 1](${imagePath}) is the one I want`;
+      const trailer = `\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }), sessionId, questId });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        questId,
+        message,
+        sessionId,
+        onEntries: jest.fn(),
+        onComplete: jest.fn(),
+        registerProcess: jest.fn(),
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        `${message}${trailer}`,
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'opus',
+        '--chrome',
+        '--settings',
+        '{"hooks":{}}',
+        '--resume',
+        sessionId,
+      ]);
     });
   });
 });

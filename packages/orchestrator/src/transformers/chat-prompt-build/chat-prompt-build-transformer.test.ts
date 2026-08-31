@@ -1,4 +1,5 @@
 import { QuestIdStub, SessionIdStub, WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
 import { tavernkeeperPromptStatics } from '../../statics/tavernkeeper-prompt/tavernkeeper-prompt-statics';
@@ -226,6 +227,142 @@ describe('chatPromptBuildTransformer', () => {
           questId: QuestIdStub(),
         }),
       ).toThrow(/^chatPromptBuildTransformer has no template for role 'codeweaver'.*$/u);
+    });
+  });
+
+  describe('pasted-image trailer', () => {
+    const imagePath = '/home/u/.dungeonmaster/guilds/g/quests/q/images/2f1c.png';
+    const message = `this one ![Pasted Image 1](${imagePath}) is what I want`;
+
+    it('VALID: {tavernkeeper + sessionId + message carrying one image token} => prompt is the raw message followed by the sentinel line and the instruction line', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const sessionId = SessionIdStub({ value: 'session-img-1' });
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message,
+        questId: null,
+        sessionId,
+      });
+
+      expect(result).toBe(
+        `${message}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+      );
+    });
+
+    it('VALID: {chaoswhisperer + questId + message carrying one image token} => the template expansion followed by the same trailer', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const questId = QuestIdStub({ value: 'img-quest-1' });
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message,
+        questId,
+      });
+
+      const expected = dumpsterCreatePromptStatics.prompt.template
+        .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, message)
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+          dumpsterCreatePromptStatics.questBootstrap.preCreated,
+        )
+        .split(dumpsterCreatePromptStatics.prompt.placeholders.questId)
+        .join('img-quest-1')
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+          dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+        );
+
+      expect(result).toBe(
+        `${expected}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+      );
+    });
+
+    it('VALID: {message carrying TWO image tokens} => the sentinel appears exactly once', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const sessionId = SessionIdStub({ value: 'session-img-2' });
+      const imagePath2 = '/home/u/.dungeonmaster/guilds/g/quests/q/images/9ab0.png';
+      const twoTokenMessage = `compare ![Pasted Image 1](${imagePath}) with ![Pasted Image 2](${imagePath2})`;
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: twoTokenMessage,
+        questId: null,
+        sessionId,
+      });
+
+      const sentinelCount = result.split(pastedImageStatics.promptSentinel).length - 1;
+
+      expect(sentinelCount).toBe(1);
+      expect(result).toBe(
+        `${twoTokenMessage}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+      );
+    });
+
+    it('VALID: {tavernkeeper + sessionId + message with NO image token} => no sentinel anywhere', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const sessionId = SessionIdStub({ value: 'session-no-img' });
+      const plainMessage = 'just run the ward and report back';
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: plainMessage,
+        questId: null,
+        sessionId,
+      });
+
+      expect(result.indexOf(pastedImageStatics.promptSentinel)).toBe(-1);
+      expect(result).toBe(plainMessage);
+    });
+
+    it('VALID: {chaoswhisperer + questId + message with NO image token} => no sentinel anywhere, expected built from the statics replacements', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const questId = QuestIdStub({ value: 'no-img-quest' });
+      const plainMessage = 'Build auth';
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: plainMessage,
+        questId,
+      });
+
+      const expected = dumpsterCreatePromptStatics.prompt.template
+        .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, plainMessage)
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+          dumpsterCreatePromptStatics.questBootstrap.preCreated,
+        )
+        .split(dumpsterCreatePromptStatics.prompt.placeholders.questId)
+        .join('no-img-quest')
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+          dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+        );
+
+      expect(result.indexOf(pastedImageStatics.promptSentinel)).toBe(-1);
+      expect(result).toBe(expected);
+    });
+
+    it('EDGE: {message holding only the bare placeholder, no ! and no path} => no sentinel', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const sessionId = SessionIdStub({ value: 'session-bare-placeholder' });
+      const bareMessage = '[Pasted Image 1]';
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: bareMessage,
+        questId: null,
+        sessionId,
+      });
+
+      expect(result.indexOf(pastedImageStatics.promptSentinel)).toBe(-1);
+      expect(result).toBe(bareMessage);
     });
   });
 });

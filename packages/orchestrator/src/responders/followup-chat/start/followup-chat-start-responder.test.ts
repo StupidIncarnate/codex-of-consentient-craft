@@ -6,7 +6,7 @@ import {
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
+import { pastedImageStatics, workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { FollowupChatStartResponderProxy } from './followup-chat-start-responder.proxy';
@@ -227,6 +227,49 @@ describe('FollowupChatStartResponder', () => {
         ]);
       },
     );
+
+    it("VALID: {follow-up message carrying an image on a resumed tavernkeeper session} => spawns with that image's absolute path inside -p", async () => {
+      const proxy = FollowupChatStartResponderProxy();
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'quest-11' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-11' });
+      const sessionId = SessionIdStub({ value: 'tavern-session-11' });
+      const existingItem = WorkItemStub({
+        id: 'aaaaaaaa-3333-4222-9333-444444444444',
+        role: 'tavernkeeper',
+        status: 'complete',
+        sessionId,
+      });
+      const quest = QuestStub({
+        id: 'quest-11',
+        folder: 'quest-11',
+        status: 'complete',
+        workItems: [existingItem],
+        worktreePath,
+      });
+      const imagePath = '/home/u/.dungeonmaster/guilds/g/quests/q/images/2f1c.png';
+      const message = `does this ![Pasted Image 1](${imagePath}) match the mock?`;
+      const trailer = `\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      proxy.setupExistingTavernkeeperItem({ quest });
+
+      await proxy.callResponder({ guildId, questId, message });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        `${message}${trailer}`,
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'opus',
+        '--chrome',
+        '--settings',
+        '{"hooks":{}}',
+        '--resume',
+        sessionId,
+      ]);
+    });
 
     it('VALID: {tavernkeeper item exists with NO sessionId} => spawns with no sessionId argument', async () => {
       const proxy = FollowupChatStartResponderProxy();

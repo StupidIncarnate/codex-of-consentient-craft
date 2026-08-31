@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Builds the prompt text for a chat spawn based on role, message, questId, and optional sessionId
+ * PURPOSE: Builds the prompt text for a chat spawn. Reach for this — rather than assembling a
+ * template string at the call site — because it is the one place a pasted-image trailer gets
+ * appended, so every chat role and every resume path picks up that behavior for free.
  *
  * USAGE:
  * chatPromptBuildTransformer({ role: 'chaoswhisperer', message: 'Help me', questId: QuestIdStub() });
@@ -7,9 +9,11 @@
  */
 
 import type { QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
+import { hasPastedImageTokensGuard } from '../../guards/has-pasted-image-tokens/has-pasted-image-tokens-guard';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { dumpsterHuntPromptStatics } from '../../statics/dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
@@ -26,8 +30,15 @@ export const chatPromptBuildTransformer = ({
   questId: QuestId | null;
   sessionId?: SessionId;
 }): PromptText => {
+  // The CLI records whatever it is handed as `-p` verbatim into its session file, and that same
+  // text is replayed into the user's own message bubble — so the instruction sits behind a
+  // sentinel line the renderer can cut from before display.
+  const trailer = hasPastedImageTokensGuard({ text: message })
+    ? `\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`
+    : '';
+
   if (sessionId) {
-    return promptTextContract.parse(message);
+    return promptTextContract.parse(message + trailer);
   }
 
   // The two spec-intake roles share a prompt shape: a $QUEST_BOOTSTRAP block selected by whether
@@ -95,5 +106,5 @@ export const chatPromptBuildTransformer = ({
     );
   }
 
-  return promptTextContract.parse(promptText);
+  return promptTextContract.parse(promptText + trailer);
 };
