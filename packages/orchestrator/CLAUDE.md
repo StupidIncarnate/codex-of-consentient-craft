@@ -435,11 +435,12 @@ across three readers serves each of them answers it cannot use.
 
 A prompt that enumerates what a session receives is a claim about a transformer, and those
 transformers gate nearly every block on non-emptiness. `codeweaverScopeBlockTransformer` renders
-`Your nodes`, `Must satisfy` and `Seams` only when the item's package tags a node on its flow, and
-filters `Design decisions` by those same node ids — so an item that owns contracts and tags no node
-receives two of the five headings the prompt names, and that is correct. The codeweaver prompt says
-so in as many words at the point it lists them. **Trace the render for the DEGENERATE case** — no
-flow, no package, no unit, an empty diff — never the happy one.
+`Seams` only when the item's package shares a node with another package on its flow, and
+`Shared homes` only when the quest declares a `library`-kind package that is not the item's own — so a cell on a
+single-package flow, in a quest declaring no library package, receives NEITHER, and that is correct. The codeweaver
+prompt says what an ABSENT `Shared homes` line means, and what to do about it, at the point it names that block. **Trace
+the render for the DEGENERATE case** — no flow, no package, no seam, no shared home, an empty diff — never the happy
+one.
 
 ### 5. Validate by DRY-RUNNING the prompt against a real quest
 
@@ -565,7 +566,13 @@ named reviewer commits it.
 - **Codeweaver** (nine steps) reads the quest, explores its package, writes a MAP at
   `.quest-plans/<operationItemId>-map.md` — one line per file, grouped so that a group's files are disjoint — briefs a
   generic sub-agent per change, reads `git diff` against the flow, then runs a `codeweaver-reviewer`. It signs
-  `codeweaverSignoff` on the observables its unit tests prove, then signals.
+  `codeweaverSignoff` on the observables its unit tests prove, then signals. Its cell is ONE package, and the two rules
+  that keep it there are in step 2 and step 3: it reads `git log` for what the cells before it committed (library
+  packages run first, so the helper it is about to brief may already be on the branch), and where a change needs
+  behaviour from a sibling it MOVES that code into a package both can call rather than copying it or importing across.
+  WHICH package that is is named per quest by the `Shared homes` block
+  `codeweaverScopeBlockTransformer` renders, never by the prompt: every repo picks its own name for it (`shared`,
+  `shared-core`, `shared-ui`), so the `library` KIND is the only thing a prompt can be written against.
 - **Flowrider** (ten steps) reads the flow, takes its denominator from
   `get-qa-checklist({ questId, operationItemId })`, reads the implementation to learn the exact value each unit
   claims, chooses a LAYER per unit (in a real browser, or below one), writes the same shape of map, briefs a

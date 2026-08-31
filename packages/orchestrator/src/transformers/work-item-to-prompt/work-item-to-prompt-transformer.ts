@@ -293,9 +293,12 @@ export const workItemToPromptTransformer = ({
     );
   }
 
-  // Codeweaver only, and the one thing about its scope no flow render can answer. A glue node's
-  // other half belongs to a sibling item, and whether that session has already run is a fact about
-  // the LEDGER — so "verify it exists" is only ever asked about code that could already exist.
+  // Codeweaver only — the two things about its scope no flow render can answer. A glue node's other
+  // half belongs to a sibling item, and whether that session has already run is a fact about the
+  // LEDGER, so "verify it exists" is only ever asked about code that could already exist. And a cell
+  // held to one package needs somewhere to PUT code two packages both call; only
+  // `packagesAffected` names the package with that property, because every repo picks its own name
+  // for it.
   if (workItem.role === 'codeweaver') {
     parts.push(...codeweaverScopeBlockTransformer({ quest, operationItem: linkedOperation }));
   }

@@ -75,6 +75,42 @@ describe('flowObservableContract', () => {
     });
   });
 
+  describe('verification method', () => {
+    it('VALID: {verifyByReading: true} => carried through, so a reader can tell no test settles this one', () => {
+      const observable = FlowObservableStub({ type: 'custom', verifyByReading: true });
+
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'custom',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        verifyByReading: true,
+        addedBy: 'spec',
+      });
+    });
+
+    // `.optional()` rather than `.default(false)`: questModifyBroker re-parses the whole quest on
+    // every write, so a default would materialise the key onto every observable in the file. A
+    // strict-equal with no `verifyByReading` key is what fails if that regresses.
+    it('VALID: {field omitted} => stays ABSENT rather than defaulting to false, so an ordinary observable costs nothing on disk', () => {
+      const observable = FlowObservableStub({ type: 'custom' });
+
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'custom',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        addedBy: 'spec',
+      });
+    });
+
+    it('INVALID: {verifyByReading: "yes"} => throws, because the flag is a boolean and a truthy string would silently pass', () => {
+      expect(() => FlowObservableStub({ verifyByReading: 'yes' as never })).toThrow(
+        /Expected boolean/u,
+      );
+    });
+  });
+
   describe('provenance', () => {
     it('VALID: {addedBy omitted} => defaults to spec, the origin of every observable present at approval', () => {
       const observable = flowObservableContract.parse({

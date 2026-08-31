@@ -244,6 +244,12 @@ describe('warpgatePromptStatics', () => {
       delegationLeafBan: template.includes('You are the last agent in this chain.'),
       wallRole: template.includes("signal `operationStatus: 'blocked'`. Never `partial`."),
       wallMinion: template.includes('report it. Do not work around it.'),
+      gitFormsRule: template.includes(
+        '[GIT FORMS] Two more git forms are refused outright, for a different reason than the prohibitions below',
+      ),
+      wallNamesGitFormsAsNotAWall: template.includes(
+        'A `git -C` or a chained/piped git command refused the same way is [GIT FORMS], not a wall',
+      ),
       treeCleanRole: template.includes('Commit whatever you finished before you signal'),
       treeCleanOperator: template.includes('Your worktree must be clean before you signal.'),
     }).toStrictEqual({
@@ -258,6 +264,8 @@ describe('warpgatePromptStatics', () => {
       delegationLeafBan: false,
       wallRole: true,
       wallMinion: false,
+      gitFormsRule: true,
+      wallNamesGitFormsAsNotAWall: true,
       treeCleanRole: true,
       treeCleanOperator: false,
     });

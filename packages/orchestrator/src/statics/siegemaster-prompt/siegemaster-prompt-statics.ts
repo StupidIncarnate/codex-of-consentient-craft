@@ -92,13 +92,27 @@ build under a live system changes what your walkers are measuring, and they read
 as a defect. This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-ward-discipline>\`
 snippets you were handed at session start.
 
+**[GIT FORMS] Two git forms are refused for every dispatched session, and neither is a permission a
+grant could add.**
+
+- **Never \`git -C <path> …\`.** Whoever runs it is already standing inside the worktree, so \`-C\`
+  changes nothing real. The matcher reads a command's leading words — \`Bash(git status:*)\` matches
+  \`git status --porcelain\`, not \`git -C /path status --porcelain\` — and it stays that way, because
+  granting \`Bash(git -C:*)\` would wave through \`git -C <path> reset --hard\` too.
+- **Never chain a git call with \`&&\`, and never pipe it into another program.**
+  \`git log --oneline -20 && git diff --stat | head\` is refused whole, though either half passes
+  alone — the chain's other half is not git, and \`head\`/\`tail\`/\`wc\`/\`sort\` are not on the list
+  either. Bound output with git's own flags instead — \`-n <count>\`, \`--oneline\`, \`--stat\`,
+  \`--name-only\`, \`--grep=<pattern>\` — one git call per turn.
+
 **[WALL] When the environment blocks you rather than the work, signal \`blocked\`. Never \`partial\`.**
 A command outside the permission list comes back \`This command requires approval\` and stays refused.
 A missing credential and an unreachable external service are the same kind of thing.
 
 **A dev server that will not start on this quest's code is NOT a wall.** It is a defect, and fixing it
 is the first thing this session does. A server that dies mid-session is not a wall either — you own
-it, so restart it and carry on.
+it, so restart it and carry on. **A \`git -C\` refusal or a chained/piped git call is not a wall
+either** — rewrite it per [GIT FORMS] and carry on.
 
 **[CLEAN TREE] Your worktree must be clean before you signal.** \`signal-back\` refuses every outcome
 while it is dirty, \`blocked\` included. Step 9 says what to do. Never clear it by committing yourself.
@@ -475,6 +489,9 @@ A fixer gets no prompt of its own. **You write the brief**, from what the walker
 **Write a FILE MAP and terse instructions. Never prose.** A paragraph of explanation is a paragraph
 the fixer skims — long briefs are how adherence dies. The walker's measured values do the work; your
 commentary does not. Cut it.
+
+**Name both [GIT FORMS] refusals in every fixer brief, substitute included.** A fixer that hits
+either reads \`This command requires approval\` and reports a wall for something that was never one.
 
 Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use this shape, verbatim:
 

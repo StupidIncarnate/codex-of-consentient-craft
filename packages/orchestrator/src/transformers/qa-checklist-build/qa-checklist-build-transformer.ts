@@ -113,7 +113,14 @@ export const qaChecklistBuildTransformer = ({
         String(unit.observableDescription).length > 0
           ? unit.observableDescription
           : `(observable ${String(unit.observableId)} on node ${String(unit.nodeId)} carries no description — a spec hole. Walk the behaviour the node's own text implies, and report the hole.)`,
-      checkSurface: qaCheckSurfaceStatics.byOutcomeType[unit.observableType],
+      // `readCheck` OVERRIDES the type's surface. The type stays honest — a read-check is routinely
+      // a `custom` invariant — but a surface sentence telling a session to drive the real path and
+      // inspect the result is unfollowable for a criterion about which file a literal lives in, and
+      // a session that follows it anyway reports a green it never measured.
+      checkSurface:
+        unit.verifyByReading === true
+          ? qaCheckSurfaceStatics.readCheck
+          : qaCheckSurfaceStatics.byOutcomeType[unit.observableType],
     });
   });
 

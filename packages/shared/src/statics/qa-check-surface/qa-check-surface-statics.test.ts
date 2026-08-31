@@ -44,6 +44,8 @@ describe('qaCheckSurfaceStatics', () => {
           custom:
             'a BEHAVIOURAL INVARIANT, not an I/O channel — drive the real path that should produce it, inspect the actual result or state it left behind, and reason about whether the invariant held. NEVER reduce it to "a request fired". A content search or static assertion is the correct check ONLY when the observable itself names one (for example "no file still references X"), and then the real output of that search IS the measured value — run it with discover({ grep, strict: true }), since a bare shell grep/rg/find is blocked outright in this repo',
         },
+        readCheck:
+          'the SOURCE FILE the observable names, opened and read — the import is present, the literal is not inlined, the symbol is gone. No test settles this: a green test proves the value is RIGHT, never where the value CAME FROM. Cite the file:line where the statement holds, and what its absence would look like',
         byKind: {
           terminal:
             'the running system at this end state — the values the flow says this terminal has, AND its side-effect surface: no orphaned row, no half-written file, the transaction rolled back, the message not silently consumed, no stuck spinner. A clean-looking error that corrupted state is still a defect',

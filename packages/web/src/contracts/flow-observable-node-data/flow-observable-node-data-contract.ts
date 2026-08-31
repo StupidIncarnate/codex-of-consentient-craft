@@ -31,6 +31,11 @@ export const flowObservableNodeDataContract = z.object({
   // WHICH side each criterion is read on. Without it a two-package card leaves the reviewer unable
   // to tell whether both sides were actually asserted.
   package: reactFlowPackageChipContract,
+  // True where the criterion is settled by opening a source file rather than by running a test.
+  // It rides on the same row as the type tag because it CONTRADICTS that tag: a read-check keeps
+  // its honest outcome type, and a reviewer reading `custom` alone concludes something has to be
+  // driven and asserted.
+  verifyByReading: z.boolean().optional(),
   // How many comments this card already carries. Gated INDEPENDENTLY of questId/flowId below — see
   // reactFlowNodeDataContract's commentCount field for the full rationale: the compose affordance
   // and the existing-comment record must never share one visibility flag.

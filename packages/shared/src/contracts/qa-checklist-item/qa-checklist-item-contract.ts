@@ -56,6 +56,12 @@ export const qaChecklistItemContract = z.object({
   nodeId: flowNodeIdContract.optional(),
   observableId: observableIdContract.optional(),
   observableType: outcomeTypeContract.optional(),
+  verifyByReading: z
+    .boolean()
+    .optional()
+    .describe(
+      'True on an observable settled by opening a source file rather than by running a test. `checkSurface` already carries the read-the-file wording; this field is what a renderer marks the line with, so the distinction survives a scan of the list.',
+    ),
   edgeId: flowEdgeIdContract.optional(),
   offMapFamily: qaOffMapFamilyContract.optional(),
 });

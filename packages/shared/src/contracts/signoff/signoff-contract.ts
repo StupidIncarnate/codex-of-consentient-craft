@@ -16,9 +16,11 @@
  * caller sent; the modify-quest input shape therefore accepts the field missing.
  *
  * `evidence` is required on BOTH verdicts and is never an adjective. On `confirmed` it is the proof:
- * a test `file:line` plus what makes that test fail (Flowrider), or the value measured off the
- * running system (Siegemaster). On `unconfirmable` it is the specific reason confirmation was out of
- * reach.
+ * a test `file:line` plus what makes that test fail (Flowrider), the value measured off the running
+ * system (Siegemaster), or the SOURCE `file:line` where the statement holds, for an observable
+ * carrying `verifyByReading` — that third form exists because no test reaches such a unit, so a
+ * describe() naming only the first two would tell the one track that CAN settle it that its evidence
+ * does not count. On `unconfirmable` it is the specific reason confirmation was out of reach.
  *
  * `question` is required only when the verdict is `unconfirmable`, and it is what turns "could not
  * confirm" from a shrug into a routable item: what was tried, and why it could not be confirmed.
@@ -40,7 +42,7 @@ export const signoffContract = z
       .min(1)
       .brand<'SignoffEvidence'>()
       .describe(
-        'The proof behind the verdict — a test file:line plus what makes it fail, or the value read off the running system. Never an adjective: "held", "as expected", "verified" are the report grading itself.',
+        'The proof behind the verdict — a test file:line plus what makes it fail, the value read off the running system, or, on an observable carrying verifyByReading, the SOURCE file:line where the statement holds plus what its absence would look like. Never an adjective: "held", "as expected", "verified" are the report grading itself.',
       ),
     question: z
       .string()

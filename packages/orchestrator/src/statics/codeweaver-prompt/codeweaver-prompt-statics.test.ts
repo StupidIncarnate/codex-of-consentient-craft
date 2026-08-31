@@ -151,6 +151,92 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
+  // A CELL IS ONE PACKAGE, AND CODE TWO PACKAGES NEED BELONGS IN NEITHER OF THEM. Left unsaid, a
+  // session reaches for the two moves that compile — copying the behaviour in, or importing across a
+  // dependency edge the manifest does not have — so all three moves are named with their verdicts.
+  it('VALID: served template => routes cross-package code through a shared home rather than a copy or a reach', () => {
+    expect({
+      copy: hasIn({
+        needle:
+          '| copy it into your package | no. The two copies drift, and your reviewer reports it as duplication. |',
+        text: TEMPLATE,
+      }),
+      importAcross: hasIn({
+        needle:
+          "| import it from the sibling | only where your package's `package.json` already depends on that package. |",
+        text: TEMPLATE,
+      }),
+      move: hasIn({
+        needle:
+          '| move it into a package both can call, then point both sides at the new home | yes |',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ copy: true, importAcross: true, move: true });
+  });
+
+  // THE SHARED PACKAGE'S NAME CANNOT BE WRITTEN DOWN HERE — every repo picks its own (`shared`,
+  // `shared-core`, `shared-ui`), so the prompt points at the rendered `Shared homes` line and says
+  // what to do when the quest declares none. The replaced-whole warning is what stops a session
+  // clearing `packagesAffected` while adding one entry to it.
+  it('VALID: served template => takes the shared package’s name from the Operation Context, never from its own text', () => {
+    expect({
+      pointsAtTheRenderedLine: hasIn({
+        needle: '**Your Operation Context names the candidates, under `Shared homes`.**',
+        text: TEMPLATE,
+      }),
+      namesNoPackage: hasIn({
+        needle:
+          'Every repo calls that\npackage something different — `shared`, `shared-core`, `shared-ui` — so the line is derived from\nthis quest rather than written here',
+        text: TEMPLATE,
+      }),
+      whenTheQuestDeclaresNone: hasIn({
+        needle:
+          "**No `Shared homes` line means this quest declares no such package.** Find the repo's own with\n`get-project-map`, then add it with `modify-quest` before you plan against it",
+        text: TEMPLATE,
+      }),
+      replacedWholeTrap: hasIn({
+        needle:
+          '**That field is REPLACED WHOLE on write.** Send back every entry\nalready there plus your new one, or the write drops the rest.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      pointsAtTheRenderedLine: true,
+      namesNoPackage: true,
+      whenTheQuestDeclaresNone: true,
+      replacedWholeTrap: true,
+    });
+  });
+
+  // THE MANIFEST EDIT IS THE HALF OF A MOVE NOTHING WOULD REPORT MISSING. The root `node_modules`
+  // resolves a sibling package whether or not the importing one declares it, so the pass stays green
+  // and the package breaks when it is installed alone.
+  it('VALID: served template => makes the moving session add the package.json dependency the move needs', () => {
+    expect(
+      hasIn({
+        needle:
+          "**Put the dependency in your package's `package.json` where the `Shared homes` line says it is\n  not there.** The workspace's root `node_modules` resolves the import without it, so nothing you\n  run turns red and the package breaks the day it is installed on its own.",
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
+  // SIBLING CELLS COMMIT AS THEY FINISH AND THE LIBRARY TIER RUNS FIRST, so the helper this cell is
+  // about to brief may already be on the branch. Reading the branch before planning is what turns
+  // that into a reuse instead of a second copy.
+  it('VALID: served template => reads what the earlier cells committed before it plans', () => {
+    expect({
+      commands: hasIn({
+        needle: 'git log --oneline -n 20\ngit log --name-only -n 10',
+        text: TEMPLATE,
+      }),
+      why: hasIn({
+        needle:
+          'The ledger runs the library packages first and every cell commits as it finishes, so a helper yours\nneeds may already be on this branch',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ commands: true, why: true });
+  });
+
   // A BRIEF THAT LEAVES SOMETHING OUT PRODUCES A CHANGE THAT LEAVES IT OUT TOO, so the dispatch
   // shape — the exact type and model — is pinned rather than left to a session's judgement.
   it('VALID: served template => dispatches a sub-agent with subagent_type general-purpose and model sonnet', () => {

@@ -54,6 +54,9 @@ The block at the bottom of this page carries the quest id and nothing else.
 It is uncommitted when you arrive, which is why step 3 finds it with \`git diff HEAD\` plus the
 untracked files.
 
+A \`READ-CHECKS:\` line, if there is one, names observables nothing can test. **You are the only
+session on this pass that settles those** — see step 4a.
+
 A \`SWEEP:\` line instead means a different, smaller job — see **On a sweep brief** near the end.
 
 ## Rules
@@ -75,6 +78,16 @@ most**, and a red still standing after that is your \`NEXT: rework\`.
 \`git push\` are the only git writes allowed here. **Never \`stash\`, \`reset\`, \`checkout --\`,
 \`clean\` or \`rebase\`** — the whole of it is uncommitted when you arrive, on a branch other sessions
 share, so each of those can throw work away where nobody can see what went missing.
+
+**Two more forms are refused outright whatever the verb — not destructive, just DENIED, and each has
+a substitute.** Never \`git -C <path> …\`: you already run inside the worktree, so it buys nothing,
+and the permission matcher reads a command's leading words — \`Bash(git status:*)\` matches
+\`git status --porcelain\` and not \`git -C /path status --porcelain\`, and it never will, because
+granting \`Bash(git -C:*)\` would authorise \`git -C /path reset --hard\` in the same stroke. And never
+chain git with \`&&\` or pipe it into another program — \`git log --oneline -20 && git diff --stat |
+head\` is refused whole though each half passes alone, because \`head\`, \`tail\`, \`wc\` and \`sort\`
+are not on the allowed list either. Bound the output with git's own flags instead — \`-n <count>\`,
+\`--oneline\`, \`--stat\`, \`--name-only\`, \`--grep=<pattern>\` — one git command per call.
 
 **[FIX] Fix what is small and clearly yours. Hand up the rest.** A one-line hole you close here is a
 line the next pass does not have to rediscover. Anything structural, anything crossing into work your
@@ -129,8 +142,9 @@ is not enough.
 
 Commit first and both come back empty, and you would review nothing at all.
 
-Also read \`git log\` with bodies on this branch. An earlier go round on this same operation item may
-have landed work you are now building on, and its commit body says what it did.
+Also read \`git log\` with bodies on this branch — bound it with \`-n <count>\`, never piped through
+\`head\` (see [GIT]). An earlier go round on this same operation item may have landed work you are now
+building on, and its commit body says what it did.
 
 ### 4. Open every file the work produced
 
@@ -138,7 +152,7 @@ have landed work you are now building on, and its commit body says what it did.
 diff hides: an assertion comparing a value to itself, a branch that reads plausibly in isolation and
 contradicts its caller.
 
-Take these four questions against each file, plus the five standing concerns below, in ONE reading.
+Take these six questions against each file, plus the five standing concerns below, in ONE reading.
 
 1. **Does the code do what the flow says?** Walk the flow's nodes and edge labels against the code.
    Every branch an edge names should exist. Every observable on a node should be true of the code that
@@ -150,7 +164,14 @@ Take these four questions against each file, plus the five standing concerns bel
    cannot, the test does not bite.
 4. **What is missing?** Compare what landed against what the flow needs. A node with no code behind it
    is the finding a green build never reports.
-5. **Does every sign-off this work wrote hold?** Your parent transcribed each one from a sub-agent's
+5. **Does every import crossing a package boundary have a dependency behind it?** A workspace
+   resolves a sibling package out of the ROOT \`node_modules\` whether or not the importing
+   package's own \`package.json\` names it, so \`tsc\`, the build and lint all stay green and the
+   import breaks the day that package is installed by itself. Open the importing package's
+   \`package.json\` for each new cross-package import. A missing entry is either a dependency to add
+   or — where one package reached into another instead of sharing with it — code that belongs in a
+   package both sides can call.
+6. **Does every sign-off this work wrote hold?** Your parent transcribed each one from a sub-agent's
    own report, having read no test — so nobody has checked them. The flow render marks every signed
    unit. For each, open the \`file:line\` its evidence cites and confirm the assertion is there and
    bites. **A citation pointing at nothing, or at a test that cannot fail, is \`NEXT: rework\` naming
@@ -158,6 +179,28 @@ Take these four questions against each file, plus the five standing concerns bel
 
 Then take **The five standing concerns** further down this page against those same files, in the
 same reading. Do not make a second pass over the tree for them.
+
+### 4a. Settle the read-checks
+
+Only if your brief carried a \`READ-CHECKS:\` line. Each id it names is an observable the flow render
+marks \`(read-check)\`: a criterion about the SHAPE of a source file — an import that has to be
+there, a literal that must not be inlined, a symbol that has to be gone. **No test reaches one.** A
+green test proves the value is right, never where the value came from. That is why it reaches you
+rather than a sub-agent, and it is settled in the same reading you are already doing.
+
+Take its description **verbatim from the flow render**, never from your brief — the brief carries the
+id, the quest carries the words, and a paraphrase you grade against is a paraphrase you pass.
+
+Report one line per id under \`READ-CHECKS:\` in your return:
+
+\`\`\`
+READ-CHECKS:
+  <observable-id> — HOLDS · <file:line where it holds> · <what its absence would look like>
+  <observable-id> — DOES NOT HOLD · <what the file does instead>
+\`\`\`
+
+A \`DOES NOT HOLD\` is a \`NEXT: rework\`, unless it is one line and clearly yours — then fix it under
+[FIX] and report it as HOLDS at the line you wrote.
 
 ### 5. Fix what you can
 
@@ -214,6 +257,7 @@ unpushed gets graded as the next session's own.
 VERDICT:   <one sentence: is this work right?>
 READ:      <every file you opened>
 FIXES:     <what you changed, and why — or "none">
+READ-CHECKS: <one line per id your brief named — see step 4a. Omit the whole block if it named none>
 FINDINGS:  <what you did not fix, each with where it is and who should do it — or "none">
 BUILD:     <green | the failing output, word for word>
 WARD:      <the command, and green | the failing output, word for word>

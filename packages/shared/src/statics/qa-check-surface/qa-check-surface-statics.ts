@@ -12,8 +12,10 @@
  * show a row that was written or a line that was logged. `custom` is the one every session gets
  * wrong: it is a behavioural invariant, not an I/O channel, so its entry says so in full.
  *
- * Keys must stay 1:1 with `outcomeTypeContract` — the colocated test asserts that against the
- * contract's own options, so adding an outcome type without a surface fails the build.
+ * `byOutcomeType` keys must stay 1:1 with `outcomeTypeContract` — the colocated test asserts that
+ * against the contract's own options, so adding an outcome type without a surface fails the build.
+ * `readCheck` sits outside that map deliberately: it is selected by an observable's
+ * `verifyByReading` flag rather than by its type, and every type can carry the flag.
  */
 
 export const qaCheckSurfaceStatics = {
@@ -38,6 +40,12 @@ export const qaCheckSurfaceStatics = {
     custom:
       'a BEHAVIOURAL INVARIANT, not an I/O channel — drive the real path that should produce it, inspect the actual result or state it left behind, and reason about whether the invariant held. NEVER reduce it to "a request fired". A content search or static assertion is the correct check ONLY when the observable itself names one (for example "no file still references X"), and then the real output of that search IS the measured value — run it with discover({ grep, strict: true }), since a bare shell grep/rg/find is blocked outright in this repo',
   },
+  // Overrides `byOutcomeType` for an observable carrying `verifyByReading`. Its outcome type is
+  // still honest — the thing being constrained really is a `custom` invariant or a `ui-state` — but
+  // the type answers "what kind of outcome", and the surface has to answer "where do I look", which
+  // for this one is a source file rather than anything the running system exposes.
+  readCheck:
+    'the SOURCE FILE the observable names, opened and read — the import is present, the literal is not inlined, the symbol is gone. No test settles this: a green test proves the value is RIGHT, never where the value CAME FROM. Cite the file:line where the statement holds, and what its absence would look like',
   byKind: {
     terminal:
       'the running system at this end state — the values the flow says this terminal has, AND its side-effect surface: no orphaned row, no half-written file, the transaction rolled back, the message not silently consumed, no stuck spinner. A clean-looking error that corrupted state is still a defect',

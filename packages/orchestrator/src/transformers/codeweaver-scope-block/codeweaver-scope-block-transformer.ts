@@ -1,14 +1,16 @@
 /**
- * PURPOSE: Renders the SEAMS a codeweaver operation item sits on — each node it shares with another
- * package, and where that package's half of it stands in the relay right now. Reach for this rather
- * than the flow slice `get-quest({ questId, flowId, packageName })` returns: that render answers
- * what the spec says, and this one answers a question only the operations LEDGER holds — whose half
- * the other side of a node is, and whether that session has already run.
+ * PURPOSE: Renders the two facts about a codeweaver cell that only the QUEST holds, and no flow
+ * slice answers: the SEAMS it sits on — each node it shares with another package, and where that
+ * package's half stands in the relay right now — and the SHARED HOMES it may move code into when a
+ * change needs behaviour that lives in a sibling package. Reach for this rather than the flow slice
+ * `get-quest({ questId, flowId, packageName })` returns: that render answers what the spec says,
+ * while these two answer whose half the other side of a node is, and which declared package both
+ * sides of a move can call.
  *
  * USAGE:
  * codeweaverScopeBlockTransformer({ quest, operationItem });
  * // Returns ContentText[] lines to splice into the agent's Operation Context, empty when the item
- * // declares no package or shares no node with one
+ * // declares no package and for each block the quest gives nothing to say
  *
  * WHY THE REST OF THE SCOPE IS NOT HERE. The nodes, the verbatim observables, the contracts and the
  * design decisions all live in the flow slice, one call per flow. Rendering them into the Operation
@@ -23,6 +25,13 @@
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, OperationItem, Quest } from '@dungeonmaster/shared/contracts';
+
+// The package KIND that answers "where does code two packages both call live". It is the whole of
+// `packageBuildOrderStatics`' first tier, described there as the pure providers nothing in the
+// workspace can be built against until they exist — which is exactly the property a shared home
+// needs. The NAME cannot be written down anywhere: every repo picks its own (`shared`,
+// `shared-core`, `shared-ui`), so the kind is what a prompt can be built on.
+const SHARED_HOME_KIND = 'library';
 
 export const codeweaverScopeBlockTransformer = ({
   quest,
@@ -88,17 +97,78 @@ export const codeweaverScopeBlockTransformer = ({
       }),
   );
 
-  if (seams.length === 0) {
-    return [];
-  }
+  const seamLines =
+    seams.length === 0
+      ? []
+      : [
+          contentTextContract.parse(''),
+          contentTextContract.parse(
+            'Seams — each line is a node you share with another package, and where that package’s half of it stands:',
+          ),
+          ...seams.map(({ node, other, disposition }) =>
+            contentTextContract.parse(`  - #${String(node.id)} with ${other} — ${disposition}`),
+          ),
+        ];
 
-  return [
-    contentTextContract.parse(''),
-    contentTextContract.parse(
-      'Seams — each line is a node you share with another package, and where that package’s half of it stands:',
-    ),
-    ...seams.map(({ node, other, disposition }) =>
-      contentTextContract.parse(`  - #${String(node.id)} with ${other} — ${disposition}`),
-    ),
-  ];
+  // SHARED HOMES. The seams above are about a node two packages SHARE; this is about code that has
+  // to MOVE. A cell told to stay in one package, needing behaviour that lives in a sibling, has one
+  // right answer — put it where both can call it — and two wrong ones it reaches for otherwise: copy
+  // it, or import across a dependency edge that does not exist. Only the quest can name the
+  // candidate, and `packagesAffected` is where it is named, because that list is the closed set
+  // every package name on this quest is checked against.
+  //
+  // Matched on the entry's whole KIND SET, never on the `packageType` display label alone: that
+  // field is the detector's first match and a package can honestly be more than one, so a shared
+  // library fronted by anything else would be dropped by the single winning kind.
+  const ownGraphEntry = quest.packageGraph.find((entry) => String(entry.id) === ownPackageText);
+  const ownDependsOn = new Set(
+    (ownGraphEntry?.dependsOn ?? []).map((dependency) => String(dependency)),
+  );
+
+  const sharedHomes = quest.packagesAffected
+    .filter((entry) => {
+      const kinds = entry.packageTypes.length > 0 ? entry.packageTypes : [entry.packageType];
+      return (
+        String(entry.name) !== ownPackageText &&
+        // A package the quest DELETES is no home for anything: it is gone once this lands.
+        entry.changeType !== 'delete' &&
+        kinds.some((kind) => String(kind) === SHARED_HOME_KIND)
+      );
+    })
+    .map((entry) => ({
+      name: String(entry.name),
+      // Whether the move also has to add a manifest dependency. Read off the derived graph rather
+      // than the manifests, because the graph is the POST-quest answer and a `new` package's edges
+      // exist nowhere else yet.
+      reachable: ownDependsOn.has(String(entry.name)),
+    }));
+
+  // Reachable first: a home the package already depends on is the one whose move is a file and an
+  // import rather than a file, an import and a package.json edit.
+  const orderedSharedHomes = [...sharedHomes].sort((left, right) =>
+    left.reachable === right.reachable
+      ? left.name.localeCompare(right.name)
+      : Number(right.reachable) - Number(left.reachable),
+  );
+
+  const sharedHomeLines =
+    orderedSharedHomes.length === 0
+      ? []
+      : [
+          contentTextContract.parse(''),
+          contentTextContract.parse(
+            `Shared homes — the ${SHARED_HOME_KIND}-kind packages this quest declares. Code your package and another BOTH need moves into one of these, rather than being copied into yours or reached across for:`,
+          ),
+          ...orderedSharedHomes.map(({ name, reachable }) =>
+            contentTextContract.parse(
+              `  - ${name} — ${
+                reachable
+                  ? `${ownPackageText} already depends on it`
+                  : `${ownPackageText} does not depend on it yet, so the move adds that dependency too`
+              }`,
+            ),
+          ),
+        ];
+
+  return [...seamLines, ...sharedHomeLines];
 };

@@ -93,6 +93,7 @@ export const questSummaryBuildTransformer = ({
         const eligibility = signoffTrackEligibilityStatics.byTrack[track];
         const eligibleKinds = new Set(eligibility.unitKinds.map(String));
         const eligibleOrigins = new Set(eligibility.observableOrigins.map(String));
+        const eligibleMethods = new Set(eligibility.verificationMethods.map(String));
 
         return {
           flowId: String(flow.id),
@@ -103,7 +104,12 @@ export const questSummaryBuildTransformer = ({
             flow,
             units: units
               .filter((unit) => eligibleKinds.has(unit.kind))
-              .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy)),
+              .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy))
+              .filter(
+                (unit) =>
+                  unit.kind !== 'observable' ||
+                  eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test'),
+              ),
             track,
             packagesAffected: quest.packagesAffected,
             packageNames,

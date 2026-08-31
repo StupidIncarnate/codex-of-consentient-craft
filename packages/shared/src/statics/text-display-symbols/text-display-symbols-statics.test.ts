@@ -34,6 +34,7 @@ describe('textDisplaySymbolsStatics', () => {
         '  [#id] label (type) {pkgs}   flow node, its kind, and the packages it lands in',
         '  ◀ YOURS                     this node lands in YOUR package',
         '  > #id: text [type]          observable attached to the node above',
+        '  (read-check)                settled by opening the source file, not by running a test',
         '  > (N observable(s) …)       observables attributed to another package, collapsed',
         '  → [#id]                     edge to next node',
         '  →"label"                    labeled edge (decision branch — each one is a unit)',
@@ -68,6 +69,7 @@ describe('textDisplaySymbolsStatics', () => {
       },
       offMapLabel: 'off-map:',
       observableOriginPrefix: '+',
+      readCheckMark: '(read-check)',
     });
   });
 

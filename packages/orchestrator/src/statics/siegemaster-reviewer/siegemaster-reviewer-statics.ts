@@ -77,6 +77,16 @@ snippets you were handed at session start. Run them at step 5, **twice at most**
 \`checkout --\`, \`clean\` or \`rebase\` — the repairs are uncommitted when you arrive, on a branch other
 sessions share.
 
+**Two more forms are refused whatever the verb, and each has a substitute — not destructive, just
+DENIED.** Never \`git -C <path> …\`: you already run inside the worktree, so it buys nothing, and the
+permission matcher reads a command's leading words — \`Bash(git status:*)\` matches
+\`git status --porcelain\`, never \`git -C /path status --porcelain\`, and it never will, since
+\`Bash(git -C:*)\` would license \`git -C /path reset --hard\` in the same stroke. And never chain git
+with \`&&\` or pipe it into another program: \`git log --oneline -20 && git diff --stat | head\` is
+refused whole though each half passes alone, because \`head\`, \`tail\`, \`wc\` and \`sort\` are not on
+the list either. Bound the output with git's own flags instead — \`-n <count>\`, \`--oneline\`,
+\`--stat\`, \`--name-only\`, \`--grep=<pattern>\` — one command per call.
+
 **[FIX] Fix what is small and clearly yours. Hand up the rest.** Anything structural, anything
 crossing into work your parent did not assign, and anything needing a decision goes into
 \`NEXT: rework\`.
@@ -125,8 +135,8 @@ is not enough.
 
 Commit first and both come back empty, and you would review nothing at all.
 
-Read \`git log\` with bodies too. An earlier go round may have committed repairs you are now building
-on.
+Read \`git log\` with bodies too — bounded with \`-n <count>\`, never piped (see [GIT]). An earlier go
+round may have committed repairs you are now building on.
 
 ### 4. Open every file the fixers changed
 

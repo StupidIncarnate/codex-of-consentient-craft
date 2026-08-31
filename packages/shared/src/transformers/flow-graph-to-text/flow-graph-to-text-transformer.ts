@@ -31,6 +31,10 @@
  * observable was in the flow at approval, which is the absence of news; a `+siegemaster` prefix says
  * this expectation was written in mid-quest, which changes what the reader is looking at.
  *
+ * `(read-check)` RENDERS ON THE SAME LINE, for the same reason and a sharper one: it says no test
+ * settles this unit. A session that misses it writes a test that cannot bite, then either signs off a
+ * green that proves something else or reports the unit as impossible.
+ *
  * THE OFF-MAP LINE IS LAST AND CONDITIONAL. The seven probe families are not in the graph, so their
  * sign-offs have nowhere else to hang; only the families that actually carry one are printed,
  * because listing seven unsigned families per flow would cost more of the tool-result budget than
@@ -162,6 +166,7 @@ export const flowGraphToTextTransformer = ({
       for (const obs of ownObservables) {
         const originMarker =
           obs.addedBy === 'spec' ? '' : ` ${SYM.observableOriginPrefix}${obs.addedBy}`;
+        const readCheckMarker = obs.verifyByReading === true ? ` ${SYM.readCheckMark}` : '';
         const obsSignoffMarker = signoffMarkersToTextTransformer({
           codeweaverSignoff: obs.codeweaverSignoff,
           flowriderSignoff: obs.flowriderSignoff,
@@ -169,7 +174,7 @@ export const flowGraphToTextTransformer = ({
         });
         lines.push(
           contentTextContract.parse(
-            `${indent}${SYM.indent}> #${obs.id}: ${obs.description} [${obs.type}]${originMarker}${String(obsSignoffMarker)}`,
+            `${indent}${SYM.indent}> #${obs.id}: ${obs.description} [${obs.type}]${readCheckMarker}${originMarker}${String(obsSignoffMarker)}`,
           ),
         );
       }

@@ -35,6 +35,42 @@ describe('FlowObservableNodeLayerWidget', () => {
     });
   });
 
+  describe('read-check chip', () => {
+    it('VALID: {verifyByReading: true} => the chip renders beside the type tag, saying no test settles this card', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      const data = FlowObservableNodeDataStub({
+        outcomeType: 'custom',
+        verifyByReading: true,
+        description: 'the token pattern is read from the shared statics',
+      });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.getReadCheck()?.textContent).toBe('read-check');
+      expect(proxy.getType()?.textContent).toBe('custom');
+    });
+
+    // The card's reserved ELK height counts ONE tag row, so a third chip that wrapped onto a row of
+    // its own would grow the card past the box laid out for it and overlap the column below.
+    it('VALID: {verifyByReading: true} => the chip shares the outcome-type tag row', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      const data = FlowObservableNodeDataStub({ outcomeType: 'custom', verifyByReading: true });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.readCheckSharesRowWithType()).toBe(true);
+    });
+
+    it('VALID: {verifyByReading absent} => no chip at all, so an ordinary assertion card is unchanged', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      const data = FlowObservableNodeDataStub({ outcomeType: 'custom' });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.getReadCheck()).toBe(null);
+    });
+  });
+
   describe('resolved package', () => {
     it('VALID: {package storefront-ui} => FLOW_OBSERVABLE_NODE_PACKAGE names the one side this criterion is read on', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();

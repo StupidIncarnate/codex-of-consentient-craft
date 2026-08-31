@@ -69,6 +69,16 @@ agent working directly for a person, and you are not one. Run them at step 6, **
 \`checkout --\`, \`clean\` or \`rebase\` — the whole of it is uncommitted when you arrive, on a branch
 other sessions share.
 
+**Two more forms are refused whatever the verb, and neither is destructive — each is just DENIED,
+with a substitute.** Never \`git -C <path> …\`: you already run inside the worktree, so it buys
+nothing, and the permission matcher reads a command's leading words, so \`Bash(git status:*)\`
+matches \`git status --porcelain\` and never \`git -C /path status --porcelain\` — granting
+\`Bash(git -C:*)\` would license \`git -C /path reset --hard\` in the same stroke. And never chain git
+with \`&&\` or pipe it into another program: \`git log --oneline -20 && git diff --stat | head\` is
+refused whole though each half passes alone, and \`head\`, \`tail\`, \`wc\` and \`sort\` sit outside the
+allowed list too. Bound the output with git's own flags — \`-n <count>\`, \`--oneline\`, \`--stat\`,
+\`--name-only\`, \`--grep=<pattern>\` — one command per call.
+
 **[FIX] Fix what is small and clearly yours. Hand up the rest.** A weak assertion you can strengthen
 here, strengthen. Anything structural, anything crossing into work your parent did not assign, and
 anything needing a decision goes into \`NEXT: rework\`.
@@ -122,8 +132,8 @@ is not enough.
 
 Commit first and both come back empty, and you would review nothing at all.
 
-Read \`git log\` with bodies too. An earlier go round on this same operation item says in its commit
-body what it already covered.
+Read \`git log\` with bodies too — bounded with \`-n <count>\`, never piped (see [GIT]). An earlier go
+round on this same operation item says in its commit body what it already covered.
 
 ### 4. Open every test the work produced, and judge whether it bites
 

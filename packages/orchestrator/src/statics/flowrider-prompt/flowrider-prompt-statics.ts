@@ -87,13 +87,27 @@ session.
 either. This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-ward-discipline>\`
 snippets you were handed at session start; neither is written for a session that runs neither command.
 
+**[GIT FORMS] Two git forms are refused for every dispatched session, and no permission grant can fix
+either.**
+
+- **Never \`git -C <path> …\`.** You are already inside the worktree, so \`-C\` adds nothing. The
+  matcher reads a command's leading words — \`Bash(git status:*)\` covers \`git status --porcelain\`,
+  never \`git -C /path status --porcelain\` — and widening it to cover \`-C\` would also authorise
+  \`git -C <path> reset --hard\`, so it never will. Run git plain.
+- **Never chain git with \`&&\`, and never pipe it into anything.**
+  \`git log --oneline -20 && git diff --stat | head\` is refused whole even though
+  \`git log --oneline -20\` alone would pass — the chain's second half is not a git command, and
+  neither is \`head\`/\`tail\`/\`wc\`/\`sort\`. Bound the output with git's own flags instead —
+  \`-n <count>\`, \`--oneline\`, \`--stat\`, \`--name-only\`, \`--grep=<pattern>\` — one command at a time.
+
 **[WALL] When the environment blocks you rather than the work, signal \`blocked\`. Never \`partial\`.**
 A command outside the permission list comes back \`This command requires approval\` and stays refused.
 A missing credential, an unreachable service and a tool the sandbox does not expose are the same.
 
 Swap the tool before you call it a wall — \`Read\` with an offset, \`discover\` and \`python3 -c\` do
 what \`grep\`, \`find\` and \`sed\` would. And "no session could pass this" is a claim about a FRESH
-session: anything a re-dispatch clears is not a wall.
+session: anything a re-dispatch clears is not a wall. A \`git -C\` refusal or a chained/piped git call
+is the same non-wall — rewrite it per [GIT FORMS] and keep going.
 
 **[CLEAN TREE] Your worktree must be clean before you signal.** \`signal-back\` refuses every outcome
 while it is dirty, \`blocked\` included. Step 9 says what to do. Never clear it by committing yourself.
@@ -465,6 +479,10 @@ Sub-agents that write tests get no prompt of their own. **You write the brief.**
 the sub-agent skims — long briefs are how adherence dies. A quoted observable, an exact expected
 value, a "mirror this spec" line: each of those changes what gets typed. A description of why does
 not. Cut it.
+
+**Put both [GIT FORMS] refusals in every brief's \`TRAPS\`, substitute included.** A sub-agent that
+hits either reads \`This command requires approval\` and reports a wall for something that was never
+one.
 
 Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use this shape, verbatim:
 

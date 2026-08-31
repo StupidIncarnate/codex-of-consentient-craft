@@ -42,6 +42,7 @@ export const textDisplaySymbolsStatics = {
     '  [#id] label (type) {pkgs}   flow node, its kind, and the packages it lands in',
     '  ◀ YOURS                     this node lands in YOUR package',
     '  > #id: text [type]          observable attached to the node above',
+    '  (read-check)                settled by opening the source file, not by running a test',
     '  > (N observable(s) …)       observables attributed to another package, collapsed',
     '  → [#id]                     edge to next node',
     '  →"label"                    labeled edge (decision branch — each one is a unit)',
@@ -86,4 +87,9 @@ export const textDisplaySymbolsStatics = {
   // Prefixes an observable's `addedBy` when it is not `spec`: only a mid-quest addition is marked,
   // so a spec observable's line carries no origin.
   observableOriginPrefix: '+',
+  // Marks an observable carrying `verifyByReading`. Spelled out rather than given a glyph, because
+  // it changes what a session is being asked to DO with the line and a reader should not have to
+  // find a legend to learn that. Emitted only where the flag is set, so an ordinary observable's
+  // line is unchanged.
+  readCheckMark: '(read-check)',
 } as const;

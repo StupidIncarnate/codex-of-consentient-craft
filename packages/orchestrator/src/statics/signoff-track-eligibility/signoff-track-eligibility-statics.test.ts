@@ -323,6 +323,7 @@ describe('signoffTrackEligibilityStatics', () => {
             ],
             packageScope: 'intersection',
             observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+            verificationMethods: ['test', 'reading'],
           },
           flowrider: {
             signoffField: 'flowriderSignoff',
@@ -342,6 +343,7 @@ describe('signoffTrackEligibilityStatics', () => {
             ],
             packageScope: 'intersection',
             observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+            verificationMethods: ['test'],
           },
           siegemaster: {
             signoffField: 'siegemasterSignoff',
@@ -368,6 +370,7 @@ describe('signoffTrackEligibilityStatics', () => {
               'siegemaster',
               'operator',
             ],
+            verificationMethods: ['test'],
           },
         },
       });

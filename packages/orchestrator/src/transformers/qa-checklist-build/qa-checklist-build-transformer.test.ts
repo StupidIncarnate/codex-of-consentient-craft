@@ -61,6 +61,88 @@ describe('qaChecklistBuildTransformer', () => {
       ]);
     });
 
+    it('VALID: {observable carrying verifyByReading} => the READ surface replaces its type surface, so a session is never told to drive a criterion about a source file', () => {
+      const flow = FlowStub({
+        id: 'send-message',
+        name: 'Send a message',
+        nodes: [
+          {
+            id: 'substitute-tokens',
+            label: 'Rewrite each token',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [
+              {
+                id: 'check-pattern-not-inlined',
+                type: 'custom',
+                package: 'auth-service',
+                description:
+                  'the token pattern is read from the shared statics, not written inline',
+                verifyByReading: true,
+              },
+            ],
+          },
+        ],
+        edges: [],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow }).items.filter((item) => item.kind === 'observable'),
+      ).toStrictEqual([
+        {
+          id: 'send-message:observable:check-pattern-not-inlined',
+          flowId: 'send-message',
+          kind: 'observable',
+          nodeId: 'substitute-tokens',
+          observableId: 'check-pattern-not-inlined',
+          observableType: 'custom',
+          verifyByReading: true,
+          label: 'the token pattern is read from the shared statics, not written inline',
+          checkSurface: qaCheckSurfaceStatics.readCheck,
+        },
+      ]);
+    });
+
+    it('VALID: {the same custom observable WITHOUT the flag} => keeps the custom surface, so the flag is what swaps it', () => {
+      const flow = FlowStub({
+        id: 'send-message',
+        name: 'Send a message',
+        nodes: [
+          {
+            id: 'substitute-tokens',
+            label: 'Rewrite each token',
+            type: 'action',
+            packages: ['auth-service'],
+            observables: [
+              {
+                id: 'check-pattern-not-inlined',
+                type: 'custom',
+                package: 'auth-service',
+                description:
+                  'the token pattern is read from the shared statics, not written inline',
+              },
+            ],
+          },
+        ],
+        edges: [],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow }).items.filter((item) => item.kind === 'observable'),
+      ).toStrictEqual([
+        {
+          id: 'send-message:observable:check-pattern-not-inlined',
+          flowId: 'send-message',
+          kind: 'observable',
+          nodeId: 'substitute-tokens',
+          observableId: 'check-pattern-not-inlined',
+          observableType: 'custom',
+          label: 'the token pattern is read from the shared statics, not written inline',
+          checkSurface: qaCheckSurfaceStatics.byOutcomeType.custom,
+        },
+      ]);
+    });
+
     it('VALID: {custom observable} => carries the behavioural-invariant surface, not an I/O channel', () => {
       const flow = FlowStub({
         id: 'a-flow',

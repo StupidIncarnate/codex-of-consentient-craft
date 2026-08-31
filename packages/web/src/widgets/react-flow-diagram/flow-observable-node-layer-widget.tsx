@@ -3,6 +3,11 @@
  * that branches off to the right of a flow node. Shows the outcome-type tag and the FULL
  * description so a reviewer reads every acceptance criterion on the canvas without opening a panel.
  *
+ * The `read-check` chip is the one mark here that changes what the reader owes the card. Its outcome
+ * type still reads `custom` or `ui-state`, because that is honestly what kind of outcome it is — so
+ * the type tag alone tells a reviewer to go drive something, when what this one needs is a source
+ * file opened.
+ *
  * USAGE:
  * <FlowObservableNodeLayerWidget data={flowObservableNodeData} />
  * // Renders a FLOW_OBSERVABLE_NODE card with a type tag and wrapped description text.
@@ -34,6 +39,7 @@ export const FlowObservableNodeLayerWidget = ({
     questId,
     flowId,
     commentCount,
+    verifyByReading,
   } = data;
   const packageAccent = packageChipAccentTransformer(
     observablePackage.packageType === undefined
@@ -104,6 +110,29 @@ export const FlowObservableNodeLayerWidget = ({
         >
           {observablePackage.name}
         </span>
+        {/* Sits AFTER the type tag it qualifies, and carries the warning accent rather than the
+            package accent: it is the one chip on this row that changes what the reader has to DO
+            with the card, and a third neutral chip reads as a third label. */}
+        {verifyByReading === true ? (
+          <span
+            data-testid="FLOW_OBSERVABLE_NODE_READ_CHECK"
+            title="settled by opening the source file, not by running a test"
+            style={{
+              display: 'inline-block',
+              background: colors['bg-raised'],
+              border: `1px solid ${colors.warning}`,
+              borderRadius: 3,
+              padding: '0px 4px',
+              fontSize: 9,
+              letterSpacing: '0.5px',
+              whiteSpace: 'nowrap',
+              color: colors.warning,
+              marginBottom: 4,
+            }}
+          >
+            read-check
+          </span>
+        ) : null}
       </div>
       <div
         data-testid="FLOW_OBSERVABLE_NODE_DESC"

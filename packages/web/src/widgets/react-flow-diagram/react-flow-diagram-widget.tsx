@@ -361,6 +361,7 @@ export const ReactFlowDiagramWidget = ({
             nodeId: n.id,
             outcomeType: obs.type,
             description: obs.description,
+            ...(obs.verifyByReading === true ? { verifyByReading: true } : {}),
             // The ONE side of the seam this criterion is read on. Resolved through the same map as
             // the parent card's chips, so a node and its assertions can never disagree about a
             // package's kind.

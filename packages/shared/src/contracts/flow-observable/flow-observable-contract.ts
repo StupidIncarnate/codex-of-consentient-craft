@@ -29,6 +29,18 @@
  * written through for it, so an author never restates what the node already says; on a node tagged
  * with more than one there is nothing to inherit, and the omission is rejected rather than guessed.
  * Every observable on disk therefore names its own side of a seam.
+ *
+ * `verifyByReading` exists because some acceptance criteria are about the SHAPE OF A SOURCE FILE and
+ * no test can reach them. "The consumer imports this value instead of hardcoding it" is true or false
+ * by opening the file; a passing test proves the value is right, never where it came from. Without a
+ * mark for that, an author with such a criterion either drops it or writes it as though a test settles
+ * it, and the session that inherits it burns a round finding out it cannot. `type` is a SEPARATE axis
+ * and stays what it is — that field says what kind of outcome this is, this one says how it gets
+ * settled.
+ *
+ * It is `.optional()` for the same reason every sign-off is: `questModifyBroker` re-parses the whole
+ * quest on every write, so a `.default(false)` would materialise onto every observable in the file.
+ * Absent means a test settles it.
  */
 
 import { z } from 'zod';
@@ -47,6 +59,12 @@ export const flowObservableContract = z.object({
     "The one package this observable is read in, drawn from the owning node's tags. Singular where the node's is plural: a node spans a seam, an individual observable sits on one side of it, and the union of a node's observables' packages is what proves both sides were asserted.",
   ),
   designRef: z.string().brand<'DesignRef'>().optional(),
+  verifyByReading: z
+    .boolean()
+    .optional()
+    .describe(
+      'Set true when the criterion is about the shape of a source file — an import that must exist, a literal that must not be inlined, a name that must be absent — so it is settled by reading the code rather than by running a test. Absent means a test settles it.',
+    ),
   addedBy: observableOriginContract.default('spec'),
   codeweaverSignoff: signoffContract.optional(),
   flowriderSignoff: signoffContract.optional(),

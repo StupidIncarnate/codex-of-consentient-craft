@@ -59,6 +59,28 @@ describe('codeweaverReviewerStatics', () => {
     ]);
   });
 
+  // NOTHING ELSE CATCHES AN UNDECLARED CROSS-PACKAGE IMPORT. The root `node_modules` resolves a
+  // sibling package whatever the importing package's manifest says, so tsc, the build and lint all
+  // pass — and this reviewer is the only reader that opens the manifest.
+  it('VALID: served template => checks every new cross-package import against the importing package’s manifest', () => {
+    expect({
+      question: hasIn({
+        needle: '**Does every import crossing a package boundary have a dependency behind it?**',
+        text: TEMPLATE,
+      }),
+      whyNothingElseCatchesIt: hasIn({
+        needle:
+          "A workspace\n   resolves a sibling package out of the ROOT `node_modules` whether or not the importing\n   package's own `package.json` names it, so `tsc`, the build and lint all stay green",
+        text: TEMPLATE,
+      }),
+      bothVerdicts: hasIn({
+        needle:
+          'A missing entry is either a dependency to add\n   or — where one package reached into another instead of sharing with it — code that belongs in a\n   package both sides can call.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ question: true, whyNothingElseCatchesIt: true, bothVerdicts: true });
+  });
+
   // THIS SESSION SIGNALS NOTHING — its parent does, once, after reading its return.
   it('VALID: served template => never calls signal-back, and the parent signals instead', () => {
     expect(

@@ -90,7 +90,11 @@ defect. A test run tells you about a test, and you are here to measure the real 
 
 **[NO GIT] Touch git only to READ.** \`git diff\`, \`git log\` and \`git status\` are fine for
 understanding what a change did. Never \`add\`, \`commit\`, \`push\`, \`stash\`, \`reset\`,
-\`checkout --\`, \`clean\` or \`rebase\`.
+\`checkout --\`, \`clean\` or \`rebase\`. Two forms are refused outright even for a read, not
+because they write anything: \`git -C <path> …\` (you already run inside the worktree, and the
+permission matcher never grants it) and a git command chained with \`&&\` or piped into another
+program. Bound output with git's own flags instead — \`-n <count>\`, \`--oneline\`, \`--stat\`,
+\`--name-only\`, \`--grep=<pattern>\`.
 
 **[BACKGROUND] A command the harness backgrounds notifies you when it exits.** Never \`sleep\` beside
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.

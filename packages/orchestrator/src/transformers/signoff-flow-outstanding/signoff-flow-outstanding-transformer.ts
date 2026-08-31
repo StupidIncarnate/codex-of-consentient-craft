@@ -65,10 +65,16 @@ export const signoffFlowOutstandingTransformer = ({
   const { signoffField } = eligibility;
   const eligibleKinds = new Set(eligibility.unitKinds.map(String));
   const eligibleOrigins = new Set(eligibility.observableOrigins.map(String));
+  const eligibleMethods = new Set(eligibility.verificationMethods.map(String));
 
   const kindAndOriginUnits = qaUnitEnumerateTransformer({ flow })
     .filter((unit) => eligibleKinds.has(unit.kind))
-    .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy));
+    .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy))
+    .filter(
+      (unit) =>
+        unit.kind !== 'observable' ||
+        eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test'),
+    );
 
   return qaUnitsInPackageScopeTransformer({
     flow,

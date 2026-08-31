@@ -29,8 +29,9 @@
  * names the sign-offs carry on the flow itself, so every reader reads one field per track across the
  * whole enumeration without branching on kind. The `off-map` variant carries all three even though
  * `flowOffMapSignoffContract` declares only two: the shape is uniform so a reader never branches,
- * and the codeweaver column simply stays absent there because off-map is outside its `unitKinds`. `addedBy` lives on the `observable` variant alone because provenance
- * is the only axis observables have and nodes/edges/off-map families do not.
+ * and the codeweaver column simply stays absent there because off-map is outside its `unitKinds`. `addedBy` and `verifyByReading` live on the `observable` variant alone because
+ * provenance and verification method are axes observables have and nodes/edges/off-map families do
+ * not.
  */
 
 import { z } from 'zod';
@@ -86,6 +87,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     // Carried verbatim and allowed to be blank — a blank description is a spec hole the renderer
     // reports, never a reason to drop the unit and quietly shrink the definition of done.
     observableDescription: flowObservableContract.shape.description,
+    verifyByReading: flowObservableContract.shape.verifyByReading,
     addedBy: observableOriginContract,
     ...trackSignoffShape,
   }),

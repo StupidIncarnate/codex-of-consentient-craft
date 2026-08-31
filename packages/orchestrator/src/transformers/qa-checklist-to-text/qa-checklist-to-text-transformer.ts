@@ -39,7 +39,7 @@
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, QaChecklist, QaChecklistItem } from '@dungeonmaster/shared/contracts';
-import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
+import { qaCheckSurfaceStatics, textDisplaySymbolsStatics } from '@dungeonmaster/shared/statics';
 
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
@@ -107,6 +107,10 @@ export const qaChecklistToTextTransformer = ({
     '`confirmed` with evidence, or `unconfirmable` with what you tried plus a `question`.',
   ].join('\n');
 
+  // Printed only when the flow actually carries one, and printed BESIDE the type surfaces rather
+  // than inside them: a read-check keeps its outcome type, so its type's own sentence is still on
+  // this list and would otherwise be the only surface a reader finds for it.
+  const readCheckItems = byKind.observable.filter((item) => item.verifyByReading === true);
   const surfaceLegend =
     presentTypes.length === 0
       ? ''
@@ -114,6 +118,12 @@ export const qaChecklistToTextTransformer = ({
           '',
           '## CHECK SURFACES (observable types present on this flow)',
           ...presentTypes.map((type) => `- ${type} → ${qaCheckSurfaceStatics.byOutcomeType[type]}`),
+          ...(readCheckItems.length === 0
+            ? []
+            : [
+                `- ${textDisplaySymbolsStatics.readCheckMark} → ${qaCheckSurfaceStatics.readCheck}`,
+                `  ${readCheckItems.length} unit(s) below carry it. It OVERRIDES the type surface on those lines.`,
+              ]),
         ].join('\n');
 
   const kindSurfaces = [
@@ -159,7 +169,9 @@ export const qaChecklistToTextTransformer = ({
           const settledMark = offTrackKind ? '[-]' : '[x]';
           const mark = remaining.has(String(item.id)) ? '[ ]' : settledMark;
           const type = item.observableType === undefined ? '' : `  [${item.observableType}]`;
-          return `${mark} ${String(item.id)}${type}\n    ${String(item.label)}`;
+          const readCheck =
+            item.verifyByReading === true ? `  ${textDisplaySymbolsStatics.readCheckMark}` : '';
+          return `${mark} ${String(item.id)}${type}${readCheck}\n    ${String(item.label)}`;
         }),
       ].join('\n'),
     )

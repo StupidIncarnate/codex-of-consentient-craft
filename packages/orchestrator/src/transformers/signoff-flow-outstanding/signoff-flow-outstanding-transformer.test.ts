@@ -41,6 +41,16 @@ const FLOWRIDER_EXCLUDED_ORIGINS = ALL_OBSERVABLE_ORIGINS.filter(
   (origin) => !FLOWRIDER_ELIGIBLE_SET.has(origin),
 );
 
+// The tracks that do NOT carry `reading`, read off the same statics rather than named here — a track
+// that later grows the ability to settle a read-check drops out of this list on its own instead of
+// leaving a test asserting an exclusion the statics no longer make.
+const READ_CHECK_EXCLUDED_TRACKS = TRACKS.filter(
+  (track) =>
+    !new Set(signoffTrackEligibilityStatics.byTrack[track].verificationMethods.map(String)).has(
+      'reading',
+    ),
+);
+
 describe('signoffFlowOutstandingTransformer', () => {
   describe('unsigned units', () => {
     it('VALID: {flowrider, one terminal, no sign-offs} => the terminal is outstanding and off-map is not', () => {
@@ -193,6 +203,94 @@ describe('signoffFlowOutstandingTransformer', () => {
         expect(signoffFlowOutstandingTransformer({ flow, track: 'flowrider' })).toStrictEqual([
           'login-flow:observable:an-observable',
         ]);
+      },
+    );
+  });
+
+  describe('a read-check observable is only codeweaver’s to settle', () => {
+    it('VALID: {verifyByReading: true} => outstanding for codeweaver, whose reviewer opens the file', () => {
+      const flow = FlowStub({
+        id: 'login-flow',
+        flowType: 'runtime',
+        nodes: [
+          FlowNodeStub({
+            id: 'dashboard',
+            label: 'Dashboard',
+            codeweaverSignoff: SignoffStub(),
+            observables: [
+              FlowObservableStub({
+                id: 'pattern-not-inlined',
+                type: 'custom',
+                verifyByReading: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      expect(signoffFlowOutstandingTransformer({ flow, track: 'codeweaver' })).toStrictEqual([
+        'login-flow:observable:pattern-not-inlined',
+      ]);
+    });
+
+    it.each(READ_CHECK_EXCLUDED_TRACKS)(
+      'VALID: {verifyByReading: true, track: %s} => outside the denominator, because that track runs tests and drives a system rather than reading source',
+      (track) => {
+        const flow = FlowStub({
+          id: 'login-flow',
+          flowType: 'runtime',
+          nodes: [
+            FlowNodeStub({
+              id: 'dashboard',
+              label: 'Dashboard',
+              codeweaverSignoff: SignoffStub(),
+              flowriderSignoff: SignoffStub(),
+              siegemasterSignoff: SignoffStub(),
+              observables: [
+                FlowObservableStub({
+                  id: 'pattern-not-inlined',
+                  type: 'custom',
+                  verifyByReading: true,
+                }),
+              ],
+            }),
+          ],
+          edges: [],
+        });
+
+        expect(
+          signoffFlowOutstandingTransformer({ flow, track }).filter(
+            (id) => String(id) === 'login-flow:observable:pattern-not-inlined',
+          ),
+        ).toStrictEqual([]);
+      },
+    );
+
+    it.each(TRACKS)(
+      'VALID: {verifyByReading absent, track: %s} => outstanding on every track, so the flag is what narrows and not the type',
+      (track) => {
+        const flow = FlowStub({
+          id: 'login-flow',
+          flowType: 'runtime',
+          nodes: [
+            FlowNodeStub({
+              id: 'dashboard',
+              label: 'Dashboard',
+              codeweaverSignoff: SignoffStub(),
+              flowriderSignoff: SignoffStub(),
+              siegemasterSignoff: SignoffStub(),
+              observables: [FlowObservableStub({ id: 'pattern-not-inlined', type: 'custom' })],
+            }),
+          ],
+          edges: [],
+        });
+
+        expect(
+          signoffFlowOutstandingTransformer({ flow, track }).filter(
+            (id) => String(id) === 'login-flow:observable:pattern-not-inlined',
+          ),
+        ).toStrictEqual(['login-flow:observable:pattern-not-inlined']);
       },
     );
   });

@@ -14,6 +14,8 @@ interface FlowObservableNodeLayerWidgetProxyResult {
   getPackageColor: () => HTMLElement['textContent'];
   getPackageType: () => HTMLElement['textContent'];
   packageSharesRowWithType: () => boolean;
+  getReadCheck: () => HTMLElement | null;
+  readCheckSharesRowWithType: () => boolean;
 }
 
 export const FlowObservableNodeLayerWidgetProxy = (): FlowObservableNodeLayerWidgetProxyResult => {
@@ -46,6 +48,19 @@ export const FlowObservableNodeLayerWidgetProxy = (): FlowObservableNodeLayerWid
         typeTag !== null &&
         packageChip.parentElement !== null &&
         packageChip.parentElement === typeTag.parentElement
+      );
+    },
+    getReadCheck: (): HTMLElement | null => screen.queryByTestId('FLOW_OBSERVABLE_NODE_READ_CHECK'),
+    // Same reason as `packageSharesRowWithType`: the ELK box reserves ONE tag row, so a third chip
+    // that wrapped onto its own row would grow the card past the space laid out for it.
+    readCheckSharesRowWithType: (): boolean => {
+      const readCheck = screen.queryByTestId('FLOW_OBSERVABLE_NODE_READ_CHECK');
+      const typeTag = screen.queryByTestId('FLOW_OBSERVABLE_NODE_TYPE');
+      return (
+        readCheck !== null &&
+        typeTag !== null &&
+        readCheck.parentElement !== null &&
+        readCheck.parentElement === typeTag.parentElement
       );
     },
     setupEmptyQueue: (): void => {

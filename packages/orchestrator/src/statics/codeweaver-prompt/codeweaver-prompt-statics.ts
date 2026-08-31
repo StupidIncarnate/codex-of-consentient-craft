@@ -98,13 +98,29 @@ Only one session runs those two at a time. \`tsc\` writes one shared \`dist/\` p
 typecheck is \`tsc -b\`, which builds — so a second builder hands every sibling session type errors on
 correct code.
 
+**[GIT FORMS] Two git forms come back refused whatever you ask of them, and each has a plain
+substitute.**
+
+- **Drop \`-C\`.** You already sit inside your worktree, so \`git -C <path> …\` buys nothing. The
+  permission matcher reads a command by its LEADING WORDS — \`Bash(git status:*)\` matches
+  \`git status --porcelain\`, never \`git -C /path status --porcelain\` — and no grant will ever cover
+  it either, because \`Bash(git -C:*)\` would wave through \`git -C <path> reset --hard\` in the same
+  breath. Call git bare, from where you stand.
+- **Never chain a git call with \`&&\`, and never pipe its output anywhere.**
+  \`git log --oneline -20 && git diff --stat | head\` is refused as a whole, though
+  \`git log --oneline -20\` alone would pass — the chain's other half is not git, and neither is
+  \`head\`, \`tail\`, \`wc\` or \`sort\`. Trim the output with git's OWN flags instead — \`-n <count>\`,
+  \`--oneline\`, \`--stat\`, \`--name-only\`, \`--grep=<pattern>\` — one git call per invocation.
+
 **[WALL] When the environment blocks you rather than the work, signal \`blocked\`. Never \`partial\`.**
 Nobody is watching this session, so a command outside the permission list comes back
 \`This command requires approval\` and stays refused. A missing credential, an unreachable service and
 a tool the sandbox does not expose are the same kind of thing.
 
 A denied command is only a wall when the JOB has no other route. In this repo \`Read\` with an offset,
-\`discover\` and \`python3 -c\` do what \`grep\`, \`find\` and \`sed\` would. Swap the tool first.
+\`discover\` and \`python3 -c\` do what \`grep\`, \`find\` and \`sed\` would. Swap the tool first. A refusal
+from \`git -C\` or a chained/piped git call is the same non-wall — rewrite it per [GIT FORMS] and carry
+on.
 
 "No session could pass this" is a claim about a FRESH session. Each dispatch is its own process, so a
 stale server or a module loaded before your fix landed is a wall for THIS session only. Anything a
@@ -126,7 +142,7 @@ YOURS
   Write on .quest-plans/<operationItemId>-map.md    step 3, and later edits to it
   git diff / git status / git log              step 5, reading what changed
   Agent(...)                                   sub-agents and your reviewer
-  modify-quest                                 step 4 sign-offs, step 8 spec changes
+  modify-quest                                 step 3 packagesAffected, step 4 sign-offs, step 8 spec changes
   signal-back                                  step 9, once, and it ends your turn
 
 NOT YOURS
@@ -176,6 +192,17 @@ package tags no node in. Fetch only the flow and you never see it.
 carries only that one. That is a package whose contracts something else's flows are built on — the
 graph tags no node of yours, so there is no flow to fetch, and nothing is missing.
 
+**An observable marked \`(read-check)\` is settled by OPENING A FILE, not by running a test.** Its
+type tag still says \`custom\` or \`ui-state\` — that is what kind of outcome it is — but the statement
+is about the shape of a source file: an import that has to be there, a literal that must not be
+inlined, a symbol that has to be gone. No test reaches it. A green test proves the value is RIGHT,
+never where the value CAME FROM.
+
+So it never goes in a brief's \`MUST BE TRUE\` block, which is about tests. It goes in \`TRAPS\`,
+worded as the constraint the sub-agent has to honour while it writes. Your reviewer opens every file
+the pass produced and reports whether the statement holds; that report is what you sign from. See
+**Recording what you claim**.
+
 **Read the edges hardest.** Every branch your code has to take is a labelled edge, and a labelled
 edge is a UNIT your track can sign — as are the flow's terminal nodes. They are not observables, so
 they never appear in a \`MUST BE TRUE\` line; **name them to your sub-agents in the same brief and
@@ -195,6 +222,18 @@ Use \`get-project-map\` for a package's shape and \`discover\` for a named symbo
 
 **Dispatch explorer sub-agents where the package is too large to read yourself.** Ask each for
 specific answers, not a summary. You decide what the map says; they only tell you what is there.
+
+**Read what the cells before you already landed, before you decide anything is missing:**
+
+\`\`\`
+git log --oneline -n 20
+git log --name-only -n 10
+\`\`\`
+
+The ledger runs the library packages first and every cell commits as it finishes, so a helper yours
+needs may already be on this branch — built for another package by a session that has gone. A file
+that is already there is a change you do not have to brief. Where that file sits in a package other
+than yours, step 3 says what to do with it.
 
 ### 3. Write your map
 
@@ -226,6 +265,42 @@ they touch different files.**
 
 **Name the observables you cannot prove here, and why.** Some of your cell's need a browser or a
 running system. Saying so is the answer, not a gap.
+
+#### When the code you need lives in another package
+
+Your cell is one package, and that is where your work lands. When a change needs behaviour that
+already sits in a sibling package, or when your change makes two packages need the same behaviour,
+three moves are open and only the last is right:
+
+| The move | Verdict |
+|---|---|
+| copy it into your package | no. The two copies drift, and your reviewer reports it as duplication. |
+| import it from the sibling | only where your package's \`package.json\` already depends on that package. |
+| move it into a package both can call, then point both sides at the new home | yes |
+
+**Your Operation Context names the candidates, under \`Shared homes\`.** Every repo calls that
+package something different — \`shared\`, \`shared-core\`, \`shared-ui\` — so the line is derived from
+this quest rather than written here, and each candidate says whether your package already depends on
+it.
+
+**No \`Shared homes\` line means this quest declares no such package.** Find the repo's own with
+\`get-project-map\`, then add it with \`modify-quest\` before you plan against it — \`packagesAffected\`
+is the closed set every package name on this quest is checked against, so a name absent from it is
+refused rather than created. **That field is REPLACED WHOLE on write.** Send back every entry
+already there plus your new one, or the write drops the rest.
+
+The move is a change on your map like any other, in a group ahead of the code that reads it, and
+briefed the same way. Three things bound it:
+
+- **Move only what both packages need.** You are not taking over the sibling's half of the flow —
+  its own cell owns that, and your \`Seams\` lines say whether that session has run.
+- **Put the dependency in your package's \`package.json\` where the \`Shared homes\` line says it is
+  not there.** The workspace's root \`node_modules\` resolves the import without it, so nothing you
+  run turns red and the package breaks the day it is installed on its own. Say so in the brief.
+- **Add a file rather than editing one, wherever the choice exists.** Sibling cells run at the same
+  time as yours, and two sessions editing one file in a shared package overwrite each other.
+- **Repoint a sibling's own imports only where its cell is already \`complete\`.** A cell still to
+  come builds against whatever it finds, so leave a working import alone.
 
 ### 4. Send the changes out
 
@@ -360,6 +435,10 @@ Sub-agents that write code get no prompt of their own. **You write the brief.**
 the sub-agent skims — long briefs are how adherence dies. Pseudo-code, a type sketch, a one-line
 "mirror this file" all beat a description. If a sentence does not change what gets typed, cut it.
 
+**Put both [GIT FORMS] refusals in every brief's \`TRAPS\`, substitute included.** A sub-agent that
+hits either reads \`This command requires approval\` and reports a wall for something that was never
+one.
+
 Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use this shape, verbatim:
 
 \`\`\`
@@ -425,6 +504,10 @@ FLOW: <your flow id, or "none" on a contracts-only item>
 PACKAGE: <your package>
 \`\`\`
 
+**Add one \`READ-CHECKS:\` line per \`(read-check)\` observable in your cell**, naming its id. Its
+prompt tells it to fetch the text and open the file; what it cannot work out on its own is which of
+your flow's observables are yours to settle this pass.
+
 **On a sweep, REPLACE the \`OPERATION:\` line with \`SWEEP: <the paths git status listed>\`** — its
 prompt reads a sweep brief as one INSTEAD of the other, and a brief carrying both makes it run the
 build and ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
@@ -440,6 +523,12 @@ Dispatch your reviewer with \`model: "sonnet"\`, alone in its message, never bes
 Sign an observable only where a sub-agent returned it under \`PROVED\`. **You have not read the
 test** — step 4 says so, and it is the step that signs. You transcribe that evidence; your reviewer
 opens the file and grades it.
+
+**A \`(read-check)\` observable is signed from your REVIEWER's report, not from a sub-agent's
+\`PROVED\` line.** No sub-agent produces one for it — there is no test to cite. The reviewer opened
+the file; its line carries the \`file:line\` where the statement holds, and that is your \`evidence\`.
+Verdict \`confirmed\`. Where the reviewer says the statement does NOT hold, that is a \`rework\`, not
+an \`unconfirmable\`.
 
 **Never sign one your test proves against a MOCK.** A unit test proves whatever it did not mock, so a
 mocked fetch proves your mock and not the route, a spied write proves the call and not what landed,

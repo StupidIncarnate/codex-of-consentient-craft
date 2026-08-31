@@ -151,6 +151,12 @@ None of this moves the gate. Partial observables are legal at \`flows_approved\`
     - \`description\`: concrete, testable outcome description
     - \`package\`: the ONE package this outcome is read in, drawn from the owning node's \`packages\`. **Omit it when that node tags exactly one package** — the save resolves it from the node, so there is nothing for you to restate. On a node tagging MORE than one there is nothing to inherit and an omission is refused: name the side of the seam this observable sits on, and name one the node already tags.
     - \`designRef\` (optional): reference to a design decision
+    - \`verifyByReading\` (optional): \`true\` when the criterion is about the SHAPE OF A SOURCE FILE — an import that must be there, a literal that must not be inlined, a symbol that must be gone. Set it and a reviewer opens the file; leave it out and a session writes a test. This is the field that lets you bake in an implementation detail you have decided on, instead of dropping it or dressing it up as behaviour.
+
+    Two rules go with it, and both cost something real when they are missed:
+
+    - **It does NOT change \`package\`.** Name the package whose FILE gets opened. "The server reads the pattern from the shared statics" is read in the server's file, so its package is the server — even though the value it names lives in \`shared\`. Attributing it to the supplying package hands it to a session that cannot open the file and runs before the file exists.
+    - **It is not a parking space for a criterion you could not make concrete.** If the statement is about what the system DOES, write it as behaviour and leave the flag off. The flag says "a test structurally cannot reach this", never "I could not think of the test".
 
     A seam node's observables must also cover the seam it declares. At \`approved\`, every package a multi-package node tags has to be either **observed** (some observable on that node names it) or **seam-forced** (dropping it would leave an incident edge with nothing spanning it — the edge set already asserts it, so it owes no observable of its own). A package that is neither is rejected by name. Nodes carrying zero observables are exempt entirely, so a decision node may carry any number of packages.
 
@@ -378,6 +384,18 @@ On a SEAM node — one tagging more than one package — every observable states
   { "id": "check-login-api-called", "type": "api-call", "description": "POST /api/auth/login called with credentials", "package": "<api-package>" },
   { "id": "check-redirect-dashboard", "type": "ui-state", "description": "redirected to /dashboard", "package": "<ui-package>" }
 ]
+\`\`\`
+
+A criterion about the SHAPE of a source file carries \`verifyByReading\`, and its \`package\` is the one
+whose file gets opened — never the package that supplies the value being read:
+\`\`\`json
+{
+  "id": "check-pattern-not-inlined",
+  "type": "custom",
+  "description": "the token pattern is read from <shared-package>'s statics rather than declared inline in this file",
+  "package": "<api-package>",
+  "verifyByReading": true
+}
 \`\`\`
 
 **\`type\` tags** are read by THREE downstream consumers:

@@ -300,6 +300,68 @@ describe('flowGraphToTextTransformer', () => {
       ]);
     });
 
+    it('VALID: {observable carrying verifyByReading} => the line carries (read-check) after its type, so a session sees no test settles it', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login' as never,
+            type: 'state',
+            observables: [
+              FlowObservableStub({
+                id: 'pattern-not-inlined' as never,
+                description: 'the token pattern is read from the shared statics' as never,
+                type: 'custom',
+                verifyByReading: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state) {auth-service}',
+        '  > #pattern-not-inlined: the token pattern is read from the shared statics [custom] (read-check)',
+        '  (terminal)',
+      ]);
+    });
+
+    it('VALID: {read-check observable also added mid-quest and signed} => (read-check) sits between the type and the provenance', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login' as never,
+            type: 'state',
+            observables: [
+              FlowObservableStub({
+                id: 'pattern-not-inlined' as never,
+                description: 'the token pattern is read from the shared statics' as never,
+                type: 'custom',
+                verifyByReading: true,
+                addedBy: 'codeweaver',
+                codeweaverSignoff: SignoffStub(),
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state) {auth-service}',
+        '  > #pattern-not-inlined: the token pattern is read from the shared statics [custom] (read-check) +codeweaver [C✓]',
+        '  (terminal)',
+      ]);
+    });
+
     it('VALID: {spec observable} => no provenance marker, so the line is unchanged', () => {
       const flow = FlowStub({
         entryPoint: 'login-page' as never,

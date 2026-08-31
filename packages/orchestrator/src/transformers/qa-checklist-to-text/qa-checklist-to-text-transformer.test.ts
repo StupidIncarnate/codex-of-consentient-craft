@@ -215,6 +215,77 @@ describe('qaChecklistToTextTransformer', () => {
     });
   });
 
+  describe('read-check units', () => {
+    const READ_CHECK = textDisplaySymbolsStatics.readCheckMark;
+
+    it('VALID: {one read-check observable} => its unit line carries the mark and the legend gains the read surface', () => {
+      const lines = qaChecklistToTextTransformer({
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({
+              id: 'a-flow:observable:pattern-not-inlined',
+              observableType: 'custom',
+              verifyByReading: true,
+              label: 'the token pattern is read from the shared statics',
+              checkSurface: qaCheckSurfaceStatics.readCheck,
+            }),
+          ],
+          remainingItemIds: ['a-flow:observable:pattern-not-inlined'],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect(lines.filter((line) => line.includes(READ_CHECK))).toStrictEqual([
+        `- ${READ_CHECK} → ${qaCheckSurfaceStatics.readCheck}`,
+        `[ ] a-flow:observable:pattern-not-inlined  [custom]  ${READ_CHECK}`,
+      ]);
+    });
+
+    it('VALID: {one read-check observable} => the legend counts it and says it overrides the type surface', () => {
+      const lines = qaChecklistToTextTransformer({
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({
+              id: 'a-flow:observable:pattern-not-inlined',
+              observableType: 'custom',
+              verifyByReading: true,
+              label: 'the token pattern is read from the shared statics',
+              checkSurface: qaCheckSurfaceStatics.readCheck,
+            }),
+          ],
+          remainingItemIds: ['a-flow:observable:pattern-not-inlined'],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect(lines.filter((line) => line.includes('unit(s) below carry it'))).toStrictEqual([
+        '  1 unit(s) below carry it. It OVERRIDES the type surface on those lines.',
+      ]);
+    });
+
+    it('VALID: {the same observable without the flag} => no mark anywhere, so an ordinary flow renders unchanged', () => {
+      const lines = qaChecklistToTextTransformer({
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({
+              id: 'a-flow:observable:pattern-not-inlined',
+              observableType: 'custom',
+              label: 'the token pattern is read from the shared statics',
+              checkSurface: qaCheckSurfaceStatics.byOutcomeType.custom,
+            }),
+          ],
+          remainingItemIds: ['a-flow:observable:pattern-not-inlined'],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect(lines.filter((line) => line.includes(READ_CHECK))).toStrictEqual([]);
+    });
+  });
+
   describe('walk paths', () => {
     it('VALID: {path with branch labels} => renders the route', () => {
       const lines = qaChecklistToTextTransformer({

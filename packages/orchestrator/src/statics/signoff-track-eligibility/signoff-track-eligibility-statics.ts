@@ -26,7 +26,7 @@
  * consumer. Indexing it makes a new `byTrack` key a COMPILE error at every measuring site, whereas
  * a ternary silently routes every unnamed track to a field it does not write.
  *
- * FIVE SEPARATE EXCLUSIONS live here as DATA so no consumer of a denominator carries role branches
+ * SIX SEPARATE EXCLUSIONS live here as DATA so no consumer of a denominator carries role branches
  * of its own.
  *
  * 0. FLOW TYPE. An operational flow is a one-time task sequence whose end state is hand-checked;
@@ -89,6 +89,16 @@
  *    continuation of that package, and dropping it would park such an observable outside every
  *    codeweaver denominator permanently.
  *
+ * 6. VERIFICATION METHOD. An observable carrying `verifyByReading` is settled by opening a source
+ *    file — the import is there, the literal is not inlined. Codeweaver's reviewer opens every file
+ *    the pass produced and is the one session on the relay already doing that, so Codeweaver alone
+ *    carries `reading`. Flowrider writes suites and Siegemaster drives a running system; neither can
+ *    settle where a value came from, and counting such a unit against them parks a permanent hole in
+ *    the one surface a human reads to find work that still needs a look. A unit's method is
+ *    `reading` when the flag is set and `test` when it is absent — the flag is optional on the
+ *    observable so that an absent field costs nothing on disk, and this list is where the absent
+ *    case gets its name.
+ *
  * BOTH QUEST TYPES RUN THIS RELAY. `questTypeRegistryStatics['bug-hunt']` seeds the same
  * `codeweaver` implementation item and the same flowrider/siegemaster tail, so every rule here
  * binds on a bug-hunt quest exactly as it does on a feature one.
@@ -125,6 +135,7 @@ export const signoffTrackEligibilityStatics = {
       ],
       packageScope: 'intersection',
       observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+      verificationMethods: ['test', 'reading'],
     },
     flowrider: {
       signoffField: 'flowriderSignoff',
@@ -144,6 +155,7 @@ export const signoffTrackEligibilityStatics = {
       ],
       packageScope: 'intersection',
       observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+      verificationMethods: ['test'],
     },
     siegemaster: {
       signoffField: 'siegemasterSignoff',
@@ -170,6 +182,7 @@ export const signoffTrackEligibilityStatics = {
         'siegemaster',
         'operator',
       ],
+      verificationMethods: ['test'],
     },
   },
 } as const;
