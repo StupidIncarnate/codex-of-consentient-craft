@@ -48,7 +48,7 @@ export const getQaChecklistInputContract = z
       .string()
       .min(1)
       .describe(
-        'The operation item this work is for — the ONE argument that scopes this call. Everything the denominator depends on is already on that item (its role is the track, plus its flowIds and packageNames), and the server derives them with the same transformer every reader of this coverage uses, so what you read here is your track\'s work list. Pass it and REMAINING is your remainder. A role with no sign-off track (spiritmender, warpgate) is told so plainly: its denominator is the scope block in its Operation Context, not the flow graph.',
+        "The operation item this work is for — the ONE argument that scopes this call. Everything the denominator depends on is already on that item (its role is the track, plus its flowIds and packageNames), and the server derives them with the same transformer every reader of this coverage uses, so what you read here is your track's work list. Pass it and REMAINING is your remainder. A role with no sign-off track (spiritmender, warpgate) is told so plainly: its denominator is the scope block in its Operation Context, not the flow graph.",
       )
       .brand<'OperationItemId'>()
       .optional(),

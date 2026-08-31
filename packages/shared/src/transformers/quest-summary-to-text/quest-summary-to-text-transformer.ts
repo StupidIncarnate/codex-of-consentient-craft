@@ -92,7 +92,7 @@ export const questSummaryToTextTransformer = ({
   const coverage = [
     '',
     `## COVERAGE — ${String(summary.flows.length)} flow(s), one row per track that measures each${flowsNotice}`,
-    '`outstanding` is that track\'s work list — nothing refuses a `done` over it. A track ABSENT',
+    "`outstanding` is that track's work list — nothing refuses a `done` over it. A track ABSENT",
     'from a flow does not measure it at all, which is a different statement from measuring it and',
     'finding nothing.',
     ...(flowsShown.length === 0

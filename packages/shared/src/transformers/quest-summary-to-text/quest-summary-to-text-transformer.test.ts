@@ -499,7 +499,7 @@ describe('questSummaryToTextTransformer', () => {
         withinVerbatimBudget: true,
         lineBeforeTheNotice: '',
         notice:
-          '[TRUNCATED at the 48000-character ceiling — 22036 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, unconfirmable, notes; read quest.json for whatever fell off.]',
+          '[TRUNCATED at the 48000-character ceiling — 22162 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, unconfirmable, notes; read quest.json for whatever fell off.]',
       });
     });
   });

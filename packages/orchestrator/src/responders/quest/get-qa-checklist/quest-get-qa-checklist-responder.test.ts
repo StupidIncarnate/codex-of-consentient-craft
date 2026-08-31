@@ -292,7 +292,7 @@ describe('QuestGetQaChecklistResponder', () => {
 
         expect(result).toStrictEqual({
           success: true,
-          data: `This quest has no runtime flows, so the ${track} track has nothing to walk. That is a real state, not an error — operational flows are verified by Siegemaster checking their end state, never by an authored suite. Your gate still binds and it yields zero units, so commit the record and signal done.`,
+          data: `This quest has no runtime flows, so the ${track} track has nothing to walk. That is a real state, not an error — operational flows are verified by Siegemaster checking their end state, never by an authored suite. Your denominator is zero units, so commit the record and signal done.`,
         });
       },
     );
