@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Builds the prompt text for a chat spawn based on role, message, questId, and optional sessionId
+ * PURPOSE: Builds the prompt text for a chat spawn based on role, message, questId, and optional sessionId.
+ * Both the resume path and the freshly-templated path route through `imagePromptTrailerTransformer` before
+ * returning, so a caller never appends the pasted-image trailer itself.
  *
  * USAGE:
  * chatPromptBuildTransformer({ role: 'chaoswhisperer', message: 'Help me', questId: QuestIdStub() });
@@ -8,8 +10,8 @@
 
 import type { QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
-import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
+import { imagePromptTrailerTransformer } from '../image-prompt-trailer/image-prompt-trailer-transformer';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { dumpsterHuntPromptStatics } from '../../statics/dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
@@ -27,7 +29,7 @@ export const chatPromptBuildTransformer = ({
   sessionId?: SessionId;
 }): PromptText => {
   if (sessionId) {
-    return promptTextContract.parse(message);
+    return imagePromptTrailerTransformer({ promptText: message });
   }
 
   // The two spec-intake roles share a prompt shape: a $QUEST_BOOTSTRAP block selected by whether
@@ -95,5 +97,5 @@ export const chatPromptBuildTransformer = ({
     );
   }
 
-  return promptTextContract.parse(promptText);
+  return imagePromptTrailerTransformer({ promptText });
 };

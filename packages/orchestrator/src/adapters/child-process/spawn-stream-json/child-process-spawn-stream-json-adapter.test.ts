@@ -329,6 +329,34 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
     });
   });
 
+  describe('prompt carrying an absolute image path', () => {
+    it('VALID: {prompt carrying an absolute image path} => -p value is the prompt verbatim, path intact', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      const imagePath = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
+      const prompt = PromptTextStub({
+        value: `compare ![Pasted Image 1](${imagePath}) with the current one`,
+      });
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt,
+        model: ClaudeModelStub({ value: 'sonnet' }),
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'compare ![Pasted Image 1](/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png) with the current one',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'sonnet',
+        '--chrome',
+      ]);
+    });
+  });
+
   describe('stdinMode parameter', () => {
     it('VALID: {stdinMode: "ignore"} => passes ignore as stdio[0]', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();

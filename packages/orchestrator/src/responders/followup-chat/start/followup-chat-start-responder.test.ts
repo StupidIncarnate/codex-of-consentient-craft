@@ -6,7 +6,7 @@ import {
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
+import { pastedImageStatics, workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { FollowupChatStartResponderProxy } from './followup-chat-start-responder.proxy';
@@ -25,6 +25,14 @@ const WORK_ITEM_STATUSES = Object.keys(
 const MINTED_CHAT_PROCESS_ID = 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const MINTED_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
+
+// proxy.getSpawnedArgs() is declared `() => unknown` (chatSpawnBrokerProxy delegates straight
+// through agentLaunchBrokerProxy's own `unknown`-typed getter) — unlike getModifyCallInputs()
+// below, which is already typed `readonly unknown[]` and indexable directly. Narrowing here the
+// same way quest-modify-broker.test.ts's own parseLatestPersisted() does (a top-level, non-test-
+// body helper) reads one positional value without an `as` cast or a conditional inside a test.
+const spawnedArgvValueAt = ({ args, index }: { args: unknown; index: number }): unknown =>
+  Array.isArray(args) ? args[index] : undefined;
 
 const awaitOnCompleteFireAndForget = async (): Promise<void> => {
   // Mirrors design-chat-start-responder.test.ts's own wait for the onComplete fire-and-forget
@@ -171,6 +179,47 @@ describe('FollowupChatStartResponder', () => {
           startedAt: FIXED_TIMESTAMP,
         },
       ]);
+    });
+
+    // #check-followup-message-carries-path — the server rewrites each `[Pasted Image N]`
+    // placeholder into `![Pasted Image N](<absolute path>)` before this responder ever sees the
+    // message, so a follow-up spawn resuming an existing session must carry that absolute path
+    // through unchanged inside -p, with the image trailer chatPromptBuildTransformer's resume
+    // branch (`imagePromptTrailerTransformer`) appends. Pinned via the resume path specifically
+    // because that branch's whole -p value is short enough to pin WHOLE.
+    it('VALID: {message carrying a pasted image path, on the resume path} => spawns with that path inside -p', async () => {
+      const proxy = FollowupChatStartResponderProxy();
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'quest-3-image' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-3-image' });
+      const sessionId = SessionIdStub({ value: 'tavern-session-3-image' });
+      const existingWorkItemId = 'aaaaaaaa-1111-4222-9333-444444444445';
+      const existingItem = WorkItemStub({
+        id: existingWorkItemId,
+        role: 'tavernkeeper',
+        status: 'complete',
+        sessionId,
+      });
+      const quest = QuestStub({
+        id: 'quest-3-image',
+        folder: 'quest-3-image',
+        status: 'complete',
+        workItems: [existingItem],
+        worktreePath,
+      });
+      const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
+      const message = `this is what I want ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) instead`;
+
+      proxy.setupExistingTavernkeeperItem({ quest });
+
+      await proxy.callResponder({ guildId, questId, message });
+
+      const args = proxy.getSpawnedArgs();
+
+      expect(spawnedArgvValueAt({ args, index: 0 })).toBe('-p');
+      expect(spawnedArgvValueAt({ args, index: 1 })).toBe(
+        `${message}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+      );
     });
 
     // #next-message-resumes-regardless — "the next follow-up message resumes that sessionId

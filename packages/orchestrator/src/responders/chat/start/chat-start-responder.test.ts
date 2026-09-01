@@ -14,6 +14,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStartResponderProxy } from './chat-start-responder.proxy';
 
@@ -29,6 +30,12 @@ const flushAsync = async (remaining = 10): Promise<void> => {
   await flushCycle();
   await flushAsync(remaining - 1);
 };
+
+// proxy.getSpawnedArgs() is declared `() => unknown` (chatSpawnBrokerProxy delegates straight
+// through agentLaunchBrokerProxy's own `unknown`-typed getter). Narrowing here via Array.isArray
+// reads one positional value without an `as` cast or a conditional inside a test body.
+const spawnedArgvValueAt = ({ args, index }: { args: unknown; index: number }): unknown =>
+  Array.isArray(args) ? args[index] : undefined;
 
 describe('ChatStartResponder', () => {
   describe('basic start', () => {
@@ -77,6 +84,61 @@ describe('ChatStartResponder', () => {
       });
 
       expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    });
+
+    it('VALID: {resumed session, message carrying an absolute image path} => answers with the processId while the spawn carries the path unaltered', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub({ value: 'session-resume-image' });
+
+      // Quest-list staging MUST precede setupResumeSession — see the note on the mirrored
+      // "starts chat with session" test above for why the ordering matters.
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupPendingEmpty();
+
+      const capture = proxy.setupEventCapture();
+
+      const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
+      const message = `this one ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) not the other`;
+
+      const result = await proxy.callResponder({
+        guildId,
+        message,
+        sessionId,
+      });
+
+      // The server already rewrote the placeholder into a Markdown image token carrying the
+      // absolute path before calling this responder — the orchestrator's job is to carry that
+      // string through to the spawned CLI without altering it. questId is present because
+      // setupResumeSession (no questId passed) resolves chatQuestId against the sticky
+      // CREATED_QUEST_ID chatSpawnBrokerProxy mocks crypto.randomUUID to return.
+      expect(result).toStrictEqual({
+        chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      const args = proxy.getSpawnedArgs();
+
+      expect(spawnedArgvValueAt({ args, index: 0 })).toBe('-p');
+      expect(spawnedArgvValueAt({ args, index: 1 })).toBe(
+        `${message}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+      );
+
+      // The response resolved before the agent turn completed — no chat-complete for this
+      // spawn has been emitted yet.
+      expect(
+        capture.getEmittedEvents().filter((event) => event.type === 'chat-complete'),
+      ).toStrictEqual([]);
     });
   });
 

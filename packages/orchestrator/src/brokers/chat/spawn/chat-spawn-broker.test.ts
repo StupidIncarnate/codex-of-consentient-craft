@@ -10,8 +10,15 @@ import {
   WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { chatSpawnBroker } from './chat-spawn-broker';
 import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
+
+// proxy.getSpawnedArgs() is declared `() => unknown` (chatSpawnBrokerProxy delegates straight
+// through agentLaunchBrokerProxy's own `unknown`-typed getter). Narrowing here via Array.isArray
+// reads one positional value without an `as` cast or a conditional inside a test body.
+const spawnedArgvValueAt = ({ args, index }: { args: unknown; index: number }): unknown =>
+  Array.isArray(args) ? args[index] : undefined;
 
 describe('chatSpawnBroker', () => {
   describe('chaoswhisperer new session', () => {
@@ -61,6 +68,37 @@ describe('chatSpawnBroker', () => {
         questWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         kill: expect.any(Function),
       });
+    });
+
+    it('VALID: {chaoswhisperer new session, message carries an image token} => spawns with the image path inside -p', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
+      const message = `here is the mock ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) build me this`;
+
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        message,
+        onEntries: jest.fn(),
+        onComplete: jest.fn(),
+        registerProcess: jest.fn(),
+      });
+
+      const args = proxy.getSpawnedArgs();
+      const promptArg = String(spawnedArgvValueAt({ args, index: 1 }));
+      const occurrenceCount = promptArg.split(ABSOLUTE_IMAGE_PATH).length;
+
+      expect(spawnedArgvValueAt({ args, index: 0 })).toBe('-p');
+      expect(occurrenceCount).toBe(2);
+
+      const trailer = `\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+      const promptTail = promptArg.slice(-trailer.length);
+
+      expect(promptTail).toBe(trailer);
     });
   });
 
