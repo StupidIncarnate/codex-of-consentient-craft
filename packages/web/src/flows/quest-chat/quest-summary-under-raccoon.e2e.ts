@@ -16,7 +16,8 @@ const SIGNOFF_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 const UNCONFIRMABLE_REASON =
   'the sandbox refuses to bind port 3737, so no browser can reach the app';
-const UNCONFIRMABLE_QUESTION = 'Which port should the sandbox dev server use?';
+const UNCONFIRMABLE_TO_SETTLE =
+  'Start the sandbox dev server on a free port, then re-walk this terminal.';
 const DRIFT_OBSERVABLE_TEXT = 'POST /api/auth/login returns 400 for a non-JSON body';
 const OPEN_QUESTION_SUMMARY = 'Should the sandbox dev server port be configurable per guild?';
 
@@ -66,7 +67,7 @@ const SUMMARY_FLOWS = [
         siegemasterSignoff: {
           verdict: 'unconfirmable',
           evidence: UNCONFIRMABLE_REASON,
-          question: UNCONFIRMABLE_QUESTION,
+          toSettle: UNCONFIRMABLE_TO_SETTLE,
           workItemId: SIGNOFF_WORK_ITEM_ID,
           at: '2026-01-02T00:00:00.000Z',
         },
@@ -201,7 +202,7 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
       'added by siegemaster',
     );
 
-    // The debt the completion gate let through, carrying the reason AND the routable question.
+    // The debt the completion gate let through, carrying the reason AND the action that settles it.
     const unconfirmableRow = page
       .getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_ROW')
       .filter({ hasText: 'summary-flow:terminal:done' });
@@ -209,8 +210,8 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
     await expect(unconfirmableRow.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_REASON')).toHaveText(
       UNCONFIRMABLE_REASON,
     );
-    await expect(unconfirmableRow.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_QUESTION')).toHaveText(
-      `? ${UNCONFIRMABLE_QUESTION}`,
+    await expect(unconfirmableRow.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_TO_SETTLE')).toHaveText(
+      `→ ${UNCONFIRMABLE_TO_SETTLE}`,
     );
 
     // The side-channel open question nobody answered.

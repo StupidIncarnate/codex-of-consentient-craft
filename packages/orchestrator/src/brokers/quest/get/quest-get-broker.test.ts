@@ -278,7 +278,7 @@ describe('questGetBroker', () => {
         String(result.flowSlice)
           .split('\n')
           .filter((line) => line.startsWith('[#login-page]')),
-      ).toStrictEqual(['[#login-page] Login page (state) {web, server} ◀ YOURS']);
+      ).toStrictEqual(['[#login-page] {web, server} Login page (state) ◀ YOURS']);
     });
 
     it('VALID: {packageName alone} => returns the foundation view, with no flow graph', async () => {
