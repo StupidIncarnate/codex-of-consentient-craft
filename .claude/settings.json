@@ -261,9 +261,8 @@
       "Bash(lsof:*)",
       "Bash(ps:*)",
       "Bash(python3:*)",
-      "mcp__dungeonmaster__get-planner-information",
-      "mcp__dungeonmaster__get-worker-information",
-      "mcp__dungeonmaster__get-reviewer-information"
+      "Bash(git rev-parse:*)",
+      "Bash(git merge-base:*)"
     ],
     "deny": [
       "Bash(sed:*)"

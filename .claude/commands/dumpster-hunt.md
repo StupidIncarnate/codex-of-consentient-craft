@@ -10,11 +10,11 @@ the reproduction path, forking at the point where what happens TODAY diverges fr
 happen. The fork's two terminal nodes are the actual/expected indicators — a node labelled
 `ACTUAL: <the wrong thing the user sees>` and a node labelled `EXPECTED: <the behavior that
 should happen>` — and the observables you embed on the EXPECTED side are the currently-broken
-invariants PestEater turns into failing tests.
+invariants the codeweaver session that owns the package the fix lands in turns into failing tests.
 
-You do NOT fix the bug. Once this spec is approved and the user starts the quest, PestEater writes
-the failing tests FIRST, confirms they fail on unchanged source, fixes the implementation, then
-ward → ward verify the fix.
+You do NOT fix the bug. Once this spec is approved and the user starts the quest, the codeweaver
+session that owns the package the fix lands in writes the failing tests FIRST, confirms they fail
+on unchanged source, fixes the implementation, then ward → ward verify the fix.
 
 This follows the regression-through-e2e playbook: reproduce and pin the user-visible symptom BEFORE
 any fix. Your job is the "pin the symptom" part, as a quest spec.
@@ -23,7 +23,7 @@ any fix. Your job is the "pin the symptom" part, as a quest spec.
 
 ## EXECUTION PROTOCOL
 
-**Start here.** Your VERY FIRST action: call `mcp__dungeonmaster__create-quest` to create the new quest, passing the user's original bug report verbatim as the `userRequest` argument (it appears in the "User Request" section at the bottom of this prompt — copy it exactly) AND `questType: 'bug-hunt'` so the quest seeds the PestEater pipeline at Start. The user never passes a questId — you mint it. Capture the returned `questId` and `guildSlug`.
+**Start here.** Your VERY FIRST action: call `mcp__dungeonmaster__create-quest` to create the new quest, passing the user's original bug report verbatim as the `userRequest` argument (it appears in the "User Request" section at the bottom of this prompt — copy it exactly) AND `questType: 'bug-hunt'` so the quest seeds the relay at Start with `initialWorkItemRole: 'bughunt'`. The user never passes a questId — you mint it. Capture the returned `questId` and `guildSlug`.
 
 **Open the web UI immediately after quest creation.** Call `mcp__dungeonmaster__get-server-config()` to learn the server's `baseUrl`, then open the spec view so the user can watch quest state live and follow this conversation in the chat panel: `<baseUrl>/<guildSlug>/quest/<questId>`. Open it via Bash: `xdg-open <url> 2>/dev/null || open <url> 2>/dev/null || true`. Do this exactly once, before any further spec work. The user does not need to manually navigate.
 
@@ -34,9 +34,10 @@ not as code, so you load architecture and testing context but NOT syntax rules:
 - `get-architecture` — folder types and layer model. Orients the `flowType` choice for the
   reproduction path and helps you name the right `packagesAffected[]`.
 - `get-testing-patterns` — assertion rules and test structure. Helps you phrase each
-  expected-behavior observable so PestEater can turn its `description` directly into a failing
-  test.
-Do NOT call `get-syntax-rules` — implementation conventions are PestEater's concern after Start.
+  expected-behavior observable so the codeweaver session that owns the package the fix lands in can
+  turn its `description` directly into a failing test.
+Do NOT call `get-syntax-rules` — implementation conventions are that codeweaver session's concern
+after Start.
 
 **ALWAYS:**
 - ALWAYS use the native `AskUserQuestion` tool (Claude Code's built-in) to clarify the symptom, the reproduction steps, and what the user expected to see instead. Answers come back synchronously as the tool result and are captured as designDecisions automatically.
@@ -44,14 +45,15 @@ Do NOT call `get-syntax-rules` — implementation conventions are PestEater's co
   validator tell you what to fix.
 
 **NEVER:**
-- NEVER fix the bug or write implementation code — that is PestEater's job after Start.
+- NEVER fix the bug or write implementation code — that is the job of the codeweaver session that
+  owns the package the fix lands in, after Start.
 - NEVER capture two bugs in one flow. One flow per bug; see "One flow per bug" below.
 - NEVER write `given` / `when` / `then` on an observable. An observable is FLAT — see
   "Observable Format". There is no BDD block on the contract, so those keys are dropped on save and
   everything you meant by them ends up as one unreadable `description` paragraph.
-- NEVER put an observable on an `ACTUAL:` node. An observable is a positive expectation and
-  PestEater turns each one into a test, so an observable on the broken branch asks for a test that
-  asserts the bug.
+- NEVER put an observable on an `ACTUAL:` node. An observable is a positive expectation and the
+  codeweaver session that owns the package the fix lands in turns each one into a test, so an
+  observable on the broken branch asks for a test that asserts the bug.
 - NEVER write raw mermaid — the diagram is generated from your nodes and edges.
 - NEVER read files directly — use exploration sub-agents (Task tool, `subagent_type: "Explore"`)
   if you need to confirm where the bug surfaces. **Send each one "The exploration brief" further
@@ -66,6 +68,17 @@ Do NOT call `get-syntax-rules` — implementation conventions are PestEater's co
 
 ### Status: `explore_flows` — one flow per bug
 
+**A tool result too large to return inline is READ IN FULL — never skimmed, never summarised.**
+When a fetch answers with an error stub naming a file it saved the output to, the data is not lost
+and the call did not fail: it moved. `Read` that file from its first line to its last, in sequential chunks where one read cannot hold it, BEFORE you
+act on any part of it.
+
+**The stub's own advice is wrong for this file.** It offers `offset` and `limit` to read "specific
+portions" and suggests searching within it — guidance written for a log, where one span is what a
+reader wants. This file is your whole scope. The flow you skipped is a flow nobody builds, the unit
+you skipped is a unit nobody signs, and the contract you skipped ships missing. Re-calling the tool
+returns the same oversized result, so the file is the only route to it.
+
 **Entry (from `created`):** Call `get-quest`, then `modify-quest` to transition
 `status: 'explore_flows'` and set a concise bug-describing title.
 
@@ -74,8 +87,9 @@ Do NOT call `get-syntax-rules` — implementation conventions are PestEater's co
 1. **Split the report into bugs.** A report often names more than one defect ("the row is empty AND
    clicking it navigates to the wrong route"). Each defect gets its OWN flow — never one flow
    carrying two, and never one flow per *symptom* of the same defect. If you cannot tell whether
-   two symptoms are one bug or two, ask: the answer decides how many failing tests PestEater
-   writes, and a wrong split there is not recoverable downstream.
+   two symptoms are one bug or two, ask: the answer decides how many failing tests the codeweaver
+   session that owns the package the fix lands in writes, and a wrong split there is not
+   recoverable downstream.
 2. **Clarify the repro** for each: exact reproduction steps, the URL / route / command, the
    precondition state, what they see, and what they expected to see instead.
 3. **Build one flow per bug**, shaped as described in "One flow per bug" below. Name the flow after
@@ -114,14 +128,16 @@ follow-on behavior that proves the fix is real rather than cosmetic.
 
 **Split, do not cram.** If an outcome has two parts, they are two observables — not one observable
 with an "AND ..." sentence glued on. A single observable whose `description` runs to a paragraph
-of "AND ... AND ..." is the failure mode this rule exists to prevent: PestEater cannot write one
-failing test for it, the user cannot approve the parts separately, and a half-fixed bug still reads
-as satisfied. One outcome, one observable, one test.
+of "AND ... AND ..." is the failure mode this rule exists to prevent: the codeweaver session that
+owns the package the fix lands in cannot write one failing test for it, the user cannot approve the
+parts separately, and a half-fixed bug still reads as satisfied. One outcome, one observable, one
+test.
 
 Then declare any `contracts` you already know touch the bug, and a `packagesAffected` entry for every package a
 node is tagged with — `{ name, location, changeType, packageType, usedBy? }`, `location` written
 WITH the `./` prefix (`'./packages/<name>'`, never the bare `'packages/<name>'`), `usedBy` required only
-when `changeType: 'new'` (optional beyond that coverage — PestEater will discover the rest).
+when `changeType: 'new'` (optional beyond that coverage — the codeweaver session that owns the
+package the fix lands in will discover the rest).
 Transition `status: 'review_observables'` and ask:
 "Do these expected-behavior observables look right for approval?"
 
@@ -151,10 +167,11 @@ entry point → the repro steps → the last shared node ─┬─ "today"     �
   is before-fix vs after-fix — and the labels are what say so on the diagram.
 - **The two terminal LABELS are the actual/expected indicator.** There is no field for it. Prefix
   them verbatim: `ACTUAL: ` on the terminal describing what the user sees today, `EXPECTED: `
-  on the terminal describing what should happen. PestEater reads those prefixes to find the
-  invariant it must assert, so the prefixes are load-bearing, not decoration.
+  on the terminal describing what should happen. The codeweaver session that owns the package the
+  fix lands in reads those prefixes to find the invariant it must assert, so the prefixes are
+  load-bearing, not decoration.
 - **Keep the repro minimal** — the path to the symptom, not the whole app. A node the bug does not
-  touch is a node PestEater has to rule out.
+  touch is a node that codeweaver session has to rule out.
 - **The `ACTUAL:` terminal carries no observables.** It is there so the reader (and the user
   approving) can see exactly what breaks and where; asserting it would be asserting the bug.
 - **Both terminals go in `exitPoints`.**
@@ -239,9 +256,10 @@ the nodes before it) and the trigger (the node it sits on).
 - `id`: kebab-case identifier (`tool-result-text-renders`).
 - `type`: the outcome type tag — `ui-state`, `api-call`, `file-exists`, `process-state`,
   `log-output`, `environment`, `performance`, `cache-state`, `db-query`, `queue-message`,
-  `external-api`, `custom`. PestEater reads it to choose the test layer: `ui-state` (and an
-  `api-call` observed through the browser) means a Playwright `*.e2e.ts`; the rest usually means
-  a unit or integration test alongside the implementation.
+  `external-api`, `custom`. The codeweaver session that owns the package the fix lands in reads
+  it to choose the test layer: `ui-state` (and an `api-call` observed through the browser) means
+  a Playwright `*.e2e.ts`; the rest usually means a unit or integration test alongside the
+  implementation.
 - `description`: ONE concrete, testable outcome, phrased as what SHOULD happen. Be literal —
   "the GET-QUEST tool result text renders in the expanded row", not "it works".
 - `package`: the ONE package this outcome is read in, drawn from the owning node's `packages`.
@@ -268,8 +286,9 @@ On the `fetch-tool-result` SEAM node, where the fix must also change what the en
 ]
 ```
 
-**Be tangible.** If PestEater would have to guess a value, it is not pinned: name the actual route,
-the actual text, the actual count. Never a placeholder like `{PORT}`.
+**Be tangible.** If the codeweaver session that owns the package the fix lands in would have to
+guess a value, it is not pinned: name the actual route, the actual text, the actual count. Never a
+placeholder like `{PORT}`.
 
 ---
 
@@ -319,8 +338,8 @@ one thing this intake must never carry into the spec.
 Tell the user, in one short message:
 
 > Bug spec approved. Click **Start Quest**, then run `/dumpster-launch` in your Claude session.
-> PestEater will write failing tests for the EXPECTED observables, confirm they fail, fix the
-> implementation, then ward → ward verify the fix.
+> The codeweaver session that owns the package the fix lands in will write failing tests for the
+> EXPECTED observables, confirm they fail, fix the implementation, then ward → ward verify the fix.
 
 Do NOT start the quest yourself — the user clicks Start Quest.
 
