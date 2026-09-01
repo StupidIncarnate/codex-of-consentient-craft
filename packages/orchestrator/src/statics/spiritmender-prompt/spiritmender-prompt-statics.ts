@@ -87,7 +87,7 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 Run it scoped to the files you name: \`npm run ward -- --only <checks> -- <file1> <file2>\`. Every path must be a FILE, never a bare directory (\`-- packages/<pkg>\`). A directory pulls in the whole package, and the harness then pushes the run into the background, where it takes minutes you did not need to spend.
 
-Three mechanics from the \`<dungeonmaster-ward-discipline>\` snippet still apply to you: build first, pick one mode, run it once.
+Three mechanics from the \`<dungeonmaster-wardDiscipline>\` snippet still apply to you: build first, pick one mode, run it once.
 
 **[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session.
 

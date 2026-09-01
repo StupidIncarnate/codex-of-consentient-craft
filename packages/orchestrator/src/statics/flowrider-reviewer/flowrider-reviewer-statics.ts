@@ -62,7 +62,7 @@ last agent in this chain.
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
 **[BUILD] \`npm run build\` and \`npm run ward -- --staged\` are yours, and nobody else here
-runs either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-ward-discipline>\`
+runs either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
 snippets you were handed at session start; their "make the whole repo green" line is written for an
 agent working directly for a person, and you are not one. Run them at step 6, **twice at most**.
 
@@ -107,8 +107,10 @@ grows with the quest — past the MCP result ceiling on any quest of real size. 
 layer writes the result to a FILE and hands you an error stub, so you would grade this work holding a
 path instead of a spec, with nothing reporting a failure.
 
-The quest gives you EVERY flow on this quest; yours is the one the checklist header names. The checklist gives you every unit on it and, in its
-\`## CHECK SURFACES\` legend, the layer each kind of unit is measured at.
+That call returns YOUR flow whole — every node, every edge with its branch label, every observable —
+plus the other flows as ids and names only, which are not your scope. The checklist gives you every
+unit on it and the layer each is measured at: \`## CHECK SURFACES\` for an observable's type, and the
+\`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` headings for the other kinds.
 
 **The observable's own words are the target.** Not your parent's map, not the test's name, not a
 commit message.
@@ -144,11 +146,12 @@ evidence.
 Judge each one against **The Evidence Contract** further down this page, and reject on sight
 anything matching a shape in its known-false-greens list.
 
-Three more questions, specific to this work:
+Four more questions, specific to this work:
 
 1. **Is each assertion at the right layer?** Join the unit's \`[type]\` tag to its row in the
-   checklist's \`## CHECK SURFACES\` legend. That string is authoritative — reject an assertion whose
-   layer disagrees with it, on that disagreement alone.
+   checklist's \`## CHECK SURFACES\` legend; a terminal or a branch carries no type tag and takes its
+   own \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` heading instead. That string is authoritative —
+   reject an assertion whose layer disagrees with it, on that disagreement alone.
 2. **Does the assertion say what the OBSERVABLE says?** Where the test and the observable disagree,
    the observable wins. A test written against a paraphrase and graded against the same paraphrase
    passes while proving something else.
@@ -181,7 +184,7 @@ its exit code and feeds a failed build silently into ward.
 **The two prove different things, and the ward is the typecheck.** \`npm run build\` proves the
 packages still link, but it typechecks only the ones whose build IS \`tsc\`. A package built by a
 bundler step instead — \`vite build\`, \`tsup\`, \`esbuild\` — has its types stripped rather than
-checked, and \`<ui-package>\` is usually that package. \`--staged\` is what typechecks every package
+checked, and this repo's browser package is usually that one. \`--staged\` is what typechecks every package
 this suite touched. A green build is never evidence about types.
 
 **Fix reds, then run the pair once more. Twice at most.** A red still standing is your
@@ -225,9 +228,9 @@ NEXT:      pass | rework — <what is not done> | wall — <what a person must c
 **\`NEXT:\` is the last line, and its first word is what your parent reads.**
 
 - **\`pass\`** — every unit the work CLAIMED is proved by an assertion you opened and can name a
-  failing value for, and the build and ward are green. **A non-empty \`UNCOVERED:\` does not block a
-  \`pass\`** — it is a report of what nobody reached, and a flow always has more units than one pass
-  proves. Only a unit the work claimed and did not prove is a \`rework\`.
+  failing value for, and the build and ward are green. **A non-empty \`UNCOVERED:\` is a report for your
+  parent, not a \`rework\` by itself** — but name every unit in it, because your parent owes each one a
+  verdict before it signals. Only a unit the work claimed and did not prove is a \`rework\`.
 - **\`rework\`** — anything real is left. **Quote the unit id and the unit's own words for each**, so
   your parent can re-cut a brief from them; it has not read the tests.
 - **\`wall\`** — the environment blocks every session of every role. Not a red test.

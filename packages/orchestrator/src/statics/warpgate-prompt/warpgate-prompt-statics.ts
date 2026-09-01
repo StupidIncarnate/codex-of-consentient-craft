@@ -70,7 +70,7 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **DO NOT SLEEP-POLL THAT RUN.** Yours is the one ward on this quest that legitimately takes minutes and the harness auto-backgrounds a sweep this size. Set \`run_in_background: true\` with \`timeout: 600000\`, wait for the task notification, then read the output once. Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished — the notification is coming on its own.
 
-Three mechanics from the \`<dungeonmaster-ward-discipline>\` snippet still apply to you: build first, run it once, and never sleep-poll it.
+Three mechanics from the \`<dungeonmaster-wardDiscipline>\` snippet still apply to you: build first, run it once, and never sleep-poll it.
 
 **[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session.
 

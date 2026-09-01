@@ -1,6 +1,6 @@
 /**
  * PURPOSE: One `unconfirmable` sign-off, surfaced with the unit it settled, the track that wrote it,
- * and the whole sign-off so its reason and its routable question travel with it
+ * and the whole sign-off so its reason and the action that would settle it travel with it
  *
  * USAGE:
  * questSummaryUnconfirmableContract.parse({
@@ -12,7 +12,7 @@
  *   signoff: {
  *     verdict: 'unconfirmable',
  *     evidence: 'the project Playwright config declares no webServer, so no e2e can reach the app',
- *     question: 'Who owns adding a webServer block to playwright.config.ts?',
+ *     toSettle: 'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
  *     workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
  *     at: '2026-01-01T00:00:00.000Z',
  *   },
@@ -33,7 +33,7 @@
  * unconfirmable on more than one, for different reasons, and a unit-only id would collide.
  *
  * `track` IS THE DENOMINATOR TRACK, NOT THE SIGN-OFF FIELD. Which role hit the wall is what a reader
- * needs in order to route the question, and more than one role can write one field — so naming the
+ * needs in order to route the work, and more than one role can write one field — so naming the
  * field would leave "who could not confirm this" ambiguous between roles whose remedies have
  * nothing in common. Denominators narrow by disjoint `packageTypes`, so no single unit is ever
  * attributed to two.
@@ -58,7 +58,7 @@ export const questSummaryUnconfirmableContract = z.object({
   kind: qaChecklistKindContract,
   track: signoffDenominatorTrackContract,
   signoff: signoffContract.describe(
-    'The sign-off verbatim. `evidence` is why confirmation was out of reach and `question` is what someone else would have to answer to close it; both are required on this verdict.',
+    'The sign-off verbatim. `evidence` is why confirmation was out of reach and `toSettle` is the action someone else has to carry out to close it; both are required on this verdict.',
   ),
 });
 

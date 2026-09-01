@@ -158,10 +158,10 @@ describe('flowEvidenceContractStatics', () => {
           '**A measured defect is a NEW observable, not a third verdict.**',
         ),
         inverseExpectation: judgingMarkdown.includes(
-          'is the INVERSE expectation and belongs in the spec.',
+          'is the INVERSE expectation and belongs in the spec — name it in your findings so your parent adds it,',
         ),
-        takesItsTracksSignoffs: judgingMarkdown.includes(
-          "it arrives unsigned and then takes its tracks' sign-offs like every other unit.",
+        parentWritesTheSpec: judgingMarkdown.includes(
+          'since a reviewer writes no spec of its own.',
         ),
         noOtherVerdicts: judgingMarkdown.includes(
           '**There is no `defect`, `deferred`, `gap` or `recorded` SIGN-OFF verdict.**',
@@ -176,7 +176,7 @@ describe('flowEvidenceContractStatics', () => {
       }).toStrictEqual({
         newObservable: true,
         inverseExpectation: true,
-        takesItsTracksSignoffs: true,
+        parentWritesTheSpec: true,
         noOtherVerdicts: true,
         twoIsTheWholeVocabulary: true,
         provenanceIsSeparate: true,
@@ -206,7 +206,7 @@ describe('flowEvidenceContractStatics', () => {
         // asserts at the layer the claim lives on, or a matrix that flattens a branchy flow into
         // one parameterized case.
         shapeVersusLayer: authoringMarkdown.includes(
-          '**Two rules compose here. They never compete.** 1. Journey-vs-matrix chooses the test SHAPE. 2. `checkSurface` chooses the LAYER.',
+          "**Two rules compose here. They never compete.** 1. Journey-vs-matrix chooses the test SHAPE. 2. The unit's CHECK SURFACES row — or its `## TERMINAL SURFACE` / `## BRANCH SURFACE` heading — chooses the LAYER.",
         ),
         journeyIsOneTestPerPath: authoringMarkdown.includes(
           'A branchy flow is a JOURNEY: one test per path, driven end to end.',
@@ -218,7 +218,7 @@ describe('flowEvidenceContractStatics', () => {
           '- A branchy flow on a web surface is a journey rendered as e2e. - A branchy flow on a non-web surface is a journey rendered as integration. - A combination matrix is integration.',
         ),
         neitherOverridesTheOther: authoringMarkdown.includes(
-          'Never let the shape you picked move an assertion off its `checkSurface`. Never let the layer you picked collapse a journey into one parameterized test.',
+          'Never let the shape you picked move an assertion off the surface its row names. Never let the layer you picked collapse a journey into one parameterized test.',
         ),
       }).toStrictEqual({
         heading: true,

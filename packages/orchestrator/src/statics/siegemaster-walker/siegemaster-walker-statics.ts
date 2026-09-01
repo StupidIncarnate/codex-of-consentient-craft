@@ -178,8 +178,8 @@ ToolSearch("select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome
 Call \`tabs_context_mcp\` first, then create your OWN tab. Never reuse a tab you did not open.
 
 **No browser available and the path needs one?** Write a driver as a \`.js\` or \`.py\` FILE under
-\`spike-tmp/\` — git ignores that directory, and an untracked file anywhere else blocks your parent's
-signal with nothing it may run to clear it. This repo's Bash analyzer rejects \`python3\` heredocs and
+\`spike-tmp/\` — git ignores that directory, so it never reaches your parent's sweep, while an
+untracked file anywhere else costs it another reviewer pass to clear. This repo's Bash analyzer rejects \`python3\` heredocs and
 unbounded shell loops, so it cannot be an inline script.
 
 ### 5. Reset, then drive

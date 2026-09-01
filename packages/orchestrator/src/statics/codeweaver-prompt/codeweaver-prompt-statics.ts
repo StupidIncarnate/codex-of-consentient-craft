@@ -93,7 +93,7 @@ session.
 
 **[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
 \`npm run ward -- --staged\`, after it has read everything. This rule overrides the
-\`<dungeonmaster-ward>\` and \`<dungeonmaster-ward-discipline>\` snippets you were handed at session
+\`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\` snippets you were handed at session
 start; neither is written for a session that runs neither command.
 
 Only one session runs those two at a time. \`tsc\` writes one shared \`dist/\` per package and ward's
@@ -175,25 +175,27 @@ get-quest({ questId: 'QUEST_ID', flowId: '<your flow>', packageName: '<your pack
 
 ${spilledToolResultStatics.markdown}
 
-**Never call \`get-quest\` with \`stage\` instead.** \`stage: 'spec'\` returns the whole quest —
-every flow, growing with the quest, past the tool-result ceiling on any quest of real size. Over that
-ceiling it comes back as a path to a file rather than as your spec. The call above is the only one
-that answers whatever the quest has grown to.
+**\`get-quest\` takes \`flowId\` and \`packageName\`, never \`stage\`.** \`stage: 'spec'\` returns the
+whole quest, every flow on it, and that render grows as the quest does — past the tool-result ceiling
+on any quest of real size. 
 
-**The first call returns your flow WHOLE**, not just your package's share of it: every node with its
+**\`get-quest\` returns your flow WHOLE**, not just your package's share of it: every node with its
 label, type and package tags, **every edge with its branch label**, every observable, the entry and
 exit points, and the contracts and design decisions that govern it.
 Nodes your package tags are marked; a node it does not tag is still rendered, because a flow filtered
 to one package is not a smaller flow — it comes apart into disconnected pieces, and the branch
 conditions go with them.
 
-**Observables attributed to another package are collapsed to a count.** That is not truncation. The
-sibling BUILDS them — but on a node you both tag they still count in your track's coverage, so
-neither of you is measured as having dropped them.
+**Observables attributed to another package are collapsed to a count.** That is not truncation — the
+sibling cell builds them AND signs them. You cannot: the render gives you neither their ids nor their
+text. **Sign only observables printed in full**, and read the count as what the other half of a
+shared node is doing.
 
-**EVERY CONTRACT UNDER A \`## Contracts\` heading IS YOURS TO BUILD.** A contract routes to a package
-by FILE PATH — its own \`source\`, or an individual property's — so which ones are yours has nothing
-to do with which nodes you tag. They arrive in up to two groups and both are your work:
+**EVERY CONTRACT UNDER A \`## Contracts\` heading CARRIES WORK OF YOURS.** A contract routes by FILE
+PATH — its own \`source\`, or an individual property's — so which ones are yours has nothing to do
+with which nodes you tag, and a contract whose \`source\` sits in ANOTHER package still renders here
+when one property names a file in yours. **Build what each line's OWN path names:** a property
+printing \`[<path>]\` lives at that path, not in the contract's \`source\`. They arrive in up to two groups and both are your work:
 
 - **\`## Contracts on this flow\`** — anchored to a node in the graph above.
 - **\`## Contracts you own that NO flow of yours anchors\`** — the file is yours, the node that
@@ -219,7 +221,11 @@ the pass produced and reports whether the statement holds; that report is what y
 **Read the edges hardest.** Every branch your code has to take is a labelled edge, and a labelled
 edge is a UNIT your track can sign — as are the flow's terminal nodes. They are not observables, so
 they never appear in a \`MUST BE TRUE\` line; **name them to your sub-agents in the same brief and
-sign them like anything else.** Where their sign-off goes is under **Recording what you claim**.
+sign them like anything else.**
+
+**A terminal or a labelled edge is YOURS only where the node it hangs off carries \`◀ YOURS\`** — for
+a branch, the node the edge LEAVES. The graph is unfiltered, so the rest are drawn to show you how
+yours connect, and they belong to another cell. Where their sign-off goes is under **Recording what you claim**.
 
 ### 2. Explore the package
 
@@ -369,8 +375,9 @@ Four questions, and only you can ask them, because only you hold the whole cell:
 1. **Does this match the flow?** Walk your flow's nodes and edges against the diff. Every branch an
    edge label names should exist in the code.
 2. **Is EVERY contract there?** Take the \`## Contracts\` headings from step 1 and go one by one. For
-   each, the file its \`source\` names must exist, and every property must be on it with the type the
-   description states. **Anything missing goes straight back out as a sub-agent brief.** Do this by
+   each, the file that line's OWN path names must exist and carry that property with the type the
+   description states — a property printing \`[<path>]\` lives at that path, not in the contract's
+   \`source\`. **Anything missing goes straight back out as a sub-agent brief.** Do this by
    the list, not by memory: a contract is the one part of your scope no observable mentions, so a
    missing one breaks nothing your tests run and ships as a hole. The contracts under
    \`NO flow of yours anchors\` are the ones to check hardest — no sibling session was shown them, so
@@ -408,7 +415,9 @@ it named.
 
 ### 8. Record what you claim, and what you found
 
-**Your sign-offs are already written** — you made them wave by wave at step 4. Nothing to redo here.
+**Your test-proved sign-offs are already written** — you made them wave by wave at step 4. What is
+left to write here is one sign-off per \`(read-check)\` observable in your cell, taken from your
+reviewer's \`READ-CHECKS:\` block: verdict \`confirmed\`, evidence the \`file:line\` it reported.
 
 What is left is the spec. If the work forced a change to it — a node that turned out to belong to a different
 package, an observable that could not be true as written, a contract that needed another property —
@@ -589,9 +598,9 @@ name, same shape, one level up from an observable:
   that would settle it, as an instruction rather than a question. Later roles walk the same flow and
   will carry it out.
 
-**EVERY UNIT IN YOUR CELL ENDS THIS PASS CARRYING ONE OF THOSE TWO VERDICTS** — every observable,
-every terminal, every labelled edge. There is no third state, no blank, and no way to finish without
-one.
+**EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU SIGNAL** — every observable,
+every terminal, every labelled edge that is yours. There is no third state, no blank, and no way to
+finish without one.
 
 - A unit still owed a test is **work remaining, not a verdict**. Your loop has no cap: send it out
   again at step 4, and come back to it.

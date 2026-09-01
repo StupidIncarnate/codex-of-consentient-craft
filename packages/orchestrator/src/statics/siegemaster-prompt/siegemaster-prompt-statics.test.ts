@@ -87,7 +87,8 @@ describe('siegemasterPromptStatics', () => {
         text: TEMPLATE,
       }),
       wall: hasIn({
-        needle: '| `wall` | go to step 9, then signal `blocked` at step 11 |',
+        needle:
+          '| `wall` | go to step 9, stop the dev server at step 10, then signal `blocked` at step 11 |',
         text: TEMPLATE,
       }),
       noCap: hasIn({
@@ -111,7 +112,7 @@ describe('siegemasterPromptStatics', () => {
       }),
       wall: hasIn({
         needle:
-          '| `wall` | stop sending work out. Let anything running finish, then go to step 9, and signal `blocked` at step 11 — never `done`. |',
+          '| `wall` | stop sending work out. Let anything running finish, then go to step 9, stop the dev server at step 10, and signal `blocked` at step 11 — never `done`. |',
         text: TEMPLATE,
       }),
       missingLine: hasIn({

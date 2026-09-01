@@ -71,7 +71,7 @@ last agent in this chain.
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
 **[BUILD] \`npm run build\` and \`npm run ward -- --staged\` are yours, and nobody else here runs
-either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-ward-discipline>\`
+either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
 snippets you were handed at session start. Run them at step 5, **twice at most**.
 
 **[GIT] You commit and you push. Nobody else here touches git.** Never \`stash\`, \`reset\`,
@@ -118,8 +118,9 @@ path instead of a spec, with nothing reporting a failure.
 Find the operation item your brief named, and read the flow it owns — nodes, edge labels, observables,
 entry and exit. That flow is what the repairs were supposed to make work.
 
-The checklist gives you each unit's own words and, in its \`## CHECK SURFACES\` legend, the layer that
-unit has to be measured at. **A unit's own words are the target** — not the walker's phrasing of it,
+The checklist gives you each unit's own words and the layer it has to be measured at — \`## CHECK
+SURFACES\` for an observable's type, and the \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` /
+\`## OFF-MAP SURFACE\` headings for the other three kinds. **A unit's own words are the target** — not the walker's phrasing of it,
 not your parent's brief, not a commit message. Where a repair and the unit disagree about what should
 happen, the unit wins and the disagreement is a finding.
 
@@ -143,7 +144,7 @@ round may have committed repairs you are now building on.
 
 ### 4. Open every file the fixers changed
 
-**Every one, in full.** Take these four questions plus the five standing concerns in ONE reading.
+**Every one, in full.** Take these five questions plus the five standing concerns in ONE reading.
 
 1. **Did the fix address the cause, or hide the symptom?** This is the failure shape this role exists
    to catch. Six specific ways a symptom gets hidden: a type widened to accept the bad value instead
@@ -180,7 +181,7 @@ its exit code and feeds a failed build silently into ward.
 **The two prove different things, and the ward is the typecheck.** \`npm run build\` proves the
 packages still link, but it typechecks only the ones whose build IS \`tsc\`. A package built by a
 bundler step instead — \`vite build\`, \`tsup\`, \`esbuild\` — has its types stripped rather than
-checked, and \`<ui-package>\` is usually that package. \`--staged\` is what typechecks every package
+checked, and this repo's browser package is usually that one. \`--staged\` is what typechecks every package
 a repair touched. A green build is never evidence about types.
 
 **Fix reds, then run the pair once more. Twice at most.** A red still standing is your
@@ -241,7 +242,7 @@ ${standardsReviewConcernsStatics.markdown}
 A brief carrying \`SWEEP:\` instead of \`OPERATION:\` is a smaller job. The paths it lists are what
 \`git status\` still shows after the repairs were committed.
 
-Open every path. Delete what is scratch — a probe, a driver under \`spike-tmp/\`, a leftover
+Open every path. Delete what is scratch — a probe, a scratch fixture, a leftover
 experiment. Keep what is real work somebody forgot to commit. Then \`git add -A\`, one commit under
 \`sweep: <what survived>\`, and push.
 

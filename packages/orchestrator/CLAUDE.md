@@ -583,7 +583,7 @@ named reviewer commits it.
   `get-qa-checklist({ questId, operationItemId })`, reads the implementation to learn the exact value each unit
   claims, chooses a LAYER per unit (in a real browser, or below one), writes the same shape of map, briefs a
   sub-agent per test file, reads the diff, then runs a `flowrider-reviewer`. It signs `flowriderSignoff`.
-- **Siegemaster** (ten steps) starts the dev server and owns it for the whole session, then loops: ONE
+- **Siegemaster** (eleven steps) starts the dev server and owns it for the whole session, then loops: ONE
   `siegemaster-walker` drives one path through the flow and reports what it measured, generic FIXER sub-agents repair
   what it found, and a FRESH walker re-drives the same path from the reset state. A `siegemaster-reviewer` grades the
   repairs at the end. It signs `siegemasterSignoff`, and `reset-flow-signoffs` is its lever when a fix moves behaviour

@@ -43,7 +43,7 @@ crossing into work you do not own, and anything needing a decision.
 - **Does a thrown error say enough to act on?** An error naming no path, no id and no cause leaves the
   next reader nothing.
 - **Is the PURPOSE header true?** Lint checks it exists. Nothing checks it is correct, because no test
-  and no typecheck reads a comment — and \`discover --verbose\` then serves that header to every later
+  and no typecheck reads a comment — and \`discover\` with \`verbose: true\` then serves that header to every later
   agent as the file's description. Four shapes to flag: a return-shape claim the code contradicts; a
   validation claim the contract does not make; a claim derived from the file's NAME rather than its
   body; a PURPOSE that only restates the signature. Read the zod chain itself rather than trusting a

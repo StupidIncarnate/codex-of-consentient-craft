@@ -145,8 +145,8 @@ signed unit as settled and moves past it.
 
 **A measured defect is a NEW observable, not a third verdict.** An observable is a positive
 expectation, so "send it \`bleh\` and the server crashes instead of returning 400" is the INVERSE
-expectation and belongs in the spec. ADD it with \`modify-quest\`; it arrives unsigned and then takes
-its tracks' sign-offs like every other unit. **There is no \`defect\`, \`deferred\`, \`gap\` or
+expectation and belongs in the spec — name it in your findings so your parent adds it, since a
+reviewer writes no spec of its own. **There is no \`defect\`, \`deferred\`, \`gap\` or
 \`recorded\` SIGN-OFF verdict.** \`confirmed\` and \`unconfirmable\` are the whole vocabulary.
 
 **Provenance is a SEPARATE axis.** \`addedBy\` records who added the observable. Its values are
@@ -168,7 +168,8 @@ An \`operational\` flow carrying \`ui-state\` observables still needs a browser 
 **Two rules compose here. They never compete.**
 
 1. Journey-vs-matrix chooses the test SHAPE.
-2. \`checkSurface\` chooses the LAYER.
+2. The unit's CHECK SURFACES row — or its \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` heading —
+   chooses the LAYER.
 
 The shape decides how many tests there are. It also decides what each test walks. A branchy flow is
 a JOURNEY: one test per path, driven end to end. A set of independent input combinations is a
@@ -179,10 +180,10 @@ inside that shape reads its value from. The two rules cross into three cases:
 - A branchy flow on a non-web surface is a journey rendered as integration.
 - A combination matrix is integration.
 
-Never let the shape you picked move an assertion off its \`checkSurface\`. Never let the layer you
+Never let the shape you picked move an assertion off the surface its row names. Never let the layer you
 picked collapse a journey into one parameterized test.
 
-**The wrong proof each type attracts.** The \`checkSurface\` says where to look. Each entry below
+**The wrong proof each type attracts.** That row says where to look. Each entry below
 names the shortcut that never reaches that surface:
 
 - \`ui-state\` — you reach for jsdom on a painted claim. jsdom has no layout engine. Every measured

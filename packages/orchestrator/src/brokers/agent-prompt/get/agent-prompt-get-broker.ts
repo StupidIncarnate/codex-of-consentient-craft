@@ -180,7 +180,7 @@ export const agentPromptGetBroker = async ({
     }
   }
 
-  // Siegemaster ALONE gets the dev server. It stands a long-lived one up by hand at its Gate 5,
+  // Siegemaster ALONE gets the dev server. It stands a long-lived one up by hand at its step 2,
   // drives it, and tears it down before signalling, so it needs the real command and URL.
   // Flowrider deliberately does NOT: it never starts a server. Its e2e server is whatever the
   // project's Playwright config declares in `webServer`, started inside the run and torn down with

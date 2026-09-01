@@ -89,9 +89,11 @@ session.
   on at all — start it, confirm it answers, and carry on.
 
 **[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
-\`npm run ward -- --staged\` at the end, once, and it is the only session here that runs either. A
+\`npm run ward -- --staged\` at the end, twice at most, and it is the only session here that runs a
+BUILD or a typecheck. A fixer's own \`--only lint,test\` ward is deliberate and keeps typecheck out —
+see **Briefing a fixer**. A
 build under a live system changes what your walkers are measuring, and they read the difference back
-as a defect. This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-ward-discipline>\`
+as a defect. This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
 snippets you were handed at session start.
 
 **[GIT FORMS] Two git forms are refused for every dispatched session, and neither is a permission a
@@ -111,6 +113,9 @@ grant could add.**
 A command outside the permission list comes back \`This command requires approval\` and stays refused.
 A missing credential and an unreachable external service are the same kind of thing.
 
+**A blocked \`grep\`, \`find\` or \`sed\` is not a wall.** \`discover\`, \`Read\` with an offset and
+\`python3 -c\` do the same work; swap the tool and carry on.
+
 **A dev server that will not start on this quest's code is NOT a wall.** It is a defect, and fixing it
 is the first thing this session does. A server that dies mid-session is not a wall either — you own
 it, so restart it and carry on. **A \`git -C\` refusal or a chained/piped git call is not a wall
@@ -124,13 +129,13 @@ while it is dirty, \`blocked\` included. Step 9 says what to do. Never clear it 
 \`\`\`
 YOURS
   get-quest                                    step 1, your flow whole
-  get-qa-checklist                             the full list of units on your flow
+  get-qa-checklist                             steps 1 and 9, the full list of units on your flow
   the Dev Server Command in your Operation Context   step 2, to start it
   kill / pkill, scoped to that port and cwd    step 10, to stop the server you started
   Read / discover                              reading a walker's finding in context
   Read on the walker guide                     what your sub-agent wrote at step 3
   git diff / git status / git log              step 6, reading what a fixer changed
-  python3 -c                                   the substitute [WALL] names for grep/find/sed
+  python3 -c                                   the substitute for grep/find/sed, blocked in this repo
   Agent(...)                                   walkers, fixers, your reviewer
   reset-flow-signoffs                          step 9, when a fix moved already-walked behaviour
   modify-quest                                 step 9, spec changes only — walkers write the sign-offs
@@ -184,14 +189,17 @@ ${spilledToolResultStatics.markdown}
   and really gone from everywhere it used to be — a deleted thing still imported, still routed to or
   still on disk is the defect this kind of flow exists to catch.
 
-That list holds every observable, every terminal node, every labelled edge, and the seven
-off-map probe families that are yours alone: re-entry, concurrency, interruption, staleness,
-configuration, hostile-input and perf.
+That list holds every observable your track can settle, every terminal node, every labelled edge,
+and the seven off-map probe families that are yours alone: re-entry, concurrency, interruption,
+staleness, configuration, hostile-input and perf. **An observable the flow marks \`(read-check)\` is
+settled by opening a source file, which no walk can do** — it is left off your list and out of your
+count on purpose, so never chase one.
 
-**Its \`## CHECK SURFACES\` legend says where each kind of unit is measured**, and that string is
-authoritative — a unit measured at the wrong surface is not measured. **Copy each unit's surface into
-the walker's brief**, because a walker never sees this checklist and would otherwise pick a surface
-from memory.
+**\`## CHECK SURFACES\` says where each observable TYPE is measured; \`## TERMINAL SURFACE\`,
+\`## BRANCH SURFACE\` and \`## OFF-MAP SURFACE\` say it for the other three kinds.** Those strings are
+authoritative — a unit measured at the wrong surface is not measured. **Copy the legends a walk needs
+into its brief ONCE and tag each unit with its kind or type** — see **Briefing a walker** below for the
+shape. A walker never sees this checklist and would otherwise pick a surface from memory.
 
 ### 2. Start the dev server
 
@@ -200,6 +208,11 @@ before you send anyone anywhere.
 
 **It will not start?** That is your first piece of work, not a wall. Go to step 5 and brief a fixer
 against the failure, then come back here.
+
+**No \`Dev Server Command\` line in your Operation Context at all?** That block carries one only where
+\`.dungeonmaster.json\` declares a \`devServer\`, so its absence means this repo declares none and no
+walk can drive a running system. That IS a wall: signal \`blocked\` at step 11, naming the
+\`devServer.devCommand\` and \`devServer.port\` a person has to add.
 
 **Leave it running for the rest of the session.** Never restart it. Several units measure a difference
 from a value only this process's lifetime provides.
@@ -344,15 +357,14 @@ Back to step 4, with a fresh walker, over the same path.
 evidence; a fresh walker re-driving from the reset state is.
 
 When a walk reaches the exit with no breaking issue, that path is done. Move to the next path on your
-step 3 list and walk that. **The seven off-map families are the LAST walk, and they sit on no path at all.** Once the flow's own
-paths are clean, send one more walker per family. Its brief takes the same shape with three
+step 3 list and walk that. **The seven off-map families are the LAST walks, and they sit on no path at all.** Once the flow's own
+paths are clean, send one more walker per family, still one at a time. Its brief takes the same shape with three
 substitutions:
 
 \`\`\`
 PATH:  off-map — <the family name>
 FORCE: none
-UNITS: <that family's unit id, its probe text word for word, and the checklist's
-        ## OFF-MAP SURFACE heading>
+UNITS: <that family's unit id and its probe text, word for word, tagged [off-map]>
 \`\`\`
 
 The probe text says what to try; there is no route to follow. **These seven are the only security and
@@ -385,15 +397,16 @@ measured and against the five standing concerns, builds, wards, fixes what it ca
 |---|---|
 | \`pass\` | go to step 9 |
 | \`rework\` | go back to step 5 and send out exactly what it named |
-| \`wall\` | go to step 9, then signal \`blocked\` at step 11 |
+| \`wall\` | go to step 9, stop the dev server at step 10, then signal \`blocked\` at step 11 |
 
 ### 9. Record what you claim, and what you found
 
 **Your walkers already signed what they measured.** Each one wrote its own units as it went, because
 it is the only session that ever saw the running system. You sign nothing yourself.
 
-**Read what came back and check the arithmetic.** Every unit on a path that walked clean should now
-carry a sign-off. One that does not is a unit nobody reached, and step 7 does not let you leave it
+**Re-run \`get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })\` and check
+the arithmetic.** It recomputes every mark, so a unit a walk settled now reads \`[x]\`. Every unit on a
+path that walked clean should now carry a sign-off. One that does not is a unit nobody reached, and step 7 does not let you leave it
 there — send a walk back over it. Never sign it on the walker's behalf: you did not see it.
 **Every unit on your list carries \`confirmed\` or \`unconfirmable\` before you signal. There is no
 third state and no blank.**
@@ -444,7 +457,7 @@ Every sub-agent ends its return with one line starting \`NEXT:\`. Read its first
 |---|---|
 | \`pass\` | from a walker: it reached the exit. **Read its \`NOTED:\` line — anything but \`none\` goes to step 5 before you walk on.** From a fixer: move on. |
 | \`rework\` | from a walker, it found issues — go to step 5. From a fixer, it could not finish. |
-| \`wall\` | stop sending work out. Let anything running finish, then go to step 9, and signal \`blocked\` at step 11 — never \`done\`. |
+| \`wall\` | stop sending work out. Let anything running finish, then go to step 9, stop the dev server at step 10, and signal \`blocked\` at step 11 — never \`done\`. |
 | nothing starting \`NEXT:\` | treat it as \`rework\`, and say so when you signal |
 
 **A walker reporting zero issues is a good answer, not a lazy one.** Read its record: a walk with real

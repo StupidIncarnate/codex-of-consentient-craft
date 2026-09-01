@@ -77,7 +77,7 @@ describe('standardsReviewConcernsStatics', () => {
           '**Does a thrown error say enough to act on?** An error naming no path, no id and no cause leaves the next reader nothing.',
         ),
         purposeHeaderTrueAndDiscoverServesIt: has(
-          "**Is the PURPOSE header true?** Lint checks it exists. Nothing checks it is correct, because no test and no typecheck reads a comment — and `discover --verbose` then serves that header to every later agent as the file's description.",
+          "**Is the PURPOSE header true?** Lint checks it exists. Nothing checks it is correct, because no test and no typecheck reads a comment — and `discover` with `verbose: true` then serves that header to every later agent as the file's description.",
         ),
         fourShapesToFlag: has(
           "Four shapes to flag: a return-shape claim the code contradicts; a validation claim the contract does not make; a claim derived from the file's NAME rather than its body; a PURPOSE that only restates the signature.",

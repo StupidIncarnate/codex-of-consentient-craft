@@ -85,7 +85,7 @@ session.
 
 **[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
 \`npm run ward -- --staged\` after it has read everything, and it is the only session here that runs
-either. This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-ward-discipline>\`
+either. This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
 snippets you were handed at session start; neither is written for a session that runs neither command.
 
 **[GIT FORMS] Two git forms are refused for every dispatched session, and no permission grant can fix
@@ -183,10 +183,15 @@ and signal \`done\`.
 get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })
 \`\`\`
 
-This is the full list of what you owe a verdict on: every observable, every terminal node and every
-labelled edge on your flow. Its \`## CHECK SURFACES\` legend says where each kind is measured, and
-**that surface string is authoritative** — an assertion at a different layer has not proved its unit,
-whatever the test's name says.
+This is the full list of what you owe a verdict on: every observable YOUR TRACK CAN SIGN, every node
+with no outgoing edge, and every labelled edge on your flow. **An observable your \`get-quest\` render
+marks \`(read-check)\` is settled by reading source, which is another track's method** — it is off
+this list and out of your count, so never chase one. **A node the graph prints \`(terminal)\` that
+still points onward is not a terminal unit.**
+
+\`## CHECK SURFACES\` says where each observable TYPE is measured; a terminal or a branch takes its own
+\`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` heading. **Those strings are authoritative** — an
+assertion at a different layer has not proved its unit, whatever the test's name says.
 
 **It also carries \`## WALK PATHS\`** — every route through the flow, node by node, each with the
 branch labels a run must force to stay on it. **That is your journey shape, already worked out**, so
@@ -292,7 +297,8 @@ the test, so you are transcribing, not judging.
 to be provable before anyone wrote a line.
 
 **A \`NOT PROVED\` line is information, not a failure.** Work still to do goes back out as a fresh
-brief; a unit that cannot be proved at any layer is a spec change you make at step 9.
+brief; a unit that cannot be proved at any layer is \`unconfirmable\` — record it per **Recording what
+you claim** below. A SPEC change is a different case: an observable that could not be TRUE as written.
 
 Signing here rather than at the end is deliberate. Left to step 9 you would be transcribing dozens of
 units from returns that scrolled past long ago.
@@ -343,7 +349,9 @@ any layer. **You do not reach step 10 with a unit carrying neither.**
 
 ### 9. Record what you claim, and what you found
 
-**Your sign-offs are already written** — you made them group by group at step 5. Nothing to redo here.
+**Most of your sign-offs are already written** — you made them group by group at step 5. What is left
+here is the remainder: re-read your checklist, and give every unit still carrying no
+\`flowriderSignoff\` an \`unconfirmable\` now, with what you tried and the \`toSettle\`.
 
 What is left is the spec. If the work forced a change to it — an observable that
 could not be true as written, a branch the flow never drew, a defect you measured — write it into the
@@ -454,7 +462,8 @@ HOW TO WRITE THESE
    The sub-agent has not read that section. This is the test KIND for the file.>
 
 SURFACES
-  <the CHECK SURFACES rows this file's units use, pasted word for word>
+  <the CHECK SURFACES rows this file's observable units use, plus the ## TERMINAL SURFACE /
+   ## BRANCH SURFACE sentence where this file carries a terminal or a branch — word for word>
 
 UNITS
   <unit-id>  [<its type tag, or terminal | branch>]  "<its text, word for word>"
