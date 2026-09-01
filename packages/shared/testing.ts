@@ -56,6 +56,8 @@ export * from './src/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 
 // Locations Broker Proxies
 export * from './src/brokers/locations/design-scaffold-path-find/locations-design-scaffold-path-find-broker.proxy';
+export * from './src/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
+export * from './src/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
 export * from './src/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';
 export * from './src/brokers/locations/claude-session-file-path-find/locations-claude-session-file-path-find-broker.proxy';
 export * from './src/brokers/locations/claude-sessions-dir-find/locations-claude-sessions-dir-find-broker.proxy';

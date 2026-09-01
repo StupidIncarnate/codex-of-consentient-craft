@@ -1,5 +1,9 @@
 /**
- * PURPOSE: Handles design chat session requests by delegating to the orchestrator design chat adapter
+ * PURPOSE: Handles design chat session requests, rewriting any pasted images to on-disk paths
+ * before delegating to the orchestrator design chat adapter. Runs the image write only after the
+ * quest-not-found and design-phase guards pass, so a refused send never touches disk. Reads guildId
+ * off the body rather than resolving it from questId, since the design surface is the one of the
+ * three send routes whose caller already has guildId from its own guild-scoped URL.
  *
  * USAGE:
  * const result = await DesignSessionResponder({ params: { questId: 'abc' }, body: { guildId: 'xyz', message: 'update color' } });
@@ -10,6 +14,7 @@ import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorStartDesignChatAdapter } from '../../../adapters/orchestrator/start-design-chat/orchestrator-start-design-chat-adapter';
+import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { guildMessageBodyContract } from '../../../contracts/guild-message-body/guild-message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -56,12 +61,19 @@ export const DesignSessionResponder = async ({
           data: { error: 'guildId is required' },
         });
       }
+      const [firstImagesError] = fieldErrors.images ?? [];
+      if (firstImagesError) {
+        return responderResultContract.parse({
+          status: httpStatusStatics.clientError.badRequest,
+          data: { error: firstImagesError },
+        });
+      }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'message is required' },
       });
     }
-    const { guildId, message } = parsedBody.data;
+    const { guildId, message, images } = parsedBody.data;
 
     const questResult = await orchestratorGetQuestAdapter({ questId });
     if (!questResult.success || !questResult.quest) {
@@ -82,10 +94,15 @@ export const DesignSessionResponder = async ({
       });
     }
 
+    const rewrittenMessage =
+      images !== undefined && images.length > 0
+        ? await pastedImagePersistBroker({ guildId, questId, message, images })
+        : message;
+
     const { chatProcessId } = await orchestratorStartDesignChatAdapter({
       questId,
       guildId,
-      message,
+      message: rewrittenMessage,
     });
 
     return responderResultContract.parse({

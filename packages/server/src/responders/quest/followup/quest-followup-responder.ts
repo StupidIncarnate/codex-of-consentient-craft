@@ -2,10 +2,12 @@
  * PURPOSE: Handles the FOLLOW-UP tab's message to the tavernkeeper by re-reading quest.json
  * status server-side before delegating to the orchestrator start-followup-chat adapter — the tab
  * stays open across visits, so a stale browser cannot spawn a session against a quest that moved
- * back to in_progress or merging since the tab was last loaded
+ * back to in_progress or merging since the tab was last loaded. Shares the pasted-image rewrite
+ * step with the quest chat route: whichever send surface posts here or there, an `images` payload
+ * is persisted and substituted into the message the same way before either forwards it on.
  *
  * USAGE:
- * const result = await QuestFollowupResponder({ params: { questId }, body: { message } });
+ * const result = await QuestFollowupResponder({ params: { questId }, body: { message, images } });
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
@@ -14,6 +16,7 @@ import { isFollowupChatableQuestStatusGuard } from '@dungeonmaster/shared/guards
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { orchestratorStartFollowupChatAdapter } from '../../../adapters/orchestrator/start-followup-chat/orchestrator-start-followup-chat-adapter';
+import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -53,18 +56,30 @@ export const QuestFollowupResponder = async ({
 
     const parsedBody = messageBodyContract.safeParse(body);
     if (!parsedBody.success) {
+      // A too-long images array, a disallowed mediaType, and an over-ceiling dataBase64 all land
+      // under the SAME top-level `images` key once zod's flatten() groups by path[0] — so surfacing
+      // zod's own first message for that field tells the browser toast what actually failed, instead
+      // of blaming the message field for a problem in images.
+      const imagesError = parsedBody.error.flatten().fieldErrors.images?.[0];
+      if (imagesError !== undefined) {
+        return responderResultContract.parse({
+          status: httpStatusStatics.clientError.badRequest,
+          data: { error: imagesError },
+        });
+      }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'message is required' },
       });
     }
-    const { message } = parsedBody.data;
+    const { message, images } = parsedBody.data;
 
     const quest = await orchestratorLoadQuestAdapter({ questId });
 
     // Re-check status against the freshly loaded quest, not anything the browser remembered — a
     // tab left open across a visit must not be able to spawn a session against a quest that moved
-    // back to in_progress or merging since the tab was last loaded.
+    // back to in_progress or merging since the tab was last loaded. This must run BEFORE any
+    // pasted image is written: a send the server refuses on status writes nothing.
     if (!isFollowupChatableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -75,10 +90,17 @@ export const QuestFollowupResponder = async ({
     // Resolve guildId via the quest path adapter — quests do not carry guildId directly.
     const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
 
+    // Pasted images are persisted to disk and their placeholder tokens rewritten to the paths
+    // written — a text-only send has no images key and skips the broker entirely.
+    const rewrittenMessage =
+      images === undefined || images.length === 0
+        ? message
+        : await pastedImagePersistBroker({ guildId, questId, message, images });
+
     const { chatProcessId } = await orchestratorStartFollowupChatAdapter({
       questId,
       guildId,
-      message,
+      message: rewrittenMessage,
     });
 
     return responderResultContract.parse({

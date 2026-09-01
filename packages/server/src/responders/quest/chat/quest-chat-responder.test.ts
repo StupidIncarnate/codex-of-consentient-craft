@@ -1,12 +1,14 @@
 import {
   AbsoluteFilePathStub,
   GuildIdStub,
+  PastedImageUploadStub,
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { QuestChatResponder } from './quest-chat-responder';
 import { QuestChatResponderProxy } from './quest-chat-responder.proxy';
@@ -308,6 +310,221 @@ describe('QuestChatResponder', () => {
       expect(result).toStrictEqual({
         status: 500,
         data: { error: 'orchestrator startChat exploded' },
+      });
+    });
+  });
+
+  describe('pasted images', () => {
+    it('VALID: {images: [no key at all], message text only} => persist broker never touches the filesystem, message forwarded unchanged', async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-no-images-key' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-no-images-key' });
+      const quest = QuestStub({ id: questId, workItems: [] });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({
+        questId,
+        guildId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/no-images-key' }),
+      });
+      proxy.setupStartChat({ guildId, chatProcessId });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'plain text only, no images field at all' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-no-images-key' },
+      });
+      expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([]);
+      expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: 'plain text only, no images field at all',
+      });
+    });
+
+    it('EDGE: {images: []} => persist broker never touches the filesystem, message forwarded unchanged', async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-empty-images-array' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-empty-images-array' });
+      const quest = QuestStub({ id: questId, workItems: [] });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({
+        questId,
+        guildId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/empty-images-array' }),
+      });
+      proxy.setupStartChat({ guildId, chatProcessId });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'text with an empty images array', images: [] },
+      });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-empty-images-array' },
+      });
+      expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([]);
+      expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: 'text with an empty images array',
+      });
+    });
+
+    it('VALID: {images: [two distinct images], message carrying both tokens} => both images reach the write path, in the posted order', async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-two-images' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-two-images' });
+      const quest = QuestStub({ id: questId, workItems: [] });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({
+        questId,
+        guildId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/two-images' }),
+      });
+      proxy.setupStartChat({ guildId, chatProcessId });
+      proxy.stagePastedImageIds({
+        ids: ['22222222-2222-4222-8222-222222222222', '33333333-3333-4333-8333-333333333333'],
+      });
+      const firstImage = PastedImageUploadStub({
+        mediaType: 'image/png',
+        dataBase64: 'Zmlyc3QtaW1hZ2U=',
+      });
+      const secondImage = PastedImageUploadStub({
+        mediaType: 'image/jpeg',
+        dataBase64: 'c2Vjb25kLWltYWdl',
+      });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: {
+          message: 'first [Pasted Image 1] then [Pasted Image 2]',
+          images: [firstImage, secondImage],
+        },
+      });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-two-images' },
+      });
+      expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([
+        'Zmlyc3QtaW1hZ2U=',
+        'c2Vjb25kLWltYWdl',
+      ]);
+    });
+
+    it(`INVALID: {images: [${pastedImageStatics.maxImagesPerMessage + 1} entries]} => returns 400 naming the images field, writes zero files`, async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-too-many-images' });
+      const images = Array.from({ length: pastedImageStatics.maxImagesPerMessage + 1 }, () =>
+        PastedImageUploadStub(),
+      );
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'far too many pictures', images },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: {
+          error: `Array must contain at most ${String(pastedImageStatics.maxImagesPerMessage)} element(s)`,
+        },
+      });
+      expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([]);
+    });
+
+    it('INVALID: {images: [{mediaType: disallowed}]} => returns 400 naming the images field, writes zero files', async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-bad-media-type' });
+      const allowedMediaTypesList = pastedImageStatics.allowedMediaTypes
+        .map((mediaType) => `'${mediaType}'`)
+        .join(' | ');
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: {
+          message: 'a picture in the wrong format',
+          images: [{ mediaType: 'image/svg+xml', dataBase64: 'iVBORw0KGgo=' }],
+        },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: {
+          error: `Invalid enum value. Expected ${allowedMediaTypesList}, received 'image/svg+xml'`,
+        },
+      });
+      expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([]);
+    });
+
+    it('INVALID: {images: [{dataBase64: decodes over the per-image byte ceiling}]} => returns 400 naming the images field, writes zero files', async () => {
+      const proxy = QuestChatResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-oversized-image' });
+      const overCeilingBase64 = 'A'.repeat(
+        Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
+      );
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: {
+          message: 'a picture that is far too large',
+          images: [{ mediaType: 'image/png', dataBase64: overCeilingBase64 }],
+        },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: {
+          error: `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,
+        },
+      });
+      expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([]);
+    });
+
+    it('VALID: {images: [one image], message carrying its token} => startChat is called exactly once, with the message rewritten to the persisted path', async () => {
+      const proxy = QuestChatResponderProxy();
+      const homePath = '/home/quest-chat-responder-test';
+      proxy.setupPastedImageHome({ homePath });
+      const imageId = '44444444-4444-4444-8444-444444444444';
+      proxy.stagePastedImageIds({ ids: [imageId] });
+      const questId = QuestIdStub({ value: 'quest-one-image-rewrite' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-one-image-rewrite' });
+      const quest = QuestStub({ id: questId, workItems: [] });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({
+        questId,
+        guildId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/one-image-rewrite' }),
+      });
+      proxy.setupStartChat({ guildId, chatProcessId });
+      const image = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'b25lLWltYWdl' });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'see [Pasted Image 1] please', images: [image] },
+      });
+
+      const expectedPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images/${imageId}.png`;
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-one-image-rewrite' },
+      });
+      expect(proxy.getStartChatCallCount()).toBe(1);
+      expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: `see ![Pasted Image 1](${expectedPath}) please`,
       });
     });
   });
