@@ -55,6 +55,7 @@ export const locationsStatics = {
     riftcarverResultsDir: 'riftcarver-results',
     designDir: 'design',
     questFile: 'quest.json',
+    imagesDir: 'images',
   },
   userHome: {
     claude: {
