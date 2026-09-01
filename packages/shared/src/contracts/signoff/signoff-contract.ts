@@ -22,9 +22,11 @@
  * describe() naming only the first two would tell the one track that CAN settle it that its evidence
  * does not count. On `unconfirmable` it is the specific reason confirmation was out of reach.
  *
- * `question` is required only when the verdict is `unconfirmable`, and it is what turns "could not
- * confirm" from a shrug into a routable item: what was tried, and why it could not be confirmed.
- * The rule uses `superRefine` rather than `refine` so the issue lands on `path: ['question']` — a
+ * `toSettle` is required only when the verdict is `unconfirmable`, and it is what turns "could not
+ * confirm" from a shrug into a routable item: the ACTION that would settle the unit, stated as an
+ * instruction someone else can carry out. It is never phrased as a question — a question hands the
+ * next session something to answer, and what it needs is something to do.
+ * The rule uses `superRefine` rather than `refine` so the issue lands on `path: ['toSettle']` — a
  * form-level error would tell a reader the whole sign-off is wrong instead of naming the one field
  * that is missing.
  */
@@ -44,13 +46,13 @@ export const signoffContract = z
       .describe(
         'The proof behind the verdict — a test file:line plus what makes it fail, the value read off the running system, or, on an observable carrying verifyByReading, the SOURCE file:line where the statement holds plus what its absence would look like. Never an adjective: "held", "as expected", "verified" are the report grading itself.',
       ),
-    question: z
+    toSettle: z
       .string()
       .min(1)
-      .brand<'SignoffQuestion'>()
+      .brand<'SignoffToSettle'>()
       .optional()
       .describe(
-        'Required on `unconfirmable`: what was tried and why it could not be confirmed, phrased so someone else can pick it up.',
+        'Required on `unconfirmable`: the action that would settle this unit, stated as an instruction someone else can carry out — "drive a real send through a live quest and read the session JSONL for a Read call on the written path". Never a question: the next session needs something to DO, not something to answer.',
       ),
     workItemId: questWorkItemIdContract,
     at: z
@@ -66,12 +68,12 @@ export const signoffContract = z
       ),
   })
   .superRefine((value, ctx) => {
-    if (value.verdict === 'unconfirmable' && value.question === undefined) {
+    if (value.verdict === 'unconfirmable' && value.toSettle === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['question'],
+        path: ['toSettle'],
         message:
-          'question is required when verdict is unconfirmable — say what was tried and why it could not be confirmed',
+          'toSettle is required when verdict is unconfirmable — state the action that would settle this unit, as an instruction rather than a question',
       });
     }
   });

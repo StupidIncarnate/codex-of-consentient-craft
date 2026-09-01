@@ -177,7 +177,7 @@ describe('questSummaryToTextTransformer', () => {
   });
 
   describe('unconfirmable', () => {
-    it('VALID: {one entry} => renders the unit, the track, the evidence AND the question AND who raised it', () => {
+    it('VALID: {one entry} => renders the unit, the track, the evidence AND the toSettle AND who raised it', () => {
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
           unconfirmable: [
@@ -191,7 +191,8 @@ describe('questSummaryToTextTransformer', () => {
                 verdict: 'unconfirmable',
                 evidence:
                   'playwright.config.ts declares no webServer, so no e2e run reaches the app',
-                question: 'Who owns adding a webServer block to playwright.config.ts?',
+                toSettle:
+                  'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
                 workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
                 at: '2026-02-03T04:05:06.000Z',
               }),
@@ -205,30 +206,30 @@ describe('questSummaryToTextTransformer', () => {
         lines.find((line) => line.startsWith('### `login-flow:observable')),
         lines.find((line) => line.startsWith('      flow:')),
         lines.find((line) => line.startsWith('      evidence:')),
-        lines.find((line) => line.startsWith('      question:')),
+        lines.find((line) => line.startsWith('      toSettle:')),
         lines.find((line) => line.startsWith('      raised by')),
       ]).toStrictEqual([
         '## UNCONFIRMABLE (1) — settled, NOT proven',
         '### `login-flow:observable:rejects-bleh-payload` [observable] — could not be confirmed on the flowrider track',
         '      flow:     `login-flow`',
         '      evidence: playwright.config.ts declares no webServer, so no e2e run reaches the app',
-        '      question: Who owns adding a webServer block to playwright.config.ts?',
+        '      toSettle: Add a webServer block to playwright.config.ts, then re-run this spec against it.',
         '      raised by work item f47ac10b-58cc-4372-a567-0e02b2c3d479 at 2026-02-03T04:05:06.000Z',
       ]);
     });
 
-    // `signoffContract` only requires `question` on the `unconfirmable` verdict, so a sign-off
+    // `signoffContract` only requires `toSettle` on the `unconfirmable` verdict, so a sign-off
     // carrying none can still reach this list. Saying so beats printing a blank field a reader
     // would take for a rendering bug.
-    it('EDGE: {sign-off carrying no question} => says none was recorded rather than printing an empty field', () => {
+    it('EDGE: {sign-off carrying no toSettle} => says none was recorded rather than printing an empty field', () => {
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
           unconfirmable: [QuestSummaryUnconfirmableStub({ signoff: SignoffStub() })],
         }),
       }).split('\n');
 
-      expect(lines.find((line) => line.startsWith('      question:'))).toBe(
-        '      question: (none recorded)',
+      expect(lines.find((line) => line.startsWith('      toSettle:'))).toBe(
+        '      toSettle: (none recorded)',
       );
     });
 
@@ -492,14 +493,14 @@ describe('questSummaryToTextTransformer', () => {
       expect({
         withinVerbatimBudget: rendered.length <= mcpToolResultStatics.maxVerbatimChars,
         // The cut lands on a line boundary, so the line before the notice is whole — never half an
-        // id or half a question, which reads as a rendering bug rather than a limit.
+        // id or half an instruction, which reads as a rendering bug rather than a limit.
         lineBeforeTheNotice: lines[lines.length - 2],
         notice: lines[lines.length - 1],
       }).toStrictEqual({
         withinVerbatimBudget: true,
         lineBeforeTheNotice: '',
         notice:
-          '[TRUNCATED at the 48000-character ceiling — 22162 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, unconfirmable, notes; read quest.json for whatever fell off.]',
+          '[TRUNCATED at the 48000-character ceiling — 23960 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, unconfirmable, notes; read quest.json for whatever fell off.]',
       });
     });
   });
@@ -553,7 +554,7 @@ describe('questSummaryToTextTransformer', () => {
               signoff: SignoffStub({
                 verdict: 'unconfirmable',
                 evidence: `the project playwright.config.ts declares no webServer, so no e2e run can reach the app to drive unit hole-${String(index)}; the integration layer cannot see the rendered badge either`,
-                question: `Who owns adding a webServer block to playwright.config.ts so hole-${String(index)} can be driven end to end?`,
+                toSettle: `Add a webServer block to playwright.config.ts, then drive hole-${String(index)} end to end.`,
               }),
             }),
           ),

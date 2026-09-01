@@ -48,9 +48,9 @@ describe('qaCheckSurfaceStatics', () => {
           'the SOURCE FILE the observable names, opened and read — the import is present, the literal is not inlined, the symbol is gone. No test settles this: a green test proves the value is RIGHT, never where the value CAME FROM. Cite the file:line where the statement holds, and what its absence would look like',
         byKind: {
           terminal:
-            'the running system at this end state — the values the flow says this terminal has, AND its side-effect surface: no orphaned row, no half-written file, the transaction rolled back, the message not silently consumed, no stuck spinner. A clean-looking error that corrupted state is still a defect',
+            'the end state itself — the values the flow says this terminal has, AND its side-effect surface: no orphaned row, no half-written file, the transaction rolled back, the message not silently consumed, no stuck spinner. A clean-looking error that corrupted state is still a defect',
           branch:
-            'the running system after FORCING this branch for real — submit the bad value, trigger the rejection, hit the empty state, exhaust the limit. Never record a branch you happened to land on instead of one you drove',
+            'the state after this branch was actually taken — the bad value submitted, the rejection triggered, the empty state hit, the limit exhausted. A branch reached by assumption rather than by forcing it has not been measured',
           observable: 'the surface named by this observable type',
           'off-map':
             'whatever surface the probe touches — record what you actually DID and what you OBSERVED, or an explicit justified "N/A for this flow because …". A silent skip is a rejection',
@@ -62,13 +62,13 @@ describe('qaCheckSurfaceStatics', () => {
   describe('non-observable kinds carry their own surface', () => {
     it('VALID: {terminal} => demands the side-effect surface, not just the visible end state', () => {
       expect(qaCheckSurfaceStatics.byKind.terminal).toBe(
-        'the running system at this end state — the values the flow says this terminal has, AND its side-effect surface: no orphaned row, no half-written file, the transaction rolled back, the message not silently consumed, no stuck spinner. A clean-looking error that corrupted state is still a defect',
+        'the end state itself — the values the flow says this terminal has, AND its side-effect surface: no orphaned row, no half-written file, the transaction rolled back, the message not silently consumed, no stuck spinner. A clean-looking error that corrupted state is still a defect',
       );
     });
 
-    it('VALID: {branch} => demands the branch be FORCED rather than landed on', () => {
+    it('VALID: {branch} => demands the branch be forced rather than assumed', () => {
       expect(qaCheckSurfaceStatics.byKind.branch).toBe(
-        'the running system after FORCING this branch for real — submit the bad value, trigger the rejection, hit the empty state, exhaust the limit. Never record a branch you happened to land on instead of one you drove',
+        'the state after this branch was actually taken — the bad value submitted, the rejection triggered, the empty state hit, the limit exhausted. A branch reached by assumption rather than by forcing it has not been measured',
       );
     });
   });

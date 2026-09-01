@@ -116,8 +116,10 @@ export const questResetFlowSignoffsBroker = async ({
         );
       }
 
-      // Every unit shape that carries the two sign-off fields as top-level siblings: nodes, the
-      // observables embedded in them, edges, and the off-map probe families.
+      // Every unit shape carrying a `siegemasterSignoff` as a top-level field: nodes, the
+      // observables embedded in them, edges, and the off-map probe families. The first three also
+      // carry the other tracks' columns, which this leaves alone; a family carries siegemaster's
+      // alone, so on those entries the clear is the whole record.
       const signedUnits = [
         ...targetFlow.nodes,
         ...targetFlow.nodes.flatMap((node) => node.observables),

@@ -193,18 +193,6 @@ describe('agentPromptGetBroker', () => {
         `Work Item ID: ${String(workItemId)}`,
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [codeweaver] core: config load+validate adapter',
-        '',
-        'Operations ledger (in order):',
-        '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
-        '',
-        'Your spec is NOT in this block. Fetch it one flow at a time:',
-        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
-        'Each call returns that flow whole — every node, every edge with its branch label, every',
-        'observable, the contracts and design decisions that govern it, and the sign-offs already',
-        'recorded. Make the call for a flow BEFORE you work it.',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
       ].join('\n');
 
       expect(result).toStrictEqual({
@@ -294,20 +282,8 @@ describe('agentPromptGetBroker', () => {
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [siegemaster] manual QA + review flowrider suite',
         '',
-        'Operations ledger (in order):',
-        '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
-        '',
-        'Your spec is NOT in this block. Fetch it one flow at a time:',
-        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
-        'Each call returns that flow whole — every node, every edge with its branch label, every',
-        'observable, the contracts and design decisions that govern it, and the sign-offs already',
-        'recorded. Make the call for a flow BEFORE you work it.',
-        '',
         'Dev Server Command: npm run dev',
         `Dev Server URL: http://${environmentStatics.hostname}:4400`,
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -353,20 +329,8 @@ describe('agentPromptGetBroker', () => {
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [siegemaster] manual QA + review flowrider suite',
         '',
-        'Operations ledger (in order):',
-        '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
-        '',
-        'Your spec is NOT in this block. Fetch it one flow at a time:',
-        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
-        'Each call returns that flow whole — every node, every edge with its branch label, every',
-        'observable, the contracts and design decisions that govern it, and the sign-offs already',
-        'recorded. Make the call for a flow BEFORE you work it.',
-        '',
         'Dev Server Command: npm run dev',
         `Dev Server URL: http://${environmentStatics.hostname}:4401`,
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -446,18 +410,6 @@ describe('agentPromptGetBroker', () => {
         `Work Item ID: ${String(workItemId)}`,
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [siegemaster] manual QA + review flowrider suite',
-        '',
-        'Operations ledger (in order):',
-        '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
-        '',
-        'Your spec is NOT in this block. Fetch it one flow at a time:',
-        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
-        'Each call returns that flow whole — every node, every edge with its branch label, every',
-        'observable, the contracts and design decisions that govern it, and the sign-offs already',
-        'recorded. Make the call for a flow BEFORE you work it.',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -501,18 +453,6 @@ describe('agentPromptGetBroker', () => {
         `Work Item ID: ${String(workItemId)}`,
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [flowrider] author the flow-perspective test suites',
-        '',
-        'Operations ledger (in order):',
-        '1. [>] [flowrider] author the flow-perspective test suites  <-- YOUR OPERATION ITEM',
-        '',
-        'Your spec is NOT in this block. Fetch it one flow at a time:',
-        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
-        'Each call returns that flow whole — every node, every edge with its branch label, every',
-        'observable, the contracts and design decisions that govern it, and the sign-offs already',
-        'recorded. Make the call for a flow BEFORE you work it.',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -761,18 +701,6 @@ describe('agentPromptGetBroker', () => {
         `Work Item ID: ${String(workItemId)}`,
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [codeweaver] core: config load+validate adapter',
-        '',
-        'Operations ledger (in order):',
-        '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
-        '',
-        'Your spec is NOT in this block. Fetch it one flow at a time:',
-        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
-        'Each call returns that flow whole — every node, every edge with its branch label, every',
-        'observable, the contracts and design decisions that govern it, and the sign-offs already',
-        'recorded. Make the call for a flow BEFORE you work it.',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
       ].join('\n');
 
       expect({
@@ -821,18 +749,6 @@ describe('agentPromptGetBroker', () => {
         `Work Item ID: ${String(workItemId)}`,
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [codeweaver] core: config load+validate adapter',
-        '',
-        'Operations ledger (in order):',
-        '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
-        '',
-        'Your spec is NOT in this block. Fetch it one flow at a time:',
-        "  get-quest({ questId: 'add-auth', stage: 'spec' })   <- this item names no flow, so there is no slice to take",
-        'Each call returns that flow whole — every node, every edge with its branch label, every',
-        'observable, the contracts and design decisions that govern it, and the sign-offs already',
-        'recorded. Make the call for a flow BEFORE you work it.',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
       ].join('\n');
 
       expect({

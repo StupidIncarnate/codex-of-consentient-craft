@@ -134,7 +134,7 @@ describe('signoffFlowOutstandingTransformer', () => {
             flowriderSignoff: SignoffStub({
               verdict: 'unconfirmable',
               evidence: 'the dashboard route 500s under jsdom before any assertion can run',
-              question: 'does the dashboard need a real browser to render at all?',
+              toSettle: 'Render the dashboard in a real browser and read what paints.',
             }),
           }),
         ],
@@ -346,7 +346,7 @@ describe('signoffFlowOutstandingTransformer', () => {
               flowriderSignoff: SignoffStub({
                 verdict,
                 evidence: 'the walk stops at the dashboard route, which never renders',
-                question: 'does the dashboard need a seeded session before it can render at all?',
+                toSettle: 'Seed a session, then render the dashboard and read what paints.',
               }),
             }),
           ],

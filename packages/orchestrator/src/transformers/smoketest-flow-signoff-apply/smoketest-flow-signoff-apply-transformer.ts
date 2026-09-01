@@ -17,6 +17,12 @@
  * An off-map family owns no graph element until one exists: `flow.offMapSignoffs` is an upsert array
  * keyed on the family, so a named family absent from it is APPENDED rather than dropped.
  *
+ * A FAMILY CARRIES `siegemasterSignoff` AND NOTHING ELSE, so a caller pairing an off-map unit id
+ * with either other field writes a key `flowContract.parse` then strips. No caller does: `off-map`
+ * is in siegemaster's `unitKinds` alone, so no other track's outstanding list can produce one of
+ * those ids. This file stays generic on `signoffField` rather than branching on it, because the
+ * track-to-field map is `signoffTrackEligibilityStatics` and a copy here would be a second one.
+ *
  * `signoffField` is a caller-supplied key rather than a track name, because the map from track to
  * field is `signoffTrackEligibilityStatics` and it is MANY-TO-ONE — re-deriving it here would put a
  * second copy of that map behind a role comparison.

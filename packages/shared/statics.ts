@@ -49,6 +49,8 @@ export * from './src/statics/quest-summary-limits/quest-summary-limits-statics';
 // Flow slice render bound — the character ceiling get-quest's per-flow render is cut at.
 export * from './src/statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
 
+// Flow Sign-off Evidence
+
 // The wording get-quest refuses a conflicting argument pair with, shared by the input contract and
 // the MCP wrapper that extends it.
 export * from './src/statics/get-quest-input-conflicts/get-quest-input-conflicts-statics';

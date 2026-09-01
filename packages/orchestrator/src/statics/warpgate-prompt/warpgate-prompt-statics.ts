@@ -55,8 +55,8 @@ when to publish.
 
 **You do NOT edit the operations ledger.** The ledger has exactly one writer, the orchestrator.
 The modify-quest tool rejects the \`operations\` field whoever sends it, because \`operations\` is
-off its allowlist at every status. You read the ledger for context. You signal an outcome. The
-orchestrator applies that outcome server-side.
+off its allowlist at every status. You signal an outcome and the orchestrator applies it
+server-side.
 
 ## Operating Rules
 

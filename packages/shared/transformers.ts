@@ -40,6 +40,8 @@ export * from './src/transformers/quest-to-text-display/quest-to-text-display-tr
 // Flow Graph to Text
 export * from './src/transformers/flow-graph-to-text/flow-graph-to-text-transformer';
 
+// Flow Sign-off Evidence to Text
+
 // Sign-off Markers to Text (the compact per-track verdict suffix every graph line carries)
 export * from './src/transformers/signoff-markers-to-text/signoff-markers-to-text-transformer';
 

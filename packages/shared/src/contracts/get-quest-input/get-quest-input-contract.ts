@@ -28,7 +28,7 @@ export const getQuestInputContract = z
     questId: z.string().min(1).describe('The ID of the quest to retrieve').brand<'QuestId'>(),
     flowId: flowIdContract
       .describe(
-        'ONE flow, rendered whole: every node with the packages it lands in, every edge with its branch label, every observable, the contracts and design decisions that govern it, the cross-flow edges in BOTH directions, and the sign-offs already recorded. This is the call a codeweaver, flowrider or siegemaster makes for the flow it owns — one call per flow, never the whole quest.',
+        'ONE flow, rendered whole: every node with the packages it lands in, every edge with its branch label, every observable, the contracts and design decisions that govern it, and the cross-flow edges in BOTH directions. This is the call a codeweaver, flowrider or siegemaster makes for the flow it owns — one call per flow, never the whole quest.',
       )
       .optional(),
     packageName: packageNameContract

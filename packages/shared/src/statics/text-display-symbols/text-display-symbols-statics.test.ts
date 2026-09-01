@@ -15,34 +15,59 @@ describe('textDisplaySymbolsStatics', () => {
       legendLines: [
         '---',
         'KEY:',
-        '  #id           kebab-case identifier (use in modify-quest calls without the #)',
-        '  [#id] label   flow node with its display label',
-        '  > #id: text   observable attached to the node above',
-        '  \u2192 [#id]       edge to next node',
-        '  \u2192"label"      labeled edge (decision branch)',
-        '  \u21A9             back-reference \u2014 node defined earlier, not repeated',
-        '  \u2197 cross-flow  edge to node in another flow (flowId:#nodeId)',
-        '  \u2190 MERGE       node reachable from multiple paths',
-        '  (terminal)    end state, no outgoing edges',
-        '  _delete:true  removes the entity when sent via modify-quest',
+        '  #id                         kebab-case identifier (use in modify-quest calls without the #)',
+        '  [#id] {pkgs} label (type)   flow node, the packages it lands in, and its kind',
+        '  ● #id {pkg} text            observable attached to the node above, and the package it belongs to',
+        '  → [#id]                     edge to next node',
+        '  →"label"                    labeled edge (decision branch)',
+        '  ↩                           back-reference — node defined earlier, not repeated',
+        '  ↗ cross-flow                edge to node in another flow (flowId:#nodeId)',
+        '  ← MERGE                     node reachable from multiple paths',
+        '  (terminal)                  end state, no outgoing edges',
+        '  (read-check)                settled by opening the source file, not by running a test',
+        '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
+        '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
+        '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
+        '  _delete:true                removes the entity when sent via modify-quest',
         '---',
       ],
       ownedNode: '◀ YOURS',
+      observable: '●',
       flowSliceLegendLines: [
         '---',
         'KEY:',
-        '  [#id] label (type) {pkgs}   flow node, its kind, and the packages it lands in',
+        '  [#id] {pkgs} label (type)   flow node, the packages it lands in, and its kind',
+        "  {web ● 3, server}           per package, how many of this node's observables are theirs — bare means none",
         '  ◀ YOURS                     this node lands in YOUR package',
-        '  > #id: text [type]          observable attached to the node above',
+        '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — only YOURS are listed',
         '  (read-check)                settled by opening the source file, not by running a test',
-        '  > (N observable(s) …)       observables attributed to another package, collapsed',
+        '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
         '  → [#id]                     edge to next node',
         '  →"label"                    labeled edge (decision branch — each one is a unit)',
         '  ↩                           back-reference — node defined earlier, not repeated',
         '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
         '  ← MERGE                     node reachable from multiple paths',
         '  (terminal)                  end state, no outgoing edges',
-        '  [C✓ F✓ S?]                  sign-offs already recorded (Codeweaver/Flowrider/Siegemaster)',
+        '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
+        '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
+        '---',
+      ],
+      flowSliceWholeFlowLegendLines: [
+        '---',
+        'KEY:',
+        '  [#id] {pkgs} label (type)   flow node, the packages it lands in, and its kind',
+        "  {web ● 3, server}           per package, how many of this node's observables are theirs — bare means none",
+        '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — every one is listed',
+        '  (read-check)                settled by opening the source file, not by running a test',
+        '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
+        '  → [#id]                     edge to next node',
+        '  →"label"                    labeled edge (decision branch — each one is a unit)',
+        '  ↩                           back-reference — node defined earlier, not repeated',
+        '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
+        '  ← MERGE                     node reachable from multiple paths',
+        '  (terminal)                  end state, no outgoing edges',
+        '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
+        '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
         '---',
       ],
       sectionHeaders: {
@@ -97,5 +122,33 @@ describe('textDisplaySymbolsStatics', () => {
       textDisplaySymbolsStatics.signoffVerdictMarks.confirmed.length,
       textDisplaySymbolsStatics.signoffVerdictMarks.unconfirmable.length,
     ]).toStrictEqual([1, 1, 1, 1, 1]);
+  });
+
+  // THE TWO SLICE LEGENDS ARE ONE LEGEND WITH ONE DIFFERENCE, and this is what keeps them that way.
+  // `questFlowSliceTransformer` picks between them on whether the caller named a package, so a
+  // symbol documented in one and missing from the other is a symbol half the readers of the same
+  // graph cannot look up. The only entries allowed to differ are the two that ARE the difference:
+  // the packaged view marks a node `◀ YOURS` and filters observables to that package, and the
+  // whole-flow view does neither.
+  it('VALID: {the two slice legends} => identical apart from the owned-node line and the observable line', () => {
+    const packagedOnly = [
+      '  ◀ YOURS                     this node lands in YOUR package',
+      '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — only YOURS are listed',
+    ];
+    const wholeFlowOnly = [
+      '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — every one is listed',
+    ];
+    const packaged = textDisplaySymbolsStatics.flowSliceLegendLines;
+    const wholeFlow = textDisplaySymbolsStatics.flowSliceWholeFlowLegendLines;
+
+    expect([
+      packaged.filter((line) => !packagedOnly.includes(line)),
+      packaged.filter((line) => packagedOnly.includes(line)),
+      wholeFlow.filter((line) => wholeFlowOnly.includes(line)),
+    ]).toStrictEqual([
+      wholeFlow.filter((line) => !wholeFlowOnly.includes(line)),
+      packagedOnly,
+      wholeFlowOnly,
+    ]);
   });
 });

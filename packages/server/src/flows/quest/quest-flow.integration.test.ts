@@ -154,7 +154,7 @@ describe('QuestFlow', () => {
       const siegemasterUnconfirmable = SignoffStub({
         verdict: 'unconfirmable',
         evidence: 'the sandbox refuses to bind port 3737, so no browser can reach the app',
-        question: 'Which port should the sandbox dev server use?',
+        toSettle: 'Start the sandbox dev server on a free port, then re-walk this node.',
         at: '2026-01-02T00:00:00.000Z',
       });
       const openQuestionNote = QuestNoteStub({

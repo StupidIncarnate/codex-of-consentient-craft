@@ -3174,8 +3174,8 @@ describe('questModifyBroker', () => {
       const proxy = questModifyBrokerProxy();
       const offMapFamilies = Object.keys(qaOffMapProbeStatics.byFamily);
       const siegemasterSignoff = SignoffStub({ evidence: 'double-submitted, it serialised' });
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/concurrency.test.ts:9 — red without the lock',
+      const reWalked = SignoffStub({
+        evidence: 'double-submitted again after the lock landed, still one row',
       });
       const flow = FlowStub({
         id: 'login-flow' as never,
@@ -3197,7 +3197,10 @@ describe('questModifyBroker', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         flows: [
-          { id: 'login-flow', offMapSignoffs: [{ id: 'concurrency', flowriderSignoff }] },
+          {
+            id: 'login-flow',
+            offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: reWalked }],
+          },
         ] as never,
       });
 
@@ -3211,8 +3214,7 @@ describe('questModifyBroker', () => {
       );
       expectedOffMapSignoffs[offMapFamilies.indexOf('concurrency')] = FlowOffMapSignoffStub({
         id: 'concurrency',
-        siegemasterSignoff,
-        flowriderSignoff: SignoffStub({ ...flowriderSignoff, at: SERVER_STAMPED_AT }),
+        siegemasterSignoff: SignoffStub({ ...reWalked, at: SERVER_STAMPED_AT }),
       });
 
       expect(persisted.flows).toStrictEqual([

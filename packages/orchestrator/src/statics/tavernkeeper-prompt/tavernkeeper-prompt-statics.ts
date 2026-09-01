@@ -10,6 +10,8 @@
  * // Returns the Tavernkeeper agent prompt template
  */
 
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
+
 export const tavernkeeperPromptStatics = {
   prompt: {
     template: `# Tavernkeeper - Follow-Up Chat
@@ -35,6 +37,8 @@ Two more read tools go deeper when a question warrants it:
 - \`get-quest-planning-notes\` — the durable notes other roles left on this quest
 
 **ALWAYS do these things:**
+${spilledToolResultStatics.markdown}
+
 - ALWAYS read the user's question before calling any tool — \`get-quest\` comes after, not before
 - ALWAYS start the dev server from the worktree root when a question needs the running app
 - ALWAYS carry a colocated test on any tweak you land, same as any other change in this repo

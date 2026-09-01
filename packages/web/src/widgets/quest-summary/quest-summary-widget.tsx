@@ -257,15 +257,15 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
               >
                 {entry.signoff.evidence}
               </Text>
-              {/* `question` is required by the contract on this verdict, but it is optional on the
+              {/* `toSettle` is required by the contract on this verdict, but it is optional on the
                   Signoff shape itself, so the absent case renders nothing rather than an empty row. */}
-              {entry.signoff.question === undefined ? null : (
+              {entry.signoff.toSettle === undefined ? null : (
                 <Text
                   ff="monospace"
-                  data-testid="QUEST_SUMMARY_UNCONFIRMABLE_QUESTION"
+                  data-testid="QUEST_SUMMARY_UNCONFIRMABLE_TO_SETTLE"
                   style={{ fontSize: ROW_FONT_SIZE, color: colors.primary }}
                 >
-                  ? {entry.signoff.question}
+                  → {entry.signoff.toSettle}
                 </Text>
               )}
             </Box>

@@ -613,8 +613,8 @@ describe('signoffOutstandingTransformer', () => {
                   verdict: 'unconfirmable',
                   evidence:
                     'jsdom reports every element 0x0, so the visibility assertion cannot be made at this layer',
-                  question:
-                    'Ran the suite under jsdom and under --env=node; both report zero geometry. Does this need a real browser (e2e) instead?',
+                  toSettle:
+                    'Assert this in an e2e run against a real browser, where layout geometry is non-zero.',
                 }),
               }),
             ],
@@ -659,7 +659,7 @@ describe('signoffOutstandingTransformer', () => {
       ).toStrictEqual(OFF_MAP_FAMILIES.map((family) => `login-flow:off-map:${family}`));
     });
 
-    it('VALID: {one family signed by siegemaster, another by flowrider} => only the siegemaster-signed family clears', () => {
+    it('VALID: {one family signed, one entry recorded with no sign-off} => only the signed family clears', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -669,7 +669,7 @@ describe('signoffOutstandingTransformer', () => {
             edges: [],
             offMapSignoffs: [
               FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SignoffStub() }),
-              FlowOffMapSignoffStub({ id: 'perf', flowriderSignoff: SignoffStub() }),
+              FlowOffMapSignoffStub({ id: 'perf' }),
             ],
           }),
         ],

@@ -28,6 +28,7 @@
  */
 
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 
 export const codeweaverReviewerStatics = {
   prompt: {
@@ -111,10 +112,12 @@ codebase, and code read before them is code you cannot yet judge.
 get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief>' })
 \`\`\`
 
-**Never call \`get-quest\` without \`flowId\`.** A whole-quest render measures about seventy
-thousand characters on a real three-flow quest, over the MCP ceiling — the layer then writes it to a
-FILE and hands you an error stub, so you would grade this work holding a path instead of a spec,
-with nothing reporting a failure.
+${spilledToolResultStatics.markdown}
+
+**Never call \`get-quest\` without \`flowId\`.** A whole-quest render carries every flow, and it
+grows with the quest — past the MCP result ceiling on any quest of real size. Over that ceiling the
+layer writes the result to a FILE and hands you an error stub, so you would grade this work holding a
+path instead of a spec, with nothing reporting a failure.
 
 **An item naming NO flow owns contracts only** — its \`FLOW:\` line reads \`none\`. Read every
 contract whose \`source\` lands in its package with \`get-quest({ questId, packageName })\`, and skip

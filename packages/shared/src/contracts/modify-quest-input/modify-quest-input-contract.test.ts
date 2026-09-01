@@ -783,8 +783,8 @@ describe('modifyQuestInputContract', () => {
 
   // signoffContract carries its rule in a superRefine, and this contract reaches it through both
   // .extend() and .nullish(). Either wrapper silently dropping the effect would let an
-  // `unconfirmable` verdict land with no routable question behind it.
-  it('INVALID: {observable flowriderSignoff: unconfirmable verdict with no question} => throws the superRefine error', () => {
+  // `unconfirmable` verdict land with no routable action behind it.
+  it('INVALID: {observable flowriderSignoff: unconfirmable verdict with no toSettle} => throws the superRefine error', () => {
     expect(() => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
@@ -810,7 +810,7 @@ describe('modifyQuestInputContract', () => {
           },
         ],
       });
-    }).toThrow(/question is required when verdict is unconfirmable/u);
+    }).toThrow(/toSettle is required when verdict is unconfirmable/u);
   });
 
   it('VALID: {workItems entry with only id} => parses successfully (every other field optional for upsert)', () => {

@@ -62,7 +62,7 @@ describe('signoffMarkersToTextTransformer', () => {
         siegemasterSignoff: SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-          question: 'Which port should the sandbox dev server use?',
+          toSettle: 'Start the sandbox dev server on the configured port, then re-walk this node.',
         }),
       });
 
@@ -77,7 +77,8 @@ describe('signoffMarkersToTextTransformer', () => {
         flowriderSignoff: SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'playwright.config.ts declares no webServer for this project',
-          question: 'Who owns adding a webServer block to playwright.config.ts?',
+          toSettle:
+            'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
         }),
         siegemasterSignoff: undefined,
       });
@@ -90,7 +91,7 @@ describe('signoffMarkersToTextTransformer', () => {
         codeweaverSignoff: SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'the observable names a value only the running server produces',
-          question: 'Which unit boundary should assert this without a live server?',
+          toSettle: 'Assert this at the unit boundary that needs no live server.',
         }),
         flowriderSignoff: undefined,
         siegemasterSignoff: undefined,
@@ -105,12 +106,12 @@ describe('signoffMarkersToTextTransformer', () => {
         flowriderSignoff: SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'no webServer is declared for the e2e run',
-          question: 'Who owns adding a webServer block?',
+          toSettle: 'Add a webServer block to playwright.config.ts.',
         }),
         siegemasterSignoff: SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-          question: 'Which port should the sandbox dev server use?',
+          toSettle: 'Start the sandbox dev server on the configured port, then re-walk this node.',
         }),
       });
 

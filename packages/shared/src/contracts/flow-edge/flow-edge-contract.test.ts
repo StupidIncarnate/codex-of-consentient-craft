@@ -46,7 +46,7 @@ describe('flowEdgeContract', () => {
         siegemasterSignoff: SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'the success transition needs a real credential this session cannot mint',
-          question: 'can a seeded session cookie make the success edge walkable?',
+          toSettle: 'Seed a session cookie, then walk the success edge and read the redirect.',
         }),
       });
 
@@ -57,7 +57,7 @@ describe('flowEdgeContract', () => {
         siegemasterSignoff: {
           verdict: 'unconfirmable',
           evidence: 'the success transition needs a real credential this session cannot mint',
-          question: 'can a seeded session cookie make the success edge walkable?',
+          toSettle: 'Seed a session cookie, then walk the success edge and read the redirect.',
           workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           at: '2026-01-01T00:00:00.000Z',
         },

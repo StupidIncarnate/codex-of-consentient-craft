@@ -81,7 +81,8 @@ describe('QuestSummaryLayerResponder', () => {
               signoff: SignoffStub({
                 verdict: 'unconfirmable',
                 evidence: 'playwright.config.ts declares no webServer, so no e2e reaches the app',
-                question: 'Who owns adding a webServer block to playwright.config.ts?',
+                toSettle:
+                  'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
               }),
             }),
           ],
@@ -95,12 +96,12 @@ describe('QuestSummaryLayerResponder', () => {
       expect([
         lines.find((line) => line.startsWith('- added by')),
         lines.find((line) => line.startsWith('      evidence:')),
-        lines.find((line) => line.startsWith('      question:')),
+        lines.find((line) => line.startsWith('      toSettle:')),
         lines.find((line) => line.startsWith('### open-question')),
       ]).toStrictEqual([
         '- added by siegemaster: `login-flow:observable:rejects-bleh-payload` [api-call]',
         '      evidence: playwright.config.ts declares no webServer, so no e2e reaches the app',
-        '      question: Who owns adding a webServer block to playwright.config.ts?',
+        '      toSettle: Add a webServer block to playwright.config.ts, then re-run this spec against it.',
         '### open-question (0)',
       ]);
     });

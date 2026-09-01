@@ -141,7 +141,31 @@ export const flowGraphToTextTransformer = ({
 
       const isMerge = (incomingCounts.get(nodeId) ?? 0) > 1;
       const mergeMarker = isMerge ? ` ${SYM.merge}` : '';
-      const packagesPart = ` {${node.packages.map((name) => String(name)).join(', ')}}`;
+      // The tag set carries each package's OBSERVABLE COUNT, so one line says both which packages
+      // land on this node and how much each is expected to prove. That count is where a sibling's
+      // observables live: a reader seeing `server ● 3` beside one `● #id:` line below knows three
+      // acceptance targets on this node belong to someone else, without a collapsed line per
+      // package restating a package name the braces already carry.
+      //
+      // A package with no observable renders BARE rather than as `● 0` — the same convention the
+      // sign-off markers use, where an absent marker means nothing recorded. It also leaves the
+      // seam-declared-but-asserted-by-nothing case visible as exactly what it is.
+      //
+      // Packages the node TAGS come first, then any a stray observable is attributed to. That
+      // second group should always be empty — `questObservableAttributionViolationsTransformer`
+      // refuses that attribution at save time — but a hydrated or hand-edited quest can still carry
+      // one, and counting it nowhere would drop an acceptance target from the only surface that
+      // shows it.
+      const taggedPackages = node.packages.map((name) => String(name));
+      const strayPackages = [...new Set(node.observables.map((obs) => String(obs.package)))].filter(
+        (name) => !taggedPackages.includes(name),
+      );
+      const packagesPart = ` {${[...taggedPackages, ...strayPackages]
+        .map((name) => {
+          const count = node.observables.filter((obs) => String(obs.package) === name).length;
+          return count === 0 ? name : `${name} ${SYM.observable} ${String(count)}`;
+        })
+        .join(', ')}}`;
       const ownMarker =
         ownPackageText !== undefined &&
         node.packages.some((name) => String(name) === ownPackageText)
@@ -152,9 +176,12 @@ export const flowGraphToTextTransformer = ({
         flowriderSignoff: node.flowriderSignoff,
         siegemasterSignoff: node.siegemasterSignoff,
       });
+      // ID, then PACKAGES, then the label — the same order the observable lines under it use. The
+      // markers stay at the END, because each is a property of the whole line rather than a field:
+      // MERGE is about the graph, YOURS about the caller, the sign-off group about who has graded it.
       lines.push(
         contentTextContract.parse(
-          `${indent}[#${nodeId}] ${node.label} (${node.type})${packagesPart}${mergeMarker}${ownMarker}${String(nodeSignoffMarker)}`,
+          `${indent}[#${nodeId}]${packagesPart} ${node.label} (${node.type})${mergeMarker}${ownMarker}${String(nodeSignoffMarker)}`,
         ),
       );
 
@@ -172,31 +199,12 @@ export const flowGraphToTextTransformer = ({
           flowriderSignoff: obs.flowriderSignoff,
           siegemasterSignoff: obs.siegemasterSignoff,
         });
+        // ID, then PACKAGE, then text. The package rides in braces because that is already what a
+        // package set looks like on the node line above — one convention for one kind of value, so
+        // a reader scanning a graph never has to work out which field a bare name is.
         lines.push(
           contentTextContract.parse(
-            `${indent}${SYM.indent}> #${obs.id}: ${obs.description} [${obs.type}]${readCheckMarker}${originMarker}${String(obsSignoffMarker)}`,
-          ),
-        );
-      }
-
-      // A foreign observable collapses to a COUNT rather than vanishing. Its text is a sibling
-      // session's acceptance target and repeating it invites this session to build it; dropping it
-      // silently would read as a node with nothing expected of it, which is how a seam ships with
-      // one half unbuilt. Order is first appearance on the node, so two renders of one quest agree.
-      const foreignPackages = [
-        ...new Set(
-          node.observables
-            .map((obs) => String(obs.package))
-            .filter((name) => ownPackageText !== undefined && name !== ownPackageText),
-        ),
-      ];
-      for (const foreignPackage of foreignPackages) {
-        const foreignCount = node.observables.filter(
-          (obs) => String(obs.package) === foreignPackage,
-        ).length;
-        lines.push(
-          contentTextContract.parse(
-            `${indent}${SYM.indent}> (${String(foreignCount)} observable(s) attributed to ${foreignPackage} — not yours)`,
+            `${indent}${SYM.indent}${SYM.observable} #${obs.id} {${String(obs.package)}} ${obs.description} [${obs.type}]${readCheckMarker}${originMarker}${String(obsSignoffMarker)}`,
           ),
         );
       }
@@ -238,7 +246,7 @@ export const flowGraphToTextTransformer = ({
           if (target !== undefined) {
             lines.push(
               contentTextContract.parse(
-                `${indent}${SYM.indent}${SYM.indent}target: [#${String(target.node.id)}] ${String(target.node.label)} (${target.node.type}) {${target.node.packages.map((name) => String(name)).join(', ')}} in flow #${String(target.flow.id)} "${String(target.flow.name)}"`,
+                `${indent}${SYM.indent}${SYM.indent}target: [#${String(target.node.id)}] {${target.node.packages.map((name) => String(name)).join(', ')}} ${String(target.node.label)} (${target.node.type}) in flow #${String(target.flow.id)} "${String(target.flow.name)}"`,
               ),
             );
             lines.push(
@@ -288,11 +296,13 @@ export const flowGraphToTextTransformer = ({
       id: family.id,
       marker: String(
         signoffMarkersToTextTransformer({
-          // `flowOffMapSignoffContract` carries no codeweaver column: the seven probe families are
-          // breakage classes a flow graph structurally cannot draw, so nothing a unit test asserts
-          // reaches them and no codeweaver sign-off can ever exist to render.
+          // `flowOffMapSignoffContract` carries SIEGEMASTER'S COLUMN ALONE. The seven probe families
+          // are breakage classes a flow graph structurally cannot draw — a double submit, a killed
+          // process, a stale token — so they are measured by hand against a running system, and
+          // `off-map` is in siegemaster's `unitKinds` and nobody else's. Neither of the other two
+          // sign-offs can exist on a family, so neither has a mark to render.
           codeweaverSignoff: undefined,
-          flowriderSignoff: family.flowriderSignoff,
+          flowriderSignoff: undefined,
           siegemasterSignoff: family.siegemasterSignoff,
         }),
       ),

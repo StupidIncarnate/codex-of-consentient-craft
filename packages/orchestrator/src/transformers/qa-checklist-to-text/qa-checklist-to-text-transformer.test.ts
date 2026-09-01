@@ -89,7 +89,7 @@ describe('qaChecklistToTextTransformer', () => {
       }).split('\n');
 
       expect(lines.find((line) => line.startsWith('`confirmed`'))).toBe(
-        '`confirmed` with evidence, or `unconfirmable` with what you tried plus a `question`.',
+        '`confirmed` with evidence, or `unconfirmable` with what you tried plus a `toSettle`.',
       );
     });
   });
@@ -375,7 +375,7 @@ describe('qaChecklistToTextTransformer', () => {
         }).split('\n');
 
         expect(lines.find((line) => line.startsWith('## UNITS'))).toBe(
-          `## UNITS — [ ] awaiting your \`${track}Signoff\` (the field THIS track writes), [x] not awaiting it, [-] not on the ${track} track at all`,
+          `## UNITS — [ ] awaiting your \`${track}Signoff\` (the field THIS track writes), [x] not awaiting it`,
         );
       },
     );
@@ -415,6 +415,76 @@ describe('qaChecklistToTextTransformer', () => {
         '### OBSERVABLES (1)',
         '### OFF-MAP PROBES (1)',
       ]);
+    });
+
+    // A KIND THE TRACK NEVER SIGNS LEAVES NO TRACE — no rows, no heading, no surface paragraph, and
+    // no share of the denominator the session reads its own progress against. `off-map` is the case
+    // that exists today: siegemaster alone carries it, so a flowrider checklist listing the probe
+    // families describes work that track cannot take, and counts it against a total it can never
+    // reach. Asserted on the whole `###`/`## …  SURFACE` sets rather than on one line, because a
+    // heading that survives while its rows vanish is the shape a per-row filter produces.
+    it('VALID: {track: flowrider, an off-map unit present} => no probes, no surface, and out of the count', () => {
+      const lines = qaChecklistToTextTransformer({
+        track: 'flowrider',
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({ id: 'a-flow:observable:check-one' }),
+            QaChecklistItemStub({
+              id: 'a-flow:off-map:concurrency',
+              kind: 'off-map',
+              label: 'double submit',
+            }),
+          ],
+          remainingItemIds: ['a-flow:observable:check-one'],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect({
+        sections: lines.filter((line) => line.startsWith('### ')),
+        surfaces: lines.filter((line) => line.endsWith(' SURFACE')),
+        units: lines.find((line) => line.startsWith('Units:')),
+        remaining: lines.find((line) => line.startsWith('REMAINING')),
+        offMapRow: lines.find((line) => line.includes('a-flow:off-map:concurrency')),
+      }).toStrictEqual({
+        sections: ['### OBSERVABLES (1)'],
+        surfaces: ['## TERMINAL SURFACE', '## BRANCH SURFACE'],
+        units: 'Units: 1 (0 terminal, 0 branch, 1 observable, 0 off-map)',
+        remaining: 'REMAINING (awaiting your `flowriderSignoff`): 1 of 1',
+        offMapRow: undefined,
+      });
+    });
+
+    it('VALID: {track: siegemaster, the same checklist} => keeps the probes, the surface and the count', () => {
+      const lines = qaChecklistToTextTransformer({
+        track: 'siegemaster',
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({ id: 'a-flow:observable:check-one' }),
+            QaChecklistItemStub({
+              id: 'a-flow:off-map:concurrency',
+              kind: 'off-map',
+              label: 'double submit',
+            }),
+          ],
+          remainingItemIds: ['a-flow:observable:check-one', 'a-flow:off-map:concurrency'],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect({
+        sections: lines.filter((line) => line.startsWith('### ')),
+        surfaces: lines.filter((line) => line.endsWith(' SURFACE')),
+        units: lines.find((line) => line.startsWith('Units:')),
+        remaining: lines.find((line) => line.startsWith('REMAINING')),
+      }).toStrictEqual({
+        sections: ['### OBSERVABLES (1)', '### OFF-MAP PROBES (1)'],
+        surfaces: ['## TERMINAL SURFACE', '## BRANCH SURFACE', '## OFF-MAP SURFACE'],
+        units: 'Units: 2 (0 terminal, 0 branch, 1 observable, 1 off-map)',
+        remaining: 'REMAINING (awaiting your `siegemasterSignoff`): 2 of 2',
+      });
     });
   });
 

@@ -1,16 +1,16 @@
 /**
  * PURPOSE: Renders ONE flow of a quest as the whole spec a session that owns that flow needs, and
  * nothing else. Reach for this over `questToTextDisplayTransformer` whenever the reader owns a
- * single flow (codeweaver, flowrider, siegemaster): the whole-quest render of a real three-flow
- * quest measures 69,180 characters against `mcpToolResultStatics.maxVerbatimChars` (50,000), and an
- * over-budget MCP result is spilled to a file and answered with an error stub — a silent dispatch
- * failure where the session holds a path instead of its spec.
+ * single flow (codeweaver, flowrider, siegemaster): a whole-quest render grows with the quest and
+ * passes `mcpToolResultStatics.maxVerbatimChars` (50,000) on any quest of real size — one three-flow
+ * quest was measured at 69,180 — and an over-budget MCP result is spilled to a file and answered
+ * with an error stub, a silent dispatch failure where the session holds a path instead of its spec.
  *
  * USAGE:
  * questFlowSliceTransformer({ quest, flowId, packageName });
  * // Returns ContentText — the quest header, the OTHER flows as ids and names only, this flow whole,
- * // the cross-flow edges in both directions, its contracts, its design decisions and the quest-wide
- * // ones, and (with no packageName) the off-map probe families
+ * // the cross-flow edges in both directions, its contracts, and its design decisions plus the
+ * // quest-wide ones
  *
  * questFlowSliceTransformer({ quest, packageName });
  * // The foundation view: every contract that package owns, and which flows it tags nodes in
@@ -31,7 +31,6 @@ import type { ContentText } from '../../contracts/content-text/content-text-cont
 import type { FlowId } from '../../contracts/flow-id/flow-id-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { Quest } from '../../contracts/quest/quest-contract';
-import { qaOffMapProbeStatics } from '../../statics/qa-off-map-probe/qa-off-map-probe-statics';
 import { questFlowSliceLimitsStatics } from '../../statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
 import { flowGraphToTextTransformer } from '../flow-graph-to-text/flow-graph-to-text-transformer';
@@ -54,9 +53,8 @@ export const questFlowSliceTransformer = ({
   // flows the package tags nodes in — which is the only useful answer for an item that owns
   // contracts and tags no node anywhere.
   flowId?: FlowId | undefined;
-  // The package whose half of the flow is the reader's. Omitted, every node is theirs (the
-  // flowrider / siegemaster view) and the off-map probe families render too — those have no
-  // codeweaver column on `flowOffMapSignoffContract`, so they belong to nobody a package names.
+  // The package whose half of the flow is the reader's. Omitted, every node is theirs and every
+  // observable renders verbatim — the flowrider / siegemaster / reviewer view.
   packageName?: PackageName | undefined;
 }): ContentText => {
   const flow =
@@ -103,6 +101,40 @@ export const questFlowSliceTransformer = ({
     return contentTextContract.parse(parts.join('\n'));
   }
 
+  // The same refusal the flow miss above gets, for the same reason and a sharper one. An unknown
+  // package is an error NOWHERE downstream: every observable simply reads as somebody else's, so the
+  // slice renders with no observable text and no `◀ YOURS` mark anywhere — which is
+  // INDISTINGUISHABLE from a package that genuinely owns nothing on this flow. Measured on a real
+  // quest: a caller that typed `orchastrator` for `orchestrator` was served a clean-looking render
+  // of a flow whose nine observables it owned, every one of them collapsed into a count.
+  //
+  // The closed set is every package the quest names ANYWHERE — declared in `packagesAffected`,
+  // tagged on a node, or carried by an observable — rather than `packagesAffected` alone. A hydrated
+  // quest can tag a node with a package it never declared, and refusing a name that IS on the graph
+  // would be worse than the silence this replaces.
+  const knownPackages = [
+    ...new Set([
+      ...quest.packagesAffected.map((entry) => String(entry.name)),
+      ...quest.flows.flatMap((candidate) =>
+        candidate.nodes.flatMap((node) => [
+          ...node.packages.map((name) => String(name)),
+          ...node.observables.map((observable) => String(observable.package)),
+        ]),
+      ),
+    ]),
+  ];
+  if (packageNameText !== undefined && !knownPackages.includes(packageNameText)) {
+    parts.push(
+      contentTextContract.parse(''),
+      contentTextContract.parse(
+        `## No package "${packageNameText}" on this quest. Its packages are: ${
+          knownPackages.length === 0 ? SYM.none : knownPackages.join(', ')
+        }`,
+      ),
+    );
+    return contentTextContract.parse(parts.join('\n'));
+  }
+
   // The rest of the spine, by name only. A session that cannot see a flow still has to know it is
   // there — a hand-off lands in one of these, and a defect it finds may belong to one.
   const otherFlows = quest.flows.filter((candidate) => candidate.id !== flow?.id);
@@ -132,7 +164,12 @@ export const questFlowSliceTransformer = ({
   if (flow !== undefined) {
     parts.push(
       contentTextContract.parse(''),
-      contentTextContract.parse(SYM.flowSliceLegendLines.join('\n')),
+      contentTextContract.parse(
+        (packageNameText === undefined
+          ? SYM.flowSliceWholeFlowLegendLines
+          : SYM.flowSliceLegendLines
+        ).join('\n'),
+      ),
       contentTextContract.parse(''),
       contentTextContract.parse(
         `## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`,
@@ -153,7 +190,7 @@ export const questFlowSliceTransformer = ({
           ]
         : [
             contentTextContract.parse(
-              `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}; another package's observables are collapsed to a count. The graph is NOT filtered — the nodes between yours are how yours connect.`,
+              `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}; only YOUR observables are listed, and each node's tag set counts the rest (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
             ),
           ]),
       contentTextContract.parse(''),
@@ -190,7 +227,7 @@ export const questFlowSliceTransformer = ({
             `${SYM.rightArrow}${inbound.edge.label === undefined ? '' : `"${String(inbound.edge.label)}" `}into [#${inbound.target.slice(`${String(flow.id)}:`.length)}]`,
           ),
           contentTextContract.parse(
-            `${SYM.indent}source: [#${String(inbound.sourceNode.id)}] ${String(inbound.sourceNode.label)} (${inbound.sourceNode.type}) {${inbound.sourceNode.packages.map((name) => String(name)).join(', ')}} in flow #${String(inbound.source.id)} "${String(inbound.source.name)}"`,
+            `${SYM.indent}source: [#${String(inbound.sourceNode.id)}] {${inbound.sourceNode.packages.map((name) => String(name)).join(', ')}} ${String(inbound.sourceNode.label)} (${inbound.sourceNode.type}) in flow #${String(inbound.source.id)} "${String(inbound.source.name)}"`,
           ),
           contentTextContract.parse(`${SYM.indent}${CROSS_FLOW_INBOUND_NOTE}`),
         ]),
@@ -204,12 +241,11 @@ export const questFlowSliceTransformer = ({
   // transformer the save-time coverage gate and the derived ledger use, so a contract one of them
   // routes to a package is never one this render drops.
   const flowNodeIds = new Set((flow?.nodes ?? []).map((node) => String(node.id)));
-  const contracts = quest.contracts.flatMap((contract) => {
-    if (flow !== undefined && !flowNodeIds.has(String(contract.nodeId))) {
-      return [];
-    }
+  const ownedContracts = quest.contracts.flatMap((contract) => {
     if (packageNameText === undefined) {
-      return [{ contract, properties: contract.properties }];
+      return flow !== undefined && !flowNodeIds.has(String(contract.nodeId))
+        ? []
+        : [{ contract, properties: contract.properties }];
     }
     const ownsTheFile =
       String(
@@ -233,31 +269,86 @@ export const questFlowSliceTransformer = ({
     return ownsTheFile || properties.length > 0 ? [{ contract, properties }] : [];
   });
 
-  if (contracts.length > 0) {
-    parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
+  // ONE CALL, NOT TWO. A contract routes to a package by PATH, so a package can own one anchored to
+  // a node on a flow it tags NO node in — and the relay mints a cell per (package, flow) the package
+  // tags, so no cell of that package would ever render it. That orphan is the whole reason
+  // codeweaver made a second `{ questId, packageName }` call. Rendering it here collapses the pair.
+  //
+  // ONLY the orphans, never every off-flow contract. A contract anchored to a flow this package DOES
+  // tag already has a cell of its own that shows it under the first heading — measured on a real
+  // quest, including those put all four of `server`'s contracts in BOTH its cells, once as "build
+  // this" and once as "do not". That is duplication wearing a distinction's clothes.
+  //
+  // AND THE WHOLE SECTION IS PACKAGED-VIEW-ONLY. "A contract you own that no flow of YOURS anchors"
+  // is a statement about a package's slice, and the unpackaged reader owns the whole flow — so its
+  // orphan set is empty by definition. Without that gate the set below is built by comparing every
+  // node's packages against `undefined`, which matches nothing, leaving `taggedFlowNodeIds` empty
+  // and the filter keeping every contract the first heading just printed. Measured on a real
+  // three-flow quest: the flowrider / reviewer render carried all seven of its contracts twice,
+  // 7,195 of 42,925 characters, the copy headed "NO flow of yours anchors".
+  const taggedFlowNodeIds = new Set(
+    packageNameText === undefined
+      ? []
+      : quest.flows
+          .filter((candidate) =>
+            candidate.nodes.some((node) =>
+              node.packages.some((name) => String(name) === packageNameText),
+            ),
+          )
+          .flatMap((candidate) => candidate.nodes.map((node) => String(node.id))),
+  );
+  const contractGroups = [
+    {
+      heading:
         flow === undefined
           ? '## Contracts you own — every property description is a requirement'
           : '## Contracts on this flow — every property description is a requirement',
-      ),
-      ...contracts.flatMap(({ contract, properties }) => [
-        contentTextContract.parse(
-          `#${String(contract.id)} ${SYM.emDash} ${String(contract.name)} (${contract.kind}, ${contract.status}) [${SYM.rightArrow} ${String(contract.source)}] on node #${String(contract.nodeId)}`,
-        ),
-        ...(properties.length === 0
+      entries:
+        flow === undefined
+          ? ownedContracts
+          : ownedContracts.filter(({ contract }) => flowNodeIds.has(String(contract.nodeId))),
+    },
+    {
+      heading:
+        '## Contracts you own that NO flow of yours anchors — honour them; no sibling session sees them',
+      entries:
+        flow === undefined || packageNameText === undefined
           ? []
-          : questContractPropertiesToTextTransformer({
-              properties,
-              depth: PROPERTY_START_DEPTH,
-            })),
-      ]),
-    );
+          : ownedContracts.filter(
+              ({ contract }) => !taggedFlowNodeIds.has(String(contract.nodeId)),
+            ),
+    },
+  ];
+
+  for (const group of contractGroups) {
+    if (group.entries.length > 0) {
+      parts.push(
+        contentTextContract.parse(''),
+        contentTextContract.parse(group.heading),
+        ...group.entries.flatMap(({ contract, properties }) => [
+          contentTextContract.parse(
+            `#${String(contract.id)} ${SYM.emDash} ${String(contract.name)} (${contract.kind}, ${contract.status}) [${SYM.rightArrow} ${String(contract.source)}] on node #${String(contract.nodeId)}`,
+          ),
+          ...(properties.length === 0
+            ? []
+            : questContractPropertiesToTextTransformer({
+                properties,
+                depth: PROPERTY_START_DEPTH,
+              })),
+        ]),
+      );
+    }
   }
+
+  // The decisions that govern what was RENDERED, never everything the package owns. A contract
+  // anchored to a flow this package tags but is not reading now belongs to that OTHER cell and
+  // renders in neither group above — pulling its node into this set would drag a sibling cell's
+  // design decisions into this one, explaining a node this session was never shown.
+  const renderedContracts = contractGroups.flatMap((group) => group.entries);
 
   const governingNodeIds = new Set([
     ...flowNodeIds,
-    ...contracts.map(({ contract }) => String(contract.nodeId)),
+    ...renderedContracts.map(({ contract }) => String(contract.nodeId)),
   ]);
   const scopedDecisions = quest.designDecisions.filter(
     (decision) =>
@@ -295,22 +386,16 @@ export const questFlowSliceTransformer = ({
     );
   }
 
-  // Off-map probes are a WHOLE-FLOW obligation, so they render only for the reader who owns the
-  // whole flow. `flowOffMapSignoffContract` has no codeweaver column at all — these are breakage
-  // classes a graph structurally cannot draw, so no unit test written beside the code reaches them
-  // — and printing them into a per-package slice would name work that track can never sign.
-  if (flow !== undefined && packageNameText === undefined) {
-    parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        '## Off-map probe families — breakage classes this graph cannot draw, one obligation each',
-      ),
-      ...Object.entries(qaOffMapProbeStatics.byFamily).map(([family, probe]) =>
-        contentTextContract.parse(`${family}: ${probe}`),
-      ),
-    );
-  }
-
+  // NO OFF-MAP PROBES HERE. They belong to `get-qa-checklist`, which the one role that owns them
+  // already calls — siegemaster and its reviewer, whose track is the only one carrying `off-map` in
+  // its `unitKinds`. That tool prints each family's full probe sentence to the sessions that sign
+  // them, and omits the kind entirely from every other track's checklist, so rendering them here
+  // would reach nobody who could act on one.
+  //
+  // The fifth reader is what made it worse than duplication. `codeweaver-reviewer` calls
+  // `get-quest({ questId, flowId })` with no package — the same unpackaged shape — and calls
+  // `get-qa-checklist` never. It was the one session shown these, and they are the one part of that
+  // render provably belonging to a role that has not run yet.
   const body = parts.join('\n');
 
   if (body.length <= questFlowSliceLimitsStatics.maxRenderChars) {

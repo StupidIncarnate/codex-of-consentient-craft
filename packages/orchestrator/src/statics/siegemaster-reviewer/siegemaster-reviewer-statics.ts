@@ -22,6 +22,7 @@
  */
 
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 
 export const siegemasterReviewerStatics = {
   prompt: {
@@ -107,10 +108,12 @@ get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief>' })
 get-qa-checklist({ questId: 'QUEST_ID', operationItemId: '<the id in your brief>' })
 \`\`\`
 
-**Never call \`get-quest\` without \`flowId\`.** A whole-quest render measures about seventy
-thousand characters on a real three-flow quest, over the MCP ceiling — the layer then writes it to a
-FILE and hands you an error stub, so you would grade this work holding a path instead of a spec,
-with nothing reporting a failure.
+${spilledToolResultStatics.markdown}
+
+**Never call \`get-quest\` without \`flowId\`.** A whole-quest render carries every flow, and it
+grows with the quest — past the MCP result ceiling on any quest of real size. Over that ceiling the
+layer writes the result to a FILE and hands you an error stub, so you would grade this work holding a
+path instead of a spec, with nothing reporting a failure.
 
 Find the operation item your brief named, and read the flow it owns — nodes, edge labels, observables,
 entry and exit. That flow is what the repairs were supposed to make work.

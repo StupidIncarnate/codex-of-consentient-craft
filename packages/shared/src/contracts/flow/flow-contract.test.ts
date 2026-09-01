@@ -96,7 +96,7 @@ describe('flowContract', () => {
         offMapSignoffs: [
           FlowOffMapSignoffStub({
             id: 'concurrency',
-            flowriderSignoff: SignoffStub(),
+            siegemasterSignoff: SignoffStub(),
           }),
           FlowOffMapSignoffStub({
             id: 'staleness',
@@ -112,7 +112,7 @@ describe('flowContract', () => {
       expect(flow.offMapSignoffs).toStrictEqual([
         {
           id: 'concurrency',
-          flowriderSignoff: {
+          siegemasterSignoff: {
             verdict: 'confirmed',
             evidence:
               'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',

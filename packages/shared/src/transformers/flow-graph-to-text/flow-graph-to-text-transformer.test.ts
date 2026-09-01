@@ -20,7 +20,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login Page (state) {auth-service}',
+        '[#login-page] {auth-service} Login Page (state)',
         '  (terminal)',
       ]);
     });
@@ -46,9 +46,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service}',
+        '[#login-page] {auth-service} Login (state)',
         '  \u2192[#dashboard]',
-        '  [#dashboard] Dashboard (state) {auth-service}',
+        '  [#dashboard] {auth-service} Dashboard (state)',
         '    (terminal)',
       ]);
     });
@@ -75,9 +75,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#check] Check (decision) {auth-service}',
+        '[#check] {auth-service} Check (decision)',
         '  \u2192"yes" [#success]',
-        '  [#success] Success (terminal) {auth-service}',
+        '  [#success] {auth-service} Success (terminal)',
         '    (terminal)',
       ]);
     });
@@ -100,9 +100,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#start] Start (state) {auth-service}',
+        '[#start] {auth-service} Start (state)',
         '  \u2192[#middle]',
-        '  [#middle] Middle (action) {auth-service}',
+        '  [#middle] {auth-service} Middle (action)',
         '    \u2192 [#start] \u21A9',
       ]);
     });
@@ -125,13 +125,13 @@ describe('flowGraphToTextTransformer', () => {
 
       const result = flowGraphToTextTransformer({ flow });
 
-      expect(result[0]).toBe('[#a] A (state) {auth-service}');
+      expect(result[0]).toBe('[#a] {auth-service} A (state)');
       expect(result).toStrictEqual([
-        '[#a] A (state) {auth-service}',
+        '[#a] {auth-service} A (state)',
         '  \u2192[#c]',
-        '  [#c] C (state) {auth-service} \u2190 MERGE',
+        '  [#c] {auth-service} C (state) \u2190 MERGE',
         '    (terminal)',
-        '[#b] B (state) {auth-service}',
+        '[#b] {auth-service} B (state)',
         '  \u2192 [#c] \u21A9',
       ]);
     });
@@ -150,7 +150,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#start] Start (state) {auth-service}',
+        '[#start] {auth-service} Start (state)',
         '  \u2192 other-node \u2197 cross-flow',
       ]);
     });
@@ -180,8 +180,8 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service}',
-        '  > #shows-form: shows login form [ui-state]',
+        '[#login-page] {auth-service ● 1} Login (state)',
+        '  ● #shows-form {auth-service} shows login form [ui-state]',
         '  (terminal)',
       ]);
     });
@@ -215,7 +215,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service} [F✓]',
+        '[#login-page] {auth-service} Login (state) [F✓]',
         '  (terminal)',
       ]);
     });
@@ -238,7 +238,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service} [F✓ S✓]',
+        '[#login-page] {auth-service} Login (state) [F✓ S✓]',
         '  (terminal)',
       ]);
     });
@@ -254,7 +254,8 @@ describe('flowGraphToTextTransformer', () => {
             siegemasterSignoff: SignoffStub({
               verdict: 'unconfirmable',
               evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-              question: 'Which port should the sandbox dev server use?',
+              toSettle:
+                'Start the sandbox dev server on the configured port, then re-walk this node.',
             }),
           }),
         ],
@@ -264,7 +265,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service} [S?]',
+        '[#login-page] {auth-service} Login (state) [S?]',
         '  (terminal)',
       ]);
     });
@@ -294,8 +295,8 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service}',
-        '  > #crash-on-bleh: POST /api/auth/login returns 400 for a non-JSON body [api-call] +siegemaster [S✓]',
+        '[#login-page] {auth-service ● 1} Login (state)',
+        '  ● #crash-on-bleh {auth-service} POST /api/auth/login returns 400 for a non-JSON body [api-call] +siegemaster [S✓]',
         '  (terminal)',
       ]);
     });
@@ -324,8 +325,8 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service}',
-        '  > #pattern-not-inlined: the token pattern is read from the shared statics [custom] (read-check)',
+        '[#login-page] {auth-service ● 1} Login (state)',
+        '  ● #pattern-not-inlined {auth-service} the token pattern is read from the shared statics [custom] (read-check)',
         '  (terminal)',
       ]);
     });
@@ -356,8 +357,8 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service}',
-        '  > #pattern-not-inlined: the token pattern is read from the shared statics [custom] (read-check) +codeweaver [C✓]',
+        '[#login-page] {auth-service ● 1} Login (state)',
+        '  ● #pattern-not-inlined {auth-service} the token pattern is read from the shared statics [custom] (read-check) +codeweaver [C✓]',
         '  (terminal)',
       ]);
     });
@@ -385,8 +386,8 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service}',
-        '  > #shows-form: shows login form [ui-state]',
+        '[#login-page] {auth-service ● 1} Login (state)',
+        '  ● #shows-form {auth-service} shows login form [ui-state]',
         '  (terminal)',
       ]);
     });
@@ -412,9 +413,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#check] Check (decision) {auth-service}',
+        '[#check] {auth-service} Check (decision)',
         '  →"yes" [#success] [F✓]',
-        '  [#success] Success (terminal) {auth-service}',
+        '  [#success] {auth-service} Success (terminal)',
         '    (terminal)',
       ]);
     });
@@ -436,7 +437,7 @@ describe('flowGraphToTextTransformer', () => {
             siegemasterSignoff: SignoffStub({
               verdict: 'unconfirmable',
               evidence: 'the retry path needs a seeded failure the lever cannot produce',
-              question: 'How should the reset lever seed a failed submit?',
+              toSettle: 'Extend the reset lever to seed a failed submit, then drive this branch.',
             }),
           }),
         ],
@@ -445,9 +446,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#start] Start (state) {auth-service}',
+        '[#start] {auth-service} Start (state)',
         '  →[#middle]',
-        '  [#middle] Middle (action) {auth-service}',
+        '  [#middle] {auth-service} Middle (action)',
         '    → [#start] ↩ [F✓ S?]',
       ]);
     });
@@ -464,11 +465,10 @@ describe('flowGraphToTextTransformer', () => {
           FlowOffMapSignoffStub({ id: 'perf' }),
           FlowOffMapSignoffStub({
             id: 'hostile-input',
-            flowriderSignoff: SignoffStub(),
             siegemasterSignoff: SignoffStub({
               verdict: 'unconfirmable',
               evidence: 'no fuzzing harness is wired for this endpoint',
-              question: 'Which fuzzing harness should cover the login endpoint?',
+              toSettle: 'Point a fuzzing harness at the login endpoint and record what it returns.',
             }),
           }),
         ],
@@ -477,9 +477,30 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#login-page] Login (state) {auth-service}',
+        '[#login-page] {auth-service} Login (state)',
         '  (terminal)',
-        'off-map: concurrency [S✓] | hostile-input [F✓ S?]',
+        'off-map: concurrency [S✓] | hostile-input [S?]',
+      ]);
+    });
+
+    it("VALID: {off-map family carrying a stray flowrider sign-off} => renders siegemaster's mark alone, because a family has no other column", () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({ id: 'login-page' as never, label: 'Login' as never, type: 'state' }),
+        ],
+        edges: [],
+        offMapSignoffs: [
+          { id: 'perf', flowriderSignoff: SignoffStub(), siegemasterSignoff: SignoffStub() },
+        ] as never,
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#login-page] {auth-service} Login (state)',
+        '  (terminal)',
+        'off-map: perf [S✓]',
       ]);
     });
   });
@@ -520,10 +541,10 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#check] Check (decision) {auth-service}',
-        '  > #shows-form: shows login form [ui-state]',
+        '[#check] {auth-service ● 1} Check (decision)',
+        '  ● #shows-form {auth-service} shows login form [ui-state]',
         '  →"yes" [#success]',
-        '  [#success] Success (terminal) {auth-service}',
+        '  [#success] {auth-service} Success (terminal)',
         '    (terminal)',
       ]);
     });
@@ -540,7 +561,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#start] Start (state) {auth-service}',
+        '[#start] {auth-service} Start (state)',
         '  → other-node ↗ cross-flow',
       ]);
     });
@@ -564,7 +585,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#post-chat] POST the message (action) {web, server}',
+        '[#post-chat] {web, server} POST the message (action)',
         '  (terminal)',
       ]);
     });
@@ -611,16 +632,16 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
 
       expect(result).toStrictEqual([
-        '[#send-pressed] Send pressed (action) {web} ◀ YOURS',
+        '[#send-pressed] {web} Send pressed (action) ◀ YOURS',
         '  →[#write-image-file]',
-        '  [#write-image-file] Write each image (action) {server}',
+        '  [#write-image-file] {server} Write each image (action)',
         '    →[#clear-composer]',
-        '    [#clear-composer] Composer clears (terminal) {web, server} ◀ YOURS',
+        '    [#clear-composer] {web, server} Composer clears (terminal) ◀ YOURS',
         '      (terminal)',
       ]);
     });
 
-    it('VALID: {ownPackage: web, node carrying both sides} => own observables verbatim, foreign ones collapsed per package', () => {
+    it('VALID: {ownPackage: web, node carrying both sides} => own observables verbatim, every other package counted in the tag set', () => {
       const flow = FlowStub({
         entryPoint: 'post-chat' as never,
         nodes: [
@@ -663,15 +684,13 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
 
       expect(result).toStrictEqual([
-        '[#post-chat] POST the message (action) {web, server, shared} ◀ YOURS',
-        '  > #progress-bar-tracks-bytes: the progress bar advances as bytes are sent [ui-state]',
-        '  > (2 observable(s) attributed to server — not yours)',
-        '  > (1 observable(s) attributed to shared — not yours)',
+        '[#post-chat] {web ● 1, server ● 2, shared ● 1} POST the message (action) ◀ YOURS',
+        '  ● #progress-bar-tracks-bytes {web} the progress bar advances as bytes are sent [ui-state]',
         '  (terminal)',
       ]);
     });
 
-    it('EMPTY: {no ownPackage} => every observable renders verbatim and no collapse line appears', () => {
+    it('EMPTY: {no ownPackage} => every observable renders verbatim and the tag set still counts them per package', () => {
       const flow = FlowStub({
         entryPoint: 'post-chat' as never,
         nodes: [
@@ -702,9 +721,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#post-chat] POST the message (action) {web, server}',
-        '  > #progress-bar-tracks-bytes: the progress bar advances as bytes are sent [ui-state]',
-        '  > #body-carries-ordered-images: the request body carries the images in paste order [api-call]',
+        '[#post-chat] {web ● 1, server ● 1} POST the message (action)',
+        '  ● #progress-bar-tracks-bytes {web} the progress bar advances as bytes are sent [ui-state]',
+        '  ● #body-carries-ordered-images {server} the request body carries the images in paste order [api-call]',
         '  (terminal)',
       ]);
     });
@@ -750,9 +769,9 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow, otherFlows: [flow, target] });
 
       expect(result).toStrictEqual([
-        '[#draft-restored] Draft restored (terminal) {web}',
+        '[#draft-restored] {web} Draft restored (terminal)',
         '  →"sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
-        '    target: [#send-pressed] User presses Enter (action) {web} in flow #send-message-with-images "Send a message carrying images"',
+        '    target: [#send-pressed] {web} User presses Enter (action) in flow #send-message-with-images "Send a message carrying images"',
         '    Your scope ENDS at the hand-off: prove the edge fires and the target flow is entered, not what it does next.',
       ]);
     });
@@ -782,7 +801,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([
-        '[#draft-restored] Draft restored (terminal) {web}',
+        '[#draft-restored] {web} Draft restored (terminal)',
         '  →"sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
       ]);
     });
@@ -825,7 +844,7 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow, otherFlows: [target] });
 
       expect(result).toStrictEqual([
-        '[#draft-restored] Draft restored (terminal) {web}',
+        '[#draft-restored] {web} Draft restored (terminal)',
         '  → send-message-with-images:renamed-away ↗ cross-flow',
       ]);
     });

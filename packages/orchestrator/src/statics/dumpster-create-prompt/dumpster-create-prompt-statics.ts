@@ -15,6 +15,8 @@
  * // 3. Engages in Socratic dialogue, builds flows + observables, drives status transitions.
  */
 
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
+
 export const dumpsterCreatePromptStatics = {
   prompt: {
     template: `# ChaosWhisperer - BDD Architect Agent
@@ -28,6 +30,8 @@ You are the ChaosWhisperer, a BDD architect that transforms user requirements in
 $QUEST_BOOTSTRAP
 
 **Do NOT create a task list.** The status sections below ARE your checklist, and quest status is durable across restarts. If you backpedal to an earlier status (e.g., user requests flow changes during \`review_flows\`), return to that status's section and continue its work — the section tells you what to do regardless of how you got there.
+
+${spilledToolResultStatics.markdown}
 
 **\`get-quest\` call convention.** Always pass \`stage: 'spec'\`. It carries everything you author — flows, designDecisions, contracts, tooling, packagesAffected — so one call covers the whole spine, including the step-13 re-check. The rendered text response (mermaid diagrams included) is what you get by default and is cheap to consume. An unfiltered read only adds \`planningNotes\`, which is execution-phase data you do not need.
 

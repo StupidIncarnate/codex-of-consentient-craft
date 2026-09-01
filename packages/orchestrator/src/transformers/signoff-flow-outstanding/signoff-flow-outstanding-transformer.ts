@@ -11,10 +11,14 @@
  * second derivation would drift, and a work list naming ids the checklist reported as settled is
  * indistinguishable from a hallucinating one.
  *
- * FOUR EXCLUSIONS, all data in `signoffTrackEligibilityStatics` rather than branches here:
+ * FIVE EXCLUSIONS, all data in `signoffTrackEligibilityStatics` rather than branches here:
  * - Off-map probe families are Siegemaster's charter and are absent from Flowrider's denominator.
  * - An observable whose `addedBy` names a role running strictly AFTER a track cannot ever receive
  *   that track's sign-off, so counting it would report a permanent, uncloseable hole.
+ * - VERIFICATION METHOD. An observable carrying `verifyByReading` is settled by opening the source
+ *   file, and only Codeweaver's `verificationMethods` carries `reading` — so a read-check is out of
+ *   both other denominators. No test reaches one: a green test proves the value is right, never
+ *   where the value came from.
  * - PACKAGE KIND, which says which packages a track can prove a unit in at all, applied only when
  *   the caller hands over `packagesAffected` — the names on a node resolve to kinds through nothing
  *   else.

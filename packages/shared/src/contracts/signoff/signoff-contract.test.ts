@@ -36,31 +36,33 @@ describe('signoffContract', () => {
         SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'no browser bridge is reachable from this session, so the DOM cannot be read',
-          question: 'does the badge re-render on a websocket push, or only on a route change?',
+          toSettle:
+            'Push a websocket update and read whether the badge re-renders without a route change.',
         }),
       ).toStrictEqual({
         verdict: 'unconfirmable',
         evidence: 'no browser bridge is reachable from this session, so the DOM cannot be read',
-        question: 'does the badge re-render on a websocket push, or only on a route change?',
+        toSettle:
+          'Push a websocket update and read whether the badge re-renders without a route change.',
         workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         at: '2026-01-01T00:00:00.000Z',
       });
     });
 
-    it('INVALID: {unconfirmable without question} => throws, so "could not confirm" is never a shrug', () => {
+    it('INVALID: {unconfirmable without toSettle} => throws, so "could not confirm" is never a shrug', () => {
       expect(() =>
         SignoffStub({
           verdict: 'unconfirmable',
           evidence: 'fault injection needs a hook the repo does not ship',
         }),
       ).toThrow(
-        /question is required when verdict is unconfirmable — say what was tried and why it could not be confirmed/u,
+        /toSettle is required when verdict is unconfirmable — state the action that would settle this unit, as an instruction rather than a question/u,
       );
     });
 
     // superRefine rather than refine: the issue must name the ONE missing field. A form-level issue
-    // (path: []) would tell a reader the whole sign-off is malformed when only `question` is absent.
-    it('INVALID: {unconfirmable without question} => raises exactly one issue, scoped to the question field', () => {
+    // (path: []) would tell a reader the whole sign-off is malformed when only `toSettle` is absent.
+    it('INVALID: {unconfirmable without toSettle} => raises exactly one issue, scoped to the toSettle field', () => {
       const result = signoffContract.safeParse({
         verdict: 'unconfirmable',
         evidence: 'fault injection needs a hook the repo does not ship',
@@ -72,9 +74,9 @@ describe('signoffContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'custom',
-          path: ['question'],
+          path: ['toSettle'],
           message:
-            'question is required when verdict is unconfirmable — say what was tried and why it could not be confirmed',
+            'toSettle is required when verdict is unconfirmable — state the action that would settle this unit, as an instruction rather than a question',
         },
       ]);
     });

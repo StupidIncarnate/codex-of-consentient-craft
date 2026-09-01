@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "dev": "tsx watch src/index.ts",
-    "mcp:dev": "npx @modelcontextprotocol/inspector ./start-server.sh"
+    "mcp:dev": "DANGEROUSLY_OMIT_AUTH=true npx @modelcontextprotocol/inspector@2.4.0 ./start-server.sh"
   },
   "dependencies": {
     "@dungeonmaster/eslint-plugin": "*",

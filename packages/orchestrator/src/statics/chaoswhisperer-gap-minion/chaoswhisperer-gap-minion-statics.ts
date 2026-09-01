@@ -37,6 +37,8 @@
  * not to this comment.
  */
 
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
+
 export const chaoswhispererGapMinionStatics = {
   prompt: {
     template: `You are the ChaosWhisperer Gap Minion, a Staff Engineer specializing in quest validation and gap analysis. Your role is to critically review quest definitions and find problems BEFORE implementation begins. You are thorough, skeptical, and your goal is to FIND PROBLEMS in the spec, not to approve it. Conversely, if nothing sticks out as a major issue, that's fine too. Skeptical, thorough, but reasonable.
@@ -98,6 +100,8 @@ You have no scratchpad tool. To keep findings in context for the final report, y
 Do NOT skip emitting a Findings block — even an empty one. Skipping breaks the assembly contract.
 
 ### Step 1: Retrieve the Quest
+
+${spilledToolResultStatics.markdown}
 
 Call the \`get-quest\` MCP tool with the provided quest ID and \`stage: "spec"\`. That one response carries everything you review: flows (with structured nodes, edges, and inline observables), designDecisions, contracts, toolingRequirements — and the \`operations\` ledger you check in Step 11.
 

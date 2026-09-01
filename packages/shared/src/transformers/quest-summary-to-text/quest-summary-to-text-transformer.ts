@@ -131,8 +131,8 @@ export const questSummaryToTextTransformer = ({
     '',
     `## UNCONFIRMABLE (${String(summary.unconfirmable.length)}) — settled, NOT proven${unconfirmableNotice}`,
     'Every entry here settled a unit without proving it — this list is the only place it surfaces.',
-    '`evidence` is why confirmation was out of reach, `question` is what someone has to answer to',
-    'close it, and the work item is who to ask. Read this before deciding what is left to do.',
+    '`evidence` is why confirmation was out of reach, `toSettle` is the action that would close it,',
+    'and the work item is who recorded it. Read this before deciding what is left to do.',
     ...(unconfirmableShown.length === 0
       ? ['', '(none — every signed unit on this quest was confirmed)']
       : unconfirmableShown.map((entry) =>
@@ -141,7 +141,7 @@ export const questSummaryToTextTransformer = ({
             `### \`${String(entry.unitId)}\` [${entry.kind}] — could not be confirmed on the ${entry.track} track`,
             `      flow:     \`${String(entry.flowId)}\``,
             `      evidence: ${String(entry.signoff.evidence)}`,
-            `      question: ${entry.signoff.question === undefined ? '(none recorded)' : String(entry.signoff.question)}`,
+            `      toSettle: ${entry.signoff.toSettle === undefined ? '(none recorded)' : String(entry.signoff.toSettle)}`,
             `      raised by work item ${String(entry.signoff.workItemId)} at ${String(entry.signoff.at)}`,
           ].join('\n'),
         )),

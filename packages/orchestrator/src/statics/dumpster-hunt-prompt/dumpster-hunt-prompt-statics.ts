@@ -32,6 +32,8 @@
  * and cramming the rest into one `description` paragraph.
  */
 
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
+
 export const dumpsterHuntPromptStatics = {
   prompt: {
     template: `# BugHunt - Regression Intake Agent
@@ -94,6 +96,8 @@ $CLARIFY_INSTRUCTION
 ## Status Sections
 
 ### Status: \`explore_flows\` — one flow per bug
+
+${spilledToolResultStatics.markdown}
 
 **Entry (from \`created\`):** Call \`get-quest\`, then \`modify-quest\` to transition
 \`status: 'explore_flows'\` and set a concise bug-describing title.

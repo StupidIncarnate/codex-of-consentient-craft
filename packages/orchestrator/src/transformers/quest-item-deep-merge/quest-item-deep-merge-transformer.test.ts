@@ -488,8 +488,8 @@ describe('questItemDeepMergeTransformer', () => {
 
     it('VALID: {update sets ONE offMapSignoffs entry} => the other six families survive untouched', () => {
       const siegemasterSignoff = SignoffStub({ evidence: 'double-submitted, it serialised' });
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/b.test.ts:9 — red without the lock',
+      const reWalked = SignoffStub({
+        evidence: 'double-submitted again after the lock landed, still one row',
       });
       const existing = FlowStub({
         id: 'flow-a',
@@ -499,7 +499,7 @@ describe('questItemDeepMergeTransformer', () => {
       });
       const update = ItemWithIdStub({
         id: 'flow-a',
-        offMapSignoffs: [{ id: 'concurrency', flowriderSignoff }],
+        offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: reWalked }],
       });
 
       const result = questItemDeepMergeTransformer({ existing, update });
@@ -510,8 +510,7 @@ describe('questItemDeepMergeTransformer', () => {
       );
       expected[OFF_MAP_FAMILIES.indexOf('concurrency')] = FlowOffMapSignoffStub({
         id: 'concurrency',
-        siegemasterSignoff,
-        flowriderSignoff,
+        siegemasterSignoff: reWalked,
       });
 
       expect(offMapSignoffs).toStrictEqual(expected);

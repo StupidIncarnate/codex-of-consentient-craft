@@ -18,7 +18,7 @@
  * ENTRY COUNT IS THE KNOB FOR THE SECTION CAPS, not prose length, because every free-text field a
  * summary carries is contract-governed to one short span: `signoffContract.evidence` is a test
  * `file:line` plus the break that reds it (or the value read off the running system),
- * `signoffContract.question` is one routable sentence, `questNoteContract.summary` is "the one line
+ * `signoffContract.toSettle` is one routable instruction, `questNoteContract.summary` is "the one line
  * a reader scans", and an observable's `description` is a single GIVEN/WHEN/THEN outcome. Capping
  * prose per field would cut the very sentence this render exists to route.
  * `blightChecklistLimitsStatics` sizes on the same knob for the same reason.

@@ -452,13 +452,13 @@ describe('relayTailFanOutTransformer', () => {
           )
             .split('\n')
             .filter((line) => !SLICE_LEGEND_LINES.some((legend) => legend === line))
-            .filter((line) => /^\s+> #/u.test(line))
+            .filter((line) => /^\s+● #/u.test(line))
             .map((line) => `${String(slice.packageNames[0])}${line}`),
       );
 
       expect(ownObservables).toStrictEqual([
-        'server  > #worktree-created: the worktree directory exists on disk [file-exists]',
-        'web  > #execution-panel-live: the execution panel streams the running quest [ui-state]',
+        'server  ● #worktree-created {server} the worktree directory exists on disk [file-exists]',
+        'web  ● #execution-panel-live {web} the execution panel streams the running quest [ui-state]',
       ]);
     });
 

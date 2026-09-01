@@ -174,35 +174,74 @@ describe('codeweaverPromptStatics', () => {
     }).toStrictEqual({ copy: true, importAcross: true, move: true });
   });
 
-  // THE SHARED PACKAGE'S NAME CANNOT BE WRITTEN DOWN HERE — every repo picks its own (`shared`,
-  // `shared-core`, `shared-ui`), so the prompt points at the rendered `Shared homes` line and says
-  // what to do when the quest declares none. The replaced-whole warning is what stops a session
-  // clearing `packagesAffected` while adding one entry to it.
-  it('VALID: served template => takes the shared package’s name from the Operation Context, never from its own text', () => {
+  // ONE CALL, NOT TWO. The second `{ questId, packageName }` call existed only to reach a contract
+  // no flow-scoped render showed; `questFlowSliceTransformer` now renders those under their own
+  // heading, so a prompt still asking for two calls spends a whole tool result re-fetching what the
+  // first one already returned. Pinned as the EXACT fenced block, because a session copies it.
+  it('VALID: served template => step 1 spells out exactly ONE get-quest call', () => {
+    const fenced =
+      "get-quest({ questId: 'QUEST_ID', flowId: '<your flow>', packageName: '<your package>' })";
+
     expect({
-      pointsAtTheRenderedLine: hasIn({
-        needle: '**Your Operation Context names the candidates, under `Shared homes`.**',
+      theCall: hasIn({ needle: fenced, text: TEMPLATE }),
+      callCount: TEMPLATE.split('get-quest({ questId').length - 1,
+      saysOne: hasIn({ needle: 'ONE call:', text: TEMPLATE }),
+    }).toStrictEqual({ theCall: true, callCount: 2, saysOne: true });
+  });
+
+  // A CONTRACT IS THE ONE PART OF A CELL NO OBSERVABLE MENTIONS, so a missing one breaks no test the
+  // session runs and ships as a hole. Step 5 is where the diff is read, which is the only point the
+  // session can still send work back out.
+  it('VALID: served template => step 5 checks every contract landed and dispatches for any that did not', () => {
+    expect({
+      asksTheQuestion: hasIn({ needle: '2. **Is EVERY contract there?**', text: TEMPLATE }),
+      dispatchesForMisses: hasIn({
+        needle: '**Anything missing goes straight back out as a sub-agent brief.**',
         text: TEMPLATE,
       }),
-      namesNoPackage: hasIn({
-        needle:
-          'Every repo calls that\npackage something different — `shared`, `shared-core`, `shared-ui` — so the line is derived from\nthis quest rather than written here',
+      namesTheOrphans: hasIn({
+        needle: 'The contracts under `NO flow of yours anchors` are the ones to check hardest',
         text: TEMPLATE,
       }),
-      whenTheQuestDeclaresNone: hasIn({
+      countUpdated: hasIn({ needle: 'Four questions, and only you can ask them', text: TEMPLATE }),
+    }).toStrictEqual({
+      asksTheQuestion: true,
+      dispatchesForMisses: true,
+      namesTheOrphans: true,
+      countUpdated: true,
+    });
+  });
+
+  // THE SHARED PACKAGE'S NAME CANNOT BE WRITTEN DOWN HERE — every repo picks its own (`shared`,
+  // `shared-core`, `shared-ui`), so the prompt sends the session to `get-project-map` and has it
+  // match on the `[library]` KIND, which is the one property every repo's version shares. The
+  // replaced-whole warning is what stops a session clearing `packagesAffected` while adding one
+  // entry to it.
+  it('VALID: served template => finds the shared package by KIND through get-project-map, never by a name of its own', () => {
+    expect({
+      pointsAtTheTool: hasIn({
+        needle: '**`get-project-map` names the candidates.**',
+        text: TEMPLATE,
+      }),
+      matchesOnKind: hasIn({
         needle:
-          "**No `Shared homes` line means this quest declares no such package.** Find the repo's own with\n`get-project-map`, then add it with `modify-quest` before you plan against it",
+          'Every repo calls that package something different —\n`shared`, `shared-core`, `shared-ui` — so look for the KIND rather than the name: a package the map\nlabels `[library]` is one every other package may depend on.',
+        text: TEMPLATE,
+      }),
+      whenTheRepoHasNone: hasIn({
+        needle:
+          '**A repo with no library package at all leaves you the second row of that table**, not the third',
         text: TEMPLATE,
       }),
       replacedWholeTrap: hasIn({
         needle:
-          '**That field is REPLACED WHOLE on write.** Send back every entry\nalready there plus your new one, or the write drops the rest.',
+          '**It is REPLACED WHOLE on write.** Send back every entry already\nthere plus your new one, or the write drops the rest.',
         text: TEMPLATE,
       }),
     }).toStrictEqual({
-      pointsAtTheRenderedLine: true,
-      namesNoPackage: true,
-      whenTheQuestDeclaresNone: true,
+      pointsAtTheTool: true,
+      matchesOnKind: true,
+      whenTheRepoHasNone: true,
       replacedWholeTrap: true,
     });
   });
@@ -214,7 +253,7 @@ describe('codeweaverPromptStatics', () => {
     expect(
       hasIn({
         needle:
-          "**Put the dependency in your package's `package.json` where the `Shared homes` line says it is\n  not there.** The workspace's root `node_modules` resolves the import without it, so nothing you\n  run turns red and the package breaks the day it is installed on its own.",
+          "**Put the dependency in your package's `package.json` where it is not already there.** The\n  workspace's root `node_modules` resolves the import without it, so nothing you run turns red and\n  the package breaks the day it is installed on its own.",
         text: TEMPLATE,
       }),
     ).toBe(true);

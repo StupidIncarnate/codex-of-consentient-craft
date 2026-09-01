@@ -143,12 +143,12 @@ describe('flowriderReviewerStatics', () => {
 
   // `workItemId` IS PRESENT HERE, UNLIKE THE OTHER THREE MINION PROMPTS — the judging half of the
   // evidence contract this reviewer takes describes a sign-off's own SHAPE,
-  // `{ verdict, evidence, question?, workItemId, at }`, naming a field on the OBJECT it grades rather
+  // `{ verdict, evidence, toSettle?, workItemId, at }`, naming a field on the OBJECT it grades rather
   // than telling this session to pass one anywhere. That field name arrives by identity as part of
   // `judgingMarkdown`; this reviewer's own fetch and return still carry none of its own.
   it("VALID: served template => carries workItemId only as the sign-off contract's own field name", () => {
     expect(
-      hasIn({ needle: '`{ verdict, evidence, question?, workItemId, at }`', text: TEMPLATE }),
+      hasIn({ needle: '`{ verdict, evidence, toSettle?, workItemId, at }`', text: TEMPLATE }),
     ).toBe(true);
   });
 

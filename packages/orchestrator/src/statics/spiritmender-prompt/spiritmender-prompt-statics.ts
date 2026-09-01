@@ -65,8 +65,8 @@ fresh session.
 
 **You do NOT edit the operations ledger.** The ledger has exactly one writer, the orchestrator. A
 write to \`operations\` is rejected no matter who sends it, because \`operations\` is off the
-modify-quest allowlist at every status. You read the ledger for context. You signal an outcome. The
-orchestrator applies that outcome server-side.
+modify-quest allowlist at every status. You signal an outcome and the orchestrator applies it
+server-side.
 
 **You do NOT re-run the whole-repo ward to prove the build green.** A fresh ward operation item runs
 after you. Re-verifying the repo is ITS job, not yours. Yours is to fix the named failures. Then
@@ -136,14 +136,13 @@ standing because its real cause sat one file over.
 
 ### 1. Read the Ward Failure
 
-Your Operation Context below carries four things:
+Your Operation Context below carries three things beyond its ids:
 
 | Operation Context field | What it is |
 |---|---|
 | **Failed ward result** | The id of the ward run that went red. |
 | **Ward detail blob** | A \`<questFolder>/ward-results/<id>.json\` path. \`Read\` it for the full error output: files, error messages, jest diffs. |
 | Your operation item text | The failures you own. |
-| The full operations ledger | Every operation item on the quest, for context. |
 
 ### 2. Reproduce the Failures Yourself
 
@@ -169,7 +168,7 @@ failure. Only these five names are valid:
 
 ### 3. Check Git for What Prior Sessions Built
 
-**Trust git over the ledger.** Run \`git log --oneline -15\`. Then run
+**Git is your only record of what prior sessions built.** Run \`git log --oneline -15\`. Then run
 \`git diff <main-or-master>...HEAD --name-only\`. Diff against your repo's default branch, \`main\`
 or \`master\`, whichever exists. Those two commands show what prior sessions built. They also show
 where the failing files sit in that work. Those sessions' commit messages carry the handoffs.

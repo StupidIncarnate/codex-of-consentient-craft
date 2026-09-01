@@ -193,7 +193,7 @@ const SIGNED_QUEST = QuestStub({
           label: 'submits credentials' as never,
           siegemasterSignoff: SignoffStub({
             verdict: 'unconfirmable',
-            question: 'Which seeded account should the wrong-password walk use?',
+            toSettle: 'Drive the wrong-password walk with the seeded account and read the error.',
           }),
         }),
       ],
@@ -306,14 +306,19 @@ const HEADER_LINES = [
 const OFF_MAP_LINES = Object.entries(qaOffMapProbeStatics.byFamily).map(
   ([family, probe]) => `${family}: ${probe}`,
 );
-const [FIRST_OFF_MAP_LINE = ''] = OFF_MAP_LINES;
 
 // The KEY block names the same symbols the graph draws with, so a prefix filter over the render
-// picks its lines up too. Every filter below subtracts it first.
-const LEGEND_LINES = textDisplaySymbolsStatics.flowSliceLegendLines;
+// picks its lines up too. Every filter below subtracts it first. BOTH legends go in: the render
+// serves the packaged one to a caller naming a package and the whole-flow one to a caller not
+// naming one, and a filter subtracting only the packaged one lets the other's observable line
+// through as if it were a graph line.
+const LEGEND_LINES = [
+  ...textDisplaySymbolsStatics.flowSliceLegendLines,
+  ...textDisplaySymbolsStatics.flowSliceWholeFlowLegendLines,
+];
 
 const CONTRACT_HEADER_PREFIXES = ['#login-credentials', '  email'];
-const GRAPH_AND_OBSERVABLE_PREFIXES = ['[#', '> '];
+const GRAPH_AND_OBSERVABLE_PREFIXES = ['[#', `${textDisplaySymbolsStatics.observable} `];
 const GRAPH_AND_EDGE_PREFIXES = ['[#', '→'];
 const OWNERSHIP_LINE_PREFIXES = ['The WHOLE flow', 'Your package:'];
 const TRUNCATION_PREFIX = `[TRUNCATED at the ${String(questFlowSliceLimitsStatics.maxRenderChars)}-character ceiling`;
@@ -339,22 +344,20 @@ describe('questFlowSliceTransformer', () => {
         'Type: runtime',
         'Entry: login-page',
         'Exits: Dashboard shown | Signup started',
-        "Your package: web. Its nodes carry ◀ YOURS; another package's observables are collapsed to a count. The graph is NOT filtered — the nodes between yours are how yours connect.",
+        "Your package: web. Its nodes carry ◀ YOURS; only YOUR observables are listed, and each node's tag set counts the rest (●). The graph is NOT filtered — the nodes between yours are how yours connect.",
         '',
-        '[#login-page] Login page (state) {web, server} ◀ YOURS',
-        '  > #form-renders: the form renders with an empty email field [ui-state]',
-        '  > (1 observable(s) attributed to server — not yours)',
+        '[#login-page] {web ● 1, server ● 1} Login page (state) ◀ YOURS',
+        '  ● #form-renders {web} the form renders with an empty email field [ui-state]',
         '  →"submits credentials" [#auth-check]',
         '  →"no account yet" signup-flow:signup-page ↗ cross-flow',
-        '    target: [#signup-page] Signup page (state) {web} in flow #signup-flow "Sign up"',
+        '    target: [#signup-page] {web} Signup page (state) in flow #signup-flow "Sign up"',
         '    Your scope ENDS at the hand-off: prove the edge fires and the target flow is entered, not what it does next.',
-        '  [#auth-check] Credentials checked (decision) {server}',
-        '    > (1 observable(s) attributed to server — not yours)',
+        '  [#auth-check] {server ● 1} Credentials checked (decision)',
         '    (terminal)',
         '',
         '### Edges arriving from another flow',
         '→"already has an account" into [#login-page]',
-        '  source: [#signup-page] Signup page (state) {web} in flow #signup-flow "Sign up"',
+        '  source: [#signup-page] {web} Signup page (state) in flow #signup-flow "Sign up"',
         '  Another flow enters yours here. Treat the arriving node as GIVEN; do not re-prove it.',
         '',
         '## Contracts on this flow — every property description is a requirement',
@@ -445,19 +448,35 @@ describe('questFlowSliceTransformer', () => {
             GRAPH_AND_OBSERVABLE_PREFIXES.some((prefix) => line.trimStart().startsWith(prefix)),
           ),
       ).toStrictEqual([
-        '[#login-page] Login page (state) {web, server}',
-        '  > #form-renders: the form renders with an empty email field [ui-state]',
-        '  > #session-probe: GET /api/session answers 401 for an anonymous visitor [api-call]',
-        '  [#auth-check] Credentials checked (decision) {server}',
-        '    > #rejects-bad-password: a wrong password answers 401 [api-call]',
+        '[#login-page] {web ● 1, server ● 1} Login page (state)',
+        '  ● #form-renders {web} the form renders with an empty email field [ui-state]',
+        '  ● #session-probe {server} GET /api/session answers 401 for an anonymous visitor [api-call]',
+        '  [#auth-check] {server ● 1} Credentials checked (decision)',
+        '    ● #rejects-bad-password {server} a wrong password answers 401 [api-call]',
       ]);
     });
 
-    it('VALID: {flowId, no packageName} => the seven off-map probe families render last, with their probes', () => {
-      const result = questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never });
-      const lines = String(result).split('\n');
+    // OFF-MAP PROBES BELONG TO `get-qa-checklist`, NOT HERE. Every role whose track carries
+    // `off-map` in its `unitKinds` — siegemaster and its reviewer — already calls that tool, and it
+    // prints each family's full probe sentence. No other track's checklist carries the kind at all,
+    // so rendering them here reaches nobody who could sign one.
+    //
+    // The fifth reader is what made it worse. `codeweaver-reviewer` takes this exact unpackaged
+    // shape and calls `get-qa-checklist` never, so it was the ONE session shown probes for a role
+    // that has not run yet — roughly 1,200 characters of its render belonging to nobody in its
+    // chain. Asserted as the render's LAST lines, so a section re-appended anywhere below reds this.
+    it('VALID: {flowId, no packageName} => renders no off-map probe family at all', () => {
+      const lines = String(
+        questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }),
+      ).split('\n');
 
-      expect(lines.slice(lines.indexOf(FIRST_OFF_MAP_LINE))).toStrictEqual(OFF_MAP_LINES);
+      expect({
+        offMapLines: lines.filter((line) => OFF_MAP_LINES.includes(line)),
+        endsOnTheDecisions: lines[lines.length - 1],
+      }).toStrictEqual({
+        offMapLines: [],
+        endsOnTheDecisions: '  Rationale: The user asked for a self-hosted login',
+      });
     });
 
     it('VALID: {flowId, no packageName} => the whole flow is declared theirs', () => {
@@ -469,9 +488,68 @@ describe('questFlowSliceTransformer', () => {
           .filter((line) => OWNERSHIP_LINE_PREFIXES.some((prefix) => line.startsWith(prefix))),
       ).toStrictEqual(['The WHOLE flow is yours — every node, whatever package it lands in.']);
     });
+
+    // THE KEY MUST DESCRIBE THE RENDER IT SITS ABOVE. Two of the packaged legend's entries are
+    // claims this view never makes: `◀ YOURS` is emitted on no line, and "only YOURS are listed" is
+    // the opposite of what happens — every package's observables render. Serving that KEY here hands
+    // the reader two contradictory statements, since the ownership line directly under it says the
+    // whole flow is theirs, and the one it is likelier to act on is the one that is wrong.
+    it('VALID: {flowId, no packageName} => the KEY is the whole-flow one, naming no owned-node mark and no filtering', () => {
+      const lines = String(
+        questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }),
+      ).split('\n');
+
+      expect({
+        ownedNodeLines: lines.filter((line) => line.includes(textDisplaySymbolsStatics.ownedNode)),
+        observableLegendLine: lines.filter((line) => line.includes('● #id {pkg} text [type]')),
+      }).toStrictEqual({
+        ownedNodeLines: [],
+        observableLegendLine: [
+          '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — every one is listed',
+        ],
+      });
+    });
+
+    // ONE CONTRACT, ONE HEADING. "Contracts you own that NO flow of yours anchors" is a statement
+    // about a PACKAGE's slice; the unpackaged reader owns the whole flow, so its orphan set is empty
+    // by definition. The heading was gated on `flow === undefined` alone, and the set it filtered on
+    // was built by comparing node packages against an absent `packageName` — matching nothing — so
+    // every contract the first heading printed was printed again underneath a heading saying no flow
+    // anchors it. Measured on a real three-flow quest: 7,195 of 42,925 characters.
+    it('VALID: {flowId, no packageName} => each contract is rendered ONCE, under the on-this-flow heading alone', () => {
+      const lines = String(
+        questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }),
+      ).split('\n');
+
+      expect({
+        headings: lines.filter((line) => line.startsWith('## Contracts')),
+        contractLines: lines.filter((line) => line.startsWith('#login-credentials')),
+      }).toStrictEqual({
+        headings: ['## Contracts on this flow — every property description is a requirement'],
+        contractLines: [
+          '#login-credentials — LoginCredentials (data, new) [→ packages/web/src/contracts/login-credentials/login-credentials-contract.ts] on node #login-page',
+        ],
+      });
+    });
   });
 
-  describe('sign-offs already recorded', () => {
+  describe('sign-offs — a mark on the graph line, and nothing else', () => {
+    // A TRACK'S OWN EVIDENCE IS NOT RENDERED HERE, and no section of it may come back. Every track
+    // proves the units on its own list whatever another track recorded, so a paragraph naming the
+    // file some other session read changes nothing a reader does — while costing a share of
+    // `questFlowSliceLimitsStatics.maxRenderChars` that the graph, the contracts and the design
+    // decisions all compete for. The one-character verdict mark is the whole of what a reader needs:
+    // it says a track has touched the unit, which is all any of them may act on.
+    it('VALID: {a signed quest} => no evidence section, on any heading', () => {
+      const rendered = String(
+        questFlowSliceTransformer({ quest: SIGNED_QUEST, flowId: 'login-flow' as never }),
+      );
+
+      expect(
+        rendered.split('\n').filter((line) => line.toLowerCase().includes('sign-off')),
+      ).toStrictEqual([]);
+    });
+
     it('VALID: {a node and an edge signed} => the marks ride their own lines', () => {
       const result = questFlowSliceTransformer({
         quest: SIGNED_QUEST,
@@ -486,7 +564,7 @@ describe('questFlowSliceTransformer', () => {
             GRAPH_AND_EDGE_PREFIXES.some((prefix) => line.trimStart().startsWith(prefix)),
           ),
       ).toStrictEqual([
-        '[#login-page] Login page (state) {web, server} [F✓]',
+        '[#login-page] {web, server} Login page (state) [F✓]',
         '  →"submits credentials" auth-check ↗ cross-flow [S?]',
       ]);
     });
@@ -532,6 +610,151 @@ describe('questFlowSliceTransformer', () => {
         '',
         '## No flow #checkout-flow on this quest. Its flows are: #login-flow, #signup-flow',
       ]);
+    });
+  });
+
+  // THE ORPHAN CONTRACT IS WHY THE SECOND get-quest CALL EXISTED. A contract routes to a package by
+  // FILE PATH, so a package can own one anchored to a node on a flow it tags no node in — and the
+  // relay mints a cell per (package, flow) the package TAGS, so no cell of that package would ever
+  // render it. Measured on a real quest: `shared` owned four contracts and two of them were orphans
+  // of exactly this shape, reachable from no session at all.
+  //
+  // Only orphans belong in that group. A contract on a flow the package DOES tag already has a cell
+  // of its own; including it put all four of one package's contracts in BOTH its cells, once as
+  // "build this" and once as "do not".
+  describe('contracts no cell of the package anchors', () => {
+    // `server` tags nodes on login-flow only, so a server-owned contract anchored to a node on
+    // signup-flow reaches no server cell through the flow route.
+    const ORPHANED_CONTRACT = QuestContractEntryStub({
+      id: 'signup-rate-limit' as never,
+      name: 'SignupRateLimit' as never,
+      kind: 'data',
+      status: 'new',
+      source: 'packages/server/src/statics/signup-rate-limit/signup-rate-limit-statics.ts',
+      nodeId: 'signup-page' as never,
+      properties: [
+        {
+          name: 'perHour',
+          type: 'AttemptCount',
+          description: 'Signups allowed from one IP an hour',
+        },
+      ],
+    });
+    const QUEST_WITH_ORPHAN = QuestStub({
+      ...QUEST,
+      contracts: [LOGIN_CONTRACT, SIGNUP_CONTRACT, ORPHANED_CONTRACT],
+    });
+
+    it('VALID: {server on login-flow, owning a contract anchored on signup-flow} => renders it under its own heading', () => {
+      const lines = String(
+        questFlowSliceTransformer({
+          quest: QUEST_WITH_ORPHAN,
+          flowId: 'login-flow' as never,
+          packageName: 'server' as never,
+        }),
+      ).split('\n');
+
+      const headingIndex = lines.indexOf(
+        '## Contracts you own that NO flow of yours anchors — honour them; no sibling session sees them',
+      );
+
+      expect({
+        headingRendered: headingIndex !== -1,
+        contractUnderIt: lines[headingIndex + 1],
+        itsPropertyUnderIt: lines[headingIndex + 2],
+      }).toStrictEqual({
+        headingRendered: true,
+        contractUnderIt:
+          '#signup-rate-limit — SignupRateLimit (data, new) [→ packages/server/src/statics/signup-rate-limit/signup-rate-limit-statics.ts] on node #signup-page',
+        itsPropertyUnderIt: '  perHour: AttemptCount — Signups allowed from one IP an hour',
+      });
+    });
+
+    // `web` tags signup-page, so its signup-flow cell already shows #signup-payload. Repeating it
+    // here would be the duplication this rule exists to prevent. Asserted as the EXACT heading and
+    // contract-id sets rather than an absence, so a render that broke entirely cannot pass.
+    it('VALID: {web on login-flow, owning a contract on signup-flow it TAGS} => one heading, and the sibling cell keeps that contract', () => {
+      const lines = String(
+        questFlowSliceTransformer({
+          quest: QUEST_WITH_ORPHAN,
+          flowId: 'login-flow' as never,
+          packageName: 'web' as never,
+        }),
+      ).split('\n');
+
+      expect({
+        contractHeadings: lines.filter((line) => line.startsWith('## Contracts')),
+        contractIds: lines
+          .filter((line) => /^#[a-z0-9-]+ — \w+ \(/u.test(line))
+          .map((line) => String(line.split(' ')[0])),
+      }).toStrictEqual({
+        contractHeadings: [
+          '## Contracts on this flow — every property description is a requirement',
+        ],
+        contractIds: ['#login-credentials'],
+      });
+    });
+
+    // The orphan's anchoring node must not drag its design decisions in either — the session was
+    // never shown #signup-page, so a decision explaining it would name a node it cannot find.
+    it('VALID: {web on login-flow} => only decisions naming a node it was shown', () => {
+      const lines = String(
+        questFlowSliceTransformer({
+          quest: QUEST_WITH_ORPHAN,
+          flowId: 'login-flow' as never,
+          packageName: 'web' as never,
+        }),
+      ).split('\n');
+
+      expect(
+        lines
+          .filter((line) => /^#[a-z0-9-]+: "/u.test(line))
+          .map((line) => String(line.split(':')[0])),
+      ).toStrictEqual(['#jwt-over-sessions', '#no-third-party-auth']);
+    });
+  });
+
+  // A MISSPELLED PACKAGE USED TO RENDER CLEAN. Nothing downstream treats an unknown package as an
+  // error — every observable just reads as somebody else's — so the slice came back with counts,
+  // no observable text and no `◀ YOURS` mark, which is exactly what a package that genuinely owns
+  // nothing on the flow looks like. Measured on a real quest: `orchastrator` for `orchestrator`
+  // hid nine observables the caller owned.
+  describe('a package name that is not on the quest', () => {
+    it('INVALID: {packageName: "orchastrator"} => refuses and names the packages that DO exist, rather than rendering an empty slice', () => {
+      const result = questFlowSliceTransformer({
+        quest: QUEST,
+        flowId: 'login-flow' as never,
+        packageName: 'orchastrator' as never,
+      });
+
+      expect(String(result).split('\n')).toStrictEqual([
+        ...HEADER_LINES,
+        '',
+        '## No package "orchastrator" on this quest. Its packages are: web, server',
+      ]);
+    });
+
+    // The closed set is every package the quest NAMES, not `packagesAffected` alone: a hydrated
+    // quest can tag a node with a package it never declared, and refusing a name that is on the
+    // graph would be worse than the silence this refusal replaces.
+    it('VALID: {packageName tagged on a node but absent from packagesAffected} => renders the slice rather than refusing it', () => {
+      const undeclared = QuestStub({
+        ...QUEST,
+        packagesAffected: [],
+      });
+
+      const result = questFlowSliceTransformer({
+        quest: undeclared,
+        flowId: 'login-flow' as never,
+        packageName: 'server' as never,
+      });
+
+      expect({
+        refused: String(result).includes('## No package'),
+        marksItsOwnNodes: String(result).includes(
+          `[#auth-check] {server ● 1} Credentials checked (decision) ${textDisplaySymbolsStatics.ownedNode}`,
+        ),
+      }).toStrictEqual({ refused: false, marksItsOwnNodes: true });
     });
   });
 

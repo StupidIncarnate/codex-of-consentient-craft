@@ -810,7 +810,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
                   verdict: 'unconfirmable',
                   evidence:
                     'the rate limiter needs 100 real requests, which the suite cannot issue',
-                  question: 'can the limiter threshold be injected for tests?',
+                  toSettle: 'Inject the limiter threshold, then drive the rejection branch.',
                   workItemId: flowWorkItemId,
                 }),
               }),
@@ -982,7 +982,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
             offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
               FlowOffMapSignoffStub({
                 id: family as never,
-                flowriderSignoff: SignoffStub(),
                 siegemasterSignoff: SignoffStub({ workItemId: siegeWorkItemId }),
               }),
             ),

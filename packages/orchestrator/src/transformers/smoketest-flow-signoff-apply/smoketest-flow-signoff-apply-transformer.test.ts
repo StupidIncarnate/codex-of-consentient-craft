@@ -143,10 +143,10 @@ describe('smoketestFlowSignoffApplyTransformer', () => {
       );
     });
 
-    it('VALID: {family already recorded on the other track} => upserts that entry instead of appending a duplicate', () => {
+    it('VALID: {family already recorded} => upserts that entry instead of appending a duplicate', () => {
       const alreadyRecorded = FlowOffMapSignoffStub({
         id: 'concurrency',
-        flowriderSignoff: SIGNOFF,
+        siegemasterSignoff: SignoffStub({ evidence: 'an earlier walk of the same family' }),
       });
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FlowStub({ ...FLOW, offMapSignoffs: [alreadyRecorded] }),
@@ -156,12 +156,19 @@ describe('smoketestFlowSignoffApplyTransformer', () => {
       });
 
       expect(result.offMapSignoffs).toStrictEqual([
-        FlowOffMapSignoffStub({
-          id: 'concurrency',
-          flowriderSignoff: SIGNOFF,
-          siegemasterSignoff: SIGNOFF,
-        }),
+        FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SIGNOFF }),
       ]);
+    });
+
+    it('VALID: {flowrider field paired with an off-map unit id} => the write is stripped, because a family carries siegemaster alone', () => {
+      const result = smoketestFlowSignoffApplyTransformer({
+        flow: FLOW,
+        unitIds: [QaChecklistItemIdStub({ value: 'login-flow:off-map:concurrency' })],
+        signoffField: FLOWRIDER_FIELD,
+        signoff: SIGNOFF,
+      });
+
+      expect(result.offMapSignoffs).toStrictEqual([{ id: 'concurrency' }]);
     });
   });
 

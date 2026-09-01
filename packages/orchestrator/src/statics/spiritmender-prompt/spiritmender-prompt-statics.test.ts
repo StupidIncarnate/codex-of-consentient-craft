@@ -180,8 +180,8 @@ describe('spiritmenderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => trusts git over the ledger', () => {
-    const needle = '**Trust git over the ledger.**';
+  it('VALID: template => sends the session to git for what prior sessions built', () => {
+    const needle = '**Git is your only record of what prior sessions built.**';
     const found = template.slice(
       template.indexOf(needle),
       template.indexOf(needle) + needle.length,

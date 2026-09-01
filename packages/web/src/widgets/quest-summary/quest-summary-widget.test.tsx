@@ -136,7 +136,7 @@ describe('QuestSummaryWidget', () => {
   });
 
   describe('unconfirmable section', () => {
-    it('VALID: {one unconfirmable verdict} => renders the unit, the reason text and the open question', async () => {
+    it('VALID: {one unconfirmable verdict} => renders the unit, the reason text and the action that would settle it', async () => {
       const proxy = QuestSummaryWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupSummary({
@@ -152,7 +152,7 @@ describe('QuestSummaryWidget', () => {
               signoff: SignoffStub({
                 verdict: 'unconfirmable',
                 evidence: 'the sandbox refuses to bind port 3737, so no browser can reach the app',
-                question: 'Which port should the sandbox dev server use?',
+                toSettle: 'Start the sandbox dev server on a free port, then re-walk this node.',
               }),
             }),
           ],
@@ -169,8 +169,8 @@ describe('QuestSummaryWidget', () => {
       expect(screen.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_REASON').textContent).toBe(
         'the sandbox refuses to bind port 3737, so no browser can reach the app',
       );
-      expect(screen.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_QUESTION').textContent).toBe(
-        '? Which port should the sandbox dev server use?',
+      expect(screen.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_TO_SETTLE').textContent).toBe(
+        '→ Start the sandbox dev server on a free port, then re-walk this node.',
       );
     });
 

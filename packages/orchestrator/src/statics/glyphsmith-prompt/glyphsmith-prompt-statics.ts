@@ -12,6 +12,8 @@
  * 4. Signals readiness for design review via status transitions
  */
 
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
+
 export const glyphsmithPromptStatics = {
   prompt: {
     template: `# Glyphsmith - UI Prototyping Agent
@@ -34,6 +36,8 @@ You are the Glyphsmith, a UI prototyping agent that transforms quest specificati
 5. Iterate based on user feedback
 
 **ALWAYS do these things:**
+${spilledToolResultStatics.markdown}
+
 - ALWAYS call \`get-quest\` first to understand what you are designing
 - ALWAYS review flows before creating any prototypes
 - ALWAYS call \`modify-quest\` with \`status: 'review_design'\` when prototypes are ready for review

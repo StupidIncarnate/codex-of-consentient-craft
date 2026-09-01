@@ -484,7 +484,8 @@ describe('questSummaryBuildTransformer', () => {
                     siegemasterSignoff: SignoffStub({
                       verdict: 'unconfirmable',
                       evidence: 'the endpoint 500s before any validation runs',
-                      question: 'Should the router reject a non-JSON body before the handler?',
+                      toSettle:
+                        'Post a non-JSON body and read whether the router rejects it before the handler.',
                     }),
                   }),
                 ],
@@ -508,7 +509,8 @@ describe('questSummaryBuildTransformer', () => {
           signoff: SignoffStub({
             verdict: 'unconfirmable',
             evidence: 'the endpoint 500s before any validation runs',
-            question: 'Should the router reject a non-JSON body before the handler?',
+            toSettle:
+              'Post a non-JSON body and read whether the router rejects it before the handler.',
           }),
         },
       ]);
@@ -532,7 +534,8 @@ describe('questSummaryBuildTransformer', () => {
                   verdict: 'unconfirmable',
                   evidence:
                     'playwright.config.ts declares no webServer, so no e2e run can reach the app',
-                  question: 'Who owns adding a webServer block to playwright.config.ts?',
+                  toSettle:
+                    'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
                 }),
               }),
             ],
@@ -553,7 +556,8 @@ describe('questSummaryBuildTransformer', () => {
           signoff: SignoffStub({
             verdict: 'unconfirmable',
             evidence: 'playwright.config.ts declares no webServer, so no e2e run can reach the app',
-            question: 'Who owns adding a webServer block to playwright.config.ts?',
+            toSettle:
+              'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
           }),
         },
       ]);
@@ -572,12 +576,13 @@ describe('questSummaryBuildTransformer', () => {
                 flowriderSignoff: SignoffStub({
                   verdict: 'unconfirmable',
                   evidence: 'no webServer is declared for the e2e run',
-                  question: 'Who owns adding a webServer block?',
+                  toSettle: 'Add a webServer block to playwright.config.ts.',
                 }),
                 siegemasterSignoff: SignoffStub({
                   verdict: 'unconfirmable',
                   evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-                  question: 'Which port should the sandbox dev server use?',
+                  toSettle:
+                    'Start the sandbox dev server on the configured port, then re-walk this node.',
                 }),
               }),
             ],
@@ -598,7 +603,7 @@ describe('questSummaryBuildTransformer', () => {
           signoff: SignoffStub({
             verdict: 'unconfirmable',
             evidence: 'no webServer is declared for the e2e run',
-            question: 'Who owns adding a webServer block?',
+            toSettle: 'Add a webServer block to playwright.config.ts.',
           }),
         },
         {
@@ -610,7 +615,8 @@ describe('questSummaryBuildTransformer', () => {
           signoff: SignoffStub({
             verdict: 'unconfirmable',
             evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-            question: 'Which port should the sandbox dev server use?',
+            toSettle:
+              'Start the sandbox dev server on the configured port, then re-walk this node.',
           }),
         },
       ]);
@@ -628,7 +634,7 @@ describe('questSummaryBuildTransformer', () => {
                 siegemasterSignoff: SignoffStub({
                   verdict: 'unconfirmable',
                   evidence: 'the sandbox has no way to generate representative load',
-                  question: 'Where should the load profile for this flow come from?',
+                  toSettle: 'Drive this flow under the recorded load profile and read the timings.',
                 }),
               }),
             ],
@@ -648,7 +654,7 @@ describe('questSummaryBuildTransformer', () => {
           signoff: SignoffStub({
             verdict: 'unconfirmable',
             evidence: 'the sandbox has no way to generate representative load',
-            question: 'Where should the load profile for this flow come from?',
+            toSettle: 'Drive this flow under the recorded load profile and read the timings.',
           }),
         },
       ]);

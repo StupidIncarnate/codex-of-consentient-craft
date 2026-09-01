@@ -27,6 +27,8 @@
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test.
  */
 
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
+
 export const siegemasterWalkerStatics = {
   prompt: {
     template: `# siegemaster-walker
@@ -107,11 +109,19 @@ sees a question and nothing resumes you with an answer. Write what you do not kn
 ### 1. Read the flow
 
 \`\`\`
-get-quest({ questId: 'QUEST_ID', stage: 'spec' })
+get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief>' })
 \`\`\`
 
-Find the flow your brief named, and read your path through it — every node from the entry to the exit,
-every edge label along the way, every observable on those nodes.
+${spilledToolResultStatics.markdown}
+
+**Always with \`flowId\`, never with \`stage\`.** A whole-quest render carries every flow, and it
+grows with the quest — past the MCP result ceiling on any quest of real size. Over that ceiling the
+layer writes the result to a FILE and hands you an error stub, so you would walk holding a path
+instead of a spec, with nothing reporting a failure. \`flowId\` returns the one flow you were sent to
+walk, whatever the rest of the quest has grown to.
+
+Read your path through it — every node from the entry to the exit, every edge label along the way,
+every observable on those nodes.
 
 **An edge label is a branch you have to take.** A node with two labelled edges out of it is two walks,
 not one.
@@ -315,12 +325,13 @@ brief does not carry it and the checklist does not print it.
 \`BROKEN WOULD SHOW:\` line are already exactly that — copy them.
 
 **\`unconfirmable\` is for a unit no walk could reach**, after real effort. Say what you tried, and add
-\`question: '<what someone else would have to do>'\` — the contract refuses an \`unconfirmable\`
-without one.
+\`toSettle: '<the action that would settle it>'\` — an instruction someone can carry out, never a
+question. The contract refuses an \`unconfirmable\` without one.
 
-**A unit you simply did not reach stays UNSIGNED.** That is honest and costs nothing; a verdict
-closes a unit and a later session moves past it. Leave every unit not on your \`UNITS:\` list alone —
-another walk owns it.
+**A unit on your \`UNITS:\` list you could not reach stays UNSIGNED, and comes back NAMED in your
+return.** A verdict closes a unit and a later session moves past it, so never invent one — but a
+unit you drop silently costs your parent the walk it would have sent over it. Leave every unit NOT on
+your list alone: another walk owns it.
 
 **Send only \`id\` and the sign-off field on each element.** Never edit a unit's own text in the same
 call: signing something and rewriting what it says is how a walk quietly moves its own goalposts.

@@ -12,8 +12,9 @@
  * WHY A CEILING AND NOT A COUNT. Every term in a slice is already bounded by the SHAPE of the call:
  * one flow, its own contracts, the decisions that govern its nodes. What is not bounded is how much
  * an author wrote — an observable's description, a decision's rationale, a contract property's
- * requirement — and none of those may be cut per-field, because the sentence is the requirement.
- * A whole-render cut is the only honest bound, and it is loud when it fires.
+ * requirement, a sign-off's evidence — and none of those may be cut per-field, because each one IS
+ * what its reader was sent to act on. A whole-render cut is the only honest bound, and it is loud
+ * when it fires.
  *
  * MEASURED AGAINST THE LARGEST FLOW OF A REAL QUEST: 18 nodes, 19 edges, 47 observables, 12
  * contracts and 33 design decisions render at roughly 32,000 characters — comfortably under both

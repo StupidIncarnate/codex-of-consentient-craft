@@ -261,8 +261,10 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).toMatch(/^## Flow: #login-flow \u2014 "Login Flow"$/mu);
       expect(result).toMatch(/^Scope: authentication$/mu);
       expect(result).toMatch(/^Entry: login-page \| Exits: dashboard$/mu);
-      expect(result).toMatch(/^\[#login-page\] Login Page \(state\) \{auth-service\}$/mu);
-      expect(result).toMatch(/^ {2}> #shows-form: shows login form \[ui-state\]$/mu);
+      expect(result).toMatch(/^\[#login-page\] \{auth-service ● 1\} Login Page \(state\)$/mu);
+      expect(result).toMatch(
+        /^ {2}● #shows-form \{auth-service\} shows login form \[ui-state\]$/mu,
+      );
     });
 
     it('VALID: {quest: flow without scope} => omits scope line', () => {
@@ -302,7 +304,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^\[#login-page\] Login Page \(state\) \{auth-service\} \[F\u2713\]$/mu,
+        /^\[#login-page\] \{auth-service\} Login Page \(state\) \[F\u2713\]$/mu,
       );
     });
 
@@ -328,7 +330,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^\[#login-page\] Login Page \(state\) \{auth-service\} \[F\u2713 S\u2713\]$/mu,
+        /^\[#login-page\] \{auth-service\} Login Page \(state\) \[F\u2713 S\u2713\]$/mu,
       );
     });
 
@@ -351,7 +353,8 @@ describe('questToTextDisplayTransformer', () => {
                     siegemasterSignoff: SignoffStub({
                       verdict: 'unconfirmable',
                       evidence: 'the endpoint 500s before any validation runs',
-                      question: 'Should the router reject a non-JSON body before the handler?',
+                      toSettle:
+                        'Post a non-JSON body and read whether the router rejects it before the handler.',
                     }),
                   }),
                 ],
@@ -365,7 +368,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^ {2}> #crash-on-bleh: returns 400 for a non-JSON body \[api-call\] \+siegemaster \[S\?\]$/mu,
+        /^ {2}● #crash-on-bleh \{auth-service\} returns 400 for a non-JSON body \[api-call\] \+siegemaster \[S\?\]$/mu,
       );
     });
 
@@ -456,8 +459,8 @@ describe('questToTextDisplayTransformer', () => {
           '## Flow: #login-flow \u2014 "Login Flow"',
           'Entry: login-page | Exits: /dashboard',
           '',
-          '[#login-page] Login Page (state) {auth-service}',
-          '  > #shows-form: shows login form [ui-state]',
+          '[#login-page] {auth-service ● 1} Login Page (state)',
+          '  ● #shows-form {auth-service} shows login form [ui-state]',
           '  (terminal)',
           '',
           '## Operations',

@@ -106,19 +106,22 @@ describe('flowEvidenceContractStatics', () => {
       });
     });
 
-    // NO GATE COUNTS SIGN-OFFS ANY MORE. The completion gate that refused a parent's `done` over an
-    // absent sign-off is deleted, so the pressure that made a session reach for a verdict it could
-    // not back is gone with it. This block has to say so, or a reader carries the old incentive:
-    // sign something rather than leave a unit blank. The FALSE pins below name the three claims the
-    // deleted gate made, so none of them can drift back in.
-    it('VALID: judgingMarkdown => tells a reader an unsigned unit is honest, and claims no gate', () => {
+    // NOTHING COUNTS SIGN-OFFS, AND NOTHING OFFERS A WAY TO STOP SHORT. Those are two separate
+    // claims and this block pins both. The FALSE pins name three things this text must never say —
+    // that a blank never clears, that a completion gate refuses the parent's `done`, that a blank
+    // spends the pt chain. Each is a threat about a check nothing performs, and a session that
+    // believes one reaches for a verdict it cannot back rather than leaving the unit open. What
+    // does the work instead is the rule: never sign what you did not settle, and an unsettled unit
+    // is work remaining under an uncapped loop.
+    it('VALID: judgingMarkdown => refuses an unbacked verdict, and claims no gate', () => {
       expect({
-        unsignedIsHonest: judgingMarkdown.includes(
-          '**An unsigned unit is honest, and nothing refuses a `done` over one.**',
+        neverSignUnsettled: judgingMarkdown.includes('**Never sign a unit you did not settle.**'),
+        noGateCounts: judgingMarkdown.includes('No gate counts sign-offs'),
+        everyUnitCarriesAVerdict: judgingMarkdown.includes(
+          "**EVERY UNIT ON THE TRACK'S LIST ENDS THE PASS CARRYING ONE OF THOSE TWO. A third state does not exist, and neither does a blank.**",
         ),
-        noGateCounts: judgingMarkdown.includes('No gate counts sign-offs.'),
-        leaveItUnsigned: judgingMarkdown.includes(
-          'leave a unit you did not reach unsigned rather than reaching for a verdict that closes it',
+        noWayToStopShort: judgingMarkdown.includes(
+          'A pass that stops with a unit holding neither has not finished.',
         ),
         missingTestIsNotUnconfirmable: judgingMarkdown.includes(
           '**A unit that simply needs a test nobody has written yet is NOT `unconfirmable`.**',
@@ -133,9 +136,10 @@ describe('flowEvidenceContractStatics', () => {
         ),
         blankSpendsThePtChain: judgingMarkdown.includes('the pt chain spends itself against it'),
       }).toStrictEqual({
-        unsignedIsHonest: true,
+        neverSignUnsettled: true,
         noGateCounts: true,
-        leaveItUnsigned: true,
+        everyUnitCarriesAVerdict: true,
+        noWayToStopShort: true,
         missingTestIsNotUnconfirmable: true,
         missingTestGoesToRework: true,
         aVerdictClosesTheUnit: true,

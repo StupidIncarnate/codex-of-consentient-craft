@@ -122,13 +122,9 @@ const SIGNED_TARGET_FLOW = FlowStub({
       siegemasterSignoff: SIEGE_SIGNOFF,
     }),
   ],
-  offMapSignoffs: [
-    FlowOffMapSignoffStub({
-      id: 'concurrency',
-      flowriderSignoff: FLOWRIDER_SIGNOFF,
-      siegemasterSignoff: SIEGE_SIGNOFF,
-    }),
-  ],
+  // A family carries siegemaster's column alone, so the reset takes its whole record — unlike the
+  // node, observable and edge above, which keep their flowrider sign-off.
+  offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SIEGE_SIGNOFF })],
 });
 
 // A SECOND flow on the same quest, signed on both tracks. The reset must not touch a single key
@@ -155,13 +151,7 @@ const UNTOUCHED_OTHER_FLOW = FlowStub({
     }),
   ],
   edges: [],
-  offMapSignoffs: [
-    FlowOffMapSignoffStub({
-      id: 'staleness',
-      flowriderSignoff: FLOWRIDER_SIGNOFF,
-      siegemasterSignoff: SIEGE_SIGNOFF,
-    }),
-  ],
+  offMapSignoffs: [FlowOffMapSignoffStub({ id: 'staleness', siegemasterSignoff: SIEGE_SIGNOFF })],
 });
 
 const UNSIGNED_TARGET_FLOW = FlowStub({
@@ -176,7 +166,7 @@ const UNSIGNED_TARGET_FLOW = FlowStub({
 
 describe('questResetFlowSignoffsBroker', () => {
   describe('successful reset', () => {
-    it('VALID: {flow signed on both tracks} => persists a quest whose every siegemasterSignoff key is GONE, every flowriderSignoff intact, a walk-reset note appended, and the second flow byte-identical', async () => {
+    it('VALID: {flow signed on both tracks} => persists a quest whose every siegemasterSignoff key is GONE, every flowriderSignoff on a node, observable and edge intact, the off-map family down to its bare id, a walk-reset note appended, and the second flow byte-identical', async () => {
       const proxy = questResetFlowSignoffsBrokerProxy();
       proxy.setupQuestFound({
         quest: QuestStub({
@@ -262,7 +252,9 @@ describe('questResetFlowSignoffsBroker', () => {
                   flowriderSignoff: FLOWRIDER_SIGNOFF,
                 },
               ],
-              offMapSignoffs: [{ id: 'concurrency', flowriderSignoff: FLOWRIDER_SIGNOFF }],
+              // Down to the bare family id: siegemaster's is the only column a family has, so the
+              // reset leaves nothing behind on it.
+              offMapSignoffs: [{ id: 'concurrency' }],
             },
             UNTOUCHED_OTHER_FLOW,
           ],

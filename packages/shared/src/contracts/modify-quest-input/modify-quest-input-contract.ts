@@ -13,7 +13,8 @@
  * is the safe shape for editing entries another minion may have written.
  *
  * The sign-off fields on the flow shapes — `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff` on an
- * observable, a node and an edge, and the latter two on each `offMapSignoffs` entry — are `.nullish()` HERE while the
+ * observable, a node and an edge, and `siegemasterSignoff` alone on each `offMapSignoffs` entry, since a probe family
+ * is measured by hand and no other track has a column there — are `.nullish()` HERE while the
  * persisted contracts keep them
  * `.optional()`. `null` is the clear marker a reset writes: `{ id, siegemasterSignoff: null }` says "take this track's
  * sign-off off this unit", which `.optional()` alone cannot express, because omitting the key is how a patch says
@@ -92,19 +93,19 @@ const serverStampedTimestamp = z
 
 // `signoffContract` carries a `.superRefine`, which makes it a ZodEffects with no `.extend()`, so
 // the input variant is rebuilt from its `.innerType()`. That is also why the unconfirmable-needs-a-
-// question rule is restated here rather than inherited — each copy is pinned by its own contract
+// `toSettle` rule is restated here rather than inherited — each copy is pinned by its own contract
 // test, and dropping it here would demote a form-level rejection to an opaque whole-quest re-parse
 // failure at save time.
 const signoffForUpsertContract = signoffContract
   .innerType()
   .extend({ at: serverStampedTimestamp })
   .superRefine((value, ctx) => {
-    if (value.verdict === 'unconfirmable' && value.question === undefined) {
+    if (value.verdict === 'unconfirmable' && value.toSettle === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['question'],
+        path: ['toSettle'],
         message:
-          'question is required when verdict is unconfirmable — say what was tried and why it could not be confirmed',
+          'toSettle is required when verdict is unconfirmable — state the action that would settle this unit, as an instruction rather than a question',
       });
     }
   });
@@ -170,7 +171,6 @@ const fullFlow = flowContract.extend({
   offMapSignoffs: z
     .array(
       flowOffMapSignoffContract.extend({
-        flowriderSignoff: signoffForUpsertContract.nullish(),
         siegemasterSignoff: signoffForUpsertContract.nullish(),
       }),
     )

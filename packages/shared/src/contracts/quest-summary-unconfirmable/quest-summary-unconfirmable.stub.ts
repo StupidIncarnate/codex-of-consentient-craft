@@ -17,7 +17,7 @@ export const QuestSummaryUnconfirmableStub = ({
       verdict: 'unconfirmable',
       evidence:
         'the project playwright.config.ts declares no webServer, so no e2e run can reach the app',
-      question: 'Who owns adding a webServer block to playwright.config.ts?',
+      toSettle: 'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
     }),
     ...props,
   });

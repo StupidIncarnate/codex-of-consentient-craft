@@ -22,10 +22,10 @@
  * `unconfirmable` SETTLES A UNIT WITHOUT PROVING IT, which is exactly why it needs its own list.
  * Nothing on a quest refuses the ABSENCE of a sign-off, so a quest can reach `complete` with real
  * holes in it and every one of those holes is an `unconfirmable` verdict. Nothing else surfaces
- * them: the flow counts say how many, and this says which, why, and what someone would have to
- * answer to close it.
+ * them: the flow counts say how many, and this says which, why, and what someone would have to DO to
+ * close it.
  *
- * THE WHOLE `signoff` IS CARRIED rather than `evidence` and `question` copied out of it. Those two
+ * THE WHOLE `signoff` IS CARRIED rather than `evidence` and `toSettle` copied out of it. Those two
  * are the point of the entry, but `workItemId` and `at` are what make it routable — who to ask and
  * when they hit the wall — and re-declaring the fields here would let the two shapes drift.
  *

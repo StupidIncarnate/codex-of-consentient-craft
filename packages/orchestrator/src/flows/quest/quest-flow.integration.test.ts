@@ -64,7 +64,7 @@ describe('QuestFlow', () => {
       const siegemasterUnconfirmable = SignoffStub({
         verdict: 'unconfirmable',
         evidence: 'the dev server refuses to bind port 3737 inside this sandbox',
-        question: 'Which port should the sandbox dev server use?',
+        toSettle: 'Start the sandbox dev server on the configured port, then re-walk this node.',
         at: '2026-01-02T00:00:00.000Z',
       });
 
@@ -1644,9 +1644,7 @@ describe('QuestFlow', () => {
               }),
             ],
             edges: [],
-            offMapSignoffs: [
-              FlowOffMapSignoffStub({ id: 'concurrency', flowriderSignoff, siegemasterSignoff }),
-            ],
+            offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff })],
           }),
           FlowStub({
             id: 'signup-flow',
@@ -1708,7 +1706,6 @@ describe('QuestFlow', () => {
         loginObservableSiegemaster: loginNode.observables[0]!.siegemasterSignoff,
         loginObservableFlowrider: loginNode.observables[0]!.flowriderSignoff,
         loginOffMapSiegemaster: loginFlow.offMapSignoffs[0]!.siegemasterSignoff,
-        loginOffMapFlowrider: loginFlow.offMapSignoffs[0]!.flowriderSignoff,
         signupNodeSiegemaster: signupFlow.nodes[0]!.siegemasterSignoff,
         signupNodeFlowrider: signupFlow.nodes[0]!.flowriderSignoff,
         notes: afterReset.planningNotes.questNotes.map((note) => ({
@@ -1723,7 +1720,6 @@ describe('QuestFlow', () => {
         loginObservableSiegemaster: undefined,
         loginObservableFlowrider: flowriderSignoff,
         loginOffMapSiegemaster: undefined,
-        loginOffMapFlowrider: flowriderSignoff,
         signupNodeSiegemaster: siegemasterSignoff,
         signupNodeFlowrider: flowriderSignoff,
         notes: [

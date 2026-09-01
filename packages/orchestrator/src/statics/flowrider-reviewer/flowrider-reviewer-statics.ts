@@ -24,6 +24,7 @@
 
 import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
+import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 
 export const flowriderReviewerStatics = {
   prompt: {
@@ -99,10 +100,12 @@ get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief>' })
 get-qa-checklist({ questId: 'QUEST_ID', operationItemId: '<the id in your brief>' })
 \`\`\`
 
-**Never call \`get-quest\` without \`flowId\`.** A whole-quest render measures about seventy
-thousand characters on a real three-flow quest, over the MCP ceiling — the layer then writes it to a
-FILE and hands you an error stub, so you would grade this work holding a path instead of a spec,
-with nothing reporting a failure.
+${spilledToolResultStatics.markdown}
+
+**Never call \`get-quest\` without \`flowId\`.** A whole-quest render carries every flow, and it
+grows with the quest — past the MCP result ceiling on any quest of real size. Over that ceiling the
+layer writes the result to a FILE and hands you an error stub, so you would grade this work holding a
+path instead of a spec, with nothing reporting a failure.
 
 The quest gives you EVERY flow on this quest; yours is the one the checklist header names. The checklist gives you every unit on it and, in its
 \`## CHECK SURFACES\` legend, the layer each kind of unit is measured at.
@@ -110,12 +113,10 @@ The quest gives you EVERY flow on this quest; yours is the one the checklist hea
 **The observable's own words are the target.** Not your parent's map, not the test's name, not a
 commit message.
 
-**A \`codeweaverSignoff\` does not settle a unit for this track.** It says a unit test claims that
-unit, and **a unit test proves whatever it did not mock.** Where your parent left a unit uncovered
-because one existed, open that test yourself. If its assertion reads the value through a mock of the
-very thing the observable names — a mocked fetch for an \`api-call\`, a spied write for a
-\`db-query\`, a jsdom read for painted geometry — then the mock is what was proved, the unit is not
-covered, and it belongs in your \`NEXT: rework\`.
+**Another track's sign-off settles nothing here, and you grade nothing of theirs.** Every unit on the
+checklist is one this track owes a verdict on, whatever another track recorded against it. You judge
+the tests THIS work produced, against the units the checklist lists — never another track's tests, and
+never whether one of theirs was good enough to excuse a unit here.
 
 ### 3. Find out what changed
 
@@ -153,11 +154,12 @@ Three more questions, specific to this work:
    passes while proving something else.
 3. **Which units did nobody cover?** Subtract the units the work covered from the checklist. Name
    what is left. A green suite over half a flow reports nothing about the other half.
-4. **Does every sign-off this work wrote hold?** Your parent transcribed each one from a sub-agent's
-   own report, having opened no test — so nobody has checked them. The checklist marks every signed
-   unit. For each, open the \`file:line\` its evidence cites and confirm the assertion is there and
-   bites. **A citation pointing at nothing, or at a test that cannot fail, is \`NEXT: rework\` naming
-   that unit.**
+4. **Does every unit this work SIGNED have a test you opened?** Your parent transcribed each sign-off
+   from a sub-agent's own report, having opened no test — so nobody has checked one until you do. The
+   checklist marks a signed unit \`[x]\`. For each \`[x]\` this pass produced, find the test in the work
+   and name the wrong value that turns it red. **An \`[x]\` no test in this work proves is
+   \`NEXT: rework\` naming that unit** — a sign-off nothing backs is worse than an unsigned unit,
+   because a later session reads it as settled and never looks again.
 
 ### 5. Take the standing concerns on the same files
 

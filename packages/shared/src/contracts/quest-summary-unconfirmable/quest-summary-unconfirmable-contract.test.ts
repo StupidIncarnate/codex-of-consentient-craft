@@ -16,7 +16,8 @@ describe('questSummaryUnconfirmableContract', () => {
           verdict: 'unconfirmable',
           evidence:
             'the project playwright.config.ts declares no webServer, so no e2e run can reach the app',
-          question: 'Who owns adding a webServer block to playwright.config.ts?',
+          toSettle:
+            'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
         }),
       });
     });
@@ -46,7 +47,8 @@ describe('questSummaryUnconfirmableContract', () => {
           verdict: 'unconfirmable',
           evidence:
             'the project playwright.config.ts declares no webServer, so no e2e run can reach the app',
-          question: 'Who owns adding a webServer block to playwright.config.ts?',
+          toSettle:
+            'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
         }),
       });
     });
@@ -59,7 +61,7 @@ describe('questSummaryUnconfirmableContract', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID: {signoff unconfirmable with no question} => throws, an unconfirmable must be routable', () => {
+    it('INVALID: {signoff unconfirmable with no toSettle} => throws, an unconfirmable must be routable', () => {
       expect(() =>
         questSummaryUnconfirmableContract.parse({
           id: 'login-flow:observable:rejects-bleh-payload:flowrider',
@@ -74,7 +76,7 @@ describe('questSummaryUnconfirmableContract', () => {
             at: '2026-01-01T00:00:00.000Z',
           },
         }),
-      ).toThrow(/question is required when verdict is unconfirmable/u);
+      ).toThrow(/toSettle is required when verdict is unconfirmable/u);
     });
 
     it('INVALID: {unitId: "not-three-segments"} => throws', () => {

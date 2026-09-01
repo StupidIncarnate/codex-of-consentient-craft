@@ -381,9 +381,16 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   prompt path (`chatPromptBuildTransformer`), not by `get-agent-prompt`. There are no `.claude/agents/*.md` files for
   these agents.
 
-  A relay work-item role calls `get-agent-prompt({agent, questId, workItemId})` — the responder resolves the work
-  item's linked operation item (its `operations/<id>` ref) and interpolates its scope into the returned prompt. A
-  parent-summoned minion calls `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and gets
+  A relay work-item role calls `get-agent-prompt({agent, questId, workItemId})` — the responder resolves the work item's
+  linked operation item (its `operations/<id>` ref) and substitutes FOUR IDS into the prompt: the quest, the work item,
+  the operation item, and that operation item's TEXT. **No quest CONTENT is served with them.** The flow, the contracts
+  and the units are each their own `get-quest` / `get-qa-checklist` call, spelled out in the role's own prompt, and the
+  flow id and package name those calls take are inside the operation item's text (`… — package: <name> · flow: <id>`).
+  Three role-specific extras ride along, and each is a value no tool call returns: `Dev Server Command` /
+  `Dev Server URL` for siegemaster, `Base branch` for warpgate, and
+  `Failed ward result` / `Ward detail blob` for spiritmender.
+
+  A parent-summoned minion calls `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and gets
   back its prompt plus the Quest ID and nothing else; everything narrower reaches it through its parent's brief.
 
   **`agentPromptGetBroker` throws twice**: on a ROLE that omits its `workItemId`, and on a MINION that supplies one —
@@ -433,21 +440,20 @@ across three readers serves each of them answers it cannot use.
 
 ### 4. Check the RENDERER before promising a session what it will be handed
 
-A prompt that enumerates what a session receives is a claim about a transformer, and those
-transformers gate nearly every block on non-emptiness. `codeweaverScopeBlockTransformer` renders
-`Seams` only when the item's package shares a node with another package on its flow, and
-`Shared homes` only when the quest declares a `library`-kind package that is not the item's own — so a cell on a
-single-package flow, in a quest declaring no library package, receives NEITHER, and that is correct. The codeweaver
-prompt says what an ABSENT `Shared homes` line means, and what to do about it, at the point it names that block. **Trace
-the render for the DEGENERATE case** — no flow, no package, no seam, no shared home, an empty diff — never the happy
-one.
+A prompt that enumerates what a session receives is a claim about a transformer. **`workItemToPromptTransformer`
+serves FOUR IDS and three conditional extras — nothing else** — so a prompt sentence pointing at anything wider than
+that names a block no session will find. What a role fetches for itself is `get-quest` / `get-qa-checklist`, and each of
+those gates blocks on non-emptiness too. **Trace the render for the DEGENERATE case** — no flow, no package, no
+contract, an empty diff — never the happy one. Two of the extras are conditional: siegemaster gets no dev-server lines
+where `.dungeonmaster.json` declares no `devServer`, and spiritmender gets no ward lines where no `wardResult` has a
+non-zero `exitCode`.
 
 ### 5. Validate by DRY-RUNNING the prompt against a real quest
 
 **Reading a prompt tells you whether it is coherent. Only a dry run tells you whether it works.**
 Pick a live quest, take a real `operationItemId` off its ledger, and walk the prompt as that role
-against what the tools actually return: `get-quest`, `get-qa-checklist({ questId, operationItemId })`,
-and the scope block the transformer renders. Do it for EVERY ROLE the change touches — the three
+against what the tools actually return: `get-quest`, `get-qa-checklist({ questId, operationItemId })`, and the four ids
+the transformer substitutes. Do it for EVERY ROLE the change touches — the three
 prompt families diverge exactly where it matters, and a fix that reads well on one is often wrong on
 the next.
 
@@ -570,9 +576,9 @@ named reviewer commits it.
   that keep it there are in step 2 and step 3: it reads `git log` for what the cells before it committed (library
   packages run first, so the helper it is about to brief may already be on the branch), and where a change needs
   behaviour from a sibling it MOVES that code into a package both can call rather than copying it or importing across.
-  WHICH package that is is named per quest by the `Shared homes` block
-  `codeweaverScopeBlockTransformer` renders, never by the prompt: every repo picks its own name for it (`shared`,
-  `shared-core`, `shared-ui`), so the `library` KIND is the only thing a prompt can be written against.
+  WHICH package that is is found through `get-project-map`, by KIND rather than by name: every repo picks its own name
+  for it (`shared`, `shared-core`, `shared-ui`), so the `library` label the map prints is the only thing a prompt can be
+  written against.
 - **Flowrider** (ten steps) reads the flow, takes its denominator from
   `get-qa-checklist({ questId, operationItemId })`, reads the implementation to learn the exact value each unit
   claims, chooses a LAYER per unit (in a real browser, or below one), writes the same shape of map, briefs a
@@ -1100,11 +1106,27 @@ tags ANY of its packages, glue included — no track mints a seam item, so a glu
 be owned by nobody). Only siegemaster carries `off-map` in its `unitKinds`, and flowrider alone is measured over
 `runtime` flows only.
 
-**An unsigned unit refuses nothing.** Each operator prompt says so in as many words: leave a unit unsigned where you
-simply did not get to it. What the sign-offs buy is a durable, per-unit record of what was proved and by what
-evidence, readable by the next session and by the quest summary — `confirmed` needs a `file:line` and the wrong value
-that turns it red, or the value measured off the running system; `unconfirmable` needs what was tried and a `question`
-naming what someone else would have to do.
+**EVERY UNIT ON A TRACK'S LIST ENDS ITS PASS CARRYING `confirmed` OR `unconfirmable`.** There is no third verdict, no
+blank, and no wording anywhere that lets a session stop short: a unit still owed a test is work remaining under a loop
+that has no cap, and a unit the track cannot settle at any layer is `unconfirmable`. **No operator prompt may contain
+wording that reads an unsettled unit as a finished outcome** ("leave it unsigned", "you did not get to it", "nothing
+refuses your `done`"); the pins in `flow-evidence-contract-statics.test.ts` keep those out.
+
+**Nothing COUNTS sign-offs, and no gate may be added that does.** A check refusing a `done` over an absent sign-off
+pressures a session into a verdict it cannot back, which is worse than the gap it closes. The rule above plus "never
+sign a unit you did not settle" is what holds the line. What the sign-offs buy is a durable, per-unit record of what was
+proved and by what evidence, readable by the next session and by the quest summary — `confirmed` needs a
+`file:line` and the wrong value that turns it red, or the value measured off the running system; `unconfirmable` needs
+what was tried plus `toSettle`.
+
+**`toSettle` is an INSTRUCTION, never a question.** It is the action that would settle the unit — "drive a real send
+through a live quest and read the session JSONL for a Read call on the written path" — and the contract refuses an
+`unconfirmable` without one. A question hands the next session something to answer where it needed something to do.
+
+**No track audits another track's tests, and none may be told to.** Flowrider proves every `[ ]` unit on its own
+checklist whatever marks the graph carries beside it — a sign-off from another track never shrinks a denominator.
+Grading someone else's evidence to decide whether a unit still counts trades certain coverage for a guess, and the guess
+fails silently: judging a mocked assertion "real" drops that unit from the last track that would have caught it.
 
 **A measured defect is a NEW observable, not a verdict.** An observable is a positive expectation, so its inverse
 ("send `bleh` and the server crashes instead of returning 400") is ADDED to the flow through the additive spec
@@ -1486,10 +1508,9 @@ restart.
 
 Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. The dispatch
 surface (`/dumpster-launch`'s Task() invocations) hands each sub-agent a stub prompt that
-says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instructions
-exactly." The MCP responder interpolates work-item-specific context (the linked operation
-item's scope, package, contracts, file paths) into the returned prompt and stamps
-`workItem.sessionId` (parent UUID) +
+says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instructions exactly." The MCP responder
+substitutes four ids (quest, work item, operation item, and the operation item's text) into the returned prompt — no
+quest content, which each role fetches for itself — and stamps `workItem.sessionId` (parent UUID) +
 `workItem.agentId` (sub-agent realAgentId) from MCP request metadata: Claude Code surfaces
 `request.params._meta.claudecode/toolUseId` on every MCP call (the toolUseId of the
 sub-agent's OWN MCP call, not the parent Task() dispatch id). The responder scans every

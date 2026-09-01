@@ -29,8 +29,11 @@
  * RENDERS it per unit: a unit's own line carries `[<observableType>]` and nothing else, and the
  * surfaces arrive once each — a `## CHECK SURFACES` legend over exactly the observable types present
  * on that flow (from `qaCheckSurfaceStatics.byOutcomeType`), plus fixed `## TERMINAL SURFACE`,
- * `## BRANCH SURFACE` and `## OFF-MAP SURFACE` headings. So both blocks state the JOIN instead of
- * sending a session to read a field it will not find. An inline copy here would restate that legend
+ * `## BRANCH SURFACE` and, for the one track that signs them, `## OFF-MAP SURFACE`. So both blocks
+ * state the JOIN instead of sending a session to read a field it will not find. They name the first
+ * two fixed headings and not the third: `off-map` is in siegemaster's `unitKinds` alone, and a
+ * checklist omits every kind its track never signs, so no probe family reaches flowrider or its
+ * reviewer in any form. An inline copy here would restate that legend
  * a second time, wider and staler than the one both roles already fetch. Both roles fetch that
  * checklist before they author or judge anything. Siegemaster
  * has always read the surface off that tool. Its prompts carry no table. These two blocks now match
@@ -82,8 +85,8 @@ Most false claims fail at item 4. "Fails if the text is wrong" is not an answer.
 renders the older comment first, because the assertion pins the exact order \`[newer, older]\`" is one.
 
 **Never take a unit's surface from memory.** \`get-qa-checklist\` prints a \`## CHECK SURFACES\`
-legend — join the \`[type]\` tag on an observable's own line to its row there, and take a terminal,
-branch or off-map unit's surface from its \`## TERMINAL/BRANCH/OFF-MAP SURFACE\` heading — and that
+legend — join the \`[type]\` tag on an observable's own line to its row there, and take a terminal or
+branch unit's surface from its \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` heading — and that
 string is authoritative: reject an assertion whose layer disagrees with it, on that disagreement
 alone.
 
@@ -114,7 +117,7 @@ Each shape below passes while the observable stays unproven. Each shipped in thi
 ## Verdicts — a unit carries one sign-off per track, and there are three
 
 A unit is settled PER TRACK, never once for everybody. Each field holds
-\`{ verdict, evidence, question?, workItemId, at }\`, and each says something the others do not:
+\`{ verdict, evidence, toSettle?, workItemId, at }\`, and each says something the others do not:
 
 | Field | What it means | What its \`confirmed\` evidence is |
 |---|---|---|
@@ -124,12 +127,17 @@ A unit is settled PER TRACK, never once for everybody. Each field holds
 
 - **\`confirmed\`** — you settled it, and the evidence above is what settles it.
 - **\`unconfirmable\`** — you could not settle it after real effort. \`evidence\` names what you TRIED
-  and why each attempt could not reach the unit. **A \`question\` naming what someone else would need
-  is REQUIRED**; the contract refuses an \`unconfirmable\` carrying none.
+  and why each attempt could not reach the unit. **A \`toSettle\` is REQUIRED**; the contract refuses
+  an \`unconfirmable\` carrying none. It is the ACTION that would settle the unit, written as an
+  instruction someone can carry out — never as a question, which hands the next session something to
+  answer where it needed something to do.
 
-**An unsigned unit is honest, and nothing refuses a \`done\` over one.** No gate counts sign-offs.
-What gets marked is what somebody actually proved, so leave a unit you did not reach unsigned rather
-than reaching for a verdict that closes it.
+**EVERY UNIT ON THE TRACK'S LIST ENDS THE PASS CARRYING ONE OF THOSE TWO. A third state does not
+exist, and neither does a blank.** A pass that stops with a unit holding neither has not finished.
+
+**Never sign a unit you did not settle.** No gate counts sign-offs, so this rule is the only thing
+between a session and a verdict it cannot back — and what gets marked has to stay what somebody
+actually proved.
 
 **A unit that simply needs a test nobody has written yet is NOT \`unconfirmable\`.** It is work
 remaining: put it in your \`NEXT: rework\` line. A verdict CLOSES a unit, and a later session reads a
@@ -150,8 +158,8 @@ answers whether the unit is settled.`,
 **A flow is not one technology. Neither is a node.** One flow routinely crosses a browser, an HTTP
 route, a persistence layer and a spawned process. You can prove each of its observables at exactly
 one of those layers. Join the \`[type]\` tag on an observable's own checklist line to its row in the
-\`## CHECK SURFACES\` legend — a terminal, branch or off-map unit takes its own
-\`## TERMINAL/BRANCH/OFF-MAP SURFACE\` heading instead — and assert at that surface. A
+\`## CHECK SURFACES\` legend — a terminal or branch unit takes its own \`## TERMINAL SURFACE\` /
+\`## BRANCH SURFACE\` heading instead — and assert at that surface. A
 flow's \`flowType\` is a hint about where its centre of gravity sits. It never overrides the modality
 you chose for a single observable.
 

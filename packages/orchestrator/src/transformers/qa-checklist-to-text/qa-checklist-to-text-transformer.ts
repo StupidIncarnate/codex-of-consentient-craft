@@ -22,19 +22,18 @@
  * The `[x]`/`[ ]` column is the resume property made visible: a later session sees at a glance what
  * a predecessor actually landed, rather than reconstructing it from prose in a commit body.
  *
- * THERE IS A THIRD MARK, `[-]`, AND IT EXISTS BECAUSE `[x]` WAS LYING. A unit leaves
- * `remainingItemIds` for two unrelated reasons: it was SIGNED on the calling track, or it was never
- * on that track's denominator at all. Rendered identically, the second reads to a planner as "an
- * earlier round already proved this". Measured on a real quest, every one of the seven off-map
- * probe families rendered `[x] already settled on the flowrider track` — a track whose `unitKinds`
- * excludes off-map entirely, so nothing had settled anything. A Flowrider planner reading that
- * concludes this quest's only security and performance coverage is done.
+ * A UNIT THE CALLING TRACK CANNOT SIGN IS OMITTED, NOT MARKED. Two of the six exclusions in
+ * `signoffTrackEligibilityStatics` are computable here, because this file holds the items and the
+ * track: `unitKinds` (off-map is siegemaster's alone) and `verificationMethods` (a `verifyByReading`
+ * observable is codeweaver's alone). Both are filtered out of the rows, the surfaces and the
+ * DENOMINATOR — a session that reads `58 of 67` is measuring itself against nine units no session of
+ * its role can ever close, and a planner reading a settled-looking mark beside the seven off-map
+ * families concludes this quest's only security and performance coverage is done.
  *
- * `[-]` is UNIT-KIND ineligibility alone, because that is the only one of the six exclusions in
- * `signoffTrackEligibilityStatics` this file can compute — it holds the items and the track, and
- * nothing about the packages a unit's node is tagged with. The other exclusions (package kind, flow
- * type, provenance) still land in `[x]`, so the caption says in as many words that `[x]` covers both
- * meanings rather than claiming the one it used to.
+ * THE OTHER EXCLUSIONS STILL LAND IN `[x]`, which is why the caption says what `[x]` does and does
+ * not mean. Package kind, flow type and provenance are properties of a unit's owning node or its
+ * `addedBy`, and this file holds neither — so `[x]` means "signed on your track, or not yours by one
+ * of those", and never "somebody already proved this the way you would have".
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -54,12 +53,43 @@ export const qaChecklistToTextTransformer = ({
   track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
 }): ContentText => {
   const remaining = new Set(checklist.remainingItemIds.map(String));
+  // Annotated rather than inferred: `byTrack[track]` with a union `track` yields a UNION of readonly
+  // tuples, and `.includes` is generic in its element type, so TS rejects the call as having no
+  // signature compatible across the members. Widening to the item's own `kind` union — never to
+  // `string` — collapses that to one array type while keeping every member assignable.
+  const trackUnitKinds: readonly QaChecklistItem['kind'][] | undefined =
+    track === undefined ? undefined : signoffTrackEligibilityStatics.byTrack[track].unitKinds;
+
+  const trackMethods: readonly ('test' | 'reading')[] | undefined =
+    track === undefined
+      ? undefined
+      : signoffTrackEligibilityStatics.byTrack[track].verificationMethods;
+
+  // A UNIT THIS TRACK CANNOT SIGN IS NOT ON ITS LIST AT ALL — not as a row, not as a surface, not in
+  // its denominator. Two exclusions bite, and both are read from `signoffTrackEligibilityStatics`
+  // rather than branched on a role name here:
+  //
+  // - KIND. Only siegemaster carries `off-map`, so a flowrider checklist printing the seven probe
+  //   families spends a heading, seven rows and a surface paragraph on work that track cannot take.
+  // - VERIFICATION METHOD. A `verifyByReading` observable is settled by opening a source file, which
+  //   only codeweaver's track does; flowrider and siegemaster carry `test` alone.
+  //
+  // Both inflate the denominator a session reads its own progress against, which is the cost that
+  // matters — a flowrider seeing `58 of 67` is measuring itself against nine units it can never
+  // reach, and the nine are invisible as such once they scroll past their legend.
+  const items = checklist.items.filter(
+    (item) =>
+      (trackUnitKinds === undefined || trackUnitKinds.includes(item.kind)) &&
+      (trackMethods === undefined ||
+        trackMethods.includes(item.verifyByReading === true ? 'reading' : 'test')),
+  );
   const byKind = {
-    terminal: checklist.items.filter((item) => item.kind === 'terminal'),
-    branch: checklist.items.filter((item) => item.kind === 'branch'),
-    observable: checklist.items.filter((item) => item.kind === 'observable'),
-    'off-map': checklist.items.filter((item) => item.kind === 'off-map'),
+    terminal: items.filter((item) => item.kind === 'terminal'),
+    branch: items.filter((item) => item.kind === 'branch'),
+    observable: items.filter((item) => item.kind === 'observable'),
+    'off-map': items.filter((item) => item.kind === 'off-map'),
   };
+  const remainingCount = items.filter((item) => remaining.has(String(item.id))).length;
 
   const presentTypes = [
     ...new Set(
@@ -71,12 +101,6 @@ export const qaChecklistToTextTransformer = ({
 
   const signoffField =
     track === undefined ? undefined : signoffTrackEligibilityStatics.byTrack[track].signoffField;
-  // Annotated rather than inferred: `byTrack[track]` with a union `track` yields a UNION of readonly
-  // tuples, and `.includes` is generic in its element type, so TS rejects the call as having no
-  // signature compatible across the members. Widening to the item's own `kind` union — never to
-  // `string` — collapses that to one array type while keeping every member assignable.
-  const trackUnitKinds: readonly QaChecklistItem['kind'][] | undefined =
-    track === undefined ? undefined : signoffTrackEligibilityStatics.byTrack[track].unitKinds;
   const remainingCaption =
     signoffField === undefined
       ? 'no sign-off yet on the track you are signing'
@@ -85,26 +109,24 @@ export const qaChecklistToTextTransformer = ({
     signoffField === undefined
       ? '## UNITS — [ ] outstanding on your track, [x] already settled on it'
       : [
-          `## UNITS — [ ] awaiting your \`${signoffField}\` (the field THIS track writes), [x] not awaiting it, [-] not on the ${String(track)} track at all`,
-          '[x] says ONLY that this unit is not yours to sign right now. It is EITHER already signed on',
-          `the ${String(track)} track, OR outside that track's denominator because another track owns its`,
-          'package kind. Never read it as "an earlier session already proved this the way you would have".',
-          `[-] is a unit KIND the ${String(track)} track never signs. Do not cover it, and do not count it`,
-          'as covered — another role owns it end to end.',
+          `## UNITS — [ ] awaiting your \`${signoffField}\` (the field THIS track writes), [x] not awaiting it`,
+          '[x] says ONLY that this unit is not yours to sign right now: it is already signed on the',
+          `${String(track)} track, or another track owns its package kind. Never read it as "an earlier`,
+          'session already proved this the way you would have".',
         ].join('\n');
 
   const header = [
     `# QA CHECKLIST — flow \`${String(checklist.flowId)}\` "${String(checklist.flowName)}"`,
     `Entry point: ${String(checklist.entryPoint)}`,
-    `Units: ${checklist.items.length} (${byKind.terminal.length} terminal, ${byKind.branch.length} branch, ${byKind.observable.length} observable, ${byKind['off-map'].length} off-map)`,
-    `REMAINING (${remainingCaption}): ${checklist.remainingItemIds.length} of ${checklist.items.length}`,
+    `Units: ${items.length} (${byKind.terminal.length} terminal, ${byKind.branch.length} branch, ${byKind.observable.length} observable, ${byKind['off-map'].length} off-map)`,
+    `REMAINING (${remainingCaption}): ${remainingCount} of ${items.length}`,
     '',
     'This list IS the definition of done for this flow. Paths are the itinerary; units are the',
     'coverage. A flow can be two paths carrying twenty observables, so walking every path proves',
     'nothing on its own.',
     'The two tracks are measured separately: your sign-off field is the only one counted here, and',
     "the other track's sign-off on a unit never settles yours. Both verdicts close a unit —",
-    '`confirmed` with evidence, or `unconfirmable` with what you tried plus a `question`.',
+    '`confirmed` with evidence, or `unconfirmable` with what you tried plus a `toSettle`.',
   ].join('\n');
 
   // Printed only when the flow actually carries one, and printed BESIDE the type surfaces rather
@@ -126,17 +148,18 @@ export const qaChecklistToTextTransformer = ({
               ]),
         ].join('\n');
 
-  const kindSurfaces = [
-    '',
-    '## TERMINAL SURFACE',
-    qaCheckSurfaceStatics.byKind.terminal,
-    '',
-    '## BRANCH SURFACE',
-    qaCheckSurfaceStatics.byKind.branch,
-    '',
-    '## OFF-MAP SURFACE',
-    qaCheckSurfaceStatics.byKind['off-map'],
-  ].join('\n');
+  // One surface per kind the reader can actually sign, in the same order the unit blocks below run.
+  // A surface for a kind absent from this track's list names a measurement nobody here will make.
+  const kindSurfaces = (
+    [
+      ['terminal', '## TERMINAL SURFACE'],
+      ['branch', '## BRANCH SURFACE'],
+      ['off-map', '## OFF-MAP SURFACE'],
+    ] as const
+  )
+    .filter(([kind]) => trackUnitKinds === undefined || trackUnitKinds.includes(kind))
+    .flatMap(([kind, heading]) => ['', heading, qaCheckSurfaceStatics.byKind[kind]])
+    .join('\n');
 
   const paths = [
     '',
@@ -160,14 +183,13 @@ export const qaChecklistToTextTransformer = ({
       ['OFF-MAP PROBES', byKind['off-map']],
     ] as const
   )
-    .map(([title, items]) =>
+    .filter(([, kindItems]) => kindItems.length > 0)
+    .map(([title, kindItems]) =>
       [
         '',
-        `### ${title} (${items.length})`,
-        ...items.map((item) => {
-          const offTrackKind = trackUnitKinds !== undefined && !trackUnitKinds.includes(item.kind);
-          const settledMark = offTrackKind ? '[-]' : '[x]';
-          const mark = remaining.has(String(item.id)) ? '[ ]' : settledMark;
+        `### ${title} (${kindItems.length})`,
+        ...kindItems.map((item) => {
+          const mark = remaining.has(String(item.id)) ? '[ ]' : '[x]';
           const type = item.observableType === undefined ? '' : `  [${item.observableType}]`;
           const readCheck =
             item.verifyByReading === true ? `  ${textDisplaySymbolsStatics.readCheckMark}` : '';
