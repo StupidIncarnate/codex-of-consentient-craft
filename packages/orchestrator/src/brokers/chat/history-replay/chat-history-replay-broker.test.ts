@@ -56,6 +56,44 @@ describe('chatHistoryReplayBroker', () => {
       ]);
     });
 
+    it('VALID: {main session JSONL carries a user line whose content is a pasted-image markdown token} => the replayed entry rewrites the image path into a server URL', async () => {
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-pasted-image' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const pastedImageLine = JSON.stringify({
+        ...UserTextStringStreamLineStub({
+          message: { role: 'user', content: 'A![Pasted Image 1](/p/x.png)B' },
+        }),
+        uuid: 'pasted-image-line-uuid',
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupMainSession({ content: pastedImageLine });
+      proxy.setupSubagentDirMissing();
+
+      const allEntries: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntries: ({ entries }) => {
+          allEntries.push(...entries);
+        },
+      });
+
+      const pastedImageContents = allEntries
+        .map((entry) => entry as Record<PropertyKey, unknown>)
+        .map((entry) => String(entry.content));
+
+      expect(pastedImageContents.at(0)).toBe(
+        'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
+      );
+    });
+
     it('EMPTY: {session with only system entries} => emits nothing', async () => {
       const proxy = chatHistoryReplayBrokerProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });

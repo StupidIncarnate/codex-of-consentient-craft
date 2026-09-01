@@ -116,6 +116,99 @@ describe('checkPrimitiveViolationLayerBroker', () => {
     });
   });
 
+  it('VALID: {allowPrimitiveInputs: true, node in destructured parameter with a default value} => does not report', () => {
+    // Regression: `({ x }: { x: string } = {}) => {}` wraps the ObjectPattern in an
+    // AssignmentPattern (the default value), so `.params` lives one level above the
+    // ObjectPattern's own parent rather than on it directly.
+    const proxy = checkPrimitiveViolationLayerBrokerProxy();
+    const mockReport = jest.fn();
+    const ctx = EslintContextStub({ report: mockReport });
+
+    const assignmentPatternNode = TsestreeStub({
+      type: 'AssignmentPattern',
+      parent: null,
+    });
+
+    const functionNode = TsestreeStub({
+      type: 'ArrowFunctionExpression',
+      params: [assignmentPatternNode],
+    });
+
+    assignmentPatternNode.parent = functionNode;
+
+    const objectPatternNode = TsestreeStub({
+      type: 'ObjectPattern',
+      parent: assignmentPatternNode,
+    });
+
+    const annotationNode = TsestreeStub({
+      type: 'TSTypeAnnotation',
+      parent: objectPatternNode,
+    });
+
+    const stringNode = TsestreeStub({
+      type: 'TSStringKeyword',
+      parent: annotationNode,
+    });
+
+    proxy.checkPrimitiveViolationLayerBroker({
+      node: stringNode,
+      typeName: 'string',
+      suggestion: 'BrandedString',
+      allowPrimitiveInputs: true,
+      allowPrimitiveReturns: false,
+      ctx,
+    });
+
+    expect(mockReport.mock.calls).toStrictEqual([]);
+  });
+
+  it('VALID: {allowPrimitiveInputs: true, node in direct parameter with a default value} => does not report', () => {
+    // Regression: `(x: string = "a") => {}` wraps the Identifier in an AssignmentPattern
+    // the same way the destructured case does.
+    const proxy = checkPrimitiveViolationLayerBrokerProxy();
+    const mockReport = jest.fn();
+    const ctx = EslintContextStub({ report: mockReport });
+
+    const assignmentPatternNode = TsestreeStub({
+      type: 'AssignmentPattern',
+      parent: null,
+    });
+
+    const functionNode = TsestreeStub({
+      type: 'ArrowFunctionExpression',
+      params: [assignmentPatternNode],
+    });
+
+    assignmentPatternNode.parent = functionNode;
+
+    const identifierNode = TsestreeStub({
+      type: 'Identifier',
+      parent: assignmentPatternNode,
+    });
+
+    const annotationNode = TsestreeStub({
+      type: 'TSTypeAnnotation',
+      parent: identifierNode,
+    });
+
+    const stringNode = TsestreeStub({
+      type: 'TSStringKeyword',
+      parent: annotationNode,
+    });
+
+    proxy.checkPrimitiveViolationLayerBroker({
+      node: stringNode,
+      typeName: 'string',
+      suggestion: 'BrandedString',
+      allowPrimitiveInputs: true,
+      allowPrimitiveReturns: false,
+      ctx,
+    });
+
+    expect(mockReport.mock.calls).toStrictEqual([]);
+  });
+
   it('INVALID: {allowPrimitiveInputs: true, node in type property} => reports error', () => {
     const proxy = checkPrimitiveViolationLayerBrokerProxy();
     const mockReport = jest.fn();

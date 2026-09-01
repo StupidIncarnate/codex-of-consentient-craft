@@ -8,6 +8,7 @@ type FileName = ReturnType<typeof FileNameStub>;
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 import { timerSetIntervalAdapterProxy } from '../../../adapters/timer/set-interval/timer-set-interval-adapter.proxy';
 
+import { questGetServerConfigBrokerProxy } from '../get-server-config/quest-get-server-config-broker.proxy';
 import { scanSubagentsDirLayerBrokerProxy } from './scan-subagents-dir-layer-broker.proxy';
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
 
@@ -41,8 +42,16 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   setupLines: (params: { lines: readonly string[] }) => void;
   triggerChange: () => void;
   triggerPollTick: () => void;
+  setPort: (params: { value: string }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
+  // The broker now resolves the server's port via questGetServerConfigBroker to build the
+  // serverBaseUrl it hands to chatLineProcessTransformer. Stage a port BEFORE any test runs —
+  // without it, portResolveBroker falls through to processCwdAdapter() and an fs walk for
+  // .dungeonmaster.json, and this suite's fs mock throws on unmatched calls, turning every
+  // test in this file red. `setPort` is exposed so a test can pin a different port.
+  const serverConfigProxy = questGetServerConfigBrokerProxy();
+  serverConfigProxy.setPort({ value: '3737' });
   // `startSubagentTailLayerBrokerProxy()`, `scanSubagentsDirLayerBrokerProxy()`, and
   // `fsWatchTailAdapterProxy()` all end up registering against the same registerMock
   // callerPath for `fsWatchTailAdapter`. The LAST mockImplementation call wins on jest's
@@ -123,5 +132,6 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
     triggerPollTick: (): void => {
       intervalProxy.triggerTick();
     },
+    setPort: serverConfigProxy.setPort,
   };
 };

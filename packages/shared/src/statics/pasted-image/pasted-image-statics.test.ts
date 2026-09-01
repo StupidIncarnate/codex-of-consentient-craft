@@ -14,6 +14,7 @@ describe('pastedImageStatics', () => {
       imageTokenPattern: '!\\[Pasted Image (\\d+)\\]\\(([^)]+)\\)',
       promptSentinel: '<!-- dungeonmaster:images -->',
       promptInstruction: 'Read every image referenced above before answering.',
+      serveRoutePath: '/api/images',
     });
   });
 });

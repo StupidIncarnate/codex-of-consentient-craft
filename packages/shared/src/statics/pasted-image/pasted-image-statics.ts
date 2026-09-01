@@ -37,6 +37,10 @@
  * normaliser cuts the identical span before its duplicate check, so the trailer is invisible in the
  * UI and inert against that comparison. `promptInstruction` is the one line that trailer carries,
  * telling the agent to read the images before it answers.
+ *
+ * `serveRoutePath` is the mount point the orchestrator's user-line parser builds
+ * `<serverUrl><serveRoutePath>?path=<encoded>` from and the server mounts its image-serve route at,
+ * so the two cannot drift apart.
  */
 
 export const pastedImageStatics = {
@@ -51,4 +55,5 @@ export const pastedImageStatics = {
   imageTokenPattern: '!\\[Pasted Image (\\d+)\\]\\(([^)]+)\\)',
   promptSentinel: '<!-- dungeonmaster:images -->',
   promptInstruction: 'Read every image referenced above before answering.',
+  serveRoutePath: '/api/images',
 } as const;

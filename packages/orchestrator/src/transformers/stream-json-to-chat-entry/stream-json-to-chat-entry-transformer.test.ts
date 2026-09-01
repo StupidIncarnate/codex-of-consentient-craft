@@ -22,6 +22,7 @@ const normalize = (value: unknown): unknown => snakeKeysToCamelKeysTransformer({
 
 const UUID1 = '00000000-0000-4000-8000-000000000001';
 const TS = '1970-01-01T00:00:00.000Z';
+const BASE_URL = 'http://dungeonmaster.localhost:3737';
 
 describe('streamJsonToChatEntryTransformer', () => {
   describe('system init messages', () => {
@@ -525,6 +526,55 @@ describe('streamJsonToChatEntryTransformer', () => {
           {
             role: 'user',
             content: 'plain string without tool results',
+            uuid: `${UUID1}:user`,
+            timestamp: TS,
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {type: "user", string content with an image token, serverBaseUrl supplied} => returns entry with the rewritten URL string', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const parsed = normalize(
+        UserTextStringStreamLineStub({
+          message: { role: 'user', content: 'A![Pasted Image 1](/p/x.png)B' },
+        }),
+      );
+
+      const result = streamJsonToChatEntryTransformer({ parsed, serverBaseUrl: BASE_URL });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'user',
+            content:
+              'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
+            uuid: `${UUID1}:user`,
+            timestamp: TS,
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('EDGE: {type: "user", string content with an image token, serverBaseUrl omitted} => content comes back byte-identical to the raw string', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const parsed = normalize(
+        UserTextStringStreamLineStub({
+          message: { role: 'user', content: 'A![Pasted Image 1](/p/x.png)B' },
+        }),
+      );
+
+      const result = streamJsonToChatEntryTransformer({ parsed });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'user',
+            content: 'A![Pasted Image 1](/p/x.png)B',
             uuid: `${UUID1}:user`,
             timestamp: TS,
           },

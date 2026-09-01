@@ -51,26 +51,34 @@ export const checkPrimitiveViolationLayerBroker = ({
           break;
         }
 
-        // Check if this annotation is on a direct parameter
+        // Check if this annotation is on a direct parameter — possibly defaulted
+        // (`(x: T = value) => {}`), in which case the Identifier's immediate parent is an
+        // AssignmentPattern rather than the function itself, so `.params` lives one level up.
         if (annotationParent.type === 'Identifier') {
           const identifierParent = annotationParent.parent;
+          const paramHolder =
+            identifierParent && identifierParent.type === 'AssignmentPattern'
+              ? identifierParent.parent
+              : identifierParent;
           const hasParams =
-            identifierParent &&
-            'params' in identifierParent &&
-            Array.isArray(identifierParent.params);
+            paramHolder && 'params' in paramHolder && Array.isArray(paramHolder.params);
           if (hasParams) {
             isParameter = true;
             break;
           }
         }
 
-        // Check if this annotation is on a destructured parameter
+        // Check if this annotation is on a destructured parameter — possibly defaulted
+        // (`({x}: T = {}) => {}`), in which case the ObjectPattern's immediate parent is an
+        // AssignmentPattern rather than the function itself, so `.params` lives one level up.
         if (annotationParent.type === 'ObjectPattern') {
           const objectPatternParent = annotationParent.parent;
+          const paramHolder =
+            objectPatternParent && objectPatternParent.type === 'AssignmentPattern'
+              ? objectPatternParent.parent
+              : objectPatternParent;
           const hasParams =
-            objectPatternParent &&
-            'params' in objectPatternParent &&
-            Array.isArray(objectPatternParent.params);
+            paramHolder && 'params' in paramHolder && Array.isArray(paramHolder.params);
           if (hasParams) {
             isPropertyInParameter = true;
             break;

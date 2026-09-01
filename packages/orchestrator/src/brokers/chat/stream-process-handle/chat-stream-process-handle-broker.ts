@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Per-spawn handle that processes Claude CLI output lines through the converged chat-line processor — translating raw stdout/JSONL lines into ChatEntry batches, eagerly stamping sub-agent correlation, and dispatching `chatSubagentTailBroker` instances on every detected `agent-detected` signal so streaming and file sources for the same agent share one realAgentId↔toolUseId reverse map. Both the chat-spawn pipeline (chaoswhisperer / glyphsmith) and every relay-role agent session dispatched by /dumpster-launch (codeweaver, flowrider, siegemaster, spiritmender, etc.) wire their per-line callback through this broker so all four pipelines emit identical ChatEntry shapes. Plain-text lines (ward stdout, `spawnerType: 'command'`) bypass the processor and are wrapped in a single assistant-text ChatEntry. Required `onText` + `onSignal` callbacks fire from the same per-line normalize pass so callers consume captured assistant text and signal-back tool_use events without re-parsing.
+ * PURPOSE: Per-spawn handle that processes Claude CLI output lines through the converged chat-line processor — translating raw stdout/JSONL lines into ChatEntry batches, eagerly stamping sub-agent correlation, and dispatching `chatSubagentTailBroker` instances on every detected `agent-detected` signal so streaming and file sources for the same agent share one realAgentId↔toolUseId reverse map. Both the chat-spawn pipeline (chaoswhisperer / glyphsmith) and every relay-role agent session dispatched by /dumpster-launch (codeweaver, flowrider, siegemaster, spiritmender, etc.) wire their per-line callback through this broker so all four pipelines emit identical ChatEntry shapes. Plain-text lines (ward stdout, `spawnerType: 'command'`) bypass the processor and are wrapped in a single assistant-text ChatEntry. Required `onText` + `onSignal` callbacks fire from the same per-line normalize pass so callers consume captured assistant text and signal-back tool_use events without re-parsing. A live user line's pasted-image paths reach the browser as `/api/images` URLs rather than raw filesystem paths.
  *
  * USAGE:
  * const handle = chatStreamProcessHandleBroker({
@@ -22,6 +22,7 @@ import { chatEntryContract, sessionIdContract } from '@dungeonmaster/shared/cont
 import type { ChatEntry, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
+import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
@@ -67,7 +68,9 @@ export const chatStreamProcessHandleBroker = ({
   // session across every live source it has.
   processor: ChatLineProcessor;
 } => {
-  const processor = chatLineProcessTransformer();
+  const processor = chatLineProcessTransformer({
+    serverBaseUrl: questGetServerConfigBroker().baseUrl,
+  });
   const sessionSource = chatLineSourceContract.parse('session');
   // Memoized once any line carrying it (typically system/init) is seen. The processor's
   // `agent-detected` handler below requires a sessionId to resolve the sub-agent JSONL

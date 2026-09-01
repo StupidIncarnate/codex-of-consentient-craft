@@ -23,6 +23,7 @@ const UUID1 = '00000000-0000-4000-8000-000000000001';
 const UUID2 = '00000000-0000-4000-8000-000000000002';
 const UUID3 = '00000000-0000-4000-8000-000000000003';
 const TS = '1970-01-01T00:00:00.000Z';
+const BASE_URL = 'http://dungeonmaster.localhost:3737';
 
 describe('chatLineProcessTransformer', () => {
   describe('regression: Claude CLI null stop_reason on streamed deltas', () => {
@@ -1765,6 +1766,69 @@ describe('chatLineProcessTransformer', () => {
 
       expect(paired).toBe(true);
       expect(processor.resolveParentRealAgentId({ agentId: realB })).toBe('real-parent-a');
+    });
+  });
+
+  describe('serverBaseUrl image path rewriting', () => {
+    it('VALID: {factory built with serverBaseUrl, user line carries an image token} => emitted entry content is the rewritten URL string', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer({ serverBaseUrl: BASE_URL });
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({
+        parsed: {
+          type: 'user',
+          message: { role: 'user', content: 'A![Pasted Image 1](/p/x.png)B' },
+        },
+        source,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'user',
+              content:
+                'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
+              source: 'session',
+              uuid: `${UUID1}:user`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('EDGE: {factory built with no serverBaseUrl, user line carries an image token} => emitted entry content is byte-identical to the raw string', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({
+        parsed: {
+          type: 'user',
+          message: { role: 'user', content: 'A![Pasted Image 1](/p/x.png)B' },
+        },
+        source,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'user',
+              content: 'A![Pasted Image 1](/p/x.png)B',
+              source: 'session',
+              uuid: `${UUID1}:user`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
     });
   });
 });

@@ -2,6 +2,7 @@ import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
+import { questGetServerConfigBrokerProxy } from '../../quest/get-server-config/quest-get-server-config-broker.proxy';
 import { chatSubagentTailBrokerProxy } from '../subagent-tail/chat-subagent-tail-broker.proxy';
 
 type GuildConfig = Parameters<
@@ -16,9 +17,17 @@ export const chatStreamProcessHandleBrokerProxy = (): {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
+  setPort: (params: { value: string }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
   const subagentTailProxy = chatSubagentTailBrokerProxy();
+  // The broker now resolves the server's bound port to build the pasted-image rewrite
+  // base URL. Stage a default HERE, in the constructor, before any test runs — without
+  // it DUNGEONMASTER_PORT is unset, portResolveBroker falls through to processCwdAdapter()
+  // and an fs walk for .dungeonmaster.json, and this suite's fs mock throws on unmatched
+  // calls, turning every existing test in the file red.
+  const serverConfigProxy = questGetServerConfigBrokerProxy();
+  serverConfigProxy.setPort({ value: '3737' });
 
   const uuidMock: SpyOnHandle = registerSpyOn({ object: crypto, method: 'randomUUID' });
   const dateMock: SpyOnHandle = registerSpyOn({ object: Date.prototype, method: 'toISOString' });
@@ -52,5 +61,6 @@ export const chatStreamProcessHandleBrokerProxy = (): {
         dateMock.onceFor([]).returns(timestamp);
       }
     },
+    setPort: serverConfigProxy.setPort,
   };
 };

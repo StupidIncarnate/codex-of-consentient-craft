@@ -30,6 +30,7 @@ export const ChatReplayResponderProxy = (): {
   setupQuestWorktreeMissing: ReturnType<
     typeof chatHistoryReplayBrokerProxy
   >['setupQuestWorktreeMissing'];
+  setPort: ReturnType<typeof chatHistoryReplayBrokerProxy>['setPort'];
   setupEventCapture: () => {
     getEmittedEvents: () => readonly {
       type: OrchestrationEventType;
@@ -59,6 +60,7 @@ export const ChatReplayResponderProxy = (): {
     setupQuestFile: questListProxy.setupQuestFile,
     setupQuestWorktree: historyProxy.setupQuestWorktree,
     setupQuestWorktreeMissing: historyProxy.setupQuestWorktreeMissing,
+    setPort: historyProxy.setPort,
     setupEventCapture: () => {
       const emittedEvents: {
         type: OrchestrationEventType;

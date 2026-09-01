@@ -12,7 +12,23 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import type { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
 import { ChatReplayResponderProxy } from './chat-replay-responder.proxy';
+
+// Derived from chatHistoryReplayBroker's own onEntries parameter type (never imported from
+// contracts) so the pasted-image cases below can narrow a captured chat-output payload's
+// entries to the 'user' variant and assert its `content` field directly, instead of comparing
+// the whole entries array. setupEventCapture's payload is a generic Record<PropertyKey,
+// unknown> shared across three different event types (test files may not import contracts, so
+// there is no schema to parse it through), so bridging its `entries` field into this shape
+// needs one assertion at that boundary — external, uncertain data, the same class as
+// JSON.parse. The union-to-variant narrow below it uses a type predicate instead of a second
+// cast.
+type ChatOutputEntries = Parameters<
+  Parameters<typeof chatHistoryReplayBroker>[0]['onEntries']
+>[0]['entries'];
+type ChatOutputEntry = ChatOutputEntries[0];
+type ChatOutputUserEntry = Extract<ChatOutputEntry, { role: 'user' }>;
 
 describe('ChatReplayResponder', () => {
   describe('history complete event', () => {
@@ -293,6 +309,134 @@ describe('ChatReplayResponder', () => {
       // session is linked to a quest workItem). sessionId is always present so the
       // SessionViewWidget readonly viewer can bucket entries per-session, and `replay`
       // marks the frame as a transcript read off disk rather than an agent emitting.
+      expect(chatOutputPayloadKeys).toStrictEqual([
+        ['chatProcessId', 'entries', 'replay', 'sessionId'],
+      ]);
+    });
+  });
+
+  describe('pasted-image path rewriting', () => {
+    it('VALID: {session linked to a quest, main session user line carries a pasted-image token} => chat-output payload entry content is the rewritten /api/images URL', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-pasted-image-linked' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-linked' });
+      const guild = GuildStub({ id: guildId });
+      const linkedWorkItem = WorkItemStub({
+        role: 'chaoswhisperer',
+        sessionId,
+        status: 'complete',
+      });
+      const quest = QuestStub({ workItems: [linkedWorkItem] });
+      const worktreePath = '/home/user/worktrees/quest-pasted-image';
+
+      // Quest lookup runs FIRST in the responder. Stage it before the chatHistoryReplayBroker
+      // stubs, which resolve their JSONL directory through questCwdResolveBroker BEFORE
+      // touching any JSONL.
+      const questsPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath,
+      });
+      proxy.setupQuestDirectories({
+        files: [FileNameStub({ value: quest.folder })],
+      });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({
+          value: `${questsPath}/${quest.folder}/quest.json`,
+        }),
+      });
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(quest),
+      });
+
+      // A linked quest sends questId into chatHistoryReplayBroker, which resolves the JSONL
+      // directory via questCwdResolveBroker rather than the guild-path walk-up — without
+      // staging an answer for it here, that mock throws unmatched-call, the responder's
+      // catch swallows it silently, and no chat-output frame ever fires.
+      proxy.setupQuestWorktree({ questId: quest.id, worktreePath });
+      // homeDir MUST be '/home/user' here, matching guildConfigReadBrokerProxy's own internal
+      // default: setupGuild's guildProxy.setupConfig() unconditionally stages an os.homedir()
+      // answer even though guildGetBroker is never actually invoked on this (worktree) branch —
+      // a phantom entry that would otherwise sit ahead of ours in the shared one-shot queue and
+      // get picked up by chatHistoryReplayBroker's own (real) os.homedir() call instead.
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/user',
+      });
+      proxy.setupMainSession({
+        content:
+          '{"type":"user","uuid":"pasted-image-linked-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"role":"user","content":"A![Pasted Image 1](/p/x.png)B"}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      const events = eventCapture.getEmittedEvents();
+      const chatOutputEvent = events.find((e) => e.type === 'chat-output');
+      const entries = chatOutputEvent?.payload.entries as ChatOutputEntries | undefined;
+      const userEntry = entries?.find(
+        (entry): entry is ChatOutputUserEntry => entry.role === 'user',
+      );
+
+      expect(userEntry?.content).toBe(
+        'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
+      );
+    });
+
+    it('EDGE: {orphan session with no linked quest, main session user line carries a pasted-image token} => chat-output payload entry content is rewritten the same way and carries no questId', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-pasted-image-orphan' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-orphan' });
+      const guild = GuildStub({ id: guildId });
+
+      // Quest list comes back EMPTY — sessionId belongs to no quest workItem.
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/testuser',
+      });
+      proxy.setupMainSession({
+        content:
+          '{"type":"user","uuid":"pasted-image-orphan-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"role":"user","content":"A![Pasted Image 1](/p/x.png)B"}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      const events = eventCapture.getEmittedEvents();
+      const chatOutputEvent = events.find((e) => e.type === 'chat-output');
+      const entries = chatOutputEvent?.payload.entries as ChatOutputEntries | undefined;
+      const userEntry = entries?.find(
+        (entry): entry is ChatOutputUserEntry => entry.role === 'user',
+      );
+
+      expect(userEntry?.content).toBe(
+        'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
+      );
+
+      // Mirrors the "orphan session (no linked quest)" case above: exactly one chat-output
+      // frame fired, and its payload keys carry no questId/workItemId.
+      const chatOutputPayloadKeys = events
+        .filter((e) => e.type === 'chat-output')
+        .map((e) => Object.keys(e.payload).sort());
+
       expect(chatOutputPayloadKeys).toStrictEqual([
         ['chatProcessId', 'entries', 'replay', 'sessionId'],
       ]);

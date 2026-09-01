@@ -31,6 +31,7 @@ import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
+import { questGetServerConfigBrokerProxy } from '../../quest/get-server-config/quest-get-server-config-broker.proxy';
 import { chatReplayJsonlReadBrokerProxy } from '../replay-jsonl-read/chat-replay-jsonl-read-broker.proxy';
 import { scopeSubagentFilesToDescendantsLayerBrokerProxy } from './scope-subagent-files-to-descendants-layer-broker.proxy';
 
@@ -52,12 +53,20 @@ export const chatHistoryReplayBrokerProxy = (): {
   setupQuestWorktree: (params: { questId: QuestId; worktreePath: string }) => void;
   setupQuestRepoRoot: (params: { questId: QuestId; repoRoot: string }) => void;
   setupQuestWorktreeMissing: (params: { questId: QuestId; worktreePath: string }) => void;
+  setPort: (params: { value: string }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
   cwdResolveBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
+  // The broker resolves a port to build the serverBaseUrl it hands the chat-line processor.
+  // Staged here, before any test runs, so every existing test in this file — none of which
+  // sets DUNGEONMASTER_PORT itself — doesn't fall through portResolveBroker to a real fs walk
+  // for `.dungeonmaster.json` (this suite's fs mock throws on unmatched calls). Exposed as
+  // `setPort` below so an individual test can pin a different port.
+  const serverConfigProxy = questGetServerConfigBrokerProxy();
+  serverConfigProxy.setPort({ value: '3737' });
   const homedirProxy = osUserHomedirAdapterProxy();
   const readJsonlProxy = fsReadJsonlAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();
@@ -214,5 +223,6 @@ export const chatHistoryReplayBrokerProxy = (): {
         }),
       );
     },
+    setPort: serverConfigProxy.setPort,
   };
 };
