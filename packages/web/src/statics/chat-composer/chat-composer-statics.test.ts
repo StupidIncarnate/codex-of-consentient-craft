@@ -7,11 +7,16 @@ describe('chatComposerStatics', () => {
       draftDatabase: {
         name: 'dungeonmaster-chat-drafts',
         version: 1,
-        storeName: 'draft-images',
+        storeName: 'dungeonmaster-chat-draft-images',
       },
       thumbnail: {
         attributeName: 'data-attachment-id',
         testId: 'CHAT_INPUT_THUMBNAIL',
+      },
+      upload: {
+        minPercent: 0,
+        maxPercent: 100,
+        testId: 'CHAT_INPUT_UPLOAD_PROGRESS',
       },
       toasts: {
         unsupportedFormat: 'Only PNG, JPEG, GIF and WebP images can be pasted',
@@ -24,5 +29,17 @@ describe('chatComposerStatics', () => {
 
   it('VALID: draftStorageKey => matches the localStorage key ChatInputWidget reads and writes today', () => {
     expect(chatComposerStatics.draftStorageKey).toBe('dungeonmaster-chat-draft');
+  });
+
+  it('VALID: draftDatabase.storeName => matches the shared pastedImage store name, not itself', () => {
+    expect(chatComposerStatics.draftDatabase.storeName).toBe('dungeonmaster-chat-draft-images');
+  });
+
+  it('VALID: exported value => upload group carries all three keys and values', () => {
+    expect(chatComposerStatics.upload).toStrictEqual({
+      minPercent: 0,
+      maxPercent: 100,
+      testId: 'CHAT_INPUT_UPLOAD_PROGRESS',
+    });
   });
 });

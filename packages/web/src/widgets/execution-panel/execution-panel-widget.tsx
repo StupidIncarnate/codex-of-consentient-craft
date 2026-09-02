@@ -33,9 +33,11 @@ import { displayLabelContract } from '../../contracts/display-label/display-labe
 import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
+import type { PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '@dungeonmaster/shared/contracts';
+import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import {
   isAnyAgentRunningQuestStatusGuard,
   isCompletedSuccessfullyQuestStatusGuard,
@@ -82,7 +84,11 @@ export interface ExecutionPanelWidgetProps {
   onAbandon?: () => void;
   followupEntries?: ChatEntry[];
   isFollowupStreaming?: boolean;
-  onSendFollowupMessage?: (params: { message: UserInput }) => void;
+  onSendFollowupMessage?: (params: {
+    message: UserInput;
+    images?: readonly PastedImageUpload[];
+    onProgress?: UploadProgressHandler;
+  }) => Promise<void>;
   onStopFollowup?: () => void;
   onMerge?: () => void;
 }
@@ -120,7 +126,7 @@ const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-conten
 // clamp effect below correcting activeTab away from 'followup' — these keep that tick
 // type-safe without allocating a fresh function identity every render.
 const NOOP_FOLLOWUP_HANDLERS = {
-  sendMessage: (): void => undefined,
+  sendMessage: async (): Promise<void> => Promise.resolve(),
   stopChat: (): void => undefined,
 };
 

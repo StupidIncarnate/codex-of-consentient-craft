@@ -15,6 +15,7 @@ import { Box, Stack, Text } from '@mantine/core';
 import type {
   ChatEntry,
   GuildId,
+  PastedImageUpload,
   QuestId,
   QuestStatus,
   QuestType,
@@ -45,6 +46,7 @@ import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import { dropdownOptionContract } from '../../contracts/dropdown-option/dropdown-option-contract';
 import type { DropdownOption } from '../../contracts/dropdown-option/dropdown-option-contract';
+import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { questTypeOptionsStatics } from '../../statics/quest-type-options/quest-type-options-statics';
@@ -167,15 +169,28 @@ export const QuestChatContentLayerWidget = ({
   }, [disarmFollowupStreaming, stopFollowupChat]);
 
   const handleSend = useCallback(
-    ({ message }: { message: UserInput }): void => {
+    async ({
+      message,
+      images,
+      onProgress,
+    }: {
+      message: UserInput;
+      images?: readonly PastedImageUpload[];
+      onProgress?: UploadProgressHandler;
+    }): Promise<void> => {
       if (questId !== null) {
-        // Normal path — binding handles user message, resume-if-paused, POST.
-        sendMessage({ message });
-        return;
+        // Normal path — binding handles user message, resume-if-paused, POST. sendMessage already
+        // rejects (after its own side-effect cleanup) on failure — returned directly, not caught
+        // here, so the composer sees the same rejection and can toast/restore from it.
+        return sendMessage({
+          message,
+          ...(images === undefined ? {} : { images }),
+          ...(onProgress === undefined ? {} : { onProgress }),
+        });
       }
       // First-message path — create the quest, then replace-navigate so the SAME component instance
       // keeps rendering with questId set; localEntries keeps the message visible until replay catches up.
-      if (isStreaming) return;
+      if (isStreaming) return Promise.resolve();
       const userEntry = chatEntryContract.parse({
         role: 'user',
         content: message,
@@ -186,7 +201,13 @@ export const QuestChatContentLayerWidget = ({
       // The binding cannot arm this turn itself — there is no questId to POST to until the quest
       // exists — so the caller that owns the round-trip arms it. The wire disarms it like any other.
       armStreaming();
-      questNewBroker({ guildId, message, questType: selectedQuestType })
+      return questNewBroker({
+        guildId,
+        message,
+        questType: selectedQuestType,
+        ...(images === undefined ? {} : { images }),
+        ...(onProgress === undefined ? {} : { onProgress }),
+      })
         .then(({ questId: newQuestId }) => {
           const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
           if (result instanceof Promise) {
@@ -206,6 +227,9 @@ export const QuestChatContentLayerWidget = ({
             timestamp: new Date().toISOString(),
           });
           setLocalEntries((prev) => [...prev, errorEntry]);
+          // The composer toasts this exact rejection and restores the user's text/thumbnails — it
+          // can only do that if this promise rejects. Do not swallow or wrap it.
+          throw err;
         });
     },
     [
@@ -467,7 +491,14 @@ export const QuestChatContentLayerWidget = ({
         questModifyBroker({ questId: quest.id, modifications })
           .then(() => {
             if (nextStatus === 'flows_approved') {
-              sendMessage({ message: FLOWS_APPROVED_FOLLOWUP_MESSAGE });
+              sendMessage({ message: FLOWS_APPROVED_FOLLOWUP_MESSAGE }).catch(
+                (sendError: unknown) => {
+                  globalThis.console.error(
+                    '[quest-chat] flows-approved follow-up failed',
+                    sendError,
+                  );
+                },
+              );
             }
             // Other gate-approved statuses (approved, design_approved):
             // deliberately no follow-up message — the agent's response could

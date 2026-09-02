@@ -1,5 +1,6 @@
 import {
   AskUserQuestionStub,
+  PastedImageUploadStub,
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
@@ -932,10 +933,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message });
         },
       });
 
@@ -965,6 +963,80 @@ describe('useQuestChatBinding', () => {
         stopChat: expect.any(Function),
         stopFollowupChat: expect.any(Function),
       });
+    });
+
+    it('VALID: #check-subsequent-message-takes-image-path {mid-quest questId already in hand, composer holding an image} => the POST body carries both the tokenised message and the image', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-send-image-1' });
+      const message = UserInputStub({ value: 'Look at this [Pasted Image 1]' });
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-send-image' }) });
+      proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000d01'] });
+      proxy.setupTimestamps({ timestamps: ['2026-09-01T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({ message, images: [image] });
+        },
+      });
+
+      // The wrong value this turns red against: the binding dropping `images` on the way to the
+      // broker, which posts { message } alone and loses the attachment entirely.
+      expect(proxy.getChatRequestBody()).toStrictEqual({
+        message: 'Look at this [Pasted Image 1]',
+        images: [image],
+      });
+    });
+
+    // Regression guard for the re-throw step 1 adds: a widget that only checked the transcript, or
+    // only checked the rejection, would miss a regression on the half it didn't assert. The composer
+    // needs BOTH — the transcript entry to render the failure, the rejection to trigger its toast and
+    // restore the user's text/thumbnails.
+    it('ERROR: {questChatBroker rejects} => appends a system error entry AND rejects the returned promise', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-send-error-1' });
+      const message = UserInputStub({ value: 'This will fail' });
+      const userUuid = '00000000-0000-4000-8000-000000000d02';
+      const errorUuid = '00000000-0000-4000-8000-000000000d03';
+      const userTs = '2026-09-01T00:00:00.000Z';
+      const errorTs = '2026-09-01T00:00:01.000Z';
+      proxy.setupChatError();
+      proxy.setupUuids({ uuids: [userUuid, errorUuid] });
+      proxy.setupTimestamps({ timestamps: [userTs, errorTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await expect(result.current.sendMessage({ message })).rejects.toThrow(
+            /^xhrPostWithProgressAdapter: network error posting to \/api\/quests\/quest-send-error-1\/chat$/u,
+          );
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, [
+        { role: 'user', content: 'This will fail', uuid: userUuid, timestamp: userTs },
+        {
+          role: 'system',
+          type: 'error',
+          content:
+            'xhrPostWithProgressAdapter: network error posting to /api/quests/quest-send-error-1/chat',
+          uuid: errorUuid,
+          timestamp: errorTs,
+        },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
     });
   });
 
@@ -1204,10 +1276,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message });
         },
       });
 
@@ -1243,10 +1312,9 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await expect(result.current.sendMessage({ message })).rejects.toThrow(
+            /^POST \/api\/quests\/quest-pause-resume-2\/resume failed with status 500$/u,
+          );
         },
       });
 
@@ -1388,10 +1456,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
       const afterSend = result.current.isStreaming;
@@ -1473,10 +1538,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
 
@@ -1560,10 +1622,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
 
@@ -1936,10 +1995,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendFollowupMessage({ message });
         },
       });
 
@@ -1984,10 +2040,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendFollowupMessage({ message });
         },
       });
 
@@ -2008,7 +2061,7 @@ describe('useQuestChatBinding', () => {
       });
     });
 
-    it('EMPTY: {questId: null} => is a no-op, no POST and no followup entries', () => {
+    it('EMPTY: {questId: null} => is a no-op, no POST and no followup entries', async () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
 
@@ -2016,9 +2069,9 @@ describe('useQuestChatBinding', () => {
         renderCallback: () => useQuestChatBinding({ questId: null }),
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
 
@@ -2048,10 +2101,11 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Any updates?' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await expect(
+            result.current.sendFollowupMessage({
+              message: UserInputStub({ value: 'Any updates?' }),
+            }),
+          ).rejects.toThrow(/^Quest must be blocked, complete or merged for follow-up$/u);
         },
       });
 
@@ -2095,12 +2149,11 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'Show me the feature' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await expect(
+            result.current.sendFollowupMessage({
+              message: UserInputStub({ value: 'Show me the feature' }),
+            }),
+          ).rejects.toThrow(/^Failed to start follow-up chat$/u);
         },
       });
 
@@ -2134,22 +2187,16 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
+          await result.current.sendFollowupMessage({
             message: UserInputStub({ value: 'First question' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
+          await result.current.sendFollowupMessage({
             message: UserInputStub({ value: 'Second question' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
@@ -2547,22 +2594,16 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({
+          await result.current.sendMessage({
             message: UserInputStub({ value: 'Main composer message' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
+          await result.current.sendFollowupMessage({
             message: UserInputStub({ value: 'Followup composer message' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
@@ -2678,9 +2719,8 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'What broke?' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'What broke?' }),
           });
         },
       });
@@ -2792,9 +2832,8 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'What broke?' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'What broke?' }),
           });
         },
       });
@@ -2834,13 +2873,12 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'main turn' }) });
-          result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'followup turn' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await Promise.all([
+            result.current.sendMessage({ message: UserInputStub({ value: 'main turn' }) }),
+            result.current.sendFollowupMessage({
+              message: UserInputStub({ value: 'followup turn' }),
+            }),
+          ]);
         },
       });
 

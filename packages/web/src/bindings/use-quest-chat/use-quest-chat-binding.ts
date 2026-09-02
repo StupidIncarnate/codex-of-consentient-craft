@@ -18,6 +18,7 @@ import type {
   AskUserQuestionItem,
   ChatEntry,
   ChatEntryUuid,
+  PastedImageUpload,
   ProcessId,
   Quest,
   QuestId,
@@ -49,6 +50,7 @@ import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comm
 import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
 import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';
+import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { isTrackedChatProcessGuard } from '../../guards/is-tracked-chat-process/is-tracked-chat-process-guard';
@@ -78,8 +80,16 @@ export const useQuestChatBinding = ({
   armStreaming: () => void;
   disarmStreaming: () => void;
   disarmFollowupStreaming: () => void;
-  sendMessage: (params: { message: UserInput }) => void;
-  sendFollowupMessage: (params: { message: UserInput }) => void;
+  sendMessage: (params: {
+    message: UserInput;
+    images?: readonly PastedImageUpload[];
+    onProgress?: UploadProgressHandler;
+  }) => Promise<void>;
+  sendFollowupMessage: (params: {
+    message: UserInput;
+    images?: readonly PastedImageUpload[];
+    onProgress?: UploadProgressHandler;
+  }) => Promise<void>;
   sendCommentBatch: (params: {
     comments: readonly CommentQueueEntry[];
   }) => Promise<CommentBatchSendResult>;
@@ -486,9 +496,17 @@ export const useQuestChatBinding = ({
   }, [entriesBySession]);
 
   const sendMessage = useCallback(
-    ({ message }: { message: UserInput }): void => {
+    async ({
+      message,
+      images,
+      onProgress,
+    }: {
+      message: UserInput;
+      images?: readonly PastedImageUpload[];
+      onProgress?: UploadProgressHandler;
+    }): Promise<void> => {
       const activeQuestId = questIdRef.current;
-      if (!activeQuestId) return;
+      if (!activeQuestId) return Promise.resolve();
 
       const userEntry = chatEntryContract.parse({
         role: 'user',
@@ -517,8 +535,15 @@ export const useQuestChatBinding = ({
         ? questResumeBroker({ questId: activeQuestId })
         : Promise.resolve();
 
-      resumeStep
-        .then(async () => questChatBroker({ questId: activeQuestId, message }))
+      return resumeStep
+        .then(async () =>
+          questChatBroker({
+            questId: activeQuestId,
+            message,
+            ...(images === undefined ? {} : { images }),
+            ...(onProgress === undefined ? {} : { onProgress }),
+          }),
+        )
         .then(({ chatProcessId }) => {
           trackedChatProcessIdRef.current = chatProcessId;
         })
@@ -539,6 +564,10 @@ export const useQuestChatBinding = ({
               newEntries: [errorEntry],
             }),
           );
+          // The composer is the thing that toasts the server's own rejection text and restores the
+          // user's text and thumbnails — it can only do that if this promise rejects. Do not swallow
+          // this, do not wrap it: the caller must see the exact error the broker threw.
+          throw err;
         });
     },
     [quest],
@@ -551,39 +580,58 @@ export const useQuestChatBinding = ({
   // is no resume-if-paused step, because the tavernkeeper only ever runs against a quest that has
   // already left the execution phase (blocked/complete/merged) — that step exists for sendMessage's
   // relay composer and has no quest state to resume from here.
-  const sendFollowupMessage = useCallback(({ message }: { message: UserInput }): void => {
-    const activeQuestId = questIdRef.current;
-    if (!activeQuestId) return;
+  const sendFollowupMessage = useCallback(
+    async ({
+      message,
+      images,
+      onProgress,
+    }: {
+      message: UserInput;
+      images?: readonly PastedImageUpload[];
+      onProgress?: UploadProgressHandler;
+    }): Promise<void> => {
+      const activeQuestId = questIdRef.current;
+      if (!activeQuestId) return Promise.resolve();
 
-    const userEntry = chatEntryContract.parse({
-      role: 'user',
-      content: message,
-      uuid: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-    });
-    setFollowupLocalEntries((prev) => [...prev, userEntry]);
-    setFollowupPendingTurn(true);
-    // The previous turn's handle must not outlive it: a late completion for THAT process would
-    // otherwise match and clear the turn just committed.
-    followupTrackedChatProcessIdRef.current = null;
-
-    questFollowupBroker({ questId: activeQuestId, message })
-      .then(({ chatProcessId }) => {
-        followupTrackedChatProcessIdRef.current = chatProcessId;
-      })
-      .catch((err: unknown) => {
-        setFollowupPendingTurn(false);
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        const errorEntry = chatEntryContract.parse({
-          role: 'system',
-          type: 'error',
-          content: errorMessage,
-          uuid: crypto.randomUUID(),
-          timestamp: new Date().toISOString(),
-        });
-        setFollowupLocalEntries((prev) => [...prev, errorEntry]);
+      const userEntry = chatEntryContract.parse({
+        role: 'user',
+        content: message,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
       });
-  }, []);
+      setFollowupLocalEntries((prev) => [...prev, userEntry]);
+      setFollowupPendingTurn(true);
+      // The previous turn's handle must not outlive it: a late completion for THAT process would
+      // otherwise match and clear the turn just committed.
+      followupTrackedChatProcessIdRef.current = null;
+
+      return questFollowupBroker({
+        questId: activeQuestId,
+        message,
+        ...(images === undefined ? {} : { images }),
+        ...(onProgress === undefined ? {} : { onProgress }),
+      })
+        .then(({ chatProcessId }) => {
+          followupTrackedChatProcessIdRef.current = chatProcessId;
+        })
+        .catch((err: unknown) => {
+          setFollowupPendingTurn(false);
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          const errorEntry = chatEntryContract.parse({
+            role: 'system',
+            type: 'error',
+            content: errorMessage,
+            uuid: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+          });
+          setFollowupLocalEntries((prev) => [...prev, errorEntry]);
+          // Same contract as sendMessage's catch: the FOLLOW-UP composer toasts and restores from
+          // this rejection, so it must actually reject rather than resolve quietly.
+          throw err;
+        });
+    },
+    [],
+  );
 
   // Comment-batch send lives HERE rather than in the queue-bar widget because the panel entry is
   // this binding's job: Claude's --resume stream never echoes the prompt back, so a widget that

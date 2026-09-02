@@ -8,6 +8,10 @@ describe('httpStatusStatics', () => {
         min: 100,
         max: 599,
       },
+      ok: {
+        min: 200,
+        max: 300,
+      },
     });
   });
 });

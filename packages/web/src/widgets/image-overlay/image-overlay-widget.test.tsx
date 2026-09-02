@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageOverlayWidget } from './image-overlay-widget';
 import { ImageOverlayWidgetProxy } from './image-overlay-widget.proxy';
 
@@ -108,8 +109,24 @@ describe('ImageOverlayWidget', () => {
       });
 
       expect(proxy.getImageWidth()).toBe('100%');
-      expect(proxy.getBodyMaxHeight()).toBe('90vh');
+      expect(proxy.getBodyMaxHeight()).toBe(
+        `${String(webConfigStatics.pastedImage.overlayMaxHeightPercent)}vh`,
+      );
       expect(proxy.getBodyOverflowY()).toBe('auto');
+    });
+
+    it('VALID: {opened: true} => the modal itself is constrained to the configured viewport-width share', () => {
+      const proxy = ImageOverlayWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
+        ),
+      });
+
+      expect(proxy.getModalWidth()).toBe(
+        `${String(webConfigStatics.pastedImage.overlayWidthPercent)}%`,
+      );
     });
   });
 });

@@ -51,4 +51,18 @@ export const webConfigStatics = {
     reconnectDelayMs: 3000,
     wardDetailTimeoutMs: 30000,
   },
+  pastedImage: {
+    // The IndexedDB store holding an unsent draft's image bytes, keyed alongside the existing
+    // dungeonmaster-chat-draft localStorage text key
+    draftImageStoreName: 'dungeonmaster-chat-draft-images',
+    // Width and height of the placeholder shown where an image fails to load. Fixed so a 404
+    // cannot stretch or collapse the bubble around it
+    brokenThumbnailSizePx: 32,
+    // The full-size overlay's width as a share of the viewport width. The image is constrained
+    // to this, so it is never wider than the browser
+    overlayWidthPercent: 75,
+    // The overlay's maximum height as a share of the viewport height. A taller image scrolls
+    // inside the modal rather than pushing it past the window
+    overlayMaxHeightPercent: 90,
+  },
 } as const;

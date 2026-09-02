@@ -36,6 +36,7 @@ export const useQuestChatBindingProxy = (): {
   }) => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
   getChatRequestCount: () => RequestCount;
+  getChatRequestBody: () => unknown;
   getClarifyRequestCount: () => RequestCount;
   getCommentBatchRequestCount: () => RequestCount;
   getFollowupRequestBody: () => unknown;
@@ -135,6 +136,17 @@ export const useQuestChatBindingProxy = (): {
       for (const t of timestamps) dateProtoMock.onceFor([]).returns(t);
     },
     getChatRequestCount: () => chatProxy.getRequestCount(),
+    // questChatBrokerProxy and questFollowupBrokerProxy both mock globalThis.XMLHttpRequest via
+    // xhrPostWithProgressAdapterProxy, and registerSpyOn keeps only one of their two `calledWith([])`
+    // registrations as the active implementation — but that implementation resolves which route a
+    // call belongs to dynamically, from the shared route map keyed by url (see that proxy's own
+    // comment), not from anything closed over at registration time. So it is address-agnostic:
+    // whichever registration "wins" behaves identically, and chatProxy's own captured
+    // state.sentBodies is populated correctly regardless of registration order. Proven by
+    // quest-chat-content-layer-widget.test.tsx's "check-both-states-produce-same-body-shape" case,
+    // which reads this exact getter in a test that also constructs questNewBrokerProxy's own XHR
+    // registration and asserts both bodies correctly.
+    getChatRequestBody: () => chatProxy.getRequestBody(),
     getClarifyRequestCount: () => clarifyProxy.getRequestCount(),
     getCommentBatchRequestCount: () => commentBatchProxy.getRequestCount(),
     getFollowupRequestBody: () => followupProxy.getRequestBody(),

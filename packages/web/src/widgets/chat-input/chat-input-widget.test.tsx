@@ -6,11 +6,19 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { domComposerInsertImageAdapter } from '../../adapters/dom/composer-insert-image/dom-composer-insert-image-adapter';
 import { domComposerReadAdapter } from '../../adapters/dom/composer-read/dom-composer-read-adapter';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
+import { ByteLengthStub } from '../../contracts/byte-length/byte-length.stub';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { base64ByteLengthTransformer } from '../../transformers/base64-byte-length/base64-byte-length-transformer';
 import { ChatInputWidget } from './chat-input-widget';
+import type { ChatInputWidgetProps } from './chat-input-widget';
 import { ChatInputWidgetProxy } from './chat-input-widget.proxy';
+
+// Derived from the widget's own prop type via a type query rather than importing UserInput /
+// PastedImageUpload / UploadProgressHandler from their contracts directly — test files cannot
+// import types from contracts, and this stays in sync with whatever onSendMessage actually accepts.
+type OnSendMessageParams = Parameters<ChatInputWidgetProps['onSendMessage']>[0];
 
 describe('ChatInputWidget', () => {
   describe('rendering', () => {
@@ -20,7 +28,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -33,7 +45,13 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
 
       mantineRenderAdapter({
-        ui: <ChatInputWidget isStreaming={true} onSendMessage={jest.fn()} onStopChat={jest.fn()} />,
+        ui: (
+          <ChatInputWidget
+            isStreaming={true}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       expect(screen.getByTestId('STOP_BUTTON')).toBe(screen.getByTestId('STOP_BUTTON'));
@@ -50,7 +68,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -71,7 +93,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -94,7 +120,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -117,7 +147,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -149,7 +183,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -179,7 +217,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -216,7 +258,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -247,7 +293,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -276,7 +326,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -293,7 +347,9 @@ describe('ChatInputWidget', () => {
     it('VALID: {type text, press Enter} => calls onSendMessage with the composed text', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(
+        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      );
 
       mantineRenderAdapter({
         ui: (
@@ -316,7 +372,7 @@ describe('ChatInputWidget', () => {
     it('VALID: {type text, press Shift+Enter} => does not call onSendMessage', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -339,7 +395,7 @@ describe('ChatInputWidget', () => {
     it('VALID: {click SEND on an empty composer} => does not call onSendMessage', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -367,7 +423,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -411,7 +471,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -458,7 +522,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -517,7 +585,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -578,7 +650,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -627,7 +703,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -676,7 +756,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -725,7 +809,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -770,7 +858,11 @@ describe('ChatInputWidget', () => {
 
       const firstRender = mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -800,7 +892,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -823,7 +919,11 @@ describe('ChatInputWidget', () => {
 
       const firstRender = mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -855,7 +955,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -887,7 +991,11 @@ describe('ChatInputWidget', () => {
 
       const firstRender = mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -913,7 +1021,9 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(
+        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      );
       mantineRenderAdapter({
         ui: (
           <ChatInputWidget
@@ -941,6 +1051,7 @@ describe('ChatInputWidget', () => {
       expect(onSendMessage).toHaveBeenCalledWith({
         message: 'A[Pasted Image 1]B',
         images: [PastedImageUploadStub({ mediaType: 'image/png', dataBase64: expectedBase64 })],
+        onProgress: expect.any(Function),
       });
     });
 
@@ -950,7 +1061,11 @@ describe('ChatInputWidget', () => {
 
       const firstRender = mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -994,7 +1109,9 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(
+        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      );
       mantineRenderAdapter({
         ui: (
           <ChatInputWidget
@@ -1031,6 +1148,7 @@ describe('ChatInputWidget', () => {
       expect(onSendMessage).toHaveBeenCalledWith({
         message: 'A[Pasted Image 1]B[Pasted Image 2]C',
         images: expectedImages,
+        onProgress: expect.any(Function),
       });
     });
   });
@@ -1042,7 +1160,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -1092,7 +1214,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -1109,7 +1235,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -1126,7 +1256,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -1152,7 +1286,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -1205,7 +1343,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
         ),
       });
 
@@ -1252,6 +1394,781 @@ describe('ChatInputWidget', () => {
       fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'x' }) });
 
       expect(editor.textContent).toBe('axb');
+    });
+  });
+
+  describe('sending is a settled transaction — locking', () => {
+    it('VALID: {plain Enter with text typed} => #check-one-enter-one-send issues exactly one POST, not two', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      const callCount = onSendMessage.mock.calls.length;
+
+      expect(callCount).toBe(1);
+    });
+
+    it('EDGE: {a second Enter fired while the first send is still in flight} => #check-one-enter-one-send leaves the call count at one', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      const callCount = onSendMessage.mock.calls.length;
+
+      expect(callCount).toBe(1);
+    });
+
+    it('VALID: {POST still in flight} => #check-composer-locked-in-flight CHAT_INPUT is not editable and SEND_BUTTON is disabled', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      expect(proxy.isEditorEditable()).toBe(false);
+      expect(proxy.isSendButtonDisabled()).toBe(true);
+    });
+  });
+
+  describe('sending is a settled transaction — shift+enter', () => {
+    it('VALID: {Shift+Enter with text already typed} => #check-shift-enter-adds-newline inserts a newline into the composer content', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: true });
+
+      expect(proxy.getEditorText()).toBe('hello\n');
+    });
+
+    it('VALID: {Shift+Enter with text already typed} => #check-shift-enter-sends-nothing issues zero HTTP requests', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: true });
+
+      expect(onSendMessage.mock.calls).toStrictEqual([]);
+    });
+  });
+
+  describe('sending is a settled transaction — attachment ordering', () => {
+    it('VALID: {paste image A, type text, paste image B, press Enter} => #check-attachments-in-paste-order the images array reaching onSendMessage is ordered first-pasted first', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      const firstBytes = new Uint8Array([1, 2, 3, 4]);
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'b1000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({ mediaType: 'image/png', bytes: firstBytes }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'b1000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'middle' }) });
+
+      const secondBytes = new Uint8Array([5, 6, 7, 8]);
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'b1000000-0000-4000-8000-000000000002',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({ mediaType: 'image/png', bytes: secondBytes }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'b1000000-0000-4000-8000-000000000001',
+          'b1000000-0000-4000-8000-000000000002',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      const firstDataBase64 = globalThis.btoa(String.fromCharCode(...firstBytes));
+      const secondDataBase64 = globalThis.btoa(String.fromCharCode(...secondBytes));
+      const expectedImages = [
+        PastedImageUploadStub({ mediaType: 'image/png', dataBase64: firstDataBase64 }),
+        PastedImageUploadStub({ mediaType: 'image/png', dataBase64: secondDataBase64 }),
+      ];
+
+      const actualImages = onSendMessage.mock.calls.at(0)?.[0].images;
+
+      expect(actualImages).toStrictEqual(expectedImages);
+    });
+  });
+
+  describe('sending is a settled transaction — upload progress', () => {
+    it('VALID: {send carries one image} => #check-progress-bar-shown shows an upload progress bar beneath the composer', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'a2000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'a2000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      expect(proxy.hasProgressBar()).toBe(true);
+    });
+
+    it('VALID: {text-only send in flight} => #check-progress-bar-shown shows no progress bar', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      // A fake that actually EXERCISES whatever onProgress it was handed, rather than one that
+      // silently ignores it — a fake that never calls onProgress would pass this assertion
+      // whether or not the widget still (incorrectly) hands one to a text-only send.
+      const onSendMessage = jest.fn(async (params: OnSendMessageParams): Promise<void> => {
+        params.onProgress?.({
+          bytesSent: ByteLengthStub({ value: 512 }),
+          bytesTotal: ByteLengthStub({ value: 1024 }),
+        });
+        return new Promise<void>(() => {});
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      expect(proxy.hasProgressBar()).toBe(false);
+
+      const capturedParams = onSendMessage.mock.calls.at(0)?.[0];
+
+      expect(capturedParams).toStrictEqual({ message: 'hello' });
+    });
+
+    it('VALID: {onProgress fires 512/1024 then 1024/1024 before the response resolves} => #check-progress-reaches-complete the bar reads 50 then 100 while still pending', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      // The mock sequences its own two progress ticks around a real microtask boundary, rather
+      // than a test-captured onProgress reference — the first tick lands synchronously inside the
+      // same `act()` fireEvent.keyDown already opens, and the second lands after a genuine `await`,
+      // which is what proves 50 was on screen BEFORE 100 rather than only after the whole send
+      // settles.
+      const onSendMessage = jest.fn(async ({ onProgress }: OnSendMessageParams): Promise<void> => {
+        onProgress?.({
+          bytesSent: ByteLengthStub({ value: 512 }),
+          bytesTotal: ByteLengthStub({ value: 1024 }),
+        });
+        await Promise.resolve();
+        onProgress?.({
+          bytesSent: ByteLengthStub({ value: 1024 }),
+          bytesTotal: ByteLengthStub({ value: 1024 }),
+        });
+        return new Promise<void>(() => {});
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'a3000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'a3000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      expect(proxy.getProgressPercent()).toBe(50);
+
+      await waitFor(() => {
+        expect(proxy.getProgressPercent()).toBe(100);
+      });
+
+      expect(proxy.getProgressPercent()).toBe(100);
+    });
+  });
+
+  describe('rejection recovers the composer', () => {
+    it('ERROR: {server rejects with a 409 and "Quest is not accepting follow-ups"} => #check-server-error-text-in-toast the toast shows that exact sentence', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.getShownToast()).toStrictEqual({
+          message: 'Quest is not accepting follow-ups',
+          color: chatComposerStatics.toastColor,
+        });
+      });
+
+      expect(proxy.getShownToast()).toStrictEqual({
+        message: 'Quest is not accepting follow-ups',
+        color: chatComposerStatics.toastColor,
+      });
+    });
+
+    it('ERROR: {server rejects with a 500 and "Could not save pasted image"} => #check-write-failure-toast-text the toast shows that exact sentence rather than a generic failure message', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (): Promise<void> => Promise.reject(new Error('Could not save pasted image')),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.getShownToast()).toStrictEqual({
+          message: 'Could not save pasted image',
+          color: chatComposerStatics.toastColor,
+        });
+      });
+
+      expect(proxy.getShownToast()).toStrictEqual({
+        message: 'Could not save pasted image',
+        color: chatComposerStatics.toastColor,
+      });
+    });
+
+    it('ERROR: {send rejected with two images attached} => #check-composer-reenabled-intact CHAT_INPUT is editable again and still holds its text and both thumbnails', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello world' }) });
+
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'c1000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'c1000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'c1000000-0000-4000-8000-000000000002',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([5, 6, 7, 8]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'c1000000-0000-4000-8000-000000000001',
+          'c1000000-0000-4000-8000-000000000002',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.isEditorEditable()).toBe(true);
+      });
+
+      expect(proxy.getEditorText()).toBe('hello world');
+      expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+        'c1000000-0000-4000-8000-000000000001',
+        'c1000000-0000-4000-8000-000000000002',
+      ]);
+    });
+
+    it('ERROR: {a draft already saved before the rejected send} => #check-draft-survives-rejection both the localStorage key and its IndexedDB records still exist after the rejection', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (): Promise<void> => Promise.reject(new Error('Could not save pasted image')),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'draft text' }) });
+
+      const pastedBytes = new Uint8Array([1, 2, 3, 4]);
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'd1000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({ mediaType: 'image/png', bytes: pastedBytes }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'd1000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      const draftBeforeSend = localStorage.getItem(chatComposerStatics.draftStorageKey);
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.isEditorEditable()).toBe(true);
+      });
+
+      expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe(draftBeforeSend);
+
+      const expectedDataBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedByteLength = base64ByteLengthTransformer({ dataBase64: expectedDataBase64 });
+
+      await expect(proxy.getStoredDraftImages()).resolves.toStrictEqual([
+        ComposerAttachmentStub({
+          attachmentId: 'd1000000-0000-4000-8000-000000000001',
+          dataUrl: `data:image/png;base64,${expectedDataBase64}`,
+          byteLength: expectedByteLength,
+        }),
+      ]);
+    });
+
+    it('ERROR: {rejection with the attachment id list unchanged since the last write} => #check-rejection-writes-draft-when-none-saved rewrites the draft anyway', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      const pastedBytes = new Uint8Array([9, 8, 7, 6]);
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'e1000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({ mediaType: 'image/png', bytes: pastedBytes }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'e1000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      // Simulates a draft no longer present in storage while the widget's own bookkeeping still
+      // believes this exact attachment id list is what it last saved — the scenario `force` exists
+      // for. Without `force: true` on the rejection path, handleContentChanged would see the
+      // (unchanged) id list and skip the write, leaving this store empty.
+      await draftImagesSaveBroker({ attachments: [] });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.isEditorEditable()).toBe(true);
+      });
+
+      const expectedDataBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedByteLength = base64ByteLengthTransformer({ dataBase64: expectedDataBase64 });
+
+      await expect(proxy.getStoredDraftImages()).resolves.toStrictEqual([
+        ComposerAttachmentStub({
+          attachmentId: 'e1000000-0000-4000-8000-000000000001',
+          dataUrl: `data:image/png;base64,${expectedDataBase64}`,
+          byteLength: expectedByteLength,
+        }),
+      ]);
+    });
+
+    it('ERROR: {rejected send that carried one image} => #check-progress-bar-gone-on-rejection the upload progress bar is no longer in the document', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'f2000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'f2000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.hasProgressBar()).toBe(false);
+      });
+
+      expect(proxy.hasProgressBar()).toBe(false);
+    });
+  });
+
+  describe('acceptance clears the composer', () => {
+    it('VALID: {accepted send with text and one image} => #check-composer-emptied the composer holds no text and zero thumbnails after acceptance', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello world' }) });
+
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'a4000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'a4000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.getEditorText()).toBe('');
+      });
+
+      expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([]);
+    });
+
+    it('VALID: {accepted send after a draft had been saved} => #check-draft-removed the localStorage draft key is absent and the IndexedDB draft store holds zero records', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello world' }) });
+
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'a5000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'a5000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe(null);
+      });
+
+      await expect(proxy.getStoredDraftImages()).resolves.toStrictEqual([]);
+    });
+
+    it('VALID: {accepted send} => #check-composer-editable-again CHAT_INPUT is editable and SEND_BUTTON is enabled', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.isEditorEditable()).toBe(true);
+      });
+
+      expect(proxy.isSendButtonDisabled()).toBe(false);
+    });
+
+    it('VALID: {accepted send that carried one image} => #check-progress-bar-gone-on-success the upload progress bar is no longer in the document', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'a6000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'a6000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.hasProgressBar()).toBe(false);
+      });
+
+      expect(proxy.hasProgressBar()).toBe(false);
     });
   });
 });

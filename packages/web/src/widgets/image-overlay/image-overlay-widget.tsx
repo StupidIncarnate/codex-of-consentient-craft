@@ -17,12 +17,8 @@ import { IconX } from '@tabler/icons-react';
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
-
-// Quest spec fixes these two numbers; no static owns modal sizing today, so they live here where a
-// reader can find them rather than buried inline in the styles object below.
-const MODAL_WIDTH_PERCENT = '75%';
-const MODAL_MAX_HEIGHT_VH = '90vh';
 
 const CLOSE_LABEL = buttonLabelContract.parse('Close image');
 const CLOSE_TEST_ID = testIdContract.parse('IMAGE_OVERLAY_CLOSE');
@@ -55,7 +51,7 @@ export const ImageOverlayWidget = ({
       onClose={onClose}
       withCloseButton={false}
       centered
-      size={MODAL_WIDTH_PERCENT}
+      size={`${String(webConfigStatics.pastedImage.overlayWidthPercent)}%`}
       styles={{
         content: {
           backgroundColor: colors['bg-surface'],
@@ -78,7 +74,10 @@ export const ImageOverlayWidget = ({
       </div>
       <div
         data-testid="IMAGE_OVERLAY"
-        style={{ maxHeight: MODAL_MAX_HEIGHT_VH, overflowY: 'auto' }}
+        style={{
+          maxHeight: `${String(webConfigStatics.pastedImage.overlayMaxHeightPercent)}vh`,
+          overflowY: 'auto',
+        }}
       >
         <img
           src={src}

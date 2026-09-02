@@ -31,21 +31,31 @@ import { pastedImageAttachBroker } from '../../brokers/pasted-image/attach/paste
 import { attachmentIdContract } from '../../contracts/attachment-id/attachment-id-contract';
 import type { AttachmentId } from '../../contracts/attachment-id/attachment-id-contract';
 import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
+import { composerSendPayloadContract } from '../../contracts/composer-send-payload/composer-send-payload-contract';
 import type { ImageDataUrl } from '../../contracts/image-data-url/image-data-url-contract';
+import { uploadPercentContract } from '../../contracts/upload-percent/upload-percent-contract';
+import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
+import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { isAllowedPasteMediaTypeGuard } from '../../guards/is-allowed-paste-media-type/is-allowed-paste-media-type-guard';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { composerParseDraftTransformer } from '../../transformers/composer-parse-draft/composer-parse-draft-transformer';
 import { composerSerializeTransformer } from '../../transformers/composer-serialize/composer-serialize-transformer';
 import { dataUrlSplitTransformer } from '../../transformers/data-url-split/data-url-split-transformer';
+import { uploadPercentTransformer } from '../../transformers/upload-percent/upload-percent-transformer';
 import { ImageOverlayWidget } from '../image-overlay/image-overlay-widget';
+import { UploadProgressBarWidget } from '../upload-progress-bar/upload-progress-bar-widget';
 
 const SEND_BUTTON_SIZE = 44;
 const THUMBNAIL_SELECTOR = `img[${chatComposerStatics.thumbnail.attributeName}]`;
 
 export interface ChatInputWidgetProps {
   isStreaming: boolean;
-  onSendMessage: (params: { message: UserInput; images?: readonly PastedImageUpload[] }) => void;
+  onSendMessage: (params: {
+    message: UserInput;
+    images?: readonly PastedImageUpload[];
+    onProgress?: UploadProgressHandler;
+  }) => Promise<void>;
   onStopChat: () => void;
 }
 
@@ -74,6 +84,11 @@ export const ChatInputWidget = ({
   const cancelledRestoreRef = useRef(false);
   const [overlaySrc, setOverlaySrc] = useState<ImageDataUrl | null>(null);
   const [isEmpty, setIsEmpty] = useState(true);
+  // Settled-transaction state: locks the composer for the ONE POST an Enter/click issues, and
+  // paints the byte-tracked bar while that POST is in flight. Neither survives past `.finally` —
+  // see handleSend.
+  const [isSending, setIsSending] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState<UploadPercent | null>(null);
 
   // Reads the live DOM, persists the text half to localStorage and the image half to IndexedDB
   // (only when the attachment id list changed — see the ref above). Wired below to the editor's
@@ -85,7 +100,7 @@ export const ChatInputWidget = ({
   // the paste path, since a pasted image or pasted text is inserted programmatically there and so
   // never fires a native `input` event on its own. Never call this only on send, or a tab closed
   // mid-draft loses everything since the last send.
-  const handleContentChanged = useCallback((): void => {
+  const handleContentChanged = useCallback(({ force }: { force: boolean }): void => {
     const editor = editorRef.current;
     if (editor === null) return;
 
@@ -109,7 +124,7 @@ export const ChatInputWidget = ({
       attachmentIds.length === previousAttachmentIds.length &&
       attachmentIds.every((attachmentId, index) => attachmentId === previousAttachmentIds[index]);
 
-    if (attachmentIdsUnchanged) return;
+    if (attachmentIdsUnchanged && !force) return;
     // Recorded before the write starts (not after it resolves) so a second content-changed step
     // for the same gesture would still see the new list as already "saved". In practice none of the
     // intercepted paths produce a second step: handlePaste and the handleBeforeInput intercepts
@@ -141,7 +156,7 @@ export const ChatInputWidget = ({
       if (imageItem === undefined) {
         event.preventDefault();
         domComposerInsertTextAdapter({ editor, text: event.clipboardData.getData('text/plain') });
-        handleContentChanged();
+        handleContentChanged({ force: false });
         return;
       }
 
@@ -181,7 +196,7 @@ export const ChatInputWidget = ({
         });
         domComposerInsertImageAdapter({ editor, attachment });
         attachmentsRef.current.set(attachment.attachmentId, attachment);
-        handleContentChanged();
+        handleContentChanged({ force: false });
       } catch {
         // A ladder that bottoms out and an image that will not decode both land here — the user
         // sees one message either way, because neither failure is something they can act on
@@ -195,48 +210,100 @@ export const ChatInputWidget = ({
     [handleContentChanged],
   );
 
+  // A settled transaction: locked at the first line so one Enter is one POST, cleared ONLY on
+  // acceptance (the composer must survive a rejection with its text and thumbnails intact), and
+  // torn down in `.finally` regardless of outcome so the bar never reads as still in flight.
   const handleSend = useCallback((): void => {
     const editor = editorRef.current;
     if (editor === null) return;
+    if (isSending) return;
 
     const segments = domComposerReadAdapter({ editor });
     const { text, attachmentIds } = composerSerializeTransformer({ segments });
     const trimmed = text.trim();
     if (trimmed.length === 0) return;
 
-    const images = attachmentIds
+    const orderedAttachments = attachmentIds
       .map((attachmentId) => attachmentsRef.current.get(attachmentId))
-      .filter((attachment): attachment is ComposerAttachment => attachment !== undefined)
-      .map((attachment) => dataUrlSplitTransformer({ dataUrl: attachment.dataUrl }));
+      .filter((attachment): attachment is ComposerAttachment => attachment !== undefined);
 
-    onSendMessage(
-      images.length > 0
-        ? { message: trimmed as UserInput, images }
-        : { message: trimmed as UserInput },
+    const payload = composerSendPayloadContract.parse({
+      message: trimmed,
+      attachments: orderedAttachments,
+    });
+    const images = payload.attachments.map((attachment) =>
+      dataUrlSplitTransformer({ dataUrl: attachment.dataUrl }),
     );
 
-    editor.replaceChildren();
-    attachmentsRef.current = new Map();
-    lastSavedAttachmentIdsRef.current = [];
-    setIsEmpty(true);
-    try {
-      localStorage.removeItem(chatComposerStatics.draftStorageKey);
-    } catch {
-      // localStorage unavailable
+    setIsSending(true);
+    if (images.length > 0) {
+      setUploadPercent(uploadPercentContract.parse(chatComposerStatics.upload.minPercent));
     }
-    draftImagesSaveBroker({ attachments: [] }).catch((error: unknown) => {
-      globalThis.console.error('[chat-input] failed to clear draft images', error);
-    });
-  }, [onSendMessage]);
+
+    onSendMessage({
+      message: payload.message,
+      ...(images.length > 0
+        ? {
+            images,
+            onProgress: ({ bytesSent, bytesTotal }: Parameters<UploadProgressHandler>[0]) => {
+              setUploadPercent(uploadPercentTransformer({ bytesSent, bytesTotal }));
+            },
+          }
+        : {}),
+    })
+      .then(() => {
+        editor.replaceChildren();
+        attachmentsRef.current = new Map();
+        lastSavedAttachmentIdsRef.current = [];
+        setIsEmpty(true);
+        try {
+          localStorage.removeItem(chatComposerStatics.draftStorageKey);
+        } catch {
+          // localStorage unavailable
+        }
+        // Deliberately NOT returned into the chain — a failed draft-clear must never fall into
+        // the rejection handler below and toast an error for a send that actually succeeded.
+        draftImagesSaveBroker({ attachments: [] }).catch((error: unknown) => {
+          globalThis.console.error('[chat-input] failed to clear draft images', error);
+        });
+      })
+      .catch((error: unknown) => {
+        mantineNotificationsShowAdapter({
+          message: error instanceof Error ? error.message : String(error),
+          color: chatComposerStatics.toastColor,
+        });
+        // `force: true` because a draft may never have been written for this content (the
+        // attachment id list can be unchanged since the last save) — the composer's recoverability
+        // must not depend on a write that already happened to have occurred.
+        handleContentChanged({ force: true });
+      })
+      .finally(() => {
+        setIsSending(false);
+        setUploadPercent(null);
+      });
+  }, [isSending, onSendMessage, handleContentChanged]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>): void => {
+      const editor = editorRef.current;
+      if (editor === null) return;
+
+      // A contenteditable's own default for Enter is to insert a block element, not a newline —
+      // wrong in a real browser and unobservable in jsdom. Handled explicitly so Shift+Enter
+      // inserts exactly one '\n', deliberately, rather than inheriting whatever the browser does.
+      if (event.key === 'Enter' && event.shiftKey) {
+        event.preventDefault();
+        domComposerInsertTextAdapter({ editor, text: '\n' });
+        handleContentChanged({ force: false });
+        return;
+      }
+
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         handleSend();
       }
     },
-    [handleSend],
+    [handleSend, handleContentChanged],
   );
 
   const handleEditorClick = useCallback((event: React.MouseEvent<HTMLDivElement>): void => {
@@ -272,7 +339,7 @@ export const ChatInputWidget = ({
         if (removedAttachmentId !== undefined) {
           event.preventDefault();
           attachmentsRef.current.delete(removedAttachmentId);
-          handleContentChanged();
+          handleContentChanged({ force: false });
         }
         // undefined means the caret was not touching a thumbnail — let the browser handle it.
         return;
@@ -288,7 +355,7 @@ export const ChatInputWidget = ({
         if (hasThumbnail) {
           event.preventDefault();
           domComposerInsertTextAdapter({ editor, text: event.data ?? '' });
-          handleContentChanged();
+          handleContentChanged({ force: false });
         }
       }
     },
@@ -360,14 +427,16 @@ export const ChatInputWidget = ({
           <div
             data-testid="CHAT_INPUT"
             ref={editorRef}
-            contentEditable={!isStreaming}
+            contentEditable={!isStreaming && !isSending}
             suppressContentEditableWarning
             onPaste={(event) => {
               handlePaste(event).catch((error: unknown) => {
                 globalThis.console.error('[chat-input] paste handler failed', error);
               });
             }}
-            onInput={handleContentChanged}
+            onInput={() => {
+              handleContentChanged({ force: false });
+            }}
             onKeyDown={handleKeyDown}
             onClick={handleEditorClick}
             style={{
@@ -403,6 +472,7 @@ export const ChatInputWidget = ({
               Describe your quest...
             </div>
           ) : null}
+          {uploadPercent === null ? null : <UploadProgressBarWidget percent={uploadPercent} />}
         </div>
         {isStreaming ? (
           <UnstyledButton
@@ -431,6 +501,7 @@ export const ChatInputWidget = ({
           <UnstyledButton
             data-testid="SEND_BUTTON"
             onClick={handleSend}
+            disabled={isSending}
             style={{
               width: SEND_BUTTON_SIZE,
               height: SEND_BUTTON_SIZE,

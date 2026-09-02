@@ -14,12 +14,18 @@ import { pastedImageAttachBrokerProxy } from '../../brokers/pasted-image/attach/
 import type { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { ImageOverlayWidgetProxy } from '../image-overlay/image-overlay-widget.proxy';
+import { UploadProgressBarWidgetProxy } from '../upload-progress-bar/upload-progress-bar-widget.proxy';
 
 const THUMBNAIL_SELECTOR = `img[${chatComposerStatics.thumbnail.attributeName}]`;
 
 // Derived from mintsIds' own parameter type via a type query, rather than repeating its template
 // literal shape by hand — whatever that shape is, this stays in sync with it automatically.
 type MintIdsParams = Parameters<ReturnType<typeof pastedImageAttachBrokerProxy>['mintsIds']>[0];
+
+// Derived from UploadProgressBarWidgetProxy's own return type rather than importing UploadPercent
+// from its contract — proxy files cannot import contract types, and this stays in sync with
+// whatever that proxy's getPercent actually returns.
+type ProgressPercent = ReturnType<ReturnType<typeof UploadProgressBarWidgetProxy>['getPercent']>;
 
 export const ChatInputWidgetProxy = (): {
   clearStorage: () => void;
@@ -37,6 +43,11 @@ export const ChatInputWidgetProxy = (): {
   hasOverlay: () => boolean;
   getOverlayImageSrc: () => HTMLImageElement['src'] | null;
   getStoredDraftImages: () => ReturnType<typeof draftImagesLoadBroker>;
+  isEditorEditable: () => boolean;
+  isSendButtonDisabled: () => boolean;
+  hasProgressBar: () => boolean;
+  getProgressPercent: () => ProgressPercent;
+  getEditorText: () => NonNullable<Node['textContent']>;
 } => {
   // Child creation only, per enforce-proxy-child-creation — the widget imports every one of these
   // directly (no binding layer sits between the composer and its adapters/brokers). The DOM
@@ -68,6 +79,10 @@ export const ChatInputWidgetProxy = (): {
   // directly here would re-implement the getAttribute-not-.src reasoning ImageOverlayWidgetProxy
   // already documents once.
   const overlayProxy = ImageOverlayWidgetProxy();
+  // The widget mounts UploadProgressBarWidget as a sibling whenever an upload is in flight.
+  // Delegated to below rather than reading its testid/aria attribute here directly — that proxy
+  // already documents how the percent is read back.
+  const progressBarProxy = UploadProgressBarWidgetProxy();
 
   const notificationsProxy = mantineNotificationsShowAdapterProxy();
   const attachBrokerProxy = pastedImageAttachBrokerProxy();
@@ -154,5 +169,16 @@ export const ChatInputWidgetProxy = (): {
     // rather than through either broker proxy's own internal fake state.
     getStoredDraftImages: async (): ReturnType<typeof draftImagesLoadBroker> =>
       draftImagesLoadBroker(),
+
+    isEditorEditable: (): boolean =>
+      screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable') === 'true',
+
+    isSendButtonDisabled: (): boolean => screen.getByTestId('SEND_BUTTON').hasAttribute('disabled'),
+
+    hasProgressBar: (): boolean => progressBarProxy.hasBar(),
+    getProgressPercent: (): ProgressPercent => progressBarProxy.getPercent(),
+
+    getEditorText: (): NonNullable<Node['textContent']> =>
+      screen.getByTestId('CHAT_INPUT').textContent ?? '',
   };
 };

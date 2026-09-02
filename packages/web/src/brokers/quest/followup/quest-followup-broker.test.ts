@@ -1,4 +1,4 @@
-import { QuestIdStub, UserInputStub } from '@dungeonmaster/shared/contracts';
+import { PastedImageUploadStub, QuestIdStub, UserInputStub } from '@dungeonmaster/shared/contracts';
 
 import { questFollowupBroker } from './quest-followup-broker';
 import { questFollowupBrokerProxy } from './quest-followup-broker.proxy';
@@ -17,6 +17,45 @@ describe('questFollowupBroker', () => {
       expect(proxy.getRequestBody()).toStrictEqual({
         message: 'What is the status of this quest?',
       });
+    });
+
+    it('VALID: #check-followup-post-carries-images {message with two pasted-image tokens, two images} => posts the message plus both images in order at the followup route', async () => {
+      const proxy = questFollowupBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const message = UserInputStub({ value: 'See [Pasted Image 1] and [Pasted Image 2]' });
+      const firstImage = PastedImageUploadStub({
+        mediaType: 'image/png',
+        dataBase64: 'aGVsbG8=',
+      });
+      const secondImage = PastedImageUploadStub({
+        mediaType: 'image/jpeg',
+        dataBase64: 'd29ybGQ=',
+      });
+
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-images' });
+
+      await questFollowupBroker({ questId, message, images: [firstImage, secondImage] });
+
+      expect(proxy.getRequestBody()).toStrictEqual({
+        message: 'See [Pasted Image 1] and [Pasted Image 2]',
+        images: [
+          { mediaType: 'image/png', dataBase64: 'aGVsbG8=' },
+          { mediaType: 'image/jpeg', dataBase64: 'd29ybGQ=' },
+        ],
+      });
+      expect(proxy.getRequestUrl()).toBe('/api/quests/add-auth/followup');
+    });
+
+    it('VALID: {text-only follow-up, no images passed} => posts body with no images key', async () => {
+      const proxy = questFollowupBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const message = UserInputStub({ value: 'Are we still on track?' });
+
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-text-only' });
+
+      await questFollowupBroker({ questId, message });
+
+      expect(proxy.getRequestBody()).toStrictEqual({ message: 'Are we still on track?' });
     });
   });
 
@@ -82,7 +121,9 @@ describe('questFollowupBroker', () => {
 
       proxy.setupError();
 
-      await expect(questFollowupBroker({ questId, message })).rejects.toThrow(/fetch/iu);
+      await expect(questFollowupBroker({ questId, message })).rejects.toThrow(
+        /network error posting to \/api\/quests\/add-auth\/followup/u,
+      );
     });
   });
 });

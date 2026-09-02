@@ -16,6 +16,7 @@ import type { ExecutionRole } from '../../contracts/execution-role/execution-rol
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
+import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
@@ -30,7 +31,11 @@ import type { UserInput } from '@dungeonmaster/shared/contracts';
 export interface ChatPanelWidgetProps {
   entries: ChatEntry[];
   isStreaming: boolean;
-  onSendMessage: (params: { message: UserInput; images?: readonly PastedImageUpload[] }) => void;
+  onSendMessage: (params: {
+    message: UserInput;
+    images?: readonly PastedImageUpload[];
+    onProgress?: UploadProgressHandler;
+  }) => Promise<void>;
   onStopChat: () => void;
   readOnly?: boolean;
   // Overrides the assistant role label ChatMessageWidget defaults to ('chaoswhisperer'). Callers

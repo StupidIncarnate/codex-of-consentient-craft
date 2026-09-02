@@ -13,4 +13,10 @@ export const httpStatusStatics = {
     min: 100,
     max: 599,
   },
+  ok: {
+    min: 200,
+    // Exclusive upper bound — 300 is a redirect, not a success. Matches fetch's own
+    // Response.ok definition.
+    max: 300,
+  },
 } as const;
