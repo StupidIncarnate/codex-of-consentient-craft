@@ -1,6 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import type { ProcessId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestStatus, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
 import { questChatBrokerProxy } from '../../brokers/quest/chat/quest-chat-broker.proxy';
@@ -11,7 +11,13 @@ import { questFollowupStopBrokerProxy } from '../../brokers/quest/followup-stop/
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
+import type { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
+import { pastedImageMemoryState } from '../../state/pasted-image-memory/pasted-image-memory-state';
+import { pastedImageMemoryStateProxy } from '../../state/pasted-image-memory/pasted-image-memory-state.proxy';
 import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';
+
+type ChatEntryUuid = ReturnType<typeof UserChatEntryStub>['uuid'];
+type ImageDataUrl = ReturnType<typeof ImageDataUrlStub>;
 
 export const useQuestChatBindingProxy = (): {
   setupConnectedChannel: () => void;
@@ -47,6 +53,7 @@ export const useQuestChatBindingProxy = (): {
   getSentWsMessages: () => unknown[];
   triggerWsClose: () => void;
   triggerWsReconnect: () => void;
+  getRememberedImages: (params: { uuid: ChatEntryUuid }) => readonly ImageDataUrl[];
 } => {
   const chatProxy = questChatBrokerProxy();
   const clarifyProxy = questClarifyBrokerProxy();
@@ -57,6 +64,12 @@ export const useQuestChatBindingProxy = (): {
   const resumeProxy = questResumeBrokerProxy();
   rxjsFilterAdapterProxy();
   const channel = webSocketChannelStateProxy();
+  // pastedImageMemoryState is a module-level singleton with no I/O boundary to mock, so a fresh
+  // proxy's only job is clearing whatever a previous test left staged — same reasoning
+  // ImageContentLayerWidgetProxy's own rememberImages documents. Cleared inside
+  // setupConnectedChannel (called first by every test in this suite) rather than here, since a
+  // proxy constructor may only create child proxies and register mocks, never call a setup method.
+  const imageMemoryProxy = pastedImageMemoryStateProxy();
   const uuidMock: SpyOnHandle = registerSpyOn({
     object: crypto,
     method: 'randomUUID',
@@ -73,6 +86,7 @@ export const useQuestChatBindingProxy = (): {
       channel.setupEmpty();
       channel.connect();
       channel.triggerOpen();
+      imageMemoryProxy.setupEmpty();
     },
     setupChat: ({ chatProcessId }) => {
       chatProxy.setupChat({ chatProcessId });
@@ -163,5 +177,6 @@ export const useQuestChatBindingProxy = (): {
     triggerWsReconnect: () => {
       channel.triggerReconnect();
     },
+    getRememberedImages: ({ uuid }) => pastedImageMemoryState.recall({ uuid }),
   };
 };

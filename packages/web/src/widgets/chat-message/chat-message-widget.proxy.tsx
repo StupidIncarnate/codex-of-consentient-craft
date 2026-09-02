@@ -3,6 +3,7 @@ import { MarkdownTextWidgetProxy } from '../markdown-text/markdown-text-widget.p
 import { ThinkingRowWidgetProxy } from '../thinking-row/thinking-row-widget.proxy';
 import { ToolResultContentWidgetProxy } from '../tool-result-content/tool-result-content-widget.proxy';
 import { ToolRowWidgetProxy } from '../tool-row/tool-row-widget.proxy';
+import { ImageContentLayerWidgetProxy } from './image-content-layer-widget.proxy';
 import { InjectedPromptLayerWidgetProxy } from './injected-prompt-layer-widget.proxy';
 
 export const ChatMessageWidgetProxy = (): {
@@ -10,6 +11,7 @@ export const ChatMessageWidgetProxy = (): {
   isAutoScrollHeld: () => boolean;
 } => {
   const anchorProxy = useDisclosureAnchorBindingProxy();
+  ImageContentLayerWidgetProxy();
   InjectedPromptLayerWidgetProxy();
   MarkdownTextWidgetProxy();
   ThinkingRowWidgetProxy();

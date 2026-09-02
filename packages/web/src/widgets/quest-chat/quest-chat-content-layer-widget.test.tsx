@@ -13,6 +13,7 @@ import {
   QuestWorkItemIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
@@ -1580,6 +1581,118 @@ describe('QuestChatContentLayerWidget', () => {
         createBody: { message: expectedWireMessage, questType: 'feature', images: sharedImages },
         newQuestRouteCount: 1,
         chatRouteCount: 1,
+      });
+    });
+  });
+
+  describe('image message dedupe against the delivered transcript copy', () => {
+    it('VALID: {image message sent from a live quest, then its transcript copy delivered under a real session} => #check-exactly-one-bubble only one CHAT_MESSAGE carries the text at each state, and #check-surviving-bubble-uses-url its image src swaps from the staged data URL to the served URL', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image' }) });
+      const guildId = GuildIdStub({ value: 'dddddddd-1111-2222-3333-444444444444' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-dedupe-image' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+
+      const attachment = ComposerAttachmentStub({
+        attachmentId: '90000000-0000-4000-8000-000000000009',
+      });
+      const pastedBytes = new Uint8Array([9, 8, 7, 6]);
+
+      // Text BEFORE and AFTER the image, so the marker lands mid-string: 'A[Pasted Image 1]B'.
+      await proxy.typeMessage({ text: 'A' });
+      proxy.pasteImageIntoComposer({ attachment, bytes: pastedBytes });
+
+      await waitFor(() => {
+        expect(proxy.getComposerThumbnailAttachmentIds()).toStrictEqual([attachment.attachmentId]);
+      });
+
+      await proxy.typeMessage({ text: 'B' });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getChatRequestCount()).toBe(1);
+      });
+
+      // STATE (a): only the optimistic entry exists yet. Its bubble carries the composed text, and
+      // its image is drawn from the staged data URL — no transcript copy has arrived.
+      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedDataUrl = `data:image/png;base64,${expectedBase64}`;
+
+      const bubblesBeforeDelivery = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .filter((bubble) => String(bubble.textContent).includes('AB'));
+      const [bubbleBeforeDelivery] = bubblesBeforeDelivery;
+      const imageBeforeDelivery = bubbleBeforeDelivery!.querySelector(
+        '[data-testid="CHAT_MESSAGE_IMAGE"]',
+      )!;
+
+      expect({
+        bubbleCount: bubblesBeforeDelivery.length,
+        imageSrc: imageBeforeDelivery.getAttribute('src'),
+      }).toStrictEqual({ bubbleCount: 1, imageSrc: expectedDataUrl });
+
+      // STATE (b): the transcript's own copy of the SAME message lands under a REAL sessionId, in
+      // the transcript's own markdown-token form plus the read-the-images trailer. The optimistic
+      // copy must fall out of entriesBySession (hasEquivalentChatEntryGuard), leaving exactly one
+      // bubble — a panel that renders both is the exact defect this pins.
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'q-dedupe-image',
+              sessionId: 'eeeeeeee-1111-4222-8333-444444444444',
+              chatProcessId: 'proc-dedupe-image',
+              entries: [
+                {
+                  role: 'user',
+                  content: `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+                  uuid: 'ffffffff-1111-4222-8333-444444444444',
+                  timestamp: '2025-01-01T00:00:01.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        const stillMatchingCount = screen
+          .queryAllByTestId('CHAT_MESSAGE')
+          .filter((bubble) => String(bubble.textContent).includes('AB')).length;
+
+        expect(stillMatchingCount).toBe(1);
+      });
+
+      const bubblesAfterDelivery = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .filter((bubble) => String(bubble.textContent).includes('AB'));
+      const [bubbleAfterDelivery] = bubblesAfterDelivery;
+      const imageAfterDelivery = bubbleAfterDelivery!.querySelector(
+        '[data-testid="CHAT_MESSAGE_IMAGE"]',
+      )!;
+
+      expect({
+        bubbleCount: bubblesAfterDelivery.length,
+        imageSrc: imageAfterDelivery.getAttribute('src'),
+      }).toStrictEqual({
+        bubbleCount: 1,
+        imageSrc: 'http://host/api/images?path=%2Fp%2Fx.png',
       });
     });
   });

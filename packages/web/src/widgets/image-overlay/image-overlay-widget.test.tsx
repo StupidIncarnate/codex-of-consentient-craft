@@ -45,6 +45,37 @@ describe('ImageOverlayWidget', () => {
 
       expect(screen.queryByTestId('IMAGE_OVERLAY')).toBe(null);
     });
+
+    it('VALID: {opened: true} => a close control is visible on the modal', () => {
+      const proxy = ImageOverlayWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
+        ),
+      });
+
+      expect(proxy.hasCloseButton()).toBe(true);
+    });
+
+    // Paired with the case above per house rule: a one-sided presence check alone passes on a
+    // widget that renders the close button unconditionally.
+    it('VALID: {opened: false} => no close control renders', () => {
+      const proxy = ImageOverlayWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ImageOverlayWidget
+            opened={false}
+            src={HTTP_URL_SRC}
+            alt={ALT_TEXT}
+            onClose={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.hasCloseButton()).toBe(false);
+    });
   });
 
   describe('interactions', () => {
@@ -62,6 +93,42 @@ describe('ImageOverlayWidget', () => {
 
       // Paired per house rule: call count alone can't tell a click that landed on the wrong control
       // from one that landed here and fired with an unexpected argument — onClose takes none.
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledWith();
+    });
+
+    // This widget's only obligation on Escape is firing onClose — whether the transcript behind
+    // the overlay stays visible afterwards is the caller's rendering decision, not this widget's.
+    it('VALID: {press Escape} => calls onClose exactly once', async () => {
+      const proxy = ImageOverlayWidgetProxy();
+      const onClose = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={onClose} />
+        ),
+      });
+
+      await proxy.pressEscape();
+
+      // Paired per house rule, same as the close-button case above.
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledWith();
+    });
+
+    it('VALID: {click outside the image} => calls onClose exactly once', async () => {
+      const proxy = ImageOverlayWidgetProxy();
+      const onClose = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={onClose} />
+        ),
+      });
+
+      await proxy.clickOutside();
+
+      // Paired per house rule, same as the close-button case above.
       expect(onClose).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledWith();
     });

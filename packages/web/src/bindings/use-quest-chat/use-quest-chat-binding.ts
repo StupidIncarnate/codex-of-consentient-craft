@@ -54,7 +54,9 @@ import type { UploadProgressHandler } from '../../contracts/upload-progress-post
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { isTrackedChatProcessGuard } from '../../guards/is-tracked-chat-process/is-tracked-chat-process-guard';
+import { pastedImageMemoryState } from '../../state/pasted-image-memory/pasted-image-memory-state';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
+import { dataUrlBuildTransformer } from '../../transformers/data-url-build/data-url-build-transformer';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
 import { replaceEpochChatEntryTimestampTransformer } from '../../transformers/replace-epoch-chat-entry-timestamp/replace-epoch-chat-entry-timestamp-transformer';
@@ -151,10 +153,29 @@ export const useQuestChatBinding = ({
   const [followupStreamingFromOutput, setFollowupStreamingFromOutput] = useState(false);
   const isFollowupStreaming = followupPendingTurn || followupStreamingFromOutput;
 
-  const entriesBySession = useMemo(
-    () => deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal }),
-    [entriesBySessionInternal],
-  );
+  // The synthetic (__no_session__) bucket holds every optimistic entry sendMessage/
+  // sendFollowupMessage stage before a real sessionId exists for the turn. Once the replayed copy
+  // lands in a REAL session's bucket, the synthetic copy has to fall out of the map or both render.
+  // Filtered HERE, in the memo, rather than in a widget: this map has two independent consumers —
+  // QuestChatContentLayerWidget's own flatten of every bucket into one transcript, and
+  // ExecutionPanelWidget's per-row `sessionEntries` fallback lookup — and a widget-side filter would
+  // have to be duplicated in both to cover them, with the second one easy to forget. This is the one
+  // place both consumers share.
+  const entriesBySession = useMemo(() => {
+    const derived = deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal });
+    const optimistic = derived.get(SYNTHETIC_SESSION_KEY);
+    if (optimistic === undefined) return derived;
+    const delivered: ChatEntry[] = [];
+    for (const [key, list] of derived) {
+      if (key !== SYNTHETIC_SESSION_KEY) delivered.push(...list);
+    }
+    const survivors = optimistic.filter(
+      (entry) => !hasEquivalentChatEntryGuard({ entry, among: delivered }),
+    );
+    const next = new Map(derived);
+    next.set(SYNTHETIC_SESSION_KEY, survivors);
+    return next;
+  }, [entriesBySessionInternal]);
   const entriesByWorkItem = useMemo(
     () => deriveSortedChatEntriesMapTransformer({ source: entriesByWorkItemInternal }),
     [entriesByWorkItemInternal],
@@ -514,6 +535,18 @@ export const useQuestChatBinding = ({
         uuid: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
       });
+      // The staged entry's content is bare `[Pasted Image N]` placeholders — no bytes, no URL. The
+      // renderer resolves each placeholder against this memory, keyed by the staged entry's own
+      // uuid, so the optimistic bubble can draw the pasted image before the server round-trip and
+      // its replayed copy (a DIFFERENT uuid) ever land.
+      if (images !== undefined && images.length > 0) {
+        pastedImageMemoryState.remember({
+          uuid: userEntry.uuid,
+          dataUrls: images.map((image) =>
+            dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+          ),
+        });
+      }
       setEntriesBySessionInternal((prev) =>
         upsertChatEntriesByUuidTransformer({
           prev,
@@ -599,6 +632,17 @@ export const useQuestChatBinding = ({
         uuid: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
       });
+      // Same reasoning as sendMessage's own remember: the staged entry's content is bare
+      // placeholders, so the renderer needs the bytes stashed under this entry's own uuid to draw
+      // the optimistic bubble.
+      if (images !== undefined && images.length > 0) {
+        pastedImageMemoryState.remember({
+          uuid: userEntry.uuid,
+          dataUrls: images.map((image) =>
+            dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+          ),
+        });
+      }
       setFollowupLocalEntries((prev) => [...prev, userEntry]);
       setFollowupPendingTurn(true);
       // The previous turn's handle must not outlive it: a late completion for THAT process would

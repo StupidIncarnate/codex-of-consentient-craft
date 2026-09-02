@@ -12,6 +12,9 @@ export const ImageOverlayWidgetProxy = (): {
   getBodyOverflowY: () => HTMLElement['style']['overflowY'];
   getModalWidth: () => HTMLElement['style']['width'];
   clickClose: () => Promise<void>;
+  hasCloseButton: () => boolean;
+  pressEscape: () => Promise<void>;
+  clickOutside: () => Promise<void>;
 } => {
   IconButtonWidgetProxy();
   const user = userEvent.setup();
@@ -47,6 +50,29 @@ export const ImageOverlayWidgetProxy = (): {
     },
     clickClose: async (): Promise<void> => {
       await user.click(screen.getByTestId('IMAGE_OVERLAY_CLOSE'));
+    },
+    hasCloseButton: (): boolean => screen.queryByTestId('IMAGE_OVERLAY_CLOSE') !== null,
+    // Mantine's Escape handler is a window-level `keydown` listener (registered with `capture:
+    // true` in its own `useModal` hook), not a listener on any element this widget renders — so
+    // there is no element to target. userEvent.keyboard dispatches on `document.activeElement`
+    // (falling back to the document body), and the event bubbles/captures to `window` the same as
+    // a real keypress would.
+    pressEscape: async (): Promise<void> => {
+      await user.keyboard('{Escape}');
+    },
+    // The click-outside close is the overlay/backdrop element's own onClick handler (Mantine's
+    // ModalBaseOverlay), not a document-level listener — so this has to click that element
+    // specifically, the same way the sibling getter above reads `.mantine-Modal-root`:
+    // `.mantine-Overlay-root` is the Overlay component's own stable, human-readable static class
+    // (name "Overlay", selector "root"), not a hashed one.
+    clickOutside: async (): Promise<void> => {
+      const overlay = document.querySelector<HTMLElement>('.mantine-Overlay-root');
+      if (overlay === null) {
+        throw new Error(
+          'ImageOverlayWidgetProxy.clickOutside: no .mantine-Overlay-root in the document — is the modal opened?',
+        );
+      }
+      await user.click(overlay);
     },
   };
 };
