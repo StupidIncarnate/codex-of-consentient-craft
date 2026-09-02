@@ -11,6 +11,7 @@ import {
   QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import type { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
 import { ChatReplayResponderProxy } from './chat-replay-responder.proxy';
@@ -384,9 +385,25 @@ describe('ChatReplayResponder', () => {
         (entry): entry is ChatOutputUserEntry => entry.role === 'user',
       );
 
+      // Byte-identical to the orphan case's own assertion below — same seeded line, same
+      // rewrite, on the quest-linked branch instead of the orphan one. Proves the rewrite
+      // itself does not vary with quest-linkage.
       expect(userEntry?.content).toBe(
         'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
       );
+
+      // Unlike the orphan case, THIS session's sessionId matches a quest workItem — the
+      // payload must carry questId + workItemId. Asserting the full sorted key list (not just
+      // presence of one key) is what proves the shape actually differs from the orphan
+      // payload's four-key shape below, rather than merely having an extra key alongside an
+      // unasserted rest.
+      const chatOutputPayloadKeys = events
+        .filter((e) => e.type === 'chat-output')
+        .map((e) => Object.keys(e.payload).sort());
+
+      expect(chatOutputPayloadKeys).toStrictEqual([
+        ['chatProcessId', 'entries', 'questId', 'replay', 'sessionId', 'workItemId'],
+      ]);
     });
 
     it('EDGE: {orphan session with no linked quest, main session user line carries a pasted-image token} => chat-output payload entry content is rewritten the same way and carries no questId', async () => {
@@ -427,12 +444,15 @@ describe('ChatReplayResponder', () => {
         (entry): entry is ChatOutputUserEntry => entry.role === 'user',
       );
 
+      // Byte-identical to the quest-linked case's own assertion above — same seeded line,
+      // same rewrite, on the orphan branch instead of the quest-linked one.
       expect(userEntry?.content).toBe(
         'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
       );
 
       // Mirrors the "orphan session (no linked quest)" case above: exactly one chat-output
-      // frame fired, and its payload keys carry no questId/workItemId.
+      // frame fired, and its payload keys carry no questId/workItemId — unlike the quest-linked
+      // case above, whose payload keys include both.
       const chatOutputPayloadKeys = events
         .filter((e) => e.type === 'chat-output')
         .map((e) => Object.keys(e.payload).sort());
@@ -440,6 +460,160 @@ describe('ChatReplayResponder', () => {
       expect(chatOutputPayloadKeys).toStrictEqual([
         ['chatProcessId', 'entries', 'replay', 'sessionId'],
       ]);
+    });
+
+    it('VALID: {main session user line content is "A![Pasted Image 1](/p/x.png)B"} => chat-output payload entries is exactly one user-role entry', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-pasted-image-single-entry' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-single-entry' });
+      const guild = GuildStub({ id: guildId });
+      const lineUuid = 'pasted-image-single-entry-uuid';
+
+      // Quest list comes back EMPTY — sessionId belongs to no quest workItem. The unit under
+      // test (does the image token split the line into more than one entry?) does not depend
+      // on quest-linkage, so the orphan branch is the simplest path that still emits chat-output.
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/testuser',
+      });
+      proxy.setupMainSession({
+        content: `{"type":"user","uuid":"${lineUuid}","timestamp":"2025-01-01T00:00:01Z","message":{"role":"user","content":"A![Pasted Image 1](/p/x.png)B"}}`,
+      });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      const events = eventCapture.getEmittedEvents();
+      const chatOutputEvent = events.find((e) => e.type === 'chat-output');
+      const entries = chatOutputEvent?.payload.entries as ChatOutputEntries | undefined;
+
+      // A regression that splits the image token into a separate entry (or drops the line
+      // entirely) shows up here as a two-member or zero-member array — asserting the full
+      // one-member array (not just its length) proves the count AND the entry's exact shape
+      // — role 'user', the rewritten uuid, content, source and timestamp — in one assertion.
+      expect(entries).toStrictEqual([
+        {
+          role: 'user',
+          content: `A![Pasted Image 1](http://dungeonmaster.localhost:3737${pastedImageStatics.serveRoutePath}?path=%2Fp%2Fx.png)B`,
+          source: 'session',
+          uuid: `${lineUuid}:user`,
+          timestamp: '2025-01-01T00:00:01Z',
+        },
+      ]);
+    });
+
+    it('VALID: {main session user line carries an image token AND a markdown link to a .md file} => chat-output payload entry content rewrites only the image token, leaving the .md link byte-identical', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-pasted-image-with-md-link' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-with-md-link' });
+      const guild = GuildStub({ id: guildId });
+
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/testuser',
+      });
+      proxy.setupMainSession({
+        content:
+          '{"type":"user","uuid":"pasted-image-md-link-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"role":"user","content":"See ![Pasted Image 1](/p/x.png) and [notes](/p/readme.md)"}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      const events = eventCapture.getEmittedEvents();
+      const chatOutputEvent = events.find((e) => e.type === 'chat-output');
+      const entries = chatOutputEvent?.payload.entries as ChatOutputEntries | undefined;
+      const userEntry = entries?.find(
+        (entry): entry is ChatOutputUserEntry => entry.role === 'user',
+      );
+
+      // A single toBe on the WHOLE string proves both halves at once: the .md link rides
+      // through byte-identical (no leading `!`, so imageTokenPattern never matches it) AND the
+      // image token IS rewritten to the /api/images URL — a rewriter that touched nothing at
+      // all would pass the .md-link half alone, and this assertion would still catch it via the
+      // untouched image token.
+      expect(userEntry?.content).toBe(
+        `See ![Pasted Image 1](http://dungeonmaster.localhost:3737${pastedImageStatics.serveRoutePath}?path=%2Fp%2Fx.png) and [notes](/p/readme.md)`,
+      );
+    });
+
+    it('VALID: {DUNGEONMASTER_PORT set to a distinctive value, main session user line carries a pasted-image token} => chat-output payload entry content carries an http URL built from that port, with no bare filesystem path anywhere in it', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-pasted-image-distinctive-port' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-distinctive-port' });
+      const guild = GuildStub({ id: guildId });
+
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/testuser',
+      });
+      // portResolveBroker reads DUNGEONMASTER_PORT at call time — inside chatHistoryReplayBroker,
+      // when it builds serverBaseUrl via questGetServerConfigBroker(). Pinning it here to a
+      // value distinct from the file-wide default (3737, staged by
+      // chatHistoryReplayBrokerProxy's own constructor for every OTHER test in this file) is
+      // what proves the URL is RESOLVED at call time rather than hardcoded.
+      proxy.setPort({ value: '48213' });
+      proxy.setupMainSession({
+        content:
+          '{"type":"user","uuid":"pasted-image-distinctive-port-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"role":"user","content":"A![Pasted Image 1](/p/x.png)B"}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      // Restore the file-wide default right after the call — nothing later in this test reads
+      // the env var again, and every test in this file after this one expects it back at 3737.
+      proxy.setPort({ value: '3737' });
+
+      const events = eventCapture.getEmittedEvents();
+      const chatOutputEvent = events.find((e) => e.type === 'chat-output');
+      const entries = chatOutputEvent?.payload.entries as ChatOutputEntries | undefined;
+      const userEntry = entries?.find(
+        (entry): entry is ChatOutputUserEntry => entry.role === 'user',
+      );
+
+      // Asserting the WHOLE string is what proves no bare filesystem path survived anywhere in
+      // it, and that the port embedded is the one just staged (48213) rather than the 3737
+      // default.
+      expect(userEntry?.content).toBe(
+        `A![Pasted Image 1](http://dungeonmaster.localhost:48213${pastedImageStatics.serveRoutePath}?path=%2Fp%2Fx.png)B`,
+      );
     });
   });
 
