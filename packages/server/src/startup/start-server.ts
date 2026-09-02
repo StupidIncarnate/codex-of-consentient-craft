@@ -14,6 +14,7 @@ import { ProcessFlow } from '../flows/process/process-flow';
 import { SessionFlow } from '../flows/session/session-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { HealthFlow } from '../flows/health/health-flow';
+import { ImagesFlow } from '../flows/images/images-flow';
 import { OrchestrationBootFlow } from '../flows/orchestration-boot/orchestration-boot-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
 import { QuestDrivenWatchersFlow } from '../flows/quest-driven-watchers/quest-driven-watchers-flow';
@@ -45,6 +46,7 @@ export const StartServer = ({
       SessionFlow(),
       DirectoryFlow(),
       HealthFlow(),
+      ImagesFlow(),
       DesignFlow(),
       ToolingFlow(),
       RateLimitsFlow(),

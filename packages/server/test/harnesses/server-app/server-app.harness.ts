@@ -35,6 +35,14 @@ export const serverAppHarness = (): {
     questFolder: string;
     quest: unknown;
   }) => void;
+  // Writes a REAL file to a fresh temp dir — a bytes-match-disk claim can't be settled against a
+  // mocked read, so a test that serves an image over HTTP and diffs the response against the file
+  // needs a genuine file on a genuine filesystem.
+  seedImageFile: (params: { baseName: string; fileName: string; bytes: Uint8Array }) => {
+    imagePath: FilePath;
+    dirPath: FilePath;
+    cleanup: () => void;
+  };
   // Strips write permission from the quest's OWN directory (not the file — questPersistBroker
   // writes atomically via temp-file-then-rename, and a rename only needs write permission on the
   // DIRECTORY that holds both names, so chmod'ing quest.json itself would not stop the write).
@@ -106,6 +114,33 @@ export const serverAppHarness = (): {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
     mkdirSync(questDir, { recursive: true });
     writeFileSync(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
+  };
+
+  // Writes `bytes` to a real file under a fresh temp dir, the same shape `setupTestHome` uses, so
+  // a test can serve it over HTTP and assert the response bytes equal the file's bytes on disk.
+  // Hands back `dirPath` too, so a caller can build a path to a file that was never written, for
+  // the missing-file case.
+  const seedImageFile = ({
+    baseName,
+    fileName,
+    bytes,
+  }: {
+    baseName: string;
+    fileName: string;
+    bytes: Uint8Array;
+  }): { imagePath: FilePath; dirPath: FilePath; cleanup: () => void } => {
+    const dirPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
+    mkdirSync(dirPath, { recursive: true });
+    const imagePath = join(dirPath, fileName);
+    writeFileSync(imagePath, bytes);
+
+    return {
+      imagePath: FilePathStub({ value: imagePath }),
+      dirPath: FilePathStub({ value: dirPath }),
+      cleanup: (): void => {
+        rmSync(dirPath, { recursive: true, force: true });
+      },
+    };
   };
 
   const makeQuestDirectoryReadOnly = ({
@@ -227,6 +262,7 @@ export const serverAppHarness = (): {
     setupTestHome,
     toPlain,
     seedQuest,
+    seedImageFile,
     makeQuestDirectoryReadOnly,
     registerRealGuild,
     configureFakeClaudeCli,

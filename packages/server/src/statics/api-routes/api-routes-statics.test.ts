@@ -1,3 +1,5 @@
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
+
 import { apiRoutesStatics } from './api-routes-statics';
 
 describe('apiRoutesStatics', () => {
@@ -5,6 +7,10 @@ describe('apiRoutesStatics', () => {
     expect(apiRoutesStatics).toStrictEqual({
       health: {
         check: '/api/health',
+      },
+      images: {
+        serve: '/api/images',
+        pathQueryParam: 'path',
       },
       quests: {
         list: '/api/quests',
@@ -61,5 +67,9 @@ describe('apiRoutesStatics', () => {
         mode: '/api/orchestration/mode',
       },
     });
+  });
+
+  it('VALID: images.serve => is the same route key the orchestrator builds its URLs from', () => {
+    expect(apiRoutesStatics.images.serve).toBe(pastedImageStatics.serveRoutePath);
   });
 });
