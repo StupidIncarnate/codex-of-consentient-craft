@@ -8,13 +8,31 @@
  * restore();
  */
 import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, writeFileSync, rmSync, chmodSync, readFileSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+  chmodSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+} from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
+import { z } from 'zod';
+
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub, GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
+import type { Base64ImageData, FileName, FilePath } from '@dungeonmaster/shared/contracts';
+import {
+  fileNameContract,
+  FilePathStub,
+  GuildNameStub,
+  GuildPathStub,
+  pastedImageUploadContract,
+} from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 // The real fake-Claude-CLI binary lives in the web package's own e2e harness (it records every
 // invocation's argv to `invocations.jsonl` BEFORE it even reads its response queue — see that
@@ -25,6 +43,13 @@ const REAL_FAKE_CLAUDE_CLI_BIN = join(
   __dirname,
   '../../../../web/test/harnesses/claude-mock/bin/claude',
 );
+
+// Narrows the `unknown` waitForClaudeInvocation hands back so
+// waitForClaudeInvocationImagePaths can read `.prompt` as a real (branded) string, rather than
+// every caller reaching for its own inline structural cast on the invocation ledger's JSON.
+const claudeInvocationPromptContract = z.object({
+  prompt: z.string().brand<'ClaudeInvocationPrompt'>(),
+});
 
 export const serverAppHarness = (): {
   setupTestHome: (params: { baseName: string }) => () => void;
@@ -76,6 +101,37 @@ export const serverAppHarness = (): {
     cwd: string;
     timeoutMs: number;
   }) => Promise<unknown>;
+  // Reads the quest's images subdirectory the same way pastedImagePersistBroker computes it —
+  // built directly from questId (locationsQuestFolderPathFindBroker joins questId verbatim, never
+  // whatever on-disk quest FOLDER name a caller chose for seedQuest) — so a caller that seeds
+  // questFolder === questId reads back the exact directory the broker writes to. Bundles
+  // existence, inode (for the not-recreated-on-a-second-send proof) and the raw file name list
+  // into one real fs read, so an absent directory reads as `exists: false` rather than a thrown
+  // ENOENT a caller has to guess the meaning of.
+  readImagesDir: (params: { dungeonmasterHome: string; guildId: string; questId: string }) => {
+    exists: boolean;
+    dirPath: FilePath;
+    ino: unknown;
+    fileNames: readonly FileName[];
+  };
+  // Reads an arbitrary file's REAL bytes back as base64 — the byte-for-byte proof a written
+  // pasted-image file matches what was posted. Takes a bare path rather than a questId-scoped one
+  // (unlike readImagesDir above) because callers already have one in hand: a name from
+  // readImagesDir's fileNames joined onto its dirPath, or a path from
+  // waitForClaudeInvocationImagePaths below.
+  readFileBase64: (params: { filePath: string }) => Base64ImageData;
+  // waitForClaudeInvocation above hands back `unknown` — honest for a value read off the fake
+  // CLI's own JSON ledger rather than a contract. Reach for THIS over that one when a caller needs
+  // the absolute paths a resumed chat's rewritten message embedded — the
+  // `![Pasted Image N](<path>)` tokens, in the order they appear in the `-p` prompt text. Parses
+  // the invocation through a zod contract internally (so no caller reaches for an inline
+  // structural cast on the `unknown` prompt field) and hands back only the paths, already
+  // FilePath-branded.
+  waitForClaudeInvocationImagePaths: (params: {
+    claudeQueueDir: FilePath;
+    cwd: string;
+    timeoutMs: number;
+  }) => Promise<readonly FilePath[]>;
 } => {
   const setupTestHome = ({ baseName }: { baseName: string }): (() => void) => {
     const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
@@ -258,6 +314,44 @@ export const serverAppHarness = (): {
     return pollForInvocation({ invocationsPath, deadline: Date.now() + timeoutMs });
   };
 
+  const readImagesDir = ({
+    dungeonmasterHome,
+    guildId,
+    questId,
+  }: {
+    dungeonmasterHome: string;
+    guildId: string;
+    questId: string;
+  }): { exists: boolean; dirPath: FilePath; ino: unknown; fileNames: readonly FileName[] } => {
+    const dirPath = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
+    const exists = existsSync(dirPath);
+    return {
+      exists,
+      dirPath: FilePathStub({ value: dirPath }),
+      ino: exists ? statSync(dirPath).ino : null,
+      fileNames: exists ? readdirSync(dirPath).map((name) => fileNameContract.parse(name)) : [],
+    };
+  };
+
+  // base64ImageDataContract itself is not exported (only its Base64ImageData type is) — routing
+  // the read-back bytes through pastedImageUploadContract's own (exported) validation is what
+  // yields the branded value, using the same real validation the write path's contract enforces.
+  const readFileBase64 = ({ filePath }: { filePath: string }): Base64ImageData =>
+    pastedImageUploadContract.parse({
+      mediaType: 'image/png',
+      dataBase64: readFileSync(filePath).toString('base64'),
+    }).dataBase64;
+
+  const waitForClaudeInvocationImagePaths = async (params: {
+    claudeQueueDir: FilePath;
+    cwd: string;
+    timeoutMs: number;
+  }): Promise<readonly FilePath[]> => {
+    const { prompt } = claudeInvocationPromptContract.parse(await waitForClaudeInvocation(params));
+    const matches = [...prompt.matchAll(new RegExp(pastedImageStatics.imageTokenPattern, 'gu'))];
+    return matches.map((match) => FilePathStub({ value: match[2] ?? '' }));
+  };
+
   return {
     setupTestHome,
     toPlain,
@@ -267,5 +361,8 @@ export const serverAppHarness = (): {
     registerRealGuild,
     configureFakeClaudeCli,
     waitForClaudeInvocation,
+    readImagesDir,
+    readFileBase64,
+    waitForClaudeInvocationImagePaths,
   };
 };
