@@ -1,0 +1,92 @@
+/**
+ * PURPOSE: Full-size view for a pasted chat image, opened from two callers that never share a URL
+ * shape — a thumbnail still sitting in the chat composer (a base64 data URL for an image the server
+ * has never seen) and the same image already sent and rendered in the transcript (an http URL the
+ * server serves from disk). The overlay chrome (sizing, scroll, close affordance) is identical
+ * either way, so one widget renders it rather than one per caller; only the `src` string differs,
+ * and that difference is the composer's and transcript's business, not this widget's.
+ *
+ * USAGE:
+ * <ImageOverlayWidget opened={true} src={imageSrc} alt="Pasted image" onClose={handleClose} />
+ * // Renders a centred modal at 75% viewport width, capped at 90vh; a taller image scrolls inside
+ */
+
+import { Modal } from '@mantine/core';
+import { IconX } from '@tabler/icons-react';
+
+import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
+import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { IconButtonWidget } from '../icon-button/icon-button-widget';
+
+// Quest spec fixes these two numbers; no static owns modal sizing today, so they live here where a
+// reader can find them rather than buried inline in the styles object below.
+const MODAL_WIDTH_PERCENT = '75%';
+const MODAL_MAX_HEIGHT_VH = '90vh';
+
+const CLOSE_LABEL = buttonLabelContract.parse('Close image');
+const CLOSE_TEST_ID = testIdContract.parse('IMAGE_OVERLAY_CLOSE');
+
+export interface ImageOverlayWidgetProps {
+  opened: boolean;
+  // Plain string ON PURPOSE — expressed as the DOM's own HTMLImageElement['src'] rather than a
+  // branded contract (the same dodge IconButtonWidgetProps uses for `id`/`className`). The composer
+  // caller passes a base64 data URL for an image the server has never seen; the transcript caller
+  // passes an http URL the server serves from disk. No single branded contract covers both shapes,
+  // and narrowing to either one (a data-URL contract or a served-image-URL contract) would lock the
+  // other caller out — which defeats the reason this widget is shared rather than duplicated per
+  // caller. Each caller hands over whatever string its own `<img>` can already resolve.
+  src: HTMLImageElement['src'];
+  alt: HTMLImageElement['alt'];
+  onClose: () => void;
+}
+
+export const ImageOverlayWidget = ({
+  opened,
+  src,
+  alt,
+  onClose,
+}: ImageOverlayWidgetProps): React.JSX.Element => {
+  const { colors } = emberDepthsThemeStatics;
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      withCloseButton={false}
+      centered
+      size={MODAL_WIDTH_PERCENT}
+      styles={{
+        content: {
+          backgroundColor: colors['bg-surface'],
+          border: `1px solid ${colors.border}`,
+        },
+        overlay: {
+          backgroundColor: 'rgba(13, 9, 7, 0.85)',
+        },
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <IconButtonWidget
+          label={CLOSE_LABEL}
+          testId={CLOSE_TEST_ID}
+          icon={IconX}
+          onClick={() => {
+            onClose();
+          }}
+        />
+      </div>
+      <div
+        data-testid="IMAGE_OVERLAY"
+        style={{ maxHeight: MODAL_MAX_HEIGHT_VH, overflowY: 'auto' }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          data-testid="IMAGE_OVERLAY_IMAGE"
+          style={{ width: '100%', display: 'block' }}
+        />
+      </div>
+    </Modal>
+  );
+};

@@ -390,7 +390,7 @@ describe('ChatPanelWidget', () => {
       expect(proxy.isStreamingVisible()).toBe(false);
     });
 
-    it('VALID: {isStreaming: true} => disables textarea', () => {
+    it('VALID: {isStreaming: true} => makes the composer non-editable', () => {
       ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
@@ -404,9 +404,7 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      const textarea = screen.getByRole('textbox');
-
-      expect((textarea as HTMLTextAreaElement).disabled).toBe(true);
+      expect(screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable')).toBe('false');
     });
 
     it('VALID: {isStreaming: true} => shows stop button instead of send button', () => {

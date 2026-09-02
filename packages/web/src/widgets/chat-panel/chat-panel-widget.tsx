@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { BounceOffsetPx } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
-import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
@@ -30,7 +30,7 @@ import type { UserInput } from '@dungeonmaster/shared/contracts';
 export interface ChatPanelWidgetProps {
   entries: ChatEntry[];
   isStreaming: boolean;
-  onSendMessage: (params: { message: UserInput }) => void;
+  onSendMessage: (params: { message: UserInput; images?: readonly PastedImageUpload[] }) => void;
   onStopChat: () => void;
   readOnly?: boolean;
   // Overrides the assistant role label ChatMessageWidget defaults to ('chaoswhisperer'). Callers
