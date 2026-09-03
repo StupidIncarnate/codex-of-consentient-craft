@@ -302,8 +302,12 @@ def units_of(quest):
     for flow in quest.get("flows", []):
         fid = flow.get("id")
         ftype = flow.get("flowType")
+        # `flowriderPromptStatics`: "A node the graph prints (terminal) that still points onward is
+        # not a terminal unit." Counting those inflates every track's denominator — measured at 4 of
+        # 7 on one flow, which is exactly what put this script 4 above the real checklist.
+        points_onward = {e.get("from") for e in flow.get("edges", [])}
         for node in flow.get("nodes", []):
-            if node.get("type") == "terminal":
+            if node.get("type") == "terminal" and node.get("id") not in points_onward:
                 out.append({
                     "flow": fid, "flowType": ftype, "kind": "terminal",
                     "id": node.get("id"), "node": node.get("id"), "nodeType": "terminal",
