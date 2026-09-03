@@ -10,6 +10,7 @@ read directly — a single quest routinely exceeds 200 MB across a dozen session
 This script turns them into digests an analyst (human or agent) can work from.
 
   python3 scripts/quest-forensics.py quest     <questId>
+  python3 scripts/quest-forensics.py coverage  <questId>
   python3 scripts/quest-forensics.py summary   <sessionId|agentId>
   python3 scripts/quest-forensics.py timeline  <sessionId|agentId> [--max N] [--max-chars N]
   python3 scripts/quest-forensics.py buckets   <sessionId|agentId> [--minutes N]
@@ -27,6 +28,13 @@ absolute path to a .jsonl to bypass resolution entirely.
 
 `quest <questId>` prints the work-item index — role, status, session id, window, operation text —
 plus ward results and the original user request. Start there; it tells you which sessions exist.
+
+`coverage <questId>` prints the delivery chain instead: per flow, what each sign-off track was owed
+and what it signed, which units nobody settled, which observables were added mid-quest rather than at
+spec time, the unconfirmable verdicts, and the quest notes. It derives units by a plain reading of the
+graph (observables, LABELLED edges, off-map families); the authoritative denominator is
+`get-qa-checklist({ questId, operationItemId })`. Where the two disagree, the MCP tool is right and
+the disagreement is itself worth reporting.
 """
 import argparse
 import glob
@@ -247,6 +255,160 @@ def cmd_quest(args):
             print(f"\n{label}")
             for r in rows:
                 print(f"  {json.dumps(r)}")
+
+
+TRACKS = ("codeweaverSignoff", "flowriderSignoff", "siegemasterSignoff")
+
+
+def units_of(quest):
+    """Every verification unit in the quest, flattened.
+
+    A unit is one thing a track can sign: an observable on a node, a LABELLED edge (an unlabelled
+    edge is not a branch anyone chose), or an off-map probe family. Node terminals are counted too —
+    they are what `get-qa-checklist` derives a flow's shape from.
+    """
+    out = []
+    for flow in quest.get("flows", []):
+        fid = flow.get("id")
+        ftype = flow.get("flowType")
+        for node in flow.get("nodes", []):
+            for obs in node.get("observables") or []:
+                out.append({
+                    "flow": fid, "flowType": ftype, "kind": "observable",
+                    "id": obs.get("id"), "node": node.get("id"),
+                    "nodeType": node.get("type"), "packages": node.get("packages") or [],
+                    "package": obs.get("package"), "addedBy": obs.get("addedBy"),
+                    "type": obs.get("type"), "desc": obs.get("description"), "unit": obs,
+                })
+        for edge in flow.get("edges", []):
+            if not edge.get("label"):
+                continue
+            out.append({
+                "flow": fid, "flowType": ftype, "kind": "branch",
+                "id": edge.get("id"), "node": f"{edge.get('from')}->{edge.get('to')}",
+                "nodeType": "edge", "packages": [], "package": None,
+                "addedBy": None, "type": "branch", "desc": edge.get("label"), "unit": edge,
+            })
+        for probe in flow.get("offMapSignoffs") or []:
+            out.append({
+                "flow": fid, "flowType": ftype, "kind": "off-map",
+                "id": probe.get("id"), "node": "-", "nodeType": "off-map",
+                "packages": [], "package": None, "addedBy": None,
+                "type": "off-map", "desc": probe.get("id"), "unit": probe,
+            })
+    return out
+
+
+def cmd_coverage(args):
+    """The delivery chain: what each track was owed, what it signed, and what it left.
+
+    This is the flow-centric view. `quest` answers "which sessions ran"; this answers "did the work
+    those sessions were dispatched for actually land against the approved spec".
+    """
+    quest_path = find_quest(args.target)
+    if not quest_path:
+        sys.exit(f"no quest.json found for {args.target}")
+    quest = json.load(open(quest_path))
+    units = units_of(quest)
+
+    print(f"QUEST   {quest.get('title')}")
+    print(f"STATUS  {quest.get('status')}")
+    print(f"FLOWS   {len(quest.get('flows', []))}   UNITS  {len(units)}")
+
+    print("\n=== FLOW SHAPE ===")
+    for flow in quest.get("flows", []):
+        nodes = flow.get("nodes", [])
+        edges = flow.get("edges", [])
+        labelled = [e for e in edges if e.get("label")]
+        obs = [o for n in nodes for o in (n.get("observables") or [])]
+        kinds = Counter(n.get("type") for n in nodes)
+        pkgs = Counter(p for n in nodes for p in (n.get("packages") or []))
+        print(f"\n{flow.get('id')}  ({flow.get('flowType')})  {flow.get('name')}")
+        print(f"  nodes {len(nodes)} {dict(kinds)}")
+        print(f"  edges {len(edges)} ({len(labelled)} labelled = signable branches)")
+        print(f"  observables {len(obs)}   off-map families {len(flow.get('offMapSignoffs') or [])}")
+        print(f"  package tags on nodes: {dict(pkgs)}")
+        print(f"  entry {flow.get('entryPoint')}  exits {flow.get('exitPoints')}")
+
+    print("\n=== COVERAGE BY TRACK ===")
+    print("Eligibility: codeweaver + flowrider sign observables and branches on RUNTIME flows;")
+    print("siegemaster additionally owns the off-map probe families. An unsigned unit on a track that")
+    print("owns it is work the quest still owes.")
+    for flow in quest.get("flows", []):
+        fid = flow.get("id")
+        fus = [u for u in units if u["flow"] == fid]
+        print(f"\n{fid}")
+        print(f"  {'track':22s} {'signed':>7s} {'confirmed':>10s} {'unconfirmable':>14s} "
+              f"{'UNSIGNED':>9s}  of {len(fus)}")
+        for track in TRACKS:
+            eligible = [u for u in fus
+                        if not (u["kind"] == "off-map" and track != "siegemasterSignoff")]
+            signed = [u for u in eligible if u["unit"].get(track)]
+            conf = [u for u in signed if u["unit"][track].get("verdict") == "confirmed"]
+            unconf = [u for u in signed if u["unit"][track].get("verdict") == "unconfirmable"]
+            print(f"  {track:22s} {len(signed):7d} {len(conf):10d} {len(unconf):14d} "
+                  f"{len(eligible) - len(signed):9d}  of {len(eligible)}")
+
+    print("\n=== UNSIGNED UNITS (per track, the work still owed) ===")
+    for track in TRACKS:
+        missing = [u for u in units
+                   if not (u["kind"] == "off-map" and track != "siegemasterSignoff")
+                   and not u["unit"].get(track)]
+        print(f"\n{track}: {len(missing)} unsigned")
+        for u in missing[:args.max or 60]:
+            print(f"  {u['flow']:34s} {u['kind']:10s} {u['id']:44s} {str(u['desc'])[:60]}")
+        if args.max and len(missing) > args.max:
+            print(f"  ... and {len(missing) - args.max} more")
+
+    print("\n=== OBSERVABLES BY PROVENANCE ===")
+    print("`spec` means it survived Gate #2. Anything else was found DURING execution — that is the")
+    print("planning phase failing to hand the worker what it needed, measured directly.")
+    prov = Counter(u["addedBy"] for u in units if u["kind"] == "observable")
+    for k, n in prov.most_common():
+        print(f"  {str(k):16s} {n:4d}")
+    print("\n  mid-quest additions, by flow and author:")
+    for u in units:
+        if u["kind"] == "observable" and u["addedBy"] not in (None, "spec"):
+            print(f"    {u['flow']:34s} {str(u['addedBy']):14s} {u['id']:40s} "
+                  f"{str(u['desc'])[:70]}")
+
+    print("\n=== UNCONFIRMABLE VERDICTS (what a track could not settle, and its instruction) ===")
+    for track in TRACKS:
+        rows = [u for u in units
+                if (u["unit"].get(track) or {}).get("verdict") == "unconfirmable"]
+        print(f"\n{track}: {len(rows)}")
+        for u in rows:
+            so = u["unit"][track]
+            print(f"  {u['flow']} / {u['id']}")
+            print(f"    toSettle: {str(so.get('toSettle'))[:300]}")
+
+    print("\n=== WHO SIGNED WHAT (sign-offs per work item) ===")
+    per_item = defaultdict(Counter)
+    for u in units:
+        for track in TRACKS:
+            so = u["unit"].get(track)
+            if so and so.get("workItemId"):
+                per_item[so["workItemId"]][track] += 1
+    roles = {w["id"]: w["role"] for w in quest.get("workItems", [])}
+    for wid, counts in per_item.items():
+        print(f"  {roles.get(wid, '?'):14s} {wid}  {dict(counts)}")
+
+    notes = (quest.get("planningNotes") or {}).get("questNotes") or []
+    print(f"\n=== QUEST NOTES ({len(notes)}) — the side channel, which never closes a unit ===")
+    print(f"  by kind: {dict(Counter(n.get('kind') for n in notes))}")
+    print(f"  by role: {dict(Counter(n.get('role') for n in notes))}")
+    for n in notes:
+        print(f"\n  [{n.get('kind')}] {n.get('role')} · flow={n.get('flowId')} · "
+              f"unit={n.get('unitId')} · {n.get('at')}")
+        print(f"    {str(n.get('summary'))[:200]}")
+        if args.max_chars > 200:
+            print(f"    detail: {str(n.get('detail'))[:args.max_chars]}")
+
+    print("\n=== CONTRACTS AND PACKAGES THE SPEC DECLARED ===")
+    for c in quest.get("contracts") or []:
+        print(f"  {str(c.get('name')):40s} source={c.get('source')}")
+    for p in quest.get("packagesAffected") or []:
+        print(f"  {str(p.get('name')):16s} {p.get('changeType'):8s} {p.get('packageType')}")
 
 
 def cmd_summary(args):
@@ -580,8 +742,9 @@ def cmd_grep(args):
 def main():
     p = argparse.ArgumentParser(
         description="Digest Claude Code session transcripts for quest post-mortems.")
-    p.add_argument("cmd", choices=["quest", "summary", "timeline", "buckets", "subagents",
-                                   "text", "prompts", "errors", "result", "grep", "gaps"])
+    p.add_argument("cmd", choices=["quest", "coverage", "summary", "timeline", "buckets",
+                                   "subagents", "text", "prompts", "errors", "result", "grep",
+                                   "gaps"])
     p.add_argument("target", help="questId, sessionId, agent-<id>, or an absolute .jsonl path")
     p.add_argument("regex", nargs="?", help="for `result` and `grep`")
     p.add_argument("--parent", help="parent sessionId, when an agent id is ambiguous")

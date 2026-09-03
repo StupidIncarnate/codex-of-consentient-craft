@@ -209,8 +209,147 @@ Same symptom with a different mechanism stays separate, and the entry says how t
 
 **Citations** are `[report NN §S]`. A merged finding carries one per contributing report.
 
-## Step 6 — report back
+---
 
-Tell the user where the compiled post-mortem is, its top three findings with their figures, and the
-single highest-value fix with its estimated saving. Keep the per-item reports — they are the evidence
-behind every claim in the compilation.
+# PHASE 2 — the delivery-chain audit
+
+Phase 1 asks *how each session ran*. Phase 2 asks a different question, and the two do not substitute
+for each other: **did the approved spec turn into the delivery it promised, and if not, where did the
+chain break?**
+
+The design under test is a three-role chain over one approved flow map:
+
+| Role | Owes, per the design |
+|---|---|
+| codeweaver | one package's half of one flow — product code plus the unit tests that prove it |
+| flowrider | the integration and e2e suites that prove that flow **as a whole** |
+| siegemaster | hand-drives the flow as a user would and finds the glaring gaps |
+
+Upstream of all three sits the spec phase: flows, observables, contracts, `packagesAffected`,
+approved at Gate #2. Phase 2 audits whether that artifact was enough to drive the chain, and whether
+each role delivered its own obligation against it.
+
+Run Phase 2 after Phase 1 (its reports give you the per-session behaviour to cross-reference), or
+standalone when the question is only about spec-to-delivery fit.
+
+## Step 7 — the coverage baseline
+
+```bash
+python3 scripts/quest-forensics.py coverage $ARGUMENTS > tmp/quest-forensics/$ARGUMENTS/coverage.txt
+```
+
+That prints, computed from `quest.json` rather than from any agent's claim:
+
+- **Flow shape** per flow — node counts by type, edges and how many are labelled (a labelled edge is
+  a signable branch; an unlabelled one is not a choice anyone made), observable count, off-map
+  families, and the package tags on the nodes.
+- **Coverage by track** — per flow, per track: signed, confirmed, unconfirmable, UNSIGNED.
+- **Unsigned units** — the work the quest still owes, per track, named.
+- **Observables by provenance** — `addedBy: spec` survived Gate #2; anything else was found DURING
+  execution. **This is the planning-adequacy measurement, taken directly.** The listing names each
+  mid-quest observable, its flow and its author.
+- **Unconfirmable verdicts** with their `toSettle` instruction.
+- **Who signed what** — sign-offs per work item, so a track's output maps back to a session.
+- **Quest notes** by kind and role, with detail — the side channel that never closes a unit.
+- **Contracts and packages the spec declared.**
+
+**One caveat the analyzers must respect.** This command derives units by a plain reading of the
+graph — observables, labelled edges, off-map families. The authoritative denominator is
+`get-qa-checklist({ questId, operationItemId })`, which derives scope through
+`operationSignoffScopeTransformer`. Where the two disagree, **the MCP tool is right and the
+discrepancy is itself a finding** — it means a session and its measurer were counting differently.
+Call `get-qa-checklist` for at least one operation item per role and reconcile.
+
+## Step 8 — dispatch the chain analyzers
+
+**One analyzer per FLOW**, plus one for the spec phase. Model `opus`. Each writes to
+`scrolls/reports/$ARGUMENTS/chain-<slug>.md`.
+
+### The spec-phase analyzer
+
+Its subject is the intake work item — the `chaoswhisperer` (or `bughunt`) session at index [0], which
+has a `sessionId` and its own sub-agents. Phase 1 skips it; Phase 2 must not. Give it the Phase 1
+tool table plus:
+
+- Read `packages/orchestrator/src/statics/dumpster-create-prompt/dumpster-create-prompt-statics.ts`
+  and `chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics.ts` in full.
+- Where did each mid-quest observable come from? For every observable whose `addedBy` is not `spec`,
+  find whether the spec session had the information to author it and did not, or genuinely could not
+  have known. Quote the spec session's own reasoning where it exists.
+- Did the gap-minion run, what did it check, and did it clear a spec that later proved incomplete?
+- Were the `contracts` entries' `source` paths accurate? A wrong `source` mints the wrong codeweaver
+  cell at Start.
+- Were `packagesAffected` and the nodes' `packages` tags complete? A package that tags no node gets
+  no cell.
+
+### The per-flow chain analyzers
+
+Each takes one flow and walks it forward through every session that touched it. Give each the flow
+id, the coverage baseline, the Phase 1 reports for its own work items, and these questions:
+
+1. **What was each role owed on this flow, and what did it deliver?** Build a table: unit, kind,
+   owning package, then one column per track with verdict and the work item that signed it. Name
+   every unit no track settled.
+2. **Did the cell decomposition match where the work actually was?** The codeweaver ledger fans out
+   per (package, flow). Compare each cell's sign-off count against the observables tagged to its
+   package. A cell that signed one unit and a cell that signed fifty are both worth explaining.
+3. **Did each role have what it needed at the moment it started?** List the facts each session had to
+   derive for itself that the spec, or a prior session's map, could have carried. Quote the
+   derivation from the transcript and price it.
+4. **Did the roles overlap or leave a seam?** A unit proven by all three tracks is either defence in
+   depth or waste — decide which, and say why. A unit proven by none is a gap; name who should have
+   owned it.
+5. **What did the reviewers have to fix at the end?** For each role's reviewer, separate what it
+   fixed itself from what it returned as `rework`, and judge whether each fix was inside the role's
+   own scope or a gap handed down from upstream. **A reviewer repairing the same class of thing on
+   every pass is a missing step, not a diligent reviewer.**
+6. **What did the LAST role find that an earlier one should have?** Every mid-quest observable and
+   every quest note carries a role. Work backwards: could the flowrider's suites have caught what the
+   siegemaster found by hand? Could a codeweaver unit test have caught what the flowrider found? Cost
+   each late discovery at the wall-clock it consumed where it was actually found.
+7. **Is a middle step missing between the approved flow map and the first codeweaver brief?** State
+   plainly what every operator on this flow had to invent before it could dispatch anything, and
+   whether that invention belongs in the spec, in a new step, or in the prompt.
+
+Report headings, verbatim:
+
+```
+# Chain audit — flow <id>
+## 0. The flow as approved
+## 1. Obligation versus delivery, per role
+## 2. Cell decomposition — did the fan-out match the work?
+## 3. What each role had to derive for itself
+## 4. Overlaps and seams
+## 5. Reviewer burden, and what it says about upstream
+## 6. Late discoveries — what was found where it was most expensive
+## 7. The missing middle step
+## 8. Raw figures appendix
+```
+
+## Step 9 — compile Phase 2
+
+One compiler agent on `opus`, reading every `chain-*.md` plus the spec-phase report plus the Phase 1
+post-mortem. It writes `scrolls/reports/$ARGUMENTS/00-DELIVERY-CHAIN-AUDIT.md`:
+
+```
+## A. The chain as designed, and the chain as run
+## B. Coverage — every flow, every track, signed and unsigned    (a matrix, from step 7's baseline)
+## C. Did the spec give the workers what they needed?            (provenance, cost of each late find)
+## D. Obligation versus delivery, per role                       (what each role owes, and met)
+## E. Where the chain leaks                                      (seams, overlaps, unowned units)
+## F. Reviewer burden as a signal of upstream gaps
+## G. The missing middle step — stated, or explicitly ruled out
+## H. Fixes, ranked, naming the file and the edit
+## I. Open questions
+```
+
+**Section G is the deliverable.** The whole phase exists to answer one question: is the path from an
+approved flow map to a delivered flow complete, or does every operator quietly invent the same
+missing artifact? Answer it plainly — including "no middle step is missing, and here is why" if that
+is what the evidence says.
+
+## Step 10 — report back
+
+For Phase 1, tell the user where the post-mortem is, its top three findings with figures, and the
+highest-value fix with its saving. For Phase 2, lead with section G's answer, then the coverage
+matrix, then the ranked fixes. Keep every per-item and per-flow report — they are the evidence.
