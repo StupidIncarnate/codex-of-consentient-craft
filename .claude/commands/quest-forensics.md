@@ -262,14 +262,27 @@ Call `get-qa-checklist` for at least one operation item per role and reconcile.
 
 ## Step 8 — dispatch the chain analyzers
 
-**One analyzer per FLOW**, plus one for the spec phase. Model `opus`. Each writes to
+**One analyzer per FLOW.** Model `opus`. Each writes to
 `scrolls/reports/$ARGUMENTS/chain-<slug>.md`.
 
-### The spec-phase analyzer
+**Tell every analyzer which flows have incomplete coverage, and why.** A quest paused mid-run leaves
+a track unsigned by circumstance, not by failure. Reporting "siegemaster 0 of 67" as a role failure
+when no siegemaster was ever dispatched is the single easiest way to make this whole phase worthless.
+Name each flow's state — ran to completion, cut off mid-loop, never dispatched — in the brief, and
+instruct the analyzers to write "not yet attempted" every time they touch an untried track.
 
-Its subject is the intake work item — the `chaoswhisperer` (or `bughunt`) session at index [0], which
-has a `sessionId` and its own sub-agents. Phase 1 skips it; Phase 2 must not. Give it the Phase 1
-tool table plus:
+A flow where all three roles DID complete is the audit's control case. Say so in that analyzer's
+prompt: the other flows' conclusions get measured against it.
+
+### The spec-phase analyzer — OPT-IN, ask first
+
+Its subject is the intake work item — the `chaoswhisperer` (or `bughunt`) session at index [0]. It is
+expensive and often unwanted: **spec adequacy is measurable from the artifact alone**, through each
+observable's `addedBy` in the `coverage` output, without reading the intake session at all. Run this
+analyzer only when the user asks for it. When they decline, tell the flow analyzers to measure spec
+adequacy from provenance and to leave the intake session alone.
+
+If it does run, give it the Phase 1 tool table plus:
 
 - Read `packages/orchestrator/src/statics/dumpster-create-prompt/dumpster-create-prompt-statics.ts`
   and `chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics.ts` in full.

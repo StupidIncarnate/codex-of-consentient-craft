@@ -259,26 +259,66 @@ def cmd_quest(args):
 
 TRACKS = ("codeweaverSignoff", "flowriderSignoff", "siegemasterSignoff")
 
+# Mirrors `signoffTrackEligibilityStatics.byTrack`. Kept here as data so this script applies the
+# same six exclusions the real denominator applies, rather than a flat count that charges every
+# track for every unit. If that statics file changes, change this too.
+ELIGIBILITY = {
+    "codeweaverSignoff": {
+        "flowTypes": {"runtime", "operational"},
+        "unitKinds": {"terminal", "branch", "observable"},
+        "observableOrigins": {"spec", "chaoswhisperer", "codeweaver", "flowrider", "operator"},
+        "verificationMethods": {"test", "reading"},
+    },
+    "flowriderSignoff": {
+        "flowTypes": {"runtime"},
+        "unitKinds": {"terminal", "branch", "observable"},
+        "observableOrigins": {"spec", "chaoswhisperer", "codeweaver", "flowrider", "operator"},
+        "verificationMethods": {"test"},
+    },
+    "siegemasterSignoff": {
+        "flowTypes": {"runtime", "operational"},
+        "unitKinds": {"terminal", "branch", "observable", "off-map"},
+        "observableOrigins": {"spec", "chaoswhisperer", "codeweaver", "flowrider",
+                              "siegemaster", "operator"},
+        "verificationMethods": {"test"},
+    },
+}
+
+# `qaOffMapProbeStatics.byFamily` — the seven breakage classes a flow graph structurally cannot
+# draw. Every runtime flow OWES all seven to siegemaster; a flow's `offMapSignoffs` array holds
+# only the ones already signed, so counting that array under-reports what is owed.
+OFF_MAP_FAMILIES = ("re-entry", "concurrency", "interruption", "staleness",
+                    "configuration", "hostile-input", "perf")
+
 
 def units_of(quest):
     """Every verification unit in the quest, flattened.
 
-    A unit is one thing a track can sign: an observable on a node, a LABELLED edge (an unlabelled
-    edge is not a branch anyone chose), or an off-map probe family. Node terminals are counted too —
-    they are what `get-qa-checklist` derives a flow's shape from.
+    A unit is one thing a track can sign: a TERMINAL node, a LABELLED edge (an unlabelled edge is
+    not a branch anyone chose), an observable, or an off-map probe family. Terminals and edges carry
+    their sign-offs directly on the node/edge; off-map families live in the flow's `offMapSignoffs`.
     """
     out = []
     for flow in quest.get("flows", []):
         fid = flow.get("id")
         ftype = flow.get("flowType")
         for node in flow.get("nodes", []):
+            if node.get("type") == "terminal":
+                out.append({
+                    "flow": fid, "flowType": ftype, "kind": "terminal",
+                    "id": node.get("id"), "node": node.get("id"), "nodeType": "terminal",
+                    "packages": node.get("packages") or [], "package": None,
+                    "addedBy": None, "method": "test",
+                    "desc": node.get("label"), "unit": node,
+                })
             for obs in node.get("observables") or []:
                 out.append({
                     "flow": fid, "flowType": ftype, "kind": "observable",
                     "id": obs.get("id"), "node": node.get("id"),
                     "nodeType": node.get("type"), "packages": node.get("packages") or [],
-                    "package": obs.get("package"), "addedBy": obs.get("addedBy"),
-                    "type": obs.get("type"), "desc": obs.get("description"), "unit": obs,
+                    "package": obs.get("package"), "addedBy": obs.get("addedBy") or "spec",
+                    "method": "reading" if obs.get("verifyByReading") else "test",
+                    "desc": obs.get("description"), "unit": obs,
                 })
         for edge in flow.get("edges", []):
             if not edge.get("label"):
@@ -287,16 +327,37 @@ def units_of(quest):
                 "flow": fid, "flowType": ftype, "kind": "branch",
                 "id": edge.get("id"), "node": f"{edge.get('from')}->{edge.get('to')}",
                 "nodeType": "edge", "packages": [], "package": None,
-                "addedBy": None, "type": "branch", "desc": edge.get("label"), "unit": edge,
+                "addedBy": None, "method": "test",
+                "desc": edge.get("label"), "unit": edge,
             })
-        for probe in flow.get("offMapSignoffs") or []:
+        signed_probes = {p.get("id"): p for p in (flow.get("offMapSignoffs") or [])}
+        for family in OFF_MAP_FAMILIES:
             out.append({
                 "flow": fid, "flowType": ftype, "kind": "off-map",
-                "id": probe.get("id"), "node": "-", "nodeType": "off-map",
-                "packages": [], "package": None, "addedBy": None,
-                "type": "off-map", "desc": probe.get("id"), "unit": probe,
+                "id": family, "node": "-", "nodeType": "off-map",
+                "packages": [], "package": None, "addedBy": None, "method": "test",
+                "desc": family, "unit": signed_probes.get(family, {}),
             })
     return out
+
+
+def owes(track, unit):
+    """Does `track` owe a sign-off on `unit`? Applies four of the six documented exclusions.
+
+    Flow slice and package slice are the other two; both narrow by what an individual OPERATION ITEM
+    declares, so they cannot be applied to a whole-quest view like this one.
+    """
+    rules = ELIGIBILITY[track]
+    if unit["flowType"] not in rules["flowTypes"]:
+        return False
+    if unit["kind"] not in rules["unitKinds"]:
+        return False
+    if unit["kind"] == "observable":
+        if unit["addedBy"] not in rules["observableOrigins"]:
+            return False
+        if unit["method"] not in rules["verificationMethods"]:
+            return False
+    return True
 
 
 def cmd_coverage(args):
@@ -331,31 +392,41 @@ def cmd_coverage(args):
         print(f"  entry {flow.get('entryPoint')}  exits {flow.get('exitPoints')}")
 
     print("\n=== COVERAGE BY TRACK ===")
-    print("Eligibility: codeweaver + flowrider sign observables and branches on RUNTIME flows;")
-    print("siegemaster additionally owns the off-map probe families. An unsigned unit on a track that")
-    print("owns it is work the quest still owes.")
+    print("Denominators differ PER TRACK. This applies four of the six exclusions in")
+    print("`signoffTrackEligibilityStatics`: flow type, unit kind, observable provenance and")
+    print("verification method. So flowrider is not charged for an `operational` flow, neither")
+    print("earlier track is charged for a siegemaster-authored observable, only codeweaver is")
+    print("charged for a `verifyByReading` one, and only siegemaster is charged for off-map.")
+    print()
+    print("!! NOT AUTHORITATIVE. The real denominator is get-qa-checklist({questId,")
+    print("!! operationItemId}), which also applies the FLOW SLICE and PACKAGE SLICE exclusions —")
+    print("!! both properties of an individual operation item, which a whole-quest view cannot")
+    print("!! apply. Terminal and off-map counts in particular have been measured to differ.")
+    print("!! Reconcile against the MCP tool before quoting any number here, and treat a")
+    print("!! disagreement as a finding: it means a session and its measurer counted differently.")
     for flow in quest.get("flows", []):
         fid = flow.get("id")
         fus = [u for u in units if u["flow"] == fid]
-        print(f"\n{fid}")
-        print(f"  {'track':22s} {'signed':>7s} {'confirmed':>10s} {'unconfirmable':>14s} "
-              f"{'UNSIGNED':>9s}  of {len(fus)}")
+        print(f"\n{fid}  ({flow.get('flowType')})   {len(fus)} units total")
+        print(f"  {'track':22s} {'OWED':>6s} {'signed':>7s} {'confirmed':>10s} "
+              f"{'unconfirmable':>14s} {'UNSIGNED':>9s}")
         for track in TRACKS:
-            eligible = [u for u in fus
-                        if not (u["kind"] == "off-map" and track != "siegemasterSignoff")]
+            eligible = [u for u in fus if owes(track, u)]
             signed = [u for u in eligible if u["unit"].get(track)]
             conf = [u for u in signed if u["unit"][track].get("verdict") == "confirmed"]
             unconf = [u for u in signed if u["unit"][track].get("verdict") == "unconfirmable"]
-            print(f"  {track:22s} {len(signed):7d} {len(conf):10d} {len(unconf):14d} "
-                  f"{len(eligible) - len(signed):9d}  of {len(eligible)}")
+            print(f"  {track:22s} {len(eligible):6d} {len(signed):7d} {len(conf):10d} "
+                  f"{len(unconf):14d} {len(eligible) - len(signed):9d}")
+        excluded = [u for u in fus if not owes("codeweaverSignoff", u)]
+        if excluded:
+            print(f"  (excluded from codeweaver by rule: {len(excluded)} — "
+                  f"{dict(Counter(u['kind'] for u in excluded))})")
 
-    print("\n=== UNSIGNED UNITS (per track, the work still owed) ===")
+    print("\n=== UNSIGNED UNITS (per track, only where that track OWES one) ===")
     for track in TRACKS:
-        missing = [u for u in units
-                   if not (u["kind"] == "off-map" and track != "siegemasterSignoff")
-                   and not u["unit"].get(track)]
+        missing = [u for u in units if owes(track, u) and not u["unit"].get(track)]
         print(f"\n{track}: {len(missing)} unsigned")
-        for u in missing[:args.max or 60]:
+        for u in missing[:args.max or 80]:
             print(f"  {u['flow']:34s} {u['kind']:10s} {u['id']:44s} {str(u['desc'])[:60]}")
         if args.max and len(missing) > args.max:
             print(f"  ... and {len(missing) - args.max} more")
