@@ -107,7 +107,10 @@ describe('composerParseDraftTransformer', () => {
   });
 
   describe('mismatched placeholder and attachment id counts', () => {
-    it('EDGE: {two placeholders, one id} => the second placeholder stays literal text', () => {
+    // Defect 1 half (b): a token with no backing record must never surface as literal text — a
+    // user could send that literal string as ordinary text with no image behind it, with no visual
+    // sign it isn't a word they typed. Dropping is the fix; this is the pure-logic proof of it.
+    it('EDGE: {two placeholders, one id} => the second placeholder (no backing record) is dropped, not kept as literal text', () => {
       composerParseDraftTransformerProxy();
       const firstId = AttachmentIdStub();
 
@@ -116,9 +119,46 @@ describe('composerParseDraftTransformer', () => {
         attachmentIds: [firstId],
       });
 
+      expect(result).toStrictEqual([{ kind: 'image', attachmentId: firstId }]);
+    });
+
+    // Same defect, zero backing records at all — the shape `chat-input-widget.tsx`'s restore path
+    // actually hits when a localStorage draft survives but the IndexedDB store is empty (an older
+    // build's draft, or an eviction of that store alone). Surrounding text on both sides survives;
+    // only the orphaned token itself disappears.
+    it('EDGE: {"A" + orphaned placeholder + "B", zero attachment ids} => the token is dropped and the surrounding text is preserved', () => {
+      composerParseDraftTransformerProxy();
+
+      const result = composerParseDraftTransformer({
+        text: 'A[Pasted Image 1]B',
+        attachmentIds: [],
+      });
+
       expect(result).toStrictEqual([
-        { kind: 'image', attachmentId: firstId },
-        { kind: 'text', text: '[Pasted Image 2]' },
+        { kind: 'text', text: 'A' },
+        { kind: 'text', text: 'B' },
+      ]);
+    });
+
+    // Defect 1's core, at the pure-logic layer: draftImagesLoadBroker now hands back a HOLE
+    // (`undefined`) at the index of a record that failed to load, rather than compacting it away —
+    // see that broker's own test for the load-side half. This proves the zip side: a hole at
+    // ordinal 0 drops ONLY the first placeholder's token, and the second placeholder still gets ITS
+    // OWN id (ordinal 1) rather than sliding up to take the first placeholder's spot.
+    it('EDGE: {"start[Pasted Image 1]mid[Pasted Image 2]end", attachmentIds: [undefined, secondId]} => the first token is dropped and the second image lands on its OWN (second) token, not the first', () => {
+      composerParseDraftTransformerProxy();
+      const secondId = AttachmentIdStub({ value: '3fa85f64-5717-4562-b3fc-2c963f66afa6' });
+
+      const result = composerParseDraftTransformer({
+        text: 'start[Pasted Image 1]mid[Pasted Image 2]end',
+        attachmentIds: [undefined, secondId],
+      });
+
+      expect(result).toStrictEqual([
+        { kind: 'text', text: 'start' },
+        { kind: 'text', text: 'mid' },
+        { kind: 'image', attachmentId: secondId },
+        { kind: 'text', text: 'end' },
       ]);
     });
 

@@ -140,6 +140,54 @@ describe('ChatInputWidget', () => {
     });
   });
 
+  // A real browser's File/Blob constructor ASCII-lowercases a `type` string at construction time
+  // (confirmed against Node's own spec-following Blob: `new Blob([], {type: 'IMAGE/PNG'}).type`
+  // returns 'image/png'), so a Playwright e2e pasting a wrong-case type through `new File(...)` can
+  // never actually observe the bug — the browser has already normalised it away before handlePaste
+  // ever reads `item.type`. `ChatInputWidgetProxy.pasteImage` sets the mock DataTransferItem's own
+  // `type` directly from the raw `mediaType` argument (not from the File/Blob it separately
+  // constructs), so this is the one layer that can hand handlePaste a genuinely un-normalised,
+  // wrong-case declared type — which is what this case needs to reproduce for real.
+  describe('image paste - wrong-case declared type', () => {
+    it('EDGE: {paste a clipboard item declared "IMAGE/PNG"} => #check-wrong-case-accepted-as-png accepts it as PNG and never shows the unsupported-format toast', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'c0000000-0000-4000-8000-000000000001',
+        }),
+      });
+      const clipboardData = proxy.pasteImage({
+        mediaType: 'IMAGE/PNG',
+        bytes: new Uint8Array([1, 2, 3, 4]),
+      });
+      fireEvent.paste(editor, { clipboardData });
+
+      // Asserted by SRC (derived from the pasted bytes), not by the minted attachmentId — the
+      // preceding "default prevented" test above fires an un-awaited handlePaste whose own
+      // crypto.randomUUID() call can still be in flight when this test starts, racing this test's
+      // own staged mintsIds() for the shared crypto.randomUUID mock. The src is deterministic
+      // regardless of which of the two calls wins that race.
+      await waitFor(() => {
+        expect(proxy.getThumbnailSrcs()).toStrictEqual(['data:image/png;base64,AQIDBA==']);
+      });
+
+      expect(proxy.getShownToast()).toBe(undefined);
+    });
+  });
+
   describe('image paste - too many images', () => {
     it('INVALID: {6th image over the cap} => #check-limit-toast-text shows the too-many-images toast', () => {
       const proxy = ChatInputWidgetProxy();
@@ -1150,6 +1198,198 @@ describe('ChatInputWidget', () => {
         images: expectedImages,
         onProgress: expect.any(Function),
       });
+    });
+  });
+
+  describe('an orphaned draft token', () => {
+    // Defect 1 half (b): a draft already stored by an older build, or an eviction of the
+    // IndexedDB store alone (localStorage untouched), can present a "[Pasted Image N]" token with
+    // no backing record. Seeding localStorage directly and leaving the IndexedDB draft store empty
+    // reproduces that shape without racing a reload against a paste — the composer must never
+    // render the raw token text, which a user could then send as an ordinary word with no image
+    // behind it.
+    // A bare orphaned token with nothing else in the draft restores to the SAME empty composer a
+    // never-restored mount would also show — "drop it" means the two are meant to look identical,
+    // so that shape alone cannot prove a restore actually ran. This test instead seeds TWO tokens
+    // via a real paste/reload cycle, then evicts only the SECOND image's IndexedDB record before
+    // the second mount: the FIRST image restoring for real is the proof the restore path executed;
+    // the second token vanishing (not rendered as literal text) is the defect this pins.
+    it("EDGE: {two real pasted images, the second one's IndexedDB record evicted before reload} => #check-orphaned-token-dropped-among-real-content the surviving image restores for real and the evicted token leaves no literal text behind", async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+
+      const firstRender = mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const firstEditor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(firstEditor, { clipboardData: proxy.pasteText({ text: 'A' }) });
+
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'e2000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(firstEditor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'e2000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      fireEvent.paste(firstEditor, { clipboardData: proxy.pasteText({ text: 'B' }) });
+
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'e2000000-0000-4000-8000-000000000002',
+        }),
+      });
+      fireEvent.paste(firstEditor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([5, 6, 7, 8]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'e2000000-0000-4000-8000-000000000001',
+          'e2000000-0000-4000-8000-000000000002',
+        ]);
+      });
+
+      // Unchanged-attachments text paste — takes the synchronous write path, so the draft text
+      // (both tokens) is guaranteed fully persisted to localStorage by the time this returns.
+      fireEvent.paste(firstEditor, { clipboardData: proxy.pasteText({ text: 'C' }) });
+
+      // Simulates the second half of defect 1: an eviction of the IndexedDB store that leaves
+      // localStorage untouched. Replaces the store with only the FIRST image's already-real
+      // record — the same `draftImagesSaveBroker` call the "rejection recovers the composer"
+      // tests above use to drive the store directly.
+      const storedBeforeEviction = await proxy.getStoredDraftImages();
+      const definedBeforeEviction = storedBeforeEviction.filter(
+        (attachment): attachment is ReturnType<typeof ComposerAttachmentStub> =>
+          attachment !== undefined,
+      );
+      const survivingRecords = definedBeforeEviction.filter(
+        (attachment) => attachment.attachmentId === 'e2000000-0000-4000-8000-000000000001',
+      );
+
+      expect(survivingRecords.map((attachment) => attachment.attachmentId)).toStrictEqual([
+        'e2000000-0000-4000-8000-000000000001',
+      ]);
+
+      await draftImagesSaveBroker({ attachments: survivingRecords });
+
+      firstRender.unmount();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      // The surviving image restores for real — the proof this is an actual restore, not a
+      // composer that never ran one.
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'e2000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      // The evicted token is gone, not rendered as literal text — the text on both sides of it
+      // survives.
+      expect(proxy.getEditorText()).toBe('ABC');
+    });
+
+    // Same seed, with real surrounding text — proves the orphaned token disappears on its own
+    // while its neighbours survive, rather than the whole draft being discarded.
+    it('EDGE: {localStorage holds "A[Pasted Image 1]B", IndexedDB draft store is empty} => #check-orphaned-token-drops-alone the surrounding text restores and the token is gone', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      localStorage.setItem(chatComposerStatics.draftStorageKey, 'A[Pasted Image 1]B');
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getEditorText()).toBe('AB');
+      });
+
+      expect(proxy.getThumbnailSrcs()).toStrictEqual([]);
+    });
+  });
+
+  describe('durable write ordering', () => {
+    // Defect 1 half (a) — the ORDER test. A reload racing a paste is inherently flaky (the
+    // walker's own repro reproduced 1 of 3 tries), so this proves the ordering guarantee directly
+    // instead of racing it: the localStorage token for a piece of content is never written unless
+    // the IndexedDB bytes behind it committed first. Forcing the IndexedDB write to fail is what
+    // makes that observable deterministically — if the token were written independently of (or
+    // before) the bytes, it would still show up here even though the byte write never landed.
+    it('ERROR: {paste an image while the IndexedDB draft store is unavailable} => #check-bytes-before-token localStorage never gains the placeholder token for that paste', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      proxy.indexedDbUnavailable({ error: new Error('indexedDB unavailable') });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'd2000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(editor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+
+      // The paste itself is not held up by the broken store — the thumbnail still inserts.
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'd2000000-0000-4000-8000-000000000001',
+        ]);
+      });
+
+      // Gives the failed IndexedDB write's rejection every chance to be handled (it is — logged,
+      // not thrown) before asserting on localStorage's own, separately-persisted state.
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe(null);
     });
   });
 

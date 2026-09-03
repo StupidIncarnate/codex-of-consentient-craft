@@ -42,6 +42,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { composerParseDraftTransformer } from '../../transformers/composer-parse-draft/composer-parse-draft-transformer';
 import { composerSerializeTransformer } from '../../transformers/composer-serialize/composer-serialize-transformer';
 import { dataUrlSplitTransformer } from '../../transformers/data-url-split/data-url-split-transformer';
+import { pasteMediaTypeNormalizeTransformer } from '../../transformers/paste-media-type-normalize/paste-media-type-normalize-transformer';
 import { uploadPercentTransformer } from '../../transformers/upload-percent/upload-percent-transformer';
 import { ImageOverlayWidget } from '../image-overlay/image-overlay-widget';
 import { UploadProgressBarWidget } from '../upload-progress-bar/upload-progress-bar-widget';
@@ -82,6 +83,13 @@ export const ChatInputWidget = ({
   // character typed would rewrite.
   const lastSavedAttachmentIdsRef = useRef<readonly AttachmentId[]>([]);
   const cancelledRestoreRef = useRef(false);
+  // Mirrors `isSending` for a synchronous read. React state updates are not visible to a second
+  // synchronous call in the SAME tick — two clicks fired back-to-back with no await between them
+  // both close over the render that was current when the burst started, so a state-only guard lets
+  // both through. `handleSend`'s re-entrancy guard reads this ref instead. `isSending` itself keeps
+  // driving SEND_BUTTON's `disabled` and the STOP/SEND swap — both are render concerns this ref does
+  // not replace.
+  const isSendingRef = useRef(false);
   const [overlaySrc, setOverlaySrc] = useState<ImageDataUrl | null>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   // Settled-transaction state: locks the composer for the ONE POST an Enter/click issues, and
@@ -89,6 +97,22 @@ export const ChatInputWidget = ({
   // see handleSend.
   const [isSending, setIsSending] = useState(false);
   const [uploadPercent, setUploadPercent] = useState<UploadPercent | null>(null);
+
+  // Writes the localStorage half of the draft only. A standalone callback (not inlined into
+  // handleContentChanged below) because WHEN it runs now depends on whether the attachment list
+  // changed this call: unchanged, handleContentChanged calls this immediately; changed, it waits on
+  // the IndexedDB write settling first — see that callback for why the ordering matters.
+  const writeTextDraft = useCallback(({ text }: { text: string }): void => {
+    try {
+      if (text.length > 0) {
+        localStorage.setItem(chatComposerStatics.draftStorageKey, text);
+      } else {
+        localStorage.removeItem(chatComposerStatics.draftStorageKey);
+      }
+    } catch {
+      // localStorage unavailable
+    }
+  }, []);
 
   // Reads the live DOM, persists the text half to localStorage and the image half to IndexedDB
   // (only when the attachment id list changed — see the ref above). Wired below to the editor's
@@ -100,58 +124,78 @@ export const ChatInputWidget = ({
   // the paste path, since a pasted image or pasted text is inserted programmatically there and so
   // never fires a native `input` event on its own. Never call this only on send, or a tab closed
   // mid-draft loses everything since the last send.
-  const handleContentChanged = useCallback(({ force }: { force: boolean }): void => {
-    const editor = editorRef.current;
-    if (editor === null) return;
+  const handleContentChanged = useCallback(
+    ({ force }: { force: boolean }): void => {
+      const editor = editorRef.current;
+      if (editor === null) return;
 
-    const segments = domComposerReadAdapter({ editor });
-    const { text, attachmentIds } = composerSerializeTransformer({ segments });
+      const segments = domComposerReadAdapter({ editor });
+      const { text, attachmentIds } = composerSerializeTransformer({ segments });
 
-    setIsEmpty(text.length === 0);
+      setIsEmpty(text.length === 0);
 
-    try {
-      if (text.length > 0) {
-        localStorage.setItem(chatComposerStatics.draftStorageKey, text);
-      } else {
-        localStorage.removeItem(chatComposerStatics.draftStorageKey);
+      const previousAttachmentIds = lastSavedAttachmentIdsRef.current;
+      const attachmentIdsUnchanged =
+        attachmentIds.length === previousAttachmentIds.length &&
+        attachmentIds.every((attachmentId, index) => attachmentId === previousAttachmentIds[index]);
+
+      if (attachmentIdsUnchanged && !force) {
+        // No attachment-list change means no IndexedDB write is racing this one — a plain
+        // keystroke persists its text immediately, same as before this ordering existed.
+        writeTextDraft({ text });
+        return;
       }
-    } catch {
-      // localStorage unavailable
-    }
+      // Recorded before the write starts (not after it resolves) so a second content-changed step
+      // for the same gesture would still see the new list as already "saved". In practice none of
+      // the intercepted paths produce a second step: handlePaste and the handleBeforeInput
+      // intercepts both call `event.preventDefault()` before mutating the DOM programmatically,
+      // which is neither a native edit that fires `input` nor something a DOM API call fires on
+      // its own — see the "typing around a thumbnail" and "the caret after a delete" describe
+      // blocks below, none of which needed a second `handleContentChanged` call to pass.
+      lastSavedAttachmentIdsRef.current = attachmentIds;
 
-    const previousAttachmentIds = lastSavedAttachmentIdsRef.current;
-    const attachmentIdsUnchanged =
-      attachmentIds.length === previousAttachmentIds.length &&
-      attachmentIds.every((attachmentId, index) => attachmentId === previousAttachmentIds[index]);
+      const orderedAttachments = attachmentIds
+        .map((attachmentId) => attachmentsRef.current.get(attachmentId))
+        .filter((attachment): attachment is ComposerAttachment => attachment !== undefined);
 
-    if (attachmentIdsUnchanged && !force) return;
-    // Recorded before the write starts (not after it resolves) so a second content-changed step
-    // for the same gesture would still see the new list as already "saved". In practice none of the
-    // intercepted paths produce a second step: handlePaste and the handleBeforeInput intercepts
-    // both call `event.preventDefault()` before mutating the DOM programmatically, which is neither
-    // a native edit that fires `input` nor something a DOM API call fires on its own — see the
-    // "typing around a thumbnail" and "the caret after a delete" describe blocks below, none of
-    // which needed a second `handleContentChanged` call to pass.
-    lastSavedAttachmentIdsRef.current = attachmentIds;
-
-    const orderedAttachments = attachmentIds
-      .map((attachmentId) => attachmentsRef.current.get(attachmentId))
-      .filter((attachment): attachment is ComposerAttachment => attachment !== undefined);
-
-    draftImagesSaveBroker({ attachments: orderedAttachments }).catch((error: unknown) => {
-      globalThis.console.error('[chat-input] failed to save draft images', error);
-    });
-  }, []);
+      // The image bytes land in IndexedDB BEFORE the placeholder token reaches localStorage — the
+      // text draft is written only once this resolves, never before it. An interruption between
+      // the two (a reload racing a paste) then leaves at worst an IndexedDB record with no token
+      // pointing at it yet (invisible, harmless, overwritten by the next save), rather than a token
+      // in localStorage with no bytes behind it — a raw "[Pasted Image N]" the user could send as
+      // plain text. A failed write leaves the text draft exactly where it was (see the "durable
+      // write ordering" describe block in this widget's test): the token for THIS content is never
+      // written unless the bytes behind it committed first.
+      draftImagesSaveBroker({ attachments: orderedAttachments })
+        .then(() => {
+          writeTextDraft({ text });
+        })
+        .catch((error: unknown) => {
+          globalThis.console.error('[chat-input] failed to save draft images', error);
+        });
+    },
+    [writeTextDraft],
+  );
 
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent<HTMLDivElement>): Promise<void> => {
       const editor = editorRef.current;
       if (editor === null) return;
 
+      // A clipboard-declared type is attacker/OS-controlled and can vary from its canonical form
+      // only by case or surrounding whitespace ('IMAGE/PNG'), or carry no information at all (an
+      // empty or whitespace-only type). Both this selection test and the allow-list check below
+      // read the SAME normalised value, via pasteMediaTypeNormalizeTransformer, so a file item
+      // one side would recognise as image-ish is never silently handed to the plain-text branch by
+      // the other. An item whose normalised type is neither empty nor image-prefixed (a PDF, a
+      // text/plain item, no file item at all) is genuinely not an attempted image paste and still
+      // takes the plain-text branch below, unchanged.
       const items = Array.from(event.clipboardData.items);
-      const imageItem = items.find(
-        (item) => item.kind === 'file' && item.type.startsWith('image/'),
-      );
+      const imageItem = items.find((item) => {
+        if (item.kind !== 'file') return false;
+        const normalizedType = pasteMediaTypeNormalizeTransformer({ mediaType: item.type });
+        return normalizedType === '' || normalizedType.startsWith('image/');
+      });
 
       if (imageItem === undefined) {
         event.preventDefault();
@@ -164,7 +208,9 @@ export const ChatInputWidget = ({
       // must never also let the browser insert its own (unmanaged) copy of the image or text.
       event.preventDefault();
 
-      if (!isAllowedPasteMediaTypeGuard({ mediaType: imageItem.type })) {
+      const normalizedMediaType = pasteMediaTypeNormalizeTransformer({ mediaType: imageItem.type });
+
+      if (!isAllowedPasteMediaTypeGuard({ mediaType: normalizedMediaType })) {
         mantineNotificationsShowAdapter({
           message: chatComposerStatics.toasts.unsupportedFormat,
           color: chatComposerStatics.toastColor,
@@ -189,11 +235,37 @@ export const ChatInputWidget = ({
       if (file === null) return;
 
       try {
-        const dataUrl = await fileReadDataUrlAdapter({ blob: file });
+        // FileReader embeds a Blob's own `type` verbatim into the data URL it produces — lowercased,
+        // but never TRIMMED, so a clipboard-declared 'image/png ' (trailing space) round-trips as
+        // literally 'image/png ' — and imageDataUrlContract has zero whitespace tolerance for that
+        // segment. Reading `file` as-is would carry that untrimmed type straight into the data URL and
+        // throw on a perfectly valid image. Retyping the Blob to the ALREADY-normalised value before
+        // the read is what makes the data URL below carry that same normalised type — the one value
+        // computed once above and threaded through the allow-list check, this read, and the
+        // `mediaType` passed to pastedImageAttachBroker.
+        const dataUrl = await fileReadDataUrlAdapter({
+          blob: new Blob([file], { type: normalizedMediaType }),
+        });
         const attachment = await pastedImageAttachBroker({
           dataUrl,
-          mediaType: pastedImageMediaTypeContract.parse(imageItem.type),
+          mediaType: pastedImageMediaTypeContract.parse(normalizedMediaType),
         });
+
+        // Re-read the live count here, immediately before the insert it gates — the read above ran
+        // before this function's first `await`, so a second paste committed by another in-flight
+        // handlePaste call in the meantime is invisible to it. Nothing awaits between this read and
+        // the insert below, so nothing else can commit in between: this is the point where the count
+        // is actually current. A paste that loses this second check gets the identical toast a
+        // sequential sixth paste gets, rather than being silently dropped.
+        const committedThumbnailCount = editor.querySelectorAll(THUMBNAIL_SELECTOR).length;
+        if (committedThumbnailCount >= pastedImageStatics.maxImagesPerMessage) {
+          mantineNotificationsShowAdapter({
+            message: chatComposerStatics.toasts.tooManyImages,
+            color: chatComposerStatics.toastColor,
+          });
+          return;
+        }
+
         domComposerInsertImageAdapter({ editor, attachment });
         attachmentsRef.current.set(attachment.attachmentId, attachment);
         handleContentChanged({ force: false });
@@ -216,7 +288,9 @@ export const ChatInputWidget = ({
   const handleSend = useCallback((): void => {
     const editor = editorRef.current;
     if (editor === null) return;
-    if (isSending) return;
+    // Reads the ref, not the `isSending` state — see the ref's own declaration above for why a
+    // second call in the same synchronous burst needs a synchronous read here.
+    if (isSendingRef.current) return;
 
     const segments = domComposerReadAdapter({ editor });
     const { text, attachmentIds } = composerSerializeTransformer({ segments });
@@ -235,6 +309,18 @@ export const ChatInputWidget = ({
       dataUrlSplitTransformer({ dataUrl: attachment.dataUrl }),
     );
 
+    // A snapshot of exactly what THIS send is submitting — the live DOM nodes it read above, and
+    // the attachment ids that made it into the payload. The success handler below removes only
+    // these, rather than wiping whatever the editor holds once the response comes back: content
+    // that arrives after this point (a paste that lands while the request is in flight) is never a
+    // member of either snapshot, so it survives untouched.
+    const sentNodes = Array.from(editor.childNodes);
+    const sentAttachmentIds = payload.attachments.map((attachment) => attachment.attachmentId);
+
+    // Set synchronously, before any await, alongside `setIsSending` — a second call arriving in the
+    // same tick (no await between two clicks/keydowns) must see this flip immediately, which the
+    // state setter above cannot guarantee.
+    isSendingRef.current = true;
     setIsSending(true);
     if (images.length > 0) {
       setUploadPercent(uploadPercentContract.parse(chatComposerStatics.upload.minPercent));
@@ -252,20 +338,19 @@ export const ChatInputWidget = ({
         : {}),
     })
       .then(() => {
-        editor.replaceChildren();
-        attachmentsRef.current = new Map();
-        lastSavedAttachmentIdsRef.current = [];
-        setIsEmpty(true);
-        try {
-          localStorage.removeItem(chatComposerStatics.draftStorageKey);
-        } catch {
-          // localStorage unavailable
+        for (const node of sentNodes) {
+          if (node.parentNode === editor) {
+            editor.removeChild(node);
+          }
         }
-        // Deliberately NOT returned into the chain — a failed draft-clear must never fall into
-        // the rejection handler below and toast an error for a send that actually succeeded.
-        draftImagesSaveBroker({ attachments: [] }).catch((error: unknown) => {
-          globalThis.console.error('[chat-input] failed to clear draft images', error);
-        });
+        for (const attachmentId of sentAttachmentIds) {
+          attachmentsRef.current.delete(attachmentId);
+        }
+        // Re-derives text/emptiness/localStorage/IndexedDB from the LIVE DOM and the now-trimmed
+        // attachment map — `force: true` because the removal above can leave the attachment id list
+        // exactly where it was already saved (nothing survived) or genuinely changed (something
+        // did), and either way this is the read that has to run.
+        handleContentChanged({ force: true });
       })
       .catch((error: unknown) => {
         mantineNotificationsShowAdapter({
@@ -278,10 +363,11 @@ export const ChatInputWidget = ({
         handleContentChanged({ force: true });
       })
       .finally(() => {
+        isSendingRef.current = false;
         setIsSending(false);
         setUploadPercent(null);
       });
-  }, [isSending, onSendMessage, handleContentChanged]);
+  }, [onSendMessage, handleContentChanged]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>): void => {
@@ -389,17 +475,31 @@ export const ChatInputWidget = ({
       if (cancelledRestoreRef.current) return;
       if (text.length === 0 && loadedAttachments.length === 0) return;
 
-      const attachmentIds = loadedAttachments.map((attachment) => attachment.attachmentId);
+      // A hole (a record whose bytes failed to load) stays at its OWN index here — see
+      // draftImagesLoadBroker's header — so the Nth placeholder still gets the Nth id, and
+      // composerParseDraftTransformer drops only the one token whose id is undefined, exactly as
+      // it already drops a token that never had a backing record at all.
+      const attachmentIds = loadedAttachments.map((attachment) => attachment?.attachmentId);
       const segments = composerParseDraftTransformer({ text, attachmentIds });
+      const resolvedAttachments = loadedAttachments.filter(
+        (attachment): attachment is ComposerAttachment => attachment !== undefined,
+      );
       const map = new Map(
-        loadedAttachments.map((attachment) => [attachment.attachmentId, attachment] as const),
+        resolvedAttachments.map((attachment) => [attachment.attachmentId, attachment] as const),
       );
       attachmentsRef.current = map;
       // These ids are what IndexedDB already holds — they were just read back out of it — so the
       // first keystroke after a restore must not immediately rewrite the store it was just loaded
-      // from.
-      lastSavedAttachmentIdsRef.current = attachmentIds;
-      setIsEmpty(text.length === 0);
+      // from. Holes are excluded here: IndexedDB never held a record for one, so there is nothing
+      // for a later handleContentChanged comparison to treat as "already saved".
+      lastSavedAttachmentIdsRef.current = resolvedAttachments.map(
+        (attachment) => attachment.attachmentId,
+      );
+      // Derived from the PARSED segments, not the raw localStorage text length — a draft made of
+      // nothing but an orphaned "[Pasted Image N]" token (no backing record) parses to zero
+      // segments even though its raw text is non-empty, and the placeholder hint must show for
+      // that composer exactly as it would for one that was never typed into.
+      setIsEmpty(segments.length === 0);
 
       const editor = editorRef.current;
       if (editor !== null) {

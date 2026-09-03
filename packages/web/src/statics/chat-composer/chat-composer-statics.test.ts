@@ -12,6 +12,8 @@ describe('chatComposerStatics', () => {
       thumbnail: {
         attributeName: 'data-attachment-id',
         testId: 'CHAT_INPUT_THUMBNAIL',
+        maxHeightPx: 60,
+        maxWidthPx: 120,
       },
       upload: {
         minPercent: 0,
@@ -40,6 +42,15 @@ describe('chatComposerStatics', () => {
       minPercent: 0,
       maxPercent: 100,
       testId: 'CHAT_INPUT_UPLOAD_PROGRESS',
+    });
+  });
+
+  it('VALID: exported value => thumbnail group carries all four keys and values', () => {
+    expect(chatComposerStatics.thumbnail).toStrictEqual({
+      attributeName: 'data-attachment-id',
+      testId: 'CHAT_INPUT_THUMBNAIL',
+      maxHeightPx: 60,
+      maxWidthPx: 120,
     });
   });
 });

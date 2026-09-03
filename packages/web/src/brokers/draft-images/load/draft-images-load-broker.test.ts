@@ -76,26 +76,89 @@ describe('draftImagesLoadBroker', () => {
     });
   });
 
-  describe('a corrupt row does not block the rest', () => {
-    it('EDGE: {store holds [bad, good], bad draft fails to measure} => the bad row is skipped and the good one still loads', async () => {
+  describe('a corrupt row leaves a hole rather than renumbering the rest', () => {
+    // Defect 1's core: a record that fails to measure must not shift every record AFTER it down
+    // one index. Three drafts with the FAILING one in the MIDDLE is what proves this — a
+    // compacting implementation would still put the third draft's attachment at index 1 (right
+    // after the first), while a position-preserving one leaves a hole at index 1 and lands the
+    // third draft's attachment at its OWN index, 2.
+    it('EDGE: {store holds [good1, bad, good2], the middle draft fails to measure} => result is [good1Attachment, undefined, good2Attachment] — the hole stays at its own slot', async () => {
       const proxy = draftImagesLoadBrokerProxy();
-      const bad = PastedImageDraftStub({
+      const good1 = PastedImageDraftStub({
         attachmentId: '11111111-1111-4111-8111-111111111111',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
       });
-      const good = PastedImageDraftStub({
+      const bad = PastedImageDraftStub({
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
         dataBase64: 'QUFBQQ==',
       });
-      proxy.storeHolds({ drafts: [bad, good] });
+      const good2 = PastedImageDraftStub({
+        attachmentId: '33333333-3333-4333-8333-333333333333',
+        mediaType: 'image/png',
+        dataBase64: 'YWJjZA==',
+      });
+      proxy.storeHolds({ drafts: [good1, bad, good2] });
+      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
       proxy.measureFails({ dataUrl: ImageDataUrlStub(), error: new Error('decode failed') });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
 
       const result = await draftImagesLoadBroker();
 
       expect(result).toStrictEqual([
+        {
+          attachmentId: '11111111-1111-4111-8111-111111111111',
+          mediaType: 'image/png',
+          dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
+          byteLength: 8,
+          widthPx: 800,
+          heightPx: 600,
+        },
+        undefined,
+        {
+          attachmentId: '33333333-3333-4333-8333-333333333333',
+          mediaType: 'image/png',
+          dataUrl: 'data:image/png;base64,YWJjZA==',
+          byteLength: 4,
+          widthPx: 400,
+          heightPx: 300,
+        },
+      ]);
+    });
+  });
+
+  describe('a contract-invalid row leaves a hole rather than renumbering the rest', () => {
+    // Defect 2 (the second pass on defect 1): a record that fails pastedImageDraftContract in the
+    // READ ADAPTER — not a record that decodes badly — must ALSO leave a hole at its own slot
+    // rather than being compacted out before this broker's Promise.allSettled ever sees it. Seeded
+    // via storeHoldsRaw so the real read adapter runs its own safeParse against the malformed
+    // record; storeHolds's typed PastedImageDraft[] cannot express a contract failure at all. Only
+    // ONE measures() is staged — if the broker attempted to measure the contract-invalid slot, the
+    // second measurement call would have nothing staged to answer it and the test would throw.
+    it('EDGE: {store holds [contract-invalid dataBase64, good]} => result is [undefined, goodAttachment] — the good record keeps its own slot', async () => {
+      const proxy = draftImagesLoadBrokerProxy();
+      const good = PastedImageDraftStub({
+        attachmentId: '22222222-2222-4222-8222-222222222222',
+        mediaType: 'image/png',
+        dataBase64: 'QUFBQQ==',
+      });
+      proxy.storeHoldsRaw({
+        records: [
+          {
+            attachmentId: '11111111-1111-4111-8111-111111111111',
+            mediaType: 'image/png',
+            dataBase64: '***garbage-not-base64***',
+          },
+          good,
+        ],
+      });
+      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
+
+      const result = await draftImagesLoadBroker();
+
+      expect(result).toStrictEqual([
+        undefined,
         {
           attachmentId: '22222222-2222-4222-8222-222222222222',
           mediaType: 'image/png',

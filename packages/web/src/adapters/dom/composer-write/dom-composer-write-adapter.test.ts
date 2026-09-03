@@ -65,6 +65,31 @@ describe('domComposerWriteAdapter', () => {
         testId: chatComposerStatics.thumbnail.testId,
       });
     });
+
+    it("VALID: {segments: image, attachment widthPx/heightPx: 6000/4000} => the restored thumbnail carries a bounded max-height/max-width with object-fit: contain, regardless of the attachment's own pixel dimensions (#check-restored-thumbnail-render-size-bounded)", () => {
+      domComposerWriteAdapterProxy();
+      const attachmentId = AttachmentIdStub();
+      const attachment = ComposerAttachmentStub({ attachmentId, widthPx: 6000, heightPx: 4000 });
+      const editor = document.createElement('div');
+
+      domComposerWriteAdapter({
+        editor,
+        segments: [ComposerSegmentStub({ kind: 'image', attachmentId })],
+        attachments: new Map([[attachmentId, attachment]]),
+      });
+
+      const thumbnail = editor.querySelector('img')!;
+
+      expect({
+        maxHeight: thumbnail.style.maxHeight,
+        maxWidth: thumbnail.style.maxWidth,
+        objectFit: thumbnail.style.objectFit,
+      }).toStrictEqual({
+        maxHeight: `${String(chatComposerStatics.thumbnail.maxHeightPx)}px`,
+        maxWidth: `${String(chatComposerStatics.thumbnail.maxWidthPx)}px`,
+        objectFit: 'contain',
+      });
+    });
   });
 
   describe('missing attachment', () => {

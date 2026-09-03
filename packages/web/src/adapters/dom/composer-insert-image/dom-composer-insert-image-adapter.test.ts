@@ -184,6 +184,28 @@ describe('domComposerInsertImageAdapter', () => {
     expect(thumbnail?.getAttribute('src')).toBe(attachment.dataUrl);
   });
 
+  it("VALID: {inserted thumbnail} => carries a bounded max-height/max-width with object-fit: contain, regardless of the attachment's own pixel dimensions (#check-thumbnail-render-size-bounded)", () => {
+    domComposerInsertImageAdapterProxy();
+
+    const editor = document.createElement('div');
+    document.body.appendChild(editor);
+    const selection = document.getSelection();
+    const range = document.createRange();
+    range.setStart(editor, 0);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    const attachment = ComposerAttachmentStub({ widthPx: 6000, heightPx: 4000 });
+    domComposerInsertImageAdapter({ editor, attachment });
+
+    const thumbnail = editor.querySelector('img');
+
+    expect(thumbnail?.style.maxHeight).toBe(`${chatComposerStatics.thumbnail.maxHeightPx}px`);
+    expect(thumbnail?.style.maxWidth).toBe(`${chatComposerStatics.thumbnail.maxWidthPx}px`);
+    expect(thumbnail?.style.objectFit).toBe('contain');
+  });
+
   it('VALID: {image inserted, then a text node inserted at the resulting live caret} => the text lands after the thumbnail, not before', () => {
     domComposerInsertImageAdapterProxy();
 

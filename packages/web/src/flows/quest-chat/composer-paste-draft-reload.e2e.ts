@@ -15,6 +15,21 @@ const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
 
+const OVER_CAP_WIDTH_PX = 6000;
+const OVER_CAP_HEIGHT_PX = 4000;
+const OVER_CAP_NOISE_BAND_ROWS = 700;
+
+// Restated rather than imported: the RENDERED bound is chatComposerStatics.thumbnail's own knob,
+// not derived from anything a paste or a reload computes — a drift there must fail this file
+// rather than silently follow it. composer-paste-inserts-thumbnail.e2e.ts proves this same bound
+// on the PASTE path; this file's own test proves it holds on the RESTORE path too, after a reload
+// rebuilds the thumbnail from the persisted draft rather than from the live paste handler.
+const THUMBNAIL_MAX_HEIGHT_PX = 60;
+// object-fit: contain scales the 2000x1333 downscaled attachment (aspect ratio ~1.5) inside a
+// 120x60 box (aspect ratio 2.0) — narrower-than-box, so height binds at exactly the cap and width
+// follows the same ratio: round(2000 * 60 / 1333) = 90, comfortably inside the 120px width cap.
+const THUMBNAIL_EXPECTED_RENDERED_WIDTH_PX = 90;
+
 const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -478,6 +493,83 @@ test.describe('Composer paste — draft persists across reload and restores into
     expect(naturalWidth).toBe(IMAGE_SIZE_PX);
   });
 
+  // PAINTED GEOMETRY — jsdom has no layout engine and reports 0 for every box, so this is provable
+  // only in a real browser. composer-paste-inserts-thumbnail.e2e.ts proves the PASTE path bounds a
+  // large image's rendered thumbnail; this proves the RESTORE path (a page reload rebuilding the
+  // <img> from the persisted draft, in dom-composer-write-adapter.ts) applies the SAME bound rather
+  // than rendering the attachment at its own downscaled-but-still-huge intrinsic pixel size.
+  test('EDGE: {paste a 6000x4000 PNG downscaled to 2000x1333, reload} => the RESTORED thumbnail paints at a bounded thumbnail size and SEND_BUTTON stays inside the viewport', async ({
+    page,
+    request,
+  }) => {
+    test.slow();
+
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await guilds.createGuild({
+      name: 'Draft Reload Bounded Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const sessionId = `e2e-draft-reload-bounded-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Draft Reload Bounded Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-0000000000da',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    const composer = composerPasteHarness({ page });
+    await composer.focusComposer();
+    await page.keyboard.type('A');
+    const dataUrl = await composer.buildOverCapImageDataUrl({
+      widthPx: OVER_CAP_WIDTH_PX,
+      heightPx: OVER_CAP_HEIGHT_PX,
+      noiseBandRows: OVER_CAP_NOISE_BAND_ROWS,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl) });
+    // The insert is the tail of an async handler (measure, then a PNG re-encode at the cap) — the
+    // retrying locator is what waits for it, never a one-shot readThumbnailCount().
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+    await page.keyboard.type('B');
+
+    await page.reload();
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+
+    // #check-restored-thumbnail-render-size-bounded: painted at the thumbnail bound after reload,
+    // not anywhere near the attachment's own 2000x1333 decoded pixels.
+    expect(await composer.readThumbnailRenderedSizes()).toStrictEqual([
+      { width: THUMBNAIL_EXPECTED_RENDERED_WIDTH_PX, height: THUMBNAIL_MAX_HEIGHT_PX },
+    ]);
+
+    // #check-send-button-stays-onscreen: a real user reloading after pasting one large image must
+    // not have to scroll to find SEND — its whole box has to sit within the viewport's own height.
+    expect(await composer.readSendButtonFitsInViewport()).toBe(true);
+  });
+
   test("VALID: {restored draft, type 'z' at the end, then Backspace} => the draft reads S + 'z', then reads S again", async ({
     page,
     request,
@@ -772,5 +864,100 @@ test.describe('Composer paste — draft persists across reload and restores into
     });
     expect(byteLengthsB.length).toBe(2);
     expect(Math.min(...byteLengthsB.map(Number))).toBeGreaterThan(0);
+  });
+});
+
+// Defect 2: a database that already sits at the app's expected version but is missing the draft
+// images store (corrupted state, or a decoy schema) must self-heal rather than fail silently
+// forever. jsdom has no real IndexedDB, so onupgradeneeded's real "only fires on a version bump"
+// semantics — the whole reason this bug can exist — are only provable in a real browser.
+test.describe('Composer paste — a draft database missing its store heals itself', () => {
+  test.beforeEach(async ({ page, request }) => {
+    await guildHarness({ request }).cleanGuilds();
+    await page.goto('/');
+    await composerPasteHarness({ page }).clearDraftStorage();
+  });
+
+  test('VALID: {database exists at version 1 holding only a decoy store} => paste still writes a real draft record, the decoy store survives, and a reload restores the thumbnail', async ({
+    page,
+    request,
+  }) => {
+    test.slow();
+
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await guilds.createGuild({
+      name: 'Draft Store Heals Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const sessionId = `e2e-draft-store-heals-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Draft Store Heals Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-0000000000db',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+
+    const composer = composerPasteHarness({ page });
+    // Seeded on THIS page (still on '/'), before the composer route ever loads — the app's own
+    // adapters must never get a chance to create the real store first, or there is nothing left
+    // for them to heal.
+    await composer.seedDecoyDraftDatabase();
+    expect(await composer.readDraftDatabaseStoreNames()).toStrictEqual(['decoy-store']);
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    await composer.focusComposer();
+    const dataUrl = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 1,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl) });
+    // The DOM thumbnail appearing is NOT proof the store healed — defect 2's whole symptom is a
+    // paste that looks like it worked while every persistence call fails silently underneath it.
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+
+    const [attachmentId] = await composer.readThumbnailAttachmentIds();
+    const expectedBase64 = String(dataUrl).slice(String(dataUrl).indexOf(',') + 1);
+    expect(await composer.readDraftImageRecords()).toStrictEqual([
+      { attachmentId, mediaType: 'image/png', dataBase64: expectedBase64 },
+    ]);
+
+    // #check-heal-does-not-drop-existing-stores: the decoy store survives the heal — a destructive
+    // delete-and-recreate of the whole database would lose it (and, in the ordinary case where the
+    // real store already exists, would lose a user's genuine draft records too). objectStoreNames
+    // is a DOMStringList, spec-guaranteed ascending order — 'decoy-store' sorts before
+    // 'dungeonmaster-chat-draft-images' ('e' < 'u' at the first differing character), so this exact
+    // order is not an assumption about insertion order.
+    const storeNamesAfterHeal = await composer.readDraftDatabaseStoreNames();
+    expect(storeNamesAfterHeal).toStrictEqual(['decoy-store', 'dungeonmaster-chat-draft-images']);
+
+    // The healed store is durable, not an in-memory illusion for this one connection — a reload
+    // restores the thumbnail exactly as the ordinary (never-broken) reload path does above.
+    await page.reload();
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
   });
 });

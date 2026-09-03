@@ -8,8 +8,9 @@
  * USAGE:
  * domComposerInsertImageAdapter({ editor, attachment });
  * // Inserts an <img> thumbnail for `attachment` at the live caret (or at the end of the editor
- * // when the caret has drifted outside it), leaves no empty text nodes behind, and collapses the
- * // caret after the thumbnail.
+ * // when the caret has drifted outside it), bounded to chatComposerStatics.thumbnail's max
+ * // height/width regardless of the attachment's own pixel dimensions, leaves no empty text nodes
+ * // behind, and collapses the caret after the thumbnail.
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
@@ -46,6 +47,14 @@ export const domComposerInsertImageAdapter = ({
   thumbnail.setAttribute('data-testid', chatComposerStatics.thumbnail.testId);
   thumbnail.setAttribute('src', attachment.dataUrl);
   thumbnail.setAttribute('alt', 'Pasted image');
+  // Bounds the RENDERED size only — attachment.widthPx/heightPx (the downscale ladder's real pixel
+  // dimensions) are untouched, so what reaches the server is unaffected. `object-fit: contain` with
+  // `width`/`height` left at their `auto` default is what keeps a very tall OR very wide source
+  // scaled down within both caps at once without squashing its aspect ratio.
+  thumbnail.style.maxHeight = `${String(chatComposerStatics.thumbnail.maxHeightPx)}px`;
+  thumbnail.style.maxWidth = `${String(chatComposerStatics.thumbnail.maxWidthPx)}px`;
+  thumbnail.style.objectFit = 'contain';
+  thumbnail.style.verticalAlign = 'middle';
 
   range.insertNode(thumbnail);
 

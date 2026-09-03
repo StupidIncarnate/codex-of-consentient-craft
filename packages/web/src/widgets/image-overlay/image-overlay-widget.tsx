@@ -79,12 +79,20 @@ export const ImageOverlayWidget = ({
           overflowY: 'auto',
         }}
       >
-        <img
-          src={src}
-          alt={alt}
-          data-testid="IMAGE_OVERLAY_IMAGE"
-          style={{ width: '100%', display: 'block' }}
-        />
+        {/* Defence, not the fix — the two callers only ever hand over a src the DOM can already
+            resolve, so this branch is not expected to trigger in normal operation. An empty string
+            is a real (failing) request to the DOM, not "no image": rendered as `src=""` it paints
+            the broken-image glyph and React logs a runtime warning. `opened` gates the modal; this
+            gates the picture inside it, so a caller that ever hands over an empty src sees nothing
+            rather than a glyph that looks like a decode failure. */}
+        {src === '' ? null : (
+          <img
+            src={src}
+            alt={alt}
+            data-testid="IMAGE_OVERLAY_IMAGE"
+            style={{ width: '100%', display: 'block' }}
+          />
+        )}
       </div>
     </Modal>
   );

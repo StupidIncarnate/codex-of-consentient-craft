@@ -48,6 +48,7 @@ export const ChatInputWidgetProxy = (): {
   hasProgressBar: () => boolean;
   getProgressPercent: () => ProgressPercent;
   getEditorText: () => NonNullable<Node['textContent']>;
+  indexedDbUnavailable: (params: { error: Error }) => void;
 } => {
   // Child creation only, per enforce-proxy-child-creation — the widget imports every one of these
   // directly (no binding layer sits between the composer and its adapters/brokers). The DOM
@@ -73,7 +74,11 @@ export const ChatInputWidgetProxy = (): {
   // the mechanism the "the reload restore" tests already prove reads back whatever was really
   // written, regardless of which proxy's fake ended up winning the race above.
   draftImagesSaveBrokerProxy();
-  draftImagesLoadBrokerProxy();
+  // Captured (not discarded): its fake `indexedDB.open` is the one that actually answers every
+  // real call in this test (see the comment above), so a test that needs the underlying IndexedDB
+  // write itself to fail — proving the durable-write ORDERING guarantee rather than racing it —
+  // has to reach THIS proxy's storeUnavailable, not draftImagesSaveBrokerProxy's own.
+  const loadBrokerProxy = draftImagesLoadBrokerProxy();
   // The widget mounts ImageOverlayWidget as a sibling. Captured (not discarded) because the click
   // -opens-overlay case needs its semantic getters below — reaching through screen.getByTestId
   // directly here would re-implement the getAttribute-not-.src reasoning ImageOverlayWidgetProxy
@@ -180,5 +185,11 @@ export const ChatInputWidgetProxy = (): {
 
     getEditorText: (): NonNullable<Node['textContent']> =>
       screen.getByTestId('CHAT_INPUT').textContent ?? '',
+
+    // Makes the real underlying `indexedDB.open` reject — see the capture comment above for why
+    // this has to go through the LOAD broker's proxy rather than the save broker's own.
+    indexedDbUnavailable: ({ error }: { error: Error }): void => {
+      loadBrokerProxy.storeUnavailable({ error });
+    },
   };
 };

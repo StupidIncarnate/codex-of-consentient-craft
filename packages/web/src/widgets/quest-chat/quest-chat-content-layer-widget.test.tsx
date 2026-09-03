@@ -77,7 +77,7 @@ describe('QuestChatContentLayerWidget', () => {
   });
 
   describe('node mode create-quest surface', () => {
-    it('VALID: {node mode, questId null} => renders chat panel + dumpster raccoon column, not the /dumpster-create banner', async () => {
+    it('VALID: {node mode, questId null} => renders chat panel + an activity column settled on the empty state, not the /dumpster-create banner', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'node' });
       const guildId = GuildIdStub({ value: '44444444-5555-6666-7777-888888888888' });
@@ -99,10 +99,36 @@ describe('QuestChatContentLayerWidget', () => {
       expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
         'QUEST_CHAT_ACTIVITY',
       );
-      expect(queryByTestId('dumpster-raccoon-widget')?.getAttribute('data-testid')).toBe(
-        'dumpster-raccoon-widget',
-      );
+      // No quest exists yet on this route, and none will until the user sends a first message — so
+      // the activity column must NOT show the loading raccoon (nothing is in flight to wait for).
+      expect(queryByTestId('dumpster-raccoon-widget')).toBe(null);
       expect(queryByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER')).toBe(null);
+    });
+
+    it('VALID: {node mode, questId null} => activity column settles on an empty state, never the perpetual "Loading dumpster dungeon visuals..." placeholder', async () => {
+      // Regression guard: this route never creates a quest until the user sends a first message, so
+      // nothing is ever "loading" here — a loader that never resolves is a stuck UI, not a real
+      // in-flight state. See use-orchestration-mode/CLAUDE or quest-chat-content-layer-widget.tsx for
+      // the questId===null branch this pins.
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      const guildId = GuildIdStub({ value: '66666666-7777-8888-9999-aaaaaaaaaaaa' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('CHAT_PANEL');
+
+      expect(queryByTestId('DUMPSTER_RACCOON_LOADING')).toBe(null);
     });
 
     it('VALID: {node mode, questId null, first message sent} => POSTs quest-new and renders the typed message', async () => {

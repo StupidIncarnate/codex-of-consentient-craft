@@ -46,6 +46,21 @@ describe('ImageOverlayWidget', () => {
       expect(screen.queryByTestId('IMAGE_OVERLAY')).toBe(null);
     });
 
+    // Defence-in-depth: neither caller is expected to ever pass an empty src (ChatInputWidget's
+    // overlaySrc state and the transcript's own src are both non-empty whenever opened is true), but
+    // an `<img>` must never render `src=""` regardless — that value is a real (failing) request to
+    // the DOM, not "no image", and paints a broken-image glyph plus a React console warning.
+    it('EMPTY: {opened: true, src: ""} => IMAGE_OVERLAY mounts but IMAGE_OVERLAY_IMAGE does not render', () => {
+      const proxy = ImageOverlayWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ImageOverlayWidget opened={true} src="" alt={ALT_TEXT} onClose={jest.fn()} />,
+      });
+
+      expect(proxy.hasOverlay()).toBe(true);
+      expect(screen.queryByTestId('IMAGE_OVERLAY_IMAGE')).toBe(null);
+    });
+
     it('VALID: {opened: true} => a close control is visible on the modal', () => {
       const proxy = ImageOverlayWidgetProxy();
 

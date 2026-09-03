@@ -270,6 +270,18 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     await page.getByTestId('CHAT_INPUT_THUMBNAIL').nth(1).click();
 
     await expect(page.getByTestId('IMAGE_OVERLAY')).toBeVisible();
-    expect(await page.getByTestId('IMAGE_OVERLAY_IMAGE').getAttribute('src')).toBe(secondSrc);
+    const overlaySrc = await page.getByTestId('IMAGE_OVERLAY_IMAGE').getAttribute('src');
+    // A broken overlay renders `<img src="">` — `opened` stays true (React never falls back to
+    // showing nothing) while the picture itself never decodes. Asserting the overlay MOUNTED is not
+    // enough to catch that: it passed while the image was blank. src must be non-empty, must be the
+    // SAME bytes the clicked thumbnail already had (not merely present), and the browser must have
+    // actually decoded a picture from it — naturalWidth is 0 for a src the image element failed to
+    // load, real width otherwise.
+    expect(overlaySrc === '').toBe(false);
+    expect(overlaySrc).toBe(secondSrc);
+    const overlayNaturalWidth = await page
+      .getByTestId('IMAGE_OVERLAY_IMAGE')
+      .evaluate((image) => (image as HTMLImageElement).naturalWidth);
+    expect(overlayNaturalWidth).toBe(IMAGE_SIZE_PX);
   });
 });

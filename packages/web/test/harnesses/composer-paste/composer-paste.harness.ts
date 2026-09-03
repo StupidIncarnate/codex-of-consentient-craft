@@ -37,6 +37,9 @@ const DRAFT_STORAGE_KEY = 'dungeonmaster-chat-draft';
 const DRAFT_DATABASE_NAME = 'dungeonmaster-chat-drafts';
 const DRAFT_DATABASE_VERSION = 1;
 const DRAFT_STORE_NAME = 'dungeonmaster-chat-draft-images';
+// A store name the app itself would never create — seedDecoyDraftDatabase uses this to reproduce a
+// database that exists, at the right version, but whose expected store never got created.
+const DECOY_STORE_NAME = 'decoy-store';
 
 const DEFAULT_IMAGE_FILE_NAME = 'pasted-image.png';
 const DEFAULT_BYTES_FILE_NAME = 'pasted-bytes';
@@ -127,6 +130,41 @@ const PASTE_IMAGE_BROWSER_FN = (params: { dataUrl: string; fileName: string }): 
   }
 
   const file = new File([bytes], params.fileName, { type: mediaType });
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(file);
+  const event = new ClipboardEvent('paste', {
+    clipboardData: dataTransfer,
+    bubbles: true,
+    cancelable: true,
+  });
+  return editor.dispatchEvent(event);
+};
+
+// Same decode as PASTE_IMAGE_BROWSER_FN, but the media type comes from the CALLER instead of being
+// parsed off the data URL's own header — this is what lets a test hand real, decodable image bytes
+// to the clipboard under a media type the browser's own File/Blob constructor would never produce on
+// its own (e.g. a trailing space), reproducing an OS/clipboard-declared type exactly as
+// pasteMediaTypeNormalizeTransformer's own header describes it: attacker/OS-controlled and free to
+// vary from its canonical form by case or surrounding whitespace.
+const PASTE_IMAGE_WITH_MEDIA_TYPE_BROWSER_FN = (params: {
+  dataUrl: string;
+  mediaType: string;
+  fileName: string;
+}): boolean => {
+  const editor = document.querySelector('[data-testid="CHAT_INPUT"]');
+  if (editor === null) {
+    throw new Error('composer-paste harness: CHAT_INPUT not found');
+  }
+
+  const commaIndex = params.dataUrl.indexOf(',');
+  const base64Body = params.dataUrl.slice(commaIndex + 1);
+  const binary = atob(base64Body);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  const file = new File([bytes], params.fileName, { type: params.mediaType });
   const dataTransfer = new DataTransfer();
   dataTransfer.items.add(file);
   const event = new ClipboardEvent('paste', {
@@ -395,6 +433,49 @@ const PASTE_OVER_CAP_CORRUPT_PNG_BROWSER_FN = (params: { fillerBytes: number }):
   return editor.dispatchEvent(event);
 };
 
+// Same decode as PASTE_IMAGE_BROWSER_FN, but for N images dispatched in ONE synchronous script with
+// NO `await` anywhere between the dispatchEvent calls — an awaited sequence (N separate
+// page.evaluate round trips) always lets each paste's handler run to completion before the next
+// starts, which proves nothing about a race that only exists inside a single JS tick. This is what
+// lets a test fire a genuine burst: every dispatchEvent call here runs each paste handler's
+// SYNCHRONOUS prefix (everything before its own first `await`) back-to-back, on the same stale DOM
+// read, exactly as three real rapid-fire pastes would.
+const PASTE_IMAGES_NO_AWAIT_BROWSER_FN = (params: {
+  dataUrls: string[];
+  fileName: string;
+}): boolean[] => {
+  const editor = document.querySelector('[data-testid="CHAT_INPUT"]');
+  if (editor === null) {
+    throw new Error('composer-paste harness: CHAT_INPUT not found');
+  }
+
+  const results: boolean[] = [];
+  for (const dataUrl of params.dataUrls) {
+    const commaIndex = dataUrl.indexOf(',');
+    const header = dataUrl.slice(0, commaIndex);
+    const base64Body = dataUrl.slice(commaIndex + 1);
+    const mediaTypeMatch = /^data:(.*);base64$/u.exec(header);
+    const mediaType =
+      mediaTypeMatch?.[1] === undefined ? 'application/octet-stream' : mediaTypeMatch[1];
+    const binary = atob(base64Body);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    const file = new File([bytes], params.fileName, { type: mediaType });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    const event = new ClipboardEvent('paste', {
+      clipboardData: dataTransfer,
+      bubbles: true,
+      cancelable: true,
+    });
+    results.push(editor.dispatchEvent(event));
+  }
+  return results;
+};
+
 // Places the caret at the given CHILD-NODE offset inside CHAT_INPUT — index 1 sits between
 // children[0] and children[1], which is what lets a test paste "between two thumbnails" without
 // any keyboard affordance that could reach that position (arrow keys move by character/atomic
@@ -425,16 +506,71 @@ const CLEAR_STORAGE_BROWSER_FN = (params: { databaseName: string }): void => {
   indexedDB.deleteDatabase(params.databaseName);
 };
 
+// Creates the drafts database FRESH, at version 1, holding ONLY a decoy store — never the app's
+// own `dungeonmaster-chat-draft-images` store. This is what reproduces defect 2's precondition: a
+// database whose VERSION already matches what the app requests, but whose expected store never
+// got created (corrupted state, or a schema authored by something other than this app). Must run
+// BEFORE the app's own bundle ever touches IndexedDB — deleteDatabase in beforeEach/clearDraftStorage
+// then a call to this, in that order, on an already-loaded (non-composer) page — or the app's own
+// open would have already created the real store first and there would be nothing left to heal.
+const SEED_DECOY_DRAFT_DATABASE_BROWSER_FN = async (params: {
+  databaseName: string;
+  decoyStoreName: string;
+  version: number;
+}): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(params.databaseName, params.version);
+    request.onupgradeneeded = (): void => {
+      const database = request.result;
+      if (!database.objectStoreNames.contains(params.decoyStoreName)) {
+        database.createObjectStore(params.decoyStoreName, { autoIncrement: true });
+      }
+    };
+    request.onsuccess = (): void => {
+      request.result.close();
+      resolve();
+    };
+    request.onerror = (): void => {
+      reject(request.error ?? new Error('composer-paste harness: failed to seed decoy database'));
+    };
+  });
+
+// Reads back every object store name currently in the drafts database, at whatever version it
+// actually is — never the hardcoded app version, since a healed database has been bumped past it.
+// Opening with NO version argument attaches to the database's current version as-is and never
+// fires onupgradeneeded, so this is a pure read with no risk of creating anything itself. Returns
+// `unknown[]` (not `string[]`) for the same reason every other read below does — no production
+// contract brands a raw IndexedDB store name.
+const READ_DATABASE_STORE_NAMES_BROWSER_FN = async (params: {
+  databaseName: string;
+}): Promise<unknown[]> =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(params.databaseName);
+    request.onsuccess = (): void => {
+      const names: unknown[] = Array.from(request.result.objectStoreNames);
+      request.result.close();
+      resolve(names);
+    };
+    request.onerror = (): void => {
+      reject(
+        request.error ?? new Error('composer-paste harness: failed to read database store names'),
+      );
+    };
+  });
+
 // Opens the drafts database (creating the store if the app itself never has, on a truly empty
 // origin) and reads back every record in the images store, in getAll() order. Each record is
-// `{attachmentId, mediaType, dataBase64}`.
+// `{attachmentId, mediaType, dataBase64}`. Opened with NO explicit version (attaches to whatever
+// version currently exists, or creates fresh at version 1 on a truly empty origin) rather than the
+// app's own static version number — a healed database (see indexedDbDraftImagesReadAdapter) sits
+// ABOVE that static version, and opening below a database's current version throws VersionError
+// outright rather than attaching to it.
 const READ_DRAFT_IMAGE_RECORDS_BROWSER_FN = async (params: {
   databaseName: string;
   storeName: string;
-  version: number;
 }) => {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(params.databaseName, params.version);
+    const request = indexedDB.open(params.databaseName);
     request.onupgradeneeded = (): void => {
       const database = request.result;
       if (!database.objectStoreNames.contains(params.storeName)) {
@@ -470,14 +606,13 @@ const READ_DRAFT_IMAGE_RECORDS_BROWSER_FN = async (params: {
 // Same IndexedDB open/getAll shape as READ_DRAFT_IMAGE_RECORDS_BROWSER_FN, projected down to just
 // the attachmentId column. Written as its own self-contained open (rather than deriving from that
 // function's result) for the same reason the over-cap corrupt-PNG bytes are built twice above: a
-// page.evaluate callback cannot close over anything outside its own function body.
+// page.evaluate callback cannot close over a Node-side helper.
 const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
   databaseName: string;
   storeName: string;
-  version: number;
 }) => {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(params.databaseName, params.version);
+    const request = indexedDB.open(params.databaseName);
     request.onupgradeneeded = (): void => {
       const database = request.result;
       if (!database.objectStoreNames.contains(params.storeName)) {
@@ -528,6 +663,15 @@ export const composerPasteHarness = ({
     mimeType?: string;
   }) => Promise<unknown>;
   pasteImage: (params: { dataUrl: string; fileName?: string }) => Promise<boolean>;
+  pasteImagesWithNoAwaitBetween: (params: {
+    dataUrls: readonly string[];
+    fileName?: string;
+  }) => Promise<readonly boolean[]>;
+  pasteImageWithMediaType: (params: {
+    dataUrl: string;
+    mediaType: string;
+    fileName?: string;
+  }) => Promise<boolean>;
   pasteBytes: (params: {
     bytes: readonly number[];
     mediaType: string;
@@ -560,12 +704,16 @@ export const composerPasteHarness = ({
   readThumbnailNaturalHeights: () => Promise<readonly unknown[]>;
   readThumbnailChildElementCounts: () => Promise<readonly unknown[]>;
   readThumbnailAttachmentIds: () => Promise<readonly unknown[]>;
+  readThumbnailRenderedSizes: () => Promise<readonly unknown[]>;
+  readSendButtonFitsInViewport: () => Promise<unknown>;
   readDraftText: () => Promise<unknown>;
   readDraftImageRecords: () => Promise<readonly unknown[]>;
   readDraftImageAttachmentIds: () => Promise<readonly unknown[]>;
   focusComposer: () => Promise<void>;
   placeCaretBetweenChildren: (params: { index: number }) => Promise<void>;
   clearDraftStorage: () => Promise<void>;
+  seedDecoyDraftDatabase: () => Promise<void>;
+  readDraftDatabaseStoreNames: () => Promise<readonly unknown[]>;
   readQuestImageByteLengths: (params: { questFilePath: string }) => Promise<readonly unknown[]>;
 } => ({
   beforeEach: async (): Promise<void> => {
@@ -615,6 +763,26 @@ export const composerPasteHarness = ({
     dataUrl: string;
     fileName?: string;
   }): Promise<boolean> => page.evaluate(PASTE_IMAGE_BROWSER_FN, { dataUrl, fileName }),
+
+  pasteImagesWithNoAwaitBetween: async ({
+    dataUrls,
+    fileName = DEFAULT_IMAGE_FILE_NAME,
+  }: {
+    dataUrls: readonly string[];
+    fileName?: string;
+  }): Promise<readonly boolean[]> =>
+    page.evaluate(PASTE_IMAGES_NO_AWAIT_BROWSER_FN, { dataUrls: [...dataUrls], fileName }),
+
+  pasteImageWithMediaType: async ({
+    dataUrl,
+    mediaType,
+    fileName = DEFAULT_IMAGE_FILE_NAME,
+  }: {
+    dataUrl: string;
+    mediaType: string;
+    fileName?: string;
+  }): Promise<boolean> =>
+    page.evaluate(PASTE_IMAGE_WITH_MEDIA_TYPE_BROWSER_FN, { dataUrl, mediaType, fileName }),
 
   pasteBytes: async ({
     bytes,
@@ -755,6 +923,37 @@ export const composerPasteHarness = ({
         images.map((image) => image.getAttribute('data-attachment-id') ?? ''),
       ),
 
+  // Painted geometry — jsdom has no layout engine, so this can only be proven in a real browser.
+  // getBoundingClientRect() (not naturalWidth/naturalHeight) is what reports the CSS-scaled render
+  // size a viewer actually sees, as opposed to the attachment's intrinsic decoded pixel dimensions.
+  // Rounded to the nearest pixel in-browser (not left as a sub-pixel float): the layout engine's own
+  // sub-pixel snapping is far finer than one pixel, so a test asserting the rounded value is exact
+  // and deterministic without chasing Blink's internal snapping unit.
+  readThumbnailRenderedSizes: async (): Promise<readonly unknown[]> =>
+    page.getByTestId('CHAT_INPUT_THUMBNAIL').evaluateAll<unknown[], HTMLImageElement>((images) =>
+      images.map((image) => {
+        const rect = image.getBoundingClientRect();
+        return { width: Math.round(rect.width), height: Math.round(rect.height) };
+      }),
+    ),
+
+  // Painted geometry, same reasoning as readThumbnailRenderedSizes — whether SEND_BUTTON sits inside
+  // the viewport can only be measured against a real layout. Resolved to a single boolean here
+  // (rather than handing the raw box back) because the box's own x/y drift with unrelated page
+  // layout (header height, other panels) in a way this feature has no control over and a test has no
+  // stable literal to assert against — "does it fit" is the one fact a pasted-image regression can
+  // actually change.
+  readSendButtonFitsInViewport: async (): Promise<unknown> => {
+    const box = await page.getByTestId('SEND_BUTTON').boundingBox();
+    const viewportSize = page.viewportSize();
+    if (box === null || viewportSize === null) {
+      throw new Error(
+        'composer-paste harness: SEND_BUTTON bounding box or viewport size unavailable',
+      );
+    }
+    return box.y >= 0 && box.y + box.height <= viewportSize.height;
+  },
+
   readDraftText: async (): Promise<unknown> =>
     page.evaluate((key) => localStorage.getItem(key), DRAFT_STORAGE_KEY),
 
@@ -762,7 +961,6 @@ export const composerPasteHarness = ({
     page.evaluate(READ_DRAFT_IMAGE_RECORDS_BROWSER_FN, {
       databaseName: DRAFT_DATABASE_NAME,
       storeName: DRAFT_STORE_NAME,
-      version: DRAFT_DATABASE_VERSION,
     }),
 
   // Same store, projected to just the attachmentId column — an orphaned-record assertion (N
@@ -773,7 +971,6 @@ export const composerPasteHarness = ({
     page.evaluate(READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN, {
       databaseName: DRAFT_DATABASE_NAME,
       storeName: DRAFT_STORE_NAME,
-      version: DRAFT_DATABASE_VERSION,
     }),
 
   focusComposer: async (): Promise<void> => {
@@ -793,6 +990,21 @@ export const composerPasteHarness = ({
   clearDraftStorage: async (): Promise<void> => {
     await page.evaluate(CLEAR_STORAGE_BROWSER_FN, { databaseName: DRAFT_DATABASE_NAME });
   },
+
+  // Reproduces defect 2's precondition — call AFTER clearDraftStorage and BEFORE the composer page
+  // ever loads (this test's own storage-clearing beforeEach only runs page.goto('/'), never the
+  // composer route itself), so the app's own indexedDbDraftImagesReadAdapter never gets a chance to
+  // create the real store first.
+  seedDecoyDraftDatabase: async (): Promise<void> => {
+    await page.evaluate(SEED_DECOY_DRAFT_DATABASE_BROWSER_FN, {
+      databaseName: DRAFT_DATABASE_NAME,
+      decoyStoreName: DECOY_STORE_NAME,
+      version: DRAFT_DATABASE_VERSION,
+    });
+  },
+
+  readDraftDatabaseStoreNames: async (): Promise<readonly unknown[]> =>
+    page.evaluate(READ_DATABASE_STORE_NAMES_BROWSER_FN, { databaseName: DRAFT_DATABASE_NAME }),
 
   // Node-side on purpose (same reasoning as readDataUrlByteLength above): the server writes real
   // files to <dirname(questFilePath)>/images, and a Playwright `page` has no filesystem access to

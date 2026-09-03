@@ -405,7 +405,11 @@ export const QuestChatContentLayerWidget = ({
             flexDirection: 'column',
           }}
         >
-          {isNodeMode ? (
+          {/* Only a set questId has anything in flight to wait for (the just-created quest replaying
+              in). questId === null means no quest exists yet and none will until the user sends a
+              first message — that is a terminal empty state, not a loading state, so it must NOT show
+              the "Loading..." placeholder, which would never resolve on its own. */}
+          {isNodeMode && questId !== null ? (
             <DumpsterRaccoonWidget />
           ) : (
             <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>

@@ -27,6 +27,15 @@ const OVER_CAP_WIDTH_PX = 6000;
 const OVER_CAP_HEIGHT_PX = 4000;
 const OVER_CAP_NOISE_BAND_ROWS = 700;
 
+// Restated rather than imported (same reasoning as the constants above): the RENDERED bound is
+// chatComposerStatics.thumbnail's own knob, not derived from anything a paste computes — a drift
+// there must fail this file rather than silently follow it.
+const THUMBNAIL_MAX_HEIGHT_PX = 60;
+// object-fit: contain scales the 2000x1333 downscaled attachment (aspect ratio ~1.5) inside a
+// 120x60 box (aspect ratio 2.0) — narrower-than-box, so height binds at exactly the cap and width
+// follows the same ratio: round(2000 * 60 / 1333) = 90, comfortably inside the 120px width cap.
+const THUMBNAIL_EXPECTED_RENDERED_WIDTH_PX = 90;
+
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('Composer paste — inserts a thumbnail', () => {
@@ -115,6 +124,46 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     });
     expect(resultByteLength).toBeGreaterThan(0);
     expect(resultByteLength).toBeLessThanOrEqual(MAX_BYTES_PER_IMAGE);
+  });
+
+  // PAINTED GEOMETRY — jsdom has no layout engine and reports 0 for every box, so this is provable
+  // only in a real browser. The downscale ladder already lands this attachment's INTRINSIC pixels at
+  // MAX_LONGEST_EDGE_PX (proven above by the sibling "over 5 MB" test's readThumbnailNaturalWidths
+  // assertion) — that is the attachment's real size and reaches the server unchanged. What this test
+  // proves is the RENDERED size is bounded independently of that: a downscaled-but-still-huge image
+  // must not grow the composer past its own default height and push SEND_BUTTON below the fold.
+  test('EDGE: {type "A", paste a 6000x4000 PNG downscaled to 2000x1333, type "B"} => the thumbnail paints at a bounded thumbnail size and SEND_BUTTON stays inside the viewport', async ({
+    page,
+    request,
+  }) => {
+    const composer = composerPasteHarness({ page });
+    await composer.openComposerPage({
+      request,
+      guildName: 'Composer Insert Thumbnail Bounded Guild',
+      guildPath: GUILD_PATH,
+    });
+    await composer.focusComposer();
+    await page.keyboard.type('A');
+
+    const dataUrl = await composer.buildOverCapImageDataUrl({
+      widthPx: OVER_CAP_WIDTH_PX,
+      heightPx: OVER_CAP_HEIGHT_PX,
+      noiseBandRows: OVER_CAP_NOISE_BAND_ROWS,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl) });
+    // The insert is the tail of an async handler — the retrying locator waits for it.
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+    await page.keyboard.type('B');
+
+    // #check-thumbnail-render-size-bounded: painted at the thumbnail bound, not anywhere near the
+    // attachment's own 2000x1333 decoded pixels.
+    expect(await composer.readThumbnailRenderedSizes()).toStrictEqual([
+      { width: THUMBNAIL_EXPECTED_RENDERED_WIDTH_PX, height: THUMBNAIL_MAX_HEIGHT_PX },
+    ]);
+
+    // #check-send-button-stays-onscreen: a real user pasting one large image must not have to
+    // scroll to find SEND — its whole box has to sit within the viewport's own height.
+    expect(await composer.readSendButtonFitsInViewport()).toBe(true);
   });
 
   test('VALID: {type "beforeafter", ArrowLeft x5, paste an image} => the thumbnail lands at the caret: child order becomes text "before", thumbnail, text "after"', async ({
@@ -321,6 +370,36 @@ test.describe('Composer paste — inserts a thumbnail', () => {
       { kind: 'image', src: dataUrl },
       { kind: 'text', text: 'cd' },
     ]);
+  });
+
+  // A real File/Blob constructor lowercases `type` but never trims it, so a clipboard-declared
+  // 'image/png ' (trailing space) is exactly reproducible with a real File — this is what makes the
+  // case drivable through a real browser rather than only assertable in a unit test. The bytes decode
+  // to a genuinely valid PNG (built the same way every other acceptance case in this file builds one),
+  // so the ONLY thing distinguishing this paste from a plain 'image/png' one is the trailing space on
+  // the declared type — proving the space is normalised away rather than tripping the cannot-reduce
+  // catch-all a malformed data URL would otherwise fall into.
+  test('VALID: {paste a valid PNG whose clipboard-declared type carries a trailing space, "image/png "} => the trailing space is normalised away: a thumbnail is inserted and the cannot-reduce toast never fires', async ({
+    page,
+    request,
+  }) => {
+    const composer = composerPasteHarness({ page });
+    await composer.openComposerPage({
+      request,
+      guildName: 'Composer Insert Trailing Space Type Guild',
+      guildPath: GUILD_PATH,
+    });
+    await composer.focusComposer();
+    const dataUrl = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 1,
+    });
+
+    await composer.pasteImageWithMediaType({ dataUrl: String(dataUrl), mediaType: 'image/png ' });
+
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+    await expect(page.getByText(TOAST_CANNOT_REDUCE, { exact: true })).toHaveCount(0);
   });
 
   test('VALID: {paste twice with no keystroke between} => two adjacent thumbnails leave zero text nodes between or beside them', async ({

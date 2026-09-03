@@ -195,6 +195,92 @@ const DISPATCH_ENTER_KEYDOWN_BROWSER_FN = (params: { chatInputTestId: string }):
   return editor.dispatchEvent(event);
 };
 
+// Two native `.click()` calls on the SAME element, back-to-back, with no `await` anywhere between
+// them — a `page.locator(...).click()` from the Node side always carries a round trip (actionability
+// checks, then a CDP dispatch), which is an implicit yield a real double-submit does not get. This is
+// what actually reproduces a double-submit: both clicks run inside ONE synchronous script, so
+// `handleSend`'s guard is read twice before React's state update from the first call could ever be
+// visible to the second.
+const CLICK_SEND_BUTTON_TWICE_BROWSER_FN = (params: { sendButtonTestId: string }): void => {
+  const button = document.querySelector(`[data-testid="${params.sendButtonTestId}"]`);
+  if (button === null || !(button instanceof HTMLElement)) {
+    throw new Error('composer-send harness: SEND_BUTTON not found');
+  }
+  button.click();
+  button.click();
+};
+
+// Monkey-patches XMLHttpRequest so a request whose URL ends with `urlSuffix` does not actually reach
+// the network until `delayMs` after `.send()` is called — every other request (including a
+// text-only chat send that never goes through this XHR path, and any WebSocket traffic) is
+// untouched. Installed via `page.addInitScript`, which runs before the app's own bundle constructs
+// its first XHR, so the override is in place before `xhrPostWithProgressAdapter` ever opens one.
+// This is NOT `page.route`: nothing about the request or response is faked or intercepted — the same
+// real body reaches the same real server, only later than it otherwise would, which is what turns a
+// race that a fast loopback round trip would normally win before a test script can act into a
+// reliably observable in-flight window. Every `open`/`send` argument is threaded through as
+// `unknown[]` (never re-typed as `string`) so this stays a faithful passthrough of whatever the app
+// actually called with, rather than a narrower re-implementation of XHR's own overloaded signatures.
+const DELAY_XHR_DISPATCH_BROWSER_FN = (params: { urlSuffix: string; delayMs: number }): void => {
+  const originalOpen = XMLHttpRequest.prototype.open;
+  const originalSend = XMLHttpRequest.prototype.send;
+  const urlsByRequest = new WeakMap<XMLHttpRequest, unknown>();
+
+  XMLHttpRequest.prototype.open = function delayXhrDispatchTrackedOpen(
+    this: XMLHttpRequest,
+    ...args: unknown[]
+  ): void {
+    urlsByRequest.set(this, args[1]);
+    (originalOpen as (...openArgs: unknown[]) => void).apply(this, args);
+  } as typeof XMLHttpRequest.prototype.open;
+
+  XMLHttpRequest.prototype.send = function delayXhrDispatchDelayedSend(
+    this: XMLHttpRequest,
+    ...args: unknown[]
+  ): void {
+    const url = String(urlsByRequest.get(this) ?? '');
+    if (!url.endsWith(params.urlSuffix)) {
+      (originalSend as (...sendArgs: unknown[]) => void).apply(this, args);
+      return;
+    }
+    globalThis.setTimeout(() => {
+      (originalSend as (...sendArgs: unknown[]) => void).apply(this, args);
+    }, params.delayMs);
+  } as typeof XMLHttpRequest.prototype.send;
+};
+
+// Monkey-patches XMLHttpRequest so a request whose URL ends with `urlSuffix` is genuinely
+// `.abort()`ed in the SAME synchronous tick `.send()` returns in — the real repro this harness
+// exists to reproduce: a real send() runs (the request DOES reach the network), and is then
+// aborted before any response can arrive. This is NOT `page.route`: the request is a real XHR
+// against the real server; only the client-side abort is injected. Installed via
+// `page.addInitScript`, same reasoning as `DELAY_XHR_DISPATCH_BROWSER_FN` above — must be
+// registered before the app's own bundle constructs its first XHR.
+const ABORT_XHR_AFTER_SEND_BROWSER_FN = (params: { urlSuffix: string }): void => {
+  const originalOpen = XMLHttpRequest.prototype.open;
+  const originalSend = XMLHttpRequest.prototype.send;
+  const urlsByRequest = new WeakMap<XMLHttpRequest, unknown>();
+
+  XMLHttpRequest.prototype.open = function abortXhrAfterSendTrackedOpen(
+    this: XMLHttpRequest,
+    ...args: unknown[]
+  ): void {
+    urlsByRequest.set(this, args[1]);
+    (originalOpen as (...openArgs: unknown[]) => void).apply(this, args);
+  } as typeof XMLHttpRequest.prototype.open;
+
+  XMLHttpRequest.prototype.send = function abortXhrAfterSendImmediateAbort(
+    this: XMLHttpRequest,
+    ...args: unknown[]
+  ): void {
+    const url = String(urlsByRequest.get(this) ?? '');
+    (originalSend as (...sendArgs: unknown[]) => void).apply(this, args);
+    if (url.endsWith(params.urlSuffix)) {
+      this.abort();
+    }
+  } as typeof XMLHttpRequest.prototype.send;
+};
+
 export const composerSendHarness = ({
   page,
 }: {
@@ -211,6 +297,9 @@ export const composerSendHarness = ({
   resolveNewQuestFilePath: (params: { guildId: string; questId: string }) => unknown;
   readImageFileBase64: (params: { filePath: string }) => unknown;
   dispatchEnterKeydown: () => Promise<boolean>;
+  clickSendButtonTwiceWithNoAwaitBetween: () => Promise<void>;
+  delayXhrDispatch: (params: { urlSuffix: string; delayMs: number }) => Promise<void>;
+  abortXhrAfterSend: (params: { urlSuffix: string }) => Promise<void>;
   readPromptImageTokens: (params: { prompt: string }) => PromptImageTokens;
   countSentinelOccurrences: (params: { prompt: string }) => unknown;
   fileExistsAt: (params: { filePath: string }) => boolean;
@@ -324,6 +413,27 @@ export const composerSendHarness = ({
 
     dispatchEnterKeydown: async (): Promise<boolean> =>
       page.evaluate(DISPATCH_ENTER_KEYDOWN_BROWSER_FN, { chatInputTestId: CHAT_INPUT_TEST_ID }),
+
+    clickSendButtonTwiceWithNoAwaitBetween: async (): Promise<void> =>
+      page.evaluate(CLICK_SEND_BUTTON_TWICE_BROWSER_FN, { sendButtonTestId: SEND_BUTTON_TEST_ID }),
+
+    // Must be called BEFORE `page.goto`/`nav.navigateToQuest` — `page.addInitScript` only affects
+    // navigations that happen after it is registered, same as composer-paste.harness.ts's own
+    // storage-clearing init script.
+    delayXhrDispatch: async ({
+      urlSuffix,
+      delayMs,
+    }: {
+      urlSuffix: string;
+      delayMs: number;
+    }): Promise<void> => {
+      await page.addInitScript(DELAY_XHR_DISPATCH_BROWSER_FN, { urlSuffix, delayMs });
+    },
+
+    // Must be called BEFORE `page.goto`/`nav.navigateToQuest`, same as `delayXhrDispatch` above.
+    abortXhrAfterSend: async ({ urlSuffix }: { urlSuffix: string }): Promise<void> => {
+      await page.addInitScript(ABORT_XHR_AFTER_SEND_BROWSER_FN, { urlSuffix });
+    },
 
     // Every `![Pasted Image N](path)` occurrence in a prompt string, in the order they appear in the
     // text — `ordinals`/`paths` ride the same index so a test can pair `ordinals[i]` with `paths[i]`

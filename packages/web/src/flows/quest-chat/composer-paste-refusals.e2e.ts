@@ -226,6 +226,56 @@ test.describe('Composer paste — refusals and branches', () => {
     expect(await composer.readComposerInnerHtml()).toBe(beforeHtml);
   });
 
+  // A clipboard file item's declared type carries no information at all when it is empty or
+  // whitespace-only — it cannot be accepted as any specific type, so the honest outcome is the
+  // format toast, not silent nothing. Real File/Blob objects leave an empty or whitespace-only
+  // `type` string untouched (confirmed against Node's own spec-following Blob — unlike a wrong-case
+  // type, neither is normalised away by the browser), so this genuinely reproduces the bug: before
+  // the fix, handlePaste's item-selection test (`item.type.startsWith('image/')`) rejects both,
+  // treats the paste as "no image on the clipboard", and silently falls through to the plain-text
+  // branch with nothing to insert — no toast, no thumbnail, no feedback at all.
+  test('INVALID: {paste a clipboard file item whose declared type is the empty string, after typing "abc"} => the unsupported-format toast shows, composer content is untouched', async ({
+    page,
+    request,
+  }) => {
+    const composer = composerPasteHarness({ page });
+    await composer.openComposerPage({
+      request,
+      guildName: 'Composer Paste Empty Type Guild',
+      guildPath: GUILD_PATH,
+    });
+    await composer.focusComposer();
+    await page.keyboard.type('abc');
+    const beforeHtml = await composer.readComposerInnerHtml();
+
+    await composer.pasteBytes({ bytes: [0x00, 0x01, 0x02, 0x03], mediaType: '' });
+
+    await expect(page.getByText(TOAST_UNSUPPORTED_FORMAT, { exact: true })).toBeVisible();
+    expect(await composer.readThumbnailCount()).toBe(0);
+    expect(await composer.readComposerInnerHtml()).toBe(beforeHtml);
+  });
+
+  test('INVALID: {paste a clipboard file item whose declared type is whitespace-only, after typing "abc"} => the unsupported-format toast shows, composer content is untouched', async ({
+    page,
+    request,
+  }) => {
+    const composer = composerPasteHarness({ page });
+    await composer.openComposerPage({
+      request,
+      guildName: 'Composer Paste Whitespace Type Guild',
+      guildPath: GUILD_PATH,
+    });
+    await composer.focusComposer();
+    await page.keyboard.type('abc');
+    const beforeHtml = await composer.readComposerInnerHtml();
+
+    await composer.pasteBytes({ bytes: [0x00, 0x01, 0x02, 0x03], mediaType: '   ' });
+
+    await expect(page.getByText(TOAST_UNSUPPORTED_FORMAT, { exact: true })).toBeVisible();
+    expect(await composer.readThumbnailCount()).toBe(0);
+    expect(await composer.readComposerInnerHtml()).toBe(beforeHtml);
+  });
+
   test('VALID: {paste an image/webp File} => a thumbnail is inserted and the unsupported-format toast never fires', async ({
     page,
     request,
@@ -329,6 +379,56 @@ test.describe('Composer paste — refusals and branches', () => {
 
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(MAX_IMAGES_PER_MESSAGE);
     await expect(page.getByText(TOAST_TOO_MANY_IMAGES, { exact: true })).toHaveCount(0);
+  });
+
+  // RACE 1: three pastes fired in ONE script with no `await` between the dispatchEvent calls, atop
+  // 4 already-sequential (real) thumbnails. Each paste's synchronous prefix — including the
+  // existingThumbnailCount read — runs before any of the three reaches its own first `await`, so all
+  // three can read the SAME stale count of 4. Sequential pastes (the sibling test above) never
+  // exercise this: each one's async work fully resolves before the next one's synchronous prefix
+  // ever runs, so the count each of them reads is never stale.
+  test('EDGE: {4 thumbnails present, 3 more pastes fired with no await between the dispatchEvent calls} => the composer ends with exactly 5 thumbnails, and a losing paste surfaces the same too-many-images toast a sequential sixth paste gets', async ({
+    page,
+    request,
+  }) => {
+    const composer = composerPasteHarness({ page });
+    await composer.openComposerPage({
+      request,
+      guildName: 'Composer Paste Limit Race Guild',
+      guildPath: GUILD_PATH,
+    });
+    await composer.focusComposer();
+
+    const roomLeftCount = MAX_IMAGES_PER_MESSAGE - 1;
+    const seeds = Array.from({ length: roomLeftCount }, (_unused, index) => index + 1);
+    await seeds.reduce(async (previous, seed) => {
+      await previous;
+      const dataUrl = await composer.buildImageDataUrl({
+        widthPx: IMAGE_SIZE_PX,
+        heightPx: IMAGE_SIZE_PX,
+        seed,
+      });
+      await composer.pasteImage({ dataUrl: String(dataUrl) });
+      await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(seed);
+    }, Promise.resolve());
+
+    // Built up FRONT of the burst — nothing inside the burst itself may await.
+    const raceSeeds = [roomLeftCount + 1, roomLeftCount + 2, roomLeftCount + 3];
+    const raceDataUrls = await Promise.all(
+      raceSeeds.map(async (seed) =>
+        composer.buildImageDataUrl({ widthPx: IMAGE_SIZE_PX, heightPx: IMAGE_SIZE_PX, seed }),
+      ),
+    );
+
+    await composer.pasteImagesWithNoAwaitBetween({
+      dataUrls: raceDataUrls.map((dataUrl) => String(dataUrl)),
+    });
+
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(MAX_IMAGES_PER_MESSAGE);
+    // TWO of the three racing pastes lose (only one of the three had room for), so Mantine stacks
+    // TWO identical toasts rather than one — `.first()` is what keeps this a check for "the toast
+    // fired", not an assertion on how many losers there were.
+    await expect(page.getByText(TOAST_TOO_MANY_IMAGES, { exact: true }).first()).toBeVisible();
   });
 
   test('ERROR: {paste a truncated PNG whose decode throws} => the cannot-reduce toast shows and no thumbnail is inserted', async ({

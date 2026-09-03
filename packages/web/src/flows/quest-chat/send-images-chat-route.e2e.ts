@@ -43,6 +43,11 @@ const UPLOAD_THROTTLE_BYTES_PER_SEC = 200_000;
 const FORWARD_DELAY_MS = 3_000;
 const FORWARD_REPLY_TEXT = 'This reply streamed in after the HTTP response already resolved';
 
+// How long delayXhrDispatch holds the chat POST's real dispatch back — long enough that a second
+// paste, driven through a real page.evaluate round trip, reliably lands well before the request
+// reaches the network, without relying on loopback timing.
+const XHR_RACE_DELAY_MS = 3_000;
+
 const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -291,6 +296,206 @@ test.describe('Composer send — images ride the chat route', () => {
     expect(send.readPostCount()).toBe(1);
   });
 
+  // RACE 2: SEND_BUTTON clicked twice with no `await` between the two `.click()` calls (both fire
+  // inside ONE synchronous browser script — see composerSendHarness's own comment on why a
+  // Node-side `page.locator(...).click()` twice in a row cannot reach this). `handleSend`'s
+  // re-entrancy guard used to read the `isSending` STATE, which is not yet visible to a second
+  // synchronous call — this is what let two POSTs through for one click. The sibling test above
+  // ("type Ping, plain Enter, plain Enter again immediately") only proves the guard holds when a
+  // real Node-side round trip separates the two attempts; it never puts two calls in the same tick.
+  test('VALID: {1 thumbnail, SEND_BUTTON clicked twice with no await between the clicks} => exactly 1 POST fires and the quest images dir gains exactly 1 file', async ({
+    page,
+    request,
+  }) => {
+    test.slow();
+
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await guilds.createGuild({ name: 'Send Double Click Guild', path: GUILD_PATH });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const sessionId = `e2e-send-double-click-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Send Double Click Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-0000000000fb',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+    claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    const composer = composerPasteHarness({ page });
+    const send = composerSendHarness({ page });
+    send.recordPosts({ urlSuffix: `/api/quests/${questId}/chat` });
+
+    await composer.focusComposer();
+    await page.keyboard.type('double submit test ');
+    const dataUrl = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 1,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl) });
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+
+    const chatResponsePromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' && res.url().endsWith(`/api/quests/${questId}/chat`),
+    );
+    await send.clickSendButtonTwiceWithNoAwaitBetween();
+    await chatResponsePromise;
+    await expect(page.getByTestId('SEND_BUTTON')).toBeEnabled({ timeout: PANEL_TIMEOUT });
+
+    expect(send.readPostCount()).toBe(1);
+
+    const imagesDir = await send.readQuestImagesDir({ questFilePath: String(created.filePath) });
+    expect(imagesDir.fileNames.length).toBe(1);
+  });
+
+  // RACE 3: a second, DIFFERENT image is pasted while the first send's request is still in flight.
+  // `delayXhrDispatch` holds the real POST's actual network dispatch back by XHR_RACE_DELAY_MS so
+  // the in-flight window is wide enough to act inside deterministically — the request still carries
+  // the real body to the real server, only later than it otherwise would (see the harness comment).
+  // handleSend's success handler used to call `editor.replaceChildren()` unconditionally, wiping
+  // whatever the LIVE editor held once the response came back rather than just what it had sent —
+  // which destroys the second paste with no toast and no trace.
+  test('VALID: {type "first message ", paste image 1, SEND, then paste image 2 before the delayed request resolves} => the in-flight request carries only image 1, and once it resolves the composer still holds image 2 rather than being wiped', async ({
+    page,
+    request,
+  }) => {
+    test.slow();
+
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await guilds.createGuild({ name: 'Send Race Survivor Guild', path: GUILD_PATH });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const sessionId = `e2e-send-race-survivor-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Send Race Survivor Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-0000000000fc',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+    claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
+
+    const send = composerSendHarness({ page });
+    await send.delayXhrDispatch({
+      urlSuffix: `/api/quests/${questId}/chat`,
+      delayMs: XHR_RACE_DELAY_MS,
+    });
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    const composer = composerPasteHarness({ page });
+    await composer.focusComposer();
+    await page.keyboard.type('first message ');
+    const dataUrl1 = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 1,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl1) });
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+
+    const chatRequestPromise = page.waitForRequest(
+      (req) => req.method() === 'POST' && req.url().endsWith(`/api/quests/${questId}/chat`),
+    );
+    const chatResponsePromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' && res.url().endsWith(`/api/quests/${questId}/chat`),
+    );
+    await page.keyboard.press('Enter');
+
+    // Pasted BEFORE awaiting either promise above — the injected dispatch delay holds the actual
+    // network send back for XHR_RACE_DELAY_MS, and the mocked server answers within milliseconds of
+    // that real dispatch, so the only reliably wide window to act inside is between the CLICK and
+    // the delayed dispatch, not between dispatch and response. This is what makes the second image's
+    // own async insert (FileReader + attach broker, well under a second) land in the DOM long before
+    // either promise below resolves — the same ordering the original repro observed.
+    const dataUrl2 = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 2,
+    });
+    const pasted = await composer.pasteImage({ dataUrl: String(dataUrl2) });
+    // preventDefault fired — the paste was accepted for processing despite the composer being
+    // locked (contenteditable="false") for the in-flight send.
+    expect(pasted).toBe(false);
+    // Both images sit in the live DOM at once, well before the delayed request even reaches the
+    // network — the control that proves the second paste's insert is not just accepted but actually
+    // landed before anything about the send has settled.
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(2);
+
+    // The delayed dispatch is what makes this a genuine (not hopeful) in-flight window: this only
+    // resolves once XHR_RACE_DELAY_MS has actually elapsed and the real `.send()` finally ran, so
+    // this proves the SNAPSHOT taken at send-time carried only image 1, even though the live DOM
+    // now (correctly) holds both.
+    const chatRequest = await chatRequestPromise;
+    const expectedBase64First = String(dataUrl1).slice(String(dataUrl1).indexOf(',') + 1);
+    expect(chatRequest.postDataJSON()).toStrictEqual({
+      message: 'first message [Pasted Image 1]',
+      images: [{ mediaType: 'image/png', dataBase64: expectedBase64First }],
+    });
+
+    await chatResponsePromise;
+
+    // The second image survives: exactly it, not zero, not both. The surviving draft TEXT still
+    // carries its own placeholder token — composerSerializeTransformer always embeds
+    // `[Pasted Image N]` for a present image, renumbered from 1 now that it is the only attachment
+    // left, so `null` would be wrong even in a fully correct composer.
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+    expect(await composer.readThumbnailSrcs()).toStrictEqual([String(dataUrl2)]);
+    const [survivingAttachmentId] = await composer.readThumbnailAttachmentIds();
+    expect(await composer.readDraftImageRecords()).toStrictEqual([
+      {
+        attachmentId: survivingAttachmentId,
+        mediaType: 'image/png',
+        dataBase64: String(dataUrl2).slice(String(dataUrl2).indexOf(',') + 1),
+      },
+    ]);
+    expect(await composer.readDraftText()).toBe('[Pasted Image 1]');
+  });
+
   test('VALID: {send with 2 images} => the composer is locked (uneditable, SEND disabled) at some point during the send, and unlocked (editable, SEND enabled) once the turn has fully ended', async ({
     page,
     request,
@@ -387,6 +592,93 @@ test.describe('Composer send — images ride the chat route', () => {
       contentEditable: 'true',
       sendDisabled: false,
     });
+  });
+
+  // An aborted /chat POST used to leave the composer stuck non-editable until a full page reload:
+  // xhrPostWithProgressAdapter listened for 'load'/'error'/'timeout' but never 'abort', so an
+  // aborted XHR's wrapping promise never settled — handleSend's own `.finally` (which resets
+  // isSending, and with it CHAT_INPUT's contenteditable) never ran, and no error ever surfaced.
+  // `abortXhrAfterSend` reproduces the walker's exact repro: the real send() runs (the request
+  // reaches the network) and is aborted in the SAME synchronous tick send() returns.
+  test('ERROR: {chat POST aborted mid-flight, in the same tick send() returns} => the composer becomes editable again and SEND_BUTTON re-enables on its own, with an error toast shown, and no page reload', async ({
+    page,
+    request,
+  }) => {
+    test.slow();
+
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await guilds.createGuild({ name: 'Send Aborted Xhr Guild', path: GUILD_PATH });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const sessionId = `e2e-send-aborted-xhr-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Send Aborted Xhr Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-0000000000fd',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+    // Queued so the server side has something to answer with if it ever gets far enough to ask —
+    // irrelevant to this test's own assertions, all of which are client-side, but keeps the mocked
+    // CLI from being left waiting on a session nothing ever responds to.
+    claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
+
+    const send = composerSendHarness({ page });
+    await send.recordComposerSendStates();
+    await send.abortXhrAfterSend({ urlSuffix: `/api/quests/${questId}/chat` });
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    const composer = composerPasteHarness({ page });
+    await composer.focusComposer();
+    await page.keyboard.type('will be aborted');
+    const dataUrl = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 1,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl) });
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+
+    await page.keyboard.press('Enter');
+
+    // The composer must recover ON ITS OWN — no reload — once the abort settles the send promise.
+    await expect(page.getByTestId('SEND_BUTTON')).toBeEnabled({ timeout: PANEL_TIMEOUT });
+    expect(await composer.readContentEditableAttribute()).toBe('true');
+
+    // A user whose send died deserves to know.
+    const toasts = await send.readToastTexts();
+    expect(toasts).toStrictEqual([
+      `xhrPostWithProgressAdapter: request to /api/quests/${questId}/chat was aborted`,
+    ]);
+
+    // The lock/unlock recording proves the composer actually PASSED THROUGH a locked state before
+    // recovering, rather than this being a composer that was never locked in the first place —
+    // which would pass the two checks above vacuously.
+    const states = await send.readComposerSendStates();
+    const wasLocked = states.some(
+      (entry) => entry.contentEditable === 'false' && entry.sendDisabled !== false,
+    );
+    expect(wasLocked).toBe(true);
   });
 
   test('VALID: {send 2 images large enough to be measurable} => an upload progress bar paints beneath the composer, its aria-valuenow climbs from 0 to 100, and it is gone once the send is accepted', async ({

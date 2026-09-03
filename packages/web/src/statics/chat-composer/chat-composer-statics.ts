@@ -24,6 +24,15 @@ export const chatComposerStatics = {
   thumbnail: {
     attributeName: 'data-attachment-id',
     testId: 'CHAT_INPUT_THUMBNAIL',
+    // Bounds the RENDERED size of a pasted-image thumbnail — the attachment's own widthPx/heightPx
+    // (the downscale ladder's real pixel dimensions, sent to the server) are untouched by this; it
+    // only caps how large the <img> paints inline in the editor. Matches the editor's own
+    // `minHeight: 60` (chat-input-widget.tsx) so a single pasted image reads as one thumbnail-sized
+    // row rather than growing the composer past its own default collapsed height.
+    maxHeightPx: 60,
+    // Twice maxHeightPx — wide enough that a landscape image still reads as a thumbnail rather than
+    // a banner spanning the composer's width.
+    maxWidthPx: 120,
   },
   upload: {
     minPercent: 0,

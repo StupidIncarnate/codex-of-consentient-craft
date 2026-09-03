@@ -81,5 +81,14 @@ export const xhrPostWithProgressAdapter = async ({
       reject(new Error(`xhrPostWithProgressAdapter: request to ${validatedUrl} timed out`));
     });
 
+    // Without this, an aborted request (the browser tearing down the connection, a caller
+    // cancelling in some other way) fires neither 'load' nor 'error' nor 'timeout', so the promise
+    // above never settles — every caller awaiting it, and everything gated on that await
+    // (`.then`/`.catch`/`.finally` chains further up), hangs until a full page reload. `abort` is
+    // its own terminal XHR event precisely because it is neither a success nor a network failure.
+    xhr.addEventListener('abort', (): void => {
+      reject(new Error(`xhrPostWithProgressAdapter: request to ${validatedUrl} was aborted`));
+    });
+
     xhr.send(JSON.stringify(body));
   });

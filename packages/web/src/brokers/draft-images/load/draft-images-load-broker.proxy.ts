@@ -9,6 +9,11 @@ type PastedImageDraft = ReturnType<typeof PastedImageDraftStub>;
 
 export const draftImagesLoadBrokerProxy = (): {
   storeHolds: (params: { drafts: readonly PastedImageDraft[] }) => void;
+  // Distinct from storeHolds: it seeds records the REAL read adapter has to run its own
+  // pastedImageDraftContract.safeParse against, so a test can stage a record that fails that
+  // contract (the case storeHolds's typed PastedImageDraft[] cannot express) and prove the hole it
+  // leaves survives through this broker's own Promise.allSettled pass untouched.
+  storeHoldsRaw: (params: { records: readonly unknown[] }) => void;
   measures: (params: { dataUrl: ImageDataUrl; widthPx: number; heightPx: number }) => void;
   measureFails: (params: { dataUrl: ImageDataUrl; error: Error }) => void;
   storeUnavailable: (params: { error: Error }) => void;
@@ -29,6 +34,9 @@ export const draftImagesLoadBrokerProxy = (): {
   return {
     storeHolds: ({ drafts }: { drafts: readonly PastedImageDraft[] }): void => {
       readProxy.seed({ drafts });
+    },
+    storeHoldsRaw: ({ records }: { records: readonly unknown[] }): void => {
+      readProxy.seed({ drafts: records });
     },
     // dataUrl is part of the call signature for readability at the call site only. createImageBitmap
     // is called with the blob this adapter built FROM that data URL, and — same reasoning as

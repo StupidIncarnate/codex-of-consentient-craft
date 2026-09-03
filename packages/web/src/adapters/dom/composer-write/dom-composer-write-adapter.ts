@@ -47,6 +47,13 @@ export const domComposerWriteAdapter = ({
     thumbnail.setAttribute('data-testid', chatComposerStatics.thumbnail.testId);
     thumbnail.setAttribute('contenteditable', 'false');
     thumbnail.setAttribute('src', attachment.dataUrl);
+    // Bounds the RENDERED size only — matches domComposerInsertImageAdapter's paste-path thumbnail
+    // exactly, so a restored draft's <img> paints the same size as the one the user pasted rather
+    // than at the attachment's own (possibly much larger) intrinsic pixel dimensions.
+    thumbnail.style.maxHeight = `${String(chatComposerStatics.thumbnail.maxHeightPx)}px`;
+    thumbnail.style.maxWidth = `${String(chatComposerStatics.thumbnail.maxWidthPx)}px`;
+    thumbnail.style.objectFit = 'contain';
+    thumbnail.style.verticalAlign = 'middle';
     nodes.push(thumbnail);
   });
 
