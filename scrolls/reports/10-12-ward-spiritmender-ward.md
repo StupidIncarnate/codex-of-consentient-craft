@@ -135,7 +135,7 @@ WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS
 |---|---|---|---|
 | all buckets | **0** | **0** | **0** |
 
-`subagents b1461af5-4c03-4275-ab03-cc6f384e1745` → `no subagents dir`. Nothing to attribute.
+`subagents b1461af5-4c03-4275-ab03-cc6f384e1745` returns `no subagents dir`. Nothing to attribute.
 
 ### Totals
 
@@ -170,7 +170,7 @@ consumer sweep, commit and signal, at the maximum context depth.
 ### 3.1 The rendered prompt differs from the template in exactly one place, and it is the load-bearing one
 
 `spiritmenderPromptStatics.prompt.template` is 100% present in the rendered prompt. The only
-substitution is `$ARGUMENTS` → the Operation Context block, and the `${ptBudget}` interpolation
+substitution is `$ARGUMENTS`, replaced by the Operation Context block, and the `${ptBudget}` interpolation
 rendered as `3`. The Operation Context that arrived was:
 
 ```
@@ -303,7 +303,7 @@ out of a budget of 3.
 
 - **`[CLEAN TREE]`** was obeyed exactly: `git status` at 23.2m, `git add` of exactly the three
   changed paths, one commit, `git status` again at 23.4m to confirm clean, then `signal-back`.
-- **`## Scope` → "Fix wherever the fix actually lives. If clearing an error means touching a file the
+- **`## Scope` says "Fix wherever the fix actually lives. If clearing an error means touching a file the
   blob does not name, touch it."** This is the clause that produced the shared-package fix (§4).
 - **`Do NOT: 1. Weaken a test to make it pass … 3. Delete code to avoid an error.`** The commit
   touches **zero test files** (`git show --stat e0ffce3b2` = 3 files, all production/contract), and
@@ -324,7 +324,7 @@ out of a budget of 3.
    the root cause of failure #1. The session found this without ever having read the blob that named
    that failure. Mechanism: the `## Scope` clause quoted above, plus three `discover` sweeps
    (`pastedImageUploadContract|base64ImageDataContract`, `pastedImageUploadListContract`,
-   `maxBytesPerImage`) costing ~2.0 min and ~19k output tokens across buckets `08:53-08:55` and
+   `maxBytesPerImage`) costing roughly 2.0 min and roughly 19k output tokens across buckets `08:53-08:55` and
    `08:55-08:57`.
 
 2. **It refused to accept its own first green.** At 10.4m it tried the cheap fix — dropping the `u`
@@ -367,7 +367,7 @@ carries a `guilds/<guildId>/` segment), then tried `~/.dungeonmaster/quests/`, t
 `<worktree>/.dungeonmaster-quests/`, then read `.dungeonmaster.json`, then `env | grep -i dungeon`.
 Ten calls, all refused or empty.
 
-**Citation.** Timeline `0.3m` → `1.7m`; errors at `0.4m`, `0.5m` (×2), `0.7m` (×2), `0.9m` (×2),
+**Citation.** Timeline `0.3m` to `1.7m`; errors at `0.4m`, `0.5m` (×2), `0.7m` (×2), `0.9m` (×2),
 `1.0m`, `1.3m`.
 
 **Cost.** 1.7 min; bucket `08:33-08:35` = 14,760 output tokens / 2,098,765 context-in / 21 tool
@@ -402,10 +402,10 @@ the child exited, taking the in-flight ward run with it. Orphan recovery flipped
 
 **Citation.** `4.3m BASH timeout=None :: true`; `4.4m "Waiting for the backgrounded ward run to
 finish — I'll pick up when the notification lands rather than polling."`; `4.6m` task-notification
-`<status>stopped</status>`; `quest.json` `27667fc2`→`4c5e9e8a`: `"retryCount": 1, "resume": true`.
+`<status>stopped</status>`; `quest.json` `27667fc2` to `4c5e9e8a`: `"retryCount": 1, "resume": true`.
 
 **Cost.** The 2.2-min ward run was destroyed and had to be repeated (2.5 min). Plus 0.7 min of
-cut-off re-establishment (phase 5). One of three `orphanRecovery.maxResets` spent. **~5.4 min.**
+cut-off re-establishment (phase 5). One of three `orphanRecovery.maxResets` spent. **Roughly 5.4 min.**
 
 **Prompt disposition.** **Required by `[DELEGATION]`**: *"With everything you can do done and a
 helper still out, end your turn on a plain message and no tool call. The notification brings you
@@ -426,7 +426,7 @@ read-only investigation with a clean question — *does this regex shape overflo
 which variant does not* — that is exactly what a briefed helper answers in parallel while the parent
 reads consumers.
 
-**Citation.** `subagents b1461af5-…` → `no subagents dir`; tool histogram shows no `Agent`/`Task`
+**Citation.** `subagents b1461af5-…` returns `no subagents dir`; tool histogram shows no `Agent`/`Task`
 calls among the 89 tool calls.
 
 **Cost.** Not a loss on this run — the investigation was serial and the fix depended on its result.
@@ -446,7 +446,7 @@ run over it (14.3m, 93 s), and an `rm` at 18.1m. A companion scratch file went t
 
 **Citation.** Extracted tool inputs at 13.4m–14.3m and `18.1m BASH :: rm …/zzz-repro.test.ts …`.
 
-**Cost.** ~1.6 min of the 3.4-min diagnostic phase. Zero residual cost — `git status` at 23.2m was
+**Cost.** Roughly 1.6 min of the 3.4-min diagnostic phase. Zero residual cost — `git status` at 23.2m was
 clean and the file is absent from commit `e0ffce3b2`.
 
 **Prompt disposition.** **Not addressed by the prompt at all.** The repo's `CLAUDE.md` says scratch
@@ -691,7 +691,7 @@ whose files are all new grades as 6 files out of 99 and reads green."*
 **Estimated saving:** this defect cost **8 h 23 min of latency + 31.3 min of repair cycle** on this
 quest alone, and it applies to every codeweaver, flowrider and siegemaster pass in every quest —
 which is where the great majority of new files are born. Conservatively **one spiritmender cycle
-(~30 min) per quest**, plus the compounding risk of a defect surviving to the `full` ward gate.
+(roughly 30 min) per quest**, plus the compounding risk of a defect surviving to the `full` ward gate.
 
 ### Fix 2 — Render a real, reachable path for the ward detail blob (addresses findings 1 and 2)
 
@@ -711,7 +711,7 @@ dogfood mode (`<repoRoot>/.dungeonmaster/guilds/…`, while the session is confi
      problem, since the tool can return just the `testFailures` entries.
 
 **Estimated saving:** 1.7 min of hunting **plus** the 4.7 min of whole-repo `--changed` runs that
-only happened because there was nothing to scope to = **~6.4 min and ~35k output tokens per
+only happened because there was nothing to scope to = **roughly 6.4 min and roughly 35k output tokens per
 spiritmender dispatch**.
 
 ### Fix 3 — Tell the spiritmender what to do when the blob is unreachable (addresses findings 1, 2)
@@ -725,7 +725,7 @@ spiritmender dispatch**.
 > tells you what a scoped run over the same files tells you. Then say in your commit message that the
 > blob was unreadable, so the next session does not repeat the search.
 
-**Estimated saving:** ~3-4 min per dispatch whenever fix 2 is not yet in place, and it is the correct
+**Estimated saving:** roughly 3-4 min per dispatch whenever fix 2 is not yet in place, and it is the correct
 behaviour even after fix 2 (a blob can be truncated or stale).
 
 ### Fix 4 — Correct `[DELEGATION]`'s wait advice for headless dispatch (addresses finding 3)
@@ -741,8 +741,8 @@ on a plain message and no tool call. The notification brings you back"* with mod
 > the turn alive with real work you can do meanwhile. If there is nothing, the command was too wide —
 > re-scope it so it finishes in the foreground.
 
-**Estimated saving:** the killed run + recovery + re-run cost **~5.4 min and one of three
-`orphanRecovery.maxResets`** here. Removing the dead `Agent`/Task paragraphs also trims ~600
+**Estimated saving:** the killed run + recovery + re-run cost **roughly 5.4 min and one of three
+`orphanRecovery.maxResets`** here. Removing the dead `Agent`/Task paragraphs also trims roughly 600
 characters that ride on all 176 API calls of every spiritmender session.
 
 ### Fix 5 — Stop the prompt promising the blob names one check type (addresses finding 6)
@@ -755,7 +755,7 @@ characters that ride on all 176 API calls of every spiritmender session.
 > When a failing file has no `.integration.` in its name, pass `lint,typecheck,unit` and add
 > `integration` only if the blob's red entry names a `*.integration.test.ts`.
 
-**Estimated saving:** small in minutes (~1 min of a mis-scoped run) but it removes a
+**Estimated saving:** small in minutes (roughly 1 min of a mis-scoped run) but it removes a
 confidently-stated falsehood, and a blob-reading session — which is what fix 2 creates — would hit it
 every time.
 
@@ -790,7 +790,7 @@ change regresses. Effectively free (one `git status` the reviewer already runs a
 ### Fix 8 — Give the spiritmender a scratch-file rule (addresses finding 5)
 
 **File:** `packages/orchestrator/src/statics/spiritmender-prompt/spiritmender-prompt-statics.ts`,
-`## Scope` → `Do NOT:` list, as item 5.
+in `## Scope`'s `Do NOT:` list, as item 5.
 **Edit:**
 
 > 5. Leave a diagnostic file behind. A repro you need jest to run has to sit inside the package's

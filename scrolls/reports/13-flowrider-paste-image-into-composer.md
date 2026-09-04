@@ -16,7 +16,7 @@
 | `flowIds` | `["paste-image-into-composer"]`; `packageNames: []` |
 | `locked` | `true`, `attempt: 0`, `maxAttempts: 1`, `retryCount: 0` |
 
-Window: `createdAt 2026-09-02T09:00:10.667Z` → `completedAt 2026-09-02T12:03:57.695Z`.
+Window: `createdAt 2026-09-02T09:00:10.667Z` leads to `completedAt 2026-09-02T12:03:57.695Z`.
 Transcript wall clock: `3:04:00.290000 (184.0 min)`.
 
 This is the FIRST flowrider on the quest, dispatched 0.05 s after the `pt 2` ward went green.
@@ -304,9 +304,9 @@ construction.**
 > `Read the whole diff. Three questions: …`
 
 Every artefact this pass produced was a NEW, untracked file. The parent had to notice this itself and
-substitute: `163.4m CALL Bash(command=git status --porcelain)` → `163.4m say: "No source file is
+substitute: `163.4m CALL Bash(command=git status --porcelain)` leading to `163.4m say: "No source file is
 dirty — every RED FIRST break was restored. Reading the five specs and the harness."` followed by nine
-full-file `Read` calls. It cost the parent ~2 minutes of improvisation and it worked, but only
+full-file `Read` calls. It cost the parent roughly 2 minutes of improvisation and it worked, but only
 because it improvised. The SIBLING prompt already says the thing this one omits —
 `flowriderReviewerStatics` step 3: *"New files are most of what gets built here, and a diff never
 mentions them — which is why one command is not enough."* The operator prompt lacks that sentence.
@@ -420,7 +420,7 @@ e2e         @dungeonmaster/web   skip (3.3s)
 ```
 
 which proved the earlier PASSes were genuine matches rather than vacuous filters — i.e. the `size-ok`
-assertion really did not discriminate. Cost: 4.0 s of ward plus ~1 min of reasoning. (Ward's
+assertion really did not discriminate. Cost: 4.0 s of ward plus roughly 1 min of reasoning. (Ward's
 `hasUnmatchedTestNamePatternGuard` is what made that check possible; it works.)
 
 **5. The Playwright webServer contract was honoured everywhere — the `tsx watch` hazard was never
@@ -436,7 +436,7 @@ ward invocation carried either `--staged` (reviewer only, twice) or a `--` file 
 unscoped-looking run — the reviewer's `npm run ward -- -- <six paths>` — is a passthrough file list,
 which is correct.
 
-**7. Permission friction was near zero.** Exactly three denials in three hours, costing ~1.3 min
+**7. Permission friction was near zero.** Exactly three denials in three hours, costing roughly 1.3 min
 combined (§5.2, §5.5). The main session had none.
 
 **8. The final state is closed.** `183.5m say: "0 of 58 remaining, tree clean, reviewer passed and
@@ -474,7 +474,7 @@ line above.** It never mentioned the 18 errors again, wrote two more specs in th
 Two more agents then added specs with the same defect. The reviewer found **51** at 12.1m of its run,
 21 minutes later.
 
-**Cost.** The reviewer spent 12.1m → 17.4m (5.3 min, 20 `Edit` calls, two extra 64-second ward runs)
+**Cost.** The reviewer spent 12.1m to 17.4m (5.3 min, 20 `Edit` calls, two extra 64-second ward runs)
 cleaning them up. Earlier, `a5559883eeba4d70a` itself burned the 7.2m `npm run build` (25 s) and the
 7.7m typecheck (9 s) to get the answer it then discarded.
 
@@ -528,7 +528,7 @@ descriptions:
 Command, identical each time:
 `npm run ward -- --only lint,test -- packages/web/test/harnesses/composer-paste/composer-paste.harness.ts packages/web/src/flows/quest-chat/composer-paste-refusals.e2e.ts …`
 
-**Cost.** 166.4 s of ward for what one run needed; four redundant runs ≈ 2.2 min of ward plus roughly
+**Cost.** 166.4 s of ward for what one run needed; four redundant runs, about 2.2 min of ward plus roughly
 4 min of surrounding reasoning turns.
 
 **Prompt status.** The `<dungeonmaster-wardDiscipline>` snippet says *"Run it ONCE. Choose the right
@@ -553,7 +553,7 @@ ward's lint (`args: ['--fix', …]`) kept rewriting:
 
 Six inspection commands and two extra lint runs to establish what one file said.
 
-**Cost.** ~3.7 min of that agent's 36.6, plus the two extra lint runs counted in 5.3.
+**Cost.** Roughly 3.7 min of that agent's 36.6, plus the two extra lint runs counted in 5.3.
 
 **Prompt status.** Not addressed anywhere. The brief's `TRAPS` block warns about six real hazards but
 not about ward's lint running with `--fix` and mutating the file under the agent between reads.
@@ -566,10 +566,10 @@ not about ward's lint running with `--fix` and mutating the file under the agent
   *"Run `npm run build` as its OWN command, unpiped — piping it discards its exit code and feeds a
   failed build silently into ward."* It then had to say `5.6m say: "Build is green (exit 0, all
   packages built)"` on the basis of tail output rather than an exit code.
-- `5.6m CALL Bash(command=echo $?; npm run ward -- --staged 2>&1 | tail -n 250)` →
+- `5.6m CALL Bash(command=echo $?; npm run ward -- --staged 2>&1 | tail -n 250)` leading to
   `"Permission to use Bash has been denied."` Re-run plain at 5.7m.
 
-**Cost.** ~15 s. **Prompt status: explicitly forbidden by its own prompt, in the same paragraph as the
+**Cost.** Roughly 15 s. **Prompt status: explicitly forbidden by its own prompt, in the same paragraph as the
 command it was running.** (`a5559883eeba4d70a` hit the identical wall at 26.1m with
 `npm run build > /tmp/build_out.log 2>&1; echo "EXIT:$?"; tail -5 /tmp/build_out.log`.)
 
@@ -623,7 +623,7 @@ cd /home/brutus-home/projects/codex-of-consentient-craft/worktrees/…/packages/
 ```
 
 **Cost.** 29 runs, 4.7 min of execution. In fairness, the raw runs were FASTER than ward per
-invocation (6–48 s versus ward's ~33 s minimum plus discovery), and they hit no collision because
+invocation (6–48 s versus ward's roughly 33 s minimum plus discovery), and they hit no collision because
 nothing ran in parallel.
 
 **Prompt status.** Forbidden twice over: `<dungeonmaster-ward>` says *"ALWAYS use `npm run ward`. Never
@@ -674,7 +674,7 @@ tells the sub-agent that the traps in its brief are already the answers.
 Ranked by minutes saved, with the arithmetic shown.
 
 ### Fix 1 — Give ward's Playwright run a per-run report path, then delete the one-walk-at-a-time rule
-**Saves ≈ 100 min on this item; ≈ 300 min across the quest's three flowrider items.**
+**Saves about 100 min on this item; about 300 min across the quest's three flowrider items.**
 
 File: `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts`.
 
@@ -683,7 +683,7 @@ File: `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts`.
     `${projectFolder.path}/.ward-playwright-report.json`,
   );
 ```
-→
+This becomes:
 ```ts
   const jsonReportPath = filePathContract.parse(
     `${projectFolder.path}/.ward-playwright-report-${serverPort}.json`,
@@ -703,12 +703,12 @@ disjoint-files rule.
 Arithmetic: the five writers ran 38.3+36.6+29.0+14.4+23.2 = 141.5 min strictly serially. Groups 1, 3
 (multi-image), 4 (delete/overlay) and 5 (draft-reload) touch disjoint spec files; only group 2's
 rework re-enters group 1's and group 2's files. Fanned out as two waves — the four independent specs
-together, then the rework — the writer stretch becomes ≈ max(38.3, 29.0, 14.4, 23.2) + 36.6 ≈ 75 min
-worst case, and ≈ 40 min if the rework fuses into wave 2. Saving 66–100 min here; items [14]
+together, then the rework — the writer stretch becomes about max(38.3, 29.0, 14.4, 23.2) + 36.6, about 75 min
+worst case, and about 40 min if the rework fuses into wave 2. Saving 66–100 min here; items [14]
 (250 min) and [15] (219 min) are the same shape.
 
 ### Fix 2 — Make the reviewer's typecheck scope the WORK, not the diff-against-origin
-**Saves ≈ 5 min per pass and closes a silent correctness hole.**
+**Saves about 5 min per pass and closes a silent correctness hole.**
 
 Two edits, both in `packages/orchestrator/src/statics/`:
 
@@ -741,11 +741,11 @@ Two edits, both in `packages/orchestrator/src/statics/`:
 convergence rule — *"Re-run the scoped pair after each round of fixes until it is green or until the
 same red survives two consecutive rounds; a red that survives two rounds is your `NEXT: rework`."*
 This reviewer needed five runs and was right to take them; a compliant one would have handed up 51
-type errors as `rework` and cost the quest a whole extra flowrider session (≈ 180 min, judging by
+type errors as `rework` and cost the quest a whole extra flowrider session (about 180 min, judging by
 this one).
 
 ### Fix 4 — Add a `HANDING UP A RED YOU WERE NOT ASKED TO LOOK AT` line to the brief template
-**Saves ≈ 5–20 min per pass; would have caught 18 errors 21 minutes earlier here.**
+**Saves about 5–20 min per pass; would have caught 18 errors 21 minutes earlier here.**
 
 `flowrider-prompt/flowrider-prompt-statics.ts`, in the `RETURN` block of the brief template, add a
 fourth label:
@@ -764,7 +764,7 @@ Direct evidence: `a5559883eeba4d70a` saw `typecheck … FAIL 1236 files, 18 erro
 nothing, and the count reached 51 before anybody acted.
 
 ### Fix 5 — Put the browser MCP and the raw-runner ban into the brief template's `DO NOT TOUCH`
-**Saves ≈ 1–2 min per sub-agent plus a user permission prompt.**
+**Saves about 1–2 min per sub-agent plus a user permission prompt.**
 
 `flowrider-prompt/flowrider-prompt-statics.ts`, brief template `DO NOT TOUCH` block, append:
 
@@ -779,7 +779,7 @@ Evidence: `ad3f38d39bc66d8c0` at 8.1–9.2m (denied at `https://example.com`), a
 `cd packages/web && npx playwright test` invocations across two agents.
 
 ### Fix 6 — Fix step 6 of the operator prompt: `git diff` alone sees nothing on a flowrider pass
-**Saves ≈ 2 min per pass and removes a step that reads as a no-op.**
+**Saves about 2 min per pass and removes a step that reads as a no-op.**
 
 `flowrider-prompt/flowrider-prompt-statics.ts`, step 6. Replace
 
@@ -800,7 +800,7 @@ file in full."* Evidence: the parent had to work this out live at 163.4m and sub
 whole-file `Read` calls for the diff the prompt asked for.
 
 ### Fix 7 — Carve a RED-FIRST exemption for `npm run build --workspace=<library>`
-**Saves ≈ 1 min per pass and removes a rule agents must break to do the work.**
+**Saves about 1 min per pass and removes a rule agents must break to do the work.**
 
 `flowrider-prompt/flowrider-prompt-statics.ts`, brief template `PROVE` block. Replace
 `no npm run build` with:
@@ -816,15 +816,15 @@ Evidence: `a409f22d73146977a` at 20.7m and 21.1m and `a5559883eeba4d70a` at 16.5
 Chromium. There was no compliant route.
 
 ### Fix 8 — Restate "run it ONCE" and the lint-`--fix` hazard in the brief's PROVE and TRAPS blocks
-**Saves ≈ 4–6 min per pass.**
+**Saves about 4–6 min per pass.**
 
 `flowrider-prompt/flowrider-prompt-statics.ts`, brief template:
 
 - `PROVE`, append: *"Run this ONCE per round of edits. A second identical run tells you nothing the
   first did not."* (Evidence: five identical PROVE runs by `a409f22d73146977a`, 166.4 s.)
 - `TRAPS`, append a standing line: *"ward's lint runs `eslint --fix`, so it REWRITES your file. Re-read
-  any file you warded before you quote a line number from it."* (Evidence: the 25.7m→29.4m `async`
-  loop, ~3.7 min.)
+  any file you warded before you quote a line number from it."* (Evidence: the 25.7m-to-29.4m `async`
+  loop, roughly 3.7 min.)
 
 ### Fix 9 — Make `BITES:` non-optional in the reviewer's return
 **Saves 0 min; it is the only per-unit independent check the design has.**

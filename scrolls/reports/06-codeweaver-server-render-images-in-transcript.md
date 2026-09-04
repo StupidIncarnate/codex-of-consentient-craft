@@ -16,8 +16,8 @@
 | `startRef` | `4b8d9871033ef1a7665dc9f18d274e7ed910ae6a` |
 | `agentId` | `null` |
 
-Window: `createdAt 2026-09-01T23:10:44.707Z` → `completedAt 2026-09-02T00:05:20.532Z` = **54.6 min**.
-Transcript window `2026-09-01T23:10:59.019Z` → `2026-09-02T00:05:34.474Z` = `0:54:35.455` (54.6 min).
+Window: `createdAt 2026-09-01T23:10:44.707Z` leads to `completedAt 2026-09-02T00:05:20.532Z` = **54.6 min**.
+Transcript window `2026-09-01T23:10:59.019Z` leads to `2026-09-02T00:05:34.474Z` = `0:54:35.455` (54.6 min).
 
 Sub-agents: **22**, all in one family. Eleven at `spawnDepth: 1` (ten `general-purpose/sonnet` code-writers plus one
 `general-purpose/sonnet` codeweaver-reviewer); eleven at `spawnDepth: 2`, spawned by four of the depth-1 workers, with
@@ -228,7 +228,7 @@ but the only artefact the prompt directs it to is the render, and the render has
 verbatim at `39.2m`: `"I need the edge ids to sign the two branch units — the flow render prints labels but not
 ids."` It then burned three `ls` probes hunting the quest file on disk before concluding at `39.6m`:
 `"The quest file sits outside my sandbox, and guessing an edge id would append a phantom unit."` Cost: **1.4
-minutes** (39.1m → 40.5m) plus one extra MCP round-trip.
+minutes** (39.1m to 40.5m) plus one extra MCP round-trip.
 
 ### 3.3 The one tool the session needed and the prompt does not name
 
@@ -318,7 +318,7 @@ prompt gap rather than disobedience. Its measured cost, however, was small — s
    went out alone in its own message at `48.9m` with the exact four-line brief the prompt prescribes.
 
 7. **The reviewer was cheap and correct.** 5.3 min wall, one `npm run build` at its 3.6m, one
-   `npm run ward -- --staged` at its 4.1m, both green first time, `git add -A` → commit → bare `git push` at 5.1m.
+   `npm run ward -- --staged` at its 4.1m, both green first time, `git add -A`, then commit, then bare `git push` at 5.1m.
    27 Read calls over 26 distinct files, i.e. it opened every file the pass produced in full as its step 4 demands.
 
 ---
@@ -354,8 +354,8 @@ it cost the parent two routing turns to reason past.
 Seven of the nine also piped the build (`2>&1 | tail -N`), which the `<dungeonmaster-wardDiscipline>` snippet
 forbids because it discards the exit code.
 
-**Prompt status: forbidden.** Cost: nine repo-wide `tsc -b` runs (~25–30 s each by the reviewer's own timing —
-`3.6m CALL Bash(npm run build)` → `4.0m say: "Build is green"`, 27 s) ≈ 4 minutes of wasted compute, plus 2 parent
+**Prompt status: forbidden.** Cost: nine repo-wide `tsc -b` runs (roughly 25–30 s each by the reviewer's own timing —
+`3.6m CALL Bash(npm run build)` leading to `4.0m say: "Build is green"`, 27 s) about 4 minutes of wasted compute, plus 2 parent
 routing turns spent on a phantom error, plus the risk of a false red.
 
 ### 5.2 The standards triple was re-served twelve times — 1,044,835 duplicate bytes
@@ -366,8 +366,8 @@ session. Loaded by the parent plus eleven sub-agents (`a27a312c5341195a1`, `a295
 `a325e3864e93ac438`, `a35d6584fbe4e4d1a`, `a40392bf657347096`, `a995a941d06bcccc2`, `a9c5859dc182ad5c5`,
 `abf4245ad71a7250c`, `acb5e37eff892f346`, `ad8dd7f78bb7051ed`, `ae1ef845edab97bf2`).
 
-Arithmetic: 94,985 × 12 = **1,139,820 B** served; 94,985 × 11 = **1,044,835 B** of it duplicate. At ~4 chars per
-token that is ≈ 285,000 tokens served, ≈ **261,200 tokens duplicate**. For scale, 94,985 B is 27.3% of the parent's
+Arithmetic: 94,985 × 12 = **1,139,820 B** served; 94,985 × 11 = **1,044,835 B** of it duplicate. At roughly 4 chars per
+token that is about 285,000 tokens served, about **261,200 tokens duplicate**. For scale, 94,985 B is 27.3% of the parent's
 entire 348,117-byte orientation tool-result budget (0.0m–8.4m).
 
 **Prompt status: required.** The parent's step 2 demands them, and every brief's `READ FIRST` block demands them
@@ -405,8 +405,8 @@ denied for at least this sub-agent. A prompt that recommends a tool the reader c
 
 ### 5.5 Two sub-agents independently invented the same denied `cp` backup and both lost a turn
 
-- `agent-a27a312c5341195a1` @ 17.9m: `cp packages/server/src/responders/server/init/server-init-responder.test.ts /tmp/server-init-responder.test.ts.bak && echo backed…` → denied.
-- `agent-a29585323b34abdad` @ 36.4m: `cp packages/server/src/flows/images/images-flow.ts /tmp/images-flow.ts.bak` → denied.
+- `agent-a27a312c5341195a1` @ 17.9m: `cp packages/server/src/responders/server/init/server-init-responder.test.ts /tmp/server-init-responder.test.ts.bak && echo backed…` led to a denial.
+- `agent-a29585323b34abdad` @ 36.4m: `cp packages/server/src/flows/images/images-flow.ts /tmp/images-flow.ts.bak` led to a denial.
 
 Both were trying to satisfy the brief's `RETURN` requirement to report `the red I watched before the code made it
 pass` — they wanted a safe way to invert an assertion and restore. The brief demands the watched red and names no
@@ -529,8 +529,8 @@ READ FIRST
 
 with a directive that the OPERATOR writes the standards to a single file once (or that the three MCP tools accept a
 `folderTypes: [...]` filter and return only the slices a brief's own paths touch — a guard brief needs
-`guards-constraints`, not all 51,401 B of testing patterns). *Saving: up to 1,044,835 B ≈ 261,000 tokens per
-codeweaver item (§5.2); at eight codeweaver items on this quest, ≈ 2.1M tokens.* Highest-value fix by an order of
+`guards-constraints`, not all 51,401 B of testing patterns). *Saving: up to 1,044,835 B, about 261,000 tokens per
+codeweaver item (§5.2); at eight codeweaver items on this quest, about 2.1M tokens.* Highest-value fix by an order of
 magnitude.
 
 **2. Print edge and terminal IDs in the `get-quest` flow render.**
@@ -545,7 +545,7 @@ File: `packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-p
 edit: after the four `parts` lines, for `workItem.role === 'codeweaver'`, push
 `...codeweaverScopeBlockTransformer({ quest, operationItem: linkedOperation })`. The transformer is written, tested,
 and has zero call sites (§3.4). Six of this cell's seven nodes were seams and the session derived their disposition
-by hand at 40.5m. *Saving: ~1–2 min of seam reasoning per item, and — more importantly — removes the guess from
+by hand at 40.5m. *Saving: roughly 1–2 min of seam reasoning per item, and — more importantly — removes the guess from
 step 5 question 4.* The purpose block on `work-item-to-prompt-transformer.ts` will also need updating: it currently
 asserts the block carries "FOUR IDS … nothing else", and `packages/orchestrator/CLAUDE.md` repeats that claim.
 
@@ -553,7 +553,7 @@ asserts the block carries "FOUR IDS … nothing else", and `packages/orchestrato
 File: `packages/hooks` — a `PreToolUse` Bash guard that refuses `npm run build` when the session is a depth-1
 sub-agent of a codeweaver (or, simpler, refuses it for any session whose brief was not the reviewer's). The prose
 prohibition sits in three places already — the operator's `[BUILD]` rule, the brief template's `PROVE` line, and the
-`READ FIRST` framing — and was violated 9 times out of 9 opportunities (§5.1). *Saving: ~4 min of wasted compute per
+`READ FIRST` framing — and was violated 9 times out of 9 opportunities (§5.1). *Saving: roughly 4 min of wasted compute per
 item, plus the phantom-type-error routing turns.* If a hook is too blunt, the cheaper edit is to move
 `no npm run build` from the `PROVE` block's trailing sentence into its own line at the TOP of `TRAPS`, where the
 parent already puts the traps sub-agents actually honour.
@@ -576,7 +576,7 @@ entirely. *Saving: 2 turns per item, plus one unverified assertion.*
 File: `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, brief template `TRAPS`.
 Concrete edit: `You start no sub-agent of your own — anything you need to look up, look up yourself` (the same
 sentence `codeweaver-reviewer-statics.ts` already carries under `[TURN END]`). Eleven grandchildren burned
-`ctx-in=4,029,270` and four of them re-discovered artefacts the fleet had already produced (§5.7). *Saving: ~4M
+`ctx-in=4,029,270` and four of them re-discovered artefacts the fleet had already produced (§5.7). *Saving: roughly 4M
 context-in tokens per item, and it removes the depth-2 layer's contribution to the longest idle gap.*
 
 **8. Cap brief length in the template.**

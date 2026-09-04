@@ -9,7 +9,7 @@
 - **Operation text** (verbatim from the rendered prompt): `[flowrider] Flowrider: author the test suites that prove this flow — flow: send-message-with-images`
 - **dependsOn**: chained after work item [13] (flowrider, `paste-image-into-composer`, session `5c841160-080c-4eea-adf6-e7736b92121e`), which itself followed the `pt 2: Ward gate (changed files)` command item [12]. `flowIds=['send-message-with-images']`, `packageNames=[]`.
 - **Status**: `complete`. Signalled `operationStatus: 'done'` at 249.0m; reviewer commit `f2aaeabab` pushed.
-- **Window**: `2026-09-02T12:03:57.730Z` → `2026-09-02T16:13:14.136Z` (ledger). Transcript span `2026-09-02T12:04:12.983Z` → `2026-09-02T16:13:31.266Z` = **4:09:18 = 249.3 min**.
+- **Window**: `2026-09-02T12:03:57.730Z` leads to `2026-09-02T16:13:14.136Z` (ledger). Transcript span `2026-09-02T12:04:12.983Z` leads to `2026-09-02T16:13:31.266Z` = **4:09:18 = 249.3 min**.
 - **Sub-agents**: 18 total. 14 dispatched directly by the flowrider (`Agent` x14 in the main session), 4 more nested one level deeper by `agent-af05d16a34f6c746b`. Confirmed from `.meta.json` `spawnDepth`:
 
 | depth | agents | agentType/model |
@@ -150,7 +150,7 @@ Observed 13 times — `mcp__dungeonmaster__modify-quest` x13, one per group retu
 
 **"A defect you measure is a new observable, not a verdict."** (Recording what you claim)
 
-Two defects were added to the spec as observables rather than dropped into a sign-off: the create-surface image drop (`quest-new-responder.ts:54`) and the Chromium end-of-content newline. The unit count moved 58 → 59 as a result, and the flowrider recorded it: `"All 59 units now carry a verdict."`
+Two defects were added to the spec as observables rather than dropped into a sign-off: the create-surface image drop (`quest-new-responder.ts:54`) and the Chromium end-of-content newline. The unit count moved from 58 to 59 as a result, and the flowrider recorded it: `"All 59 units now carry a verdict."`
 
 ### Where the prompt's step script did not match the work
 
@@ -177,7 +177,7 @@ The flowrider wrote `--only lint,typecheck,e2e` into five briefs (ab46a7b4, a20e
 
 > | `wall` | stop sending work out. Let anything running finish, then go to step 9. |
 
-and step 9 → step 10 → `signal blocked`, which halts the entire quest. `agent-a20e184886cb97c2e` returned:
+and step 9, then step 10, then `signal blocked`, which halts the entire quest. `agent-a20e184886cb97c2e` returned:
 
 > `**NEXT:** wall — two items need a person's call: (1) whether 'onetwo\n' … is an acceptable UX or a real widget bug …; (2) whether the RED FIRST instruction for :245 should be updated/dropped …`
 
@@ -221,7 +221,7 @@ Iteration was scoped, not full-suite: of the 38 `npx playwright test` invocation
 
 **2. The `never two browser walks at once` rule held perfectly.** Five browser walks, five clean windows, zero report-path collisions. Measured in §3.
 
-**3. The flowrider found real defects instead of writing green tests around them. (~46 min, ~294k sub-agent output tokens)**
+**3. The flowrider found real defects instead of writing green tests around them. (roughly 46 min, roughly 294k sub-agent output tokens)**
 
 Three findings, all with measured values rather than inferences:
 
@@ -229,7 +229,7 @@ Three findings, all with measured values rather than inferences:
 - **Chromium/widget defect** — end-of-content Shift+Enter pins the newline: `"'one' + Shift+Enter + 'two' reads back as 'onetwo\n', never 'one\ntwo'"`, verified three ways.
 - **Spec inaccuracy caught before it became a false green** — at 88.6m: `"SEND_BUTTON is *absent* during flight, not disabled — the composer swaps it for STOP_BUTTON in the same React commit."`
 
-**4. The flowrider read the diff and found a tautology its sub-agent had shipped. (5.1 min, ~18k tokens)**
+**4. The flowrider read the diff and found a tautology its sub-agent had shipped. (5.1 min, roughly 18k tokens)**
 
 At 228.7m, after `git status` / `git diff --stat` / `wc -l` and four `python3 -c` scans of its own new specs:
 
@@ -237,7 +237,7 @@ At 228.7m, after `git status` / `git diff --stat` / `wc -l` and four `python3 -c
 
 It dispatched `a940d4ee18099c9df` to tighten it, and the tightened version was empirically confirmed: `"the agent verified empirically that the original shape passed **green** while both routes dropped their images."` **This is step 6 doing exactly what step 6 exists for**, and it caught a false green the sub-agent and the reviewer would both have passed.
 
-**5. Re-reading the checklist at the end found a genuinely uncovered unit. (3.4 min, ~14.5k tokens)**
+**5. Re-reading the checklist at the end found a genuinely uncovered unit. (3.4 min, roughly 14.5k tokens)**
 
 At 227.0m the flowrider called `get-qa-checklist` a second time and found: `"nothing asserted the **follow-up route's request body shape**. Group 3 drove a follow-up send and checked the spawned -p, but never the body."` The prompt's step 9 asks for this re-read; the session did it and it paid.
 
@@ -264,9 +264,9 @@ agent-a18736f1239617752  94,985 bytes  [(...identical...)]
 GRAND TOTAL sub-agent orientation result bytes: 1,139,820  (~284,955 tokens at 4 chars/token)
 ```
 
-The main session loaded the same three itself at 0.6m (`MAIN SESSION orientation result sizes: {'get-architecture': 19056, 'get-testing-patterns': 51401, 'get-syntax-rules': 24528}`). **13 × 94,985 = 1,234,805 bytes ≈ 309k tokens of identical text in one work item.** Because it lands at the top of each sub-agent's context and every later turn re-reads it, its true cost is ~309k × (turns per agent) in cache_read — a material share of the 472M cache_read total.
+The main session loaded the same three itself at 0.6m (`MAIN SESSION orientation result sizes: {'get-architecture': 19056, 'get-testing-patterns': 51401, 'get-syntax-rules': 24528}`). **13 × 94,985 = 1,234,805 bytes, about 309k tokens of identical text in one work item.** Because it lands at the top of each sub-agent's context and every later turn re-reads it, its true cost is roughly 309k × (turns per agent) in cache_read — a material share of the 472M cache_read total.
 
-- **Cost**: ~309k tokens of first-load; the "minutes to first Edit" column shows the wall-clock tail — `a2783f34a8cd98f13` 10.6m, `ab46a7b4fc19d41dc` 10.4m, `abda90e772a79327a` 9.7m before the first edit, against `a1792ff3b57982e69` 0.4m and `a940d4ee18099c9df` 0.9m for the small ones.
+- **Cost**: roughly 309k tokens of first-load; the "minutes to first Edit" column shows the wall-clock tail — `a2783f34a8cd98f13` 10.6m, `ab46a7b4fc19d41dc` 10.4m, `abda90e772a79327a` 9.7m before the first edit, against `a1792ff3b57982e69` 0.4m and `a940d4ee18099c9df` 0.9m for the small ones.
 - **Prompt stance**: **required**. Both the flowrider prompt ("Load the repo's standards first") and the brief template (`FIRST\n  get-architecture, get-syntax-rules, get-testing-patterns`) mandate it, and the flowrider wrote that `FIRST` block into all 11 test-writing briefs.
 
 ### Finding 2 — 24 forbidden `npm run build` invocations by test-writing sub-agents
@@ -320,7 +320,7 @@ The flowrider's own prompt calls this out as load-bearing: *"`--only lint,test` 
 
 Quoted in full in §3 item 4. `abda90e772a79327a`, `ab46a7b4fc19d41dc` and `af05d16a34f6c746b` each ran extra `git status` / `git diff --stat` calls and wrote a paragraph of their return explaining files that belonged to `a2783f34a8cd98f13`, a sibling in the same pass.
 
-- **Cost**: ~1–2 turns and ~0.5 min each, ≈ **2 minutes and ~4k output tokens**. Small individually; it recurs on every multi-group flowrider item.
+- **Cost**: roughly 1–2 turns and roughly 0.5 min each, about **2 minutes and roughly 4k output tokens**. Small individually; it recurs on every multi-group flowrider item.
 - **Prompt stance**: **permitted** — nothing in the prompt or template addresses it.
 
 ### Finding 6 — Eight units in the first browser walk passed without ever being driven red, requiring a whole extra sub-agent
@@ -341,12 +341,12 @@ Quoted in §3 item 3. Taken literally, the prompt's lookup would have sent the f
 
 `npm run ward -- --staged` at 6.3m scoped itself to `packages/server` alone and exited 0 while never seeing the six brand-new `packages/web` files — 5 `.e2e.ts` specs and `composer-send.harness.ts`. The reviewer caught it and ran a second, explicitly-scoped ward at 8.0m, which is what actually exercised them (`lint PASS 8/8, typecheck PASS 7416/7416, integration PASS 32/32, e2e PASS 28/28`).
 
-- **Cost**: **~1.7 minutes** of a wasted ward run, and — far more significantly — one of the reviewer's two permitted ward runs. Had it not noticed, a suite of six unlinted, untypechecked, unrun files would have been committed and signed off.
+- **Cost**: **roughly 1.7 minutes** of a wasted ward run, and — far more significantly — one of the reviewer's two permitted ward runs. Had it not noticed, a suite of six unlinted, untypechecked, unrun files would have been committed and signed off.
 - **Prompt stance**: **required.** `flowriderReviewerStatics` step 6 hardcodes `npm run ward -- --staged` and calls it "what typechecks every package this suite touched" — a claim the tool does not honour for untracked files.
 
 ### Finding 9 — Duplicated orientation against the previous flowrider on the same quest
 
-Item [13] (`5c841160-080c-4eea-adf6-e7736b92121e`, flow `paste-image-into-composer`) ran 09:00→12:04 and finished 15 seconds before item [14] started. It is the adjacent flow on the same quest, over the same package set.
+Item [13] (`5c841160-080c-4eea-adf6-e7736b92121e`, flow `paste-image-into-composer`) ran 09:00 to 12:04 and finished 15 seconds before item [14] started. It is the adjacent flow on the same quest, over the same package set.
 
 | | item [13] | item [14] |
 |---|---|---|
@@ -362,9 +362,9 @@ Item [13] (`5c841160-080c-4eea-adf6-e7736b92121e`, flow `paste-image-into-compos
 
 - **30 of item [14]'s 120 distinct files (25.0%) had already been read by item [13].** Item [14] spent **93 of its 298 Read calls (31.2%)** on files item [13] had already opened.
 - Top re-reads (item-14 reads / item-13 reads): `chat-input-widget.tsx` **14 / 6**; `pasted-image-persist-broker.ts` **7 / 2**; `composer-paste.harness.ts` **7 / 16**; `claude-mock.harness.ts` **7 / 1**; `quest-chat-responder.ts` **6 / 1**; `pasted-image-statics.ts` **5 / 5**; `quest.harness.ts` **5 / 3**; `playwright.config.ts` **3 / 5**.
-- **Standards duplication across the two items**: item [13] loaded the 94,985-byte triple 7 times (main + 6 sub-agents with orientation calls); item [14] loaded it 13 times. **20 loads of the same ~95 KB in 7 hours 13 minutes of consecutive work on one quest** ≈ **475k tokens**.
+- **Standards duplication across the two items**: item [13] loaded the 94,985-byte triple 7 times (main + 6 sub-agents with orientation calls); item [14] loaded it 13 times. **20 loads of the same roughly 95 KB in 7 hours 13 minutes of consecutive work on one quest**, about **475k tokens**.
 
-**Quantifying the duplicated orientation in minutes.** Item [14]'s own orientation phase P1 is 7.2 min, and its per-sub-agent orientation tail is visible in minutes-to-first-Edit: the four large sub-agents that had to re-derive the same web/server topology took 9.7m (abda90e), 10.4m (ab46a7b4), 10.6m (a2783f34) and 5.2m (af05d16a) before their first edit, against 0.4m–2.8m for the five small ones handed a narrow, pre-scoped brief. Taking the small agents' 1.5m median as the floor, the four large ones spent **(9.7−1.5)+(10.4−1.5)+(10.6−1.5)+(5.2−1.5) = 29.9 minutes** on orientation that a shared handoff would have shortened. Adding P1's 7.2 min and the two Explore agents that mapped the server and orchestrator paths item [13] had already crossed, the recoverable duplication is **≈30–37 minutes and ≈475k tokens** on this item.
+**Quantifying the duplicated orientation in minutes.** Item [14]'s own orientation phase P1 is 7.2 min, and its per-sub-agent orientation tail is visible in minutes-to-first-Edit: the four large sub-agents that had to re-derive the same web/server topology took 9.7m (abda90e), 10.4m (ab46a7b4), 10.6m (a2783f34) and 5.2m (af05d16a) before their first edit, against 0.4m–2.8m for the five small ones handed a narrow, pre-scoped brief. Taking the small agents' 1.5m median as the floor, the four large ones spent **(9.7−1.5)+(10.4−1.5)+(10.6−1.5)+(5.2−1.5) = 29.9 minutes** on orientation that a shared handoff would have shortened. Adding P1's 7.2 min and the two Explore agents that mapped the server and orchestrator paths item [13] had already crossed, the recoverable duplication is **about 30–37 minutes and about 475k tokens** on this item.
 
 - **Prompt stance**: **required by omission.** Nothing in `flowriderPromptStatics` mentions a sibling flowrider, a previous item on the same quest, or a durable map to inherit. Step 3 says "Dispatch explorer sub-agents where the code is too large to read yourself" with no suggestion that the previous item wrote a map at `.quest-plans/<its operationItemId>-map.md` on the same branch. Item [13]'s map was sitting on disk the whole time and item [14] never read it (`.quest-plans/` appears in item [14]'s Read set only as its own `Write` target).
 
@@ -390,7 +390,7 @@ SHOULD go out alongside the first browser walk rather than ahead of it. Your lon
 browser walks; fill them.
 ```
 
-**Estimate**: P3 (33.0 min) and P4 (8.5 min) would have collapsed into P5's 49-minute window. **≈35 min saved on this item.**
+**Estimate**: P3 (33.0 min) and P4 (8.5 min) would have collapsed into P5's 49-minute window. **About 35 min saved on this item.**
 
 ### Fix 2 — Make the `PROVE` line's check types match the file kinds (≈4–8 min/item, plus removes a prompt self-contradiction)
 
@@ -416,7 +416,7 @@ PROVE
   no npm run build · no run-ward MCP tool · no commit · never widen the ward
 ```
 
-**Estimate**: removes `abda90e772a79327a`'s double ward run (~1 min), removes the 7 whole-repo typechecks (~4–6 min), and removes the flowrider's incentive to author a brief that contradicts its own prompt.
+**Estimate**: removes `abda90e772a79327a`'s double ward run (roughly 1 min), removes the 7 whole-repo typechecks (roughly 4–6 min), and removes the flowrider's incentive to author a brief that contradicts its own prompt.
 
 ### Fix 3 — Refuse a `PROVED` line with no witnessed red (≈15–20 min/item)
 
@@ -442,13 +442,13 @@ verdict word. Send those units straight back out in the same message as the next
 are the cheapest rework there is, and batching them costs you nothing.
 ```
 
-**Estimate**: `a18736f1239617752` (7.3 min) and `a607a08d9cdd05297` (9.4 min) both become unnecessary or fold into the next group's window. **≈16 min saved on this item.**
+**Estimate**: `a18736f1239617752` (7.3 min) and `a607a08d9cdd05297` (9.4 min) both become unnecessary or fold into the next group's window. **About 16 min saved on this item.**
 
 ### Fix 4 — Hand the next flowrider the previous flowrider's map (≈30 min/item on every item after the first)
 
 **Files**: `packages/orchestrator/src/statics/flowrider-prompt/flowrider-prompt-statics.ts` step 3, and the map path convention in step 4.
 
-Item [14] re-derived a topology item [13] had already mapped, at a measured cost of 30–37 min and ~475k tokens (§5 finding 9). Item [13]'s map was on the branch at `.quest-plans/<its operationItemId>-map.md` and nothing pointed item [14] at it. Add to step 3, before "Dispatch explorer sub-agents":
+Item [14] re-derived a topology item [13] had already mapped, at a measured cost of 30–37 min and roughly 475k tokens (§5 finding 9). Item [13]'s map was on the branch at `.quest-plans/<its operationItemId>-map.md` and nothing pointed item [14] at it. Add to step 3, before "Dispatch explorer sub-agents":
 
 ```
 **A sibling flowrider may already have mapped this code.** Every flowrider on this quest writes a
@@ -460,13 +460,13 @@ what they hold costs you an explorer agent and ten minutes per sub-agent that ha
 it. Cite what you took from a sibling map in your own map's MIRROR block.
 ```
 
-**Estimate**: cuts P1 and the four large sub-agents' orientation tails. **≈25–30 min and ≈300k tokens per item** on the 2nd and later flowrider items of a quest. This quest ran three flowrider items; the fix pays twice.
+**Estimate**: cuts P1 and the four large sub-agents' orientation tails. **About 25–30 min and about 300k tokens per item** on the 2nd and later flowrider items of a quest. This quest ran three flowrider items; the fix pays twice.
 
 ### Fix 5 — Cache the standards triple across a pass (≈285k tokens/item)
 
 **Files**: the brief template's `FIRST` block in `flowrider-prompt-statics.ts` (and identically in `codeweaver-prompt-statics.ts` / `siegemaster-prompt-statics.ts`), or the MCP responders behind `get-architecture` / `get-syntax-rules` / `get-testing-patterns`.
 
-12 sub-agents × 94,985 identical bytes is ~285k tokens per flowrider item, ~475k across the two adjacent items measured here. Two possible edits, in preference order:
+12 sub-agents × 94,985 identical bytes is roughly 285k tokens per flowrider item, roughly 475k across the two adjacent items measured here. Two possible edits, in preference order:
 
 1. **MCP-side**: add a `sections` argument to the three tools so a brief can request only what its file kind needs — a browser brief does not need the folder-type table, a below-browser brief does not need the Playwright traps. `get-testing-patterns` is the largest at 51,401 bytes and the most reducible.
 2. **Prompt-side**: change the `FIRST` block from an unconditional three-call preamble to a conditional one, and have the flowrider paste the 10–15 rules that actually bind this brief into the brief's own `TRAPS` — which it is already doing for `git -C`, `&&` chaining and the blocked grep. Replace `FIRST\n  get-architecture, get-syntax-rules, get-testing-patterns` with:
@@ -477,7 +477,7 @@ FIRST
   pasted into TRAPS above; do not re-fetch them.
 ```
 
-**Estimate**: option 2 removes ~70k bytes per sub-agent (`get-architecture` 19,056 + `get-testing-patterns` 51,401), **≈210k tokens per flowrider item**, at the cost of a longer TRAPS block the flowrider is already writing.
+**Estimate**: option 2 removes roughly 70k bytes per sub-agent (`get-architecture` 19,056 + `get-testing-patterns` 51,401), **about 210k tokens per flowrider item**, at the cost of a longer TRAPS block the flowrider is already writing.
 
 ### Fix 6 — Fix `ward --staged` blindness to untracked files (≈2 min/item; correctness, not speed)
 
@@ -519,7 +519,7 @@ To `RETURN`, replacing the bare `wall — <what a person must change>`:
    that turned out to be untrue is `rework`, NEVER `wall` — a wall halts the whole quest.>
 ```
 
-**Estimate**: ~2 min of misdiagnosis per item (finding 5), and it removes the exposure in finding 7 — a literal reading of the prompt would have blocked this quest at 200.7m with 8 units unwritten.
+**Estimate**: roughly 2 min of misdiagnosis per item (finding 5), and it removes the exposure in finding 7 — a literal reading of the prompt would have blocked this quest at 200.7m with 8 units unwritten.
 
 ### Fix 8 — Restate the "no build, no raw playwright" ban where the sub-agent will actually see it (≈8–12 min/item)
 

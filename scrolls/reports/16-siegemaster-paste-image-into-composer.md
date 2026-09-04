@@ -16,9 +16,9 @@
 | `startRef` | `99587913a4b3c0eb10ab9d532650157403853819` |
 | Status | `complete`, `actualSignal: "complete"` |
 
-Window: `createdAt 2026-09-02T19:52:11.326Z` → `completedAt 2026-09-03T05:05:36.747Z`.
+Window: `createdAt 2026-09-02T19:52:11.326Z` leads to `completedAt 2026-09-03T05:05:36.747Z`.
 `startedAt 2026-09-02T19:52:25.236Z`. The transcript's own first and last records are
-`2026-09-02T19:52:26.194000+00:00` → `2026-09-03T05:05:52.517000+00:00`:
+`2026-09-02T19:52:26.194000+00:00` leads to `2026-09-03T05:05:52.517000+00:00`:
 **`WALL 9:13:26.323000 (553.4 min)`** — the longest completed item on this quest.
 
 **36 sub-agents.** The operator — the main session, running on Claude's opus model, that plans the
@@ -449,7 +449,7 @@ Two statics the analysis brief pointed at turn out not to be on this path:
 
 ### Did the step script match the work?
 
-Eleven steps. Every one executed, in order, once — with the 4→7 loop running fourteen times.
+Eleven steps. Every one executed, in order, once — with the loop from step 4 to step 7 running fourteen times.
 
 | Step | Executed | Evidence |
 |---|---|---|
@@ -605,14 +605,14 @@ The agent returned `rafCount=0, visibilityState='hidden', hasFocus=false` plus t
 `DirectoryBrowserModalWidget`. That is what a bounded brief buys: 7.4 minutes to settle what two
 open-ended agents had spent 49.2 minutes failing to settle.
 
-**5. Nine observables added mid-session, so the spec grew to match what was measured.** 65 → 74 units.
+**5. Nine observables added mid-session, so the spec grew to match what was measured.** 65 became 74 units.
 Four of the ten fixed defects had no observable claiming them when found — the stuck loader, the
 unbounded thumbnails, the silent MIME fall-through, the composer overflow. The step-5 table
 (*"something that works but reads wrong … **fix it. This is a defect.**"*) is what authorised adding
 those new observables mid-session.
 
 **6. 13 `modify-quest` calls, 13 successes, no retries.** The prompt's checklist-id-vs-graph-id table
-in `siegemasterWalkerStatics` (`<flow>:observable:check-never-403` → `check-never-403`) evidently
+in `siegemasterWalkerStatics` (`<flow>:observable:check-never-403` becomes `check-never-403`) evidently
 worked: no walker's sign-off write was refused.
 
 **7. Off-map coverage was completed rather than skipped.** The walkers covered all seven off-map
@@ -701,7 +701,7 @@ self-caught five minutes later at 36.5m:
 > need to recover that immediately using my earlier full Read of the file, then reapply my own edits
 > on top."
 
-It reconstructed ~140 lines from its own earlier `Read` output. Recovery depended entirely on having
+It reconstructed roughly 140 lines from its own earlier `Read` output. Recovery depended entirely on having
 happened to read the file whole beforehand.
 
 **The prompt FORBADE this for every other role and not for this one.** The operator's NOT YOURS block
@@ -714,7 +714,7 @@ any of the ten agents that were editing files.
 The structural risk is worse than one incident. The siegemaster design has the whole pass reach the
 reviewer **uncommitted** — ten fixers' work accumulating for 553 minutes with no checkpoint. Any one
 `git checkout`/`stash`/`reset` from any of them wipes all of it. The operator did check afterwards
-(477.0m: *"Checking that every helper earlier fixers added is actually still there"* → *"All helpers
+(477.0m: *"Checking that every helper earlier fixers added is actually still there"*, then *"All helpers
 are present and the file grew rather than shrank"*), which is good practice, but that check only
 happened because the fixer confessed.
 
@@ -750,9 +750,9 @@ settled the whole thing in 7.4 minutes.
 
 ### Finding 5 — The misattribution defect consumed five agents, 112.3 minutes and 501,974 output tokens.
 
-`agent-a80a3e95f97858bfb` (discover, 22.1m, 113,272) → `agent-a67844e999b9a4053` (fix, 46.7m,
-199,443) → `agent-acc2562b875e9dca3` (disprove, 22.3m, 82,089) → `agent-a13e65636c9a6c8da`
-(complete the fix, 7.1m, 28,973) → `agent-aa42ad54c4ee76112` (confirm, 14.1m, 77,997).
+`agent-a80a3e95f97858bfb` (discover, 22.1m, 113,272), then `agent-a67844e999b9a4053` (fix, 46.7m,
+199,443), then `agent-acc2562b875e9dca3` (disprove, 22.3m, 82,089), then `agent-a13e65636c9a6c8da`
+(complete the fix, 7.1m, 28,973), then `agent-aa42ad54c4ee76112` (confirm, 14.1m, 77,997).
 113,272 + 199,443 + 82,089 + 28,973 + 77,997 = **501,974 output tokens**. 22.1 + 46.7 + 22.3 + 7.1 +
 14.1 = **112.3 minutes** — 20.3% of the item's wall clock spent on one bug.
 
@@ -767,7 +767,7 @@ ways the same function can fail.
 
 ### Finding 6 — The walker guide was rewritten while walkers were reading stale copies.
 
-`agent-af03ea598908fadd9` was kept alive 75.4 minutes (1.7m → 77.1m) and took five injected
+`agent-af03ea598908fadd9` was kept alive 75.4 minutes (1.7m to 77.1m) and took five injected
 corrections at 20.5m, 29.5m, 53.2m, 60.3m and 72.2m. Walkers 2–9 ran inside that window against
 whatever version existed when they started. Three of the five corrections were content the walkers had
 *independently rediscovered on their own time*: agent 4's
@@ -924,7 +924,7 @@ DO NOT TOUCH
    path as another agent's live work>
 ```
 
-**Saving:** this prevents a repeat of the ~140-line destruction at 31.4m, plus the ~5 minutes of
+**Saving:** this prevents a repeat of the roughly 140-line destruction at 31.4m, plus the roughly 5 minutes of
 reconstruction that followed. It also removes a failure mode whose worst case is silent — this one
 was caught only because the agent happened to compare line counts on its own initiative.
 
@@ -967,7 +967,7 @@ output, 109,146,688 context-in) are removed outright.
 
 **Saving:** the misattribution bug's second and third passes — `agent-a13e65636c9a6c8da` (7.1 min,
 28,973 output) and the re-check half of `agent-aa42ad54c4ee76112`. `agent-acc2562b875e9dca3`'s
-re-walk would have run either way. Estimated **7–15 minutes and ~30,000–60,000 output tokens** on this
+re-walk would have run either way. Estimated **7–15 minutes and roughly 30,000–60,000 output tokens** on this
 item. The same pattern — a fix covers the reported symptom but misses the sibling branch — recurred
 in finding 8 as well.
 
@@ -1030,7 +1030,7 @@ suite missed is the highest-value output this role can produce, and right now it
 > (`This command uses the '&' background operator, which defers execution past approval-time safety
 > checks`), and you would spend a call discovering that."
 
-**Saving:** ~5 seconds and one refused call per siegemaster session. Trivial in isolation; it is on
+**Saving:** roughly 5 seconds and one refused call per siegemaster session. Trivial in isolation; it is on
 the list because it is a one-line fix to an instruction that is simply wrong about the environment.
 
 ### Fix 8 — Re-measure or delete the `[GIT FORMS]` block. (finding 9, §3 finding 2)
@@ -1044,7 +1044,7 @@ returned. Re-run the check against the current `.claude/settings.json` allowlist
 permitted, delete the second bullet from all three prompts and from the fixer-brief instruction; keep
 the `git -C` bullet if it is still enforced.
 
-**Saving:** ~10 lines from each of three prompts and one paragraph from each of 10 fixer briefs per
+**Saving:** roughly 10 lines from each of three prompts and one paragraph from each of 10 fixer briefs per
 session. Not minutes — prompt budget, which matters because `siegemaster-reviewer` interpolates
 `standardsReviewConcernsStatics` and sits closest to the 50,000-character ceiling.
 
@@ -1327,8 +1327,8 @@ agent-a7d644bcc3994f403  sonnet        114    31,699      228    21,787,557     
 ### 7.4 Sub-agent windows (elapsed minutes from session start)
 
 From `tmp/quest-analysis/16-gaps.py`. This is the evidence for "exactly one walker at a time" —
-no two operator-dispatched agents overlap except the long-lived guide writer (1.7m → 77.1m) and the
-nested Explore (268.6m → 268.8m, inside its parent's window).
+no two operator-dispatched agents overlap except the long-lived guide writer (1.7m to 77.1m) and the
+nested Explore (268.6m to 268.8m, inside its parent's window).
 
 ```
       1.7m ->    77.1m  ( 75.4 min)  agent-af03ea598908fadd9  Write walker guide
@@ -1900,7 +1900,7 @@ and had to be completed by agent 33.
 self-caught 5 minutes later at 36.5m:
 > "I made a serious error — my `git checkout HEAD --` on the harness file discarded another concurrent agent's uncommitted work (HEAD has 816 lines, but the working tree had 956 before I touched it). I need to recover that immediately using my earlier full Read of the file, then reapply my own edits on top."
 
-It reconstructed ~140 lines from its own earlier `Read` output.
+It reconstructed roughly 140 lines from its own earlier `Read` output.
 
 #### 32. agent-acc2562b875e9dca3 — "Re-walk staleness after fixes"
 Start 03:50:33 · 22.3m · turns 267 · out 82,089 · ctx-in 45,134,845 (cache_read 44,348,753, cache_creation 785,558)
@@ -2057,13 +2057,13 @@ touching the browser). That is the step-7 design working.
 3. **The stuck loading placeholder** was found twice: agent 3 dismissed it (*"looked intentional
    (empty-quest idle state) rather than broken, not flagged as a defect"*), then agent 4 re-found and
    escalated it four minutes later. Cost: one walker's re-discovery.
-4. **The overlay saga, agents 12→13→14→15 — 71.5 minutes and 316,485 output tokens** on what turned
+4. **The overlay saga, agents 12, then 13, then 14, then 15 — 71.5 minutes and 316,485 output tokens** on what turned
    out to be a harness artefact. Agent 12 found "empty src." Agent 13 (26.6m) could not reproduce it
    and shipped a guard instead of a fix. Agent 14 (22.6m) re-walked and found a *different* symptom
    ("Mantine `<Modal>` renders zero children"). Agent 15 (7.4m) settled it by opening an unrelated
    modal in the same tab.
-5. **The misattribution defect took five agents end to end** — 30 (discover, 22.1m) → 31 (fix, 46.7m)
-   → 32 (disprove, 22.3m) → 33 (complete the fix, 7.1m) → 34 (confirm, 14.1m). That is **112.3
+5. **The misattribution defect took five agents end to end** — 30 (discover, 22.1m), then 31 (fix, 46.7m),
+   then 32 (disprove, 22.3m), then 33 (complete the fix, 7.1m), then 34 (confirm, 14.1m). That is **112.3
    minutes of wall clock and 501,974 output tokens** (113,272 + 199,443 + 82,089 + 28,973 + 77,997)
    for one bug, because the second agent's fix covered decode failures and missed contract failures.
 
@@ -2133,9 +2133,9 @@ table of ten; the reviewer's commit numbers them as Fixes 1–10 with 7a/7b/7c a
 **Other stalls:**
 
 - **Agent 16 (P9), 3.4m–8.2m** — repeated silent keystroke drops on the same character:
-  *"3.4m: Still focused, but the keystroke was dropped. Retrying the type."* → *"4.5m: Space keystroke
-  dropped (probabilistic per guide). Retrying."* → *"4.9m: ...this is a dropped keystroke, not a caret
-  problem. Retrying"* → *"6.6m: ...to be safe against dropped keystrokes."* → *"8.2m: Dropped again.
+  *"3.4m: Still focused, but the keystroke was dropped. Retrying the type."* then *"4.5m: Space keystroke
+  dropped (probabilistic per guide). Retrying."* then *"4.9m: ...this is a dropped keystroke, not a caret
+  problem. Retrying"* then *"6.6m: ...to be safe against dropped keystrokes."* then *"8.2m: Dropped again.
   Retrying."* Its own report: *"one stretch needed 9 consecutive retries of the same character ('A')
   before it landed."*
 - **Agent 18 (P11)** — *"3 consecutive real `computer.key Return` presses silently no-op'd (composer

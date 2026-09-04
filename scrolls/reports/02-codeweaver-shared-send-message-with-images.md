@@ -16,8 +16,8 @@
 | Status | `complete`, `actualSignal: 'complete'`, `operationStatus: 'done'` |
 | `attempt` / `retryCount` | `0` / `0` — no pt chain, no retry |
 
-Window (ledger): `createdAt 2026-09-01T19:09:04.685Z` → `completedAt 2026-09-01T19:33:20.925Z` = **24 min 16 s**.
-Window (transcript): `19:09:06.542Z` → `19:33:32.460Z` = **0:24:25.918 (24.4 min)**.
+Window (ledger): `createdAt 2026-09-01T19:09:04.685Z` leads to `completedAt 2026-09-01T19:33:20.925Z` = **24 min 16 s**.
+Window (transcript): `19:09:06.542Z` leads to `19:33:32.460Z` = **0:24:25.918 (24.4 min)**.
 
 This was the FIRST codeweaver of the quest. Nothing quest-related had landed on the branch: at
 0.6m the session ran `git log --oneline -n 20` and concluded, verbatim,
@@ -263,7 +263,7 @@ ceiling whose failure mode the codeweaver prompt's own header comment describes:
 Nothing spilled on this run (`<sessionId>/tool-results/` does not exist). But the prompt's brief
 template mandates `READ FIRST get-architecture, get-syntax-rules, get-testing-patterns` in every
 brief, and the reviewer prompt mandates all three at step 1 — so the trio was loaded **6 times**
-(operator + 4 builders + reviewer) at 90,371 bytes a load = **542,226 bytes ≈ 135,557 tokens** for
+(operator + 4 builders + reviewer) at 90,371 bytes a load = **542,226 bytes, about 135,557 tokens** for
 three files that never change during a quest.
 
 ### 3.5 The prompt tells the agent to put findings somewhere the tool has no room for
@@ -333,12 +333,12 @@ ONE brief. The cost is in §5 finding 6.
    file, then green after. Report both.` The sub-agent ran the failing ward at +42.8s
    (`ward run 1788290082935-c5f6`, `unit FAIL 1 files, 1 errors, 561 discovered`), pulled
    `npm run ward -- detail 1788290082935-c5f6 …` at +51.8s, then went green at +65.6s. Total cost:
-   ~23 seconds of one sonnet agent. Mechanism: the prompt's
+   roughly 23 seconds of one sonnet agent. Mechanism: the prompt's
    `**`MUST BE TRUE` quotes the observable, never your paraphrase.**` plus the brief template's
    `PROVED: <unit-id> — <test file:line> · <the assertion, quoted> · <the wrong value that turns it
    red> · <the red I watched before the code made it pass>`.
 
-4. **The transcription chain from sub-agent → sign-off → reviewer held.** The signed evidence reads
+4. **The transcription chain from sub-agent to sign-off to reviewer held.** The signed evidence reads
    `packages/shared/src/statics/locations/locations-statics.test.ts:5 — the whole-object
    expect(locationsStatics).toStrictEqual({...}) now carries quest.imagesDir: 'images' in its
    expected shape.` Line 5 is where the `toStrictEqual` opens; line 46 is where `imagesDir: 'images'`
@@ -372,8 +372,8 @@ ONE brief. The cost is in §5 finding 6.
   — the **whole monorepo**, and **piped**, which additionally violates the `<dungeonmaster-wardDiscipline>`
   snippet's `Run `npm run build` as its OWN command and confirm it exits 0 — piping it … discards the exit code`.
 
-**Cost.** The piped full build ran ~48 seconds (call at +217.0 s, `Build exited 0` at +264.8 s) —
-the single largest identifiable time cost inside the 5.2-minute agent, and ~15% of the 5.2-minute
+**Cost.** The piped full build ran roughly 48 seconds (call at +217.0 s, `Build exited 0` at +264.8 s) —
+the single largest identifiable time cost inside the 5.2-minute agent, and roughly 15% of the 5.2-minute
 group-3 wait the operator sat through. The scoped one is not separately timed but sits inside a 6.5 s
 gap. Nothing was corrupted here only because no sibling cell was building at 19:18 or 19:24.
 
@@ -432,8 +432,8 @@ It nonetheless ran, at `0.4m`, `CALL mcp__dungeonmaster__get-quest(questId=1be07
 — bare — and then at `0.6m`, `CALL mcp__dungeonmaster__get-quest(questId=… packageName=shared)`.
 Neither call carried `flowId`. The prescribed call was never made.
 
-**Cost.** 35,631 + 26,058 = **61,689 bytes ≈ 15,422 tokens**, against ~27,000 chars for one correct
-call. Context-in jumped 73,692 → 95,716 across those two turns. It escaped the spill the prompt warns
+**Cost.** 35,631 + 26,058 = **61,689 bytes, about 15,422 tokens**, against roughly 27,000 chars for one correct
+call. Context-in jumped from 73,692 to 95,716 across those two turns. It escaped the spill the prompt warns
 about only because this quest's whole-quest render happened to be 35,631 bytes, 71% of the 50,000
 ceiling.
 
@@ -470,7 +470,7 @@ Both returned
 `PreToolUse:Bash hook error: [dungeonmaster-pre-bash]: BLOCKED: Native search tools are disabled.`
 It then said `"Right, grep via Bash is blocked. Let me just read the package.json directly."`
 
-**Cost.** Two wasted turns and ~10 s inside the 6.6-minute reviewer wait. Small, but it is a
+**Cost.** Two wasted turns and roughly 10 s inside the 6.6-minute reviewer wait. Small, but it is a
 deliberate experiment against information already in context.
 
 **Prompt status: NEITHER PERMITTED NOR FORBIDDEN by the reviewer prompt** — the `[WALL]`-equivalent
@@ -490,8 +490,8 @@ contract. Group 3's brief even names the dependency as read-only context:
 **Cost.** Group 2 (2.9 min) + the operator's routing turn (0.9 min) + group 3 (5.2 min) = **9.0
 minutes** of the 24.4. One brief covering both contracts, both stubs, both tests and all four barrel
 lines would have been roughly the size of the group-3 brief and would plausibly have run in 5.5–6
-minutes — a saving of **~3 minutes, 37% of the session's post-map wall clock**, plus one whole sonnet
-session's orientation load (~90,371 bytes of standards) and one operator routing turn.
+minutes — a saving of **roughly 3 minutes, 37% of the session's post-map wall clock**, plus one whole sonnet
+session's orientation load (roughly 90,371 bytes of standards) and one operator routing turn.
 
 **Prompt status: PERMITTED, and arguably steered toward.** The prompt's grouping rules are about
 FILES (`Two changes go in one group only when they touch different files`) and about ORDER
@@ -505,8 +505,8 @@ per line.
 `get-testing-patterns` (48,698 B) were fetched by the operator, by each of the four builder
 sub-agents, and by the reviewer. Byte-identical every time.
 
-**Cost.** Builders alone: **12 calls, 361,484 bytes ≈ 90,371 tokens**. Adding the operator's and the
-reviewer's three each: **18 calls, 542,226 bytes ≈ 135,557 tokens**, or **0.43% of the run's
+**Cost.** Builders alone: **12 calls, 361,484 bytes, about 90,371 tokens**. Adding the operator's and the
+reviewer's three each: **18 calls, 542,226 bytes, about 135,557 tokens**, or **0.43% of the run's
 31,530,609 context-in** — and because every one of them is re-read on each subsequent turn of its own
 session, the replayed cost is far larger than the one-time figure.
 
@@ -540,12 +540,12 @@ Ranked by minutes-or-tokens saved.
 pushes `contentTextContract.parse('')` followed by
 `...codeweaverScopeBlockTransformer({ quest, operationItem: linkedOperation })`. The transformer
 already returns `[]` for a cell with nothing to say, and already caps itself to two short blocks —
-for this item it would have added ~4 lines, ~330 characters, against a 31,940-character prompt with
+for this item it would have added roughly 4 lines, roughly 330 characters, against a 31,940-character prompt with
 18,060 characters of headroom under the 50,000 ceiling.
 
-**Estimated saving:** ~0.3 min per codeweaver of seam re-derivation, plus the class of defect the
+**Estimated saving:** roughly 0.3 min per codeweaver of seam re-derivation, plus the class of defect the
 transformer's own header comment exists to prevent (`telling a consumer nothing about a provider that
-pivoted is how a seam ships broken`). Across the 7 codeweavers on this quest, ~2 minutes and one
+pivoted is how a seam ships broken`). Across the 7 codeweavers on this quest, roughly 2 minutes and one
 category of cross-cell error. This is the highest-value fix because it is a wiring omission, not a
 prompt rewrite.
 
@@ -565,7 +565,7 @@ tree; you are one of several running at once, and `tsc` writes one shared dist/ 
 Your reviewer runs the build. If ward reports a stale-dist type error, report it — do not build.
 ```
 
-**Estimated saving:** ~48 s per offending sub-agent measured here (2 of 4 offended), and removal of
+**Estimated saving:** roughly 48 s per offending sub-agent measured here (2 of 4 offended), and removal of
 the corruption risk the rule exists for. On a wave of four parallel builders the avoided risk is worth
 more than the 48 s.
 
@@ -590,7 +590,7 @@ exists and both are yours, one brief carrying both is one dispatch, one orientat
 ward run instead of two. Split into groups only where two changes touch the same file, or where you
 need to read A's result before you can specify B.`
 
-**Estimated saving:** ~3 min of wall clock and ~90,371 bytes of duplicated orientation per merged
+**Estimated saving:** roughly 3 min of wall clock and roughly 90,371 bytes of duplicated orientation per merged
 pair. On this quest's 7 codeweavers, plausibly 10–15 minutes.
 
 ### Fix 5 — Filter design decisions to the cell's own nodes in the `get-quest` render (§3.3)
@@ -637,7 +637,7 @@ get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief — copy
 A bold sentence three lines above the call site did not hold; the same defence that works elsewhere
 in this codebase is a refusal.
 
-**Estimated saving:** 61,689 bytes ≈ 15,422 tokens for every reviewer that repeats this. Whether the
+**Estimated saving:** 61,689 bytes, about 15,422 tokens for every reviewer that repeats this. Whether the
 other six codeweaver cells' reviewers did the same is not measurable from this transcript — but the
 spill risk the prompt itself names applies to all of them, and it grows with the quest.
 
@@ -669,7 +669,7 @@ loaded 6 times per cell. (b) Have the three tools return a short digest plus a r
 and let a session `Read` the full text only where it is about to write in an unfamiliar folder type.
 
 **Estimated saving:** (a) is a safety fix with no token saving but removes a live spill risk.
-(b) would cut ~90,371 bytes × 5 sessions ≈ 113,000 tokens of one-time load per cell, and far more in
+(b) would cut roughly 90,371 bytes × 5 sessions, about 113,000 tokens of one-time load per cell, and far more in
 replayed cache_read.
 
 ### Fix 10 — Add a "swap the tool, don't re-test the block" line to the reviewer prompt (§5 finding 5)
@@ -681,7 +681,7 @@ Glob and Search are blocked by a hook in this repo, and no retry clears it.** `R
 `discover` and `python3 -c` do the same jobs. A `BLOCKED: Native search tools are disabled` reply is
 not a wall and is not worth re-testing.`
 
-**Estimated saving:** ~10 s and two turns per reviewer. Smallest fix on the list; included because it
+**Estimated saving:** roughly 10 s and two turns per reviewer. Smallest fix on the list; included because it
 is one paragraph and the reviewer prompt is the only one of the family missing it.
 
 ---

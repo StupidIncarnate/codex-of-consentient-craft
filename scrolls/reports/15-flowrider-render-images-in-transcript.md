@@ -83,7 +83,7 @@ The waste is not idleness — it is **serialisation**. Waves 2 through 6 each co
 | 5 (browser) | `af7a0174de0a516b0` | 14.2 min | no |
 | 6 (browser) | `a99bab1aff48176d3` | 49.6 min | no |
 
-Sum of direct-child durations 241.1 agent-min over 218.8 wall min — a parallelism factor of **1.10**. The explorer wave ran at ≈3.3×, wave 1 at 47.6 agent-min inside a 15.5 min window (**3.07×**), and waves 2–6 at exactly **1.00×**: 167.4 agent-min of single-threaded work occupying 169.4 wall min, **77.4 % of the item's total clock**.
+Sum of direct-child durations 241.1 agent-min over 218.8 wall min — a parallelism factor of **1.10**. The explorer wave ran at about 3.3×, wave 1 at 47.6 agent-min inside a 15.5 min window (**3.07×**), and waves 2–6 at exactly **1.00×**: 167.4 agent-min of single-threaded work occupying 169.4 wall min, **77.4 % of the item's total clock**.
 
 ### Time by category
 
@@ -175,7 +175,7 @@ Operation Item ID: c0f5d521-29cb-4cf6-8db6-ecc012c8ab16
 Your operation item: [flowrider] Flowrider: author the test suites that prove this flow — flow: render-images-in-transcript
 ```
 
-**Finding — the work-item context block never rendered.** `workItemContextBlockStatics` defines `- packagesAffected:` and `- packageNames:` labels, and `workItemContextBlockTransformer` appends them when `get-agent-prompt` is called with both `questId` and `workItemId`. This call carried both (`get-agent-prompt(agent=flowrider questId=… workItemId=b52b4841…)` at 0.2m), yet the rendered prompt contains neither the string `Work item context` nor `packagesAffected`. The work item's own `packageNames` is `[]` in the index, so even a rendered block would have been empty — which is the deeper problem: **the flowrider was told which flow it owned and nothing about which packages that flow crosses.** It spent P1 and half of P2 (≈8 min, 4 sub-agents, 98,288 output tokens and 31.8 M context-in) discovering that the flow crosses `orchestrator`, `shared`, `server` and `web`. Those four package names exist on the codeweaver items [4], [6] and [9] that built this exact flow.
+**Finding — the work-item context block never rendered.** `workItemContextBlockStatics` defines `- packagesAffected:` and `- packageNames:` labels, and `workItemContextBlockTransformer` appends them when `get-agent-prompt` is called with both `questId` and `workItemId`. This call carried both (`get-agent-prompt(agent=flowrider questId=… workItemId=b52b4841…)` at 0.2m), yet the rendered prompt contains neither the string `Work item context` nor `packagesAffected`. The work item's own `packageNames` is `[]` in the index, so even a rendered block would have been empty — which is the deeper problem: **the flowrider was told which flow it owned and nothing about which packages that flow crosses.** It spent P1 and half of P2 (about 8 min, 4 sub-agents, 98,288 output tokens and 31.8 M context-in) discovering that the flow crosses `orchestrator`, `shared`, `server` and `web`. Those four package names exist on the codeweaver items [4], [6] and [9] that built this exact flow.
 
 ### Passages that drove behaviour, and what the agent did
 
@@ -189,7 +189,7 @@ At `0.4m say: "My flow is \`render-images-in-transcript\`. Let me fetch it and l
 
 > `ui-state` — you reach for jsdom on a painted claim. jsdom has no layout engine. Every measured width reads 0.
 
-The operator's closing message names this as the substance of the operation: *"Codeweaver had proved most of the `ui-state` units in jsdom, which has no layout engine, never fetches an `img` src and never decodes an image — so every painted claim reads 0 there. All of them moved to a real browser."* That decision produced 100 real Playwright cases where a cheaper reading would have produced ~100 jsdom assertions proving nothing. It also produced the arbitrary-file-read finding: only a real HTTP exchange could show `path=/etc/passwd` returning **200, 3546 bytes, `Content-Type: image/png`** once `imageContentTypeTransformer` was broken.
+The operator's closing message names this as the substance of the operation: *"Codeweaver had proved most of the `ui-state` units in jsdom, which has no layout engine, never fetches an `img` src and never decodes an image — so every painted claim reads 0 there. All of them moved to a real browser."* That decision produced 100 real Playwright cases where a cheaper reading would have produced roughly 100 jsdom assertions proving nothing. It also produced the arbitrary-file-read finding: only a real HTTP exchange could show `path=/etc/passwd` returning **200, 3546 bytes, `Content-Type: image/png`** once `imageContentTypeTransformer` was broken.
 
 **3. "Another track's sign-off never shrinks your list" — obeyed, and it mattered.**
 
@@ -235,15 +235,15 @@ const jsonReportPath = filePathContract.parse(
 
 **The operator ran `git diff` zero times.** Its complete Bash history for the session is five commands: `ls -la .quest-plans/`, `git log --oneline -12 --name-only`, `git status --short` (211.3m), `git status --short` (218.5m), `git log --oneline -3` (218.5m). Its complete source-file Read history is two files, both from wave 2 — `transcript-renders-images.e2e.ts` and `transcript-images.harness.ts` at 17:15:31 and 17:16:22. Ten of the twelve files this operation produced were never opened by the operator.
 
-The evidence why is structural, not lazy. Step 5 says *"Work EVERY group on your map, in order, before you go to step 6"* and *"Sign this group's PROVED lines NOW, before you send the next group… you have not opened the test, so you are transcribing, not judging."* By the time step 6 arrives, the operator has already signed all 68 units and the diff is 3,564 lines across 13 files. At `211.5m` it said *"Verifying that against the checklist, and reading what actually changed"* and then ran `git status --short` — substituting a filename listing for a diff read. Its two sibling flowriders both did better on the same prompt: FR1 (`5c841160`) read nine of its produced spec files at 11:43–11:45, and FR2 (`42edd7ea`) ran `git diff --stat` at 15:52:04 followed by three `python3` passes extracting assertion text from the specs. This flowrider is the only one of the three that read essentially nothing back.
+The evidence why is structural, not lazy. Step 5 says *"Work EVERY group on your map, in order, before you go to step 6"* and *"Sign this group's PROVED lines NOW, before you send the next group… you have not opened the test, so you are transcribing, not judging."* By the time step 6 arrives, the operator has already signed all 68 units and the diff is 3,564 lines across 13 files. At `211.5m` it said *"Verifying that against the checklist, and reading what actually changed"* and then ran `git status --short` — substituting a filename listing for a diff read. Its two sibling flowriders both did better on the same prompt: the first flowrider session (FR1) (`5c841160`) read nine of its produced spec files at 11:43–11:45, and the second flowrider session (FR2) (`42edd7ea`) ran `git diff --stat` at 15:52:04 followed by three `python3` passes extracting assertion text from the specs. This flowrider is the only one of the three that read essentially nothing back.
 
-**6. "Write a FILE MAP and terse instructions. Never prose."** — followed in form, but the required shape is not compressible. Brief sizes: explorers 2,695–3,529 chars; wave 1 test writers 5,174–7,115; browser waves 10,484–14,609; reviewer 229. Wave 4's 14,609-char brief carried 19 units, each needing `SURFACE:` / `ASSERT:` / `FAILS IF:` verbatim — ≈770 chars per unit, which is close to the floor the prescribed shape allows. The prompt's "terse" instruction and its own mandatory brief template are in tension on any wave carrying more than about ten units.
+**6. "Write a FILE MAP and terse instructions. Never prose."** — followed in form, but the required shape is not compressible. Brief sizes: explorers 2,695–3,529 chars; wave 1 test writers 5,174–7,115; browser waves 10,484–14,609; reviewer 229. Wave 4's 14,609-char brief carried 19 units, each needing `SURFACE:` / `ASSERT:` / `FAILS IF:` verbatim — about 770 chars per unit, which is close to the floor the prescribed shape allows. The prompt's "terse" instruction and its own mandatory brief template are in tension on any wave carrying more than about ten units.
 
 **7. The one instruction the prompt is missing.** At 25.8m a `modify-quest` call was refused:
 
 > `Structural validation failed:\n- [FAIL] Input Allowlist: Sign-off on observable 'check-text-only-still-compares' … also writes 'description' — an observable carrying a sign-off may carry only its id and its sign-off fields; a sign-off is evidence about the unit as it stands, so one call may not both sign it and rewrite it — send the sign-off and the edit as two separate modify-quest calls`
 
-The "Recording what you claim" section never mentions this. Recovery cost ≈30 s and two extra calls (`25.9m` and `26.1m`) — small, but it is the same lesson every flowrider will learn by hitting the wall.
+The "Recording what you claim" section never mentions this. Recovery cost about 30 s and two extra calls (`25.9m` and `26.1m`) — small, but it is the same lesson every flowrider will learn by hitting the wall.
 
 **8. Nothing significant had to be invented.** The one place the operator went beyond the page was grandchildren: the prompt never mentions that a test-writing sub-agent may itself dispatch sub-agents, and three of them did (12 in total). See §5 finding 5.
 
@@ -251,13 +251,13 @@ The "Recording what you claim" section never mentions this. Recovery cost ≈30 
 
 ## 4. What went well
 
-**Reading the sibling flowrider's map instead of re-deriving the house pattern.** At `16:15:29` the operator read `.quest-plans/339d7ed2-…-map.md` — FR2's map for `send-message-with-images` — and at 16:15:43/16:15:44/16:16:36 the three codeweaver maps for its own flow (`332e0da3` web, `83c9f2ce` server, `8857ed98` orchestrator). Total 58 KB of Read. At `3.5m say: "the sibling flowrider's map gives me the house pattern: server integration tests extend a flow's .integration.test.ts, browser walks are packages/web/src/flows/quest-chat/…"`. This is the cheapest orientation in the whole item and it settled the file layout for all six waves.
+**Reading the sibling flowrider's map instead of re-deriving the house pattern.** At `16:15:29` the operator read `.quest-plans/339d7ed2-…-map.md` — the second flowrider session's (FR2's) map for `send-message-with-images` — and at 16:15:43/16:15:44/16:16:36 the three codeweaver maps for its own flow (`332e0da3` web, `83c9f2ce` server, `8857ed98` orchestrator). Total 58 KB of Read. At `3.5m say: "the sibling flowrider's map gives me the house pattern: server integration tests extend a flow's .integration.test.ts, browser walks are packages/web/src/flows/quest-chat/…"`. This is the cheapest orientation in the whole item and it settled the file layout for all six waves.
 
 **`SendMessage` back into a live explorer rather than a fresh agent.** Twice — `4.4m` to `a1eee9fee730548f3` and `5.5m` to `a5a5603b40804f402`. Both follow-ups decided a group's layer. A fresh sub-agent would have re-paid the 6.5 M and 5.8 M cache-read those explorers had already built. Cost of the two follow-ups: 434 bytes of tool result.
 
 **The linchpin question was asked before the map was written, not after.** At `2.6m say: "One linchpin is unclear: can an e2e spec seed a session transcript and get it replayed into the browser? Dispatching a fourth explorer on exactly that."` The answer at `7.8m` — yes, `sessionHarness.createSessionFile` writes to the path `chatHistoryReplayBroker` reads — is what let every transcript-side unit be proved in a real browser instead of dropping below one. A 3.7-minute, 24,943-token explorer decided the layer of roughly 40 units.
 
-**Signing group-by-group produced a real spec correction instead of a green lie.** At `26.2m say: "check-text-only-still-compares said a message with no images 'normalises to itself unchanged.' That isn't true: the transformer trims trailing whitespace, so a whitespace-only string normalises to ''. The sub-agent measured that value with node rather than assuming it."` The observable was rewritten and then signed against the rewritten text — two `modify-quest` calls, ≈30 s.
+**Signing group-by-group produced a real spec correction instead of a green lie.** At `26.2m say: "check-text-only-still-compares said a message with no images 'normalises to itself unchanged.' That isn't true: the transformer trims trailing whitespace, so a whitespace-only string normalises to ''. The sub-agent measured that value with node rather than assuming it."` The observable was rewritten and then signed against the rewritten text — two `modify-quest` calls, about 30 s.
 
 **The defect-not-verdict discipline held three times.** Wave 3 measured the overlay at 864 px where the spec says 960 px and the operator recorded `unconfirmable` with a `toSettle` rather than signing (`95.6m`). Wave 4 produced the arbitrary-file-read demonstration. Wave 6 reproduced the duplicate-bubble defect end to end. None of the three was converted into a green check.
 
@@ -277,7 +277,7 @@ It filed the gap against `packages/ward/src/brokers/git/diff-unpushed/git-diff-u
 
 **What happened.** Waves 2–6 each contained exactly one `Agent` call: `31.5m`, `65.1m`, `97.9m`, `144.7m`, `160.6m`. Their gaps were 1820 s, 1822 s, 2673 s, 855 s and 2995 s. 167.4 agent-minutes of work occupied 169.4 wall minutes at a parallelism factor of 1.00, against 3.07 for wave 1.
 
-**Cost.** If waves 3–6 had run together after wave 2 built the harness, the chain would be 30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 min instead of 169.4 min — **≈89.6 minutes, 41 % of the item's total clock.** Token cost is unchanged; this is pure latency.
+**Cost.** If waves 3–6 had run together after wave 2 built the harness, the chain would be 30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 min instead of 169.4 min — **about 89.6 minutes, 41 % of the item's total clock.** Token cost is unchanged; this is pure latency.
 
 **Prompt status: REQUIRED, twice.** *"never two browser walks against the same package at once"* and *"Two browser walks against the same package never go out together."* The operator applied it correctly.
 
@@ -308,7 +308,7 @@ Three of them overlapped inside wave 1: `16:30:17`, `16:30:46`, `16:33:46`, `16:
 
 Every one of the 16 was piped (`2>&1 | tail -n`), which the `<dungeonmaster-wardDiscipline>` snippet forbids because it discards the exit code. Two agents noticed and bolted on `; echo "EXIT:$?"`.
 
-**Cost.** ≈16 builds × ~30–60 s ≈ 8–16 sub-agent minutes, mostly inside gaps that were blocked anyway, so the wall cost is small. The real cost is that a one-line prohibition in a 14,000-character brief failed **six times out of nine**.
+**Cost.** About 16 builds times roughly 30–60 s is about 8–16 sub-agent minutes, mostly inside gaps that were blocked anyway, so the wall cost is small. The real cost is that a one-line prohibition in a 14,000-character brief failed **six times out of nine**.
 
 **Prompt status: FORBIDDEN, by both the parent's `[BUILD]` rule and the child's own `PROVE` block.**
 
@@ -348,11 +348,11 @@ They also duplicated each other. Under `a99bab1a`: `a5c8412a` and `aa5bc319` bot
 
 **The operator knew.** Its map carries a section headed `## The one unit most likely to come back NOT PROVED`, and at `159.7m say: "Sending the last wave — the full loop, and the one I flagged in the map as most likely to come back unproved."* It scheduled its highest-variance work **last and alone**, so every minute of that 30.5-minute redesign was 30.5 minutes of the parent's wall clock with nothing else running.
 
-**Cost.** ≈30 min of serialised wall clock, 194,621 output and 56.2 M context-in tokens. **Prompt status: PERMITTED.** The prompt orders groups by file, and says nothing about ordering by risk.
+**Cost.** About 30 min of serialised wall clock, 194,621 output and 56.2 M context-in tokens. **Prompt status: PERMITTED.** The prompt orders groups by file, and says nothing about ordering by risk.
 
 ### 8. `a368d1c5a826e6370` spent ~14 min on library archaeology and a throwaway probe file
 
-Longest churn stretch 20.8m→30.2m (≈9.4 min): reading `node_modules/hono` and `node_modules/@hono/node-server` source through `python3` and `node -e` one-liners to establish default content-type-on-empty-body behaviour. Then 32.5m→37.3m (≈4.8 min) writing a throwaway `zzz-debug-state.e2e.ts` probe **six times** (33.7, 34.3, 34.5, 34.6, 34.8, 34.9m) before concluding at 37.1m: *"Playwright retires the worker process after any test failure, wiping module-level state."* The probe was deleted. Both stretches produced durable knowledge, and the second one changed the shape of `image-route-answers.e2e.ts:186-190` (statuses collected inside one test rather than accumulated across tests). But ~14 min of a 43.9-min sub-agent went into learning two library facts the repo now has nowhere written down.
+Longest churn stretch 20.8m to 30.2m (about 9.4 min): reading `node_modules/hono` and `node_modules/@hono/node-server` source through `python3` and `node -e` one-liners to establish default content-type-on-empty-body behaviour. Then 32.5m to 37.3m (about 4.8 min) writing a throwaway `zzz-debug-state.e2e.ts` probe **six times** (33.7, 34.3, 34.5, 34.6, 34.8, 34.9m) before concluding at 37.1m: *"Playwright retires the worker process after any test failure, wiping module-level state."* The probe was deleted. Both stretches produced durable knowledge, and the second one changed the shape of `image-route-answers.e2e.ts:186-190` (statuses collected inside one test rather than accumulated across tests). But roughly 14 min of a 43.9-min sub-agent went into learning two library facts the repo now has nowhere written down.
 
 ### 9. Orientation re-derived the shared test substrate a third time
 
@@ -383,9 +383,9 @@ packages/server/src/flows/images/images-flow.integration.test.ts
 packages/server/src/startup/start-server.ts
 ```
 
-**Cost, pro-rated by file share:** ≈4.2 explorer agent-minutes and ≈7.0 M context-in tokens on this item alone, and the same tax was paid on items [13] and [14]. The wall-clock cost is small (the explorers ran 4-wide inside a ~6-minute window); the token cost is not. File-count share is a proxy, not a direct token measurement — I flag it as such.
+**Cost, pro-rated by file share:** about 4.2 explorer agent-minutes and about 7.0 M context-in tokens on this item alone, and the same tax was paid on items [13] and [14]. The wall-clock cost is small (the explorers ran 4-wide inside a roughly 6-minute window); the token cost is not. File-count share is a proxy, not a direct token measurement — I flag it as such.
 
-A second, larger duplicate: the standards triple (`get-architecture` 19,056 B + `get-syntax-rules` 24,528 B + `get-testing-patterns` 51,401 B = **94,985 bytes**) was fetched **eleven times** in this session tree — once by the operator and once each by all ten test-writing/reviewing sub-agents — for ≈1.04 MB of identical text. That is required by the prompt (*"Load the repo's standards first"* and `FIRST get-architecture, get-syntax-rules, get-testing-patterns` in every brief), so it is a design cost, not a violation.
+A second, larger duplicate: the standards triple (`get-architecture` 19,056 B + `get-syntax-rules` 24,528 B + `get-testing-patterns` 51,401 B = **94,985 bytes**) was fetched **eleven times** in this session tree — once by the operator and once each by all ten test-writing/reviewing sub-agents — for about 1.04 MB of identical text. That is required by the prompt (*"Load the repo's standards first"* and `FIRST get-architecture, get-syntax-rules, get-testing-patterns` in every brief), so it is a design cost, not a violation.
 
 ### 10. Two vacuous negatives shipped, and the reviewer said there were none
 
@@ -455,7 +455,7 @@ The port is already unique per run (`await netFreePortAdapter()` at line 129), s
 
 **Then** edit `packages/orchestrator/src/statics/flowrider-prompt/flowrider-prompt-statics.ts` in two places — the step-4 grouping rule and the step-5 dispatch rule — replacing *"never two browser walks against the same package at once"* with the file-overlap rule that actually still applies: *"Two sub-agents never edit one file. Browser walks against the same package MAY go out together, as long as no two of them touch the same spec or harness."*
 
-Measured basis: waves 2–6 were 169.4 wall min at 1.00× parallelism; wave 1 hit 3.07× with four concurrent agents. 30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 min. **Saving ≈89.6 min, 41 % of this item.**
+Measured basis: waves 2–6 were 169.4 wall min at 1.00× parallelism; wave 1 hit 3.07× with four concurrent agents. 30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 min. **Saving about 89.6 min, 41 % of this item.**
 
 ### 2. Make the harness a first-class wave-0 artifact, never a file four later waves extend — **enables fix 1; ≈0 min on its own**
 
@@ -508,7 +508,7 @@ And add one sentence to the prompt's own "Briefing a sub-agent" preamble: *"A su
 
 > **Before you dispatch explorers, read `.quest-plans/` — a sibling flowrider's map is there.** Take its `## Facts the whole map rests on` section whole; the e2e harness set, the testids and the fixture seams do not change between flows on one quest. Then append what YOUR flow adds under the same heading, so the next flowrider takes yours.
 
-This operator already read FR2's map voluntarily (`16:15:29`) and called it *"the house pattern"* — the fix makes the free half of that mandatory and the give-back half explicit.
+This operator already read the second flowrider session's (FR2's) map voluntarily (`16:15:29`) and called it *"the house pattern"* — the fix makes the free half of that mandatory and the give-back half explicit.
 
 ### 7. Schedule the riskiest group first, not last — **≈15–30 min on an item with a flagged unit**
 
@@ -836,10 +836,10 @@ packages/web/src/flows/quest-chat/transcript-replaces-optimistic.e2e.ts         
 [15] 6509cd6e  render-images-in-transcript 218.9 min 26 subagents  main out 469,210  main ctx-in 48,272,636
 ```
 
-FR1 dispatched 3 rework sub-agents after reading its own output; FR2 dispatched 4; **FR3 dispatched 0** and read almost none of its output. Its single review cycle passed on the first attempt.
+The first flowrider session (FR1) dispatched 3 rework sub-agents after reading its own output; the second flowrider session (FR2) dispatched 4; **the third flowrider session (FR3) dispatched 0** and read almost none of its output. Its single review cycle passed on the first attempt.
 
 ### Numbers I could not obtain
 
 - Per-sub-agent thinking-token split — `summary` does not break `thinking` out for sub-agent transcripts, only for the main session.
-- Wall-clock duration of an individual `npm run build` inside a sub-agent — the transcript records the call and the result but the digest tool does not expose per-Bash elapsed time; the reviewer's build-to-ward interval (2.68m → 3.15m ≈ 28 s) is the only usable proxy and it may have been incremental.
+- Wall-clock duration of an individual `npm run build` inside a sub-agent — the transcript records the call and the result but the digest tool does not expose per-Bash elapsed time; the reviewer's build-to-ward interval (2.68m to 3.15m, about 28 s) is the only usable proxy and it may have been incremental.
 - The siegemaster verdict for `render-images-in-transcript` itself — **not measurable from the transcript.** No siegemaster item exists for this flow; items [16] and [17] cover the two sibling flows, and [17] is still `pending`.

@@ -16,7 +16,7 @@
 | `retryCount` | `0` — no pt chain, one pass |
 | `startRef` | `061e49064a323a3004c518ad249e6c87f461cc38` |
 
-**Window:** `createdAt 2026-09-02T03:45:15.755Z` → `completedAt 2026-09-02T06:39:48.784Z`.
+**Window:** `createdAt 2026-09-02T03:45:15.755Z` leads to `completedAt 2026-09-02T06:39:48.784Z`.
 Transcript wall clock: `START 2026-09-02T03:45:30.135000+00:00`, `END 2026-09-02T06:40:04.138000+00:00`,
 `WALL 2:54:34.003000 (174.6 min)`.
 
@@ -179,7 +179,7 @@ Ten of the 18 ran under 1.0 minute; all 18 ran under 3.0 minutes.
 
 ## 3. Was the prompt fit for the work?
 
-The rendered prompt is 34,127 characters as it arrived (`result 0db63e41… get-agent-prompt` → `LEN 34127`),
+The rendered prompt is 34,127 characters as it arrived (`result 0db63e41… get-agent-prompt` leading to `LEN 34127`),
 under the 50,000-char ceiling `codeweaverPromptStatics`' docblock names.
 
 ### What the prompt got right, and what the agent did about it
@@ -204,7 +204,7 @@ zero `npm run build` and zero `npm run ward`. Its only write is the map:
 This is the single highest-leverage rule in the prompt and it worked perfectly.
 
 **Step 3 — "A map, not an essay. One line per file."** The map is 9,899 bytes / 121 lines: five groups, a
-`PROVES` block of 25 observable→test rows plus terminals and edges, and a six-line `TRAPS` block. It also carries a
+`PROVES` block of 25 observable-to-test rows plus terminals and edges, and a six-line `TRAPS` block. It also carries a
 transport decision the prompt never asked for and that turned out to be the pass's load-bearing finding:
 
 > Transport decision: `msw/node` (2.12) does NOT intercept XMLHttpRequest — grep of `node_modules/msw/lib/node`
@@ -304,7 +304,7 @@ returned `FILES: none (no edits this round — the sibling's fix alone resolved 
 > `**NEXT: wall** — someone with \`packages/web/src/brokers/**\` / \`packages/web/src/adapters/xhr/**\` access
 > needs to make \`xhrPostWithProgressAdapterProxy\` support multiple coexisting instances…`
 
-The prompt's table says `wall` → "stop sending work out… then go to step 8", and step 8/9 say signal `blocked`.
+The prompt's table says `wall` maps to "stop sending work out… then go to step 8", and step 8/9 say signal `blocked`.
 Following that literally would have halted the quest over a proxy bug the session could fix in one dispatch. The
 operator ignored the table, correctly, and dispatched the repair. Nothing in the prompt licenses that: `[WALL]`
 defines a wall as environmental, but the brief template's own `RETURN` block invites a sub-agent to write
@@ -334,7 +334,7 @@ the codeweaver prompt never mentions it, and this session never called it.
 notification-resume turn, not a poll loop. Mechanism: the `[HELPERS]` rule plus the harness's task-notification
 re-entry.
 
-**2. The transport decision was made before any brief went out, at ~1 minute of cost.**
+**2. The transport decision was made before any brief went out, at roughly 1 minute of cost.**
 `4.8m CALL Bash(… description=Check whether msw node setup includes the XHR interceptor)` and
 `4.8m CALL Bash(… description=Locate XHR interceptor files)`. Had this landed in group 3 instead, the three
 broker agents would each have built against `StartEndpointMock` and each needed re-doing. Mechanism: step 2's
@@ -404,7 +404,7 @@ Several announced it in their own returns, so the operator saw it and let it sta
 `a7c2cbd1869aacbd9`: *"a full repo build (\`npm run build\`) was also run and exited 0 before these changes"*;
 `a2e9daecce4e0d79d`: *"\`npm run build\` (unpiped, full monorepo) also exits 0"*;
 `acb9af1d389492b63`: *"\`npm run build\` is green (all 13 packages, 0 errors)"*.
-**Cost:** not separable from those agents' wall clock, but a full `npm run build` in this repo is ~60–90 s and
+**Cost:** not separable from those agents' wall clock, but a full `npm run build` in this repo is roughly 60–90 s and
 20 of the 23 were run while at least one sibling agent was live. **The prompt forbade it, in every brief.**
 
 **Finding 2 — two sub-agents ran `git stash push`, and no prompt in the chain forbids them.**
@@ -431,7 +431,7 @@ ban. **The prompt permitted it by omission.**
 
 The operator handled it correctly — `48.8m CALL mcp__dungeonmaster__modify-quest(...)` adding `testing` to
 `packagesAffected`, then `48.8m say: "The follow-up broker needed a \`RequestCountStub\` export from
-\`@dungeonmaster/testing\`, so I've added \`testing\` to the quest's affected packages."` **Cost:** ~0.5 min of
+\`@dungeonmaster/testing\`, so I've added \`testing\` to the quest's affected packages."` **Cost:** roughly 0.5 min of
 operator time. But it caused Finding 4.
 
 **Finding 4 — one whole sub-agent (`abe97a8d32fcbff5d`) exists only because two group-3 agents raced on a
@@ -566,7 +566,7 @@ Never prose. … long briefs are how adherence dies."* That brief is also one of
 **Finding 12 — `get-testing-patterns` alone cost 51,401 bytes of the operator's context at 0.4 minutes,
 and was fetched again by all 19 code-writing sub-agents.** The `READ FIRST` line in every brief mandates it.
 That is 20 fetches of a 51 KB document in one pass (plus `get-architecture` at 28,430 bytes and
-`get-syntax-rules` at 24,528 bytes, also 20× each). ~2.1 MB of identical text pulled into 20 separate contexts.
+`get-syntax-rules` at 24,528 bytes, also 20× each). Roughly 2.1 MB of identical text pulled into 20 separate contexts.
 **The prompt required it**, and it is the correct requirement — but the cost is not visible anywhere.
 
 **Finding 13 — no `unconfirmable` verdicts, and no denominator check.** See §3.6 and §3.7. 37 units all
@@ -579,8 +579,8 @@ and `get-qa-checklist` is never mentioned in the codeweaver prompt though it exi
 ## 6. Suggested fixes
 
 One fix per finding in §5 and per structural problem in §3. Each names the file and the concrete edit, with the
-estimate shown. Roughly descending by saving, with the three largest being Fix 13 (~50M tokens), Fix 16
-(32.4 min + 18.2M tokens) and Fix 8 (~4.9M tokens per cell).
+estimate shown. Roughly descending by saving, with the three largest being Fix 13 (roughly 50M tokens), Fix 16
+(32.4 min + 18.2M tokens) and Fix 8 (roughly 4.9M tokens per cell).
 
 **Fix 1 — Wire `codeweaverScopeBlockTransformer` into `workItemToPromptTransformer`, or delete it.**
 *File:* `packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`.
@@ -589,13 +589,13 @@ estimate shown. Roughly descending by saving, with the three largest being Fix 1
 `[]` when there is nothing to say, so the degenerate case is safe. If the block is not wanted, delete the
 transformer and its test rather than leaving a 174-line file that only its own test imports.
 *Saved:* the 5.6 minutes of P1 spent reconstructing the seam picture by hand from `git log` and 12 `Read`s, plus
-the unanswerable step-5 question 4. **≈4 min and ~150k context tokens per codeweaver cell**, times 8 cells on
+the unanswerable step-5 question 4. **about 4 min and roughly 150k context tokens per codeweaver cell**, times 8 cells on
 this quest. Addresses §3.1.
 
 **Fix 2 — Print labelled-edge ids in the `get-quest` flow render.**
 *File:* the flow text renderer behind `mcp__dungeonmaster__get-quest` (the same renderer that already prints
 terminal node ids). *Edit:* render each labelled edge as `#<edgeId> "<label>"` the way nodes are rendered
-`[#<nodeId>]`. *Saved:* three Bash probes and ~0.4 min here, but more importantly it removes a dependency on
+`[#<nodeId>]`. *Saved:* three Bash probes and roughly 0.4 min here, but more importantly it removes a dependency on
 `.dungeonmaster/` being readable from the worktree — which is true in this dogfood repo and not guaranteed for an
 end-user install, where the same three probes would fail and the eight edge sign-offs the prompt demands could
 not be written at all. **Correctness fix, not a time fix.** Addresses §3.2.
@@ -621,7 +621,7 @@ access to the tree and no written ban. **Risk elimination.** Addresses Finding 2
 never widen the ward` with `no \`npm run build\` — ward's typecheck is \`tsc -b\`, which writes the shared
 \`dist/\`; siblings are running right now and your build hands them type errors on correct code. Your reviewer
 runs the build. Also: no run-ward MCP tool · no commit · never widen the ward.` *Saved:* 23 build invocations
-were measured, ~20 of them concurrent with a live sibling. At ~60–90 s each that is **20–30 minutes of sub-agent
+were measured, roughly 20 of them concurrent with a live sibling. At roughly 60–90 s each that is **20–30 minutes of sub-agent
 wall clock**, plus the type errors they hand each other. Addresses Finding 1.
 
 **Fix 6 — Replace "touch different files" with "touch different files AND do not share an interface" in the
@@ -631,13 +631,13 @@ grouping rule, and add a wave-0 contract step.**
 go out together when one DEFINES a signature the other CALLS. Put the signature in an earlier group as a type-only
 change, and brief both sides against the file that holds it."* *Saved:* the 50 parked minutes of
 `agent-a6c5888344f994a6e` and the 243-second `SendMessage` round trip, plus its 11,363,800 context-in tokens.
-**≈50 min of agent lifetime and ~11.4M tokens.** Addresses §3.4 and Finding 5.
+**About 50 min of agent lifetime and roughly 11.4M tokens.** Addresses §3.4 and Finding 5.
 
 **Fix 7 — Add a `wall` triage row to `## Reading a sub-agent's return`.**
 *File:* same statics file, the four-row `NEXT:` table. *Edit:* split the `wall` row:
-`wall — and the blocker is a FILE another session owns` → *"that is a rework, not a wall. Dispatch the change it
+`wall — and the blocker is a FILE another session owns` maps to *"that is a rework, not a wall. Dispatch the change it
 names."*; `wall — and the blocker is the ENVIRONMENT (a denied command, a missing credential, an unreachable
-service)` → *"stop dispatching and go to step 8."* And in `## Briefing a sub-agent`'s `RETURN` block, change
+service)` maps to *"stop dispatching and go to step 8."* And in `## Briefing a sub-agent`'s `RETURN` block, change
 `wall — <what a person must change>` to `wall — <what a person must change; a file outside your list is a
 \`rework\`, not a wall>`. *Saved:* zero here — the operator ignored the table and got it right — but a session
 that followed the table literally would have signalled `blocked` and halted the quest at 89.9m with 85 minutes of
@@ -651,9 +651,9 @@ none of the three documents; `forbid-non-exported-functions` and `enforce-proxy-
 `get-testing-patterns`, by name only; and `ban-primitives`' only statement in `get-syntax-rules` is the generic
 *"Input args can use raw primitives… Return types must use branded types/contracts"*, which is silent on the
 type-alias and generic-argument cases that actually blocked an edit. *Saved:* the four eslint-rule explorers cost
-30,858 output tokens and 4,862,111 context-in tokens on this pass alone, plus ~7.6 min of their parents' wall
+30,858 output tokens and 4,862,111 context-in tokens on this pass alone, plus roughly 7.6 min of their parents' wall
 clock. Across a quest with eight codeweaver cells this is the single largest recurring waste.
-**≈4.9M tokens per cell.** Addresses Finding 7.
+**About 4.9M tokens per cell.** Addresses Finding 7.
 
 **Fix 9 — Cap depth-2 explorers in the brief template, and forbid the trivial ones.**
 *File:* same statics file, `## Briefing a sub-agent`. *Edit:* add a line to the template:
@@ -662,7 +662,7 @@ A file path, a type signature or an existing stub's shape is a \`discover\` call
 two helpers with overlapping questions in one message.` Ten of the 18 explorers ran under 1.0 minute;
 `agent-a787e8e7eac5a8c11` spent 133,757 context-in tokens returning one file path; and one parent dispatched two
 agents six seconds apart to run the same `z.custom` search. *Saved:* the 10 sub-minute explorers plus the
-duplicate — **~14,300 output tokens and ~4.1M context-in tokens** — and the session-bootstrap latency of each.
+duplicate — **roughly 14,300 output tokens and roughly 4.1M context-in tokens** — and the session-bootstrap latency of each.
 Addresses Findings 7, 7a, 7b and 10.
 
 **Fix 10 — Make the brief template require that a helper's answer is actually collected before acting on it.**
@@ -698,7 +698,7 @@ split it."* The three briefs that broke the template's own section list (`a155b8
 missing `MUST BE TRUE`; `a4e9726b2fb2d4cb9` at 8,451 missing `MUST BE TRUE`; `aea9161e3d5264efe` at 5,698
 missing `DO` and `MUST BE TRUE`) are the three where the operator was writing prose rather than a map.
 *Saved:* `a155b8642d3022923` consumed 99,529,046 context-in tokens — 26.6% of all sub-agent context — in 351
-turns. Halving it is **~50M tokens**. Addresses Finding 11.
+turns. Halving it is **roughly 50M tokens**. Addresses Finding 11.
 
 **Fix 14 — Name `get-qa-checklist` in the codeweaver prompt as the denominator call.**
 *File:* same statics file, step 8 (*"EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU
@@ -737,8 +737,8 @@ Addresses Finding 6.
 51,401 bytes of `get-testing-patterns`; or (b) have the parent paste the handful of rules it already knows are
 relevant into the brief's `TRAPS` and reduce `READ FIRST` to the one document the change actually needs. On
 this pass the three documents (28,430 + 24,528 + 51,401 = 104,359 bytes) were fetched by the operator and by
-all 19 code-writing sub-agents — **20 fetches, ~2.1 MB of identical text pulled into 20 separate contexts.**
-*Saved:* even a 50% slice cut is **~1 MB of context per cell**. The requirement itself is correct and should
+all 19 code-writing sub-agents — **20 fetches, roughly 2.1 MB of identical text pulled into 20 separate contexts.**
+*Saved:* even a 50% slice cut is **roughly 1 MB of context per cell**. The requirement itself is correct and should
 stay; it is the granularity that is wrong. Addresses Finding 12.
 
 ---

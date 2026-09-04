@@ -378,7 +378,7 @@ mentions them" — and the operator prompt does not.
 
 **The same `git diff` hole, one role later, and this time the diff is empty by construction.** Every
 artifact the flowrider produced was a new untracked file. `163.4m CALL Bash(command=git status
---porcelain)` was the improvisation. **~2 minutes**, and it worked only because it improvised
+--porcelain)` was the improvisation. **Roughly 2 minutes**, and it worked only because it improvised
 [report 13 §3.A].
 
 **Nothing in the prompt family guaranteed the suite was ever typechecked, and 51 type errors shipped
@@ -517,7 +517,7 @@ Three reviewers, three roles, one pass each. All three returned `pass`; **none r
 
 ### The one reviewer that had to repair, repaired a class
 
-The flowrider's reviewer spent 12.1m → 17.4m (**5.3 min, 20 `Edit` calls, two extra 64-second ward
+The flowrider's reviewer spent 12.1m to 17.4m (**5.3 min, 20 `Edit` calls, two extra 64-second ward
 runs**) fixing 51 `TS2322: Type 'unknown' is not assignable to type 'string'` errors across six new
 spec files [report 13 §5.1]. Its own verdict names the cause:
 
@@ -569,7 +569,7 @@ correction sharpens it.**
 Two of the three reviewers demonstrably read, and the proof is that each produced a finding only a
 reader could produce:
 
-- **`codeweaver-reviewer`** — 103 `Read` calls across ~30 new files, and it reported that
+- **`codeweaver-reviewer`** — 103 `Read` calls across roughly 30 new files, and it reported that
   *"`#check-thumbnail-has-no-remove-control` landed in `dom-composer-insert-image-adapter.test.ts`
   rather than `chat-input-widget.test.tsx` as the map predicted — the observable still holds, just at
   a different (arguably better) layer."* That contradicts its own parent's map. You cannot generate
@@ -696,7 +696,7 @@ re-find it [report 16 §5 Finding 7]. Note the walker prompt FORBADE that dismis
 
 **2. `check-thumbnail-renders-bounded`** — signed +117.2m.
 Defect: an `<img>` with no `max-height`/`max-width`/`object-fit` paints at full intrinsic size,
-growing the composer to ~610px of an 813px viewport and pushing SEND off-screen. Two build paths —
+growing the composer to roughly 610px of an 813px viewport and pushing SEND off-screen. Two build paths —
 paste and draft-restore [report 16 §B6 bugs 2, 3].
 *Codeweaver:* **no.** jsdom has no layout engine; `getBoundingClientRect` returns zeros. This is the
 one of the nine the earliest track structurally could not have reached.

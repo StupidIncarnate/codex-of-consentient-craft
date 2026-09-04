@@ -2,7 +2,7 @@
 
 ## A. What this covers
 
-Quest `1be07040-b9ec-476c-a439-0b4fbb0123cd`, run 2026-09-01 19:09 UTC → 2026-09-03 16:00 UTC on
+Quest `1be07040-b9ec-476c-a439-0b4fbb0123cd`, run 2026-09-01 19:09 UTC to 2026-09-03 16:00 UTC on
 branch `quest/try-2-paste-images-into-web-chat-render-inline-s-1be07040`. The quest builds three
 flows — `paste-image-into-composer`, `send-message-with-images`, `render-images-in-transcript` —
 across `shared`, `orchestrator`, `server` and `web`.
@@ -18,7 +18,7 @@ buckets, 3 Prompt fit, 4 What went well, 5 What agents should not have done, 6 S
 Nothing in this document is new transcript analysis; where two reports measured the same thing
 differently, both numbers appear and section H says which is better evidenced.
 
-**Two properties of the ANALYSIS run, not findings about the quest.** A reader must not confuse
+**Three properties of the ANALYSIS run, not findings about the quest.** A reader must not confuse
 them with the quest's own defects:
 
 1. **The 20-agent concurrency cap constrained the analysis.** Reports 14 and 09 both had every
@@ -79,7 +79,7 @@ Cost per landed line, where a report computed it:
 | 13 | 1,106,113 output ÷ 184.0 min | **6,012 output tokens per minute of wall clock** | [report 13 §2] |
 
 The quest's own aggregate, computed from the table above: 5,150,449,667 context-in tokens against
-the ~11,700 lines the codeweaver commits inserted.
+the roughly 11,700 lines the codeweaver commits inserted.
 
 ---
 
@@ -338,24 +338,24 @@ the only thing standing between this item and a 4× speedup on its dominant cost
 | 15 | Waves 2–6 each held exactly ONE sub-agent: **167.4 agent-min inside 169.4 wall min, parallelism 1.00×, 77.4% of the item**; wave 1 hit **3.07×** and the explorer wave ≈3.3×; whole-item factor **1.10** [§1] |
 | 14 | Five browser walks, five clean windows, **zero overlaps**, measured agent by agent from the roster; **209.4 min (84.0%) waiting** [§1, §3]. The flowrider restated the rule back at 90.0m: *"It has to run alone — Playwright writes one report path per package, so a second browser walk started now would overwrite the report this one is reading."* |
 
-**Estimated recoverable time**: 66–100 min on item [13] [report 13 §6], ≈89.6 min / 41% of item [15]
-[report 15 §6], ≈35 min on item [14] [report 14 §6]. Report 13 puts the quest-wide figure at
-**≈300 min across the three flowrider items**.
+**Estimated recoverable time**: 66–100 min on item [13] [report 13 §6], about 89.6 min / 41% of item [15]
+[report 15 §6], about 35 min on item [14] [report 14 §6]. Report 13 puts the quest-wide figure at
+**about 300 min across the three flowrider items**.
 
 ### E2. 655 minutes of work sat uncommitted when the quest paused — `design`
 
 **What happens.** The siegemaster design gives commit authority to the step-8 reviewer alone —
-*"You never commit and you never push. Your reviewer does both"* — and puts no cap on the walk→fix
+*"You never commit and you never push. Your reviewer does both"* — and puts no cap on the walk-to-fix
 loop that precedes it: *"There is no cap on this loop"* [report 17 §3 S4]. A session that never
 reaches step 8 therefore banks nothing.
 
 **Mechanism, and exactly what happened** [report 17 §0, §1, §5.8]:
 
-- Session `8ffd3cb9-b6b8-4eaa-a5b3-aab093f55d01` ran `START 2026-09-03T05:05:53.963` →
+- Session `8ffd3cb9-b6b8-4eaa-a5b3-aab093f55d01` ran `START 2026-09-03T05:05:53.963` leading to
   `END 2026-09-03T16:00:57.953`, `WALL 10:55:03.990 (655.1 min)`.
 - Last substantive turn at **640.5 m / 15:46:21**, dispatching the ninth and last fixer:
   `640.5m CALL Agent(description=Fix duplicate send after unload …)`.
-- That fixer, `a746672bf4063e3f2`, ran 15:46:21 → 16:00:52. **The quest was paused at 16:00:57 —
+- That fixer, `a746672bf4063e3f2`, ran 15:46:21 to 16:00:52. **The quest was paused at 16:00:57 —
   5.897 seconds after the fixer's last transcript line.** Its report was never read.
 - Steps 8 (reviewer), 9 (checklist + sweep), 10 (kill the dev server) and 11 (`signal-back`) were
   never reached.
@@ -375,7 +375,7 @@ per-fixer build counts that make up this session's shape
 (`tmp/quest-analysis/17-part-b-sub1-RECOVERED-VERBATIM.md`, cross-cutting findings A, B, E).
 
 **Related smaller realisation of the same exposure**: E14 below — a fixer in item [16] destroyed
-~140 lines of the same kind of uncommitted accumulation with one `git checkout HEAD --`.
+roughly 140 lines of the same kind of uncommitted accumulation with one `git checkout HEAD --`.
 
 **Estimated exposure**: *"up to 655 min of at-risk work per interrupted item; ~10 min of reviewer
 time to insure it"* [report 17 §6 F2].
@@ -477,7 +477,7 @@ the same six strings across its 34,130-character payload. Report 09 adds that
 | 6 | Six of the session's seven owned nodes are shared; *"the seam block would have told it that the orchestrator's half was **already complete** and web's was **not built yet** — which is the exact judgement it spent the 40.5m turn reasoning out for itself"* | [report 06 §3.4] |
 | 8 | *"nothing told it where `server`'s half of the flow stood, and step 5's question 4 … was asked with no data behind it"* | [report 08 §3] |
 
-Fix estimates range from ≈0.3 min/item [02 §6 f1] through ≈4 min [08 §6 f1] and ≈4–6 min [04 §6 f4]
+Fix estimates range from about 0.3 min/item [02 §6 f1] through about 4 min [08 §6 f1] and about 4–6 min [04 §6 f4]
 to 3–5 min × 7 cells = 21–35 min [07 §6 f5].
 
 ### E5. The flow render demands an edge id it never prints — `structural`
@@ -596,9 +596,9 @@ Report 02's smaller version is the discarded depth-2 import-order answer at 287,
 ### E11. The standards triple is re-served byte-identically to every session — and it also under-serves — `design`
 
 Every figure is in section D above. The largest single measurement: **94,985 bytes re-served to 12
-sessions = 1,044,835 duplicate bytes ≈ 261,000 tokens in one work item** [report 06 §5.2], which that
-report calls *"the highest-value fix by an order of magnitude"* at ≈2.1M tokens across eight
-codeweaver items. Item [7] measured **2.7 MB re-fetched 90 times, ~680k tokens** [report 07 §5.5].
+sessions = 1,044,835 duplicate bytes, about 261,000 tokens in one work item** [report 06 §5.2], which that
+report calls *"the highest-value fix by an order of magnitude"* at about 2.1M tokens across eight
+codeweaver items. Item [7] measured **2.7 MB re-fetched 90 times, roughly 680k tokens** [report 07 §5.5].
 Item [8]: *"~2.1 MB of identical text pulled into 20 separate contexts"* [report 08 §5 f12].
 
 **The counter-finding, which must not be lost.** Report 08 §5 f7 checked the standards documents'
@@ -607,7 +607,7 @@ docs genuinely lack the answers: `get-syntax-rules` carries **ONE generic line o
 and says nothing about type aliases or generic arguments — *"the exact cases that blocked an edit"* —
 and nothing at all about `forbid-non-exported-functions` or `enforce-proxy-patterns`. **So the
 eslint-rule explorers were NOT redundant with the docs.** The two findings compose: the docs are both
-duplicated and incomplete. Report 08's fix is to slice them (`Fix 8`, **≈4.9M tokens per cell**),
+duplicated and incomplete. Report 08's fix is to slice them (`Fix 8`, **about 4.9M tokens per cell**),
 report 09's is to add the three missing lint answers [report 09 §6 f4], and report 03's is to add the
 `unknown`-narrowing worked example that four separate lookups failed to find [report 03 §6 f6].
 
@@ -749,7 +749,7 @@ The P3 chain in item [17] [report 17 §5.3]:
 
 *"For scale: the whole P1 walk-fix-rewalk cycle cost 25.6 min and the whole P5 create-surface cycle
 61.5 min. Agent 14 alone outlasted the entire P5 cycle."* Agent 14's **17 ward verdicts oscillated
-1→17→1→4→9→17→1 rather than converging, ended still FAIL**, and it ran **22 rebuild-rerun cycles**.
+1, then 17, then 1, then 4, then 9, then 17, then 1 rather than converging, ended still FAIL**, and it ran **22 rebuild-rerun cycles**.
 Agent 15 continued the same loop for six more identical re-runs before finding the real cause — a
 positioning defect in `bufferAddDirPathJoins`, mock one-shots staged *after* the real `path.join`
 calls they were meant to protect against. Agent 14 alone burned **287,865 output and 172,918,166
@@ -792,9 +792,9 @@ siegemaster report there"* [report 15 §5.11].
 
 ### E21. The misattribution defect — five agents, 112.3 minutes — `design`
 
-`a80a3e95f97858bfb` (discover, 22.1m, 113,272) → `a67844e999b9a4053` (fix, 46.7m, 199,443) →
-`acc2562b875e9dca3` (disprove, 22.3m, 82,089) → `a13e65636c9a6c8da` (complete the fix, 7.1m, 28,973)
-→ `aa42ad54c4ee76112` (confirm, 14.1m, 77,997). **501,974 output tokens; 112.3 minutes — 20.3% of the
+`a80a3e95f97858bfb` (discover, 22.1m, 113,272), then `a67844e999b9a4053` (fix, 46.7m, 199,443), then
+`acc2562b875e9dca3` (disprove, 22.3m, 82,089), then `a13e65636c9a6c8da` (complete the fix, 7.1m, 28,973),
+then `aa42ad54c4ee76112` (confirm, 14.1m, 77,997). **501,974 output tokens; 112.3 minutes — 20.3% of the
 item's wall clock on one bug** [report 16 §5 f5].
 
 The extra two agents exist because fix pass 1 covered only one of two failure modes. The operator
@@ -805,8 +805,8 @@ can fail.**
 
 ### E22. Seventy-nine minutes of API-outage cycling with no rule to apply — `design`
 
-Item [17], phase 12, 530.3m → 609.4m: **15 identical cycles** of `API Error: 529 Overloaded` →
-`No response requested.` → a `<task-notification>` → `You were CUT OFF mid-work on this item`. The
+Item [17], phase 12, 530.3m to 609.4m: **15 identical cycles** of `API Error: 529 Overloaded`, then
+`No response requested.`, then a `<task-notification>`, then `You were CUT OFF mid-work on this item`. The
 `CUT OFF` prompt fired at 535.1m, 539.7m, 544.2m, 548.9m, 553.4m, 557.9m, 562.2m, 566.8m, 571.4m,
 576.0m, 584.4m, 592.6m, 601.0m and 609.4m. **Every one of those cycles produced 0 output tokens, 0
 context-in tokens and 0 tool calls** — the 529 came back before the request was billed. Only the
@@ -828,8 +828,8 @@ uncommitted and nothing signalled, has every reason to reach for pause; that is 
 supports."*
 
 A separate, earlier outage cost 14.9 minutes on two zero-turn retries of one walk: `a2529d0596cf135ef`
-(10.7m, 84 turns, 36,021 output, 10,986,554 ctx-in, **zero units signed**) → `a5c6285e864a9ead0`
-(0.8m, 0 real turns) → `ac6eb8ef458dca583` (3.4m, 0 real turns) → `aed35eae01ea78301` (21.5m,
+(10.7m, 84 turns, 36,021 output, 10,986,554 ctx-in, **zero units signed**), then `a5c6285e864a9ead0`
+(0.8m, 0 real turns), then `ac6eb8ef458dca583` (3.4m, 0 real turns), then `aed35eae01ea78301` (21.5m,
 succeeded on opus). **36.4 minutes for 21.5 minutes of usable work** [report 17 §5.5]. The prompt has
 nothing to say: `[HELPERS]` promises *"The notification brings you back"* — but when the model itself
 is 529ing, no notification arrives. The orchestrator does own `apiOverloadRetryStatics` (*"10 retries
@@ -853,13 +853,13 @@ checklist at 610.5m (`REMAINING (awaiting your siegemasterSignoff): 7 of 71`) [r
 Item [16] walked all seven — but reached them only **3.5–9 hours into its own 9.2-hour run**
 [report 16 §4; report 17 §5.10]. *"The ordering rule survives only when a session finishes."*
 
-The denominator also grows under the loop: item [17]'s went **66 → 71** as the operator added five
+The denominator also grows under the loop: item [17]'s went **66 to 71** as the operator added five
 observables — correct behaviour, but *"an unbounded loop over a growing denominator with the security
 and performance probes at the back."*
 
 ### E24. The `[GIT FORMS]` warning is factually wrong, and what is actually blocked is unwarned — `structural`
 
-The codeweaver and siegemaster prompts spend ~200 words / 24 lines warning that piping or chaining a
+The codeweaver and siegemaster prompts spend roughly 200 words / 24 lines warning that piping or chaining a
 git call gets the whole command refused, and order the operator to copy both refusals into **every**
 brief's `TRAPS`. Report 07 measured it against the reviewer's own 20 Bash calls [report 07 §3.4]:
 
@@ -880,7 +880,7 @@ independently: *"The operator broke it twice and nothing refused either call"* �
 
 The real blocks cost real time: **8 sessions hit the native-search PreToolUse block** in item [6]
 [report 06 §5.3]; **nine blocked calls across item [3], none warned about in a brief**, costing
-~3–4 min of sub-agent time and one wrong design decision [report 03 §5 f9]; **at least 20 blocked
+roughly 3–4 min of sub-agent time and one wrong design decision [report 03 §5 f9]; **at least 20 blocked
 attempts across item [4]'s 18 sub-agents** [report 04 §5 f10]; **18 hook-blocked native-search
 attempts across item [9]'s 27 sub-agents**, and five wasted round trips inside the reviewer alone
 [report 09 §5 f6; report 07 §5 f7]. Item [17] adds two more the `[WALL]` catalogue does not cover —
@@ -902,7 +902,7 @@ prompt's `[WALL]` rule points at `signal blocked`, which would have been wrong h
 
 Adjacent: the same blocked edit was **resubmitted byte-identically** before being diagnosed —
 submitted 1.2m, blocked 1.4m, resubmitted 2.0m, blocked again with an identical error, and only
-succeeded at 15.5m after the rule was fixed. ~1.4 min [report 04 §5 f3].
+succeeded at 15.5m after the rule was fixed. Roughly 1.4 min [report 04 §5 f3].
 
 ### E26. A 40-minute single-agent component rewrite shipped a missing handler — `design`
 
@@ -977,8 +977,36 @@ run reported them under **`unit`** — following that sentence literally would h
 `--only integration`, a different jest project [report 10-12 §3.3, §5 f6]. And `[DELEGATION]`'s
 *"the notification brings you back"* is **false under Node dispatch mode**: the session is a headless
 `claude -p` child, so ending the turn ended the process and killed the backgrounded ward run,
-costing **~5.4 min and one of three orphan-recovery attempts** (`retryCount: 1`, `resume: true`)
+costing **roughly 5.4 min and one of three orphan-recovery attempts** (`retryCount: 1`, `resume: true`)
 [report 10-12 §3.5, §5 f3].
+
+### E33. `[DELEGATION]` promises a wake-up that Node dispatch never sends — `structural`
+
+**Where this sits by cost.** About 5.4 minutes, plus one of the three orphan-recovery attempts this
+quest is allowed. That places it between E28 and E29, at the single-digit-minute end of this ranking.
+It carries the number E33 only because slotting a new number in here would renumber every entry below
+it.
+
+**What the prompt tells a session to do.** The `[DELEGATION]` rule tells a session with a helper still
+running to stop and wait for the harness to wake it: *"With everything you can do done and a helper
+still out, end your turn on a plain message and no tool call. The notification brings you back."*
+
+**What actually happens under Node dispatch.** This quest ran in Node dispatch mode, so every session
+is a headless `claude -p` child process. Ending the turn ends that process. Anything the session
+backgrounded dies with it, and no notification arrives, because there is no session left to deliver
+one to.
+
+**What it cost here.** The spiritmender did exactly what the rule says. It backgrounded a ward run,
+ended its turn on a plain message, and the child process exited. The ward run died with it. Orphan
+recovery put the work item back in the queue and dispatched it again. Cost: roughly 5.4 minutes, plus
+one of the three orphan-recovery attempts [report 10-12 §3.5, §5 f3].
+
+**Why it is worse than the minutes suggest.** A session that ends its turn on this promise has no way
+to notice the promise was wrong. It is no longer running, so it cannot time out, cannot re-check, and
+cannot try a second route. Nothing tells it the wake-up is not coming. The failure is therefore silent
+and open-ended rather than self-correcting: the session waits until something outside it intervenes.
+Here that was orphan recovery, which this quest may use only three times. The 5.4 minutes is what one
+outside intervention cost, not what the fault is worth.
 
 ### E29. Repeated identical ward runs inside single sub-agents — `behavioural`
 
@@ -988,7 +1016,7 @@ Against a snippet that says *"Run it ONCE"*:
   with 8 edits interleaved; `agent-aaa27f462b44f55a8` did the same **four times in 1.4 minutes**.
   **51 `npm run ward` invocations across all sub-agents** [report 09 §5 f3].
 - **Item [3]**: **25 ward invocations across seven builders** against a legitimate floor of 2–3 each;
-  ~4 minutes of sub-agent wall clock, ~30 s avoidable [report 03 §5 f6].
+  roughly 4 minutes of sub-agent wall clock, roughly 30 s avoidable [report 03 §5 f6].
 - **Item [13]**: the same "final" ward run five times; and the reviewer ran ward **five times against
   a "twice at most" cap — and had to**, because the cap is wrong [report 13 §5.3, §5.6].
 - **Item [15]**: two agents ran an identical scoped command **four times** each [report 15 §5.6].
@@ -1001,9 +1029,9 @@ Against a snippet that says *"Run it ONCE"*:
 
 ### E30. Raw `npx playwright test` bypasses ward entirely — `behavioural`
 
-Item [13] → **29 invocations**, two sub-agents running it from inside the package directory
-[report 13 §5.8]; item [14] → **38 invocations, one from inside a package directory**
-[report 14 §5 f3]; item [15] → **31 invocations by three sub-agents** [report 15 §5.4]. The brief
+Item [13] had **29 invocations**, two sub-agents running it from inside the package directory
+[report 13 §5.8]; item [14] had **38 invocations, one from inside a package directory**
+[report 14 §5 f3]; item [15] had **31 invocations by three sub-agents** [report 15 §5.4]. The brief
 template's `DO NOT TOUCH` names neither the raw runner nor the browser MCP — item [13] also has a
 test-writing sub-agent that **opened a real Chrome browser and was denied** [report 13 §5.2, §6 f5].
 
@@ -1018,7 +1046,7 @@ test-writing sub-agent that **opened a real Chrome browser and was denied** [rep
   sub-agents"* [report 07 §3.3]. Item [8]'s operator corrected it from brief #4 onward; across its 38
   sub-agents: `46 lint,unit · 35 unit · 17 no --only · 3 lint,test · 1 lint` [report 08 §3].
 - **On a `.test.ts`-only brief** it produces `integration: DISCOVERY MISMATCH`. Item [3]'s agent 2 hit
-  it and recovered in one turn (*"Per the ward-discipline rule, I narrow rather than widen"*), ~0.6
+  it and recovered in one turn (*"Per the ward-discipline rule, I narrow rather than widen"*), roughly 0.6
   min; agent 1's run happened not to mismatch and **graded 36 discovered files that had nothing to do
   with the brief** [report 03 §3.6].
 - **On an `.e2e.ts`/`.harness.ts` pair** it mismatches on both `unit` and `integration`. Item [14]'s
@@ -1035,7 +1063,7 @@ test-writing sub-agent that **opened a real Chrome browser and was denied** [rep
 - **`modify-quest` silently discards unknown keys and returns `{"success": true}`** — the enabling
   half of E5's data loss. `flowNodeContract` has no `edges` key; zod strips it; the call reports
   success [report 05 §5 f1]. Item [15] separately hit the *opposite* behaviour — a structural refusal
-  when one call both signs and edits an observable — costing ≈30 s and two extra calls, and **the
+  when one call both signs and edits an observable — costing about 30 s and two extra calls, and **the
   "Recording what you claim" section never mentions it** [report 15 §3.7].
 - **The `wall` routing table has no row for a scope wall.** Two sub-agents returned `NEXT: wall` for
   things that were not environment walls. A literal reading of the table sends the operator to
@@ -1121,7 +1149,7 @@ tool call."* The harness's `<task-notification>` re-entry does the rest.
 | 16 | **6.4 min of dead air in 553.** Across 21 Bash calls, no sleep beside a running agent, no `tail` of a task output file, no re-dispatch. The only `sleep 2` is inside the step-10 teardown port check | [16 §1, §3] |
 | 17 | **Zero `sleep` calls, zero polls, zero re-runs.** *"The repo's own ward-discipline snippet records a peer quest burning 815 seconds on sleep-polling. This session burned zero."* | [17 §3] |
 
-**This is why the ~1% true-dead-air figure in section C exists at all.** Any fix that gives an
+**This is why the roughly 1% true-dead-air figure in section C exists at all.** Any fix that gives an
 operator busywork during a wait risks trading a rule that works for one that does not.
 
 ### F2. The map is the mechanism that makes good runs good
@@ -1142,7 +1170,7 @@ into every brief.
   *"`msw/node` (2.12) does NOT intercept XMLHttpRequest"* — established by two `python3` probes at
   4.8m, **before a single sub-agent was briefed**. *"It is the reason the pass shipped a real XHR
   proxy instead of discovering the problem three groups in"* [08 §3, §4].
-- **Item [7]**: two `node -e` jsdom capability probes at 3.8m and 3.9m, costing ~2 minutes and 751
+- **Item [7]**: two `node -e` jsdom capability probes at 3.8m and 3.9m, costing roughly 2 minutes and 751
   output tokens, **decided the whole architecture** — canvas and IndexedDB behind adapters, making 35
   of 38 observables provable below a browser. A second probe at 26.4m moved three more units mid-wave
   for 17 seconds of wall clock [07 §4].
@@ -1202,12 +1230,12 @@ freely."*
   description after a sub-agent measured that `domComposerInsertTextAdapter` leaves two sibling text
   nodes rather than one merged node. **Spec corrected mid-flight, no verdict faked** [13 §3].
 - **Item [14]**: two defects became observables rather than sign-offs — the create-surface image drop
-  and the Chromium end-of-content newline. Unit count moved **58 → 59** [14 §3].
-- **Item [15]**: three times. Wave 3 measured the overlay at 864 px where the spec says 960 px →
+  and the Chromium end-of-content newline. Unit count moved **58 to 59** [14 §3].
+- **Item [15]**: three times. Wave 3 measured the overlay at 864 px where the spec says 960 px, then
   recorded `unconfirmable` with a `toSettle`. Wave 4 produced an arbitrary-file-read demonstration.
   Wave 6 reproduced the duplicate-bubble defect end to end. **None of the three was converted into a
   green check** [15 §4].
-- **Item [16]**: **nine observables added mid-session; the unit count moved 65 → 67 → 69 → 74.**
+- **Item [16]**: **nine observables added mid-session; the unit count moved 65, then 67, then 69, then 74.**
   *"0 of 74 remaining, up from 65 because nine observables came from defects walkers measured."*
   **Four of the ten fixed defects had no observable behind them when found** — the yield of step 5's
   *"'No observable claims it' is not a reason to leave something broken"* [16 §3, §4].
@@ -1268,8 +1296,8 @@ rule *"A walker that finds the guide wrong reports it, and you send this sub-age
 that one heading."*
 
 Item [17]: 8.4 min and 45,408 output tokens for a 36,164-char guide, then **21 `Read` calls on it
-across 20 distinct sub-agents** — every walker plus the guide agents themselves. At **≈9k tokens ×
-19 walkers ≈ 171k tokens against 494M of walker context-in, that is 0.03% of the item's walking
+across 20 distinct sub-agents** — every walker plus the guide agents themselves. At **about 9k tokens ×
+19 walkers, about 171k tokens against 494M of walker context-in, that is 0.03% of the item's walking
 cost.** Two correction passes followed, and the second correction's text reached the next walker's
 brief verbatim [17 §4.6, §3]. The recovered deep-dive confirms it from the other side: *"every
 subsequent walker (2,5,6,8,10,12,13,16,17,18,19) reads this exact file first"*
@@ -1317,8 +1345,8 @@ it in its served prompt. It fails only on sub-agents, who never receive it** —
   the XHR `RangeError` on `status === 0`, the two-proxy `XMLHttpRequest` collision, a progress bar
   showing on text-only sends, and the msw/node XHR gap [08 §4].
 - **Item [14]**: the flowrider read the diff and **found a tautology its sub-agent had shipped**
-  (5.1 min, ~18k tokens), and re-reading the checklist at the end **found a genuinely uncovered unit**
-  (3.4 min, ~14.5k tokens); it also corrected its own arithmetic against the reviewer at 248.8m
+  (5.1 min, roughly 18k tokens), and re-reading the checklist at the end **found a genuinely uncovered unit**
+  (3.4 min, roughly 14.5k tokens); it also corrected its own arithmetic against the reviewer at 248.8m
   [14 §4].
 - **Item [15]'s reviewer** opened all 11 test files in full, cross-checked every asserted literal
   against real source, ran a green build and a green `--staged` ward — **and then noticed the green
@@ -1409,7 +1437,7 @@ chain [02 §4; 03 §4; 04 §0; 06 §4; 07 §0; 08 §0; 09 §0]. Item [5] recorde
 zero re-reads across 84 calls** [05 §4]; item [6]'s operator **never re-read a file it had already
 read** — 36 `Read` calls over 34 distinct paths, both repeats legitimate [06 §4]; item [3] had **zero
 orientation rework** — 13 `Read` calls hitting 13 distinct files [03 §4]. Item [13] logged **exactly
-three permission denials in three hours, costing ~1.3 min** [13 §4].
+three permission denials in three hours, costing roughly 1.3 min** [13 §4].
 
 ---
 
@@ -1419,7 +1447,7 @@ Grouped as the brief requires: **(i) one-line changes**, **(ii) prompt edits**, 
 needing a decision.** Within each group, highest saving first. Every arithmetic step is shown.
 
 **The highest-value fix in the post-mortem is G1** — a per-run Playwright report path. It is one line
-of TypeScript, it deletes a prompt rule rather than adding one, and it is worth **≈225–300 minutes on
+of TypeScript, it deletes a prompt rule rather than adding one, and it is worth **about 225–300 minutes on
 this quest's three flowrider items alone.**
 
 ---
@@ -1451,14 +1479,14 @@ per package"* — no longer holds.
 
 - Item [15]: waves 2–6 ran 167.4 agent-min at 1.00× across 169.4 wall min. Overlapped as wave 1 was
   (3.07×), the chain collapses to `30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 min`. **169.4 − 79.8 =
-  ≈89.6 min saved, 41% of that item** [15 §6 f1].
+  about 89.6 min saved, 41% of that item** [15 §6 f1].
 - Item [13]: **66–100 min**, stated as *"Saves ≈ 100 min on this item; ≈ 300 min across the quest's
   three flowrider items"* [13 §6 f1].
-- Item [14]: P3 (33.0 min) and P4 (8.5 min) collapse into P5's 49-minute window — **≈35 min saved**
+- Item [14]: P3 (33.0 min) and P4 (8.5 min) collapse into P5's 49-minute window — **about 35 min saved**
   [14 §6 f1].
 
-**Quest total: ≈90 + ≈35 + ≈100 = ≈225 min** on the three flowrider items measured individually;
-report 13's own quest-wide estimate is **≈300 min**. Both figures are given because they were
+**Quest total: about 90 + about 35 + about 100 = about 225 min** on the three flowrider items measured individually;
+report 13's own quest-wide estimate is **about 300 min**. Both figures are given because they were
 computed differently — see H4.
 
 **Dependency**: report 15's fix 2 — make the Playwright harness a first-class wave-0 artifact rather
@@ -1503,11 +1531,11 @@ if (workItem.role === 'codeweaver') {
 **Proposed, in identical or near-identical form, by all eight codeweaver reports** — [02 §6 f1],
 [03 §6 f5], [04 §6 f4], [05 §6 f2], [06 §6 f3], [07 §6 f5], [08 §6 f1], [09 §6 f6].
 
-**Saving, with arithmetic:** per-item estimates are ≈0.3 min [02], ≈0.5 min [09], ≈1–2 min [06],
-≈4 min [08], ≈4–6 min [04], ≈3–5 min [07], and "most of phase 3's exploration" — 6.3 min — [05].
-Taking the midpoint of the range that carries a number, **≈3–6 min × 8 codeweaver items = 24–48 min**;
+**Saving, with arithmetic:** per-item estimates are about 0.3 min [02], about 0.5 min [09], about 1–2 min [06],
+about 4 min [08], about 4–6 min [04], about 3–5 min [07], and "most of phase 3's exploration" — 6.3 min — [05].
+Taking the midpoint of the range that carries a number, **about 3–6 min × 8 codeweaver items = 24–48 min**;
 report 07's own multiplication is **3–5 min × 7 cells = 21–35 min**. Report 04's token half:
-≈45,000 context tokens per item for the `get-project-map` call the block would replace [03 §6 f5].
+about 45,000 context tokens per item for the `get-project-map` call the block would replace [03 §6 f5].
 
 **The alternative is equally acceptable and cheaper to reason about**: reports 07 and 09 both say
 *"or delete it"* — delete the 175-line transformer and its test, and cut the seam question from step
@@ -1527,8 +1555,8 @@ Add an edge-id part — report 09 proposes `<edge:${id}>`, report 03 proposes `{
 **Proposed by** [report 03 §6 f3], [report 05 §6 f1], [report 06 §6 f2], [report 08 §6 f2],
 [report 09 §6 f3].
 
-**Saving, with arithmetic:** 1.4 min + one MCP round-trip on item [6] [06 §6 f2]; 1.1 min and ~2,750
-output tokens on item [9] [09 §6 f3]; ~0.6 min and ~40,000 context tokens on item [3] [03 §6 f3]. It
+**Saving, with arithmetic:** 1.4 min + one MCP round-trip on item [6] [06 §6 f2]; 1.1 min and roughly 2,750
+output tokens on item [9] [09 §6 f3]; roughly 0.6 min and roughly 40,000 context tokens on item [3] [03 §6 f3]. It
 also removes a **135,813-character** spill [03 §3.3] and a **263,665-character** spill [09 §5 f4],
 and it stops two prompt-forbidden `stage:` calls the prompt currently forces.
 
@@ -1552,10 +1580,10 @@ substitute (`Read` with an offset, `discover`, `python3 -c`).
 **Proposed by** [report 07 §6 f6], [report 16 §6 f8], [report 03 §6 f8], [report 09 §6 f5],
 [report 06 §6 f5], [report 05 §6 f5-adjacent].
 
-**Saving, with arithmetic:** ~1 min per reviewer and ~5 wasted calls, ×2–4 min per cell [07 §6 f6];
-~50 s per review and ~3 s per codeweaver [03 §6 f8]; 8 wasted turns per item [06 §6 f5]; 3 wasted
-round-trips per reviewer [09 §6 f5]. It also **deletes a paragraph from every one of the quest's ~100
-sub-agent briefs** and ~10 lines from each of three prompts [16 §6 f8].
+**Saving, with arithmetic:** roughly 1 min per reviewer and roughly 5 wasted calls, ×2–4 min per cell [07 §6 f6];
+roughly 50 s per review and roughly 3 s per codeweaver [03 §6 f8]; 8 wasted turns per item [06 §6 f5]; 3 wasted
+round-trips per reviewer [09 §6 f5]. It also **deletes a paragraph from every one of the quest's roughly 100
+sub-agent briefs** and roughly 10 lines from each of three prompts [16 §6 f8].
 
 #### G6. Render a real, reachable path for the spiritmender's ward blob — **≈6.4 min per spiritmender dispatch**
 
@@ -1579,9 +1607,9 @@ forbids [10-12 §5 f1, f2].
 
 #### G7. Put the hardened build ban in every sub-agent and fixer brief template — **≈20–40 min per siegemaster item, ≈6–9 min per codeweaver item, and one class of shared-`dist/` corruption**
 
-*Addresses E3.* **Files:** `codeweaver-prompt-statics.ts` (`Briefing a sub-agent` → `PROVE`),
-`flowrider-prompt-statics.ts` (same block), `siegemaster-prompt-statics.ts` (`## Briefing a fixer` →
-`PROVE`).
+*Addresses E3.* **Files:** `codeweaver-prompt-statics.ts` (`Briefing a sub-agent` section's `PROVE` block),
+`flowrider-prompt-statics.ts` (same block), `siegemaster-prompt-statics.ts` (`## Briefing a fixer` section's
+`PROVE` block).
 
 **Edit** — use the wording item [17]'s operator evolved on its own, because **it is the only wording
 in the quest with a measured effect** [17 §6 F1]:
@@ -1606,19 +1634,19 @@ genuinely blocked agent has somewhere to go instead of disobeying.
 
 **Saving, with arithmetic:**
 
-- **The A/B**: plain ban → 33 violations / 6 of 6 fixers; hardened ban → 1 violation / 1 of 3
-  [17 §5.1]. Applied to item [17]'s 34 builds at 30–90 s each, that is **~17–50 min**; report 17's own
+- **The A/B**: plain ban leads to 33 violations / 6 of 6 fixers; hardened ban leads to 1 violation / 1 of 3
+  [17 §5.1]. Applied to item [17]'s 34 builds at 30–90 s each, that is **roughly 17–50 min**; report 17's own
   estimate is **20–40 min and one whole re-walk's worth of ambiguity per item** [17 §6 F1].
 - Item [16]: **17 invocations across 10 agents, eliminated** [16 §6 f1].
-- Item [09]: the reviewer's sanctioned build took 24 s for 13 packages; **16 × 24 s ≈ 6.4 min** of
+- Item [09]: the reviewer's sanctioned build took 24 s for 13 packages; **16 × 24 s is about 6.4 min** of
   sub-agent wall clock [09 §5 f1].
-- Item [03]: **~9 min of builder wall clock per item of this size, plus the sibling-collision failure
+- Item [03]: **roughly 9 min of builder wall clock per item of this size, plus the sibling-collision failure
   class entirely** [03 §6 f1].
-- Item [08]: **20–30 minutes of sub-agent wall clock** from 23 measured invocations, ~20 of them
+- Item [08]: **20–30 minutes of sub-agent wall clock** from 23 measured invocations, roughly 20 of them
   concurrent with a live sibling [08 §6 f5].
-- Item [15]: **≈8–16 sub-agent min, removes a concurrent-`dist/` corruption hazard** [15 §6 f4].
+- Item [15]: **about 8–16 sub-agent min, removes a concurrent-`dist/` corruption hazard** [15 §6 f4].
 
-**Across the quest's 158 counted invocations at 30–90 s each: ≈79–237 minutes of sub-agent wall
+**Across the quest's 158 counted invocations at 30–90 s each: about 79–237 minutes of sub-agent wall
 clock**, plus the corruption window the rule exists to close — which fired at least once, observed, in
 item [3].
 
@@ -1652,7 +1680,7 @@ loop still open loses every fix it made; this is the only thing that prevents th
 **655.1 minutes of session time producing 67 uncommitted paths and nine fixers' work, with `git log`
 still at `startRef`**. The insurance premium is one extra reviewer dispatch per clean path — item
 [16]'s reviewer cost **9.7 min** for the whole pass [16 §1], so a per-path checkpoint is on the order
-of **~10 min per item**. Report 17 states it as *"up to 655 min of at-risk work per interrupted item;
+of **roughly 10 min per item**. Report 17 states it as *"up to 655 min of at-risk work per interrupted item;
 ~10 min of reviewer time to insure it."*
 
 This is also the structural answer to E14: with checkpoints, a stray `git checkout HEAD --` costs one
@@ -1660,7 +1688,7 @@ path's fixes rather than ten agents' worth.
 
 #### G9. Add the destructive-git ban to the fixer and sub-agent brief templates — **~140 lines of destroyed work, once, and the risk of all of it**
 
-*Addresses E14.* **Files:** `siegemaster-prompt-statics.ts` (`## Briefing a fixer` → `DO NOT TOUCH`),
+*Addresses E14.* **Files:** `siegemaster-prompt-statics.ts` (`## Briefing a fixer` section's `DO NOT TOUCH` block),
 `codeweaver-prompt-statics.ts` (brief template `TRAPS`).
 
 **Edit:** copy the verbs the operator, walker and reviewer prompts already carry —
@@ -1689,10 +1717,10 @@ since the measured damage is as much serialisation as duplication.
 **Proposed by** [report 02 §6 f3], [report 03 §6 f4], [report 04 §6 f3], [report 05 §6 f4],
 [report 06 §6 f7], [report 08 §6 f9], [report 09 §6 f4], [report 15 §6 f5], [report 17 §6 F8].
 
-**Saving, with arithmetic:** 9,778,706 context-in + 32,669 output and ~2.7 min off the longest builder
-[03 §6 f4]; ~11 min per occurrence plus ~2M ctx-in [04 §6 f3]; ~4M context-in per item [06 §6 f7];
-5,925,244 context-in and 49,245 output [05 §6 f4]; ~14,300 output and ~4.1M context-in [08 §6 f9];
-≈13M context-in per item [15 §6 f5]; ~5 min and ~4.5M context-in [17 §6 F8]; 287,810 context-in
+**Saving, with arithmetic:** 9,778,706 context-in + 32,669 output and roughly 2.7 min off the longest builder
+[03 §6 f4]; roughly 11 min per occurrence plus roughly 2M ctx-in [04 §6 f3]; roughly 4M context-in per item [06 §6 f7];
+5,925,244 context-in and 49,245 output [05 §6 f4]; roughly 14,300 output and roughly 4.1M context-in [08 §6 f9];
+about 13M context-in per item [15 §6 f5]; roughly 5 min and roughly 4.5M context-in [17 §6 F8]; 287,810 context-in
 [02 §6 f3].
 
 #### G11. Fix the brief template's `PROVE` check types — **≈31 min of downstream repair, plus a DISCOVERY MISMATCH per affected brief**
@@ -1709,9 +1737,9 @@ then over-correct into `typecheck` when left to themselves.
 
 **Proposed by** [report 07 §6 f1-f2], [report 08 §6 f3], [report 03 §6 f2], [report 14 §6 f2].
 
-**Saving, with arithmetic:** **31 min** — items [10] 5.0 + [11] 23.6 + [12] 2.7 = 31.3 min of ward-red
-→ spiritmender → ward-pt2 chain, all of it attributable to two suites no sub-agent scope ever included
-[07 §6 f2]. Plus ~1 ward cycle (~10 s) and one diagnosis turn (~0.6 min) per affected brief [03 §6 f2];
+**Saving, with arithmetic:** **31 min** — items [10] 5.0 + [11] 23.6 + [12] 2.7 = 31.3 min of ward-red,
+then spiritmender, then ward-pt2 chain, all of it attributable to two suites no sub-agent scope ever included
+[07 §6 f2]. Plus roughly 1 ward cycle (roughly 10 s) and one diagnosis turn (roughly 0.6 min) per affected brief [03 §6 f2];
 plus 4–8 min per flowrider item and the removal of a prompt self-contradiction [14 §6 f2]; plus, on a
 session that does not notice, **Playwright spinning inside 19–29 concurrent sub-agents**
 [08 §6 f3; 07 §3.3].
@@ -1731,8 +1759,8 @@ instruction**, rather than leaving a 3,564-line diff to be read after all signin
 
 **Saving, with arithmetic:** item [7] — finding the `onInput` defect before the test-file straggler was
 dispatched *"would have removed phase L entirely and overlapped phase M with phase J"* — **10–25 min**
-[07 §6 f3]. Item [13] — ~2 min per pass and removes a step that reads as a no-op [13 §6 f6]. Item
-[15] — **≈0 min but catches the two vacuous negatives** [15 §6 f3]. Report 09's companion makes the
+[07 §6 f3]. Item [13] — roughly 2 min per pass and removes a step that reads as a no-op [13 §6 f6]. Item
+[15] — **about 0 min but catches the two vacuous negatives** [15 §6 f3]. Report 09's companion makes the
 reviewer read whole test files rather than diffs, closing its one real quality gap [09 §6 f5].
 
 #### G13. Cap a fixer, and make it hand back a red test rather than grind — **≈35 min and ~200k output tokens per occurrence**
@@ -1753,8 +1781,8 @@ BUDGET
 `HANDING UP A RED YOU WERE NOT ASKED TO LOOK AT` line.
 
 **Saving, with arithmetic:** *"the difference between stopping at ~3 ward runs (≈29.5m into agent 14,
-where the count was already 1) and 66.2 min"* — **≈35 min and ~200k output tokens per occurrence**
-[17 §6 F3]. Report 13's variant: **≈5–20 min per pass; "would have caught 18 errors 21 minutes
+where the count was already 1) and 66.2 min"* — **about 35 min and roughly 200k output tokens per occurrence**
+[17 §6 F3]. Report 13's variant: **about 5–20 min per pass; "would have caught 18 errors 21 minutes
 earlier here"** [13 §6 f4], where `agent-a5559883eeba4d70a` had already seen 18 typecheck errors at
 its own 7.9m and said nothing, and they grew to 51 [13 §5.1].
 
@@ -1777,11 +1805,11 @@ substantive lines identical = 10.1% of the second**, written 9 hours apart with 
 flow, depending on which session goes second** [17 §6 F4, §5.6].
 
 **Companion for the flowrider chain** [14 §6 f4]: hand the next flowrider the previous flowrider's
-map. **≈25–30 min and ≈300k tokens per item on the 2nd and later flowrider items** — *"This quest ran
+map. **about 25–30 min and about 300k tokens per item on the 2nd and later flowrider items** — *"This quest ran
 three flowrider items; the fix pays twice."* Item [15]'s operator already did this voluntarily and
 called it *"the house pattern"* (F2/F18), so the fix is making a proven behaviour mandatory, not
 inventing one. Report 15 §6 f6 adds the narrower version: **write the shared test substrate down once
-per quest — ≈4 explorer agent-min and ≈7M context-in per flowrider after the first.**
+per quest — about 4 explorer agent-min and about 7M context-in per flowrider after the first.**
 
 #### G15. Move the off-map probes off the back of the queue — **converts a total loss of security and performance coverage into ~35 min spent early**
 
@@ -1826,10 +1854,10 @@ siegemaster seed:
 **Edit** — pick one and commit to it [17 §6 F5; 16 §6 f6]:
 **(a)** change the text to *"manual-QA this flow by hand against a running system"*, or
 **(b)** add the step the text promises — report 16 §6 "7b" sketches it as *"Read the suite that
-already covers this flow"*, costing ~5 minutes and asking the one question `flowrider-reviewer`
+already covers this flow"*, costing roughly 5 minutes and asking the one question `flowrider-reviewer`
 exists to ask: *"does this suite bite?"*
 
-**Saving:** *"Estimate: 0 min saved, 1 lie removed"* [17 §6 F5]. Option (b) costs ~5 min and buys the
+**Saving:** *"Estimate: 0 min saved, 1 lie removed"* [17 §6 F5]. Option (b) costs roughly 5 min and buys the
 coverage check that produced zero minutes across two 9-to-11-hour sessions.
 
 #### G18. Drop the unsatisfiable `FINDINGS:` instruction from step 7, and give findings a real home — `structural` decision required
@@ -1903,21 +1931,21 @@ unprompted**, and its two notes are the only durable record of defects belonging
 **The decision needed** is which of three shapes to take, because they trade differently:
 
 **(a) Serve once per work item.** The operator writes the standards to a file once, and briefs point
-at it. **Saving: up to 1,044,835 B ≈ 261,000 tokens per codeweaver item; ≈2.1M tokens across eight
+at it. **Saving: up to 1,044,835 B, about 261,000 tokens per codeweaver item; about 2.1M tokens across eight
 codeweaver items** — report 06 calls this *"the highest-value fix by an order of magnitude"*
-[06 §6 f1]. Report 14's variant: **≈210–285k tokens per flowrider item** [14 §6 f5]. Report 07's:
-**~30 of 90 calls, ~900 KB, ~225k tokens** [07 §6 f8]. Report 02's: **~113,000 tokens of one-time
+[06 §6 f1]. Report 14's variant: **about 210–285k tokens per flowrider item** [14 §6 f5]. Report 07's:
+**roughly 30 of 90 calls, roughly 900 KB, roughly 225k tokens** [07 §6 f8]. Report 02's: **roughly 113,000 tokens of one-time
 load per cell** [02 §6 f9].
 
 **(b) Slice by folder type.** Have the tools accept a `folderTypes` filter so a contracts brief does
 not carry widget rules. Report 04 adds the operator-side half: the operator **writes no code**, so it
-needs `get-architecture` and arguably nothing else — **≈19k tokens per item** [04 §6 f6].
+needs `get-architecture` and arguably nothing else — **about 19k tokens per item** [04 §6 f6].
 
 **(c) Fix the under-serving first.** Report 08's counter-finding (E11) is that the docs also lack the
 answers agents most need. Its fix: **put the local eslint rule catalogue into `get-syntax-rules`** —
-**≈4.9M tokens per cell**, *"the single largest recurring waste"* [08 §6 f8]. Report 09 names the
+**about 4.9M tokens per cell**, *"the single largest recurring waste"* [08 §6 f8]. Report 09 names the
 three specific lint answers [09 §6 f4]; report 03 names the `unknown`-narrowing worked example that
-four separate lookups failed to find, worth **≈10.9M context-in and ≈4.0 min per item that indexes a
+four separate lookups failed to find, worth **about 10.9M context-in and about 4.0 min per item that indexes a
 spawned argv** [03 §6 f6].
 
 **These are not alternatives — (c) makes (a) and (b) safe.** Slicing a document that is already
@@ -1960,7 +1988,7 @@ item after every Nth cell. Cheaper variant, no ledger change: have `codeweaver-r
 **package-scoped** ward alongside `--staged`.
 
 **Saving, with arithmetic:** the spiritmender's 23.6 min + the failed gate's 5.0 min + the pt-2 gate's
-2.7 min = **~31 min per quest**, plus every minute a later cell spends building on a latent break
+2.7 min = **roughly 31 min per quest**, plus every minute a later cell spends building on a latent break
 [09 §6 f1].
 
 **Why this needs a decision:** report 09 also establishes that a whole-branch sweep by any reviewer
@@ -2002,7 +2030,7 @@ as `[HELPERS]` says — **but it had no work to overlap because the prompt gives
 
 **The decision:** if G1 lands, this disappears — the walks parallelise and there is nothing to
 overlap. If G1 is rejected, then report 14's fix 1 (**overlap the below-browser group with the browser
-walks, ≈35–45 min/item**) is the fallback, and report 13's fix 10 (reconcile step 5's group
+walks, about 35–45 min/item**) is the fallback, and report 13's fix 10 (reconcile step 5's group
 choreography with a browser-only flow) becomes necessary because *"'carry on down the map' and 'send
 that file out again' are the same slot"* [13 §6 f10]. **Do not do both G1 and G24's fallback** —
 G24's fallback exists only to salvage value if G1 is not taken.
@@ -2086,7 +2114,7 @@ to a different question — how much of an opus operator's wall clock produces n
 which is what a cost model of the orchestrator needs. Second, item [7]'s 4.7% and item [9]'s 1.0% are
 genuine self-inflicted stalls that the split framing would otherwise bury inside "blocked".
 
-**The conclusion the measured split supports: true dead air is ~1%, and the defect is
+**The conclusion the measured split supports: true dead air is roughly 1%, and the defect is
 serialisation.** Every fix in G is written against that.
 
 ### H3. Report 09's context-in grand total is internally inconsistent by 1,000 tokens
@@ -2102,13 +2130,13 @@ of that item and 0.00002% of the quest, and it does not move any conclusion. Som
 
 ### H4. G1's quest-wide saving: ≈225 min or ≈300 min?
 
-- **≈225 min** — the sum of the three per-item measurements: ≈90 [15 §6 f1] + ≈35 [14 §6 f1] + ≈100
+- **about 225 min** — the sum of the three per-item measurements: about 90 [15 §6 f1] + about 35 [14 §6 f1] + about 100
   [13 §6 f1].
-- **≈300 min** — report 13's own quest-wide line: *"Saves ≈ 100 min on this item; ≈ 300 min across the
+- **about 300 min** — report 13's own quest-wide line: *"Saves ≈ 100 min on this item; ≈ 300 min across the
   quest's three flowrider items"* [13 §6 f1].
 
-**Better evidenced: ≈225 min.** Report 13's 300 extrapolates its own item's figure across three items
-of assumed equal shape; reports 14 and 15 measured their own items directly and got 35 and ≈90, and
+**Better evidenced: about 225 min.** Report 13's 300 extrapolates its own item's figure across three items
+of assumed equal shape; reports 14 and 15 measured their own items directly and got 35 and about 90, and
 report 15 shows its arithmetic (`30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8`; `169.4 − 79.8 = 89.6`).
 Item [14] is much lower than item [13] because more of its work sat below the browser and already ran
 in parallel.

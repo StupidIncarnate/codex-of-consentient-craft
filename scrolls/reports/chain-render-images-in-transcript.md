@@ -1,7 +1,7 @@
 # Chain audit — flow `render-images-in-transcript`
 
 Quest `1be07040-b9ec-476c-a439-0b4fbb0123cd`, flow 3 of 3. The chain on this flow is three codeweaver
-cells → one flowrider → **no siegemaster**.
+cells, then one flowrider, then **no siegemaster**.
 
 > **SCOPE CAVEAT, stated once here and repeated at every figure it touches.** No siegemaster work item
 > was ever dispatched for this flow. The operation item exists — `c435c149-60d4-40e0-a380-ec896759a22a`,
@@ -267,7 +267,7 @@ cells, three of them by all three. The eligibility statics call this deliberate:
 
 Two things then saved the split, and neither is a rule:
 
-**(a) Build order drained the overlap.** Cells run library → programmatic-service → http-backend →
+**(a) Build order drained the overlap.** Cells run library, then programmatic-service, then http-backend, then
 frontend-react (`packageBuildOrderStatics.tiers`), so orchestrator ran first, server second, web last. Each
 cell's `REMAINING` had already been emptied of the glue units its predecessors signed. First come, first
 served.
@@ -334,20 +334,20 @@ neither `Work item context` nor `packagesAffected` [report 15 §3]. The work ite
 The line carries `[C✓]` while withholding the id needed to write one.
 
 - **[6] server**: `39.2m say: "I need the edge ids to sign the two branch units — the flow render prints
-  labels but not ids."` → `39.6m say: "The quest file sits outside my sandbox, and guessing an edge id
+  labels but not ids."` leading to `39.6m say: "The quest file sits outside my sandbox, and guessing an edge id
   would append a phantom unit."` Cost: **1.4 minutes plus one extra MCP round-trip** [report 06 §3.2b].
 - **[9] web**: `79.0m say: "Edge ids are author-chosen, and the quest file sits outside my worktree.
   Fetching the quest as JSON to read them."` A blocked `ls`, a speculative `discover`, a `ToolSearch`,
   then a bare `get-quest({questId})` — the exact call its own prompt forbids — which blew the ceiling
   (`Error: result (263,665 characters across 4,359 lines) exceeds maximum allowed tokens`) and spilled to
-  a file it parsed with three `python3 -c` calls. Cost: **1.1 minutes and ≈2,750 output tokens**
+  a file it parsed with three `python3 -c` calls. Cost: **1.1 minutes and about 2,750 output tokens**
   [report 09 §3c(i), §4]. Report 09's verdict: *"forbidden, but the forbidden route was the only route."*
 
 ### 3.4 `get-qa-checklist` itself, for the codeweaver
 
 Not named anywhere in `codeweaver-prompt-statics.ts`. [6] invented it; [4] never called it at all (its full
 69-call tool histogram contains none) and worked from the `get-quest` flow render, self-correcting a
-miscount along the way: `0.7m say: "Seven nodes are mine, with 15 observables…"` → `47.9m say: "All 18 of
+miscount along the way: `0.7m say: "Seven nodes are mine, with 15 observables…"` leading to `47.9m say: "All 18 of
 my units have their evidence."` Report 06's note on it: *"No time was lost, but nothing in the tooling
 would have caught it if it had not."*
 
@@ -357,7 +357,7 @@ would have caught it if it had not."*
 (`45.1m–45.8m`) hunting `quest.json` on disk, eating two refusals:
 `45.3m Error: … The following parts require approval: ls …/.dungeonmaster/` and
 `45.3m Error: PreToolUse:Bash hook error: [dungeonmaster-pre-bash]: BLOCKED: Native search tools are
-disabled.` Cost: **~30 seconds and 4 tool calls** [report 04 §3.5].
+disabled.` Cost: **roughly 30 seconds and 4 tool calls** [report 04 §3.5].
 
 ### 3.6 The shared e2e substrate, a third time
 
@@ -366,11 +366,11 @@ been read by an earlier flowrider's explorer** — `playwright.config.ts`, `e2e-
 `claude-mock` harness, `quest.harness.ts`, `environment.harness.ts`, `server-app.harness.ts`,
 `api-routes-statics.ts`, `pasted-image-statics.ts`, `web-config-statics.ts`, `image-overlay-widget.tsx`,
 `images-flow.ts`, `images-flow.integration.test.ts`, `start-server.ts`. Cost pro-rated by file share:
-**≈4.2 explorer agent-minutes and ≈7.0 M context-in tokens** [report 15 §5.9]. A second, larger duplicate:
+**about 4.2 explorer agent-minutes and about 7.0 M context-in tokens** [report 15 §5.9]. A second, larger duplicate:
 the standards triple (94,985 bytes) was fetched **11 times** in that one session tree — **1,044,835 bytes
 of identical text** — which the prompt requires.
 
-**Total priced derivation cost on this flow: ≈15–20 opus-minutes and ≈39 M context-in tokens**, all of it
+**Total priced derivation cost on this flow: about 15–20 opus-minutes and about 39 M context-in tokens**, all of it
 spent re-establishing facts that already existed in `quest.json`, on sibling work items, or in a
 transformer with no caller.
 
@@ -525,7 +525,7 @@ Three facts stack:
 1. The flowrider operator **ran `git diff` zero times in 219 minutes** and opened **2 of the 12 files it
    produced**. At `211.5m` it wrote *"Verifying that against the checklist, and reading what actually
    changed"* and ran `git status --short` [report 15 §5 finding 2]. Both sibling flowriders read their
-   output back; FR1 dispatched 3 rework sub-agents after doing so, FR2 dispatched 4. **FR3 dispatched 0.**
+   output back; the first flowrider session (FR1) dispatched 3 rework sub-agents after doing so, the second flowrider session (FR2) dispatched 4. **The third flowrider session (FR3) dispatched 0.**
 2. The reviewer that did read the files certified there were no vacuous negatives, and was wrong.
 3. **The third track has never run and there is no queued item that will run it.**
 
@@ -574,7 +574,7 @@ than signing a green.
 marked `check-modal-is-three-quarters-wide` `unconfirmable` with exactly the right reason — *"Mantine's own
 Modal sizing sits between the prop and the pixels"*. The chain worked. The 96 px gap was found at the first
 layer that could see it, one role after the layer that could not, and the earlier role named the boundary
-in advance. **This is the cheapest possible place for that discovery, and it cost ≈0 additional wall clock**
+in advance. **This is the cheapest possible place for that discovery, and it cost about 0 additional wall clock**
 — the wave was running anyway and returned 10/10 green.
 
 **Zero siegemaster-authored observables on this flow — not yet attempted.**
@@ -646,7 +646,7 @@ flow's suites do and do not bite on:
    commit `99587913a` would have caught any of them."*
 2. **`hostile-input` and `perf` — the two families with the most yield on the sibling flow, both untouched
    here.** This is the flow carrying the traversal / null-byte / `/etc/passwd` matrix. The flowrider
-   already demonstrated an arbitrary-file-read (`/etc/passwd` → **200, 3,546 bytes, `Content-Type:
+   already demonstrated an arbitrary-file-read (`/etc/passwd` returning **200, 3,546 bytes, `Content-Type:
    image/png`**) when `imageContentTypeTransformer` was broken, and filed the note that the ten refusal
    rows cannot isolate the guard. A hand probe with a live server against a real filesystem is the layer
    that closes that.
@@ -695,7 +695,7 @@ is jest-batch-order-dependent, exactly as the spiritmender diagnosed (*"a bare `
 isolation but still crashed once other files in the batch ran first"*).
 
 Cost charged to the tail of this flow's chain: 5.0 min failed gate + 23.6 min spiritmender + 2.7 min pt-2
-gate ≈ **31 min**, none of it caused by any of this flow's three cells.
+gate is about **31 min**, none of it caused by any of this flow's three cells.
 
 ---
 
@@ -772,8 +772,8 @@ elsewhere, and one of them is not a step at all:**
 1. **Not a step — three wiring fixes.** `codeweaverScopeBlockTransformer` and
    `workItemContextBlockTransformer` wired into `workItemToPromptTransformer`; the edge id printed in
    `flowGraphToTextTransformer`; the observable's own `package` field consulted in
-   `qaUnitsInPackageScopeTransformer`. Together these close every derivation §3 priced — ≈15–20 opus-minutes
-   and ≈39 M context-in on this flow alone — and they replace the judgement call that saved the cell
+   `qaUnitsInPackageScopeTransformer`. Together these close every derivation §3 priced — about 15–20 opus-minutes
+   and about 39 M context-in on this flow alone — and they replace the judgement call that saved the cell
    partition with a mechanism. None of them is a new phase, a new role, or a new artifact.
 
 2. **A step, and it belongs between the flow map and the CHECKLIST, not between the map and the brief.**

@@ -16,8 +16,8 @@
 | `attempt` / `retryCount` | `0` / `0` — no pt-N continuation, one pass |
 | Commit produced | `9f8ab692a` (by the reviewer, not the operator) |
 
-Window: `createdAt 2026-09-02T06:39:48.811Z` → `completedAt 2026-09-02T08:28:53.059Z`.
-Transcript window `06:40:05.030Z` → `08:29:04.424Z` = **1:48:59.394 (109.0 min)**.
+Window: `createdAt 2026-09-02T06:39:48.811Z` leads to `completedAt 2026-09-02T08:28:53.059Z`.
+Transcript window `06:40:05.030Z` leads to `08:29:04.424Z` = **1:48:59.394 (109.0 min)**.
 
 **Sub-agents: 27.** 16 dispatched by the operator itself, 11 dispatched by three of those
 sub-agents (grandchildren). Models, from the `.meta.json` files:
@@ -142,7 +142,7 @@ context-in=153,736,225`.
 
 `cache_read` is 93.8% of all context-in (`178,613,626 / 190,379,931`); `cache_creation` is 6.2%.
 The main session's ratio is more extreme still — 97.1% cache_read — which is what an operator that
-ends its turn and is re-entered by notifications looks like: the same ~350k prompt re-read 152 times.
+ends its turn and is re-entered by notifications looks like: the same roughly 350k prompt re-read 152 times.
 
 Sub-agents burned **1.90×** the operator's output tokens and **4.19×** its context-in.
 
@@ -414,8 +414,8 @@ Group 4's pair built at 07:45:21 and 07:50:52. Group 5's pair built at 08:00:37 
 07:19:53 while its own grandchild `agent-af0d2de8d5c0c7795` built again at 07:23:15 — a parent and
 its child writing the same `dist/`.
 
-**Cost.** The reviewer's build took 24 s (08:24:54 → 08:25:18) for 13 packages; 16 of those is
-**≈6.4 minutes of sub-agent wall clock**, all of it inside the operator's 90 idle minutes. The real
+**Cost.** The reviewer's build took 24 s (08:24:54 to 08:25:18) for 13 packages; 16 of those is
+**about 6.4 minutes of sub-agent wall clock**, all of it inside the operator's 90 idle minutes. The real
 cost is not the seconds — it is the corruption window the `[BUILD]` rule was written to close, which
 this pass was lucky to survive.
 
@@ -428,7 +428,7 @@ own `PROVE` line.
 
 ### Finding 2 — one sub-agent held the whole session for 32.7 minutes, and spent 13.5 of them dispatching seven serial searches
 
-**What happened.** `agent-a05f88384e57ff529` ("Build transcript image renderer") ran 07:06:13 →
+**What happened.** `agent-a05f88384e57ff529` ("Build transcript image renderer") ran 07:06:13 to
 07:39:00. The operator's timeline shows the wait verbatim:
 
 ```
@@ -452,7 +452,7 @@ Inside it, seven `Agent` dispatches, each blocking:
 **13.5 of the 32.8 minutes** were spent inside those seven, and every one of them blocked the
 109-minute operator. Their combined spend: 55,897 output tokens, 13,754,690 context-in.
 
-**Three of the seven were the same question about lint rules**, asked three times ~6 minutes apart:
+**Three of the seven were the same question about lint rules**, asked three times roughly 6 minutes apart:
 "ban-primitives escape patterns for string return types in proxies", "precedent for narrowing union
 stub return type in tests", "safe indexed-array-access pattern in proxies" — 7.1 minutes total. The
 sub-agent had already called `get-architecture`, `get-syntax-rules` and `get-testing-patterns`
@@ -497,7 +497,7 @@ Across all sub-agents: **51 `npm run ward` invocations**. Several were piped thr
 
 **Prompt verdict: PERMITTED, and arguably required** — each brief's `PROVE` line names the ward
 command and the `RETURN` block demands "the red I watched before the code made it pass", so a
-red→green cycle is the deliverable. What is not required is guessing five times in a row.
+red-to-green cycle is the deliverable. What is not required is guessing five times in a row.
 `<dungeonmaster-wardDiscipline>` does say "**Run it ONCE.** Choose the right flags the first time",
 which these violate in spirit.
 
@@ -516,7 +516,7 @@ Its own prompt, in step 1: *"`get-quest` takes `flowId` and `packageName`, never
 the tool-result ceiling on any quest of real size."*
 
 It recovered cleanly (three `python3 -c` calls against the spilled file, edge ids in hand by 79.6m)
-and paid ~1.1 minutes. **The provocation was finding 3c(i)** — it needed edge ids the sanctioned
+and paid roughly 1.1 minutes. **The provocation was finding 3c(i)** — it needed edge ids the sanctioned
 call does not print, and there was no third option. Prompt verdict: **forbidden, but the forbidden
 route was the only route.**
 
@@ -670,7 +670,7 @@ Ranked by minutes-or-tokens recovered per quest of this shape.
 
 ### Fix 1 — Move `ward(changed)` so it runs between codeweaver cells, not only after all of them
 *(answers finding 8; est. saves the spiritmender's 23.6 min + the failed gate's 5.0 min + the pt-2
-gate's 2.7 min = **~31 min per quest**, plus every minute a later cell spends building on a latent
+gate's 2.7 min = **roughly 31 min per quest**, plus every minute a later cell spends building on a latent
 break)*
 
 **File:** `packages/shared/src/statics/quest-type-registry/quest-type-registry-statics.ts` (the
@@ -686,10 +686,10 @@ later.
 Cheaper variant if the ledger cannot change: **have `codeweaver-reviewer` run `--staged` AND a
 package-scoped run of the packages it touched** — `npm run ward -- -- packages/web` after the
 `--staged` run — which would have put both crashing files in the batch. It costs each reviewer
-~60–120 s; it is one run per cell versus one spiritmender per quest.
+roughly 60–120 s; it is one run per cell versus one spiritmender per quest.
 
 ### Fix 2 — Make the sub-agent brief's `no npm run build` an explicit override of the ward snippet
-*(answers finding 1; est. saves ~6.4 min of sub-agent wall clock per cell and closes the concurrent-`dist/` window)*
+*(answers finding 1; est. saves roughly 6.4 min of sub-agent wall clock per cell and closes the concurrent-`dist/` window)*
 
 **File:** `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, the
 `PROVE` block inside the `Briefing a sub-agent` template.
@@ -726,7 +726,7 @@ a sub-agent on an operator's pass, whose brief forbids it — a `--only lint,tes
 `dist/`."* Fixing it at the snippet closes the conflict for every role in every repo at once.
 
 ### Fix 3 — Print the edge id in the flow render
-*(answers finding 3c(i) and finding 4; est. saves ~1.1 min and ~2,750 output tokens per operator
+*(answers finding 3c(i) and finding 4; est. saves roughly 1.1 min and roughly 2,750 output tokens per operator
 session that signs an edge, and removes a 263 KB spill)*
 
 **File:** `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`,
@@ -807,7 +807,7 @@ Reach for `discover` / `get-project-map` first; `Read`, `ls` and `python3 -c` ar
 ```
 
 ### Fix 6 — Either wire `codeweaverScopeBlockTransformer` in, or delete it
-*(answers finding 3a; est. saves ~0.5 min per cell and removes a 175-line file that reads as live)*
+*(answers finding 3a; est. saves roughly 0.5 min per cell and removes a 175-line file that reads as live)*
 
 **File:** `packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`.
 

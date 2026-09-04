@@ -202,7 +202,7 @@ TOTAL     41     572.3    2,584,414   1,095,933,622
 Two measurements, both from the same script:
 
 1. **Wall-clock time with no sub-agent running at all, counting only spans of at least 2 min: 81.5 min
-   = 12.4%.** There is exactly one such span: `13:56:13 → 15:17:46` (elapsed 530.3m → 611.9m).
+   = 12.4%.** There is exactly one such span: `13:56:13 → 15:17:46` (elapsed 530.3m to 611.9m).
 2. **Net idle time: 67.7 min = 10.3%.** This counts gaps of at least 2 minutes between consecutive
    main-session records, minus any part of that gap when a sub-agent was actually running, keeping
    only the gaps whose remaining idle time is still at least 2 minutes. Eighteen gaps meet that
@@ -255,9 +255,9 @@ Nine of the top ten gaps were filled by a live sub-agent. **The only dead air th
 itself is the outage cycle.**
 
 The largest gaps *inside* individual sub-agents were these. `abdca70ae15c58971` had a **446 s (7.4
-min)** gap at its 20.7m→28.1m mark, spent hand-parsing a `.ward/run-*.json` file with an ad-hoc python
+min)** gap from its 20.7m mark to its 28.1m mark, spent hand-parsing a `.ward/run-*.json` file with an ad-hoc python
 script instead of running `ward -- detail <runId>`. `a32167d9431dfdcef` had a **251 s (4.2 min)** gap
-at 43.6m→47.8m, re-running the same failing test "to isolate the cause". `ae735ebd146dfb0df` had a
+from 43.6m to 47.8m, re-running the same failing test "to isolate the cause". `ae735ebd146dfb0df` had a
 **292 s** gap waiting on its own `Explore` child.
 
 ---
@@ -857,8 +857,8 @@ elapsed  verdict                     command
   65.2m  FAIL 1 errors               …spawn-stream-json/…
 ```
 
-From 29.5m onward, the error count runs **1 → PASS → PASS → 1 → 17 → 1 → 4 → 9 → 17 → 1 → 1 → 1 → 1 →
-1 → 1**. That is oscillation, not convergence, and the last run before the agent stopped, at 65.2m,
+From 29.5m onward, the error count runs **1, then PASS, then PASS, then 1, then 17, then 1, then 4,
+then 9, then 17, then 1, then 1, then 1, then 1, then 1, then 1**. That is oscillation, not convergence, and the last run before the agent stopped, at 65.2m,
 still reads FAIL. Each ward run was preceded by a rebuild, and the 22 build descriptions read like a
 debugging spiral:
 
@@ -1045,7 +1045,7 @@ BUDGET
 ```
 
 *Evidence:* `a32167d94` ran 17 ward runs and 22 builds over 66.2 min, with its error count oscillating
-1→17→1→4→9→17→1 and never converging — and it handed back a red test anyway. `abdca70ae` then needed
+1, then 17, then 1, then 4, then 9, then 17, then 1 and never converging — and it handed back a red test anyway. `abdca70ae` then needed
 37.0 more minutes to finish the job. *Saved:* the gap between stopping at around 3 ward runs (roughly
 29.5m into agent 14, when the count was already back down to 1) and grinding on for the full 66.2 min.
 **Estimate: about 35 min and about 200k output tokens saved per occurrence.**
@@ -1118,8 +1118,8 @@ using sonnet. On a THIRD, stop dispatching, record what is signed so far, and en
 plain message; the outage is not yours to wait out.
 ```
 
-*Evidence:* the session invented almost exactly this rule on its own, and it worked (455.0m →
-478.1m) — but only after burning 14.9 min on two zero-turn retries first. **Estimate: about 15 min
+*Evidence:* the session invented almost exactly this rule on its own, and it worked (455.0m
+leading to 478.1m) — but only after burning 14.9 min on two zero-turn retries first. **Estimate: about 15 min
 saved per outage.**
 
 **F10 — Add the two harness refusals to `[WALL]`.**

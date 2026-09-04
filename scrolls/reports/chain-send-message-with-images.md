@@ -409,8 +409,8 @@ On the sign-off ledger, obviously not. On the artifact, the ledger is the wrong 
 cell's real deliverable was **contracts and statics, which carry no units at all**: `PastedImageStatics`, `PastedImageMediaType`,
 `PastedImageUpload`, and `locationsStatics.quest.imagesDir` — the last of which is the *only* thing its
 single observable asserts. Contracts route to a cell **by file path**, not by node tag, so both of its
-shared-source contracts are anchored to nodes it does not tag (`pasted-image-statics` →
-`serialise-composer` `{web}`; `pasted-image-upload` → `post-chat` `{web, server}`). Four of its five
+shared-source contracts are anchored to nodes it does not tag (`pasted-image-statics` maps to
+`serialise-composer` `{web}`; `pasted-image-upload` maps to `post-chat` `{web, server}`). Four of its five
 deliverables are structurally invisible to the coverage record. Its commit is
 `bebca45c3 codeweaver: shared's half of send-message-with-images — pasted-image statics, media-type and
 upload contracts, quest images dir key`.
@@ -813,7 +813,7 @@ own words:
 
 So the operator **signs from an ungraded claim**, and the reviewer grades it afterwards. The timeline on
 this flow bears that out: cell [5] wrote all 13 of its sign-offs across four `modify-quest` calls between
-52.5m and 72.9m, and its reviewer ran from ~73.6m. Every sign-off preceded the grading. A reviewer that
+52.5m and 72.9m, and its reviewer ran from roughly 73.6m. Every sign-off preceded the grading. A reviewer that
 finds a dead assertion is finding a unit that is already `confirmed` on the record, and nothing walks
 those sign-offs back.
 
@@ -838,8 +838,8 @@ than after.
 ### 5b. The flowrider reviewer: one round, no edits, and it found the ward blind spot
 
 `a24cdcac64cb4c836`, **11.0 min**, out 48,633, ctx-in 10,609,784, `firstEdit=none (reviewer made no
-edits)`. Command sequence exactly to budget: `npm run build` unpiped → `ward -- --staged` →
-`ward -- detail` → `ward -- -- <8 explicit paths>` → `ward -- detail` → `git commit` [report 14 §4 item 7].
+edits)`. Command sequence exactly to budget: `npm run build` unpiped, then `ward -- --staged`, then
+`ward -- detail`, then `ward -- -- <8 explicit paths>`, then `ward -- detail`, then `git commit` [report 14 §4 item 7].
 
 What it fixed itself: nothing in code. What it *found* is the most transferable thing on this flow — its
 own gate was blind:
@@ -864,7 +864,7 @@ through the ward gate. §5c.
 ### 5c. The ward gate [10]–[12], and what it says about cell [2] — my cell
 
 Ward `changed` at [10] went red on two `packages/web` tests, both `RangeError: Maximum call stack size
-exceeded` from a trailing-anchored regex over a ~7 MB base64 payload. Report 10-12 traces the origin:
+exceeded` from a trailing-anchored regex over a roughly 7 MB base64 payload. Report 10-12 traces the origin:
 
 ```
 packages/web/src/contracts/pasted-image-draft/pasted-image-draft-contract.test.ts   → 061e49064  [work item 7]
@@ -904,7 +904,7 @@ not exist yet.** Report 02 itself says nothing about a downstream ward gate eith
 `npm run build` once (29.6 s, exit 0, all 13 workspaces) and `npm run ward -- --staged` once (13.6 s: lint
 4/4, typecheck 6125/6125, unit 39/39, integration 39/39, e2e skip), both green first try, and returned
 `FINDINGS: none` [report 02 §4 item 5]. What is established: [2] shipped a contract with an unbounded
-trailing-anchored regex that ran ~7 MB payloads; four codeweaver passes and three reviewers ran between it
+trailing-anchored regex that ran roughly 7 MB payloads; four codeweaver passes and three reviewers ran between it
 landing and ward finding it — "00:05:20 to 08:28:53, **8 h 23 min** of quest wall-clock — after which the
 repair cycle cost 31.3 min" [report 10-12 §5 finding 7].
 
@@ -978,7 +978,7 @@ system (5 siegemaster) or drive a real browser (1 flowrider).
 
 **Two of the five — `check-composer-typable-while-agent-streams` and
 `check-draft-is-scoped-to-its-own-composer` — were within the flowrider's reach and were not written.**
-Together they cost roughly **135 sub-agent minutes and ~306M context-in tokens** at siege time. A
+Together they cost roughly **135 sub-agent minutes and roughly 306M context-in tokens** at siege time. A
 flowrider e2e for the draft-scoping one is two tabs and one assertion.
 
 Report 17 makes no such attribution itself, and the reason it makes none is its own §3 S1: **the test-suite
@@ -1141,7 +1141,7 @@ one, and each invented a different wrong one.
 
 ### The three fixes, in order of leverage
 
-**1. Give the codeweaver the denominator tool it is already gated on. (Prompt edit, ~10 lines.)**
+**1. Give the codeweaver the denominator tool it is already gated on. (Prompt edit, roughly 10 lines.)**
 `get-qa-checklist({ questId, operationItemId })` already answers correctly for a codeweaver item — I called
 it for `f21eacd1` and it returned the full 66-unit list with per-unit ids, the read-check legend, and the
 walk paths. The prompt simply never names it. Add the flowrider's `### 2. Get the full list of units` step

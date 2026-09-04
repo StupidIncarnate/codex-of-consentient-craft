@@ -43,7 +43,7 @@ start        el    dur depth agent                model    turns      out  think
 20:08:10   34.6    6.1     1 agent-a2cdff0296b0a4f41 sonnet      75   24,457    15,771     150   10,197,149        542,336
 ```
 
-**Parent → child map** (from `Agent` tool_use `description` args in each transcript):
+**Parent to child map** (from `Agent` tool_use `description` args in each transcript):
 
 ```
 751a242b (codeweaver)
@@ -425,8 +425,8 @@ head-on at its `1.2m`:
 > `integration: DISCOVERY MISMATCH` — *"ward discovered files that were not processed (or vice
 > versa)… This run is FAILING until each mismatch below is investigated"*
 
-It recovered correctly in one turn (*"Per the ward-discipline rule, I narrow rather than widen"* →
-`--only lint,unit`), at ~0.6 min. Agent 1's `lint,test` run happened not to mismatch — integration
+It recovered correctly in one turn (*"Per the ward-discipline rule, I narrow rather than widen"* leading to
+`--only lint,unit`), at roughly 0.6 min. Agent 1's `lint,test` run happened not to mismatch — integration
 ran and passed on 36 discovered files, i.e. it graded 36 files that had nothing to do with the
 brief. The codeweaver had already noticed and written `--only lint,unit` into 5 of its 7 briefs; the
 template it copied from still says `lint,test`.
@@ -449,8 +449,8 @@ template it copied from still says `lint,test`.
   `find` and `sed` would"*), not as a `NOT YOURS` line, and no brief carried it in `TRAPS`. The
   codeweaver hit it once at `2.2m` and recovered in 3 s; builders `a663d05` (its `3.2m`), `a94191f`
   (twice, `0.2m` and `2.0m`), `ab2a819` (`6.0m`) and `acccbfc` (`7.5m`) hit it five more times; the
-  reviewer hit it three times (Bash calls #4, #14, #15), losing ~50 s of a 6.1-minute run. A second,
-  different refusal class hit `ab2a819` (`10.9m`) and `a29d7c24` (`5.0m`): `sed -n '190,225p' …` →
+  reviewer hit it three times (Bash calls #4, #14, #15), losing roughly 50 s of a 6.1-minute run. A second,
+  different refusal class hit `ab2a819` (`10.9m`) and `a29d7c24` (`5.0m`): `sed -n '190,225p' …` leading to
   *"Permission to use Bash with command sed … has been denied"*, which no hook message explains.
   **Nine blocked calls across the item, none of them mentioned in any brief.**
 
@@ -464,8 +464,8 @@ template it copied from still says `lint,test`.
    (10 calls, 18,485 bytes total) *before* any `Read`, so every `Read` was already known to be the
    right file.
 
-2. **The predecessor-commit read paid for itself in one turn.** `git log` at `0.6m` → `Read` of
-   `pasted-image-statics.ts` at `0.7m` → the read-check `#check-sentinel-from-shared-statics` came
+2. **The predecessor-commit read paid for itself in one turn.** `git log` at `0.6m`, then `Read` of
+   `pasted-image-statics.ts` at `0.7m`, then the read-check `#check-sentinel-from-shared-statics` came
    back `HOLDS` at `image-prompt-trailer-transformer.ts:12,22-26` without a single rework round.
    Cost of the mechanism: two `git log` calls, 19,891 bytes.
 
@@ -505,7 +505,7 @@ template it copied from still says `lint,test`.
      then at `6.3m` applied *a naive fix that only touches the bottom return* and watched **2** stay
      red — proving the brief's `TRAPS` warning about the `if (sessionId)` early return was itself
      load-bearing.
-   - `ab2a819ad007dcef5` at its `11.2m` mutated `toBe(2)` → `toBe(3)` and pulled the detail
+   - `ab2a819ad007dcef5` at its `11.2m` mutated `toBe(2)` to `toBe(3)` and pulled the detail
      (`npm run ward -- detail 1788293033542-f130`) to confirm `Expected: 3, Received: 2`.
    - `acccbfc93e8e66fdd` at its `6.4m` found a *real* bug this way: it had mirrored the neighbouring
      test's partial `toStrictEqual({ chatProcessId })` and ward reported
@@ -514,7 +514,7 @@ template it copied from still says `lint,test`.
      true and being a half-truth.
 
    Those mutations are what the codeweaver then transcribed into the sign-offs verbatim; the chain
-   from brief clause → builder action → quest evidence is unbroken.
+   from brief clause to builder action to quest evidence is unbroken.
 
 8. **One reviewer round, green first time.** `a2cdff0296b0a4f41` ran `npm run build` at its own
    elapsed 232.8 s and `npm run ward -- --staged` at 261.0 s — **one** ward invocation, in the
@@ -528,7 +528,7 @@ template it copied from still says `lint,test`.
    ```
 
    Then `git add -A`, one commit carrying its whole return block in the body, and a bare `git push`.
-   `NEXT: pass`. Ward wall time ~65 s inside a 6.1-minute review.
+   `NEXT: pass`. Ward wall time roughly 65 s inside a 6.1-minute review.
 
 ---
 
@@ -561,8 +561,8 @@ That is the exact failure the `[BUILD]` rule predicts — *"a second builder han
 session type errors on correct code"* — observed, in this item, in the transcript.
 
 **Cost.** Nine full or workspace builds of a 13-workspace monorepo. `a2cdff0296b0a4f41`'s single
-legitimate build sat between Bash calls #16 and #18 with a 68.4 s gap, so ~60 s is a fair per-build
-figure: **≈ 9 minutes of sub-agent wall clock**, none of it on the codeweaver's critical path but all
+legitimate build sat between Bash calls #16 and #18 with a 68.4 s gap, so roughly 60 s is a fair per-build
+figure: **about 9 minutes of sub-agent wall clock**, none of it on the codeweaver's critical path but all
 of it inside builder runs the codeweaver was waiting on. `ab2a819`'s five builds are a visible chunk
 of why it took 12.1 minutes — the longest run in the item and the thing that held wave 3 open from
 `20.0m` to `31.3m`.
@@ -634,8 +634,8 @@ landed on `Array.isArray` instead.
 
 **Cost.** The three wrong lookups: output `3,176 + 13,680 + 5,247 = 22,103`, context-in
 `718,085 + 5,026,031 + 1,266,499 = 7,010,615`. Downstream: the fixer `ac8f8759f2167ab9a` (6,452 out,
-3,929,035 ctx-in, 1.8 min), plus 2.2 min of the codeweaver's own wall clock (32.4m dispatch → 34.6m
-clear) and a duplicate `modify-quest`. **Total ≈ 4.0 minutes and ~10.9M context-in tokens.**
+3,929,035 ctx-in, 1.8 min), plus 2.2 min of the codeweaver's own wall clock (32.4m dispatch to 34.6m
+clear) and a duplicate `modify-quest`. **Total about 4.0 minutes and roughly 10.9M context-in tokens.**
 
 **Prompt disposition: PERMITTED.** Nothing forbids a builder from re-asking a question a sibling
 already asked, and no brief carried the narrowing pattern in `TRAPS` — which is precisely what the
@@ -652,7 +652,7 @@ one of them that very file, **uncommitted, and not yet ward-verified** (`a29d7c2
 own scoped ward until `19:57:14+` and did not finish until `19:59:02.675`). The lookup came back at
 `19:57:42` reporting the helper as an established pattern (*"Narrowing technique: `Array.isArray(args)`
 as a type guard inside a helper function"*), and `acccbfc93e8e66fdd` copied it into
-`chat-start-responder.test.ts` at `19:58:55`. The fixer copied it a third time at ~`20:06:30`.
+`chat-start-responder.test.ts` at `19:58:55`. The fixer copied it a third time at roughly `20:06:30`.
 
 The convergence was correct but accidental: a sibling's 4-minute-old, unverified working-tree edit
 was read back by a grandchild as repo convention.
@@ -674,7 +674,7 @@ between places, *"no. The two copies drift, and your reviewer reports it as dupl
 `Error: result (135,813 characters across 3,137 lines) exceeds maximum allowed tokens`.
 
 **Cost.** 30,867 bytes of quest JSON into context that nothing but two id strings was wanted from,
-one spilled 135,813-char file, one `python3` parse, and ~0.6 min of turn time (overlapped with group
+one spilled 135,813-char file, one `python3` parse, and roughly 0.6 min of turn time (overlapped with group
 1, so no wall-clock loss).
 
 **Prompt disposition: EXPLICITLY FORBIDDEN** (*"never `stage`"*), but the prompt left no compliant
@@ -698,8 +698,8 @@ a real failure to fix. Measured against that floor of 2–3, the excess is:
 - `acccbfc`'s **5** — one lost to a genuine assertion bug (worth it, finding in section 4 item 7).
 
 **Cost.** Ward runs on these scopes measured 9.3–11.5 s each (`a663d05` 10.1s, `ab2a819` 10.2s and
-9.3s, `a60df53` 11.5s). ~25 × 10 s ≈ **4 minutes of sub-agent wall clock**, of which roughly 3 runs
-(~30 s) were avoidable. The bigger cost is the *contradiction* it sits on: the
+9.3s, `a60df53` 11.5s). Roughly 25 × 10 s, about **4 minutes of sub-agent wall clock**, of which roughly 3 runs
+(roughly 30 s) were avoidable. The bigger cost is the *contradiction* it sits on: the
 `<dungeonmaster-wardDiscipline>` snippet the sub-agents get says **"Run it ONCE. Choose the right
 flags the first time; never re-run the same checks a second way"**, and the brief they get requires a
 watched red. Nothing tells them which wins.
@@ -728,7 +728,7 @@ belongs to no group.
 `chat-spawn-broker.test.ts:90 … line 95`, then re-signed at `34.5m` with `:96 … line 100 … line 95`
 because the `as never` fix moved the lines.
 
-**Cost.** One extra `modify-quest` round trip (~0.2 min) plus the re-read at `34.3m`. Small in
+**Cost.** One extra `modify-quest` round trip (roughly 0.2 min) plus the re-read at `34.3m`. Small in
 itself; it is the tail of finding 3.
 
 **Prompt disposition: REQUIRED** — step 4 says sign each wave immediately, and "Left to step 8 you
@@ -748,8 +748,8 @@ Also two `PreToolUse:Write`/`Edit` hook refusals on quality rules: `a60df53` at 
 (*"Metadata comment must appear before all import statements. Your edit was NOT applied"*) and
 `ab2a819` at `6.6m` (the `ban-primitives` block of finding 3).
 
-**Cost.** The reviewer's three cost ~50 s of a 6.1-minute run (recovery gaps 19.4 s and 30.5 s). The
-builders' six each cost one turn. `ab2a819`'s `ban-primitives` block cost ~50 s *and* set off
+**Cost.** The reviewer's three cost roughly 50 s of a 6.1-minute run (recovery gaps 19.4 s and 30.5 s). The
+builders' six each cost one turn. `ab2a819`'s `ban-primitives` block cost roughly 50 s *and* set off
 finding 3. Across the item, roughly **3–4 minutes of sub-agent time and one wrong design decision.**
 
 **Prompt disposition: NOT ADDRESSED.** The codeweaver prompt buries the substitution inside `[WALL]`;
@@ -802,8 +802,8 @@ TRAPS
 
 Nine forbidden builds ran under the current wording; the one that failed did so because a sibling
 was mid-edit — the precise scenario the ban exists for.
-**Saved: ~9 min of builder wall clock per item of this size, the sibling-collision failure class
-entirely, and ~3 min of blocked-call recovery.**
+**Saved: roughly 9 min of builder wall clock per item of this size, the sibling-collision failure class
+entirely, and roughly 3 min of blocked-call recovery.**
 
 **2. Fix the template's `PROVE` check list.** *(fixes section 3.6 and part of finding 6)*
 Same file, same block. `--only lint,test` expands `test` to `unit,integration,e2e`, so on a brief
@@ -812,7 +812,7 @@ lost ward run) or grades 36 unrelated files (`a60df5389c57c49fe`). Change the te
 `npm run ward -- --only lint,unit -- <paths>` with a one-line note: *"add `integration` only when a
 path is a `*.integration.test.ts`; never `test`."* The codeweaver had already worked this out and
 wrote `lint,unit` into 5 of its 7 briefs — the template is what is stale.
-**Saved: ~1 ward cycle (~10 s) plus one DISCOVERY-MISMATCH diagnosis turn (~0.6 min) per affected
+**Saved: roughly 1 ward cycle (roughly 10 s) plus one DISCOVERY-MISMATCH diagnosis turn (roughly 0.6 min) per affected
 brief.**
 
 **3. Print the edge id in the flow render.** *(fixes finding 5 and section 3.3)*
@@ -821,7 +821,7 @@ Change the two labelled-edge lines from `` `…${labelPart}[#${String(toId)}]…
 `` `…${labelPart}{#${String(edge.id)}} [#${String(toId)}]…` `` and add the form to the render's KEY
 block (`→"label" {#edgeId}   labeled edge (decision branch — each one is a unit)`). Every operator
 role that signs an edge reads this render, so the fix lands for flowrider and siegemaster too.
-**Saved: ~0.6 min and ~40,000 context tokens per codeweaver item with a labelled edge, plus it stops
+**Saved: roughly 0.6 min and roughly 40,000 context tokens per codeweaver item with a labelled edge, plus it stops
 a prompt-forbidden call the prompt currently forces.**
 
 **4. Ban grandchild sub-agents in the brief template.** *(fixes finding 2)*
@@ -830,7 +830,7 @@ verbatim brief block. Add one line under `TRAPS`, as fixed text the operator cop
 `no Agent tool — you are the last session on this change; ask me if you need something you cannot find`.
 Same edit in `flowrider-prompt-statics.ts` and `siegemaster-prompt-statics.ts` if they carry the same
 template.
-**Saved: 9,778,706 context-in and 32,669 output tokens on this item alone; ~2.7 min off the longest
+**Saved: 9,778,706 context-in and 32,669 output tokens on this item alone; roughly 2.7 min off the longest
 builder's run.**
 
 **5. Wire `codeweaverScopeBlockTransformer` into the prompt, or delete it.** *(fixes section 3.2)*
@@ -843,7 +843,7 @@ so the four-id block is unchanged for cells with no seam. It would have printed
 `- shared — orchestrator already depends on it`, which is exactly the seam note the codeweaver spent
 a 44,830-byte `get-project-map` call reconstructing. If the block is not wanted, delete the
 transformer and its test rather than leaving 174 lines of documented dead code.
-**Saved: ~45,000 context tokens (the `get-project-map` call) and ~0.5 min of step-2 exploration per
+**Saved: roughly 45,000 context tokens (the `get-project-map` call) and roughly 0.5 min of step-2 exploration per
 codeweaver item; removes the "seam status discovered at 41.3m" failure mode.**
 
 **6. Put the `unknown`-narrowing pattern in the standards, not in a lookup.** *(fixes findings 3 and 4)*
@@ -862,7 +862,7 @@ error text, since that refusal is what pushed `ab2a819ad007dcef5` onto `as never
 `packages/eslint-plugin/…/ban-primitives`, message: *"…Use the discover endpoint to search for
 existing contracts. In a test narrowing a proxy getter typed `unknown`, use a module-level
 `Array.isArray` helper returning `unknown`."*
-**Saved: ~10.9M context-in tokens and ~4.0 min per item that indexes a spawned argv; also removes the
+**Saved: roughly 10.9M context-in tokens and roughly 4.0 min per item that indexes a spawned argv; also removes the
 three-copy duplication in finding 4.**
 
 **7. Give `signal-back` a `findings` field, or change step 7 to say where findings go.**
@@ -882,7 +882,7 @@ File: `packages/orchestrator/src/statics/codeweaver-reviewer/codeweaver-reviewer
 `## Rules` block beside `[GIT]`:
 `**[SEARCH] Bash grep, find, rg and the native Grep/Glob/Search tools are refused by a hook.** Use `discover`, `Read` with an offset, or `python3 -c` (os.walk + re). `ls` is not blocked.`
 The codeweaver prompt buries the same fact inside `[WALL]`; promote it there too.
-**Saved: ~50 s per review, ~3 s per codeweaver.**
+**Saved: roughly 50 s per review, roughly 3 s per codeweaver.**
 
 **9. Let the map declare a group with no dependency.** *(fixes finding 7)*
 File: `codeweaver-prompt-statics.ts`, step 3's map template. Add a `GROUP 0 (depends on nothing —

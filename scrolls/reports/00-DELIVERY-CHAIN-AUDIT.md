@@ -69,8 +69,8 @@ five exclusions, and all five are data rather than code
 | `send-message-with-images` (18 nodes; web 11 · server 6 · orch 4 · shared 1) | **4** — [2] 24.3, [3] 41.3, [5] 87.7, [8] 174.6 min | [14], 249.3 min | **[17], 655.0 min — CUT OFF mid-loop** | **1,232.07 min** [chain send §8] |
 | `render-images-in-transcript` (19 nodes; web 16 · server 7 · orch 3) | **3** — [4] 88.4, [6] 54.6, [9] 109.0 min | [15], 219.0 min | **never dispatched** | **471.0 min** [chain render §8] |
 
-One more gate sits outside those three rows. Items [10]–[12] are a shared `ward(changed)` →
-spiritmender → `ward pt 2` sequence — ward is this repo's combined lint, typecheck and test gate, and
+One more gate sits outside those three rows. Items [10]–[12] are a shared `ward(changed)`, then
+spiritmender, then `ward pt 2` sequence — ward is this repo's combined lint, typecheck and test gate, and
 the spiritmender is the role that repairs what ward reddens. That gate cost **31.3 min**. It failed
 on work landed by items [7] and [8], and root-caused to contracts from items [2] and [7]
 [post-mortem §E27, §H7].
@@ -227,7 +227,7 @@ defects. They have less siegemaster [chain paste §6].
 | **That `--staged` never typechecks an untracked file** | flowrider [13] reviewer | ward's own `git-diff-unpushed-broker` | **51 type errors past four rounds of sign-off**, 5.3 min of reviewer cleanup, and the reviewer only found it by breaking its own "twice at most" cap [report 13 §3B, §5.1] |
 | **That `[GIT FORMS]` is factually wrong** | every session, in every brief | a re-measurement | piping git through `head`/`tail` and chaining with `&&` both **work**; `find`, `grep`, `sed` and shell redirection are what actually fail, and neither prompt warns about them [report 07 §3.4; report 16 §3] |
 
-**Priced total on flow 3 alone: ≈15–20 opus-minutes and ≈39 M context-in tokens** [chain render §3],
+**Priced total on flow 3 alone: about 15–20 opus-minutes and about 39 M context-in tokens** [chain render §3],
 *"all of it spent re-establishing facts that already existed in `quest.json`, on sibling work items,
 or in a transformer with no caller."*
 
@@ -555,7 +555,7 @@ to the reviewer that passed the pass [chain send §5a]:
 operator signs from an ungraded claim and the reviewer grades it afterwards: *"Sign an observable only
 where a sub-agent returned it under `PROVED`. **You have not read the test** — step 4 says so, and it
 is the step that signs. You transcribe that evidence; your reviewer opens the file and grades it."*
-Cell [5] wrote all 13 sign-offs between 52.5m and 72.9m, and its reviewer ran from ~73.6m. *"A
+Cell [5] wrote all 13 sign-offs between 52.5m and 72.9m, and its reviewer ran from roughly 73.6m. *"A
 reviewer that finds a dead assertion is finding a unit that is already `confirmed` on the record, and
 nothing walks those sign-offs back"* [chain send §5a].
 
@@ -715,12 +715,12 @@ the saving. Nothing is averaged across measurements of different things.
 
 ### (i) One-line code changes
 
-**H1. Wire `codeweaverScopeBlockTransformer` into the prompt renderer, or delete it — ≈21–48 min per
+**H1. Wire `codeweaverScopeBlockTransformer` into the prompt renderer, or delete it — about 21–48 min per
 quest.**
 
 **What it is.** The transformer that hands a codeweaver its seam disposition already exists. Nothing
 calls it. Either call it, or delete it.
-**What it saves:** ≈21–48 min per quest, across eight cells.
+**What it saves:** about 21–48 min per quest, across eight cells.
 **File:** `packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`.
 **Edit:** after the four-id `parts` array is built, add a `codeweaver` branch beside the existing
 `siegemaster` / `warpgate` / `spiritmender` extras:
@@ -733,18 +733,18 @@ if (workItem.role === 'codeweaver') {
 
 **Arithmetic:** the reports measured per-cell re-derivation at 0.3 [report 02] · 0.5 [report 09] ·
 1–2 [report 06] · 3–5 [report 07] · 4 [report 08] · 4–6 [report 04] · 6.3 min [report 05]. The
-midpoint of those carrying a number is ≈ 3–6 min. Multiply by **8 codeweaver cells = 24–48 min**.
+midpoint of those carrying a number is about 3–6 min. Multiply by **8 codeweaver cells = 24–48 min**.
 Report 07 does its own multiplication and gets 3–5 × 7 = 21–35 min. **All eight codeweaver reports**
 proposed this fix in identical form [post-mortem §E4].
 **The alternative is equally acceptable:** delete the 175-line transformer and its test, and cut the
 seam question from step 5, so the prompt stops asking for something no data supports.
 
-**H2. Print the edge id in the flow render — ≈3.1 min of measured recovery, two spilled tool results,
+**H2. Print the edge id in the flow render — about 3.1 min of measured recovery, two spilled tool results,
 and the precondition for H3.**
 
 **What it is.** The flow render prints a `[C✓]` sign-off marker beside an edge id it never prints.
 Print the id.
-**What it saves:** ≈3.1 min of measured recovery across three cells, plus ~400k characters of spilled
+**What it saves:** about 3.1 min of measured recovery across three cells, plus roughly 400k characters of spilled
 tool results, plus two prompt-forbidden `stage:` calls.
 **File:** `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`,
 **lines 275 and 281** — verified to contain **zero** `edge.id` references and four `edge.label`
@@ -752,8 +752,8 @@ tool results, plus two prompt-forbidden `stage:` calls.
 the form is self-describing. Line 281 currently reads
 `` `${indent}${SYM.indent}${SYM.rightArrow}${labelPart}[#${String(toId)}]${edgeSignoffMarker}` ``.
 
-**Arithmetic:** 1.4 min + one MCP round-trip [report 06] + 1.1 min and ~2,750 output [report 09] +
-~0.6 min [report 03] = **≈3.1 min across three cells**. Add a **135,813-character** spill
+**Arithmetic:** 1.4 min + one MCP round-trip [report 06] + 1.1 min and roughly 2,750 output [report 09] +
+roughly 0.6 min [report 03] = **about 3.1 min across three cells**. Add a **135,813-character** spill
 [report 03 §3.3] and a **263,665-character** spill [report 09 §5 f4], plus the two prompt-forbidden
 `stage:` calls the prompt currently forces.
 
@@ -828,7 +828,7 @@ two flowrider-authored observables.
 **Arithmetic.** *Ceiling:* on flow 1, all nine late defects were reachable from a Playwright walk on
 the composer route — *"the exact thing the flowrider did 89 times"* — and the phases that found and
 repaired them cost **332.2 of 553.4 minutes**. On flow 2, two of five were flowrider-reachable at
-**≈135 sub-agent minutes and ≈306M context-in** [chain send §6b]. *Floor:* the walks were owed work
+**about 135 sub-agent minutes and about 306M context-in** [chain send §6b]. *Floor:* the walks were owed work
 either way, so charge only the repair half — **205.9 minutes, 37.2% of item [16]** [report 16 §1] —
 plus flow 2's 135 sub-agent minutes.
 
@@ -865,7 +865,7 @@ min of siegemaster.**
 
 **What it is.** The operation item promises a test-suite review. No prompt step asks for one, and the
 colocated test pins that no step may exist.
-**What it saves:** ~5 min buys a question that got 0.0 min across 1,208.5 min of siegemaster.
+**What it saves:** roughly 5 min buys a question that got 0.0 min across 1,208.5 min of siegemaster.
 **File:** `siegemaster-prompt-statics.ts`, a step 7b. The operation text is *"Siegemaster: manual-QA
 this flow **and review its test suite**"*, seeded from
 `packages/shared/src/statics/quest-type-registry/quest-type-registry-statics.ts`. **The prompt has no
@@ -873,7 +873,7 @@ step for it, and its colocated test pins that it must not have one**
 (`{ judging: false, authoring: false, standards: false }`). **Measured: zero minutes of test-suite
 review in 553, and zero in 655** [post-mortem §E15].
 
-**Arithmetic.** ~5 min to buy the question `flowrider-reviewer` exists to ask. On flow 1 the omission
+**Arithmetic.** Roughly 5 min to buy the question `flowrider-reviewer` exists to ask. On flow 1 the omission
 mattered exactly once, and it mattered. The only test-suite critique in 553 minutes is a single
 sentence at 117.9m, folded into a fix brief: *"The existing overlay e2e passes while this is broken,
 so it asserts something weaker than the real behaviour."* **A step 7b would have produced nine of
@@ -883,18 +883,18 @@ tests itself, into the flowrider's files, where the flowrider's track cannot sig
 what nothing scripts — *"0 min saved, 1 lie removed"* [post-mortem §G17].
 
 **H8. Scope the walker guide and the operator maps to the QUEST or the FLOW, not the operation item —
-≈8–75 min per sibling flow.**
+about 8–75 min per sibling flow.**
 
 **What it is.** Guide and map paths are built from the operator's own item id, so a sibling's
 orientation document is unreachable. Key them to the quest or the flow instead.
-**What it saves:** ≈8–75 min per sibling flow.
+**What it saves:** about 8–75 min per sibling flow.
 **Files:** `siegemaster-prompt-statics.ts` step 3 (the guide path); `codeweaver-prompt-statics.ts`
 step 3 and `flowrider-prompt-statics.ts` step 4 (the map path).
-**Edit:** `.quest-plans/<operationItemId>-walker-guide.md` → `.quest-plans/<questId>-walker-guide.md`,
+**Edit:** `.quest-plans/<operationItemId>-walker-guide.md` becomes `.quest-plans/<questId>-walker-guide.md`,
 and instruct the writer to read and extend an existing guide rather than author a fresh one.
 **Arithmetic:** two guides, 35,438 and 36,164 chars, identical heading sets, **37 substantive lines
 identical = 10.1%**, written nine hours apart with zero reuse; **83.8 min of combined authoring**
-(75.4 + 8.4) [report 17 §5.6]. Flowrider companion: **≈30–37 min and ≈475k tokens** between items
+(75.4 + 8.4) [report 17 §5.6]. Flowrider companion: **about 30–37 min and about 475k tokens** between items
 [13] and [14] [report 14 §5 f9]. Item [15]'s operator already read its predecessor's map voluntarily
 and called it *"the house pattern"* — **the fix makes a proven behaviour mandatory, not a new one up**
 [post-mortem §E18, §F2].
@@ -903,13 +903,13 @@ and called it *"the house pattern"* — **the fix makes a proven behaviour manda
 
 **What it is.** Two prompt statements are factually wrong. Each is independently justified in Phase 1
 and each is one paragraph.
-**What it saves:** 10–25 min on one item, plus ≈2–4 min per cell.
+**What it saves:** 10–25 min on one item, plus about 2–4 min per cell.
 (a) Replace *"Read the diff, not the files"* with the sentence the sibling **reviewer** prompts
 already carry — *"New files are most of what gets built here, and a diff never mentions them"*
 (`codeweaver-prompt-statics.ts` step 5, `flowrider-prompt-statics.ts` step 6). **10–25 min on item
 [7]** [post-mortem §G12].
 (b) Delete or re-measure `[GIT FORMS]`, which asserts something measured false five times across two
-items, and replace it with what is actually blocked. **≈2–4 min per cell and ~34 lines out of three
+items, and replace it with what is actually blocked. **about 2–4 min per cell and roughly 34 lines out of three
 prompts** [post-mortem §G5].
 
 ### (iii) Design changes needing the owner's decision
@@ -934,7 +934,7 @@ owns contracts and tags no node anywhere"*. `shared` tags exactly one node on th
 **missed that path by one tag**, which is why it got a 24.3-minute session for one sign-off
 [chain send §2b].
 
-**H11. Add the coverage check that runs node → observable — prevents 2 of 3 known-open defects
+**H11. Add the coverage check that runs node to observable — prevents 2 of 3 known-open defects
 reaching a human.**
 
 **What it is.** The system checks that every observable has a builder. Nothing checks that every node
@@ -1063,7 +1063,7 @@ ledger, correctly not answered by an agent.**
 grounded in what the sibling siegemasters actually found: the three deferred defects immediately, on
 paths P1/P2/P4/P5; `hostile-input` and `perf`, untouched, **on the flow carrying the traversal /
 null-byte / `/etc/passwd` matrix** where the flowrider already demonstrated an arbitrary-file-read
-(`/etc/passwd` → 200, 3,546 bytes, `Content-Type: image/png`) with one transformer neutered; the
+(`/etc/passwd` returning 200, 3,546 bytes, `Content-Type: image/png`) with one transformer neutered; the
 three assertions with no proof they can fail; the unresolved modal-width decision; and the
 `__no_session__` dedupe hole the flowrider itself flagged and could not cover.
 **Every one of those five is a claim the ledger currently reads as delivered.**
