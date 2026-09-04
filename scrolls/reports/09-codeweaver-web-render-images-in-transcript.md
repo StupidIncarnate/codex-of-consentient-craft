@@ -1,5 +1,21 @@
 # Work item 09 — codeweaver — web / render-images-in-transcript
 
+A few words recur throughout this report, so here they are once, up front. An **operator** is the
+top-level agent running this work item — it plans the work and directs other agents, and does not
+write code itself. A **sub-agent** is a separate agent the operator starts to do one piece of work
+and report back. A **reviewer** is a sub-agent whose whole job is checking the other sub-agents'
+work before it gets committed. **Ward** is this repo's combined lint, typecheck, and test command;
+a **gate** is an automatic ward run that must pass before the work counts as finished. `--staged` is
+a ward flag that checks only the files the shared repository does not already have — not every file
+that changed. A **flow** is the piece of work being built (here: showing images inline in the chat
+transcript); a **cell** is one package's slice of a flow, handled by one operator session. A **unit**
+is one specific, checkable claim about the code — this report's three kinds of unit are observables,
+terminal nodes, and labelled edges. An **observable** is a unit that describes behavior you can watch
+happen (as opposed to a terminal node or an edge, which describe an end state or a branch). A
+**sign-off** is the operator's written, evidence-backed claim that a unit works. **Context-in** is the
+total input tokens a call carried; it splits into **cache_read** (tokens served cheaply from a cache)
+and **cache_creation** (new tokens written to the cache for later reuse).
+
 ## 0. Identity
 
 | Field | Value |
@@ -16,11 +32,12 @@
 | `attempt` / `retryCount` | `0` / `0` — no pt-N continuation, one pass |
 | Commit produced | `9f8ab692a` (by the reviewer, not the operator) |
 
-Window: `createdAt 2026-09-02T06:39:48.811Z` leads to `completedAt 2026-09-02T08:28:53.059Z`.
-Transcript window `06:40:05.030Z` leads to `08:29:04.424Z` = **1:48:59.394 (109.0 min)**.
+Window: `createdAt 2026-09-02T06:39:48.811Z` → `completedAt 2026-09-02T08:28:53.059Z`.
+Transcript window `06:40:05.030Z` → `08:29:04.424Z` = **1:48:59.394 (109.0 min)**.
 
-**Sub-agents: 27.** 16 dispatched by the operator itself, 11 dispatched by three of those
-sub-agents (grandchildren). Models, from the `.meta.json` files:
+**Sub-agents: 27.** The operator dispatched 16 of them directly. Three of those 16 then dispatched
+11 more between them — this report calls those 11 grandchildren. Here are the models each ran on,
+read from the `.meta.json` files:
 
 - **sonnet — 13**: the 2 `Explore` mappers, the 10 code-writing `general-purpose` agents, and the
   `codeweaver-reviewer`.
@@ -37,18 +54,18 @@ The operator passed `model: "sonnet"` on all 16 of its own dispatches, as the pr
 |---|---|---|---|---|---|
 | 1 | 06:40:05–06:44:29 | 0.0–4.4m | 4.4 | Fetch prompt, `get-quest({flowId,packageName})`, the three standards tools, `git log --oneline -n 25`, `git show --stat --name-only` on both prior web commits, 4 `discover` calls, 6 `Read`s. Two `Explore` mappers dispatched at 1.6m/1.7m. | `0.3m CALL mcp__dungeonmaster__get-quest(questId=… packageName=web)`; `1.6m CALL Agent(description=Map optimistic dedup path …)` |
 | 2 | 06:44:29–06:45:11 | 4.4–5.1m | 0.7 | Writes the map. 101 lines, exactly the prompt's GROUP/PROVES/TRAPS shape. | `5.1m CALL Write(file_path=…/.quest-plans/332e0da3-47aa-4f78-b3eb-1…)` |
-| 3 | 06:45:11–06:47:23 | 5.1–7.3m | 2.2 | Group 1 out — 4 `Agent` calls in one message, then a turn ended on a plain message. | `7.2m say: "Group 1 is out — four sub-agents running in parallel. Ending my turn while they work"` |
-| 4 | 06:47:23–06:59:35 | 7.3–19.5m | 12.2 | **10.4m idle** on group 1; routes 4 returns; 2 `modify-quest` sign-off writes (7 observables); group 2 out (parser 16.8m, guard 19.4m). | gaps `212s`, `252s`, `98s`, `189s`; `16.0m say: "Three back, all pass."` |
-| 5 | 06:59:35–07:06:17 | 19.5–26.2m | 6.7 | **5.0m idle** on group 2; reads the parser's signature; group 3 (the renderer) out at 26.1m. | `24.7m say: "Group 2 complete. Reading the parser's exact signature before briefing the renderer."` |
+| 3 | 06:45:11–06:47:23 | 5.1–7.3m | 2.2 | Group 1 goes out — 4 `Agent` calls in one message — then the operator ends its turn on a plain message. | `7.2m say: "Group 1 is out — four sub-agents running in parallel. Ending my turn while they work"` |
+| 4 | 06:47:23–06:59:35 | 7.3–19.5m | 12.2 | **10.4m idle** on group 1, then the operator routes back all 4 returns, writes 2 sign-offs covering 7 observables, and sends out group 2 (the parser at 16.8m, the guard at 19.4m). | gaps `212s`, `252s`, `98s`, `189s`; `16.0m say: "Three back, all pass."` |
+| 5 | 06:59:35–07:06:17 | 19.5–26.2m | 6.7 | **5.0m idle** on group 2, then the operator reads the parser's exact signature and sends out group 3 (the renderer) at 26.1m. | `24.7m say: "Group 2 complete. Reading the parser's exact signature before briefing the renderer."` |
 | 6 | 07:06:17–07:39:00 | 26.2–58.9m | **32.7** | **Pure idle.** One sub-agent, `agent-a05f88384e57ff529`, held the whole session. | `58.9m ### INJECTED PROMPT: <task-id>a05f88384e57ff529</task-id> … <status>completed</status>` with `GAP 1989s` |
-| 7 | 07:39:00–07:41:17 | 58.9–61.2m | 2.3 | Signs 12 observables + 1 terminal node; group 4 out (2 agents). | `modify-quest #3 ts=2026-09-02T07:40:02.888Z signoffs: observables=12 nodes=1 edges=0` |
-| 8 | 07:41:17–07:58:41 | 61.2–78.6m | 17.4 | **16.7m idle** on group 4 (`437s` + `565s`); group 5 out at 78.6m. | `68.5m say: "The bubble mount passed. Waiting on the binding edit before the last group."` |
-| 9 | 07:58:41–07:59:45 | 78.6–79.7m | 1.1 | **The edge-id hunt.** `ls` blocked outside the worktree, a `discover` for a flow-edge contract, a `ToolSearch`, then a bare `get-quest({questId})` that spilled 263,665 chars to a file, then 3 `python3 -c` calls to parse the raw quest JSON. | `79.0m say: "Edge ids are author-chosen, and the quest file sits outside my worktree. Fetching the quest as JSON to read them."` |
-| 10 | 07:59:45–08:12:11 | 79.7–92.1m | 12.4 | Signs the first edge, dispatches two more agents (`Confirm overlay close-button unit`, `Close the overlay from transcript`), **10.2m idle** (`285s` + `322s` + `37s`), signs 5 observables + 4 edges. | `modify-quest #4 … edges=1`; `modify-quest #7 ts=…08:12:09.214Z … observables=5 nodes=0 edges=4` |
-| 11 | 08:12:11–08:13:11 | 92.1–93.1m | 1.0 | **Step 5, the diff read.** `git status --porcelain`, `git diff --stat`, one scoped `git diff` over the product files, one `Read`. Finds the real gap. | `92.5m say: "Product code fits together. One real gap against the design decision: the broken placeholder is an invisible empty box."` |
-| 12 | 08:13:11–08:19:23 | 93.1–99.3m | 6.2 | **5.9m idle** on the placeholder fixer; re-reads `git diff --stat` + the widget; signs 2 more; dispatches the reviewer. | `99.3m say: "Diff read, everything fits. Running my reviewer."` |
-| 13 | 08:19:23–08:28:17 | 99.3–108.2m | 8.9 | **Idle** — the reviewer builds, wards, commits, pushes. | gap `529s`; `99.3m say: "Ending my turn until it reports."` |
-| 14 | 08:28:17–08:29:04 | 108.2–109.0m | 0.8 | Signs 4 remaining units, `git status --porcelain`, `get-quest` to verify every unit carries a verdict, `signal-back`, final summary. | `108.7m say: "Every unit carries a verdict — 24 confirmed, 5 unconfirmable, no blanks."` |
+| 7 | 07:39:00–07:41:17 | 58.9–61.2m | 2.3 | The operator signs 12 observables plus 1 terminal node, then sends out group 4 (2 agents). | `modify-quest #3 ts=2026-09-02T07:40:02.888Z signoffs: observables=12 nodes=1 edges=0` |
+| 8 | 07:41:17–07:58:41 | 61.2–78.6m | 17.4 | **16.7m idle** on group 4 (a `437s` gap plus a `565s` gap), then group 5 goes out at 78.6m. | `68.5m say: "The bubble mount passed. Waiting on the binding edit before the last group."` |
+| 9 | 07:58:41–07:59:45 | 78.6–79.7m | 1.1 | **The edge-id hunt.** The operator needs an edge id the tools do not print. It tries `ls` (blocked, outside the worktree), a `discover` call for a flow-edge contract, and a `ToolSearch`; then it calls plain `get-quest({questId})`, which spills 263,665 characters to a file; then it runs 3 `python3 -c` calls to parse that raw quest JSON by hand. | `79.0m say: "Edge ids are author-chosen, and the quest file sits outside my worktree. Fetching the quest as JSON to read them."` |
+| 10 | 07:59:45–08:12:11 | 79.7–92.1m | 12.4 | The operator signs the first edge, dispatches two more agents (`Confirm overlay close-button unit` and `Close the overlay from transcript`), waits **10.2m idle** (gaps of `285s`, `322s`, and `37s`), then signs 5 more observables plus 4 edges. | `modify-quest #4 … edges=1`; `modify-quest #7 ts=…08:12:09.214Z … observables=5 nodes=0 edges=4` |
+| 11 | 08:12:11–08:13:11 | 92.1–93.1m | 1.0 | **Step 5, the diff read.** The operator runs `git status --porcelain`, `git diff --stat`, one scoped `git diff` over the product files, and one `Read` — and finds the real gap. | `92.5m say: "Product code fits together. One real gap against the design decision: the broken placeholder is an invisible empty box."` |
+| 12 | 08:13:11–08:19:23 | 93.1–99.3m | 6.2 | **5.9m idle** on the placeholder fixer, then the operator re-reads `git diff --stat` and the widget, signs 2 more units, and dispatches the reviewer. | `99.3m say: "Diff read, everything fits. Running my reviewer."` |
+| 13 | 08:19:23–08:28:17 | 99.3–108.2m | 8.9 | **Idle** — the reviewer builds the code, runs ward, commits, and pushes. | gap `529s`; `99.3m say: "Ending my turn until it reports."` |
+| 14 | 08:28:17–08:29:04 | 108.2–109.0m | 0.8 | The operator signs the 4 remaining units, runs `git status --porcelain`, calls `get-quest` to verify every unit carries a verdict, calls `signal-back`, and writes its final summary. | `108.7m say: "Every unit carries a verdict — 24 confirmed, 5 unconfirmable, no blanks."` |
 
 Phases sum: `4.4+0.7+2.2+12.2+6.7+32.7+2.3+17.4+1.1+12.4+1.0+6.2+8.9+0.8 = 109.0` min. ✔
 
@@ -71,7 +88,9 @@ The idle figure is the sum of the fourteen `GAP` values the timeline prints on t
 | Final signal + verify | 0.5 | 0.5% | phase 14 |
 
 **Parent-active total: 19.0 min of 109.0.** The operator itself ran no build, no ward and no test,
-and edited no file but its own map — full compliance with `[BUILD]` and the YOURS/NOT YOURS block.
+and edited no file but its own map. That is full compliance with `[BUILD]` and with the prompt's
+YOURS/NOT YOURS block — the list of which actions are the operator's to do and which belong to
+someone else.
 
 ---
 
@@ -106,8 +125,8 @@ WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS
 ```
 
 Note the four buckets the tool omits entirely — `07:10-07:16`, `07:16-07:22`, `07:22-07:28`,
-`07:28-07:34`. Zero main-session API calls in 24 consecutive minutes; that is the middle of the
-32.7-minute renderer wait.
+`07:28-07:34`. These are 24 consecutive minutes with zero main-session API calls, sitting in the
+middle of the 32.7-minute renderer wait.
 
 ### Sub-agent spend, attributed to the bucket each sub-agent STARTED in
 
@@ -140,9 +159,11 @@ context-in=153,736,225`.
 | 27 sub-agents | 1,290 | 2,652 | 143,036,152 | 10,697,421 | **153,736,225** | 651,033 |
 | **Grand total** | **1,442** | **2,956** | **178,613,626** | **11,762,349** | **190,379,931** | **993,898** |
 
-`cache_read` is 93.8% of all context-in (`178,613,626 / 190,379,931`); `cache_creation` is 6.2%.
-The main session's ratio is more extreme still — 97.1% cache_read — which is what an operator that
-ends its turn and is re-entered by notifications looks like: the same roughly 350k prompt re-read 152 times.
+`cache_read` is 93.8% of all context-in (`178,613,626 / 190,379,931`). `cache_creation` is 6.2%.
+The main session's ratio is even more lopsided, at 97.1% cache_read. A ratio that high is the
+signature of an operator that keeps ending its turn and getting re-entered by notifications: each
+re-entry re-reads roughly the same 350k-token prompt from cache, and this operator re-read it 152
+times.
 
 Sub-agents burned **1.90×** the operator's output tokens and **4.19×** its context-in.
 
@@ -188,13 +209,14 @@ packageNames:    -> 0
 wardMode         -> 0
 ```
 
-**`codeweaverScopeBlockTransformer` never ran.** It is written, documented at length, and
-unit-tested — and it has no production caller. A repo-wide scan for its identifier returns only
-`codeweaver-scope-block-transformer.ts` and its own `.test.ts`; `workItemToPromptTransformer`
-(`packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`)
-builds `parts` from four `contentTextContract.parse(...)` lines plus three role-specific extras
-(siegemaster's dev server, warpgate's base branch, spiritmender's ward blob) and nothing else.
-`workItemContextBlockTransformer` is in the same state.
+**`codeweaverScopeBlockTransformer` never ran.** It exists: written, documented at length, and
+unit-tested. But it has no caller in production code. A repo-wide scan for its identifier finds only
+`codeweaver-scope-block-transformer.ts` and its own `.test.ts` file. The function that actually builds
+the prompt, `workItemToPromptTransformer`
+(`packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`),
+builds its `parts` from four `contentTextContract.parse(...)` lines plus three role-specific extras
+(siegemaster's dev server, warpgate's base branch, spiritmender's ward blob) — and nothing else.
+`workItemContextBlockTransformer` is in the same unused state.
 
 The consequence is concrete. Step 5 asks the operator:
 
@@ -202,16 +224,16 @@ The consequence is concrete. Step 5 asks the operator:
 > match what that package's half expects. If that half is not built yet, write down what you
 > assumed.
 
-The transformer that exists to answer "whose half is the other side, and has it run" produced
-nothing, so the operator answered it by hand: at 0.9m it ran `git show --stat --name-only 3275de52b`
-and `git show --stat --name-only 061e49064` to reconstruct what the two prior web cells had landed.
-That worked — the `git log` instruction in step 2 covers the same ground — but it is a reconstruction
-of a fact the ledger already held.
+The transformer exists to answer "whose half is the other side, and has it run". It produced
+nothing. So the operator answered the question by hand: at 0.9m it ran
+`git show --stat --name-only 3275de52b` and `git show --stat --name-only 061e49064` to reconstruct
+what the two prior web cells had landed. That worked, because the `git log` instruction in step 2
+covers the same ground. But it is still a reconstruction of a fact the ledger already held.
 
 ### 3b. The step script matched the work well
 
-The nine-step script fits this cell almost exactly, and the operator ran it in order with no
-deviation. The evidence for each:
+The nine-step script fits this cell almost exactly. The operator ran it in order, with no deviation.
+Here is the evidence for each step:
 
 - **Step 1** — one call, correctly parameterised: `0.3m CALL mcp__dungeonmaster__get-quest(questId=…
   packageName=web)` with `flowId: 'render-images-in-transcript'`. 24,017 characters, inline, well
@@ -228,9 +250,10 @@ deviation. The evidence for each:
     #check-patterns-come-from-shared          -> (read-check) reviewer opens normalise-chat-content-transformer.ts
   ```
 
-  Five groups, ordered by dependency (contracts and statics first). It also names the units it
-  cannot prove — the prompt's "Name the observables you cannot prove here, and why" — which is why
-  the final tally was `24 confirmed, 5 unconfirmable, no blanks` rather than blanks.
+  Five groups, ordered by dependency (contracts and statics first). The map also names the units it
+  cannot prove, matching the prompt's instruction to "Name the observables you cannot prove here, and
+  why". That is why the final tally came out as `24 confirmed, 5 unconfirmable, no blanks`, instead
+  of units left blank.
 - **Step 4's brief shape** was followed on all 13 code briefs. Measured directly from the tool
   inputs: `code briefs=13  with [GIT FORMS] traps=13  with PROVE=13  with MUST BE TRUE=13`. The
   renderer's brief closes exactly as the template dictates:
@@ -240,11 +263,12 @@ deviation. The evidence for each:
     npm run ward -- --only lint,test -- packages/web/src/widgets/chat-message/image-content-layer-widget.tsx …
     no npm run build · no run-ward MCP tool · no commit · never widen the ward
   ```
-- **Step 4's "sign this group's PROVED lines NOW"** was honoured wave by wave rather than batched
-  at the end: nine `modify-quest` writes at 06:56, 06:59, 07:40, 07:59, 08:04, 08:10, 08:12, 08:19
-  and 08:28, carrying 34 observable, 1 terminal-node and 5 edge sign-offs.
-- **Step 6's reviewer brief** is the exact five-line form, including the `READ-CHECKS:` line the
-  prompt says to add and no `workItemId`:
+- **Step 4's "sign this group's PROVED lines NOW"** — the operator honoured this wave by wave,
+  instead of batching sign-offs at the end. It made nine `modify-quest` writes, at 06:56, 06:59,
+  07:40, 07:59, 08:04, 08:10, 08:12, 08:19 and 08:28, carrying 34 observable sign-offs, 1
+  terminal-node sign-off, and 5 edge sign-offs.
+- **Step 6's reviewer brief** is exactly the five-line form the prompt specifies. It includes the
+  `READ-CHECKS:` line the prompt says to add, and it leaves out `workItemId`, also as instructed:
 
   ```
   Call get-agent-prompt({ agent: 'codeweaver-reviewer', questId: '1be07040-b9ec-476c-a439-0b4fbb0123cd' }) FIRST, then follow what it returns exactly.
@@ -261,7 +285,8 @@ demands:
 
 > **A terminal unit's sign-off goes on the NODE itself, and a branch unit's on the EDGE** … `edges: [ { id: '<the labelled edge id>',  codeweaverSignoff: { … } } ]`
 
-The render the prompt told it to fetch draws labelled edges like this — label and TARGET NODE, no id:
+The render the prompt told it to fetch draws labelled edges like this: a label and the TARGET NODE,
+but no id.
 
 ```
               →"no transcript entry yet" [#render-from-memory]
@@ -269,27 +294,28 @@ The render the prompt told it to fetch draws labelled edges like this — label 
                       →"missing, unreadable or not an image" [#image-not-served] [C✓]
 ```
 
-Source: `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`
+Source: `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`,
 lines 275 and 281 —
 `` `${indent}${SYM.indent}${SYM.rightArrow}${labelPart}[#${String(toId)}]${edgeSignoffMarker}` ``.
-The line even carries a sign-off MARKER (`[C✓]`) while withholding the id you would need to write
-one. The operator hit this at 78.6m and spent 1.1 minutes and roughly 2,750 output tokens getting
-around it — `ls` refused, a speculative `discover(glob=packages/*/src/contracts/*flow-edge*/**)`,
-a `ToolSearch`, a bare `get-quest({questId})` that blew the result ceiling
-(`Error: result (263,665 characters across 4,359 lines) exceeds maximum allowed tokens`), and three
-`python3 -c` calls against the spilled file. It signed its first edge 4 seconds after finishing
+That line even prints a sign-off marker (`[C✓]`), while withholding the id you would need to write
+one. The operator hit this problem at 78.6m. Getting around it cost 1.1 minutes and roughly 2,750
+output tokens: `ls` refused; then a speculative
+`discover(glob=packages/*/src/contracts/*flow-edge*/**)`; then a `ToolSearch`; then a bare
+`get-quest({questId})` that blew the result ceiling (`Error: result (263,665 characters across 4,359
+lines) exceeds maximum allowed tokens`); then three `python3 -c` calls against the spilled file. The
+operator signed its first edge 4 seconds after finishing that chain
 (`modify-quest #4 ts=2026-09-02T07:59:45.710Z … edges=1`).
 
 **(ii) Step 7 tells the operator to put the reviewer's FINDINGS somewhere that does not exist.**
 
 > | `pass` | go to step 8, and copy its `FINDINGS:` into your signal — anything it named for someone else survives nowhere else |
 
-`signalBackInputContract` (both `packages/mcp/…` and `packages/server/…`) is `.strict()` and has
-exactly five keys: `questId`, `workItemId`, `signal`, `operationItemId`, `operationStatus`,
-`blockedReason`. There is no findings field, and a strict schema rejects an extra one. The contract's
+`signalBackInputContract` (both `packages/mcp/…` and `packages/server/…`) is `.strict()`, with
+exactly five keys: `questId`, `workItemId`, `signal`, `operationItemId`, `operationStatus`, and
+`blockedReason`. There is no findings field. A strict schema rejects any extra one. The contract's
 own comment says so: `// note field — the next-session handoff is the git commit message, not the
-ledger.` This pass got away with it — the reviewer returned `FINDINGS: none outstanding` — and the
-operator's signal was the minimum legal payload:
+ledger.` This particular pass got away with the instruction anyway, because the reviewer returned
+`FINDINGS: none outstanding`. So the operator's signal was just the minimum legal payload:
 
 ```json
 {"questId":"1be07040-…","workItemId":"71c1fd22-…","signal":"complete",
@@ -297,30 +323,42 @@ operator's signal was the minimum legal payload:
 ```
 
 **(iii) The `[BUILD]` rule is stated in the operator's prompt and in every brief, and it is
-overridden in practice by a session snippet the operator does not control.** Detail in finding 1
-below. The operator itself obeyed it perfectly; 14 of its 27 sub-agents did not, and their own words
-name the snippet as the reason.
+overridden in practice by a session snippet the operator does not control.** Detail is in finding 1
+below. The operator itself obeyed the rule perfectly. 14 of its 27 sub-agents did not, and their own
+words name the snippet as the reason.
 
 ### 3d. Nothing in the prompt was ignored by the operator
 
-Checked against the YOURS / NOT YOURS block: 0 `Edit` calls, 1 `Write` (the map, at the mandated
-`.quest-plans/<operationItemId>-map.md` path), 0 `npm run build`, 0 `npm run ward`, 0 `git add`,
-`commit`, `push`, `stash`, `reset`, `checkout`, `clean` or `rebase`, 0 `git -C`, 0 piped or chained
-git call, 0 `sleep`, 0 poll, 1 `signal-back` as the last action. `[HELPERS]` was followed literally
-— every wait ends with a plain message and no tool call (`7.3m say: "Group 1 is running. Ending my
-turn — the completion notifications will bring me back to route the returns and send group 2."`).
+Checked against the YOURS / NOT YOURS block, the operator matches it exactly:
+
+| Action | Count |
+|---|---|
+| `Edit` calls | 0 |
+| `Write` calls | 1 (the map, at the mandated `.quest-plans/<operationItemId>-map.md` path) |
+| `npm run build` | 0 |
+| `npm run ward` | 0 |
+| `git add`, `commit`, `push`, `stash`, `reset`, `checkout`, `clean`, or `rebase` | 0 |
+| `git -C` | 0 |
+| piped or chained git calls | 0 |
+| `sleep` | 0 |
+| polling | 0 |
+| `signal-back` | 1, as the last action |
+
+The operator also followed `[HELPERS]` literally: every wait ends with a plain message and no tool
+call (`7.3m say: "Group 1 is running. Ending my turn — the completion notifications will bring me
+back to route the returns and send group 2."`).
 
 ---
 
 ## 4. What went well
 
-**1. The turn-ending discipline was total, and it is the reason 90 idle minutes cost nothing.**
-Fourteen waits, fourteen turn-ends on a plain message, zero polls and zero sleeps. The four
-consecutive empty buckets (`07:10` through `07:34`) are the proof: 24 minutes of wall clock, 0 API
-calls, 0 tokens. Compare the ward-discipline note in `CLAUDE.md` recording another quest where two
-reviewers burned 815 seconds on `sleep 90` / `sleep 240`. Mechanism: the `[HELPERS]` rule plus the
-concrete instruction "With everything you can do done and a helper still out, end your turn on a
-plain message and no tool call."
+**1. The turn-ending discipline was total.** That is why 90 idle minutes cost nothing. Fourteen
+waits, fourteen turn-ends on a plain message, zero polls, zero sleeps. The four consecutive empty
+buckets (`07:10` through `07:34`) are the proof: 24 minutes of wall clock, 0 API calls, 0 tokens.
+Compare the ward-discipline note in `CLAUDE.md`, which records another quest where two reviewers
+burned 815 seconds on `sleep 90` and `sleep 240`. Mechanism: the `[HELPERS]` rule, plus the concrete
+instruction "With everything you can do done and a helper still out, end your turn on a plain
+message and no tool call."
 
 **2. Step 5 found a defect that every one of its own tests was blind to — in 1.0 minute.**
 At 92.5m, after `git status --porcelain`, `git diff --stat`, one scoped `git diff` and one `Read`:
@@ -332,36 +370,39 @@ The operator's own closing summary says exactly why the tests missed it:
 > The broken-image placeholder was a 32-by-32 box with no paint — invisible on screen. Every
 > observable about it passed, because they all measure the box.
 
-It dispatched `agent-a597b4e04f3a6cbbe` "Make broken placeholder visible", which added a `danger`
-border and a `bg-deep` fill **asserted as exact colour strings**. Cost: 5.9 min idle, 23,926
-sub-agent output tokens, 3,714,917 context-in. Mechanism: the prompt's "Four questions, and only
-you can ask them, because only you hold the whole cell", combined with reading the DIFF rather
-than the tree — the whole read fit in one minute.
+The operator dispatched `agent-a597b4e04f3a6cbbe`, "Make broken placeholder visible", which added a
+`danger` border and a `bg-deep` fill, **asserted as exact colour strings**. Cost: 5.9 min idle,
+23,926 sub-agent output tokens, 3,714,917 context-in. Mechanism: the prompt's rule that "Four
+questions, and only you can ask them, because only you hold the whole cell". It also helped that the
+operator read the DIFF rather than the whole tree — that narrower read is what let the whole check
+fit in one minute.
 
-**3. Wave-by-wave signing kept the evidence fresh.** Nine `modify-quest` writes spread across the
-session rather than one at the end. The largest, at 07:40:02, carried 12 observables and 1 terminal
-node in 8,092 bytes — transcribed from `agent-a05f88384e57ff529`'s return minutes after it landed.
-The prompt's own justification ("Left to step 8 you would be transcribing dozens of units from
-returns that scrolled past long ago") is borne out: the end-of-session write at 08:28:32 carried
-only 4 units.
+**3. Wave-by-wave signing kept the evidence fresh.** The operator spread nine `modify-quest` writes
+across the session, rather than doing one at the end. The largest write, at 07:40:02, carried 12
+observables and 1 terminal node in 8,092 bytes. The operator transcribed it from
+`agent-a05f88384e57ff529`'s return, minutes after that return landed. The prompt gives its own
+justification for this approach: "Left to step 8 you would be transcribing dozens of units from
+returns that scrolled past long ago". That justification held up: the end-of-session write at
+08:28:32 carried only 4 units.
 
-**4. The reviewer was correctly and cheaply run.** One `npm run build` as its own unpiped command
-(`08:24:54`, exit 0 in 24 s), then one `npm run ward -- --staged` (`08:25:20`, 59.7 s), both with
-`timeout: 600000` in the foreground — the prompt allows two rounds and it needed one. It settled the
-`(read-check)` observable with a real `file:line`:
+**4. The operator ran the reviewer correctly and cheaply.** The reviewer ran one `npm run build` as
+its own unpiped command (`08:24:54`, exit 0 in 24 s), then one `npm run ward -- --staged` (`08:25:20`,
+59.7 s), both in the foreground with `timeout: 600000`. The prompt allows two rounds of this; the
+reviewer needed only one. It settled the `(read-check)` observable with a real `file:line`:
 
 > `check-patterns-come-from-shared — HOLDS · normalise-chat-content-transformer.ts:15,18,26,31 and parse-transcript-segments-transformer.ts:17,30,38-39 both import pastedImageStatics from @dungeonmaster/shared/statics … absence would look like a locally-declared regex literal (e.g. a bare `/\[Pasted Image (\d+)\]/` in either file)`
 
-Then `git add -A`, one commit with the whole return block in the body, one bare `git push`. Total
-8.6 min, 45,729 output tokens.
+Then it ran `git add -A`, made one commit with the whole return block in the body, and did one bare
+`git push`. Total: 8.6 min, 45,729 output tokens.
 
-**5. Five units were recorded `unconfirmable` rather than signed off a mock.** The final message:
+**5. The operator recorded five units as `unconfirmable` instead of signing them off against a
+mock.** The final message:
 
 > The five all need a real browser … jsdom performs no layout, so `getBoundingClientRect` is all
 > zeros. The declared style values are asserted; the painted result is not.
 
-That is the "Never sign one your test proves against a MOCK" rule working, and it is what leaves the
-siegemaster something honest to walk.
+This is the "Never sign one your test proves against a MOCK" rule working as intended. It is also
+what leaves the siegemaster something honest to walk.
 
 ---
 
@@ -394,41 +435,43 @@ agent-af5bcf994c5e251e6 | 08:07:20 | 'npm run build 2>&1 | tail -30'  | Build th
 agent-a597b4e04f3a6cbbe | 08:16:57 | 'npm run build'                  | Build the repo before running ward
 ```
 
-**The cause is in the transcript, in their own descriptions.** "to ensure fresh dist before ward",
-"to ensure ward resolves cross-package types correctly" — those paraphrase the
-`<dungeonmaster-wardDiscipline>` session snippet each sub-agent receives at session start:
+**The cause is visible in the sub-agents' own task descriptions.** Two of them read "to ensure
+fresh dist before ward" and "to ensure ward resolves cross-package types correctly" — both
+paraphrasing the `<dungeonmaster-wardDiscipline>` session snippet every sub-agent receives at
+session start:
 
 > **Build first, unpiped.** Ward resolves cross-package types through each package's `dist/`, so a
 > stale build surfaces as phantom TS2339 "property X does not exist" on correct code.
 
-Where the snippet and a one-line brief disagree, the snippet won 14 times out of 14. The
-codeweaver-reviewer prompt neutralises the snippet explicitly — *"This rule overrides the
+Where the snippet and a one-line brief disagreed, the snippet won — 14 times out of 14. The
+codeweaver-reviewer prompt neutralises the snippet explicitly: *"This rule overrides the
 `<dungeonmaster-ward>` and `<dungeonmaster-wardDiscipline>` snippets you were handed at session
-start"* — and the code sub-agent briefs carry no such override, because the operator writes them
+start"*. The code sub-agent briefs carry no such override, because the operator writes them
 freehand.
 
-**Concurrency.** These were not spread out. Group 1 ran four agents in parallel and three of them
+**Concurrency.** These were not spread out. Group 1 ran four agents in parallel. Three of them
 built inside 2m18s (06:48:37, 06:49:33, 06:50:55). Two more built 39 s apart (07:01:01, 07:01:40).
 Group 4's pair built at 07:45:21 and 07:50:52. Group 5's pair built at 08:00:37 and 08:07:20, with
 `a88585a28327d5a7f` firing two more at 08:02:54 and 08:02:56. And `agent-a05f88384e57ff529` built at
 07:19:53 while its own grandchild `agent-af0d2de8d5c0c7795` built again at 07:23:15 — a parent and
 its child writing the same `dist/`.
 
-**Cost.** The reviewer's build took 24 s (08:24:54 to 08:25:18) for 13 packages; 16 of those is
-**about 6.4 minutes of sub-agent wall clock**, all of it inside the operator's 90 idle minutes. The real
-cost is not the seconds — it is the corruption window the `[BUILD]` rule was written to close, which
+**Cost.** The reviewer's build took 24 s (08:24:54 → 08:25:18) for 13 packages. 16 of those is
+**≈6.4 minutes of sub-agent wall clock**, all of it inside the operator's 90 idle minutes. The real
+cost is not the seconds. It is the corruption window the `[BUILD]` rule exists to close — a window
 this pass was lucky to survive.
 
-**Aggravator: 10 of the 16 were piped through `| tail -N`**, which the same snippet forbids in the
-same sentence ("piping it discards the exit code"). Two agents noticed and tried to recover it with
-`echo "BUILD_EXIT:$?"` (reads the echo's status, not the build's) and `${PIPESTATUS[0]}` (correct).
+**Aggravator: sub-agents piped 10 of the 16 builds through `| tail -N`**, which the same snippet
+forbids in the same sentence ("piping it discards the exit code"). Two agents noticed the problem
+and tried to recover: one used `echo "BUILD_EXIT:$?"` (which actually reads the echo's own exit
+status, not the build's) and the other used `${PIPESTATUS[0]}` (which is correct).
 
 **Prompt verdict: FORBIDDEN, twice over** — by the operator prompt's `[BUILD]` and by each brief's
 own `PROVE` line.
 
 ### Finding 2 — one sub-agent held the whole session for 32.7 minutes, and spent 13.5 of them dispatching seven serial searches
 
-**What happened.** `agent-a05f88384e57ff529` ("Build transcript image renderer") ran 07:06:13 to
+**What happened.** `agent-a05f88384e57ff529` ("Build transcript image renderer") ran 07:06:13 →
 07:39:00. The operator's timeline shows the wait verbatim:
 
 ```
@@ -449,20 +492,21 @@ Inside it, seven `Agent` dispatches, each blocking:
 | 21.5m | `a1fa0ee8c6f79e253` Find safe indexed-array-access pattern in proxies | 2.0m |
 | 28.6m | `a439822aae06376f0` Check if chat-input-widget tests a dynamic Modal open via state | 2.6m |
 
-**13.5 of the 32.8 minutes** were spent inside those seven, and every one of them blocked the
-109-minute operator. Their combined spend: 55,897 output tokens, 13,754,690 context-in.
+Those seven nested searches used **13.5 of the 32.8 minutes**. Every one of them blocked the
+109-minute operator while it ran. Their combined spend: 55,897 output tokens, 13,754,690 context-in.
 
-**Three of the seven were the same question about lint rules**, asked three times roughly 6 minutes apart:
+**Three of the seven were the same question about lint rules**, asked three times ~6 minutes apart:
 "ban-primitives escape patterns for string return types in proxies", "precedent for narrowing union
 stub return type in tests", "safe indexed-array-access pattern in proxies" — 7.1 minutes total. The
-sub-agent had already called `get-architecture`, `get-syntax-rules` and `get-testing-patterns`
-(its histogram shows one of each); none of them answered a proxy-file lint question, so it went
-hunting the tree for precedent instead.
+sub-agent had already called `get-architecture`, `get-syntax-rules`, and `get-testing-patterns` (its
+histogram shows one of each). None of them answered a proxy-file lint question, so it went hunting
+the tree for precedent instead.
 
-**One was a straight duplicate.** `ac4bf1f98cd3ec0e6` "Find existing consumers/tests of
-pastedImageMemoryState" (07:14:03) re-searched a file that `agent-a045f135b418ab40b` had WRITTEN and
-finished at 06:55:07, that the operator had `Read` at 22.6m, and that the renderer's own brief named
-under `READ FIRST` with a one-line description of what it does.
+**One was a straight duplicate.** `ac4bf1f98cd3ec0e6`, "Find existing consumers/tests of
+pastedImageMemoryState" (07:14:03), re-searched a file that was already covered three times over:
+`agent-a045f135b418ab40b` had written it and finished at 06:55:07; the operator had `Read` it at
+22.6m; and the renderer's own brief had named it under `READ FIRST`, with a one-line description of
+what it does.
 
 **Prompt verdict: PERMITTED by omission.** The `Briefing a sub-agent` section says nothing about
 whether a code-writing sub-agent may start its own. Only the reviewer prompt forbids it ("You return
@@ -492,12 +536,13 @@ between:
 identical runs between 13.7m and 15.1m, six edits interleaved. It ran 8 ward invocations in a 16.4
 minute session.
 
-Across all sub-agents: **51 `npm run ward` invocations**. Several were piped through `| tail -N` or
-`| head -N`, which discards ward's exit code the same way piping a build does.
+Across all sub-agents, there were **51 `npm run ward` invocations**. Sub-agents piped several of
+them through `| tail -N` or `| head -N`, which discards ward's exit code the same way piping a
+build does.
 
-**Prompt verdict: PERMITTED, and arguably required** — each brief's `PROVE` line names the ward
-command and the `RETURN` block demands "the red I watched before the code made it pass", so a
-red-to-green cycle is the deliverable. What is not required is guessing five times in a row.
+**Prompt verdict: PERMITTED, and arguably required.** Each brief's `PROVE` line names the ward
+command, and the `RETURN` block demands "the red I watched before the code made it pass" — so a
+red→green cycle is the deliverable. What is not required is guessing five times in a row.
 `<dungeonmaster-wardDiscipline>` does say "**Run it ONCE.** Choose the right flags the first time",
 which these violate in spirit.
 
@@ -515,10 +560,10 @@ Its own prompt, in step 1: *"`get-quest` takes `flowId` and `packageName`, never
 'spec'` returns the whole quest, every flow on it, and that render grows as the quest does — past
 the tool-result ceiling on any quest of real size."*
 
-It recovered cleanly (three `python3 -c` calls against the spilled file, edge ids in hand by 79.6m)
-and paid roughly 1.1 minutes. **The provocation was finding 3c(i)** — it needed edge ids the sanctioned
-call does not print, and there was no third option. Prompt verdict: **forbidden, but the forbidden
-route was the only route.**
+The operator recovered cleanly — three `python3 -c` calls against the spilled file got it the edge
+ids by 79.6m — at a cost of about 1.1 minutes. **The provocation was finding 3c(i)**: it needed edge
+ids the sanctioned call does not print, and there was no other option. Prompt verdict: **forbidden,
+but the forbidden route was the only route.**
 
 ### Finding 5 — the reviewer graded 7 of 25 files from a diff, 6 of them test files
 
@@ -539,10 +584,10 @@ Measured against the 25 product/test files in commit `9f8ab692a`:
   `image-overlay-widget.test.tsx`, `session-view-widget.test.tsx`,
   `use-quest-chat-binding.proxy.ts`, `use-quest-chat-binding.test.ts`
 
-Six of the seven are the test and proxy files that step 4's question 3 ("Is the unit test real? …
-name the wrong value that would turn it red") exists to interrogate. Twelve `git diff HEAD -- <path>`
-Bash calls between 1.0m and 2.1m are where those seven were "read". Cost: cheap in tokens, expensive
-in what it can no longer claim.
+Six of the seven are the test and proxy files that step 4's question 3 exists to interrogate ("Is
+the unit test real? … name the wrong value that would turn it red"). The reviewer made twelve
+`git diff HEAD -- <path>` Bash calls between 1.0m and 2.1m — that is how it "read" those seven files.
+Cost: cheap in tokens, expensive in what the reviewer can no longer claim.
 
 **Prompt verdict: FORBIDDEN.** The instruction is unambiguous and the reviewer took the shortcut its
 own prompt names as the failure mode.
@@ -556,11 +601,11 @@ own prompt names as the failure mode.
 ```
 
 Across all 27 sub-agents there were **18 hook-blocked native-search attempts**. Every code brief the
-operator wrote DID carry the warning — *"Search with the `discover` MCP tool … Native Grep/Glob/find/rg
-and shell grep/find are BLOCKED by hooks in this repo"* — but the `codeweaver-reviewer` prompt, which
-the operator does not write, carries no such line. Three wasted round-trips in the one session that
-had a build and a ward still ahead of it. Prompt verdict: **forbidden by the environment, not
-warned about in the reviewer's own prompt.**
+operator wrote did carry the warning: *"Search with the `discover` MCP tool … Native Grep/Glob/find/rg
+and shell grep/find are BLOCKED by hooks in this repo"*. But the `codeweaver-reviewer` prompt carries
+no such line — and the operator does not write that prompt. Three wasted round-trips came in the one
+session that still had a build and a ward ahead of it. Prompt verdict: **forbidden by the
+environment, not warned about in the reviewer's own prompt.**
 
 ### Finding 7 — one sub-agent spent 4.5 minutes and two full builds confirming a test that already existed and already passed
 
@@ -568,21 +613,21 @@ warned about in the reviewer's own prompt.**
 
 > `FILES: none — the widget file was temporarily edited to prove the test bites, then reverted`
 
-It broke `image-overlay-widget.tsx`'s `IconButtonWidget onClick` to a no-op, built the monorepo, ran
-ward, watched red, reverted, **built the monorepo again**, ran ward, watched green. 4.5 min, 6,670
-output tokens, 2,085,564 context-in, 3 builds (08:00:37, 08:02:54, 08:02:56) for one jsdom test that
-touches no cross-package type.
+The sub-agent broke `image-overlay-widget.tsx`'s `IconButtonWidget onClick` into a no-op, built the
+monorepo, ran ward, and watched red. Then it reverted the change, **built the monorepo again**, ran
+ward, and watched green. Total cost: 4.5 min, 6,670 output tokens, 2,085,564 context-in, and 3
+builds (08:00:37, 08:02:54, 08:02:56) — for one jsdom test that touches no cross-package type.
 
-**Prompt verdict: REQUIRED in substance, wasteful in form.** "Recording what you claim" demands
-`confirmed` carry "a test `file:line` AND what makes that test fail", so red-then-green is the
-evidence standard. The two monorepo builds are finding 1 again.
+**Prompt verdict: REQUIRED in substance, wasteful in form.** The rule "Recording what you claim"
+requires that a `confirmed` claim carry "a test `file:line` AND what makes that test fail" — so a
+red-then-green cycle is the evidence standard here. The two monorepo builds are finding 1 again.
 
 ### Finding 8 — the ward gate that failed did NOT fail on this codeweaver's work
 
-This is the assignment's central question, so it is stated with the full evidence.
+This is the central question this report answers, so here is the full evidence for it.
 
-**The gate.** `runId 1788337745350-9780` = `2026-09-02T08:29:05.350Z`, work item [10],
-`mode: 'changed'`, exit code 1. Result blob
+**The gate.** The gate that failed ran as `runId 1788337745350-9780`, at `2026-09-02T08:29:05.350Z`,
+for work item [10], in `mode: 'changed'`, and it exited with code 1. Its result is recorded in
 `.dungeonmaster/…/ward-results/229c5454-3b1c-4f04-aa67-97350a357b20.json`:
 
 | check | status | detail |
@@ -610,10 +655,10 @@ message  : RangeError: Maximum call stack size exceeded
 ```
 
 **Neither file is in this codeweaver's commit.** `git show --stat --name-only 9f8ab692a` lists 26
-paths; `pasted-image-draft-contract.test.ts` and `data-url-split-transformer.test.ts` are not among
-them. They were landed by work items [7] (`061e49064`, paste-image-into-composer) and [8]
-(`3275de52b`, send-message-with-images). The root cause the spiritmender found sits in two contracts
-from work items [2] and [7]:
+paths. `pasted-image-draft-contract.test.ts` and `data-url-split-transformer.test.ts` are not among
+them. Work items [7] (`061e49064`, paste-image-into-composer) and [8] (`3275de52b`,
+send-message-with-images) landed those two files. The spiritmender found the root cause in two
+contracts from work items [2] and [7]:
 
 > `spiritmender: fix regex stack overflow on multi-MB pasted-image validation`
 > Traced to `imageDataUrlContract`/`base64ImageDataContract` each running a single `regex.test()`
@@ -622,12 +667,12 @@ from work items [2] and [7]:
 > of files repeatedly; a bare `u`-flag drop "fixed" it in isolation but still crashed once other
 > files in the batch ran first**
 
-Its diff touched three files, none of them this codeweaver's:
+The spiritmender's fix touched three files, none of them this codeweaver's:
 `…/pasted-image-upload-contract.ts` (shared), `…/image-data-url/image-data-url-contract.ts` (web),
-`…/base64-byte-length-transformer.ts`.
+and `…/base64-byte-length-transformer.ts`.
 
-**Did this codeweaver's own verification miss it?** Structurally yes, and the miss is designed in.
-The reviewer's ward, verbatim from its transcript:
+**Did this codeweaver's own verification miss it?** Structurally, yes — and that miss is built into
+how verification works here. Here is the reviewer's ward, verbatim from its transcript:
 
 ```
 > dungeonmaster-ward --staged
@@ -639,28 +684,30 @@ e2e         @dungeonmaster/web   skip (0.0s)
 run: 1788337521833-3f71  (59.7s)
 ```
 
-`1788337521833` = `08:25:21.833Z`, exactly **223.5 seconds** before the gate started. Same tree, same
-worktree, 3 minutes 43 seconds apart — and it graded **16 unit files** where the gate graded **120**,
-**25 integration files** where the gate graded **128**. `--staged` means "files origin lacks", and
-every prior cell's reviewer pushed on its way out, so `--staged` at 08:25 resolved to this pass's 26
-paths and nothing else. The two crashing files were outside the reviewer's scope by construction.
+The reviewer's ward run, `1788337521833`, is timestamped `08:25:21.833Z` — exactly **223.5 seconds**
+before the gate started. It ran on the same tree, in the same worktree, just 3 minutes 43 seconds
+apart from the gate. But it graded far fewer files: **16 unit files**, where the gate graded **120**;
+**25 integration files**, where the gate graded **128**. The reason is the `--staged` flag.
+`--staged` checks only "files origin lacks" — and by this point in the quest, every earlier cell's
+reviewer had already pushed its own work. So at 08:25, `--staged` resolved to only this pass's own 26
+paths, and nothing else. The two crashing files sat outside the reviewer's scope, by construction.
 
-Two conclusions follow, and the second is the sharper one:
+Two conclusions follow. The second is the sharper one:
 
 1. **No reviewer on this quest could ever have seen it.** `ward(changed)` sits in `relayTail`, after
-   all eight codeweaver cells. Eight cells ran, each verified against a `--staged` window that shrank
-   to its own commit, and the first whole-branch run of any kind was the gate at 08:29 — the ninth
-   verification event on a branch with eight commits on it.
-2. **Even a whole-branch run would have been a coin flip.** In the SAME gate run, minutes apart, web
-   `unit` passed with 1,187 tests and web `integration` failed with the same two tests crashing. The
+   all eight codeweaver cells. Eight cells ran. Each verified against a `--staged` window that shrank
+   to its own commit. The first whole-branch run of any kind was the gate itself, at 08:29 — the
+   ninth verification event on a branch that by then had eight commits on it.
+2. **Even a whole-branch run would have been a coin flip.** In the SAME gate run, minutes apart: web
+   `unit` passed, with 1,187 tests. Web `integration` failed, with the same two tests crashing. The
    defect is jest-batch-order-dependent, exactly as the spiritmender's diagnosis says. A reviewer
    running the full sweep would have had roughly even odds of a green.
 
-The pt-2 ward (`1788339452894-54de`, `08:57:32.894Z`) came back green on identical file counts
-(web unit 120, web integration 128) after the contract fix.
+A second ward run, labelled pt-2 (`1788339452894-54de`, `08:57:32.894Z`), came back green on
+identical file counts (web unit 120, web integration 128), after the contract fix.
 
-**Verdict: the codeweaver did not leave the failures, and no verification step available to it under
-its prompt could have caught them.** The gap is in the ledger's shape, not in this session's conduct.
+**Verdict: the codeweaver did not leave the failures.** No verification step available to it under
+its prompt could have caught them. The gap is in the ledger's shape, not in this session's conduct.
 
 ---
 
@@ -670,26 +717,26 @@ Ranked by minutes-or-tokens recovered per quest of this shape.
 
 ### Fix 1 — Move `ward(changed)` so it runs between codeweaver cells, not only after all of them
 *(answers finding 8; est. saves the spiritmender's 23.6 min + the failed gate's 5.0 min + the pt-2
-gate's 2.7 min = **roughly 31 min per quest**, plus every minute a later cell spends building on a latent
+gate's 2.7 min = **~31 min per quest**, plus every minute a later cell spends building on a latent
 break)*
 
 **File:** `packages/shared/src/statics/quest-type-registry/quest-type-registry-statics.ts` (the
 `relayTail` / `startImplementationOps` arrays both quest types share).
 
 **Edit:** give the `codeweaver` seed a trailing `ward` companion, or splice a `ward(changed)` item
-after every Nth codeweaver cell (N=3 would have put one after [4] and [7] on this quest). Eight
-cells producing eight commits with one whole-branch verification event between the first and the
-last is the structural cause: work item [7] landed the defective contract at 03:45 and the first
-thing to grade the whole branch ran at 08:29 — **4 hours 44 minutes** and four codeweaver sessions
-later.
+after every Nth codeweaver cell (N=3 would have put one after [4] and [7] on this quest). The
+structural cause is simple: eight cells produced eight commits, with only one whole-branch
+verification event between the first and the last. Work item [7] landed the defective contract at
+03:45. The first thing to grade the whole branch ran at 08:29 — **4 hours 44 minutes**, and four
+codeweaver sessions, later.
 
 Cheaper variant if the ledger cannot change: **have `codeweaver-reviewer` run `--staged` AND a
 package-scoped run of the packages it touched** — `npm run ward -- -- packages/web` after the
 `--staged` run — which would have put both crashing files in the batch. It costs each reviewer
-roughly 60–120 s; it is one run per cell versus one spiritmender per quest.
+~60–120 s. That is one run per cell, versus one spiritmender per quest.
 
 ### Fix 2 — Make the sub-agent brief's `no npm run build` an explicit override of the ward snippet
-*(answers finding 1; est. saves roughly 6.4 min of sub-agent wall clock per cell and closes the concurrent-`dist/` window)*
+*(answers finding 1; est. saves ~6.4 min of sub-agent wall clock per cell and closes the concurrent-`dist/` window)*
 
 **File:** `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, the
 `PROVE` block inside the `Briefing a sub-agent` template.
@@ -714,11 +761,11 @@ PROVE
   no run-ward MCP tool · no commit · never widen the ward
 ```
 
-The measurement that justifies the length: 14 of 14 sub-agents that faced the conflict resolved it
-in the snippet's favour, and their `description` fields quote the snippet's reasoning back
-(`"to ensure fresh dist before ward"`, `"to ensure ward resolves cross-package types correctly"`).
-A one-line prohibition loses to a paragraph with a mechanism behind it; give the prohibition the
-mechanism.
+Here is the measurement that justifies the extra length. 14 of 14 sub-agents that faced this
+conflict resolved it in the snippet's favour. Their `description` fields quote the snippet's
+reasoning back (`"to ensure fresh dist before ward"`, `"to ensure ward resolves cross-package types
+correctly"`). A one-line prohibition loses to a paragraph with a mechanism behind it. So give the
+prohibition a mechanism too.
 
 **Companion file:** `packages/shared/src/statics/session-snippet/session-snippet-statics.ts` —
 add one clause to the `wardDiscipline` snippet's "Build first, unpiped" paragraph: *"…unless you are
@@ -726,7 +773,7 @@ a sub-agent on an operator's pass, whose brief forbids it — a `--only lint,tes
 `dist/`."* Fixing it at the snippet closes the conflict for every role in every repo at once.
 
 ### Fix 3 — Print the edge id in the flow render
-*(answers finding 3c(i) and finding 4; est. saves roughly 1.1 min and roughly 2,750 output tokens per operator
+*(answers finding 3c(i) and finding 4; est. saves ~1.1 min and ~2,750 output tokens per operator
 session that signs an edge, and removes a 263 KB spill)*
 
 **File:** `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`,
@@ -746,12 +793,12 @@ to carry the edge's own id where the edge is labelled:
 
 with `edgeIdPart` rendering `` ` <edge:${String(edge.id)}>` `` for a labelled edge and `''`
 otherwise, plus one KEY legend line. The render already prints `${edgeSignoffMarker}` on that same
-line — it shows `[C✓]` for an edge whose id it withholds, which is the whole defect. Same edit at
-line 227 for the cross-flow inbound form.
+line. That is the whole defect: it shows `[C✓]` for an edge whose id it withholds. Apply the same
+edit at line 227, for the cross-flow inbound form.
 
-This is precisely the failure `packages/orchestrator/CLAUDE.md` rule 4 warns about ("Check the
-RENDERER before promising a session what it will be handed") — the prompt promises an edge id the
-renderer never emits.
+This is precisely the failure `packages/orchestrator/CLAUDE.md` rule 4 warns about: "Check the
+RENDERER before promising a session what it will be handed". The prompt promises an edge id that
+the renderer never actually emits.
 
 ### Fix 4 — Forbid grandchildren in the code-sub-agent brief, and add the three lint answers the standards tools do not carry
 *(answers finding 2; est. saves 7–13 min per heavy cell)*
@@ -767,18 +814,18 @@ renderer never emits.
   line, not a sub-agent.
 ```
 
-Evidence: 11 grandchildren were spawned, 13.5 min of one 32.8-min sub-agent went into seven of them,
-one (`ac4bf1f98cd3ec0e6`) re-searched a file the brief already named under `READ FIRST` with a
-description of what it does, and one (`af0d2de8d5c0c7795`) — a read-only search agent — ran
-`npm run build` and `npm run ward -- --only typecheck`.
+Evidence: sub-agents spawned 11 grandchildren in total. 13.5 minutes of one 32.8-minute sub-agent's
+time went into seven of them. One grandchild, `ac4bf1f98cd3ec0e6`, re-searched a file the brief had
+already named under `READ FIRST`, with a description of what it does. Another, `af0d2de8d5c0c7795`
+— a read-only search agent — ran `npm run build` and `npm run ward -- --only typecheck` anyway.
 
 **Edit (b), the better half:** three of the seven searches were lint questions — `ban-primitives`
 escapes for a string return type in a proxy, narrowing a union stub return type in a test, safe
 indexed-array-access in a proxy. All three sessions had already called `get-syntax-rules` and
 `get-testing-patterns`. **File:** the MCP `get-syntax-rules` / `get-testing-patterns` statics under
 `packages/mcp/src/statics/` — add a "Proxy files: the four rules that bite" section covering those
-three plus `exactOptionalPropertyTypes`. 7.1 minutes of tree-searching for answers that belong in a
-tool that was already called.
+three plus `exactOptionalPropertyTypes`. That is 7.1 minutes of tree-searching for answers that
+belong in a tool the sub-agent had already called.
 
 ### Fix 5 — Make the reviewer read whole test files, and warn it about the search hooks
 *(answers findings 5 and 6; est. saves 3 wasted round-trips and closes the reviewer's one real
@@ -807,7 +854,7 @@ Reach for `discover` / `get-project-map` first; `Read`, `ls` and `python3 -c` ar
 ```
 
 ### Fix 6 — Either wire `codeweaverScopeBlockTransformer` in, or delete it
-*(answers finding 3a; est. saves roughly 0.5 min per cell and removes a 175-line file that reads as live)*
+*(answers finding 3a; est. saves ~0.5 min per cell and removes a 175-line file that reads as live)*
 
 **File:** `packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`.
 
@@ -823,10 +870,10 @@ The transformer is already budget-conscious by design (its own header explains w
 and shared homes and NOT the flow slice). It returns `[]` when there is nothing to say, so the
 degenerate case is safe.
 
-If the omission was deliberate, delete
+If the omission was deliberate instead, then delete
 `packages/orchestrator/src/transformers/codeweaver-scope-block/` and its test, and cut the seam
-question from the codeweaver prompt's step 5 — because as it stands, step 5 question 4 asks the
-operator something no block answers, and this session paid two `git show` calls to answer it by hand.
+question from the codeweaver prompt's step 5. As it stands, step 5 question 4 asks the operator
+something no block answers — and this session paid two `git show` calls to answer it by hand.
 
 ### Fix 7 — Drop the unsatisfiable FINDINGS instruction from step 7
 *(answers finding 3c(ii); est. saves nothing this pass, prevents a lost finding on a pass where the
@@ -840,8 +887,8 @@ survives nowhere else"* with *"its `FINDINGS:` are already durable — your revi
 return block in the commit body, which is where the next session reads them from. `signal-back`
 takes no findings field."*
 
-`signalBackInputContract` is `.strict()` with six keys and no slot for findings; its own comment
-already says *"the next-session handoff is the git commit message, not the ledger."* The prompt is
+`signalBackInputContract` is `.strict()`, with six keys and no slot for findings. Its own comment
+already says: *"the next-session handoff is the git commit message, not the ledger."* The prompt is
 telling the operator to do something the schema would reject.
 
 ### Fix 8 — Tell code sub-agents to diagnose before re-running ward
@@ -857,9 +904,10 @@ telling the operator to do something the schema would reject.
   explained; four identical runs is four guesses.
 ```
 
-Evidence: `agent-a045f135b418ab40b` fired the identical command 5× in 1.7 min; `agent-aaa27f462b44f55a8`
-4× in 1.4 min. The agents that DID use `npm run ward -- detail <runId>` (`a05f88384e57ff529`,
-`a4aad8da7dcef1ab2`, `a6c17516ba1867b19`, `a88585a28327d5a7f`) converged without a repeat loop.
+Evidence: `agent-a045f135b418ab40b` fired the identical command 5× in 1.7 min. `agent-aaa27f462b44f55a8`
+fired it 4× in 1.4 min. The agents that did use `npm run ward -- detail <runId>`
+(`a05f88384e57ff529`, `a4aad8da7dcef1ab2`, `a6c17516ba1867b19`, `a88585a28327d5a7f`) converged
+without a repeat loop.
 
 ---
 
@@ -1127,9 +1175,9 @@ e0ffce3b2 spiritmender: fix regex stack overflow on multi-MB pasted-image valida
 ### Not measurable from the transcript
 
 - Whether the two crashing tests were present in the reviewer's 16-file unit batch. Ward's result
-  blob records `filesCount` and `discoveredCount` but not the file list per project, and the
-  reviewer's terminal output was summarised to the per-package PASS lines quoted above. The
-  inference that they were absent rests on `--staged` semantics plus the fact that both files were
-  pushed by earlier reviewers, not on a list ward printed.
-- The exact per-sub-agent breakdown of the 18 hook-blocked search attempts by command type; only the
-  count and the identity of the blocking hook were recovered.
+  blob records `filesCount` and `discoveredCount`, but not the file list per project. The reviewer's
+  terminal output was summarised down to the per-package PASS lines quoted above. This report infers
+  that the two files were absent from `--staged` semantics, plus the fact that both files were
+  pushed by earlier reviewers — not from any file list ward actually printed.
+- The exact per-sub-agent breakdown of the 18 hook-blocked search attempts, by command type. This
+  analysis recovered only the total count and the identity of the blocking hook.
