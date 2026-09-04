@@ -1,8 +1,8 @@
 /**
- * PURPOSE: A parent transcript records that it dispatched a sub-agent, never what that sub-agent
- * cost or how long it ran — that lives in the `.meta.json` and transcript Claude Code writes beside
- * each one, in a directory nothing else reads. Reach for this when the question is what a fan-out
- * actually spent, not what the parent asked for.
+ * PURPOSE: A parent transcript records that it dispatched a sub-agent, but never what that
+ * sub-agent cost or how long it ran. Claude Code writes that information into a `.meta.json` file
+ * and a transcript beside each sub-agent, in a directory nothing else reads. Reach for this broker
+ * when the question is what a fan-out actually spent, not what the parent asked for.
  *
  * USAGE:
  * subagentRosterLoadBroker({ sessionFilePath: AbsoluteFilePathStub({ value: '/h/.claude/projects/p/s.jsonl' }) });

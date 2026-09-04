@@ -1,14 +1,15 @@
 /**
  * PURPOSE: One sub-agent's fan-out cost and lifespan, joined from its `.meta.json` and its own
- * transcript — neither file alone answers what a dispatch spent. Reach for this over
- * `subagentMetaContract` when the caller needs turn count or the loaded records, and over
- * `subagentWindowContract` when the transcript may hold no timestamped record at all: this row's
- * `startedAt`/`endedAt` are optional for exactly that reason, where `SubagentWindow`'s are required.
+ * transcript. Neither file alone answers what a dispatch spent. Reach for this over
+ * `subagentMetaContract` when the caller needs the turn count or the loaded records. Reach for
+ * this over `subagentWindowContract` when the transcript might hold no timestamped record at all.
  *
  * USAGE:
  * subagentRosterRowContract.parse({
  *   agentId: 'agent-abc', meta: SubagentMetaStub(), turnCount: 3, records: [],
  * });
+ * // Returns the branded SubagentRosterRow. startedAt and endedAt are optional here — where
+ * // SubagentWindow requires both — because the transcript may hold no timestamped record at all.
  */
 import { z } from 'zod';
 

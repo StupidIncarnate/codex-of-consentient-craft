@@ -1,9 +1,13 @@
 import { coverageToTextTransformer } from './coverage-to-text-transformer';
 import { TrackCoverageStub } from '../../contracts/track-coverage/track-coverage.stub';
 
-const NOT_AUTHORITATIVE_LINE =
-  'NOT AUTHORITATIVE — get-qa-checklist({questId, operationItemId}) is the real denominator.';
-const HEADER_LINE = '  track                    OWED  signed  confirmed  unconfirmable  UNSIGNED';
+const CAVEAT_LINE_ONE = 'These counts can be too high.';
+const CAVEAT_LINE_TWO =
+  'This reading has no operation item, so it counts rows a real checklist would leave out.';
+const CAVEAT_LINE_THREE =
+  'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).';
+const HEADER_LINE =
+  "  sign-off track         REQUIRED  signed  confirmed  can't confirm  NOT SIGNED";
 
 describe('coverageToTextTransformer', () => {
   describe('one flow, three rows', () => {
@@ -34,13 +38,15 @@ describe('coverageToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'flow-one',
+          'Flow flow-one',
           HEADER_LINE,
-          '  codeweaverSignoff          58      58         55              3         0',
-          '  flowriderSignoff           10       8          8              0         2',
-          '  siegemasterSignoff         20      15         10              5         5',
+          '  codeweaverSignoff            58      58         55              3           0',
+          '  flowriderSignoff             10       8          8              0           2',
+          '  siegemasterSignoff           20      15         10              5           5',
           '',
-          NOT_AUTHORITATIVE_LINE,
+          CAVEAT_LINE_ONE,
+          CAVEAT_LINE_TWO,
+          CAVEAT_LINE_THREE,
         ].join('\n'),
       );
     });
@@ -109,19 +115,21 @@ describe('coverageToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'flow-alpha',
+          'Flow flow-alpha',
           HEADER_LINE,
-          '  codeweaverSignoff           5       5          5              0         0',
-          '  flowriderSignoff            5       4          4              0         1',
-          '  siegemasterSignoff          7       0          0              0         7',
+          '  codeweaverSignoff             5       5          5              0           0',
+          '  flowriderSignoff              5       4          4              0           1',
+          '  siegemasterSignoff            7       0          0              0           7',
           '',
-          'flow-beta',
+          'Flow flow-beta',
           HEADER_LINE,
-          '  codeweaverSignoff           3       3          2              1         0',
-          '  flowriderSignoff            0       0          0              0         0',
-          '  siegemasterSignoff          7       1          1              0         6',
+          '  codeweaverSignoff             3       3          2              1           0',
+          '  flowriderSignoff              0       0          0              0           0',
+          '  siegemasterSignoff            7       1          1              0           6',
           '',
-          NOT_AUTHORITATIVE_LINE,
+          CAVEAT_LINE_ONE,
+          CAVEAT_LINE_TWO,
+          CAVEAT_LINE_THREE,
         ].join('\n'),
       );
     });
@@ -153,11 +161,13 @@ describe('coverageToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'flow-never-ran',
+          'Flow flow-never-ran',
           HEADER_LINE,
-          '  flowriderSignoff            6       0          0              0         6',
+          '  flowriderSignoff              6       0          0              0           6',
           '',
-          NOT_AUTHORITATIVE_LINE,
+          CAVEAT_LINE_ONE,
+          CAVEAT_LINE_TWO,
+          CAVEAT_LINE_THREE,
         ].join('\n'),
       );
     });
@@ -171,11 +181,13 @@ describe('coverageToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'flow-unconfirmable',
+          'Flow flow-unconfirmable',
           HEADER_LINE,
-          '  codeweaverSignoff          58      58         55              3         0',
+          '  codeweaverSignoff            58      58         55              3           0',
           '',
-          NOT_AUTHORITATIVE_LINE,
+          CAVEAT_LINE_ONE,
+          CAVEAT_LINE_TWO,
+          CAVEAT_LINE_THREE,
         ].join('\n'),
       );
     });

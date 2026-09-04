@@ -1,8 +1,9 @@
 /**
- * PURPOSE: A whole session transcript, folded down to one answer: what did it cost, and what did it
- * spend that cost on. Every other contract in this package describes one line, one turn, or one gap —
- * this is the shape a post-mortem reads instead of re-walking a transcript that can run to hundreds of
- * megabytes of JSONL every time the same question comes up.
+ * PURPOSE: A whole session transcript, folded down to one answer: what it cost, and what it spent
+ * that cost on. Every other contract in this package describes one line, one turn, or one gap.
+ * This is the shape a post-mortem reads instead. A session transcript can run to hundreds of
+ * megabytes of JSONL. A post-mortem should not have to re-walk it every time the same question
+ * comes up.
  *
  * USAGE:
  * transcriptSummaryContract.parse({

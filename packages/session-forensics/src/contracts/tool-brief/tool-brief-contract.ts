@@ -1,8 +1,10 @@
 /**
- * PURPOSE: The name and one-line brief a tool_use content block reduces to for a forensics timeline.
- * Both fields are branded so a raw string can never stand in for either half — reach for this over
- * hand-rolling `{name: string; brief: string}` wherever a caller carries the pair together, so nothing
- * downstream can mix a brief up with any other string in the digest.
+ * PURPOSE: The name and one-line brief a tool_use content block boils down to, for a forensics
+ * timeline. Both fields use a branded type — a plain string that zod tags with a name, so it
+ * cannot be passed where a different string belongs. Branding here means a raw string can never
+ * stand in for either half. Reach for this instead of hand-rolling `{name: string; brief: string}`
+ * wherever a caller carries the pair together. That way nothing downstream can mix a brief up with
+ * any other string in the digest.
  *
  * USAGE:
  * toolBriefContract.parse({ name: 'Read', brief: 'file_path=/tmp/x.ts' });

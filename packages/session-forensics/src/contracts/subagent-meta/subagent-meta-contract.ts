@@ -1,8 +1,8 @@
 /**
- * PURPOSE: The `.meta.json` Claude Code writes beside every sub-agent transcript. Reach for this
- * over parsing the transcript itself when what's needed is which agent type and model the parent
- * chose to spawn and how deep in the spawn tree this agent sat — none of which the transcript
- * JSONL records anywhere.
+ * PURPOSE: The `.meta.json` file Claude Code writes beside every sub-agent transcript. Reach for
+ * this instead of parsing the transcript itself when you need the agent type, the model the
+ * parent chose, or how deep in the spawn tree this agent sat. The transcript JSONL never records
+ * any of those three.
  *
  * USAGE:
  * subagentMetaContract.parse({

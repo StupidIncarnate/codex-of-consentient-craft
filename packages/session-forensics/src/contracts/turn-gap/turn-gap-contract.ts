@@ -1,9 +1,9 @@
 /**
- * PURPOSE: A session that stops emitting turns looks identical in the raw transcript whether it is
- * blocked on a sub-agent doing real work or genuinely stalled. Measured by hand across one quest,
- * settling that distinction moved the headline idle number from 67-94% down to about 1% true dead
- * air, with the rest reclassified as serialisation. `liveSubagentIds` is the field that tells the two
- * apart: empty means nothing was running.
+ * PURPOSE: A session that stops emitting turns looks the same in the raw transcript whether it's
+ * blocked on a sub-agent doing real work or genuinely stalled. One quest's transcript was measured
+ * by hand to settle that distinction. Doing so moved the headline idle number from 67-94% down to
+ * about 1% true dead air. The rest was reclassified as serialisation. `liveSubagentIds` is the
+ * field that tells the two apart. An empty array means nothing was running.
  *
  * USAGE:
  * turnGapContract.parse({

@@ -1,11 +1,12 @@
 /**
- * PURPOSE: CLI entry point for session forensics digests. Slices the real `process.argv` down to
- * the command and target a caller typed, hands them to the session-forensics flow, and prints the
- * rendered text to stdout — or the error to stderr with a non-zero exit code when the flow throws.
+ * PURPOSE: The CLI entry point for session forensics digests. It slices the real `process.argv`
+ * down to the command and target the caller typed, and hands them to the session-forensics flow.
+ * It prints the rendered text to stdout. If the flow throws, it prints the error to stderr instead
+ * and sets a non-zero exit code.
  *
  * USAGE:
  * StartSessionForensics();
- * // Writes the flow's rendered ContentText (or usage block) to stdout with a trailing newline
+ * // Writes the flow's rendered ContentText, or a usage block, to stdout with a trailing newline.
  */
 import { adapterResultContract, type AdapterResult } from '@dungeonmaster/shared/contracts';
 

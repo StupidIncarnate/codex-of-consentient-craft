@@ -1,17 +1,19 @@
 /**
- * PURPOSE: Folds a whole session's parsed records into one TranscriptSummary — what did this session
- * cost, and what did it spend that cost on — so a post-mortem never has to re-walk hundreds of
- * megabytes of JSONL to answer it. Reach for this over recordsToBucketsTransformer when the
- * whole-session total is what's wanted, not where in the session it landed. `apiResponseCount`, not
- * `recordCount`, is the honest count of API responses: one response is split across several records —
- * a text block, a thinking block, each tool_use — and every one of them repeats that response's
- * `usage`, so `recordCount` overcounts calls to the model by exactly that fan-out. This is the single
- * most misread number in this whole package.
+ * PURPOSE: Folds a whole session's parsed records into one TranscriptSummary. That summary answers
+ * two questions: what did this session cost, and what did it spend that cost on. A post-mortem can
+ * read the summary instead of re-walking hundreds of megabytes of JSONL. Reach for this transformer
+ * over `recordsToBucketsTransformer` when you want the whole-session total, not where in the
+ * session it landed. `apiResponseCount`, not `recordCount`, is the honest count of API responses.
+ * One API response is split across several transcript records — a text block, a thinking block,
+ * each tool_use. Every one of those records repeats that response's `usage`. So `recordCount`
+ * overcounts calls to the model by exactly that fan-out. Readers misread this number more than any
+ * other in the package.
  *
  * USAGE:
  * recordsToSummaryTransformer({ records: [TranscriptRecordStub()], subagentCount: 2 });
- * // Returns a TranscriptSummary: record/model/tool-call histograms, summed TokenUsage, wall clock
- * // bounds (omitted when no record carries a timestamp), and the passed-through subagentCount
+ * // Returns a TranscriptSummary with record, model, and tool-call histograms, summed TokenUsage,
+ * // wall clock bounds, and the passed-through subagentCount. Wall clock bounds are omitted when no
+ * // record carries a timestamp.
  */
 import { tokenUsageContract } from '../../contracts/token-usage/token-usage-contract';
 import {

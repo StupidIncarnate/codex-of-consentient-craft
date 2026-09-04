@@ -1,13 +1,14 @@
 /**
- * PURPOSE: One entry of a transcript record's `message.content` array — a text run, a thinking run, a
- * tool call, or a tool result. Reach for this whenever code reads or constructs a content block instead
- * of redeclaring the shape inline, so a transformer that normalises or re-brands a block (a bare string
- * folded into a text block, for instance) has a real contract to `.parse()` through rather than an `as`
- * cast.
+ * PURPOSE: One entry of a transcript record's `message.content` array. It can be a text run, a
+ * thinking run, a tool call, or a tool result. Reach for this whenever code reads or constructs a
+ * content block, instead of redeclaring the shape inline. That way a transformer that normalises
+ * or re-brands a block — folding a bare string into a text block, for instance — has a real
+ * contract to `.parse()` through rather than an `as` cast.
  *
  * USAGE:
  * transcriptRecordContentBlockContract.parse({ type: 'text', text: 'Reading the file now.' });
- * // Returns the branded TranscriptRecordContentBlock; every field but `type` is optional
+ * // Returns the branded TranscriptRecordContentBlock.
+ * // Every field but `type` is optional.
  */
 import { z } from 'zod';
 

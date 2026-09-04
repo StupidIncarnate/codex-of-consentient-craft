@@ -1,15 +1,17 @@
 /**
- * PURPOSE: One parsed line of a Claude Code session JSONL transcript. The file is another program's
- * external output, so only the fields the forensics digest reads are declared; every other field a
- * real transcript carries is dropped by the schema rather than preserved, which is what stops a Claude
- * CLI format change from silently widening what this port depends on.
+ * PURPOSE: One parsed line of a Claude Code session JSONL transcript. The file is another
+ * program's external output, so this schema declares only the fields the forensics digest
+ * actually reads. The schema drops every other field a real transcript carries rather than
+ * preserving it. Dropping those fields is what stops a Claude CLI format change from silently
+ * expanding what this contract depends on.
  *
  * USAGE:
  * transcriptRecordContract.parse({
  *   type: 'assistant',
  *   message: { model: 'claude-opus-5', content: [{ type: 'text', text: 'hi' }] },
  * });
- * // Returns the branded TranscriptRecord; every field but `type` is optional
+ * // Returns the branded TranscriptRecord.
+ * // Every field but `type` is optional.
  */
 import { z } from 'zod';
 

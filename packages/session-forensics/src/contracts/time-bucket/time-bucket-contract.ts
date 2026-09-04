@@ -1,8 +1,9 @@
 /**
- * PURPOSE: A session total hides that most of the spend usually lands in one or two windows, so a
- * digest that only ever sums the whole session cannot show that. This is the shape that makes it
- * visible — one fixed-width slice of the session's activity, laid end to end with its siblings so a
- * reader can see where the tokens, tool calls and bytes actually landed as the work went on.
+ * PURPOSE: A session total hides a common pattern: most of the spend usually lands in just one or
+ * two windows of time. A digest that only sums the whole session cannot show that pattern. This
+ * contract is the shape that makes it visible. Each one is a fixed-width slice of the session's
+ * activity, laid end to end with its siblings, so a reader can see where the tokens, tool calls
+ * and bytes actually landed as the work went on.
  *
  * USAGE:
  * timeBucketContract.parse({

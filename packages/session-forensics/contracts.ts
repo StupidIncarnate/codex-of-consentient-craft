@@ -1,11 +1,13 @@
 /**
- * PURPOSE: Barrel export for session-forensics contracts
+ * PURPOSE: The subpath a consumer imports this package's contracts from, so nothing outside has to
+ * reach into `src/`. Import from here rather than the root barrel when only the contracts are
+ * wanted. Each contract ships beside its stub, so a test never imports the contract itself.
  *
  * USAGE:
  * import { transcriptRecordContract } from '@dungeonmaster/session-forensics/contracts';
  */
 
-// One moment, shared by every shape here that carries a timestamp
+// One timestamp shape, shared by everything here that carries a time
 export * from './src/contracts/iso-timestamp/iso-timestamp-contract';
 export * from './src/contracts/iso-timestamp/iso-timestamp.stub';
 
@@ -19,7 +21,7 @@ export * from './src/contracts/transcript-record-content-block/transcript-record
 export * from './src/contracts/token-usage/token-usage-contract';
 export * from './src/contracts/token-usage/token-usage.stub';
 
-// One whole session digested, and one fixed-width window of it
+// A whole session folded to one summary, plus one fixed-width window of it
 export * from './src/contracts/transcript-summary/transcript-summary-contract';
 export * from './src/contracts/transcript-summary/transcript-summary.stub';
 export * from './src/contracts/time-bucket/time-bucket-contract';
@@ -39,7 +41,7 @@ export * from './src/contracts/subagent-meta/subagent-meta.stub';
 export * from './src/contracts/subagent-roster-row/subagent-roster-row-contract';
 export * from './src/contracts/subagent-roster-row/subagent-roster-row.stub';
 
-// One signable thing flattened out of a flow graph, and one track's coverage of a flow
+// One signable thing flattened out of a flow graph, and one reviewing role's coverage of a flow
 export * from './src/contracts/verification-unit/verification-unit-contract';
 export * from './src/contracts/verification-unit/verification-unit.stub';
 export * from './src/contracts/track-coverage/track-coverage-contract';

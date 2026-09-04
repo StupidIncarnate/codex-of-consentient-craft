@@ -1,9 +1,10 @@
 /**
- * PURPOSE: Settles the token counts an assistant record's `message.usage` reports into this port's
- * stable `TokenUsage` shape. Claude Code adds keys to that field over time and reports it snake_case,
- * so `transcriptRecordContract` leaves it loosely typed — this is the one place that defaults every
- * count Claude Code did not report (including the whole `usage` object, on a non-assistant record) to
- * 0, rather than letting every digest transformer that sums `TokenUsage` re-derive that default itself.
+ * PURPOSE: Settles the token counts an assistant record's `message.usage` reports into this
+ * package's stable `TokenUsage` shape. Claude Code adds new keys to `message.usage` over time. It
+ * also reports them in snake_case. Because of that, `transcriptRecordContract` leaves
+ * `message.usage` loosely typed. This transformer is the one place that defaults every count Claude
+ * Code did not report to 0, including the whole `usage` object on a non-assistant record. Without
+ * it, every digest transformer that sums `TokenUsage` would have to re-derive that default itself.
  *
  * USAGE:
  * recordToTokenUsageTransformer({

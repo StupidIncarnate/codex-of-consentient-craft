@@ -1,8 +1,9 @@
 /**
- * PURPOSE: The three numbers a forensic digest reports about a session's silence: how long it ran
- * end to end, and how much of that was genuinely blocked on a sub-agent versus idle with nothing
- * running. `transformers/records-to-gaps` is the only producer — every other contract in this
- * package describes one line, one turn, or one window; this is the roll-up a digest prints.
+ * PURPOSE: A forensic digest reports three numbers about a session's silence: total wall-clock
+ * time, time genuinely blocked on a sub-agent, and idle time with nothing running.
+ * `transformers/records-to-gaps` is the only file that produces this shape. Every other contract
+ * in this package describes one line, one turn, or one window. This one is the roll-up a digest
+ * prints.
  *
  * USAGE:
  * gapReportContract.parse({

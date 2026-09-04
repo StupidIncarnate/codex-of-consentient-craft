@@ -1,6 +1,9 @@
 import { bucketsToTextTransformer } from './buckets-to-text-transformer';
 import { TimeBucketStub } from '../../contracts/time-bucket/time-bucket.stub';
 
+const HEADER_LINE =
+  'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools';
+
 describe('bucketsToTextTransformer', () => {
   describe('three buckets', () => {
     it('VALID: {three buckets, one with two top tools, one silent} => header plus one row per bucket', () => {
@@ -44,10 +47,10 @@ describe('bucketsToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS',
-          '10:00-10:05           12      8     4,500       120,000        34,000  Readx5',
-          '10:05-10:10            6      3     1,000        20,000           500  Editx2, Bashx1',
-          '10:10-10:15            1      0         0             0             0  ',
+          HEADER_LINE,
+          '10:00-10:05              12           8        4,500       120,000            34,000  Readx5',
+          '10:05-10:10               6           3        1,000        20,000               500  Editx2, Bashx1',
+          '10:10-10:15               1           0            0             0                 0  ',
         ].join('\n'),
       );
     });
@@ -57,9 +60,7 @@ describe('bucketsToTextTransformer', () => {
     it('EMPTY: {buckets: []} => returns the header row alone', () => {
       const result = bucketsToTextTransformer({ buckets: [] });
 
-      expect(String(result)).toBe(
-        'WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS',
-      );
+      expect(String(result)).toBe(HEADER_LINE);
     });
   });
 
@@ -82,8 +83,8 @@ describe('bucketsToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS',
-          '10:10-10:15            1      0         0             0             0  ',
+          HEADER_LINE,
+          '10:10-10:15               1           0            0             0                 0  ',
         ].join('\n'),
       );
     });
@@ -108,8 +109,8 @@ describe('bucketsToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS',
-          '14:00-14:05           66    120   850,000     7,200,000       452,000  Readx40',
+          HEADER_LINE,
+          '14:00-14:05              66         120      850,000     7,200,000           452,000  Readx40',
         ].join('\n'),
       );
     });
@@ -137,8 +138,8 @@ describe('bucketsToTextTransformer', () => {
 
       expect(String(result)).toBe(
         [
-          'WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS',
-          '10:00-10:05            2      2         0             0             0  Alphax1, Zetax1',
+          HEADER_LINE,
+          '10:00-10:05               2           2            0             0                 0  Alphax1, Zetax1',
         ].join('\n'),
       );
     });

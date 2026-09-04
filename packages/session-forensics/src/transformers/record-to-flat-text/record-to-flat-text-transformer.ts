@@ -1,8 +1,8 @@
 /**
- * PURPOSE: A turn's readable prose is split across `text` and `thinking` content blocks whose lengths
- * differ by orders of magnitude, so a timeline that prints one line per turn needs a single place that
- * flattens both into one string while bounding thinking so one turn's chain-of-thought cannot swamp the
- * digest.
+ * PURPOSE: A turn's readable prose is split across `text` and `thinking` content blocks. Their
+ * lengths differ by orders of magnitude. A timeline that prints one line per turn needs a single
+ * place that flattens both kinds of block into one string. This transformer is that place. It also
+ * bounds how much of `thinking` it keeps, so one turn's chain-of-thought cannot swamp the digest.
  *
  * USAGE:
  * recordToFlatTextTransformer({ record: TranscriptRecordStub({ message: { content: 'hi' } }) });

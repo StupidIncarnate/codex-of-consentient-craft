@@ -1,32 +1,34 @@
 /**
  * PURPOSE: The `buckets` CLI command needs a fixed-width table on a terminal, not an array of
- * `TimeBucket` objects each caller lays out for itself — this is the one place that renders it, so
- * every consumer sees the same column widths, the same UTC clock rendering, and the same thousands
- * separators regardless of which window's numbers happen to be biggest.
+ * `TimeBucket` objects that each caller lays out for itself. This transformer is the one place
+ * that renders that table. Every consumer then sees the same column widths, the same UTC clock
+ * rendering, and the same thousands separators, no matter which window's numbers happen to be
+ * biggest.
  *
  * USAGE:
  * bucketsToTextTransformer({ buckets: [TimeBucketStub()] });
- * // Returns a ContentText: the WINDOW/APIs/CALLS/OUT-TOK/CTX-IN-TOK/RESULT-BYTES/TOP TOOLS header,
- * // then one row per bucket
+ * // Returns a ContentText: a header naming each column in plain words, then one row per bucket
  */
 import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 import type { TimeBucket } from '../../contracts/time-bucket/time-bucket-contract';
 
-const HEADER = 'WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS';
+const HEADER =
+  'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools';
 
 const WINDOW_WIDTH = 20;
-const APIS_WIDTH = 4;
+const APIS_WIDTH = 7;
 const APIS_GAP = 2;
-const CALLS_WIDTH = 5;
+const CALLS_WIDTH = 10;
 const CALLS_GAP = 3;
-const OUT_TOK_WIDTH = 7;
+const OUT_TOK_WIDTH = 10;
 const OUT_TOK_GAP = 4;
 const CTX_IN_WIDTH = 10;
 const CTX_IN_GAP = 2;
-const RESULT_BYTES_WIDTH = 12;
+const RESULT_BYTES_WIDTH = 16;
 const RESULT_BYTES_GAP = 2;
 
-// An ISO datetime string ('2025-01-15T10:00:00.000Z') carries 'HH:MM' at this fixed offset.
+// An ISO datetime string ('2025-01-15T10:00:00.000Z') carries 'HH:MM' at a fixed position:
+// characters 11 to 16.
 const ISO_CLOCK_START = 11;
 const ISO_CLOCK_END = 16;
 

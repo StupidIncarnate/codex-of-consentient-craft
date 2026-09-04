@@ -1,13 +1,14 @@
 /**
- * PURPOSE: A quest id alone doesn't say which dungeonmaster home wrote it — dogfood prod, dogfood
- * dev, an env override, and the end-user global home are all candidates, and more than one can hold
- * a `quest.json` under the same id. Searches every candidate in the fixed CLAUDE.md precedence
- * (repo-local prod, repo-local dev, DUNGEONMASTER_HOME, user-global) so a live dogfood run is what
- * gets measured instead of a stale copy the user-global home happens to also carry.
+ * PURPOSE: A quest id alone does not say which dungeonmaster home wrote it. Dogfood prod, dogfood
+ * dev, an env override, and the end-user global home can each hold a `quest.json` under the same
+ * id. This broker searches every candidate, in the fixed CLAUDE.md precedence: repo-local prod,
+ * repo-local dev, DUNGEONMASTER_HOME, then user-global. That order makes sure a live dogfood run
+ * gets measured, not a stale copy the user-global home also happens to carry.
  *
  * USAGE:
  * questFindBroker({ questId: QuestIdStub() });
- * // Returns the AbsoluteFilePath to that quest's quest.json, or undefined when no candidate root holds it
+ * // Returns the AbsoluteFilePath to that quest's quest.json. Returns undefined when no candidate
+ * // root holds it.
  */
 import {
   processCwdAdapter,

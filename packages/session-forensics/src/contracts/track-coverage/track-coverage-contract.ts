@@ -1,9 +1,9 @@
 /**
- * PURPOSE: One sign-off track's coverage of one flow, held to the two counts a measurement must
- * reconcile — signed against owed, and confirmed against signed. Reach for this over reading the raw
- * counts off a report: a coverage row that does not balance is a measurement bug, and this refuses to
- * parse it, so the bug surfaces at the parse instead of three commands downstream in a summary nobody
- * double-checks.
+ * PURPOSE: One sign-off track's coverage of one flow. A sign-off track is one reviewing role —
+ * codeweaver, flowrider or siegemaster — and a flow is one graph of work inside a quest. Reach for
+ * this over reading the raw counts off a report. A coverage row whose counts do not balance is a
+ * measurement bug, and this contract refuses to parse it. The bug therefore surfaces here, not
+ * three commands downstream in a summary nobody double-checks.
  *
  * USAGE:
  * trackCoverageContract.parse({

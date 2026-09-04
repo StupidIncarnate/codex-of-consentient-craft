@@ -1,10 +1,16 @@
 /**
- * PURPOSE: Applies four of `trackDenominatorStatics`' six exclusions — flow type, unit kind,
- * observable provenance, verification method — to answer whether one track's denominator counts
- * one unit. Flow slice and package slice, the other two, are properties of an individual operation
- * item rather than of the unit or the track, and this guard is handed neither — so `true` here is
- * an UPPER BOUND on what a single session owed, never a settled count, and `get-qa-checklist`
- * stays the authority every caller must defer to.
+ * PURPOSE: Answers one question — does this sign-off track owe a verdict on this unit? A sign-off
+ * track is one reviewing role: codeweaver, flowrider or siegemaster. A unit is one signable thing
+ * in a flow graph, a flow being one graph of work inside a quest. How many units a track owes is
+ * that track's denominator, the bottom half of its coverage fraction.
+ *
+ * `trackDenominatorStatics` lists six exclusions, and this guard applies four of them: flow type,
+ * unit kind, observable provenance, and verification method. An observable is something a node says
+ * a reader should be able to see; its provenance is which role added it. The other two exclusions
+ * are flow slice and package slice. Both belong to a single operation item rather than to the unit
+ * or the track, and nobody hands this guard an operation item. So a `true` here is an UPPER BOUND
+ * on what one session owed, never a settled count. `get-qa-checklist` stays the authority every
+ * caller defers to.
  *
  * USAGE:
  * isTrackOwedUnitGuard({ track: 'flowriderSignoff', unit: VerificationUnitStub({ flowType: 'operational' }) });

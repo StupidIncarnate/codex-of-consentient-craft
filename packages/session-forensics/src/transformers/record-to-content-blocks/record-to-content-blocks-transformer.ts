@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Claude Code writes an assistant turn's `message.content` as an array of typed blocks but a
- * user/injected-prompt turn's as a bare string. This is the one place that folds the bare string into a
- * single-element block array so every downstream consumer branches on block type once, never on the
- * shape of `content` itself.
+ * PURPOSE: Claude Code writes an assistant turn's `message.content` as an array of typed blocks. It
+ * writes a user or injected-prompt turn's `message.content` as a bare string instead. This
+ * transformer is the one place that folds that bare string into a single-element block array. Every
+ * downstream consumer can then branch on block type alone, never on the shape of `content` itself.
  *
  * USAGE:
  * recordToContentBlocksTransformer({ record: TranscriptRecordStub({ message: { content: 'hi' } }) });

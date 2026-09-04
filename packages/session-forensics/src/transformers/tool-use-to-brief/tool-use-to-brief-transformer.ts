@@ -1,8 +1,9 @@
 /**
- * PURPOSE: Reduces a tool_use content block's free-form `input` to a one-line brief a forensics
- * timeline can print without a single call making the whole line unreadable. Tool inputs vary wildly
- * per tool, so this prints only the handful of keys that actually explain what a call did, in a fixed
- * priority order, and falls back to the whole input when none of those keys are present.
+ * PURPOSE: Reduces a tool_use content block's free-form `input` to a one-line brief. A forensics
+ * timeline can print that brief without one call making the whole line unreadable. Tool inputs vary
+ * wildly from tool to tool, so this transformer prints only the handful of keys that actually
+ * explain what a call did, in a fixed priority order. It falls back to printing the whole input
+ * when none of those keys are present.
  *
  * USAGE:
  * toolUseToBriefTransformer({ block: { type: 'tool_use', name: 'Read', input: { file_path: '/tmp/x.ts' } } });

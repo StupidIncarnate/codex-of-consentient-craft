@@ -1,27 +1,34 @@
 /**
- * PURPOSE: A flow graph scatters what needs a sign-off across three different shapes — terminal-typed
- * nodes with nothing leaving them, LABELLED edges, node observables — plus a flow-level off-map probe
- * roster that lives outside the graph entirely. Nothing in a `Flow` is itself a list a counter can
- * walk. This is the one place that flattens all four into `VerificationUnit`s, so `quest-to-coverage`
- * and every other reader crosses ONE array instead of re-deriving the enumeration by hand.
+ * PURPOSE: The one place that flattens a flow graph into a list a counter can walk. A flow is one
+ * graph of work inside a quest, and it scatters the things that need a sign-off across four places:
+ * terminal-typed nodes with nothing leaving them, LABELLED edges, node observables, and a
+ * flow-level roster of off-map probe families that sits outside it. An observable is something
+ * a node says a reader should be able to see. An off-map family is one of the standing check
+ * categories siegemaster runs outside the graph. Nothing in a `Flow` is itself a walkable list, so
+ * this transformer turns all four into `VerificationUnit`s. `quest-to-coverage` and every other
+ * reader then crosses ONE array instead of re-deriving the enumeration by hand.
  *
  * USAGE:
  * questToUnitsTransformer({ flows: [FlowStub({ nodes: [...], edges: [...] })] });
  * // Returns every terminal, branch, observable and off-map unit those flows define
  *
- * A `terminal`-typed node that still has an outgoing edge is NOT a unit — `isTerminalUnitGuard` carries
- * that rule and is reused rather than re-implemented here. An unlabelled edge is not a branch anyone
- * chose, so only labelled edges become units. All seven `qaOffMapProbeStatics` families are emitted for
- * EVERY flow regardless of what `offMapSignoffs` holds — that array records only the families already
- * signed, and counting it instead of the static roster under-reports what siegemaster is owed.
+ * Three rules decide what becomes a unit:
+ * - A `terminal`-typed node that still has an outgoing edge is NOT a unit. `isTerminalUnitGuard`
+ *   carries that rule, and this transformer calls it rather than re-implementing it.
+ * - An unlabelled edge is not a branch anyone chose, so only labelled edges become units.
+ * - All seven `qaOffMapProbeStatics` families are emitted for EVERY flow, whatever `offMapSignoffs`
+ *   holds. That array records only the families already signed. Counting it instead of the static
+ *   roster under-reports what siegemaster is owed.
  *
- * Each unit's `trackVerdicts` is read straight off the source node/edge/observable's own
- * `codeweaverSignoff` / `flowriderSignoff` / `siegemasterSignoff` — an off-map unit's siegemaster
- * verdict comes from the matching `offMapSignoffs` entry instead, and it never carries the other two
- * tracks, since nothing else signs an off-map family. A sign-off object whose `verdict` is missing or
- * outside the two known values is treated as UNSIGNED for that track — its key is OMITTED rather than
- * defaulted to a guess, so a malformed record on disk under-reports coverage instead of silently
- * inflating it to `confirmed`.
+ * Each unit's `trackVerdicts` comes straight off its own source: the node's, edge's or observable's
+ * `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff`. An off-map unit is the one
+ * exception. Its siegemaster verdict comes from the matching `offMapSignoffs` entry, and it never
+ * carries the other two tracks, because nothing else signs an off-map family.
+ *
+ * A sign-off whose `verdict` is missing, or holds anything but the two known values, counts as
+ * UNSIGNED for that track. This transformer OMITS the key rather than guessing a default. A
+ * malformed record on disk therefore under-reports coverage instead of silently inflating it to
+ * `confirmed`.
  */
 
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
@@ -40,9 +47,9 @@ export const questToUnitsTransformer = ({
   flows: readonly Flow[];
 }): readonly VerificationUnit[] =>
   flows.flatMap((flow): VerificationUnit[] => {
-    // An edge's `from` always originates inside this flow's own node graph — the cross-flow
-    // form `flowEdgeRefContract` also accepts ("otherFlow:node") is a `to`-only shape for exit
-    // jumps, so re-branding every `from` through `flowNodeIdContract` is safe here.
+    // Every edge's `from` names a node inside this same flow, so parsing it back through
+    // `flowNodeIdContract` is safe. `flowEdgeRefContract` does accept a cross-flow form
+    // ("otherFlow:node"), but only on `to`, where it marks an exit jump out of the flow.
     const edgeSourceIds = flow.edges.map((edge) => flowNodeIdContract.parse(edge.from));
 
     const terminalUnits = flow.nodes.flatMap((node): VerificationUnit[] => {

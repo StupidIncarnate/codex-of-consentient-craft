@@ -25,23 +25,24 @@ describe('SessionForensicsFlow', () => {
 
       expect(String(result)).toBe(
         [
-          'LINES     0',
-          'API CALLS 0 (assistant records — one API response spans several transcript lines)',
-          'START     (no timestamped record)',
-          'MODELS    ',
+          'Lines in the transcript  0',
+          'Times the model replied  0 (one reply covers several lines of the transcript)',
+          'Session started          (nothing in the file was timestamped)',
+          'Models used              ',
           '',
-          'TOKENS (this transcript only, excludes sub-agents)',
-          '  input (uncached)  : 0',
-          '  cache_read        : 0',
-          '  cache_creation    : 0',
-          '  output            : 0',
-          '  of which thinking : 0',
-          '  TOTAL context-in  : 0',
+          'Tokens for this session only. Sub-agents are counted separately.',
+          'Cache reads and cache writes are priced differently, so they are counted on separate lines.',
+          '  Fed in, not cached       : 0',
+          '  Fed in, read from cache  : 0',
+          '  Fed in, written to cache : 0',
+          '  Written out by the model : 0',
+          '  Of that output, thinking : 0',
+          '  Total fed into the model : 0',
           '',
-          'TOOL CALLS (0)',
+          'Tool calls the model made (0 in total)',
           '',
-          'TOOL RESULT BYTES 0',
-          'SUBAGENTS 0',
+          'Bytes returned by tools  0',
+          'Sub-agents started       0',
         ].join('\n'),
       );
     });
@@ -52,7 +53,7 @@ describe('SessionForensicsFlow', () => {
       const result = SessionForensicsFlow({ argv: ['buckets', target] });
 
       expect(String(result)).toBe(
-        'WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS',
+        'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
       );
     });
 
@@ -63,13 +64,15 @@ describe('SessionForensicsFlow', () => {
 
       expect(String(result)).toBe(
         [
-          'GAPS >= 120s between assistant turns',
-          'AT        GAP      LIVE SUB-AGENTS',
+          'Gaps of 120 seconds or more between one model reply and the next.',
+          'A gap that names sub-agents is time the session spent waiting on a helper.',
+          'A gap marked *** NOTHING RUNNING *** had nothing happening at all.',
+          'Minutes in  Gap      Sub-agents running',
           '',
-          'WALL CLOCK      0.0 min',
-          'IN GAPS         0.0 min  (0.0%)',
-          '  blocked on sub  0.0 min  (0.0%)',
-          '  TRUE IDLE       0.0 min  (0.0%)',
+          'Ran for                 0.0 minutes',
+          'Spent in gaps           0.0 minutes  (0.0%)',
+          '  waiting on a sub-agent  0.0 minutes  (0.0%)',
+          '  nothing running at all  0.0 minutes  (0.0%)',
         ].join('\n'),
       );
     });
@@ -98,13 +101,15 @@ describe('SessionForensicsFlow', () => {
 
       expect(String(result)).toBe(
         [
-          'bare-flow',
-          '  track                    OWED  signed  confirmed  unconfirmable  UNSIGNED',
-          '  codeweaverSignoff           0       0          0              0         0',
-          '  flowriderSignoff            0       0          0              0         0',
-          '  siegemasterSignoff          7       0          0              0         7',
+          'Flow bare-flow',
+          "  sign-off track         REQUIRED  signed  confirmed  can't confirm  NOT SIGNED",
+          '  codeweaverSignoff             0       0          0              0           0',
+          '  flowriderSignoff              0       0          0              0           0',
+          '  siegemasterSignoff            7       0          0              0           7',
           '',
-          'NOT AUTHORITATIVE — get-qa-checklist({questId, operationItemId}) is the real denominator.',
+          'These counts can be too high.',
+          'This reading has no operation item, so it counts rows a real checklist would leave out.',
+          'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).',
         ].join('\n'),
       );
     });

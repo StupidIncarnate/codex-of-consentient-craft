@@ -1,12 +1,13 @@
 /**
- * PURPOSE: Every coverage measurement starts from a quest id and needs that quest's flow graph, and
- * a quest.json is routinely over half a megabyte — so `flows` is the one thing worth loading, not the
- * whole document. Reach for this over reading the file yourself.
+ * PURPOSE: Every coverage measurement starts from a quest id and needs that quest's flows. A flow
+ * is one graph of work inside a quest: nodes, edges, and the sign-offs recorded on them. A
+ * quest.json file is routinely over half a megabyte, so loading only the flows is far cheaper than
+ * loading the whole document. Reach for this broker instead of reading the file yourself.
  *
  * USAGE:
  * questLoadBroker({ questId: QuestIdStub() });
- * // Returns that quest's flows in file order, or [] when the quest cannot be found, its file cannot
- * // be parsed as JSON, or its flows fail validation
+ * // Returns that quest's flows, in file order. Returns [] when the quest cannot be found, its file
+ * // cannot be parsed as JSON, or its flows fail validation.
  */
 
 import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';

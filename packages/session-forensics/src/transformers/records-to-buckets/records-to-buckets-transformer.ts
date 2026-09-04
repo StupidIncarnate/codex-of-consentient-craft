@@ -1,10 +1,12 @@
 /**
- * PURPOSE: A session total hides that most of the spend usually lands in one or two windows — on one
- * measured session, 66 of 104 API responses and 7.2M of 15.2M context-in tokens fell inside a single
- * five-minute window, a fact no single sum can show. This is the `buckets` command's transformer: it
- * slices the session into fixed-width windows anchored to the earliest timestamp and emits ONE row per
- * window that actually saw activity. A silent window is dropped rather than printed as a zero row,
- * because printing every window would flood a multi-hour session with empty rows.
+ * PURPOSE: A session total hides that most of the spend usually lands in one or two windows.
+ * Context-in tokens are everything sent into one API request: fresh input, cache reads and cache
+ * writes together. On one measured session, 66 of 104 API responses and 7.2M of 15.2M context-in
+ * tokens fell inside a single five-minute window. A session total cannot show that concentration on
+ * its own. This transformer is what the `buckets` command uses. It slices the session into
+ * fixed-width windows anchored to the earliest timestamp. It emits one row per window that actually
+ * saw activity. It drops a silent window rather than print it as a zero row, because printing every
+ * window would flood a multi-hour session with empty rows.
  *
  * USAGE:
  * recordsToBucketsTransformer({ records });

@@ -1,9 +1,10 @@
 /**
- * PURPOSE: Wires a bare CLI command name and target id to the one broker-then-transformer chain
- * that command needs, so a caller holding only an argv-shaped `{command, target}` never has to know
- * which of the three id kinds `target` names or which renderer pairs with which command. Reach for
- * this over calling the brokers and transformers directly whenever the caller starts from a command
- * name rather than already knowing the digest shape it wants.
+ * PURPOSE: Wires a bare CLI command name and target id to the broker-then-transformer chain that
+ * command needs. A caller holding only an argv-shaped `{command, target}` never has to know which
+ * of the three id kinds `target` names. It also never has to know which renderer pairs with which
+ * command. This responder decides both. Reach for this responder over calling the brokers and
+ * transformers directly whenever the caller starts from a command name rather than already knowing
+ * the digest shape it wants.
  *
  * USAGE:
  * DigestRunResponder({ command: DigestCommandStub({ value: 'summary' }), target: 'abc-123' });

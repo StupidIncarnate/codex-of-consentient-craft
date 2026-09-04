@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * PURPOSE: Thin CLI entry point that delegates to the StartSessionForensics startup
+ * PURPOSE: The executable this package installs as `dungeonmaster-session-forensics`. It exists
+ * only so a shell has something to run; `StartSessionForensics` does all of the work. Reach for
+ * that startup directly from TypeScript, and for this file only from a command line.
  *
  * USAGE:
  * node session-forensics-entry.js summary <sessionId>    // One session's totals

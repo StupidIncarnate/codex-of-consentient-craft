@@ -1,13 +1,14 @@
 /**
- * PURPOSE: A forensic reader only has a bare session or sub-agent id copied out of a quest file —
- * Claude Code writes one project directory per working directory, so the id alone carries no path.
- * This is the search that turns the id into a transcript path by walking every project directory
- * shared's per-guild location brokers cannot help with, since they all require a known guild path.
+ * PURPOSE: A forensic reader starts with only a bare session or sub-agent id, copied out of a
+ * quest file. Claude Code writes one project directory per working directory, so the id alone
+ * carries no path to its transcript. The location brokers in `@dungeonmaster/shared` cannot
+ * resolve it either, because every one of them needs a known guild path first. This broker
+ * resolves the id on its own, by walking every project directory.
  *
  * USAGE:
  * transcriptResolveBroker({ target: SessionIdStub({ value: 'abc-123' }) });
- * // Returns the absolute path to the matching transcript .jsonl, or undefined when no project (or,
- * // for a sub-agent, no session) directory holds a matching file
+ * // Returns the absolute path to the matching transcript .jsonl. Returns undefined when no
+ * // project directory holds a match, or, for a sub-agent id, when no session directory holds one.
  */
 
 import {

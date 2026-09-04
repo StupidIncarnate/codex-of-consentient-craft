@@ -1,11 +1,13 @@
 /**
- * PURPOSE: Barrel export for session-forensics transformers
+ * PURPOSE: The subpath a consumer imports this package's transformers from, so nothing outside has
+ * to reach into `src/`. Import from here rather than the root barrel when only the transformers are
+ * wanted.
  *
  * USAGE:
  * import { recordsToSummaryTransformer } from '@dungeonmaster/session-forensics/transformers';
  */
 
-// Raw JSONL text to records, dropping a half-written trailing line by design
+// Raw JSONL text to records; a half-written trailing line is dropped on purpose
 export * from './src/transformers/jsonl-to-records/jsonl-to-records-transformer';
 
 // One record's usage, content blocks, and prose
@@ -21,7 +23,7 @@ export * from './src/transformers/records-to-summary/records-to-summary-transfor
 export * from './src/transformers/records-to-buckets/records-to-buckets-transformer';
 export * from './src/transformers/records-to-gaps/records-to-gaps-transformer';
 
-// A quest's flow graph flattened to units, then crossed with the three sign-off tracks
+// A quest's flow graph flattened to signable units, then crossed with the three reviewing roles
 export * from './src/transformers/quest-to-units/quest-to-units-transformer';
 export * from './src/transformers/quest-to-coverage/quest-to-coverage-transformer';
 

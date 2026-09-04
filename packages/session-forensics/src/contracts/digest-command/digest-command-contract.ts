@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Names the four forensic views `DigestRunResponder` can render for a target. Reach for
- * this over a bare string so an unrecognized CLI command argument fails at the input boundary
- * instead of falling silently through the responder's command-to-transformer selection.
+ * PURPOSE: Names the four forensic views `DigestRunResponder` can render for a target. A bare
+ * string would let a bad CLI command argument slip through unnoticed. This contract catches that
+ * at the input boundary instead, before the responder tries to match the command to a transformer.
  *
  * USAGE:
  * digestCommandContract.parse('summary');

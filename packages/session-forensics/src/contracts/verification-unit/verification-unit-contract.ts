@@ -1,15 +1,17 @@
 /**
- * PURPOSE: A flow graph stores sign-offs scattered across nodes, edges, and a flow-level off-map
- * array, so nothing in the graph itself is a list a measurement can iterate. Every digest in this
- * package that counts or crosses sign-offs needs them flattened into one comparable shape first —
- * this is that shape, produced by `quest-to-units` and consumed by `quest-to-coverage`.
+ * PURPOSE: The one flat shape every sign-off measurement in this package counts. A flow — one graph
+ * of work inside a quest — records its sign-offs in three scattered places: on nodes, on edges, and
+ * in a flow-level array of off-map families, the standing checks siegemaster runs outside the
+ * graph. None of the three is a list a measurement can walk. So `quest-to-units` flattens all of
+ * them into these units, one per signable thing, and `quest-to-coverage` counts them.
  *
- * `trackVerdicts` holds an OPTIONAL verdict per track rather than a boolean, because
- * `trackCoverageContract` must reconcile `confirmed + unconfirmable === signed`, and a boolean can
- * only say a track signed — never which verdict it carried. A track's key being ABSENT means that
- * track has not signed this unit; PRESENT means it has, holding the verdict itself. "Signed" thus
- * becomes "the key is present", so the confirmed/unconfirmable counts fall straight out of which
- * value each present key holds, with no separate boolean to keep in sync alongside it.
+ * `trackVerdicts` holds an OPTIONAL verdict per sign-off track rather than a boolean. A sign-off
+ * track is one reviewing role: codeweaver, flowrider or siegemaster. The reason for a verdict is
+ * that `trackCoverageContract` has to reconcile `confirmed + unconfirmable === signed`, and a
+ * boolean can only say that a track signed — never which verdict it carried. An ABSENT key means
+ * that track has not signed this unit. A PRESENT key means it has, and the value is the verdict.
+ * "Signed" is therefore "the key is present", so the confirmed and unconfirmable counts fall
+ * straight out of what the present keys hold. Nothing keeps a second boolean in step.
  *
  * USAGE:
  * verificationUnitContract.parse({

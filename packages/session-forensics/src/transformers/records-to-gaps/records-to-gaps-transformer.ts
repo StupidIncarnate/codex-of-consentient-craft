@@ -1,9 +1,9 @@
 /**
- * PURPOSE: A session that stops emitting turns looks identical in the raw transcript whether it is
- * blocked on a sub-agent doing real work or genuinely stalled with nothing running. Measured by hand
- * across one quest, collapsing that distinction produced "67-94% idle"; separating it produced "~1%
- * true dead air, the rest serialisation." This is the one place in the package that crosses turn
- * gaps against sub-agent windows to tell the two apart.
+ * PURPOSE: A session that stops emitting turns looks the same in the raw transcript either way:
+ * blocked on a sub-agent doing real work, or genuinely stalled with nothing running. Measured by
+ * hand across one quest, collapsing that distinction produced "67-94% idle". Separating it produced
+ * "~1% true dead air, the rest serialisation." This transformer is the one place in the package
+ * that crosses turn gaps against sub-agent windows, to tell the two apart.
  *
  * USAGE:
  * recordsToGapsTransformer({
