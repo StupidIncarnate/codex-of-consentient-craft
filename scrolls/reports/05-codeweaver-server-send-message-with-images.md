@@ -34,8 +34,8 @@ With that said, here is what this session did.
 | `startRef` | `022d408cb7af68f1f805419e38be741bc2b41c14` |
 | `agentId` | absent from the work item record |
 
-Window: `createdAt 2026-09-01T21:43:03.885Z` → `completedAt 2026-09-01T23:10:44.690Z` = 87.68 min.
-Transcript window: `START 2026-09-01T21:43:19.441` → `END 2026-09-01T23:10:58.062`, `WALL 1:27:38.621 (87.6 min)`.
+Window: `createdAt 2026-09-01T21:43:03.885Z` then `completedAt 2026-09-01T23:10:44.690Z` = 87.68 min.
+Transcript window: `START 2026-09-01T21:43:19.441` then `END 2026-09-01T23:10:58.062`, `WALL 1:27:38.621 (87.6 min)`.
 
 Output: one commit, `4b8d9871033ef1a7665dc9f18d274e7ed910ae6a`, `38 files changed, 1932 insertions(+), 37 deletions(-)`.
 
@@ -164,7 +164,7 @@ Arithmetic check: 72,073+8,689+76,133+152,204+205,172+20,025+2,874+61,153+67,374
 | Tool calls | 84 | 927 | 1,011 |
 
 `cache_read` and `cache_creation` are stated separately and are not collapsed. The ratio is
-220,161,005 : 10,091,185 ≈ 21.8 : 1 — i.e. 95.6% of all context-in was cache-read.
+220,161,005 : 10,091,185, about 21.8 : 1 — i.e. 95.6% of all context-in was cache-read.
 
 Cost density: **1,062,761 output tokens and 230.3 M context-in tokens for 1,932 inserted lines across 38 files** —
 550 output tokens per landed line.
@@ -178,7 +178,7 @@ of my own template-literal unescaping of `\``. So every observation below applie
 ### 3.1 What the prompt got right, with the behaviour it produced
 
 **The nine-step script matched this work almost exactly.** The item was a five-node, thirteen-observable,
-three-contract cell with a clean dependency ladder (statics → contracts → transformer → broker → responders),
+three-contract cell with a clean dependency ladder (statics, then contracts, then transformer, then broker, then responders),
 which is precisely the shape steps 3–4 assume.
 
 > `**Order comes from what a change needs, not from the flow's shape.** Contracts and statics first, then the
@@ -211,7 +211,7 @@ Held completely. The main session made 2 `Edit` calls and 1 `Write` call, all th
 
 > `**[BUILD] You run no build, no ward and no test of any kind.**`
 
-Held. Zero `npm` invocations in 10 `Bash` calls (git ×5, `python3 -c` ×3, `git status` ×2).
+Held. Zero `npm` invocations in 10 `Bash` calls (git 5 times, `python3 -c` 3 times, `git status` 2 times).
 
 > `**A NOT PROVED line is information, not a failure.**` … `**Never sign one your test proves against a MOCK.**`
 
@@ -430,7 +430,7 @@ ceiling, not the standards payloads.
    33,276,763 context-in.
 
 6. **Four sub-agents did real executed red-then-green cycles, not just write-and-run-once.** Verified by tool
-   calls, not by self-report: `a131c4a949a89d271` mutated `mkdir(dirPath, {recursive:true})` → `mkdir(dirPath)`
+   calls, not by self-report: `a131c4a949a89d271` mutated `mkdir(dirPath, {recursive:true})` becomes `mkdir(dirPath)`
    and re-ran (*"Confirmed red"*); `ae79ed23004a1ec85` changed `.max(pastedImageStatics.maxImagesPerMessage)` to
    `+ 1` and confirmed the off-by-one test failed; `af2c70cc9f66fd66a` used
    `git stash push --keep-index` to isolate the revert and ran the units twice; `aac340a685ff255b0` backed up
@@ -448,12 +448,12 @@ ceiling, not the standards payloads.
 as the `id`. `flowNodeContract` strips unknown keys, so both writes returned `{"success": true}` and wrote
 nothing.
 
-**Citation.** `67.9m CALL mcp__dungeonmaster__modify-quest(questId=1be07040-…)` → payload
+**Citation.** `67.9m CALL mcp__dungeonmaster__modify-quest(questId=1be07040-…)` then payload
 `{"id":"server-accepted","edges":[{"id":"accepted", …}]}`; `71.9m say: "All three routes fixed … Signing the
-last two units."` → payload `{"id":"server-accepted","edges":[{"id":"rejected", …}]}`. `quest.json` holds 13
+last two units."` then payload `{"id":"server-accepted","edges":[{"id":"rejected", …}]}`. `quest.json` holds 13
 sign-offs from this work item, `Counter({'confirmed': 12, 'unconfirmable': 1})`, none on an edge.
 
-**Cost.** Two units lost. ~2,300 characters of already-built red-then-green evidence discarded. A false
+**Cost.** Two units lost. Roughly 2,300 characters of already-built red-then-green evidence discarded. A false
 `"15 units, every one carrying a verdict: 14 confirmed, 1 unconfirmable"` in the closing report, which the
 orchestrator relays forward. Roughly 0.4 min of wall clock spent producing writes that did nothing — the real
 cost is the verification hole, not the minutes.
@@ -470,7 +470,7 @@ wave (`22:50:21`–`22:53:00`) re-opened the same three responders and the same 
 400 body.
 
 **Citation.** `66.1m say: "It surfaced a real defect: an over-cap send answers 400 with "message is required",
-when the actual problem is too many images."` → `67.0m CALL Agent(description=Chat route images error text
+when the actual problem is too many images."` then `67.0m CALL Agent(description=Chat route images error text
 prompt=FILES packages/server/src/responders/quest/chat/quest-chat-responder.ts edit …)`.
 
 **Cost.** 4.6 min of operator wall clock (phases 14–15), 3 sub-agents, **61,153 output tokens and 16,547,817
@@ -493,7 +493,7 @@ context-in — **22.9% of all sub-agent output and 26.5% of all sub-agent contex
 
 **Citation.** `24.3m CALL Agent(description=Pasted image persist broker prompt=FILES
 packages/server/src/brokers/pasted-image/persist/pasted-image-persist-broker.ts new …)` (11,749-char brief, the
-longest of the 18) → `52.5m 1689s 12440 …`. The buckets table has no row for `22:08–22:33`.
+longest of the 18) then `52.5m 1689s 12440 …`. The buckets table has no row for `22:08–22:33`.
 
 **Cost.** 28.2 min of the 87.6 (32.2%) with the operator blocked on one helper. Nothing else could be dispatched
 because every group-4 change depends on this broker.
@@ -573,10 +573,10 @@ get-syntax-rules, get-testing-patterns` and the operator prompt's step 2 says th
 `get-testing-patterns` 18 calls / 18 agents, `get-syntax-rules` 17 calls / 17 agents. Plus one each in the main
 session (`0.6m CALL mcp__dungeonmaster__get-architecture({})` …).
 
-**Cost.** 19 × 18,025 + 18 × 23,648 + 19 × 48,698 = 342,475 + 425,664 + 925,262 = **1,693,401 characters
-(~423,000 tokens) of identical standards text fetched**, and — because each lands in a context re-read on every
+**Cost.** 19 times 18,025 + 18 times 23,648 + 19 times 48,698 = 342,475 + 425,664 + 925,262 = **1,693,401 characters
+(roughly 423,000 tokens) of identical standards text fetched**, and — because each lands in a context re-read on every
 subsequent turn of that agent — a large multiple of that in `cache_read`. The three payloads are 90,371 chars
-(~22.6k tokens) per agent, against sub-agent briefs of 2,724–11,749 chars.
+(roughly 22.6k tokens) per agent, against sub-agent briefs of 2,724–11,749 chars.
 
 **Prompt status.** **Required**, by both `codeweaverPromptStatics` step 2 and the `READ FIRST` line the brief
 template mandates. It is the correct trade for a code-writing agent; it is pure waste for the six `Explore`-type
@@ -609,7 +609,7 @@ anywhere in its return block. `a23158dcb3a9eeccf`'s final report reads
 — true, and silent about the monorepo build it ran two minutes earlier. **The operator's only channel into a
 sub-agent is that return block, so a violation the sub-agent omits is a violation nothing on the pass can see.**
 `a23158dcb3a9eeccf` then tried a *second* build to check the exit code and was stopped by the permission layer,
-not by the prompt: `12.2m … CALL Bash(echo "build exit code check via a dedicated run"; npm run build > …)` →
+not by the prompt: `12.2m … CALL Bash(echo "build exit code check via a dedicated run"; npm run build > …)` then
 `Error: Permission to use Bash has been denied.`
 
 **Cost.** The collision the rule exists to prevent did fire, once:
@@ -619,7 +619,7 @@ prevent."` Inside `a51b394f0fd705016`, that cost 2 failed ward runs and roughly 
 (`7.4m` FAIL: `unit FAIL 2 files, 29 errors … integration FAIL 4 files, 29 errors`, root cause
 `TypeError: (0 , testing_1.locationsQuestFolderPathFindBrokerProxy) is not a function`; then diagnostic `ls` and
 `node -e` probes at `8.6m`/`8.9m`; then `10.1m say: "Good — that confirms it was a transient race with a
-concurrent rebuild of @dungeonmaster/shared, not a real issue."`). By timing that race at ~22:44:37 falls
+concurrent rebuild of @dungeonmaster/shared, not a real issue."`). By timing that race at roughly 22:44:37 falls
 **before** `a23158dcb3a9eeccf`'s 22:48:34 build and well after the other two, so the fitting writer is
 `ac90ccceb0b4a95a5`'s hand-mirroring of `packages/shared/dist/testing.js` between 22:37:31 and 22:46:01 — see
 Finding 7. Exact attribution is not separable from the transcripts.
@@ -647,9 +647,9 @@ worth noting that this is the agent that **obeyed** the rule — the three in Fi
 **Cost.** Bounded on the artifact itself: the reviewer regenerated it (`FIXES #5: "Ran npm run build fresh …
 build is green and dist/ is now honest"`). But the hand-write to `packages/shared/dist/testing.js` landed inside
 `ac90ccceb0b4a95a5`'s window of 22:37:31–22:46:01, which is the only writer to `shared/dist` whose window
-contains the ~22:44:37 moment `a51b394f0fd705016` went red with
+contains the roughly 22:44:37 moment `a51b394f0fd705016` went red with
 `TypeError: (0 , testing_1.locationsQuestFolderPathFindBrokerProxy) is not a function`. That cost that agent
-2 failed ward runs and ~2.7 minutes of diagnosis. So the escape hatch the rule does not provide produced the
+2 failed ward runs and roughly 2.7 minutes of diagnosis. So the escape hatch the rule does not provide produced the
 exact collision the rule exists to prevent. For the length of that wave the barrel agent's green ward run was a
 false green resting on an artifact it had written by hand.
 
@@ -672,7 +672,7 @@ reasoning through** `toStrictEqual` semantics plus the passing ward run"* — an
 handed a structurally identical job, framed it correctly as hypothetical: *"red **if** the reversed order… were
 expected · watched **pass** with images echoed in posted order."*
 
-**Citation.** `17.2m CALL Agent(description=message-body contract images field …)` → the operator's routing at
+**Citation.** `17.2m CALL Agent(description=message-body contract images field …)` then the operator's routing at
 `21.1m say: "Two group-2 agents still running — the guild-message-body and quest-new-body contracts."` The
 operator never opened `message-body-contract.test.ts`; the prompt tells it not to
 (*"You have not read the test — step 4 says so, and it is the step that signs"*).
@@ -735,7 +735,7 @@ seam node, one per library package) — for this cell that is 4 seam lines and 1
 **Estimated saving:** most of phase 3's exploration of *other* packages — the `discover` on
 `packages/shared/src/brokers/locations/**` (37,064 B), the `discover` on
 `packages/orchestrator/src/brokers/chat/spawn/**`, the `discover(grep=startChat:|addQuest:)` and the three
-`python3` barrel probes at `5.7m`–`5.8m`. Call it **2–3 min of the 6.3-min orientation phase, and ~90,000 of
+`python3` barrel probes at `5.7m`–`5.8m`. Call it **2–3 min of the 6.3-min orientation phase, and roughly 90,000 of
 the 285,102 result bytes in bucket 1**, per codeweaver cell. Across the 8 codeweaver items on this quest, 16–24
 minutes.
 
@@ -770,10 +770,10 @@ TRAPS
 `codeweaverReviewerStatics` already carries the equivalent rule (`you start no sub-agent`) and the reviewer
 obeyed it — the rule works, it is simply absent from the generic-sub-agent template.
 
-**Estimated saving:** 5,925,244 context-in and 49,245 output tokens on this item, of which ~1.87 M context-in was
+**Estimated saving:** 5,925,244 context-in and 49,245 output tokens on this item, of which roughly 1.87 M context-in was
 provably duplicate lookup. Some of that work would move back into the parent agent, so the net saving is the
-duplicate share plus the 9 × ~22.6k-token standards reload the grandchildren each paid: call it
-**~2.5 M context-in per item of this size.**
+duplicate share plus the 9 times roughly 22.6k-token standards reload the grandchildren each paid: call it
+**roughly 2.5 M context-in per item of this size.**
 
 ### Fix 5 — Replace `--staged` with a scope that sees untracked files (§3.5)
 
@@ -818,9 +818,9 @@ The orchestrator CLAUDE.md already names this gap for git verbs: *"Prompts are a
 `PreToolUse` guard in `@dungeonmaster/hooks` is the only thing that would actually prevent it, and that is not
 built yet."* The build ban is the same shape and has a measured cost here.
 
-**Estimated saving:** the collision itself — 2 failed ward runs and ~2.7 min inside `a51b394f0fd705016` on this
+**Estimated saving:** the collision itself — 2 failed ward runs and roughly 2.7 min inside `a51b394f0fd705016` on this
 item — plus the class of false green where a sub-agent hand-writes compiled output to make its own test pass.
-Across a quest with 8 codeweaver cells and ~18 sub-agents each, a 3-in-18 violation rate is ~24 forbidden builds.
+Across a quest with 8 codeweaver cells and roughly 18 sub-agents each, a 3-in-18 violation rate is roughly 24 forbidden builds.
 
 ### Fix 7 — Make the `RETURN` block distinguish a watched red from a reasoned one (Finding 8)
 
@@ -859,7 +859,7 @@ it into a core payload and a `get-testing-patterns({ topic })` detail call so a 
 does not pull 12k tokens of e2e guidance.
 
 **Estimated saving:** (a) prevents a silent spill that would hand 19 agents a path instead of their standards.
-(b) would cut a large share of the 925,262 characters (~231k tokens) of `get-testing-patterns` text fetched on
+(b) would cut a large share of the 925,262 characters (roughly 231k tokens) of `get-testing-patterns` text fetched on
 this item alone.
 
 ### Fix 9 — Reconcile the closing report against `quest.json` before signalling (Finding 1's second half)

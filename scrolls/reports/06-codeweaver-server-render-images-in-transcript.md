@@ -266,7 +266,7 @@ The real ids behind those two branches are `not-readable` and `readable`. The pr
 the render never prints an id. The session said exactly this at `39.2m`: `"I need the edge ids to sign the two
 branch units — the flow render prints labels but not ids."` It then spent three `ls` probes hunting for the quest
 file on disk, before concluding at `39.6m`: `"The quest file sits outside my sandbox, and guessing an edge id would
-append a phantom unit."` This cost **1.4 minutes** (`39.1m` → `40.5m`) plus one extra MCP round-trip.
+append a phantom unit."` This cost **1.4 minutes** (`39.1m` then `40.5m`) plus one extra MCP round-trip.
 
 ### 3.3 The one tool the session needed and the prompt does not name
 
@@ -416,7 +416,7 @@ Every session that loaded the repo's three standards documents received the exac
 `a29585323b34abdad`, `a325e3864e93ac438`, `a35d6584fbe4e4d1a`, `a40392bf657347096`, `a995a941d06bcccc2`,
 `a9c5859dc182ad5c5`, `abf4245ad71a7250c`, `acb5e37eff892f346`, `ad8dd7f78bb7051ed`, `ae1ef845edab97bf2`).
 
-The math: 94,985 × 12 = **1,139,820 B** served in total. Since the first read already paid the cost, 94,985 × 11 =
+The math: 94,985 times 12 = **1,139,820 B** served in total. Since the first read already paid the cost, 94,985 times 11 =
 **1,044,835 B** of that was pure duplication. At roughly 4 characters per token, that is about 285,000 tokens
 served and about **261,200 tokens** read a second, third, fourth… time with nothing new in them. For scale: 94,985
 B alone is 27.3% of everything the operator read during its whole 8.4-minute orientation phase (0.0m–8.4m, 348,117

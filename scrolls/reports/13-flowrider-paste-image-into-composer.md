@@ -23,7 +23,7 @@ off as done.
 | `flowIds` | `["paste-image-into-composer"]`; `packageNames: []` |
 | `locked` | `true`, `attempt: 0`, `maxAttempts: 1`, `retryCount: 0` |
 
-Window: `createdAt 2026-09-02T09:00:10.667Z` → `completedAt 2026-09-02T12:03:57.695Z`.
+Window: `createdAt 2026-09-02T09:00:10.667Z` then `completedAt 2026-09-02T12:03:57.695Z`.
 Transcript wall clock: `3:04:00.290000 (184.0 min)`.
 
 This is the FIRST flowrider on the quest, dispatched 0.05 s after the `pt 2` ward went green.
@@ -631,7 +631,7 @@ not about ward's lint running with `--fix` and mutating the file between the age
   build silently into ward."* Because it piped the command anyway, it then had to declare success on
   the basis of `tail` output rather than a real exit code: `5.6m say: "Build is green (exit 0, all
   packages built)"`.
-- At 5.6 minutes: `CALL Bash(command=echo $?; npm run ward -- --staged 2>&1 | tail -n 250)` →
+- At 5.6 minutes: `CALL Bash(command=echo $?; npm run ward -- --staged 2>&1 | tail -n 250)` then
   `"Permission to use Bash has been denied."` It re-ran the command plain at 5.7 minutes.
 
 **Cost.** About 15 seconds. **Prompt status.** This was explicitly forbidden by the reviewer's own
@@ -764,7 +764,7 @@ looking for.
 Ranked by minutes saved, with the arithmetic shown.
 
 ### Fix 1 — Give ward's Playwright run a per-run report path, then delete the one-walk-at-a-time rule
-**Saves ≈ 100 min on this item; ≈ 300 min across the quest's three flowrider items.**
+**Saves about 100 min on this item; about 300 min across the quest's three flowrider items.**
 
 File: `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts`.
 
@@ -773,7 +773,7 @@ File: `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts`.
     `${projectFolder.path}/.ward-playwright-report.json`,
   );
 ```
-→
+becomes
 ```ts
   const jsonReportPath = filePathContract.parse(
     `${projectFolder.path}/.ward-playwright-report-${serverPort}.json`,
@@ -794,12 +794,12 @@ Here is the arithmetic. The five writers ran for 38.3+36.6+29.0+14.4+23.2 = 141.
 one after another. Groups 1, 3 (multi-image), 4 (delete/overlay), and 5 (draft-reload) touch disjoint
 spec files — none of them need to wait for each other. Only group 2's rework re-enters group 1's and
 group 2's files. Fanned out as two waves instead — the four independent specs together, then the
-rework — the writer stretch becomes roughly max(38.3, 29.0, 14.4, 23.2) + 36.6 ≈ 75 minutes in the
+rework — the writer stretch becomes roughly max(38.3, 29.0, 14.4, 23.2) + 36.6, about 75 minutes in the
 worst case, or roughly 40 minutes if the rework fuses into wave 2. That saves 66–100 minutes here.
 Items [14] (250 min) and [15] (219 min) on this quest are the same shape.
 
 ### Fix 2 — Make the reviewer's typecheck scope the WORK, not the diff-against-origin
-**Saves ≈ 5 min per pass and closes a silent correctness hole.**
+**Saves about 5 min per pass and closes a silent correctness hole.**
 
 This needs two edits, both in `packages/orchestrator/src/statics/`.
 
@@ -837,7 +837,7 @@ at most" rule would have handed up the 51 type errors as `rework` instead of fix
 the quest a whole extra flowrider session, roughly 180 minutes, judging by this one.
 
 ### Fix 4 — Add a `HANDING UP A RED YOU WERE NOT ASKED TO LOOK AT` line to the brief template
-**Saves ≈ 5–20 min per pass; would have caught 18 errors 21 minutes earlier here.**
+**Saves about 5–20 min per pass; would have caught 18 errors 21 minutes earlier here.**
 
 In `flowrider-prompt/flowrider-prompt-statics.ts`, in the `RETURN` block of the brief template, add a
 fourth label:
@@ -856,7 +856,7 @@ The direct evidence for this fix: `a5559883eeba4d70a` saw `typecheck … FAIL 12
 its 7.9-minute mark, said nothing, and the count reached 51 before anyone acted.
 
 ### Fix 5 — Put the browser MCP and the raw-runner ban into the brief template's `DO NOT TOUCH`
-**Saves ≈ 1–2 min per sub-agent plus a user permission prompt.**
+**Saves about 1–2 min per sub-agent plus a user permission prompt.**
 
 In `flowrider-prompt/flowrider-prompt-statics.ts`, brief template, append to the `DO NOT TOUCH`
 block:
@@ -872,7 +872,7 @@ The evidence: `ad3f38d39bc66d8c0` at 8.1 to 9.2 minutes, denied at `https://exam
 `cd packages/web && npx playwright test` invocations across two sub-agents.
 
 ### Fix 6 — Fix step 6 of the operator prompt: `git diff` alone sees nothing on a flowrider pass
-**Saves ≈ 2 min per pass and removes a step that reads as a no-op.**
+**Saves about 2 min per pass and removes a step that reads as a no-op.**
 
 In `flowrider-prompt/flowrider-prompt-statics.ts`, step 6, replace
 
@@ -893,7 +893,7 @@ file in full."* The evidence: the parent had to work this out live, at 163.4 min
 nine whole-file `Read` calls for the diff the prompt had asked for.
 
 ### Fix 7 — Carve a RED-FIRST exemption for `npm run build --workspace=<library>`
-**Saves ≈ 1 min per pass and removes a rule agents must break to do the work.**
+**Saves about 1 min per pass and removes a rule agents must break to do the work.**
 
 In `flowrider-prompt/flowrider-prompt-statics.ts`, brief template, `PROVE` block, replace `no npm run
 build` with:
@@ -909,7 +909,7 @@ The evidence: `a409f22d73146977a` (at 20.7 and 21.1 minutes) and `a5559883eeba4d
 `maxLongestEdgePx` break visible to Chromium. There was no compliant way to do this.
 
 ### Fix 8 — Restate "run it ONCE" and the lint-`--fix` hazard in the brief's PROVE and TRAPS blocks
-**Saves ≈ 4–6 min per pass.**
+**Saves about 4–6 min per pass.**
 
 In `flowrider-prompt/flowrider-prompt-statics.ts`, brief template:
 

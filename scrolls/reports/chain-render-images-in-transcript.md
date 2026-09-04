@@ -394,13 +394,13 @@ That line shows a checkmark, `[C✓]`, next to the edge — but it never prints 
 actually write that sign-off.
 
 - **[6] server**: `39.2m say: "I need the edge ids to sign the two branch units — the flow render prints
-  labels but not ids."` → `39.6m say: "The quest file sits outside my sandbox, and guessing an edge id
+  labels but not ids."` then `39.6m say: "The quest file sits outside my sandbox, and guessing an edge id
   would append a phantom unit."` Cost: **1.4 minutes plus one extra MCP round-trip** [report 06 §3.2b].
 - **[9] web**: `79.0m say: "Edge ids are author-chosen, and the quest file sits outside my worktree.
   Fetching the quest as JSON to read them."` A blocked `ls`, a speculative `discover`, a `ToolSearch`, then
   a bare `get-quest({questId})` — the exact call its own prompt forbids — which blew the ceiling (`Error:
   result (263,665 characters across 4,359 lines) exceeds maximum allowed tokens`) and spilled to a file it
-  parsed with three `python3 -c` calls. Cost: **1.1 minutes and ≈2,750 output tokens** [report 09 §3c(i),
+  parsed with three `python3 -c` calls. Cost: **1.1 minutes and about 2,750 output tokens** [report 09 §3c(i),
   §4]. Report 09's verdict: *"forbidden, but the forbidden route was the only route."*
 
 ### 3.4 `get-qa-checklist` itself, for the codeweaver
@@ -595,8 +595,8 @@ Three facts stack on top of each other here:
 1. **The flowrider operator ran `git diff` zero times across 219 minutes of work, and opened only 2 of the
    12 files it produced.** At the 211.5-minute mark it wrote *"Verifying that against the checklist, and
    reading what actually changed"* — and then ran `git status --short` instead of actually reading a diff
-   [report 15 §5 finding 2]. The other two flowriders on this quest both read their own output back: FR1
-   dispatched 3 rework sub-agents after doing so, and FR2 dispatched 4. **FR3 dispatched 0.**
+   [report 15 §5 finding 2]. The other two flowriders on this quest both read their own output back: the first flowrider session (FR1)
+   dispatched 3 rework sub-agents after doing so, and the second flowrider session (FR2) dispatched 4. **The third flowrider session (FR3) dispatched 0.**
 2. **The reviewer that did read the files certified there were no vacuous negatives — and it was wrong**,
    as shown above.
 3. **The siegemaster track has never run, and no item is queued to run it.**

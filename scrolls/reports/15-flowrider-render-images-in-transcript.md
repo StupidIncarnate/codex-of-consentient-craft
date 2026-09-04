@@ -231,7 +231,7 @@ const jsonReportPath = filePathContract.parse(
 );
 ```
 
-That path gets passed at line 143 as `PLAYWRIGHT_JSON_OUTPUT_NAME`. It is one fixed file path per package, with no per-run identifier added to it. So two concurrent `npm run ward -- --only lint,test -- packages/web/...` runs genuinely do overwrite each other's report. The *ports* are already safe from this problem — line 129 already grabs a free one per run — so the report path is the only thing standing between this item and a 4× speedup on its biggest cost.
+That path gets passed at line 143 as `PLAYWRIGHT_JSON_OUTPUT_NAME`. It is one fixed file path per package, with no per-run identifier added to it. So two concurrent `npm run ward -- --only lint,test -- packages/web/...` runs genuinely do overwrite each other's report. The *ports* are already safe from this problem — line 129 already grabs a free one per run — so the report path is the only thing standing between this item and a 4 times speedup on its biggest cost.
 
 **5. Step 6 — ignored outright.**
 
@@ -245,7 +245,7 @@ That path gets passed at line 143 as `PLAYWRIGHT_JSON_OUTPUT_NAME`. It is one fi
 
 The evidence points to a structural cause, not laziness. Step 5 says *"Work EVERY group on your map, in order, before you go to step 6"* and *"Sign this group's PROVED lines NOW, before you send the next group… you have not opened the test, so you are transcribing, not judging."* By the time step 6 arrives, the operator has already signed all 68 units, and the diff waiting to be read is 3,564 lines across 13 files. At 211.5 minutes it said *"Verifying that against the checklist, and reading what actually changed"* — then ran `git status --short`, a plain list of filenames, in place of actually reading the diff.
 
-Both sibling flowriders did better on the identical prompt. FR1 (`5c841160`) read nine of its own produced spec files, at 11:43 to 11:45. FR2 (`42edd7ea`) ran `git diff --stat` at 15:52:04, then made three separate `python3` passes to pull the assertion text out of its own specs. This flowrider is the only one of the three that read essentially nothing back.
+Both sibling flowriders did better on the identical prompt. The first flowrider session (FR1) (`5c841160`) read nine of its own produced spec files, at 11:43 to 11:45. The second flowrider session (FR2) (`42edd7ea`) ran `git diff --stat` at 15:52:04, then made three separate `python3` passes to pull the assertion text out of its own specs. This flowrider is the only one of the three that read essentially nothing back.
 
 **6. "Write a FILE MAP and terse instructions. Never prose."** — followed in form. But the required shape cannot actually be made any shorter. Brief sizes ranged from 2,695–3,529 characters for the explorers, 5,174–7,115 for wave 1's test writers, and 10,484–14,609 for the browser waves, down to 229 for the reviewer. Wave 4's 14,609-character brief carried 19 units, each needing a `SURFACE:` / `ASSERT:` / `FAILS IF:` block written out in full — about 770 characters per unit, close to the floor the required shape allows. The prompt's own "terse" instruction and its own mandatory brief template pull against each other on any wave carrying more than about ten units.
 
@@ -261,7 +261,7 @@ The "Recording what you claim" section never mentions this. Recovery cost about 
 
 ## 4. What went well
 
-**Reading the sibling flowrider's map instead of re-deriving the house pattern.** At 16:15:29 the operator read `.quest-plans/339d7ed2-…-map.md` — FR2's map for the sibling flow `send-message-with-images`. Then, at 16:15:43, 16:15:44, and 16:16:36, it read the three codeweaver maps for its own flow: `332e0da3` (web), `83c9f2ce` (server), and `8857ed98` (orchestrator). That is 58 KB of reading in total. At 3.5 minutes it said: "the sibling flowrider's map gives me the house pattern: server integration tests extend a flow's .integration.test.ts, browser walks are packages/web/src/flows/quest-chat/…" This was the cheapest orientation move in the whole item, and it settled the file layout for all six waves that followed.
+**Reading the sibling flowrider's map instead of re-deriving the house pattern.** At 16:15:29 the operator read `.quest-plans/339d7ed2-…-map.md` — the second flowrider session (FR2)'s map for the sibling flow `send-message-with-images`. Then, at 16:15:43, 16:15:44, and 16:16:36, it read the three codeweaver maps for its own flow: `332e0da3` (web), `83c9f2ce` (server), and `8857ed98` (orchestrator). That is 58 KB of reading in total. At 3.5 minutes it said: "the sibling flowrider's map gives me the house pattern: server integration tests extend a flow's .integration.test.ts, browser walks are packages/web/src/flows/quest-chat/…" This was the cheapest orientation move in the whole item, and it settled the file layout for all six waves that followed.
 
 **Sending a follow-up message back into a live explorer, instead of starting a fresh one.** The operator did this twice: at 4.4 minutes to `a1eee9fee730548f3`, and at 5.5 minutes to `a5a5603b40804f402`. Both follow-ups decided which layer a group belonged at. A fresh sub-agent would have had to rebuild the 6.5 million and 5.8 million cache-read tokens those two explorers had already accumulated. The two follow-ups together cost 434 bytes of tool result.
 
@@ -467,7 +467,7 @@ The port is already unique per run — `await netFreePortAdapter()`, at line 129
 
 **Then** edit `packages/orchestrator/src/statics/flowrider-prompt/flowrider-prompt-statics.ts` in two places — the step-4 grouping rule and the step-5 dispatch rule. Replace *"never two browser walks against the same package at once"* with the rule that actually still applies: *"Two sub-agents never edit one file. Browser walks against the same package MAY go out together, as long as no two of them touch the same spec or harness."*
 
-The measured basis: waves 2 through 6 ran at 169.4 wall minutes and a parallelism factor of 1.00; wave 1 hit 3.07× with four agents running at once. 30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 minutes. **Saving: about 89.6 minutes, 41 % of this item.**
+The measured basis: waves 2 through 6 ran at 169.4 wall minutes and a parallelism factor of 1.00; wave 1 hit 3.07 times with four agents running at once. 30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 minutes. **Saving: about 89.6 minutes, 41 % of this item.**
 
 ### 2. Make the harness a first-class wave-0 artifact, never a file four later waves extend — **enables fix 1; ≈0 min on its own**
 
@@ -520,7 +520,7 @@ And add one sentence to the prompt's own "Briefing a sub-agent" preamble: *"A su
 
 > **Before you dispatch explorers, read `.quest-plans/` — a sibling flowrider's map is there.** Take its `## Facts the whole map rests on` section whole; the e2e harness set, the testids and the fixture seams do not change between flows on one quest. Then append what YOUR flow adds under the same heading, so the next flowrider takes yours.
 
-This operator already read FR2's map voluntarily, at 16:15:29, and called it *"the house pattern"*. This fix makes that free half mandatory, and adds the missing give-back half: passing what you found on to the next flowrider.
+This operator already read the second flowrider session (FR2)'s map voluntarily, at 16:15:29, and called it *"the house pattern"*. This fix makes that free half mandatory, and adds the missing give-back half: passing what you found on to the next flowrider.
 
 ### 7. Schedule the riskiest group first, not last — **≈15–30 min on an item with a flagged unit**
 
@@ -848,10 +848,10 @@ packages/web/src/flows/quest-chat/transcript-replaces-optimistic.e2e.ts         
 [15] 6509cd6e  render-images-in-transcript 218.9 min 26 subagents  main out 469,210  main ctx-in 48,272,636
 ```
 
-FR1 dispatched 3 rework sub-agents after reading its own output. FR2 dispatched 4. **FR3 dispatched 0**, and read almost none of its own output back. Its single review cycle passed on the first attempt.
+The first flowrider session (FR1) dispatched 3 rework sub-agents after reading its own output. The second flowrider session (FR2) dispatched 4. **The third flowrider session (FR3) dispatched 0**, and read almost none of its own output back. Its single review cycle passed on the first attempt.
 
 ### Numbers I could not obtain
 
 - Per-sub-agent thinking-token split — `summary` does not break `thinking` out for sub-agent transcripts, only for the main session.
-- Wall-clock duration of an individual `npm run build` inside a sub-agent — the transcript records the call and its result, but the digest tool does not expose per-Bash elapsed time. The reviewer's build-to-ward interval (2.68m → 3.15m, about 28 seconds) is the only usable stand-in, and it may have been an incremental build rather than a full one.
+- Wall-clock duration of an individual `npm run build` inside a sub-agent — the transcript records the call and its result, but the digest tool does not expose per-Bash elapsed time. The reviewer's build-to-ward interval (2.68m then 3.15m, about 28 seconds) is the only usable stand-in, and it may have been an incremental build rather than a full one.
 - The siegemaster verdict for `render-images-in-transcript` itself — **not measurable from the transcript.** No siegemaster item exists yet for this flow. Items [16] and [17] cover the two sibling flows instead, and [17] is still `pending`.

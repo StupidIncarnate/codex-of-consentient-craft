@@ -409,8 +409,8 @@ cell's real work. The `shared` cell's actual deliverable was **contracts and sta
 checklist units at all**: `PastedImageStatics`, `PastedImageMediaType`, `PastedImageUpload`, and
 `locationsStatics.quest.imagesDir`. Only the last of these four is what its single observable actually
 asserts. Contracts route to a cell **by file path**, not by node tag, so both of its shared-source
-contracts are anchored to nodes it does not even tag (`pasted-image-statics` → `serialise-composer`
-`{web}`; `pasted-image-upload` → `post-chat` `{web, server}`). So four of its five real deliverables are
+contracts are anchored to nodes it does not even tag (`pasted-image-statics` then `serialise-composer`
+`{web}`; `pasted-image-upload` then `post-chat` `{web, server}`). So four of its five real deliverables are
 structurally invisible to the coverage record. Its commit is
 `bebca45c3 codeweaver: shared's half of send-message-with-images — pasted-image statics, media-type and
 upload contracts, quest images dir key`.
@@ -840,7 +840,7 @@ pass this way, in its own words:
 So the operator **signs off based on an ungraded claim**, and the reviewer only grades that claim
 afterward. The timeline on this flow bears that out: cell [5] wrote all 13 of its sign-offs across four
 `modify-quest` calls between the 52.5-minute and 72.9-minute marks, and its reviewer did not run until
-~73.6 minutes. Every sign-off happened before the grading. So when a reviewer finds a dead assertion, it
+roughly 73.6 minutes. Every sign-off happened before the grading. So when a reviewer finds a dead assertion, it
 is finding a unit that is already marked `confirmed` on the record — and nothing walks that sign-off back.
 
 The flowrider ran into this same class of problem from the other side, and caught it itself, by reading
@@ -891,7 +891,7 @@ put this flow through the ward gate in the first place. See §5c.
 ### 5c. The ward gate [10]–[12], and what it says about cell [2] — my cell
 
 A ward `changed` run at work item [10] went red on two `packages/web` tests, both failing with
-`RangeError: Maximum call stack size exceeded` from a trailing-anchored regex run over a ~7 MB base64
+`RangeError: Maximum call stack size exceeded` from a trailing-anchored regex run over a roughly 7 MB base64
 payload. Report 10-12 traces where that came from:
 
 ```
@@ -935,7 +935,7 @@ add what its own record shows: cell [2]'s reviewer ran `npm run build` once (29.
 13 workspaces) and `npm run ward -- --staged` once (13.6 s: lint 4/4, typecheck 6125/6125, unit 39/39,
 integration 39/39, e2e skip), both green on the first try, returning `FINDINGS: none`
 [report 02 §4 item 5]. What is established is this: cell [2] shipped a contract containing an unbounded
-trailing-anchored regex that later ran against ~7 MB payloads. Four codeweaver passes and three reviewers
+trailing-anchored regex that later ran against roughly 7 MB payloads. Four codeweaver passes and three reviewers
 ran in between that contract landing and ward finally catching it — "00:05:20 to 08:28:53, **8 h 23 min**
 of quest wall-clock — after which the repair cycle cost 31.3 min" [report 10-12 §5, finding 7].
 
@@ -1013,7 +1013,7 @@ flowrider).
 
 **Two of these five — `check-composer-typable-while-agent-streams` and
 `check-draft-is-scoped-to-its-own-composer` — were within the flowrider's reach, and the flowrider never
-wrote them.** Together they cost roughly **135 sub-agent minutes and ~306M context-in tokens** at siege
+wrote them.** Together they cost roughly **135 sub-agent minutes and roughly 306M context-in tokens** at siege
 time, when they could have been caught earlier. A flowrider end-to-end test for the draft-scoping one
 needs only two tabs and one assertion.
 

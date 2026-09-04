@@ -147,7 +147,7 @@ WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS
 |---|---|---|---|
 | all buckets | **0** | **0** | **0** |
 
-`subagents b1461af5-4c03-4275-ab03-cc6f384e1745` → `no subagents dir`. Nothing to attribute.
+`subagents b1461af5-4c03-4275-ab03-cc6f384e1745` then `no subagents dir`. Nothing to attribute.
 
 ### Totals
 
@@ -392,7 +392,7 @@ layout — the real path carries an extra `guilds/<guildId>/` segment. It then t
 `~/.dungeonmaster/quests/`, then `<worktree>/.dungeonmaster-quests/`, then read `.dungeonmaster.json`,
 then ran `env | grep -i dungeon`. All ten calls came back refused or empty.
 
-**Citation.** Timeline `0.3m` → `1.7m`; errors at `0.4m`, `0.5m` (×2), `0.7m` (×2), `0.9m` (×2),
+**Citation.** Timeline `0.3m` then `1.7m`; errors at `0.4m`, `0.5m` (2 times), `0.7m` (2 times), `0.9m` (2 times),
 `1.0m`, `1.3m`.
 
 **Cost.** 1.7 minutes. Bucket `08:33-08:35` totals 14,760 output tokens, 2,098,765 context-in, and 21
@@ -430,11 +430,11 @@ Orphan recovery flipped the item back to `pending` and re-dispatched it with `cl
 
 **Citation.** `4.3m BASH timeout=None :: true`; `4.4m "Waiting for the backgrounded ward run to
 finish — I'll pick up when the notification lands rather than polling."`; `4.6m` task-notification
-`<status>stopped</status>`; `quest.json` `27667fc2`→`4c5e9e8a`: `"retryCount": 1, "resume": true`.
+`<status>stopped</status>`; `quest.json` `27667fc2` then `4c5e9e8a`: `"retryCount": 1, "resume": true`.
 
 **Cost.** The 2.2-min ward run was destroyed and had to be repeated, costing 2.5 min. Add 0.7 min to
 re-establish state after the cut-off (phase 5), plus one of only three `orphanRecovery.maxResets`
-spent. **~5.4 min total.**
+spent. **roughly 5.4 min total.**
 
 **Prompt disposition.** **The `[DELEGATION]` rule required this:** *"With everything you can do done
 and a helper still out, end your turn on a plain message and no tool call. The notification brings
@@ -455,7 +455,7 @@ self-contained, read-only investigation, built around one clean question: *does 
 overflow under jest+jsdom, and which variant does not?* That is exactly the kind of question a
 briefed helper can answer in parallel while the parent session reads consumers.
 
-**Citation.** `subagents b1461af5-…` → `no subagents dir`; the tool histogram shows no `Agent`/`Task`
+**Citation.** `subagents b1461af5-…` then `no subagents dir`; the tool histogram shows no `Agent`/`Task`
 calls among the 89 tool calls.
 
 **Cost.** Not a loss on this run — the investigation was serial, and the fix depended on its result.
@@ -832,7 +832,7 @@ bug if the ward change ever regresses, and it is effectively free — the review
 ### Fix 8 — Give the spiritmender a scratch-file rule (addresses finding 5)
 
 **File:** `packages/orchestrator/src/statics/spiritmender-prompt/spiritmender-prompt-statics.ts`,
-`## Scope` → `Do NOT:` list, as item 5.
+`## Scope` then `Do NOT:` list, as item 5.
 **Edit:**
 
 > 5. Leave a diagnostic file behind. A repro you need jest to run has to sit inside the package's

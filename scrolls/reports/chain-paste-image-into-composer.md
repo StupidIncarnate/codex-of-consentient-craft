@@ -731,7 +731,7 @@ re-find it [report 16 §5 Finding 7]. Note the walker prompt FORBADE that dismis
 
 **2. `check-thumbnail-renders-bounded`** — signed +117.2m.
 Defect: an `<img>` with no `max-height`/`max-width`/`object-fit` paints at full intrinsic size,
-growing the composer to ~610px of an 813px viewport and pushing SEND off-screen. Two build paths —
+growing the composer to roughly 610px of an 813px viewport and pushing SEND off-screen. Two build paths —
 paste and draft-restore [report 16 §B6 bugs 2, 3].
 *Codeweaver:* **no.** jsdom has no layout engine, and `getBoundingClientRect` returns zeros there. Of
 the nine defects, this is the only one the earliest track structurally could not have reached.

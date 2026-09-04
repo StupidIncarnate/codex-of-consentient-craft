@@ -32,8 +32,8 @@ and **cache_creation** (new tokens written to the cache for later reuse).
 | `attempt` / `retryCount` | `0` / `0` — no pt-N continuation, one pass |
 | Commit produced | `9f8ab692a` (by the reviewer, not the operator) |
 
-Window: `createdAt 2026-09-02T06:39:48.811Z` → `completedAt 2026-09-02T08:28:53.059Z`.
-Transcript window `06:40:05.030Z` → `08:29:04.424Z` = **1:48:59.394 (109.0 min)**.
+Window: `createdAt 2026-09-02T06:39:48.811Z` then `completedAt 2026-09-02T08:28:53.059Z`.
+Transcript window `06:40:05.030Z` then `08:29:04.424Z` = **1:48:59.394 (109.0 min)**.
 
 **Sub-agents: 27.** The operator dispatched 16 of them directly. Three of those 16 then dispatched
 11 more between them — this report calls those 11 grandchildren. Here are the models each ran on,
@@ -165,7 +165,7 @@ signature of an operator that keeps ending its turn and getting re-entered by no
 re-entry re-reads roughly the same 350k-token prompt from cache, and this operator re-read it 152
 times.
 
-Sub-agents burned **1.90×** the operator's output tokens and **4.19×** its context-in.
+Sub-agents burned **1.90 times** the operator's output tokens and **4.19 times** its context-in.
 
 Per-agent detail for the seven heaviest (computed from each `subagents/agent-*.jsonl`):
 
@@ -456,8 +456,8 @@ Group 4's pair built at 07:45:21 and 07:50:52. Group 5's pair built at 08:00:37 
 07:19:53 while its own grandchild `agent-af0d2de8d5c0c7795` built again at 07:23:15 — a parent and
 its child writing the same `dist/`.
 
-**Cost.** The reviewer's build took 24 s (08:24:54 → 08:25:18) for 13 packages. 16 of those is
-**≈6.4 minutes of sub-agent wall clock**, all of it inside the operator's 90 idle minutes. The real
+**Cost.** The reviewer's build took 24 s (08:24:54 then 08:25:18) for 13 packages. 16 of those is
+**about 6.4 minutes of sub-agent wall clock**, all of it inside the operator's 90 idle minutes. The real
 cost is not the seconds. It is the corruption window the `[BUILD]` rule exists to close — a window
 this pass was lucky to survive.
 
@@ -471,7 +471,7 @@ own `PROVE` line.
 
 ### Finding 2 — one sub-agent held the whole session for 32.7 minutes, and spent 13.5 of them dispatching seven serial searches
 
-**What happened.** `agent-a05f88384e57ff529` ("Build transcript image renderer") ran 07:06:13 →
+**What happened.** `agent-a05f88384e57ff529` ("Build transcript image renderer") ran 07:06:13 then
 07:39:00. The operator's timeline shows the wait verbatim:
 
 ```
@@ -495,7 +495,7 @@ Inside it, seven `Agent` dispatches, each blocking:
 Those seven nested searches used **13.5 of the 32.8 minutes**. Every one of them blocked the
 109-minute operator while it ran. Their combined spend: 55,897 output tokens, 13,754,690 context-in.
 
-**Three of the seven were the same question about lint rules**, asked three times ~6 minutes apart:
+**Three of the seven were the same question about lint rules**, asked three times roughly 6 minutes apart:
 "ban-primitives escape patterns for string return types in proxies", "precedent for narrowing union
 stub return type in tests", "safe indexed-array-access pattern in proxies" — 7.1 minutes total. The
 sub-agent had already called `get-architecture`, `get-syntax-rules`, and `get-testing-patterns` (its
@@ -511,8 +511,8 @@ what it does.
 **Prompt verdict: PERMITTED by omission.** The `Briefing a sub-agent` section says nothing about
 whether a code-writing sub-agent may start its own. Only the reviewer prompt forbids it ("You return
 text. You call no `signal-back` and you start no sub-agent"). Three sub-agents took the silence as
-permission and spawned 11 grandchildren between them (`a05f88384e57ff529` ×7, `a4aad8da7dcef1ab2`
-×2, `af5bcf994c5e251e6` ×2).
+permission and spawned 11 grandchildren between them (`a05f88384e57ff529` 7 times, `a4aad8da7dcef1ab2`
+2 times, `af5bcf994c5e251e6` 2 times).
 
 ### Finding 3 — tight edit→ward→edit→ward loops, with the same command re-run 4 and 5 times
 
@@ -542,7 +542,7 @@ build does.
 
 **Prompt verdict: PERMITTED, and arguably required.** Each brief's `PROVE` line names the ward
 command, and the `RETURN` block demands "the red I watched before the code made it pass" — so a
-red→green cycle is the deliverable. What is not required is guessing five times in a row.
+red-then-green cycle is the deliverable. What is not required is guessing five times in a row.
 `<dungeonmaster-wardDiscipline>` does say "**Run it ONCE.** Choose the right flags the first time",
 which these violate in spirit.
 
@@ -717,7 +717,7 @@ Ranked by minutes-or-tokens recovered per quest of this shape.
 
 ### Fix 1 — Move `ward(changed)` so it runs between codeweaver cells, not only after all of them
 *(answers finding 8; est. saves the spiritmender's 23.6 min + the failed gate's 5.0 min + the pt-2
-gate's 2.7 min = **~31 min per quest**, plus every minute a later cell spends building on a latent
+gate's 2.7 min = **roughly 31 min per quest**, plus every minute a later cell spends building on a latent
 break)*
 
 **File:** `packages/shared/src/statics/quest-type-registry/quest-type-registry-statics.ts` (the
@@ -733,10 +733,10 @@ codeweaver sessions, later.
 Cheaper variant if the ledger cannot change: **have `codeweaver-reviewer` run `--staged` AND a
 package-scoped run of the packages it touched** — `npm run ward -- -- packages/web` after the
 `--staged` run — which would have put both crashing files in the batch. It costs each reviewer
-~60–120 s. That is one run per cell, versus one spiritmender per quest.
+roughly 60–120 s. That is one run per cell, versus one spiritmender per quest.
 
 ### Fix 2 — Make the sub-agent brief's `no npm run build` an explicit override of the ward snippet
-*(answers finding 1; est. saves ~6.4 min of sub-agent wall clock per cell and closes the concurrent-`dist/` window)*
+*(answers finding 1; est. saves roughly 6.4 min of sub-agent wall clock per cell and closes the concurrent-`dist/` window)*
 
 **File:** `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, the
 `PROVE` block inside the `Briefing a sub-agent` template.
@@ -773,7 +773,7 @@ a sub-agent on an operator's pass, whose brief forbids it — a `--only lint,tes
 `dist/`."* Fixing it at the snippet closes the conflict for every role in every repo at once.
 
 ### Fix 3 — Print the edge id in the flow render
-*(answers finding 3c(i) and finding 4; est. saves ~1.1 min and ~2,750 output tokens per operator
+*(answers finding 3c(i) and finding 4; est. saves roughly 1.1 min and roughly 2,750 output tokens per operator
 session that signs an edge, and removes a 263 KB spill)*
 
 **File:** `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`,
@@ -854,7 +854,7 @@ Reach for `discover` / `get-project-map` first; `Read`, `ls` and `python3 -c` ar
 ```
 
 ### Fix 6 — Either wire `codeweaverScopeBlockTransformer` in, or delete it
-*(answers finding 3a; est. saves ~0.5 min per cell and removes a 175-line file that reads as live)*
+*(answers finding 3a; est. saves roughly 0.5 min per cell and removes a 175-line file that reads as live)*
 
 **File:** `packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`.
 
@@ -904,8 +904,8 @@ telling the operator to do something the schema would reject.
   explained; four identical runs is four guesses.
 ```
 
-Evidence: `agent-a045f135b418ab40b` fired the identical command 5× in 1.7 min. `agent-aaa27f462b44f55a8`
-fired it 4× in 1.4 min. The agents that did use `npm run ward -- detail <runId>`
+Evidence: `agent-a045f135b418ab40b` fired the identical command 5 times in 1.7 min. `agent-aaa27f462b44f55a8`
+fired it 4 times in 1.4 min. The agents that did use `npm run ward -- detail <runId>`
 (`a05f88384e57ff529`, `a4aad8da7dcef1ab2`, `a6c17516ba1867b19`, `a88585a28327d5a7f`) converged
 without a repeat loop.
 

@@ -279,7 +279,7 @@ verbatim, inside a sub-agent brief:
   - `chatLineProcessTransformer()` is called with no arguments at ~60 test sites; the new factory
     param must default so those keep compiling.
 ```
-→ reappears in the `22.0m` brief as `The `= {}` default is load-bearing: about sixty existing call sites write
+Then reappears in the `22.0m` brief as `The `= {}` default is load-bearing: about sixty existing call sites write
 `chatLineProcessTransformer()` with no arguments and must keep compiling.`
 
 **Quote (Briefing a sub-agent):**

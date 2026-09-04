@@ -18,8 +18,8 @@
 
 This work item covers one **cell** — the package-and-flow slice of work a single codeweaver session owns. Here, that is the `shared` package on the `send-message-with-images` **flow**, the named feature slice a quest's work is organized around.
 
-Window (ledger): `createdAt 2026-09-01T19:09:04.685Z` → `completedAt 2026-09-01T19:33:20.925Z` = **24 min 16 s**.
-Window (transcript): `19:09:06.542Z` → `19:33:32.460Z` = **0:24:25.918 (24.4 min)**.
+Window (ledger): `createdAt 2026-09-01T19:09:04.685Z` then `completedAt 2026-09-01T19:33:20.925Z` = **24 min 16 s**.
+Window (transcript): `19:09:06.542Z` then `19:33:32.460Z` = **0:24:25.918 (24.4 min)**.
 
 This was the first codeweaver session of the quest. Nothing quest-related had landed on the branch yet. At 0.6 minutes in, the session confirmed this by running `git log --oneline -n 20`. It concluded, verbatim: `"No quest work has landed yet, so `shared` is running first."`
 
@@ -240,7 +240,7 @@ Only the first ran, at `0.6m`. That is defensible on a cold start, since the fir
 
 > `Over that ceiling Claude Code spills the tool result to a file and hands the agent an error stub, so the session holds a path instead of its instructions and nothing reports a failure.`
 
-Nothing spilled on this run — `<sessionId>/tool-results/` does not exist. But the prompt's brief template mandates `READ FIRST get-architecture, get-syntax-rules, get-testing-patterns` in every brief, and the reviewer prompt mandates all three at step 1. So the trio was loaded **6 times**: once by the operator (the main codeweaver session itself, coordinating the sub-agents it dispatches), once each by the 4 builder sub-agents, and once by the reviewer (a sub-agent role that checks the finished work before sign-off — confirming, via `modify-quest`, that a checklist item is actually done). At 90,371 bytes a load, that comes to **542,226 bytes ≈ 135,557 tokens** for three files that never change during a quest.
+Nothing spilled on this run — `<sessionId>/tool-results/` does not exist. But the prompt's brief template mandates `READ FIRST get-architecture, get-syntax-rules, get-testing-patterns` in every brief, and the reviewer prompt mandates all three at step 1. So the trio was loaded **6 times**: once by the operator (the main codeweaver session itself, coordinating the sub-agents it dispatches), once each by the 4 builder sub-agents, and once by the reviewer (a sub-agent role that checks the finished work before sign-off — confirming, via `modify-quest`, that a checklist item is actually done). At 90,371 bytes a load, that comes to **542,226 bytes, about 135,557 tokens** for three files that never change during a quest.
 
 ### 3.5 The prompt tells the agent to put findings somewhere the tool has no room for
 
@@ -332,7 +332,7 @@ PACKAGE: shared
 
 The reviewer nonetheless ran, at `0.4m`, `CALL mcp__dungeonmaster__get-quest(questId=1be07040-b9ec-476c-a439-0b4fbb0123cd)` — bare, with no `flowId`. Then at `0.6m` it ran `CALL mcp__dungeonmaster__get-quest(questId=… packageName=shared)` — again with no `flowId`. The call its own prompt prescribed was never made.
 
-**Cost.** 35,631 + 26,058 = **61,689 bytes ≈ 15,422 tokens**, against roughly 27,000 characters for one correct call. Context-in jumped from 73,692 to 95,716 across those two turns. This escaped the spill the prompt warns about only by luck: this quest's whole-quest render happened to be 35,631 bytes, 71% of the 50,000-byte ceiling.
+**Cost.** 35,631 + 26,058 = **61,689 bytes, about 15,422 tokens**, against roughly 27,000 characters for one correct call. Context-in jumped from 73,692 to 95,716 across those two turns. This escaped the spill the prompt warns about only by luck: this quest's whole-quest render happened to be 35,631 bytes, 71% of the 50,000-byte ceiling.
 
 **Prompt status: FORBIDDEN** — in bold, in the very section the agent was reading at the time. The parent sub-agent did nothing wrong here.
 
@@ -376,13 +376,13 @@ with its own description reading `"Check package.json exports map for contracts 
 
 **What happened.** `get-architecture` (18,025 B), `get-syntax-rules` (23,648 B), and `get-testing-patterns` (48,698 B) were fetched by the operator, by each of the four builder sub-agents, and by the reviewer — byte-identical every single time.
 
-**Cost.** The builders alone account for **12 calls, 361,484 bytes ≈ 90,371 tokens**. Add the operator's three calls and the reviewer's three, and the total is **18 calls, 542,226 bytes ≈ 135,557 tokens** — **0.43% of the run's 31,530,609 context-in**. And because each session re-reads its own context on every subsequent turn, the real replayed cost is far larger than that one-time figure.
+**Cost.** The builders alone account for **12 calls, 361,484 bytes, about 90,371 tokens**. Add the operator's three calls and the reviewer's three, and the total is **18 calls, 542,226 bytes, about 135,557 tokens** — **0.43% of the run's 31,530,609 context-in**. And because each session re-reads its own context on every subsequent turn, the real replayed cost is far larger than that one-time figure.
 
 **Prompt status: REQUIRED.** The brief template hard-codes `READ FIRST\n  get-architecture, get-syntax-rules, get-testing-patterns`. The operator's step 2 and the reviewer's step 1 each require all three as well.
 
 ### Finding 8 — Two re-reads inside the operator's own exploration
 
-**What happened.** Of the operator's 27 `Read` calls, one file — `packages/shared/src/contracts/rate-limit-window/…` — was read twice, at `2.7m` and again at `3.8m`. (Other repeated-looking entries in the histogram — `locations/` ×2, `exit-code` ×3, `local-eslint/transformers` ×2, `pasted-image*` ×4 — are actually distinct sibling files sharing a truncated path prefix, not re-reads.)
+**What happened.** Of the operator's 27 `Read` calls, one file — `packages/shared/src/contracts/rate-limit-window/…` — was read twice, at `2.7m` and again at `3.8m`. (Other repeated-looking entries in the histogram — `locations/` 2 times, `exit-code` 3 times, `local-eslint/transformers` 2 times, `pasted-image*` 4 times — are actually distinct sibling files sharing a truncated path prefix, not re-reads.)
 
 **Cost.** One extra `Read` call, well under 0.1 minutes. Listed here for completeness; it is noise against the 16.4-minute idle figure.
 
@@ -461,7 +461,7 @@ get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief — copy
 
 **Edit (tool half, stronger):** have `get-quest` reject any call from a `codeweaver-reviewer` caller that carries neither `flowId` nor `packageName`, with an error message naming the brief's `FLOW:` line. A bold sentence three lines above the call site did not stop this mistake; a refusal is the same defence this codebase already uses elsewhere.
 
-**Estimated saving:** 61,689 bytes ≈ 15,422 tokens for every reviewer that repeats this mistake. Whether the other six codeweaver cells' reviewers did the same is not measurable from this transcript. But the spill risk the prompt itself names applies to all of them, and it grows as the quest grows.
+**Estimated saving:** 61,689 bytes, about 15,422 tokens for every reviewer that repeats this mistake. Whether the other six codeweaver cells' reviewers did the same is not measurable from this transcript. But the spill risk the prompt itself names applies to all of them, and it grows as the quest grows.
 
 ### Fix 8 — Give the operator a durable channel for its carry-forwards (§3.5)
 
@@ -477,7 +477,7 @@ get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief — copy
 
 **Edit:** there are two options, in increasing order of effort. (a) Trim `get-testing-patterns` — at 48,698 bytes against a 50,000-byte ceiling, it is one added paragraph away from spilling silently, and it is loaded 6 times per cell. (b) Have the three tools return a short digest plus a repo-relative path, and let a session `Read` the full text only when it is about to write in an unfamiliar folder type.
 
-**Estimated saving:** option (a) is a safety fix — no token saving, but it removes a live spill risk. Option (b) would cut about 90,371 bytes × 5 sessions ≈ 113,000 tokens of one-time load per cell, and far more once you count replayed cache_read.
+**Estimated saving:** option (a) is a safety fix — no token saving, but it removes a live spill risk. Option (b) would cut about 90,371 bytes times 5 sessions, about 113,000 tokens of one-time load per cell, and far more once you count replayed cache_read.
 
 ### Fix 10 — Add a "swap the tool, don't re-test the block" line to the reviewer prompt (§5 finding 5)
 
