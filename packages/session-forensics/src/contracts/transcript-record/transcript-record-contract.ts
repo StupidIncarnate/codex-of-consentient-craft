@@ -14,6 +14,7 @@
 import { z } from 'zod';
 
 import { agentIdContract } from '@dungeonmaster/shared/contracts';
+import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { transcriptRecordContentBlockContract } from '../transcript-record-content-block/transcript-record-content-block-contract';
 
 const transcriptRecordMessageContract = z.object({
@@ -37,7 +38,7 @@ export const transcriptRecordContract = z
       'last-prompt',
       'atis-latch',
     ]),
-    timestamp: z.string().datetime().brand<'TranscriptRecordTimestamp'>().optional(),
+    timestamp: isoTimestampContract.optional(),
     isSidechain: z.boolean().optional(),
     agentId: agentIdContract.optional(),
     promptSource: z.string().brand<'TranscriptRecordPromptSource'>().optional(),

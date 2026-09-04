@@ -24,7 +24,7 @@ const MILLISECONDS_PER_MINUTE = 60_000;
 const TOP_TOOLS_LIMIT = 4;
 
 type Count = ReturnType<typeof Number>;
-type BucketIndex = ReturnType<typeof Math.floor>;
+type BucketIndex = ReturnType<typeof Number>;
 type ToolName = NonNullable<TranscriptRecordContentBlock['name']> | '?';
 
 export const recordsToBucketsTransformer = ({
@@ -79,7 +79,7 @@ export const recordsToBucketsTransformer = ({
         usage.inputTokens + usage.cacheReadTokens + usage.cacheCreationTokens;
 
       const toolUseBlocks = recordToContentBlocksTransformer({ record }).filter(
-        (block) => String(block.type) === 'tool_use',
+        (block) => block.type === 'tool_use',
       );
       bucket.toolCallCount += toolUseBlocks.length;
       for (const block of toolUseBlocks) {
