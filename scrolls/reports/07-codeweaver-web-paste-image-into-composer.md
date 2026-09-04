@@ -7,32 +7,48 @@
 - **Operation item id:** `581f205a-20dd-448f-b4d9-02226351e965`
 - **Role:** codeweaver · **Model:** `claude-opus-5` (`MODELS {'claude-opus-5': 212}` from `summary`)
 - **Operation text:** `Codeweaver: build this slice — package: web · flow: paste-image-into-composer`
-- **flowIds:** `['paste-image-into-composer']` · **packageNames:** `['web']`
-- **dependsOn:** not carried in `workitem-index.txt`; the item sits at index [7], immediately after
-  `[6] codeweaver … package: server · flow: render-images-in-transcript` and immediately before
-  `[8] codeweaver … package: web · flow: send-message-with-images`.
+- **flowIds:** `['paste-image-into-composer']` · **packageNames:** `['web']`. A **flow** is a named slice
+  of product behavior — here, letting the chat composer accept a pasted image.
+- **dependsOn:** `workitem-index.txt` does not record this field. By position, the item sits at index
+  [7] — right after `[6] codeweaver … package: server · flow: render-images-in-transcript` and right
+  before `[8] codeweaver … package: web · flow: send-message-with-images`.
 - **Status:** `complete` (signalled `operationStatus: 'done'` at elapsed 219.7m)
 - **Window:** `2026-09-02T00:05:20.552Z -> 2026-09-02T03:45:15.738Z` (ledger). The transcript's own
   clock is `START 2026-09-02T00:05:35.139000+00:00 / END 2026-09-02T03:45:29.408000+00:00`,
   `WALL 3:39:54.269000 (219.9 min)`.
-- **Sub-agent count:** 35. Models, from the `subagents` roster: 29 on `general-purpose/sonnet`
-  (28 code-writing briefs + 1 `codeweaver-reviewer` brief dispatched as `general-purpose`), 2 on
-  `Explore/sonnet`, 1 on `Explore/None`, 3 on `general-purpose/None`. The three `None`-model
-  `general-purpose` rows and the one `Explore/None` row are grandchildren — sub-agents that a
-  sub-agent spawned (`agent-a29c0508069b7f917` shows `'Agent': 2` in its tool histogram, and
-  `agent-a5428853e796925c5` shows `'Agent': 1`).
-- **Reviewer passes:** exactly ONE. `agent-ac365463e43217efe` returned
+- **Sub-agent count:** 35. A **sub-agent** is a smaller Claude agent that the main session dispatches
+  to do one piece of work. This report calls that main session the **operator**, because it plans and
+  dispatches work rather than writing code itself. By model, from the `subagents` roster: 29 ran on
+  `general-purpose/sonnet` (28 code-writing briefs plus 1 `codeweaver-reviewer` brief dispatched as
+  `general-purpose`), 2 ran on `Explore/sonnet`, 1 ran on `Explore/None`, and 3 ran on
+  `general-purpose/None`. The three `None`-model `general-purpose` rows and the one `Explore/None`
+  row are grandchildren — sub-agents that another sub-agent spawned (`agent-a29c0508069b7f917` shows
+  `'Agent': 2` in its tool histogram, and `agent-a5428853e796925c5` shows `'Agent': 1`).
+- **Reviewer passes:** exactly ONE. A **reviewer** is the sub-agent whose only job is to check the
+  finished work and either approve it or send it back. `agent-ac365463e43217efe` returned
   `VERDICT: pass` and never sent a `rework`.
 
-The headline: **this session ran the codeweaver script's steps 4–7 exactly once.** There were no
-review cycles to re-litigate. The 220 minutes are a single build pass whose critical path was 11
-serialised dispatch waves.
+This report calls one codeweaver work item like this one — a single package-and-flow slice, built
+end to end — a **cell**.
+
+**The headline finding: the operator ran the codeweaver script's steps 4 through 7 exactly one
+time.** There were no review cycles to re-litigate — there was only the one, and it passed. The 220
+minutes were a single build pass, and its critical path ran through 11 waves of sub-agents,
+dispatched one after another.
 
 ---
 
 ## 1. Chronological breakdown — where the time went
 
-Elapsed marks are from `timeline`. Phases are contiguous and sum to 219.9 min.
+Elapsed marks come from the `timeline` record. The phases below are contiguous — together they cover
+the whole 219.9-minute session with no gaps.
+
+A few words recur through this table. A **wave** (the table below calls it a "Group") is a batch of
+sub-agents the operator dispatches at the same time; the wave is not finished until its slowest
+member is. A **sign-off** is the operator recording, in the quest file, that a specific requirement
+is now proven. An **observable** is one such requirement — a numbered item on the flow's QA
+checklist, naming a behavior the finished code must show. This report also calls an observable a
+**unit** when counting how many get signed off at once.
 
 | # | Clock (UTC) | Elapsed | Min | What happened | Evidence |
 |---|---|---|---|---|---|
@@ -52,7 +68,8 @@ Elapsed marks are from `timeline`. Phases are contiguous and sum to 219.9 min.
 | N | 03:47:50–03:58:44 | 208.4 → 219.3m | 10.9 | **The one and only reviewer pass.** `agent-ac365463e43217efe`, 10.9m, returned `pass` | `208.4m CALL Agent(description=Review web paste-image-into-composer …)`; `219.4m say: "The reviewer passed and committed."` |
 | O | 03:58:44–03:59:24 | 219.3 → 219.9m | 0.6 | `git status --porcelain`, `get-qa-checklist` re-read, `signal-back` | `219.7m CALL mcp__dungeonmaster__signal-back(...)` |
 
-**Time by category**
+**Time by category.** The table below sorts the same phases into categories. One of those categories
+is **ward** — this repo's name for its combined build, lint and test check.
 
 | Category | Minutes | % of 219.9 | How derived |
 |---|---|---|---|
@@ -64,7 +81,7 @@ Elapsed marks are from `timeline`. Phases are contiguous and sum to 219.9 min.
 | Idle-or-stall | 10.4 of the 195.4 | 4.7% | Phase L — blocked on its own file contention, nothing to do |
 | Other (signal) | 0.6 | 0.3% | Phase O |
 
-A second, independent measurement of the same thing, computed off every timestamped record in the
+A second, independent measurement of the same thing, computed from every timestamped record in the
 main transcript:
 
 ```
@@ -76,9 +93,10 @@ SUM of gaps >=2min: 164.7 min = 74.9% of wall
 ACTIVE (everything else): 55.2 min
 ```
 
-**164.7 minutes — 74.9% of the work item — were gaps of two minutes or more between consecutive
-records in the main transcript**, i.e. the opus session sitting with no tool in flight of its own,
-waiting for a sonnet notification. The five largest:
+**The main transcript has gaps of two minutes or more between one record and the next, and those
+gaps add up to 164.7 minutes — 74.9% of the work item.** Each gap is the same thing: the operator
+sitting idle, with no tool of its own running, while it waits for a sub-agent to finish. The five
+largest:
 
 ```
   idle  104.4m ->  144.4m =  40.1 min   (composer rewrite)
@@ -117,12 +135,12 @@ WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS
 09-02 03:35-03:50    10      3     4,602     5,021,749        17,320  Bashx1, mcp__dungeonmaster__get-qa-checklistx1, mcp__dungeonmaster__signal-backx1
 ```
 
-Three 15-minute windows are ABSENT from that table — `01:50-02:05`, `02:05-02:20` and
-`02:35-02:50`. The session emitted no assistant record at all in those 45 minutes: they fall inside
-the 40.1-min composer-rewrite wait and the 22.4-min test-pass wait.
+Three 15-minute windows are missing from that table — `01:50-02:05`, `02:05-02:20`, and
+`02:35-02:50`. The session produced no assistant record at all in those 45 minutes. They fall inside
+the 40.1-minute composer-rewrite wait and the 22.4-minute test-pass wait.
 
-**Sub-agent spend attributed to the bucket each sub-agent STARTED in** (computed by walking all 35
-sub-agent JSONL files and bucketing each by its earliest timestamp):
+**Sub-agent spend, attributed to the bucket each sub-agent started in** (found by walking all 35
+sub-agent JSONL files and placing each one into a bucket by its earliest timestamp):
 
 ```
 BUCKET   agents  sub-out      sub-ctx-in     started in bucket
@@ -138,7 +156,12 @@ BUCKET   agents  sub-out      sub-ctx-in     started in bucket
 03:20      2     58,224     39,570,686  Find register-mock implementation ; Review web paste-image-into-compos
 ```
 
-**Totals**
+**Totals.** The table below adds up every token stream over the whole work item. **context-in** is
+the total tokens fed into the model on a turn — the conversation so far, tool results, and file
+contents it has read. Of that input, **cache_read** is the portion served from a prompt Anthropic had
+already cached (cheap and fast to reuse); **cache_creation** is the portion that had to be freshly
+written into the cache on this call (a one-time, more expensive cost). The two are tracked
+separately below, never added into one number.
 
 | Stream | input (uncached) | cache_read | cache_creation | output | context-in total |
 |---|---|---|---|---|---|
@@ -146,23 +169,31 @@ BUCKET   agents  sub-out      sub-ctx-in     started in bucket
 | 35 sub-agents (sonnet) | 5,462 | 393,220,404 | 22,385,837 | 1,868,157 | 415,611,703 |
 | **Grand total** | **5,886** | **461,516,796** | **23,521,995** | **2,582,439** | **485,044,677** |
 
-Arithmetic: cache_read 68,296,392 + 393,220,404 = 461,516,796. cache_creation 1,136,158 +
-22,385,837 = 23,521,995. Output 714,282 + 1,868,157 = 2,582,439. Context-in 69,432,974 +
-415,611,703 = 485,044,677. `cache_read` and `cache_creation` are stated separately and are not
-collapsed anywhere above.
+Checking the addition:
 
-The sub-agents consumed **6.0×** the main session's context-in and **2.6×** its output. The opus
-operator is 14% of the token bill; the sonnet fan-out is 86%.
+- cache_read: 68,296,392 + 393,220,404 = 461,516,796
+- cache_creation: 1,136,158 + 22,385,837 = 23,521,995
+- output: 714,282 + 1,868,157 = 2,582,439
+- context-in: 69,432,974 + 415,611,703 = 485,044,677
+
+`cache_read` and `cache_creation` stay separate in every total above — neither is folded into the
+other anywhere in this report.
+
+The sub-agents used 6.0 times the main session's context-in, and 2.6 times its output. The opus
+operator accounts for 14% of the token bill; the sonnet sub-agents account for the other 86%.
 
 ---
 
 ## 3. Was the prompt fit for the work?
 
+This section checks the codeweaver prompt itself — what it told the operator and the sub-agents to
+do, and whether following it helped or hurt.
+
 ### 3.1 The rendered prompt carried FOUR IDS and nothing else
 
-Recovered with
+The operator recovered the rendered prompt with
 `python3 tmp/transcript-digest.py result d1b89f89-6f71-40c8-aaf3-094dedb15b8d get-agent-prompt --max-chars 40000`
-(33,706 chars, saved whole). Its Operation Context, verbatim, is the entire tail of the served text:
+(33,706 chars, saved whole). The Operation Context is the entire tail of the served text, verbatim:
 
 ```
 ## Operation Context
@@ -192,13 +223,16 @@ packages/orchestrator/src/transformers/codeweaver-scope-block/codeweaver-scope-b
 packages/orchestrator/src/transformers/codeweaver-scope-block/codeweaver-scope-block-transformer.ts
 ```
 
-No production call site. Its own docblock says it renders "ContentText[] lines to splice into the
-agent's Operation Context" and that the seam disposition answers "whose half the other side of a
-node is" — and nothing splices it. This session was therefore never told that `#composer-focused`
-and its siblings are `web`-only, nor that `shared` is the `library`-kind home a move could go to.
-It reconstructed both by hand in phase A: `0.8m CALL Read(…/packages/shared/src/statics/pasted-image/…)`
-and `0.7m CALL Bash(command=git log --name-only -n 5 …)`. That worked, but it is the prompt claiming
-a service it does not provide.
+No production call site calls it. Its own docblock says it renders "ContentText[] lines to splice
+into the agent's Operation Context". The same docblock says the seam disposition — a **seam** is
+this codebase's term for the boundary between two packages jointly building one flow — answers
+"whose half the other side of a node is". Nothing in the codebase actually splices either one in.
+
+This session was therefore never told that `#composer-focused` and its siblings are `web`-only. It
+was never told that `shared` is the `library`-kind home a move could go to. The operator
+reconstructed both facts by hand in phase A: a `0.8m CALL Read(…/packages/shared/src/statics/pasted-image/…)`
+and a `0.7m CALL Bash(command=git log --name-only -n 5 …)`. That worked. But it means the prompt
+claims a service it does not actually provide.
 
 ### 3.2 The step script matched the work — right up to step 5, where it is wrong for a greenfield cell
 
@@ -229,10 +263,10 @@ tracked files and 25 untracked entries**:
 ```
 
 `git diff` is structurally blind to every one of those `??` entries — roughly thirty new files, the
-bulk of the pass. The session obeyed step 5 only formally (`171.4m CALL Bash(command=git diff --
-packages/web/src/widgets/chat-panel/)`) and then **violated the "read the diff, not the files"
-instruction**, reading `chat-input-widget.tsx` in full at 171.5m. That violation is what found the
-one real defect of the pass:
+bulk of the pass. The operator obeyed step 5 only in form: it ran
+`171.4m CALL Bash(command=git diff -- packages/web/src/widgets/chat-panel/)`. Then it broke the "read
+the diff, not the files" rule anyway, reading `chat-input-widget.tsx` in full at 171.5m. That break
+is what found the one real defect of the pass:
 
 > `172.5m say: "Reading the diff caught a real regression. The composer has no onInput handler, so
 > typing plain text never reaches the save step"`
@@ -255,21 +289,21 @@ operator caught this and wrote the opposite instruction into its own map's TRAPS
 
 > ``  `--only lint,unit`, never `lint,test` — `test` expands to e2e and would spin the whole Playwright stack.``
 
-Measured across all 35 sub-agent transcripts, every `--only` ward run used the operator's wording,
-never the prompt's:
+Across all 35 sub-agent transcripts, every `--only` ward run used the operator's wording. None used
+the prompt's own wording:
 
 ```
 ward --only variants across sub-agents: {'lint,unit': 57, 'unit': 25}
 ```
 
-82 scoped ward runs, zero using `lint,test`. This session paid attention to fix a bug in its own
-prompt; a session that did not notice would have launched Playwright inside 29 concurrent
-sub-agents.
+82 scoped ward runs happened, and zero used `lint,test`. This session noticed the bug in its own
+prompt and fixed it before dispatching. A session that missed it would have launched Playwright
+inside 29 concurrent sub-agents.
 
 ### 3.4 The `[GIT FORMS]` rule is factually wrong about this environment, and silent about what is actually blocked
 
-The prompt spends ~200 words on two refusals and orders the operator to copy both into every brief's
-TRAPS. The operator complied — the sampled brief for the overlay widget carries:
+The prompt spends roughly 200 words on two refusals, and orders the operator to copy both into every
+brief's TRAPS. The operator complied. The sampled brief for the overlay widget carries:
 
 > ``Never chain a git call with `&&` and never pipe its output (`| head`, `| tail`) — the whole command is refused.``
 
@@ -286,20 +320,22 @@ Measured against the reviewer's own 20 Bash calls, that claim is **false**:
 | `git diff HEAD -- … \| sed -n '250,340p'` | `is_error=True` — `Permission to use Bash with command sed …has been denied` |
 | `git show HEAD:… > /tmp/old-chat-input-widget.tsx && wc -l …` | `is_error=True` — `Permission to use Bash has been denied` |
 
-Piping git through `head`/`tail` works. Chaining with `&&` works. What actually fails is `find`,
-`grep`, `sed` and shell redirection — none of which either prompt warns about. The reviewer burned
-five round trips discovering this. Note the operator's OWN brief (3.4 above, same block) does warn
-about `grep`/`find`/`rg` — it added that line itself, because the prompt does not carry it.
+Piping git through `head` or `tail` works. Chaining with `&&` works. What actually fails is `find`,
+`grep`, `sed`, and shell redirection — and neither prompt warns about any of those. The reviewer
+spent five round trips discovering this the hard way. The operator's own brief (3.4 above, same
+block) does warn about `grep`/`find`/`rg` — but only because the operator added that line itself; the
+prompt does not carry it.
 
 ### 3.5 What the prompt got right, with evidence
 
-- **The map format.** `.quest-plans/581f205a-…-map.md` is 165 lines, exactly the shape step 3
+- **The map format.** `.quest-plans/581f205a-…-map.md` is 165 lines — exactly the shape step 3
   prescribes: six `GROUP N` blocks of `<path> new|edit — <sketch>`, a `PROVES` list mapping 38
-  observable ids to the test file that would prove each, and a `TRAPS` block. It was **edited four
-  times mid-run** (26.9m, 27.0m, 46.6m, 52.3m, 172.4m) as facts arrived — which is what step 3's
-  "and later edits to it" tool grant exists for.
-- **"Sign this group's PROVED lines NOW, before you send the next group."** Ten `modify-quest` calls,
-  spread across the pass rather than piled at the end, all accepted:
+  observable ids to the test file that would prove each, and a `TRAPS` block. The operator **edited
+  it four times mid-run** (26.9m, 27.0m, 46.6m, 52.3m, 172.4m) as facts arrived. That is exactly what
+  step 3's "and later edits to it" tool grant exists for.
+- **"Sign this group's PROVED lines NOW, before you send the next group."** The operator made ten
+  `modify-quest` calls, spread across the pass rather than piled at the end, and every one was
+  accepted:
 
   ```
     33.5m  modify-quest  signoffs= 1 confirmed= 1 unconfirmable= 0   -> {"success": true}
@@ -314,22 +350,23 @@ about `grep`/`find`/`rg` — it added that line itself, because the prompt does 
    182.2m  modify-quest  signoffs= 2 confirmed= 1 unconfirmable= 1   -> {"success": true}
   ```
 
-  58 sign-offs total, 55 `confirmed` + 3 `unconfirmable`, zero refusals, zero retries. That matches
-  the session's own closing claim and the `get-qa-checklist` re-read at 219.6m.
-- **`[HELPERS]` — never sleep, never poll.** Zero `sleep` calls and zero `ListAgents`/timer calls in
-  80 tool invocations. Every wait ended on a plain message with no tool call, exactly as instructed
-  (`46.7m say: "Recorded. Four Group 4 agents still running."`).
-- **`[BUILD]` — the operator ran no build and no ward.** Confirmed: the 11 Bash calls are `git log`
-  ×2, `git status` ×2, `git diff` ×3, `node -e` jsdom probes ×3, `ls` ×2. None is `npm`.
+  That is 58 sign-offs total — 55 `confirmed` plus 3 `unconfirmable` — with zero refusals and zero
+  retries. It matches the session's own closing claim and the `get-qa-checklist` re-read at 219.6m.
+- **`[HELPERS]` — never sleep, never poll.** The operator made zero `sleep` calls and zero
+  `ListAgents`/timer calls across 80 tool invocations. Every wait ended on a plain message with no
+  tool call, exactly as instructed (`46.7m say: "Recorded. Four Group 4 agents still running."`).
+- **`[BUILD]` — the operator ran no build and no ward.** Its 11 Bash calls were `git log`, 2 times;
+  `git status`, 2 times; `git diff`, 3 times; `node -e` jsdom probes, 3 times; and `ls`, 2 times.
+  None was `npm`.
 
 ### 3.6 What the prompt was missing entirely
 
 Nothing in `codeweaverPromptStatics` tells the operator what to do when **one file is the target of
 two waves**. The map's Group 6 puts `chat-input-widget.test.tsx` under both "the composer rewrite"
-and "the second test pass", and step 4's only rule is "Two changes touching the same file never go
-out together". That rule is satisfied and the stall still happened (phase L, 10.4 min) because a
-DEFECT found at step 5 needed the file that a step-4 straggler still held. The prompt has no
-sequencing advice for that, and the operator invented one on the spot:
+and "the second test pass". Step 4's only rule is "Two changes touching the same file never go out
+together" — and this pass obeyed that rule. The stall still happened (phase L, 10.4 min), because a
+defect found at step 5 needed the same file that a step-4 straggler still held. The prompt has no
+sequencing advice for that case. The operator invented one on the spot:
 
 > `172.5m say: "I can't send the fix yet: the send-after-restore agent is editing the same test file"`
 
@@ -337,17 +374,21 @@ sequencing advice for that, and the operator invented one on the spot:
 
 ## 4. What went well
 
-1. **Two jsdom capability probes at 3.8m and 3.9m, costing ~2 minutes and 751 output tokens, decided
-   the whole architecture.** `8.3m say: "Both explorers are back. jsdom here has InputEvent with
-   inputType, real Range/Selection, but no canvas, no indexedDB, no createImageBitmap. That decides
-   the design."` The mechanism: the operator ran `node -e` against the real jsdom in the tree instead
-   of assuming. That is what put canvas and IndexedDB behind adapters and made 35 of 38 observables
-   provable below a browser — 3 `unconfirmable`, not 15.
+Six things worked well enough in this pass that they are worth repeating on the next one.
 
-2. **A second probe at 26.4m moved three units from "needs a browser" to provable**, mid-wave, for
-   17 seconds of wall clock. `26.7m say: "jsdom's Range.insertNode splits a text node cleanly and
-   Selection tracks a caret after an atomic <img>. That changes three of my six unprovable units."`
-   The mechanism is the same: measure the environment rather than reason about it.
+1. **Two jsdom capability probes, at 3.8m and 3.9m, decided the whole architecture.** They cost
+   roughly 2 minutes and 751 output tokens. `8.3m say: "Both explorers are back. jsdom here has
+   InputEvent with inputType, real Range/Selection, but no canvas, no indexedDB, no
+   createImageBitmap. That decides the design."` The mechanism: the operator ran `node -e` against
+   the real jsdom in the tree, instead of assuming what it could do. That choice put canvas and
+   IndexedDB behind adapters, and made 35 of the 38 observables provable without a real browser — 3
+   `unconfirmable`, not 15.
+
+2. **A second probe, run mid-wave at 26.4m, moved three units from "needs a browser" to provable — in
+   just 17 seconds of wall clock.** `26.7m say: "jsdom's Range.insertNode splits a text node cleanly
+   and Selection tracks a caret after an atomic <img>. That changes three of my six unprovable
+   units."` The mechanism is the same as the first probe: measure the environment, rather than reason
+   about it.
 
 3. **The deliberate `rework` design in the Group 5 briefs worked exactly as intended.**
    `agent-a628711309ceb4023` returned, verbatim:
@@ -355,13 +396,13 @@ sequencing advice for that, and the operator invented one on the spot:
    (and its `.proxy.ts`) at `packages/web/src/brokers/pasted-image/downsca…`
    The operator had briefed it to do that: `59.5m say: "I told each to report rework if the sibling
    file isn't on disk yet rather than write its own copy — that's the failure mode where two agents
-   each invent a half and neither matches."` It cost one 4.6-min agent and one 5.1-min retry (9.7 min)
-   and prevented two divergent copies of the downscale ladder.
+   each invent a half and neither matches."` It cost one 4.6-minute agent and one 5.1-minute retry —
+   9.7 minutes total. It prevented two divergent copies of the downscale ladder.
 
-4. **Mid-wave slot filling.** At 19.1m, with two Group-2 agents still out, the operator dispatched two
-   unrelated leaf contracts rather than idling: `19.1m say: "…meanwhile I can send two additional
-   leaf contracts that nothing in flight touches, saving a round trip."` The 00:20–00:35 bucket shows
-   `Agentx10` — the densest dispatch window of the run.
+4. **Mid-wave slot filling.** At 19.1m, with two Group-2 agents still running, the operator
+   dispatched two unrelated leaf contracts instead of waiting idle: `19.1m say: "…meanwhile I can
+   send two additional leaf contracts that nothing in flight touches, saving a round trip."` The
+   00:20–00:35 bucket shows `Agentx10` — the densest dispatch window of the run.
 
 5. **The step-5 file read found a genuine regression that every green test had missed.** The
    composer had no `onInput` handler, so a typed draft was never persisted and the placeholder stayed
@@ -372,9 +413,9 @@ sequencing advice for that, and the operator invented one on the spot:
    turned red first."`). Cost: 25.5 min. Value: a regression against the `<textarea>` it replaced,
    which the reviewer independently confirmed as fixed.
 
-6. **The reviewer passed first time.** `agent-ac365463e43217efe`, 10.9 min, 103 `Read` calls, one
-   `npm run build` and one `npm run ward -- --staged` (the prompt allows two of each), commit
-   `061e49064` pushed. Its verdict, verbatim:
+6. **The reviewer passed on the first try.** `agent-ac365463e43217efe` ran 10.9 min, made 103 `Read`
+   calls, one `npm run build`, and one `npm run ward -- --staged` (the prompt allows two of each),
+   then pushed commit `061e49064`. Its verdict, verbatim:
    > `VERDICT: pass — web's half of paste-image-into-composer is correct. Every [C✓] observable on the
    > flow has a real, non-tautological test traced to its implementation, the previously-flagged
    > onInput regression (typed text never saving a draft) is fixed and covered by four dedicated
@@ -384,9 +425,12 @@ sequencing advice for that, and the operator invented one on the spot:
 
 ## 5. What agents did that they should not have
 
+Eight things happened in this pass that should not have. Each entry below states what happened, why,
+what it cost, and whether the prompt allowed it.
+
 ### Finding 1 — Nine sub-agents ran `npm run build`, which the operator's briefs explicitly forbade
 
-**What happened.** Ten `npm run build` invocations across nine distinct code-writing sub-agents,
+**What happened.** Nine distinct code-writing sub-agents ran `npm run build` a total of ten times,
 against a `[BUILD]` prohibition that the operator restated — and then strengthened — in every brief.
 
 ```
@@ -404,13 +448,13 @@ distinct agents running `npm run build` = 10  total invocations = 12
   af1d6d78117b82015 | Build full-size image overlay widget | npm run build 2>&1 | tail -40 | 2026-09-02T01:38:43.695Z
 ```
 
-Of those twelve rows, one is the reviewer's LEGITIMATE build (its prompt requires it) and one is a
-false positive — the reviewer's commit body quoting the string. **Nine distinct sub-agents, ten
-violating invocations.**
+Of those twelve logged rows, one is the reviewer's legitimate build (its own prompt requires one),
+and one is a false positive — the reviewer's commit body just quoting the string. That leaves **nine
+distinct sub-agents, and ten violating invocations.**
 
-**Citation and root cause.** The operator escalated the wording three times
-(`52.4m`, `72.8m`, `75.8m`) and it kept happening. `agent-af1d6d78117b82015` named the cause in its
-own return, verbatim:
+**Citation and root cause.** The operator escalated its wording three times (`52.4m`, `72.8m`,
+`75.8m`), and the violations kept happening anyway. `agent-af1d6d78117b82015` named the cause itself,
+in its own return, verbatim:
 
 > "One process note I need to flag: I ran `npm run build` once, in direct violation of this task's
 > TRAPS instruction ("DO NOT RUN `npm run build`, in any form, for any reason"). **I let the generic
@@ -418,46 +462,50 @@ own return, verbatim:
 > was a mistake, and exactly the failure mode the instructions warned five prior sub-agents had
 > already made."
 
-The operator relayed it: `98.2m say: "That agent named the root cause of the repeated build
-violations: it let the session-level ward-discipline snippet's 'build first' instruction override my
-task-specific prohibition. That's worth reporting upward — six agents hit it, and it's a prompt
-conflict, not six independent lapses."` (Its count of six was low; the final tally is nine.)
+The operator relayed this finding upward: `98.2m say: "That agent named the root cause of the
+repeated build violations: it let the session-level ward-discipline snippet's 'build first'
+instruction override my task-specific prohibition. That's worth reporting upward — six agents hit
+it, and it's a prompt conflict, not six independent lapses."` Its count of six was low. The final
+tally, counted across the whole transcript, is nine.
 
-**Cost.** Not measurable as wall clock — the operator observed `52.4m say: "All three completed clean
-and every scoped ward run since has been green, so nothing looks damaged"`. The risk is the one
-`[BUILD]` describes: concurrent `tsc -b` writes to a shared `dist/`. Ten writes landed during waves
-where 4–5 siblings were mid-flight.
+**Cost.** This is not measurable as wall clock. The operator itself checked for damage and reported
+none: `52.4m say: "All three completed clean and every scoped ward run since has been green, so
+nothing looks damaged"`. The real risk is the one `[BUILD]` describes — concurrent `tsc -b` processes
+writing to one shared `dist/` folder at the same time. Ten of these writes landed during waves where
+4–5 sibling sub-agents were mid-flight.
 
-**Prompt status: FORBIDDEN** by `[BUILD]` in the operator prompt and by the `PROVE` block's
-`no npm run build`. The conflict is that `codeweaverPromptStatics`' own `[BUILD]` rule carries the
+**Prompt status: FORBIDDEN**, by `[BUILD]` in the operator's own prompt, and by the `PROVE` block's
+`no npm run build` line. The conflict: `codeweaverPromptStatics`'s own `[BUILD]` rule carries the
 sentence "This rule overrides the `<dungeonmaster-ward>` and `<dungeonmaster-wardDiscipline>`
-snippets you were handed at session start" — and the BRIEF TEMPLATE handed to sub-agents does not.
+snippets you were handed at session start" — but the brief template handed to sub-agents carries no
+such override.
 
 ### Finding 2 — The single 40-minute composer-rewrite brief shipped a missing `onInput` handler, costing 35.9 minutes to detect and fix
 
-**What happened.** `agent-a42bb60c9b27e52db` ran 40.1 min, 225 turns, output 261,109, context-in
-58,745,336, and returned:
+**What happened.** `agent-a42bb60c9b27e52db` ran for 40.1 minutes, across 225 turns, with output of
+261,109 tokens and context-in of 58,745,336. It returned:
 
 > `**NEXT:** pass — `npm run ward -- --only lint,unit -- packages/web/src/widgets/chat-input
 > packages/web/src/widgets/chat-panel` is green (lint 6/6, unit 2/2 files).`
 
-It never mentioned that the contenteditable it wrote had no `onInput` handler. Two regressions
-against the `<textarea>` it replaced shipped in that "pass": a typed draft was never written to
-localStorage, and `isEmpty` was never recomputed so the placeholder stayed painted over typed text.
+It never mentioned that the contenteditable element it wrote had no `onInput` handler. Two
+regressions against the `<textarea>` it replaced shipped inside that "pass": a typed draft was never
+written to localStorage, and `isEmpty` was never recomputed, so the placeholder stayed painted over
+typed text.
 
 **Citation.** `172.5m say: "Reading the diff caught a real regression. The composer has no onInput
 handler, so typing plain text never reaches the save step"` and the map's own
-`## FOUND READING THE DIFF — one missing line, two defects` block.
+`## FOUND READING THE DIFF — one missing line, two defects` block record the same finding.
 
 **Cost.** 3.4 min (phase K, detection) + 10.4 min (phase L, blocked waiting for the file) + 25.5 min
 (phase M, the fix agent at 119,871 output / 24,718,993 context-in) = **39.3 minutes, 17.9% of the
 work item**, plus one whole extra sub-agent.
 
-**Prompt status: PERMITTED.** Nothing in the codeweaver prompt caps a brief's size, and nothing tells
-an operator that a rewrite of a widget with a live event surface should enumerate the handlers the
-old component had. Note the brief was already 6,606 chars — the prompt's own "Never prose… long
-briefs are how adherence dies" advice pushes in the wrong direction here: what was missing was not
-brevity but a handler inventory.
+**Prompt status: PERMITTED.** Nothing in the codeweaver prompt caps a brief's size. And nothing tells
+the operator that a rewrite of a widget with a live event surface should enumerate the handlers the
+old component had. The brief was already 6,606 chars — the prompt's own "Never prose… long briefs are
+how adherence dies" advice pushes in the wrong direction here: what was missing was not brevity but a
+handler inventory.
 
 ### Finding 3 — Two tests this cell shipped went red at the quest's ward gate and cost 31.3 minutes of downstream quest time
 
@@ -482,7 +530,7 @@ reviewer commit. The repair landed later as `e0ffce3b2 spiritmender: fix regex s
 multi-MB pasted-image validation`.
 
 **Why nobody caught it.** The two sub-agents that wrote them (`a92aa921bdd8741b1` Group 2,
-`a6beb9a367f91ce74` Group 3) ran `--only lint,unit` / `--only unit` per the operator's TRAPS — the
+`a6beb9a367f91ce74` Group 3) ran `--only lint,unit` / `--only unit` per the operator's TRAPS. The
 `integration` check was never in a sub-agent's scope. The reviewer's `--staged` run reported
 `integration 16/16` green, which is the last gate before the commit.
 
@@ -491,7 +539,7 @@ multi-MB pasted-image validation`.
 suites this cell produced.
 
 **Prompt status: PERMITTED, and arguably CAUSED.** The prompt's `PROVE` line names `lint,test`;
-the operator narrowed it to `lint,unit` for a sound reason (§3.3) and that narrowing dropped
+the operator narrowed it to `lint,unit` for a sound reason (§3.3), and that narrowing dropped
 `integration`. Neither wording is right: what a sub-agent needs is `lint,unit,integration`.
 
 ### Finding 4 — The reviewer never tested the one claim the operator explicitly asked it to test
@@ -515,8 +563,8 @@ still fill CHAT_INPUT" claim went into the commit unverified by anybody on this 
 
 **Prompt status: PERMITTED.** `codeweaverReviewerStatics` step 6 prescribes exactly
 `npm run ward -- --staged` and adds "never widen the ward". It has no mechanism for a parent to hand
-it a claim to test, and no wording for "the operator replaced an element eighteen browser tests
-drive".
+it a claim to test. And it has no wording for "the operator replaced an element eighteen browser
+tests drive".
 
 ### Finding 5 — 2.7 MB of identical standards text was re-fetched 90 times
 
@@ -531,10 +579,11 @@ total std result bytes = 2711130
 agents calling all three = 30
 ```
 
-**Cost.** 2,711,130 bytes of tool result, ~90 round trips. At the main session's own measured sizes
-(24,528 B for syntax-rules, 51,401 B for testing-patterns) that is roughly 680k tokens of context
-that is byte-identical across 30 sessions. It is not free — it lands at the TOP of each sub-agent's
-window, ahead of the brief.
+**Cost.** These calls totaled 2,711,130 bytes of tool result across roughly 90 round trips. The main
+session itself measured these tool results at 24,528 B for `get-syntax-rules` and 51,401 B for
+`get-testing-patterns`. At those sizes, the repeated fetches cost roughly 680k tokens of context —
+the same bytes, fetched separately by 30 different sub-agents. It is not free — it lands at the TOP
+of each sub-agent's window, ahead of the brief.
 
 **Prompt status: REQUIRED** by the brief template's `READ FIRST` block.
 
@@ -554,9 +603,10 @@ window, ahead of the brief.
   total Read calls = 768  distinct files = 233
 ```
 
-Plus 378 `discover` calls returning 1,179,393 bytes and 42 `ToolSearch` calls. Twenty separate
-sub-agents each opened `attachment-id-contract.ts` — a 5-line branded string. The operator's briefs
-name the paths but never inline the tiny contract shapes that every downstream agent needs.
+On top of that, sub-agents made 378 `discover` calls returning 1,179,393 bytes, and 42 `ToolSearch`
+calls. Twenty separate sub-agents each opened `attachment-id-contract.ts` — a 5-line branded string.
+The operator's briefs name the paths but never inline the tiny contract shapes that every downstream
+agent needs.
 
 **Prompt status: PERMITTED.** The brief template's `DO` block offers `<pseudo-code, a type, a
 signature, or "mirror <path>">` — inlining a five-line type is already sanctioned, just not
@@ -564,8 +614,9 @@ encouraged.
 
 ### Finding 7 — The reviewer burned five round trips on tools the prompt did not warn were blocked
 
-Detailed in §3.4. `find` ×2, `grep` ×1, `sed` ×1, `>` redirect ×1, all `is_error=True`, in a 10.9-min
-session. Meanwhile the two things the prompt DOES warn about — piping and `&&` — both worked.
+Detailed in §3.4. `find`, 2 times; `grep`, 1 time; `sed`, 1 time; `>` redirect, 1 time — all
+`is_error=True`, in a 10.9-min session. Meanwhile the two things the prompt DOES warn about — piping
+and `&&` — both worked.
 
 **Cost.** Roughly 1 minute of a 10.9-minute reviewer, plus the reviewer having to substitute
 approaches mid-read.
@@ -576,14 +627,14 @@ alone". Measured false, three times.
 
 ### Finding 8 — 10.4 minutes of hard stall the operator's own dispatch pattern created
 
-Phase L. The operator dispatched `Add send-after-restore composer test` at 170.2m, then at 172.5m
-found the `onInput` defect in the same file and could not act. `172.5m say: "I can't send the fix
-yet: the send-after-restore agent is editing the same test file, and t…"` Ten minutes with nothing
-dispatchable.
+This is phase L. The operator dispatched `Add send-after-restore composer test` at 170.2m. Then, at
+172.5m, it found the `onInput` defect in the same file and could not act on it:
+`172.5m say: "I can't send the fix yet: the send-after-restore agent is editing the same test file,
+and t…"` Ten minutes passed with nothing left to dispatch.
 
-**Prompt status: PERMITTED.** Step 4's rule ("Two changes touching the same file never go out
-together") was honoured; the prompt has no rule about leaving the widget's own test file free while
-step 5's diff read is still outstanding.
+**Prompt status: PERMITTED.** The operator honoured step 4's rule ("Two changes touching the same
+file never go out together"). But the prompt has no rule about leaving a widget's own test file free
+while step 5's diff read is still outstanding.
 
 ### What did NOT happen — worth recording
 
@@ -593,10 +644,11 @@ step 5's diff read is still outstanding.
 - **Zero `sleep`/poll calls.** `[HELPERS]` held perfectly.
 - **Zero failed `modify-quest` or `signal-back` calls.** All ten sign-off writes returned
   `{"success": true}` first time.
-- **Only one sub-agent `rework`, and it was designed.** 28 of 29 code-writing sub-agents returned
-  `NEXT: pass` (`pass=18 rework=1 wall=0` counting only strictly-formatted lines; a refined pass over
-  each transcript's final text block found 29 `NEXT:` lines, 28 `pass` + 1 `rework`, with the six
-  remaining transcripts being read-only helpers and the reviewer, whose return uses `VERDICT:` form).
+- **Only one sub-agent came back `rework`, and that was by design.** 28 of the 29 code-writing
+  sub-agents returned `NEXT: pass` (a strict count of only exactly-formatted lines gives
+  `pass=18 rework=1 wall=0`; a closer pass, reading each transcript's final text block instead, found
+  29 `NEXT:` lines total — 28 `pass` and 1 `rework`. The six remaining transcripts are read-only
+  helpers, plus the reviewer, whose return uses the `VERDICT:` form instead of `NEXT:`).
 
 ---
 
@@ -626,12 +678,14 @@ PROVE
   runs the build; you are not one. Sibling sub-agents are writing the same dist/ right now.
 ```
 
-**Why:** measured root cause, quoted verbatim in Finding 1 — nine sub-agents said the snippet beat
-the brief. The operator prompt already carries this exact override sentence for itself; the brief
-template does not, and the brief template is what the violating sessions read.
-**Saved:** 9 stray `tsc -b` writes into a shared `dist/` during 4–5-way concurrent waves; the
-`--only` change also closes Finding 3's 31.3-minute downstream ward/spiritmender loop. **Estimate:
-~31 min per quest plus the removal of a whole class of silent cross-session type errors.**
+**Why:** this is the measured root cause, quoted verbatim in Finding 1 — nine sub-agents said the
+ward-discipline snippet beat the brief's own instruction. The operator's own prompt already carries
+this exact override sentence for itself. The brief template does not, and the brief template is what
+the violating sub-agents actually read.
+**Saved:** this closes two costs at once — the 9 stray `tsc -b` writes into a shared `dist/` during
+4–5-way concurrent waves, and, via the `--only` change, Finding 3's 31.3-minute downstream
+ward-and-spiritmender loop. **Estimate: roughly 31 min per quest, plus the removal of a whole class
+of silent cross-session type errors.**
 
 ### Fix 2 — Add `integration` back to the scoped ward, and say why in the same line
 **File:** same as Fix 1 (folded into the edit above).
@@ -639,8 +693,8 @@ template does not, and the brief template is what the violating sessions read.
 safe (Finding 3). `lint,unit,integration` is the intersection: it excludes e2e and includes the check
 that would have caught both `RangeError: Maximum call stack size exceeded` suites before they
 committed.
-**Saved:** the 31.3-minute ward-red → spiritmender → ward-pt2 chain measured on this quest.
-**Estimate: 31 min.**
+**Saved:** the 31.3-minute chain measured on this quest — ward-red, then spiritmender, then
+ward-pt2. **Estimate: 31 min.**
 
 ### Fix 3 — Rewrite step 5 so it enumerates untracked files
 **File:** `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, step 5
@@ -689,8 +743,8 @@ budget analysis that says why the rest of the scope must NOT be inlined, so the 
 ship. If it is not going to be wired, delete it rather than leaving a prompt-shaped artefact that
 `packages/orchestrator/CLAUDE.md` describes as live.
 **Saved:** in phase A the operator spent part of 9.1 minutes reconstructing the seam state from
-`git log --name-only` and cross-package Reads. **Estimate: 3–5 min per cell, ×7 codeweaver cells on
-this quest = 21–35 min.**
+`git log --name-only` and cross-package Reads. **Estimate:** 3–5 min per cell — across the 7
+codeweaver cells on this quest, that comes to 21–35 min.
 
 ### Fix 6 — Correct `[GIT FORMS]` / `[GIT]` in both prompts
 **Files:** `codeweaver-prompt-statics.ts` (`[GIT FORMS]`) and `codeweaver-reviewer-statics.ts`
@@ -706,8 +760,8 @@ still refused; call git bare from where you stand. Piping git into `head`/`tail`
 
 **Why:** Finding 7. The current text costs the reviewer round trips on the wrong thing and costs
 every brief a TRAPS line that warns about a restriction that does not exist.
-**Saved:** ~1 min per reviewer and ~5 wasted calls; also removes 2 lines from all 29 briefs.
-**Estimate: 2–4 min per cell.**
+**Saved:** roughly 1 min per reviewer, and roughly 5 wasted calls. It also removes 2 lines from all
+29 briefs. **Estimate: 2–4 min per cell.**
 
 ### Fix 7 — Let the operator hand the reviewer a claim to test
 **File:** `packages/orchestrator/src/statics/codeweaver-reviewer/codeweaver-reviewer-statics.ts`,
@@ -729,8 +783,8 @@ the `READ FIRST` block in the brief template.
 new FOLDER TYPE)`.
 **Why:** Finding 5 — 90 calls, 2,711,130 bytes, byte-identical across 30 sessions. A contract or
 transformer brief that names its exact target path does not need the folder-type taxonomy.
-**Saved:** ~30 of 90 calls, roughly 900 KB of tool result and ~225k tokens of sub-agent context-in.
-**Estimate: ~225k tokens.**
+**Saved:** roughly 30 of the 90 calls — roughly 900 KB of tool result, and roughly 225k tokens of
+sub-agent context-in. **Estimate: roughly 225k tokens.**
 
 ### Fix 9 — Inline tiny shared shapes into briefs instead of naming their paths
 **File:** `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, the
@@ -740,7 +794,8 @@ PASTE it into each brief rather than naming its path. A five-line branded type i
 cheaper than twenty sub-agents each opening the file."
 **Why:** Finding 6 — `attachment-id-contract.ts` was opened by 20 distinct sub-agents; the top ten
 files account for 129 reads by 121 agent-file pairs.
-**Saved:** on the order of 100 Read round trips and their results. **Estimate: ~150k tokens.**
+**Saved:** on the order of 100 Read round trips, and their results. **Estimate: roughly 150k
+tokens.**
 
 ### Fix 10 — Add a file-reservation rule to step 4
 **File:** `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, step 4.
@@ -982,10 +1037,11 @@ ACTIVE (everything else): 55.2 min
 
 ### Downstream ward red attributable to this cell
 
+The file
 `.dungeonmaster/guilds/21523917-…/quests/1be07040-…/ward-results/229c5454-3b1c-4f04-aa67-97350a357b20.json`
-— `integration fail`, `@dungeonmaster/web`, 2 test failures, both in files whose only commit is
-`061e49064` (this item's reviewer commit). Repaired by `e0ffce3b2 spiritmender: fix regex stack
-overflow on multi-MB pasted-image validation`. Downstream ledger cost, from
+records `integration fail` for `@dungeonmaster/web`: 2 test failures, both in files whose only commit
+is `061e49064` — this item's own reviewer commit. `e0ffce3b2 spiritmender: fix regex stack overflow
+on multi-MB pasted-image validation` repaired it. The downstream ledger cost, from
 `tmp/quest-analysis/workitem-index.txt`:
 
 ```
