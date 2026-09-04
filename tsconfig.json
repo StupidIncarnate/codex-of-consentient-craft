@@ -45,6 +45,9 @@
       "path": "./packages/orchestrator"
     },
     {
+      "path": "./packages/session-forensics"
+    },
+    {
       "path": "./packages/local-eslint"
     },
     {

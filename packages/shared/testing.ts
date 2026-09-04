@@ -11,6 +11,7 @@
 export * from './src/adapters/fs/access/fs-access-adapter.proxy';
 export * from './src/adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 export * from './src/adapters/fs/mkdir/fs-mkdir-adapter.proxy';
+export * from './src/adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
 export * from './src/adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
 export * from './src/adapters/path/basename/path-basename-adapter.proxy';
 export * from './src/adapters/path/dirname/path-dirname-adapter.proxy';
