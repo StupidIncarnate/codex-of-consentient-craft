@@ -18,10 +18,9 @@
 Transcript: `2026-09-01T19:33:33.123Z -> 2026-09-01T20:14:51.925Z` = **41.3 min** (`0:41:18.802`). The
 ledger window opens 12.2 s before the first transcript record and closes 13.1 s before the last one.
 
-**Sub-agents: 16.** Seven depth-1 builders and one depth-1 reviewer, all `general-purpose` dispatched
-with `model: "sonnet"` (meta `model: sonnet`); eight depth-2 lookup agents spawned by the builders,
-whose meta records `model: None` (one of them carries `agentType: Explore`, the rest
-`general-purpose`). Per-agent depth and model:
+**Sub-agents: 16.** A sub-agent is a separate Claude session the codeweaver dispatches with the `Agent` tool to do one piece of work and report back. This item used two layers of them. The first layer sits at depth 1: seven builders that wrote code, plus one reviewer — a sub-agent whose job is to check the builders' work, run the build and ward, and commit. All eight depth-1 sub-agents ran as `general-purpose` agents on the `sonnet` model (their meta records `model: sonnet`). The second layer sits at depth 2: eight lookup agents that the depth-1 builders spawned on their own, to answer narrow research questions. Their meta records `model: None`; one of the eight is typed `agentType: Explore`, and the rest are `general-purpose`.
+
+Per-agent depth and model, one row per sub-agent, follow below. The last three numeric columns (`in`, `cache_read`, `cache_creation`) are what this report calls context-in: everything a model call had to hold in its context window, whether or not the tokens were cached. `in` is freshly-sent input that was not cached. `cache_read` is context served cheaply from a cache an earlier call wrote. `cache_creation` is context written into the cache for the first time, for a later call to read cheaply. Adding all three together gives the context-in total used throughout this report.
 
 ```
 start        el    dur depth agent                model    turns      out  thinking      in   cache_read cache_creation
@@ -72,9 +71,9 @@ start        el    dur depth agent                model    turns      out  think
 
 ## 1. Chronological breakdown — where the time went
 
-Elapsed is minutes from the transcript's first record (19:33:33.123Z). "Waiting" rows are turns the
-codeweaver deliberately ended with no tool call, per the prompt's `[HELPERS]` rule — a live sub-agent
-was out in every one of them, so none is idle-through-inattention.
+Elapsed is minutes counted from the transcript's first record (19:33:33.123Z). The rows marked "Waiting" are turns where the codeweaver deliberately made no tool call, following the prompt's `[HELPERS]` rule. In every one of those waiting turns a sub-agent was still running, so none of them is idle time caused by inattention.
+
+A few terms recur through the table below. A unit is anything on the quest's task graph that the codeweaver must sign off on: an observable (a specific behavior to confirm), a terminal node, or a labelled edge (a named decision branch out of a node, identified by an edge id). A sign-off is the act of recording a unit's verdict — usually `confirmed` or `unconfirmable` — through the `modify-quest` tool. `Ward` is this repo's own command that runs lint, the TypeScript compiler, and the test suites together in one pass; running ward means running that check.
 
 | # | Clock (UTC) | Elapsed | Min | What happened | Evidence |
 |---|---|---|---|---|---|
@@ -166,10 +165,7 @@ session made no API call in them — those are wait rows 10, 12 and 20.
 | 20:06-20:09 | 1 | 24,457 | 10,739,635 | `a2cdff0` |
 | **Total** | **16** | **205,034** | **69,788,724** | |
 
-The `19:51-19:57` pair of buckets is where the item's cost lives: **9 of the 16 sub-agents started
-inside six minutes**, carrying `27,190,286 + 6,846,509 = 34,036,795` context-in tokens — 48.8% of all
-sub-agent context-in, for one wave of three planned briefs plus six unplanned lookups those briefs
-spawned on their own.
+The pair of buckets from `19:51` to `19:57` is where the item's cost really lives. 9 of the 16 sub-agents started inside those six minutes, carrying `27,190,286 + 6,846,509 = 34,036,795` context-in tokens between them — 48.8% of all sub-agent context-in. That cost bought one wave of three planned briefs, plus six unplanned lookups that those briefs spawned on their own.
 
 ### Totals, cache_read and cache_creation kept separate
 
@@ -254,37 +250,19 @@ repo since the run.
 > **"Load the repo's standards before you read anything else: `get-architecture`, `get-syntax-rules`
 > and `get-testing-patterns`."**
 
-Done first, at `0.6m`, all three in one message, before any package file was opened. The map's
-`TRAPS` block is a direct product of them ("no toEqual / toMatchObject / toContain…", "No beforeEach
-/ afterEach", "No jest.mock / jest.mocked / jest.spyOn — registerMock / registerSpyOn"). This is the
-prompt earning its keep.
+The codeweaver did this first, at `0.6m` — all three calls in one message, before it opened any package file. The map's `TRAPS` block is a direct product of that step ("no toEqual / toMatchObject / toContain…", "No beforeEach / afterEach", "No jest.mock / jest.mocked / jest.spyOn — registerMock / registerSpyOn"). Loading standards before reading code paid off here.
 
 > **"Read what the cells before you already landed, before you decide anything is missing:
 > `git log --oneline -n 20` / `git log --name-only -n 10`"**
 
-Ran at `0.6m` as two separate calls (`-n 20` and `--name-only -n 6`). It surfaced `bebca45c3`
-("codeweaver: shared's half of send-message-with-images"), committed 41 seconds before this session
-opened, and the codeweaver's very next `Read` at `0.7m` was
-`packages/shared/src/statics/pasted-image/pasted-image-statics.ts` — the file that cell had just
-landed. Every downstream brief and every test then keyed off `pastedImageStatics.promptSentinel` /
-`.promptInstruction` rather than an inlined literal. Without this step the pass would have
-re-invented the sentinel and failed its own read-check.
+The codeweaver ran this at `0.6m`, as two separate calls (`-n 20` and `--name-only -n 6`). It surfaced `bebca45c3` ("codeweaver: shared's half of send-message-with-images"), a commit made 41 seconds before this session opened. The codeweaver's very next `Read`, at `0.7m`, was `packages/shared/src/statics/pasted-image/pasted-image-statics.ts` — the file that earlier commit had just landed. Every downstream brief and every test then keyed off `pastedImageStatics.promptSentinel` and `.promptInstruction` rather than an inlined literal. Without this step, the pass would have re-invented the sentinel and failed its own read-check.
 
 > **"Every change in ONE group goes out in a SINGLE message"** and **"Dispatch with
 > `subagent_type: "general-purpose"` and `model: "sonnet"`."**
 
-Both honoured exactly. Group 1's two `Agent` calls at `6.0m`/`6.3m` share `OUT 4089 / CTX-IN 237,728`;
-group 3's three at `19.2m`/`19.5m`/`19.9m` share `OUT 9036 / CTX-IN 315,201` — identical usage stamps
-mean one API response each. All eight dispatches used `general-purpose` + `sonnet`, and the reviewer
-went out alone at `34.6m`.
+The codeweaver honoured both instructions exactly. Group 1's two `Agent` calls, at `6.0m` and `6.3m`, share identical usage stamps (`OUT 4089 / CTX-IN 237,728`). Group 3's three calls, at `19.2m`, `19.5m` and `19.9m`, likewise share one stamp (`OUT 9036 / CTX-IN 315,201`). Identical stamps mean the calls in each group went out inside a single API response. All eight dispatches used `general-purpose` on `sonnet`, and the reviewer went out alone, later, at `34.6m`.
 
-> The verbatim brief shape (`FILES / DO / MUST BE TRUE / TRAPS / DO NOT TOUCH / READ FIRST / PROVE / RETURN`)
-
-All **7** code briefs carry all **8** headings, and all 7 carry both `[GIT FORMS]` refusals in
-`TRAPS` (`git -C` and the `&&`/pipe ban) as the prompt demands. Brief lengths 3,806–7,107 chars.
-One deliberate deviation: the template's `PROVE` line reads `npm run ward -- --only lint,test`, and
-the codeweaver wrote `--only lint,unit` in 5 of 7 briefs — narrower than the template, and the
-better choice, since `test` expands to `unit,integration,e2e`.
+> Every code brief also had to follow one required shape: `FILES / DO / MUST BE TRUE / TRAPS / DO NOT TOUCH / READ FIRST / PROVE / RETURN`. All **7** code briefs carry all **8** of those headings, and all 7 carry both `[GIT FORMS]` refusals in `TRAPS` (the `git -C` ban and the `&&`/pipe ban), as the prompt demands. Brief lengths ran 3,806–7,107 chars. There was one deliberate deviation: the template's `PROVE` line reads `npm run ward -- --only lint,test`, but the codeweaver wrote `--only lint,unit` in 5 of the 7 briefs. That is narrower than the template, and it is the better choice, because `test` expands to `unit,integration,e2e`.
 
 The reviewer brief was the prescribed short form, verbatim including the optional line:
 
@@ -298,34 +276,20 @@ READ-CHECKS: check-sentinel-from-shared-statics
 
 ### 3.2 The scope block was accurate — and the part meant to widen it never ran
 
-The flow slice (`get-quest({ questId, flowId, packageName })`, 22,894 chars at `0.3m`) named exactly
-**11 units**: 8 observables across 4 `◀ YOURS` nodes, 1 terminal (`#agent-reads-images`) and 2
-labelled edges leaving `#forward-to-orchestrator`. The codeweaver read that off correctly at `0.6m`
-— *"My cell has no `## Contracts` heading, so no contracts route to `orchestrator` on this flow.
-Eleven units are mine: eight observables, one terminal, two labelled edges."* All 11 ended the
-session with a verdict.
+A flow is the quest's task graph for one slice of work: the sequence of nodes and edges that a package's session must build and verify. This report calls the one package-slice of one flow that a single session owns a cell. The flow slice for this cell (`get-quest({ questId, flowId, packageName })`, 22,894 chars at `0.3m`) named exactly **11 units**: 8 observables across 4 `◀ YOURS` nodes, 1 terminal (`#agent-reads-images`), and 2 labelled edges leaving `#forward-to-orchestrator`. The codeweaver read that off correctly at `0.6m`: *"My cell has no `## Contracts` heading, so no contracts route to `orchestrator` on this flow. Eleven units are mine: eight observables, one terminal, two labelled edges."* All 11 ended the session with a verdict.
 
-But: **`codeweaverScopeBlockTransformer` has no production caller.** A repo-wide scan for the symbol
-returns only its own file and its own test:
+However, **`codeweaverScopeBlockTransformer` has no production caller.** A repo-wide scan for the symbol returns only its own file and its own test:
 
 ```
 packages/orchestrator/src/transformers/codeweaver-scope-block/codeweaver-scope-block-transformer.test.ts
 packages/orchestrator/src/transformers/codeweaver-scope-block/codeweaver-scope-block-transformer.ts
 ```
 
-`workItemToPromptTransformer` — the one function that builds this prompt — never imports it; its
-`parts` array is the four id lines plus role-specific extras for siegemaster, warpgate and
-spiritmender only. The rendered Operation Context confirms it: four lines, no `Seams —` block, no
-`Shared homes —` block. The transformer's own PURPOSE says it renders *"the two facts about a
-codeweaver cell that only the QUEST holds, and no flow slice answers"* — and the codeweaver had to
-derive both by hand: it wrote its own seam note into the map (*"Seam: the SERVER writes the image
-files and rewrites each `[Pasted Image N]` token … BEFORE it calls this package"*) and it spent a
-`get-project-map` call (44,830 bytes, the third-largest result of the session) plus a `Read` of
-`pasted-image-statics.ts` working out the shared-home question the block would have answered in one
-line. The seam answer it invented was also *incomplete in the way the block would have fixed*: the
-block would have printed `NOT BUILT YET` against the server's half, and the codeweaver only worked
-that out at `41.3m`, in prose, at the very end (*"The server's own cell has not run yet, so that
-rewrite is still owed"*).
+`workItemToPromptTransformer` is the one function that actually builds this prompt, and it never imports the scope-block transformer. Its `parts` array is only the four id lines, plus role-specific extras for siegemaster, warpgate and spiritmender. The rendered Operation Context confirms this: four lines, no `Seams —` block, no `Shared homes —` block.
+
+The transformer's own PURPOSE comment says it renders *"the two facts about a codeweaver cell that only the QUEST holds, and no flow slice answers"*. Because the transformer was never wired in, the codeweaver had to work out both facts by hand. It wrote its own seam note into the map (*"Seam: the SERVER writes the image files and rewrites each `[Pasted Image N]` token … BEFORE it calls this package"*), and it spent a `get-project-map` call (44,830 bytes, the third-largest result of the session) plus a `Read` of `pasted-image-statics.ts` working out the shared-home question the missing block would have answered in one line.
+
+The seam answer the codeweaver invented was also incomplete, in exactly the way the missing block would have fixed it. The block would have printed `NOT BUILT YET` against the server's half of the work. Instead, the codeweaver only worked that out at `41.3m`, in prose, at the very end of the session: *"The server's own cell has not run yet, so that rewrite is still owed"*.
 
 ### 3.3 Structural defect 1 — the render demands an id it does not print
 
@@ -347,10 +311,8 @@ The flow render prints edge **labels** and never edge **ids**. Counted against t
 ```
 
 `flowGraphToTextTransformer` (`packages/shared/src/transformers/flow-graph-to-text/…`) emits
-`` `${indent}${SYM.indent}${SYM.rightArrow}${labelPart}[#${String(toId)}]${edgeSignoffMarker}` `` —
-the *target node* id, never `edge.id`. So the agent had no compliant route to the value the prompt
-tells it to write. It took the non-compliant one, twice, against an explicit prohibition in the same
-prompt:
+`` `${indent}${SYM.indent}${SYM.rightArrow}${labelPart}[#${String(toId)}]${edgeSignoffMarker}` ``.
+That renders the *target node*'s id, never `edge.id`. So the codeweaver had no compliant route to the value the prompt told it to write. It took the non-compliant route instead, twice, against an explicit prohibition in the same prompt:
 
 > **"`get-quest` takes `flowId` and `packageName`, never `stage`.** `stage: 'spec'` returns the whole
 > quest, every flow on it, and that render grows as the quest does — past the tool-result ceiling on
@@ -365,22 +327,14 @@ Error: result (135,813 characters across 3,137 lines) exceeds maximum allowed to
 saved to …/751a242b-…/tool-results/mcp-dungeonmaster-get-quest-1788291619121.txt.
 ```
 
-It then parsed the spill with `python3` and narrated the breach as a considered decision at `7.0m`:
-*"(I read only that flow's edges out of the spilled dump — it was a whole-quest JSON fetched for two
-id values, not my scope render.)"*
+The codeweaver then parsed the spill — the file the harness saves a tool result to when the result is too large to return inline — with `python3`. At `7.0m` it described the detour as a considered decision: *"(I read only that flow's edges out of the spilled dump — it was a whole-quest JSON fetched for two id values, not my scope render.)"*
 
 ### 3.4 Structural defect 2 — step 7 orders a write the tool refuses
 
 > **`pass`** → *"go to step 8, and copy its `FINDINGS:` into your signal — anything it named for
 > someone else survives nowhere else"*
 
-`signalBackInputContract` (`packages/mcp/src/contracts/signal-back-input/…`) is `z.object({…}).strict()`
-over `questId`, `workItemId`, `signal`, `operationItemId`, `operationStatus`, `blockedReason` — and
-its own comment says so: *"There is NO note field — the next-session handoff is the git commit
-message, not the ledger."* A `.strict()` schema **rejects** an unknown key, so a codeweaver that
-obeyed step 7 literally would get a validation error on its one terminal call. Here it was moot
-(`FINDINGS: none`), and the actual `signal-back` payload at `41.1m` carries only the five legal
-fields. The instruction is unfulfillable as written.
+`signalBackInputContract` (`packages/mcp/src/contracts/signal-back-input/…`) is a `z.object({…}).strict()` schema over six fields: `questId`, `workItemId`, `signal`, `operationItemId`, `operationStatus`, and `blockedReason`. Its own comment explains why: *"There is NO note field — the next-session handoff is the git commit message, not the ledger."* A `.strict()` schema rejects any key it does not list, so a codeweaver that obeyed step 7 literally would get a validation error on its one terminal call. In this case the problem was moot, because there were no findings to carry (`FINDINGS: none`), and the actual `signal-back` payload at `41.1m` carries only the five legal fields it needed. But the instruction itself is unfulfillable as written.
 
 The same gap swallowed the one genuinely useful thing this session found for somebody else. At
 `41.3m`:
@@ -396,10 +350,7 @@ and not in the signal.
 
 ### 3.5 The `[BUILD]` ban reaches the operator but not the sub-agents
 
-The `[BUILD]` rule binds the codeweaver session, and the codeweaver honoured it perfectly: **zero**
-build, ward or test calls in 41 minutes. But the rule lives in the *operator's* prompt, and a
-code-writing sub-agent gets no prompt at all — only the brief. The brief template carries the ban as
-four words at the end of a `PROVE` block:
+The `[BUILD]` rule binds the codeweaver session, and the codeweaver honoured it perfectly: zero build, ward, or test calls in 41 minutes. But the rule lives in the operator's prompt — this report's term for the top-level session that received the full role prompt, as opposed to a sub-agent it dispatches, which only gets a short brief. A code-writing sub-agent gets no prompt at all, only that brief. The brief template carries the ban as four words at the end of a `PROVE` block:
 
 ```
 PROVE
@@ -407,14 +358,7 @@ PROVE
   no npm run build · no run-ward MCP tool · no commit · never widen the ward
 ```
 
-All 7 briefs carried that line verbatim. **5 of 7 builders ran `npm run build` anyway, 9 times
-between them** (section 5, finding 1). Meanwhile the session-start `<dungeonmaster-wardDiscipline>`
-snippet every sub-agent receives opens with *"**Build first, unpiped.** … Run `npm run build` as its
-OWN command and confirm it exits 0"* — and nothing in a sub-agent's context overrides it, because
-the sentence that does the overriding (*"This rule overrides the `<dungeonmaster-ward>` and
-`<dungeonmaster-wardDiscipline>` snippets"*) appears only in the codeweaver's and the reviewer's
-prompts, which the sub-agent never sees. The sub-agents obeyed the snippet they were handed over the
-one line in a brief that contradicted it.
+All 7 briefs carried that line verbatim, and 5 of the 7 builders ran `npm run build` anyway, 9 times between them (section 5, finding 1). The session-start `<dungeonmaster-wardDiscipline>` snippet that every sub-agent receives opens with *"**Build first, unpiped.** … Run `npm run build` as its OWN command and confirm it exits 0"*. Nothing in a sub-agent's context overrides that snippet, because the sentence that would override it — *"This rule overrides the `<dungeonmaster-ward>` and `<dungeonmaster-wardDiscipline>` snippets"* — appears only in the codeweaver's and the reviewer's prompts, and a sub-agent never sees those prompts. So the sub-agents obeyed the snippet they were actually handed, over the one line in a brief that contradicted it.
 
 ### 3.6 The template's own `PROVE` command is wrong for a `.test.ts` file
 
@@ -425,11 +369,7 @@ head-on at its `1.2m`:
 > `integration: DISCOVERY MISMATCH` — *"ward discovered files that were not processed (or vice
 > versa)… This run is FAILING until each mismatch below is investigated"*
 
-It recovered correctly in one turn (*"Per the ward-discipline rule, I narrow rather than widen"* leading to
-`--only lint,unit`), at roughly 0.6 min. Agent 1's `lint,test` run happened not to mismatch — integration
-ran and passed on 36 discovered files, i.e. it graded 36 files that had nothing to do with the
-brief. The codeweaver had already noticed and written `--only lint,unit` into 5 of its 7 briefs; the
-template it copied from still says `lint,test`.
+It recovered correctly in one turn — reasoning *"Per the ward-discipline rule, I narrow rather than widen"* and switching to `--only lint,unit` — at a cost of roughly 0.6 minutes. Agent 1's `lint,test` run happened not to mismatch at all: integration ran and passed on 36 discovered files, meaning it graded 36 files that had nothing to do with the brief. The codeweaver had already noticed this problem, and had already written `--only lint,unit` into 5 of its 7 briefs. The template it copied from still says `lint,test`.
 
 ### 3.7 What the prompt did not warn about, and the agents had to invent
 
@@ -437,88 +377,36 @@ template it copied from still says `lint,test`.
   `TRAPS` and `DO NOT TOUCH` slots exist; neither the template nor the surrounding prose mentions
   grandchildren. Three of the seven builders spawned eight of them, at 9,778,706 context-in tokens
   (section 5, finding 2).
-- **Nothing tells a builder how to narrow a proxy getter typed `(): unknown`, and a lint rule blocks
-  the obvious answer.** Agent `ab2a819ad007dcef5` tried to annotate the cast and was refused by the
-  pre-edit hook at its `6.6m`: *"❌ Code Quality Issue: 3 violations … Line 85:56/64/75 - Raw string
-  type is not allowed. Use the discover endpoint to search for existing contracts…"* — the
-  `@dungeonmaster/ban-primitives` rule rejecting `as string[]`. Fifty seconds later it wrote
-  `as never` instead, which the rule does allow. Three lookups had already told it no better pattern
-  existed. See section 5, finding 3.
-- **`Bash` `grep`/`find` blocked by hook** — the prompt mentions the substitution only as an aside
-  inside `[WALL]` (*"In this repo `Read` with an offset, `discover` and `python3 -c` do what `grep`,
-  `find` and `sed` would"*), not as a `NOT YOURS` line, and no brief carried it in `TRAPS`. The
-  codeweaver hit it once at `2.2m` and recovered in 3 s; builders `a663d05` (its `3.2m`), `a94191f`
-  (twice, `0.2m` and `2.0m`), `ab2a819` (`6.0m`) and `acccbfc` (`7.5m`) hit it five more times; the
-  reviewer hit it three times (Bash calls #4, #14, #15), losing roughly 50 s of a 6.1-minute run. A second,
-  different refusal class hit `ab2a819` (`10.9m`) and `a29d7c24` (`5.0m`): `sed -n '190,225p' …` leading to
-  *"Permission to use Bash with command sed … has been denied"*, which no hook message explains.
-  **Nine blocked calls across the item, none of them mentioned in any brief.**
+- **Nothing tells a builder how to narrow a proxy getter typed `(): unknown`, and a lint rule blocks the obvious answer.** The builder `ab2a819ad007dcef5` tried to annotate the cast and was refused by the pre-edit hook at its `6.6m`: *"❌ Code Quality Issue: 3 violations … Line 85:56/64/75 - Raw string type is not allowed. Use the discover endpoint to search for existing contracts…"* That refusal came from the `@dungeonmaster/ban-primitives` rule, which was rejecting `as string[]`. Fifty seconds later the builder wrote `as never` instead, a form the rule does allow. Three lookups had already told it no better pattern existed. See section 5, finding 3.
+- **`Bash` `grep` and `find` are blocked by a hook, and the prompt barely warns about it.** The prompt mentions the substitution only as an aside inside `[WALL]` (*"In this repo `Read` with an offset, `discover` and `python3 -c` do what `grep`, `find` and `sed` would"*), not as a `NOT YOURS` line, and no brief carried it in `TRAPS`. The codeweaver hit the block once, at `2.2m`, and recovered in 3 seconds. Five more hits followed: builders `a663d05` (at its `3.2m`), `a94191f` (twice, at `0.2m` and `2.0m`), `ab2a819` (at `6.0m`), and `acccbfc` (at `7.5m`). The reviewer hit it three more times (Bash calls #4, #14, #15), losing roughly 50 seconds of its 6.1-minute run. A second, different refusal class hit `ab2a819` (at `10.9m`) and `a29d7c24` (at `5.0m`): running `sed -n '190,225p' …` produced *"Permission to use Bash with command sed … has been denied"*, a message that does not explain why. In total, nine blocked calls happened across the item, and none of them were mentioned in any brief.
 
 ---
 
 ## 4. What went well
 
-1. **Zero orientation rework.** The 13 `Read` calls between `0.7m` and `4.9m` hit 13 *distinct*
-   files — no path was read twice in the whole 41 minutes. 86,475 bytes, once each. The mechanism is
-   step 2's ordering: `get-project-map` for shape (`0.7m`, 44,830 bytes) and `discover` for names
-   (10 calls, 18,485 bytes total) *before* any `Read`, so every `Read` was already known to be the
-   right file.
+1. **Zero orientation rework.** The 13 `Read` calls between `0.7m` and `4.9m` hit 13 *distinct* files — no path was read twice in the whole 41 minutes — for 86,475 bytes, read once each. This worked because of how step 2 ordered the work: it ran `get-project-map` for shape (`0.7m`, 44,830 bytes) and `discover` for names (10 calls, 18,485 bytes total) *before* any `Read`, so by the time a `Read` happened, the codeweaver already knew it was the right file.
 
 2. **The predecessor-commit read paid for itself in one turn.** `git log` at `0.6m`, then `Read` of
    `pasted-image-statics.ts` at `0.7m`, then the read-check `#check-sentinel-from-shared-statics` came
    back `HOLDS` at `image-prompt-trailer-transformer.ts:12,22-26` without a single rework round.
    Cost of the mechanism: two `git log` calls, 19,891 bytes.
 
-3. **Every wait was a real end-of-turn.** Eight wait rows, 28.7 minutes, and not one `sleep`, poll,
-   `ListAgents` or re-dispatch-to-check. Each ended on a plain sentence, exactly as `[HELPERS]`
-   prescribes — e.g. `20.0m "Group 3's three agents are out. Four of my eight observables are signed.
-   Waiting on their returns before I read the whole diff."` The prompt's rule is what produced this;
-   the equivalent measured cost of getting it wrong is 815 seconds on quest a7520e60 (per this
-   repo's own CLAUDE.md).
+3. **Every wait was a real end-of-turn.** Across eight wait rows and 28.7 minutes, the codeweaver never ran a `sleep`, a poll, a `ListAgents` call, or a re-dispatch just to check on a sub-agent. Each wait ended on a plain sentence instead, exactly as `[HELPERS]` prescribes — for example, at `20.0m`: `"Group 3's three agents are out. Four of my eight observables are signed. Waiting on their returns before I read the whole diff."` The prompt's rule produced this discipline. Getting it wrong costs real time: this repo's own CLAUDE.md records 815 seconds lost to exactly this mistake on quest a7520e60.
 
-4. **Wave-by-wave signing, exactly as step 4 demands.** Eight `modify-quest` calls at 10.0, 18.7,
-   25.7, 29.2, 31.5, 32.7, 34.5 and 40.9 minutes — never a batch at the end. The evidence strings are
-   transcriptions with the failing value named, e.g.
-   *"Replacing the path segment of the expected string with `WRONG-PATH-TO-PROVE-RED` turned it red on
-   a deep-equality failure before it was reverted, so the path is load-bearing rather than incidental
-   to the match."* That is what step 4's "copy each return's evidence WORD FOR WORD" is for.
+4. **Wave-by-wave signing, exactly as step 4 demands.** The codeweaver made eight `modify-quest` calls, at 10.0, 18.7, 25.7, 29.2, 31.5, 32.7, 34.5 and 40.9 minutes, rather than batching them all at the end. Its evidence strings are transcriptions that name the specific failing value, for example: *"Replacing the path segment of the expected string with `WRONG-PATH-TO-PROVE-RED` turned it red on a deep-equality failure before it was reverted, so the path is load-bearing rather than incidental to the match."* This word-for-word transcription is exactly what step 4's instruction to "copy each return's evidence WORD FOR WORD" is for.
 
-5. **The two untestable units were called untestable, not signed.** `#agent-reads-images` (terminal)
-   and `#check-agent-issues-read` both got `verdict: 'unconfirmable'` at `32.7m`, each with a
-   `toSettle` naming a concrete action (*"Send a chat message carrying two pasted images through a
-   live quest, then open that session's JSONL … confirm a Read tool_use for each written image
-   path"*). The prompt's "Never sign one your test proves against a MOCK" is the mechanism; the
-   evidence line names the specific reason (*"The orchestrator mocks `child_process.spawn` in every
-   unit test, so no CLI ever runs"*).
+5. **The two untestable units were called untestable, not signed.** `#agent-reads-images` (terminal) and `#check-agent-issues-read` both got `verdict: 'unconfirmable'` at `32.7m`, each with a `toSettle` naming a concrete action (*"Send a chat message carrying two pasted images through a live quest, then open that session's JSONL … confirm a Read tool_use for each written image path"*). The codeweaver was following the prompt's rule to never sign a unit that its test only proves against a mock, and its evidence line names the specific reason: *"The orchestrator mocks `child_process.spawn` in every unit test, so no CLI ever runs."*
 
-6. **The operator caught a real inconsistency the reviewer would not have.** At `32.0m`, from the
-   diff alone: *"`chat-spawn-broker.test.ts:83` narrows the argv with `as never`, while the two
-   sibling test files solved the identical `unknown` problem with a real `Array.isArray` helper."*
-   That is step 5 question 3 ("do the pieces fit each other?") doing exactly its job — and the
-   reviewer, two minutes later, reported `FIXES: none — no defects found`.
+6. **The operator caught a real inconsistency the reviewer would not have.** At `32.0m`, reading only the diff, the codeweaver wrote: *"`chat-spawn-broker.test.ts:83` narrows the argv with `as never`, while the two sibling test files solved the identical `unknown` problem with a real `Array.isArray` helper."* That is step 5 question 3 ("do the pieces fit each other?") doing exactly its job. Two minutes later, the reviewer reported `FIXES: none — no defects found`, meaning it missed the same inconsistency.
 
-7. **The `RETURN` block's "red I watched" clause produced real red-first evidence in all seven
-   builders.** The brief template makes each builder report *"the wrong value that turns it red · the
-   red I watched before the code made it pass"*, and every builder actually did it. Examples with the
-   exact mutation:
-   - `a94191fdacdae4717` at its `5.3m` reverted the implementation and watched **3** tests go red,
-     then at `6.3m` applied *a naive fix that only touches the bottom return* and watched **2** stay
-     red — proving the brief's `TRAPS` warning about the `if (sessionId)` early return was itself
-     load-bearing.
-   - `ab2a819ad007dcef5` at its `11.2m` mutated `toBe(2)` to `toBe(3)` and pulled the detail
-     (`npm run ward -- detail 1788293033542-f130`) to confirm `Expected: 3, Received: 2`.
-   - `acccbfc93e8e66fdd` at its `6.4m` found a *real* bug this way: it had mirrored the neighbouring
-     test's partial `toStrictEqual({ chatProcessId })` and ward reported
-     `+ "questId": "f47ac10b-58cc-4372-a567-0e02b2c3d479"` unexpectedly present. It asserted the full
-     real shape instead. That is the difference between the edge sign-off `forward-to-accepted` being
-     true and being a half-truth.
+7. **The `RETURN` block's "red I watched" clause produced real red-first evidence in all seven builders.** The brief template requires each builder to report *"the wrong value that turns it red · the red I watched before the code made it pass"*, and every builder actually did it. Three examples show the exact mutation used:
+   - `a94191fdacdae4717`, at its `5.3m`, reverted the implementation and watched **3** tests go red. Then, at `6.3m`, it applied *a naive fix that only touches the bottom return* and watched **2** stay red. That proved the brief's `TRAPS` warning about the `if (sessionId)` early return was itself load-bearing.
+   - `ab2a819ad007dcef5`, at its `11.2m`, mutated `toBe(2)` to `toBe(3)` and pulled the detail (`npm run ward -- detail 1788293033542-f130`) to confirm `Expected: 3, Received: 2`.
+   - `acccbfc93e8e66fdd`, at its `6.4m`, found a real bug this way. It had mirrored a neighbouring test's partial `toStrictEqual({ chatProcessId })`, and ward reported `+ "questId": "f47ac10b-58cc-4372-a567-0e02b2c3d479"` unexpectedly present. It asserted the full real shape instead. That is the difference between the edge sign-off `forward-to-accepted` being true, and being only a half-truth.
 
-   Those mutations are what the codeweaver then transcribed into the sign-offs verbatim; the chain
-   from brief clause to builder action to quest evidence is unbroken.
+   The codeweaver then transcribed those mutations into the sign-offs verbatim. The chain from brief clause, to builder action, to quest evidence, is unbroken.
 
-8. **One reviewer round, green first time.** `a2cdff0296b0a4f41` ran `npm run build` at its own
-   elapsed 232.8 s and `npm run ward -- --staged` at 261.0 s — **one** ward invocation, in the
-   foreground, correctly scoped by `--staged`, never re-run:
+8. **One reviewer round, green first time.** The reviewer, `a2cdff0296b0a4f41`, ran `npm run build` at its own elapsed 232.8 s, then `npm run ward -- --staged` at 261.0 s. That was one ward invocation, run in the foreground, correctly scoped by `--staged`, and never re-run:
 
    ```
    lint:      PASS  1 packages (7 files passed/0 files failed, 7 discovered)  6.8s
@@ -527,8 +415,7 @@ template it copied from still says `lint,test`.
    integration: PASS  1 packages (30 files passed/0 files failed, 36 discovered)  36.8s
    ```
 
-   Then `git add -A`, one commit carrying its whole return block in the body, and a bare `git push`.
-   `NEXT: pass`. Ward wall time roughly 65 s inside a 6.1-minute review.
+   The reviewer then ran `git add -A`, made one commit carrying its whole return block in the commit body, and pushed with a bare `git push`, finishing with `NEXT: pass`. Ward's wall time was roughly 65 seconds inside a 6.1-minute review.
 
 ---
 
@@ -557,47 +444,22 @@ later:
 > *"The task explicitly said 'no npm run build' — I shouldn't have run that (the failure is in a
 > sibling agent's in-flight file under `brokers/**`, which is out of my scope)."*
 
-That is the exact failure the `[BUILD]` rule predicts — *"a second builder hands every sibling
-session type errors on correct code"* — observed, in this item, in the transcript.
+The `[BUILD]` rule exists to predict exactly this failure: *"a second builder hands every sibling session type errors on correct code."* Here, it happened for real, inside this item's own transcript.
 
-**Cost.** Nine full or workspace builds of a 13-workspace monorepo. `a2cdff0296b0a4f41`'s single
-legitimate build sat between Bash calls #16 and #18 with a 68.4 s gap, so roughly 60 s is a fair per-build
-figure: **about 9 minutes of sub-agent wall clock**, none of it on the codeweaver's critical path but all
-of it inside builder runs the codeweaver was waiting on. `ab2a819`'s five builds are a visible chunk
-of why it took 12.1 minutes — the longest run in the item and the thing that held wave 3 open from
-`20.0m` to `31.3m`.
+**Cost.** Nine full or workspace builds ran against a 13-workspace monorepo. The reviewer's (`a2cdff0296b0a4f41`) one legitimate build sat between Bash calls #16 and #18 with a 68.4-second gap, so roughly 60 seconds is a fair per-build figure. That puts the total at about 9 minutes of sub-agent wall clock — none of it on the codeweaver's own critical path, but all of it inside builder runs the codeweaver was waiting on. `ab2a819`'s five builds are a visible chunk of why it took 12.1 minutes, the longest run in the item, and why it held wave 3 open from `20.0m` to `31.3m`.
 
-**Prompt disposition: FORBIDDEN by the brief, REQUIRED by the snippet.** See section 3.5 — the
-`<dungeonmaster-wardDiscipline>` snippet every sub-agent receives at session start says *"Build
-first, unpiped"*, and the sentence that overrides it exists only in prompts sub-agents never read.
-Note also that 4 of the 9 were piped into `tail`, which the same snippet explicitly calls out as
-discarding the exit code.
+**Prompt disposition: FORBIDDEN by the brief, REQUIRED by the snippet.** As section 3.5 covers, the `<dungeonmaster-wardDiscipline>` snippet every sub-agent receives at session start says *"Build first, unpiped"*, and the sentence that overrides it exists only in prompts a sub-agent never reads. 4 of the 9 builds were also piped into `tail`, which that same snippet explicitly calls out as discarding the exit code.
 
 ### Finding 2 — Builders spawned 8 unbriefed grandchildren that burned 9.78M context-in tokens
 
-**What happened.** Three of the seven builders opened their own sub-agents. `ab2a819ad007dcef5` spawned
-three (`Find pastedImageStatics definition`, `Find getSpawnedArgs usage patterns in tests`,
-`Find TS pattern for indexing unknown spawned args`); `acccbfc93e8e66fdd` spawned four
-(`Locate pastedImageStatics export`, `Find getSpawnedArgs usage pattern in tests`,
-`Check indexed getSpawnedArgs reads in sibling tests`, `Get ChatStartResponder return type shape`);
-`a663d057f395a7bc9` spawned one (`Find quest images dir statics key`).
+**What happened.** Three of the seven builders opened their own sub-agents. `ab2a819ad007dcef5` spawned three: `Find pastedImageStatics definition`, `Find getSpawnedArgs usage patterns in tests`, and `Find TS pattern for indexing unknown spawned args`. `acccbfc93e8e66fdd` spawned four: `Locate pastedImageStatics export`, `Find getSpawnedArgs usage pattern in tests`, `Check indexed getSpawnedArgs reads in sibling tests`, and `Get ChatStartResponder return type shape`. `a663d057f395a7bc9` spawned one: `Find quest images dir statics key`.
 
-**Cost.** Output `6,519 + 1,033 + 3,176 + 970 + 13,680 + 5,247 + 976 + 1,068 = 32,669`.
-Context-in `1,169,153 + 202,192 + 718,085 + 260,497 + 5,026,031 + 1,266,499 + 553,979 + 582,270 =
-9,778,706` — 14.0% of all sub-agent context-in, for lookups the codeweaver had already done itself
-(it read `pasted-image-statics.ts` at `0.7m` and `chat-start-responder.ts` at `4.9m`).
-Wall clock: mostly hidden inside the builders' own runs, but `a4b63f5b3cf004acb` alone held
-`ab2a819` for 2.7 minutes of its 12.1.
+**Cost.** Output totalled `6,519 + 1,033 + 3,176 + 970 + 13,680 + 5,247 + 976 + 1,068 = 32,669`. Context-in totalled `1,169,153 + 202,192 + 718,085 + 260,497 + 5,026,031 + 1,266,499 + 553,979 + 582,270 = 9,778,706` tokens, 14.0% of all sub-agent context-in. That paid for lookups the codeweaver had already done itself: it had read `pasted-image-statics.ts` at `0.7m` and `chat-start-responder.ts` at `4.9m`. Most of the wall-clock cost is hidden inside the builders' own runs, but `a4b63f5b3cf004acb` alone held `ab2a819` up for 2.7 minutes of its 12.1.
 
 **Prompt disposition: PERMITTED by omission.** The brief template has no line forbidding it, and the
 `codeweaver-reviewer` prompt's `[TURN END]` ban on sub-agents applies only to the reviewer.
 
-For reference, the harness's own `subagent_tokens` footer on each nested dispatch (a different,
-smaller metric than the `cache_read`-inclusive context-in above): `ab2a819`'s three cost
-`39,439 + 99,535 + 184,889 = 323,863`; `acccbfc`'s four cost
-`37,566 + 111,606 + 100,505 + 88,413 = 338,090`. `a663d05`'s single `Explore`-type dispatch carries
-no footer. Quote the context-in figures as authoritative; these are given only because they are what
-the dispatching builder saw.
+For reference, the harness also prints its own `subagent_tokens` footer on each nested dispatch. That is a different, smaller metric than the `cache_read`-inclusive context-in figures above. By that footer, `ab2a819`'s three nested dispatches cost `39,439 + 99,535 + 184,889 = 323,863`, and `acccbfc`'s four cost `37,566 + 111,606 + 100,505 + 88,413 = 338,090`. `a663d05`'s single `Explore`-type dispatch carries no footer at all. The context-in figures above are the authoritative ones; these footer numbers are given only because they are what the dispatching builder itself saw.
 
 ### Finding 3 — Four lookups asked the same `getSpawnedArgs` question; three returned the wrong answer, a lint rule blocked the right one, and `as never` got written
 
@@ -620,22 +482,14 @@ Only `ae0a85580a52a9cf0` read the two named files in full instead of grepping, a
 > non-test-body narrowing helper (lines 29–35): `const spawnedArgvValueAt = ({ args, index }: { args:
 > unknown; index: number }): unknown => Array.isArray(args) ? args[index] : undefined;`"*
 
-The direct consequence, and the second half of the cause: `ab2a819ad007dcef5` first tried to type
-the cast properly, and the pre-edit hook refused it at its `6.6m`:
+That gap had a direct consequence, and it is the second half of the cause. `ab2a819ad007dcef5` first tried to type the cast properly, and the pre-edit hook refused it at its `6.6m`:
 
 > *"❌ Code Quality Issue: 3 violations … Line 85:56/64/75 - Raw string type is not allowed. Use the
 > discover endpoint to search for existing contracts…"*
 
-That is `@dungeonmaster/ban-primitives` rejecting `as string[]`. Fifty seconds later, at `7.6m`, it
-wrote `const args = proxy.getSpawnedArgs() as never;` — a form the rule permits, that its own lookup
-had recommended (*"`as never` shows up ~100 times"*), and that disables every check on the two index
-reads after it. Its two sibling builders, working the identical problem at the identical moment,
-landed on `Array.isArray` instead.
+That refusal came from `@dungeonmaster/ban-primitives`, rejecting `as string[]`. Fifty seconds later, at `7.6m`, `ab2a819ad007dcef5` wrote `const args = proxy.getSpawnedArgs() as never;` instead. The rule permits that form, its own lookup had recommended it (*"`as never` shows up ~100 times"*), and it disables every check on the two index reads that follow it. Its two sibling builders, working the identical problem at the identical moment, landed on `Array.isArray` instead.
 
-**Cost.** The three wrong lookups: output `3,176 + 13,680 + 5,247 = 22,103`, context-in
-`718,085 + 5,026,031 + 1,266,499 = 7,010,615`. Downstream: the fixer `ac8f8759f2167ab9a` (6,452 out,
-3,929,035 ctx-in, 1.8 min), plus 2.2 min of the codeweaver's own wall clock (32.4m dispatch to 34.6m
-clear) and a duplicate `modify-quest`. **Total about 4.0 minutes and roughly 10.9M context-in tokens.**
+**Cost.** The three wrong lookups cost output `3,176 + 13,680 + 5,247 = 22,103` and context-in `718,085 + 5,026,031 + 1,266,499 = 7,010,615`. Downstream of that, the fixer `ac8f8759f2167ab9a` cost 6,452 out and 3,929,035 context-in over 1.8 minutes, plus 2.2 minutes of the codeweaver's own wall clock (from its `32.4m` dispatch to `34.6m` clear) and a duplicate `modify-quest` call. **Total: about 4.0 minutes and roughly 10.9M context-in tokens.**
 
 **Prompt disposition: PERMITTED.** Nothing forbids a builder from re-asking a question a sibling
 already asked, and no brief carried the narrowing pattern in `TRAPS` — which is precisely what the
@@ -643,26 +497,14 @@ fixer's brief then had to spell out in full, three minutes later, quoting the he
 
 ### Finding 4 — The "convention" the pass converged on was four minutes old and written by a concurrent sibling
 
-**What happened.** `a29d7c24ce877685c` **invented** `spawnedArgvValueAt` at `19:56:52`, writing it
-into `followup-chat-start-responder.test.ts` — it had reached the shape itself, through 11 direct
-`discover` calls between its `0.2m` and `2.3m`, and justified it in a comment citing
-`quest-modify-broker.test.ts`'s `parseLatestPersisted` as precedent. Nineteen seconds later, at
-`19:57:11`, `acccbfc93e8e66fdd` dispatched `ae0a85580a52a9cf0` to *"read these two files in full"* —
-one of them that very file, **uncommitted, and not yet ward-verified** (`a29d7c24` did not run its
-own scoped ward until `19:57:14+` and did not finish until `19:59:02.675`). The lookup came back at
-`19:57:42` reporting the helper as an established pattern (*"Narrowing technique: `Array.isArray(args)`
-as a type guard inside a helper function"*), and `acccbfc93e8e66fdd` copied it into
-`chat-start-responder.test.ts` at `19:58:55`. The fixer copied it a third time at roughly `20:06:30`.
+**What happened.** `a29d7c24ce877685c` invented `spawnedArgvValueAt` at `19:56:52`, writing it into `followup-chat-start-responder.test.ts`. It had reached that shape itself, through 11 direct `discover` calls between its `0.2m` and `2.3m`, and it justified the helper in a comment citing `quest-modify-broker.test.ts`'s `parseLatestPersisted` as precedent.
+
+Nineteen seconds later, at `19:57:11`, `acccbfc93e8e66fdd` dispatched `ae0a85580a52a9cf0` to *"read these two files in full"*. One of those two files was that very file — uncommitted, and not yet ward-verified: `a29d7c24` did not even start its own scoped ward until `19:57:14`, and did not finish until `19:59:02.675`. The lookup came back at `19:57:42` reporting the helper as an established pattern (*"Narrowing technique: `Array.isArray(args)` as a type guard inside a helper function"*), and `acccbfc93e8e66fdd` copied it into `chat-start-responder.test.ts` at `19:58:55`. The fixer copied it a third time, at roughly `20:06:30`.
 
 The convergence was correct but accidental: a sibling's 4-minute-old, unverified working-tree edit
 was read back by a grandchild as repo convention.
 
-**Cost.** Three verbatim copies of the same 2-line helper shipped in `f48bbc660` — confirmed by
-counting `const spawnedArgvValueAt` in the committed blobs: 1 in
-`followup-chat-start-responder.test.ts`, 1 in `chat-start-responder.test.ts`, 1 in
-`chat-spawn-broker.test.ts`. The reviewer's `dedup` standing concern did not catch it:
-*"No dedup, perf, or integrity findings."* That is a genuine reviewer miss on the one concern
-written for exactly this.
+**Cost.** Three verbatim copies of the same 2-line helper shipped in `f48bbc660`. This is confirmed by counting `const spawnedArgvValueAt` in the committed blobs: 1 in `followup-chat-start-responder.test.ts`, 1 in `chat-start-responder.test.ts`, and 1 in `chat-spawn-broker.test.ts`. The reviewer's standing `dedup` concern did not catch it: *"No dedup, perf, or integrity findings."* That is a genuine reviewer miss, on the one concern written for exactly this situation.
 
 **Prompt disposition: FORBIDDEN in spirit** — the codeweaver prompt's own table says of copying code
 between places, *"no. The two copies drift, and your reviewer reports it as duplication."*
@@ -673,9 +515,7 @@ between places, *"no. The two copies drift, and your reviewer reports it as dupl
 `6.7m get-quest({questId, format:'json', stage:'spec'})`, the second returning
 `Error: result (135,813 characters across 3,137 lines) exceeds maximum allowed tokens`.
 
-**Cost.** 30,867 bytes of quest JSON into context that nothing but two id strings was wanted from,
-one spilled 135,813-char file, one `python3` parse, and roughly 0.6 min of turn time (overlapped with group
-1, so no wall-clock loss).
+**Cost.** The codeweaver pulled 30,867 bytes of quest JSON into context when it only wanted two id strings from it, plus one spilled 135,813-character file and one `python3` parse to read it back. That cost roughly 0.6 minutes of turn time, overlapped with group 1's run, so no wall-clock time was actually lost.
 
 **Prompt disposition: EXPLICITLY FORBIDDEN** (*"never `stage`"*), but the prompt left no compliant
 alternative — the render carries no edge ids. Root cause is the renderer, not the agent.
@@ -690,19 +530,11 @@ Most of that is legitimate: the brief's `RETURN` block demands *"the red I watch
 made it pass"*, which costs a minimum of two runs (red, then green) and three whenever there is also
 a real failure to fix. Measured against that floor of 2–3, the excess is:
 
-- `a94191f`'s **6** — of which one (`5.0m`) was wasted entirely on a self-inflicted `TS6133:
-  'imagePromptTrailerTransformer' is declared but its value is never read`, because it had reverted 2
-  of the 3 places it needed to revert before running the red check. One wasted ward cycle inside a
-  2.2-minute revert/restore dance.
+- `a94191f`'s **6** runs: one of them (at `5.0m`) was wasted entirely on a self-inflicted `TS6133: 'imagePromptTrailerTransformer' is declared but its value is never read`, because the builder had reverted only 2 of the 3 places it needed to revert before running the red check. That is one wasted ward cycle inside a 2.2-minute revert/restore dance.
 - `a663d05`'s **4** — one lost to the `--only lint,test` DISCOVERY MISMATCH of section 3.6.
 - `acccbfc`'s **5** — one lost to a genuine assertion bug (worth it, finding in section 4 item 7).
 
-**Cost.** Ward runs on these scopes measured 9.3–11.5 s each (`a663d05` 10.1s, `ab2a819` 10.2s and
-9.3s, `a60df53` 11.5s). Roughly 25 × 10 s, about **4 minutes of sub-agent wall clock**, of which roughly 3 runs
-(roughly 30 s) were avoidable. The bigger cost is the *contradiction* it sits on: the
-`<dungeonmaster-wardDiscipline>` snippet the sub-agents get says **"Run it ONCE. Choose the right
-flags the first time; never re-run the same checks a second way"**, and the brief they get requires a
-watched red. Nothing tells them which wins.
+**Cost.** Ward runs on these scopes measured 9.3–11.5 seconds each (`a663d05` 10.1s, `ab2a819` 10.2s and 9.3s, `a60df53` 11.5s). Roughly 25 runs at 10 seconds each comes to about 4 minutes of sub-agent wall clock, of which roughly 3 runs (roughly 30 seconds) were avoidable. The bigger cost is a contradiction the sub-agents were left to sit inside: the `<dungeonmaster-wardDiscipline>` snippet they get says **"Run it ONCE. Choose the right flags the first time; never re-run the same checks a second way"**, while the brief they get requires a watched red, which needs at least two runs. Nothing tells them which instruction wins.
 
 **Prompt disposition: REQUIRED by the brief, FORBIDDEN by the snippet.**
 
@@ -712,11 +544,7 @@ watched red. Nothing tells them which wins.
 test) and went out as one `Agent` at `10.9m`. `a94191fdacdae4717` ran 7.5 minutes with nothing beside
 it, and the codeweaver waited `10.9m → 18.3m`.
 
-**Cost.** 7.4 minutes of the 41.3 (17.9%) with one sonnet agent running. Nothing on the map could
-have joined it (group 3 genuinely needs the builder change on disk) — but GROUP 1's second item, the
-`child-process-spawn-stream-json-adapter.test.ts` addition, was a pure test add with no dependency on
-anything and returned in 3.5 min at `10.3m`; and `a663d057f395a7bc9`'s slot sat empty from `10.3m`
-onward.
+**Cost.** 7.4 of the 41.3 minutes (17.9%) ran with only one sonnet agent active. Nothing on the map could have joined it, since group 3 genuinely needed the builder's change on disk first. But group 1's second item was a pure test add with no dependency on anything: the `child-process-spawn-stream-json-adapter.test.ts` addition. It had already returned in 3.5 minutes, at `10.3m`. `a663d057f395a7bc9`'s slot then sat empty from `10.3m` onward, with no independent work left to give it.
 
 **Prompt disposition: REQUIRED.** Step 4's *"a group never goes out before the group it needs has
 landed"* is what produced the serialisation, correctly. The prompt has no notion of a change that
@@ -748,15 +576,9 @@ Also two `PreToolUse:Write`/`Edit` hook refusals on quality rules: `a60df53` at 
 (*"Metadata comment must appear before all import statements. Your edit was NOT applied"*) and
 `ab2a819` at `6.6m` (the `ban-primitives` block of finding 3).
 
-**Cost.** The reviewer's three cost roughly 50 s of a 6.1-minute run (recovery gaps 19.4 s and 30.5 s). The
-builders' six each cost one turn. `ab2a819`'s `ban-primitives` block cost roughly 50 s *and* set off
-finding 3. Across the item, roughly **3–4 minutes of sub-agent time and one wrong design decision.**
+**Cost.** The reviewer's three refusals cost roughly 50 seconds of its 6.1-minute run (recovery gaps of 19.4 seconds and 30.5 seconds). The builders' six refusals each cost one turn. `ab2a819`'s `ban-primitives` refusal cost roughly 50 seconds and also set off finding 3. Across the whole item: roughly **3–4 minutes of sub-agent time, and one wrong design decision.**
 
-**Prompt disposition: NOT ADDRESSED.** The codeweaver prompt buries the substitution inside `[WALL]`;
-the `codeweaver-reviewer` prompt's `[GIT]` rule enumerates the two refused *git* forms in full detail
-and says nothing about `grep`/`find`/`sed`; and the brief template's `TRAPS` slot is where the
-codeweaver dutifully copied both git refusals — but not the search refusals, because its own prompt
-never told it those were a category.
+**Prompt disposition: NOT ADDRESSED.** The codeweaver prompt buries the substitution inside `[WALL]`. The `codeweaver-reviewer` prompt's `[GIT]` rule enumerates the two refused git forms in full detail, but says nothing about `grep`, `find`, or `sed`. The brief template's `TRAPS` slot is where the codeweaver dutifully copied both git refusals, but not the search refusals — because its own prompt never told it those were a category worth copying.
 
 ### Finding 10 — Nothing durable records what this session learned for the next one
 
@@ -778,10 +600,7 @@ Ranked by minutes-or-tokens saved per codeweaver item.
 
 **1. Put the build/ward/search prohibitions where the sub-agent actually reads them.**
 *(fixes findings 1, 6 and 9, and sections 3.5–3.7)*
-File: `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, the
-verbatim brief block. A sub-agent has no prompt; the brief is its whole rulebook, and it currently
-loses a four-word `PROVE` footnote to a session-start snippet that says the opposite. Replace the
-`PROVE` block with an explicit override, and add the search line to `TRAPS`:
+File: `packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts`, the verbatim brief block. A sub-agent has no prompt at all; the brief is its whole rulebook. Right now, that rulebook loses a four-word `PROVE` footnote to a session-start snippet that says the opposite. The fix is to replace the `PROVE` block with an explicit override, and add the search line to `TRAPS`:
 
 ```
 PROVE
@@ -800,8 +619,7 @@ TRAPS
   <the git -C and && / pipe refusals, as now>
 ```
 
-Nine forbidden builds ran under the current wording; the one that failed did so because a sibling
-was mid-edit — the precise scenario the ban exists for.
+Nine forbidden builds ran under the current wording. The one that failed did so because a sibling was mid-edit — precisely the scenario the ban exists to prevent.
 **Saved: roughly 9 min of builder wall clock per item of this size, the sibling-collision failure class
 entirely, and roughly 3 min of blocked-call recovery.**
 
@@ -810,8 +628,7 @@ Same file, same block. `--only lint,test` expands `test` to `unit,integration,e2
 whose paths are all `*.test.ts` the integration check either mismatches (`a663d057f395a7bc9`, one
 lost ward run) or grades 36 unrelated files (`a60df5389c57c49fe`). Change the template line to
 `npm run ward -- --only lint,unit -- <paths>` with a one-line note: *"add `integration` only when a
-path is a `*.integration.test.ts`; never `test`."* The codeweaver had already worked this out and
-wrote `lint,unit` into 5 of its 7 briefs — the template is what is stale.
+path is a `*.integration.test.ts`; never `test`."* The codeweaver had already worked this out, and wrote `lint,unit` into 5 of its 7 briefs. The template itself is what is stale.
 **Saved: roughly 1 ward cycle (roughly 10 s) plus one DISCOVERY-MISMATCH diagnosis turn (roughly 0.6 min) per affected
 brief.**
 
@@ -855,13 +672,7 @@ worked example under the proxy section:
 > `as never`, `as string[]` or `any`:
 > `const spawnedArgvValueAt = ({ args, index }: { args: unknown; index: number }): unknown => Array.isArray(args) ? args[index] : undefined;`
 
-Every builder already calls `get-testing-patterns` first (the brief's `READ FIRST` line makes it
-mandatory), so this reaches all of them for free and the four lookups never happen. The
-`@dungeonmaster/ban-primitives` rule that refused `as string[]` should name this helper in its own
-error text, since that refusal is what pushed `ab2a819ad007dcef5` onto `as never` — file
-`packages/eslint-plugin/…/ban-primitives`, message: *"…Use the discover endpoint to search for
-existing contracts. In a test narrowing a proxy getter typed `unknown`, use a module-level
-`Array.isArray` helper returning `unknown`."*
+Every builder already calls `get-testing-patterns` first (the brief's `READ FIRST` line makes it mandatory), so this reaches all of them for free, and the four lookups never happen. The `@dungeonmaster/ban-primitives` rule that refused `as string[]` should also name this helper in its own error text, since that refusal is what pushed `ab2a819ad007dcef5` onto `as never` in the first place. File `packages/eslint-plugin/…/ban-primitives`, message: *"…Use the discover endpoint to search for existing contracts. In a test narrowing a proxy getter typed `unknown`, use a module-level `Array.isArray` helper returning `unknown`."*
 **Saved: roughly 10.9M context-in tokens and roughly 4.0 min per item that indexes a spawned argv; also removes the
 three-copy duplication in finding 4.**
 
@@ -1164,15 +975,9 @@ python3 tmp/transcript-digest.py text      agent-<each of the 8 lookups> --paren
 git show f48bbc660:<each of the 3 test files>   # counting `const spawnedArgvValueAt` copies
 ```
 
-**Tooling caveat found while doing this:** `transcript-digest.py result` cannot reach MCP tool
-results in a *sub-agent* transcript — those records carry `toolUseResult: null` at the top level and
-the payload sits in `message.content[].content[].text` as a JSON string, which `cmd_result` never
-inspects. The reviewer's fetched prompt (20,189 chars) had to be extracted by parsing the raw JSONL.
-The main-session transcript does not have this shape, which is why `result … get-agent-prompt` worked
-there.
+**Tooling caveat found while doing this:** `transcript-digest.py result` cannot reach MCP tool results in a sub-agent transcript. Those records carry `toolUseResult: null` at the top level, and the actual payload sits in `message.content[].content[].text` as a JSON string, which `cmd_result` never inspects. Because of this, the reviewer's fetched prompt (20,189 chars) had to be extracted by parsing the raw JSONL directly. The main-session transcript does not have this shape, which is why `result … get-agent-prompt` worked there.
 
-**Not measurable from the transcript:** the work item's `dependsOn` field (the prompt carries four
-ids only, and `tmp/quest-analysis/workitem-index.txt` does not print the field); the per-record
-thinking-token split for depth-2 sub-agents beyond the totals shown; and the exact wall-clock share
-of the reviewer's `npm run build` (only its start gap of 68.4 s and its successor gap of 28.2 s are
-observable).
+**Not measurable from the transcript:**
+- The work item's `dependsOn` field. The prompt carries four ids only, and `tmp/quest-analysis/workitem-index.txt` does not print the field.
+- The per-record thinking-token split for depth-2 sub-agents, beyond the totals already shown.
+- The exact wall-clock share of the reviewer's `npm run build`. Only its start gap of 68.4 s and its successor gap of 28.2 s are observable.
