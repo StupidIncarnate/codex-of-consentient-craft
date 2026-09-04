@@ -2,6 +2,11 @@
 
 ## 0. Identity
 
+This report covers one **cell** of the quest — one package-and-flow slice of work, package `web` and flow
+`send-message-with-images`. A **flow** is a named user-facing scenario the quest is building, broken into
+steps and branches. One **operator** — the AI session that runs the cell end to end and directs every helper
+it uses — owns this cell.
+
 | Field | Value |
 |---|---|
 | Work item id | `7546da90-f77b-479a-9b70-96802f47bc2f` |
@@ -16,16 +21,21 @@
 | `retryCount` | `0` — no pt chain, one pass |
 | `startRef` | `061e49064a323a3004c518ad249e6c87f461cc38` |
 
-**Window:** `createdAt 2026-09-02T03:45:15.755Z` leads to `completedAt 2026-09-02T06:39:48.784Z`.
+**Window:** `createdAt 2026-09-02T03:45:15.755Z` → `completedAt 2026-09-02T06:39:48.784Z`.
 Transcript wall clock: `START 2026-09-02T03:45:30.135000+00:00`, `END 2026-09-02T06:40:04.138000+00:00`,
 `WALL 2:54:34.003000 (174.6 min)`.
 
-**Sub-agents: 38.** Two depths:
+**Sub-agents: 38.** A **sub-agent** is a helper AI session the operator starts to do one piece of work. This
+pass used 38 of them, at two depths — depth meaning how many steps removed from the operator each one is:
 
-- **20 at depth 1**, all `agentType: general-purpose`, all `model: sonnet` — 19 code-writing plus one
-  `codeweaver-reviewer` (`agent-ae1d2690ddd38159c`, dispatched with the reviewer's own served-prompt brief).
-- **18 at depth 2**, all `agentType: Explore` — 12 with `model: None` (inherited) and 6 with `model: sonnet`.
-  None was spawned by this session; all were spawned by five of its depth-1 builders.
+- **20 at depth 1** — started directly by the operator. All are `agentType: general-purpose` running on
+  `model: sonnet`: 19 write code, and one is the `codeweaver-reviewer` (`agent-ae1d2690ddd38159c`), the
+  **reviewer** — a sub-agent whose only job is to check the operator's work before it ships. It ran with the
+  reviewer's own served-prompt brief.
+- **18 at depth 2** — not started by the operator directly, but by five of its depth-1 builders, one step
+  further removed. (This report calls starting a sub-agent "spawning" it; the two words mean the same thing.)
+  All 18 are `agentType: Explore` — an **explorer**, a sub-agent that only reads and searches code and never
+  edits anything. Twelve ran with `model: None` (inherited from the parent) and six ran on `model: sonnet`.
 
 Depth-2 parentage, from the `*.meta.json` `parentAgentId` field:
 
@@ -37,21 +47,24 @@ a73a382864cf3e985  "Build upload progress contracts"    spawned 2 explorers
 a4e9726b2fb2d4cb9  "Forward images on create surface"   spawned 1 explorer
 ```
 
-The session's own tool histogram shows `20 Agent` calls plus `2 SendMessage` calls — 22 dispatch actions
-against 20 depth-1 agents (two agents were resumed once each rather than replaced).
+The session's own tool histogram shows `20 Agent` calls plus `2 SendMessage` calls. That is 22 dispatch
+actions against 20 depth-1 agents — two of the agents were resumed once each rather than replaced.
 
-**Headline answer to the roster question:** of the 38, **15 were builders, 4 were repairs of work an earlier
-sub-agent in this same session produced, 1 was the reviewer, and 18 were read-only explorers spawned two
-levels down.** Counting the two `SendMessage` resumes, **6 of the operator's 22 dispatch actions (27%) were
-repairs of its own sub-agents' output.** Work from all 19 code-writing agents survived into the single commit
-`3275de52b` (54 files, 3,492 insertions); the reviewer amended 2 of those 54 files and reverted none.
+**Headline answer to the roster question:** of the 38 sub-agents, 15 were builders that wrote new code, 4
+were repairs of work an earlier sub-agent in this same session had produced, 1 was the reviewer, and 18 were
+read-only explorers started two levels down. Counting the two `SendMessage` resumes as dispatch actions too,
+6 of the operator's 22 dispatch actions were repairs of its own sub-agents' output — 27%. Work from all 19
+code-writing agents survived into the single commit `3275de52b` (54 files, 3,492 insertions). The reviewer
+amended 2 of those 54 files and reverted none.
 
 ---
 
 ## 1. Chronological breakdown — where the time went
 
 Phases are taken from the main-session `timeline`. Each row's elapsed range is bounded by a quoted timeline
-line. Minutes sum to 174.5, against a 174.6-min wall.
+line. Minutes sum to 174.5, against a 174.6-min wall. Two terms recur in the table below: a **sign-off** is
+the codeweaver's formal claim that one item — a test observation, a node, or a labelled branch in the flow —
+is proven, and **ward** is this repo's combined lint, typecheck and test command.
 
 | # | Clock (UTC) | Elapsed | Min | What happened | Evidence |
 |---|---|---|---|---|---|
@@ -87,10 +100,11 @@ Derived from a gap analysis over all 193 inter-assistant intervals in the main s
 | Idle or stall | **0.0** | 0% | 0 `sleep` invocations across the main session and all 38 sub-agents |
 | Other — brief authoring and return routing | 12.7 | 7.3% | 23.2 min of sub-60s active gaps, less the 10.5 min already attributed above |
 
-The operator spent **23.2 minutes of 174.6 doing anything at all**. 86.6% of the wall clock is a helper running.
-Not one second of it is a poll, a sleep, or a re-run — the `[HELPERS]` rule was followed exactly, and every long
-gap is bounded by a turn ending on a plain message (`"Ending the turn while they run; the notifications bring me
-back."` at 9.1m, and eight more like it).
+The operator spent 23.2 minutes of the 174.6 doing anything at all. A helper was running for the other 86.6%
+of the wall clock. None of that time was a poll, a sleep, or a re-run — the `[HELPERS]` rule (never poll,
+never sleep, end the turn and wait for the notification) was followed exactly. Every long gap ends with the
+operator's turn closing on a plain message, for example `"Ending the turn while they run; the notifications
+bring me back."` at 9.1m, and eight more like it.
 
 ---
 
@@ -150,11 +164,17 @@ from `START`):
 | 150–160 | 1 | 62,805 | 37,021,421 |
 | **Total** | **38** | **1,229,452** | **374,882,902** |
 
-The 60–70 bucket is the whole quarter of the spend: seven agents started there (the binding, the cast repair, the
-composer, the panel, and four of the composer's own explorers), together carrying 148,701,856 context-in tokens —
-**39.7% of all sub-agent context** — because the composer agent alone ran 351 turns over 47 minutes.
+The 60–70 minute bucket carries the whole quarter of the spend. Seven agents started there — the binding, the
+cast repair, the composer, the panel, and four of the composer's own explorers. Together they carried
+148,701,856 **context-in** tokens (everything fed into the model as prompt and history for a call, as opposed
+to what it generates as output) — 39.7% of all sub-agent context. The reason: the composer agent alone ran
+351 turns over 47 minutes.
 
 ### Totals — cache_read and cache_creation stated separately
+
+Two kinds of context cost are broken out below. **cache_read** is context reused from an earlier cached
+call, billed at a discount. **cache_creation** is new context written to the cache so a later call can reuse
+it. Both count toward the context-in total.
 
 | | input (uncached) | cache_read | cache_creation | context-in total | output | of which thinking |
 |---|---:|---:|---:|---:|---:|---:|
@@ -165,12 +185,11 @@ composer, the panel, and four of the composer's own explorers), together carryin
 Arithmetic: `388 + 55,573,617 + 1,057,011 = 56,631,016`; `4,700 + 355,308,988 + 19,569,214 = 374,882,902`;
 `56,631,016 + 374,882,902 = 431,513,918`; `495,230 + 1,229,452 = 1,724,682`.
 
-**431.5 million context-in tokens for a 54-file, 3,492-insertion commit.** 95.2% of that context is
-`cache_read`, not fresh input — but it is 431.5M tokens of billed context either way, and the tree read it in
-174.6 minutes.
+431.5 million context-in tokens went into a commit of 54 files and 3,492 insertions. 95.2% of that context
+was `cache_read`, not fresh input. Even so, all of it is billed context, and producing it took 174.6 minutes.
 
-The 18 depth-2 explorers account for **98,498 output tokens (8.0% of sub-agent output)** and **15,658,523
-context-in tokens (4.2% of sub-agent context)**. Arithmetic on the roster figures:
+The 18 depth-2 explorers together account for 98,498 output tokens (8.0% of sub-agent output) and 15,658,523
+context-in tokens (4.2% of sub-agent context). Arithmetic on the roster figures:
 `3,611+3,269+17,065+7,565+9,698+3,359+6,212+1,934+569+1,344+1,187+809+7,058+10,975+1,987+6,553+3,098+12,205 = 98,498`;
 `742,786+540,478+2,935,655+1,071,213+2,134,321+376,644+669,411+611,928+116,184+208,986+176,818+133,757+746,561+1,919,932+416,459+1,526,207+276,413+1,054,770 = 15,658,523`.
 Ten of the 18 ran under 1.0 minute; all 18 ran under 3.0 minutes.
@@ -179,7 +198,7 @@ Ten of the 18 ran under 1.0 minute; all 18 ran under 3.0 minutes.
 
 ## 3. Was the prompt fit for the work?
 
-The rendered prompt is 34,127 characters as it arrived (`result 0db63e41… get-agent-prompt` leading to `LEN 34127`),
+The rendered prompt is 34,127 characters as it arrived (`result 0db63e41… get-agent-prompt` → `LEN 34127`),
 under the 50,000-char ceiling `codeweaverPromptStatics`' docblock names.
 
 ### What the prompt got right, and what the agent did about it
@@ -191,7 +210,7 @@ The session made exactly that call, with all three arguments:
 {"questId": "1be07040-b9ec-476c-a439-0b4fbb0123cd", "flowId": "send-message-with-images", "packageName": "web"}
 ```
 
-One call, 28,430 chars back, no spill. Compliant.
+One call, a 28,430-character result, and no follow-up calls needed. Compliant.
 
 **`[BUILD] You run no build, no ward and no test of any kind.`** The main session's 22 Bash commands contain
 zero `npm run build` and zero `npm run ward`. Its only write is the map:
@@ -201,11 +220,13 @@ zero `npm run build` and zero `npm run ward`. Its only write is the map:
 **`[HELPERS] Never sleep. Never poll…  end your turn on a plain message and no tool call.`**
 `sleep invocations across main + 38 subagents: 0`. Nine turns end on the pattern the rule names, e.g.
 `9.1m say: "Group 1 is out — three agents on the contracts and statics. Ending the turn while they run; the notifications bring me back."`
-This is the single highest-leverage rule in the prompt and it worked perfectly.
+This is the highest-leverage rule in the prompt, and it worked without exception.
 
 **Step 3 — "A map, not an essay. One line per file."** The map is 9,899 bytes / 121 lines: five groups, a
-`PROVES` block of 25 observable-to-test rows plus terminals and edges, and a six-line `TRAPS` block. It also carries a
-transport decision the prompt never asked for and that turned out to be the pass's load-bearing finding:
+`PROVES` block of 25 rows, and a six-line `TRAPS` block. Each `PROVES` row pairs one **observable** — one
+specific behavior the map promises to prove — with the test that proves it, plus terminals and edges. The map
+also carries a transport decision the prompt never asked for. That decision turned out to be the load-bearing
+finding of the whole pass:
 
 > Transport decision: `msw/node` (2.12) does NOT intercept XMLHttpRequest — grep of `node_modules/msw/lib/node`
 > finds no `XMLHttpRequest`; only browser/native/iife carry it.
@@ -217,7 +238,7 @@ pass shipped a real XHR proxy instead of discovering the problem three groups in
 
 **1. The scope block the prompt was designed to carry never rendered — because it is dead code.**
 `codeweaverScopeBlockTransformer` exists to render the seams (each node this cell shares with another package,
-and where that package's half stands in the relay) and the shared homes. Neither appeared:
+and how far along that package's own half of the work is) and the shared homes. Neither appeared:
 
 ```
 Seams -> []
@@ -231,8 +252,8 @@ packages/orchestrator/src/transformers/codeweaver-scope-block/codeweaver-scope-b
 packages/orchestrator/src/transformers/codeweaver-scope-block/codeweaver-scope-block-transformer.ts
 ```
 
-`workItemToPromptTransformer` — the transformer that actually renders `$ARGUMENTS` — never calls it. The whole
-Operation Context this session received was:
+`workItemToPromptTransformer` is the transformer that actually renders `$ARGUMENTS`, and it never calls the
+scope-block transformer. The whole Operation Context this session received was:
 
 ```
 Quest ID: 1be07040-b9ec-476c-a439-0b4fbb0123cd
@@ -242,11 +263,11 @@ Your operation item: [codeweaver] Codeweaver: build this slice — package: web 
 ```
 
 The file has existed since `13a4331ab 2026-08-14` and was last edited `4419d0d43 2026-08-30 21:09:19`, two days
-before this run — never wired. The session had to reconstruct the seam picture itself from
-`git log --name-only -n 6` at 0.5m and 12 `Read`s. It got it right; the map's opening paragraph is that seam
-summary, written by hand. But nothing told it where `server`'s half of the flow stood, and step 5's question 4
-("Does the seam hold? … If that half is not built yet, write down what you assumed") was asked with no data
-behind it.
+before this run. It was never wired in. The session had to reconstruct the seam picture itself, from
+`git log --name-only -n 6` at 0.5m and 12 `Read`s. It got this right — the map's opening paragraph is that seam
+summary, written by hand. But nothing told the session where `server`'s half of the flow stood. The prompt
+still asked step 5's question 4 ("Does the seam hold? … If that half is not built yet, write down what you
+assumed") — with no data behind it to answer from.
 
 **2. The prompt requires signing labelled edges by id, and `get-quest` does not print edge ids.**
 `## Recording what you claim` demands `edges: [ { id: '<the labelled edge id>', codeweaverSignoff: { … } } ]`,
@@ -304,25 +325,27 @@ returned `FILES: none (no edits this round — the sibling's fix alone resolved 
 > `**NEXT: wall** — someone with \`packages/web/src/brokers/**\` / \`packages/web/src/adapters/xhr/**\` access
 > needs to make \`xhrPostWithProgressAdapterProxy\` support multiple coexisting instances…`
 
-The prompt's table says `wall` maps to "stop sending work out… then go to step 8", and step 8/9 say signal `blocked`.
-Following that literally would have halted the quest over a proxy bug the session could fix in one dispatch. The
-operator ignored the table, correctly, and dispatched the repair. Nothing in the prompt licenses that: `[WALL]`
-defines a wall as environmental, but the brief template's own `RETURN` block invites a sub-agent to write
-`wall — <what a person must change>` for anything outside its file list.
+The prompt's table says `wall` → "stop sending work out… then go to step 8", and step 8/9 say signal `blocked`.
+Following that literally would have halted the quest over a proxy bug the session could fix in one dispatch.
+The operator ignored the table, correctly, and dispatched the repair instead. Nothing in the prompt licenses
+that decision: `[WALL]` defines a wall as environmental, but the brief template's own `RETURN` block invites a
+sub-agent to write `wall — <what a person must change>` for anything outside its file list.
 
 **6. `unconfirmable` was never used, in a browser package.** The prompt: *"a jsdom read proves nothing about
 what a browser paints. Where the observable's own surface is somewhere a unit test cannot reach, record it
-`unconfirmable`."* This cell signed **37 units, all `confirmed`, zero `unconfirmable`** — including
-`check-progress-bar-shown`, whose evidence is a jsdom `hasProgressBar()` read. In the event this was vindicated:
-every one of those observables later carried `flowriderSignoff: confirmed` and `siegemasterSignoff: confirmed`
-too. But the prompt asked for a distinction the session did not draw at all, which means the instruction bought
-nothing here.
+`unconfirmable`."* This cell signed 37 **units** — a unit being any one observable, node, or edge that needs
+a sign-off — and marked all 37 `confirmed`, zero `unconfirmable`. That includes `check-progress-bar-shown`,
+whose evidence is a jsdom `hasProgressBar()` read. This was vindicated in the event: every one of those
+observables later carried `flowriderSignoff: confirmed` and `siegemasterSignoff: confirmed` too. But the
+prompt asked for a distinction, and the session never drew it. The instruction bought nothing here.
 
-**7. The session under-counted its own sign-offs.** `156.5m say: "All 35 units signed."` The actual write landed
-37 (`observables=25 nodes(terminals)=4 edges=8 TOTAL=37`, `verdicts: {'confirmed': 37}`). No harm — but the
-prompt's "EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU SIGNAL" has no tool that tells a
-session what its denominator is. `get-qa-checklist` exists and is the flowrider's/siegemaster's denominator tool;
-the codeweaver prompt never mentions it, and this session never called it.
+**7. The session under-counted its own sign-offs.** `156.5m say: "All 35 units signed."` The actual write
+landed 37 (`observables=25 nodes(terminals)=4 edges=8 TOTAL=37`, `verdicts: {'confirmed': 37}`). This caused no
+harm. But the prompt tells the codeweaver "EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU
+SIGNAL" without giving it any tool to check that against — no way to know its **denominator**, the total count
+of units it should be matching. `get-qa-checklist` is exactly that tool: the flowrider and siegemaster roles
+already use it as their denominator check. The codeweaver prompt never mentions `get-qa-checklist`, and this
+session never called it.
 
 ---
 
@@ -334,7 +357,7 @@ the codeweaver prompt never mentions it, and this session never called it.
 notification-resume turn, not a poll loop. Mechanism: the `[HELPERS]` rule plus the harness's task-notification
 re-entry.
 
-**2. The transport decision was made before any brief went out, at roughly 1 minute of cost.**
+**2. The transport decision was made before any brief went out, at ~1 minute of cost.**
 `4.8m CALL Bash(… description=Check whether msw node setup includes the XHR interceptor)` and
 `4.8m CALL Bash(… description=Locate XHR interceptor files)`. Had this landed in group 3 instead, the three
 broker agents would each have built against `StartEndpointMock` and each needed re-doing. Mechanism: step 2's
@@ -353,12 +376,17 @@ Every one carries a `file:line`, the assertion, and the mutation that turns it r
 template's `PROVED:` shape (`<test file:line> · <the assertion, quoted> · <the wrong value that turns it red> ·
 <the red I watched>`) transcribed verbatim into `evidence`, exactly as `## Recording what you claim` instructs.
 
-**4. Four real defects were found by the operator reading returns, not by a test going red.** From the closing
-message at 174.6m: the adapter's `RangeError` on `status === 0` that hung the promise forever; the two-proxy
-`globalThis.XMLHttpRequest` collision; the progress bar showing on text-only sends because *"the test was green
-because its fake never invoked the handler — it proved the fake, not the widget"*; and the msw/node XHR gap.
-Three of the four were caught by the operator judging a sub-agent's own green report, which is precisely what the
-"read what came back" step exists for.
+**4. Four real defects were found by the operator reading returns, not by a test going red.** The closing
+message at 174.6m lists all four:
+
+- the adapter's `RangeError` on `status === 0`, which hung the promise forever
+- the two-proxy `globalThis.XMLHttpRequest` collision
+- the progress bar showing on text-only sends, because *"the test was green because its fake never invoked the
+  handler — it proved the fake, not the widget"*
+- the msw/node XHR gap
+
+The operator caught three of the four by judging a sub-agent's own green report — precisely what the "read
+what came back" step exists for.
 
 **5. The `SendMessage` correction at 107.9m is the cheapest possible repair.** Rather than dispatching a fresh
 agent against 989 lines of new test file, the operator resumed the agent that wrote it:
@@ -404,7 +432,7 @@ Several announced it in their own returns, so the operator saw it and let it sta
 `a7c2cbd1869aacbd9`: *"a full repo build (\`npm run build\`) was also run and exited 0 before these changes"*;
 `a2e9daecce4e0d79d`: *"\`npm run build\` (unpiped, full monorepo) also exits 0"*;
 `acb9af1d389492b63`: *"\`npm run build\` is green (all 13 packages, 0 errors)"*.
-**Cost:** not separable from those agents' wall clock, but a full `npm run build` in this repo is roughly 60–90 s and
+**Cost:** not separable from those agents' wall clock, but a full `npm run build` in this repo is ~60–90 s and
 20 of the 23 were run while at least one sibling agent was live. **The prompt forbade it, in every brief.**
 
 **Finding 2 — two sub-agents ran `git stash push`, and no prompt in the chain forbids them.**
@@ -415,12 +443,12 @@ agent-acb9af1d389492b63: git stash push -- packages/web/src/bindings/use-quest-c
 ```
 
 Both ran on a branch four sibling sub-agents were writing to, with the entire pass uncommitted. The operator's
-prompt bans `stash / reset / checkout -- / clean` under `NOT YOURS`; the reviewer's prompt bans them under
-`[GIT]`; the **code-writing sub-agent brief template bans neither.** Its `TRAPS` guidance is only *"Put both
-[GIT FORMS] refusals in every brief's `TRAPS`"* — which covers `git -C` and pipe-chaining, not destructive verbs.
-**Cost:** none realised (both stashes were red-first diagnostics and were restored), but this is the one class of
-session on the pass that can silently destroy the other nineteen's work, and it is the only one with no written
-ban. **The prompt permitted it by omission.**
+own prompt bans `stash / reset / checkout -- / clean` under `NOT YOURS`. The reviewer's prompt bans them too,
+under `[GIT]`. The **code-writing sub-agent brief template bans neither.** Its `TRAPS` guidance is only *"Put
+both [GIT FORMS] refusals in every brief's `TRAPS`"* — which covers `git -C` and pipe-chaining, not destructive
+verbs. **Cost:** none realised — both stashes were red-first diagnostics and were restored. But this is the one
+class of session on the pass with write access that could silently destroy the other nineteen sub-agents' work,
+and it is the only one with no written ban. **The prompt permitted it by omission.**
 
 **Finding 3 — one sub-agent edited a file outside its `FILES` list, in a package outside the cell.**
 `agent-abcbd55169db156af` (follow-up broker):
@@ -431,7 +459,7 @@ ban. **The prompt permitted it by omission.**
 
 The operator handled it correctly — `48.8m CALL mcp__dungeonmaster__modify-quest(...)` adding `testing` to
 `packagesAffected`, then `48.8m say: "The follow-up broker needed a \`RequestCountStub\` export from
-\`@dungeonmaster/testing\`, so I've added \`testing\` to the quest's affected packages."` **Cost:** roughly 0.5 min of
+\`@dungeonmaster/testing\`, so I've added \`testing\` to the quest's affected packages."` **Cost:** ~0.5 min of
 operator time. But it caused Finding 4.
 
 **Finding 4 — one whole sub-agent (`abe97a8d32fcbff5d`) exists only because two group-3 agents raced on a
@@ -473,9 +501,9 @@ global.
 **Finding 7 — 18 explorer sub-agents were spawned to look up things the three mandatory standards documents
 name but do not explain.** Categorising the 18 questions, read verbatim from each explorer's own brief:
 **4 ESLINT-RULE-LOOKUP, 6 REPO-CONVENTION-LOOKUP, 7 SIGNATURE-OR-PATH-LOOKUP, 1 OTHER.** Seventeen of the
-eighteen were spawned *after* their parent had already fetched `get-architecture`, `get-syntax-rules` and
-`get-testing-patterns` — that call trio is item 1 in every brief's `READ FIRST` block. Those three documents
-total 94,985 characters and contain:
+eighteen were started after their parent had already fetched `get-architecture`, `get-syntax-rules` and
+`get-testing-patterns`. That trio of calls is item 1 in every brief's `READ FIRST` block. Those three
+documents total 94,985 characters and contain:
 
 ```
 --- get-architecture (19,056 chars):     no-magic-numbers ABSENT · ban-primitives ABSENT ·
@@ -493,14 +521,15 @@ passage and it is generic:
 > branded types** - Input args can use raw primitives (inline object types) - Return types must use branded
 > types/contracts.`
 
-It says nothing about type aliases, generic type arguments (`Map<string, X>`), or file-type exemptions — which
-is exactly what `agent-a3a4cb92d86172c38` was sent to find, and what it found: *"The rule listens on **every**
-`TSStringKeyword`/`TSNumberKeyword` node in the file, unconditionally — it is not scoped to function
+It says nothing about type aliases, generic type arguments (`Map<string, X>`), or file-type exemptions. That
+gap is exactly what `agent-a3a4cb92d86172c38` was sent to find, and what it found: *"The rule listens on
+**every** `TSStringKeyword`/`TSNumberKeyword` node in the file, unconditionally — it is not scoped to function
 signatures."* `forbid-non-exported-functions` and `enforce-proxy-patterns` appear nowhere in
 `get-syntax-rules` or `get-architecture` at all. **Cost: 30,858 output tokens and 4,862,111 context-in tokens
 for the four**, plus the 14 others. The cheapest of the 18 — `agent-a787e8e7eac5a8c11`, "Find ByteLengthStub
 file path" — spent **133,757 context-in tokens and a full session bootstrap to return one file path.** The
-prompt neither permitted nor forbade depth-2 explorers; the brief template says nothing about sub-agents at all.
+prompt neither permitted nor forbade depth-2 explorers. The brief template says nothing about sub-agents at
+all.
 
 **Finding 7a — two explorers asked the identical question six seconds apart, from the same parent.**
 `agent-a73a382864cf3e985` dispatched `a0dcfe4b29d1c66a3` at `0.8m` and `aca21aba097c39202` at `0.9m`. Their
@@ -526,8 +555,8 @@ the second had to rediscover what the first one's parent had since created.**
 The second's answer names the artifact the first parent built:
 *"packages/web/src/contracts/upload-progress-post/upload-progress-post-contract.ts:25:
 `url: z.string().min(1).brand<'RequestUrl'>()` — an inline field brand inside another contract, not a standalone
-URL contract."* Nothing in the pass carries a fact from one cell of the tree to another; each branch
-re-discovers the tree's own output. **Cost: 1,987 output tokens, 416,459 context-in tokens.**
+URL contract."* Nothing in the pass carries a fact from one cell of the tree to another. Each branch
+re-discovers what another branch already found. **Cost: 1,987 output tokens, 416,459 context-in tokens.**
 
 **Finding 8 — one explorer was spawned before its parent had read the standards it was told to read first.**
 `agent-a4e9726b2fb2d4cb9` dispatched `a1f5d30f99732d43c` at `1.2m CALL Agent(description=Investigate
@@ -535,17 +564,25 @@ registerSpyOn dedup behavior for XMLHttpRequest …)`, then fetched `get-archite
 `get-testing-patterns` at `1.4m`. Its brief's `READ FIRST` block names all three. 17 of 18 explorers were
 spawned after; this is the one that was not. **The prompt required the order.**
 
-**Finding 9 — three of nine sampled explorers show no transcript evidence their answer was ever read.**
-The `Agent` tool returns only a launch placeholder — *"Async agent launched successfully… You know nothing
-about its results until that notification arrives"* — and for `a0dcfe4b29d1c66a3`, `aca21aba097c39202` and
-`a1f5d30f99732d43c` the agentId and the answer's distinctive terms never appear again anywhere in the parent's
-transcript, and no `SendMessage` retrieves the result. `a1f5d30f99732d43c` is the cleanest case: it was sent to
-settle whether a documented bug claim in a proxy comment was still true, found it was **false/stale**, and the
-verdict never resurfaces — while the *operator* two levels up spent 32.4 minutes and 18.2M tokens on
-`agent-a2e9daecce4e0d79d` unwinding the very proxy-collision question that explorer had been researching.
-**Cost of the three unread explorers: 16,085 output tokens and 2,338,034 context-in tokens
-(`3,611+3,269+12,205`; `742,786+540,478+1,054,770`), spent and discarded.** Nothing in the prompt or the brief
-template tells a sub-agent it must actually collect a helper's answer before acting.
+**Finding 9 — three of nine sampled explorers show no evidence their answer was ever read.** Their parents
+dispatched them, paid for them, and then never used what they found.
+
+The `Agent` tool only returns a launch placeholder when a sub-agent starts — *"Async agent launched
+successfully… You know nothing about its results until that notification arrives"* — so a parent has to come
+back later and read the notification to actually collect the answer. For three explorers,
+`a0dcfe4b29d1c66a3`, `aca21aba097c39202`, and `a1f5d30f99732d43c`, that never happened: their agentId and the
+distinctive terms from their answers never appear again anywhere in the parent's transcript, and no
+`SendMessage` ever retrieves the result.
+
+`a1f5d30f99732d43c` is the clearest case. It was sent to settle whether a documented bug claim in a proxy
+comment was still true. It found the claim was **false/stale**. That verdict never resurfaces anywhere in its
+parent's transcript. Two levels up, the operator then spent 32.4 minutes and 18.2M tokens on
+`agent-a2e9daecce4e0d79d` unwinding the very proxy-collision question that unread answer had already settled.
+
+**Cost of the three unread explorers: 16,085 output tokens and 2,338,034 context-in tokens**
+(`3,611+3,269+12,205` output; `742,786+540,478+1,054,770` context-in), paid for and thrown away. Nothing in
+the prompt or the brief template tells a sub-agent's parent that it must read a helper's answer before acting
+on it.
 
 **Finding 10 — one explorer found a real precedent and the parent then wrote code that discards it.**
 `agent-af6208a0486c8a2bf` was asked how existing proxies cast to `HTMLButtonElement` and answered *"Found one
@@ -556,9 +593,9 @@ tokens** for a precedent the parent asked for and then declined to follow.
 
 **Finding 11 — the composer agent ran 30 ward invocations and 351 turns for one file set.**
 `agent-a155b8642d3022923`: `turns=351 out=185,561 ctx-in=99,529,046`, 47.0 minutes, `Edit: 93`, `Bash: 53`, and
-30 of those Bash calls were `npm run ward`. It also carried the longest brief of the twenty at **14,065
-characters** — three times the median — in direct contradiction of *"Write a FILE MAP and terse instructions.
-Never prose. … long briefs are how adherence dies."* That brief is also one of three missing the required
+30 of those Bash calls were `npm run ward`. It also carried the longest brief of the twenty, at 14,065 characters — three times the median. That directly
+contradicts the prompt's own instruction: *"Write a FILE MAP and terse instructions. Never prose. … long
+briefs are how adherence dies."* That brief is also one of three missing the required
 `MUST BE TRUE` section (the others: `a4e9726b2fb2d4cb9`, and `aea9161e3d5264efe` which is missing both `DO` and
 `MUST BE TRUE`). **Cost: 99,529,046 context-in tokens — 26.6% of all sub-agent context — in one agent.**
 **The prompt forbade the brief length.**
@@ -566,7 +603,7 @@ Never prose. … long briefs are how adherence dies."* That brief is also one of
 **Finding 12 — `get-testing-patterns` alone cost 51,401 bytes of the operator's context at 0.4 minutes,
 and was fetched again by all 19 code-writing sub-agents.** The `READ FIRST` line in every brief mandates it.
 That is 20 fetches of a 51 KB document in one pass (plus `get-architecture` at 28,430 bytes and
-`get-syntax-rules` at 24,528 bytes, also 20× each). Roughly 2.1 MB of identical text pulled into 20 separate contexts.
+`get-syntax-rules` at 24,528 bytes, also 20× each). ~2.1 MB of identical text pulled into 20 separate contexts.
 **The prompt required it**, and it is the correct requirement — but the cost is not visible anywhere.
 
 **Finding 13 — no `unconfirmable` verdicts, and no denominator check.** See §3.6 and §3.7. 37 units all
@@ -579,23 +616,23 @@ and `get-qa-checklist` is never mentioned in the codeweaver prompt though it exi
 ## 6. Suggested fixes
 
 One fix per finding in §5 and per structural problem in §3. Each names the file and the concrete edit, with the
-estimate shown. Roughly descending by saving, with the three largest being Fix 13 (roughly 50M tokens), Fix 16
-(32.4 min + 18.2M tokens) and Fix 8 (roughly 4.9M tokens per cell).
+estimate shown. Roughly descending by saving, with the three largest being Fix 13 (~50M tokens), Fix 16
+(32.4 min + 18.2M tokens) and Fix 8 (~4.9M tokens per cell).
 
 **Fix 1 — Wire `codeweaverScopeBlockTransformer` into `workItemToPromptTransformer`, or delete it.**
 *File:* `packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`.
 *Edit:* after the four `parts` lines, for `workItem.role === 'codeweaver'`, push
 `...codeweaverScopeBlockTransformer({ quest, operationItem: linkedOperation })`. The transformer already returns
-`[]` when there is nothing to say, so the degenerate case is safe. If the block is not wanted, delete the
+`[]` when there is nothing to say, so the empty case is already handled safely. If the block is not wanted, delete the
 transformer and its test rather than leaving a 174-line file that only its own test imports.
 *Saved:* the 5.6 minutes of P1 spent reconstructing the seam picture by hand from `git log` and 12 `Read`s, plus
-the unanswerable step-5 question 4. **about 4 min and roughly 150k context tokens per codeweaver cell**, times 8 cells on
+the unanswerable step-5 question 4. **≈4 min and ~150k context tokens per codeweaver cell**, times 8 cells on
 this quest. Addresses §3.1.
 
 **Fix 2 — Print labelled-edge ids in the `get-quest` flow render.**
 *File:* the flow text renderer behind `mcp__dungeonmaster__get-quest` (the same renderer that already prints
 terminal node ids). *Edit:* render each labelled edge as `#<edgeId> "<label>"` the way nodes are rendered
-`[#<nodeId>]`. *Saved:* three Bash probes and roughly 0.4 min here, but more importantly it removes a dependency on
+`[#<nodeId>]`. *Saved:* three Bash probes and ~0.4 min here, but more importantly it removes a dependency on
 `.dungeonmaster/` being readable from the worktree — which is true in this dogfood repo and not guaranteed for an
 end-user install, where the same three probes would fail and the eight edge sign-offs the prompt demands could
 not be written at all. **Correctness fix, not a time fix.** Addresses §3.2.
@@ -621,7 +658,7 @@ access to the tree and no written ban. **Risk elimination.** Addresses Finding 2
 never widen the ward` with `no \`npm run build\` — ward's typecheck is \`tsc -b\`, which writes the shared
 \`dist/\`; siblings are running right now and your build hands them type errors on correct code. Your reviewer
 runs the build. Also: no run-ward MCP tool · no commit · never widen the ward.` *Saved:* 23 build invocations
-were measured, roughly 20 of them concurrent with a live sibling. At roughly 60–90 s each that is **20–30 minutes of sub-agent
+were measured, ~20 of them concurrent with a live sibling. At ~60–90 s each that is **20–30 minutes of sub-agent
 wall clock**, plus the type errors they hand each other. Addresses Finding 1.
 
 **Fix 6 — Replace "touch different files" with "touch different files AND do not share an interface" in the
@@ -631,13 +668,13 @@ grouping rule, and add a wave-0 contract step.**
 go out together when one DEFINES a signature the other CALLS. Put the signature in an earlier group as a type-only
 change, and brief both sides against the file that holds it."* *Saved:* the 50 parked minutes of
 `agent-a6c5888344f994a6e` and the 243-second `SendMessage` round trip, plus its 11,363,800 context-in tokens.
-**About 50 min of agent lifetime and roughly 11.4M tokens.** Addresses §3.4 and Finding 5.
+**≈50 min of agent lifetime and ~11.4M tokens.** Addresses §3.4 and Finding 5.
 
 **Fix 7 — Add a `wall` triage row to `## Reading a sub-agent's return`.**
 *File:* same statics file, the four-row `NEXT:` table. *Edit:* split the `wall` row:
-`wall — and the blocker is a FILE another session owns` maps to *"that is a rework, not a wall. Dispatch the change it
+`wall — and the blocker is a FILE another session owns` → *"that is a rework, not a wall. Dispatch the change it
 names."*; `wall — and the blocker is the ENVIRONMENT (a denied command, a missing credential, an unreachable
-service)` maps to *"stop dispatching and go to step 8."* And in `## Briefing a sub-agent`'s `RETURN` block, change
+service)` → *"stop dispatching and go to step 8."* And in `## Briefing a sub-agent`'s `RETURN` block, change
 `wall — <what a person must change>` to `wall — <what a person must change; a file outside your list is a
 \`rework\`, not a wall>`. *Saved:* zero here — the operator ignored the table and got it right — but a session
 that followed the table literally would have signalled `blocked` and halted the quest at 89.9m with 85 minutes of
@@ -645,15 +682,20 @@ work still to do. **Prevents a whole-quest halt.** Addresses §3.5.
 
 **Fix 8 — Put the local eslint rule catalogue in `get-syntax-rules`.**
 *File:* whatever statics back the `get-syntax-rules` MCP responder (`packages/mcp/src/responders/architecture/`).
-*Edit:* add a section enumerating each rule in `@dungeonmaster/local-eslint` and `@dungeonmaster/eslint-plugin` —
-name, what it forbids, its exemptions, and where the exemption list lives. Today `no-magic-numbers` appears in
-none of the three documents; `forbid-non-exported-functions` and `enforce-proxy-patterns` appear once each, in
-`get-testing-patterns`, by name only; and `ban-primitives`' only statement in `get-syntax-rules` is the generic
-*"Input args can use raw primitives… Return types must use branded types/contracts"*, which is silent on the
-type-alias and generic-argument cases that actually blocked an edit. *Saved:* the four eslint-rule explorers cost
-30,858 output tokens and 4,862,111 context-in tokens on this pass alone, plus roughly 7.6 min of their parents' wall
+*Edit:* add a section enumerating each rule in `@dungeonmaster/local-eslint` and `@dungeonmaster/eslint-plugin`
+— name, what it forbids, its exemptions, and where the exemption list lives. Today the coverage is thin:
+
+- `no-magic-numbers` appears in none of the three documents
+- `forbid-non-exported-functions` and `enforce-proxy-patterns` each appear once, in `get-testing-patterns`, by
+  name only
+- `ban-primitives`' only statement in `get-syntax-rules` is the generic *"Input args can use raw primitives…
+  Return types must use branded types/contracts"*, which says nothing about the type-alias and
+  generic-argument cases that actually blocked an edit
+
+*Saved:* the four eslint-rule explorers cost
+30,858 output tokens and 4,862,111 context-in tokens on this pass alone, plus ~7.6 min of their parents' wall
 clock. Across a quest with eight codeweaver cells this is the single largest recurring waste.
-**About 4.9M tokens per cell.** Addresses Finding 7.
+**≈4.9M tokens per cell.** Addresses Finding 7.
 
 **Fix 9 — Cap depth-2 explorers in the brief template, and forbid the trivial ones.**
 *File:* same statics file, `## Briefing a sub-agent`. *Edit:* add a line to the template:
@@ -662,7 +704,7 @@ A file path, a type signature or an existing stub's shape is a \`discover\` call
 two helpers with overlapping questions in one message.` Ten of the 18 explorers ran under 1.0 minute;
 `agent-a787e8e7eac5a8c11` spent 133,757 context-in tokens returning one file path; and one parent dispatched two
 agents six seconds apart to run the same `z.custom` search. *Saved:* the 10 sub-minute explorers plus the
-duplicate — **roughly 14,300 output tokens and roughly 4.1M context-in tokens** — and the session-bootstrap latency of each.
+duplicate — **~14,300 output tokens and ~4.1M context-in tokens** — and the session-bootstrap latency of each.
 Addresses Findings 7, 7a, 7b and 10.
 
 **Fix 10 — Make the brief template require that a helper's answer is actually collected before acting on it.**
@@ -694,11 +736,12 @@ convention per cell. Addresses Finding 7b.
 **Fix 13 — Cap the brief length, in the statics, with a number.**
 *File:* same statics file, *"Write a FILE MAP and terse instructions. Never prose."* *Edit:* append
 *"A brief over 6,000 characters is a brief that will be skimmed. If yours is longer, the change is two changes —
-split it."* The three briefs that broke the template's own section list (`a155b8642d3022923` at 14,065 chars
-missing `MUST BE TRUE`; `a4e9726b2fb2d4cb9` at 8,451 missing `MUST BE TRUE`; `aea9161e3d5264efe` at 5,698
-missing `DO` and `MUST BE TRUE`) are the three where the operator was writing prose rather than a map.
+split it."* Three briefs broke the template's own section list: `a155b8642d3022923` at 14,065 characters, missing
+`MUST BE TRUE`; `a4e9726b2fb2d4cb9` at 8,451 characters, missing `MUST BE TRUE`; and `aea9161e3d5264efe` at
+5,698 characters, missing both `DO` and `MUST BE TRUE`. All three are cases where the operator was writing
+prose rather than a map.
 *Saved:* `a155b8642d3022923` consumed 99,529,046 context-in tokens — 26.6% of all sub-agent context — in 351
-turns. Halving it is **roughly 50M tokens**. Addresses Finding 11.
+turns. Halving it is **~50M tokens**. Addresses Finding 11.
 
 **Fix 14 — Name `get-qa-checklist` in the codeweaver prompt as the denominator call.**
 *File:* same statics file, step 8 (*"EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU
@@ -722,9 +765,10 @@ invent a different workaround, and undoing both costs a third agent."* *Saved:* 
 changes will register on the SAME global, singleton or module-level registry — a spy on `globalThis`, a shared
 route map, a process-wide cache. Two files are different files; one `globalThis` is one `globalThis`. Where
 several changes share one, the registry itself is a change in an earlier group, and every one of them is briefed
-against it."* The map put three broker proxies onto one `registerSpyOn(globalThis, 'XMLHttpRequest')`; three
-agents implemented it in parallel; the last registration silently won every call, and it took the binding agent's
-`NEXT: wall` two groups later to surface it. *Saved:* the entirety of `agent-a2e9daecce4e0d79d` —
+against it."* The map put three broker proxies onto one `registerSpyOn(globalThis, 'XMLHttpRequest')`. Three
+agents implemented it in parallel. The last registration silently won every call, and it took the binding
+agent's `NEXT: wall`, two groups later, to surface the problem. *Saved:* the entirety of
+`agent-a2e9daecce4e0d79d` —
 **32.4 min, 130,468 output tokens, 18,156,900 context-in tokens, and the 5 explorers it spawned** — plus the
 17.6-minute operator diagnosis (P7) that preceded it. The second-largest single saving in this list.
 Addresses Finding 6.
@@ -737,8 +781,8 @@ Addresses Finding 6.
 51,401 bytes of `get-testing-patterns`; or (b) have the parent paste the handful of rules it already knows are
 relevant into the brief's `TRAPS` and reduce `READ FIRST` to the one document the change actually needs. On
 this pass the three documents (28,430 + 24,528 + 51,401 = 104,359 bytes) were fetched by the operator and by
-all 19 code-writing sub-agents — **20 fetches, roughly 2.1 MB of identical text pulled into 20 separate contexts.**
-*Saved:* even a 50% slice cut is **roughly 1 MB of context per cell**. The requirement itself is correct and should
+all 19 code-writing sub-agents — **20 fetches, ~2.1 MB of identical text pulled into 20 separate contexts.**
+*Saved:* even a 50% slice cut is **~1 MB of context per cell**. The requirement itself is correct and should
 stay; it is the granularity that is wrong. Addresses Finding 12.
 
 ---

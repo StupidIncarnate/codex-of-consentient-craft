@@ -1,5 +1,24 @@
 # Work item 05 — codeweaver — server / send-message-with-images
 
+A few words recur throughout this report. Here is what each one means:
+
+| Term | Meaning |
+|---|---|
+| operator | The agent role that plans a piece of work and dispatches other agents to do it, rather than writing code itself. Here, that role is the codeweaver. |
+| sub-agent | A helper agent the operator starts and waits on to do one piece of work. |
+| reviewer | The agent that checks the operator's finished work afterward and commits it. |
+| flow | The quest's graph of the work to do, drawn as nodes and labeled edges. |
+| cell | One operator's slice of that flow — the part of the graph this session owns. |
+| unit | One claim on the flow graph — a node, an edge, or an observable — that needs a pass/fail verdict before the work counts as checked. |
+| observable | One specific, testable behavior attached to a node. |
+| edge | A labeled branch between two nodes — a decision point in the flow. |
+| sign-off | The record of a unit's verdict, written onto that unit. |
+| ward | This repo's combined lint, typecheck, and test runner. |
+| context-in | The number of tokens fed back into the model on a turn. |
+| cache_read vs. cache_creation | Tokens replayed from an already-cached prompt (cache_read) versus tokens written into the cache for the first time (cache_creation). |
+
+With that said, here is what this session did.
+
 ## 0. Identity
 
 | Field | Value |
@@ -15,23 +34,25 @@
 | `startRef` | `022d408cb7af68f1f805419e38be741bc2b41c14` |
 | `agentId` | absent from the work item record |
 
-Window: `createdAt 2026-09-01T21:43:03.885Z` leads to `completedAt 2026-09-01T23:10:44.690Z` = 87.68 min.
-Transcript window: `START 2026-09-01T21:43:19.441` leads to `END 2026-09-01T23:10:58.062`, `WALL 1:27:38.621 (87.6 min)`.
+Window: `createdAt 2026-09-01T21:43:03.885Z` → `completedAt 2026-09-01T23:10:44.690Z` = 87.68 min.
+Transcript window: `START 2026-09-01T21:43:19.441` → `END 2026-09-01T23:10:58.062`, `WALL 1:27:38.621 (87.6 min)`.
 
 Output: one commit, `4b8d9871033ef1a7665dc9f18d274e7ed910ae6a`, `38 files changed, 1932 insertions(+), 37 deletions(-)`.
 
-**Sub-agent count: 27 transcripts on disk, but only 18 were dispatched by this session.** The main session made
-18 `Agent` calls; the other 9 are depth-2 grandchildren spawned by three of its sub-agents.
+**Sub-agent count: 27 transcripts are on disk, but this session only dispatched 18 of them.** The main session
+made 18 `Agent` calls. The other 9 are depth-2 grandchildren — sub-agents that three of its own sub-agents
+started on their own.
 
-- **18 depth-1**, every one `agentType: general-purpose`, `model: sonnet`, `spawnDepth: 1`, no `parentAgentId`
-  key — the 17 code-writing sub-agents plus the `codeweaver-reviewer`. This matches the prompt's
-  `Dispatch with subagent_type: "general-purpose" and model: "sonnet"` exactly, 18 times out of 18.
-- **9 depth-2**, each carrying `parentAgentId` and `spawnDepth: 2` in its `.meta.json`. **The `model` key is
-  absent from those files entirely** — a raw read shows
+- **18 are depth-1**: every one is `agentType: general-purpose`, `model: sonnet`, `spawnDepth: 1`, with no
+  `parentAgentId` key. These are the 17 code-writing sub-agents plus the `codeweaver-reviewer`. The prompt's
+  instruction is `Dispatch with subagent_type: "general-purpose" and model: "sonnet"`, and all 18 followed it.
+- **9 are depth-2**, each carrying a `parentAgentId` and `spawnDepth: 2` in its `.meta.json`. **None of those
+  nine files records a `model` key at all** — a raw read of one shows
   `{"agentType":"Explore","description":"…","toolUseId":"…","parentAgentId":"a0d6c3d30fd7c2128","spawnDepth":2}`,
-  with no `"model"` field at all. The `model=None` the roster prints for them is a Python `dict.get()` default,
-  not a recorded value, so **their model is not measurable from the transcript.** Seven are `agentType: Explore`;
-  two (`a5af88d1fe6f380d6`, `ad73741c9a0ea2c0a`) are `general-purpose`. See §5 finding 4 for the mapping.
+  with no `"model"` field. The roster tool prints `model=None` for these nine, but that is a Python
+  `dict.get()` default value, not something the file records — so **their model cannot be measured from the
+  transcript.** Seven of the nine are `agentType: Explore`. The other two, `a5af88d1fe6f380d6` and
+  `ad73741c9a0ea2c0a`, are `general-purpose`. See §5 finding 4 for the mapping.
 
 ## 1. Chronological breakdown — where the time went
 
@@ -75,9 +96,9 @@ Sum: 0.6+0.1+6.3+1.3+1.6+6.4+1.5+5.7+0.8+28.2+1.8+0.7+11.6+1.5+3.6+1.5+14.0+0.4 
 | Idle-or-stall | 0.0 | 0.0% | none measurable — every gap is attributable to a named in-flight sub-agent |
 
 **79.3% of the item (69.5 of 87.6 min) was the operator blocked on a helper.** Its own active work was 18.1
-minutes. There is no idle time: every gap over 60 s in the timeline ends in a `### INJECTED PROMPT:
-<task-notification>` line, so the session never slept, never polled and never re-ran anything to check — the
-`[HELPERS]` rule held perfectly.
+minutes. There is no idle time. Every gap over 60 seconds in the timeline ends in a `### INJECTED PROMPT:
+<task-notification>` line. That means the session never slept, never polled, and never re-ran anything just to
+check — the `[HELPERS]` rule held throughout.
 
 ## 2. Chronological token buckets
 
@@ -105,9 +126,9 @@ WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS
 09-01 23:08-23:13     8      3     7,139     3,411,178           485  mcp__dungeonmaster__signal-backx1, Bashx1, mcp__dungeonmaster__modify-questx1
 ```
 
-Five bucket windows are **absent from the table entirely** — `22:08–22:33` and `22:58–23:08`. Those are the
+Five bucket windows are **absent from the table entirely**: `22:08–22:33` and `22:58–23:08`. Those are the
 28.2-minute group-3 wait and the 14.0-minute reviewer wait. The main session emitted no API call at all across
-them, which is the `[HELPERS]` rule working as designed.
+them. That is the `[HELPERS]` rule working as designed.
 
 ### Sub-agent spend attributed to the bucket each sub-agent STARTED in
 
@@ -143,7 +164,7 @@ Arithmetic check: 72,073+8,689+76,133+152,204+205,172+20,025+2,874+61,153+67,374
 | Tool calls | 84 | 927 | 1,011 |
 
 `cache_read` and `cache_creation` are stated separately and are not collapsed. The ratio is
-220,161,005 : 10,091,185 is about 21.8 : 1 — i.e. 95.6% of all context-in was cache-read.
+220,161,005 : 10,091,185 ≈ 21.8 : 1 — i.e. 95.6% of all context-in was cache-read.
 
 Cost density: **1,062,761 output tokens and 230.3 M context-in tokens for 1,932 inserted lines across 38 files** —
 550 output tokens per landed line.
@@ -157,30 +178,31 @@ of my own template-literal unescaping of `\``. So every observation below applie
 ### 3.1 What the prompt got right, with the behaviour it produced
 
 **The nine-step script matched this work almost exactly.** The item was a five-node, thirteen-observable,
-three-contract cell with a clean dependency ladder (statics, then contracts, then transformer, then broker, then responders),
+three-contract cell with a clean dependency ladder (statics → contracts → transformer → broker → responders),
 which is precisely the shape steps 3–4 assume.
 
 > `**Order comes from what a change needs, not from the flow's shape.** Contracts and statics first, then the
 > code that reads them, then the code that calls that. **Two changes go in one group only when they touch
 > different files.**`
 
-The map it produced has four groups in exactly that order, and no two paths repeat inside a group
+The map it produced has four groups in exactly that order. No two paths repeat inside a group
 (`.quest-plans/c47eeba9-87ce-42e7-822e-ef7ef9ccfe08-map.md`, `GROUP 1` … `GROUP 4`). Zero collisions were
 reported by any sub-agent.
 
 > `**Read what the cells before you already landed, before you decide anything is missing:** … git log --oneline -n 20`
 
-Executed at `0.6m` and `0.7m` — `git log --oneline -n 20`, then `git show --name-only --oneline bebca45c3` and
-`git show --name-only --oneline f48bbc660` for the shared and orchestrator cells. `0.7m say: "Standards loaded.
-Now reading what the shared and orchestrator cells landed, since my half builds on both."` This is what let it
-build on `pastedImageStatics` rather than re-invent it, and the map's TRAPS section carries
-`Read pastedImageStatics from @dungeonmaster/shared/statics. Never inline [Pasted Image N] …`.
+The session ran this at `0.6m` and `0.7m`: `git log --oneline -n 20`, then
+`git show --name-only --oneline bebca45c3` and `git show --name-only --oneline f48bbc660` for the shared and
+orchestrator cells. `0.7m say: "Standards loaded. Now reading what the shared and orchestrator cells landed,
+since my half builds on both."` This is what let it build on `pastedImageStatics` rather than re-invent it. The
+map's TRAPS section carries `Read pastedImageStatics from @dungeonmaster/shared/statics. Never inline
+[Pasted Image N] …`.
 
 > `| move it into a package both can call, then point both sides at the new home | yes |`
 
 Group 1 of the map puts `locations-quest-images-path-find-broker` in `packages/shared/src/brokers/locations/`,
-not in `server` — the third row of that table, chosen correctly. `packagesAffected` already carried `shared`, so
-no `modify-quest` was needed first.
+not in `server`. That is the third row of the quoted table, and the map chose it correctly. `packagesAffected`
+already carried `shared`, so no `modify-quest` was needed first.
 
 > `**You read code. You never write it.** … **Dispatch the moment you start typing code.**`
 
@@ -194,7 +216,7 @@ Held. Zero `npm` invocations in 10 `Bash` calls (git ×5, `python3 -c` ×3, `git
 > `**A NOT PROVED line is information, not a failure.**` … `**Never sign one your test proves against a MOCK.**`
 
 At `52.5m` the persist-broker agent returned `#check-both-copies-readable-after` as unprovable over a mocked
-filesystem, and the session recorded it `unconfirmable` with a `toSettle` naming the exact integration test
+filesystem. The session recorded it as `unconfirmable`, with a `toSettle` naming the exact integration test
 (`modify-quest` #1, verbatim: *"Write an integration test using installTestbedCreateBroker from
 @dungeonmaster/testing: point DUNGEONMASTER_HOME at the testbed dir, drive pastedImagePersistBroker twice with
 byte-identical images against one guildId/questId, then readFile both paths…"*). That is the prompt's rule
@@ -213,8 +235,8 @@ Operation Item ID: c47eeba9-87ce-42e7-822e-ef7ef9ccfe08
 Your operation item: [codeweaver] Codeweaver: build this slice — package: server · flow: send-message-with-images
 ```
 
-`codeweaverScopeBlockTransformer` exists to add two blocks to exactly this position — its own docblock says
-*"Returns ContentText[] lines to splice into the agent's Operation Context"* — and it produces:
+`codeweaverScopeBlockTransformer` exists to add two blocks to exactly this position. Its own docblock says
+*"Returns ContentText[] lines to splice into the agent's Operation Context"*. It produces:
 
 - `Seams — each line is a node you share with another package, and where that package's half of it stands:`
   with one of `NO SESSION OWNS IT` / `ALREADY BUILT` / `NOT BUILT YET` per shared node.
@@ -223,19 +245,20 @@ Your operation item: [codeweaver] Codeweaver: build this slice — package: serv
 Neither string appears anywhere in the rendered prompt (`'Seams' -> 0`, `'Shared homes' -> 0`,
 `'NOT BUILT YET' -> 0`, `'ALREADY BUILT' -> 0`, `'NO SESSION OWNS IT' -> 0`). **The transformer is dead code**: a
 walk of `packages/**/*.ts` finds exactly two files mentioning `codeweaverScopeBlockTransformer` — the transformer
-itself and its own colocated test. `workItemToPromptTransformer` never calls it; its docblock confirms the
-served block is *"FOUR IDS … plus the role-specific extras"*, and the three extras are dev-server (siegemaster),
-base branch (warpgate) and ward result (spiritmender).
+itself and its own colocated test. `workItemToPromptTransformer` never calls it. Its docblock confirms the
+served block is *"FOUR IDS … plus the role-specific extras"*. The three extras are dev-server (siegemaster),
+base branch (warpgate), and ward result (spiritmender).
 
 What that cost, concretely. This cell has four seam nodes — `#post-chat {web, server}`,
 `#resolve-images-dir {server, shared}`, `#forward-to-orchestrator {server, orchestrator}` and
 `#server-accepted {web, server}`. The session had to reconstruct all of that by hand from `git log` and
-raw exploration, which is phase 3: **6.3 minutes and 30 `Read` + 9 `discover` calls**, including
+raw exploration. That is phase 3: **6.3 minutes and 30 `Read` + 9 `discover` calls**. Those calls include
 `2.1m CALL mcp__dungeonmaster__discover(glob=packages/shared/src/brokers/locations/**)` (37,064-byte result),
 `3.2m CALL discover(glob=packages/orchestrator/src/brokers/chat/spawn/**)`,
-`4.7m CALL discover(grep=startChat:|addQuest:)` and three `python3 -c` probes of `packages/shared/package.json`
+`4.7m CALL discover(grep=startChat:|addQuest:)`, and three `python3 -c` probes of `packages/shared/package.json`
 exports and the `brokers.ts` / `contracts.ts` / `statics.ts` barrels. The `Shared homes` block alone would have
-answered `shared — server already depends on it` and removed the barrel probes at `5.7m`–`5.8m`.
+answered `shared — server already depends on it`. It would also have removed the barrel probes at
+`5.7m`–`5.8m`.
 
 ### 3.3 The prompt demands an id the render never prints — and the write fails silently
 
@@ -256,11 +279,11 @@ The `get-quest` flow render **never prints an edge id**. Every labelled edge is 
 →"accepted" [#clear-composer]
 ```
 
-and the render's own KEY says only `→"label"                    labeled edge (decision branch — each one is a
+The render's own KEY line says only `→"label"                    labeled edge (decision branch — each one is a
 unit)`. The real ids in `quest.json` are `accepted-no` and `accepted-yes`.
 
-So the session did the only thing available: it used the label as the id, and it nested `edges` inside the node
-rather than beside `nodes`. Verbatim from `modify-quest` #2 (`2026-09-01T22:51:15.098Z`):
+So the session did the only thing available. It used the label as the id, and it nested `edges` inside the node
+rather than beside `nodes`. Here is the payload, verbatim, from `modify-quest` #2 (`2026-09-01T22:51:15.098Z`):
 
 ```json
 { "id": "server-accepted",
@@ -268,46 +291,47 @@ rather than beside `nodes`. Verbatim from `modify-quest` #2 (`2026-09-01T22:51:1
                "codeweaverSignoff": { "verdict": "confirmed", "evidence": "…quest-chat-responder.test.ts:380 …", "workItemId": "3050a3ae-…" } } ] }
 ```
 
-and `modify-quest` #3 (`2026-09-01T22:55:13.596Z`) the same shape with `"id": "rejected"`.
+`modify-quest` #3 (`2026-09-01T22:55:13.596Z`) sent the same shape, with `"id": "rejected"`.
 
 Both calls returned `{"success": true}` (65-byte results at `67.9m` and `71.9m`). **Nothing was written.**
-`flowNodeContract` has no `edges` key — its fields are `id, label, type, packages, observables,
-codeweaverSignoff, flowriderSignoff, siegemasterSignoff` — so zod strips the array and the node itself carried
-no sign-off. `quest.json` today holds **13** sign-offs from this work item, all on observables, none on an edge
-or a node. The session's own closing message says the opposite:
+`flowNodeContract` has no `edges` key. Its fields are `id, label, type, packages, observables,
+codeweaverSignoff, flowriderSignoff, siegemasterSignoff`. So the validator that checks each payload's shape
+(zod) strips the unknown `edges` array, and the node itself ends up with no sign-off. `quest.json` today holds
+**13** sign-offs from this work item, all on observables, none on an edge or a node. The session's own closing
+message says the opposite:
 
 > `87.6m say: "… ## Sign-offs  15 units, every one carrying a verdict: 14 confirmed, 1 unconfirmable."`
 
-Both numbers are wrong (13 written, 12 confirmed), and the units lost are the two the map itself listed under
-`PROVES`:
+Both numbers are wrong. The real count is 13 written and 12 confirmed, not 15 and 14. The two units that were
+lost are the ones the map itself listed under `PROVES`:
 
 ```
   edge "rejected"  off #server-accepted     -> responder tests: a rejected body answers 400 and no file is written
   edge "accepted"  off #server-accepted     -> responder tests: an accepted body answers 200 with chatProcessId
 ```
 
-`#server-accepted` carries `◀ YOURS` in the render, so under the prompt's own rule (*"for a branch, the node the
-edge LEAVES"*) these are unambiguously this session's units. The prompt's hardest line —
-`**EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU SIGNAL**` — was violated, and the
-session reported compliance.
+`#server-accepted` carries `◀ YOURS` in the render. Under the prompt's own rule (*"for a branch, the node the
+edge LEAVES"*), these are unambiguously this session's units. The session violated the prompt's hardest line,
+and then reported compliance anyway. That line reads:
+`**EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU SIGNAL**`.
 
-**Two sibling sessions on the same flow got it right, and both used a route the prompt never mentions.** The
+**Two sibling sessions on the same flow got it right.** Both used a route the prompt never mentions. The
 `orchestrator` codeweaver (`751a242b`) and the `web` codeweaver (`0db63e41`) each sent `edges` at the FLOW level
 with real ids (`['forward-to-prompt','forward-to-accepted']` and
 `['shift-yes','shift-no','no-images','yes-images','newline-back','rejected-back','accepted-no','accepted-yes']`,
 `NESTED-in-node=[]` for both). The first line in each transcript containing a real edge id is a `Bash` tool
-result: `751a242b` ran `python3 -c` against its own spilled tool-result file under
-`…/751a242b-…/tool-results/mcp…`, and `0db63e41` ran `python3` directly against
+result. `751a242b` ran `python3 -c` against its own spilled tool-result file under
+`…/751a242b-…/tool-results/mcp…`. `0db63e41` ran `python3` directly against
 `.dungeonmaster/guilds/…/quest.json`. Neither route is named anywhere in the codeweaver prompt. The web session
 later signed `accepted-no` / `accepted-yes` off **web** evidence
-(`packages/web/src/widgets/chat-input/chat-input-widget.test.tsx:1712`), so the server-side branch evidence this
+(`packages/web/src/widgets/chat-input/chat-input-widget.test.tsx:1712`). So the server-side branch evidence this
 session built never landed anywhere.
 
 ### 3.4 What the prompt made the session invent
 
-**The consumer-side constraint on the server's error text.** Node `#send-rejected` is `{web ● 6}` — pure web —
-and the prompt is explicit that *"Observables attributed to another package are collapsed to a count"* and
-*"Sign only observables printed in full"*. So the observable that constrains what the server must return
+**The consumer-side constraint on the server's error text.** Node `#send-rejected` is `{web ● 6}` — pure web.
+The prompt is explicit on two points: *"Observables attributed to another package are collapsed to a count"*
+and *"Sign only observables printed in full"*. So the observable that constrains what the server must return
 (the toast shows *the server's own error text*) was invisible to this session. It surfaced only because a group-4
 sub-agent noticed it:
 
@@ -316,8 +340,8 @@ sub-agent noticed it:
 
 Recovering it cost a whole extra wave — 3 sub-agents, phase 14+15 (4.6 min of the operator's wall clock),
 61,153 sub-agent output tokens and 16,547,817 sub-agent context-in. The information was in the render, but in
-the **design decisions** section, not the observables — and the map at `7.0m` was cut from observables and
-contracts.
+the **design decisions** section, not the observables. The map at `7.0m` was cut from observables and
+contracts only.
 
 ### 3.5 A ward invocation the prompt mandates cannot see the work
 
@@ -328,9 +352,9 @@ npm run build
 npm run ward -- --staged
 ```
 
-and `codeweaverPromptStatics` `[BUILD]` repeats it. The same reviewer prompt says at step 3 that *"New files are
-most of what gets built here, and a diff never mentions them"*. Those two statements contradict each other, and
-the reviewer measured it. From commit `4b8d98710`'s body, verbatim:
+`codeweaverPromptStatics`'s `[BUILD]` section repeats it. The same reviewer prompt says at step 3 that *"New files are
+most of what gets built here, and a diff never mentions them"*. Those two statements contradict each other. The
+reviewer measured the contradiction. From commit `4b8d98710`'s body, verbatim:
 
 > `A real gap in ward evidence, not in the source: npm run ward -- --staged silently EXCLUDED every untracked
 > (never git addded) new file this pass produced — all of fs-mkdir-adapter/fs-write-file-base64-adapter/
@@ -344,8 +368,8 @@ Of the 38 files in the commit, 24 were new. A green `--staged` covered none of t
 
 ### 3.6 A near-miss on the tool-result ceiling
 
-`mcpToolResultStatics.maxVerbatimChars` is 50,000; over it a result spills to a file and the agent gets an error
-stub. The results this session received, measured as text:
+`mcpToolResultStatics.maxVerbatimChars` is 50,000. Past that limit, a result spills to a file and the agent gets
+an error stub instead. The results this session received, measured as text:
 
 | Tool | Chars | Headroom |
 |---|---:|---:|
@@ -357,22 +381,22 @@ stub. The results this session received, measured as text:
 | `get-project-inventory` | 3,761 | 46,239 |
 
 `get-testing-patterns` was fetched 19 times on this item (once by the main session, once each by 18 sub-agents).
-It is 2.6% from the cliff, and the prompt's own budget note only measures the PROMPT statics against that
+It sits 2.6% from the cliff. The prompt's own budget note only measures the PROMPT statics against that
 ceiling, not the standards payloads.
 
 ## 4. What went well
 
 1. **Zero tool failures and zero re-reads, across 84 calls.** All 84 tool results came back with
-   `is_error: false`, and the 30 `Read` calls hit **30 distinct paths** — not one file was opened twice. The
-   mechanism is step 5's `**Read the diff, not the files**` combined with the map: at `72.0m` the session read
-   `git diff -- packages/server/src/responders packages/shared/brokers.ts packages/shared/testing.ts` (31,051 B)
-   and then opened only the two files the diff cannot show (`pasted-image-persist-broker.ts`,
+   `is_error: false`. The 30 `Read` calls hit **30 distinct paths** — not one file was opened twice. The
+   mechanism is step 5's rule, `**Read the diff, not the files**`, combined with the map. At `72.0m` the session
+   read `git diff -- packages/server/src/responders packages/shared/brokers.ts packages/shared/testing.ts`
+   (31,051 B). Then it opened only the two files the diff cannot show (`pasted-image-persist-broker.ts`,
    `pasted-image-token-substitute-transformer.ts`), rather than re-walking the tree.
 
-2. **The `[HELPERS]` end-your-turn rule saved the item from a poll loop.** Five waits over 3 minutes
-   (6.4 / 5.7 / 28.2 / 11.6 / 3.6 min) and a 14.0-minute reviewer wait, and the session ended its turn on a
-   plain message every single time. Evidence: `24.3m say: "The persist broker is out — it composes everything
-   the first two groups built and carries eight of my thirteen observables."` then nothing until
+2. **The `[HELPERS]` end-your-turn rule saved the item from a poll loop.** There were five waits over 3 minutes
+   (6.4 / 5.7 / 28.2 / 11.6 / 3.6 min) and one 14.0-minute reviewer wait. The session ended its turn on a
+   plain message every single time. As evidence: `24.3m say: "The persist broker is out — it composes everything
+   the first two groups built and carries eight of my thirteen observables."`, then nothing until
    `52.5m 1689s`. Zero `sleep`, zero `ListAgents`, zero re-dispatch. Compare the CLAUDE.md's measured
    counter-example on quest a7520e60: 815 s of one quest went into sleeps.
 
@@ -406,7 +430,7 @@ ceiling, not the standards payloads.
    33,276,763 context-in.
 
 6. **Four sub-agents did real executed red-then-green cycles, not just write-and-run-once.** Verified by tool
-   calls, not by self-report: `a131c4a949a89d271` mutated `mkdir(dirPath, {recursive:true})` to `mkdir(dirPath)`
+   calls, not by self-report: `a131c4a949a89d271` mutated `mkdir(dirPath, {recursive:true})` → `mkdir(dirPath)`
    and re-ran (*"Confirmed red"*); `ae79ed23004a1ec85` changed `.max(pastedImageStatics.maxImagesPerMessage)` to
    `+ 1` and confirmed the off-by-one test failed; `af2c70cc9f66fd66a` used
    `git stash push --keep-index` to isolate the revert and ran the units twice; `aac340a685ff255b0` backed up
@@ -424,12 +448,12 @@ ceiling, not the standards payloads.
 as the `id`. `flowNodeContract` strips unknown keys, so both writes returned `{"success": true}` and wrote
 nothing.
 
-**Citation.** `67.9m CALL mcp__dungeonmaster__modify-quest(questId=1be07040-…)` led to payload
+**Citation.** `67.9m CALL mcp__dungeonmaster__modify-quest(questId=1be07040-…)` → payload
 `{"id":"server-accepted","edges":[{"id":"accepted", …}]}`; `71.9m say: "All three routes fixed … Signing the
-last two units."` led to payload `{"id":"server-accepted","edges":[{"id":"rejected", …}]}`. `quest.json` holds 13
+last two units."` → payload `{"id":"server-accepted","edges":[{"id":"rejected", …}]}`. `quest.json` holds 13
 sign-offs from this work item, `Counter({'confirmed': 12, 'unconfirmable': 1})`, none on an edge.
 
-**Cost.** Two units lost. Roughly 2,300 characters of already-built red-then-green evidence discarded. A false
+**Cost.** Two units lost. ~2,300 characters of already-built red-then-green evidence discarded. A false
 `"15 units, every one carrying a verdict: 14 confirmed, 1 unconfirmable"` in the closing report, which the
 orchestrator relays forward. Roughly 0.4 min of wall clock spent producing writes that did nothing — the real
 cost is the verification hole, not the minutes.
@@ -446,7 +470,7 @@ wave (`22:50:21`–`22:53:00`) re-opened the same three responders and the same 
 400 body.
 
 **Citation.** `66.1m say: "It surfaced a real defect: an over-cap send answers 400 with "message is required",
-when the actual problem is too many images."` leading to `67.0m CALL Agent(description=Chat route images error text
+when the actual problem is too many images."` → `67.0m CALL Agent(description=Chat route images error text
 prompt=FILES packages/server/src/responders/quest/chat/quest-chat-responder.ts edit …)`.
 
 **Cost.** 4.6 min of operator wall clock (phases 14–15), 3 sub-agents, **61,153 output tokens and 16,547,817
@@ -469,7 +493,7 @@ context-in — **22.9% of all sub-agent output and 26.5% of all sub-agent contex
 
 **Citation.** `24.3m CALL Agent(description=Pasted image persist broker prompt=FILES
 packages/server/src/brokers/pasted-image/persist/pasted-image-persist-broker.ts new …)` (11,749-char brief, the
-longest of the 18) leading to `52.5m 1689s 12440 …`. The buckets table has no row for `22:08–22:33`.
+longest of the 18) → `52.5m 1689s 12440 …`. The buckets table has no row for `22:08–22:33`.
 
 **Cost.** 28.2 min of the 87.6 (32.2%) with the operator blocked on one helper. Nothing else could be dispatched
 because every group-4 change depends on this broker.
@@ -550,9 +574,9 @@ get-syntax-rules, get-testing-patterns` and the operator prompt's step 2 says th
 session (`0.6m CALL mcp__dungeonmaster__get-architecture({})` …).
 
 **Cost.** 19 × 18,025 + 18 × 23,648 + 19 × 48,698 = 342,475 + 425,664 + 925,262 = **1,693,401 characters
-(roughly 423,000 tokens) of identical standards text fetched**, and — because each lands in a context re-read on every
+(~423,000 tokens) of identical standards text fetched**, and — because each lands in a context re-read on every
 subsequent turn of that agent — a large multiple of that in `cache_read`. The three payloads are 90,371 chars
-(roughly 22.6k tokens) per agent, against sub-agent briefs of 2,724–11,749 chars.
+(~22.6k tokens) per agent, against sub-agent briefs of 2,724–11,749 chars.
 
 **Prompt status.** **Required**, by both `codeweaverPromptStatics` step 2 and the `READ FIRST` line the brief
 template mandates. It is the correct trade for a code-writing agent; it is pure waste for the six `Explore`-type
@@ -585,7 +609,7 @@ anywhere in its return block. `a23158dcb3a9eeccf`'s final report reads
 — true, and silent about the monorepo build it ran two minutes earlier. **The operator's only channel into a
 sub-agent is that return block, so a violation the sub-agent omits is a violation nothing on the pass can see.**
 `a23158dcb3a9eeccf` then tried a *second* build to check the exit code and was stopped by the permission layer,
-not by the prompt: `12.2m … CALL Bash(echo "build exit code check via a dedicated run"; npm run build > …)` leading to
+not by the prompt: `12.2m … CALL Bash(echo "build exit code check via a dedicated run"; npm run build > …)` →
 `Error: Permission to use Bash has been denied.`
 
 **Cost.** The collision the rule exists to prevent did fire, once:
@@ -595,7 +619,7 @@ prevent."` Inside `a51b394f0fd705016`, that cost 2 failed ward runs and roughly 
 (`7.4m` FAIL: `unit FAIL 2 files, 29 errors … integration FAIL 4 files, 29 errors`, root cause
 `TypeError: (0 , testing_1.locationsQuestFolderPathFindBrokerProxy) is not a function`; then diagnostic `ls` and
 `node -e` probes at `8.6m`/`8.9m`; then `10.1m say: "Good — that confirms it was a transient race with a
-concurrent rebuild of @dungeonmaster/shared, not a real issue."`). By timing that race at roughly 22:44:37 falls
+concurrent rebuild of @dungeonmaster/shared, not a real issue."`). By timing that race at ~22:44:37 falls
 **before** `a23158dcb3a9eeccf`'s 22:48:34 build and well after the other two, so the fitting writer is
 `ac90ccceb0b4a95a5`'s hand-mirroring of `packages/shared/dist/testing.js` between 22:37:31 and 22:46:01 — see
 Finding 7. Exact attribution is not separable from the transcripts.
@@ -623,9 +647,9 @@ worth noting that this is the agent that **obeyed** the rule — the three in Fi
 **Cost.** Bounded on the artifact itself: the reviewer regenerated it (`FIXES #5: "Ran npm run build fresh …
 build is green and dist/ is now honest"`). But the hand-write to `packages/shared/dist/testing.js` landed inside
 `ac90ccceb0b4a95a5`'s window of 22:37:31–22:46:01, which is the only writer to `shared/dist` whose window
-contains the roughly 22:44:37 moment `a51b394f0fd705016` went red with
+contains the ~22:44:37 moment `a51b394f0fd705016` went red with
 `TypeError: (0 , testing_1.locationsQuestFolderPathFindBrokerProxy) is not a function`. That cost that agent
-2 failed ward runs and roughly 2.7 minutes of diagnosis. So the escape hatch the rule does not provide produced the
+2 failed ward runs and ~2.7 minutes of diagnosis. So the escape hatch the rule does not provide produced the
 exact collision the rule exists to prevent. For the length of that wave the barrel agent's green ward run was a
 false green resting on an artifact it had written by hand.
 
@@ -648,7 +672,7 @@ reasoning through** `toStrictEqual` semantics plus the passing ward run"* — an
 handed a structurally identical job, framed it correctly as hypothetical: *"red **if** the reversed order… were
 expected · watched **pass** with images echoed in posted order."*
 
-**Citation.** `17.2m CALL Agent(description=message-body contract images field …)` leading to the operator's routing at
+**Citation.** `17.2m CALL Agent(description=message-body contract images field …)` → the operator's routing at
 `21.1m say: "Two group-2 agents still running — the guild-message-body and quest-new-body contracts."` The
 operator never opened `message-body-contract.test.ts`; the prompt tells it not to
 (*"You have not read the test — step 4 says so, and it is the step that signs"*).
@@ -711,7 +735,7 @@ seam node, one per library package) — for this cell that is 4 seam lines and 1
 **Estimated saving:** most of phase 3's exploration of *other* packages — the `discover` on
 `packages/shared/src/brokers/locations/**` (37,064 B), the `discover` on
 `packages/orchestrator/src/brokers/chat/spawn/**`, the `discover(grep=startChat:|addQuest:)` and the three
-`python3` barrel probes at `5.7m`–`5.8m`. Call it **2–3 min of the 6.3-min orientation phase, and roughly 90,000 of
+`python3` barrel probes at `5.7m`–`5.8m`. Call it **2–3 min of the 6.3-min orientation phase, and ~90,000 of
 the 285,102 result bytes in bucket 1**, per codeweaver cell. Across the 8 codeweaver items on this quest, 16–24
 minutes.
 
@@ -746,10 +770,10 @@ TRAPS
 `codeweaverReviewerStatics` already carries the equivalent rule (`you start no sub-agent`) and the reviewer
 obeyed it — the rule works, it is simply absent from the generic-sub-agent template.
 
-**Estimated saving:** 5,925,244 context-in and 49,245 output tokens on this item, of which roughly 1.87 M context-in was
+**Estimated saving:** 5,925,244 context-in and 49,245 output tokens on this item, of which ~1.87 M context-in was
 provably duplicate lookup. Some of that work would move back into the parent agent, so the net saving is the
-duplicate share plus the 9 × roughly 22.6k-token standards reload the grandchildren each paid: call it
-**roughly 2.5 M context-in per item of this size.**
+duplicate share plus the 9 × ~22.6k-token standards reload the grandchildren each paid: call it
+**~2.5 M context-in per item of this size.**
 
 ### Fix 5 — Replace `--staged` with a scope that sees untracked files (§3.5)
 
@@ -794,9 +818,9 @@ The orchestrator CLAUDE.md already names this gap for git verbs: *"Prompts are a
 `PreToolUse` guard in `@dungeonmaster/hooks` is the only thing that would actually prevent it, and that is not
 built yet."* The build ban is the same shape and has a measured cost here.
 
-**Estimated saving:** the collision itself — 2 failed ward runs and roughly 2.7 min inside `a51b394f0fd705016` on this
+**Estimated saving:** the collision itself — 2 failed ward runs and ~2.7 min inside `a51b394f0fd705016` on this
 item — plus the class of false green where a sub-agent hand-writes compiled output to make its own test pass.
-Across a quest with 8 codeweaver cells and roughly 18 sub-agents each, a 3-in-18 violation rate is roughly 24 forbidden builds.
+Across a quest with 8 codeweaver cells and ~18 sub-agents each, a 3-in-18 violation rate is ~24 forbidden builds.
 
 ### Fix 7 — Make the `RETURN` block distinguish a watched red from a reasoned one (Finding 8)
 
@@ -835,7 +859,7 @@ it into a core payload and a `get-testing-patterns({ topic })` detail call so a 
 does not pull 12k tokens of e2e guidance.
 
 **Estimated saving:** (a) prevents a silent spill that would hand 19 agents a path instead of their standards.
-(b) would cut a large share of the 925,262 characters (roughly 231k tokens) of `get-testing-patterns` text fetched on
+(b) would cut a large share of the 925,262 characters (~231k tokens) of `get-testing-patterns` text fetched on
 this item alone.
 
 ### Fix 9 — Reconcile the closing report against `quest.json` before signalling (Finding 1's second half)

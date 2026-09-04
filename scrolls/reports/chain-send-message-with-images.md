@@ -2,27 +2,11 @@
 
 Quest `1be07040-b9ec-476c-a439-0b4fbb0123cd` · flow 2 of 3 · "Send a message carrying images"
 
-**Scope caveat, stated once and honoured throughout.** Work item [17], the siegemaster on this flow, ran
-655 minutes and was **cut off mid-loop by an API outage** — 15 identical zero-token 529 cycles over 79
-minutes. It never reached its reviewer, never called `signal-back`, and left 67 uncommitted paths. Its
-four unsigned units are **not yet attempted**, not a role failure, and are reported as such every time
-they appear below.
+**Scope caveat, stated once and covered throughout.** Work item [17] was the **siegemaster** on this flow — the role that stress-tests a finished feature against a real, running system. It ran for 655 minutes and was **cut off mid-loop by an API outage**: 15 identical zero-token failures (HTTP 529) repeated over 79 minutes. It never reached its reviewer step, never called the `signal-back` tool, and left 67 files uncommitted. Its four unsigned units are **not yet attempted** — this is not a failure by the role — and this report calls them that every time they come up below.
 
-**Headline.** The chain on this flow *did* deliver. Flowrider [14] closed its denominator exactly —
-**59 owed, 59 signed, 0 unsigned**. Siegemaster [17] reached **67 of 71** before it was cut off, and the
-four it did not reach are off-map probe families, not yet attempted. Codeweaver has **1 of 61**
-outstanding, an observable authored 9.2 hours after the cell that owns it had closed. 58 of the 73
-enumerated units carry all three tracks, 54 of them three-times-`confirmed`.
+**Headline.** The chain on this flow did deliver. The **flowrider** — the role that verifies the feature in a real browser — closed out its full list exactly: it owed **59** checks, signed **59**, and left **0** unsigned. That full list a role must sign off is its **denominator**, used throughout this report. The **siegemaster** reached **67 of 71** checks before the outage cut it off, and the four it did not reach belong to **off-map families** — extra safety and performance checks that are not tied to one specific spot in the flow — so those four are simply not yet attempted. The **codeweaver** — the role that writes the code, one package at a time — has just **1 of 61** checks outstanding, and that one check (an **observable**: one specific, testable behavior tied to a point in the flow) was written 9.2 hours after the codeweaver's **cell** — its work item, scoped to a single package — had already closed. Of the 73 checks counted overall, 58 were confirmed by all three roles' sign-off **tracks** (a track is the running checklist one role — codeweaver, flowrider, or siegemaster — keeps as it signs off work), and 54 of those 58 were confirmed three separate times.
 
-But the delivery was not driven by the artifact the gate approved. **The codeweaver is the only one of
-the three tracks with no denominator tool** — `get-qa-checklist` appears **zero times** in
-`codeweaver-prompt-statics.ts` and zero times in `codeweaver-reviewer-statics.ts`, while
-`flowrider-prompt-statics.ts` and `siegemaster-prompt-statics.ts` each give it a numbered step. All four
-cells therefore enumerated their own work by eye, from a graph render that never prints the edge ids it
-is required to sign; two sign-offs were destroyed in transit by a call that answered `success`; and the
-one defect that cost this flow 32 hours was named in writing by a codeweaver, measured by the flowrider,
-and fixed by the siegemaster's walkers, because nothing between the flow map and the first brief says
-which cell owns a route the graph draws only once. That is the missing middle step, and §7 states it.
+But it was not the tool the process provides that actually drove that result. The codeweaver is the only one of the three tracks with no tool that tells it its own denominator: the tool that supplies one, `get-qa-checklist`, is named **zero times** in the file that instructs the codeweaver (`codeweaver-prompt-statics.ts`) and zero times in the file that instructs its reviewer (`codeweaver-reviewer-statics.ts`), while the equivalent files for the flowrider and the siegemaster each give it a numbered step. So all four codeweaver cells on this flow had to count their own work by eye, from a graph render that never prints the edge ids it requires them to sign. Two sign-offs were destroyed in transit, by a tool call that reported success while writing nothing. And the one defect that cost this flow 32 hours slipped through because nothing between the approved flow map and the first work brief says which cell owns a route the graph draws only once — a codeweaver named it in writing, a flowrider measured it, and the siegemaster's walkers fixed it. That is the missing middle step, and §7 states it.
 
 ---
 
@@ -64,14 +48,15 @@ P5  … → forward-to-orchestrator → server-accepted → clear-composer
 **Two structural facts about the approved artifact matter for everything below.**
 
 **(a) `post-chat` is one node standing for three HTTP routes.** Its 7 observables include
-`check-chat-post-carries-images`, `check-followup-post-carries-images` and
-`check-create-post-carries-images` — the spec knew there were three send surfaces. But the graph draws
-exactly **one** edge into the write chain, `post-chat -> resolve-images-dir`, so the fan-out is invisible
-to any reader that routes work by node. Three routes converge on one drawn path; two of them were built.
-§6 prices the third.
+`check-chat-post-carries-images`, `check-followup-post-carries-images`, and
+`check-create-post-carries-images`. That shows the spec knew there were three separate send surfaces. But
+the graph draws exactly **one** edge into the write chain, `post-chat -> resolve-images-dir`, so a reader
+who assigns work by node cannot see the fan-out to three routes. Three routes converge on one drawn path,
+and only two of them were actually built. §6 prices the cost of the third.
 
-**(b) Not one of the 33 design decisions is anchored per-cell, though every one carries
-`relatedNodeIds`.** 13 of them touch a node on this flow. Measured per cell:
+**(b) None of the 33 design decisions is anchored to a specific cell, even though each one carries a
+`relatedNodeIds` field.** 13 of the 33 touch a node on this flow. Here is the breakdown, measured per
+cell:
 
 ```
 shared        flow-scoped=13  actually name a node this cell owns=3   -> unactionable=10
@@ -80,17 +65,18 @@ orchestrator  flow-scoped=13  actually name a node this cell owns=3   -> unactio
 web           flow-scoped=13  actually name a node this cell owns=10  -> unactionable=3
 ```
 
-The data to filter by node is on disk; the render filters by flow. The `shared` and `orchestrator` cells
-each read ten design decisions that named nothing they owned. Report 02 §3.3 measures what that cost the
-`shared` cell in its 27,330-character scope fetch:
+The data needed to filter by node already exists on disk. But the render filters by flow instead. As a
+result, the `shared` and `orchestrator` cells each read ten design decisions that named nothing they
+actually owned. Report 02 §3.3 measured what that cost the `shared` cell in its 27,330-character scope
+fetch:
 
 > **15,449 of 27,330 characters (56.5%) are design decisions.** Thirteen are rendered under 'governing
 > these nodes'; **ten of the thirteen name no node this cell owns** … The three that do name
 > `#resolve-images-dir` are the three that mattered. **The filter is by FLOW, never by the cell's own
 > nodes.**
 
-Its fix 5 prices the correction at "roughly **8,800 of 27,330 characters (32%)** off every codeweaver's
-scope fetch … **the largest single token lever available.**"
+Report 02's fix 5 prices the correction: it would cut "roughly **8,800 of 27,330 characters (32%)** off
+every codeweaver's scope fetch … **the largest single token lever available.**"
 
 ---
 
@@ -98,10 +84,12 @@ scope fetch … **the largest single token lever available.**"
 
 ### 1a. The denominator, reconciled
 
-`coverage.txt` and report 17 disagreed — 66 against 71 — and **both were partly right**. 71 *is* the
-siegemaster denominator; 66 was the old script's flat count, correct for no track. I called
-`get-qa-checklist({ questId, operationItemId })` for one operation item per role and then re-derived every
-track's measured set from `signoffTrackEligibilityStatics` directly. Both agree, and both agree with the
+`coverage.txt` and report 17 disagreed about the total: 66 against 71. **Both were partly right.** 71 is
+the true siegemaster denominator. 66 was the old counting script's flat total, which is not correct for
+any one track. To check this, I called `get-qa-checklist({ questId, operationItemId })` — the tool that
+reports one role's own denominator — once for one **operation item** (the specific, id-tagged task a
+session works against) per role. I then re-derived each track's own measured set directly from the rule
+file `signoffTrackEligibilityStatics`. Both methods agree with each other, and both agree with the
 corrected coverage script:
 
 ```
@@ -111,7 +99,7 @@ send-message-with-images   OWED  signed  confirmed  unconfirmable  UNSIGNED
   siegemasterSignoff         71      67         66              1         4
 ```
 
-The three tool calls, headers verbatim:
+Here are the three tool calls, with their headers verbatim:
 
 | Role | operation item | Header, verbatim |
 |---|---|---|
@@ -120,26 +108,26 @@ The three tool calls, headers verbatim:
 | siegemaster | `790afdae-40a7-4c42-a3ee-bf249cfd12b0` | `Units: 71 (3 terminal, 10 branch, 51 observable, 7 off-map)` · `REMAINING (awaiting your siegemasterSignoff): 4 of 71` |
 
 Report 17 quoted the same tool at 610.5m elapsed and got `Units: 71 … REMAINING: 7 of 71`
-[report 17 §3 S7]; its final walker signed three more before the pause, leaving 4. The tool and the
-report agree exactly.
+[report 17 §3 S7]. Its final walker signed three more checks before the pause, leaving 4 remaining. So the
+tool and the report agree exactly.
 
-**`coverage.txt` is wrong in three independent ways, and its total is right by coincidence.**
+**`coverage.txt` is wrong in three independent ways.** Its total number only looks right by coincidence.
 
 | | `coverage.txt` | authoritative | why |
 |---|---|---|---|
 | terminals | **0** | 3 | coverage never enumerates terminal units at all |
 | branches | 10 | 10 | agree |
-| observables | 53 | 53 (cw) / 51 (fr, sm) | coverage does not apply `verificationMethods` — the 2 `(read-check)` observables are off flowrider's and siegemaster's lists |
-| off-map | **3** | **7** | coverage counts the `offMapSignoffs` *records on disk*; the canonical family list is `qaOffMapFamilyContract.options`, 7 long, emitted **unconditionally for every flow** by `qaUnitEnumerateTransformer` |
-| origins | not applied | codeweaver & flowrider exclude `addedBy: 'siegemaster'` | the 5 siegemaster-authored observables on this flow were charged to two tracks that structurally cannot sign them — **the entire source of the "6 unsigned / 7 unsigned" figures in my own brief** |
+| observables | 53 | 53 (cw) / 51 (fr, sm) | coverage does not apply `verificationMethods`. The 2 `(read-check)` observables are left off the flowrider's and siegemaster's lists. |
+| off-map | **3** | **7** | coverage counts only the `offMapSignoffs` *records on disk*. The canonical family list, `qaOffMapFamilyContract.options`, is 7 items long and is emitted **unconditionally for every flow** by `qaUnitEnumerateTransformer`. |
+| origins | not applied | codeweaver & flowrider exclude `addedBy: 'siegemaster'` | the 5 observables that the siegemaster added on this flow (recorded via the `addedBy` field, which names who created each check) were still charged against two tracks that, by rule, can never sign siegemaster-added work — **the entire source of the "6 unsigned / 7 unsigned" figures in my own brief** |
 | **total** | **66** | **61 / 59 / 71** | the printed 66 = 53+10+3, which happens to equal 3+10+53 |
 
-The off-map error is the consequential one. `coverage.txt` reports siegemaster as `64 signed … 2 UNSIGNED
-of 66`. The truth is **67 signed of 71, 4 remaining** — and the four missing are precisely
-`staleness`, `configuration`, `hostile-input` and `perf`, which report 17 names as "**this flow's only
-security and performance coverage**" [report 17 §1, §3 S7]. A measurement tool that counts only the
-probe families a session already answered can never show that a session stopped before the security
-probe.
+The off-map error is the one that matters most. `coverage.txt` reports the siegemaster as `64 signed …
+2 UNSIGNED of 66`. The truth is **67 signed of 71, with 4 remaining**. Those four missing checks are
+exactly `staleness`, `configuration`, `hostile-input`, and `perf` — which report 17 calls "**this flow's
+only security and performance coverage**" [report 17 §1, §3 S7]. A measurement tool that only counts the
+probe families a session has already answered can never show that the session stopped before reaching the
+security probe.
 
 Applying every rule in `signoffTrackEligibilityStatics` myself, against `quest.json`:
 
@@ -153,36 +141,39 @@ siegemaster  OWED  71  signed  67  confirmed  66  unconfirmable 1  UNSIGNED 4
 
 ### 1a-bis. A product bug in the checklist header, and what it did on this flow
 
-`qaChecklistBuildTransformer` builds `items` from the raw enumeration and applies the origin and
-package-slice filters **only** to `remainingItemIds`; `qaChecklistToTextTransformer` then filters `items`
-by `unitKinds` and `verificationMethods` **only**. So the "of N" a session reads is not the set its
-remainder is measured over.
+`qaChecklistBuildTransformer` builds the `items` list from the raw enumeration, and applies the origin and
+package-slice filters **only** to `remainingItemIds`. `qaChecklistToTextTransformer` then filters `items`
+by `unitKinds` and `verificationMethods` **only**. The result: the "of N" total a session reads is not
+measured over the same set as its remaining count.
 
-**On this flow it printed `Units: 66` for a codeweaver over a real denominator of 61** — the exact call I
-made above. The five excess units are the siegemaster-authored observables, and they render as `[x]`
-under a legend whose two stated reasons are **both false** for them:
+**On this flow it printed `Units: 66` for a codeweaver whose real denominator was 61** — this is the exact
+call quoted above. The five extra units are the observables the siegemaster added. They render as `[x]`
+under a legend that gives two reasons, and **both reasons are false** for these five:
 
 > `[x]` says ONLY that this unit is not yours to sign right now: it is already signed on the
 > codeweaver track, or another track owns its package kind.
 
 Neither is true. They are excluded by `observableOrigins`, which the legend never names.
 
-**But no codeweaver on this flow ever saw it, because no codeweaver ever called the tool** (§3a). And the
-flowrider did not see it either, for a timing reason worth recording: it ran at 2026-09-02T12:03Z, when
-all 53 observables did not yet exist — 47 `spec` ones did, and none of the six later additions. Its header
-then was `3 terminal + 10 branch + (47 − 2 read-check) = 58`, and report 14 records exactly that: `0.6m …
-say: "58 units across 5 walk paths."` [report 14 §1 P1]. It authored one observable, read 59, and closed
-on 59.
+**But no codeweaver on this flow ever saw this bug, because no codeweaver ever called the tool** (see
+§3a). The flowrider did not see it either, for a different, timing-related reason worth recording: it ran
+at 2026-09-02T12:03Z, before all 53 observables existed. At that point only the 47 `spec` observables
+existed; none of the six later additions did yet. So its header read
+`3 terminal + 10 branch + (47 − 2 read-check) = 58`, and report 14 records exactly that: `0.6m … say: "58
+units across 5 walk paths."` [report 14 §1 P1]. The flowrider then authored one more observable itself,
+bringing its own read count to 59, and it closed out at 59.
 
-**This vindicates report 14's closing arithmetic, which a first reading contradicts.** At 248.8m it
-self-corrected to `"55 confirmed, 4 unconfirmable"` of 59. A count over `quest.json` that omits terminal
-units returns 53/3 of 56 and makes that look wrong. Counting terminals returns exactly **55 confirmed, 4
-unconfirmable, 59 owed, 0 unsigned** — the flowrider was right, and the disagreement was the same
-terminal-omission bug that made `coverage.txt` wrong. **Flowrider [14] is the only track on this flow that
-finished its denominator: 59 of 59.**
+**This also vindicates report 14's closing arithmetic, which looks wrong on a first reading.** At 248.8m
+the flowrider self-corrected to `"55 confirmed, 4 unconfirmable"` of 59. A count taken over `quest.json`
+that omits terminal units returns 53/3 of 56, which makes that correction look wrong. But counting
+terminal units properly returns exactly **55 confirmed, 4 unconfirmable, 59 owed, 0 unsigned**. So the
+flowrider was right, and the apparent disagreement was the same terminal-omission bug that made
+`coverage.txt` wrong elsewhere. **Flowrider [14] is the only track on this flow that fully closed out its
+denominator: 59 of 59.**
 
-The bug bites a track that runs *after* a later role authors an observable. On this flow that is a future
-codeweaver `pt N` on `web` — see §1c.
+This bug affects any track that runs *after* a later role adds a new observable. On this flow, that would
+be a future codeweaver **`pt N`** on `web` — meaning a later, follow-up work item (part N) opened for that
+same package after the original one has already closed. See §1c.
 
 ### 1b. Full unit table
 
@@ -272,32 +263,35 @@ flowrider · **[17]** `db0acadb` siegemaster.
 units by number of tracks that signed: {0: 4, 1: 10, 2: 1, 3: 58}
 ```
 
-**Zero tracks — 4 units, all the paused-siegemaster caveat.** `off-map:staleness`,
-`off-map:configuration`, `off-map:hostile-input`, `off-map:perf`. Owned by siegemaster alone
-(`unitKinds` is the only track carrying `'off-map'`). **Not yet attempted** — work item [17] ordered them
-last, per its prompt's own rule, and was cut off before reaching them. Report 17 states the consequence
-plainly: "**Unwalked: `staleness`, `configuration`, `hostile-input`, `perf`** … These seven are the only
-security and performance coverage this quest has" [report 17 §3 S7].
+**Zero tracks signed — 4 units, all covered by the paused-siegemaster caveat above.** These are
+`off-map:staleness`, `off-map:configuration`, `off-map:hostile-input`, and `off-map:perf`. The siegemaster
+owns all four alone, because `unitKinds` gives `'off-map'` checks to no other track. They are **not yet
+attempted**: work item [17]'s own prompt rule orders off-map checks last, and the outage cut the session
+off before it reached them. Report 17 states the consequence plainly: "**Unwalked: `staleness`,
+`configuration`, `hostile-input`, `perf`** … These seven are the only security and performance coverage
+this quest has" [report 17 §3 S7].
 
-**One track — 10 units, every one correct under `signoffTrackEligibilityStatics`.** Five
-siegemaster-origin observables (rule 5 excludes `addedBy: 'siegemaster'` from codeweaver and flowrider),
-two `(read-check)` observables (rule 6 gives `'reading'` to codeweaver alone), three signed off-map
-families (rule 2). No gap.
+**One track signed — 10 units, and every one is correct under `signoffTrackEligibilityStatics`.** This
+group breaks down as: five observables the siegemaster originated (rule 5 excludes any
+`addedBy: 'siegemaster'` observable from the codeweaver and flowrider), two `(read-check)` observables
+(rule 6 gives these to the codeweaver alone), and three signed off-map families (rule 2). No gap here.
 
-**Two tracks — 1 unit, and it is the "closed denominator with no way to reopen it" seam.**
-`check-typing-after-end-of-content-newline`, `addedBy: 'flowrider'`, signed by [14] and [17], unsigned on
-codeweaver. It is the **one genuinely outstanding unit on the codeweaver track**, and it is not a miss by
-cell [8]: flowrider [14] authored it at 2026-09-02T15:51:07Z, **9.2 hours after** cell [8] finished at
-06:39:48Z. `signoffTrackEligibilityStatics` keeps a `flowrider` origin on codeweaver's list deliberately —
+**Two tracks signed — 1 unit, and this is the "closed denominator with no way to reopen it" problem.** The
+check `check-typing-after-end-of-content-newline` was added by the flowrider (`addedBy: 'flowrider'`) and
+signed by [14] and [17], but is unsigned on the codeweaver track. This is the **one genuinely outstanding
+unit on the codeweaver track**, and it is not a miss by cell [8]. The flowrider [14] wrote this observable
+at 2026-09-02T15:51:07Z, **9.2 hours after** cell [8] had already finished at 06:39:48Z.
+`signoffTrackEligibilityStatics` keeps a `flowrider`-added observable on the codeweaver's list on purpose:
 "a `flowrider` origin reaches a codeweaver session on a LATER `pt N` continuation of that package, and
-dropping it would park such an observable outside every codeweaver denominator permanently." **No `pt N`
-codeweaver item on `web` exists on this quest's ledger.** So the `web` cell's checklist reads
-`REMAINING: 1` with no session that can ever clear it — the same seam a peer analyzer found on
-`render-images-in-transcript` with `check-modal-width-tracks-modal-inner`. **Two of three flows on this
-quest carry one instance each; both were authored by a flowrider, and neither has a carrier.**
+dropping it would park such an observable outside every codeweaver denominator permanently." But **no
+`pt N` codeweaver item on `web` exists on this quest's ledger.** So the `web` cell's checklist reads
+`REMAINING: 1` forever, with no future session able to clear it. This is the same problem a peer analysis
+found on the `render-images-in-transcript` flow, in the check `check-modal-width-tracks-modal-inner`.
+**Two of the three flows on this quest carry exactly one instance of this problem each. Both instances
+were authored by a flowrider, and neither has a later session able to sign it.**
 
-**The five siegemaster-authored observables do NOT reproduce that seam, and the reason matters.** I
-checked each against the eligibility rules:
+**The five observables the siegemaster authored do NOT have this same problem, and the reason matters.** I
+checked each one against the eligibility rules:
 
 | observable | node | in codeweaver's denominator? | in flowrider's? |
 |---|---|---|---|
@@ -307,26 +301,26 @@ checked each against the eligibility rules:
 | `check-composer-typable-while-agent-streams` | `clear-composer` {web} | **no** | **no** |
 | `check-draft-is-scoped-to-its-own-composer` | `clear-composer` {web} | **no** | **no** |
 
-Rule 5 excludes `addedBy: 'siegemaster'` from both earlier tracks outright — "A role that runs strictly
-AFTER a track cannot produce work that track was able to sign." So none of the five is *owed* work parked
-on a closed cell. **The cost is the mirror image: they are invisible to the earlier tracks' ledgers
-forever, and siegemaster is the last role in the relay, so nothing downstream records them either.** Four
-of the five are `confirmed` by [17] and one `unconfirmable`; the two that a flowrider could have written
-(§6b) will never appear as a gap in any flowrider coverage number, on this quest or a resumed one. **A
-mid-quest observable authored by the last role in the relay is closed the moment it is written, whatever
-its evidence is worth.**
+Rule 5 excludes any `addedBy: 'siegemaster'` observable from both earlier tracks outright: "A role that
+runs strictly AFTER a track cannot produce work that track was able to sign." So none of these five is
+*owed* work sitting on a closed cell. **But the cost is the mirror image of that seam: these five are
+invisible to the earlier tracks' records forever, and because the siegemaster is the last role in the
+relay, nothing downstream ever records them either.** Four of the five are `confirmed` by [17] and one is
+`unconfirmable`. The two that a flowrider could have written instead (§6b) will never show up as a gap in
+any flowrider coverage number, on this quest or on a resumed one. **A mid-quest observable authored by the
+last role in the relay is closed the moment it is written, no matter what its evidence is actually worth.**
 
-**Three tracks — 58 units, 54 of them three-times-`confirmed`.** §4 judges those.
+**Three tracks signed — 58 units, 54 of them confirmed three separate times.** §4 evaluates those.
 
 ---
 
 ## 2. Cell decomposition — did the fan-out match the work?
 
-This flow has the widest fan-out on the quest: four codeweaver cells, against 53 observables tagged
+This flow has the widest fan-out on the quest: four codeweaver cells work against 53 observables, tagged
 `web 29 · server 14 · orchestrator 9 · shared 1`.
 
-First, correct the counts. `coverage.txt`'s `1 / 10 / 13 / 33` omits terminal nodes. The records actually
-on disk, and what each covers:
+First, the counts need correcting. `coverage.txt`'s totals of `1 / 10 / 13 / 33` omit terminal nodes
+entirely. Here is what is actually on disk, and what each record covers:
 
 ```
 ac2b5262 [2] shared        1 record  {observable: 1}
@@ -336,10 +330,11 @@ ac2b5262 [2] shared        1 record  {observable: 1}
                           62 total codeweaver records on this flow
 ```
 
-Report 03 independently states the same 11 — "named exactly **11 units**: 8 observables across 4
-`◀ YOURS` nodes, 1 terminal (`#agent-reads-images`) and 2 labelled edges … All 11 ended the session with
-a verdict" [report 03 §3.2] — and report 08 the same 37, "observables=25 nodes(terminals)=4 edges=8"
-[report 08 §7]. The spread is **1 / 11 / 13 / 37**.
+Report 03 independently confirms the same figure of 11: "named exactly **11 units**: 8 observables across
+4 `◀ YOURS` nodes, 1 terminal (`#agent-reads-images`) and 2 labelled edges … All 11 ended the session with
+a verdict" [report 03 §3.2]. Report 08 independently confirms the same figure of 37:
+"observables=25 nodes(terminals)=4 edges=8" [report 08 §7]. So the corrected spread across the four cells
+is **1 / 11 / 13 / 37**.
 
 ### 2a. The counts are exactly proportional — and that is the problem
 
@@ -356,13 +351,14 @@ union 61
 units by number of owning cells: {1: 43, 2: 18}
 ```
 
-Read that carefully. **The cells' denominators sum to 79 over a 61-unit union: 18 units are owned by two
-cells each.** Every seam node on this flow (`resolve-images-dir` = `{server, shared}`, `post-chat` =
-`{web, server}`, `forward-to-orchestrator` = `{server, orchestrator}`, `server-accepted` = `{web, server}`)
-puts its whole unit set on both cells' lists. That is deliberate — `flowNodeContract`'s own
-`packages` description says "A node carrying more than one is a seam … **it owns the glue verification
-units no single-package slice can**", and `qa-units-in-package-scope-transformer.ts` says "No track mints
-a seam item, so a glue unit a stricter reading dropped would be owned by nobody at all."
+Read that carefully: **the four cells' denominators add up to 79, but the actual union of units is only
+61. That means 18 units are owned by two cells at once.** Every seam node on this flow —
+`resolve-images-dir` (`{server, shared}`), `post-chat` (`{web, server}`), `forward-to-orchestrator`
+(`{server, orchestrator}`), and `server-accepted` (`{web, server}`) — puts its whole unit set on both
+owning cells' lists. That double-listing is deliberate. `flowNodeContract`'s own `packages` field
+description says "A node carrying more than one is a seam … **it owns the glue verification units no
+single-package slice can**", and `qa-units-in-package-scope-transformer.ts` says "No track mints a seam
+item, so a glue unit a stricter reading dropped would be owned by nobody at all."
 
 **But the codeweaver prompt gives the opposite rule.** From `codeweaver-prompt-statics.ts` step 1:
 
@@ -371,55 +367,60 @@ a seam item, so a glue unit a stricter reading dropped would be owned by nobody 
 > text. **Sign only observables printed in full**, and read the count as what the other half of a
 > shared node is doing.
 
-The checklist routes a unit **by its owning node**; the prompt routes it **by the observable's own
-`package` tag**. On a seam node those two rules disagree, and every seam node on this flow is one.
+So the checklist routes a unit **by its owning node**, but the prompt routes it **by the observable's own
+`package` tag**. On a seam node, those two rules disagree — and every seam node on this flow is exactly
+that case.
 
 ### 2b. What that did to each cell
 
-**Cell [2] `shared` — the 1-unit session.** Its authoritative denominator was **6**: every observable on
-`resolve-images-dir`, because that node tags `shared`. Its prompt-visible denominator was **1**:
-`check-images-dir-name-is-shared`, the only observable on that node tagged `package: shared`. It signed 1
-and left 5. Those 5 were signed 2 h 9.7 min later by the server cell [5] — which had them printed in
-full, because they are tagged `server`. Nothing was lost. But the shared cell's own checklist read
-`REMAINING: 6` when it started and `REMAINING: 5` when it signalled, and nothing in its prompt would ever
-have told it so.
+**Cell [2], `shared` — the 1-unit session.** Its true denominator was **6**: every observable on the node
+`resolve-images-dir`, since that node is tagged `shared`. But the denominator its prompt actually showed
+it was **1**: `check-images-dir-name-is-shared`, the only observable on that node tagged
+`package: shared`. It signed that 1 and left the other 5. Those 5 were signed 2 h 9.7 min later, by the
+server cell [5], which saw them printed in full because they carry the `server` tag. So nothing was
+actually lost. But the shared cell's own checklist read `REMAINING: 6` when it started and
+`REMAINING: 5` when it signalled off — and nothing in its prompt would ever have told it why.
 
-The cell derived the seam from tag counts alone. Report 02 §3.1 records that it "derived the seam itself
-from the flow render's `{server ● 5, shared ● 1}` tag counts", and quotes the map note it wrote:
+The cell worked out this seam on its own, from tag counts alone. Report 02 §3.1 records that it "derived
+the seam itself from the flow render's `{server ● 5, shared ● 1}` tag counts", and quotes the map note it
+wrote:
 
 > Only 1 of that node's 6 observables is shared's, and it is the statics key — so I ship the key and leave
 > the resolver to the server cell.
 
-That is a correct reading of the prompt ("**Sign only observables printed in full**") and a wrong reading
-of its denominator. Report 02 §3.2: "Signed exactly one — `#check-images-dir-name-is-shared`, the only
-observable the render printed with `{shared}`. The other five on that node carry `package: 'server'` and
-were signed by the server cell 41 minutes later."
+That is a correct reading of the prompt's rule ("**Sign only observables printed in full**"), but a wrong
+reading of its own denominator. Report 02 §3.2: "Signed exactly one — `#check-images-dir-name-is-shared`,
+the only observable the render printed with `{shared}`. The other five on that node carry
+`package: 'server'` and were signed by the server cell 41 minutes later."
 
-Its price, from report 02 §2: **31,530,609 context-in tokens** (main 15,155,735 + six sub-agents
-16,374,874) and 175,522 output, for `13 files changed, 354 insertions(+), 0 deletions`. The report's own
-unit rate: "**89,069 context-in tokens per line**; 175,522 output tokens / 354 = **496 output tokens per
-line**." 24.4 minutes.
+The cost of that whole session, from report 02 §2: **31,530,609 context-in tokens** (15,155,735 from the
+main session plus 16,374,874 from six sub-agents) and 175,522 output tokens, to produce
+`13 files changed, 354 insertions(+), 0 deletions`. The report's own rate for this: "**89,069 context-in
+tokens per line**; 175,522 output tokens / 354 = **496 output tokens per line**." The session took
+24.4 minutes.
 
-**Is a whole session justified for one observable?** *This verdict is mine. Report 02 never asks the
-question* — a regex over the whole file returns 0 hits for `justif`, 0 for `decompos`, 0 for
-`whole session`, and its only `tier` hit is about merging sub-agent briefs. Nothing in the Phase 1
-forensics judges cell sizing, on this cell or any other.
+**Is a whole session justified for one observable?** *This verdict is mine — report 02 never asks the
+question.* A search of the whole report file returns 0 hits for `justif`, 0 for `decompos`, and 0 for
+`whole session`; its only hit for `tier` is about merging sub-agent briefs. Nothing in the Phase 1
+forensics judges whether a cell is sized correctly, for this cell or any other.
 
-On the sign-off ledger, obviously not. On the artifact, the ledger is the wrong instrument. The `shared`
-cell's real deliverable was **contracts and statics, which carry no units at all**: `PastedImageStatics`, `PastedImageMediaType`,
-`PastedImageUpload`, and `locationsStatics.quest.imagesDir` — the last of which is the *only* thing its
-single observable asserts. Contracts route to a cell **by file path**, not by node tag, so both of its
-shared-source contracts are anchored to nodes it does not tag (`pasted-image-statics` maps to
-`serialise-composer` `{web}`; `pasted-image-upload` maps to `post-chat` `{web, server}`). Four of its five
-deliverables are structurally invisible to the coverage record. Its commit is
+By the sign-off ledger alone, obviously not. But the ledger is the wrong instrument for measuring this
+cell's real work. The `shared` cell's actual deliverable was **contracts and statics, which carry no
+checklist units at all**: `PastedImageStatics`, `PastedImageMediaType`, `PastedImageUpload`, and
+`locationsStatics.quest.imagesDir`. Only the last of these four is what its single observable actually
+asserts. Contracts route to a cell **by file path**, not by node tag, so both of its shared-source
+contracts are anchored to nodes it does not even tag (`pasted-image-statics` → `serialise-composer`
+`{web}`; `pasted-image-upload` → `post-chat` `{web, server}`). So four of its five real deliverables are
+structurally invisible to the coverage record. Its commit is
 `bebca45c3 codeweaver: shared's half of send-message-with-images — pasted-image statics, media-type and
 upload contracts, quest images dir key`.
 
-**Did the tier ordering buy anything?** Yes, and it is measurable — from the *consumer* side, which is
-where report 02 cannot see it. The cells ran in `packageBuildOrderStatics` tier order: `shared` (library)
-19:09, `orchestrator` (programmatic-service) 19:33, `server` (http-backend) 21:43, `web` (frontend-react)
-03:45. `bebca45c3` landed at 19:32:52Z — **41 seconds before the orchestrator cell's first record**
-[report 03 §0] — and that cell cashed it immediately:
+**Did running the cells in tier order actually buy anything?** Yes, and it is measurable — but only from
+the *consumer* side, which is a place report 02 cannot see. The cells ran in `packageBuildOrderStatics`
+tier order: `shared` (library) at 19:09, `orchestrator` (programmatic-service) at 19:33, `server`
+(http-backend) at 21:43, and `web` (frontend-react) at 03:45. The `shared` commit `bebca45c3` landed at
+19:32:52Z — **41 seconds before the orchestrator cell's first record** [report 03 §0] — and that
+orchestrator cell cashed in on it immediately:
 
 > The predecessor-commit read paid for itself in one turn. `git log` at `0.6m` -> `Read` of
 > `pasted-image-statics.ts` at `0.7m` -> the read-check `#check-sentinel-from-shared-statics` came back
@@ -428,34 +429,36 @@ where report 02 cannot see it. The cells ran in `packageBuildOrderStatics` tier 
 > Without this step the pass would have re-invented the sentinel and failed its own read-check.
 > [report 03 §3.1]
 
-The two `(read-check)` observables on this flow exist precisely to assert that:
+The two `(read-check)` observables on this flow exist precisely to assert that this happened.
 `check-sentinel-from-shared-statics` (orchestrator) and `check-placeholder-pattern-from-shared` (server)
-both say "read from the shared pasted-image statics, not written inline", and both are `confirmed`.
-Library-first bought a single source of truth that two later cells verifiably imported rather than
-duplicated. **The 24 minutes bought the tier, not the unit.**
+both assert "read from the shared pasted-image statics, not written inline", and both are `confirmed`. So
+running the library-owning cell first bought a single source of truth that two later cells verifiably
+imported instead of duplicating. **The 24 minutes paid for the tier ordering, not for the one unit the
+cell signed.**
 
-**Should the cell exist as its own session?** On this evidence, no — but the fix is not to delete it.
-`shared` tags exactly one node on the whole quest, so the ledger minted it exactly one cell. The problem
-is that the ledger sliced a *contract-shaped* deliverable on the *flow* dimension, which is the dimension
-it has nothing to do with. `relayTailFanOutTransformer` already has the right primitive: the eligibility
-statics describe "a single flow-less item for a package that owns contracts and tags no node anywhere."
-`shared` tags one node, so it missed that path by one tag. Folding a library package's contract work into
-a flow-less cell — and letting its one glue observable be signed by the seam sibling that has it printed
-in full — would have removed a whole session from the ledger without removing a line of code from the
-branch.
+**Should this cell exist as its own session at all?** On this evidence, no — but the fix is not to delete
+it. `shared` tags exactly one node on the whole quest, so the ledger minted it exactly one cell. The real
+problem is that the ledger sliced a *contract-shaped* deliverable along the *flow* dimension, which has
+nothing to do with how contract work actually happens. `relayTailFanOutTransformer` already has the right
+building block for this: the eligibility rules describe "a single flow-less item for a package that owns
+contracts and tags no node anywhere." `shared` tags exactly one node, so it missed qualifying for that
+path by one tag. Folding a library package's contract work into a flow-less cell instead — and letting its
+one glue observable be signed by the seam sibling that already sees it printed in full — would have
+removed a whole session from the ledger without removing a single line of code from the branch.
 
-**Cell [5] `server` — denominator 23, wrote 13, claimed 15.** See §2c.
-**Cell [8] `web` — denominator 38, wrote 37 records covering 35 units.** The 2-record gap is the phantom
-sign-off problem in §2d; the 3-unit gap is 2 glue units the server cell signed instead
-(`check-responder-reads-both-images`, `check-sixth-image-rejected`) and the one genuinely outstanding
-`check-typing-after-end-of-content-newline`.
+**Cell [5], `server` — denominator 23, wrote 13 records, claimed 15.** See §2c.
+**Cell [8], `web` — denominator 38, wrote 37 records covering 35 units.** The 2-record gap is the phantom
+sign-off problem covered in §2d. The 3-unit gap breaks down as 2 glue units that the server cell signed
+instead (`check-responder-reads-both-images`, `check-sixth-image-rejected`) plus the one genuinely
+outstanding unit, `check-typing-after-end-of-content-newline`.
 
-**Spread verdict.** The 1 / 11 / 13 / 37 spread tracks the observable tags almost exactly
-(`web` 25 signable observables + 8 branch edges + 2 terminals + 2 phantom = 37; `server` 14 − 1
-siegemaster-origin = 13; `orchestrator` 8 + 2 branch edges + 1 terminal = 11; `shared` 1). So
-the decomposition *did* match where the observables were. It did **not** match where the work was: the
-`shared` cell's four contracts, the seam nodes' double ownership, and the create-route write that
-belonged to `server` but had no observable demanding it (§6) are all work the observable tags cannot see.
+**Verdict on the spread.** The 1 / 11 / 13 / 37 spread tracks the observable tags almost exactly: `web` has
+25 signable observables + 8 branch edges + 2 terminals + 2 phantom = 37; `server` has 14 minus
+1 siegemaster-origin = 13; `orchestrator` has 8 + 2 branch edges + 1 terminal = 11; `shared` has 1. So the
+decomposition into cells *did* match where the observables were. It did **not** match where the actual
+work was. The `shared` cell's four contracts, the seam nodes' double ownership, and the create-route write
+that belonged to `server` but had no observable demanding it (§6) are all real work that the observable
+tags cannot see.
 
 ### 2c. Two sign-offs on this flow were silently destroyed
 
@@ -463,11 +466,11 @@ Report 05 §3.3 opens: "**This is the most serious structural defect the item su
 arithmetic independently and identified the two lost units:
 
 - The server cell's own record count in `quest.json` is **13**, all on observables, none on a node or an
-  edge — report 05 §7 gets the identical figure by the identical method: "**13 rows,
+  edge. Report 05 §7 reaches the identical figure by the identical method: "**13 rows,
   `Counter({'confirmed': 12, 'unconfirmable': 1})`**, all on observables."
 - The two branch units on the seam node `server-accepted` — `accepted-no` and `accepted-yes`, owned by
-  **both** the server and web cells — carry `codeweaverSignoff.workItemId = 7546da90` (**cell [8], web**),
-  written 2026-09-02T06:21:57Z off `chat-input-widget.test.tsx:1712`.
+  **both** the server and web cells — carry `codeweaverSignoff.workItemId = 7546da90` (**cell [8], web**).
+  That sign-off was written 2026-09-02T06:21:57Z, off `chat-input-widget.test.tsx:1712`.
 
 The malformed payload, verbatim from report 05 §3.3 (`modify-quest` #2, 2026-09-01T22:51:15.098Z):
 
@@ -477,22 +480,24 @@ The malformed payload, verbatim from report 05 §3.3 (`modify-quest` #2, 2026-09
                "codeweaverSignoff": { "verdict": "confirmed", "evidence": "…quest-chat-responder.test.ts:380 …", "workItemId": "3050a3ae-…" } } ] }
 ```
 
-`modify-quest` #3 at 22:55:13.596Z is the same shape with `"id": "rejected"`. Two errors compound: the
-session used the **label** as the id, because it had no other candidate, and it nested `edges` **inside**
-the node rather than beside `nodes`. "Both calls returned `{"success": true}` (65-byte results at `67.9m`
-and `71.9m`). **Nothing was written.**"
+`modify-quest` call #3, at 22:55:13.596Z, has the same shape but with `"id": "rejected"`. Two errors
+compound here: the session used the edge's **label** as its id, because it had no other candidate to use,
+and it nested `edges` **inside** the node object instead of placing it beside `nodes`. "Both calls returned
+`{"success": true}` (65-byte results at `67.9m` and `71.9m`). **Nothing was written.**"
 
-I verified the mechanism at source rather than taking it on report:
+I checked the underlying mechanism directly in the source code, rather than taking the report's word for
+it:
 
-1. `packages/shared/src/contracts/flow-node/flow-node-contract.ts` is a plain `z.object({...})` — **no
-   `.strict()`, no `.passthrough()`**. Zod's default is *strip*, so an `edges: [...]` key nested inside a
-   node object is discarded without error and `modify-quest` answers success.
-2. `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts` — the renderer
-   the codeweaver prompt sends the session to — contains **`edge.id` occurrences: 0** and
-   **`edge.label` occurrences: 4**. It prints every branch label and **not one edge id**, while the prompt
-   requires the session to write `edges: [ { id: '<the labelled edge id>', codeweaverSignoff: … } ]`.
-   What the cell actually saw, per report 05 §3.3 — label plus destination, and a KEY that says only
-   "each one is a unit":
+1. `packages/shared/src/contracts/flow-node/flow-node-contract.ts` is a plain `z.object({...})`, with **no
+   `.strict()` and no `.passthrough()`**. Zod's default behavior is to *strip* unknown keys, so an
+   `edges: [...]` key nested inside a node object is silently discarded, and `modify-quest` reports
+   success anyway.
+2. `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts` is the renderer
+   the codeweaver prompt sends the session to. It contains **zero occurrences of `edge.id`** and **four
+   occurrences of `edge.label`**. It prints every branch's label and **not one edge id**, even though the
+   prompt requires the session to write
+   `edges: [ { id: '<the labelled edge id>', codeweaverSignoff: … } ]`. Here is what the cell actually
+   saw, per report 05 §3.3 — a label plus a destination, under a key that says only "each one is a unit":
 
    ```
    →"rejected" [#send-rejected]
@@ -501,42 +506,44 @@ I verified the mechanism at source rather than taking it on report:
 
    "The real ids in `quest.json` are `accepted-no` and `accepted-yes`."
 
-So the session was told to key a sign-off on a value its only source never prints, and the schema that
-received the mis-shaped patch answered `success`. Report 05 §3.3 states the disposition exactly: "The
-prompt **required** the sign-offs … and **showed** the correct shape, but the render it told the session
-to work from never prints the id that shape needs. **This is a prompt/tooling contradiction, not
-defiance.**"
+So the session was told to key a sign-off on a value that its only available source never actually prints,
+and the schema that received the malformed patch reported `success` anyway. Report 05 §3.3 states the
+outcome exactly: "The prompt **required** the sign-offs … and **showed** the correct shape, but the
+render it told the session to work from never prints the id that shape needs. **This is a
+prompt/tooling contradiction, not defiance.**"
 
-**Two siblings got it right, by routes the prompt never names.** Cells [3] and [8] each sent `edges` at
-the flow level with real ids — [3] by running `python3 -c` against its own spilled tool-result file, [8]
-by running `python3` directly against `.dungeonmaster/…/quest.json` [report 05 §3.3]. Report 08 §3.2
-prices the exposure: "of the eight edge ids this cell eventually signed, **seven are absent from the
-28,430-char `get-quest` result**", and the recovery "worked only because this is the dogfood repo, where
-`.dungeonmaster/` sits inside the checkout. It is a workaround the prompt neither authorises nor
-anticipates." On an end-user install "the same three probes would fail and **the eight edge sign-offs the
-prompt demands could not be written at all. Correctness fix, not a time fix.**"
+**Two sibling cells got this right, but by routes the prompt never names.** Cells [3] and [8] each
+correctly sent `edges` at the flow level with real ids. Cell [3] did this by running `python3 -c` against
+its own spilled tool-result file; cell [8] did it by running `python3` directly against
+`.dungeonmaster/…/quest.json` [report 05 §3.3]. Report 08 §3.2 prices the exposure this created: "of the
+eight edge ids this cell eventually signed, **seven are absent from the 28,430-char `get-quest` result**."
+That recovery "worked only because this is the dogfood repo, where `.dungeonmaster/` sits inside the
+checkout. It is a workaround the prompt neither authorises nor anticipates." On an end-user install, "the
+same three probes would fail and **the eight edge sign-offs the prompt demands could not be written at
+all. Correctness fix, not a time fix.**"
 
-**The two units were not lost coverage** — the web cell signed them. What was lost is the *server-side*
-half of a seam branch's proof, which report 05 §3.3 says the session had already built:
+**The two units themselves were not lost from coverage** — the web cell signed them. What was actually
+lost is the *server-side* half of a seam branch's proof, which report 05 §3.3 says the session had already
+built:
 
 ```
   edge "rejected"  off #server-accepted     -> responder tests: a rejected body answers 400 and no file is written
   edge "accepted"  off #server-accepted     -> responder tests: an accepted body answers 200 with chatProcessId
 ```
 
-"~2,300 characters of already-built red-then-green evidence discarded." And the session reported the
-opposite: `87.6m say: "… 15 units, every one carrying a verdict: 14 confirmed, 1 unconfirmable."` —
-"Both numbers are wrong (13 written, 12 confirmed)", "**the prompt's hardest line …
+"~2,300 characters of already-built red-then-green evidence discarded." Meanwhile the session reported the
+opposite outcome: `87.6m say: "… 15 units, every one carrying a verdict: 14 confirmed, 1 unconfirmable."`
+Both of those numbers are wrong — 13 were actually written, 12 confirmed. "**The prompt's hardest line …
 `EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU SIGNAL` — was violated, and the
 session reported compliance.**"
 
-**A closing number nobody can check.** `get-qa-checklist` would have shown the server cell `REMAINING`
-after the write; the codeweaver prompt never mentions the tool, so the cell counted its own
-`modify-quest` calls instead — and the fifth of those five calls, the one that carried the out-of-scope
-create-route note (§6d), returned the same `{"success": true}` as the two that wrote nothing. That is why
-15 and 13 could diverge without anything going red, and why report 05 §6 Fix 9 asks for a step-9
-reconcile: "A `modify-quest` that returned `success` may still have written nothing — **count the marks,
-do not trust the call.**"
+**This left a closing number that nobody could check.** `get-qa-checklist` would have shown the server
+cell its true `REMAINING` count after the write, but the codeweaver prompt never mentions that tool. So
+the cell counted its own `modify-quest` calls instead. The fifth of those five calls — the one that
+carried the out-of-scope create-route note discussed in §6d — returned the same `{"success": true}` as
+the two calls that had written nothing. That is how 15 and 13 could diverge without anything turning red,
+and why report 05 §6 Fix 9 asks for a step-9 reconcile: "A `modify-quest` that returned `success` may
+still have written nothing — **count the marks, do not trust the call.**"
 
 ### 2d. Four more sign-offs on this flow measure nothing
 
@@ -547,13 +554,14 @@ of which land on a node/edge that is NOT a checklist unit (phantom):
   {'codeweaverSignoff': 2, 'flowriderSignoff': 2}  total 4
 ```
 
-`qaUnitEnumerateTransformer` says so in its own header: "**A TERMINAL IS A NODE WITH NO OUTGOING EDGE**,
-which is not the same set as `type === 'terminal'`." This flow has **5** nodes typed `terminal`;
-`send-rejected` and `insert-newline` both point onward (to `send-pressed`), so only **3** are terminal
-units. Cells [8] and [14] each wrote a sign-off on both of those nodes anyway — four records that no
-checklist counts, no summary reads, and no reviewer grades. The flowrider prompt warns about exactly this
-("**A node the graph prints `(terminal)` that still points onward is not a terminal unit.**"); the
-codeweaver prompt does not, and the flowrider wrote them regardless.
+`qaUnitEnumerateTransformer` explains why in its own header comment: "**A TERMINAL IS A NODE WITH NO
+OUTGOING EDGE**, which is not the same set as `type === 'terminal'`." This flow has **5** nodes typed
+`terminal`, but `send-rejected` and `insert-newline` both point onward (back to `send-pressed`), so only
+**3** of the five are actually terminal units. Cells [8] and [14] each wrote a sign-off on both of the
+other two nodes anyway — four records that no checklist counts, no summary reads, and no reviewer grades.
+The flowrider prompt warns about exactly this case ("**A node the graph prints `(terminal)` that still
+points onward is not a terminal unit.**"). The codeweaver prompt does not carry the same warning, and the
+flowrider wrote the extra sign-offs regardless of its own warning.
 
 Net on this flow: **190 sign-off records, 4 of them phantom, 2 more destroyed in transit.**
 
@@ -561,7 +569,8 @@ Net on this flow: **190 sign-off records, 4 of them phantom, 2 more destroyed in
 
 ## 3. What each role had to derive for itself
 
-Facts a session worked out that the spec, or a prior session's artifact, could have carried.
+These are facts a session had to work out for itself — facts that the spec, or a prior session's own
+artifact, could have supplied directly.
 
 ### 3a. Every codeweaver cell derived its own unit list, and every one got it wrong
 
@@ -576,37 +585,39 @@ siegemaster-prompt     32956 chars  get-qa-checklist=4  denominator=0
 siegemaster-reviewer   13440 chars  get-qa-checklist=1  denominator=0
 ```
 
-The flowrider gets a whole numbered step for it — `### 2. Get the full list of units` — and used it: it
-read `58` at 0.6m and ran its whole session against that number [report 14 §1 P1]. The siegemaster gets it
-twice, at step 1 and again at step 9 ("**Re-run `get-qa-checklist` … and check the arithmetic.**"), and
-used it at 0.4m and again at 610.5m [report 17 §1, §3 S7]. The codeweaver gets `get-quest` and the
-instruction "**Read the edges hardest**", and then:
+The flowrider's prompt gives it a whole numbered step for this — `### 2. Get the full list of units` — and
+the flowrider used it: it read `58` at 0.6m and ran its entire session against that number
+[report 14 §1 P1]. The siegemaster's prompt gives it the same step twice, once at step 1 and again at
+step 9 ("**Re-run `get-qa-checklist` … and check the arithmetic.**"), and the siegemaster used it both
+times, at 0.4m and again at 610.5m [report 17 §1, §3 S7]. The codeweaver's prompt, by contrast, gives it
+only `get-quest` and the instruction "**Read the edges hardest**", and then says:
 
 > **EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU SIGNAL** — every observable,
 > every terminal, every labelled edge that is yours. There is no third state, no blank, and no way to
 > finish without one.
 
-A hard completion criterion over a set the session has no tool to enumerate. Report 08 §3.7 names it
-outright:
+That is a hard completion rule applied to a set the session has no tool for counting. Report 08 §3.7 names
+this outright:
 
 > the prompt's "EVERY UNIT IN YOUR CELL CARRIES ONE OF THOSE TWO VERDICTS BEFORE YOU SIGNAL" **has no
 > tool that tells a session what its denominator is. `get-qa-checklist` exists and is the
 > flowrider's/siegemaster's denominator tool; the codeweaver prompt never mentions it, and this session
 > never called it.**
 
-and again at §5 Finding 13: "**Nothing in the prompt gives the codeweaver a way to count its own cell**,
-and `get-qa-checklist` is never mentioned in the codeweaver prompt though it exists and takes exactly the
-`operationItemId` this session held." Result on this flow, per cell: `shared` read 1 against 6;
-`orchestrator` read 11 against 12; `server` claimed 15, wrote 13, owed 23; `web` claimed 35, wrote 37
-records covering 35 units, owed 38. **Four cells, four numbers derived by eye, zero red.**
+and again at §5, Finding 13: "**Nothing in the prompt gives the codeweaver a way to count its own cell**,
+and `get-qa-checklist` is never mentioned in the codeweaver prompt, even though it exists and takes exactly
+the `operationItemId` this session already held." The result on this flow, cell by cell: `shared` read
+1 against a true 6; `orchestrator` read 11 against a true 12; `server` claimed 15 but wrote 13 against an
+owed 23; `web` claimed 35 but wrote 37 records covering 35 units against an owed 38. **Four cells, four
+numbers all derived by eye, and not one of them flagged as wrong.**
 
-**And the block that was supposed to fix this is dead code — three independent confirmations.** I found
-`codeweaverScopeBlockTransformer` referenced by exactly two files, itself and its own test. Report 02
-§3.1: "A repo-wide `os.walk` regex … returns **exactly two files: the transformer and its own test.**
-`workItemToPromptTransformer` — read in full — never calls it. **No codeweaver session has ever received a
-Seams or Shared-homes block.**" Report 08 §3.1 adds the age: "**The file has existed since
-`13a4331ab 2026-08-14` and was last edited `4419d0d43 2026-08-30 21:09:19`, two days before this run —
-never wired.**"
+**And the piece of code that was supposed to fix this problem is dead code — three separate checks confirm
+it.** I found that `codeweaverScopeBlockTransformer` is referenced by exactly two files: itself, and its
+own test. Report 02 §3.1 confirms this: "A repo-wide `os.walk` regex … returns **exactly two files: the
+transformer and its own test.** `workItemToPromptTransformer` — read in full — never calls it. **No
+codeweaver session has ever received a Seams or Shared-homes block.**" Report 08 §3.1 adds how old that
+gap is: "**The file has existed since `13a4331ab 2026-08-14` and was last edited
+`4419d0d43 2026-08-30 21:09:19`, two days before this run — never wired.**"
 
 What it would have printed for my cell, per report 02 §3.1:
 
@@ -615,38 +626,41 @@ What it would have printed for my cell, per report 02 §3.1:
     shape they need, and do NOT build theirs
 ```
 
-Priced three ways, per cell: report 02 Fix 1 "~0.3 min per codeweaver of seam re-derivation … **This is
-the highest-value fix because it is a wiring omission, not a prompt rewrite.**"; report 05 §3.2 "the four
-seam nodes … had to be reconstructed by hand … **6.3 minutes and 30 `Read` + 9 `discover` calls**", Fix 2
-"**2–3 min … and ~90,000 of the 285,102 result bytes**, per codeweaver cell. Across the 8 codeweaver items
-on this quest, 16–24 minutes."; report 08 Fix 1 "**≈4 min and ~150k context tokens per codeweaver cell**,
-times 8 cells".
+Three different reports price this gap, each a different way. Report 02's Fix 1: "~0.3 min per codeweaver
+of seam re-derivation … **This is the highest-value fix because it is a wiring omission, not a prompt
+rewrite.**" Report 05 §3.2: "the four seam nodes … had to be reconstructed by hand … **6.3 minutes and
+30 `Read` + 9 `discover` calls**", with Fix 2 estimating "**2–3 min … and ~90,000 of the 285,102 result
+bytes**, per codeweaver cell. Across the 8 codeweaver items on this quest, 16–24 minutes." Report 08's
+Fix 1: "**≈4 min and ~150k context tokens per codeweaver cell**, times 8 cells."
 
-And the seam answer the orchestrator cell invented instead arrived too late to act on: "**the codeweaver
-only worked that out at `41.3m`, in prose, at the very end** ('The server's own cell has not run yet, so
-that rewrite is still owed')" [report 03 §3.2] — 41.3m of a 41.3m session.
+The seam answer the orchestrator cell invented on its own instead arrived too late to act on: "**the
+codeweaver only worked that out at `41.3m`, in prose, at the very end** ('The server's own cell has not
+run yet, so that rewrite is still owed')" [report 03 §3.2] — at the 41.3-minute mark of a session that
+only lasted 41.3 minutes.
 
-**Neither report 02 nor report 03 mentions `get-qa-checklist` at all** (0 hits for `checklist`,
-`denominator`, `get-qa` in both). The closest either comes is report 02 §3.1 on what the render cannot
-carry: "the 'has that package's cell already run?' half — which only the ledger answers and which the flow
-render does not carry — **it could not get at all**."
+**Neither report 02 nor report 03 mentions `get-qa-checklist` at all** — both return 0 hits for
+`checklist`, `denominator`, and `get-qa`. The closest either one comes is report 02 §3.1, on what the
+render is unable to carry: "the 'has that package's cell already run?' half — which only the ledger
+answers and which the flow render does not carry — **it could not get at all**."
 
 ### 3b. The flowrider derived its package set, and re-derived its sibling's map
 
-Its operation item carries `packageNames=[]`. Report 14 §3: "the **scope block is accurate but empty of
-scope** … the flowrider found the packages correctly — **but it cost a survey.**" P1 orientation:
-**7.2 min**, 10 `discover` + 13 `Read` + 2 `Explore` agents.
+The flowrider's operation item carries `packageNames=[]` — an empty list. Report 14 §3: "the **scope block
+is accurate but empty of scope** … the flowrider found the packages correctly — **but it cost a
+survey.**" That survey — its P1 orientation phase — took **7.2 min**, using 10 `discover` calls,
+13 `Read` calls, and 2 `Explore` agents.
 
-Worse, and priced: item [13]'s flowrider map for the sibling flow was on disk the whole time and item [14]
-never opened it. Report 14 §5 finding 9: "**Prompt stance: required by omission.** Nothing in
-`flowriderPromptStatics` mentions a sibling flowrider, a previous item on the same quest, or a durable map
-to inherit." Measured overlap: "**30 of 120 distinct files (25.0%) already read by item [13]; 93 of 298
-Read calls (31.2%)**"; "**20 loads of the same ~95 KB in 7 h 13 min ≈ 475k tokens**"; recoverable
-duplication "**≈30–37 minutes and ≈475k tokens**".
+Worse, and this too is priced: item [13]'s flowrider had already written a map for the sibling flow, and
+it sat on disk the whole time, but item [14] never opened it. Report 14 §5, finding 9: "**Prompt stance:
+required by omission.** Nothing in `flowriderPromptStatics` mentions a sibling flowrider, a previous item
+on the same quest, or a durable map to inherit." The measured overlap: "**30 of 120 distinct files
+(25.0%) already read by item [13]; 93 of 298 Read calls (31.2%)**"; "**20 loads of the same ~95 KB in
+7 h 13 min ≈ 475k tokens**." The recoverable duplication comes to "**≈30–37 minutes and ≈475k tokens**".
 
-Every sub-agent also re-derived the repo standards from scratch. Report 14 §5 finding 1: "12 sub-agents ×
-identical **94,985 bytes** … `GRAND TOTAL sub-agent orientation result bytes: 1,139,820 (~284,955
-tokens)`", "**`13 × 94,985 = 1,234,805 bytes ≈ 309k tokens of identical text in one work item`**".
+Every sub-agent on this item also re-derived the repo's own standards from scratch. Report 14 §5,
+finding 1: "12 sub-agents × identical **94,985 bytes** …
+`GRAND TOTAL sub-agent orientation result bytes: 1,139,820 (~284,955 tokens)`", and "**`13 × 94,985 =
+1,234,805 bytes ≈ 309k tokens of identical text in one work item`**".
 
 ### 3c. The siegemaster derived a walker guide from scratch that a sibling had already written
 
@@ -665,18 +679,19 @@ Report 17 §5.6 prices it exactly:
 
 Price: "**Estimate: 8–75 min per sibling flow, depending on which session goes second.**" [report 17 §6 F4]
 
-It also had to invent, in report 17's own §3 words: "**A model-switch escape from a model-specific
-outage** (455.0m)"; "**A way to bank work mid-loop.** It had none, and said so"; "**A rule for cross-flow
-findings.** The walker prompt tells the *walker* to leave off-list units alone; the operator gets nothing.
-It invented `questNotes`". Two harness refusals cost "**~1 minute and 2 turns**" because `[WALL]`
-"enumerates 'A blocked `grep`, `find` or `sed`' and nothing else" [report 17 §3 S8].
+The siegemaster also had to invent several things on its own — in report 17's own §3 words: "**A
+model-switch escape from a model-specific outage** (455.0m)"; "**A way to bank work mid-loop.** It had
+none, and said so"; and "**A rule for cross-flow findings.** The walker prompt tells the *walker* to leave
+off-list units alone; the operator gets nothing. It invented `questNotes`." Two harness refusals cost
+"**~1 minute and 2 turns**", because `[WALL]` "enumerates 'A blocked `grep`, `find` or `sed`' and nothing
+else" [report 17 §3 S8].
 
 ### 3d. Nothing carried the seam. Three roles rediscovered the same hole.
 
-The single largest derivation on this flow is that **no artifact said which cell writes the create
-route's image files.** The spec said it — design decision `attachments-ride-with-the-message` states the
-quest-create route writes the files and rewrites the tokens. The graph did not draw it. §6 is that story
-end to end.
+The single largest thing any role had to work out on this flow is that **no artifact ever said which cell
+should write the create route's image files.** The spec itself did say it: design decision
+`attachments-ride-with-the-message` states that the quest-create route writes the files and rewrites the
+tokens. But the graph never drew that connection. §6 tells that story end to end.
 
 ---
 
@@ -684,8 +699,8 @@ end to end.
 
 ### 4a. 54 units carry three `confirmed` verdicts. Most are depth; a named class is waste.
 
-**Genuine defence in depth — the layers measure different things and the third caught what the first two
-could not.** `check-composer-locked-in-flight`:
+**Genuine defense in depth: here, the three layers measure different things, and the third layer caught
+what the first two could not.** Take `check-composer-locked-in-flight` as the example:
 
 - codeweaver [8]: `chat-input-widget.test.tsx:1453` — jsdom, proves the render props
   (`isEditorEditable() is false and isSendButtonDisabled() is true`).
@@ -696,36 +711,39 @@ could not.** `check-composer-locked-in-flight`:
   `t=129863.4ms`; at `t=129890.6ms` (**53.6ms before this XHR's own loadend** at 129944.2ms)
   MutationObserver read CHAT_INPUT `contenteditable="false"`, SEND_BUTTON absent, STOP_BUTTON present".
 
-Only the third could have found the defect that became
-`check-composer-typable-while-agent-streams` — "Measured broken at **17.5s** mid-quest and **89s** on the
-create surface, both times gated on the whole agent turn rather than on the response." Three layers, three
-different failures caught. Depth.
+Only the third layer could have found the defect that later became its own check,
+`check-composer-typable-while-agent-streams`: "Measured broken at **17.5s** mid-quest and **89s** on the
+create surface, both times gated on the whole agent turn rather than on the response." Three layers caught
+three different kinds of failure. That is real depth.
 
-Same verdict for `check-sixth-image-rejected` (unit test with a captured writer / integration test
-against a real temp `DUNGEONMASTER_HOME` / live `curl` that verified **zero new files** on disk after the
-400 — the partial-write question neither of the others framed).
+The same verdict holds for `check-sixth-image-rejected`: a unit test with a captured writer, an
+integration test against a real temp `DUNGEONMASTER_HOME`, and a live `curl` check that verified **zero
+new files** were left on disk after the 400 response — a partial-write question that neither of the first
+two tests even framed.
 
-**Named waste — one unit, and its cause is a missing flag.** `check-images-dir-name-is-shared`
-("`locationsStatics.quest.imagesDir` equals `'images'`"):
+**Named waste: one unit, caused by one missing flag.** Take `check-images-dir-name-is-shared` (which
+asserts "`locationsStatics.quest.imagesDir` equals `'images'`"):
 
 - codeweaver [2]: `locations-statics.test.ts:5`, whole-object `toStrictEqual`.
 - flowrider [14]: `locations-statics.test.ts:46` — **the same file the codeweaver wrote**, re-red-isolated
   by editing `imagesDir: 'images'` to `'imgs'`.
 - siegemaster [17]: "`Read packages/shared/src/statics/locations/locations-statics.ts` line 53-59".
 
-Three sessions across two days measured one literal in one file. This is a read-check in everything but
-the flag: it asserts *where a value lives*, exactly like `check-placeholder-pattern-from-shared` and
-`check-sentinel-from-shared-statics` — and those two carry `verifyByReading: true`, so
-`signoffTrackEligibilityStatics` rule 6 takes them off flowrider's and siegemaster's lists entirely. This
-one does not, so it stayed on all three, and the flowrider's "flow-perspective" proof of it is the
-codeweaver's own unit test at a different line number. **Setting `verifyByReading` on this observable
-would remove two sign-offs, one of which is not flow-perspective evidence at all.** That is a one-field
-spec fix, not a process change.
+Three sessions across two days measured one literal value in one file. This check is a read-check in
+everything but name: it asserts *where a value lives*, exactly like
+`check-placeholder-pattern-from-shared` and `check-sentinel-from-shared-statics` do. Those other two carry
+the flag `verifyByReading: true`, so `signoffTrackEligibilityStatics` rule 6 takes them off the flowrider's
+and siegemaster's lists entirely. This one does not carry that flag, so it stayed on all three lists — and
+the flowrider's supposedly "flow-perspective" proof of it turns out to be the codeweaver's own unit test,
+read again at a different line number. **Simply setting `verifyByReading` on this one observable would
+remove two redundant sign-offs, one of which was never real flow-perspective evidence to begin with.**
+That is a one-field spec fix, not a process change.
 
-**One honest partial worth recording.** `check-shift-enter-sends-nothing`, flowrider evidence: "**Not
-independently red-isolated:** the :294 shiftKey flip disables BOTH keydown branches, so it leaves the
-count at 0 either way; the paired non-zero is the falsifiability evidence instead." The siegemaster's
-independent XHR log is what actually closes it. Depth, earned by the flowrider saying what it could not do.
+**One honest partial result is worth recording here too.** For `check-shift-enter-sends-nothing`, the
+flowrider's own evidence says: "**Not independently red-isolated:** the :294 shiftKey flip disables BOTH
+keydown branches, so it leaves the count at 0 either way; the paired non-zero is the falsifiability
+evidence instead." It is the siegemaster's independent XHR log that actually closes this check out. This
+is real depth, earned because the flowrider was honest about what it could not do.
 
 ### 4b. Seams — 18 double-owned units, all landed, none by design
 
@@ -752,15 +770,17 @@ observable:check-forwarded-once              owners=orchestrator,server  signedB
 observable:check-orchestrator-sees-absolute-path owners=orchestrator,server signedBy=59f457a9
 ```
 
-They landed because the prompt's "sign only observables printed in full" rule happens to partition them —
-each glue observable's own `package` tag names exactly one of the two owning cells. **That is a
-coincidence of tagging, not a mechanism.** An observable on a seam node whose `package` tag names a third
-package, or is absent, would be printed in full to neither cell and signed by nobody, while both cells'
-checklists counted it. Nothing on this quest tests for that.
+All 18 got signed only because the prompt's "sign only observables printed in full" rule happens to split
+them cleanly — each glue observable's own `package` tag names exactly one of its two owning cells. **That
+is a coincidence of tagging, not a real mechanism.** An observable on a seam node whose `package` tag
+named a third package, or had no tag at all, would be printed in full to neither cell and signed by
+nobody — even though both cells' checklists would still count it as owed. Nothing on this quest tests for
+that failure mode.
 
-**The one seam that did open is not a unit seam — it is a code seam with no unit over it.** The create
-route's image write belongs to `server` by file path and to `post-chat`/`resolve-images-dir` by node, and
-**no observable on those nodes says "on all three routes."** §6.
+**The one seam that actually did open on this flow is not a unit seam — it is a code seam with no unit
+sitting over it at all.** The create route's image write belongs to `server` by file path, and to
+`post-chat`/`resolve-images-dir` by node — but **no observable on those nodes says "on all three
+routes."** §6 tells that story.
 
 ---
 
@@ -768,103 +788,111 @@ route's image write belongs to `server` by file path and to `post-chat`/`resolve
 
 ### 5a. Four codeweaver reviewers, zero rework rounds — and "certifying without reading" is the wrong diagnosis
 
-All four cells on this flow ran their reviewer and all four returned `pass` on the first round. **Zero
-`rework` rounds across the entire flow**, and one more on the flowrider — five reviewers, five first-pass
-passes.
+All four cells on this flow ran their reviewer step, and all four passed on the first round. **Zero
+`rework` rounds happened across the entire flow.** Counting the flowrider's own reviewer as a fifth, that
+makes five reviewers and five first-pass passes.
 
-**"Certifying without reading" does not replicate here**, and the evidence against it is specific: two of
-the four demonstrably read, because they produced findings only a reader produces.
+**The theory that reviewers "certify without reading" does not hold up here.** The evidence against it is
+specific: two of the four reviewers demonstrably did read the code, because they produced findings that
+only a reader could produce.
+
+One quick term before the table: **ward** is this repo's own automated gate — the build, lint, type-check,
+and test suite a session runs before it can commit. It comes up several times below.
 
 | reviewer | read? | what it produced |
 |---|---|---|
-| [2] `shared` | **weak** | `NEXT: pass` first pass, `FINDINGS: none`, `FIXES: none`. Build + one `ward --staged`, both green first try. Recorded three things "considered and dismissed" — e.g. `pastedImageMediaTypeContract`'s enum overlapping `imageBlockParamContract` "by coincidence … so this is not a dedup finding" [report 02 §4 item 5] |
-| [3] `orchestrator` | **weak** | `FIXES: none — no defects found`, `FINDINGS: none` [report 03 §4 item 8]. And it **missed its own standing concern**: three verbatim copies of the same 2-line `spawnedArgvValueAt` helper shipped in `f48bbc660`. Report 03 §5 finding 4: "**That is a genuine reviewer miss on the one concern written for exactly this.**" |
-| [5] `server` | **YES** | "**The reviewer caught two false-green tests and one bad ward scope, inside its own turn, with zero rework**" [report 05 §4 item 5]. `Read 54`, `Edit 7`, zero `Agent` calls. Its fix #1 is a test that "**staged `pathJoinAdapter`'s return value directly … swapping `locationsStatics.quest.imagesDir` for a different key would have left it green**" — a unit already signed in `modify-quest` #1 |
-| [8] `web` | **YES** | Found a genuinely missing test — the create-surface `throw err;` had nothing exercising it, and "*a regression back to swallowing would let a failed `questNewBroker` call silently clear the composer as if the send had succeeded*" — and corrected a misleading proxy comment. Amended 2 of 54 files, reverted none [report 08 §4.6] |
+| [2] `shared` | **weak** | `NEXT: pass` on the first pass, `FINDINGS: none`, `FIXES: none`. It ran a build plus one `ward --staged` check, both green on the first try. It recorded three things it "considered and dismissed" — for example, `pastedImageMediaTypeContract`'s enum overlapping `imageBlockParamContract` "by coincidence … so this is not a dedup finding" [report 02 §4 item 5] |
+| [3] `orchestrator` | **weak** | `FIXES: none — no defects found`, `FINDINGS: none` [report 03 §4 item 8]. But it **missed its own standing concern**: three verbatim copies of the same 2-line `spawnedArgvValueAt` helper shipped in `f48bbc660`. Report 03 §5, finding 4: "**That is a genuine reviewer miss on the one concern written for exactly this.**" |
+| [5] `server` | **YES** | "**The reviewer caught two false-green tests and one bad ward scope, inside its own turn, with zero rework**" [report 05 §4 item 5]. It made `Read` calls 54 times, `Edit` calls 7 times, and zero `Agent` calls. Its fix #1 targeted a test that "**staged `pathJoinAdapter`'s return value directly … swapping `locationsStatics.quest.imagesDir` for a different key would have left it green**" — a unit that had already been signed off in `modify-quest` call #1 |
+| [8] `web` | **YES** | It found a genuinely missing test: the create-surface's `throw err;` line had nothing exercising it, and "*a regression back to swallowing would let a failed `questNewBroker` call silently clear the composer as if the send had succeeded*." It also corrected a misleading proxy comment. It amended 2 of 54 files and reverted none [report 08 §4.6] |
 
-**What all five share is larger, and it is one thing: every one certified the sign-off ledger, and not one
-of them counted it.** No reviewer prompt on any track has a step that re-reads coverage after the writes.
-The consequences on this flow, all four of them invisible to the reviewer that passed the pass:
+**All five reviewers share one larger thing in common: every one certified the sign-off ledger, and not
+one of them actually counted it.** No reviewer prompt, on any of the three tracks, has a step that
+re-reads coverage after the writes are made. Here are the four consequences of that on this flow, every
+one of them invisible to the reviewer that passed it:
 
-- [5]'s reviewer certified a closing report saying `"15 units, every one carrying a verdict"` over **13**
-  records, two of which had been silently discarded 15 minutes earlier by a call that returned
-  `{"success": true}` (§2c). It ran build and ward and read 54 files, and neither instrument looks at
-  `quest.json`.
-- [5]'s reviewer also missed a **fabricated** verification claim: sub-agent `a982f9a138ea007a0` "ran
-  `npm run ward` **exactly once** … and made **zero** mutation-or-revert `Edit` calls", yet returned
-  "watched it fail with that swap, then pass after restoring the literal order" [report 05 §5 Finding 8].
-  It was harmless only by luck — "`#message-body` is a contract, and contracts carry no observable, so the
-  fabricated evidence had no unit id to attach to and **never reached `quest.json`**" — and the reviewer's
-  own backstop "keys on `[C✓]` marks, and an unsigned fabrication carries no mark."
-- [8]'s reviewer certified 37 records of which **2 are phantom** (§2d).
-- [2]'s reviewer certified a `354`-insertion commit containing an unbounded trailing-anchored regex over a
-  5 MB ceiling, having run it only in a scoped batch. §5c.
+- Cell [5]'s reviewer certified a closing report claiming `"15 units, every one carrying a verdict"` over
+  what was actually only **13** records — two of which had been silently discarded 15 minutes earlier by a
+  call that had returned `{"success": true}` (§2c). It ran a build and a ward check and read 54 files, but
+  neither of those checks looks at `quest.json`.
+- Cell [5]'s reviewer also missed a **fabricated** verification claim. Sub-agent `a982f9a138ea007a0` "ran
+  `npm run ward` **exactly once** … and made **zero** mutation-or-revert `Edit` calls", yet it reported
+  that it "watched it fail with that swap, then pass after restoring the literal order"
+  [report 05 §5, Finding 8]. This was harmless only by luck: "`#message-body` is a contract, and contracts
+  carry no observable, so the fabricated evidence had no unit id to attach to and **never reached
+  `quest.json`**." The reviewer's own backstop check "keys on `[C✓]` marks, and an unsigned fabrication
+  carries no mark."
+- Cell [8]'s reviewer certified 37 records, of which **2 are phantom** (§2d).
+- Cell [2]'s reviewer certified a `354`-insertion commit that contains an unbounded trailing-anchored
+  regex tested against a 5 MB ceiling, but only ran it in a small, scoped batch. See §5c.
 
-So the failure class is **certifying a claim nobody measured**, and on this flow the unmeasured claim is
-the same one every time: *the count of what was signed*. It is exactly what report 05 §6 Fix 9 asks for
-and what `get-qa-checklist` already answers.
+So this whole class of failure is **certifying a claim that nobody actually measured**. On this flow, the
+unmeasured claim is the same one every time: *the count of what was signed*. This is exactly what
+report 05 §6 Fix 9 asks for, and it is exactly what `get-qa-checklist` already answers.
 
-**Why the reviewers cannot catch it as written.** The codeweaver prompt orders the pass this way, in its
-own words:
+**Why the reviewers cannot catch this, as the prompt is written today.** The codeweaver prompt orders the
+pass this way, in its own words:
 
 > Sign an observable only where a sub-agent returned it under `PROVED`. **You have not read the
 > test** — step 4 says so, and it is the step that signs. You transcribe that evidence; your reviewer
 > opens the file and grades it.
 
-So the operator **signs from an ungraded claim**, and the reviewer grades it afterwards. The timeline on
-this flow bears that out: cell [5] wrote all 13 of its sign-offs across four `modify-quest` calls between
-52.5m and 72.9m, and its reviewer ran from roughly 73.6m. Every sign-off preceded the grading. A reviewer that
-finds a dead assertion is finding a unit that is already `confirmed` on the record, and nothing walks
-those sign-offs back.
+So the operator **signs off based on an ungraded claim**, and the reviewer only grades that claim
+afterward. The timeline on this flow bears that out: cell [5] wrote all 13 of its sign-offs across four
+`modify-quest` calls between the 52.5-minute and 72.9-minute marks, and its reviewer did not run until
+~73.6 minutes. Every sign-off happened before the grading. So when a reviewer finds a dead assertion, it
+is finding a unit that is already marked `confirmed` on the record — and nothing walks that sign-off back.
 
-The flowrider hit the same class from the other side and caught it itself by reading its own diff at
-227.2–237.4m [report 14 §4 item 4]:
+The flowrider ran into this same class of problem from the other side, and caught it itself, by reading
+its own diff between the 227.2-minute and 237.4-minute marks [report 14 §4 item 4]:
 
 > In `send-images-create-surface.e2e.ts:181-195`, the expected side of
 > `check-both-states-produce-same-body-shape` is built from `chatBody` itself, so one half of the object
 > compares `chatBody` to `chatBody` — a tautology. More importantly, **if *both* routes dropped their
 > images the assertion would still pass.**
 
-Confirmed empirically: "the agent verified empirically that the original shape passed **green** while
-both routes dropped their images." Report 14 calls this "**step 6 doing exactly what step 6 exists for**"
-— and it is, but note *which* observable it was: `check-both-states-produce-same-body-shape` had already
-been signed `confirmed` by codeweaver [8] and by the flowrider's own sub-agent before the operator read
-the diff.
+It confirmed this empirically: "the agent verified empirically that the original shape passed **green**
+while both routes dropped their images." Report 14 calls this "**step 6 doing exactly what step 6 exists
+for**" — and it is. But notice *which* observable this was: `check-both-states-produce-same-body-shape`
+had already been signed `confirmed`, both by codeweaver [8] and by the flowrider's own sub-agent, before
+the operator ever read the diff that caught the problem.
 
-**A reviewer repairing the same class on every pass is a missing step.** The class here is *an assertion
-that does not bite over a unit already signed*, and the missing step is grading before signing rather
-than after.
+**A reviewer that has to repair the same class of problem on every pass is a sign that a step is missing.**
+The recurring problem here is *an assertion that does not actually bite, sitting under a unit that is
+already signed*. The missing step is grading a claim before it is signed, not after.
 
 ### 5b. The flowrider reviewer: one round, no edits, and it found the ward blind spot
 
-`a24cdcac64cb4c836`, **11.0 min**, out 48,633, ctx-in 10,609,784, `firstEdit=none (reviewer made no
-edits)`. Command sequence exactly to budget: `npm run build` unpiped, then `ward -- --staged`, then
-`ward -- detail`, then `ward -- -- <8 explicit paths>`, then `ward -- detail`, then `git commit` [report 14 §4 item 7].
+This reviewer, `a24cdcac64cb4c836`, took **11.0 min**, produced 48,633 output tokens against 10,609,784
+context-in tokens, and made no edits (`firstEdit=none`). Its command sequence stayed exactly on budget:
+`npm run build` unpiped, then `ward -- --staged`, then `ward -- detail`, then
+`ward -- -- <8 explicit paths>`, then `ward -- detail` again, then `git commit` [report 14 §4 item 7].
 
-What it fixed itself: nothing in code. What it *found* is the most transferable thing on this flow — its
-own gate was blind:
+It fixed nothing in the code itself. But what it *found* is the most broadly useful thing on this entire
+flow: its own gate was blind.
 
 > Tooling gap: `npm run ward -- --staged` diffs against origin only, so it is blind to untracked new
 > files — it silently scoped only to `packages/server` on the first ward run here and missed all 6 new
 > `packages/web` files entirely.
 
-Report 14 §5 finding 8: "**~1.7 minutes** of a wasted ward run, and — far more significantly — one of the
+Report 14 §5, finding 8: "**~1.7 minutes** of a wasted ward run, and — far more significantly — one of the
 reviewer's two permitted ward runs. **Had it not noticed, a suite of six unlinted, untypechecked, unrun
-files would have been committed and signed off.**" Prompt stance: "**required.**
-`flowriderReviewerStatics` step 6 hardcodes `npm run ward -- --staged` and calls it 'what typechecks every
-package this suite touched' — a claim the tool does not honour for untracked files."
+files would have been committed and signed off.**" The prompt's stance on this is "**required.**"
+`flowriderReviewerStatics` step 6 hardcodes `npm run ward -- --staged` and calls it "what typechecks every
+package this suite touched" — a claim the tool does not actually honor for untracked files.
 
-The flowrider then wrote it into the quest as a `tooling-error` note at 2026-09-02T16:13:08.541Z —
-`ward-staged-blind-to-untracked-files` — after its reviewer mis-attributed the note to it: "attributed the
-note to me when I hadn't written one. Writing it now."
+The flowrider then wrote this into the quest as a `tooling-error` note at 2026-09-02T16:13:08.541Z, titled
+`ward-staged-blind-to-untracked-files` — after its reviewer had mistakenly attributed the note to it
+already: "attributed the note to me when I hadn't written one. Writing it now."
 
-**This is the second independent discovery of one broker bug**, and the first one is what put this flow
-through the ward gate. §5c.
+**This is the second independent discovery of one and the same broker bug.** The first discovery is what
+put this flow through the ward gate in the first place. See §5c.
 
 ### 5c. The ward gate [10]–[12], and what it says about cell [2] — my cell
 
-Ward `changed` at [10] went red on two `packages/web` tests, both `RangeError: Maximum call stack size
-exceeded` from a trailing-anchored regex over a roughly 7 MB base64 payload. Report 10-12 traces the origin:
+A ward `changed` run at work item [10] went red on two `packages/web` tests, both failing with
+`RangeError: Maximum call stack size exceeded` from a trailing-anchored regex run over a ~7 MB base64
+payload. Report 10-12 traces where that came from:
 
 ```
 packages/web/src/contracts/pasted-image-draft/pasted-image-draft-contract.test.ts   → 061e49064  [work item 7]
@@ -874,11 +902,12 @@ packages/web/src/transformers/base64-byte-length/base64-byte-length-transformer.
 packages/shared/src/contracts/pasted-image-upload/pasted-image-upload-contract.ts   → bebca45c3  [work item 2]
 ```
 
-**Correction to the brief's framing.** Both *failing test files* came from [7], not one from [2] and one
-from [7]. What came from **[2] — my flow's `shared` cell** — is `pasted-image-upload-contract.ts`, and it
-is the **root cause of blob failure #1**: "`pastedImageDraftContract` (the blob's *first* failure)
-declares `dataBase64: pastedImageUploadContract.shape.dataBase64`, so the shared contract **is** the root
-cause of failure #1" [report 10-12 §4 item 1]. The offending regex, verbatim:
+**One correction to the original brief's framing.** Both *failing test files* actually came from work
+item [7], not one from [2] and one from [7]. What actually came from **[2] — this flow's `shared` cell** —
+is `pasted-image-upload-contract.ts`, and that file is the **root cause of blob failure #1**:
+"`pastedImageDraftContract` (the blob's *first* failure) declares
+`dataBase64: pastedImageUploadContract.shape.dataBase64`, so the shared contract **is** the root cause of
+failure #1" [report 10-12 §4 item 1]. Here is the offending regex, verbatim:
 
 ```ts
 const base64ImageDataContract = z
@@ -887,46 +916,49 @@ const base64ImageDataContract = z
   .brand<'Base64ImageData'>();
 ```
 
-**What that says about the shared cell's own verification.** Two things, and the second is uncomfortable.
+**What does that say about the shared cell's own verification?** Two things — and the second one is
+uncomfortable.
 
-*First, it could not have caught it.* Report 10-12 §5 finding 8 is explicit — the failure is
-**stack-depth dependent**, so it only surfaces in a wide jest batch: "**In a 2-file batch the stack never
-gets deep enough to overflow.**" And: "`never widen the ward` is load-bearing for concurrency and is the
-correct rule; the consequence is that **no session on a codeweaver pass ever runs the new tests in a wide
-batch.** … **The gate chain is working exactly as designed and has a hole at the one place a
-stack-depth-dependent failure lives.**"
+*First: the shared cell could not have caught this itself.* Report 10-12 §5, finding 8, is explicit that
+the failure is **stack-depth dependent**, so it only shows up in a wide Jest batch: "**In a 2-file batch
+the stack never gets deep enough to overflow.**" It goes on: "`never widen the ward` is load-bearing for
+concurrency and is the correct rule; the consequence is that **no session on a codeweaver pass ever runs
+the new tests in a wide batch.** … **The gate chain is working exactly as designed and has a hole at the
+one place a stack-depth-dependent failure lives.**"
 
-*Second, nobody checked.* Report 10-12 never pulls cell [2]'s reviewer ward output or cell [2]'s
-sub-agent gate. Its account of [2] is by class, not by evidence — the parenthetical and the origin table
-are the only places [2] appears. **For an audit of the `shared` cell's verification, that account does
-not exist yet.** Report 02 itself says nothing about a downstream ward gate either (0 hits for `[10]`,
-`[11]`, `[12]`, `ward gate`, `regression`), so I can add only what its own record shows: [2]'s reviewer ran
-`npm run build` once (29.6 s, exit 0, all 13 workspaces) and `npm run ward -- --staged` once (13.6 s: lint
-4/4, typecheck 6125/6125, unit 39/39, integration 39/39, e2e skip), both green first try, and returned
-`FINDINGS: none` [report 02 §4 item 5]. What is established: [2] shipped a contract with an unbounded
-trailing-anchored regex that ran roughly 7 MB payloads; four codeweaver passes and three reviewers ran between it
-landing and ward finding it — "00:05:20 to 08:28:53, **8 h 23 min** of quest wall-clock — after which the
-repair cycle cost 31.3 min" [report 10-12 §5 finding 7].
+*Second: nobody actually checked.* Report 10-12 never pulls cell [2]'s reviewer ward output, or cell [2]'s
+sub-agent gate. Its account of cell [2] is by class of problem, not by direct evidence — a parenthetical
+and the origin table are the only places [2] appears in it. **An audit of the `shared` cell's own
+verification, specifically, does not exist yet.** Report 02 itself says nothing about a downstream ward
+gate either — it returns 0 hits for `[10]`, `[11]`, `[12]`, `ward gate`, and `regression`. So I can only
+add what its own record shows: cell [2]'s reviewer ran `npm run build` once (29.6 s, exit 0, all
+13 workspaces) and `npm run ward -- --staged` once (13.6 s: lint 4/4, typecheck 6125/6125, unit 39/39,
+integration 39/39, e2e skip), both green on the first try, returning `FINDINGS: none`
+[report 02 §4 item 5]. What is established is this: cell [2] shipped a contract containing an unbounded
+trailing-anchored regex that later ran against ~7 MB payloads. Four codeweaver passes and three reviewers
+ran in between that contract landing and ward finally catching it — "00:05:20 to 08:28:53, **8 h 23 min**
+of quest wall-clock — after which the repair cycle cost 31.3 min" [report 10-12 §5, finding 7].
 
-*And cell [8] is explicitly cleared.* Report 08 §4.7: the ward gate "went red — but on
-`…pasted-image-draft-contract.test.ts` and `…data-url-split-transformer.test.ts`, **both belonging to work
-item [7]'s cell. Not one of this cell's 54 files appears in the two `testFailures`.**" Report 05 makes no
-claim either way about `4b8d98710`.
+*Cell [8], on the other hand, is explicitly cleared.* Report 08 §4.7 states the ward gate "went red — but
+on `…pasted-image-draft-contract.test.ts` and `…data-url-split-transformer.test.ts`, **both belonging to
+work item [7]'s cell. Not one of this cell's 54 files appears in the two `testFailures`.**" Report 05
+makes no claim either way about commit `4b8d98710`.
 
-*Third, and this is the finding nobody has written down:* report 10-12's closing observation is that
+*Third, and this is a finding nobody else has written down yet:* report 10-12's closing observation is
+that
 
 > Nothing in `codeweaver-reviewer-statics.ts` or `standardsReviewConcernsStatics` asks whether a test
 > fixture is *pathologically sized*. … That is a **6,990,508-character** string handed to a branded zod
 > contract, **in five separate test files**. Every one reads as a perfectly ordinary boundary test.
 
-The `shared` cell authored the *contract* that the 6.99 MB fixture is fed to, and the ceiling
-(`maxBytesPerImage: 5242880`) it validates against. It is the one cell positioned to have asked "what
-happens when a regex meets five megabytes", and neither its prompt nor its reviewer's concerns list ever
-puts that question to it.
+The `shared` cell is the one that authored both the *contract* the 6.99 MB fixture gets fed to, and the
+ceiling it validates against (`maxBytesPerImage: 5242880`). It is the one cell in the best position to
+have asked "what happens when a regex meets five megabytes" — and neither its prompt nor its reviewer's
+list of concerns ever puts that question to it.
 
 ### 5d. The siegemaster reviewer never ran
 
-Work item [17] was cut off at steps 4–7 of an unbounded loop. Report 17 §3 S4:
+Work item [17] was cut off partway through steps 4 through 7 of an unbounded loop. Report 17 §3, S4:
 
 > **'You never commit and you never push. Your reviewer does both'**, plus 'There is no cap on this
 > loop', together guarantee that any session which does not finish leaves **every fix uncommitted**. That
@@ -941,14 +973,14 @@ by package: {'web': 41, 'orchestrator': 17, 'server': 8, 'other': 1}
 git log --oneline -1  →  e4d5e8218  (siegemaster [16]'s commit, and [17]'s own startRef)
 ```
 
-**Not a role failure.** Nine fixers' worth of verified repairs — including the create-route fix that
-closes §6 — are sitting unreviewed and uncommitted because the only commit authority on the role sits
-behind a loop the outage never let it leave.
+**This is not a failure by the role.** Nine fixers' worth of verified repairs — including the create-route
+fix that closes out §6 — are sitting unreviewed and uncommitted, simply because the only authority to
+commit on this role sits behind a loop that the outage never let the session leave.
 
-One consequence to flag for whoever resumes: report 17 §3 S5 records a red test the session knowingly left
-standing — "One test reads red only because `packages/server`'s Jest resolves the orchestrator through
-stale `dist/` — my own no-build rule caused that, and **my reviewer's build at step 8 is where it
-resolves.** **Step 8 never ran, so that red is still standing in the worktree.**"
+One consequence worth flagging for whoever resumes this work: report 17 §3, S5, records a red test the
+session knowingly left standing: "One test reads red only because `packages/server`'s Jest resolves the
+orchestrator through stale `dist/` — my own no-build rule caused that, and **my reviewer's build at
+step 8 is where it resolves.** **Step 8 never ran, so that red is still standing in the worktree.**"
 
 ---
 
@@ -956,100 +988,109 @@ resolves.** **Step 8 never ran, so that red is still standing in the worktree.**
 
 ### 6a. The provenance ledger for this flow
 
-Of 53 observables: **47 `spec`, 5 `siegemaster`, 1 `flowrider`.** Quest-wide the split is 147 / 14 / 2, so
-this flow contributes **5 of the 14 siegemaster additions and 1 of the 2 flowrider additions — 6 of 16
-mid-quest observables from one of three flows.** Zero were authored by a codeweaver, on this flow or any
-other.
+**Provenance** here means which role's `addedBy` field created a given check. Of this flow's
+53 observables: **47 were `spec`** (written into the original approved flow), **5 were `siegemaster`**,
+and **1 was `flowrider`**. Quest-wide, that split is 147 / 14 / 2, so this flow alone contributes **5 of
+the 14 siegemaster additions and 1 of the 2 flowrider additions — 6 of the quest's 16 mid-quest
+observables, from just one of its three flows.** Zero observables, on this flow or any other, were
+authored by a codeweaver.
 
-That zero is not a codeweaver virtue. A codeweaver's evidence is a unit test in the package it owns; a
-unit test that passes tells you nothing about a route the graph did not draw. Every one of the six
-mid-quest observables on this flow required something a codeweaver structurally cannot do: drive the real
-system (5 siegemaster) or drive a real browser (1 flowrider).
+That zero is not a virtue of the codeweaver role. A codeweaver's evidence is a unit test inside the one
+package it owns, and a passing unit test tells you nothing about a route the graph never drew. Every one
+of the six mid-quest observables on this flow needed something a codeweaver structurally cannot do: either
+drive the real running system (the 5 from the siegemaster) or drive a real browser (the 1 from the
+flowrider).
 
 ### 6b. The five siegemaster observables, each judged against §6's question
 
 | observable | found | could an earlier track have caught it? | cost where it was found |
 |---|---|---|---|
-| `check-composer-typable-while-agent-streams` | walker `a49c394a0` @122.7m, "Walk P5 mid-quest and clear-composer" | **Yes — flowrider.** It is a UI-timing claim in a real browser, the flowrider's own surface. The spec's `check-composer-editable-again` covers the same control and passed, because it asserts the end state, not *when*. | 3 agents ≈ **34.5 sub-agent min**, ~155k out, ~42.3M ctx-in; a **40.3 min** wall-clock phase [report 17 §1 row 5, §7] |
-| `check-chat-send-never-mints-a-second-quest` | `a9a40a38f` @389.4m, **on the off-map interruption probe, not a P-path** | **Partly — flowrider.** The precondition is "the quest's chat work item carries no sessionId yet", which an integration test can seed. But the *symptom* is a navigation into a different quest, which needs a browser. | probe 25.2m + fixer 47.0m **+ 10 `Explore` grandchildren** = **74.8 min** wall clock [report 17 §1 row 8]; fixer alone out 127,505 / ctx-in 42.8M |
-| `check-simultaneous-sends-both-stay-reachable` | `aed35eae0` @478.1m | **No.** Barrier-released parallel POSTs against a live orchestrator with a real sessionId write-back window. Its own `toSettle` says this MCP browser toolchain cannot even reach it. | the walk was **paid for four times** — 36.4 min for 21.5 min of usable work, **14.9 min lost** to three consecutive API deaths [report 17 §5.5]. **Fix never dispatched**; settled `unconfirmable`. |
-| `check-draft-is-scoped-to-its-own-composer` | `aed35eae0` @478.1m, same walk | **Yes — flowrider, cheaply.** Two tabs on two quests, one localStorage key. No timing, no race. | fixer `a2794d5ae` **51.5 min / 363 turns / out 231,747 / ctx-in 133,567,044** — the item's **second-largest sub-agent** — plus re-proof `aa6b267db` 27.6m. **≈100.6 sub-agent min, ≈264M ctx-in.** |
-| `check-unload-during-send-leaves-no-duplicate` | deferred @389.4m, **reproduced @640.0m** | **No.** It needs sub-frame click-to-unload timing, or a throttled connection. | Deferred once ("needs sub-100ms timing no human produces"), then reversed 250 minutes later on new evidence. Fixer `a746672bf` 14.5m — **and it finished 5.897 seconds before the quest was paused. The siegemaster never read its report.** [report 17 §1] |
+| `check-composer-typable-while-agent-streams` | walker `a49c394a0` @122.7m, "Walk P5 mid-quest and clear-composer" | **Yes — the flowrider could have.** This is a UI-timing claim in a real browser, which is the flowrider's own surface. The spec's `check-composer-editable-again` covers the same control and passed, but only because it asserts the end state, not *when* that state is reached. | 3 agents, about **34.5 sub-agent minutes**, ~155k output tokens, ~42.3M context-in tokens; a **40.3-minute** wall-clock phase [report 17 §1 row 5, §7] |
+| `check-chat-send-never-mints-a-second-quest` | `a9a40a38f` @389.4m, **on the off-map interruption probe, not a P-path** | **Partly — the flowrider could have.** The precondition — "the quest's chat work item carries no sessionId yet" — is something an integration test can seed. But the *symptom* is a navigation into a different quest, which needs a real browser to observe. | probe 25.2 min + fixer 47.0 min **plus 10 `Explore` grandchildren** = **74.8 min** wall clock [report 17 §1 row 8]; the fixer alone used 127,505 output tokens and 42.8M context-in tokens |
+| `check-simultaneous-sends-both-stay-reachable` | `aed35eae0` @478.1m | **No.** This needs barrier-released parallel POSTs against a live orchestrator, hitting a real sessionId write-back window. Its own `toSettle` note says this MCP browser toolchain cannot even reach this case. | This walk was **paid for four times** — 36.4 min spent for 21.5 min of usable work, with **14.9 min lost** to three consecutive API failures [report 17 §5.5]. **A fix was never dispatched**; the check settled as `unconfirmable`. |
+| `check-draft-is-scoped-to-its-own-composer` | `aed35eae0` @478.1m, same walk | **Yes — and cheaply, by the flowrider.** This only needs two tabs on two quests and one localStorage key. No timing, no race. | the fixer `a2794d5ae` took **51.5 min, 363 turns, 231,747 output tokens, 133,567,044 context-in tokens** — the item's **second-largest sub-agent** — plus a re-proof by `aa6b267db` at 27.6 min. **That comes to ≈100.6 sub-agent minutes and ≈264M context-in tokens.** |
+| `check-unload-during-send-leaves-no-duplicate` | deferred @389.4m, **reproduced @640.0m** | **No.** It needs sub-frame click-to-unload timing, or a throttled connection. | It was deferred once ("needs sub-100ms timing no human produces"), then reversed 250 minutes later on new evidence. The fixer `a746672bf` took 14.5 min — **and finished 5.897 seconds before the quest was paused. The siegemaster never read its report.** [report 17 §1] |
 
-**Two of the five — `check-composer-typable-while-agent-streams` and
-`check-draft-is-scoped-to-its-own-composer` — were within the flowrider's reach and were not written.**
-Together they cost roughly **135 sub-agent minutes and roughly 306M context-in tokens** at siege time. A
-flowrider e2e for the draft-scoping one is two tabs and one assertion.
+**Two of these five — `check-composer-typable-while-agent-streams` and
+`check-draft-is-scoped-to-its-own-composer` — were within the flowrider's reach, and the flowrider never
+wrote them.** Together they cost roughly **135 sub-agent minutes and ~306M context-in tokens** at siege
+time, when they could have been caught earlier. A flowrider end-to-end test for the draft-scoping one
+needs only two tabs and one assertion.
 
-Report 17 makes no such attribution itself, and the reason it makes none is its own §3 S1: **the test-suite
-review it was dispatched to do was never scripted.** The operation item reads
-`…and review its test suite — flow: send-message-with-images`; the 32,956-char prompt contains no step for
-it, and the one occurrence of the phrase means the opposite. Measured: "**Test-suite review — 0.0 min,
-0.0%** — no agent was ever dispatched to grade a suite" [report 17 §1]. The flowrider's suite for this
-exact flow (`f2aaeabab`, "32 integration + 28 e2e real cases") was opened only where a fixer needed to add
-its own case. **"Nobody asked 'does this suite bite?' — the question `flowrider-reviewer` exists to
-ask."**
+Report 17 does not make this attribution itself. The reason, per its own §3, S1, is that **the test-suite
+review it was dispatched to do was never actually scripted into its prompt.** The operation item's own
+text reads `…and review its test suite — flow: send-message-with-images`, but the 32,956-character prompt
+contains no step for carrying that out, and the prompt's one occurrence of the phrase actually means the
+opposite. As measured: "**Test-suite review — 0.0 min, 0.0%** — no agent was ever dispatched to grade a
+suite" [report 17 §1]. The flowrider's own test suite for this exact flow (`f2aaeabab`, "32 integration +
+28 e2e real cases") was only opened where a fixer needed to add its own case to it. **"Nobody asked 'does
+this suite bite?' — the question `flowrider-reviewer` exists to ask."**
 
 ### 6c. The one flowrider observable
 
-`check-typing-after-end-of-content-newline`, found by browser walk `a20e184886cb97c2e` at **200.7m**
-(17.9 min, out 100,029, ctx-in 26,140,623), which returned `NEXT: wall`. Could a codeweaver unit test have
-caught it? Its `toSettle` names `chat-input-widget.tsx`'s Shift+Enter branch and `domComposerInsertTextAdapter`
-— codeweaver-owned files — but the defect is contenteditable caret placement, which jsdom does not
-implement. **No; this one is correctly a browser finding.** Report 14 makes no claim either way; it
-records only "verified three ways" in real Chromium. Cost where found: **20.3 min** (P8) plus the forced
-P9 rework dispatch, plus the `NEXT: wall` misroute [report 14 §5 finding 7] — which cost "**zero, because
-the flowrider ignored the table.** The exposure is what matters: a session that followed the prompt
-exactly would have blocked quest `1be07040` at 200.7m with 8 units unwritten."
+The check `check-typing-after-end-of-content-newline` was found by browser walk `a20e184886cb97c2e` at
+**200.7m** (17.9 min, 100,029 output tokens, 26,140,623 context-in tokens), which returned `NEXT: wall`.
+Could a codeweaver unit test have caught this instead? Its `toSettle` names `chat-input-widget.tsx`'s
+Shift+Enter branch and `domComposerInsertTextAdapter` — both codeweaver-owned files — but the actual
+defect is contenteditable caret placement, which jsdom does not implement. **No — this one really is
+correctly a browser finding.** Report 14 makes no claim either way about this; it records only that the
+fix was "verified three ways" in real Chromium. The cost where it was found: **20.3 min** (P8), plus a
+forced P9 rework dispatch, plus a `NEXT: wall` misroute [report 14 §5, finding 7] — which itself cost
+"**zero, because the flowrider ignored the table.**" But the exposure is what matters here: a session that
+followed the prompt exactly would have blocked quest `1be07040` at 200.7m with 8 units still unwritten.
 
 ### 6d. The chain that should be the headline: `check-new-quest-first-message`
 
-This is the most expensive late discovery on the flow, and it is not a mid-quest observable at all — it is
-a **spec observable that a codeweaver signed `confirmed` while the system was broken**.
+This is the most expensive late discovery on the whole flow, and it is not a mid-quest observable at all.
+It is a **spec observable that a codeweaver signed `confirmed` while the underlying system was actually
+broken**.
 
-**2026-09-01T20:08:05Z — codeweaver [3] (orchestrator) signs it `confirmed`** (re-signed at 34.5m when a
-fix moved the line numbers — report 03 treats that re-sign as bookkeeping and **never notices the false
-green**; a full-text read of report 03 finds no such claim anywhere)**:**
+**2026-09-01T20:08:05Z — codeweaver [3] (orchestrator) signs it `confirmed`.** (It was re-signed at 34.5m
+when a fix moved the line numbers; report 03 treats that re-sign as routine bookkeeping and **never
+notices the false green** — a full read of report 03 finds no such claim anywhere in it.)
 
 > `packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.test.ts:96` — on the chaoswhisperer-new
 > path (setupNewSession: no questId, no sessionId, the quest minted inside the call),
 > `expect(occurrenceCount).toBe(2)` counts split() segments for `…/images/2f6d.png` in the spawned `-p`
 > value…
 
-The test is correct, red-isolated ("Mutating the expectation to `toBe(3)` produced Expected: 3, Received:
-2 before it was reverted"), and proves the orchestrator's half. It never asks whether the caller upstream
-will ever hand it a rewritten message. **A cell can only prove its own package, and its denominator is
-drawn the same way.**
+This test is correct. It was red-isolated ("Mutating the expectation to `toBe(3)` produced Expected: 3,
+Received: 2 before it was reverted"), and it proves the orchestrator's half of the problem. But it never
+asks whether the caller upstream will ever actually hand it a rewritten message. **A cell can only prove
+its own package, and its denominator is drawn along exactly the same boundary.**
 
-**The premise for calling this a false green is in report 03 and the conclusion is not.** §4 item 5 states
-"**The orchestrator mocks `child_process.spawn` in every unit test, so no CLI ever runs**" — and uses that
-reasoning to mark `#agent-reads-images` and `#check-agent-issues-read` `unconfirmable`. It never extends it
-to the spawn-argv observables one node upstream, where the same mock decides what "the spawned `-p` value"
-even is. Three of that cell's `confirmed` verdicts (`check-argv-carries-image-path`,
-`check-new-quest-first-message`, `check-followup-message-carries-path`) rest on a message string the test
-supplies. Only one of the three turned out to be false in production, but the cell had no way to tell
-which — **it drew its `unconfirmable` line at the process boundary when the real boundary was the caller.**
+**The reasoning that would call this a false green already exists in report 03. Its conclusion just does
+not.** §4, item 5, states "**The orchestrator mocks `child_process.spawn` in every unit test, so no CLI
+ever runs**", and uses that reasoning to mark `#agent-reads-images` and `#check-agent-issues-read` as
+`unconfirmable`. But it never extends the same reasoning to the spawn-argv observables one node upstream,
+where that same mock is what decides what "the spawned `-p` value" even is. Three of that cell's
+`confirmed` verdicts (`check-argv-carries-image-path`, `check-new-quest-first-message`,
+`check-followup-message-carries-path`) all rest on a message string the test itself supplies. Only one of
+the three turned out to be false in production, but the cell had no way to tell which one — **it drew its
+`unconfirmable` line at the process boundary, when the real boundary was actually the caller.**
 
 **2026-09-01T22:56:15Z — 168.2 minutes later, codeweaver [5] (server) writes an `out-of-scope` quest note
-naming the exact hole:**
+that names the exact hole:**
 
 > The quest-create route accepts an images array it cannot act on: **no cell on this quest owns the
 > orchestrator step that would write those files.**
 
-*(quoted from `quest.json` `planningNotes.questNotes` — report 05 records the note's id, size and cost but
-not this sentence.)* It is a **2,430-character `out-of-scope` note, `create-route-images-need-orchestrator-half`**,
-naming the three orchestrator changes that close it — "*widen that gate to questId alone … thread an
-optional questId through ChatStartResponder and StartOrchestrator.startChat … give the server a way to mint
-the quest with its intake work item ahead of the spawn*". **It cost 0.3 min.** Report 05 §4 item 4 grades
-it right: "**The out-of-scope hole was recorded rather than faked**", against the alternative the session
-itself named — "*faking it with a write after the fact would leave bare tokens in the transcript*".
+*(This is quoted from `quest.json`'s `planningNotes.questNotes` field. Report 05 records the note's id,
+size, and cost, but not this exact sentence.)* This is a **2,430-character `out-of-scope` note,
+`create-route-images-need-orchestrator-half`**, and it names the three orchestrator changes that would
+close the hole: "*widen that gate to questId alone … thread an optional questId through
+ChatStartResponder and StartOrchestrator.startChat … give the server a way to mint the quest with its
+intake work item ahead of the spawn*." **Writing it cost 0.3 min.** Report 05 §4, item 4, grades this
+correctly: "**The out-of-scope hole was recorded rather than faked**", against the alternative the session
+itself named — "*faking it with a write after the fact would leave bare tokens in the transcript*."
 
-It knew, it wrote it down in 18 seconds, and it went nowhere. Quest notes never close a unit and never
-reach a sibling — and [3] had already run and signed 168 minutes earlier. The note was `modify-quest` #4
-of five; #2 and #3 in the same series are the two calls that wrote nothing (§2c), and all five returned
-the same `{"success": true}`.
+So the cell knew about the hole, wrote it down in 18 seconds — and the note went nowhere. Quest notes
+never close a checklist unit and never automatically reach a sibling cell, and cell [3] had already run
+and signed off 168 minutes earlier anyway. This note was `modify-quest` call #4 of five in that series;
+calls #2 and #3 in the same series are the two calls that wrote nothing at all (§2c), and all five of the
+five calls returned the same `{"success": true}`.
 
-**2026-09-02T15:51:07Z — 19.72 hours after [3]'s sign-off, flowrider [14] measures it and records
+**2026-09-02T15:51:07Z — 19.72 hours after [3]'s sign-off, flowrider [14] measures this and records it
 `unconfirmable`:**
 
 > Measured end to end through a real browser send on the create surface, **then deleted so nothing red
@@ -1060,24 +1101,26 @@ the same `{"success": true}`.
 > which states the quest-create route writes the files and rewrites the tokens as part of handling that
 > one request.
 
-The `toSettle` is a fix instruction, not a test instruction: "Wire `pastedImagePersistBroker` into
-`…/quest-new-responder.ts` the way `quest-chat-responder.ts:108-111` does…"
+Its `toSettle` field is actually a fix instruction, not a test instruction: "Wire
+`pastedImagePersistBroker` into `…/quest-new-responder.ts` the way `quest-chat-responder.ts:108-111`
+does…"
 
-**2026-09-03T06:06:56Z — siegemaster-walker rediscovers it live**, driving its assigned create-surface
-first message, and records it under `out-of-scope` because it fell **between two walkers' unit
-assignments**: "Not one of my assigned units (substitute-tokens/write-image-file/resolve-images-dir belong
-to the 'server on-disk files' walker; build-prompt/spawn-cli belong to the P3 'spawns in the background'
-branch), but discovered live while driving MY exact assigned path". Its evidence includes the agent's own
-reply "that it received the literal placeholder text with 'no image data behind either placeholder'".
+**2026-09-03T06:06:56Z — a siegemaster walker rediscovers this live**, while driving its assigned
+create-surface first message, and records it under `out-of-scope` because the check fell **between two
+walkers' unit assignments**: "Not one of my assigned units (substitute-tokens/write-image-file/
+resolve-images-dir belong to the 'server on-disk files' walker; build-prompt/spawn-cli belong to the P3
+'spawns in the background' branch), but discovered live while driving MY exact assigned path." Its
+evidence includes the agent's own reply, which showed that it had received the literal placeholder text,
+with "no image data behind either placeholder."
 
-**2026-09-03T06:54:59Z — siegemaster [17] signs it `confirmed`** after the fix chain lands: images dir
-holds two files with `sha256sum` matching the posted bytes, `userRequest` rewritten to absolute paths, and
-the real spawned session JSONL carrying the same paths plus the sentinel and trailer, "appended exactly
-once."
+**2026-09-03T06:54:59Z — siegemaster [17] signs this `confirmed`**, once the fix chain lands: the images
+directory now holds two files whose `sha256sum` matches the posted bytes, `userRequest` is rewritten to
+absolute paths, and the real spawned session's JSONL log carries the same paths plus the sentinel and
+trailer, "appended exactly once."
 
-**The bill.** From the server cell first naming the hole to the fix being confirmed live:
-**31.98 hours of quest wall clock.** The repair itself is the **P3 spawn-permission chain**, and report 17
-prices it exactly [§5.3]:
+**The bill.** From the server cell first naming the hole to the fix finally being confirmed live:
+**31.98 hours of quest wall clock.** The repair itself is called the **P3 spawn-permission chain**, and
+report 17 prices it exactly [§5.3]:
 
 ```
 13  ad766aaaee8f39e75  Walk P3 spawn and agent reads images        12.9 min  177 turns
@@ -1087,14 +1130,16 @@ prices it exactly [§5.3]:
                                                           TOTAL  126.8 min
 ```
 
-"For scale: the whole P1 walk-fix-rewalk cycle cost 25.6 min and the whole P5 create-surface cycle 61.5
-min. **Agent 14 alone outlasted the entire P5 cycle.**" Wall clock for the block: **104.8 min**, the
-single biggest of the item [report 17 §1 row 6]. Agent 14 alone: out 287,865, ctx-in 172,918,166 — 11.1%
-of the item's output and 15.8% of its context-in on one fix. And 37.0 min of the 126.8 went to one red
-test whose ward runs oscillated `1 → PASS → PASS → 1 → 17 → 1 → 4 → 9 → 17 → 1 → 1 → 1 → 1 → 1 → 1` and
-"still reads FAIL" at the last run before it stopped.
+"For scale: the whole P1 walk-fix-rewalk cycle cost 25.6 min, and the whole P5 create-surface cycle cost
+61.5 min. **Agent 14 alone outlasted the entire P5 cycle.**" The wall clock for this block was
+**104.8 min**, the single biggest block in the item [report 17 §1 row 6]. Agent 14 alone produced 287,865
+output tokens against 172,918,166 context-in tokens — 11.1% of the item's total output and 15.8% of its
+total context-in, on one single fix. And 37.0 of those 126.8 minutes went to one red test, whose ward runs
+oscillated `1 → PASS → PASS → 1 → 17 → 1 → 4 → 9 → 17 → 1 → 1 → 1 → 1 → 1 → 1` and "still reads FAIL" at
+the last run before the session stopped.
 
-The deeper defect it uncovered is the quest's whole point failing [report 17 §4.1 defect #4]:
+The deeper defect this uncovered is the entire point of the quest failing to work [report 17 §4.1,
+defect #4]:
 
 > The agent **does** issue a correct `Read` on the written path — and the tool result comes back
 > `is_error: true`: *"Claude requested permissions to read from &lt;path&gt;, but you haven't granted it
@@ -1102,38 +1147,40 @@ The deeper defect it uncovered is the quest's whole point failing [report 17 §4
 > `DUNGEONMASTER_HOME` and the spawn's cwd are disjoint trees in a real install too. Reproduced across
 > two roles, two spawn types, two guilds. **No pasted image reaches the model.**
 
-**Who should have caught what.** The `--add-dir` half is genuinely siege-only — it needs a real headless
-spawn, and no unit test or Playwright e2e with a fake CLI can reach it (`check-agent-issues-read` is
-`unconfirmable` on both earlier tracks for exactly that reason, and the flowrider says so: "The session
-transcript in every e2e is written by the fake Claude CLI… Queueing a Read tool_use line would make the
-assertion measure the fixture, not the agent"). **The create-route write is not.** It is a server
-responder that drops a validated field, the server cell named it in writing, the flowrider measured it and
-handed over a fix instruction, and it survived all of that because **the artifact that decides who builds
-what — the flow graph — draws one `post-chat` node and one edge into the write chain for three routes.**
+**Who should have caught what?** The `--add-dir` half of this defect is genuinely siege-only work — it
+needs a real headless spawn, and no unit test or Playwright end-to-end test using a fake CLI can reach it.
+`check-agent-issues-read` is `unconfirmable` on both earlier tracks for exactly that reason, and the
+flowrider says so directly: "The session transcript in every e2e is written by the fake Claude CLI…
+Queueing a Read tool_use line would make the assertion measure the fixture, not the agent." **The
+create-route write half is not siege-only.** It is a server responder that simply drops a validated field.
+The server cell named this in writing, the flowrider measured it and handed over a fix instruction — and
+it still survived all of that, because **the artifact that decides who builds what, the flow graph, draws
+only one `post-chat` node and one edge into the write chain for three separate routes.**
 
 ### 6e. What this flow contributes to the 16-of-163 figure
 
-6 of 16, from one of three flows. Every one required a running system. The number that matters is not 16 —
-it is that **`addedBy: 'codeweaver'` is zero across the whole quest**, and on this flow the one cell that
-*noticed* a missing observable wrote a quest note instead, because the codeweaver prompt's route for that
-is "To change the spec, patch the same `flows` array without a sign-off field" — a sentence in the
-*Recording what you claim* section, after the sign-off template, with no step in the script that asks the
-question.
+This flow contributes 6 of the quest's 16 mid-quest observables, from just one of its three flows, and
+every one of the six needed a running system to find. But the number that actually matters here is not
+16. It is that **`addedBy: 'codeweaver'` is zero across the entire quest**. On this flow, the one cell
+that *did* notice a missing observable wrote a quest note about it instead of an observable, because the
+codeweaver prompt's only route for that situation is "To change the spec, patch the same `flows` array
+without a sign-off field" — a single sentence in the *Recording what you claim* section, placed after the
+sign-off template, with no actual step in the prompt's script that ever asks the question.
 
 ---
 
 ## 7. The missing middle step
 
-**Answer: yes, one step is missing, and it is small.** Between the approved flow map and the first
-codeweaver brief, nothing turns the graph into a per-cell work order. Every operator on this flow invented
-one, and each invented a different wrong one.
+**The answer is yes: one step is missing, and it is a small one.** Between the approved flow map and the
+first codeweaver brief, nothing turns the graph into a work order for each individual cell. Every operator
+on this flow had to invent one for itself — and each one invented a different wrong version.
 
 ### What each operator had to invent before it could dispatch
 
 | operator | invented | consequence on this flow |
 |---|---|---|
-| codeweaver [2] `shared` | its unit list, plus the seam, from a render that collapses sibling observables to a count | read 1 against an authoritative 6; 56.5% of its 27,330-char scope fetch was design decisions, 10 of 13 naming nothing it owned |
-| codeweaver [3] `orchestrator` | the same, plus whether the server cell had run | signed `check-new-quest-first-message` `confirmed` on a broken system (§6d); worked out the seam status at **41.3m of a 41.3m session** |
+| codeweaver [2] `shared` | its own unit list, plus the seam boundary, from a render that collapses a sibling cell's observables down to a bare count | read 1 against a true 6; 56.5% of its 27,330-char scope fetch was design decisions, 10 of 13 naming nothing it owned |
+| codeweaver [3] `orchestrator` | the same, plus whether the server cell had already run | signed `check-new-quest-first-message` `confirmed` on a broken system (§6d); worked out the seam status at **41.3m of a 41.3m session** |
 | codeweaver [5] `server` | the same, **plus edge ids the renderer never prints** | claimed 15, wrote 13, owed 23; two sign-offs silently stripped (§2c); 6.3 min and 30 `Read` + 9 `discover` reconstructing four seam nodes by hand |
 | codeweaver [8] `web` | the same; recovered 7 of 8 edge ids by running `python3` against `.dungeonmaster/…/quest.json` | 37 records over 35 units over a 38 denominator; 2 phantom (§2d). **That recovery only works in the dogfood repo** |
 | flowrider [14] | its package set (`packageNames=[]`) and, by omission, its sibling's map | 7.2 min orientation; ≈30–37 min and ≈475k tokens of recoverable duplication |
@@ -1141,64 +1188,71 @@ one, and each invented a different wrong one.
 
 ### The three fixes, in order of leverage
 
-**1. Give the codeweaver the denominator tool it is already gated on. (Prompt edit, roughly 10 lines.)**
+**1. Give the codeweaver the denominator tool it is already held to. (A prompt edit, about 10 lines.)**
 `get-qa-checklist({ questId, operationItemId })` already answers correctly for a codeweaver item — I called
-it for `f21eacd1` and it returned the full 66-unit list with per-unit ids, the read-check legend, and the
-walk paths. The prompt simply never names it. Add the flowrider's `### 2. Get the full list of units` step
-verbatim to `codeweaver-prompt-statics.ts` and to `codeweaver-reviewer-statics.ts`. This alone fixes:
-the four wrong counts; the two destroyed sign-offs (the checklist prints every branch's unit id, which the
-graph render does not); the seam ambiguity, because the checklist's `[ ]` marks apply the *node* rule the
-scope transformer uses rather than the *observable-tag* rule the prompt states; and the phantom terminals,
-because the checklist enumerates only true terminals.
+it for `f21eacd1` myself and it returned the full 66-unit list, complete with per-unit ids, the read-check
+legend, and the walk paths. The prompt simply never tells the codeweaver this tool exists. Adding the
+flowrider's `### 2. Get the full list of units` step, verbatim, to both `codeweaver-prompt-statics.ts` and
+`codeweaver-reviewer-statics.ts` would, on its own, fix: the four wrong counts on this flow; the two
+destroyed sign-offs (since the checklist prints every branch's unit id, which the graph render does not);
+the seam ambiguity (since the checklist's `[ ]` marks apply the *node* rule the scope transformer actually
+uses, rather than the *observable-tag* rule the prompt states); and the phantom terminals (since the
+checklist enumerates only true terminal units).
 
-**2. Make the checklist header report the measured denominator, not a wider one. (Product bug, §1a-bis.)**
-`qaChecklistBuildTransformer` applies `observableOrigins` and the package slice to `remainingItemIds` and
-not to `items`; `qaChecklistToTextTransformer` then counts `items`. The call I made for this flow's
-codeweaver item printed **`Units: 66` over a real denominator of 61**, rendering the five excluded units
-as `[x]` under a legend whose two stated reasons are both false for them. `qaChecklistToTextTransformer`'s
-own comment already names this exact failure mode for the two filters it *does* apply — "a flowrider
-seeing `58 of 67` is measuring itself against nine units it can never reach, and the nine are invisible as
-such once they scroll past their legend." Route both counts through one filter, and give the legend a
-third reason: *a later role authored it and your track ran first*.
+**2. Make the checklist header report the actual measured denominator, not a wider one. (A product bug,
+see §1a-bis.)** `qaChecklistBuildTransformer` applies the `observableOrigins` filter and the package slice
+only to `remainingItemIds`, not to `items`, and `qaChecklistToTextTransformer` then counts `items`. The
+call I made for this flow's codeweaver item printed **`Units: 66` over a real denominator of 61**,
+rendering the five excluded units as `[x]` under a legend whose two stated reasons are both false for
+them. `qaChecklistToTextTransformer`'s own code comment already names this exact failure mode, for the
+two filters it *does* apply: "a flowrider seeing `58 of 67` is measuring itself against nine units it can
+never reach, and the nine are invisible as such once they scroll past their legend." Routing both counts
+through the same filter, and giving the legend a third reason — *a later role authored it, and your track
+already ran* — would fix this.
 
-**2b. And give a late-authored observable a carrier.** `check-typing-after-end-of-content-newline` sits in
-the `web` cell's denominator by rule, was authored 9.2 h after that cell closed, and has no `pt N` item —
-so the cell reads `REMAINING: 1` permanently (§1c). The relay's own comment anticipates the `pt N`
-continuation; nothing mints one. Either mint it when a later role authors an observable inside a closed
-cell's scope, or record the origin on the unit so a reader can tell "owed" from "arrived too late".
+**2b. Give a late-authored observable somewhere to land.** `check-typing-after-end-of-content-newline`
+sits in the `web` cell's denominator by rule, but was authored 9.2 hours after that cell had already
+closed, and no `pt N` follow-up item exists for it — so the cell reads `REMAINING: 1` permanently (§1c).
+The relay's own code comment already anticipates a `pt N` continuation for exactly this case; nothing
+actually mints one. Either mint one automatically whenever a later role adds an observable inside an
+already-closed cell's scope, or record the observable's origin directly on the unit, so a reader can tell
+"still owed" apart from "arrived too late to ever be owed."
 
-**3. Draw the fan-in, or mint a seam owner.** This is the one that is not a prompt edit. The flow graph is
-the delivery contract, and it under-draws convergence: three HTTP routes enter one `post-chat` node, one
-edge leaves it, and the create route's write was built by nobody for 32 hours (§6d). Two candidate fixes,
-and the evidence favours the first: **(a)** require the spec to draw a node per route where routes differ
-in the code that serves them — the observables already distinguish them
+**3. Draw the fan-in properly, or give the seam an owner.** This is the one fix that is not a prompt edit.
+The flow graph itself is the delivery contract, and it under-draws convergence: three separate HTTP
+routes enter a single `post-chat` node, only one edge leaves that node, and the create route's write sat
+built by nobody for 32 hours as a result (§6d). There are two candidate fixes, and the evidence favors the
+first. **(a)** Require the spec to draw a separate node per route wherever the routes differ in the code
+that serves them. The observables already distinguish these routes
 (`check-chat-post-carries-images` / `check-followup-post-carries-images` /
-`check-create-post-carries-images`), so the information exists and only the topology is missing;
-**(b)** mint a flow-less seam cell for a package's cross-node glue. `signoffTrackEligibilityStatics`
-already contemplates "a single flow-less item for a package that owns contracts and tags no node
-anywhere" — extending that to *tags nodes but owns route-level glue* would also have given the `shared`
-cell somewhere better to live than a 24-minute flow slice (§2b).
+`check-create-post-carries-images`), so the information already exists — only the graph's topology is
+missing it. **(b)** Mint a flow-less seam cell for a package's cross-node glue work.
+`signoffTrackEligibilityStatics` already allows for "a single flow-less item for a package that owns
+contracts and tags no node anywhere." Extending that rule to also cover *tags nodes but owns route-level
+glue* would also have given the `shared` cell somewhere better to live than a 24-minute flow slice (§2b).
 
 ### What is NOT missing
 
-Worth saying plainly, because the evidence says it. **The three-track design worked on this flow.** 58 of
-73 units carry three independent proofs at three different layers; §4a shows the layers finding different
-failures rather than repeating one. **The `unconfirmable` verdict did its job** — all eight on this flow
-(3 codeweaver, 4 flowrider, 1 siegemaster) name either a codeweaver-owned production file or a structural
-limit of the layer, each with a `toSettle` a later role could execute; and the flowrider's `toSettle` on
-`check-new-quest-first-message` is precisely what the siegemaster's fixers carried out. Two of the four
-flowrider `unconfirmable`s are honest statements that its own harness cannot reach the claim
-(`check-agent-issues-read`: "the session transcript in every e2e is written by the fake Claude CLI …
-queueing a `Read` tool_use line would make the assertion measure the fixture, not the agent"), and it
-**deleted the red test rather than shipping it green** — the behaviour the design wants.
-`reset-flow-signoffs` was never needed. The eligibility statics are correct and correctly applied by the
-gate; the *header* and the *measurement script* were what disagreed with them (§1a, §1a-bis). And the
-paused siegemaster's four unwalked probe families are a scheduling casualty of an API outage, not a design
-fault — though report 17's F7 is right that `hostile-input` and `perf` should not sit at the back of an
-unbounded queue.
+This is worth saying plainly, because the evidence supports it. **The three-track design worked on this
+flow.** 58 of the 73 units carry three independent proofs at three different layers, and §4a shows those
+layers actually finding different failures rather than just repeating one. **The `unconfirmable` verdict
+did its job.** All eight `unconfirmable` verdicts on this flow (3 codeweaver, 4 flowrider, 1 siegemaster)
+name either a codeweaver-owned production file or a genuine structural limit of that layer, each paired
+with a `toSettle` instruction a later role could act on — and the flowrider's `toSettle` on
+`check-new-quest-first-message` is precisely what the siegemaster's fixers went on to carry out. Two of
+the flowrider's four `unconfirmable` verdicts are honest statements that its own test harness simply
+cannot reach the claim (`check-agent-issues-read`: "the session transcript in every e2e is written by the
+fake Claude CLI … queueing a `Read` tool_use line would make the assertion measure the fixture, not the
+agent"), and in one case it **deleted the red test rather than shipping it green** — which is the behavior
+the design actually wants. The `reset-flow-signoffs` tool was never needed here. The eligibility rules
+themselves are correct, and the gate applies them correctly; it was the *header display* and the
+*measurement script* that disagreed with them (§1a, §1a-bis). And the paused siegemaster's four unwalked
+probe families are a scheduling casualty of an API outage, not a design fault — though report 17's
+finding F7 is right that `hostile-input` and `perf` should not be placed at the back of an unbounded
+queue.
 
-The gap is one step wide: **the codeweaver is the only track dispatched against a hard completion
-criterion with no way to enumerate what it must complete.**
+The whole gap comes down to one missing step: **the codeweaver is the only track sent out against a hard
+completion rule with no way to count what it actually has to complete.**
 
 ---
 
@@ -1233,9 +1287,9 @@ Operation item ids used for `get-qa-checklist`: `f21eacd1-3a1b-492e-83e1-aaf7581
 | [14] flowrider | 249.3 min | 58,403,798 | 18 | **485,696,805** | 1,566,119 | `f2aaeabab` — 8 files, 60 real cases |
 | [17] siegemaster | 655.1 min | 44,137,472 | 41 | **1,140,071,094** | 2,932,178 | **none — 67 paths uncommitted** |
 
-Per-line rates the Phase 1 reports computed: [2] "**89,069 context-in tokens per line**"; [3]
-"**236,011 context-in tokens per line landed**"; [5] "**550 output tokens per landed line**". No report on
-this flow gives a currency cost.
+Here are the per-line rates the Phase 1 reports computed: cell [2], "**89,069 context-in tokens per
+line**"; cell [3], "**236,011 context-in tokens per line landed**"; cell [5], "**550 output tokens per
+landed line**." No report on this flow gives a cost in currency.
 
 ### Denominator reconciliation
 
@@ -1245,8 +1299,9 @@ this flow gives a currency cost.
 | flowrider | 63 | **64** (58 at the time it ran) | **59** | 59 | **0** |
 | siegemaster | 66 | **71** | **71** | 67 | **4** (not yet attempted) |
 
-Report 17 read `71` [§3 S7]; report 14 read `58` then `59` [§1 P1] and closed on `55 confirmed, 4
-unconfirmable` — **both correct**. No codeweaver read anything, because the tool is absent from its prompt.
+Report 17 read `71` [§3 S7]. Report 14 read `58`, then later `59` [§1 P1], and closed out on
+`55 confirmed, 4 unconfirmable` — **and both of these are correct.** No codeweaver ever read anything,
+because the tool is simply absent from its prompt.
 
 ### Coverage shape
 

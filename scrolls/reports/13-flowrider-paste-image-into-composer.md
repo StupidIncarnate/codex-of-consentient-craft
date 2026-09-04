@@ -1,5 +1,12 @@
 # Work item 13 — flowrider — packages/web · flow `paste-image-into-composer`
 
+A flowrider is an operator. An operator is an agent that manages sub-agents — helper agents it
+dispatches to do the actual work — instead of writing code itself. This flowrider's job was to
+produce the browser tests that prove one flow works. A flow is a named feature path in the app; here
+it is pasting an image into the chat composer. `Ward` is this repo's own test, lint, and typecheck
+runner. A reviewer is the sub-agent that checks all the work at the end, before anything is signed
+off as done.
+
 ## 0. Identity
 
 | Field | Value |
@@ -16,7 +23,7 @@
 | `flowIds` | `["paste-image-into-composer"]`; `packageNames: []` |
 | `locked` | `true`, `attempt: 0`, `maxAttempts: 1`, `retryCount: 0` |
 
-Window: `createdAt 2026-09-02T09:00:10.667Z` leads to `completedAt 2026-09-02T12:03:57.695Z`.
+Window: `createdAt 2026-09-02T09:00:10.667Z` → `completedAt 2026-09-02T12:03:57.695Z`.
 Transcript wall clock: `3:04:00.290000 (184.0 min)`.
 
 This is the FIRST flowrider on the quest, dispatched 0.05 s after the `pt 2` ward went green.
@@ -34,16 +41,19 @@ Sub-agents: 8, all `general-purpose` / `sonnet`.
 | 7 | `agent-a2d31604f46488473` | Write draft reload and send e2e | 23.2 min |
 | 8 | `agent-a113b7f4b9119081e` | Flowrider reviewer (`flowrider-reviewer` prompt) | 17.9 min |
 
-Outcome: 58 of 58 checklist units signed `confirmed`, 0 `unconfirmable`. Five Playwright specs plus one
-harness, 89 test cases, committed as `800153ab4` and pushed by the reviewer.
+Outcome: all 58 checklist units — the line items the operator must prove true or false — were signed
+off as `confirmed` (a sign-off is the operator's confirmation, after checking the evidence, that a
+unit is proven), with 0 `unconfirmable`. The sub-agents produced five Playwright specs (Playwright is
+the tool that drives the browser tests) plus one shared test harness, 89 test cases in total. The
+reviewer committed the result as `800153ab4` and pushed it.
 
 ---
 
 ## 1. Chronological breakdown — where the time went
 
-Phase boundaries are taken from the main-session `timeline`. "Waiting" phases are windows containing
-zero assistant records in the parent transcript — the parent had ended its turn and the notification
-had not yet arrived.
+Phase boundaries come from the main session's `timeline`. A "waiting" phase is a window with zero
+assistant records in the parent transcript. That means the parent had ended its turn, and the
+notification from its sub-agent had not yet arrived.
 
 | # | Clock (UTC) | Elapsed | Min | What happened | Evidence |
 |---|---|---|---|---|---|
@@ -82,11 +92,12 @@ with rounding).
 | Verification / ward | 0.0 | 0.0% | none — `[BUILD]` respected, the parent ran no build, no ward, no test |
 | Idle-or-stall | 0.0 | 0.0% | no `sleep`, no poll, no re-dispatch to check status |
 
-**172.8 of 184.0 minutes (93.9%) was the parent blocked on exactly one sub-agent.**
+**The parent spent 172.8 of its 184.0 minutes (93.9%) blocked on exactly one sub-agent.**
 
 ### The second, more useful cut: what was the machine actually doing?
 
-Measured by pairing every `tool_use` id to its `tool_result` timestamp across all nine transcripts:
+This is measured by pairing every `tool_use` id to its `tool_result` timestamp across all nine
+transcripts:
 
 | What | Minutes | % of 184 |
 |---|---|---|
@@ -94,33 +105,42 @@ Measured by pairing every `tool_use` id to its `tool_result` timestamp across al
 | Other tool round-trips (Edit 13.9m, Read/Write/discover/MCP ~3.3m) | 17.7 | 9.6% |
 | **LLM token generation** | **145.8** | **79.2%** |
 
-Per-session: parent tool-wait `0.3m` of `184.0m`; `ad3f38d39bc66d8c0` `3.9m` of `38.3m` (10.1%);
-`a409f22d73146977a` `8.0m` of `36.6m` (21.7%); `a5559883eeba4d70a` `8.6m` of `29.0m` (29.7%);
-`a74c37b18d3e862a0` `3.5m` of `14.4m` (24.2%); `a2d31604f46488473` `5.2m` of `23.2m` (22.6%);
-`a113b7f4b9119081e` `8.2m` of `17.9m` (46.0%).
+Here is how much of each session's own wall clock went to waiting on a tool call, rather than
+generating tokens:
 
-**Answer to the central question: the 184 minutes did not go into test runs.** Ward and Playwright
-together consumed 18.4 minutes of wall clock across the entire item (13.7m ward + 4.7m raw
-Playwright), and builds 1.9m. Nearly four fifths of the item was models generating tokens, and the
-serialisation of five sonnet sub-agents is what turned that generation into three hours of wall
-clock.
+| Session | Tool-wait | Of its total run | % |
+|---|---|---|---|
+| Parent (main session) | 0.3m | 184.0m | — |
+| `ad3f38d39bc66d8c0` | 3.9m | 38.3m | 10.1% |
+| `a409f22d73146977a` | 8.0m | 36.6m | 21.7% |
+| `a5559883eeba4d70a` | 8.6m | 29.0m | 29.7% |
+| `a74c37b18d3e862a0` | 3.5m | 14.4m | 24.2% |
+| `a2d31604f46488473` | 5.2m | 23.2m | 22.6% |
+| `a113b7f4b9119081e` | 8.2m | 17.9m | 46.0% |
+
+**The answer to the central question: the 184 minutes did not go into test runs.** Ward and
+Playwright together used 18.4 minutes of wall clock across the whole item — 13.7 minutes of ward plus
+4.7 minutes of raw Playwright. Builds used another 1.9 minutes. Nearly four-fifths of the item was
+models generating tokens. The five sonnet sub-agents ran one after another, not side by side, and
+that serial order is what turned that token generation into three hours of wall clock.
 
 ### Why the sub-agents ran serially
 
-Not scheduling luck — the prompt requires it. `flowriderPromptStatics`, step 5:
+This was not scheduling luck. The prompt requires it. `flowriderPromptStatics`, step 5, says:
 
 > **Two browser walks against the same package never go out together.** Playwright writes one report
 > path per package, so the second run overwrites a report the first is still reading, and both
 > sub-agents then read a run that describes neither. Give each browser walk its own group.
 
-Every one of the 58 units landed in a browser, so every group was a `packages/web` browser walk. The
-parent's map states the consequence in its own words:
+Every one of the 58 units required a browser. So every group of tests was a `packages/web` browser
+walk — one Playwright run through the browser, and the rule above is why two of them can never run at
+once against the same package. The parent's map states this consequence in its own words:
 
 > `## Groups — one per round, never two browser walks at once`
 > `Playwright writes one report path per package and every spec here is `web`, so each group ships alone.`
 
-and it repeated the reasoning to the user at every dispatch: `52.4m say: "Round 2 is out. Everything
-left is another Playwright walk against \`web\`, so nothing can run beside it."`
+The parent repeated this reasoning to the user at every dispatch: `52.4m say: "Round 2 is out.
+Everything left is another Playwright walk against \`web\`, so nothing can run beside it."`
 
 The premise is currently TRUE. `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts`:
 
@@ -133,20 +153,21 @@ The premise is currently TRUE. `packages/ward/src/brokers/check-run/e2e/check-ru
   );
 ```
 
-Ports are already isolated per run. The JSON report path is not — it is one fixed file per package.
+Ports are already isolated per run. The JSON report path is not: it is one fixed file per package.
 That single line is what cost this work item roughly 100 minutes (see §6, fix 1).
 
-Serial arithmetic, for the record: the five writers plus the reviewer occupied 38.3+36.6+29.0+14.4+23.2+17.9
-= **159.4 min** (86.6% of the item), with 12.6 min of parent turnaround between them, an 11.0-min head
-and a 1.1-min tail: 159.4+12.6+11.0+1.1 = 184.1.
+For the record, here is the serial arithmetic. The five test-writing sub-agents plus the reviewer ran
+for 38.3+36.6+29.0+14.4+23.2+17.9 = **159.4 min** (86.6% of the item). Add 12.6 min of parent
+turnaround between them, an 11.0-min head, and a 1.1-min tail: 159.4+12.6+11.0+1.1 = 184.1.
 
 ---
 
 ## 2. Chronological token buckets
 
-Main session, verbatim (`buckets 5c841160-080c-4eea-adf6-e7736b92121e --minutes 10`). Windows with
-no rows at all are the blocked stretches — 09:20–09:40, 10:00–10:20, 10:40–11:00, 11:20–11:40 and
-11:50–12:00 print nothing because the parent produced no assistant record in them.
+This is the main session's token use, verbatim, from
+`buckets 5c841160-080c-4eea-adf6-e7736b92121e --minutes 10`. Some windows show no rows at all —
+09:20–09:40, 10:00–10:20, 10:40–11:00, 11:20–11:40, and 11:50–12:00. Those are the blocked stretches:
+the parent produced no assistant record in them, so nothing prints.
 
 ```
 FILE      /home/brutus-home/.claude/projects/-home-brutus-home-projects-codex-of-consentient-craft-worktrees-try-2-paste-images-into-web-chat-render-inline-s-1be07040/5c841160-080c-4eea-adf6-e7736b92121e.jsonl
@@ -171,6 +192,10 @@ WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS
 
 ### Sub-agent spend, attributed to the bucket each started in
 
+Each sub-agent's spend is credited to the ten-minute bucket in which it started. "ctx-in"
+(context-in) is the number of tokens fed into the model for that call — cache reads, freshly cached
+tokens, and uncached input, combined — as distinct from "output," the tokens the model generated.
+
 | Bucket started | Agent | Turns | Output | cache_read | cache_creation | uncached in | Total ctx-in | of which thinking |
 |---|---|---|---|---|---|---|---|---|
 | 09:00–09:10 | `a776fe31e64f5a8c5` | 33 | 8,641 | 1,218,523 | 546,419 | 66 | 1,765,008 | 1,079 |
@@ -191,22 +216,24 @@ WINDOW              APIs  CALLS   OUT-TOK    CTX-IN-TOK  RESULT-BYTES  TOP TOOLS
 | Sub-agents (8) | 758,467 | 218,784,817 | 8,686,636 | 1,984 | 227,473,437 |
 | **Grand total** | **1,106,113** | **247,800,875** | **9,487,291** | **2,208** | **257,290,374** |
 
-`cache_read` and `cache_creation` are stated separately above and are not collapsed anywhere in this
-report. cache_read is 96.3% of all context-in (247,800,875 / 257,290,374).
+`cache_read` and `cache_creation` are kept separate throughout this report; they are never collapsed
+into one number. `cache_read` makes up 96.3% of all context-in: 247,800,875 of 257,290,374 tokens.
 
-Thinking tokens: main 127,936, sub-agents 524,235, total **652,171 — 59.0% of all output tokens
-(652,171 / 1,106,113)**. Tool result bytes fed back: main 471,203; sub-agents 71,599.
+Thinking tokens: 127,936 from the main session and 524,235 from the sub-agents, for a total of
+**652,171 — 59.0% of all output tokens** (652,171 of 1,106,113). Tool-result bytes fed back: 471,203
+for the main session, 71,599 for the sub-agents.
 
-Rate: 1,106,113 output tokens over 184.0 min = 6,012 output tokens per minute of wall clock across
-the whole item.
+Rate: 1,106,113 output tokens over 184.0 minutes works out to 6,012 output tokens per minute of wall
+clock across the whole item.
 
 ---
 
 ## 3. Was the prompt fit for the work?
 
-The rendered prompt is byte-identical to `flowriderPromptStatics.prompt.template` with `$ARGUMENTS`
-replaced by four lines. Recovered length: **36,213 chars**, comfortably under
-`mcpToolResultStatics.maxVerbatimChars` (50,000), so it arrived whole rather than spilled. The tail:
+The rendered prompt matches `flowriderPromptStatics.prompt.template` byte-for-byte, with
+`$ARGUMENTS` replaced by four lines. Its recovered length is **36,213 characters** — comfortably
+under `mcpToolResultStatics.maxVerbatimChars` (50,000), the limit above which a prompt gets cut and
+spilled to a file instead of arriving whole. So it arrived whole. Its tail reads:
 
 ```
 ## Operation Context
@@ -217,37 +244,44 @@ Operation Item ID: 90f5c4af-4992-4f62-97cf-55425b80129d
 Your operation item: [flowrider] Flowrider: author the test suites that prove this flow — flow: paste-image-into-composer
 ```
 
-Verified absent from the render: `Work item context`, `packagesAffected`, `packageNames`,
-`Dev Server`, `Base branch`, `Ward detail`. Verified present: the `## CHECK SURFACES` sentence (at
-offset 10,485) and `flowEvidenceContractStatics.authoringMarkdown`'s `Modality — chosen per
-OBSERVABLE` heading (offset 12,556) and `spilledToolResultStatics.markdown`. **No placeholder
-rendered empty and no context block came out huge.** The one field a reader might expect and not
-get — the operation item's `packageNames` — is genuinely `[]` on the ledger, and the prompt already
-routes around it: *"Each node's package tags come from your step-1 `get-quest` render, not the
-checklist"*. That instruction was correct here.
+These fields were confirmed absent from the render: `Work item context`, `packagesAffected`,
+`packageNames`, `Dev Server`, `Base branch`, `Ward detail`. These were confirmed present: the
+`## CHECK SURFACES` sentence (at offset 10,485), `flowEvidenceContractStatics.authoringMarkdown`'s
+`Modality — chosen per OBSERVABLE` heading (offset 12,556), and `spilledToolResultStatics.markdown`.
+**No placeholder rendered empty, and no context block came out huge.**
+
+One field a reader might expect and not get is the operation item's `packageNames`. It is genuinely
+`[]` on the ledger — an empty list, not a rendering bug. The prompt already routes around this:
+*"Each node's package tags come from your step-1 `get-quest` render, not the checklist"*. That
+instruction was correct here.
 
 ### What the prompt drove, well
 
 **1. The four-id-only render forced the right first three calls, in order.**
-Prompt: *"### 1. Fetch your flow … `get-quest({ questId: 'QUEST_ID', flowId: '<your flow>' })`"* and
-*"### 2. Get the full list of units … `get-qa-checklist({ questId, operationItemId })`"*.
-The parent did exactly that inside 30 seconds (`0.4m CALL get-quest`, `0.5m CALL get-qa-checklist`)
-and read the denominator straight off the answer: `0.5m say: "58 units, all mine."` The checklist's
-own header confirms it: `Units: 58 (3 terminal, 14 branch, 41 observable, 0 off-map)` /
-`REMAINING (awaiting your flowriderSignoff): 58 of 58`. Cost: 0.5 min.
+The prompt says: *"### 1. Fetch your flow … `get-quest({ questId: 'QUEST_ID', flowId: '<your flow>' })`"*
+and *"### 2. Get the full list of units … `get-qa-checklist({ questId, operationItemId })`"*.
+
+The parent did exactly that within 30 seconds: `0.4m CALL get-quest`, then `0.5m CALL
+get-qa-checklist`. It read the denominator — the total count a checklist's completeness is measured
+against — straight off the answer: `0.5m say: "58 units, all mine."` The checklist's own header
+confirms this: `Units: 58 (3 terminal, 14 branch, 41 observable, 0 off-map)` and
+`REMAINING (awaiting your flowriderSignoff): 58 of 58`. (An `observable` unit is one that must be
+proven by watching real behavior, not just checked structurally.) Cost: 0.5 minutes.
 
 **2. "Dispatch explorer sub-agents where the code is too large to read yourself" was used, and it
-paid.** Prompt step 3. The parent dispatched two read-only explorers at 1.4m and 1.6m for 8,641 and
-14,613 output tokens, and their findings are visibly inside the group-1 brief's `TRAPS` block:
-`canvas.toBlob('image/bmp') silently falls back to PNG in Chromium`, the exact thumbnail element
-shape, the localStorage key and IndexedDB db/store/version. Those traps are the difference between a
-sub-agent discovering the bmp fallback the hard way and writing the correct `new File([bytes],
-'x.bmp', { type: 'image/bmp' })` on the first try.
+paid off.** This is prompt step 3. The parent dispatched two read-only explorer sub-agents, at 1.4
+and 1.6 minutes in, which produced 8,641 and 14,613 output tokens. Their findings show up directly in
+the group-1 brief's `TRAPS` block: `canvas.toBlob('image/bmp') silently falls back to PNG in
+Chromium`, the exact thumbnail element shape, the localStorage key, and the IndexedDB
+db/store/version. Those traps are the difference between a sub-agent discovering the bmp fallback the
+hard way and writing the correct `new File([bytes], 'x.bmp', { type: 'image/bmp' })` on its first
+try.
 
-**3. The brief SHAPE was followed verbatim and it is the reason the sub-agents produced real
-assertions.** The prompt prescribes `FILES / HOW TO WRITE THESE / SURFACES / UNITS / RED FIRST /
-MIRROR / TRAPS / DO NOT TOUCH / FIRST / PROVE / RETURN`. The group-1 brief carries every one of those
-headings in that order, with `SURFACE:` / `ASSERT:` / `FAILS IF:` per unit, e.g.:
+**3. The brief followed the prompt's required shape exactly, and that is why the sub-agents produced
+real assertions.** The prompt prescribes these headings, in this order: `FILES / HOW TO WRITE THESE /
+SURFACES / UNITS / RED FIRST / MIRROR / TRAPS / DO NOT TOUCH / FIRST / PROVE / RETURN`. The group-1
+brief carries every one of them, in that order, with a `SURFACE:` / `ASSERT:` / `FAILS IF:` block for
+each unit. For example:
 
 ```
   format-bad  [branch]  "format-allowed —\"unsupported\"→ reject-format"
@@ -257,9 +291,10 @@ headings in that order, with `SURFACE:` / `ASSERT:` / `FAILS IF:` per unit, e.g.
     FAILS IF: a thumbnail appears — the "supported" branch was taken for image/bmp.
 ```
 
-**4. "If you cannot write `fails if:`, the assertion is not specified yet" produced a spec finding
-BEFORE any code was written.** The parent could not write a `fails if:` for
-`check-too-large-toast-text` and, instead of guessing, wrote a measurement instruction into the brief:
+**4. The rule "if you cannot write `fails if:`, the assertion is not specified yet" caught a
+specification problem before any code was written.** The parent could not write a `fails if:` line
+for `check-too-large-toast-text`. Instead of guessing, it wrote a measurement instruction into the
+brief:
 
 > `READ THIS BEFORE WRITING IT. The ladder in … caps the longest edge at 2000, re-encodes as JPEG
 > q0.85, then halves down to a 512 px floor and only THEN throws. A 512 px JPEG at q0.85 cannot
@@ -268,29 +303,30 @@ BEFORE any code was written.** The parent could not write a `fails if:` for
 > STRING from the reachable conversion-failure route and say so explicitly in the return — do NOT
 > silently re-label a corrupt-image test as this unit.`
 
-`ad3f38d39bc66d8c0` came back `NOT PROVED: downscale-failed — no such input exists` with the Huffman
-arithmetic, the parent refused to sign it, and round 2 proved it properly with a 5,300,033-byte
-undecodable payload. The prompt's `fails if:` gate is what stopped a false green.
+`ad3f38d39bc66d8c0` came back with `NOT PROVED: downscale-failed — no such input exists`, backed by
+the Huffman arithmetic. The parent refused to sign it. Round 2 then proved the unit properly, using a
+5,300,033-byte undecodable payload. The prompt's `fails if:` gate is what stopped a false green from
+shipping.
 
-**5. `[BUILD]` held on the parent, completely.** Tool histogram: `10 Read, 8 Agent, 6 Bash,
-6 modify-quest, 3 discover, 2 ToolSearch, 2 get-qa-checklist, 1 each of get-agent-prompt / get-quest /
-get-architecture / get-testing-patterns / get-syntax-rules / Write / signal-back`. Zero `npm run
-ward`, zero `npm run build`, zero `npx playwright`. The six Bash calls are `git status --porcelain`
-×3, two `ls`, one `wc -l`.
+**5. The `[BUILD]` rule held on the parent completely.** Its tool histogram: `10 Read, 8 Agent,
+6 Bash, 6 modify-quest, 3 discover, 2 ToolSearch, 2 get-qa-checklist`, and one each of
+`get-agent-prompt`, `get-quest`, `get-architecture`, `get-testing-patterns`, `get-syntax-rules`,
+`Write`, and `signal-back`. Zero `npm run ward`, zero `npm run build`, zero `npx playwright`. The six
+`Bash` calls were `git status --porcelain` (three times), `ls` (twice), and `wc -l` (once).
 
-**6. `[HELPERS]` held completely.** No `sleep`, no polling, no re-dispatch to check on a helper. Every
-one of the five waits ends with a plain closing message and no tool call, and the parent re-enters on
-the `<task-notification>`. This is a measurable improvement over the sleep-poll pattern the repo's
-CLAUDE.md calls out.
+**6. The `[HELPERS]` rule held completely.** No `sleep`, no polling, no re-dispatching just to check
+on a sub-agent. Each of the five waits ends with a plain closing message and no tool call; the parent
+re-enters only when the `<task-notification>` arrives. This is a measurable improvement over the
+sleep-poll pattern this repo's CLAUDE.md warns against.
 
-**7. "Sign this group's PROVED lines NOW, before you send the next group" was obeyed exactly.** Five
-`modify-quest` calls carrying 19 / 4 / 15 / 10 / 10 sign-offs — 58 confirmed, 0 unconfirmable, and the
-closing `get-qa-checklist` at 183.4m reads `0 of 58 remaining`.
+**7. The rule "sign this group's PROVED lines now, before you send the next group" was followed
+exactly.** Five `modify-quest` calls carried 19, 4, 15, 10, and 10 sign-offs — 58 confirmed, 0
+unconfirmable. The closing `get-qa-checklist` call, at 183.4 minutes, reads `0 of 58 remaining`.
 
-**8. "A defect you measure is a new observable, not a verdict" landed.** At 90.0m the parent's
-`modify-quest` rewrote `check-space-after-thumbnail-survives`'s `description` after
-`a409f22d73146977a` measured that `domComposerInsertTextAdapter` leaves two sibling text nodes rather
-than one merged node. Spec corrected mid-flight, no verdict faked.
+**8. The rule "a defect you measure is a new observable, not a verdict" landed.** At 90.0 minutes,
+the parent's `modify-quest` call rewrote the `description` of `check-space-after-thumbnail-survives`.
+This followed `a409f22d73146977a` measuring that `domComposerInsertTextAdapter` leaves two sibling
+text nodes rather than one merged node. The spec was corrected mid-flight. No verdict was faked.
 
 ### What the prompt did NOT cover, and what it cost
 
@@ -303,23 +339,25 @@ construction.**
 > ```
 > `Read the whole diff. Three questions: …`
 
-Every artefact this pass produced was a NEW, untracked file. The parent had to notice this itself and
-substitute: `163.4m CALL Bash(command=git status --porcelain)` leading to `163.4m say: "No source file is
-dirty — every RED FIRST break was restored. Reading the five specs and the harness."` followed by nine
-full-file `Read` calls. It cost the parent roughly 2 minutes of improvisation and it worked, but only
-because it improvised. The SIBLING prompt already says the thing this one omits —
-`flowriderReviewerStatics` step 3: *"New files are most of what gets built here, and a diff never
-mentions them — which is why one command is not enough."* The operator prompt lacks that sentence.
+Every artefact this pass produced was a new, untracked file. The parent had to notice this itself and
+work around it: `163.4m CALL Bash(command=git status --porcelain)`, then `163.4m say: "No source file
+is dirty — every RED FIRST break was restored. Reading the five specs and the harness."`, followed by
+nine full-file `Read` calls. This cost the parent about 2 minutes of improvisation. It worked, but
+only because the parent improvised. The sibling prompt — the reviewer's — already says the thing this
+one omits. `flowriderReviewerStatics` step 3: *"New files are most of what gets built here, and a
+diff never mentions them — which is why one command is not enough."* The operator prompt lacks that
+sentence.
 
-**B. Nothing in the prompt family guarantees the suite is ever typechecked, and this pass shipped 51
-type errors past four rounds of sign-off.** This is the single worst structural finding of the item.
-Three rules compose into a hole:
+**B. Nothing in the prompt family guarantees the test suite is ever typechecked. This pass shipped 51
+type errors past four rounds of sign-off.** This is the single worst structural finding in this item.
+Three rules combine to create a hole:
 
 - Flowrider prompt, `Briefing a sub-agent`: *"`--only lint,test` keeps typecheck out, and typecheck
   is the one that builds. … Your reviewer's `--staged` run is the typecheck."*
 - Reviewer prompt, step 6: *"`--staged` is what typechecks every package this suite touched."*
-- Reality: `npm run ward -- --staged` takes its file set from the diff against ORIGIN, so it never
-  sees untracked files — which is 100% of what this pass produced.
+- Reality: `npm run ward -- --staged` is a ward flag that scopes a run to files that differ from the
+  remote (`origin`) — but it takes that file set from the diff against origin, so it never sees an
+  untracked file. Untracked files are 100% of what this pass produced.
 
 The reviewer's own `--staged` run at 7.0m reported:
 
@@ -332,8 +370,10 @@ lint:      PASS  2 packages (3 files passed/0 files failed, 3 discovered)  7.3s
 typecheck: PASS  13 packages (7410 files passed/0 files failed, 7410 discovered)  8.4s
 ```
 
-Three lint files and an `e2e skip` — the six new files were invisible. The reviewer then broke its own
-"twice at most" rule, ran ward scoped to the actual paths, and got:
+Three lint files, and one line reading `e2e skip`. (`e2e` — end-to-end — means a test that drives the
+whole running app, not just an isolated function.) No end-to-end tests ran in this pass, so the six
+new files were invisible to it. The reviewer then broke its own "twice at most" rule, ran ward scoped
+to the actual file paths, and got:
 
 ```
 typecheck   @dungeonmaster/web   FAIL  1239 files, 51 errors, 1239 discovered (7.9s)
@@ -349,31 +389,33 @@ Its verdict, verbatim:
 > diffs against origin, not the working tree), and npm run build's web step is vite build, which
 > strips types rather than checking them — so this test suite had **never actually been typechecked**.`
 
-The parent recorded it as a `tooling-error` quest note at 183.7m
-(`e2e-specs-escape-typecheck-in-web`). Good citizenship — but the prompt statics still claim the
+The parent recorded this as a `tooling-error` quest note at 183.7 minutes
+(`e2e-specs-escape-typecheck-in-web`). That was good practice. But the prompt statics still claim the
 opposite in two places.
 
 **C. The prompt says nothing about the Claude-in-Chrome MCP, and a sub-agent reached for it.** See
 finding 5.2.
 
-**D. Step 5's "Every test file in ONE group goes out in a SINGLE message" and "A group that returns
-`rework` does not stop the next group. Send that file out again and carry on down the map" are both
-unreachable on a browser-only flow.** With one walk allowed at a time, "carry on down the map" and
-"send that file out again" are the same slot. The parent resolved it by fusing rework and new work
-into single two-job sub-agents (`52.2m … "You have TWO jobs. Job A is …"`), which is sensible but is
-not what the prompt describes, and it inflated those agents' contexts (`a409f22d73146977a`: 201 turns,
-54.7M context-in — the largest of the eight).
+**D. Two of step 5's rules are unreachable on a browser-only flow.** They are: "every test file in
+ONE group goes out in a SINGLE message," and "a group that returns `rework` does not stop the next
+group — send that file out again and carry on down the map." With only one browser walk allowed at a
+time, "carry on down the map" and "send that file out again" compete for the same single slot. The
+parent resolved this by fusing rework and new work into single two-job sub-agents — for example,
+`52.2m … "You have TWO jobs. Job A is …"`. That was sensible, but it is not what the prompt describes,
+and it inflated those agents' contexts. `a409f22d73146977a` ran 201 turns with 54.7M tokens of
+context-in, the largest of the eight sub-agents.
 
 ---
 
 ## 4. What went well
 
-**1. The parent never wrote a line of test code and never ran a build or a test.** Verified from the
-tool histogram (§3, item 5). This is the behaviour the operator design exists to produce and it held
-for three hours, which was not true of every operator on this quest.
+**1. The parent never wrote a line of test code, and never ran a build or a test itself.** This is
+verified from the tool histogram (§3, item 5). This is exactly the behavior the operator role is
+designed to produce, and it held for three hours — which was not true of every operator on this
+quest.
 
 **2. Five refused sign-offs, each backed by a measurement.** The parent declined to sign a unit on
-four separate occasions, always with a stated reason, always sending it back out:
+four separate occasions. Each time, it gave a stated reason and sent the unit back out:
 
 - `50.8m` — refused `branch:downscale-failed` and `check-too-large-toast-text`:
   > *"| `branch:downscale-failed` | The author used a *small* truncated PNG. Anything at or under 5 MB
@@ -386,15 +428,16 @@ four separate occasions, always with a stated reason, always sending it back out
   > assertion could not tell branch-taken from branch-skipped. It's going back out using a JPEG source
   > instead: the ladder's first step re-encodes as PNG, so a media type that survives as `image/jpeg`
   > is proof the ladder never ran."*
-  Round 3 rebuilt it on JPEG and the break then produced a real red.
+  Round 3 rebuilt the test on a JPEG source, and the break then produced a real red.
 - `123.0m` — held back two units that were *"green but never shown capable of failing"*. Round 4
   broke both and got reds.
 
-Cost of each refusal: it rode inside the next round's agent, so the marginal cost was near zero.
-Value: at least one shipped-false-green averted, by the parent's own description.
+Cost of each refusal was near zero: the extra work rode inside the next round's sub-agent rather than
+needing its own round. The value: at least one false green was averted before shipping, by the
+parent's own description.
 
-**3. Every one of the 58 sign-offs carries a named production line and a witnessed red.** Sample,
-verbatim from the 163.2m `modify-quest`:
+**3. Every one of the 58 sign-offs names a production code line and a witnessed red.** Here is one
+sample, verbatim, from the 163.2-minute `modify-quest` call:
 
 > `"evidence": "packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:221-275 —
 > readDraftImageRecords() toStrictEqual a single {attachmentId, mediaType, dataBase64} whose base64 is
@@ -402,11 +445,12 @@ verbatim from the 163.2m `modify-quest`:
 > orderedAttachments}) to {attachments: []} in chat-input-widget.tsx, the read returned [], line
 > restored."`
 
-That is items 1–5 of `flowEvidenceContractStatics`' evidence contract in one field. No sign-off in
-the item is an existence-only citation.
+That single field covers items 1 through 5 of `flowEvidenceContractStatics`'s evidence contract. Not
+one sign-off in this item is merely an existence-only citation — proof that a test exists, not that
+it works.
 
-**4. `agent-a409f22d73146977a` sanity-checked its own RED-FIRST tooling instead of trusting a PASS.**
-At 36.1m, after two RED probes came back green, it ran:
+**4. `agent-a409f22d73146977a` sanity-checked its own RED-FIRST tooling instead of just trusting a
+PASS.** At 36.1 minutes in, after two RED probes came back green, it ran:
 
 ```
 npm run ward -- --only e2e --onlyTests "ZZZ_NO_SUCH_TEST_ZZZ" -- packages/web/src/flows/quest-chat/composer-paste-inserts-thumbnail.e2e.ts
@@ -419,29 +463,42 @@ e2e         @dungeonmaster/web   skip (3.3s)
 --onlyTests pattern "ZZZ_NO_SUCH_TEST_ZZZ" matched 0 tests in any package — possible typo or stale test name
 ```
 
-which proved the earlier PASSes were genuine matches rather than vacuous filters — i.e. the `size-ok`
-assertion really did not discriminate. Cost: 4.0 s of ward plus roughly 1 min of reasoning. (Ward's
-`hasUnmatchedTestNamePatternGuard` is what made that check possible; it works.)
+This proved the earlier PASSes were genuine matches, not vacuous filters that would have passed no
+matter what they were pointed at. In other words, the `size-ok` assertion really did not tell
+branches apart. Cost: 4.0 seconds of ward plus about 1 minute of reasoning. (Ward's
+`hasUnmatchedTestNamePatternGuard` is what made this check possible, and it works.)
 
-**5. The Playwright webServer contract was honoured everywhere — the `tsx watch` hazard was never
-tripped.** `packages/web/playwright.config.ts` runs `dev:no-watch` in its `webServer` block, with the
-warning inline. Across all nine transcripts, every `npm run dev` string match is a substring of
-`npm run dev:no-watch` inside that config comment being read; **not one session started a dev server
-or ran the watcher form**. Counts: `ad3f38d` dev=2/no-watch=2, `a409f22d` 2/2, `a5559883` 2/2,
-`a2d31604` 2/2, `ab1823d5` 4/3, MAIN 6/3 — every excess `npm run dev` count is the config comment
-line `` `dev:no-watch`, never `dev` ``. **The CLAUDE.md hazard was not hit.**
+**5. The Playwright `webServer` contract was honoured everywhere — the `tsx watch` hazard was never
+triggered.** `packages/web/playwright.config.ts` runs `dev:no-watch` in its `webServer` block, with
+the warning written inline as a comment. Across all nine transcripts, every match for the string
+`npm run dev` turned out to be a substring of `npm run dev:no-watch`, found inside that same config
+comment being read. **Not one session started a dev server or ran the watcher form.** Here are the
+counts — matches for `npm run dev` versus `npm run dev:no-watch`:
 
-**6. Zero full-repo `npm run ward` from any session on the pass, and zero `run-ward` MCP calls.** Every
-ward invocation carried either `--staged` (reviewer only, twice) or a `--` file list. The one
-unscoped-looking run — the reviewer's `npm run ward -- -- <six paths>` — is a passthrough file list,
-which is correct.
+| Session | `npm run dev` matches | `npm run dev:no-watch` matches |
+|---|---|---|
+| `ad3f38d` | 2 | 2 |
+| `a409f22d` | 2 | 2 |
+| `a5559883` | 2 | 2 |
+| `a2d31604` | 2 | 2 |
+| `ab1823d5` | 4 | 3 |
+| MAIN | 6 | 3 |
 
-**7. Permission friction was near zero.** Exactly three denials in three hours, costing roughly 1.3 min
-combined (§5.2, §5.5). The main session had none.
+Every count where `npm run dev` exceeds `npm run dev:no-watch` is explained by the config comment
+line itself, which reads `` `dev:no-watch`, never `dev` `` — a second, unpaired match for the plain
+string. **The CLAUDE.md hazard was not hit.**
 
-**8. The final state is closed.** `183.5m say: "0 of 58 remaining, tree clean, reviewer passed and
-pushed."` — verified by a real `get-qa-checklist` re-read and a real `git status --porcelain`, not
-asserted.
+**6. Zero full-repo `npm run ward` runs from any session in this pass, and zero `run-ward` MCP calls.**
+Every ward invocation carried either `--staged` (the reviewer only, twice) or a `--` file list scoping
+it to specific paths. The one run that looks unscoped — the reviewer's `npm run ward -- -- <six
+paths>` — is actually a passthrough file list. That is correct usage.
+
+**7. Permission friction was near zero.** There were exactly three denials in three hours, costing
+about 1.3 minutes combined (§5.2, §5.5). The main session had none.
+
+**8. The final state is closed.** At 183.5 minutes: `say: "0 of 58 remaining, tree clean, reviewer
+passed and pushed."` This was verified with a real `get-qa-checklist` re-read and a real `git status
+--porcelain` — not just asserted.
 
 ---
 
@@ -449,14 +506,15 @@ asserted.
 
 ### 5.1 A sub-agent saw 18 typecheck errors, said nothing, and let them grow to 51
 
-**What happened.** `agent-a5559883eeba4d70a` ran, at 7.7m of its own run (10:39 UTC):
+**What happened.** At 7.7 minutes into its own run (10:39 UTC), `agent-a5559883eeba4d70a` ran:
 
 ```
 npm run ward -- --only typecheck -- packages/web/src/flows/quest-chat/composer-paste-inserts-thumbnail.e2e.ts packages/web/test/harnesses/composer-paste/composer-paste.harness.ts
 ```
 
-introduced with `7.7m say: "Build exited 0. Now let's confirm the typecheck status of the existing
-file, to resolve the \`unknown\` vs \`string\` question before writing new code."` The result at 7.9m:
+It introduced this with: `7.7m say: "Build exited 0. Now let's confirm the typecheck status of the
+existing file, to resolve the \`unknown\` vs \`string\` question before writing new code."` The
+result, at 7.9 minutes:
 
 ```
 Exit code 1
@@ -467,25 +525,27 @@ packages/web/src/flows/quest-chat/composer-paste-inserts-thumbnail.e2e.ts
   … (17 more)
 ```
 
-The agent's next action was an `Edit` at 8.3m extending the harness. Filtering its entire transcript
-for assistant text containing `typecheck`, `TS2322` or `unknown` returns **exactly one hit — the 7.7m
-line above.** It never mentioned the 18 errors again, wrote two more specs in the same
-`unknown → string` shape, and its return block reports only `Final ward: --only lint,e2e … both PASS`.
-Two more agents then added specs with the same defect. The reviewer found **51** at 12.1m of its run,
-21 minutes later.
+The agent's next action was an `Edit` at 8.3 minutes, extending the harness. Searching its entire
+transcript for assistant text containing `typecheck`, `TS2322`, or `unknown` returns **exactly one
+hit — the 7.7-minute line above.** It never mentioned the 18 errors again. It went on to write two
+more specs with the same `unknown → string` defect, and its return block reports only
+`Final ward: --only lint,e2e … both PASS`. Two more sub-agents then added specs with the same defect.
+The reviewer found **51** such errors at 12.1 minutes into its own run — 21 minutes later.
 
-**Cost.** The reviewer spent 12.1m to 17.4m (5.3 min, 20 `Edit` calls, two extra 64-second ward runs)
-cleaning them up. Earlier, `a5559883eeba4d70a` itself burned the 7.2m `npm run build` (25 s) and the
-7.7m typecheck (9 s) to get the answer it then discarded.
+**Cost.** The reviewer spent from 12.1 to 17.4 minutes (5.3 minutes, 20 `Edit` calls, two extra
+64-second ward runs) cleaning the errors up. Earlier, `a5559883eeba4d70a` itself had already spent
+time getting this same answer and then discarding it: the 7.2-minute `npm run build` (25 seconds) and
+the 7.7-minute typecheck (9 seconds).
 
-**Prompt status.** The brief FORBADE the run that found the bug (`PROVE: … no npm run build`, and
-`--only lint,test` deliberately excludes typecheck). Nothing in the brief or the flowrider prompt
-tells a sub-agent what to do with a red it was not asked to look at. So the agent broke the rule,
-found a real defect, and then silently dropped it — the worst of both.
+**Prompt status.** The brief actually forbade the run that found the bug: its `PROVE` line said `no
+npm run build`, and `--only lint,test` deliberately excludes typecheck. Nothing in the brief or the
+flowrider prompt tells a sub-agent what to do with a red result it was not asked to look for. So the
+agent broke the rule, found a real defect, and then silently dropped it — the worst outcome of both
+choices.
 
 ### 5.2 A test-writing sub-agent opened a real Chrome browser and was denied
 
-**What happened.** `agent-ad3f38d39bc66d8c0`, at 8.1m–9.2m:
+**What happened.** From 8.1 to 9.2 minutes, `agent-ad3f38d39bc66d8c0` ran:
 
 ```
 8.1m CALL ToolSearch(query=select:mcp__claude-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__tabs_close_mcp,mcp__claude-in-chrome__navigate)
@@ -499,23 +559,24 @@ found a real defect, and then silently dropped it — the worst of both.
 9.2m CALL mcp__claude-in-chrome__tabs_close_mcp({"tabId": 1796469322})
 ```
 
-It was trying to learn the Mantine toast DOM shape. After the denial it used `discover` and had the
-answer (`mantine-notifications-show-adapter`) in 15 seconds. It later cited the failed attempt in its
-own return: *"Attempted a live-browser empirical check via claude-in-chrome but site-permission denied
-`navigate`; the arithmetic bound stands independently."*
+It was trying to learn the shape of the Mantine toast DOM. After the denial, it used `discover`
+instead and had the answer (`mantine-notifications-show-adapter`) within 15 seconds. It later cited
+the failed attempt in its own return: *"Attempted a live-browser empirical check via claude-in-chrome
+but site-permission denied `navigate`; the arithmetic bound stands independently."*
 
-**Cost.** 1.1 min of wall, 5 tool calls, 20,410+ output tokens on the ToolSearch turn alone, and one
-user-facing permission prompt.
+**Cost.** 1.1 minutes of wall clock, 5 tool calls, 20,410+ output tokens on the `ToolSearch` turn
+alone, and one permission prompt shown to the user.
 
-**Prompt status.** The flowrider prompt forbids the OPERATOR from starting a browser (*"starting a dev
-server or a browser — that is Siegemaster's, not yours"*), and forbids the operator from running
-Playwright. It says nothing about sub-agents and the browser MCP, and the parent's `TRAPS` and
-`DO NOT TOUCH` blocks did not carry that line either. **Permitted by omission.**
+**Prompt status.** The flowrider prompt forbids the operator from starting a browser (*"starting a
+dev server or a browser — that is Siegemaster's, not yours"*), and forbids the operator from running
+Playwright directly. But it says nothing about a sub-agent using the browser MCP tool, and the
+parent's `TRAPS` and `DO NOT TOUCH` blocks did not add that rule either. **This was permitted by
+omission.**
 
 ### 5.3 The same "final" ward run, five times
 
-**What happened.** `agent-a409f22d73146977a` ran the identical PROVE command five times, with these
-descriptions:
+**What happened.** `agent-a409f22d73146977a` ran the identical `PROVE` command five times, describing
+each run differently:
 
 | Elapsed | Duration | Its own description |
 |---|---|---|
@@ -528,17 +589,19 @@ descriptions:
 Command, identical each time:
 `npm run ward -- --only lint,test -- packages/web/test/harnesses/composer-paste/composer-paste.harness.ts packages/web/src/flows/quest-chat/composer-paste-refusals.e2e.ts …`
 
-**Cost.** 166.4 s of ward for what one run needed; four redundant runs, about 2.2 min of ward plus roughly
-4 min of surrounding reasoning turns.
+**Cost.** The five runs together used 166.4 seconds of ward, when one run would have sufficed. The
+four redundant runs cost about 2.2 minutes of ward time, plus roughly 4 minutes of surrounding
+reasoning turns.
 
 **Prompt status.** The `<dungeonmaster-wardDiscipline>` snippet says *"Run it ONCE. Choose the right
 flags the first time; never re-run the same checks a second way."* The brief's `PROVE` block does not
-repeat it. **Forbidden by the session snippet, not reinforced by the brief.**
+repeat this rule. **This was forbidden by the session snippet, but the brief itself never reinforced
+it.**
 
 ### 5.4 A 3.7-minute fight with `eslint --fix` re-mutating the harness
 
-**What happened.** Between 25.7m and 29.4m, `agent-a409f22d73146977a` looped on an `async` keyword that
-ward's lint (`args: ['--fix', …]`) kept rewriting:
+**What happened.** Between 25.7 and 29.4 minutes, `agent-a409f22d73146977a` got stuck in a loop over
+an `async` keyword. Ward's lint step (`args: ['--fix', …]`) kept rewriting the file out from under it:
 
 ```
 25.7m say: "Let me check the exact current line numbers for my final report and confirm the harness file is still correct after ESLint's auto-fix."
@@ -551,31 +614,35 @@ ward's lint (`args: ['--fix', …]`) kept rewriting:
 29.4m CALL Bash(python3 -c "… Confirm final stable content of readDataUrlByteLength")
 ```
 
-Six inspection commands and two extra lint runs to establish what one file said.
+That is six inspection commands and two extra lint runs, just to establish what one file said.
 
-**Cost.** Roughly 3.7 min of that agent's 36.6, plus the two extra lint runs counted in 5.3.
+**Cost.** About 3.7 minutes of that agent's 36.6-minute run, plus the two extra lint runs already
+counted in §5.3.
 
-**Prompt status.** Not addressed anywhere. The brief's `TRAPS` block warns about six real hazards but
-not about ward's lint running with `--fix` and mutating the file under the agent between reads.
+**Prompt status.** Not addressed anywhere. The brief's `TRAPS` block warns about six real hazards, but
+not about ward's lint running with `--fix` and mutating the file between the agent's reads of it.
 
 ### 5.5 The reviewer piped `npm run build`, and got a chained ward command denied
 
 **What happened.** `agent-a113b7f4b9119081e`:
 
-- `5.1m CALL Bash(command=npm run build 2>&1 | tail -n 100)` — its own prompt says
-  *"Run `npm run build` as its OWN command, unpiped — piping it discards its exit code and feeds a
-  failed build silently into ward."* It then had to say `5.6m say: "Build is green (exit 0, all
-  packages built)"` on the basis of tail output rather than an exit code.
-- `5.6m CALL Bash(command=echo $?; npm run ward -- --staged 2>&1 | tail -n 250)` leading to
-  `"Permission to use Bash has been denied."` Re-run plain at 5.7m.
+- At 5.1 minutes: `CALL Bash(command=npm run build 2>&1 | tail -n 100)`. Its own prompt says *"Run
+  `npm run build` as its OWN command, unpiped — piping it discards its exit code and feeds a failed
+  build silently into ward."* Because it piped the command anyway, it then had to declare success on
+  the basis of `tail` output rather than a real exit code: `5.6m say: "Build is green (exit 0, all
+  packages built)"`.
+- At 5.6 minutes: `CALL Bash(command=echo $?; npm run ward -- --staged 2>&1 | tail -n 250)` →
+  `"Permission to use Bash has been denied."` It re-ran the command plain at 5.7 minutes.
 
-**Cost.** Roughly 15 s. **Prompt status: explicitly forbidden by its own prompt, in the same paragraph as the
-command it was running.** (`a5559883eeba4d70a` hit the identical wall at 26.1m with
-`npm run build > /tmp/build_out.log 2>&1; echo "EXIT:$?"; tail -5 /tmp/build_out.log`.)
+**Cost.** About 15 seconds. **Prompt status.** This was explicitly forbidden by the reviewer's own
+prompt, in the very same paragraph as the command it ran. (`a5559883eeba4d70a` hit the identical wall
+at 26.1m, with `npm run build > /tmp/build_out.log 2>&1; echo "EXIT:$?"; tail -5
+/tmp/build_out.log`.)
 
 ### 5.6 The reviewer ran ward five times against a "twice at most" cap — and had to
 
-**What happened.** Its prompt, `[BUILD]`: *"Run them at step 6, **twice at most**."* Actual:
+**What happened.** Its prompt's `[BUILD]` section says: *"Run them at step 6, **twice at most**."*
+What it actually did:
 
 | Elapsed | Duration | Command |
 |---|---|---|
@@ -586,17 +653,18 @@ command it was running.** (`a5559883eeba4d70a` hit the identical wall at 26.1m w
 | 15.3m | 64.7 s | `npm run ward -- -- <6 paths>` |
 | 17.0m | 9.0 s | `npm run ward -- --only typecheck -- composer-paste-refusals.e2e.ts` |
 
-**Cost.** 3.6 min of ward + 0.4 min of build = 4.0 min of its 17.9. **This is the one rule-break in
-the item that was unambiguously correct** — runs 3–5 are what found and cleared the 51 type errors.
-The cap is wrong, not the reviewer.
+**Cost.** 3.6 minutes of ward plus 0.4 minutes of build, 4.0 minutes total out of its 17.9-minute run.
+**This is the one rule-break in the item that was unambiguously correct.** Runs 3 through 5 are what
+found and cleared the 51 type errors. The cap is wrong here, not the reviewer.
 
 ### 5.7 The reviewer's return block dropped `BITES:`, `UNCOVERED:` and `FINDINGS:`
 
-**What happened.** `flowriderReviewerStatics` step 8 specifies ten labelled lines, of which
-`BITES: <per unit: the file:line, and the wrong value that turns it red>` is the one that discharges
-step 4's question 4 (*"Does every unit this work SIGNED have a test you opened? … For each `[x]` this
-pass produced, find the test in the work and name the wrong value that turns it red."*). The actual
-return, verbatim, carries only `VERDICT / READ / FIXES / BUILD / WARD / COMMIT / NEXT`:
+**What happened.** `flowriderReviewerStatics` step 8 specifies ten labelled lines. One of them,
+`BITES: <per unit: the file:line, and the wrong value that turns it red>`, is the line that answers
+step 4's fourth question: *"Does every unit this work SIGNED have a test you opened? … For each `[x]`
+this pass produced, find the test in the work and name the wrong value that turns it red."* The
+actual return, verbatim, carries only seven labels: `VERDICT / READ / FIXES / BUILD / WARD / COMMIT /
+NEXT`:
 
 > `VERDICT: The suite proves the flow. All 58 checklist units (3 terminal, 14 branch, 41 observable)
 > trace to a real Playwright assertion with a concrete failing value matching the observable's own
@@ -607,52 +675,74 @@ return, verbatim, carries only `VERDICT / READ / FIXES / BUILD / WARD / COMMIT /
 >
 > `FIXES: …`  `BUILD: green.`  `WARD (final): lint PASS 6/6, typecheck PASS 7410/7410, e2e PASS 5 files/89 cases, 0 failures.`  `COMMIT: 800153ab4 (pushed)`  `NEXT: pass`
 
-**Cost.** No wall-clock cost — it is a coverage cost. The parent signed all 58 by transcribing
-sub-agent claims (its own prompt: *"you have not opened the test, so you are transcribing, not
-judging"*). The reviewer is the only session that opens the files. It replaced 58 per-unit citations
-with one blanket adjective sentence — precisely the *"existence-only audit"* shape
-`flowEvidenceContractStatics` names as a known false green. **Required by its prompt; not delivered.**
+(A "vacuous negative" is a test that reports a negative result — "this did not happen" — without ever
+proving it could have detected the opposite. The claim above is that this suite has none.)
+
+**Cost.** There is no wall-clock cost here — it is a coverage cost. The parent signed all 58 units by
+transcribing sub-agent claims, per its own prompt: *"you have not opened the test, so you are
+transcribing, not judging"*. The reviewer is the only session that opens the test files itself. Here,
+it replaced 58 per-unit citations with one blanket adjective-laden sentence — precisely the
+*"existence-only audit"* shape that `flowEvidenceContractStatics` names as a known false green.
+**This was required by its prompt, and not delivered.**
 
 ### 5.8 Two sub-agents ran `npx playwright test` directly, from inside the package
 
-**What happened.** `agent-a5559883eeba4d70a` (18 invocations, 2.5 min) and `agent-a2d31604f46488473`
-(11 invocations, 2.2 min) all in the shape:
+**What happened.** Two sub-agents ran `npx playwright test` directly from inside the package:
+`agent-a5559883eeba4d70a` (18 invocations, 2.5 minutes) and `agent-a2d31604f46488473` (11
+invocations, 2.2 minutes). Every one had this shape:
 
 ```
 cd /home/brutus-home/projects/codex-of-consentient-craft/worktrees/…/packages/web && npx playwright test src/flows/quest-chat/composer-paste-draft-reload.e2e.ts --grep "thumbnail-in-composer" --reporter=list
 ```
 
-**Cost.** 29 runs, 4.7 min of execution. In fairness, the raw runs were FASTER than ward per
-invocation (6–48 s versus ward's roughly 33 s minimum plus discovery), and they hit no collision because
-nothing ran in parallel.
+**Cost.** 29 runs, 4.7 minutes of execution. In fairness, each raw run was faster than ward — 6 to 48
+seconds, versus ward's roughly 33-second minimum plus discovery time — and none of them collided,
+because nothing else was running in parallel at the same time.
 
-**Prompt status.** Forbidden twice over: `<dungeonmaster-ward>` says *"ALWAYS use `npm run ward`. Never
-`npx jest`/`eslint`/`tsc`/`playwright`"*, and `<dungeonmaster-wardDiscipline>` says *"Never `cd` into a
-package."* The brief's `PROVE` block names the ward command but does not restate the ban.
+**Prompt status.** This was forbidden twice over. `<dungeonmaster-ward>` says *"ALWAYS use `npm run
+ward`. Never `npx jest`/`eslint`/`tsc`/`playwright`"*, and `<dungeonmaster-wardDiscipline>` says
+*"Never `cd` into a package."* The brief's `PROVE` block names the correct ward command, but does not
+restate either ban.
 
 ### 5.9 Four sub-agents ran `npm run build`, which every brief forbade
 
-`a5559883eeba4d70a` at 7.2m, 25.6m, 26.1m (denied) plus `--workspace=@dungeonmaster/shared` at 16.5m
-and 25.2m; `a409f22d73146977a` `--workspace=@dungeonmaster/shared` at 20.7m and 21.1m;
-`a2d31604f46488473` at 21.5m. Total 1.9 min of build execution.
+**What happened.** Four sub-agents ran `npm run build`, at these times:
 
-**Prompt status.** Every brief carries `PROVE: … no npm run build`, and the flowrider prompt's
-`[BUILD]` says the reviewer *"is the only session here that runs either"*. The
-`--workspace=@dungeonmaster/shared` rebuilds were unavoidable — RED-FIRST for
-`check-downscale-caps-longest-edge` required editing `packages/shared/src/statics/pasted-image/`
-and the web bundle reads `shared/dist`. **The rule has no exemption for the one case RED FIRST
-creates.**
+| Sub-agent | When | Command |
+|---|---|---|
+| `a5559883eeba4d70a` | 7.2m | `npm run build` |
+| `a5559883eeba4d70a` | 25.6m | `npm run build` |
+| `a5559883eeba4d70a` | 26.1m | `npm run build` (denied) |
+| `a5559883eeba4d70a` | 16.5m | `npm run build --workspace=@dungeonmaster/shared` |
+| `a5559883eeba4d70a` | 25.2m | `npm run build --workspace=@dungeonmaster/shared` |
+| `a409f22d73146977a` | 20.7m | `npm run build --workspace=@dungeonmaster/shared` |
+| `a409f22d73146977a` | 21.1m | `npm run build --workspace=@dungeonmaster/shared` |
+| `a2d31604f46488473` | 21.5m | `npm run build` |
+
+Total: 1.9 minutes of build execution.
+
+**Prompt status.** Every brief carries the line `PROVE: … no npm run build`, and the flowrider
+prompt's `[BUILD]` section says the reviewer *"is the only session here that runs either"*. The
+`--workspace=@dungeonmaster/shared` rebuilds, though, were unavoidable: RED-FIRST testing for
+`check-downscale-caps-longest-edge` required editing `packages/shared/src/statics/pasted-image/`, and
+the web bundle only reads compiled code from `shared/dist`. **The rule has no exemption for the one
+case that RED-FIRST testing itself creates.**
 
 ### 5.10 Sub-agents re-derived what the explorers had already reported
 
-`agent-ad3f38d39bc66d8c0`'s first three minutes: `Readx19, discoverx15`. Its first test-file `Write`
-is at 15.6m — **40.7% of its 38.3-minute run was orientation**, against a brief that already carried
-the exact strings, storage keys, element shape, ladder constants, mirror files and 13 traps, and after
-the parent had spent 8,641 + 14,613 output tokens on two explorers to produce those facts.
-`agent-a2d31604f46488473` did the same: `discoverx15, Readx13` in bucket 0–3m and its first `Write` at
-11:31 (12.0m of 23.2m). **Prompt status:** the brief's `FIRST` line mandates three standards fetches and
-`MIRROR` names files to copy, so some reading is required — but no instruction bounds it, and nothing
-tells the sub-agent that the traps in its brief are already the answers.
+**What happened.** In its first three minutes, `agent-ad3f38d39bc66d8c0` ran `Read` 19 times and
+`discover` 15 times. Its first test-file `Write` call came at 15.6 minutes — **40.7% of its
+38.3-minute run was spent on orientation** — even though its brief already carried the exact strings,
+storage keys, element shape, ladder constants, mirror files, and 13 traps. The parent had already
+spent 8,641 plus 14,613 output tokens on two explorer sub-agents to produce those exact facts.
+
+`agent-a2d31604f46488473` did the same thing: `discover` 15 times and `Read` 13 times in its first
+three minutes, with its first `Write` call at 11:31 — 12.0 of its 23.2 minutes.
+
+**Prompt status.** The brief's `FIRST` line requires three standards fetches, and its `MIRROR` line
+names files to copy — so some reading is genuinely required. But nothing bounds how much, and nothing
+tells a sub-agent that the traps already in its brief are already the answers it would otherwise go
+looking for.
 
 ### 5.11 (Not a finding, recorded to close it out) No ward misuse of the kinds CLAUDE.md warns about
 
@@ -662,10 +752,10 @@ tells the sub-agent that the traps in its brief are already the answers.
 - No sleep-polling of a backgrounded ward: zero `sleep` and zero `tail <outputfile>` across all nine
   transcripts.
 - No `--passWithNoTests`, no `run-ward` MCP call, no `git -C`, no `stash`/`reset`/`checkout --`.
-- One test file was written and later corrected (`composer-paste-inserts-thumbnail.e2e.ts`, `size-ok`
-  rebuilt on a JPEG source in round 3), and one test was deliberately left red by
-  `a409f22d73146977a` and then fixed by `a5559883eeba4d70a` — but **nothing was written, rewritten and
-  then reverted**. No file was abandoned.
+- One test file was written and later corrected: `composer-paste-inserts-thumbnail.e2e.ts`'s
+  `size-ok` case was rebuilt on a JPEG source in round 3. One test was deliberately left red by
+  `a409f22d73146977a` and then fixed by `a5559883eeba4d70a`. But **nothing was written, rewritten,
+  and then reverted** — no file was abandoned.
 
 ---
 
@@ -674,7 +764,7 @@ tells the sub-agent that the traps in its brief are already the answers.
 Ranked by minutes saved, with the arithmetic shown.
 
 ### Fix 1 — Give ward's Playwright run a per-run report path, then delete the one-walk-at-a-time rule
-**Saves about 100 min on this item; about 300 min across the quest's three flowrider items.**
+**Saves ≈ 100 min on this item; ≈ 300 min across the quest's three flowrider items.**
 
 File: `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts`.
 
@@ -683,7 +773,7 @@ File: `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts`.
     `${projectFolder.path}/.ward-playwright-report.json`,
   );
 ```
-This becomes:
+→
 ```ts
   const jsonReportPath = filePathContract.parse(
     `${projectFolder.path}/.ward-playwright-report-${serverPort}.json`,
@@ -700,19 +790,20 @@ browser walks against the same package at once. Playwright writes one report pat
 step 5's *"Two browser walks against the same package never go out together …"* — leaving the plain
 disjoint-files rule.
 
-Arithmetic: the five writers ran 38.3+36.6+29.0+14.4+23.2 = 141.5 min strictly serially. Groups 1, 3
-(multi-image), 4 (delete/overlay) and 5 (draft-reload) touch disjoint spec files; only group 2's
-rework re-enters group 1's and group 2's files. Fanned out as two waves — the four independent specs
-together, then the rework — the writer stretch becomes about max(38.3, 29.0, 14.4, 23.2) + 36.6, about 75 min
-worst case, and about 40 min if the rework fuses into wave 2. Saving 66–100 min here; items [14]
-(250 min) and [15] (219 min) are the same shape.
+Here is the arithmetic. The five writers ran for 38.3+36.6+29.0+14.4+23.2 = 141.5 minutes, strictly
+one after another. Groups 1, 3 (multi-image), 4 (delete/overlay), and 5 (draft-reload) touch disjoint
+spec files — none of them need to wait for each other. Only group 2's rework re-enters group 1's and
+group 2's files. Fanned out as two waves instead — the four independent specs together, then the
+rework — the writer stretch becomes roughly max(38.3, 29.0, 14.4, 23.2) + 36.6 ≈ 75 minutes in the
+worst case, or roughly 40 minutes if the rework fuses into wave 2. That saves 66–100 minutes here.
+Items [14] (250 min) and [15] (219 min) on this quest are the same shape.
 
 ### Fix 2 — Make the reviewer's typecheck scope the WORK, not the diff-against-origin
-**Saves about 5 min per pass and closes a silent correctness hole.**
+**Saves ≈ 5 min per pass and closes a silent correctness hole.**
 
-Two edits, both in `packages/orchestrator/src/statics/`:
+This needs two edits, both in `packages/orchestrator/src/statics/`.
 
-1. `flowrider-reviewer/flowrider-reviewer-statics.ts`, step 6. Replace
+1. In `flowrider-reviewer/flowrider-reviewer-statics.ts`, step 6, replace
    ```
    npm run build
    npm run ward -- --staged
@@ -722,32 +813,33 @@ Two edits, both in `packages/orchestrator/src/statics/`:
    npm run build
    npm run ward -- -- <every path git status and git diff HEAD --name-only listed at step 3>
    ```
-   and replace *"`--staged` is what typechecks every package this suite touched"* with
+   Also replace the sentence *"`--staged` is what typechecks every package this suite touched"* with
    *"`--staged` takes its file set from the diff against ORIGIN, so it cannot see an untracked file —
    and untracked files are most of what this pass produced. Ward the paths step 3 enumerated, by
    name."*
-   Evidence for the wording: the reviewer's own `--staged` run reported
-   `lint: PASS 2 packages (3 files …)` / `e2e … skip (0.0s)` while six new files sat on disk, and the
-   scoped run reported `typecheck @dungeonmaster/web FAIL 1239 files, 51 errors`.
-2. `flowrider-prompt/flowrider-prompt-statics.ts`, `Briefing a sub-agent`. The sentence *"Your
-   reviewer's `--staged` run is the typecheck"* is now false; change to *"Your reviewer's scoped ward
-   over every path this pass produced is the typecheck."*
+   The evidence behind this wording: the reviewer's own `--staged` run reported
+   `lint: PASS 2 packages (3 files …)` and `e2e … skip (0.0s)`, while six new files sat on disk
+   unseen. The scoped run that followed reported `typecheck @dungeonmaster/web FAIL 1239 files,
+   51 errors`.
+2. In `flowrider-prompt/flowrider-prompt-statics.ts`, `Briefing a sub-agent`, the sentence *"Your
+   reviewer's `--staged` run is the typecheck"* is now false. Change it to *"Your reviewer's scoped
+   ward over every path this pass produced is the typecheck."*
 
 ### Fix 3 — Raise the reviewer's build/ward cap from "twice at most" to "as many as it takes, one scope at a time"
 **Saves 0 min but prevents the next reviewer from stopping at run 2 and shipping the red.**
 
-`flowrider-reviewer/flowrider-reviewer-statics.ts`, `[BUILD]` and step 6: replace *"Run them at step
-6, **twice at most**"* / *"Fix reds, then run the pair once more. Twice at most."* with a
+In `flowrider-reviewer/flowrider-reviewer-statics.ts`, `[BUILD]` and step 6, replace *"Run them at
+step 6, **twice at most**"* and *"Fix reds, then run the pair once more. Twice at most."* with a
 convergence rule — *"Re-run the scoped pair after each round of fixes until it is green or until the
 same red survives two consecutive rounds; a red that survives two rounds is your `NEXT: rework`."*
-This reviewer needed five runs and was right to take them; a compliant one would have handed up 51
-type errors as `rework` and cost the quest a whole extra flowrider session (about 180 min, judging by
-this one).
+This reviewer needed five runs, and was right to take them. A reviewer that had followed the "twice
+at most" rule would have handed up the 51 type errors as `rework` instead of fixing them — costing
+the quest a whole extra flowrider session, roughly 180 minutes, judging by this one.
 
 ### Fix 4 — Add a `HANDING UP A RED YOU WERE NOT ASKED TO LOOK AT` line to the brief template
-**Saves about 5–20 min per pass; would have caught 18 errors 21 minutes earlier here.**
+**Saves ≈ 5–20 min per pass; would have caught 18 errors 21 minutes earlier here.**
 
-`flowrider-prompt/flowrider-prompt-statics.ts`, in the `RETURN` block of the brief template, add a
+In `flowrider-prompt/flowrider-prompt-statics.ts`, in the `RETURN` block of the brief template, add a
 fourth label:
 
 ```
@@ -760,13 +852,14 @@ RETURN
   NEXT: pass | rework — … | wall — …
 ```
 
-Direct evidence: `a5559883eeba4d70a` saw `typecheck … FAIL 1236 files, 18 errors` at its 7.9m, said
-nothing, and the count reached 51 before anybody acted.
+The direct evidence for this fix: `a5559883eeba4d70a` saw `typecheck … FAIL 1236 files, 18 errors` at
+its 7.9-minute mark, said nothing, and the count reached 51 before anyone acted.
 
 ### Fix 5 — Put the browser MCP and the raw-runner ban into the brief template's `DO NOT TOUCH`
-**Saves about 1–2 min per sub-agent plus a user permission prompt.**
+**Saves ≈ 1–2 min per sub-agent plus a user permission prompt.**
 
-`flowrider-prompt/flowrider-prompt-statics.ts`, brief template `DO NOT TOUCH` block, append:
+In `flowrider-prompt/flowrider-prompt-statics.ts`, brief template, append to the `DO NOT TOUCH`
+block:
 
 ```
 DO NOT TOUCH
@@ -775,13 +868,13 @@ DO NOT TOUCH
   npx playwright / npx jest / npx tsc directly, and never `cd` into a package — ward from the root
 ```
 
-Evidence: `ad3f38d39bc66d8c0` at 8.1–9.2m (denied at `https://example.com`), and 29 raw
-`cd packages/web && npx playwright test` invocations across two agents.
+The evidence: `ad3f38d39bc66d8c0` at 8.1 to 9.2 minutes, denied at `https://example.com`; and 29 raw
+`cd packages/web && npx playwright test` invocations across two sub-agents.
 
 ### Fix 6 — Fix step 6 of the operator prompt: `git diff` alone sees nothing on a flowrider pass
-**Saves about 2 min per pass and removes a step that reads as a no-op.**
+**Saves ≈ 2 min per pass and removes a step that reads as a no-op.**
 
-`flowrider-prompt/flowrider-prompt-statics.ts`, step 6. Replace
+In `flowrider-prompt/flowrider-prompt-statics.ts`, step 6, replace
 
 ```
 git diff
@@ -796,14 +889,14 @@ git diff HEAD
 
 and add the sentence its own reviewer prompt already carries: *"Almost everything this pass produced
 is a NEW file, and a diff never mentions those — `git status` is what lists them. Then read each new
-file in full."* Evidence: the parent had to work this out live at 163.4m and substituted nine
-whole-file `Read` calls for the diff the prompt asked for.
+file in full."* The evidence: the parent had to work this out live, at 163.4 minutes, substituting
+nine whole-file `Read` calls for the diff the prompt had asked for.
 
 ### Fix 7 — Carve a RED-FIRST exemption for `npm run build --workspace=<library>`
-**Saves about 1 min per pass and removes a rule agents must break to do the work.**
+**Saves ≈ 1 min per pass and removes a rule agents must break to do the work.**
 
-`flowrider-prompt/flowrider-prompt-statics.ts`, brief template `PROVE` block. Replace
-`no npm run build` with:
+In `flowrider-prompt/flowrider-prompt-statics.ts`, brief template, `PROVE` block, replace `no npm run
+build` with:
 
 ```
 no npm run build — one exception: where a RED FIRST break edits a LIBRARY package's source that the
@@ -811,25 +904,26 @@ browser bundle reads from dist, `npm run build --workspace=<that package>` is re
 the break and to disarm it. Nothing else.
 ```
 
-Evidence: `a409f22d73146977a` at 20.7m and 21.1m and `a5559883eeba4d70a` at 16.5m and 25.2m each ran
-`npm run build --workspace=@dungeonmaster/shared` to make the `maxLongestEdgePx` break visible to
-Chromium. There was no compliant route.
+The evidence: `a409f22d73146977a` (at 20.7 and 21.1 minutes) and `a5559883eeba4d70a` (at 16.5 and
+25.2 minutes) each ran `npm run build --workspace=@dungeonmaster/shared` to make the
+`maxLongestEdgePx` break visible to Chromium. There was no compliant way to do this.
 
 ### Fix 8 — Restate "run it ONCE" and the lint-`--fix` hazard in the brief's PROVE and TRAPS blocks
-**Saves about 4–6 min per pass.**
+**Saves ≈ 4–6 min per pass.**
 
-`flowrider-prompt/flowrider-prompt-statics.ts`, brief template:
+In `flowrider-prompt/flowrider-prompt-statics.ts`, brief template:
 
-- `PROVE`, append: *"Run this ONCE per round of edits. A second identical run tells you nothing the
-  first did not."* (Evidence: five identical PROVE runs by `a409f22d73146977a`, 166.4 s.)
-- `TRAPS`, append a standing line: *"ward's lint runs `eslint --fix`, so it REWRITES your file. Re-read
-  any file you warded before you quote a line number from it."* (Evidence: the 25.7m-to-29.4m `async`
-  loop, roughly 3.7 min.)
+- Append to `PROVE`: *"Run this ONCE per round of edits. A second identical run tells you nothing the
+  first did not."* (Evidence: `a409f22d73146977a` ran the identical `PROVE` command five times,
+  166.4 seconds total.)
+- Append a standing line to `TRAPS`: *"ward's lint runs `eslint --fix`, so it REWRITES your file.
+  Re-read any file you warded before you quote a line number from it."* (Evidence: the
+  25.7-to-29.4-minute `async` loop, about 3.7 minutes.)
 
 ### Fix 9 — Make `BITES:` non-optional in the reviewer's return
 **Saves 0 min; it is the only per-unit independent check the design has.**
 
-`flowrider-reviewer/flowrider-reviewer-statics.ts`, step 8. The block already lists `BITES:`; add
+In `flowrider-reviewer/flowrider-reviewer-statics.ts`, step 8, the block already lists `BITES:`. Add,
 under the `NEXT:` bullet list: *"A return that omits `BITES:`, `UNCOVERED:` or `FINDINGS:` is not a
 verdict. `BITES:` carries one line per unit this pass SIGNED — its `file:line` and the wrong value
 that turns it red. A single sentence covering all of them is the existence-only shape this page
@@ -838,11 +932,11 @@ rejects on sight."* Evidence: §5.7.
 ### Fix 10 — Reconcile step 5's group choreography with a browser-only flow
 **Saves 0 min directly; removes an instruction the operator must ignore.**
 
-`flowrider-prompt/flowrider-prompt-statics.ts`, step 5. After fix 1 lands, *"A group that returns
-`rework` does not stop the next group. Send that file out again and carry on down the map"* becomes
-executable again. If fix 1 is NOT taken, add: *"Where only one walk can be in flight at a time, fold
-a rework into the next group's brief as a second job rather than spending a whole round on it."* —
-which is what this session did unprompted at 52.2m, 91.5m and 122.8m.
+In `flowrider-prompt/flowrider-prompt-statics.ts`, step 5: once fix 1 lands, the rule *"A group that
+returns `rework` does not stop the next group. Send that file out again and carry on down the map"*
+becomes executable again. If fix 1 is not taken, add instead: *"Where only one walk can be in flight
+at a time, fold a rework into the next group's brief as a second job rather than spending a whole
+round on it."* This is exactly what this session did unprompted, at 52.2, 91.5, and 122.8 minutes.
 
 ---
 
@@ -939,7 +1033,7 @@ SUBAGENT TOTALS  agents=8 turns=992 output=758,467 context-in=227,473,437
 | Map size (40,302 chars) | `worktrees/…/.quest-plans/90f5c4af-4992-4f62-97cf-55425b80129d-map.md`, read directly |
 | Work item / operation item fields | `.dungeonmaster/guilds/21523917-…/quests/1be07040-…/quest.json`, read with python |
 
-Not measurable from the transcript: the wall-clock share of each sub-agent's generation that was
-spent on thinking versus visible output (the transcript records thinking TOKENS but not their
-timing); and whether the four independent specs would in fact have run cleanly in parallel under
-Fix 1 — that is an estimate from disjoint file sets, not an observation.
+Two things are not measurable from the transcript. First, the wall-clock share of each sub-agent's
+generation that went to thinking versus visible output — the transcript records thinking tokens but
+not their timing. Second, whether the four independent specs would in fact have run cleanly in
+parallel under Fix 1. That figure is an estimate from disjoint file sets, not an observation.
