@@ -42,8 +42,13 @@ All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json`
 **Env var surface** (programmatic overrides — not set via files):
 
 - `DUNGEONMASTER_HOME` — complete path to the dungeonmaster data dir. When unset, resolves to `~/.dungeonmaster`.
-- `DUNGEONMASTER_PORT` — trumps config. Used by ward e2e (`netFreePortAdapter` picks a rotating free port per run so
+- `DUNGEONMASTER_PORT` — trumps config. Used by ward e2e (`netFreePortPairAdapter` picks a free port per run so
   parallel e2e agents don't collide).
+- `DUNGEONMASTER_WEB_PORT` — the Vite port, the second half of that same pair. **Both the Playwright config and the Vite
+  config fall back to `DUNGEONMASTER_PORT + 1` when it is unset, and those two fallbacks agree only while one launcher
+  picks both ports.** Ward's e2e runner asks the OS for the two independently, so it must pass this explicitly — a run
+  where Playwright waits on one port and Vite binds another dies on
+  `Timed out waiting 60000ms from config.webServer`.
 - `VERBOSE=1` — gates `[dev]` orchestration event logging. Set inline by this repo's `dev` and `prod` npm scripts.
 
 **Config file surface:** `.dungeonmaster.json` at repo root — ports, `devCommand`, `buildCommand`, framework, schema.
@@ -62,9 +67,11 @@ tree sits in the watcher's module graph: ONE file save anywhere in the repo rest
 during that window Vite's `/api` proxy answers every request with a bare 500 and an empty body. That surfaces as
 `SyntaxError: Unexpected end of JSON input` from a harness calling `response.json()`, as `waitForResponse` timeouts,
 and as panels that never mount — six unrelated-looking specs at once, none of them actually broken. If you are
-editing the repo while e2e runs (or running parallel agents that are), this is the first thing to suspect.
-Ward e2e (`check-run-e2e-broker.ts`) grabs a rotating
-free port via `netFreePortAdapter` and passes it via `DUNGEONMASTER_PORT`. Jest integration tests use
+editing the repo while e2e runs (or running parallel agents that are), this is the first thing to suspect. Ward e2e
+(`check-run-e2e-broker.ts`) grabs a free port pair via `netFreePortPairAdapter` and passes them via `DUNGEONMASTER_PORT`
+and `DUNGEONMASTER_WEB_PORT`. It also names the Playwright JSON report after the server port and gives Playwright a
+per-port `outputDir`, so **several browser walks against the same package can run at once** — four is a sensible cap,
+since each one boots an API server, a Vite server and a browser. Jest integration tests use
 `installTestbedCreateBroker` with their own tmp dirs. Nothing touches `<repo>/.dungeonmaster`,
 `<repo>/.dungeonmaster-dev`, or `~/.dungeonmaster` during tests.
 

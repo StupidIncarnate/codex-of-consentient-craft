@@ -242,8 +242,8 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
       // from the same pass Start runs, and `depth` is the sole input to the codeweaver dispatch
       // order — so a dependency added to any package.json moves a number here instead of passing
       // unseen. The six layers it spells out, alphabetical by directory name:
-      //   L0 testing / L1 shared / L2 config, eslint-plugin, hooks, tooling, ward, web
-      //   L3 local-eslint, orchestrator / L4 mcp, server / L5 cli
+      //   L0 testing / L1 shared / L2 config, eslint-plugin, hooks, session-forensics, tooling,
+      //   ward, web / L3 local-eslint, orchestrator / L4 mcp, server / L5 cli
       // `shared` is L1 rather than a leaf because its `@dungeonmaster/testing` devDependency is a
       // real edge — packageJsonDependencyNamesTransformer unions all three dependency fields.
       expect(result?.map((entry) => `${String(entry.id)}=${String(entry.depth)}`)).toStrictEqual([
@@ -255,6 +255,7 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
         'mcp=4',
         'orchestrator=3',
         'server=4',
+        'session-forensics=2',
         'shared=1',
         'testing=0',
         'tooling=2',

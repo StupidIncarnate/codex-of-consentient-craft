@@ -93,6 +93,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
   getSpawnedCommand: (params: { command: string }) => unknown;
   getSpawnedArgs: (params: { command: string }) => unknown;
   getSpawnedCwd: (params: { command: string }) => unknown;
+  getSpawnedEnvValue: (params: { command: string; key: string }) => unknown;
   getSpawnedOptions: (params: { command: string }) => unknown;
 } => {
   const handle = registerMock({ fn: spawn });
@@ -172,6 +173,18 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       if (typeof opts !== 'object' || opts === null) return undefined;
       const { cwd } = opts as { cwd?: unknown };
       return cwd;
+    },
+
+    // Reads ONE env var the child was spawned with. getSpawnedOptions hands back the merged env,
+    // which carries the whole of process.env, so a caller wanting a single variable cannot assert
+    // on it with toStrictEqual.
+    getSpawnedEnvValue: ({ command, key }: { command: string; key: string }): unknown => {
+      const opts: unknown = handle.callsMatching([command]).at(-1)?.[2];
+      if (typeof opts !== 'object' || opts === null) return undefined;
+      const { env } = opts as { env?: unknown };
+      if (typeof env !== 'object' || env === null) return undefined;
+      const { [key]: value } = env as Record<PropertyKey, unknown>;
+      return value;
     },
 
     getSpawnedOptions: ({ command }: { command: string }): unknown =>

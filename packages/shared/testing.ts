@@ -24,7 +24,7 @@ export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adap
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream-lines/child-process-spawn-stream-lines-adapter.proxy';
-export * from './src/adapters/net/free-port/net-free-port-adapter.proxy';
+export * from './src/adapters/net/free-port-pair/net-free-port-pair-adapter.proxy';
 export * from './src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.proxy';
 export * from './src/adapters/fetch/get/fetch-get-adapter.proxy';
 

@@ -10,7 +10,7 @@
 import {
   childProcessSpawnCaptureAdapter,
   fsExistsSyncAdapter,
-  netFreePortAdapter,
+  netFreePortPairAdapter,
 } from '@dungeonmaster/shared/adapters';
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 
@@ -20,7 +20,6 @@ import {
   errorMessageContract,
   exitCodeContract,
   filePathContract,
-  networkPortContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
@@ -126,11 +125,17 @@ export const checkRunE2eBroker = async ({
       : [...args, '--grep', testNamePattern, '--pass-with-no-tests', ...e2eFiles];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
-  const serverPort = await netFreePortAdapter();
-  const webPort = networkPortContract.parse(serverPort + 1);
+  // Both ports come from their own bound socket, held open together. Do NOT simplify this to
+  // `serverPort + 1`: nothing checks that a derived port is free, a concurrent run can be handed
+  // it as ITS server port, and the netKillPortAdapter teardown below then kills that run's server
+  // mid-suite — which reads as an unrelated flaky spec rather than as a port collision.
+  const { firstPort: serverPort, secondPort: webPort } = await netFreePortPairAdapter();
 
+  // The port makes this path unique per run, which is what lets two browser walks run against one
+  // package at once. A name fixed per package has the second run overwriting a report the first is
+  // still reading, and both sub-agents then read a run describing neither.
   const jsonReportPath = filePathContract.parse(
-    `${projectFolder.path}/.ward-playwright-report.json`,
+    `${projectFolder.path}/.ward-playwright-report-${String(serverPort)}.json`,
   );
 
   const result = await childProcessSpawnCaptureAdapter({

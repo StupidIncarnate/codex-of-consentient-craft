@@ -332,6 +332,38 @@ describe('checkRunE2eBroker', () => {
     });
   });
 
+  describe('per-run isolation', () => {
+    it('VALID: {a run allocated server port 40000} => names the playwright report after that port', async () => {
+      // A report path fixed per package forces browser walks in one package to run one at a time,
+      // because the second run overwrites the report the first is still reading. The port in this
+      // name is what lets two of them run side by side.
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedEnvValue({ key: 'PLAYWRIGHT_JSON_OUTPUT_NAME' })).toBe(
+        `${projectFolder.path}/.ward-playwright-report-40000.json`,
+      );
+    });
+
+    it('VALID: {OS assigns two non-adjacent ports} => passes the web port the OS gave, not serverPort + 1', async () => {
+      // The proxy stages 40000 and 51244. Deriving the web port arithmetically would answer
+      // 40001 here, and that derived port was never checked for being free.
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect({
+        serverPort: proxy.getSpawnedEnvValue({ key: 'DUNGEONMASTER_PORT' }),
+        webPort: proxy.getSpawnedEnvValue({ key: 'DUNGEONMASTER_WEB_PORT' }),
+      }).toStrictEqual({ serverPort: '40000', webPort: '51244' });
+    });
+  });
+
   describe('test name pattern', () => {
     it('VALID: {testNamePattern provided} => adds --grep and --pass-with-no-tests to playwright args', async () => {
       const projectFolder = ProjectFolderStub();

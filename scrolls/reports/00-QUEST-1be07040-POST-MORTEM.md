@@ -50,6 +50,11 @@ them with the quest's own defects:
    report 17. The collision is an artefact of concurrent writers in the analysis, not evidence about
    the quest.
 
+**~~Struck-through sections are closed.~~** A finding or a fix with its heading crossed out has shipped, or has been
+dissolved by something that shipped. The body is kept struck rather than deleted so the measurements that justified it
+stay readable. Closed so far: ~~E1~~ / ~~G1~~ (the serialised browser walks, shipped 2026-09-04), and ~~G24~~ and
+~~H4~~, which depended on G1 not landing.
+
 ---
 
 ## B. The quest end to end
@@ -214,6 +219,9 @@ Here is that serialisation, in each report's own numbers:
 - **Item [17]**: sub-agent union coverage 546.3 min over 30 merged spans from 41 windows whose
   individual durations sum to 572.3 min — i.e. a parallelism factor of 1.05 [report 17 §1].
 
+**The cause behind items [13], [14] and [15] is fixed** — see ~~E1~~ / ~~G1~~. The other items on this list have
+different causes and are still open.
+
 ---
 
 ## D. Where the tokens went
@@ -341,19 +349,25 @@ same file, the same mechanism or the same prompt passage, and the entry then car
 own figures. Every heading ends with a type. `structural` means a file is wrong. `behavioural` means
 an agent disobeyed. `design` means the prompt asks for the wrong thing.
 
-### E1. One hardcoded Playwright report path serialises every browser walk — `structural`
+### ~~E1. One hardcoded Playwright report path serialises every browser walk~~ — FIXED 2026-09-04
 
-**What happens.** Only one browser walk can run at a time, for the whole quest.
-`flowriderPromptStatics` step 4/5 forbids two browser walks against the same package at once:
-*"**Two browser walks against the same package never go out together.** Playwright writes one report
-path per package, so the second run overwrites a report the first is still reading, and both
-sub-agents then read a run that describes neither. Give each browser walk its own group."* Every unit
-on all three flows lives in `packages/web`. That one rule therefore collapses every group into a
-single-file chain.
+**Fixed.** Ward gives every e2e run its own report path, its own port pair and its own Playwright
+`outputDir`, and the flowrider's one-walk-at-a-time rule is gone from all three passages that carried it. Measured after
+the change: four browser walks against `packages/web` at once, all four green, **12 s wall clock against 8 s for one
+alone**, each run reading only its own report. See ~~G1~~ for the shipped diff, and for the one thing all three reports
+missed.
 
-**Mechanism.** One hardcoded path causes it, at
-`packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts:132-134`
-[report 15 §3; report 13 §1 traced the same file independently]:
+~~**What happened.** Only one browser walk could run at a time, for the whole quest.~~
+~~`flowriderPromptStatics` step 4/5 forbade two browser walks against the same package at once:~~
+~~*"**Two browser walks against the same package never go out together.** Playwright writes one report~~
+~~path per package, so the second run overwrites a report the first is still reading, and both~~
+~~sub-agents then read a run that describes neither. Give each browser walk its own group."* Every unit~~
+~~on all three flows lives in `packages/web`. That one rule therefore collapsed every group into a~~
+~~single-file chain.~~
+
+~~**Mechanism.** One hardcoded path caused it, at~~
+~~`packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts:132-134`~~
+~~[report 15 §3; report 13 §1 traced the same file independently]:~~
 
 ```typescript
 const jsonReportPath = filePathContract.parse(
@@ -361,21 +375,22 @@ const jsonReportPath = filePathContract.parse(
 );
 ```
 
-Ward passes that path at line 143 as `PLAYWRIGHT_JSON_OUTPUT_NAME`. **The ports are already per-run**
-— line 129 takes `await netFreePortAdapter()`. Only the report path is fixed. Report 15: *"the report
-path is the only thing standing between this item and a 4× speedup on its dominant cost."*
+~~Ward passed that path at line 143 as `PLAYWRIGHT_JSON_OUTPUT_NAME`. **The ports were already~~
+~~per-run** — line 129 took `await netFreePortAdapter()`. Only the report path was fixed. Report 15:~~
+~~*"the report path is the only thing standing between this item and a 4× speedup on its dominant~~
+~~cost."*~~
 
-**Measurements.**
+~~**Measurements.**~~
 
-| Report | Figure |
-|---|---|
-| 13 | **172.8 of 184.0 min (93.9%) blocked on exactly ONE sub-agent** [§1]. Serial arithmetic: 38.3+36.6+29.0+14.4+23.2+17.9 = **159.4 min = 86.6% of the item**. Ward + Playwright together consumed only **18.4 min** of wall clock (13.7 ward + 4.7 raw Playwright) and builds 1.9 min; **LLM token generation was 145.8 min (79.2%)** [§1] |
-| 15 | Waves 2–6 each held exactly ONE sub-agent: **167.4 agent-min inside 169.4 wall min, parallelism 1.00×, 77.4% of the item**; wave 1 hit **3.07×** and the explorer wave ≈3.3×; whole-item factor **1.10** [§1] |
-| 14 | Five browser walks, five clean windows, **zero overlaps**, measured agent by agent from the roster; **209.4 min (84.0%) waiting** [§1, §3]. The flowrider restated the rule back at 90.0m: *"It has to run alone — Playwright writes one report path per package, so a second browser walk started now would overwrite the report this one is reading."* |
+| ~~Report~~ | ~~Figure~~                                                                                                                                                                                                                                                                                                                                                   |
+|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ~~13~~     | ~~**172.8 of 184.0 min (93.9%) blocked on exactly ONE sub-agent** [§1]. Serial arithmetic: 38.3+36.6+29.0+14.4+23.2+17.9 = **159.4 min = 86.6% of the item**. Ward + Playwright together consumed only **18.4 min** of wall clock (13.7 ward + 4.7 raw Playwright) and builds 1.9 min; **LLM token generation was 145.8 min (79.2%)** [§1]~~                 |
+| ~~15~~     | ~~Waves 2–6 each held exactly ONE sub-agent: **167.4 agent-min inside 169.4 wall min, parallelism 1.00×, 77.4% of the item**; wave 1 hit **3.07×** and the explorer wave ≈3.3×; whole-item factor **1.10** [§1]~~                                                                                                                                            |
+| ~~14~~     | ~~Five browser walks, five clean windows, **zero overlaps**, measured agent by agent from the roster; **209.4 min (84.0%) waiting** [§1, §3]. The flowrider restated the rule back at 90.0m: *"It has to run alone — Playwright writes one report path per package, so a second browser walk started now would overwrite the report this one is reading."*~~ |
 
-**Estimated recoverable time.** Item [13]: 66–100 min [report 13 §6]. Item [15]: about 89.6 min,
-which is 41% of the item [report 15 §6]. Item [14]: about 35 min [report 14 §6]. Report 13 puts the
-quest-wide figure at **about 300 min across the three flowrider items**.
+~~**Estimated recoverable time.** Item [13]: 66–100 min [report 13 §6]. Item [15]: about 89.6 min,~~
+~~which is 41% of the item [report 15 §6]. Item [14]: about 35 min [report 14 §6]. Report 13 put the~~
+~~quest-wide figure at **about 300 min across the three flowrider items**.~~
 
 ### E2. 655 minutes of work sat uncommitted when the quest paused — `design`
 
@@ -1535,51 +1550,61 @@ The fixes are grouped in three: **(i) one-line changes**, **(ii) prompt edits**,
 changes needing a decision.** Within each group, the highest saving comes first. Every arithmetic
 step is shown.
 
-**The highest-value fix in the post-mortem is G1: give the Playwright run a per-run report path.** It
-is one line of TypeScript. It deletes a prompt rule rather than adding one. It is worth **about
-225–300 minutes on this quest's three flowrider items alone.**
+~~**The highest-value fix in the post-mortem is G1: give the Playwright run a per-run report path.**~~
+~~It is one line of TypeScript. It deletes a prompt rule rather than adding one. It is worth **about**~~
+~~**225–300 minutes on this quest's three flowrider items alone.**~~
+
+**~~G1~~ shipped on 2026-09-04, and it took five files rather than the one line all three reports predicted.** See
+~~G1~~ below for what shipped and for the file none of them read. The next one-line change is **G2**.
 
 ---
 
 ### (i) One-line changes
 
-#### G1. Give ward's Playwright run a per-run report path, then delete the one-walk-at-a-time rule — **≈225–300 min**
+#### ~~G1. Give ward's Playwright run a per-run report path, then delete the one-walk-at-a-time
+rule~~ — SHIPPED 2026-09-04
 
-*Addresses E1.* **Files:** `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts:132-134`,
-then `flowriderPromptStatics` step 4/5.
+*Addressed E1.* Four browser walks against `packages/web` now run at once: all four green, **12 s wall clock against 8 s
+for one alone**, and each run's saved result listed only its own spec's tests.
 
-**Edit:** the broker already mints a unique port per run at line 129
-(`const serverPort = await netFreePortAdapter();`). Suffix the report path with that port:
+**All three reports called this one line of TypeScript. It took five files.** They were right that the report path is
+the blocker. What none of them saw is that two more things in the same run are shared per package, and that the `+ 1`
+port arithmetic is written out a second time in a file no report opened.
 
-```typescript
-const jsonReportPath = filePathContract.parse(
-  `${projectFolder.path}/.ward-playwright-report-${String(serverPort)}.json`,
-);
-```
+| What shipped                                           | File                                                     | Why it was needed                                                                                                                                                                                                                                                                                                                   |
+|--------------------------------------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Report path carries the run's server port              | `check-run-e2e-broker.ts:132`                            | The blocker the reports found                                                                                                                                                                                                                                                                                                       |
+| `netFreePortPairAdapter` replaces `netFreePortAdapter` | `packages/shared/src/adapters/net/free-port-pair/` (new) | The web port was `serverPort + 1`, which nothing checked for being free. A concurrent run could be handed it, and the `netKillPortAdapter` teardown then killed that run's server mid-suite                                                                                                                                         |
+| Per-port `outputDir`                                   | `packages/web/playwright.config.ts`                      | Playwright clears its output folder at run start, so a second run wiped the first's failure traces and screenshots                                                                                                                                                                                                                  |
+| Vite reads `DUNGEONMASTER_WEB_PORT`                    | `packages/web/vite.config.ts`                            | **The one nobody saw.** `vite.config.ts` computed its own port as `DUNGEONMASTER_PORT + 1`, so the two `+ 1`s agreed only while one launcher picked both ports. Making ward's ports independent without this change broke e2e outright — every run died on `Timed out waiting 60000ms from config.webServer`, including single runs |
+| The rule deleted, a cap of four put in its place       | `flowrider-prompt-statics.ts`, three passages            | Each walk boots an API server, a Vite server and a browser, so the limit is machine load, not correctness                                                                                                                                                                                                                           |
 
-Then delete *"never two browser walks against the same package at once"* from the flowrider's step 4
-grouping rule and step 5 dispatch rule, since its stated premise — *"Playwright writes one report path
-per package"* — no longer holds.
+**The lesson worth keeping: `netFreePortAdapter()` being per-run was necessary and not sufficient.**
+Report 15's *"the report path is the only thing standing between this item and a 4× speedup"* read one file and stopped.
+Two files downstream of it derived state from that port by arithmetic, and arithmetic is a coupling that survives a grep
+for the variable name.
 
 **Proposed by** [report 13 §6 f1], [report 15 §6 f1] (with the exact line numbers), and enabled by
 [report 14 §6 f1].
 
-**Saving, with arithmetic:**
+~~**Saving, with arithmetic:**~~
 
-- Item [15]: waves 2–6 ran 167.4 agent-min at 1.00× across 169.4 wall min. Overlapped as wave 1 was
-  (3.07×), the chain collapses to `30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 min`. **169.4 − 79.8 =
-  about 89.6 min saved, 41% of that item** [15 §6 f1].
-- Item [13]: **66–100 min**, stated as *"Saves ≈ 100 min on this item; ≈ 300 min across the quest's
-  three flowrider items"* [13 §6 f1].
-- Item [14]: P3 (33.0 min) and P4 (8.5 min) collapse into P5's 49-minute window — **about 35 min saved**
-  [14 §6 f1].
+- ~~Item [15]: waves 2–6 ran 167.4 agent-min at 1.00× across 169.4 wall min. Overlapped as wave 1 was~~
+  ~~(3.07×), the chain collapses to `30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8 min`. **169.4 − 79.8 =**~~
+  ~~**about 89.6 min saved, 41% of that item** [15 §6 f1].~~
+- ~~Item [13]: **66–100 min**, stated as *"Saves ≈ 100 min on this item; ≈ 300 min across the quest's~~
+  ~~three flowrider items"* [13 §6 f1].~~
+- ~~Item [14]: P3 (33.0 min) and P4 (8.5 min) collapse into P5's 49-minute window — **about 35 min**~~
+  ~~**saved** [14 §6 f1].~~
 
-**Quest total: about 90 + about 35 + about 100 = about 225 min**, from the three flowrider items
-measured one at a time. Report 13's own quest-wide estimate is **about 300 min**. Both figures appear
-here because the two were computed differently — see H4.
+~~**Quest total: about 90 + about 35 + about 100 = about 225 min**, from the three flowrider items~~
+~~measured one at a time. Report 13's own quest-wide estimate is **about 300 min**. Both figures appear~~
+~~here because the two were computed differently — see H4.~~
 
-**Dependency**: report 15's fix 2 — make the Playwright harness a first-class wave-0 artifact rather
-than a file four later waves extend — *"enables fix 1; ≈0 min on its own"* [15 §6 f2].
+**Still open — the dependency this fix does not remove**: report 15's fix 2, make the Playwright harness a first-class
+wave-0 artifact rather than a file four later waves extend
+[15 §6 f2]. With the report path fixed, four walks can run at once; four walks all extending one harness file still
+cannot.
 
 #### G2. Fix `ward --staged`'s blindness to untracked files — **31 min of measured repair, plus a false green on every new file in the repo**
 
@@ -2128,22 +2153,28 @@ does not touch this half.
 **Saving:** 79.1 minutes on item [17] — and, coupled with G8, the difference between an interrupted
 session that has banked its work and one that has not.
 
-#### G24. Give the flowrider work to overlap, or accept that serialisation is the shape
+#### ~~G24. Give the flowrider work to overlap, or accept that serialisation is the shape~~ — DISSOLVED BY G1
 
-*Addresses E1's residue.* **File:** `flowrider-prompt-statics.ts`, step 5.
+This fix carried its own expiry condition, and G1 met it: *"if G1 lands, this disappears — the walks parallelise and
+there is nothing to overlap."* Browser walks now go out four at a time, so the ordinary multi-file group choreography
+step 5 was already written for applies to them, and there is no single-file chain left for report 13's fix 10 to
+reconcile.
 
-Report 14 names the gap precisely [14 §3]: *"Nothing in the prompt covers the serialization cost. Step
-5's parallelism rule is written for the file-disjointness case; the browser-walk exception then forces
-N sequential 20–45 minute waits with no guidance on what the operator should do with those minutes.
-The flowrider invented the correct behaviour — it ended its turn on a plain message six times, exactly
-as `[HELPERS]` says — **but it had no work to overlap because the prompt gives it none.**"
+~~*Addresses E1's residue.* **File:** `flowrider-prompt-statics.ts`, step 5.~~
 
-**The decision:** if G1 lands, this disappears — the walks parallelise and there is nothing to
-overlap. If G1 is rejected, then report 14's fix 1 (**overlap the below-browser group with the browser
-walks, about 35–45 min/item**) is the fallback, and report 13's fix 10 (reconcile step 5's group
-choreography with a browser-only flow) becomes necessary because *"'carry on down the map' and 'send
-that file out again' are the same slot"* [13 §6 f10]. **Do not do both G1 and G24's fallback** —
-G24's fallback exists only to salvage value if G1 is not taken.
+~~Report 14 names the gap precisely [14 §3]: *"Nothing in the prompt covers the serialization cost.~~
+~~Step 5's parallelism rule is written for the file-disjointness case; the browser-walk exception then~~
+~~forces N sequential 20–45 minute waits with no guidance on what the operator should do with those~~
+~~minutes. The flowrider invented the correct behaviour — it ended its turn on a plain message six~~
+~~times, exactly as `[HELPERS]` says — **but it had no work to overlap because the prompt gives it**~~
+~~**none.**"~~
+
+~~**The decision:** if G1 lands, this disappears — the walks parallelise and there is nothing to~~
+~~overlap. If G1 is rejected, then report 14's fix 1 (**overlap the below-browser group with the**~~
+~~**browser walks, about 35–45 min/item**) is the fallback, and report 13's fix 10 (reconcile step 5's~~
+~~group choreography with a browser-only flow) becomes necessary because *"'carry on down the map' and~~
+~~'send that file out again' are the same slot"* [13 §6 f10]. **Do not do both G1 and G24's fallback**~~
+~~— G24's fallback exists only to salvage value if G1 is not taken.~~
 
 #### G25. Add the missing observables to `render-images-in-transcript` before its siegemaster runs
 
@@ -2241,23 +2272,27 @@ totals, and mixing derived figures with stated ones would be worse. The 1,000-to
 0.0005% of that item and 0.00002% of the quest, and it moves no conclusion. Someone re-running
 `summary 26055f5a-…` can settle it in one command.
 
-### H4. G1's quest-wide saving: ≈225 min or ≈300 min?
+### ~~H4. G1's quest-wide saving: ≈225 min or ≈300 min?~~ — MOOT, G1 SHIPPED
 
-**The disagreement.** Two figures are in play for what G1 saves across the whole quest.
+Neither figure needs settling now. The change is in, and the next flowrider item measures the real number for itself.
+What the shipped change measured on its own terms: four browser walks against
+`packages/web` in **12 s wall clock, against 8 s for one alone.**
 
-- **about 225 min** — the sum of the three per-item measurements: about 90 [15 §6 f1] + about 35 [14 §6 f1] + about 100
-  [13 §6 f1].
-- **about 300 min** — report 13's own quest-wide line: *"Saves ≈ 100 min on this item; ≈ 300 min across the
-  quest's three flowrider items"* [13 §6 f1].
+~~**The disagreement.** Two figures are in play for what G1 saves across the whole quest.~~
 
-**Better evidenced: about 225 min.** Report 13's 300 extrapolates its own item's figure across three
-items it assumes have the same shape. Reports 14 and 15 measured their own items directly and got 35
-and about 90, and report 15 shows its arithmetic (`30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8`;
-`169.4 − 79.8 = 89.6`). Item [14] lands far below item [13] because more of its work sat below the
-browser and already ran in parallel.
+- ~~**about 225 min** — the sum of the three per-item measurements: about 90 [15 §6 f1] + about 35~~
+  ~~[14 §6 f1] + about 100 [13 §6 f1].~~
+- ~~**about 300 min** — report 13's own quest-wide line: *"Saves ≈ 100 min on this item; ≈ 300 min~~
+  ~~across the quest's three flowrider items"* [13 §6 f1].~~
 
-Both figures are kept because they answer different questions: 225 is what this quest would have
-saved; 300 is what a quest of three item-[13]-shaped flowrider items would save.
+~~**Better evidenced: about 225 min.** Report 13's 300 extrapolates its own item's figure across three~~
+~~items it assumes have the same shape. Reports 14 and 15 measured their own items directly and got 35~~
+~~and about 90, and report 15 shows its arithmetic (`30.2 + max(29.5, 43.9, 14.2, 49.6) = 79.8`;~~
+~~`169.4 − 79.8 = 89.6`). Item [14] lands far below item [13] because more of its work sat below the~~
+~~browser and already ran in parallel.~~
+
+~~Both figures are kept because they answer different questions: 225 is what this quest would have~~
+~~saved; 300 is what a quest of three item-[13]-shaped flowrider items would save.~~
 
 ### H5. Does cross-item orientation duplication actually cost anything?
 
@@ -2433,23 +2468,23 @@ never dispatched**. The only durable record is a `questNote` written at `2026-09
 All paths are absolute-from-repo-root under
 `/home/brutus-home/projects/codex-of-consentient-craft/`.
 
-| Report | Path | Lines | Section-E entries it contributed to |
-|---|---|---:|---|
-| 02 | `scrolls/reports/02-codeweaver-shared-send-message-with-images.md` | 782 | E3, E4, E5(context), E8, E9, E10, E11, E12, E13, E16, E32 |
-| 03 | `scrolls/reports/03-codeweaver-orchestrator-send-message-with-images.md` | 1,178 | E3, E4, E5, E8, E9, E11, E13, E16, E24, E29, E31 |
-| 04 | `scrolls/reports/04-codeweaver-orchestrator-render-images-in-transcript.md` | 1,015 | E4, E8, E9, E11, E24, E25 |
-| 05 | `scrolls/reports/05-codeweaver-server-send-message-with-images.md` | 1,018 | E3, E4, **E5 (the two destroyed sign-offs)**, E6, E8, E9, E11, E12, E13, E32 |
-| 06 | `scrolls/reports/06-codeweaver-server-render-images-in-transcript.md` | 834 | E3, E4, E5, E9, **E11 (the 1,044,835-byte measurement)**, E12, E18 (the negative case), E24, E32 |
-| 07 | `scrolls/reports/07-codeweaver-web-paste-image-into-composer.md` | 995 | E3, E4, E8, E11, E17, **E24 (the measured `[GIT FORMS]` table)**, E26, E27, E31 |
-| 08 | `scrolls/reports/08-codeweaver-web-send-message-with-images.md` | 1,197 | E3, E4, **E5 (7 of 8 edge ids absent)**, E8, E9, **E10 (the unread-answer census)**, **E11 (the under-serving counter-finding)**, E14, E26, E31, E32 |
-| 09 | `scrolls/reports/09-codeweaver-web-render-images-in-transcript.md` | 1,135 | E3, E4, E5, **E7 (push-shrinkage)**, E9, E16, E17, E24, **E27 (the batch-order analysis)**, E29 |
-| 10-12 | `scrolls/reports/10-12-ward-spiritmender-ward.md` | 1,005 | **E6 (the 99-file / 6-linted gate)**, E27, **E28 (the `<questFolder>` literal)**, E32 |
-| 13 | `scrolls/reports/13-flowrider-paste-image-into-composer.md` | 945 | **E1**, E3, E6, E13, E17, E29, E30, E32 |
-| 14 | `scrolls/reports/14-flowrider-send-message-with-images.md` | 858 | **E1**, E3, E6, **E18 (25.0% / 31.2%)**, E30, E31, E32 |
-| 15 | `scrolls/reports/15-flowrider-render-images-in-transcript.md` | 845 | **E1 (the line numbers and the 1.00× measurement)**, E3, E6, E9, **E13 (the vacuous negatives)**, E17, E18, E20, E29, E30 |
-| 16 | `scrolls/reports/16-siegemaster-paste-image-into-composer.md` | 2,119 | E3, E13, **E14 (the destroyed work)**, **E15**, **E20 (the overlay saga)**, **E21 (the misattribution chain)**, E23, E24, E32 |
-| 17 | `scrolls/reports/17-siegemaster-send-message-with-images.md` | 1,262 | **E2 (the headline)**, **E3 (the hardened-ban A/B)**, E15, E18, **E19 (the P3 chain)**, **E22 (the outage)**, **E23**, E24, E29, E32 |
-| — | **Total** | **15,188** | |
+| Report | Path                                                                        |      Lines | Section-E entries it contributed to                                                                                                                  |
+|--------|-----------------------------------------------------------------------------|-----------:|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 02     | `scrolls/reports/02-codeweaver-shared-send-message-with-images.md`          |        782 | E3, E4, E5(context), E8, E9, E10, E11, E12, E13, E16, E32                                                                                            |
+| 03     | `scrolls/reports/03-codeweaver-orchestrator-send-message-with-images.md`    |      1,178 | E3, E4, E5, E8, E9, E11, E13, E16, E24, E29, E31                                                                                                     |
+| 04     | `scrolls/reports/04-codeweaver-orchestrator-render-images-in-transcript.md` |      1,015 | E4, E8, E9, E11, E24, E25                                                                                                                            |
+| 05     | `scrolls/reports/05-codeweaver-server-send-message-with-images.md`          |      1,018 | E3, E4, **E5 (the two destroyed sign-offs)**, E6, E8, E9, E11, E12, E13, E32                                                                         |
+| 06     | `scrolls/reports/06-codeweaver-server-render-images-in-transcript.md`       |        834 | E3, E4, E5, E9, **E11 (the 1,044,835-byte measurement)**, E12, E18 (the negative case), E24, E32                                                     |
+| 07     | `scrolls/reports/07-codeweaver-web-paste-image-into-composer.md`            |        995 | E3, E4, E8, E11, E17, **E24 (the measured `[GIT FORMS]` table)**, E26, E27, E31                                                                      |
+| 08     | `scrolls/reports/08-codeweaver-web-send-message-with-images.md`             |      1,197 | E3, E4, **E5 (7 of 8 edge ids absent)**, E8, E9, **E10 (the unread-answer census)**, **E11 (the under-serving counter-finding)**, E14, E26, E31, E32 |
+| 09     | `scrolls/reports/09-codeweaver-web-render-images-in-transcript.md`          |      1,135 | E3, E4, E5, **E7 (push-shrinkage)**, E9, E16, E17, E24, **E27 (the batch-order analysis)**, E29                                                      |
+| 10-12  | `scrolls/reports/10-12-ward-spiritmender-ward.md`                           |      1,005 | **E6 (the 99-file / 6-linted gate)**, E27, **E28 (the `<questFolder>` literal)**, E32                                                                |
+| 13     | `scrolls/reports/13-flowrider-paste-image-into-composer.md`                 |        945 | ~~E1~~, E3, E6, E13, E17, E29, E30, E32                                                                                                              |
+| 14     | `scrolls/reports/14-flowrider-send-message-with-images.md`                  |        858 | ~~E1~~, E3, E6, **E18 (25.0% / 31.2%)**, E30, E31, E32                                                                                               |
+| 15     | `scrolls/reports/15-flowrider-render-images-in-transcript.md`               |        845 | ~~E1 (the line numbers and the 1.00× measurement)~~, E3, E6, E9, **E13 (the vacuous negatives)**, E17, E18, E20, E29, E30                            |
+| 16     | `scrolls/reports/16-siegemaster-paste-image-into-composer.md`               |      2,119 | E3, E13, **E14 (the destroyed work)**, **E15**, **E20 (the overlay saga)**, **E21 (the misattribution chain)**, E23, E24, E32                        |
+| 17     | `scrolls/reports/17-siegemaster-send-message-with-images.md`                |      1,262 | **E2 (the headline)**, **E3 (the hardened-ban A/B)**, E15, E18, **E19 (the P3 chain)**, **E22 (the outage)**, **E23**, E24, E29, E32                 |
+| —      | **Total**                                                                   | **15,188** |                                                                                                                                                      |
 
 **Supporting material, used only where stated:**
 

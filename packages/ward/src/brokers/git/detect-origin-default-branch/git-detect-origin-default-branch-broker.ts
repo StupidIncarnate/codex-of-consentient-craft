@@ -1,11 +1,17 @@
 /**
- * PURPOSE: Resolves which git ref represents "what origin already has", so an unpushed-work diff has
- * something to measure against. Reach for this over gitDetectDefaultBranchBroker when the question is
- * what the REMOTE holds — the local main/master that broker finds can itself be ahead of origin, and a
- * branch tracking origin/release-2 must not be measured against origin/main.
+ * PURPOSE: Resolves which ref stands for "origin's default branch", so a committed-work diff has a
+ * remote-side base to measure against. Reach for this over gitDetectDefaultBranchBroker when the
+ * question is what the REMOTE holds — the local main/master that broker finds can itself be ahead of
+ * origin, so a diff against it reports nothing for commits origin has never seen.
+ *
+ * THE BRANCH'S OWN TRACKING REF IS DELIBERATELY NOT CONSULTED. `--committed` asks "what has this
+ * branch added on top of origin's main line", and `@{upstream}` answers a different question — on a
+ * branch that has already been pushed it resolves to that branch's own remote copy, so the diff
+ * collapses to nothing the moment a reviewer pushes. That collapse is what made every reviewer on a
+ * long quest grade a window that shrank to its own pass.
  *
  * USAGE:
- * const ref = await gitDetectUpstreamBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * const ref = await gitDetectOriginDefaultBranchBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
  * // Returns GitBranchName('origin/master'), or null when the repo has no origin refs at all
  */
 
@@ -16,25 +22,11 @@ import type { GitBranchName } from '../../../contracts/git-branch-name/git-branc
 import { gitBranchNameContract } from '../../../contracts/git-branch-name/git-branch-name-contract';
 import { gitRemoteRefsStatics } from '../../../statics/git-remote-refs/git-remote-refs-statics';
 
-export const gitDetectUpstreamBroker = async ({
+export const gitDetectOriginDefaultBranchBroker = async ({
   cwd,
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<GitBranchName | null> => {
-  const upstreamResult = await childProcessSpawnCaptureAdapter({
-    command: 'git',
-    args: ['rev-parse', '--abbrev-ref', '--symbolic-full-name', gitRemoteRefsStatics.upstreamAlias],
-    cwd,
-  });
-
-  const upstreamRef = upstreamResult.output.trim();
-
-  if (upstreamResult.exitCode === exitCodeContract.parse(0) && upstreamRef.length > 0) {
-    return gitBranchNameContract.parse(upstreamRef);
-  }
-
-  // No tracking branch — the branch has never been pushed. Fall back to origin's own default so the
-  // diff still measures against a ref origin actually holds.
   const mainResult = await childProcessSpawnCaptureAdapter({
     command: 'git',
     args: ['rev-parse', '--verify', gitRemoteRefsStatics.originMain],

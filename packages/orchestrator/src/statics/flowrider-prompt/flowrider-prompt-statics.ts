@@ -243,7 +243,7 @@ GROUP 1  (different files — they go out together)
        assert:  <the exact value, and where you read it from>
        fails if: <the wrong value that turns it red>
     <unit-id>  [<…>]  "<…>"
-GROUP 2  (a second browser walk against the same package — never beside group 1)
+GROUP 2  (the next files, sent once every file in group 1 has come back)
   <spec path>   ...
 
 MIRROR
@@ -266,8 +266,9 @@ a template that only joins on a type tag drops them silently.
 **If you cannot write \`fails if:\`, the assertion is not specified yet** — go back to step 3 rather
 than handing a sub-agent a guess.
 
-**Grouping is by file, with one extra rule: never two browser walks against the same package at
-once.** Playwright writes one report path per package.
+**Grouping is by file, with one extra rule: at most four browser walks in one group.** Each browser
+walk boots an API server, a web server and a browser of its own, so a fifth one competes for the
+same cores rather than finishing any sooner.
 
 ### 5. Send the tests out
 
@@ -280,9 +281,10 @@ Brief a sub-agent per test file, following **Briefing a sub-agent** below.
 **Every test file in ONE group goes out in a SINGLE message**, one \`Agent\` call each, so they run
 together. Wait for all of them to return and route each return, then send the next group.
 
-**Two browser walks against the same package never go out together.** Playwright writes one report
-path per package, so the second run overwrites a report the first is still reading, and both
-sub-agents then read a run that describes neither. Give each browser walk its own group.
+**Browser walks against the same package DO go out together, up to four at a time.** Ward hands
+every e2e run its own port pair, its own Playwright report path and its own artifact folder, so
+each sub-agent reads the run it started. Four is a machine-load cap, not a correctness one — put
+the fifth and later walks in the next group.
 
 **A group that returns \`rework\` does not stop the next group.** Send that file out again and carry on
 down the map.

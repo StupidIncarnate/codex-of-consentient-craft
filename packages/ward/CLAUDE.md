@@ -294,6 +294,20 @@ e2e-eligible — `widgets/` plus either a React dependency or the `ink` adapter.
 — that combination is a real gap, not something to skip quietly. Only an eligible package WITH the
 config proceeds to spawn Playwright.
 
+**Every e2e run is isolated from every other one, so SEVERAL browser walks against one package can run at once.**
+Three things carry the run's identity, and all three must stay per-run or the isolation is gone:
+
+| Per-run thing            | Where it comes from                                          | What sharing it costs                                                                                                                                                     |
+|--------------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| The two ports            | `netFreePortPairAdapter`, both sockets held open together    | A derived `port + 1` is never checked for being free, so a concurrent run can be handed it — and the `netKillPortAdapter` teardown then kills that run's server mid-suite |
+| The JSON report path     | `.ward-playwright-report-<serverPort>.json`                  | The second run overwrites a report the first is still reading, and both agents read a run describing neither                                                              |
+| Playwright's `outputDir` | `test-results/<port>` in `packages/web/playwright.config.ts` | Playwright clears the folder at run start, so the second run wipes the first's failure traces and screenshots                                                             |
+
+**Ward must pass `DUNGEONMASTER_WEB_PORT`, not let anything derive it.** The Playwright config and the Vite config each
+fall back to `DUNGEONMASTER_PORT + 1`, and those two fallbacks agree only while one launcher picks both ports. Ward asks
+the OS for the two independently, so a run that fails to pass the web port explicitly dies on
+`Timed out waiting 60000ms from config.webServer` — Playwright waiting on one port while Vite binds another.
+
 ## Architecture
 
 The broker chain for a `run` invocation:

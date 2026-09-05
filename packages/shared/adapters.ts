@@ -33,7 +33,7 @@ export * from './src/adapters/child-process/spawn-stream/child-process-spawn-str
 export * from './src/adapters/child-process/spawn-stream-lines/child-process-spawn-stream-lines-adapter';
 
 // Net Adapters
-export * from './src/adapters/net/free-port/net-free-port-adapter';
+export * from './src/adapters/net/free-port-pair/net-free-port-pair-adapter';
 
 // Fetch Adapters
 export * from './src/adapters/fetch/get/fetch-get-adapter';
