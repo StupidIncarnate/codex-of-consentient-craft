@@ -9,7 +9,7 @@ import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-qu
 import { computeNextStepFromQuestLayerBrokerProxy } from './compute-next-step-from-quest-layer-broker.proxy';
 
 // Chain ids for a bug-hunt quest's relay tail. questBuildRelayGraphBroker seeds the identical
-// relay shape for both quest types: riftcarver, then codeweaver, then ward(changed) -> flowrider
+// relay shape for both quest types: riftcarver, then codeweaver, then ward(committed) -> flowrider
 // -> siegemaster -> ward(full).
 const CODEWEAVER_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 const WARD_CHANGED_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
@@ -36,7 +36,7 @@ const relayTailItems = ({
       id: WARD_CHANGED_ID,
       role: 'ward',
       spawnerType: 'command',
-      wardMode: 'changed',
+      wardMode: 'committed',
       status: statusFor(WARD_CHANGED_ID),
       dependsOn: [CODEWEAVER_ID],
     }),
@@ -93,7 +93,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
-          wardMode: 'changed',
+          wardMode: 'committed',
         }),
       ],
     });
@@ -104,7 +104,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
       type: 'run-ward',
       questId,
       workItemId: wardId,
-      mode: 'changed',
+      mode: 'committed',
     });
   });
 
@@ -245,7 +245,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
       type: 'run-ward',
       questId,
       workItemId: wardId,
-      mode: 'changed',
+      mode: 'committed',
     });
   });
 
@@ -285,11 +285,11 @@ describe('computeNextStepFromQuestLayerBroker', () => {
         type: 'run-ward',
         questId,
         workItemId: WARD_CHANGED_ID,
-        mode: 'changed',
+        mode: 'committed',
       });
     });
 
-    it('VALID: {through ward(changed)} => spawn-agents flowrider', () => {
+    it('VALID: {through ward(committed)} => spawn-agents flowrider', () => {
       computeNextStepFromQuestLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({

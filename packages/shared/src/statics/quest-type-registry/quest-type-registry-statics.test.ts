@@ -24,7 +24,7 @@ describe('questTypeRegistryStatics', () => {
           },
         ],
         relayTail: [
-          { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
+          { role: 'ward', text: 'Ward gate (committed files)', wardMode: 'committed' },
           {
             role: 'flowrider',
             text: 'Flowrider: author the test suites that prove this flow',
@@ -55,7 +55,7 @@ describe('questTypeRegistryStatics', () => {
           },
         ],
         relayTail: [
-          { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
+          { role: 'ward', text: 'Ward gate (committed files)', wardMode: 'committed' },
           {
             role: 'flowrider',
             text: 'Flowrider: author the test suites that prove this flow',

@@ -354,6 +354,8 @@ export * from './src/contracts/spawner-type/spawner-type.stub';
 export * from './src/contracts/related-data-item/related-data-item-contract';
 export * from './src/contracts/related-data-item/related-data-item.stub';
 
+export * from './src/contracts/ward-mode/ward-mode-contract';
+export * from './src/contracts/ward-mode/ward-mode.stub';
 export * from './src/contracts/ward-result/ward-result-contract';
 export * from './src/contracts/ward-result/ward-result.stub';
 

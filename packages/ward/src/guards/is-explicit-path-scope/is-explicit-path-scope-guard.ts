@@ -1,21 +1,21 @@
 /**
  * PURPOSE: Answers "did the CALLER type these paths, or did git produce them" — the distinction
  * `config.passthrough` alone cannot make, because `commandRunLayerGitScopeBroker` writes a
- * `--changed`/`--staged` diff into that very field. Reach for this over `isFileScopeRequestedGuard`
- * whenever a rule may only bind paths a human named: that guard says a file scope was asked for at
- * all, this one says WHO asked. A git diff legitimately carries root-level files nothing lints, so a
- * rule that reddens on "nothing processed it" would break ordinary `--staged` runs if it could not
- * tell the two apart.
+ * `--committed`/`--uncommitted` diff into that very field. Reach for this over
+ * `isFileScopeRequestedGuard` whenever a rule may only bind paths a human named: that guard says a
+ * file scope was asked for at all, this one says WHO asked. A git diff legitimately carries
+ * root-level files nothing lints, so a rule that reddens on "nothing processed it" would break
+ * ordinary `--uncommitted` runs if it could not tell the two apart.
  *
  * USAGE:
  * isExplicitPathScopeGuard({ config: WardConfigStub({ passthrough: ['scripts/x.mjs'] }) });
  * // Returns: true
- * isExplicitPathScopeGuard({ config: WardConfigStub({ staged: true, passthrough: ['src/a.ts'] }) });
+ * isExplicitPathScopeGuard({ config: WardConfigStub({ uncommitted: true, passthrough: ['src/a.ts'] }) });
  * // Returns: false — the paths came from the diff, not from the caller
  *
  * THE GIT FLAGS ARE CHECKED, NOT JUST `passthrough`, so the answer does not depend on whether the
- * caller hands over the config from BEFORE or AFTER the git scope layer: `changed`/`staged` survive
- * that layer untouched, so a git-derived scope reads as git-derived either way.
+ * caller hands over the config from BEFORE or AFTER the git scope layer: `committed`/`uncommitted`
+ * survive that layer untouched, so a git-derived scope reads as git-derived either way.
  *
  * A CLASSIFICATION IS OWED FOR EVERY FIELD, and `satisfies Record<keyof WardConfig, WardPathOrigin>`
  * collects it — the same build-time trap `isFileScopeRequestedGuard` sets, for a different question.
@@ -30,8 +30,8 @@ type WardPathOrigin = 'callerTyped' | 'gitDerived' | 'notAFileScope';
 const PATH_ORIGIN_BY_FIELD = {
   only: 'notAFileScope',
   onlyTests: 'notAFileScope',
-  changed: 'gitDerived',
-  staged: 'gitDerived',
+  committed: 'gitDerived',
+  uncommitted: 'gitDerived',
   passthrough: 'callerTyped',
 } as const satisfies Record<keyof WardConfig, WardPathOrigin>;
 

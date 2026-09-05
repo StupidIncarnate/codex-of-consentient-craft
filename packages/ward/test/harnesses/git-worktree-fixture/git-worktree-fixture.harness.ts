@@ -1,9 +1,9 @@
 /**
  * PURPOSE: Builds a real throwaway git repo — optionally with a real bare remote and a real
  * `git worktree add` checkout — so the two diff brokers can be proven against real git instead of a
- * mocked spawn. gitDiffFilesBroker's worktree-vs-repo-root isolation and gitDiffUnpushedBroker's
- * pushed-vs-unpushed split are both invisible to a mocked spawn, which cannot distinguish one cwd or
- * one ref from another. `packages/orchestrator` owns a much larger fixture with the same name
+ * mocked spawn. gitDiffCommittedBroker's worktree-vs-repo-root isolation and gitDiffUncommittedBroker's
+ * tracked-vs-untracked union are both invisible to a mocked spawn, which cannot distinguish one cwd,
+ * one ref, or one kind of file from another. `packages/orchestrator` owns a much larger fixture with the same name
  * (git-worktree-fixture.harness.ts under its own test/harnesses/) but ward has no dependency on the
  * orchestrator package — its package.json lists only @dungeonmaster/shared and @dungeonmaster/testing
  * — so that harness is not importable here (no project reference, no package.json export, and no
@@ -105,8 +105,8 @@ export const wardGitWorktreeFixtureHarness = (): {
       await runGit({ cwd, args: ['remote', 'add', 'origin', remotePath] });
     },
 
-    // `-u` is what makes @{upstream} resolve afterwards, which is the ref gitDetectUpstreamBroker
-    // asks for first. A branch pushed without it stays untracked and exercises the fallback instead.
+    // `-u` creates the remote-tracking ref, which is what makes `origin/main` resolvable for
+    // gitDetectOriginDefaultBranchBroker. A branch never pushed has no such ref for git to verify.
     pushBranch: async ({
       cwd,
       branchName,

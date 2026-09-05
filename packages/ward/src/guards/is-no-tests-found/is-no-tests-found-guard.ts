@@ -6,7 +6,7 @@
  * isNoTestsFoundGuard({ output: 'No tests found, exiting with code 1' }); // true
  * isNoTestsFoundGuard({ output: '{"testResults":[],"success":true}' }); // false
  *
- * WHEN-TO-USE: In file-scoped runs (--changed / passthrough) to treat "no related tests" as a skip
+ * WHEN-TO-USE: In file-scoped runs (--committed / --uncommitted / passthrough) to treat "no related tests" as a skip
  * WHEN-NOT-TO-USE: In full runs, where a missing-tests banner signals a real misconfiguration to surface
  */
 

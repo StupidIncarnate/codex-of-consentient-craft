@@ -4,14 +4,18 @@
  * USAGE:
  * nextStepContract.parse({ type: 'idle' });
  * nextStepContract.parse({ type: 'spawn-agents', agents: [SpawnInstruction, ...] });
- * nextStepContract.parse({ type: 'run-ward', questId, workItemId, mode: 'changed' });
+ * nextStepContract.parse({ type: 'run-ward', questId, workItemId, mode: 'committed' });
  * nextStepContract.parse({ type: 'run-riftcarver', questId, workItemId });
  * // Returns: NextStep variant
  */
 
 import { z } from 'zod';
 
-import { questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
+import {
+  questIdContract,
+  questWorkItemIdContract,
+  wardModeContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { spawnInstructionContract } from '../spawn-instruction/spawn-instruction-contract';
 
@@ -24,7 +28,7 @@ export const nextStepContract = z.discriminatedUnion('type', [
     type: z.literal('run-ward'),
     questId: questIdContract,
     workItemId: questWorkItemIdContract,
-    mode: z.enum(['changed', 'full']),
+    mode: wardModeContract,
   }),
   z.object({
     // The other command role. It carries no mode: ward grades a tree that already exists and needs

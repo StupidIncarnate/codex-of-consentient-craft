@@ -46,21 +46,25 @@ All flags apply to the `run` subcommand.
 |----------------------------------------------|-----------------------------------------------------------------------------------------|
 | `--only lint,typecheck,unit,integration,e2e` | Comma-separated list of check types to run. Omit to run all five.                       |
 | `--onlyTests <regex>`                        | Filter tests by name pattern. Requires a `-- <files>` scope. Maps to Jest `--testNamePattern` and Playwright `--grep`. |
-| `--changed`                                  | Run every check type over the files that differ from the local default branch.          |
-| `--staged`                                   | Run every check type over the files origin does not have yet.                           |
+| `--committed`                                | Run every check type over the files this branch has COMMITTED on top of `origin/main`.  |
+| `--uncommitted`                              | Run every check type over the working tree — staged, unstaged AND untracked files.      |
 | `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths.                  |
 
-### The two git scope flags take no companions
+### The two git scope flags take no narrowing companions — but they do take each other
 
-`--changed` and `--staged` each run **all five check types** over a file set that git decides. Neither accepts `--only`,
-`--onlyTests`, or a `-- <files>` list, and the two cannot be combined with each other. Ward rejects those combinations
-at CLI parse time with an error naming the offending flags, rather than picking a winner between two file sets.
+`--committed` and `--uncommitted` each run **all five check types** over a file set that git decides. Neither accepts
+`--only`, `--onlyTests`, or a `-- <files>` list. Ward rejects those combinations at CLI parse time with an error naming
+the offending flags, rather than picking a winner between two file sets.
+
+**The two DO combine with each other, and that pair is the whole-branch run.** They name disjoint halves of a branch:
+`--committed` ends at HEAD and `--uncommitted` starts there, so neither can shadow the other and the scope layer unions
+the two file sets. That is the one command that grades everything a session has produced, landed or not.
 
 ```bash
-npm run ward -- --staged                 # correct
-npm run ward -- --staged --only lint     # rejected
-npm run ward -- --changed -- packages/ward  # rejected
-npm run ward -- --changed --staged       # rejected
+npm run ward -- --uncommitted                  # correct
+npm run ward -- --committed --uncommitted      # correct — the whole branch
+npm run ward -- --uncommitted --only lint      # rejected
+npm run ward -- --committed -- packages/ward   # rejected
 ```
 
 To narrow a run, drop the git scope flag and say what you want directly: `npm run ward -- --only lint -- <files>`.
@@ -89,7 +93,7 @@ field: it scopes nothing, so `isFileScopeRequestedGuard` and `isExplicitPathScop
 no honest classification for it. It is also absent from the flag list the unknown-flag error
 prints — nobody types it by hand.
 
-The rejection lives after the git scope checks, so `--changed`/`--staged` keep winning: those two already reject
+The rejection lives after the git scope checks, so `--committed`/`--uncommitted` keep winning: those two already reject
 `--onlyTests` outright, and their caller gets one error about the flag they typed rather than a second one demanding a
 file list they are forbidden to pass.
 
@@ -145,11 +149,14 @@ npm run ward -- --only test --only lint --only typecheck -- packages/hooks
 # Run multiple check types
 npm run ward -- --only lint,unit
 
-# All checks, scoped to files that differ from the local default branch
-npm run ward -- --changed
+# All checks, scoped to what this branch has COMMITTED on top of origin's default branch
+npm run ward -- --committed
 
-# All checks, scoped to everything origin does not have yet — the pre-push gate
-npm run ward -- --staged
+# All checks, scoped to the working tree — staged, unstaged and untracked
+npm run ward -- --uncommitted
+
+# All checks, scoped to the whole branch — the union of the two
+npm run ward -- --committed --uncommitted
 
 # Run only tests matching a name pattern — the -- <files> scope is required
 npm run ward -- --only unit --onlyTests "my specific test" -- packages/hooks/src/foo.test.ts
@@ -179,26 +186,35 @@ a failing run.
 
 ## How File Scoping Works
 
-Ward has three file scoping mechanisms: passthrough (`--`), changed (`--changed`), and staged (`--staged`). When any of
-them is active, ward considers the run to have "file scope."
+Ward has three file scoping mechanisms: passthrough (`--`), committed (`--committed`), and uncommitted
+(`--uncommitted`). When any of them is active, ward considers the run to have "file scope."
 
 - **No file scope**: Each check runs against all files in each package.
 - **Passthrough (`--`)**: The provided paths are passed directly to the check tool. Accepts both file paths
   (`-- packages/hooks/src/foo.test.ts`) and package paths (`-- packages/hooks`). A package path runs all checks in that
   package without file-level scoping.
-- **Changed (`--changed`)**: Diffs against the merge-base with the **local** `main` or `master`, then passes the
-  resulting files to each check tool.
-- **Staged (`--staged`)**: Diffs against the merge-base with the branch's **upstream tracking ref**, so the file set is
-  everything origin does not have: files touched by commits that have not been pushed, plus staged and unstaged edits on
-  top of them. Use it as a pre-push gate. When the branch has no tracking ref it falls back to `origin/main`, then
-  `origin/master`; when the repo has no origin refs at all it falls back to what `--changed` would produce.
+- **Committed (`--committed`)**: Takes the merge-base with `origin/main` (then `origin/master`) and diffs it against
+  **HEAD**, so the file set is every file this branch's commits have touched. Naming HEAD as the second ref is what
+  keeps working-tree edits out — `git diff <base>` with no second ref compares the base to what is on disk.
+- **Uncommitted (`--uncommitted`)**: Unions `git diff --name-only HEAD` with `git ls-files --others --exclude-standard`,
+  so the file set is every staged edit, every unstaged edit AND every brand-new file nobody has `git add`ed.
 
-The two git scope flags resolve to a plain file list before any check runs, so from a check runner's point of view
-`--changed` and `--staged` are indistinguishable from a `-- <files>` passthrough. Non-source paths (`.md`, `.json`) are
-dropped from that list, because ESLint reports a "file ignored" error for a non-source file handed to it explicitly.
+**The untracked half is not a nicety — it is most of the answer.** `git diff` in every form reports tracked paths only.
+Measured on quest 1be07040: a reviewer's gate saw 6 files of a 99-file pass because the other 93 were new, exited 0,
+and both defects that later went red came out of that commit. Another gate exited 0 having never opened six brand-new
+browser-package files.
+
+**The two sets are disjoint, which is why both flags may be passed at once.** One ends at HEAD, the other starts there.
+Passing both unions them, de-duplicated on first appearance — a file committed on this branch and edited again since
+appears once, at its committed position.
+
+The git scope flags resolve to a plain file list before any check runs, so from a check runner's point of view
+`--committed` and `--uncommitted` are indistinguishable from a `-- <files>` passthrough. Non-source paths (`.md`,
+`.json`) are dropped from that list, because ESLint reports a "file ignored" error for a non-source file handed to it
+explicitly.
 
 **Empty file set: the run is EMPTY, not wide.** When a run ASKED for a file scope and has zero source files left
-(nothing changed, nothing unpushed, or an explicitly empty `-- <files>` list), `command-run-broker` prints
+(nothing committed on top of origin, a clean working tree, or an explicitly empty `-- <files>` list), `command-run-broker` prints
 `fileScopeEmptyStatics.message` and returns before any check runs — exit 0, no result saved, so `ward detail <runId>`
 has nothing to load and `wardDetailBroker` answers `null`.
 
@@ -215,7 +231,7 @@ and cannot be forgotten at a call site — there is no list of flag names spelle
 **Do not express "no files" by leaving `passthrough` unset.** `hasPassthrough` is
 `Array.isArray(passthrough) && length > 0` in five separate places, so an unset list — and an empty one — both read
 there as "no file scope", which is the whole repo. The lesson cost real time: a round reviewer pushes its own round,
-so the NEXT reviewer's `--staged` has nothing left to measure, and on quest a7520e60 one such run swept 13 packages
+so the NEXT reviewer's git-scoped run had nothing left to measure, and on quest a7520e60 one such run swept 13 packages
 including e2e in 858s while another crossed the 600s harness timeout. Both were read as the round's green verdict.
 
 **A path that exists and that no check processed FAILS the run — but only when the caller typed it.** After the summary
@@ -244,9 +260,9 @@ Three things make that predicate survive the runs it must not redden:
   discovery) — never the processed list. One check processing anything clears the whole scope.
 
 **Git-derived paths are exempt, and that is why the guard reads `config` and not `resolvedConfig`.**
-`commandRunLayerGitScopeBroker` writes a `--changed`/`--staged` diff into the same `passthrough` field an explicit
+`commandRunLayerGitScopeBroker` writes a `--committed`/`--uncommitted` diff into the same `passthrough` field an explicit
 `-- <files>` list lands in, so the field alone cannot say who asked. `isExplicitPathScopeGuard` answers false whenever
-`changed` or `staged` is set — a diff legitimately holds root-level files nothing lints, and reddening those would
+`committed` or `uncommitted` is set — a diff legitimately holds root-level files nothing lints, and reddening those would
 break the pre-push gate. Like `isFileScopeRequestedGuard` it classifies every `wardConfigContract` field
 (`satisfies Record<keyof WardConfig, WardPathOrigin>`), so a second way to name paths cannot be added without deciding
 whether a human typed it.
@@ -293,6 +309,20 @@ e2e-eligible — `widgets/` plus either a React dependency or the `ink` adapter.
 `playwright.config.ts`. An **eligible** package missing `playwright.config.ts` returns `status: 'fail'`
 — that combination is a real gap, not something to skip quietly. Only an eligible package WITH the
 config proceeds to spawn Playwright.
+
+**Every e2e run is isolated from every other one, so SEVERAL browser walks against one package can run at once.**
+Three things carry the run's identity, and all three must stay per-run or the isolation is gone:
+
+| Per-run thing            | Where it comes from                                          | What sharing it costs                                                                                                                                                     |
+|--------------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| The two ports            | `netFreePortPairAdapter`, both sockets held open together    | A derived `port + 1` is never checked for being free, so a concurrent run can be handed it — and the `netKillPortAdapter` teardown then kills that run's server mid-suite |
+| The JSON report path     | `.ward-playwright-report-<serverPort>.json`                  | The second run overwrites a report the first is still reading, and both agents read a run describing neither                                                              |
+| Playwright's `outputDir` | `test-results/<port>` in `packages/web/playwright.config.ts` | Playwright clears the folder at run start, so the second run wipes the first's failure traces and screenshots                                                             |
+
+**Ward must pass `DUNGEONMASTER_WEB_PORT`, not let anything derive it.** The Playwright config and the Vite config each
+fall back to `DUNGEONMASTER_PORT + 1`, and those two fallbacks agree only while one launcher picks both ports. Ward asks
+the OS for the two independently, so a run that fails to pass the web port explicitly dies on
+`Timed out waiting 60000ms from config.webServer` — Playwright waiting on one port while Vite binds another.
 
 ## Architecture
 

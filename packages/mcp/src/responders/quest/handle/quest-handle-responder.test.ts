@@ -1558,7 +1558,7 @@ describe('QuestHandleResponder', () => {
         args: {
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-          mode: 'changed',
+          mode: 'committed',
         },
       });
 
@@ -1653,7 +1653,7 @@ describe('QuestHandleResponder', () => {
           args: {
             questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
             workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-            mode: 'changed',
+            mode: 'committed',
           },
         }),
       ).rejects.toThrow(/Unrecognized key/u);

@@ -33,9 +33,9 @@ export const commandRunBrokerProxy = (): {
   setupSinglePackageLintPassWithNoFiles: () => void;
   setupSinglePackageFail: () => void;
   setupSinglePackageCrash: () => void;
-  setupStagedWithNothingUnpushed: () => void;
-  setupChangedWithNothingChanged: () => void;
-  setupStagedWithOneUnpushedFile: () => void;
+  setupUncommittedWithCleanTree: () => void;
+  setupCommittedWithNothingCommitted: () => void;
+  setupUncommittedWithOneEditedFile: () => void;
   setupExistingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
@@ -93,21 +93,21 @@ export const commandRunBrokerProxy = (): {
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
       singleProxy.setupLintOnlyFail({ projectFolder: singlePackageProjectFolder, stdout: '[]' });
     },
-    // git answers with an empty diff, which is what a branch whose every commit is already pushed
-    // reports for `--staged`. Pair it with a pass setup: the run those mocks describe is the
-    // whole-repo one this scope must NOT fall through to.
-    setupStagedWithNothingUnpushed: (): void => {
-      gitScopeProxy.setupUnpushedFiles({ diffOutput: '' });
+    // git answers with nothing in either reading, which is what a clean working tree reports for
+    // `--uncommitted`. Pair it with a pass setup: the run those mocks describe is the whole-repo
+    // one this scope must NOT fall through to.
+    setupUncommittedWithCleanTree: (): void => {
+      gitScopeProxy.setupUncommittedFiles({ trackedOutput: '', untrackedOutput: '' });
     },
-    setupChangedWithNothingChanged: (): void => {
-      gitScopeProxy.setupChangedFiles({ diffOutput: '' });
+    setupCommittedWithNothingCommitted: (): void => {
+      gitScopeProxy.setupCommittedFiles({ diffOutput: '' });
     },
-    // The unpushed diff resolves to `src/index.ts`, and the path-check layer asks disk about it by
-    // absolute path — so the method that produces the path is the one that declares it exists.
+    // The working-tree reading resolves to `src/index.ts`, and the path-check layer asks disk about
+    // it by absolute path — so the method that produces the path is the one that declares it exists.
     // Splitting those two would leave a caller staging a git diff whose file the next layer then
     // reports missing.
-    setupStagedWithOneUnpushedFile: (): void => {
-      gitScopeProxy.setupUnpushedFiles({ diffOutput: 'src/index.ts\n' });
+    setupUncommittedWithOneEditedFile: (): void => {
+      gitScopeProxy.setupUncommittedFiles({ trackedOutput: 'src/index.ts\n', untrackedOutput: '' });
       pathCheckProxy.setupExistingPath({
         filePath: filePathContract.parse('/project/src/index.ts'),
       });

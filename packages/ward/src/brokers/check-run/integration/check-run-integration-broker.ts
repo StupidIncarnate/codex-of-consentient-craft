@@ -154,7 +154,7 @@ export const checkRunIntegrationBroker = async ({
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
-  // In file scope (--changed / passthrough), jest's "no tests found" banner means none of the
+  // In file scope (--committed / --uncommitted / passthrough), jest's "no tests found" banner means none of the
   // changed files has a related integration test — a skip, not a failure. Full runs keep failing
   // so a genuinely missing-tests misconfiguration still surfaces.
   if (status === 'fail' && fileList.length > 0 && isNoTestsFoundGuard({ output: result.output })) {

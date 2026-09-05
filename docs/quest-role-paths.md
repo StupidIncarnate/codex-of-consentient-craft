@@ -92,7 +92,7 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
   session and signals `blocked`. **The loop is unbounded and `partial` is not on an operator's signal table** — another
   pass costs a pass inside the same session; a `partial` would cost a whole fresh session that has to reconstruct the
   remainder out of git. No code-writing sub-agent commits, builds, or wards; the named reviewer is the only session on
-  the pass that runs `npm run build` / `npm run ward -- --staged`, and it alone commits (once) and pushes (bare).
+  the pass that runs `npm run build` / `npm run ward -- --uncommitted`, and it alone commits (once) and pushes (bare).
 - **Named sub-agent** — the five sub-agents with a served prompt (`agentPromptClassificationStatics.minionNames`):
   `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`, `siegemaster-walker`, and the spec-phase
   `chaoswhisperer-gap-minion`. All five run on **sonnet**. Each fetches with `{ agent, questId }` and **no

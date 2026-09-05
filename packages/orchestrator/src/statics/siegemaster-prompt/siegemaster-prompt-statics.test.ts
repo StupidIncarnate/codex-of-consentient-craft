@@ -124,7 +124,7 @@ describe('siegemasterPromptStatics', () => {
 
   // A WAVE OF FIXERS RUNNING WARD AT ONCE COLLIDES ON THE SHARED `dist/` IF ANY OF THEM TYPECHECKS —
   // ward's typecheck is `tsc -b`, a build, and a build under the live system changes what the next
-  // walker measures. Scoping to `lint,test` keeps typecheck out; the reviewer's `--staged` run is
+  // walker measures. Scoping to `lint,test` keeps typecheck out; the reviewer's `--uncommitted` run is
   // where it happens, once, at the end.
   it("VALID: served template => scopes a fixer's own ward run to lint,test and forbids it from building", () => {
     expect({

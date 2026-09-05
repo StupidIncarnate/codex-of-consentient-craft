@@ -153,7 +153,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
 
       await childProcessSpawnStreamLinesAdapter({
         command: 'dungeonmaster-ward',
-        args: ['run', '--changed'],
+        args: ['run', '--committed'],
         cwd: AbsoluteFilePathStub({ value: '/my/project' }),
         onLine: () => undefined,
       });
@@ -161,7 +161,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       expect(proxy.getSpawnedCommand({ command: 'dungeonmaster-ward' })).toBe('dungeonmaster-ward');
       expect(proxy.getSpawnedArgs({ command: 'dungeonmaster-ward' })).toStrictEqual([
         'run',
-        '--changed',
+        '--committed',
       ]);
       expect(proxy.getSpawnedCwd({ command: 'dungeonmaster-ward' })).toBe('/my/project');
     });

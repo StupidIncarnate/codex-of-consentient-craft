@@ -97,22 +97,22 @@ describe('operationItemContract', () => {
     it('VALID: {role: ward, wardMode: changed, locked: true} => parses ward item', () => {
       const item = OperationItemStub({
         role: 'ward',
-        text: 'ward (changed)',
+        text: 'ward (committed)',
         status: 'in_progress',
         locked: true,
         flowIds: [],
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
 
       expect(item).toStrictEqual({
         id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
         role: 'ward',
-        text: 'ward (changed)',
+        text: 'ward (committed)',
         status: 'in_progress',
         locked: true,
         flowIds: [],
         packageNames: [],
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
     });
 

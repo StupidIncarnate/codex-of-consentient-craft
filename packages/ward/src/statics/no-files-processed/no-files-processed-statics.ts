@@ -9,8 +9,8 @@
  * REACH FOR THIS ONE, NOT `pathNotFoundStatics`, when the path RESOLVED. The two answer adjacent
  * halves of the same silence: `pathNotFoundStatics` is disk saying the caller typed a name that is
  * not there, this one is every check saying the name is there and none of them owns it. And neither
- * is `fileScopeEmptyStatics`, which speaks for a scope that resolved to no paths at all — a `--staged`
- * with nothing unpushed legitimately has nothing to check and exits 0.
+ * is `fileScopeEmptyStatics`, which speaks for a scope that resolved to no paths at all — a
+ * `--uncommitted` run on a clean tree legitimately has nothing to check and exits 0.
  *
  * WHY IT EXISTS: `npm run ward -- --only lint -- scripts/build-workspaces.mjs` printed
  * `lint: WARN 0 files run` at exit 0 — `scripts/**` is in eslint.config.js `ignores`, the path

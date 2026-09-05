@@ -5,11 +5,11 @@ describe('runFiltersContract', () => {
   describe('valid inputs', () => {
     it('VALID: {all fields} => parses successfully', () => {
       const result = runFiltersContract.parse(
-        RunFiltersStub({ changed: true, only: ['lint', 'unit'] }),
+        RunFiltersStub({ committed: true, only: ['lint', 'unit'] }),
       );
 
       expect(result).toStrictEqual({
-        changed: true,
+        committed: true,
         only: ['lint', 'unit'],
       });
     });
@@ -21,9 +21,9 @@ describe('runFiltersContract', () => {
     });
 
     it('VALID: {only changed} => parses boolean filter', () => {
-      const result = runFiltersContract.parse({ changed: false });
+      const result = runFiltersContract.parse({ committed: false });
 
-      expect(result).toStrictEqual({ changed: false });
+      expect(result).toStrictEqual({ committed: false });
     });
 
     it('VALID: {empty only array} => parses empty array', () => {
@@ -48,8 +48,8 @@ describe('runFiltersContract', () => {
       expect(() => runFiltersContract.parse({ only: ['invalid'] })).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID: {changed: "yes"} => throws for non-boolean', () => {
-      expect(() => runFiltersContract.parse({ changed: 'yes' })).toThrow(/Expected boolean/u);
+    it('INVALID: {committed: "yes"} => throws for non-boolean', () => {
+      expect(() => runFiltersContract.parse({ committed: 'yes' })).toThrow(/Expected boolean/u);
     });
 
     it('INVALID: {passthrough: [123]} => throws for non-string element', () => {
@@ -65,10 +65,10 @@ describe('runFiltersContract', () => {
     });
 
     it('VALID: {custom values} => creates run filters with overrides', () => {
-      const result = RunFiltersStub({ changed: true, only: ['lint'] });
+      const result = RunFiltersStub({ committed: true, only: ['lint'] });
 
       expect(result).toStrictEqual({
-        changed: true,
+        committed: true,
         only: ['lint'],
       });
     });

@@ -1,0 +1,73 @@
+{
+  "name": "@dungeonmaster/session-forensics",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Digests Claude Code session transcripts and quest sign-off ledgers for post-mortem analysis of a quest run",
+  "scripts": {
+    "build": "tsc",
+    "build:clean": "rm -rf dist && npm run build",
+    "postbuild": "chmod +x dist/bin/session-forensics-entry.js 2>/dev/null || true"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/",
+    "README.md"
+  ],
+  "keywords": [
+    "forensics",
+    "transcript",
+    "quest",
+    "post-mortem"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@dungeonmaster/testing": "*"
+  },
+  "dependencies": {
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.25.76"
+  },
+  "exports": {
+    ".": {
+      "source": "./index.ts",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "source": "./contracts.ts",
+      "types": "./dist/contracts.d.ts",
+      "require": "./dist/contracts.js",
+      "import": "./dist/contracts.js"
+    },
+    "./statics": {
+      "source": "./statics.ts",
+      "types": "./dist/statics.d.ts",
+      "require": "./dist/statics.js",
+      "import": "./dist/statics.js"
+    },
+    "./guards": {
+      "source": "./guards.ts",
+      "types": "./dist/guards.d.ts",
+      "require": "./dist/guards.js",
+      "import": "./dist/guards.js"
+    },
+    "./transformers": {
+      "source": "./transformers.ts",
+      "types": "./dist/transformers.d.ts",
+      "require": "./dist/transformers.js",
+      "import": "./dist/transformers.js"
+    },
+    "./brokers": {
+      "source": "./brokers.ts",
+      "types": "./dist/brokers.d.ts",
+      "require": "./dist/brokers.js",
+      "import": "./dist/brokers.js"
+    }
+  },
+  "bin": {
+    "dungeonmaster-session-forensics": "./dist/bin/session-forensics-entry.js"
+  }
+}

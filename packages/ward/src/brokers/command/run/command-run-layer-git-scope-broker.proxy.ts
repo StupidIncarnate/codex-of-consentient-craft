@@ -1,20 +1,26 @@
-import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-broker.proxy';
-import { gitDiffUnpushedBrokerProxy } from '../../git/diff-unpushed/git-diff-unpushed-broker.proxy';
+import { gitDiffCommittedBrokerProxy } from '../../git/diff-committed/git-diff-committed-broker.proxy';
+import { gitDiffUncommittedBrokerProxy } from '../../git/diff-uncommitted/git-diff-uncommitted-broker.proxy';
 
 export const commandRunLayerGitScopeBrokerProxy = (): {
-  setupChangedFiles: (params: { diffOutput: string }) => void;
-  setupUnpushedFiles: (params: { diffOutput: string }) => void;
+  setupCommittedFiles: (params: { diffOutput: string }) => void;
+  setupUncommittedFiles: (params: { trackedOutput: string; untrackedOutput: string }) => void;
 } => {
-  const changedProxy = gitDiffFilesBrokerProxy();
-  const unpushedProxy = gitDiffUnpushedBrokerProxy();
+  const committedProxy = gitDiffCommittedBrokerProxy();
+  const uncommittedProxy = gitDiffUncommittedBrokerProxy();
 
   return {
-    setupChangedFiles: ({ diffOutput }: { diffOutput: string }): void => {
-      changedProxy.setupWithMainBranch({ diffOutput });
+    setupCommittedFiles: ({ diffOutput }: { diffOutput: string }): void => {
+      committedProxy.setupWithOriginMain({ diffOutput });
     },
 
-    setupUnpushedFiles: ({ diffOutput }: { diffOutput: string }): void => {
-      unpushedProxy.setupWithTrackingBranch({ upstreamRef: 'origin/master', diffOutput });
+    setupUncommittedFiles: ({
+      trackedOutput,
+      untrackedOutput,
+    }: {
+      trackedOutput: string;
+      untrackedOutput: string;
+    }): void => {
+      uncommittedProxy.setupWorkingTree({ trackedOutput, untrackedOutput });
     },
   };
 };

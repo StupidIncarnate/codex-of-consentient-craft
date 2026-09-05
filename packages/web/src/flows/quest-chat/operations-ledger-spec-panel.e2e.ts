@@ -56,10 +56,10 @@ test.describe('Operations ledger in the quest spec panel', () => {
         {
           id: WARD_OP,
           role: 'ward',
-          text: 'ward (changed)',
+          text: 'ward (committed)',
           status: 'pending',
           locked: true,
-          wardMode: 'changed',
+          wardMode: 'committed',
         },
       ],
     });
@@ -76,7 +76,7 @@ test.describe('Operations ledger in the quest spec panel', () => {
     await expect(specPanel.getByTestId('OPERATIONS_LEDGER')).toBeVisible();
 
     // Each authored operation is one row with the right role + prose text, in ledger order; a
-    // pre-execution ledger is all pending ([ ]); the ward row carries its (changed) mode.
+    // pre-execution ledger is all pending ([ ]); the ward row carries its (committed) mode.
     await expect(specPanel.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
       '[CODEWEAVER]',
       '[CODEWEAVER]',
@@ -85,13 +85,15 @@ test.describe('Operations ledger in the quest spec panel', () => {
     await expect(specPanel.getByTestId('OPERATIONS_LEDGER_ROW_TEXT')).toHaveText([
       'core: config adapter',
       'core: config broker',
-      'ward (changed)',
+      'ward (committed)',
     ]);
     await expect(specPanel.getByTestId('OPERATIONS_LEDGER_ROW_MARKER')).toHaveText([
       '[ ]',
       '[ ]',
       '[ ]',
     ]);
-    await expect(specPanel.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(changed)');
+    await expect(specPanel.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText(
+      '(committed)',
+    );
   });
 });

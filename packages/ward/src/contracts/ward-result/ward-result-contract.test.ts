@@ -18,7 +18,7 @@ describe('wardResultContract', () => {
     it('VALID: {run with checks and filters} => parses successfully', () => {
       const result = wardResultContract.parse(
         WardResultStub({
-          filters: { only: ['lint'], changed: true },
+          filters: { only: ['lint'], committed: true },
           checks: [
             {
               checkType: 'lint',
@@ -32,7 +32,7 @@ describe('wardResultContract', () => {
       expect(result).toStrictEqual({
         runId: '1739625600000-a3f1',
         timestamp: 1739625600000,
-        filters: { only: ['lint'], changed: true },
+        filters: { only: ['lint'], committed: true },
         checks: [
           {
             checkType: 'lint',

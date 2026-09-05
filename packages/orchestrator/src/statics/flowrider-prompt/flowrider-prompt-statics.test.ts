@@ -117,7 +117,7 @@ describe('flowriderPromptStatics', () => {
 
   // A WAVE OF SUB-AGENTS RUNNING WARD AT ONCE COLLIDES ON THE SHARED `dist/` IF ANY OF THEM
   // TYPECHECKS — ward's typecheck is `tsc -b`, a build. Scoping to `lint,test` keeps that out; the
-  // reviewer's `--staged` run is where typecheck happens, once, after every sub-agent has finished.
+  // reviewer's `--uncommitted` run is where typecheck happens, once, after every sub-agent has finished.
   it("VALID: served template => scopes a sub-agent's own ward run to lint,test and forbids it from building", () => {
     expect({
       scopedRun: hasIn({
@@ -185,6 +185,46 @@ describe('flowriderPromptStatics', () => {
       judging: hasIn({ needle: flowEvidenceContractStatics.judgingMarkdown, text: TEMPLATE }),
       standards: hasIn({ needle: standardsReviewConcernsStatics.markdown, text: TEMPLATE }),
     }).toStrictEqual({ authoring: true, judging: false, standards: false });
+  });
+
+  // THREE PASSAGES DECIDE WHETHER BROWSER WALKS GO OUT TOGETHER, and they must agree: the map
+  // template's GROUP 2 label, the grouping rule at step 4, and the sending rule at step 5. Any one
+  // of them left telling the flowrider to send browser walks alone collapses every group in
+  // packages/web into a single-file chain, because every unit on a web flow lives in one package.
+  it('VALID: served template => sends browser walks against one package together, capped at four', () => {
+    expect({
+      groupTwoTakesTheNextFiles: hasIn({
+        needle: 'GROUP 2  (the next files, sent once every file in group 1 has come back)',
+        text: TEMPLATE,
+      }),
+      groupingRuleCapsAtFour: hasIn({
+        needle: 'at most four browser walks in one group',
+        text: TEMPLATE,
+      }),
+      sendingRuleAllowsTogether: hasIn({
+        needle: 'Browser walks against the same package DO go out together, up to four at a time.',
+        text: TEMPLATE,
+      }),
+      forbidsTwoAtOnce: hasIn({
+        needle: 'never two browser walks against the same package',
+        text: TEMPLATE,
+      }),
+      demandsOwnGroupEach: hasIn({
+        needle: 'Give each browser walk its own group',
+        text: TEMPLATE,
+      }),
+      claimsOneReportPathPerPackage: hasIn({
+        needle: 'Playwright writes one report path per package',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      groupTwoTakesTheNextFiles: true,
+      groupingRuleCapsAtFour: true,
+      sendingRuleAllowsTogether: true,
+      forbidsTwoAtOnce: false,
+      demandsOwnGroupEach: false,
+      claimsOneReportPathPerPackage: false,
+    });
   });
 
   it('VALID: served template => carries no round-protocol or sibling-role vocabulary', () => {

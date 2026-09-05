@@ -2,7 +2,7 @@ import {
   architecturePackageE2eEligibleDetectBrokerProxy,
   childProcessSpawnCaptureAdapterProxy,
   fsExistsSyncAdapterProxy,
-  netFreePortAdapterProxy,
+  netFreePortPairAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
   ErrorMessageStub,
@@ -30,12 +30,13 @@ export const checkRunE2eBrokerProxy = (): {
   setupNotE2eEligible: (params: { projectFolder: ProjectFolder }) => void;
   setupEligibleMissingConfig: (params: { projectFolder: ProjectFolder }) => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedEnvValue: (params: { key: string }) => unknown;
   getSpawnedOptions: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
   const eligibleProxy = architecturePackageE2eEligibleDetectBrokerProxy();
-  const freePortProxy = netFreePortAdapterProxy();
+  const freePortProxy = netFreePortPairAdapterProxy();
   // e2e discovery has exactly one static pattern (checkCommandsStatics.e2e.discoverPatterns),
   // unlike unit/integration which loop over a dozen. The pattern is known, so key on it exactly.
   const globProxy = fsGlobSyncAdapterProxy();
@@ -54,8 +55,10 @@ export const checkRunE2eBrokerProxy = (): {
   // params) address the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
+  // The broker names its Playwright report after the SERVER port, so these two numbers and the
+  // readFile address in setupPassWithJsonReport have to move together.
   const queueFreePorts = (): void => {
-    freePortProxy.setupPort({ port: 40_000 });
+    freePortProxy.setupPorts({ firstPort: 40_000, secondPort: 51_244 });
   };
 
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
@@ -132,7 +135,9 @@ export const checkRunE2eBrokerProxy = (): {
         stderr: emptyMessage,
       });
       readFileProxy.returns({
-        filePath: filePathContract.parse(`${projectFolder.path}/.ward-playwright-report.json`),
+        filePath: filePathContract.parse(
+          `${projectFolder.path}/.ward-playwright-report-40000.json`,
+        ),
         content: jsonContent,
       });
     },
@@ -186,6 +191,8 @@ export const checkRunE2eBrokerProxy = (): {
 
     getSpawnedArgs: (): unknown =>
       captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
+    getSpawnedEnvValue: ({ key }: { key: string }): unknown =>
+      captureProxy.getSpawnedEnvValue({ command: String(resolvedCommandRef.value), key }),
     getSpawnedOptions: (): unknown =>
       captureProxy.getSpawnedOptions({ command: String(resolvedCommandRef.value) }),
   };

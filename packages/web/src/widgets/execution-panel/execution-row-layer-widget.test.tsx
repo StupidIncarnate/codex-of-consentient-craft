@@ -795,7 +795,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'failed' })}
-            wardResults={[WardResultStub({ exitCode: 1 as never, wardMode: 'changed' })]}
+            wardResults={[WardResultStub({ exitCode: 1 as never, wardMode: 'committed' })]}
           />
         ),
       });
@@ -805,7 +805,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const wardResultEl = screen.getByTestId('execution-row-ward-result');
 
-      expect(wardResultEl.textContent).toBe('Ward exit code: 1 (changed)');
+      expect(wardResultEl.textContent).toBe('Ward exit code: 1 (committed)');
     });
 
     it('VALID: {wardResults with wardMode "full"} => renders ward mode in parentheses', async () => {

@@ -126,10 +126,10 @@ describe('OrchestrationMergeResponder', () => {
       const opB = OperationItemStub({
         id: 'b2b2b2b2-58cc-4372-a567-0e02b2c3d479',
         role: 'ward',
-        text: 'Ward gate (changed)',
+        text: 'Ward gate (committed)',
         status: 'in_progress',
         locked: true,
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
       const quest = QuestStub({
         id: questId,

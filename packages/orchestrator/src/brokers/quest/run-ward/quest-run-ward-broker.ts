@@ -11,7 +11,7 @@
  * entirely and blocks immediately: there is no failing file to hand a spiritmender.
  *
  * USAGE:
- * const result = await questRunWardBroker({ questId, workItemId, mode: 'changed' });
+ * const result = await questRunWardBroker({ questId, workItemId, mode: 'committed' });
  * // Spawns ward, persists the trimmed detail blob under quest-folder/ward-results/, appends a
  * //   WardResult ref to quest.wardResults, atomically applies work-item terminal status +
  * //   ledger mutation, calls advance, and returns { success, exitCode, wardResultId }.
@@ -28,8 +28,8 @@
  * `packages/shared/CLAUDE.md` → "Streaming Adapters".
  *
  * Ward runs inside the quest's own worktree (or the legacy repo root for a quest recorded before
- * worktrees existed) — the same tree its changed-file set has to describe, since a `--changed`
- * run diffs against the quest's `baseRef` inside that tree.
+ * worktrees existed) — the same tree its file set has to describe, since a `--committed` run diffs
+ * against origin's default branch from inside that tree.
  */
 
 import {
@@ -79,7 +79,7 @@ export const questRunWardBroker = async ({
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
-  mode: 'changed' | 'full';
+  mode: 'committed' | 'full';
   onLine: (line: string) => void;
 }): Promise<QuestRunWardResult> => {
   // Resolve the quest's cwd BEFORE any spawn or stamp. A quest whose recorded worktree is
@@ -136,7 +136,7 @@ export const questRunWardBroker = async ({
   });
 
   // 2. Spawn ward, streaming each stdout/stderr line to the caller as it arrives.
-  const args = mode === 'changed' ? ['run', '--changed'] : ['run'];
+  const args = mode === 'committed' ? ['run', '--committed'] : ['run'];
 
   const { exitCode: rawExitCode, output } = await childProcessSpawnStreamLinesAdapter({
     command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,

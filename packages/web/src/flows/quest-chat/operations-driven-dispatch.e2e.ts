@@ -32,7 +32,7 @@ test.describe('Operations-driven dispatch', () => {
     await dispatchHarness({ request, guildPath: GUILD_PATH }).afterEach();
   });
 
-  test('VALID: {ledger [cw, cw, ward(changed), flowrider] driven done/done/green/done} => each operation completes in order, exactly one work item per operation, quest completes', async ({
+  test('VALID: {ledger [cw, cw, ward(committed), flowrider] driven done/done/green/done} => each operation completes in order, exactly one work item per operation, quest completes', async ({
     page,
     request,
   }) => {
@@ -59,10 +59,10 @@ test.describe('Operations-driven dispatch', () => {
         {
           id: WARD_OP,
           role: 'ward',
-          text: 'ward (changed)',
+          text: 'ward (committed)',
           status: 'pending',
           locked: true,
-          wardMode: 'changed',
+          wardMode: 'committed',
         },
         { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
@@ -88,7 +88,7 @@ test.describe('Operations-driven dispatch', () => {
       '[WARD]',
       '[FLOWRIDER]',
     ]);
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(changed)');
+    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(committed)');
 
     // Drive the relay: codeweaver -> done, codeweaver -> done, ward -> green, flowrider -> done.
     // Nothing is appended between them — the standards review runs inside each session's own turn.

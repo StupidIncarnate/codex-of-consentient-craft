@@ -87,10 +87,10 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
             role: 'ward',
-            text: 'Ward gate (changed files)',
+            text: 'Ward gate (committed files)',
             status: 'pending',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000004',
@@ -161,7 +161,7 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Codeweaver: build this slice',
           flowIds: [],
         },
-        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        { role: 'ward', text: 'Ward gate (committed files)', flowIds: [] },
         {
           role: 'flowrider',
           text: 'Flowrider: author the test suites that prove this flow — flow: send-comment',
@@ -224,7 +224,7 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Codeweaver: build this slice',
           flowIds: [],
         },
-        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        { role: 'ward', text: 'Ward gate (committed files)', flowIds: [] },
         {
           role: 'flowrider',
           text: 'Flowrider: author the test suites that prove this flow — flow: send-comment',
@@ -297,7 +297,7 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Codeweaver: build this slice',
           flowIds: [],
         },
-        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        { role: 'ward', text: 'Ward gate (committed files)', flowIds: [] },
         {
           role: 'siegemaster',
           text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
@@ -337,7 +337,7 @@ describe('questBuildRelayGraphBroker', () => {
           text: 'Codeweaver: build this slice',
           flowIds: [],
         },
-        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        { role: 'ward', text: 'Ward gate (committed files)', flowIds: [] },
         {
           role: 'siegemaster',
           text: 'Siegemaster: manual-QA this flow and review its test suite',
@@ -522,7 +522,7 @@ describe('questBuildRelayGraphBroker', () => {
           flowIds: [],
           packageNames: [],
         },
-        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [], packageNames: [] },
+        { role: 'ward', text: 'Ward gate (committed files)', flowIds: [], packageNames: [] },
         {
           role: 'flowrider',
           text: 'Flowrider: author the test suites that prove this flow — flow: send-comment',
@@ -723,10 +723,10 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
             role: 'ward',
-            text: 'Ward gate (changed files)',
+            text: 'Ward gate (committed files)',
             status: 'pending',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000004',

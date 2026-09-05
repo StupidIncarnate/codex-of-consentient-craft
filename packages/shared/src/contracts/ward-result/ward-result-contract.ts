@@ -8,12 +8,14 @@
 
 import { z } from 'zod';
 
+import { wardModeContract } from '../ward-mode/ward-mode-contract';
+
 export const wardResultContract = z.object({
   id: z.string().uuid().brand<'WardResultId'>(),
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   exitCode: z.number().int().brand<'ExitCode'>(),
   runId: z.string().brand<'WardRunId'>().optional(),
-  wardMode: z.enum(['changed', 'full']).optional(),
+  wardMode: wardModeContract.optional(),
 });
 
 export type WardResult = z.infer<typeof wardResultContract>;

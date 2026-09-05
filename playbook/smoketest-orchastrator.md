@@ -59,7 +59,7 @@ edits, reads the diff itself, and summons exactly ONE named sonnet reviewer sub-
 `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` — to grade the pass (siegemaster additionally
 dispatches `siegemaster-walker`, one at a time, to drive the flow by hand against a running system). The operator's own
 signal table offers only `done` and `blocked`: the session loops, unbounded, until its own reviewer's `NEXT:` line
-reads `pass`. Only the named reviewer builds, wards (`--staged`), commits (once), and pushes (bare) — no code-writing
+reads `pass`. Only the named reviewer builds, wards (`--uncommitted`), commits (once), and pushes (bare) — no code-writing
 sub-agent does any of that, and the operator itself never commits.
 
 Consequences for this playbook:
@@ -819,7 +819,7 @@ signals `complete`.
     - **The operator reads code and dispatches; it never edits a file itself.** Expanding the row should show the
       operator briefing GENERIC `general-purpose` sub-agents (in its own words, not a served prompt) to make the
       edits, then summoning exactly ONE `codeweaver-reviewer` sub-agent — visible as a distinct sub-agent chain — which
-      is the session that runs `npm run build` / `npm run ward -- --staged`, commits, and pushes.
+      is the session that runs `npm run build` / `npm run ward -- --uncommitted`, commits, and pushes.
     - **Strict 1:1.** Each codeweaver work item links exactly one operation item via
       `relatedDataItems: ['operations/<id>']`, and each operation item is worked by exactly one work item. Read
       `quest.json` `workItems[]` directly (MCP `get-quest` strips them) to verify.
@@ -843,7 +843,7 @@ The next actionable operation item after the codeweavers is `ward(changed)` — 
 alone.
 
 - **Assert:**
-    - `get-next-step` returns `{ type: 'run-ward', ..., mode: 'changed' }` (the MCP tool arg is `mode`, NOT `wardMode`).
+    - `get-next-step` returns `{ type: 'run-ward', ..., mode: 'committed' }` (the MCP tool arg is `mode`, NOT `wardMode`).
     - Green (exit 0) → `quest-run-ward-broker` marks the ward operation item `complete` + the ward work item `complete`
       (adding `relatedDataItems += wardResults/<id>`), and advance moves to `flowrider`.
     - The `[WARD]` row shows `execution-row-ward-result` → "Ward exit code: 0 (changed)"; no detail breakdown for a
@@ -863,7 +863,7 @@ spiritmender path is Phase 2.3).
     then chooses a LAYER per unit — a real browser via Playwright, or an integration/unit test below it — and briefs
     GENERIC `general-purpose` sub-agents to author the suite for each choice. It dispatches its own `flowrider-reviewer`
     — visible as a distinct sub-agent chain, the ONLY writer of `flowriderSignoff` on that flow, since the session that
-    authored a test is not the one that certifies it bites. The reviewer builds, wards `--staged`, commits once, and
+    authored a test is not the one that certifies it bites. The reviewer builds, wards `--uncommitted`, commits once, and
     pushes; the operator itself never commits.
   - **Only the reviewer runs `npm run build` / `npm run ward`.** No code-writing sub-agent commits, builds, or wards —
     that authority belongs to the ONE `flowrider-reviewer` alone.
@@ -917,7 +917,7 @@ all. Instead, assert this on EVERY committing session above — codeweaver, flow
        concerns (`craft`, `perf`, `dedup`, `integrity`, `test-cases`) in the SAME reading pass as its own role-specific
        judgment. It fixes what is small and clearly its own; anything structural or needing a decision it hands up in
        its `NEXT: rework` line instead of closing silently.
-    3. The reviewer then runs `npm run build` and `npm run ward -- --staged` (at most twice — once more to check its
+    3. The reviewer then runs `npm run build` and `npm run ward -- --uncommitted` (at most twice — once more to check its
        own fixes), commits the whole pass ONCE, and pushes bare.
     4. The reviewer answers with a `NEXT:` line — `pass` (parent signals `done`), `rework` (parent sends the named
        remainder back out to another sub-agent), or `wall` (parent signals `blocked`).

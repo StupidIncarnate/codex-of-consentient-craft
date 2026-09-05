@@ -520,7 +520,7 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │                   riftcarver-results/<id>.log. Nothing else can run until it goes green.
   ├─ codeweaver ──── ONE SESSION PER (PACKAGE, FLOW) CELL — one package's half of one flow;
   │                   product code plus the unit tests that prove it
-  ├─ ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
+  ├─ ward (committed) mcp__dungeonmaster__run-ward({mode: 'committed'}); spawnerType: 'command'
   ├─ flowrider ───── ONE SESSION PER FLOW; the test suites that prove that flow, in the browser and
   │                   below it
   ├─ siegemaster ── ONE SESSION PER FLOW; hand-driven QA of that flow against a running system
@@ -615,10 +615,10 @@ Eight things about that shape are load-bearing, and each is a measurement rather
   under each other with neither able to tell.
 - **A sub-agent's brief carries `npm run ward -- --only lint,test -- <its own paths>`, and `typecheck` is deliberately
   out.** Ward runs typecheck as `tsc -b`, which builds and writes the shared `dist/`, so a wave of sub-agents running
-  it at once hands each other type errors on correct code. The reviewer's `--staged` run is the typecheck. The
+  it at once hands each other type errors on correct code. The reviewer's `--uncommitted` run is the typecheck. The
   `run-ward` MCP tool is a different command — it grades the whole branch and lands the red on the operator's work
   item — so no brief names it.
-- **The REVIEWER runs `npm run build` and `npm run ward -- --staged`, and it is the ONLY session on the pass that runs
+- **The REVIEWER runs `npm run build` and `npm run ward -- --uncommitted`, and it is the ONLY session on the pass that runs
   either.** `tsc` writes one shared `dist/` per package, and ward's typecheck is `tsc -b`, which is a build under
   another name — so a second builder hands every sibling session type errors on correct code. The reviewer runs the
   pair AFTER it has read every file, so it reads looking for what a compiler cannot name; it runs the pair **twice at
@@ -865,7 +865,7 @@ reads the registry entry for `quest.questType`.
 
 - `startImplementationOps` = the `riftcarver` seed, then one `codeweaver` seed with
   `fanOutBy: 'implementation'`, `locked: false`
-- `relayTail` = `ward(changed)` → `flowrider` (`fanOutBy: 'flow'`) → `siegemaster` (`fanOutBy: 'flow'`) →
+- `relayTail` = `ward(committed)` → `flowrider` (`fanOutBy: 'flow'`) → `siegemaster` (`fanOutBy: 'flow'`) →
   `ward(full)`
 - `roles` = `riftcarver, codeweaver, ward, flowrider, siegemaster, spiritmender`
 
@@ -1173,7 +1173,7 @@ a served prompt:
 - **`codeweaver-reviewer`**, **`flowrider-reviewer`**, **`siegemaster-reviewer`** — one per operator role. Each reads
   the quest, works out what changed from git, opens every file the pass produced IN FULL (not the diff — the file, which
   is what finds the false green a diff hides), takes the five standing concerns in the same reading pass, fixes what is
-  small and clearly its own, runs `npm run build` and `npm run ward -- --staged`, commits the whole pass ONCE and
+  small and clearly its own, runs `npm run build` and `npm run ward -- --uncommitted`, commits the whole pass ONCE and
   pushes. Each grades a different subject and asks a different question of it: codeweaver's grades product code against
   the flow; flowrider's grades whether a test BITES, and takes the judging half of `flowEvidenceContractStatics`;
   siegemaster's grades REPAIRS, where the failure shape is a change that makes the symptom go away without touching what
@@ -1530,7 +1530,7 @@ for two fetches racing. No worktree, or an unreadable HEAD, records nothing. It 
 | Minion | Summoned By | Model | Purpose |
 |---|---|---|---|
 | `chaoswhisperer-gap-minion` | ChaosWhisperer (inside `/dumpster-create`) | sonnet | Validate spec completeness before approval. It runs in the spec phase, before any operation item exists, and is the ONE minion name `agentPromptGetBroker` still serves when a `workItemId` arrives with it |
-| `codeweaver-reviewer` | Codeweaver, once per pass, plus once per sweep | sonnet | Reads the quest and git, opens every file the pass produced IN FULL, asks whether the code does what the flow says, whether the pieces fit, whether each unit test BITES, and what is missing — plus the five standing concerns. Fixes what is small, runs `npm run build` and `npm run ward -- --staged` (twice at most), commits the pass ONCE and pushes bare. A LEAF: no sub-agents, no `signal-back` |
+| `codeweaver-reviewer` | Codeweaver, once per pass, plus once per sweep | sonnet | Reads the quest and git, opens every file the pass produced IN FULL, asks whether the code does what the flow says, whether the pieces fit, whether each unit test BITES, and what is missing — plus the five standing concerns. Fixes what is small, runs `npm run build` and `npm run ward -- --uncommitted` (twice at most), commits the pass ONCE and pushes bare. A LEAF: no sub-agents, no `signal-back` |
 | `flowrider-reviewer` | Flowrider, once per pass, plus once per sweep | sonnet | The same shape, over a TEST SUITE. Its distinctive question is whether an assertion bites — for each one, what wrong value turns it red — and it takes the judging half of `flowEvidenceContractStatics`. A LEAF |
 | `siegemaster-reviewer` | Siegemaster, once at the end of the loop, plus once per sweep | sonnet | The same shape, over REPAIRS. Its distinctive failure shape is a change that makes the symptom go away without touching the cause: a widened type, a swallowed error, a defaulted value, a loosened assertion. It re-drives nothing — a fresh walker does that. A LEAF |
 | `siegemaster-walker` | Siegemaster, ONE at a time, always | sonnet | Drives one path through the flow by hand against the running system and reports what it measured. Changes nothing. Stops only where it physically cannot go on; everything else it notes and keeps walking. A fresh walker is what proves a fix, because the fixer's own claim is not evidence. A LEAF |

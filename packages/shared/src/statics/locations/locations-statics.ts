@@ -34,6 +34,7 @@ export const locationsStatics = {
     nodeModules: 'node_modules',
     worktreesDir: 'worktrees',
     dungeonmasterQuests: '.dungeonmaster-quests',
+    dungeonmasterDevHome: '.dungeonmaster-dev',
     wardLocalDir: '.ward',
   },
   dungeonmasterHome: {

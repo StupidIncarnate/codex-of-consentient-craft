@@ -36,6 +36,13 @@ export default defineConfig({
   // testMatch only matches *.spec.ts/*.test.ts, so .e2e.ts must be declared
   // explicitly or zero tests would be discovered.
   testMatch: '**/*.e2e.ts',
+  // Playwright CLEARS this folder when a run starts, and writes `.last-run.json` into it at the
+  // end. Two concurrent runs sharing one folder means the second wipes the first's traces and
+  // screenshots, so a failure that really happened loses the evidence for why. TEST_PORT is unique
+  // per run, and nesting under test-results/ keeps the folder inside the gitignore entry that
+  // already covers it. A passing run leaves an empty folder behind on purpose: deleting it would
+  // also delete a FAILING run's traces, which are the whole reason the folder exists.
+  outputDir: `./test-results/${String(TEST_PORT)}`,
   workers: 1,
   fullyParallel: false,
   timeout: 10_000,
@@ -98,6 +105,10 @@ export default defineConfig({
       reuseExistingServer: false,
       env: {
         DUNGEONMASTER_PORT: String(TEST_PORT),
+        // Vite must listen on the SAME port Playwright waits for here. Both sides fall back to
+        // `API port + 1`, and those two fallbacks agree only while one launcher picks both ports.
+        // Passing it explicitly is what keeps them together when ward allocates them separately.
+        DUNGEONMASTER_WEB_PORT: String(WEB_PORT),
       },
     },
   ],

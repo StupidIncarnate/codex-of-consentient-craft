@@ -15,7 +15,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 // Regression for quest 014208d8: a failed ward whose detail is a suite-level crash (a project
 // that FAILED with zero structured errors and zero test failures, the reason only in rawOutput).
-// The execution panel used to show only "Ward exit code: 1 (changed)" / "Error: ward_failed" with
+// The execution panel used to show only "Ward exit code: 1 (committed)" / "Error: ward_failed" with
 // no breakdown. The fix renders a "<check>: <project> — FAILED" summary plus the rawOutput.
 test.describe('Failed ward row shows crash detail (no structured errors)', () => {
   test.beforeEach(async ({ request }) => {
@@ -67,10 +67,10 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
         {
           id: wardOpId,
           role: 'ward',
-          text: 'ward (changed)',
+          text: 'ward (committed)',
           status: 'in_progress',
           locked: true,
-          wardMode: 'changed',
+          wardMode: 'committed',
         },
       ],
       workItems: [
@@ -91,7 +91,7 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
           maxAttempts: 3,
         },
       ],
-      wardResults: [{ id: wardResultId, exitCode: 1, wardMode: 'changed' }],
+      wardResults: [{ id: wardResultId, exitCode: 1, wardMode: 'committed' }],
     });
 
     // The crash-only detail blob: integration check FAILED, one project FAILED with no structured
@@ -145,7 +145,7 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
 
     // The lightweight exit-code line still renders.
     await expect(executionPanel.getByTestId('execution-row-ward-result')).toContainText(
-      'Ward exit code: 1 (changed)',
+      'Ward exit code: 1 (committed)',
       { timeout: DETAIL_TIMEOUT },
     );
 

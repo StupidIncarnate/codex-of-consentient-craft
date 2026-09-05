@@ -1,9 +1,15 @@
 /**
  * PURPOSE: The one place ward decides whether a combination of CLI flags is legal. Both git scope
- * flags (`--changed`, `--staged`) are all-or-nothing: they own the whole run, so anything that would
- * narrow it — `--only`, `--onlyTests`, an explicit file list — is rejected here rather than silently
- * losing to whichever flag the broker happens to read last. `--onlyTests` runs the opposite risk —
- * it looks like a narrowing but scopes nothing, so it is rejected without a `-- <files>` list.
+ * flags (`--committed`, `--uncommitted`) are all-or-nothing: they own the whole run, so anything
+ * that would narrow it — `--only`, `--onlyTests`, an explicit file list — is rejected here rather
+ * than silently losing to whichever flag the broker happens to read last. `--onlyTests` runs the
+ * opposite risk — it looks like a narrowing but scopes nothing, so it is rejected without a
+ * `-- <files>` list.
+ *
+ * THE TWO GIT FLAGS DO NOT REJECT EACH OTHER, unlike every other pair here. They name disjoint
+ * halves of a branch — commits on one side of HEAD, working tree on the other — so passing both is
+ * "grade the whole branch" and the scope layer unions them. Rejecting the pair would leave a
+ * reviewer no single command for the thing it most needs to check.
  *
  * USAGE:
  * cliArgsParseTransformer({ args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'lint,typecheck' })] });
@@ -18,9 +24,9 @@ import {
 import { checkTypeContract } from '../../contracts/check-type/check-type-contract';
 import { wardSpawnCommandStatics } from '../../statics/ward-spawn-command/ward-spawn-command-statics';
 
-const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--changed', '--staged', '--']);
+const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--committed', '--uncommitted', '--']);
 
-const USAGE = `Usage: npm run ward -- [--only <check-types>] [-- <files>]\n       npm run ward -- [--only <check-types>] --onlyTests <regex> -- <files>\n       npm run ward -- --changed\n       npm run ward -- --staged`;
+const USAGE = `Usage: npm run ward -- [--only <check-types>] [-- <files>]\n       npm run ward -- [--only <check-types>] --onlyTests <regex> -- <files>\n       npm run ward -- --committed\n       npm run ward -- --uncommitted\n       npm run ward -- --committed --uncommitted`;
 
 export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfig => {
   const parsed: Partial<WardConfig> = {};
@@ -77,13 +83,13 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
       continue;
     }
 
-    if (arg === '--changed') {
-      parsed.changed = true;
+    if (arg === '--committed') {
+      parsed.committed = true;
       continue;
     }
 
-    if (arg === '--staged') {
-      parsed.staged = true;
+    if (arg === '--uncommitted') {
+      parsed.uncommitted = true;
       continue;
     }
 
@@ -109,19 +115,11 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
     );
   }
 
-  if (parsed.changed === true && parsed.staged === true) {
-    throw new Error(
-      `--changed and --staged cannot be combined.\n\n` +
-        `Each one picks the file set from git, so only one can decide the scope:\n` +
-        `  --changed  files that differ from the local default branch\n` +
-        `  --staged   files origin does not have yet — unpushed commits plus uncommitted edits\n\n${
-          USAGE
-        }`,
-    );
-  }
-
-  if (parsed.changed === true || parsed.staged === true) {
-    const gitScopeFlag = parsed.staged === true ? '--staged' : '--changed';
+  if (parsed.committed === true || parsed.uncommitted === true) {
+    const gitScopeFlag = [
+      ...(parsed.committed === true ? ['--committed'] : []),
+      ...(parsed.uncommitted === true ? ['--uncommitted'] : []),
+    ].join(' ');
     const conflicting = [
       ...(parsed.only === undefined ? [] : ['--only']),
       ...(parsed.onlyTests === undefined ? [] : ['--onlyTests']),
@@ -150,7 +148,7 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
   // over two minutes to report `skip`. The file list is the only thing that keeps ward out of the
   // packages that cannot match.
   //
-  // This sits AFTER the git scope checks on purpose: `--changed`/`--staged` already reject
+  // This sits AFTER the git scope checks on purpose: `--committed`/`--uncommitted` already reject
   // `--onlyTests` outright, so those callers get the one error about the flag they actually typed
   // rather than a second one demanding a file list they are forbidden to pass.
   //

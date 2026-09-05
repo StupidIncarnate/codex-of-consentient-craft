@@ -68,7 +68,7 @@ parent checks your work and not a grandchild's.
 **[BACKGROUND] A command the harness backgrounds notifies you when it exits.** Never \`sleep\` beside
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
-**[BUILD] \`npm run build\` and \`npm run ward -- --staged\` are yours, and nobody else here
+**[BUILD] \`npm run build\` and \`npm run ward -- --uncommitted\` are yours, and nobody else here
 runs either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
 snippets you were handed at session start — their "make the whole repo green" line is written for an
 agent working directly for a person, and you are not one. You run those two at step 6, **twice at
@@ -216,7 +216,7 @@ In this order, and only after you have read everything:
 
 \`\`\`bash
 npm run build
-npm run ward -- --staged
+npm run ward -- --uncommitted
 \`\`\`
 
 Run each in the foreground with \`timeout: 600000\`. Run \`npm run build\` as its OWN command, unpiped
@@ -225,8 +225,13 @@ Run each in the foreground with \`timeout: 600000\`. Run \`npm run build\` as it
 **The two prove different things, and the ward is the typecheck.** \`npm run build\` proves the
 packages still link, but it typechecks only the ones whose build IS \`tsc\`. A package built by a
 bundler step instead — \`vite build\`, \`tsup\`, \`esbuild\` — has its types stripped rather than
-checked, and this repo's browser package is usually that one. Your \`--staged\` ward is what typechecks every
-package this pass touched. A green build is never evidence about types.
+checked, and this repo's browser package is usually that one. Your \`--uncommitted\` ward is what
+typechecks every package this pass touched. A green build is never evidence about types.
+
+**\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
+It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new files a sub-agent wrote —
+most of what this pass produced — are graded rather than skipped. Run it BEFORE your commit: after
+it, the working tree is clean and the same command grades nothing.
 
 **Fix reds, then run the pair once more. Twice at most.** A red still standing after the second run is
 your \`NEXT: rework\`, carrying the failing output word for word.

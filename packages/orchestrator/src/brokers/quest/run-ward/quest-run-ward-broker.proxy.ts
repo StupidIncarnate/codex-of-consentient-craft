@@ -8,7 +8,7 @@
  * const proxy = questRunWardBrokerProxy();
  * proxy.setupQuest({ quest });
  * proxy.wardExits({ exitCode: ExitCodeStub({ value: 0 }), runId, detailJson: '{"checks":[]}' });
- * await questRunWardBroker({ questId, workItemId, mode: 'changed' });
+ * await questRunWardBroker({ questId, workItemId, mode: 'committed' });
  * expect(proxy.getPersistedQuest().workItems).toStrictEqual([...]);
  */
 

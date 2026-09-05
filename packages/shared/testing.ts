@@ -11,6 +11,7 @@
 export * from './src/adapters/fs/access/fs-access-adapter.proxy';
 export * from './src/adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 export * from './src/adapters/fs/mkdir/fs-mkdir-adapter.proxy';
+export * from './src/adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
 export * from './src/adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
 export * from './src/adapters/path/basename/path-basename-adapter.proxy';
 export * from './src/adapters/path/dirname/path-dirname-adapter.proxy';
@@ -23,7 +24,7 @@ export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adap
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream-lines/child-process-spawn-stream-lines-adapter.proxy';
-export * from './src/adapters/net/free-port/net-free-port-adapter.proxy';
+export * from './src/adapters/net/free-port-pair/net-free-port-pair-adapter.proxy';
 export * from './src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.proxy';
 export * from './src/adapters/fetch/get/fetch-get-adapter.proxy';
 

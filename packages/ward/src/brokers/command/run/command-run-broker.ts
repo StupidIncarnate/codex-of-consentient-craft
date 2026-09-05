@@ -46,9 +46,9 @@ export const commandRunBroker = async ({
 
   // AN EMPTY FILE SCOPE IS NOT AN ABSENT ONE, and every consumer below this line reads it as one:
   // `hasPassthrough` is `Array.isArray(passthrough) && length > 0` in five separate places, so a
-  // `--staged` run whose diff held nothing fell through to grading the ENTIRE repo. Measured on
-  // quest a7520e60: each round's reviewer pushes its own round and the NEXT reviewer's `--staged`
-  // then has nothing left to measure — one swept 13 packages including e2e in 858s, the other ran
+  // git-scoped run whose diff held nothing fell through to grading the ENTIRE repo. Measured on
+  // quest a7520e60: each round's reviewer pushes its own round and the NEXT reviewer's scoped run
+  // then had nothing left to measure — one swept 13 packages including e2e in 858s, the other ran
   // past the 600s harness timeout, and both read the wide green as their round's verdict.
   //
   // THE TWO HALVES ARE DIFFERENT QUESTIONS AND ARE ASKED OF DIFFERENT OBJECTS. Whether a file scope
@@ -84,7 +84,7 @@ export const commandRunBroker = async ({
       : { ...gitScopedConfig, passthrough: normalizedPassthrough };
 
   // A PATH DISK DOES NOT HAVE IS THE CALLER BEING WRONG, and that is a different answer from the
-  // empty scope above. An empty `--staged` legitimately has nothing to check and exits 0; a typo'd
+  // empty scope above. An empty `--uncommitted` legitimately has nothing to check and exits 0; a typo'd
   // `-- <file>` asked for something specific and must not come back quiet. It cannot come back loud
   // on its own either: the path matches no package, no child ward spawns, and
   // `checkResultBuildTransformer` reads an EMPTY `projectResults` as `pass` rather than `skip`.
@@ -202,8 +202,8 @@ export const commandRunBroker = async ({
   // `lint: WARN 0 files run` at exit 0, because `scripts/**` sits in eslint.config.js `ignores` and
   // belongs to no workspace package, so no child ward spawned at all.
   //
-  // IT BINDS ONLY PATHS A HUMAN TYPED. `commandRunLayerGitScopeBroker` writes a `--changed`/
-  // `--staged` diff into the SAME `passthrough` field, and such a diff legitimately holds root-level
+  // IT BINDS ONLY PATHS A HUMAN TYPED. `commandRunLayerGitScopeBroker` writes a `--committed`/
+  // `--uncommitted` diff into the SAME `passthrough` field, and such a diff legitimately holds root-level
   // files nothing lints — reddening those would break the ordinary pre-push gate. So the question is
   // asked of `config`, the object the CALLER handed in, never of `resolvedConfig`.
   if (isExplicitPathScopeGuard({ config }) && hasNoFilesProcessedGuard({ wardResult })) {

@@ -81,7 +81,7 @@ describe('OperationsLedgerWidget', () => {
           role: 'ward',
           text: 'verify: ward',
           status: 'pending',
-          wardMode: 'changed',
+          wardMode: 'committed',
         }),
       ];
 
@@ -231,7 +231,7 @@ describe('OperationsLedgerWidget', () => {
           role: 'ward',
           text: 'verify: ward',
           status: 'complete',
-          wardMode: 'changed',
+          wardMode: 'committed',
         }),
       ];
 
@@ -241,7 +241,7 @@ describe('OperationsLedgerWidget', () => {
 
       const rows = proxy.getLedgerRows();
 
-      expect(rows.map((r) => r.textContent)).toStrictEqual(['[x][WARD]verify: ward(changed)']);
+      expect(rows.map((r) => r.textContent)).toStrictEqual(['[x][WARD]verify: ward(committed)']);
     });
 
     it('VALID: {per-flow flowrider item} => full row text puts the flow name BEFORE the description', () => {

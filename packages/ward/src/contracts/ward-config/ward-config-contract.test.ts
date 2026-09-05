@@ -8,14 +8,14 @@ describe('wardConfigContract', () => {
         WardConfigStub({
           only: ['lint', 'unit'],
           onlyTests: 'my test',
-          changed: true,
+          committed: true,
         }),
       );
 
       expect(result).toStrictEqual({
         only: ['lint', 'unit'],
         onlyTests: 'my test',
-        changed: true,
+        committed: true,
       });
     });
 
@@ -62,11 +62,11 @@ describe('wardConfigContract', () => {
     });
 
     it('VALID: {custom values} => creates ward config with overrides', () => {
-      const result = WardConfigStub({ only: ['unit'], changed: true });
+      const result = WardConfigStub({ only: ['unit'], committed: true });
 
       expect(result).toStrictEqual({
         only: ['unit'],
-        changed: true,
+        committed: true,
       });
     });
   });

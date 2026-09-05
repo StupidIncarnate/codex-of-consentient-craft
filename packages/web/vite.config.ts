@@ -10,7 +10,11 @@ const sharedSubpaths = readdirSync(resolve(__dirname, '../shared'))
   .map((file) => `@dungeonmaster/shared/${file.replace('.ts', '')}`);
 
 const basePort = Number(portResolveBroker());
-const webPort = basePort + 1;
+// DUNGEONMASTER_WEB_PORT wins whenever the launcher allocated the two ports separately — ward's
+// e2e runner asks the OS for both, so its web port is NOT basePort + 1 and guessing it here
+// leaves Playwright waiting on a port nothing ever binds. The +1 is the fallback for `npm run
+// dev`, which sets only the API port.
+const webPort = Number(process.env.DUNGEONMASTER_WEB_PORT) || basePort + 1;
 const { hostname } = environmentStatics;
 
 export default defineConfig({

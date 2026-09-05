@@ -63,7 +63,7 @@ describe('questNodeDispatchLoopBroker', () => {
           type: 'run-ward',
           questId: 'add-auth',
           workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          mode: 'changed',
+          mode: 'committed',
         } as never),
       });
       const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
@@ -126,7 +126,7 @@ describe('questNodeDispatchLoopBroker', () => {
         type: 'run-ward',
         questId: 'add-auth',
         workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        mode: 'changed',
+        mode: 'committed',
       } as never);
       proxy.queueStep({ step: wardStep });
 
@@ -141,7 +141,7 @@ describe('questNodeDispatchLoopBroker', () => {
         {
           questId: 'add-auth',
           workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          mode: 'changed',
+          mode: 'committed',
           // Ward's only route to a UI — the loop must hand it down, never drop it.
           onLine: expect.any(Function),
         },

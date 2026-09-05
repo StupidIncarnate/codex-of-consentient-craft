@@ -149,8 +149,8 @@ Your Operation Context below carries three things beyond its ids:
 Re-run ward SCOPED to the failing files the blob names, so you see the errors live. The blob tells
 you where to look. The live run tells you what is red right now.
 
-**Name the failing files, as [WARD] directs. Never \`--staged\`.** \`--staged\` sweeps every
-unpushed commit on the branch instead of the failures you were sent to fix.
+**Name the failing files, as [WARD] directs. Never \`--committed\` or \`--uncommitted\`.** Either one
+sweeps a whole half of the branch instead of the failures you were sent to fix.
 
 \`\`\`bash
 npm run ward -- --only <checks> -- <the failing files>

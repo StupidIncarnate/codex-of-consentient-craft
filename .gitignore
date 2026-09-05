@@ -8,9 +8,12 @@ out-tsc
 # test artifacts
 tests/tmp/
 spike-tmp/
-# Written by check-run-e2e-broker.ts as `${projectFolder.path}/.ward-playwright-report.json`.
-# The old entry here had the words transposed, so a ~400KB report per e2e run was never ignored.
-.ward-playwright-report.json
+# Written by check-run-e2e-broker.ts as
+# `${projectFolder.path}/.ward-playwright-report-${serverPort}.json`. The glob is load-bearing: the
+# port suffix is what lets two browser walks run against one package at once, and an exact-name
+# entry here would stop ignoring the ~400KB report each e2e run leaves behind when it is killed
+# before its own cleanup.
+.ward-playwright-report*.json
 
 
 # dependencies

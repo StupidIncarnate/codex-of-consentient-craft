@@ -70,7 +70,7 @@ last agent in this chain.
 **[BACKGROUND] A command the harness backgrounds notifies you when it exits.** Never \`sleep\` beside
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
-**[BUILD] \`npm run build\` and \`npm run ward -- --staged\` are yours, and nobody else here runs
+**[BUILD] \`npm run build\` and \`npm run ward -- --uncommitted\` are yours, and nobody else here runs
 either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
 snippets you were handed at session start. Run them at step 5, **twice at most**.
 
@@ -172,7 +172,7 @@ In this order, and only after you have read everything:
 
 \`\`\`bash
 npm run build
-npm run ward -- --staged
+npm run ward -- --uncommitted
 \`\`\`
 
 Foreground, \`timeout: 600000\`. Run \`npm run build\` as its OWN command, unpiped — piping it discards
@@ -181,8 +181,13 @@ its exit code and feeds a failed build silently into ward.
 **The two prove different things, and the ward is the typecheck.** \`npm run build\` proves the
 packages still link, but it typechecks only the ones whose build IS \`tsc\`. A package built by a
 bundler step instead — \`vite build\`, \`tsup\`, \`esbuild\` — has its types stripped rather than
-checked, and this repo's browser package is usually that one. \`--staged\` is what typechecks every package
-a repair touched. A green build is never evidence about types.
+checked, and this repo's browser package is usually that one. \`--uncommitted\` is what typechecks
+every package a repair touched. A green build is never evidence about types.
+
+**\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
+It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new files a fixer wrote are
+graded rather than skipped. Run it BEFORE your commit: after it, the working tree is clean and the
+same command grades nothing.
 
 **Fix reds, then run the pair once more. Twice at most.** A red still standing is your
 \`NEXT: rework\`, carrying the failing output word for word.

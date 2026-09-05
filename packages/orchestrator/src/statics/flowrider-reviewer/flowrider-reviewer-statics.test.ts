@@ -74,8 +74,11 @@ describe('flowriderReviewerStatics', () => {
 
   it('VALID: served template => builds then wards, in that order, twice at most', () => {
     expect({
-      order: TEMPLATE.indexOf('npm run build') < TEMPLATE.indexOf('npm run ward -- --staged'),
-      pairFenced: hasIn({ needle: 'npm run build\nnpm run ward -- --staged', text: TEMPLATE }),
+      order: TEMPLATE.indexOf('npm run build') < TEMPLATE.indexOf('npm run ward -- --uncommitted'),
+      pairFenced: hasIn({
+        needle: 'npm run build\nnpm run ward -- --uncommitted',
+        text: TEMPLATE,
+      }),
       twiceAtMost: hasIn({ needle: 'twice at most', text: TEMPLATE }),
     }).toStrictEqual({ order: true, pairFenced: true, twiceAtMost: true });
   });
