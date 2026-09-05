@@ -14,6 +14,8 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
+import { composerCaretFillerElementTransformer } from '../../../transformers/composer-caret-filler-element/composer-caret-filler-element-transformer';
+
 export const domComposerInsertTextAdapter = ({
   editor,
   text,
@@ -54,6 +56,17 @@ export const domComposerInsertTextAdapter = ({
     nextSibling.textContent === ''
   ) {
     nextSibling.remove();
+  }
+
+  // A trailing newline with nothing after it has no rendered line for a browser to rest a caret on
+  // — the position the caret is set to below gets silently collapsed back to BEFORE the newline,
+  // and the next keystroke lands there instead of after it. Reserving an empty, marked <br> right
+  // after the newline gives the browser a real (if invisible) line to place the caret on. Only
+  // fires when this insertion landed at the true end of the editor — textNode.nextSibling is
+  // re-read here, AFTER the empty-sibling cleanup above, so an existing filler from a previous
+  // Shift+Enter (which would already sit right after textNode) is recognised and never duplicated.
+  if (text.endsWith('\n') && textNode.nextSibling === null) {
+    textNode.after(composerCaretFillerElementTransformer({ ownerDocument }));
   }
 
   const collapsedRange = ownerDocument.createRange();

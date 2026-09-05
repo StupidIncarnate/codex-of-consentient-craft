@@ -265,6 +265,122 @@ describe('resolveChatQuestLayerBroker', () => {
     });
   });
 
+  // The create-surface chat route pre-mints a questId (to persist pasted images under it before
+  // any quest exists) and hands it in via `mintedQuestId` — a channel deliberately separate from
+  // `questId`, which already means something else (a resume hint) when `sessionId` is absent. See
+  // main-composer-ignores-tavernkeeper-session below for the case `mintedQuestId` must NOT touch.
+  describe('mintedQuestId', () => {
+    it('VALID: {role: chaoswhisperer + mintedQuestId, no sessionId, no questId} => creates the quest under the SUPPLIED id rather than a freshly generated one', async () => {
+      const proxy = resolveChatQuestLayerBrokerProxy();
+      const mintedQuestId = QuestIdStub({ value: '99999999-9999-4999-8999-999999999999' });
+
+      const result = await resolveChatQuestLayerBroker({
+        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        guildId: GuildIdStub(),
+        mintedQuestId,
+        message: 'first [Pasted Image 1]',
+      });
+
+      expect(result).toStrictEqual({
+        questId: mintedQuestId,
+        workItemId: expect.stringMatching(UUID_PATTERN),
+        createdQuest: true,
+      });
+      expect(proxy.getLastCreatedQuestId()).toBe(mintedQuestId);
+    });
+  });
+
+  // The main quest-chat HTTP route has already loaded this exact quest off disk before ever
+  // calling in here, so a missing sessionId must never fall through to minting a fresh quest —
+  // that was the shape of the bug this channel exists to close (a chaoswhisperer item sitting at
+  // a terminal status with no sessionId ever captured, during the async window before
+  // chat-spawn-broker's onSessionId callback writes one back).
+  describe('existingQuestId', () => {
+    it('VALID: {existingQuestId names a real quest, matching role work item, no sessionId} => resolves that work item on the SAME quest, never creates one', async () => {
+      const proxy = resolveChatQuestLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'existing-quest-no-session' });
+      const chaosItem = WorkItemStub({ role: 'chaoswhisperer', status: 'complete' });
+      proxy.setupQuestFound({
+        quest: QuestStub({ id: questId, folder: questId, workItems: [chaosItem] }),
+      });
+
+      const result = await resolveChatQuestLayerBroker({
+        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        guildId: GuildIdStub(),
+        existingQuestId: questId,
+        message: 'one more thing',
+      });
+
+      expect(result).toStrictEqual({
+        questId,
+        workItemId: chaosItem.id,
+        createdQuest: false,
+      });
+      expect(proxy.wasNewQuestCreated()).toBe(false);
+    });
+
+    it('VALID: {existingQuestId set, plus a DIFFERENT questId+sessionId that would resolve elsewhere} => existingQuestId wins, ignoring the ambiguous questId/sessionId pair', async () => {
+      const proxy = resolveChatQuestLayerBrokerProxy();
+      const existingQuestId = QuestIdStub({ value: 'existing-quest-priority' });
+      const chaosItem = WorkItemStub({ role: 'chaoswhisperer', status: 'complete' });
+      proxy.setupQuestFound({
+        quest: QuestStub({ id: existingQuestId, folder: existingQuestId, workItems: [chaosItem] }),
+      });
+
+      const result = await resolveChatQuestLayerBroker({
+        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        guildId: GuildIdStub(),
+        existingQuestId,
+        questId: QuestIdStub({ value: 'unrelated-resume-hint-quest' }),
+        sessionId: SessionIdStub({ value: 'unrelated-session' }),
+        message: 'one more thing',
+      });
+
+      expect(result).toStrictEqual({
+        questId: existingQuestId,
+        workItemId: chaosItem.id,
+        createdQuest: false,
+      });
+    });
+
+    it("ERROR: {existingQuestId + quest not found} => throws 'Quest not found: <id>'", async () => {
+      const proxy = resolveChatQuestLayerBrokerProxy();
+      const existingQuestId = QuestIdStub({ value: 'missing-existing-quest' });
+      proxy.setupQuestNotFound();
+
+      await expect(
+        resolveChatQuestLayerBroker({
+          role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+          guildId: GuildIdStub(),
+          existingQuestId,
+          message: 'one more thing',
+        }),
+      ).rejects.toThrow(/^Quest not found: missing-existing-quest$/u);
+    });
+
+    it('ERROR: {existingQuestId + quest has no matching role work item} => throws naming the quest and role', async () => {
+      const proxy = resolveChatQuestLayerBrokerProxy();
+      const existingQuestId = QuestIdStub({ value: 'existing-quest-no-role-item' });
+      const otherItem = WorkItemStub({ role: 'codeweaver' });
+      proxy.setupQuestFound({
+        quest: QuestStub({
+          id: existingQuestId,
+          folder: existingQuestId,
+          workItems: [otherItem],
+        }),
+      });
+
+      await expect(
+        resolveChatQuestLayerBroker({
+          role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+          guildId: GuildIdStub(),
+          existingQuestId,
+          message: 'one more thing',
+        }),
+      ).rejects.toThrow(/^Quest existing-quest-no-role-item has no chaoswhisperer work item$/u);
+    });
+  });
+
   // #main-composer-ignores-tavernkeeper-session: a message sent through the quest's MAIN chat
   // composer (POST /api/quests/:questId/chat) resumes the chaoswhisperer / glyphsmith / bughunt
   // session, never the tavernkeeper session — including when the tavernkeeper work item is

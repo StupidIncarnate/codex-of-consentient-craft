@@ -1,10 +1,13 @@
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';
+import { ComposerScopeKeyStub } from '../../../contracts/composer-scope-key/composer-scope-key.stub';
 import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { PastedImageDraftStub } from '../../../contracts/pasted-image-draft/pasted-image-draft.stub';
 import { draftImagesSaveBroker } from '../save/draft-images-save-broker';
 
 import { draftImagesLoadBroker } from './draft-images-load-broker';
 import { draftImagesLoadBrokerProxy } from './draft-images-load-broker.proxy';
+
+const QUEST_A_SCOPE = ComposerScopeKeyStub({ value: 'quest-a' });
 
 describe('draftImagesLoadBroker', () => {
   describe('restoring stored drafts', () => {
@@ -14,17 +17,19 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '11111111-1111-4111-8111-111111111111',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'quest-a' as never,
       });
       const second = PastedImageDraftStub({
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
         dataBase64: 'QUFBQQ==',
+        scopeKey: 'quest-a' as never,
       });
       proxy.storeHolds({ drafts: [first, second] });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
 
-      const result = await draftImagesLoadBroker();
+      const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
       expect(result).toStrictEqual([
         {
@@ -52,6 +57,7 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '11111111-1111-4111-8111-111111111111',
         mediaType: 'image/jpeg',
         dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'quest-a' as never,
       });
       proxy.storeHolds({ drafts: [draft] });
       proxy.measures({
@@ -60,9 +66,36 @@ describe('draftImagesLoadBroker', () => {
         heightPx: 1333,
       });
 
-      const result = await draftImagesLoadBroker();
+      const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
       expect(result.at(0)?.dataUrl).toBe('data:image/jpeg;base64,iVBORw0KGgo=');
+    });
+
+    it("VALID: {store holds quest-a AND quest-b drafts} => a quest-a load returns only quest-a's", async () => {
+      const proxy = draftImagesLoadBrokerProxy();
+      const questA = PastedImageDraftStub({
+        attachmentId: '11111111-1111-4111-8111-111111111111',
+        scopeKey: 'quest-a' as never,
+      });
+      const questB = PastedImageDraftStub({
+        attachmentId: '22222222-2222-4222-8222-222222222222',
+        scopeKey: 'quest-b' as never,
+      });
+      proxy.storeHolds({ drafts: [questA, questB] });
+      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
+
+      const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
+
+      expect(result).toStrictEqual([
+        {
+          attachmentId: '11111111-1111-4111-8111-111111111111',
+          mediaType: 'image/png',
+          dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
+          byteLength: 8,
+          widthPx: 800,
+          heightPx: 600,
+        },
+      ]);
     });
   });
 
@@ -70,7 +103,7 @@ describe('draftImagesLoadBroker', () => {
     it('EMPTY: {empty store} => returns []', async () => {
       draftImagesLoadBrokerProxy();
 
-      const result = await draftImagesLoadBroker();
+      const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
       expect(result).toStrictEqual([]);
     });
@@ -88,23 +121,26 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '11111111-1111-4111-8111-111111111111',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'quest-a' as never,
       });
       const bad = PastedImageDraftStub({
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
         dataBase64: 'QUFBQQ==',
+        scopeKey: 'quest-a' as never,
       });
       const good2 = PastedImageDraftStub({
         attachmentId: '33333333-3333-4333-8333-333333333333',
         mediaType: 'image/png',
         dataBase64: 'YWJjZA==',
+        scopeKey: 'quest-a' as never,
       });
       proxy.storeHolds({ drafts: [good1, bad, good2] });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
       proxy.measureFails({ dataUrl: ImageDataUrlStub(), error: new Error('decode failed') });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
 
-      const result = await draftImagesLoadBroker();
+      const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
       expect(result).toStrictEqual([
         {
@@ -142,6 +178,7 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
         dataBase64: 'QUFBQQ==',
+        scopeKey: 'quest-a' as never,
       });
       proxy.storeHoldsRaw({
         records: [
@@ -149,13 +186,14 @@ describe('draftImagesLoadBroker', () => {
             attachmentId: '11111111-1111-4111-8111-111111111111',
             mediaType: 'image/png',
             dataBase64: '***garbage-not-base64***',
+            scopeKey: 'quest-a',
           },
           good,
         ],
       });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
 
-      const result = await draftImagesLoadBroker();
+      const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
       expect(result).toStrictEqual([
         undefined,
@@ -176,7 +214,9 @@ describe('draftImagesLoadBroker', () => {
       const proxy = draftImagesLoadBrokerProxy();
       proxy.storeUnavailable({ error: new Error('blocked') });
 
-      await expect(draftImagesLoadBroker()).rejects.toThrow(/draftImagesLoadBroker/u);
+      await expect(draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE })).rejects.toThrow(
+        /draftImagesLoadBroker/u,
+      );
     });
   });
 
@@ -202,8 +242,11 @@ describe('draftImagesLoadBroker', () => {
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
 
-      await draftImagesSaveBroker({ attachments: [pngAttachment, jpegAttachment] });
-      const loaded = await draftImagesLoadBroker();
+      await draftImagesSaveBroker({
+        scopeKey: QUEST_A_SCOPE,
+        attachments: [pngAttachment, jpegAttachment],
+      });
+      const loaded = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
       expect(loaded).toStrictEqual([pngAttachment, jpegAttachment]);
     });

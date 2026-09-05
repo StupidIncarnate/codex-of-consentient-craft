@@ -3219,4 +3219,363 @@ describe('useQuestChatBinding', () => {
       ]);
     });
   });
+
+  describe('pasted image bytes are released once the optimistic bubble is deduped away', () => {
+    it('VALID: {image message sent, then its delivered twin arrives on a real session} => the staged uuid holds no bytes any more', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-forget-images-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000901';
+      const stagedTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000902';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: [stagedTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-forget-images-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: deliveredContent,
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+
+      expect({
+        remembered: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        optimisticSurvivors: result.current.entriesBySession.get(synthKey),
+      }).toStrictEqual({
+        // `remembered` turns red on the leak itself: with nothing evicting, this is
+        // `[dataUrlBuildTransformer({...image})]` — the megabytes the deduped-away bubble staged,
+        // still pinned in the module-level Map for the life of the tab.
+        remembered: [],
+        // `optimisticSurvivors` turns red at the value `[{role: 'user', content: 'A[Pasted Image
+        // 1]B', uuid: stagedUuid, timestamp: stagedTs}]` if the dedupe never fired. That is what
+        // separates "eviction is broken" from "the precondition this test needs stopped holding" —
+        // without it a dedupe regression reads as an eviction regression.
+        optimisticSurvivors: [],
+      });
+    });
+
+    it('VALID: {image message sent, no delivered twin yet} => the staged uuid still holds its bytes for the bubble on screen', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-forget-images-none-1' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000903';
+      const stagedTs = '2026-09-02T00:00:00.000Z';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-none-1' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: [stagedTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+
+      expect({
+        remembered: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        optimisticSurvivors: result.current.entriesBySession.get(synthKey),
+      }).toStrictEqual({
+        // `remembered` turns red at `[]` — which is what a forget-everything eviction, or one run
+        // as a side effect inside the memo's own body, produces. The entry is still the ONLY copy
+        // of this message, so dropping its bytes blanks a picture the user is looking at.
+        remembered: [
+          dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+        ],
+        // `optimisticSurvivors` turns red at `[]` if the entry were not on screen after all, which
+        // would make the assertion above prove nothing about a live bubble.
+        optimisticSurvivors: [
+          { role: 'user', content: 'A[Pasted Image 1]B', uuid: stagedUuid, timestamp: stagedTs },
+        ],
+      });
+    });
+
+    it('VALID: {followup image message sent, then its delivered twin arrives on the tavernkeeper work item} => the staged uuid holds no bytes any more', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-forget-images-followup-1' });
+      const tavernkeeperSessionId = SessionIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'complete',
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+      const stagedUuid = '00000000-0000-4000-8000-000000000904';
+      const stagedTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000905';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupFollowup({
+        chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
+      });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: [stagedTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-forget-images-followup-1', quest },
+              timestamp: '2026-09-02T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-forget-images-followup-1',
+                workItemId: QuestWorkItemIdStub(),
+                chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: deliveredContent,
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({
+        remembered: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        followupEntries: result.current.followupEntries,
+      }).toStrictEqual({
+        // `remembered` turns red at `[dataUrlBuildTransformer({...image})]` — the FOLLOW-UP tab's
+        // own copy of the same leak. sendFollowupMessage calls remember exactly as sendMessage
+        // does, so an eviction wired only to the session memo leaves this half growing unbounded.
+        remembered: [],
+        // `followupEntries` turns red at a two-entry list if followupEntries' own filter never
+        // dropped the local copy — which would mean the bytes were still on screen and the
+        // assertion above was demanding a blanked image.
+        followupEntries: [
+          {
+            role: 'user',
+            content: deliveredContent,
+            uuid: deliveredUuid,
+            timestamp: deliveredTs,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {followup image staged, then questId switches to another quest} => the abandoned quest staged bytes are released', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId1 = QuestIdStub({ value: 'quest-forget-images-switch-old' });
+      const questId2 = QuestIdStub({ value: 'quest-forget-images-switch-new' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000906';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-switch' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
+
+      let activeQuestId = questId1;
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const beforeSwitch = proxy.getRememberedImages({
+        uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questId2;
+          rerender();
+        },
+      });
+
+      expect({
+        beforeSwitch,
+        afterSwitch: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        followupEntries: result.current.followupEntries,
+      }).toStrictEqual({
+        // `beforeSwitch` turns red at `[]` — nothing staged means the release below proves nothing,
+        // so this is what stops the pair from being vacuous.
+        beforeSwitch: [
+          dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+        ],
+        // `afterSwitch` turns red at that same one-element array: the quest-switch leak, megabytes
+        // still pinned for a quest the user has navigated away from. The switch discards these
+        // entries wholesale rather than filtering them, so no derived-diff eviction ever sees them.
+        afterSwitch: [],
+        // `followupEntries` turns red at `[{role:'user', content:'A[Pasted Image 1]B', ...}]` if the
+        // switch stopped discarding them. That is the guard on the dangerous direction: were the
+        // entry still on screen, releasing its bytes above would have blanked a live image.
+        followupEntries: [],
+      });
+    });
+
+    it('VALID: {main-composer image staged too, then questId switches} => the still-rendered main-composer bytes survive the switch', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId1 = QuestIdStub({ value: 'quest-forget-images-keep-old' });
+      const questId2 = QuestIdStub({ value: 'quest-forget-images-keep-new' });
+      const mainUuid = '00000000-0000-4000-8000-000000000907';
+      const mainTs = '2026-09-02T00:00:00.000Z';
+      const followupUuid = '00000000-0000-4000-8000-000000000908';
+      const mainImage = PastedImageUploadStub({ mediaType: 'image/png' });
+      const followupImage = PastedImageUploadStub({ mediaType: 'image/jpeg' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-keep-main' }) });
+      proxy.setupFollowup({
+        chatProcessId: ProcessIdStub({ value: 'proc-forget-images-keep-followup' }),
+      });
+      proxy.setupUuids({ uuids: [mainUuid, followupUuid] });
+      proxy.setupTimestamps({ timestamps: [mainTs, '2026-09-02T00:00:01.000Z'] });
+
+      let activeQuestId = questId1;
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'Main A[Pasted Image 1]B' }),
+            images: [mainImage],
+          });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'Followup A[Pasted Image 1]B' }),
+            images: [followupImage],
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questId2;
+          rerender();
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+
+      expect({
+        mainRemembered: proxy.getRememberedImages({
+          uuid: mainUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        followupRemembered: proxy.getRememberedImages({
+          uuid: followupUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        optimisticSurvivors: result.current.entriesBySession.get(synthKey),
+      }).toStrictEqual({
+        // `mainRemembered` turns red at `[]` for any switch handler that reclaims more than the
+        // entries the switch actually discards — `pastedImageMemoryState.clear()` being the obvious
+        // one. The session buckets are NOT cleared on a switch, so this entry is still rendering and
+        // emptying its slot blanks a picture on screen, which is worse than the leak.
+        mainRemembered: [
+          dataUrlBuildTransformer({
+            mediaType: mainImage.mediaType,
+            dataBase64: mainImage.dataBase64,
+          }),
+        ],
+        // `followupRemembered` turns red at the jpeg data URL — the leak this pair contrasts
+        // against, held here so one test states both halves of the boundary.
+        followupRemembered: [],
+        // `optimisticSurvivors` turns red at `[]` if the synthetic bucket were cleared on a switch
+        // after all, which would make the assertion above demand bytes that nothing reads.
+        optimisticSurvivors: [
+          { role: 'user', content: 'Main A[Pasted Image 1]B', uuid: mainUuid, timestamp: mainTs },
+        ],
+      });
+    });
+  });
 });

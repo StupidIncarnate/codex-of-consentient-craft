@@ -25,6 +25,7 @@ import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
 import { ChatInputWidget } from '../chat-input/chat-input-widget';
+import type { ComposerSurface } from '../../transformers/composer-scope-key/composer-scope-key-transformer';
 
 import type { UserInput } from '@dungeonmaster/shared/contracts';
 
@@ -42,6 +43,11 @@ export interface ChatPanelWidgetProps {
   // mounting this panel for a different agent's own conversation — the FOLLOW-UP tab's
   // tavernkeeper thread — pass their role so the transcript names who is actually replying.
   roleLabel?: ExecutionRole;
+  // Passed straight through to ChatInputWidget — which composer's draft this is. Omitted (the
+  // widget's own 'main' default) by every call site except ExecutionPanelWidget's follow-up tab.
+  // See composerScopeKeyTransformer for why: that composer and this quest's spec-phase composer
+  // mount at the SAME URL and must not share a draft.
+  surface?: ComposerSurface;
 }
 
 const RACCOON_SCALE = 8;
@@ -62,6 +68,7 @@ export const ChatPanelWidget = ({
   onStopChat,
   readOnly = false,
   roleLabel,
+  surface,
 }: ChatPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const [raccoonFlip, setRaccoonFlip] = useState(false);
@@ -151,6 +158,7 @@ export const ChatPanelWidget = ({
             isStreaming={isStreaming}
             onSendMessage={onSendMessage}
             onStopChat={onStopChat}
+            {...(surface === undefined ? {} : { surface })}
           />
         </>
       )}

@@ -1,5 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import type { FilePath, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questCreateBroker } from '../create/quest-create-broker';
@@ -18,6 +18,9 @@ export const questUserAddBrokerProxy = (): {
   setupQuestCreation: (params: { questFilePath: FilePath; questFolderPath: FilePath }) => void;
   setupCreateFailure: (params: { error: Error }) => void;
   getLastInitialWorkItems: () => readonly WorkItem[];
+  // The questId questUserAddBroker actually asked questCreateBroker to persist under — proves
+  // whether a caller-supplied questId (or a freshly generated one) is what ended up on disk.
+  getLastCreatedQuestId: () => QuestId | undefined;
 } => {
   questCreateBrokerProxy();
 
@@ -45,6 +48,11 @@ export const questUserAddBrokerProxy = (): {
       const { calls } = createMock.mock;
       const lastCall = calls[calls.length - 1];
       return lastCall?.[0]?.initialWorkItems ?? [];
+    },
+    getLastCreatedQuestId: (): QuestId | undefined => {
+      const { calls } = createMock.mock;
+      const lastCall = calls[calls.length - 1];
+      return lastCall?.[0]?.questId;
     },
   };
 };

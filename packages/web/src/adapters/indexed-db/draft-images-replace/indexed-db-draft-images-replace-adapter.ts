@@ -1,28 +1,34 @@
 /**
- * PURPOSE: Replaces the WHOLE draft-images object store in one transaction — see
- * pastedImageDraftContract's header for why the bytes live in IndexedDB rather than beside the
- * text draft in localStorage. Reach for this over a targeted add/delete whenever a paste or a
- * delete changes which images belong to the draft: the text draft's [Pasted Image N] placeholders
- * are the only source of truth for ORDER, and a paste can land BETWEEN two existing images, so
- * insertion order and placeholder order diverge the moment anything but a plain append happens.
- * Clearing the store and re-adding every draft in the order given is what keeps a later getAll()
- * lined up with the placeholders again. A database already at the app's expected version but
- * missing the store heals itself here the same way indexedDbDraftImagesReadAdapter does — see the
- * comment beside that reopen below.
+ * PURPOSE: Replaces ONE composer's slice of the shared draft-images object store in one
+ * transaction — see pastedImageDraftContract's header for why the bytes live in IndexedDB rather
+ * than beside the text draft in localStorage. Reach for this over a targeted add/delete whenever a
+ * paste or a delete changes which images belong to the draft: the text draft's [Pasted Image N]
+ * placeholders are the only source of truth for ORDER, and a paste can land BETWEEN two existing
+ * images, so insertion order and placeholder order diverge the moment anything but a plain append
+ * happens. Every OTHER scope's records ride through untouched (read back via getAll, then
+ * re-added alongside this scope's fresh set) — see isComposerScopeMatchGuard's header for why a
+ * bare store.clear() would otherwise wipe every composer's drafts at once, not just this one's. A
+ * database already at the app's expected version but missing the store heals itself here the same
+ * way indexedDbDraftImagesReadAdapter does — see the comment beside that reopen below.
  *
  * USAGE:
- * await indexedDbDraftImagesReplaceAdapter({ drafts: [firstDraft, secondDraft] });
- * // Returns: AdapterResult — the store now holds exactly these two records, in this order
+ * await indexedDbDraftImagesReplaceAdapter({ scopeKey: 'quest-a', drafts: [firstDraft, secondDraft] });
+ * // Returns: AdapterResult — quest-a's slice of the store now holds exactly these two records, in
+ * // this order; every other scope's records are untouched
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
+import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
 import type { PastedImageDraft } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
+import { isComposerScopeMatchGuard } from '../../../guards/is-composer-scope-match/is-composer-scope-match-guard';
+import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
 
 export const indexedDbDraftImagesReplaceAdapter = async ({
+  scopeKey,
   drafts,
 }: {
+  scopeKey: ComposerScopeKey;
   drafts: readonly PastedImageDraft[];
 }): Promise<AdapterResult> => {
   const { name, version, storeName } = chatComposerStatics.draftDatabase;
@@ -114,14 +120,34 @@ export const indexedDbDraftImagesReplaceAdapter = async ({
     // insertion order alone cannot be trusted to match the placeholder order once a paste lands
     // between two existing images, so rewriting the whole store in text order is what keeps
     // getAll() and the placeholders lined up. This only runs on a paste or a delete, never on a
-    // keystroke.
+    // keystroke. Read-then-clear-then-add rather than a plain clear: every OTHER scope's records
+    // are read back first so they can be re-added alongside this scope's fresh set — see the
+    // PURPOSE header above for why a bare clear() is not scope-safe.
     const transaction = db.transaction([storeName], 'readwrite');
     const store = transaction.objectStore(storeName);
+    const getAllRequest = store.getAll();
 
-    store.clear();
-    for (const draft of drafts) {
-      store.add(draft);
-    }
+    getAllRequest.onsuccess = (): void => {
+      const otherScopesRecords = getAllRequest.result.filter(
+        (record: unknown) => !isComposerScopeMatchGuard({ record, scopeKey }),
+      );
+
+      store.clear();
+      for (const record of otherScopesRecords) {
+        store.add(record);
+      }
+      for (const draft of drafts) {
+        store.add(draft);
+      }
+    };
+
+    getAllRequest.onerror = (): void => {
+      reject(
+        new Error(
+          `indexedDbDraftImagesReplaceAdapter: failed to read store before replacing it — ${getAllRequest.error?.message ?? 'unknown error'}`,
+        ),
+      );
+    };
 
     transaction.oncomplete = (): void => {
       resolve();

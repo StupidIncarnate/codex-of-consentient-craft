@@ -1,8 +1,9 @@
 /**
- * PURPOSE: Every refusal on this route — no path parameter, a hostile path, a missing file —
- * collapses to the same 404 with an empty body, never a 403. Past the query string there is no
- * quest-folder boundary left to report a violation of, and a distinct status would only leak
- * whether some path exists. The try/catch around the broker call is defensive: the broker is
+ * PURPOSE: Every refusal on this route — no path parameter, a hostile path, a missing file, a file
+ * outside a quest's images directory — collapses to the same 404 with an empty body, never a 403.
+ * The broker knows exactly which boundary a path violated; naming it here would tell the caller
+ * whether some path exists, which is the one thing a refusal must not do. The try/catch around the
+ * broker call is defensive: the broker is
  * documented never to throw, but this is the layer that keeps that true even if something beneath
  * it changes later.
  *

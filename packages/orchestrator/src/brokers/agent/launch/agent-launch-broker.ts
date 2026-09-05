@@ -21,6 +21,7 @@
  */
 
 import type {
+  AbsoluteFilePath,
   ChatEntry,
   ExitCode,
   GuildId,
@@ -62,6 +63,7 @@ export const agentLaunchBroker = ({
   recordActivity,
   setMetadata,
   abortSignal,
+  addDir,
 }: {
   guildId: GuildId;
   // questId + questWorkItemId are forwarded to `registerProcess` only. Chat-spawn callers
@@ -113,6 +115,12 @@ export const agentLaunchBroker = ({
   setMetadata?: (params: { processId: ProcessId; osPid?: ProcessPid }) => void;
 
   abortSignal?: AbortSignal;
+
+  // Forwarded to `agentSpawnUnifiedBroker`'s `--add-dir` grant. Chat-spawn callers pass the
+  // quest's images directory so a pasted-image Read (a path outside the spawn's cwd) is
+  // permitted in headless mode instead of denied outright. Loop-level callers omit it — the
+  // orchestration-loop roles never receive pasted images.
+  addDir?: AbsoluteFilePath;
 }): {
   processId: ProcessId;
   handle: ReturnType<typeof chatStreamProcessHandleBroker>;
@@ -217,6 +225,9 @@ export const agentLaunchBroker = ({
   }
   if (disableToolSearch !== undefined) {
     spawnParams.disableToolSearch = disableToolSearch;
+  }
+  if (addDir !== undefined) {
+    spawnParams.addDir = addDir;
   }
 
   const { kill: spawnKill, sessionId$, pid: osPid } = agentSpawnUnifiedBroker(spawnParams);

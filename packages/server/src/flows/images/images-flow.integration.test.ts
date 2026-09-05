@@ -13,6 +13,12 @@ const WEBP_BYTES = new Uint8Array([
   0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
 ]);
 
+// The bytes a symlink escaping the images directory points at — byte-distinct from every other
+// fixture here, so a response carrying them can only have come from outside that directory.
+const SECRET_BYTES = new Uint8Array([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0xde, 0xad, 0xbe, 0xef,
+]);
+
 const PATH_PARAM = apiRoutesStatics.images.pathQueryParam;
 
 describe('ImagesFlow', () => {
@@ -172,6 +178,50 @@ describe('ImagesFlow', () => {
 
       expect(status).toBe(200);
       expect(responseBytes).toStrictEqual(PNG_SIGNATURE_BYTES);
+    });
+
+    // A REAL symlink, resolved by the real kernel. Both requests hit the SAME images directory, so
+    // the only difference between them is where each path lands: the sibling is an ordinary file
+    // and answers 200 with its bytes; the link points one directory sideways, outside that images
+    // directory, and answers 404 with nothing. Serve the path without resolving it first (or
+    // compare the unresolved name against the images directory) and the symlink row goes red as
+    // {status: 200, byteLength: 12} carrying SECRET_BYTES — the target's contents, handed out as
+    // image/png. Drop the confinement check as well and the sibling row stays green, which is why
+    // both rows are asserted together rather than the link alone.
+    it('INVALID: {a symlink inside the images directory pointing at a file outside it} => 404 with zero bytes, while a plain sibling in that same directory still answers 200', async () => {
+      const app = ImagesFlow();
+      const { symlinkPath, siblingPath, cleanup } = harness.seedSymlinkEscapingImagesDir({
+        baseName: 'images-flow-symlink-escape',
+        linkFileName: 'escape.png',
+        targetFileName: 'secret.png',
+        targetBytes: SECRET_BYTES,
+        siblingFileName: 'sibling.png',
+        siblingBytes: PNG_SIGNATURE_BYTES,
+      });
+
+      const symlinkResponse = await app.request(
+        `${apiRoutesStatics.images.serve}?${PATH_PARAM}=${encodeURIComponent(symlinkPath)}`,
+      );
+      const symlinkBytes = await symlinkResponse.arrayBuffer();
+      const siblingResponse = await app.request(
+        `${apiRoutesStatics.images.serve}?${PATH_PARAM}=${encodeURIComponent(siblingPath)}`,
+      );
+      const siblingBytes = new Uint8Array(await siblingResponse.arrayBuffer());
+      cleanup();
+
+      expect({
+        symlinkStatus: symlinkResponse.status,
+        symlinkByteLength: symlinkBytes.byteLength,
+        symlinkContentType: symlinkResponse.headers.get('content-type'),
+        siblingStatus: siblingResponse.status,
+        siblingBytes,
+      }).toStrictEqual({
+        symlinkStatus: 404,
+        symlinkByteLength: 0,
+        symlinkContentType: null,
+        siblingStatus: 200,
+        siblingBytes: PNG_SIGNATURE_BYTES,
+      });
     });
 
     it.each(MALFORMED_CASES)(

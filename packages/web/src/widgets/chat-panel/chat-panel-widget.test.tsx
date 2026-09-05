@@ -400,7 +400,7 @@ describe('ChatPanelWidget', () => {
       expect(proxy.isStreamingVisible()).toBe(false);
     });
 
-    it('VALID: {isStreaming: true} => makes the composer non-editable', () => {
+    it('VALID: {isStreaming: true, no send in flight} => #check-composer-typable-while-agent-streams leaves the composer editable', () => {
       ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
@@ -414,7 +414,11 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      expect(screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable')).toBe('false');
+      // CHAT_INPUT's editability tracks its OWN in-flight POST, not the agent's turn — a turn can
+      // run long after the POST that started it has already resolved, and the composer must not
+      // stay locked for the length of that turn. No send has been issued here, so `isStreaming`
+      // alone must not lock it.
+      expect(screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable')).toBe('true');
     });
 
     it('VALID: {isStreaming: true} => shows stop button instead of send button', () => {

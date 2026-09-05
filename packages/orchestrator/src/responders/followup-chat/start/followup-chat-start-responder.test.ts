@@ -34,6 +34,20 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 const spawnedArgvValueAt = ({ args, index }: { args: unknown; index: number }): unknown =>
   Array.isArray(args) ? args[index] : undefined;
 
+// chatSpawnBroker now always grants `--add-dir <quest images dir>` (packages/orchestrator/src/
+// brokers/chat/spawn/chat-spawn-broker.ts) so a pasted-image Read is permitted in headless mode —
+// see chat-spawn-broker.test.ts's own boundary test for the dedicated proof that value names the
+// resolved quest's images directory. The tests below are about resume/session/status wiring, not
+// that value, so this strips the trailing `--add-dir <value>` pair (present iff the array's
+// second-to-last element is literally '--add-dir') before comparing against the argv this suite
+// already asserted pre-existing behavior against — proving nothing else in argv moved.
+const stripTrailingAddDirPair = ({ args }: { args: unknown }): unknown => {
+  if (!Array.isArray(args)) {
+    return args;
+  }
+  return args.at(-2) === '--add-dir' ? args.slice(0, -2) : args;
+};
+
 const awaitOnCompleteFireAndForget = async (): Promise<void> => {
   // Mirrors design-chat-start-responder.test.ts's own wait for the onComplete fire-and-forget
   // questModifyBroker chain: a nested setImmediate pair (spawn exit event, then the launcher's
@@ -145,7 +159,7 @@ describe('FollowupChatStartResponder', () => {
 
       await proxy.callResponder({ guildId, questId, message });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual([
+      expect(stripTrailingAddDirPair({ args: proxy.getSpawnedArgs() })).toStrictEqual([
         '-p',
         message,
         '--output-format',
@@ -260,7 +274,7 @@ describe('FollowupChatStartResponder', () => {
 
         await proxy.callResponder({ guildId, questId, message });
 
-        expect(proxy.getSpawnedArgs()).toStrictEqual([
+        expect(stripTrailingAddDirPair({ args: proxy.getSpawnedArgs() })).toStrictEqual([
           '-p',
           message,
           '--output-format',
@@ -306,7 +320,7 @@ describe('FollowupChatStartResponder', () => {
         questId,
       });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual([
+      expect(stripTrailingAddDirPair({ args: proxy.getSpawnedArgs() })).toStrictEqual([
         '-p',
         expectedPrompt,
         '--output-format',

@@ -3,23 +3,29 @@
  * is roughly 6.8 MB once base64-encoded, which alone exceeds the whole origin's localStorage quota,
  * so storing even a single paste there would fail and take the text draft down with it. This broker
  * is the one place that writes the IndexedDB half of a draft; call it any time the composer's
- * attachment list changes (paste or delete), never only on send.
+ * attachment list changes (paste or delete), never only on send. `scopeKey` stamps every record
+ * with which composer it belongs to and scopes the replace to that composer alone — see
+ * composerScopeKeyTransformer and isComposerScopeMatchGuard.
  *
  * USAGE:
- * await draftImagesSaveBroker({ attachments });
- * // Returns AdapterResult — IndexedDB now holds exactly these attachments, in this order
+ * await draftImagesSaveBroker({ scopeKey: 'quest-a', attachments });
+ * // Returns AdapterResult — IndexedDB now holds exactly these attachments under THIS scope, in
+ * // this order; every other composer's records are untouched
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { indexedDbDraftImagesReplaceAdapter } from '../../../adapters/indexed-db/draft-images-replace/indexed-db-draft-images-replace-adapter';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
+import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
 import { pastedImageDraftContract } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
 import { dataUrlSplitTransformer } from '../../../transformers/data-url-split/data-url-split-transformer';
 
 export const draftImagesSaveBroker = async ({
+  scopeKey,
   attachments,
 }: {
+  scopeKey: ComposerScopeKey;
   attachments: readonly ComposerAttachment[];
 }): Promise<AdapterResult> => {
   // The text draft's [Pasted Image N] placeholders are the only source of truth for ORDER, and a
@@ -35,11 +41,12 @@ export const draftImagesSaveBroker = async ({
       attachmentId: attachment.attachmentId,
       mediaType,
       dataBase64,
+      scopeKey,
     });
   });
 
   try {
-    return await indexedDbDraftImagesReplaceAdapter({ drafts });
+    return await indexedDbDraftImagesReplaceAdapter({ scopeKey, drafts });
   } catch (error) {
     throw new Error(
       `draftImagesSaveBroker: failed to save draft images — ${error instanceof Error ? error.message : String(error)}`,

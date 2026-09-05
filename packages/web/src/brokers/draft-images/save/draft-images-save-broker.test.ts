@@ -1,4 +1,5 @@
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';
+import { ComposerScopeKeyStub } from '../../../contracts/composer-scope-key/composer-scope-key.stub';
 import { PastedImageDraftStub } from '../../../contracts/pasted-image-draft/pasted-image-draft.stub';
 
 import { draftImagesSaveBroker } from './draft-images-save-broker';
@@ -14,7 +15,10 @@ describe('draftImagesSaveBroker', () => {
         dataUrl: `data:image/png;base64,${payload}`,
       });
 
-      await draftImagesSaveBroker({ attachments: [attachment] });
+      await draftImagesSaveBroker({
+        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        attachments: [attachment],
+      });
 
       const stored = proxy.getStoredDrafts();
 
@@ -23,6 +27,7 @@ describe('draftImagesSaveBroker', () => {
           attachmentId: '11111111-1111-4111-8111-111111111111',
           mediaType: 'image/png',
           dataBase64: payload,
+          scopeKey: 'quest-a',
         },
       ]);
       expect(stored.at(0)?.dataBase64).toBe(payload);
@@ -43,23 +48,29 @@ describe('draftImagesSaveBroker', () => {
         dataUrl: 'data:image/png;base64,Q0NDQw==',
       });
 
-      await draftImagesSaveBroker({ attachments: [attachmentA, attachmentB, attachmentC] });
+      await draftImagesSaveBroker({
+        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        attachments: [attachmentA, attachmentB, attachmentC],
+      });
 
       expect(proxy.getStoredDrafts()).toStrictEqual([
         {
           attachmentId: '11111111-1111-4111-8111-111111111111',
           mediaType: 'image/png',
           dataBase64: 'QUFBQQ==',
+          scopeKey: 'quest-a',
         },
         {
           attachmentId: '22222222-2222-4222-8222-222222222222',
           mediaType: 'image/png',
           dataBase64: 'QkJCQg==',
+          scopeKey: 'quest-a',
         },
         {
           attachmentId: '33333333-3333-4333-8333-333333333333',
           mediaType: 'image/png',
           dataBase64: 'Q0NDQw==',
+          scopeKey: 'quest-a',
         },
       ]);
     });
@@ -71,11 +82,15 @@ describe('draftImagesSaveBroker', () => {
           PastedImageDraftStub({
             attachmentId: '11111111-1111-4111-8111-111111111111',
             dataBase64: 'QUFBQQ==',
+            scopeKey: 'quest-a' as never,
           }),
         ],
       });
 
-      await draftImagesSaveBroker({ attachments: [] });
+      await draftImagesSaveBroker({
+        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        attachments: [],
+      });
 
       expect(proxy.getStoredDrafts()).toStrictEqual([]);
     });
@@ -87,10 +102,12 @@ describe('draftImagesSaveBroker', () => {
           PastedImageDraftStub({
             attachmentId: '11111111-1111-4111-8111-111111111111',
             dataBase64: 'QUFBQQ==',
+            scopeKey: 'quest-a' as never,
           }),
           PastedImageDraftStub({
             attachmentId: '22222222-2222-4222-8222-222222222222',
             dataBase64: 'QkJCQg==',
+            scopeKey: 'quest-a' as never,
           }),
         ],
       });
@@ -99,13 +116,51 @@ describe('draftImagesSaveBroker', () => {
         dataUrl: 'data:image/png;base64,QkJCQg==',
       });
 
-      await draftImagesSaveBroker({ attachments: [attachmentB] });
+      await draftImagesSaveBroker({
+        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        attachments: [attachmentB],
+      });
 
       expect(proxy.getStoredDrafts()).toStrictEqual([
         {
           attachmentId: '22222222-2222-4222-8222-222222222222',
           mediaType: 'image/png',
           dataBase64: 'QkJCQg==',
+          scopeKey: 'quest-a',
+        },
+      ]);
+    });
+
+    it("VALID: {quest-a save} => quest-b's own records survive untouched", async () => {
+      const proxy = draftImagesSaveBrokerProxy();
+      proxy.storeAlreadyHolds({
+        drafts: [
+          PastedImageDraftStub({
+            attachmentId: '11111111-1111-4111-8111-111111111111',
+            scopeKey: 'quest-b' as never,
+          }),
+        ],
+      });
+      const attachmentA = ComposerAttachmentStub({
+        attachmentId: '22222222-2222-4222-8222-222222222222',
+        dataUrl: 'data:image/png;base64,QkJCQg==',
+      });
+
+      await draftImagesSaveBroker({
+        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        attachments: [attachmentA],
+      });
+
+      expect(proxy.getStoredDrafts()).toStrictEqual([
+        PastedImageDraftStub({
+          attachmentId: '11111111-1111-4111-8111-111111111111',
+          scopeKey: 'quest-b' as never,
+        }),
+        {
+          attachmentId: '22222222-2222-4222-8222-222222222222',
+          mediaType: 'image/png',
+          dataBase64: 'QkJCQg==',
+          scopeKey: 'quest-a',
         },
       ]);
     });
@@ -115,7 +170,10 @@ describe('draftImagesSaveBroker', () => {
     it('EMPTY: {attachments: []} against an already-empty store => leaves it empty and resolves via the adapter', async () => {
       const proxy = draftImagesSaveBrokerProxy();
 
-      const result = await draftImagesSaveBroker({ attachments: [] });
+      const result = await draftImagesSaveBroker({
+        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        attachments: [],
+      });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getStoredDrafts()).toStrictEqual([]);
@@ -125,9 +183,12 @@ describe('draftImagesSaveBroker', () => {
       const proxy = draftImagesSaveBrokerProxy();
       proxy.storeUnavailable({ error: new Error('blocked') });
 
-      await expect(draftImagesSaveBroker({ attachments: [] })).rejects.toThrow(
-        /draftImagesSaveBroker/u,
-      );
+      await expect(
+        draftImagesSaveBroker({
+          scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+          attachments: [],
+        }),
+      ).rejects.toThrow(/draftImagesSaveBroker/u);
     });
   });
 
@@ -140,9 +201,12 @@ describe('draftImagesSaveBroker', () => {
         dataUrl: 'data:image/png;base64,QUFBQQ==',
       });
 
-      await expect(draftImagesSaveBroker({ attachments: [attachment] })).rejects.toThrow(
-        /draftImagesSaveBroker/u,
-      );
+      await expect(
+        draftImagesSaveBroker({
+          scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+          attachments: [attachment],
+        }),
+      ).rejects.toThrow(/draftImagesSaveBroker/u);
     });
   });
 
@@ -155,7 +219,10 @@ describe('draftImagesSaveBroker', () => {
         dataUrl: 'data:image/jpeg;base64,QUFBQQ==',
       });
 
-      await draftImagesSaveBroker({ attachments: [attachment] });
+      await draftImagesSaveBroker({
+        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        attachments: [attachment],
+      });
 
       expect(proxy.getStoredDrafts().at(0)?.mediaType).toBe('image/jpeg');
     });

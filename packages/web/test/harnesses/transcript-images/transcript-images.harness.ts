@@ -23,14 +23,18 @@
  * const children = await images.readBubbleChildren({ page });
  * // [{ tag: 'span', text: 'A', testId: 'CHAT_MESSAGE_TEXT', src: '' }, { tag: 'img', ... }, ...]
  */
-import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { crc32, deflateSync } from 'zlib';
 
 import type { Page, Response } from '@playwright/test';
 
-import { environmentStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
+import {
+  environmentStatics,
+  locationsStatics,
+  pastedImageStatics,
+} from '@dungeonmaster/shared/statics';
 
 // Package-local, not `@dungeonmaster/shared` — the overlay's sizing knobs live here, not in the
 // cross-package statics barrel. A relative reach into `src/` is what every overlay-geometry
@@ -283,6 +287,11 @@ const buildPngBytes = ({
 
 const TEMP_DIR_PREFIX = 'dm-e2e-transcript-images-';
 
+// NOT a quest fixture, and not a valid Quest shape — do not read it as one or grow it into one.
+// It exists solely so a seeded image directory's parent passes imageServeBroker's "does a quest
+// file sit next to this images directory" existence check. Nothing parses these bytes.
+const QUEST_FILE_EXISTENCE_ONLY_CONTENT = '{}';
+
 // --- Refusal-matrix fixtures (image-route-answers.e2e.ts) ------------------------------------
 // That spec drives every documented /api/images refusal path through the REAL running e2e server
 // (see its own header for why this can only be proven against the full ServerFlow assembly, not
@@ -450,6 +459,12 @@ export const transcriptImagesHarness = (): {
   // Shared by the public seedImageFile method AND buildRefusalMatrixRows below, which needs the
   // identical mkdtemp+write+track-for-cleanup shape to seed its own real fixture files without
   // duplicating (and risking drifting from) this logic.
+  //
+  // The file lands in an `images` subdirectory of the temp dir, never the temp dir itself, and a
+  // quest file is written beside that subdirectory: imageServeBroker serves a path only when its
+  // resolved parent IS the images directory of a folder holding a quest file, so a fixture written
+  // one level up — or one whose parent carries no quest file — is refused by the real server the
+  // same way a private key would be, and every seeded 200 in this suite would go 404.
   const seedPngFileToTemp = ({
     fileName,
     widthPx,
@@ -464,7 +479,10 @@ export const transcriptImagesHarness = (): {
     const bytes = buildPngBytes({ widthPx, heightPx, seed });
     const dir = mkdtempSync(join(tmpdir(), TEMP_DIR_PREFIX));
     createdDirs.push(dir);
-    const imagePath = join(dir, fileName);
+    const imagesDir = join(dir, locationsStatics.quest.imagesDir);
+    mkdirSync(imagesDir, { recursive: true });
+    writeFileSync(join(dir, locationsStatics.quest.questFile), QUEST_FILE_EXISTENCE_ONLY_CONTENT);
+    const imagePath = join(imagesDir, fileName);
     writeFileSync(imagePath, bytes);
     return { imagePath, bytes };
   };
@@ -514,7 +532,12 @@ export const transcriptImagesHarness = (): {
       ]);
       const dir = mkdtempSync(join(tmpdir(), TEMP_DIR_PREFIX));
       createdDirs.push(dir);
-      const imagePath = join(dir, fileName);
+      // Same images-subdirectory placement and quest-file marker as seedPngFileToTemp above, and
+      // for the same reason.
+      const imagesDir = join(dir, locationsStatics.quest.imagesDir);
+      mkdirSync(imagesDir, { recursive: true });
+      writeFileSync(join(dir, locationsStatics.quest.questFile), QUEST_FILE_EXISTENCE_ONLY_CONTENT);
+      const imagePath = join(imagesDir, fileName);
       writeFileSync(imagePath, bytes);
       return { imagePath, bytes };
     },

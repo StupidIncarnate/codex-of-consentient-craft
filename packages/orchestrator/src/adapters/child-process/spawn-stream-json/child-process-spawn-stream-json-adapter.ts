@@ -15,7 +15,7 @@ import { createInterface } from 'readline';
 import type { Readable } from 'stream';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
-import type { RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 export interface SpawnStreamJsonResult {
@@ -31,6 +31,7 @@ export const childProcessSpawnStreamJsonAdapter = ({
   model,
   disableToolSearch = false,
   onStderrLine,
+  addDir,
 }: {
   prompt: PromptText;
   resumeSessionId?: SessionId;
@@ -42,6 +43,15 @@ export const childProcessSpawnStreamJsonAdapter = ({
   // callback. Used by the launcher to tag each subprocess's stderr with `proc:<id>` so
   // SDK retry/throttle messages from parallel spawns can be attributed and grepped.
   onStderrLine?: (params: { line: string }) => void;
+  // Grants the spawned CLI read access to a directory OUTSIDE cwd. `--add-dir` is a real,
+  // headless-`-p`-mode-safe Claude CLI flag (confirmed against the installed 2.1.258 binary: a
+  // live spawn granted `--add-dir <dir>` read a file under that dir with no permission error,
+  // while the CLI does not error on a not-yet-existing directory either). Chat spawns pass the
+  // quest's images directory here — pasted images live under the quest folder
+  // (`locationsStatics.quest.imagesDir`), a tree disjoint from the spawn's cwd (the quest's own
+  // worktree), so without this grant every Read on a pasted-image path is denied outright in
+  // headless mode (no interactive approver to prompt).
+  addDir?: AbsoluteFilePath;
 }): SpawnStreamJsonResult => {
   // Settings discovery is anchored to the explicit RepoRootCwd. When cwd is undefined we
   // skip the .claude/settings.json read entirely — there is no implicit fallback. Callers
@@ -102,6 +112,10 @@ export const childProcessSpawnStreamJsonAdapter = ({
 
   if (resumeSessionId) {
     args.push('--resume', resumeSessionId);
+  }
+
+  if (addDir !== undefined) {
+    args.push('--add-dir', addDir);
   }
 
   const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';

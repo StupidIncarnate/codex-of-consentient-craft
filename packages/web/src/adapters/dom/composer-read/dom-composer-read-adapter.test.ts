@@ -126,4 +126,20 @@ describe('domComposerReadAdapter', () => {
       ]);
     });
   });
+
+  describe('caret filler line break', () => {
+    it('EDGE: {editor: text "one", a real newline, and a marked filler <br>} => the filler contributes nothing, so the segment list ends at the real newline', () => {
+      domComposerReadAdapterProxy();
+      const editor = document.createElement('div');
+      editor.appendChild(document.createTextNode('one'));
+      editor.appendChild(document.createTextNode('\n'));
+      const filler = document.createElement('br');
+      filler.setAttribute(chatComposerStatics.caretFiller.attributeName, 'true');
+      editor.appendChild(filler);
+
+      expect(domComposerReadAdapter({ editor })).toStrictEqual([
+        ComposerSegmentStub({ kind: 'text', text: 'one\n' }),
+      ]);
+    });
+  });
 });

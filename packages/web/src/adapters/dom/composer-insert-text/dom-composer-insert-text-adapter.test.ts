@@ -1,5 +1,6 @@
 import { domComposerInsertTextAdapter } from './dom-composer-insert-text-adapter';
 import { domComposerInsertTextAdapterProxy } from './dom-composer-insert-text-adapter.proxy';
+import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
 
 describe('domComposerInsertTextAdapter', () => {
   it('VALID: {empty composer, caret at start} => pasting "hello" leaves it reading exactly "hello" with zero thumbnails (#check-text-paste-into-empty-composer)', () => {
@@ -212,5 +213,112 @@ describe('domComposerInsertTextAdapter', () => {
       { nodeName: '#text', text: 'cd' },
     ]);
     expect(editor.textContent).toBe('abcd');
+  });
+
+  it('VALID: {caret at the end of "one" text node} => inserting "\\n" appends a marked filler <br> right after the newline (#check-trailing-newline-gets-caret-filler)', () => {
+    domComposerInsertTextAdapterProxy();
+
+    const editor = document.createElement('div');
+    document.body.appendChild(editor);
+    const one = document.createTextNode('one');
+    editor.appendChild(one);
+    const selection = document.getSelection();
+    const range = document.createRange();
+    range.setStart(one, 3);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    const result = domComposerInsertTextAdapter({ editor, text: '\n' });
+
+    expect(result).toStrictEqual({ success: true });
+
+    const snapshot = Array.from(editor.childNodes).map((node) => ({
+      nodeName: node.nodeName,
+      text: node.textContent,
+    }));
+
+    expect(snapshot).toStrictEqual([
+      { nodeName: '#text', text: 'one' },
+      { nodeName: '#text', text: '\n' },
+      { nodeName: 'BR', text: '' },
+    ]);
+
+    const fillerMarkers = Array.from(
+      editor.querySelectorAll(`br[${chatComposerStatics.caretFiller.attributeName}]`),
+    ).map((element) => element.getAttribute(chatComposerStatics.caretFiller.attributeName));
+
+    expect(fillerMarkers).toStrictEqual(['true']);
+  });
+
+  it('VALID: {two trailing "\\n" inserts in a row with no caret reset between them} => the second insert reuses the existing filler <br> rather than appending a second one (#check-trailing-newline-filler-not-duplicated)', () => {
+    domComposerInsertTextAdapterProxy();
+
+    const editor = document.createElement('div');
+    document.body.appendChild(editor);
+    const selection = document.getSelection();
+    const range = document.createRange();
+    range.setStart(editor, 0);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    domComposerInsertTextAdapter({ editor, text: '\n' });
+    const result = domComposerInsertTextAdapter({ editor, text: '\n' });
+
+    expect(result).toStrictEqual({ success: true });
+
+    const snapshot = Array.from(editor.childNodes).map((node) => ({
+      nodeName: node.nodeName,
+      text: node.textContent,
+    }));
+
+    expect(snapshot).toStrictEqual([
+      { nodeName: '#text', text: '\n' },
+      { nodeName: '#text', text: '\n' },
+      { nodeName: 'BR', text: '' },
+    ]);
+
+    const fillerMarkers = Array.from(
+      editor.querySelectorAll(`br[${chatComposerStatics.caretFiller.attributeName}]`),
+    ).map((element) => element.getAttribute(chatComposerStatics.caretFiller.attributeName));
+
+    expect(fillerMarkers).toStrictEqual(['true']);
+  });
+
+  it('VALID: {caret between "ab" and "cd" inside one text node} => inserting "\\n" there appends no filler <br>, since real content already follows it (#check-mid-caret-newline-gets-no-filler)', () => {
+    domComposerInsertTextAdapterProxy();
+
+    const editor = document.createElement('div');
+    document.body.appendChild(editor);
+    const abcd = document.createTextNode('abcd');
+    editor.appendChild(abcd);
+    const selection = document.getSelection();
+    const range = document.createRange();
+    range.setStart(abcd, 2);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    const result = domComposerInsertTextAdapter({ editor, text: '\n' });
+
+    expect(result).toStrictEqual({ success: true });
+
+    const snapshot = Array.from(editor.childNodes).map((node) => ({
+      nodeName: node.nodeName,
+      text: node.textContent,
+    }));
+
+    expect(snapshot).toStrictEqual([
+      { nodeName: '#text', text: 'ab' },
+      { nodeName: '#text', text: '\n' },
+      { nodeName: '#text', text: 'cd' },
+    ]);
+
+    const fillerMarkers = Array.from(
+      editor.querySelectorAll(`br[${chatComposerStatics.caretFiller.attributeName}]`),
+    ).map((element) => element.getAttribute(chatComposerStatics.caretFiller.attributeName));
+
+    expect(fillerMarkers).toStrictEqual([]);
   });
 });

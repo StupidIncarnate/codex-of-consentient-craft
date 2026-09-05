@@ -74,6 +74,9 @@ export const ImageContentLayerWidget = ({
               <span
                 key={index}
                 data-testid="CHAT_MESSAGE_IMAGE_BROKEN"
+                role="img"
+                aria-label={`Pasted image ${String(segment.ordinal)} could not be loaded`}
+                title={`Pasted image ${String(segment.ordinal)} could not be loaded`}
                 style={{
                   display: 'inline-block',
                   width: webConfigStatics.pastedImage.brokenThumbnailSizePx,
@@ -103,7 +106,12 @@ export const ImageContentLayerWidget = ({
               data-testid="CHAT_MESSAGE_IMAGE"
               src={segment.src}
               alt={`Pasted image ${segment.ordinal}`}
-              style={{ cursor: 'pointer', maxWidth: '100%', display: 'block' }}
+              style={{
+                cursor: 'pointer',
+                maxWidth: '100%',
+                maxHeight: webConfigStatics.pastedImage.inlineImageMaxHeightPx,
+                display: 'block',
+              }}
               onClick={() => {
                 setOverlaySrc(segment.src);
               }}

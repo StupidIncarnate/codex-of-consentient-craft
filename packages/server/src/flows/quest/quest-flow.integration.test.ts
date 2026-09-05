@@ -1216,5 +1216,122 @@ describe('QuestFlow', () => {
         expect(writtenBase64).toBe(dataBase64);
       },
     );
+
+    // Flow: send-message-with-images. A chat work item's `sessionId` is stamped asynchronously —
+    // chat-spawn-broker's onSessionId callback fires only once the spawned CLI's system/init line
+    // streams back, via a SEPARATE quest write, after this HTTP response already resolved for
+    // whichever turn spawned it. A second image-carrying send that lands in that window (or one
+    // sent against a quest whose intake item is already `complete` with no sessionId ever
+    // captured) must still land on the quest the URL already names — never mint a second one.
+    it("VALID: {chaoswhisperer work item at status complete with NO sessionId} => 200, images land in THIS quest's own folder, and no second quest directory is created", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-no-session' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Chat Images Guild — No Session',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      // UUID-shaped, unlike this describe block's other fixtures — isQuestFolderGuard (the quest
+      // LIST broker's directory filter, distinct from the single-quest GET path used elsewhere in
+      // this file) only recognizes a UUID or a legacy `NNN-` prefix as a real quest folder, and
+      // this test's own list-endpoint assertion below needs the seeded quest to be discoverable.
+      const questId = 'cccccccc-6007-4222-8222-444444444444';
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6007-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'one more thing [Pasted Image 1]',
+          images: [{ mediaType: 'image/png', dataBase64: 'bm8tc2Vzc2lvbg==' }],
+        }),
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+      const listResponse = await app.request(`/api/quests?guildId=${guildId}`);
+      const listBody: unknown = await listResponse.json();
+      const listedQuestIds = harness.readListedQuestIds({ body: listBody });
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      // The images the persist broker wrote land under THIS quest's own images directory.
+      expect(new Set(dir.fileNames).size).toBe(1);
+      // Exactly one quest exists for the guild afterward, and it is the SAME quest the URL named
+      // — proof the orchestrator's resolution spawned into the existing quest rather than minting
+      // a second one.
+      expect(listedQuestIds).toStrictEqual([questId]);
+    });
+  });
+
+  // Flow: send-message-with-images, the CREATE surface. Mirrors the "chat with images" block
+  // above, but for the FIRST message of a brand-new quest: no seedQuest, no pre-existing session —
+  // the questId pastedImagePersistBroker needs to resolve <questFolder>/images does not exist
+  // until THIS request mints it, unlike the chat/followup routes where the quest already exists.
+  // registerRealGuild + configureFakeClaudeCli drive a real chaoswhisperer spawn so the real
+  // pastedImagePersistBroker fs writes and the real token-rewrite both run, through the real Hono
+  // route — not the mocked orchestrator adapter quest-new-responder.test.ts already covers.
+  describe('POST /api/guilds/:guildId/quests with images', () => {
+    it("VALID: {images: [two distinct images], message carrying both tokens} => 200, the created quest's images directory holds exactly the two posted files, and the rewritten prompt's tokens name them in posted order", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-create-images-two-distinct' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Create Images Guild — Two Distinct',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/guilds/${guildId}/quests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'first [Pasted Image 1] then [Pasted Image 2]',
+          images: [
+            { mediaType: 'image/png', dataBase64: 'Zmlyc3QtaW1hZ2U=' },
+            { mediaType: 'image/jpeg', dataBase64: 'c2Vjb25kLWltYWdl' },
+          ],
+        }),
+      });
+      const body: unknown = await response.json();
+      const questId = harness.readCreatedQuestId({ body: harness.toPlain(body) });
+
+      const tokenPaths = await harness.waitForClaudeInvocationImagePaths({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+      const tokenBytes = tokenPaths.map((filePath) => harness.readFileBase64({ filePath }));
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(dir.exists).toBe(true);
+
+      // Compares full paths (not bare names) — the images dir's own entries, joined back onto its
+      // own dirPath, against the exact paths the rewritten message's tokens named. Equal sets means
+      // the real fs holds precisely the two files the tokens reference, nothing extra and nothing
+      // missing.
+      const dirFullPathsSorted = dir.fileNames.map((name) => `${dir.dirPath}/${name}`).sort();
+      const tokenPathsSorted = tokenPaths.map((filePath) => String(filePath)).sort();
+
+      expect(dirFullPathsSorted).toStrictEqual(tokenPathsSorted);
+      expect(tokenBytes).toStrictEqual(['Zmlyc3QtaW1hZ2U=', 'c2Vjb25kLWltYWdl']);
+    });
   });
 });

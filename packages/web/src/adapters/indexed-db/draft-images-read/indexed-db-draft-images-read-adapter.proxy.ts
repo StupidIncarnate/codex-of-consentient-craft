@@ -2,6 +2,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
+import { migrateLegacyRecordsLayerAdapterProxy } from './migrate-legacy-records-layer-adapter.proxy';
 
 interface FakeIndexedDbRequest {
   result: unknown;
@@ -32,6 +33,10 @@ export const indexedDbDraftImagesReadAdapterProxy = (): {
   getStoredDrafts: () => readonly unknown[];
   openFails: (params: { error: Error }) => void;
 } => {
+  // Child creation only, per enforce-proxy-child-creation — the read adapter imports
+  // migrateLegacyRecordsLayerAdapter, which has nothing of its own to mock (see that proxy).
+  migrateLegacyRecordsLayerAdapterProxy();
+
   const { name, version } = chatComposerStatics.draftDatabase;
 
   // Backs the fake object store as a plain array rather than a keyed table: autoIncrement's only
@@ -122,10 +127,15 @@ export const indexedDbDraftImagesReadAdapterProxy = (): {
             onerror: null,
           };
 
-          // Scheduled now, read later: by the time this fires, the adapter has already assigned
-          // oncomplete synchronously, in the same turn that called transaction().
+          // Two microtask hops, not one: a caller that reads via store.getAll() (one hop) and then
+          // mutates inside that handler needs oncomplete to fire on a LATER hop, or this would
+          // resolve the transaction's promise before that handler had a chance to run — see the
+          // identical comment in indexed-db-draft-images-replace-adapter.proxy.ts, which this
+          // proxy is shared with (both adapters share one global indexedDB.open — see the header).
           queueMicrotask((): void => {
-            transaction.oncomplete?.();
+            queueMicrotask((): void => {
+              transaction.oncomplete?.();
+            });
           });
 
           return transaction;

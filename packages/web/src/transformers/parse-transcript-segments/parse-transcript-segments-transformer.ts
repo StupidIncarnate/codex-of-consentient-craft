@@ -28,7 +28,7 @@ export const parseTranscriptSegmentsTransformer = ({
   memoryImages?: readonly ImageDataUrl[];
 }): readonly TranscriptSegment[] => {
   const sentinelIndex = content.indexOf(pastedImageStatics.promptSentinel);
-  const withoutTrailer = sentinelIndex === -1 ? content : content.slice(0, sentinelIndex);
+  const withoutTrailer = sentinelIndex === -1 ? content : content.slice(0, sentinelIndex).trimEnd();
 
   // The token alternative goes first: placeholderPattern also matches the `[Pasted Image N]` span
   // INSIDE an imageTokenPattern match, so putting it first would split one token into an image plus

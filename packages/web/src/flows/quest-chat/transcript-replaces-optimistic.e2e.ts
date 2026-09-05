@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import {
   claudeMockHarness,
@@ -184,13 +186,18 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     // 'data:' sample strictly before an 'http:' sample for the first image src. A point-in-time read
     // (everything above) cannot tell a real recheck from a page that only ever rendered the final
     // state once.
+    // readTranscriptSequenceSamples hands back `unknown[]` — a page.evaluate result with no
+    // production contract behind it (transcript-images.harness.ts's own header explains why: this
+    // {bubbleCount, firstImageSrcPrefix} shape exists only inside this test's own MutationObserver,
+    // never in the app). Parsing each element through a narrow zod schema at the point it arrives is
+    // what turns a wrong browser-side shape into a loud parse failure here rather than a silent
+    // `undefined` read three lines below.
+    const transcriptSequenceSampleContract = z.object({
+      bubbleCount: z.number().brand<'TranscriptSequenceBubbleCount'>(),
+      firstImageSrcPrefix: z.string().brand<'TranscriptSequenceImageSrcPrefix'>(),
+    });
     const rawSamples = await images.readTranscriptSequenceSamples({ page });
-    const samples = rawSamples.map(
-      (sample: { bubbleCount: unknown; firstImageSrcPrefix: unknown }) => ({
-        bubbleCount: Number(sample.bubbleCount),
-        firstImageSrcPrefix: String(sample.firstImageSrcPrefix),
-      }),
-    );
+    const samples = rawSamples.map((sample) => transcriptSequenceSampleContract.parse(sample));
     const dataIndex = samples.findIndex((sample) => sample.firstImageSrcPrefix === 'data:');
     const httpIndex = samples.findIndex((sample) => sample.firstImageSrcPrefix === 'http:');
     expect(dataIndex !== -1 && httpIndex !== -1 && dataIndex < httpIndex).toBe(true);

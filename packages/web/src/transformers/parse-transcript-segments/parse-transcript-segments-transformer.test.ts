@@ -58,7 +58,7 @@ describe('parseTranscriptSegmentsTransformer', () => {
       expect(result).toStrictEqual([
         { kind: 'text', text: 'before ' },
         { kind: 'image', ordinal: 1, src: 'http://host/api/images?path=%2Fp%2Fx.png' },
-        { kind: 'text', text: ' after\n\n' },
+        { kind: 'text', text: ' after' },
       ]);
     });
   });

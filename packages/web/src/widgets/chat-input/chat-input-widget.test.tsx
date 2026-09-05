@@ -1,4 +1,5 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
@@ -9,6 +10,7 @@ import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-rend
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { ByteLengthStub } from '../../contracts/byte-length/byte-length.stub';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
+import { ComposerScopeKeyStub } from '../../contracts/composer-scope-key/composer-scope-key.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { base64ByteLengthTransformer } from '../../transformers/base64-byte-length/base64-byte-length-transformer';
 import { ChatInputWidget } from './chat-input-widget';
@@ -19,6 +21,26 @@ import { ChatInputWidgetProxy } from './chat-input-widget.proxy';
 // PastedImageUpload / UploadProgressHandler from their contracts directly — test files cannot
 // import types from contracts, and this stays in sync with whatever onSendMessage actually accepts.
 type OnSendMessageParams = Parameters<ChatInputWidgetProps['onSendMessage']>[0];
+
+// Only the "a scope change on a live composer" block below wraps ChatInputWidget in a
+// <MemoryRouter>; every other render in this file leaves its useParams() call resolving questId to
+// undefined — the same as a real render on the bare /:guildSlug/quest create route — and so
+// reads/writes under this ONE scope.
+const SCOPE_KEY = ComposerScopeKeyStub({ value: chatComposerStatics.draftScope.createScopeKey });
+const DRAFT_STORAGE_KEY = `${chatComposerStatics.draftStorageKeyPrefix}:${SCOPE_KEY}`;
+const DISPATCHED_STAMP_KEY = `${chatComposerStatics.draftDispatchedKeyPrefix}:${SCOPE_KEY}`;
+
+// The quest the scope-change block mounts on. Two composers exist at this one URL — the quest's own
+// spec-phase composer and its follow-up composer — so flipping `surface` on a mounted instance is a
+// real scope change with no navigation involved, which is exactly the shape the create-surface
+// composer hits when the route gains a questId under it.
+const SCOPE_CHANGE_QUEST_ID = '7f000000-0000-4000-8000-000000000001';
+const MAIN_SCOPE_KEY = ComposerScopeKeyStub({ value: SCOPE_CHANGE_QUEST_ID });
+const FOLLOWUP_SCOPE_KEY = ComposerScopeKeyStub({
+  value: `${SCOPE_CHANGE_QUEST_ID}${chatComposerStatics.draftScope.followupSuffix}`,
+});
+const MAIN_DRAFT_STORAGE_KEY = `${chatComposerStatics.draftStorageKeyPrefix}:${MAIN_SCOPE_KEY}`;
+const FOLLOWUP_DRAFT_STORAGE_KEY = `${chatComposerStatics.draftStorageKeyPrefix}:${FOLLOWUP_SCOPE_KEY}`;
 
 describe('ChatInputWidget', () => {
   describe('rendering', () => {
@@ -40,7 +62,7 @@ describe('ChatInputWidget', () => {
       expect(proxy.getThumbnailSrcs()).toStrictEqual([]);
     });
 
-    it('VALID: {isStreaming: true} => renders STOP_BUTTON, no SEND_BUTTON, and a non-editable editor', () => {
+    it('VALID: {isStreaming: true, no send in flight} => #check-composer-typable-while-agent-streams renders STOP_BUTTON, no SEND_BUTTON, and CHAT_INPUT stays editable', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
@@ -54,9 +76,16 @@ describe('ChatInputWidget', () => {
         ),
       });
 
+      // The STOP/SEND swap tracks `isStreaming` (the agent's turn) and is unaffected by this
+      // widget's own editability rule below — both are asserted here so a regression to either
+      // half is caught in the same test.
       expect(screen.getByTestId('STOP_BUTTON')).toBe(screen.getByTestId('STOP_BUTTON'));
       expect(screen.queryByTestId('SEND_BUTTON')).toBe(null);
-      expect(screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable')).toBe('false');
+      // Editability tracks `isSending` (this composer's own in-flight POST) alone, never
+      // `isStreaming` — a turn can run long after its POST has already resolved, and the composer
+      // must not stay locked for the length of that turn. No send has been issued in this test, so
+      // CHAT_INPUT is editable even though the agent is (per `isStreaming`) still streaming.
+      expect(screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable')).toBe('true');
     });
   });
 
@@ -887,7 +916,7 @@ describe('ChatInputWidget', () => {
 
       fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'B' }) });
 
-      expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe('A[Pasted Image 1]B');
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('A[Pasted Image 1]B');
     });
   });
 
@@ -997,7 +1026,7 @@ describe('ChatInputWidget', () => {
 
       fireEvent.paste(firstEditor, { clipboardData: proxy.pasteText({ text: 'B' }) });
 
-      const draftBeforeReload = localStorage.getItem(chatComposerStatics.draftStorageKey);
+      const draftBeforeReload = localStorage.getItem(DRAFT_STORAGE_KEY);
 
       firstRender.unmount();
 
@@ -1026,7 +1055,7 @@ describe('ChatInputWidget', () => {
         clipboardData: proxy.pasteText({ text: '' }),
       });
 
-      expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe(draftBeforeReload);
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(draftBeforeReload);
     });
 
     // The design decision restored-draft-sends-like-any-other: the reload path is not finished when
@@ -1289,7 +1318,7 @@ describe('ChatInputWidget', () => {
         'e2000000-0000-4000-8000-000000000001',
       ]);
 
-      await draftImagesSaveBroker({ attachments: survivingRecords });
+      await draftImagesSaveBroker({ scopeKey: SCOPE_KEY, attachments: survivingRecords });
 
       firstRender.unmount();
 
@@ -1321,7 +1350,7 @@ describe('ChatInputWidget', () => {
     it('EDGE: {localStorage holds "A[Pasted Image 1]B", IndexedDB draft store is empty} => #check-orphaned-token-drops-alone the surrounding text restores and the token is gone', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      localStorage.setItem(chatComposerStatics.draftStorageKey, 'A[Pasted Image 1]B');
+      localStorage.setItem(DRAFT_STORAGE_KEY, 'A[Pasted Image 1]B');
 
       mantineRenderAdapter({
         ui: (
@@ -1389,7 +1418,7 @@ describe('ChatInputWidget', () => {
         setTimeout(resolve, 0);
       });
 
-      expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe(null);
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(null);
     });
   });
 
@@ -1466,7 +1495,7 @@ describe('ChatInputWidget', () => {
       editor.textContent = 'hand typed text';
       fireEvent.input(editor);
 
-      expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe('hand typed text');
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('hand typed text');
     });
 
     it('VALID: {typed text, no image in composer} => #check-typing-clears-placeholder removes the CHAT_INPUT_PLACEHOLDER element', () => {
@@ -2130,7 +2159,7 @@ describe('ChatInputWidget', () => {
         ]);
       });
 
-      const draftBeforeSend = localStorage.getItem(chatComposerStatics.draftStorageKey);
+      const draftBeforeSend = localStorage.getItem(DRAFT_STORAGE_KEY);
 
       fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
 
@@ -2138,7 +2167,7 @@ describe('ChatInputWidget', () => {
         expect(proxy.isEditorEditable()).toBe(true);
       });
 
-      expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe(draftBeforeSend);
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(draftBeforeSend);
 
       const expectedDataBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
       const expectedByteLength = base64ByteLengthTransformer({ dataBase64: expectedDataBase64 });
@@ -2189,7 +2218,7 @@ describe('ChatInputWidget', () => {
       // believes this exact attachment id list is what it last saved — the scenario `force` exists
       // for. Without `force: true` on the rejection path, handleContentChanged would see the
       // (unchanged) id list and skip the write, leaving this store empty.
-      await draftImagesSaveBroker({ attachments: [] });
+      await draftImagesSaveBroker({ scopeKey: SCOPE_KEY, attachments: [] });
 
       fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
 
@@ -2337,7 +2366,7 @@ describe('ChatInputWidget', () => {
       fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
 
       await waitFor(() => {
-        expect(localStorage.getItem(chatComposerStatics.draftStorageKey)).toBe(null);
+        expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(null);
       });
 
       await expect(proxy.getStoredDraftImages()).resolves.toStrictEqual([]);
@@ -2409,6 +2438,320 @@ describe('ChatInputWidget', () => {
       });
 
       expect(proxy.hasProgressBar()).toBe(false);
+    });
+  });
+
+  describe('the dispatched stamp — a send that leaves the browser but never resolves in this document', () => {
+    it('VALID: {Enter pressed, response never resolves} => #check-stamp-set-before-response localStorage carries the dispatched stamp for this scope the instant the send fires', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe('true');
+    });
+
+    it('VALID: {send accepted} => #check-stamp-cleared-on-acceptance the dispatched stamp is removed', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.isEditorEditable()).toBe(true);
+      });
+
+      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe(null);
+    });
+
+    it('ERROR: {send rejected} => #check-stamp-cleared-on-rejection the dispatched stamp is removed while the draft text survives', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      const onSendMessage = jest.fn(
+        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      );
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.isEditorEditable()).toBe(true);
+      });
+
+      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe(null);
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('hello');
+    });
+
+    // THE RED CASE for the reload-races-an-accepted-send defect: a page reload racing the response
+    // is simulated the same way "the reload restore" describe block above simulates one — unmount,
+    // then mount a fresh widget instance — except here the FIRST widget's own send never resolves
+    // before the unmount, exactly like a real reload cutting off a pending fetch's continuation
+    // mid-flight (the request itself would have reached the server for real; this document just
+    // never lives long enough to see the response). localStorage and the fake IndexedDB both
+    // persist across the unmount, same as a real browser's storage survives a real reload.
+    it('VALID: {text + image sent, response still pending, reload before it resolves} => #check-dispatched-draft-not-restored the composer restores empty and both draft stores are cleared, not re-offering an already-dispatched message', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+
+      const firstRender = mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => new Promise<void>(() => {}))}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const firstEditor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(firstEditor, { clipboardData: proxy.pasteText({ text: 'A' }) });
+
+      proxy.attachYields({
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'f1000000-0000-4000-8000-000000000001',
+        }),
+      });
+      fireEvent.paste(firstEditor, {
+        clipboardData: proxy.pasteImage({
+          mediaType: 'image/png',
+          bytes: new Uint8Array([1, 2, 3, 4]),
+        }),
+      });
+      await waitFor(() => {
+        expect(proxy.getThumbnailAttachmentIds()).toStrictEqual([
+          'f1000000-0000-4000-8000-000000000001',
+        ]);
+      });
+      // Lets the paste's own async draft-images write settle before the send below, so nothing
+      // from the PASTE is still in flight when the simulated reload discards this render — the
+      // defect under test is about the SEND's own dispatched stamp, not a paste/reload race
+      // "durable write ordering" already covers elsewhere.
+      await waitFor(() => {
+        expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('A[Pasted Image 1]');
+      });
+
+      // Enter fires the send — onSendMessage's promise never settles in THIS document, exactly
+      // like a real request whose response arrives only after the tab reloads.
+      fireEvent.keyDown(firstEditor, { key: 'Enter', shiftKey: false });
+
+      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe('true');
+
+      // Simulated reload: the pending onSendMessage promise (and its never-firing .then/.catch) is
+      // discarded along with the whole first render, same as a real page unload discards an
+      // in-flight fetch's continuation.
+      firstRender.unmount();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe(null);
+      });
+
+      // The composer's whole post-reload state as ONE strict object — what is on screen and what
+      // both draft stores still hold. Four separate expects say the same thing and put this test
+      // over jest/max-expects, which counts the three waitFor assertions above as well.
+      expect({
+        editorText: proxy.getEditorText(),
+        thumbnailAttachmentIds: proxy.getThumbnailAttachmentIds(),
+        storedDraftText: localStorage.getItem(DRAFT_STORAGE_KEY),
+        storedDraftImages: await proxy.getStoredDraftImages(),
+      }).toStrictEqual({
+        editorText: '',
+        thumbnailAttachmentIds: [],
+        storedDraftText: null,
+        storedDraftImages: [],
+      });
+    });
+  });
+
+  describe('a scope change on a live composer', () => {
+    it("VALID: {a main-scope draft restored, then the same instance re-scoped to the follow-up surface} => #check-scope-change-clears-editor the editor empties instead of carrying the first scope's text into the second", async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      localStorage.setItem(MAIN_DRAFT_STORAGE_KEY, 'first scope draft');
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={[`/test-guild/quest/${SCOPE_CHANGE_QUEST_ID}`]}>
+            <Routes>
+              <Route
+                path="/:guildSlug/quest/:questId"
+                element={
+                  <ChatInputWidget
+                    isStreaming={false}
+                    onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+                    onStopChat={jest.fn()}
+                    surface="main"
+                  />
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getEditorText()).toBe('first scope draft');
+      });
+
+      // Same MemoryRouter, same Route, same widget instance — only `surface` changes, so the
+      // composer keeps its DOM and its refs while composerScopeKeyTransformer hands it a different
+      // scope. No unmount happens, which is the whole point: an unmount would clear the editor on
+      // its own and prove nothing.
+      rerender(
+        <MemoryRouter initialEntries={[`/test-guild/quest/${SCOPE_CHANGE_QUEST_ID}`]}>
+          <Routes>
+            <Route
+              path="/:guildSlug/quest/:questId"
+              element={
+                <ChatInputWidget
+                  isStreaming={false}
+                  onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+                  onStopChat={jest.fn()}
+                  surface="followup"
+                />
+              }
+            />
+          </Routes>
+        </MemoryRouter>,
+      );
+
+      // Turns red at 'first scope draft': the follow-up scope has no draft of its own, and
+      // restoreDraft's nothing-to-restore early return leaves whatever is already on screen — which
+      // is the previous scope's text, now sitting in a composer that never held it.
+      expect(proxy.getEditorText()).toBe('');
+
+      // One keystroke in that window is all it takes. Typing into the re-scoped composer must
+      // persist the EMPTY editor, not the text the previous scope put there.
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.input(editor);
+
+      // Turns red at 'first scope draft' — that is the leak itself: the first scope's text written
+      // into the second scope's key.
+      expect(localStorage.getItem(FOLLOWUP_DRAFT_STORAGE_KEY)).toBe(null);
+      // Turns red at null if the clear ever routes through handleContentChanged — writing the
+      // now-empty editor back out would delete the draft the ORIGINAL scope is still entitled to.
+      expect(localStorage.getItem(MAIN_DRAFT_STORAGE_KEY)).toBe('first scope draft');
+    });
+  });
+
+  describe('the pre-scoping localStorage draft migration', () => {
+    it('VALID: {a bare dungeonmaster-chat-draft key left behind by a pre-scoping tab} => #check-legacy-draft-adopted the draft restores, lands under the create scope, and the bare key is removed', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      // The pre-scoping key: the prefix read ALONE, with no ":<scopeKey>" suffix.
+      localStorage.setItem(chatComposerStatics.draftStorageKeyPrefix, 'legacy draft');
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      // Turns red at '' — a composer that never adopts the bare key restores an empty editor and
+      // the user's draft is simply gone.
+      await waitFor(() => {
+        expect(proxy.getEditorText()).toBe('legacy draft');
+      });
+
+      // Turns red at null — the adopted text has to be written under the create surface's own
+      // scoped key, or the very next mount finds nothing and the bare key is already deleted.
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('legacy draft');
+      // Turns red at 'legacy draft' — removing the bare key is the destructive half of this
+      // migration, and the half that has to be paired with the write above to be safe.
+      expect(localStorage.getItem(chatComposerStatics.draftStorageKeyPrefix)).toBe(null);
+    });
+
+    it('VALID: {mount, unmount, remount with the bare key already adopted} => #check-legacy-draft-migration-idempotent the bare key stays absent and the scoped draft is unchanged', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      localStorage.setItem(chatComposerStatics.draftStorageKeyPrefix, 'legacy draft');
+
+      const firstRender = mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('legacy draft');
+      });
+
+      firstRender.unmount();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getEditorText()).toBe('legacy draft');
+      });
+
+      // Turns red at 'legacy draft' — a second adoption pass would have to resurrect the bare key
+      // first, so any value here at all means the migration is not the once-only branch it claims.
+      expect(localStorage.getItem(chatComposerStatics.draftStorageKeyPrefix)).toBe(null);
+      // Turns red at null — the remount reads the scoped key and must leave it exactly as the first
+      // mount wrote it.
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('legacy draft');
     });
   });
 });

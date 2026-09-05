@@ -5,17 +5,19 @@ import { PastedImageDraftStub } from './pasted-image-draft.stub';
 
 describe('pastedImageDraftContract', () => {
   describe('valid inputs', () => {
-    it('VALID: {attachmentId, mediaType, dataBase64} => parses the whole draft record', () => {
+    it('VALID: {attachmentId, mediaType, dataBase64, scopeKey} => parses the whole draft record', () => {
       const result = pastedImageDraftContract.parse({
         attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'quest-a',
       });
 
       expect(result).toStrictEqual({
         attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'quest-a',
       });
     });
   });
@@ -49,16 +51,23 @@ describe('pastedImageDraftContract', () => {
         `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,
       );
     });
+
+    it('INVALID: {scopeKey: ""} => throws for empty scopeKey', () => {
+      expect(() => PastedImageDraftStub({ scopeKey: '' as never })).toThrow(
+        /String must contain at least 1/u,
+      );
+    });
   });
 
   describe('stub', () => {
-    it('VALID: {default} => creates a draft with the default pair', () => {
+    it('VALID: {default} => creates a draft with the default pair, scoped to the create surface', () => {
       const result = PastedImageDraftStub();
 
       expect(result).toStrictEqual({
         attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'create',
       });
     });
 
@@ -69,6 +78,18 @@ describe('pastedImageDraftContract', () => {
         attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         mediaType: 'image/gif',
         dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'create',
+      });
+    });
+
+    it('VALID: {scopeKey: "quest-a"} => creates a draft scoped to the overridden quest', () => {
+      const result = PastedImageDraftStub({ scopeKey: 'quest-a' as never });
+
+      expect(result).toStrictEqual({
+        attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        mediaType: 'image/png',
+        dataBase64: 'iVBORw0KGgo=',
+        scopeKey: 'quest-a',
       });
     });
   });

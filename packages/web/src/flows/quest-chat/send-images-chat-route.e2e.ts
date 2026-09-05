@@ -10,6 +10,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
+import { chatControlHarness } from '../../../test/harnesses/chat-control/chat-control.harness';
 import {
   SessionIdStub,
   TimeoutMsStub,
@@ -42,6 +43,14 @@ const UPLOAD_THROTTLE_BYTES_PER_SEC = 200_000;
 
 const FORWARD_DELAY_MS = 3_000;
 const FORWARD_REPLY_TEXT = 'This reply streamed in after the HTTP response already resolved';
+
+// Held far past the assertion window below — the whole point of this delay is that it CANNOT
+// have elapsed by the time CHAT_INPUT is asserted editable again, so that assertion can only pass
+// if editability is gated on the response rather than on the turn ending.
+const HELD_BACK_TURN_DELAY_MS = 20_000;
+// A window many times shorter than HELD_BACK_TURN_DELAY_MS — generous for CI jitter around a real
+// HTTP round trip, hopeless for anything that is secretly waiting on the held-back turn instead.
+const CHAT_INPUT_UNLOCK_TIMEOUT_MS = 2_000;
 
 // How long delayXhrDispatch holds the chat POST's real dispatch back — long enough that a second
 // paste, driven through a real page.evaluate round trip, reliably lands well before the request
@@ -592,6 +601,120 @@ test.describe('Composer send — images ride the chat route', () => {
       contentEditable: 'true',
       sendDisabled: false,
     });
+  });
+
+  // design decision #http-response-and-agent-spawn-fork: forward-to-orchestrator answers the
+  // browser and spawns the CLI on two SEPARATE outgoing edges — the response must not wait on the
+  // spawn. CHAT_INPUT's editability has to track the first edge (the POST settling), never the
+  // second (the agent's turn, which can run for a whole model turn). The turn here is held back
+  // far past this test's own assertion window so the two edges can never be mistaken for one
+  // another. STOP_BUTTON legitimately keeps standing in for SEND_BUTTON for as long as the
+  // still-running turn lasts — this test leaves that swap untouched and asserts it stays STOP.
+  // #check-composer-typable-while-agent-streams
+  test('VALID: {send with 2 images, agent turn held far past the response} => CHAT_INPUT becomes editable again once the HTTP response settles, while STOP_BUTTON still stands in for the still-running turn', async ({
+    page,
+    request,
+  }) => {
+    test.slow();
+
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const chatControl = chatControlHarness({ page });
+    const guild = await guilds.createGuild({ name: 'Send Editable Guild', path: GUILD_PATH });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    await chatControl.recordTransitions();
+
+    const sessionId = `e2e-send-editable-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Send Editable Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-0000000000f8',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+
+    const sessionIdStub = SessionIdStub({ value: sessionId });
+    claudeMock.queueResponse({
+      response: {
+        sessionId: sessionIdStub,
+        delayMs: TimeoutMsStub({ value: HELD_BACK_TURN_DELAY_MS }),
+        lines: [
+          streamLineToJsonLineTransformer({
+            streamLine: SystemInitStreamLineStub({ session_id: sessionIdStub }),
+          }),
+          streamLineToJsonLineTransformer({
+            streamLine: AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [{ type: 'text', text: 'Held back past the assertion window' }],
+              },
+            }),
+          }),
+        ],
+      },
+    });
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    const composer = composerPasteHarness({ page });
+    await composer.focusComposer();
+    const dataUrl1 = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 1,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl1) });
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+    const dataUrl2 = await composer.buildImageDataUrl({
+      widthPx: IMAGE_SIZE_PX,
+      heightPx: IMAGE_SIZE_PX,
+      seed: 2,
+    });
+    await composer.pasteImage({ dataUrl: String(dataUrl2) });
+    await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(2);
+
+    const chatResponsePromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' && res.url().endsWith(`/api/quests/${questId}/chat`),
+    );
+    await page.keyboard.press('Enter');
+    const chatResponse = await chatResponsePromise;
+    expect(chatResponse.status()).toBe(HTTP_OK);
+
+    // The distinguishing assertion: editable again inside a window many times shorter than
+    // HELD_BACK_TURN_DELAY_MS, so this can only pass if CHAT_INPUT is gated on the response having
+    // settled, not on the turn having ended — the held-back turn cannot possibly have finished yet.
+    await expect(page.getByTestId('CHAT_INPUT')).toHaveAttribute('contenteditable', 'true', {
+      timeout: CHAT_INPUT_UNLOCK_TIMEOUT_MS,
+    });
+
+    // The turn genuinely has not ended at that moment — STOP_BUTTON still stands in for
+    // SEND_BUTTON, unchanged by this fix, which is what makes the assertion above meaningful
+    // rather than coincidental (a composer that ends its turn early would pass it vacuously).
+    await expect(page.getByTestId('STOP_BUTTON')).toBeVisible();
+    await expect(page.getByTestId('SEND_BUTTON')).not.toBeVisible();
+
+    const seen = await chatControl.readTransitions();
+    expect(seen).toStrictEqual(['SEND_BUTTON', 'STOP_BUTTON']);
   });
 
   // An aborted /chat POST used to leave the composer stuck non-editable until a full page reload:

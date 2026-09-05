@@ -229,12 +229,8 @@ test.describe('Transcript renders images', () => {
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, { timeout: PANEL_TIMEOUT });
 
-    // parseTranscriptSegmentsTransformer cuts the content at the sentinel's own index, so the
-    // pre-sentinel text is everything BEFORE "<!-- dungeonmaster:images -->" byte-for-byte — the two
-    // newlines appendImagesPromptTrailer inserts between the composed content and the sentinel are
-    // part of that pre-sentinel text, not stripped.
     const bubbleText = await images.readBubbleText({ page });
-    expect(bubbleText).toBe('AB\n\n');
+    expect(bubbleText).toBe('AB');
 
     await expect(page.getByText(String(images.getPromptInstructionText()))).toHaveCount(0);
   });

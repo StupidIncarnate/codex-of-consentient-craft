@@ -4,17 +4,24 @@
  * its children (that would reset the caret on every paste), so all content lives in the live DOM and
  * is read back out through `domComposerReadAdapter` whenever something needs to know what the
  * composer currently holds. Text drafts persist to localStorage; pasted-image bytes persist to
- * IndexedDB, both across tab close/reopen.
+ * IndexedDB, both across tab close/reopen, and both keyed by composerScopeKeyTransformer's
+ * questId+surface scope so one composer's draft can never overwrite or restore into another's. A
+ * send also stamps its scope as dispatched before the request leaves the browser, so a reload that
+ * outruns the response restores nothing for a message the server may already hold — see
+ * chatComposerStatics.draftDispatchedKeyPrefix.
  *
  * USAGE:
  * <ChatInputWidget isStreaming={isStreaming} onSendMessage={handleSend} onStopChat={handleStop} />
- * // Renders a contenteditable composer with send or stop button, restores draft text and images on mount
+ * // Renders a contenteditable composer with send or stop button, restores THIS composer's own
+ * // draft text and images on mount — scoped by the URL's questId (or the create-surface sentinel
+ * // when absent) and by `surface` ('main' by default; the FOLLOW-UP composer passes 'followup')
  */
 
 import { Box, UnstyledButton } from '@mantine/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
-import type { PastedImageUpload, UserInput } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, QuestId, UserInput } from '@dungeonmaster/shared/contracts';
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
@@ -31,6 +38,7 @@ import { pastedImageAttachBroker } from '../../brokers/pasted-image/attach/paste
 import { attachmentIdContract } from '../../contracts/attachment-id/attachment-id-contract';
 import type { AttachmentId } from '../../contracts/attachment-id/attachment-id-contract';
 import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
+import type { ComposerScopeKey } from '../../contracts/composer-scope-key/composer-scope-key-contract';
 import { composerSendPayloadContract } from '../../contracts/composer-send-payload/composer-send-payload-contract';
 import type { ImageDataUrl } from '../../contracts/image-data-url/image-data-url-contract';
 import { uploadPercentContract } from '../../contracts/upload-percent/upload-percent-contract';
@@ -40,6 +48,8 @@ import { isAllowedPasteMediaTypeGuard } from '../../guards/is-allowed-paste-medi
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { composerParseDraftTransformer } from '../../transformers/composer-parse-draft/composer-parse-draft-transformer';
+import { composerScopeKeyTransformer } from '../../transformers/composer-scope-key/composer-scope-key-transformer';
+import type { ComposerSurface } from '../../transformers/composer-scope-key/composer-scope-key-transformer';
 import { composerSerializeTransformer } from '../../transformers/composer-serialize/composer-serialize-transformer';
 import { dataUrlSplitTransformer } from '../../transformers/data-url-split/data-url-split-transformer';
 import { pasteMediaTypeNormalizeTransformer } from '../../transformers/paste-media-type-normalize/paste-media-type-normalize-transformer';
@@ -58,14 +68,30 @@ export interface ChatInputWidgetProps {
     onProgress?: UploadProgressHandler;
   }) => Promise<void>;
   onStopChat: () => void;
+  // Which composer this instance is — the quest's main (spec-phase) composer, sharing this
+  // widget's draft with the create surface once a quest exists, or the FOLLOW-UP (tavernkeeper)
+  // composer in the execution panel, which must never share a draft with the main one even though
+  // both mount on the SAME quest at the SAME URL. Defaults to 'main': every call site except
+  // ExecutionPanelWidget's follow-up tab wants the default. See composerScopeKeyTransformer.
+  surface?: ComposerSurface;
 }
 
 export const ChatInputWidget = ({
   isStreaming,
   onSendMessage,
   onStopChat,
+  surface = 'main',
 }: ChatInputWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
+  // Read directly from the URL rather than threaded down as a prop — every composer mount already
+  // sits under /:guildSlug/quest or /:guildSlug/quest/:questId, so this is the SAME questId
+  // QuestChatContentLayerWidget derives from its own useParams() call three layers up, without
+  // adding a questId prop to ChatPanelWidget/ChatInputWidget that every existing call site (and
+  // every existing test) would have to start threading through. See composerScopeKeyTransformer's
+  // header for why this, `surface`, and the create-surface sentinel together decide the draft.
+  const params = useParams();
+  const questId = (params.questId as QuestId | undefined) ?? null;
+  const composerScope = composerScopeKeyTransformer({ questId, surface });
   const editorRef = useRef<HTMLDivElement | null>(null);
   // The bytes for every attachment currently in the composer. A ref rather than state — nothing
   // rendered by React ever depends on its contents (thumbnails live in the raw DOM, not JSX), so
@@ -83,6 +109,14 @@ export const ChatInputWidget = ({
   // character typed would rewrite.
   const lastSavedAttachmentIdsRef = useRef<readonly AttachmentId[]>([]);
   const cancelledRestoreRef = useRef(false);
+  // The scope whose draft this instance is currently showing. One ChatInputWidget instance outlives
+  // a change of scope — the create surface's composer is still mounted when the route gains a
+  // questId, and the follow-up tab re-points the same composer at a different surface — so
+  // restoreDraft compares this against the scope it is about to restore and empties the editor when
+  // they differ. `null` means nothing has been restored yet (a genuinely fresh mount), which must
+  // NOT clear: the editor is already empty and a user who typed into it before the first restore
+  // settled would lose that. See restoreDraft.
+  const restoredScopeRef = useRef<ComposerScopeKey | null>(null);
   // Mirrors `isSending` for a synchronous read. React state updates are not visible to a second
   // synchronous call in the SAME tick — two clicks fired back-to-back with no await between them
   // both close over the render that was current when the burst started, so a state-only guard lets
@@ -98,21 +132,47 @@ export const ChatInputWidget = ({
   const [isSending, setIsSending] = useState(false);
   const [uploadPercent, setUploadPercent] = useState<UploadPercent | null>(null);
 
+  // Stamps/clears the "this draft's send already left the browser" marker — see
+  // chatComposerStatics.draftDispatchedKeyPrefix's own header for the full mechanics. Two tiny
+  // standalone callbacks (not folded into handleSend) so restoreDraft below can reach the SAME
+  // clear semantics without duplicating the key-building.
+  const markDraftDispatched = useCallback((): void => {
+    const dispatchedKey = `${chatComposerStatics.draftDispatchedKeyPrefix}:${composerScope}`;
+    try {
+      localStorage.setItem(dispatchedKey, 'true');
+    } catch {
+      // localStorage unavailable
+    }
+  }, [composerScope]);
+
+  const clearDraftDispatchedStamp = useCallback((): void => {
+    const dispatchedKey = `${chatComposerStatics.draftDispatchedKeyPrefix}:${composerScope}`;
+    try {
+      localStorage.removeItem(dispatchedKey);
+    } catch {
+      // localStorage unavailable
+    }
+  }, [composerScope]);
+
   // Writes the localStorage half of the draft only. A standalone callback (not inlined into
   // handleContentChanged below) because WHEN it runs now depends on whether the attachment list
   // changed this call: unchanged, handleContentChanged calls this immediately; changed, it waits on
   // the IndexedDB write settling first — see that callback for why the ordering matters.
-  const writeTextDraft = useCallback(({ text }: { text: string }): void => {
-    try {
-      if (text.length > 0) {
-        localStorage.setItem(chatComposerStatics.draftStorageKey, text);
-      } else {
-        localStorage.removeItem(chatComposerStatics.draftStorageKey);
+  const writeTextDraft = useCallback(
+    ({ text }: { text: string }): void => {
+      const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
+      try {
+        if (text.length > 0) {
+          localStorage.setItem(scopedKey, text);
+        } else {
+          localStorage.removeItem(scopedKey);
+        }
+      } catch {
+        // localStorage unavailable
       }
-    } catch {
-      // localStorage unavailable
-    }
-  }, []);
+    },
+    [composerScope],
+  );
 
   // Reads the live DOM, persists the text half to localStorage and the image half to IndexedDB
   // (only when the attachment id list changed — see the ref above). Wired below to the editor's
@@ -166,7 +226,7 @@ export const ChatInputWidget = ({
       // plain text. A failed write leaves the text draft exactly where it was (see the "durable
       // write ordering" describe block in this widget's test): the token for THIS content is never
       // written unless the bytes behind it committed first.
-      draftImagesSaveBroker({ attachments: orderedAttachments })
+      draftImagesSaveBroker({ scopeKey: composerScope, attachments: orderedAttachments })
         .then(() => {
           writeTextDraft({ text });
         })
@@ -174,7 +234,7 @@ export const ChatInputWidget = ({
           globalThis.console.error('[chat-input] failed to save draft images', error);
         });
     },
-    [writeTextDraft],
+    [writeTextDraft, composerScope],
   );
 
   const handlePaste = useCallback(
@@ -322,6 +382,12 @@ export const ChatInputWidget = ({
     // state setter above cannot guarantee.
     isSendingRef.current = true;
     setIsSending(true);
+    // Stamped HERE — before onSendMessage, before any await — so the stamp is durably in
+    // localStorage the instant this send leaves the browser. A page reload racing the response
+    // (the response can arrive at the server and be accepted while the reload wins the race to
+    // this document's own JS) still finds the stamp on the next mount; see restoreDraft. Cleared
+    // in `.then`/`.catch` below the moment THIS document learns the outcome either way.
+    markDraftDispatched();
     if (images.length > 0) {
       setUploadPercent(uploadPercentContract.parse(chatComposerStatics.upload.minPercent));
     }
@@ -351,6 +417,8 @@ export const ChatInputWidget = ({
         // exactly where it was already saved (nothing survived) or genuinely changed (something
         // did), and either way this is the read that has to run.
         handleContentChanged({ force: true });
+        // This document saw the acceptance — the stamp has done its job for this send.
+        clearDraftDispatchedStamp();
       })
       .catch((error: unknown) => {
         mantineNotificationsShowAdapter({
@@ -361,13 +429,16 @@ export const ChatInputWidget = ({
         // attachment id list can be unchanged since the last save) — the composer's recoverability
         // must not depend on a write that already happened to have occurred.
         handleContentChanged({ force: true });
+        // This document saw the rejection — clear the stamp so a future restore offers this
+        // (still-intact) draft back normally, rather than treating it as already delivered.
+        clearDraftDispatchedStamp();
       })
       .finally(() => {
         isSendingRef.current = false;
         setIsSending(false);
         setUploadPercent(null);
       });
-  }, [onSendMessage, handleContentChanged]);
+  }, [onSendMessage, handleContentChanged, markDraftDispatched, clearDraftDispatchedStamp]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>): void => {
@@ -458,20 +529,77 @@ export const ChatInputWidget = ({
     };
   }, [handleBeforeInput]);
 
-  // Restores a draft left behind by a previous tab. Deliberately a no-op when there is nothing to
-  // restore (both halves empty) — writing an empty segment list would call `replaceChildren()` on
+  // Restores a draft left behind by a previous tab, SCOPED to this composer alone — see
+  // composerScopeKeyTransformer's header. Deliberately a no-op when there is nothing to restore
+  // (both halves empty) — writing an empty segment list would call `replaceChildren()` on
   // whatever the user has ALREADY typed or pasted while this async restore was still in flight.
   const restoreDraft = useCallback(async (): Promise<void> => {
+    // A scope change empties the editor SYNCHRONOUSLY, before the text read and before the first
+    // `await`. Everything below this point is allowed to leave the editor alone when the NEW scope
+    // has nothing to restore — that early return is what stops an in-flight restore from
+    // `replaceChildren()`-ing over content the user typed while it was running — so without this
+    // clear the previous scope's text and thumbnails simply stay on screen, now belonging to the new
+    // scope: one keystroke then writes them into that scope's draft. Placed above the `await` so
+    // there is no window in which a keystroke can do that.
+    if (restoredScopeRef.current !== null && restoredScopeRef.current !== composerScope) {
+      const previousEditor = editorRef.current;
+      attachmentsRef.current = new Map();
+      lastSavedAttachmentIdsRef.current = [];
+      if (previousEditor !== null) {
+        domComposerWriteAdapter({ editor: previousEditor, segments: [], attachments: new Map() });
+      }
+      setIsEmpty(true);
+    }
+    restoredScopeRef.current = composerScope;
+
+    const wasDispatched = (() => {
+      try {
+        const dispatchedKey = `${chatComposerStatics.draftDispatchedKeyPrefix}:${composerScope}`;
+        return localStorage.getItem(dispatchedKey) !== null;
+      } catch {
+        return false;
+      }
+    })();
+
+    if (wasDispatched) {
+      // This composer's own document never learned whether its last send was accepted or
+      // rejected — the stamp survived to this mount, which happens when a page reload (or tab
+      // close) outran the response. Treat it as delivered: clear the stamp and whatever the draft
+      // still holds, and leave the composer exactly as empty as a mount with no draft at all,
+      // rather than re-offering content the transcript may already show as sent (the duplicate-
+      // send bug this exists to prevent). `handleContentChanged({force: true})` against the still-
+      // empty, freshly-mounted editor is what performs that clear — the SAME codepath handleSend's
+      // own `.then` uses for an acceptance THIS document did see; see that comment for why `force`
+      // is required.
+      clearDraftDispatchedStamp();
+      handleContentChanged({ force: true });
+      return;
+    }
+
+    const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
     const text = (() => {
       try {
-        return localStorage.getItem(chatComposerStatics.draftStorageKey) ?? '';
+        const scopedValue = localStorage.getItem(scopedKey);
+        if (scopedValue !== null) return scopedValue;
+        if (composerScope !== chatComposerStatics.draftScope.createScopeKey) return '';
+        // MIGRATION: a draft saved before per-composer scoping existed lived under one global
+        // key, shared by every quest and every tab. That old key carries no quest identity to
+        // recover, so the ONLY scope it can safely join is the create surface's — the one scope
+        // no real quest can ever collide with (see chatComposerStatics.draftScope.createScopeKey).
+        // Adopted once: written to the scoped key and the legacy key removed, so this branch is a
+        // no-op on every restore after the first.
+        const legacyValue = localStorage.getItem(chatComposerStatics.draftStorageKeyPrefix);
+        if (legacyValue === null) return '';
+        localStorage.setItem(scopedKey, legacyValue);
+        localStorage.removeItem(chatComposerStatics.draftStorageKeyPrefix);
+        return legacyValue;
       } catch {
         return '';
       }
     })();
 
     try {
-      const loadedAttachments = await draftImagesLoadBroker();
+      const loadedAttachments = await draftImagesLoadBroker({ scopeKey: composerScope });
       if (cancelledRestoreRef.current) return;
       if (text.length === 0 && loadedAttachments.length === 0) return;
 
@@ -508,7 +636,7 @@ export const ChatInputWidget = ({
     } catch (error) {
       globalThis.console.error('[chat-input] failed to restore draft', error);
     }
-  }, []);
+  }, [composerScope, handleContentChanged, clearDraftDispatchedStamp]);
 
   useEffect(() => {
     cancelledRestoreRef.current = false;
@@ -527,7 +655,15 @@ export const ChatInputWidget = ({
           <div
             data-testid="CHAT_INPUT"
             ref={editorRef}
-            contentEditable={!isStreaming && !isSending}
+            // Gated on `isSending` alone — the settled-transaction flag for THIS composer's own
+            // POST — never on `isStreaming`. `isStreaming` answers "is the agent's turn still
+            // running", which the STOP/SEND swap below tracks correctly, but which can stay true
+            // for a whole model turn after the POST that started it has already resolved. Coupling
+            // editability to it locks the composer for the length of that turn instead of the
+            // length of the request — see design decision #http-response-and-agent-spawn-fork: the
+            // response and the spawn are two separate outgoing edges, and only the first one gates
+            // this.
+            contentEditable={!isSending}
             suppressContentEditableWarning
             onPaste={(event) => {
               handlePaste(event).catch((error: unknown) => {

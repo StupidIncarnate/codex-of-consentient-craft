@@ -48,6 +48,51 @@ describe('imageServeBroker', () => {
     expect(result).toBe(null);
   });
 
+  // The file is REAL here — it exists, it is readable, and its bytes are staged — so the only
+  // thing that can refuse it is where it sits. Drop the confinement check and this goes red with
+  // {bytes, contentType: 'image/png'} instead of null, which is exactly the defect: an allowed
+  // extension anywhere on the host used to be servable.
+  it('INVALID: {path: a readable .png outside any images directory} => null', async () => {
+    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/backup/id_rsa.png' });
+    const bytes = new Uint8Array([...PNG_SIGNATURE, 0x01, 0x02, 0x03]);
+    const proxy = imageServeBrokerProxy();
+    proxy.setupFileBytes({ filePath, bytes });
+
+    const result = await imageServeBroker({ path: filePath });
+
+    expect(result).toBe(null);
+  });
+
+  // Sibling of the case above, one directory deeper: the images directory that confines a file is
+  // the one holding it, not any images directory further up the tree. Red at {bytes, contentType}
+  // if the check is ever loosened to a prefix/startsWith test against an ancestor.
+  it('INVALID: {path: a readable .png in a subdirectory of an images directory} => null', async () => {
+    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/nested/abc.png' });
+    const bytes = new Uint8Array([...PNG_SIGNATURE, 0x04, 0x05, 0x06]);
+    const proxy = imageServeBrokerProxy();
+    proxy.setupFileBytes({ filePath, bytes });
+
+    const result = await imageServeBroker({ path: filePath });
+
+    expect(result).toBe(null);
+  });
+
+  // The directory IS called `images` and the file inside it is real and readable, so the
+  // containing-directory comparison alone lets this through — only the quest file next to that
+  // directory can refuse it, and there isn't one. Drop that probe and this goes red with
+  // {bytes, contentType: 'image/png'}: every `images` directory on the host becomes servable,
+  // which is a folder name far too ordinary to hang a boundary on.
+  it('INVALID: {path: a readable .png in an images directory whose parent holds no quest file} => null', async () => {
+    const filePath = AbsoluteFilePathStub({ value: '/home/user/Pictures/images/private.png' });
+    const bytes = new Uint8Array([...PNG_SIGNATURE, 0x07, 0x08, 0x09]);
+    const proxy = imageServeBrokerProxy();
+    proxy.setupFileBytesWithoutQuestFile({ filePath, bytes });
+
+    const result = await imageServeBroker({ path: filePath });
+
+    expect(result).toBe(null);
+  });
+
   it('ERROR: {read rejects ENOENT} => null', async () => {
     const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/missing.png' });
     const proxy = imageServeBrokerProxy();

@@ -33,10 +33,15 @@ const PANEL_TIMEOUT = 8_000;
 // Restated rather than imported: a harness may not import contract values, and these are the exact
 // literals the localStorage/IndexedDB draft-persistence adapters open — chatComposerStatics.ts
 // drifting from these must fail this harness's reads rather than silently follow it.
-const DRAFT_STORAGE_KEY = 'dungeonmaster-chat-draft';
+const DRAFT_STORAGE_KEY_PREFIX = 'dungeonmaster-chat-draft';
 const DRAFT_DATABASE_NAME = 'dungeonmaster-chat-drafts';
 const DRAFT_DATABASE_VERSION = 1;
 const DRAFT_STORE_NAME = 'dungeonmaster-chat-draft-images';
+// Restated from chatComposerStatics.draftScope.createScopeKey — every draft read below is scoped
+// to whichever composer is currently on screen, derived from the CURRENT page's own URL exactly
+// as composerScopeKeyTransformer derives it for the MAIN composer: the live quest route's questId
+// segment (guildSlug/quest/:questId), or this sentinel on the bare guildSlug/quest create route.
+const CREATE_SCOPE_KEY = 'create';
 // A store name the app itself would never create — seedDecoyDraftDatabase uses this to reproduce a
 // database that exists, at the right version, but whose expected store never got created.
 const DECOY_STORE_NAME = 'decoy-store';
@@ -559,15 +564,21 @@ const READ_DATABASE_STORE_NAMES_BROWSER_FN = async (params: {
   });
 
 // Opens the drafts database (creating the store if the app itself never has, on a truly empty
-// origin) and reads back every record in the images store, in getAll() order. Each record is
-// `{attachmentId, mediaType, dataBase64}`. Opened with NO explicit version (attaches to whatever
-// version currently exists, or creates fresh at version 1 on a truly empty origin) rather than the
-// app's own static version number — a healed database (see indexedDbDraftImagesReadAdapter) sits
-// ABOVE that static version, and opening below a database's current version throws VersionError
-// outright rather than attaching to it.
+// origin) and reads back every record BELONGING TO THE CURRENT COMPOSER in the images store, in
+// getAll() order, with `scopeKey` stripped back off — a test asserting `{attachmentId, mediaType,
+// dataBase64}` is asserting what was PASTED, not which composer the app happened to file it
+// under. "Current composer" mirrors composerScopeKeyTransformer's MAIN-surface rule: the live
+// quest route's questId segment (guildSlug/quest/:questId), or the create-surface sentinel on the
+// bare guildSlug/quest route — derived from the page's OWN URL rather than passed in, since a
+// page.evaluate callback cannot close over a Node-side helper. Opened with NO explicit version
+// (attaches to whatever version currently exists, or creates fresh at version 1 on a truly empty
+// origin) rather than the app's own static version number — a healed database (see
+// indexedDbDraftImagesReadAdapter) sits ABOVE that static version, and opening below a database's
+// current version throws VersionError outright rather than attaching to it.
 const READ_DRAFT_IMAGE_RECORDS_BROWSER_FN = async (params: {
   databaseName: string;
   storeName: string;
+  createScopeKey: string;
 }) => {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(params.databaseName);
@@ -600,16 +611,48 @@ const READ_DRAFT_IMAGE_RECORDS_BROWSER_FN = async (params: {
   });
 
   db.close();
-  return records;
+
+  const pathParts = window.location.pathname.split('/').filter((part) => part.length > 0);
+  const currentScopeKey =
+    pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : params.createScopeKey;
+
+  // getAll() hands back `unknown[]` — a real boundary crossing (this is the origin's own IndexedDB
+  // store, but the browser API gives no static guarantee of what a record actually holds) — so each
+  // record is checked for all four fields before anything reads off it. A record failing the check
+  // is dropped here rather than read as `undefined` three lines below.
+  const isDraftImageRecord = (
+    record: unknown,
+  ): record is {
+    scopeKey: unknown;
+    attachmentId: unknown;
+    mediaType: unknown;
+    dataBase64: unknown;
+  } =>
+    typeof record === 'object' &&
+    record !== null &&
+    'scopeKey' in record &&
+    'attachmentId' in record &&
+    'mediaType' in record &&
+    'dataBase64' in record;
+
+  return records
+    .filter(isDraftImageRecord)
+    .filter((record) => record.scopeKey === currentScopeKey)
+    .map((record) => ({
+      attachmentId: record.attachmentId,
+      mediaType: record.mediaType,
+      dataBase64: record.dataBase64,
+    }));
 };
 
-// Same IndexedDB open/getAll shape as READ_DRAFT_IMAGE_RECORDS_BROWSER_FN, projected down to just
-// the attachmentId column. Written as its own self-contained open (rather than deriving from that
-// function's result) for the same reason the over-cap corrupt-PNG bytes are built twice above: a
-// page.evaluate callback cannot close over a Node-side helper.
+// Same IndexedDB open/getAll/scope shape as READ_DRAFT_IMAGE_RECORDS_BROWSER_FN, projected down to
+// just the attachmentId column. Written as its own self-contained open (rather than deriving from
+// that function's result) for the same reason the over-cap corrupt-PNG bytes are built twice
+// above: a page.evaluate callback cannot close over a Node-side helper.
 const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
   databaseName: string;
   storeName: string;
+  createScopeKey: string;
 }) => {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(params.databaseName);
@@ -627,12 +670,12 @@ const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
     };
   });
 
-  const attachmentIds = await new Promise<unknown[]>((resolve, reject) => {
+  const records = await new Promise<unknown[]>((resolve, reject) => {
     const transaction = db.transaction([params.storeName], 'readonly');
     const store = transaction.objectStore(params.storeName);
     const getAllRequest = store.getAll();
     getAllRequest.onsuccess = (): void => {
-      resolve(getAllRequest.result.map((record) => record.attachmentId));
+      resolve(getAllRequest.result);
     };
     getAllRequest.onerror = (): void => {
       reject(
@@ -642,7 +685,37 @@ const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
   });
 
   db.close();
-  return attachmentIds;
+
+  const pathParts = window.location.pathname.split('/').filter((part) => part.length > 0);
+  const currentScopeKey =
+    pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : params.createScopeKey;
+
+  // Same per-record shape check as READ_DRAFT_IMAGE_RECORDS_BROWSER_FN above, duplicated rather than
+  // shared for the same reason the rest of this file duplicates browser-fn internals: a page.evaluate
+  // callback cannot close over a Node-side (or sibling-browser-fn) helper.
+  const isDraftImageRecord = (
+    record: unknown,
+  ): record is { scopeKey: unknown; attachmentId: unknown } =>
+    typeof record === 'object' && record !== null && 'scopeKey' in record && 'attachmentId' in record;
+
+  return records
+    .filter(isDraftImageRecord)
+    .filter((record) => record.scopeKey === currentScopeKey)
+    .map((record) => record.attachmentId);
+};
+
+// Reads the localStorage text draft belonging to whichever composer is currently on screen — same
+// "current composer" derivation as READ_DRAFT_IMAGE_RECORDS_BROWSER_FN above, duplicated inline
+// for the same reason.
+const READ_DRAFT_TEXT_BROWSER_FN = (params: {
+  storageKeyPrefix: string;
+  createScopeKey: string;
+}) => {
+  const pathParts = window.location.pathname.split('/').filter((part) => part.length > 0);
+  const currentScopeKey =
+    pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : params.createScopeKey;
+
+  return localStorage.getItem(`${params.storageKeyPrefix}:${currentScopeKey}`);
 };
 
 export const composerPasteHarness = ({
@@ -955,12 +1028,16 @@ export const composerPasteHarness = ({
   },
 
   readDraftText: async (): Promise<unknown> =>
-    page.evaluate((key) => localStorage.getItem(key), DRAFT_STORAGE_KEY),
+    page.evaluate(READ_DRAFT_TEXT_BROWSER_FN, {
+      storageKeyPrefix: DRAFT_STORAGE_KEY_PREFIX,
+      createScopeKey: CREATE_SCOPE_KEY,
+    }),
 
   readDraftImageRecords: async (): Promise<readonly unknown[]> =>
     page.evaluate(READ_DRAFT_IMAGE_RECORDS_BROWSER_FN, {
       databaseName: DRAFT_DATABASE_NAME,
       storeName: DRAFT_STORE_NAME,
+      createScopeKey: CREATE_SCOPE_KEY,
     }),
 
   // Same store, projected to just the attachmentId column — an orphaned-record assertion (N
@@ -971,6 +1048,7 @@ export const composerPasteHarness = ({
     page.evaluate(READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN, {
       databaseName: DRAFT_DATABASE_NAME,
       storeName: DRAFT_STORE_NAME,
+      createScopeKey: CREATE_SCOPE_KEY,
     }),
 
   focusComposer: async (): Promise<void> => {

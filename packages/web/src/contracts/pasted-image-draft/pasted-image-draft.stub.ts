@@ -10,5 +10,6 @@ export const PastedImageDraftStub = ({
     attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     mediaType: 'image/png',
     dataBase64: 'iVBORw0KGgo=',
+    scopeKey: 'create',
     ...props,
   });

@@ -58,6 +58,12 @@ export const webConfigStatics = {
     // Width and height of the placeholder shown where an image fails to load. Fixed so a 404
     // cannot stretch or collapse the bubble around it
     brokenThumbnailSizePx: 32,
+    // Caps the inline transcript render's height. The composer's own thumbnail already caps at
+    // chatComposerStatics.thumbnail.maxHeightPx/maxWidthPx before it is ever sent, so without a
+    // matching cap here a full-page screenshot (routinely ~1000x4000) renders at full bubble width
+    // and buries the transcript under one message. The overlay (opened on click) remains the only
+    // full-size view.
+    inlineImageMaxHeightPx: 200,
     // The full-size overlay's width as a share of the viewport width. The image is constrained
     // to this, so it is never wider than the browser
     overlayWidthPercent: 75,

@@ -448,6 +448,57 @@ describe('ChatStartResponder', () => {
     });
   });
 
+  describe('existingQuestId resolution', () => {
+    // chat-start-responder.ts's `else if (existingQuestId)` branch reassigns `chatQuestType`
+    // from the looked-up quest and derives the intake role from
+    // `questTypeRegistryStatics[chatQuestType].initialWorkItemRole` before calling
+    // chatSpawnBroker with that role. A bug-hunt quest's intake item is a `bughunt` work item,
+    // not `chaoswhisperer` — resolveChatQuestLayerBroker's existingQuestId branch throws
+    // "Quest <id> has no <role> work item" when chatSpawnBroker is called with a role that has
+    // no matching work item on the quest. So a hardcoded role, or a missed `chatQuestType`
+    // reassignment (leaving it at the 'feature' default, which derives 'chaoswhisperer'), turns
+    // this test red by making the whole call reject instead of resolve — there is no bughunt
+    // item on this quest for a wrongly-derived 'chaoswhisperer' lookup to find.
+    it('VALID: {existingQuestId names a bug-hunt quest whose bughunt work item has no sessionId} => resolves without throwing, proving the role was derived as bughunt', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub();
+      // Matches the sticky crypto.randomUUID literal chatSpawnBrokerProxy mocks (see
+      // CREATED_QUEST_ID in chat-spawn-broker.proxy.ts). setupResumeSession({exitCode}) (no
+      // questId) stages chatSpawnBrokerProxy's own cwd-resolution fixture for a quest with THIS
+      // id — questRepoRootBroker's own internal questFindQuestPathBroker lookup matches quest
+      // files purely by their `id` field, so reusing this literal is what lets that lookup find
+      // a fixture at all. setupQuestGetImmediate below overrides every questGetBroker call
+      // (including chatSpawnBroker's own resolution) to return THIS quest, so its role/questType
+      // content is what actually drives the assertion regardless of the fixture's own shape.
+      const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const bughuntWorkItem = WorkItemStub({
+        id: 'bbbbbbbb-1111-4222-9333-444444444444',
+        role: 'bughunt',
+        status: 'complete',
+      });
+      const quest = QuestStub({
+        id: questId,
+        questType: 'bug-hunt',
+        workItems: [bughuntWorkItem],
+      });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupQuestGetImmediate({ quest });
+
+      const result = await proxy.callResponder({
+        guildId,
+        message: 'Reproduce the crash again',
+        existingQuestId: questId,
+      });
+
+      expect(result).toStrictEqual({
+        chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questId,
+      });
+    });
+  });
+
   describe('chat-output buffered emit flush race', () => {
     it('VALID: {chat-output emits arrive BEFORE workItemId lookup resolves} => emits stay buffered then flush in order with questId+workItemId stamped', async () => {
       const proxy = ChatStartResponderProxy();

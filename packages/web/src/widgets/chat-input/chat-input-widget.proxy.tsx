@@ -12,9 +12,20 @@ import { draftImagesLoadBrokerProxy } from '../../brokers/draft-images/load/draf
 import { draftImagesSaveBrokerProxy } from '../../brokers/draft-images/save/draft-images-save-broker.proxy';
 import { pastedImageAttachBrokerProxy } from '../../brokers/pasted-image/attach/pasted-image-attach-broker.proxy';
 import type { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
+import { ComposerScopeKeyStub } from '../../contracts/composer-scope-key/composer-scope-key.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { ImageOverlayWidgetProxy } from '../image-overlay/image-overlay-widget.proxy';
 import { UploadProgressBarWidgetProxy } from '../upload-progress-bar/upload-progress-bar-widget.proxy';
+
+// None of ChatInputWidget's own tests wrap it in a <MemoryRouter> with a :questId param — the
+// widget's useParams() call then resolves questId to undefined, exactly like a render on the bare
+// /:guildSlug/quest create route, so composerScopeKeyTransformer resolves to this same sentinel for
+// EVERY test in that file. Restated (not imported) because a real render's own useParams() is what
+// actually decides scope; this proxy is naming the value it independently knows every ChatInputWidget
+// test resolves to, not deriving it.
+const WIDGET_TEST_SCOPE = ComposerScopeKeyStub({
+  value: chatComposerStatics.draftScope.createScopeKey,
+});
 
 const THUMBNAIL_SELECTOR = `img[${chatComposerStatics.thumbnail.attributeName}]`;
 
@@ -171,9 +182,10 @@ export const ChatInputWidgetProxy = (): {
     getOverlayImageSrc: (): HTMLImageElement['src'] | null => overlayProxy.getImageSrc(),
 
     // Reads the store back through the real broker (see the comment above the child-creation block)
-    // rather than through either broker proxy's own internal fake state.
+    // rather than through either broker proxy's own internal fake state. Scoped to the SAME sentinel
+    // every ChatInputWidget test resolves to — see WIDGET_TEST_SCOPE above.
     getStoredDraftImages: async (): ReturnType<typeof draftImagesLoadBroker> =>
-      draftImagesLoadBroker(),
+      draftImagesLoadBroker({ scopeKey: WIDGET_TEST_SCOPE }),
 
     isEditorEditable: (): boolean =>
       screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable') === 'true',

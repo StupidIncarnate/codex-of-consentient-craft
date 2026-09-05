@@ -11,10 +11,17 @@ interface FakeIndexedDbRequest {
   onerror: (() => void) | null;
 }
 
+interface FakeIndexedDbGetAllRequest {
+  result: unknown;
+  onsuccess: (() => void) | null;
+  onerror: (() => void) | null;
+}
+
 interface FakeIndexedDbTransaction {
   objectStore: () => {
     clear: () => unknown;
     add: (value: unknown) => unknown;
+    getAll: () => FakeIndexedDbGetAllRequest;
   };
   oncomplete: (() => void) | null;
   onerror: (() => void) | null;
@@ -93,16 +100,35 @@ export const indexedDbDraftImagesReplaceAdapterProxy = (): {
                 state.table.push(value);
                 return {};
               },
+              getAll: (): FakeIndexedDbGetAllRequest => {
+                const getAllRequest: FakeIndexedDbGetAllRequest = {
+                  result: undefined,
+                  onsuccess: null,
+                  onerror: null,
+                };
+
+                queueMicrotask((): void => {
+                  getAllRequest.result = [...state.table];
+                  getAllRequest.onsuccess?.();
+                });
+
+                return getAllRequest;
+              },
             }),
             oncomplete: null,
             onerror: null,
           };
 
-          // Scheduled now, read later: by the time this fires, the adapter has already run
-          // clear()/add() and assigned oncomplete synchronously, in the same turn that called
-          // transaction().
+          // Two microtask hops, not one: the adapter's own store.getAll() (above) resolves its
+          // onsuccess on ONE hop, and clear()/add() run synchronously INSIDE that handler — a
+          // same-hop oncomplete would fire before that handler has had a chance to run at all,
+          // resolving this transaction's promise before the replace actually happened. Real
+          // IndexedDB fires oncomplete only once every request on the transaction has settled;
+          // this is the fake's equivalent of waiting for that.
           queueMicrotask((): void => {
-            transaction.oncomplete?.();
+            queueMicrotask((): void => {
+              transaction.oncomplete?.();
+            });
           });
 
           return transaction;

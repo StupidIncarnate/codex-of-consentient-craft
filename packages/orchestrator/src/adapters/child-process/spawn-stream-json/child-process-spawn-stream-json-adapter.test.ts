@@ -1,6 +1,10 @@
 import { childProcessSpawnStreamJsonAdapter } from './child-process-spawn-stream-json-adapter';
 import { childProcessSpawnStreamJsonAdapterProxy } from './child-process-spawn-stream-json-adapter.proxy';
-import { RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  RepoRootCwdStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { spawnedOptionsSnapshotTransformer } from '../../../transformers/spawned-options-snapshot/spawned-options-snapshot-transformer';
@@ -66,6 +70,68 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '{"hooks":{}}',
         '--resume',
         'abc-123',
+      ]);
+    });
+  });
+
+  describe('addDir parameter', () => {
+    // packages/orchestrator/CLAUDE.md: `--add-dir` was confirmed against the installed Claude
+    // CLI (2.1.258) as a real, headless-`-p`-mode-accepted flag that grants Read access to a
+    // directory outside cwd, and confirmed to NOT error when that directory does not yet exist
+    // on disk. This is the cheap RED for that grant reaching argv — the boundary test lives in
+    // chat-spawn-broker.test.ts, which proves a real quest images path flows all the way here.
+    it('VALID: {addDir: quest images path} => appends --add-dir with that path after --resume', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      const imagesDir = AbsoluteFilePathStub({
+        value: '/home/user/.dungeonmaster/guilds/g1/quests/q1/images',
+      });
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
+        resumeSessionId: SessionIdStub({ value: 'abc-123' }),
+        model: ClaudeModelStub({ value: 'opus' }),
+        addDir: imagesDir,
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'Hello',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'opus',
+        '--chrome',
+        '--settings',
+        '{"hooks":{}}',
+        '--resume',
+        'abc-123',
+        '--add-dir',
+        '/home/user/.dungeonmaster/guilds/g1/quests/q1/images',
+      ]);
+    });
+
+    it('EMPTY: {addDir omitted} => argv carries no --add-dir flag at all', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'Hello',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'sonnet',
+        '--chrome',
       ]);
     });
   });

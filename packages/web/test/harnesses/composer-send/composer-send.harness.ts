@@ -281,6 +281,76 @@ const ABORT_XHR_AFTER_SEND_BROWSER_FN = (params: { urlSuffix: string }): void =>
   } as typeof XMLHttpRequest.prototype.send;
 };
 
+// Monkey-patches XMLHttpRequest so a request whose URL ends with `urlSuffix` reaches the network
+// completely UNTOUCHED — `.open`/`.send` run immediately, exactly as the app called them, so the
+// real request lands on the real server and the real server really answers it. What is delayed is
+// only the DELIVERY of that answer back into application JS: `addEventListener('load' | 'loadend' |
+// 'readystatechange', ...)` on a matching request wraps the listener so its invocation is deferred
+// by `delayMs` from whenever the browser would naturally have called it. This is what reproduces
+// the walker's own repro shape — "the request itself was real and really reached the server", only
+// the browser's notification of that to `xhrPostWithProgressAdapter`'s `load` listener (the one
+// thing standing between a real 200 and this document's `.then()` running) arrives late — widening
+// a race that a fast loopback round trip would otherwise win before a test script can act into a
+// window a `page.reload()` can reliably land inside. This is NOT `page.route`: nothing about the
+// request or response is faked or intercepted.
+const DELAY_XHR_RESPONSE_DELIVERY_BROWSER_FN = (params: {
+  urlSuffix: string;
+  delayMs: number;
+}): void => {
+  const originalOpen = XMLHttpRequest.prototype.open;
+  const originalAddEventListener = XMLHttpRequest.prototype.addEventListener;
+  const urlsByRequest = new WeakMap<XMLHttpRequest, unknown>();
+  const DELAYED_TYPES = new Set(['load', 'loadend', 'readystatechange']);
+
+  XMLHttpRequest.prototype.open = function delayXhrResponseDeliveryTrackedOpen(
+    this: XMLHttpRequest,
+    ...args: unknown[]
+  ): void {
+    urlsByRequest.set(this, args[1]);
+    (originalOpen as (...openArgs: unknown[]) => void).apply(this, args);
+  } as typeof XMLHttpRequest.prototype.open;
+
+  XMLHttpRequest.prototype.addEventListener =
+    function delayXhrResponseDeliveryWrappedAddEventListener(
+      this: XMLHttpRequest,
+      type: string,
+      listener: unknown,
+      options?: unknown,
+    ): void {
+      const url = String(urlsByRequest.get(this) ?? '');
+      const isDelayedType = DELAYED_TYPES.has(type);
+      if (!url.endsWith(params.urlSuffix) || !isDelayedType || typeof listener !== 'function') {
+        (originalAddEventListener as (...addArgs: unknown[]) => void).call(
+          this,
+          type,
+          listener,
+          options,
+        );
+        return;
+      }
+
+      // No `this`-alias: a plain function passed to addEventListener is invoked by the browser as
+      // `listener.call(currentTarget, event)`, so this function's OWN `this` is already the same
+      // XHR instance the outer wrapper registered on, and the arrow below inherits it lexically —
+      // identical to the captured-in-a-variable alias this replaces, without the alias.
+      const delayXhrResponseDeliveryDeferredListener =
+        function delayXhrResponseDeliveryDeferredListener(
+          this: XMLHttpRequest,
+          ...eventArgs: unknown[]
+        ): void {
+          globalThis.setTimeout(() => {
+            (listener as (...fnArgs: unknown[]) => void).apply(this, eventArgs);
+          }, params.delayMs);
+        };
+      (originalAddEventListener as (...addArgs: unknown[]) => void).call(
+        this,
+        type,
+        delayXhrResponseDeliveryDeferredListener,
+        options,
+      );
+    } as typeof XMLHttpRequest.prototype.addEventListener;
+};
+
 export const composerSendHarness = ({
   page,
 }: {
@@ -300,6 +370,7 @@ export const composerSendHarness = ({
   clickSendButtonTwiceWithNoAwaitBetween: () => Promise<void>;
   delayXhrDispatch: (params: { urlSuffix: string; delayMs: number }) => Promise<void>;
   abortXhrAfterSend: (params: { urlSuffix: string }) => Promise<void>;
+  delayXhrResponseDelivery: (params: { urlSuffix: string; delayMs: number }) => Promise<void>;
   readPromptImageTokens: (params: { prompt: string }) => PromptImageTokens;
   countSentinelOccurrences: (params: { prompt: string }) => unknown;
   fileExistsAt: (params: { filePath: string }) => boolean;
@@ -433,6 +504,18 @@ export const composerSendHarness = ({
     // Must be called BEFORE `page.goto`/`nav.navigateToQuest`, same as `delayXhrDispatch` above.
     abortXhrAfterSend: async ({ urlSuffix }: { urlSuffix: string }): Promise<void> => {
       await page.addInitScript(ABORT_XHR_AFTER_SEND_BROWSER_FN, { urlSuffix });
+    },
+
+    // Must be called BEFORE `page.goto`/`nav.navigateToQuest`, same as `delayXhrDispatch` above —
+    // `page.addInitScript` only affects navigations that happen after it is registered.
+    delayXhrResponseDelivery: async ({
+      urlSuffix,
+      delayMs,
+    }: {
+      urlSuffix: string;
+      delayMs: number;
+    }): Promise<void> => {
+      await page.addInitScript(DELAY_XHR_RESPONSE_DELIVERY_BROWSER_FN, { urlSuffix, delayMs });
     },
 
     // Every `![Pasted Image N](path)` occurrence in a prompt string, in the order they appear in the

@@ -4,10 +4,20 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
+// The tall-image case below needs the actual configured cap to assert against — reading it here
+// (rather than hardcoding 200) is what keeps the assertion tied to the real static instead of a
+// copy that can silently drift from it. Mirrors transcript-images.harness.ts's own reasoning for
+// reaching into this package-local static directly (see that file's header on the overlay knobs).
+import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 
 const GUILD_PATH = '/tmp/dm-e2e-transcript-broken-image';
 const PANEL_TIMEOUT = 8_000;
 const IMAGE_SIZE_PX = 8;
+// Narrow and very tall — the aspect ratio a full-page screenshot paste has (roughly 1000x4000 in
+// the wild). Width stays small purely so the real PNG encode/deflate in the harness stays fast;
+// what this case is proving only depends on the image being far taller than the inline cap.
+const TALL_IMAGE_WIDTH_PX = 8;
+const TALL_IMAGE_HEIGHT_PX = 4000;
 // A missing-file 404 answers with an EMPTY body and an internally "no Content-Type" intent (see
 // image-serve-responder.ts's contentType:null), but @hono/node-server defaults an empty-headers
 // Uint8Array-body response to this exact wire value regardless — verified directly against the
@@ -255,5 +265,67 @@ test.describe('Transcript broken image', () => {
 
     await expect(page.getByTestId('CHAT_MESSAGE')).toHaveCount(1);
     expect(pageErrors.getErrors()).toStrictEqual([]);
+  });
+
+  test('VALID: {a real image far taller than the inline cap} => the rendered bubble caps its height at inlineImageMaxHeightPx while the file itself decodes far taller', async ({
+    page,
+    request,
+  }) => {
+    const nav = navigationHarness({ page });
+    const guilds = guildHarness({ request });
+    const guild = await guilds.createGuild({ name: 'Tall Image Guild', path: GUILD_PATH });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const seeded = images.seedImageFile({
+      fileName: 'tall-screenshot.png',
+      widthPx: TALL_IMAGE_WIDTH_PX,
+      heightPx: TALL_IMAGE_HEIGHT_PX,
+      seed: 7,
+    });
+
+    const content = images.buildTokenLine({
+      segments: [{ imagePath: String(seeded.imagePath), ordinal: 1 }],
+    });
+    const sessionId = `e2e-session-tall-image-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+
+    await nav.navigateToSession({ urlSlug, sessionId });
+    await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, { timeout: PANEL_TIMEOUT });
+
+    // Confirms the browser actually decoded the real, full-height file (not a placeholder or a
+    // partial fetch) before measuring what the CSS cap did to its RENDERED box — the naturalWidth
+    // poll is the same "really loaded" gate the mixed-images case above uses.
+    await expect
+      .poll(async () => images.readNaturalWidth({ page, index: 0 }))
+      .toBe(TALL_IMAGE_WIDTH_PX);
+
+    const naturalHeight = await page.evaluate(() => {
+      const image = document.querySelector('[data-testid="CHAT_MESSAGE_IMAGE"]');
+      if (!(image instanceof HTMLImageElement)) {
+        throw new Error(
+          'transcript-broken-image: CHAT_MESSAGE_IMAGE not found or not an <img> element',
+        );
+      }
+      return image.naturalHeight;
+    });
+
+    const box = await page.getByTestId('CHAT_MESSAGE_IMAGE').boundingBox();
+    if (box === null) {
+      throw new Error('transcript-broken-image: CHAT_MESSAGE_IMAGE bounding box not available');
+    }
+
+    // Without the cap this used to render at its natural ~4000px height, burying the transcript
+    // under one bubble — so the case only bites if BOTH halves hold: the file really did decode
+    // far taller than the cap, AND the rendered box was actually held down to it.
+    expect({
+      naturalHeight,
+      renderedHeightAtMostCap: box.height <= webConfigStatics.pastedImage.inlineImageMaxHeightPx,
+      naturalHeightFarExceedsCap:
+        naturalHeight > webConfigStatics.pastedImage.inlineImageMaxHeightPx,
+    }).toStrictEqual({
+      naturalHeight: TALL_IMAGE_HEIGHT_PX,
+      renderedHeightAtMostCap: true,
+      naturalHeightFarExceedsCap: true,
+    });
   });
 });

@@ -134,6 +134,7 @@ describe('QuestChatResponder', () => {
       expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
         guildId,
         message: 'continue the spec chat',
+        existingQuestId: questId,
         sessionId: chaoswhispererSessionId,
       });
     });
@@ -172,6 +173,7 @@ describe('QuestChatResponder', () => {
       expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
         guildId,
         message: 'new spec question',
+        existingQuestId: questId,
       });
     });
   });
@@ -343,6 +345,7 @@ describe('QuestChatResponder', () => {
       expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
         guildId,
         message: 'plain text only, no images field at all',
+        existingQuestId: questId,
       });
     });
 
@@ -374,6 +377,7 @@ describe('QuestChatResponder', () => {
       expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
         guildId,
         message: 'text with an empty images array',
+        existingQuestId: questId,
       });
     });
 
@@ -525,6 +529,7 @@ describe('QuestChatResponder', () => {
       expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
         guildId,
         message: `see ![Pasted Image 1](${expectedPath}) please`,
+        existingQuestId: questId,
       });
     });
   });

@@ -264,6 +264,7 @@ export const ExecutionPanelWidget = ({
             onSendMessage={onSendFollowupMessage ?? NOOP_FOLLOWUP_HANDLERS.sendMessage}
             onStopChat={onStopFollowup ?? NOOP_FOLLOWUP_HANDLERS.stopChat}
             roleLabel={FOLLOWUP_ROLE_LABEL}
+            surface="followup"
           />
         </Box>
       ) : (

@@ -10,6 +10,10 @@ import {
   WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import {
+  locationsQuestFolderPathFindBroker,
+  locationsQuestImagesPathFindBroker,
+} from '@dungeonmaster/shared/brokers';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { chatSpawnBroker } from './chat-spawn-broker';
 import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
@@ -19,6 +23,15 @@ import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
 // reads one positional value without an `as` cast or a conditional inside a test body.
 const spawnedArgvValueAt = ({ args, index }: { args: unknown; index: number }): unknown =>
   Array.isArray(args) ? args[index] : undefined;
+
+// A flag like `--add-dir` rides at a position that shifts with resumeSessionId/settings — this
+// locates it by name instead of by a brittle fixed index, and (like spawnedArgvValueAt above)
+// keeps the Array.isArray narrowing and the array-index lookup out of the test body.
+const spawnedArgvValueAfterFlag = ({ args, flag }: { args: unknown; flag: string }): unknown => {
+  const argsArray = Array.isArray(args) ? args : [];
+  const flagIndex = argsArray.indexOf(flag);
+  return argsArray[flagIndex + 1];
+};
 
 describe('chatSpawnBroker', () => {
   describe('chaoswhisperer new session', () => {
@@ -99,6 +112,43 @@ describe('chatSpawnBroker', () => {
       const promptTail = promptArg.slice(-trailer.length);
 
       expect(promptTail).toBe(trailer);
+    });
+
+    // The root cause of the "Claude requested permissions to read from <path>, but you haven't
+    // granted it yet" symptom: the spawn's cwd (the quest's worktree) and the quest's images
+    // directory (under dungeonmaster home) are disjoint trees, so a Read on the path the -p
+    // prompt just named above is denied outright in headless mode without an explicit grant.
+    // This is the boundary proof that chatSpawnBroker resolves guildId + the resolved questId
+    // through the SAME locations chain pastedImagePersistBroker used to WRITE the file, and
+    // hands that exact directory to the spawn as `--add-dir`.
+    it("VALID: {chaoswhisperer new session, message carries an image token} => spawns with --add-dir naming that quest's own images directory", async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
+      const message = `here is the mock ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) build me this`;
+
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        message,
+        onEntries: jest.fn(),
+        onComplete: jest.fn(),
+        registerProcess: jest.fn(),
+      });
+
+      const questFolderPath = locationsQuestFolderPathFindBroker({ guildId, questId });
+      const expectedImagesDir = locationsQuestImagesPathFindBroker({ questFolderPath });
+
+      const addDirValue = spawnedArgvValueAfterFlag({
+        args: proxy.getSpawnedArgs(),
+        flag: '--add-dir',
+      });
+
+      expect(addDirValue).toBe(expectedImagesDir);
     });
   });
 

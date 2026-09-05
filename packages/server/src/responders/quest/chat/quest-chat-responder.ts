@@ -110,9 +110,17 @@ export const QuestChatResponder = async ({
         ? await pastedImagePersistBroker({ guildId, questId, message, images })
         : message;
 
+    // The URL already names this quest, and it was loaded off disk above — so it is never a
+    // guess. Passing it as `existingQuestId` (rather than relying solely on the sessionId-derived
+    // resume hint) is what stops the orchestrator's resolution from minting a brand-new quest
+    // during the window before a freshly spawned chat's sessionId has been written back to this
+    // quest's own work item — see resolveChatQuestLayerBroker's header. The images persisted above
+    // already live under this exact questId, so this can never spawn into a different quest than
+    // the one it wrote them to.
     const { chatProcessId } = await orchestratorStartChatAdapter({
       guildId,
       message: rewrittenMessage,
+      existingQuestId: questId,
       ...(resolvedSessionId === undefined ? {} : { sessionId: resolvedSessionId }),
     });
 

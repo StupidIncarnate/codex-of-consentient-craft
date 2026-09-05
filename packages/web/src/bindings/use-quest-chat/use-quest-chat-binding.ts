@@ -215,6 +215,40 @@ export const useQuestChatBinding = ({
     });
   }, [followupWorkItemId, entriesByWorkItem, followupLocalEntries]);
 
+  // An optimistic entry the memo above drops is the LAST reader of its pasted-image bytes:
+  // `remember` is keyed on that entry's own uuid, and the delivered copy displacing it arrives
+  // under a different uuid whose `![Pasted Image N](url)` tokens resolve against a served URL
+  // instead. So the moment the optimistic copy stops being rendered its bytes are unreachable —
+  // five images at five megabytes each per message, held for the life of the tab if nothing drops
+  // them.
+  //
+  // Evicted in an effect, never inside the memo: a memo may run more than once for the same input,
+  // and a `forget` from a pass React then discards would blank a picture still on screen. The
+  // dropped set is DERIVED rather than guessed — it is exactly the staged uuids the memo's survivor
+  // list no longer contains, so a surviving entry is never touched. A synthetic-bucket entry the
+  // WIRE delivered was never remembered, so forgetting one is a no-op.
+  useEffect(() => {
+    const staged = entriesBySessionInternal.get(SYNTHETIC_SESSION_KEY);
+    if (staged === undefined) return;
+    const surviving = new Set(
+      (entriesBySession.get(SYNTHETIC_SESSION_KEY) ?? []).map((entry) => entry.uuid),
+    );
+    for (const uuid of staged.keys()) {
+      if (!surviving.has(uuid)) pastedImageMemoryState.forget({ uuid });
+    }
+  }, [entriesBySession, entriesBySessionInternal]);
+
+  // The FOLLOW-UP tab's half of the same reclaim, against followupEntries' own filter. Kept as its
+  // own effect rather than folded into the one above because the two read different sources and
+  // change on different frames; one effect over both dep sets would re-walk each list every time
+  // the other moved.
+  useEffect(() => {
+    const surviving = new Set(followupEntries.map((entry) => entry.uuid));
+    for (const entry of followupLocalEntries) {
+      if (!surviving.has(entry.uuid)) pastedImageMemoryState.forget({ uuid: entry.uuid });
+    }
+  }, [followupEntries, followupLocalEntries]);
+
   const questIdRef = useRef<QuestId | null>(questId);
   questIdRef.current = questId;
 
@@ -264,12 +298,25 @@ export const useQuestChatBinding = ({
   // quest's bucket, while these optimistic entries carry no key at all and would render the
   // previous quest's question in the new quest's FOLLOW-UP tab.
   const previousQuestIdRef = useRef<QuestId | null>(questId);
+  // Mirror of followupLocalEntries for the switch effect below, which must NOT take the array as a
+  // dependency: it would then re-run on every follow-up entry and reset the running state mid-turn.
+  // Written during render, the same way questIdRef above carries questId into closures set up once.
+  const followupLocalEntriesRef = useRef<ChatEntry[]>(followupLocalEntries);
+  followupLocalEntriesRef.current = followupLocalEntries;
   useEffect(() => {
     const previousQuestId = previousQuestIdRef.current;
     previousQuestIdRef.current = questId;
     if (previousQuestId === null || previousQuestId === questId) return;
     setPendingTurn(false);
     setStreamingFromOutput(false);
+    // These entries are discarded WHOLESALE rather than filtered away, so the eviction effect above
+    // — which reads the filter's own output — never sees them go, and their pasted-image bytes stay
+    // reachable only through uuids nothing renders any more. This is the one place that can reclaim
+    // them. ONLY these: the session buckets survive the switch untouched, so their staged entries
+    // are still rendering and `recall` still has to answer for them.
+    for (const entry of followupLocalEntriesRef.current) {
+      pastedImageMemoryState.forget({ uuid: entry.uuid });
+    }
     setFollowupLocalEntries([]);
     setFollowupPendingTurn(false);
     setFollowupStreamingFromOutput(false);

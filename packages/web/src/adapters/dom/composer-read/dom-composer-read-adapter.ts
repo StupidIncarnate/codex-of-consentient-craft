@@ -47,6 +47,12 @@ export const domComposerReadAdapter = ({
     }
 
     if (node.tagName === 'BR') {
+      // domComposerInsertTextAdapter's caret filler — a real DOM element the browser needs to
+      // render a caret after a trailing newline, but never actual composer content. Contributes
+      // nothing here, the same way it contributes nothing to a raw `.textContent` read.
+      if (node.hasAttribute(chatComposerStatics.caretFiller.attributeName)) {
+        return;
+      }
       rawSegments.push({ kind: 'text', text: '\n' });
       return;
     }

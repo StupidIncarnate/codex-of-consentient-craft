@@ -15,11 +15,15 @@ export const ChatStartFlow = async ({
   guildId,
   message,
   questType,
+  mintedQuestId,
+  existingQuestId,
   sessionId,
 }: ResponderParams): Promise<ResponderResult> =>
   ChatStartResponder({
     guildId,
     message,
     ...(questType && { questType }),
+    ...(mintedQuestId && { mintedQuestId }),
+    ...(existingQuestId && { existingQuestId }),
     ...(sessionId && { sessionId }),
   });

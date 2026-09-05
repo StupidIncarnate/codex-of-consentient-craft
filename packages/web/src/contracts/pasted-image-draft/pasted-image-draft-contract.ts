@@ -3,10 +3,13 @@
  * localStorage — a single 5 MB image is roughly 6.8 MB once base64-encoded, which alone exceeds
  * the whole origin's localStorage quota, so storing even one paste there would fail and take the
  * text draft down with it. Reach for this over composerAttachmentContract when persisting a
- * draft across a reload; this one is the persisted form and carries no render fields.
+ * draft across a reload; this one is the persisted form and carries no render fields. `scopeKey`
+ * is what lets many composers' drafts share one physical object store without leaking into each
+ * other — see isComposerScopeMatchGuard, which every reader filters through before this contract
+ * ever sees the record.
  *
  * USAGE:
- * pastedImageDraftContract.parse({ attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=' });
+ * pastedImageDraftContract.parse({ attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=', scopeKey: 'quest-a' });
  * // Returns: PastedImageDraft — one image record read back from IndexedDB on reload
  */
 
@@ -18,6 +21,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { attachmentIdContract } from '../attachment-id/attachment-id-contract';
+import { composerScopeKeyContract } from '../composer-scope-key/composer-scope-key-contract';
 
 export const pastedImageDraftContract = z.object({
   // Matches the attachment named by a [Pasted Image N] placeholder in the localStorage text
@@ -26,6 +30,8 @@ export const pastedImageDraftContract = z.object({
   // What rebuilds the data URL on restore.
   mediaType: pastedImageMediaTypeContract,
   dataBase64: pastedImageUploadContract.shape.dataBase64,
+  // Which composer this record belongs to — see the PURPOSE note above.
+  scopeKey: composerScopeKeyContract,
 });
 
 export type PastedImageDraft = z.infer<typeof pastedImageDraftContract>;

@@ -161,6 +161,139 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     expect(await composer.readComposerTextContent()).toBe('one\n');
   });
 
+  test('VALID: {type one, Shift+Enter at end of content, then type two} => the composer reads back "one" newline "two", with "two" landing on the line the Shift+Enter created rather than before the newline', async ({
+    page,
+    request,
+  }) => {
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const composer = composerPasteHarness({ page });
+
+    const guild = await guilds.createGuild({
+      name: 'Send Text Only Newline End Of Content Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const sessionId = `e2e-send-text-only-newline-eoc-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Send Text Only Newline End Of Content Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000001005',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    await composer.focusComposer();
+    await page.keyboard.type('one');
+    await page.keyboard.press('Shift+Enter');
+    await page.keyboard.type('two');
+
+    // send-text-only-and-newline:observable:check-shift-enter-end-of-content-then-type — a browser
+    // contenteditable cannot render a caret AFTER a trailing newline with nothing following it, so a
+    // naively-placed caret collapses to BEFORE that newline and every keystroke typed afterward lands
+    // there instead: 'one' + 'two' + '\n' = 'onetwo\n'. The correct reading is 'one\ntwo' — the
+    // newline stays between the two words, with 'two' on the line the Shift+Enter created.
+    expect(await composer.readComposerTextContent()).toBe('one\ntwo');
+    // Side-effect half of the same unit: the draft store (written by the same serialiser the
+    // composer's own text read goes through) carries the identical string.
+    expect(await composer.readDraftText()).toBe('one\ntwo');
+  });
+
+  test('VALID: {type one, Shift+Enter, reload, click composer, then type two} => the RESTORED composer reads back "one" newline "two", with "two" landing on the line the Shift+Enter created rather than before the restored newline', async ({
+    page,
+    request,
+  }) => {
+    test.slow();
+
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const composer = composerPasteHarness({ page });
+
+    const guild = await guilds.createGuild({
+      name: 'Send Text Only Newline Restore Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guilds.extractGuildId({ guild });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const sessionId = `e2e-send-text-only-newline-restore-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+
+    const created = await quests.createQuest({
+      guildId: String(guildId),
+      title: 'Send Text Only Newline Restore Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = String(created.questId);
+    quests.writeQuestFile({
+      questId,
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'explore_flows',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000001006',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'complete',
+        },
+      ],
+    });
+
+    await nav.navigateToQuest({ urlSlug, questId });
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+    await composer.focusComposer();
+    await page.keyboard.type('one');
+    await page.keyboard.press('Shift+Enter');
+    // The draft really carries the trailing newline going INTO the reload — a failure below is the
+    // restore path's own defect, not a draft that was never written correctly in the first place.
+    expect(await composer.readDraftText()).toBe('one\n');
+
+    await page.reload();
+    await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+    // The RESTORED DOM reads back the same text a plain `.textContent` read cannot distinguish a
+    // caret-filler <br> from its absence — this check alone does not prove the fix, the keystroke
+    // below does.
+    expect(await composer.readComposerTextContent()).toBe('one\n');
+
+    // send-text-only-and-newline:observable:check-restored-trailing-newline-then-type — the RESTORE
+    // path (domComposerWriteAdapter, rebuilding a persisted draft after a real page reload) hits the
+    // identical browser quirk the INSERT path (domComposerInsertTextAdapter, proven above) already
+    // guards against: a contenteditable cannot render or reliably hold a caret positioned AFTER a
+    // trailing newline with nothing following it, so a real click after reload collapses to BEFORE
+    // the restored newline and the next keystroke lands there instead: 'one' + 'two' + '\n' =
+    // 'onetwo\n'. The correct reading is 'one\ntwo' — the newline stays between the two words, with
+    // 'two' on the line the Shift+Enter created, exactly as the INSERT-path case proves above.
+    await composer.focusComposer();
+    await page.keyboard.type('two');
+
+    expect(await composer.readComposerTextContent()).toBe('one\ntwo');
+    expect(await composer.readDraftText()).toBe('one\ntwo');
+  });
+
   test('VALID: {ArrowLeft twice then Shift+Enter} => the newline inserts AT THE CARET, the draft carries it, nothing sends yet, and continued typing plus a later plain Enter sends the whole multi-line text in one POST', async ({
     page,
     request,

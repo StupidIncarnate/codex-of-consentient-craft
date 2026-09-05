@@ -11,7 +11,12 @@
  * // Spawns Claude CLI, forwards raw lines, extracts session ID, returns kill handle
  */
 
-import type { ExitCode, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  ExitCode,
+  RepoRootCwd,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
@@ -33,6 +38,7 @@ export const agentSpawnUnifiedBroker = ({
   onError,
   onComplete,
   onStderrLine,
+  addDir,
 }: {
   prompt: PromptText;
   cwd: RepoRootCwd;
@@ -46,6 +52,10 @@ export const agentSpawnUnifiedBroker = ({
   // parent terminal. The launcher always passes a tagging callback so each subprocess's
   // stderr gets `proc:<id>` attribution in the dev log.
   onStderrLine?: (params: { line: string }) => void;
+  // Forwarded verbatim to the spawn adapter's `--add-dir` grant. See that adapter's header
+  // for why a chat spawn needs this — the quest's images directory sits outside the spawn's
+  // cwd, so a pasted-image Read is denied without it.
+  addDir?: AbsoluteFilePath;
 }): { kill: () => void; sessionId$: Promise<SessionId | null>; pid: ProcessPid | undefined } => {
   const spawnParams: Parameters<typeof childProcessSpawnStreamJsonAdapter>[0] = {
     prompt,
@@ -63,6 +73,10 @@ export const agentSpawnUnifiedBroker = ({
 
   if (onStderrLine !== undefined) {
     spawnParams.onStderrLine = onStderrLine;
+  }
+
+  if (addDir !== undefined) {
+    spawnParams.addDir = addDir;
   }
 
   const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter(spawnParams);

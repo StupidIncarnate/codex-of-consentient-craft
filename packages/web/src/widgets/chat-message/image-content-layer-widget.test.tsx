@@ -81,6 +81,23 @@ describe('ImageContentLayerWidget', () => {
     });
   });
 
+  describe('inline image sizing', () => {
+    it('VALID: {content: one markdown image token} => the rendered img carries the configured inlineImageMaxHeightPx as its style maxHeight', () => {
+      ImageContentLayerWidgetProxy();
+      const { content, uuid } = [
+        UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
+      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+
+      const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
+
+      expect(image.style.maxHeight).toBe(
+        `${webConfigStatics.pastedImage.inlineImageMaxHeightPx}px`,
+      );
+    });
+  });
+
   describe('trailer', () => {
     it('VALID: {content: message + sentinel trailer} => the trailer never renders in the bubble', () => {
       const proxy = ImageContentLayerWidgetProxy();
@@ -285,6 +302,29 @@ describe('ImageContentLayerWidget', () => {
       expect(proxy.getBrokenPlaceholderPaint()).toStrictEqual({
         borderColor: 'rgb(239, 68, 68)',
         backgroundColor: 'rgb(13, 9, 7)',
+      });
+    });
+
+    it('VALID: {an image fails to load} => the placeholder names itself for assistive tech via role, aria-label, and title', () => {
+      const proxy = ImageContentLayerWidgetProxy();
+      const { content, uuid } = [
+        UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
+      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+
+      proxy.failImage({ index: 0 });
+
+      const placeholder = screen.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN');
+
+      expect({
+        role: placeholder.getAttribute('role'),
+        ariaLabel: placeholder.getAttribute('aria-label'),
+        title: placeholder.getAttribute('title'),
+      }).toStrictEqual({
+        role: 'img',
+        ariaLabel: 'Pasted image 1 could not be loaded',
+        title: 'Pasted image 1 could not be loaded',
       });
     });
 

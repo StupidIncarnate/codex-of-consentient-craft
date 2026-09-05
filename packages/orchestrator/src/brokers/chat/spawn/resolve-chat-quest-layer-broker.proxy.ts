@@ -1,3 +1,5 @@
+import type { QuestId } from '@dungeonmaster/shared/contracts';
+
 import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
 import { questUserAddBrokerProxy } from '../../quest/user-add/quest-user-add-broker.proxy';
 
@@ -8,6 +10,7 @@ export const resolveChatQuestLayerBrokerProxy = (): {
   setupQuestNotFound: () => void;
   setupQuestCreationFailure: (params: { error: Error }) => void;
   wasNewQuestCreated: () => boolean;
+  getLastCreatedQuestId: () => QuestId | undefined;
 } => {
   const getProxy = questGetBrokerProxy();
   const addProxy = questUserAddBrokerProxy();
@@ -28,5 +31,6 @@ export const resolveChatQuestLayerBrokerProxy = (): {
     // list proves the intake-new path (questCreateBroker) never fired — the assertion the
     // tavernkeeper branch needs to prove it resolves the existing quest instead of minting one.
     wasNewQuestCreated: (): boolean => addProxy.getLastInitialWorkItems().length > 0,
+    getLastCreatedQuestId: (): QuestId | undefined => addProxy.getLastCreatedQuestId(),
   };
 };
