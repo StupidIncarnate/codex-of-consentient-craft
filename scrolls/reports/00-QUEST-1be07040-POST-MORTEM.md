@@ -52,8 +52,13 @@ them with the quest's own defects:
 
 **~~Struck-through sections are closed.~~** A finding or a fix with its heading crossed out has shipped, or has been
 dissolved by something that shipped. The body is kept struck rather than deleted so the measurements that justified it
-stay readable. Closed so far: ~~E1~~ / ~~G1~~ (the serialised browser walks, shipped 2026-09-04), and ~~G24~~ and
-~~H4~~, which depended on G1 not landing.
+stay readable. Closed so far: ~~E1~~ / ~~G1~~ (the serialised browser walks, shipped 2026-09-04); ~~G24~~ and
+~~H4~~, which depended on G1 not landing; and ~~E6~~ / ~~G2~~ (ward blind to untracked files, shipped 2026-09-05 in
+`85a6f3818`).
+
+**One heading is crossed out for less than a full close, and it says so.** ~~E7~~ names two things — a
+push-shrinkage mechanism, which `85a6f3818` removed, and an outcome, which stands. Its heading carries both, and the
+measurement the open half rests on is left unstruck inside it. Read that section before treating E7 as done.
 
 ---
 
@@ -564,13 +569,22 @@ loss:
 Report 05 adds that two sibling sessions got it right: `751a242b` and `0db63e41`. Each read either a
 spilled tool-result file or `quest.json` directly, with `python3` — *"a route no prompt names."*
 
-### E6. `ward --staged` is blind to untracked files, and reviewers gate on it — `structural`
+### ~~E6. `ward --staged` is blind to untracked files, and reviewers gate on it~~ — FIXED 2026-09-05
 
-**What happens.** Reviewers gate the pass on a ward run that cannot see new files.
-`codeweaverReviewerStatics` step 6 prescribes `npm run build`, then `npm run ward -- --staged`.
-Ward's `--staged` resolves its file set through `git diff <mergeBase>`, and that never reports
-untracked paths. The same prompt admits the stake at step 3: *"New files are most of what gets built
-here, and a diff never mentions them"*.
+**Fixed in `85a6f3818`.** `--staged` is now `--uncommitted`, and it unions `git diff --name-only
+HEAD` with `git ls-files --others --exclude-standard`, so a brand-new file is graded rather than
+skipped. All three reviewer prompts gate on that flag, and each carries a paragraph saying the pass
+is entirely uncommitted when the reviewer arrives, so the run must come BEFORE the commit.
+
+**Measured after the change**, on the tree that carried the fix: three new `ward-mode` files were
+untracked, `git diff` alone reported **14** shared source files, the union reported **17**, and
+`npm run ward -- --uncommitted` linted **17**. See ~~G2~~ for what shipped.
+
+~~**What happens.** Reviewers gate the pass on a ward run that cannot see new files.~~
+~~`codeweaverReviewerStatics` step 6 prescribes `npm run build`, then `npm run ward -- --staged`.~~
+~~Ward's `--staged` resolves its file set through `git diff <mergeBase>`, and that never reports~~
+~~untracked paths. The same prompt admits the stake at step 3: *"New files are most of what gets built~~
+~~here, and a diff never mentions them"*.~~
 
 | Item | Measurement | Citation |
 |---|---|---|
@@ -580,18 +594,38 @@ here, and a diff never mentions them"*.
 | 15 | The reviewer found it unaided in under seven minutes and filed it against `packages/ward/src/brokers/git/diff-unpushed/git-diff-unpushed-broker.ts`: *"it structurally misses **untracked** new files (`git diff` against a merge-base never lists `??` paths), so it silently skipped lint/e2e on the 6 brand-new files this pass added"* | [report 15 §4, §6 f8] |
 | 13 | The same hole swallowed typecheck. Briefs use `--only lint,test` on the theory that *"Your reviewer's `--staged` run is the typecheck"*, but `--staged` diffed to 3 files with e2e skipped, and `vite build` strips types. The reviewer's later scoped run found `typecheck @dungeonmaster/web FAIL 1239 files, 51 errors`. Its verdict: *"so this test suite had **never actually been typechecked**"* | [report 13 §3B] |
 
-**The repo already holds the fix pattern.** `gitWorkingTreeFilesBroker` unions `git diff` with
-`git ls-files --others`. Ward's `--staged` path does not [report 10-12 §6 f1; report 14 §6 f6].
+~~**The repo already holds the fix pattern.** `gitWorkingTreeFilesBroker` unions `git diff` with~~
+~~`git ls-files --others`. Ward's `--staged` path does not [report 10-12 §6 f1; report 14 §6 f6].~~
 
-**Cost.** *"this defect cost **8 h 23 min of latency + 31.3 min of repair cycle** on this quest"*
-[report 10-12 §6 f1].
+~~**Cost.** *"this defect cost **8 h 23 min of latency + 31.3 min of repair cycle** on this quest"*~~
+~~[report 10-12 §6 f1].~~
 
-### E7. `--staged` also shrinks as the quest proceeds, so no reviewer ever grades the whole branch — `structural`
+### ~~E7. `--staged` also shrinks as the quest proceeds, so no reviewer ever grades the whole branch~~ — MECHANISM REMOVED 2026-09-05, PROMPT DECISION STILL OPEN
 
-**What happens.** Each reviewer grades its own pass and nothing else, so nobody grades the whole
-branch. **This is a different mechanism from E6.** E6 is blindness to untracked files. E7 is
-push-shrinkage: every prior reviewer pushed, so `--staged` — "files origin lacks" — diffs only the
-current pass.
+**The shrinking is gone. Nobody is yet told to grade the whole branch.** Read both halves before
+treating this as closed.
+
+**What `85a6f3818` removed.** Push-shrinkage was a property of the base ref. `--staged` measured
+from the merge-base with `@{upstream}`, which for a quest branch is `origin/<that branch>` — a ref
+that advances every time a reviewer pushes, so the window closed behind each pass. Neither new flag
+has that base. `--uncommitted` measures from `HEAD`, and `--committed` measures from the merge-base
+with `origin/main` or `origin/master`, which does not move when anyone pushes the quest branch. So
+`--committed` reports every commit on the branch however many reviewers have pushed, and
+`--committed --uncommitted` is one command that grades the whole branch.
+
+**What is still true.** The three reviewer prompts run `--uncommitted` alone, which is exactly their
+own pass. That is now a deliberate scope rather than an accident of the base ref, but the outcome
+this finding names — no reviewer grades the whole branch — still holds. Closing it means deciding
+who runs the whole-branch command and when. **G22** is where that decision sits, and it has not
+shipped.
+
+**Below, only the mechanism paragraph is struck.** Report 09's measurement is left standing, because
+the open half still rests on it.
+
+~~**What happens.** Each reviewer grades its own pass and nothing else, so nobody grades the whole~~
+~~branch. **This is a different mechanism from E6.** E6 is blindness to untracked files. E7 is~~
+~~push-shrinkage: every prior reviewer pushed, so `--staged` — "files origin lacks" — diffs only the~~
+~~current pass.~~
 
 Report 09 measured both scopes against the same tree, **223.5 seconds apart** [report 09 §5 f8]. The
 reviewer's `--staged` run graded **16 unit / 25 integration files at 08:25:21**. The `ward(changed)`
@@ -1555,7 +1589,11 @@ step is shown.
 ~~**225–300 minutes on this quest's three flowrider items alone.**~~
 
 **~~G1~~ shipped on 2026-09-04, and it took five files rather than the one line all three reports predicted.** See
-~~G1~~ below for what shipped and for the file none of them read. The next one-line change is **G2**.
+~~G1~~ below for what shipped and for the file none of them read.
+
+**~~G2~~ shipped on 2026-09-05, and it took 115 files rather than the one file all four reports predicted** — the union
+was one broker, but renaming the flag it serves reached every prompt, contract and test that named the old one. The next
+one-line change is **G3**.
 
 ---
 
@@ -1606,14 +1644,41 @@ wave-0 artifact rather than a file four later waves extend
 [15 §6 f2]. With the report path fixed, four walks can run at once; four walks all extending one harness file still
 cannot.
 
-#### G2. Fix `ward --staged`'s blindness to untracked files — **31 min of measured repair, plus a false green on every new file in the repo**
+#### ~~G2. Fix `ward --staged`'s blindness to untracked files~~ — SHIPPED 2026-09-05 in `85a6f3818`
 
-*Addresses E6 (and, partly, E27).* **File:**
-`packages/ward/src/brokers/git/diff-unpushed/git-diff-unpushed-broker.ts`.
+**Shipped, and it took 115 files rather than one.** The union itself was the predicted change, in the
+broker now called
+`packages/ward/src/brokers/git/diff-uncommitted/git-diff-uncommitted-broker.ts`: `git diff
+--name-only --diff-filter=d HEAD` unioned with `git ls-files --others --exclude-standard`,
+de-duplicated on first appearance. What the four reports did not predict is that fixing the flag
+meant renaming it — `--staged` describes a set that never included untracked files — and the rename
+reached every prompt, contract and test that spelled the old name.
 
-**Edit:** union the diff-derived set with `git ls-files --others --exclude-standard`, **exactly as
-`gitWorkingTreeFilesBroker` already does** for the commit-before-signal gate [10-12 §6 f1; 14 §6 f6;
-15 §6 f8]. The pattern already exists in the repo. This fix copies it one file over.
+**What shipped alongside the union:**
+
+| Change | Why it rode along |
+|---|---|
+| `--staged` → `--uncommitted`, `--changed` → `--committed` | The old names described the old sets. `--uncommitted` now means HEAD-to-working-tree; `--committed` means origin's default branch to HEAD |
+| `--committed` re-based onto `origin/main`/`origin/master`, ending at HEAD | Removes ~~E7~~'s push-shrinkage — see that finding |
+| The two flags may now be passed together | They name disjoint halves of a branch, so the pair is one whole-branch command |
+| A shared `wardModeContract` accepting the pre-rename value on read | Five contracts spelled the `wardMode` enum inline; live `quest.json` files carry `"changed"` and had to keep loading |
+| Reviewer prompts gate on `--uncommitted`, before the commit | After the commit the tree is clean and the same command grades nothing |
+
+**Verified on a live tree, not only in tests.** Three new `ward-mode` files were untracked; the
+tracked diff reported **14** shared source files, the union **17**, and the run linted **17**. Full
+`npm run ward` exit 0 (run `1788641323303-bd8e`: 7364 lint, 7343 typecheck, 2593 unit, 116
+integration, 84 e2e).
+
+**One behaviour was deliberately dropped.** `--committed` no longer consults the branch's own
+`@{upstream}`, so a repo shipping from a long-lived release branch is measured against `origin/main`
+rather than against that branch.
+
+**The belt-and-braces companion below did NOT ship** — the empty-scope tripwire still trips only at
+zero.
+
+~~**Edit:** union the diff-derived set with `git ls-files --others --exclude-standard`, exactly as~~
+~~`gitWorkingTreeFilesBroker` already does for the commit-before-signal gate [10-12 §6 f1; 14 §6 f6;~~
+~~15 §6 f8]. The pattern already exists in the repo. This fix copies it one file over.~~
 
 **Proposed by** [report 10-12 §6 f1], [report 14 §6 f6], [report 15 §6 f8], [report 05 §6 f5].
 
@@ -2112,9 +2177,11 @@ be decided together.
 
 #### G22. Move `ward(changed)` so it runs between codeweaver cells, not only after all of them — **≈31 min per quest**
 
-*Addresses E7 and E27.* **File:**
-`packages/shared/src/statics/quest-type-registry/quest-type-registry-statics.ts` — the `relayTail` /
-`startImplementationOps` arrays.
+*Addresses the still-open half of ~~E7~~, and E27.* `85a6f3818` removed E7's push-shrinkage, so a
+whole-branch ward is now one command (`--committed --uncommitted`) rather than something no scope
+could express. What that commit did NOT do is decide who runs it or when, which is this item.
+**File:** `packages/shared/src/statics/quest-type-registry/quest-type-registry-statics.ts` — the
+`relayTail` / `startImplementationOps` arrays.
 
 **Edit** [09 §6 f1]: give the codeweaver seed a trailing ward companion, or splice a `ward(changed)`
 item after every Nth cell. Cheaper variant, no ledger change: have `codeweaver-reviewer` run a
@@ -2473,15 +2540,15 @@ All paths are absolute-from-repo-root under
 | 02     | `scrolls/reports/02-codeweaver-shared-send-message-with-images.md`          |        782 | E3, E4, E5(context), E8, E9, E10, E11, E12, E13, E16, E32                                                                                            |
 | 03     | `scrolls/reports/03-codeweaver-orchestrator-send-message-with-images.md`    |      1,178 | E3, E4, E5, E8, E9, E11, E13, E16, E24, E29, E31                                                                                                     |
 | 04     | `scrolls/reports/04-codeweaver-orchestrator-render-images-in-transcript.md` |      1,015 | E4, E8, E9, E11, E24, E25                                                                                                                            |
-| 05     | `scrolls/reports/05-codeweaver-server-send-message-with-images.md`          |      1,018 | E3, E4, **E5 (the two destroyed sign-offs)**, E6, E8, E9, E11, E12, E13, E32                                                                         |
+| 05     | `scrolls/reports/05-codeweaver-server-send-message-with-images.md`          |      1,018 | E3, E4, **E5 (the two destroyed sign-offs)**, ~~E6~~, E8, E9, E11, E12, E13, E32                                                                         |
 | 06     | `scrolls/reports/06-codeweaver-server-render-images-in-transcript.md`       |        834 | E3, E4, E5, E9, **E11 (the 1,044,835-byte measurement)**, E12, E18 (the negative case), E24, E32                                                     |
 | 07     | `scrolls/reports/07-codeweaver-web-paste-image-into-composer.md`            |        995 | E3, E4, E8, E11, E17, **E24 (the measured `[GIT FORMS]` table)**, E26, E27, E31                                                                      |
 | 08     | `scrolls/reports/08-codeweaver-web-send-message-with-images.md`             |      1,197 | E3, E4, **E5 (7 of 8 edge ids absent)**, E8, E9, **E10 (the unread-answer census)**, **E11 (the under-serving counter-finding)**, E14, E26, E31, E32 |
-| 09     | `scrolls/reports/09-codeweaver-web-render-images-in-transcript.md`          |      1,135 | E3, E4, E5, **E7 (push-shrinkage)**, E9, E16, E17, E24, **E27 (the batch-order analysis)**, E29                                                      |
-| 10-12  | `scrolls/reports/10-12-ward-spiritmender-ward.md`                           |      1,005 | **E6 (the 99-file / 6-linted gate)**, E27, **E28 (the `<questFolder>` literal)**, E32                                                                |
-| 13     | `scrolls/reports/13-flowrider-paste-image-into-composer.md`                 |        945 | ~~E1~~, E3, E6, E13, E17, E29, E30, E32                                                                                                              |
-| 14     | `scrolls/reports/14-flowrider-send-message-with-images.md`                  |        858 | ~~E1~~, E3, E6, **E18 (25.0% / 31.2%)**, E30, E31, E32                                                                                               |
-| 15     | `scrolls/reports/15-flowrider-render-images-in-transcript.md`               |        845 | ~~E1 (the line numbers and the 1.00× measurement)~~, E3, E6, E9, **E13 (the vacuous negatives)**, E17, E18, E20, E29, E30                            |
+| 09     | `scrolls/reports/09-codeweaver-web-render-images-in-transcript.md`          |      1,135 | E3, E4, E5, **~~E7~~ (push-shrinkage)**, E9, E16, E17, E24, **E27 (the batch-order analysis)**, E29                                                      |
+| 10-12  | `scrolls/reports/10-12-ward-spiritmender-ward.md`                           |      1,005 | **~~E6~~ (the 99-file / 6-linted gate)**, E27, **E28 (the `<questFolder>` literal)**, E32                                                                |
+| 13     | `scrolls/reports/13-flowrider-paste-image-into-composer.md`                 |        945 | ~~E1~~, E3, ~~E6~~, E13, E17, E29, E30, E32                                                                                                              |
+| 14     | `scrolls/reports/14-flowrider-send-message-with-images.md`                  |        858 | ~~E1~~, E3, ~~E6~~, **E18 (25.0% / 31.2%)**, E30, E31, E32                                                                                               |
+| 15     | `scrolls/reports/15-flowrider-render-images-in-transcript.md`               |        845 | ~~E1 (the line numbers and the 1.00× measurement)~~, E3, ~~E6~~, E9, **E13 (the vacuous negatives)**, E17, E18, E20, E29, E30                            |
 | 16     | `scrolls/reports/16-siegemaster-paste-image-into-composer.md`               |      2,119 | E3, E13, **E14 (the destroyed work)**, **E15**, **E20 (the overlay saga)**, **E21 (the misattribution chain)**, E23, E24, E32                        |
 | 17     | `scrolls/reports/17-siegemaster-send-message-with-images.md`                |      1,262 | **E2 (the headline)**, **E3 (the hardened-ban A/B)**, E15, E18, **E19 (the P3 chain)**, **E22 (the outage)**, **E23**, E24, E29, E32                 |
 | —      | **Total**                                                                   | **15,188** |                                                                                                                                                      |
