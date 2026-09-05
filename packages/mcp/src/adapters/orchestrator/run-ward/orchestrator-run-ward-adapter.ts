@@ -2,7 +2,7 @@
  * PURPOSE: Adapter for StartOrchestrator.runWard that wraps the orchestrator package
  *
  * USAGE:
- * const result = await orchestratorRunWardAdapter({ questId, workItemId, mode: 'changed' });
+ * const result = await orchestratorRunWardAdapter({ questId, workItemId, mode: 'committed' });
  * // Returns: QuestRunWardResult — { success, exitCode, wardResultId, lastWardRunId? }
  */
 
@@ -17,5 +17,5 @@ export const orchestratorRunWardAdapter = async ({
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
-  mode: 'changed' | 'full';
+  mode: 'committed' | 'full';
 }): Promise<QuestRunWardResult> => StartOrchestrator.runWard({ questId, workItemId, mode });

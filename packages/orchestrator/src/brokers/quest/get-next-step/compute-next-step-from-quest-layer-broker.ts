@@ -49,7 +49,7 @@ export const computeNextStepFromQuestLayerBroker = ({
       type: 'run-ward',
       questId: quest.id,
       workItemId: commandItem.id,
-      mode: commandItem.wardMode ?? 'changed',
+      mode: commandItem.wardMode ?? 'committed',
     });
   }
 

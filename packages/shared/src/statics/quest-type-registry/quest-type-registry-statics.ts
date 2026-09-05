@@ -74,7 +74,7 @@ export const questTypeRegistryStatics = {
       },
     ],
     relayTail: [
-      { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
+      { role: 'ward', text: 'Ward gate (committed files)', wardMode: 'committed' },
       {
         role: 'flowrider',
         // Fanned out to ONE item per RUNTIME flow. A flow is what a suite walks end to end, so it
@@ -120,7 +120,7 @@ export const questTypeRegistryStatics = {
       },
     ],
     relayTail: [
-      { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
+      { role: 'ward', text: 'Ward gate (committed files)', wardMode: 'committed' },
       {
         role: 'flowrider',
         text: 'Flowrider: author the test suites that prove this flow',

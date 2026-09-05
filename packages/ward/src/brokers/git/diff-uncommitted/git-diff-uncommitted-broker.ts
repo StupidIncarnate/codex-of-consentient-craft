@@ -1,53 +1,60 @@
 /**
- * PURPOSE: Collects every file the remote does not yet have — files touched by commits that are not
- * pushed, plus staged and unstaged edits on top of them. Reach for this over gitDiffFilesBroker when
- * the caller is gating a push: gitDiffFilesBroker measures against the LOCAL default branch, which
- * says nothing about what origin holds, so work already pushed still shows up there.
+ * PURPOSE: Collects every file the working tree holds that HEAD does not — staged edits, unstaged
+ * edits, and brand-new files nobody has run `git add` on. Reach for this over gitDiffCommittedBroker
+ * when the question is what a session has produced but not recorded yet; that broker answers the
+ * other half, and the two together cover a branch with no overlap.
  *
- * The diff runs from the merge-base rather than the upstream tip, so commits another author pushed
- * while this branch sat behind are not reported as this branch's work.
+ * `git diff` IN EVERY FORM REPORTS TRACKED PATHS ONLY, so the untracked reading is not a nicety —
+ * it is most of the answer. Measured on quest 1be07040: a reviewer's gate saw 6 files of a 99-file
+ * pass because the other 93 were new, exited 0, and both defects that later went red came out of
+ * that commit. Another gate exited 0 having never opened six brand-new browser-package files. The
+ * union is the only complete reading, and dropping either half restores a false green on every new
+ * file in the repo.
  *
  * USAGE:
- * const files = await gitDiffUnpushedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
- * // Returns GitRelativePath[] covering unpushed commits and any uncommitted edits
+ * const files = await gitDiffUncommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * // Returns GitRelativePath[] — tracked edits first, then untracked additions
  */
 
 import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
-import { exitCodeContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-output/parse-diff-output-transformer';
-import { gitDetectUpstreamBroker } from '../detect-upstream/git-detect-upstream-broker';
-import { gitDiffFilesBroker } from '../diff-files/git-diff-files-broker';
 
-export const gitDiffUnpushedBroker = async ({
+export const gitDiffUncommittedBroker = async ({
   cwd,
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<GitRelativePath[]> => {
-  const upstreamRef = await gitDetectUpstreamBroker({ cwd });
-
-  if (upstreamRef !== null) {
-    const mergeBaseResult = await childProcessSpawnCaptureAdapter({
+  const [trackedResult, untrackedResult] = await Promise.all([
+    childProcessSpawnCaptureAdapter({
       command: 'git',
-      args: ['merge-base', 'HEAD', String(upstreamRef)],
+      args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
       cwd,
-    });
+    }),
+    // `--exclude-standard` applies .gitignore and friends, so build output and node_modules never
+    // reach a check runner. Without it the untracked reading is every generated file in the repo.
+    childProcessSpawnCaptureAdapter({
+      command: 'git',
+      args: ['ls-files', '--others', '--exclude-standard'],
+      cwd,
+    }),
+  ]);
 
-    if (mergeBaseResult.exitCode === exitCodeContract.parse(0)) {
-      const mergeBase = mergeBaseResult.output.trim();
-      const diffResult = await childProcessSpawnCaptureAdapter({
-        command: 'git',
-        args: ['diff', '--name-only', '--diff-filter=d', mergeBase],
-        cwd,
-      });
+  const tracked = parseDiffOutputTransformer({ output: trackedResult.output });
+  const untracked = parseDiffOutputTransformer({ output: untrackedResult.output });
 
-      return parseDiffOutputTransformer({ output: diffResult.output });
+  // An intent-to-add (`git add -N`) puts one path in BOTH readings, so the union is de-duplicated
+  // on first appearance rather than concatenated — a check runner handed the same path twice
+  // reports it twice.
+  const seen = new Set<GitRelativePath>();
+
+  return [...tracked, ...untracked].filter((file) => {
+    if (seen.has(file)) {
+      return false;
     }
-  }
-
-  // The repo has no origin refs to measure against (no remote, or a remote that has never been
-  // fetched). Nothing here is pushed, so the branch's divergence from its local default branch is
-  // the closest honest answer.
-  return gitDiffFilesBroker({ cwd });
+    seen.add(file);
+    return true;
+  });
 };

@@ -20,20 +20,20 @@ describe('isExplicitPathScopeGuard', () => {
   // same `passthrough` field, so a caller reading that field alone cannot tell a typed path from a
   // git-produced one — and a diff holding only `eslint.config.js` is an ordinary run, not a fault.
   describe('paths git produced', () => {
-    it('VALID: {staged: true, passthrough written by the git scope layer} => returns false', () => {
-      const config = WardConfigStub({ staged: true, passthrough: ['eslint.config.js'] });
+    it('VALID: {uncommitted: true, passthrough written by the git scope layer} => returns false', () => {
+      const config = WardConfigStub({ uncommitted: true, passthrough: ['eslint.config.js'] });
 
       expect(isExplicitPathScopeGuard({ config })).toBe(false);
     });
 
-    it('VALID: {changed: true, passthrough written by the git scope layer} => returns false', () => {
-      const config = WardConfigStub({ changed: true, passthrough: ['README.md'] });
+    it('VALID: {committed: true, passthrough written by the git scope layer} => returns false', () => {
+      const config = WardConfigStub({ committed: true, passthrough: ['README.md'] });
 
       expect(isExplicitPathScopeGuard({ config })).toBe(false);
     });
 
-    it('VALID: {staged: true, diff resolved to nothing} => returns false', () => {
-      const config = WardConfigStub({ staged: true });
+    it('VALID: {uncommitted: true, diff resolved to nothing} => returns false', () => {
+      const config = WardConfigStub({ uncommitted: true });
 
       expect(isExplicitPathScopeGuard({ config })).toBe(false);
     });
@@ -62,8 +62,8 @@ describe('isExplicitPathScopeGuard', () => {
       expect(isExplicitPathScopeGuard({ config })).toBe(false);
     });
 
-    it('EDGE: {changed: false, staged: false} => returns false', () => {
-      const config = WardConfigStub({ changed: false, staged: false });
+    it('EDGE: {committed: false, uncommitted: false} => returns false', () => {
+      const config = WardConfigStub({ committed: false, uncommitted: false });
 
       expect(isExplicitPathScopeGuard({ config })).toBe(false);
     });

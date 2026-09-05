@@ -25,7 +25,7 @@ const SLICE_LEGEND_LINES = textDisplaySymbolsStatics.flowSliceLegendLines;
 // trailing `!` is safe: each predicate matches exactly one seed in the registry, and
 // `noUncheckedIndexedAccess` has no way to know that from the predicate alone.
 const WARD_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
-  (entry) => entry.role === 'ward' && entry.wardMode === 'changed',
+  (entry) => entry.role === 'ward' && entry.wardMode === 'committed',
 )!;
 const FLOWRIDER_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
   (entry) => entry.role === 'flowrider',
@@ -707,7 +707,7 @@ describe('relayTailFanOutTransformer', () => {
       const result = relayTailFanOutTransformer({ entry: WARD_ENTRY, quest });
 
       expect(result).toStrictEqual([
-        { text: 'Ward gate (changed files)', flowIds: [], packageNames: [] },
+        { text: 'Ward gate (committed files)', flowIds: [], packageNames: [] },
       ]);
     });
   });

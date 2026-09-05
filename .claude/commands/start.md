@@ -30,7 +30,7 @@ dispatch a sub agent to gather it and report back.
   unless one agent's output feeds another's input. Cases that parallelize:
     - **Multiple plan phases with no cross-dependencies** — if phase B doesn't consume phase A's output, dispatch both
       in the same message.
-    - **Verification steps against the same diff** — coverage review and `ward --changed` both read the same changeset
+    - **Verification steps against the same diff** — coverage review and `ward --committed` both read the same changeset
       independently; dispatch together, not in sequence.
     - **Fix fan-out** — if a reviewer identifies N files with gaps, dispatch N agents, one per file, in parallel. Never
       hand one agent a list of files to "work through."
@@ -67,7 +67,7 @@ progress or append `> [!]` review notes. **Before doing anything else:**
    b. **Once implementation reports back, dispatch verification in parallel** (single message, two sub-agent calls):
       - Sub agent A pulls the list of changed implementation files and verifies test coverage against project
         standards. Its job ends at reporting gaps — it does NOT fix them.
-      - Sub agent B runs `npm run ward --changed` at repo root and reports failures.
+      - Sub agent B runs `npm run ward --committed` at repo root and reports failures.
       Both read the same diff; neither blocks the other.
    c. **Fan out fixes in parallel** — if the coverage reviewer reports N gap files, dispatch N fix agents, ONE FILE
    per agent, in a single message with N invocations. Same for ward failures in independent files. Do NOT give one

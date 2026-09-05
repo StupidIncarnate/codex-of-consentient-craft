@@ -6,7 +6,7 @@
  * question of whether that request RESOLVED to files, and the two disagree exactly where the bug is.
  *
  * USAGE:
- * isFileScopeRequestedGuard({ config: WardConfigStub({ staged: true }) });
+ * isFileScopeRequestedGuard({ config: WardConfigStub({ uncommitted: true }) });
  * // Returns: true
  * isFileScopeRequestedGuard({ config: WardConfigStub({ only: ['lint'] }) });
  * // Returns: false — `--only` picks check types, not files
@@ -27,8 +27,8 @@ type WardScopeKind = 'fileScope' | 'typeFilter' | 'testNameFilter';
 const SCOPE_KIND_BY_FIELD = {
   only: 'typeFilter',
   onlyTests: 'testNameFilter',
-  changed: 'fileScope',
-  staged: 'fileScope',
+  committed: 'fileScope',
+  uncommitted: 'fileScope',
   passthrough: 'fileScope',
 } as const satisfies Record<keyof WardConfig, WardScopeKind>;
 

@@ -14,7 +14,7 @@ describe('wardAwareConfigIndexTransformer', () => {
     });
 
     it('VALID: {role: ward, wardMode: changed} => returns 4 (MINI BOSS)', () => {
-      const workItem = WorkItemStub({ role: 'ward', wardMode: 'changed', dependsOn: [] });
+      const workItem = WorkItemStub({ role: 'ward', wardMode: 'committed', dependsOn: [] });
       const allItemMap = new Map([[workItem.id, workItem]]);
 
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });

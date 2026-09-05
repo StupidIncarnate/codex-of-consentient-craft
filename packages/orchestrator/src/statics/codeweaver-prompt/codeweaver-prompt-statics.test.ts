@@ -127,7 +127,7 @@ describe('codeweaverPromptStatics', () => {
 
   // A WAVE OF SUB-AGENTS RUNNING WARD AT ONCE COLLIDES ON THE SHARED `dist/` IF ANY OF THEM
   // TYPECHECKS — ward's typecheck is `tsc -b`, a build. Scoping to `lint,test` keeps that out; the
-  // reviewer's `--staged` run is where typecheck happens, once, after every sub-agent has finished.
+  // reviewer's `--uncommitted` run is where typecheck happens, once, after every sub-agent has finished.
   it("VALID: served template => scopes a sub-agent's own ward run to lint,test and forbids it from building", () => {
     expect({
       scopedRun: hasIn({

@@ -289,68 +289,68 @@ describe('cliArgsParseTransformer', () => {
       });
     });
 
-    it('INVALID: {--staged --onlyTests "my test" --parentScoped} => the git scope rejection still wins', () => {
+    it('INVALID: {--uncommitted --onlyTests "my test" --parentScoped} => the git scope rejection still wins', () => {
       cliArgsParseTransformerProxy();
 
       expect(() =>
         cliArgsParseTransformer({
           args: [
-            CliArgStub({ value: '--staged' }),
+            CliArgStub({ value: '--uncommitted' }),
             CliArgStub({ value: '--onlyTests' }),
             CliArgStub({ value: 'my test' }),
             CliArgStub({ value: '--parentScoped' }),
           ],
         }),
-      ).toThrow(/^--staged cannot be combined with: --onlyTests$/mu);
+      ).toThrow(/^--uncommitted cannot be combined with: --onlyTests$/mu);
     });
   });
 
-  describe('--changed flag', () => {
-    it('VALID: {args: ["--changed"]} => returns config with changed true', () => {
+  describe('--committed flag', () => {
+    it('VALID: {args: ["--committed"]} => returns config with committed true', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--changed' })],
+        args: [CliArgStub({ value: '--committed' })],
       });
 
-      expect(result).toStrictEqual({ changed: true });
+      expect(result).toStrictEqual({ committed: true });
     });
   });
 
-  describe('--staged flag', () => {
-    it('VALID: {args: ["--staged"]} => returns config with staged true', () => {
+  describe('--uncommitted flag', () => {
+    it('VALID: {args: ["--uncommitted"]} => returns config with uncommitted true', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--staged' })],
+        args: [CliArgStub({ value: '--uncommitted' })],
       });
 
-      expect(result).toStrictEqual({ staged: true });
+      expect(result).toStrictEqual({ uncommitted: true });
     });
 
-    it('VALID: {args: ["--staged", "--staged"]} => repeating the flag stays a single true', () => {
+    it('VALID: {args: ["--uncommitted", "--uncommitted"]} => repeating the flag stays a single true', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--staged' }), CliArgStub({ value: '--staged' })],
+        args: [CliArgStub({ value: '--uncommitted' }), CliArgStub({ value: '--uncommitted' })],
       });
 
-      expect(result).toStrictEqual({ staged: true });
+      expect(result).toStrictEqual({ uncommitted: true });
     });
 
-    it('VALID: {args: ["--staged", "--"]} => a bare separator adds no file scope and is accepted', () => {
+    it('VALID: {args: ["--uncommitted", "--"]} => a bare separator adds no file scope and is accepted', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--staged' }), CliArgStub({ value: '--' })],
+        args: [CliArgStub({ value: '--uncommitted' }), CliArgStub({ value: '--' })],
       });
 
-      expect(result).toStrictEqual({ staged: true });
+      expect(result).toStrictEqual({ uncommitted: true });
     });
   });
 
   describe('git scope flags reject every narrowing flag', () => {
-    describe.each([['--staged'], ['--changed']])('%s', (scopeFlag) => {
+    describe.each([['--uncommitted'], ['--committed']])('%s', (scopeFlag) => {
       it(`INVALID: {${scopeFlag} --only lint} => throws naming --only`, () => {
         cliArgsParseTransformerProxy();
 
@@ -446,25 +446,43 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
-  describe('--changed and --staged are mutually exclusive', () => {
-    it('INVALID: {--staged --changed} => throws because both pick the file set from git', () => {
+  // The two git scope flags are the ONE pair here that does not reject each other. They name
+  // disjoint halves of a branch — commits up to HEAD, working tree past it — so together they mean
+  // "grade the whole branch" and the scope layer unions the two file sets.
+  describe('--committed and --uncommitted combine', () => {
+    it('VALID: {--committed --uncommitted} => returns a config carrying both', () => {
       cliArgsParseTransformerProxy();
 
-      expect(() =>
-        cliArgsParseTransformer({
-          args: [CliArgStub({ value: '--staged' }), CliArgStub({ value: '--changed' })],
-        }),
-      ).toThrow(/^--changed and --staged cannot be combined\.$/mu);
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--committed' }), CliArgStub({ value: '--uncommitted' })],
+      });
+
+      expect(result).toStrictEqual({ committed: true, uncommitted: true });
     });
 
-    it('INVALID: {--changed --staged} => throws regardless of flag order', () => {
+    it('VALID: {--uncommitted --committed} => order does not matter', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--uncommitted' }), CliArgStub({ value: '--committed' })],
+      });
+
+      expect(result).toStrictEqual({ committed: true, uncommitted: true });
+    });
+
+    it('INVALID: {--committed --uncommitted --only lint} => the narrowing rejection names both flags', () => {
       cliArgsParseTransformerProxy();
 
       expect(() =>
         cliArgsParseTransformer({
-          args: [CliArgStub({ value: '--changed' }), CliArgStub({ value: '--staged' })],
+          args: [
+            CliArgStub({ value: '--committed' }),
+            CliArgStub({ value: '--uncommitted' }),
+            CliArgStub({ value: '--only' }),
+            CliArgStub({ value: 'lint' }),
+          ],
         }),
-      ).toThrow(/^--changed and --staged cannot be combined\.$/mu);
+      ).toThrow(/^--committed --uncommitted cannot be combined with: --only$/mu);
     });
   });
 

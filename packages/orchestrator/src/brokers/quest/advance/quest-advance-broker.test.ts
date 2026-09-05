@@ -96,9 +96,9 @@ describe('questAdvanceBroker', () => {
       const wardOp = OperationItemStub({
         id: '11111111-1111-4111-8111-111111111111',
         role: 'ward',
-        text: 'Ward gate (changed files)',
+        text: 'Ward gate (committed files)',
         status: 'pending',
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
 
       const quest = QuestStub({
@@ -125,9 +125,9 @@ describe('questAdvanceBroker', () => {
             OperationItemStub({
               id: '11111111-1111-4111-8111-111111111111',
               role: 'ward',
-              text: 'Ward gate (changed files)',
+              text: 'Ward gate (committed files)',
               status: 'in_progress',
-              wardMode: 'changed',
+              wardMode: 'committed',
             }),
           ],
           workItems: [
@@ -138,7 +138,7 @@ describe('questAdvanceBroker', () => {
               spawnerType: 'command',
               relatedDataItems: ['operations/11111111-1111-4111-8111-111111111111'],
               dependsOn: [],
-              wardMode: 'changed',
+              wardMode: 'committed',
               createdAt: '2024-01-15T10:00:00.000Z',
             }),
           ],

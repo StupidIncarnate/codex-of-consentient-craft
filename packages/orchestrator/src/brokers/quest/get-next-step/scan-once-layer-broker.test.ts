@@ -642,7 +642,7 @@ describe('scanOnceLayerBroker', () => {
             role: 'ward',
             status: 'pending',
             spawnerType: 'command',
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
       });
@@ -666,7 +666,7 @@ describe('scanOnceLayerBroker', () => {
         clearCallCount: clear.mock.calls.length,
         setActiveCalls: setActive.mock.calls,
       }).toStrictEqual({
-        result: { type: 'run-ward', questId, workItemId: wardId, mode: 'changed' },
+        result: { type: 'run-ward', questId, workItemId: wardId, mode: 'committed' },
         blockCalls: [],
         clearCallCount: 0,
         setActiveCalls: [[{ questId }]],

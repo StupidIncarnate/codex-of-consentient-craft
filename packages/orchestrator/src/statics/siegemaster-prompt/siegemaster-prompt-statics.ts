@@ -89,7 +89,7 @@ session.
   on at all — start it, confirm it answers, and carry on.
 
 **[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
-\`npm run ward -- --staged\` at the end, twice at most, and it is the only session here that runs a
+\`npm run ward -- --uncommitted\` at the end, twice at most, and it is the only session here that runs a
 BUILD or a typecheck. A fixer's own \`--only lint,test\` ward is deliberate and keeps typecheck out —
 see **Briefing a fixer**. A
 build under a live system changes what your walkers are measuring, and they read the difference back
@@ -559,7 +559,7 @@ Three lines there are load-bearing and each cost something real:
   moved behaviour an earlier walk already cleared.
 - **\`--only lint,test\` keeps typecheck out, and typecheck is the one that builds.** Ward runs it as
   \`tsc -b\`, which writes the shared \`dist/\`, and a build under the live system changes what your
-  next walker measures. Your reviewer's \`--staged\` run is the typecheck.
+  next walker measures. Your reviewer's \`--uncommitted\` run is the typecheck.
 - **The dev-server ban is absolute.** Several units measure a difference from a value only that
   process's lifetime provides, and a restart destroys them for every later walk silently.
 

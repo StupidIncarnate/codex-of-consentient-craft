@@ -17,7 +17,7 @@ describe('orchestratorRunWardAdapter', () => {
       const result = await orchestratorRunWardAdapter({
         questId,
         workItemId,
-        mode: 'changed',
+        mode: 'committed',
       });
 
       expect(result).toStrictEqual(expected);

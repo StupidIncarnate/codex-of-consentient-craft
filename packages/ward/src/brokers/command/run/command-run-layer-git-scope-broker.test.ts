@@ -7,7 +7,7 @@ import { commandRunLayerGitScopeBrokerProxy } from './command-run-layer-git-scop
 
 describe('commandRunLayerGitScopeBroker', () => {
   describe('no git scope flag', () => {
-    it('VALID: {neither staged nor changed} => returns the config untouched and runs no git command', async () => {
+    it('VALID: {neither committed nor uncommitted} => returns the config untouched and runs no git command', async () => {
       commandRunLayerGitScopeBrokerProxy();
 
       const result = await commandRunLayerGitScopeBroker({
@@ -19,98 +19,170 @@ describe('commandRunLayerGitScopeBroker', () => {
     });
   });
 
-  describe('staged flag', () => {
-    it('VALID: {staged: true, two unpushed source files} => sets passthrough to those files', async () => {
+  describe('uncommitted flag', () => {
+    it('VALID: {uncommitted: true, one edited and one new source file} => sets passthrough to both', async () => {
       const proxy = commandRunLayerGitScopeBrokerProxy();
-      proxy.setupUnpushedFiles({
-        diffOutput: 'packages/ward/src/a.ts\npackages/ward/src/b.tsx\n',
+      proxy.setupUncommittedFiles({
+        trackedOutput: 'packages/ward/src/a.ts\n',
+        untrackedOutput: 'packages/ward/src/b.tsx\n',
       });
 
       const result = await commandRunLayerGitScopeBroker({
-        config: WardConfigStub({ staged: true }),
+        config: WardConfigStub({ uncommitted: true }),
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
       expect(result).toStrictEqual(
         WardConfigStub({
-          staged: true,
+          uncommitted: true,
           passthrough: ['packages/ward/src/a.ts', 'packages/ward/src/b.tsx'],
         }),
       );
     });
 
-    it('VALID: {staged: true, unpushed set mixes source and docs} => passthrough keeps only the source files', async () => {
+    it('VALID: {uncommitted: true, set mixes source and docs} => passthrough keeps only the source files', async () => {
       const proxy = commandRunLayerGitScopeBrokerProxy();
-      proxy.setupUnpushedFiles({
-        diffOutput: 'packages/ward/src/a.ts\nREADME.md\npackage.json\npackages/ward/src/b.mjs\n',
+      proxy.setupUncommittedFiles({
+        trackedOutput: 'packages/ward/src/a.ts\nREADME.md\n',
+        untrackedOutput: 'package.json\npackages/ward/src/b.mjs\n',
       });
 
       const result = await commandRunLayerGitScopeBroker({
-        config: WardConfigStub({ staged: true }),
+        config: WardConfigStub({ uncommitted: true }),
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
       expect(result).toStrictEqual(
         WardConfigStub({
-          staged: true,
+          uncommitted: true,
           passthrough: ['packages/ward/src/a.ts', 'packages/ward/src/b.mjs'],
         }),
       );
     });
 
-    it('EMPTY: {staged: true, nothing unpushed} => leaves passthrough unset', async () => {
+    it('EMPTY: {uncommitted: true, clean working tree} => leaves passthrough unset', async () => {
       const proxy = commandRunLayerGitScopeBrokerProxy();
-      proxy.setupUnpushedFiles({ diffOutput: '' });
+      proxy.setupUncommittedFiles({ trackedOutput: '', untrackedOutput: '' });
 
       const result = await commandRunLayerGitScopeBroker({
-        config: WardConfigStub({ staged: true }),
+        config: WardConfigStub({ uncommitted: true }),
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toStrictEqual(WardConfigStub({ staged: true }));
+      expect(result).toStrictEqual(WardConfigStub({ uncommitted: true }));
     });
 
-    it('EMPTY: {staged: true, unpushed set is docs only} => leaves passthrough unset', async () => {
+    it('EMPTY: {uncommitted: true, working tree holds docs only} => leaves passthrough unset', async () => {
       const proxy = commandRunLayerGitScopeBrokerProxy();
-      proxy.setupUnpushedFiles({ diffOutput: 'README.md\ndocs/design.md\n' });
+      proxy.setupUncommittedFiles({
+        trackedOutput: 'README.md\n',
+        untrackedOutput: 'docs/design.md\n',
+      });
 
       const result = await commandRunLayerGitScopeBroker({
-        config: WardConfigStub({ staged: true }),
+        config: WardConfigStub({ uncommitted: true }),
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toStrictEqual(WardConfigStub({ staged: true }));
+      expect(result).toStrictEqual(WardConfigStub({ uncommitted: true }));
     });
   });
 
-  describe('changed flag', () => {
-    it('VALID: {changed: true, one changed source file} => sets passthrough to that file', async () => {
+  describe('committed flag', () => {
+    it('VALID: {committed: true, one committed source file} => sets passthrough to that file', async () => {
       const proxy = commandRunLayerGitScopeBrokerProxy();
-      proxy.setupChangedFiles({ diffOutput: 'packages/ward/src/changed.ts\n' });
+      proxy.setupCommittedFiles({ diffOutput: 'packages/ward/src/committed.ts\n' });
 
       const result = await commandRunLayerGitScopeBroker({
-        config: WardConfigStub({ changed: true }),
+        config: WardConfigStub({ committed: true }),
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
       expect(result).toStrictEqual(
         WardConfigStub({
-          changed: true,
-          passthrough: ['packages/ward/src/changed.ts'],
+          committed: true,
+          passthrough: ['packages/ward/src/committed.ts'],
         }),
       );
     });
 
-    it('EMPTY: {changed: true, nothing changed} => leaves passthrough unset', async () => {
+    it('EMPTY: {committed: true, nothing committed since the base} => leaves passthrough unset', async () => {
       const proxy = commandRunLayerGitScopeBrokerProxy();
-      proxy.setupChangedFiles({ diffOutput: '' });
+      proxy.setupCommittedFiles({ diffOutput: '' });
 
       const result = await commandRunLayerGitScopeBroker({
-        config: WardConfigStub({ changed: true }),
+        config: WardConfigStub({ committed: true }),
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toStrictEqual(WardConfigStub({ changed: true }));
+      expect(result).toStrictEqual(WardConfigStub({ committed: true }));
+    });
+  });
+
+  describe('both flags together', () => {
+    it('VALID: {committed and uncommitted} => passthrough is the union, committed files first', async () => {
+      const proxy = commandRunLayerGitScopeBrokerProxy();
+      proxy.setupCommittedFiles({ diffOutput: 'packages/ward/src/landed.ts\n' });
+      proxy.setupUncommittedFiles({
+        trackedOutput: 'packages/ward/src/edited.ts\n',
+        untrackedOutput: 'packages/ward/src/brand-new.ts\n',
+      });
+
+      const result = await commandRunLayerGitScopeBroker({
+        config: WardConfigStub({ committed: true, uncommitted: true }),
+        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual(
+        WardConfigStub({
+          committed: true,
+          uncommitted: true,
+          passthrough: [
+            'packages/ward/src/landed.ts',
+            'packages/ward/src/edited.ts',
+            'packages/ward/src/brand-new.ts',
+          ],
+        }),
+      );
+    });
+
+    // A file committed on this branch AND edited again since sits in both readings. Handed to a
+    // check runner twice it is reported twice.
+    it('EDGE: {a file in both readings} => appears once, at its committed position', async () => {
+      const proxy = commandRunLayerGitScopeBrokerProxy();
+      proxy.setupCommittedFiles({
+        diffOutput: 'packages/ward/src/both.ts\npackages/ward/src/landed.ts\n',
+      });
+      proxy.setupUncommittedFiles({
+        trackedOutput: 'packages/ward/src/both.ts\n',
+        untrackedOutput: '',
+      });
+
+      const result = await commandRunLayerGitScopeBroker({
+        config: WardConfigStub({ committed: true, uncommitted: true }),
+        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual(
+        WardConfigStub({
+          committed: true,
+          uncommitted: true,
+          passthrough: ['packages/ward/src/both.ts', 'packages/ward/src/landed.ts'],
+        }),
+      );
+    });
+
+    it('EMPTY: {committed and uncommitted, both resolve to nothing} => leaves passthrough unset', async () => {
+      const proxy = commandRunLayerGitScopeBrokerProxy();
+      proxy.setupCommittedFiles({ diffOutput: '' });
+      proxy.setupUncommittedFiles({ trackedOutput: '', untrackedOutput: '' });
+
+      const result = await commandRunLayerGitScopeBroker({
+        config: WardConfigStub({ committed: true, uncommitted: true }),
+        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual(WardConfigStub({ committed: true, uncommitted: true }));
     });
   });
 });

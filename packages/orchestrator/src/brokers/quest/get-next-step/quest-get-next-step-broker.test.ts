@@ -276,7 +276,7 @@ describe('questGetNextStepBroker', () => {
         type: 'run-ward',
         questId,
         workItemId: wardId,
-        mode: 'changed',
+        mode: 'committed',
       });
     });
   });

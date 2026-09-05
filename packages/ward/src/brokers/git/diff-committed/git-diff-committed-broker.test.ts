@@ -2,16 +2,16 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
-import { gitDiffFilesBroker } from './git-diff-files-broker';
-import { gitDiffFilesBrokerProxy } from './git-diff-files-broker.proxy';
+import { gitDiffCommittedBroker } from './git-diff-committed-broker';
+import { gitDiffCommittedBrokerProxy } from './git-diff-committed-broker.proxy';
 
-describe('gitDiffFilesBroker', () => {
-  describe('with main branch', () => {
-    it('VALID: {repo has main, merge-base succeeds} => returns changed files via merge-base diff', async () => {
-      const proxy = gitDiffFilesBrokerProxy();
-      proxy.setupWithMainBranch({ diffOutput: 'src/file1.ts\nsrc/file2.ts\n' });
+describe('gitDiffCommittedBroker', () => {
+  describe('origin default branch resolves', () => {
+    it('VALID: {origin/main exists, merge-base succeeds} => returns the committed files', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupWithOriginMain({ diffOutput: 'src/file1.ts\nsrc/file2.ts\n' });
 
-      const result = await gitDiffFilesBroker({
+      const result = await gitDiffCommittedBroker({
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
@@ -20,53 +20,43 @@ describe('gitDiffFilesBroker', () => {
         GitRelativePathStub({ value: 'src/file2.ts' }),
       ]);
     });
-  });
 
-  describe('with master branch', () => {
-    it('VALID: {repo has master only, merge-base succeeds} => returns changed files', async () => {
-      const proxy = gitDiffFilesBrokerProxy();
-      proxy.setupWithMasterBranch({ diffOutput: 'src/changed.ts\n' });
+    // The second ref is the whole point of this broker: `git diff <base>` with no second ref
+    // compares the base to the WORKING TREE, folding uncommitted edits into a set that claims to be
+    // about commits. Naming HEAD is what keeps `--committed` and `--uncommitted` disjoint.
+    it('VALID: {origin/main exists} => diffs the merge-base against HEAD, not the working tree', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupWithOriginMain({ diffOutput: 'src/file1.ts\n' });
 
-      const result = await gitDiffFilesBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
-      });
+      await gitDiffCommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
 
-      expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/changed.ts' })]);
+      expect(proxy.getDiffArgs()).toStrictEqual([
+        'diff',
+        '--name-only',
+        '--diff-filter=d',
+        'abc123',
+        'HEAD',
+      ]);
     });
-  });
 
-  describe('merge-base failure', () => {
-    it('EDGE: {main exists but merge-base fails} => falls back to HEAD diff', async () => {
-      const proxy = gitDiffFilesBrokerProxy();
-      proxy.setupMergeBaseFails({ diffOutput: 'src/fallback.ts\n' });
+    it('VALID: {origin/main exists} => takes the merge-base against origin/main', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupWithOriginMain({ diffOutput: 'src/file1.ts\n' });
 
-      const result = await gitDiffFilesBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
-      });
+      await gitDiffCommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
 
-      expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/fallback.ts' })]);
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        ['rev-parse', '--verify', 'origin/main'],
+        ['merge-base', 'HEAD', 'origin/main'],
+        ['diff', '--name-only', '--diff-filter=d', 'abc123', 'HEAD'],
+      ]);
     });
-  });
 
-  describe('no default branch', () => {
-    it('EDGE: {neither main nor master exists} => falls back to HEAD diff', async () => {
-      const proxy = gitDiffFilesBrokerProxy();
-      proxy.setupNoBranch({ diffOutput: 'src/orphan.ts\n' });
+    it('EMPTY: {nothing committed since the base} => returns empty array', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupWithOriginMain({ diffOutput: '' });
 
-      const result = await gitDiffFilesBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
-      });
-
-      expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/orphan.ts' })]);
-    });
-  });
-
-  describe('empty diff', () => {
-    it('EMPTY: {no changed files} => returns empty array', async () => {
-      const proxy = gitDiffFilesBrokerProxy();
-      proxy.setupWithMainBranch({ diffOutput: '' });
-
-      const result = await gitDiffFilesBroker({
+      const result = await gitDiffCommittedBroker({
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
@@ -74,32 +64,43 @@ describe('gitDiffFilesBroker', () => {
     });
   });
 
-  describe('--diff-filter=d flag', () => {
-    it('VALID: {merge-base path} => git diff args include --diff-filter=d to exclude deletions', async () => {
-      const proxy = gitDiffFilesBrokerProxy();
-      proxy.setupWithMainBranch({ diffOutput: 'src/file1.ts\n' });
+  describe('repo has no origin refs', () => {
+    it('VALID: {no origin refs, local main exists} => measures against the local default branch', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupWithLocalFallback({ diffOutput: 'src/offline.ts\n' });
 
-      await gitDiffFilesBroker({
+      const result = await gitDiffCommittedBroker({
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getDiffArgs()).toStrictEqual([
-        'diff',
-        '--name-only',
-        '--diff-filter=d',
-        'abc123',
-      ]);
+      expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/offline.ts' })]);
     });
 
-    it('VALID: {HEAD fallback path} => git diff args include --diff-filter=d to exclude deletions', async () => {
-      const proxy = gitDiffFilesBrokerProxy();
-      proxy.setupNoBranch({ diffOutput: 'src/orphan.ts\n' });
+    it('EMPTY: {no origin refs and no local main or master} => returns empty array', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupNoBranchAnywhere();
 
-      await gitDiffFilesBroker({
+      const result = await gitDiffCommittedBroker({
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getDiffArgs()).toStrictEqual(['diff', '--name-only', '--diff-filter=d', 'HEAD']);
+      expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('merge-base failure', () => {
+    // An orphan or force-recreated branch shares no history with the base, so there is no range to
+    // diff. Reporting nothing is what makes the caller print the empty-scope message; falling back
+    // to a bare `git diff HEAD` would silently answer with `--uncommitted`'s file set instead.
+    it('EDGE: {base resolves but shares no history with HEAD} => returns empty array', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupMergeBaseFails();
+
+      const result = await gitDiffCommittedBroker({
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual([]);
     });
   });
 });

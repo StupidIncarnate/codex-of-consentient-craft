@@ -16,6 +16,7 @@ import { relatedDataItemContract } from '../related-data-item/related-data-item-
 import { sessionIdContract } from '../session-id/session-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
+import { wardModeContract } from '../ward-mode/ward-mode-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 
@@ -62,7 +63,7 @@ export const workItemContract = z.object({
     .describe(
       'Set by orphan recovery when it flips a crashed in_progress item back to pending while KEEPING sessionId: dispatch must resume that Claude session (claude --resume) instead of fresh-spawning, so work in the orphaned session is preserved',
     ),
-  wardMode: z.enum(['changed', 'full']).optional(),
+  wardMode: wardModeContract.optional(),
   packageNames: z
     .array(packageNameContract)
     .optional()

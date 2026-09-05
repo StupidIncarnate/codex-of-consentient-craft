@@ -77,7 +77,8 @@ describe('spiritmenderPromptStatics', () => {
   // [WARD] is embedded in this same prompt and now names exactly ONE form — the named-file one —
   // because this session runs no other. It used to describe two and leave the reader to pick,
   // while this prompt separately handed over a bare `npm run ward -- -- <files>`, which is neither.
-  // The ban on `--staged` stays: it sweeps the whole branch instead of the failures sent here.
+  // The ban on the two git scope flags stays: either sweeps a whole half of the branch instead of
+  // the failures sent here.
   it('VALID: template => runs the named-file ward form [WARD] names, and no third form', () => {
     expect({
       reproduceForm: template.includes('npm run ward -- --only <checks> -- <the failing files>'),
@@ -85,7 +86,7 @@ describe('spiritmenderPromptStatics', () => {
         'npm run ward -- --only <checks> -- <file1> <file2> <file1.test.ts>',
       ),
       namesWhichOfTheTwoFormsIsThisRoles: template.includes(
-        '**Name the failing files, as [WARD] directs. Never `--staged`.**',
+        '**Name the failing files, as [WARD] directs. Never `--committed` or `--uncommitted`.**',
       ),
       namesTheValidCheckTypes: template.includes(
         'Only these five names are valid: 1. `lint` 2. `typecheck` 3. `unit` 4. `integration` 5. `e2e`',

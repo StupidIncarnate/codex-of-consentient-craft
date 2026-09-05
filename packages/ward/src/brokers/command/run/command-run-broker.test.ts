@@ -12,22 +12,22 @@ describe('commandRunBroker', () => {
   // AN EMPTY FILE SCOPE IS NOT AN ABSENT ONE. `commandRunLayerGitScopeBroker` leaves `passthrough`
   // unset when the diff holds no source file, and every consumer downstream reads unset as "no file
   // scope" — so the run graded the whole monorepo. On quest a7520e60 both round reviewers hit it
-  // moments after pushing their own round: `--staged` had nothing left to measure and swept all 13
-  // packages including e2e, 858s on one and past the 600s harness timeout on the other, and both
-  // reported that wide green as the round's verdict.
+  // moments after pushing their own round: the git-scoped run had nothing left to measure and swept
+  // all 13 packages including e2e, 858s on one and past the 600s harness timeout on the other, and
+  // both reported that wide green as the round's verdict.
   //
   // Each case stages the single-package PASS path deliberately. Those mocks describe the whole-repo
   // run, so before the short-circuit existed this test failed on the summary line it wrote rather
   // than on an unstaged call — the assertion bites on what ward DID, not on what it reached for.
   describe('file scope that resolves to nothing', () => {
-    it('EMPTY: {staged: true, nothing unpushed} => runs no checks and says the scope is empty', async () => {
+    it('EMPTY: {uncommitted: true, clean working tree} => runs no checks and says the scope is empty', async () => {
       process.exitCode = 0;
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
-      proxy.setupStagedWithNothingUnpushed();
+      proxy.setupUncommittedWithCleanTree();
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const config = WardConfigStub({ staged: true });
+      const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
 
@@ -42,14 +42,14 @@ describe('commandRunBroker', () => {
       });
     });
 
-    it('EMPTY: {changed: true, nothing changed} => runs no checks and says the scope is empty', async () => {
+    it('EMPTY: {committed: true, nothing committed} => runs no checks and says the scope is empty', async () => {
       process.exitCode = 0;
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
-      proxy.setupChangedWithNothingChanged();
+      proxy.setupCommittedWithNothingCommitted();
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const config = WardConfigStub({ changed: true });
+      const config = WardConfigStub({ committed: true });
 
       await commandRunBroker({ config, rootPath });
 
@@ -91,14 +91,14 @@ describe('commandRunBroker', () => {
 
     // The complement, and the reason the short-circuit reads `passthrough` rather than the flag: a
     // git scope that DID resolve to files is an ordinary scoped run and must still execute.
-    it('VALID: {staged: true, one unpushed source file} => runs the checks instead of short-circuiting', async () => {
+    it('VALID: {uncommitted: true, one edited source file} => runs the checks instead of short-circuiting', async () => {
       process.exitCode = 0;
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
-      proxy.setupStagedWithOneUnpushedFile();
+      proxy.setupUncommittedWithOneEditedFile();
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const config = WardConfigStub({ staged: true });
+      const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
 
@@ -117,7 +117,7 @@ describe('commandRunBroker', () => {
   });
 
   // A PATH DISK DOES NOT HAVE IS THE CALLER BEING WRONG, and it is a different answer from an empty
-  // git scope. `--staged` with nothing unpushed legitimately has nothing to check and exits 0; a
+  // git scope. `--uncommitted` on a clean tree legitimately has nothing to check and exits 0; a
   // typo'd `-- <file>` asked for something specific and got silence. Reproduced live before this
   // existed: `npm run ward -- --only lint -- packages/definitely-not-a-package/src/nope.ts` printed
   // `lint: WARN 0 files run` and exited 0, because the path matched no package, spawned no child,
@@ -186,15 +186,15 @@ describe('commandRunBroker', () => {
     // THE SCOPE LIMIT, and the reason this reads the config the CALLER handed in rather than the one
     // `commandRunLayerGitScopeBroker` returns — both write the same `passthrough` field. A git diff
     // legitimately holds root-level files nothing lints, so failing here would redden ordinary
-    // `--staged` runs. Pinning the WHOLE stdout list is what proves nothing extra was printed.
-    it('VALID: {staged: true resolves to a file no check processed} => prints no unprocessed-path guidance', async () => {
+    // `--uncommitted` runs. Pinning the WHOLE stdout list is what proves nothing extra was printed.
+    it('VALID: {uncommitted: true resolves to a file no check processed} => prints no unprocessed-path guidance', async () => {
       process.exitCode = 0;
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
-      proxy.setupStagedWithOneUnpushedFile();
+      proxy.setupUncommittedWithOneEditedFile();
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const config = WardConfigStub({ staged: true });
+      const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
 

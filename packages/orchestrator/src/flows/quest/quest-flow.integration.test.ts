@@ -1519,10 +1519,10 @@ describe('QuestFlow', () => {
           OperationItemStub({
             id: wardOpId,
             role: 'ward',
-            text: 'ward (changed)',
+            text: 'ward (committed)',
             status: 'pending',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -1587,7 +1587,7 @@ describe('QuestFlow', () => {
         operations: [
           { role: 'codeweaver', status: 'complete', text: 'build core' },
           { role: 'codeweaver', status: 'pending', text: 'pt 2: build core' },
-          { role: 'ward', status: 'pending', text: 'ward (changed)' },
+          { role: 'ward', status: 'pending', text: 'ward (committed)' },
         ],
         signalledWorkItem: {
           status: 'failed',
@@ -1824,10 +1824,10 @@ describe('QuestFlow', () => {
           OperationItemStub({
             id: wardOpId,
             role: 'ward',
-            text: 'ward (changed)',
+            text: 'ward (committed)',
             status: 'in_progress',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
           OperationItemStub({
             id: flowOpId,
@@ -1843,7 +1843,7 @@ describe('QuestFlow', () => {
             role: 'ward',
             status: 'in_progress',
             spawnerType: 'command',
-            wardMode: 'changed',
+            wardMode: 'committed',
             relatedDataItems: [`operations/${String(wardOpId)}`],
             dependsOn: [],
             createdAt: new Date().toISOString(),
@@ -1863,7 +1863,7 @@ describe('QuestFlow', () => {
       const wardRun = await QuestFlow.runWard({
         questId,
         workItemId: wardWorkItemId,
-        mode: 'changed',
+        mode: 'committed',
       });
 
       const afterWard = await QuestGetResponder({ questId });
@@ -1912,10 +1912,10 @@ describe('QuestFlow', () => {
           OperationItemStub({
             id: wardOpId,
             role: 'ward',
-            text: 'ward (changed)',
+            text: 'ward (committed)',
             status: 'in_progress',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
           OperationItemStub({
             id: flowOpId,
@@ -1931,7 +1931,7 @@ describe('QuestFlow', () => {
             role: 'ward',
             status: 'in_progress',
             spawnerType: 'command',
-            wardMode: 'changed',
+            wardMode: 'committed',
             relatedDataItems: [`operations/${String(wardOpId)}`],
             dependsOn: [],
             createdAt: new Date().toISOString(),
@@ -1970,7 +1970,7 @@ describe('QuestFlow', () => {
       const wardRun = await QuestFlow.runWard({
         questId,
         workItemId: wardWorkItemId,
-        mode: 'changed',
+        mode: 'committed',
       });
 
       const afterRed = await QuestGetResponder({ questId });
@@ -2002,7 +2002,7 @@ describe('QuestFlow', () => {
           { role: 'ward', status: 'pending' },
           { role: 'flowrider', status: 'pending' },
         ],
-        freshWardMode: 'changed',
+        freshWardMode: 'committed',
         wardWorkItemStatus: 'failed',
         spiritWorkItemStatus: 'pending',
         spiritWorkItemLink: [`operations/${String(spiritOp!.id)}`],

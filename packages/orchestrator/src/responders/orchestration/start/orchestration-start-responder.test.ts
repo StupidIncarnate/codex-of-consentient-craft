@@ -351,11 +351,11 @@ describe('OrchestrationStartResponder', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_UUID,
         role: 'ward',
-        text: 'Ward gate (changed files)',
+        text: 'Ward gate (committed files)',
         status: 'pending',
         locked: true,
         flowIds: [],
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,
@@ -624,11 +624,11 @@ describe('OrchestrationStartResponder', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_UUID,
         role: 'ward',
-        text: 'Ward gate (changed files)',
+        text: 'Ward gate (committed files)',
         status: 'pending',
         locked: true,
         flowIds: [],
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,
@@ -668,11 +668,11 @@ describe('OrchestrationStartResponder', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_UUID,
         role: 'ward',
-        text: 'Ward gate (changed files)',
+        text: 'Ward gate (committed files)',
         status: 'pending',
         locked: true,
         flowIds: [],
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,
@@ -710,11 +710,11 @@ describe('OrchestrationStartResponder', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_UUID,
         role: 'ward',
-        text: 'Ward gate (changed files)',
+        text: 'Ward gate (committed files)',
         status: 'pending',
         locked: true,
         flowIds: [],
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,

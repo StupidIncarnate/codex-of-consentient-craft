@@ -92,7 +92,7 @@ session.
 - Decide early what to delegate. You will not reliably stop and delegate deep into a long turn.
 
 **[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
-\`npm run ward -- --staged\`, after it has read everything. This rule overrides the
+\`npm run ward -- --uncommitted\`, after it has read everything. This rule overrides the
 \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\` snippets you were handed at session
 start; neither is written for a session that runs neither command.
 
@@ -524,7 +524,7 @@ Three lines there are load-bearing and each cost something real:
   on the quest that nothing backs.
 - **\`--only lint,test\` keeps typecheck out, and typecheck is the one that builds.** Ward runs it as
   \`tsc -b\`, which writes the shared \`dist/\`, so a wave of sub-agents running it at once hands each
-  other type errors on correct code. Your reviewer's \`--staged\` run is the typecheck.
+  other type errors on correct code. Your reviewer's \`--uncommitted\` run is the typecheck.
 - **The \`run-ward\` MCP tool is not the same command.** It grades the whole branch and lands the red
   on your work item.
 

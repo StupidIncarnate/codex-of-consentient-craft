@@ -28,7 +28,7 @@ const BUGHUNT_OP_TEXT = 'Author spec + implementation plan';
 // questBuildRelayGraphBroker seeds a list it matched by role name rather than one it read off the
 // quest's own type. Bug-hunt shares the feature relay wholesale — the `riftcarver` carve, the
 // `codeweaver` build (neither carries fanOutBy at this seed-list level, so each fans to exactly one
-// entry here), then relayTail's ward(changed) -> flowrider -> siegemaster -> ward(full).
+// entry here), then relayTail's ward(committed) -> flowrider -> siegemaster -> ward(full).
 const BUG_HUNT_REGISTRY = questTypeRegistryStatics['bug-hunt'];
 const EXPECTED_BUG_HUNT_LEDGER_ROLES = [
   String(BUG_HUNT_REGISTRY.initialWorkItemRole),

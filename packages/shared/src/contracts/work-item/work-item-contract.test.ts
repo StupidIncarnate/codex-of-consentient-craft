@@ -42,7 +42,7 @@ describe('workItemContract', () => {
         errorMessage: 'verification_failed',
         summary: 'Implemented user fetch with tests',
         insertedBy: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
 
       const result = workItemContract.parse(item);
@@ -65,7 +65,7 @@ describe('workItemContract', () => {
         errorMessage: 'verification_failed',
         summary: 'Implemented user fetch with tests',
         insertedBy: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
     });
 

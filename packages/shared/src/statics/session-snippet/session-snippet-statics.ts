@@ -126,7 +126,7 @@ Call all three tools, read their output, THEN plan your approach.`,
 | Type | Tool | Description |
 |------|------|-------------|
 | \`lint\` | ESLint | Linting with \`--fix\` |
-| \`typecheck\` | tsc | TypeScript type checking |
+| \`typecheck\` | tsc | Type checking |
 | \`unit\` | Jest | \`*.test.ts\`, excludes \`*.integration.test.ts\` |
 | \`integration\` | Jest | \`*.integration.test.ts\` only |
 | \`e2e\` | Playwright | Browser tests |
@@ -138,13 +138,13 @@ Call all three tools, read their output, THEN plan your approach.`,
 |------|-------------|
 | \`--only lint,typecheck,unit\` | Comma-separated check types. Omit for all. |
 | \`--onlyTests <regex>\` | Filter tests by name. \`\\|\` alternates. |
-| \`-- file1 file2\` | Passthrough file paths (after \`--\`). |
-| \`--changed\` | All checks, on files differing from local default. |
-| \`--staged\` | All checks, on files origin lacks. Pre-push gate. |
+| \`-- file1 file2\` | Passthrough file paths. |
+| \`--committed\` | All checks, on this branch's commits over \`origin/main\`. |
+| \`--uncommitted\` | All checks, on the working tree — untracked files included. |
 
-**\`--changed\` and \`--staged\` run ALONE** — each takes its file set from git, so ward rejects them combined with \`--only\`, \`--onlyTests\`, \`-- <files>\`, or each other. To narrow, drop the flag and scope it yourself.
+**\`--uncommitted\` SEES UNTRACKED FILES**, so an all-new-files pass is graded, not skipped. **They combine** for the whole branch. Neither takes \`--only\`, \`--onlyTests\` or \`-- <files>\`; to narrow, scope it yourself.
 
-**Either resolving to 0 files runs NOTHING**: ward says so and exits 0 — empty, not green.
+**A 0-file git scope runs NOTHING**: ward says so and exits 0 — empty, not green.
 
 ### Common Invocations
 
@@ -154,7 +154,7 @@ npm run ward -- -- pkg/a.ts pkg/a.test.ts     # THESE FILES — ward picks the c
 npm run ward -- --only unit -- pkg/a.test.ts  # These files, one check type
 npm run ward -- --only unit --onlyTests "x" -- pkg/  # By name, SCOPED
 npm run ward -- -- packages/hooks             # One package
-npm run ward -- --staged                      # Unpushed work
+npm run ward -- --committed --uncommitted     # Whole branch (or either half)
 \`\`\`
 
 Pass every path you touched after \`--\`. Repo-relative, no \`./\`.
@@ -175,7 +175,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **Run it ONCE.** Choose the right flags the first time; never re-run the same checks a second way, or follow a scoped run with a full one.
 
-**A skip on a scoped run is not a regression.** Jest's \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — on a \`-- <files>\` run, narrow \`--only\` rather than widen scope. \`--changed\`/\`--staged\` reject \`--only\`; re-run those as \`--only <types> -- <files>\`.
+**A skip on a scoped run is not a regression.** Jest's \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — on a \`-- <files>\` run, narrow \`--only\` rather than widen scope. \`--committed\`/\`--uncommitted\` reject \`--only\`; re-run those as \`--only <types> -- <files>\`.
 
 **Who owns a FULL run.** An agent working directly for the user makes \`npm run ward\` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role is the opposite: it NEVER runs the full sweep — its Operating Rules override this snippet, and the dispatcher's own \`run-ward\` item is the regression pass.`,
 

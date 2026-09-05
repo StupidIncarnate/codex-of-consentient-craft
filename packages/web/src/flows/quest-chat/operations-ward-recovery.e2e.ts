@@ -33,7 +33,7 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     await dispatchHarness({ request, guildPath: GUILD_PATH }).afterEach();
   });
 
-  test('VALID: {ledger [ward(changed), flowrider] driven green/done/done} => ward completes and advances to the flowrider; no spiritmender inserted', async ({
+  test('VALID: {ledger [ward(committed), flowrider] driven green/done/done} => ward completes and advances to the flowrider; no spiritmender inserted', async ({
     page,
     request,
   }) => {
@@ -53,10 +53,10 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
         {
           id: WARD_OP,
           role: 'ward',
-          text: 'ward (changed)',
+          text: 'ward (committed)',
           status: 'in_progress',
           locked: true,
-          wardMode: 'changed',
+          wardMode: 'committed',
         },
         { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
@@ -73,14 +73,14 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: ward in_progress ([>]), flowrider pending ([ ]); ward row carries its (changed) mode.
+    // BEFORE: ward in_progress ([>]), flowrider pending ([ ]); ward row carries its (committed) mode.
     const markers = page.getByTestId('OPERATIONS_LEDGER_ROW_MARKER');
     await expect(markers).toHaveText(['[>]', '[ ]'], { timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
       '[WARD]',
       '[FLOWRIDER]',
     ]);
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(changed)');
+    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(committed)');
 
     await dispatch.playAndDrive({
       questId: String(questId),
@@ -111,7 +111,7 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
         wardMode: op.wardMode ?? null,
       })),
     ).toStrictEqual([
-      { role: 'ward', status: 'complete', wardMode: 'changed' },
+      { role: 'ward', status: 'complete', wardMode: 'committed' },
       { role: 'flowrider', status: 'complete', wardMode: null },
     ]);
 
@@ -123,7 +123,7 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     ]);
   });
 
-  test('VALID: {ledger [ward(changed), flowrider] driven red/done/green/done} => red splices a spiritmender + fresh ward, dispatches the SPIRITMENDER next (never a ward back-to-back), then converges', async ({
+  test('VALID: {ledger [ward(committed), flowrider] driven red/done/green/done} => red splices a spiritmender + fresh ward, dispatches the SPIRITMENDER next (never a ward back-to-back), then converges', async ({
     page,
     request,
   }) => {
@@ -143,10 +143,10 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
         {
           id: WARD_OP,
           role: 'ward',
-          text: 'ward (changed)',
+          text: 'ward (committed)',
           status: 'in_progress',
           locked: true,
-          wardMode: 'changed',
+          wardMode: 'committed',
         },
         { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
@@ -194,7 +194,7 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     });
 
     // The red ward marked its own operation complete, then spliced a spiritmender operation PLUS a
-    // fresh ward continuation ("pt 2", same (changed) mode) immediately AFTER it — the spiritmender
+    // fresh ward continuation ("pt 2", same (committed) mode) immediately AFTER it — the spiritmender
     // sits BETWEEN the two ward items in ledger order, so the fixpoint never loops ward->ward. The
     // ledger ends at four items: nothing is appended beside a completing session.
     expect(
@@ -204,9 +204,9 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
         wardMode: op.wardMode ?? null,
       })),
     ).toStrictEqual([
-      { role: 'ward', status: 'complete', wardMode: 'changed' },
+      { role: 'ward', status: 'complete', wardMode: 'committed' },
       { role: 'spiritmender', status: 'complete', wardMode: null },
-      { role: 'ward', status: 'complete', wardMode: 'changed' },
+      { role: 'ward', status: 'complete', wardMode: 'committed' },
       { role: 'flowrider', status: 'complete', wardMode: null },
     ]);
 
@@ -235,7 +235,7 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     ]);
 
     // AFTER (UI): the ledger grew live to four rows — ward, the spliced spiritmender, the fresh
-    // ward, and the flowrider — all complete ([x]); both ward rows keep their (changed) mode.
+    // ward, and the flowrider — all complete ([x]); both ward rows keep their (committed) mode.
     await expect(markers).toHaveText(['[x]', '[x]', '[x]', '[x]'], {
       timeout: LEDGER_TIMEOUT,
     });
@@ -246,8 +246,8 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       '[FLOWRIDER]',
     ]);
     await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText([
-      '(changed)',
-      '(changed)',
+      '(committed)',
+      '(committed)',
     ]);
   });
 });

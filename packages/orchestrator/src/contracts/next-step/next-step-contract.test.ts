@@ -81,7 +81,7 @@ describe('nextStepContract', () => {
   });
 
   describe('run-ward variant', () => {
-    it('VALID: {type: run-ward, mode: changed} => parses successfully', () => {
+    it('VALID: {type: run-ward, mode: committed} => parses successfully', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
 
@@ -89,14 +89,14 @@ describe('nextStepContract', () => {
         type: 'run-ward',
         questId,
         workItemId,
-        mode: 'changed',
+        mode: 'committed',
       });
 
       expect(result).toStrictEqual({
         type: 'run-ward',
         questId,
         workItemId,
-        mode: 'changed',
+        mode: 'committed',
       });
     });
 

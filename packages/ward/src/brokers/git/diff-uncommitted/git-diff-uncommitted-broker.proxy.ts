@@ -9,14 +9,11 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { gitDetectUpstreamBrokerProxy } from '../detect-upstream/git-detect-upstream-broker.proxy';
-import { gitDiffFilesBrokerProxy } from '../diff-files/git-diff-files-broker.proxy';
-
-// merge-base and diff are both spawned as bare `git`, exactly like the sequential rev-parse checks
-// this broker's upstream detection issues — `command` alone cannot tell them apart. This proxy mocks
-// `spawn` directly with onceFor (instead of composing the shared childProcessSpawnCaptureAdapterProxy,
-// which only exposes sticky calledWith staging), staging each call in the same order the broker
-// actually issues them.
+// The `git diff` and the `git ls-files` are both spawned as bare `git`, so `command` alone cannot
+// tell them apart. This proxy mocks `spawn` directly with onceFor (instead of composing the shared
+// childProcessSpawnCaptureAdapterProxy, which only exposes sticky calledWith staging), staging each
+// call in the same order the broker issues them. The broker awaits them through Promise.all, but
+// the array literal evaluates left to right, so the diff is still spawned before the ls-files.
 const createGitChild = ({
   exitCode,
   stdout,
@@ -56,91 +53,43 @@ const createGitChild = ({
   return child;
 };
 
-export const gitDiffUnpushedBrokerProxy = (): {
-  setupWithTrackingBranch: (params: { upstreamRef: string; diffOutput: string }) => void;
-  setupWithoutTrackingBranch: (params: { diffOutput: string }) => void;
-  setupMergeBaseFails: (params: { diffOutput: string }) => void;
-  setupNoOriginRefs: (params: { diffOutput: string }) => void;
-  getDiffArgs: () => unknown;
+export const gitDiffUncommittedBrokerProxy = (): {
+  setupWorkingTree: (params: { trackedOutput: string; untrackedOutput: string }) => void;
+  getSpawnedArgs: () => unknown[];
 } => {
-  const upstreamProxy = gitDetectUpstreamBrokerProxy();
-  const diffFilesProxy = gitDiffFilesBrokerProxy();
   const handle = registerMock({ fn: spawn });
   // Created but unstaged: the real implementation composes childProcessSpawnCaptureAdapter, but this
   // proxy answers `spawn` directly (see the module comment above) so the shared proxy's own
   // constructor-level default never fires.
   childProcessSpawnCaptureAdapterProxy();
   const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
   const emptyMessage = ErrorMessageStub({ value: '' });
 
   return {
-    setupWithTrackingBranch: ({
-      upstreamRef,
-      diffOutput,
+    setupWorkingTree: ({
+      trackedOutput,
+      untrackedOutput,
     }: {
-      upstreamRef: string;
-      diffOutput: string;
+      trackedOutput: string;
+      untrackedOutput: string;
     }): void => {
-      upstreamProxy.setupTrackingBranch({ upstreamRef });
       handle.onceFor(['git']).implement(() =>
         createGitChild({
           exitCode: successCode,
-          stdout: ErrorMessageStub({ value: 'abc123\n' }),
+          stdout: ErrorMessageStub({ value: trackedOutput }),
           stderr: emptyMessage,
         }),
       );
       handle.onceFor(['git']).implement(() =>
         createGitChild({
           exitCode: successCode,
-          stdout: ErrorMessageStub({ value: diffOutput }),
+          stdout: ErrorMessageStub({ value: untrackedOutput }),
           stderr: emptyMessage,
         }),
       );
     },
 
-    setupWithoutTrackingBranch: ({ diffOutput }: { diffOutput: string }): void => {
-      upstreamProxy.setupNoTrackingBranchOriginMainExists();
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: 'abc123\n' }),
-          stderr: emptyMessage,
-        }),
-      );
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: diffOutput }),
-          stderr: emptyMessage,
-        }),
-      );
-    },
-
-    // Upstream ref resolves, but HEAD and it share no history (an orphan or force-recreated branch),
-    // so the broker drops to the local default-branch diff.
-    setupMergeBaseFails: ({ diffOutput }: { diffOutput: string }): void => {
-      upstreamProxy.setupTrackingBranch({ upstreamRef: 'origin/master' });
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: ErrorMessageStub({ value: 'fatal: no merge base' }),
-        }),
-      );
-      diffFilesProxy.setupWithMainBranch({ diffOutput });
-    },
-
-    setupNoOriginRefs: ({ diffOutput }: { diffOutput: string }): void => {
-      upstreamProxy.setupNoOriginRefs();
-      diffFilesProxy.setupWithMainBranch({ diffOutput });
-    },
-
-    getDiffArgs: (): unknown => {
-      const calls = handle.callsMatching(['git']);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      return lastCall[1];
-    },
+    getSpawnedArgs: (): unknown[] =>
+      handle.callsMatching(['git']).map((call) => (Array.isArray(call) ? call[1] : undefined)),
   };
 };

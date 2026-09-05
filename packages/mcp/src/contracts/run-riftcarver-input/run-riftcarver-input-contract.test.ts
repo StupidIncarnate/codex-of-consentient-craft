@@ -31,7 +31,7 @@ describe('runRiftcarverInputContract', () => {
       runRiftcarverInputContract.parse({
         questId: 'aaaaaaaa-1111-4222-9333-444444444444',
         workItemId: 'bbbbbbbb-2222-4333-9444-555555555555',
-        mode: 'changed',
+        mode: 'committed',
       }),
     ).toThrow(/Unrecognized key/u);
   });

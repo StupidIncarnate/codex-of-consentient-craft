@@ -24,7 +24,7 @@
  *
  * IT RUNS AFTER THE GIT SCOPE LAYER, deliberately. `commandRunLayerGitScopeBroker` writes
  * `passthrough` from `git diff --name-only`, which is already repo-relative, so this is a no-op on
- * that path — one call site covers both `--changed`/`--staged` and an explicit `-- <files>` list
+ * that path — one call site covers both `--committed`/`--uncommitted` and an explicit `-- <files>` list
  * rather than trusting git's output format forever.
  *
  * A path outside `rootPath` is returned UNCHANGED. It names something this run cannot reach, and a

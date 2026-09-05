@@ -174,7 +174,7 @@ describe('ExecutionPanelWidget', () => {
             role: 'ward',
             text: 'verify: ward',
             status: 'pending',
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
       });
@@ -187,7 +187,7 @@ describe('ExecutionPanelWidget', () => {
       expect(proxy.getOperationsLedgerRows().map((r) => r.textContent)).toStrictEqual([
         '[x][CODEWEAVER]build the broker',
         '[>][CODEWEAVER]wire the flow',
-        '[ ][WARD]verify: ward(changed)',
+        '[ ][WARD]verify: ward(committed)',
       ]);
     });
 
@@ -402,7 +402,7 @@ describe('ExecutionPanelWidget', () => {
       const wardResult = WardResultStub({
         id: 'b0000000-0000-0000-0000-000000000001',
         exitCode: 1,
-        wardMode: 'changed',
+        wardMode: 'committed',
       });
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -412,7 +412,7 @@ describe('ExecutionPanelWidget', () => {
             role: 'ward',
             text: 'verify: ward',
             status: 'complete',
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -440,7 +440,7 @@ describe('ExecutionPanelWidget', () => {
       await userEvent.click(wardRowHeader);
 
       expect(screen.getByTestId('execution-row-ward-result').textContent).toBe(
-        'Ward exit code: 1 (changed)',
+        'Ward exit code: 1 (committed)',
       );
     });
   });

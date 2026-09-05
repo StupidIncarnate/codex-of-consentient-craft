@@ -508,7 +508,7 @@ describe('questToTextDisplayTransformer', () => {
             text: 'ward gate' as never,
             status: 'in_progress',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
       });
@@ -516,7 +516,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[ward \(changed\)\] ward gate — in_progress \[locked\]$/mu,
+        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[ward \(committed\)\] ward gate — in_progress \[locked\]$/mu,
       );
     });
 

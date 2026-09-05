@@ -13,7 +13,7 @@ import { QuestRunWardResponderProxy } from './quest-run-ward-responder.proxy';
 const WARD_WORK_ITEM_ID = 'a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5';
 
 describe('QuestRunWardResponder', () => {
-  it('VALID: {exitCode 0, mode: changed} => delegates to broker and returns full QuestRunWardResult', async () => {
+  it('VALID: {exitCode 0, mode: committed} => delegates to broker and returns full QuestRunWardResult', async () => {
     const proxy = QuestRunWardResponderProxy();
     const questId = QuestIdStub({ value: 'test-quest' });
     const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
@@ -38,7 +38,7 @@ describe('QuestRunWardResponder', () => {
       detailJson: FileContentsStub({ value: '{"checks":[]}' }),
     });
 
-    const result = await proxy.callResponder({ questId, workItemId, mode: 'changed' });
+    const result = await proxy.callResponder({ questId, workItemId, mode: 'committed' });
 
     expect(result).toStrictEqual({
       success: true,
@@ -79,7 +79,7 @@ describe('QuestRunWardResponder', () => {
     });
     const emits = proxy.captureWardChatEmits();
 
-    await proxy.callResponder({ questId, workItemId, mode: 'changed' });
+    await proxy.callResponder({ questId, workItemId, mode: 'committed' });
 
     // One emit per ward line, each routed to the ward work item so the execution panel groups
     // them under its row. That the line CONTENT reaches the callback is covered by the broker's

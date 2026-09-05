@@ -1089,7 +1089,7 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
     });
 
-    it("VALID: {locked ward item with wardMode: 'changed'} => continuation preserves locked AND wardMode", async () => {
+    it("VALID: {locked ward item with wardMode: 'committed'} => continuation preserves locked AND wardMode", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
@@ -1097,10 +1097,10 @@ describe('QuestHandleSignalBackResponder', () => {
           OperationItemStub({
             id: OP1_ID,
             role: 'ward',
-            text: 'Ward gate (changed files)',
+            text: 'Ward gate (committed files)',
             status: 'in_progress',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -1110,7 +1110,7 @@ describe('QuestHandleSignalBackResponder', () => {
             status: 'in_progress',
             spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
       });
@@ -1119,18 +1119,18 @@ describe('QuestHandleSignalBackResponder', () => {
           OperationItemStub({
             id: OP1_ID,
             role: 'ward',
-            text: 'Ward gate (changed files)',
+            text: 'Ward gate (committed files)',
             status: 'complete',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
           OperationItemStub({
             id: CONTINUATION_UUID,
             role: 'ward',
-            text: 'pt 2: Ward gate (changed files)',
+            text: 'pt 2: Ward gate (committed files)',
             status: 'pending',
             locked: true,
-            wardMode: 'changed',
+            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -1140,7 +1140,7 @@ describe('QuestHandleSignalBackResponder', () => {
             status: 'complete',
             spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'changed',
+            wardMode: 'committed',
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
           }),

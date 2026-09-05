@@ -9,12 +9,11 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-// Every rev-parse this broker issues is spawned as bare `git`, so `command` alone cannot tell the
-// (up to three) sequential calls apart — they share one address. The shared
-// childProcessSpawnCaptureAdapterProxy only exposes sticky calledWith staging, where the LAST
-// staging answers every matching call; onceFor's FIFO consumption is what "identical calls must get
-// different results" needs, so this proxy mocks `spawn` directly and stages each call in the order
-// the broker issues them.
+// Both rev-parse calls this broker issues are spawned as bare `git`, so `command` alone cannot tell
+// them apart — they share one address. The shared childProcessSpawnCaptureAdapterProxy only exposes
+// sticky calledWith staging, where the LAST staging answers every matching call; onceFor's FIFO
+// consumption is what "identical calls must get different results" needs, so this proxy mocks
+// `spawn` directly and stages each call in the order the broker issues them.
 const createGitChild = ({
   exitCode,
   stdout,
@@ -54,12 +53,10 @@ const createGitChild = ({
   return child;
 };
 
-export const gitDetectUpstreamBrokerProxy = (): {
-  setupTrackingBranch: (params: { upstreamRef: string }) => void;
-  setupNoTrackingBranchOriginMainExists: () => void;
-  setupNoTrackingBranchOriginMasterExists: () => void;
+export const gitDetectOriginDefaultBranchBrokerProxy = (): {
+  setupOriginMainExists: () => void;
+  setupOriginMasterExists: () => void;
   setupNoOriginRefs: () => void;
-  setupEmptyTrackingBranchOriginMainExists: () => void;
   getSpawnedArgs: () => unknown[];
 } => {
   const handle = registerMock({ fn: spawn });
@@ -70,27 +67,10 @@ export const gitDetectUpstreamBrokerProxy = (): {
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
   const emptyMessage = ErrorMessageStub({ value: '' });
-  const fatalMessage = ErrorMessageStub({ value: 'fatal: no upstream configured' });
+  const fatalMessage = ErrorMessageStub({ value: 'fatal: Needed a single revision' });
 
   return {
-    setupTrackingBranch: ({ upstreamRef }: { upstreamRef: string }): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: `${upstreamRef}\n` }),
-          stderr: emptyMessage,
-        }),
-      );
-    },
-
-    setupNoTrackingBranchOriginMainExists: (): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: fatalMessage,
-        }),
-      );
+    setupOriginMainExists: (): void => {
       handle.onceFor(['git']).implement(() =>
         createGitChild({
           exitCode: successCode,
@@ -100,14 +80,7 @@ export const gitDetectUpstreamBrokerProxy = (): {
       );
     },
 
-    setupNoTrackingBranchOriginMasterExists: (): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: fatalMessage,
-        }),
-      );
+    setupOriginMasterExists: (): void => {
       handle.onceFor(['git']).implement(() =>
         createGitChild({
           exitCode: failCode,
@@ -137,32 +110,6 @@ export const gitDetectUpstreamBrokerProxy = (): {
           exitCode: failCode,
           stdout: emptyMessage,
           stderr: fatalMessage,
-        }),
-      );
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: fatalMessage,
-        }),
-      );
-    },
-
-    // git exits 0 but prints nothing when the ref resolves to an empty symbolic name — the ref is
-    // unusable, so the broker has to treat it as "no tracking branch".
-    setupEmptyTrackingBranchOriginMainExists: (): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: emptyMessage,
-          stderr: emptyMessage,
-        }),
-      );
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: 'abc123\n' }),
-          stderr: emptyMessage,
         }),
       );
     },

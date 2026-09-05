@@ -6,14 +6,14 @@ describe('isFileScopeRequestedGuard', () => {
   // asks for a file set, and the classification table they are proving is not exported to derive a
   // list from — exporting it would put a second export in a single-responsibility file.
   describe('file-scoping fields', () => {
-    it('VALID: {changed: true} => returns true', () => {
-      const config = WardConfigStub({ changed: true });
+    it('VALID: {committed: true} => returns true', () => {
+      const config = WardConfigStub({ committed: true });
 
       expect(isFileScopeRequestedGuard({ config })).toBe(true);
     });
 
-    it('VALID: {staged: true} => returns true', () => {
-      const config = WardConfigStub({ staged: true });
+    it('VALID: {uncommitted: true} => returns true', () => {
+      const config = WardConfigStub({ uncommitted: true });
 
       expect(isFileScopeRequestedGuard({ config })).toBe(true);
     });
@@ -25,7 +25,7 @@ describe('isFileScopeRequestedGuard', () => {
     });
   });
 
-  // THE CASE THE HARDCODED `config.staged === true || config.changed === true` MISSED. An empty
+  // THE CASE A HARDCODED `config.uncommitted === true || config.committed === true` MISSES. An empty
   // list is a file scope that resolved to nothing; read as "no scope" it means the whole repo.
   describe('a file scope that resolved to nothing', () => {
     it('EMPTY: {passthrough: []} => returns true', () => {
@@ -62,8 +62,8 @@ describe('isFileScopeRequestedGuard', () => {
       expect(isFileScopeRequestedGuard({ config })).toBe(false);
     });
 
-    it('EDGE: {changed: false, staged: false} => returns false', () => {
-      const config = WardConfigStub({ changed: false, staged: false });
+    it('EDGE: {committed: false, uncommitted: false} => returns false', () => {
+      const config = WardConfigStub({ committed: false, uncommitted: false });
 
       expect(isFileScopeRequestedGuard({ config })).toBe(false);
     });

@@ -114,7 +114,7 @@ summons exactly ONE named sonnet reviewer sub-agent to grade the pass — `codew
 against a running system). The operator's own signal table offers only `done` and `blocked` — the session loops,
 unbounded, until its own reviewer's `NEXT:` line reads `pass`; a `partial` (and its `pt N` continuation) is a mechanism
 the responder still applies generically to any code-changing role, but these three operators never choose it. Only the
-named reviewer builds, wards (`npm run ward -- --staged`), commits (once), and pushes (bare) — no code-writing
+named reviewer builds, wards (`npm run ward -- --uncommitted`), commits (once), and pushes (bare) — no code-writing
 sub-agent does any of that.
 
 ---
@@ -179,7 +179,7 @@ Open `http://dungeonmaster.localhost:4801/...` for the seeded quest. Many assert
 - **Ward happy paths (exit 0 → operation item complete → advance):** just run real `run-ward` against the clean tree.
 - **Ward failure paths (exit ≠ 0 → spiritmender + fresh ward):** **break something real ward catches**, then run real
   `run-ward`. Introduce a genuine defect in a git-changed source file that ward will flag — a TS type error, an eslint
-  violation, or a failing assertion in a colocated `*.test.ts`. `wardMode: 'changed'` scopes to git-changed files, so
+  violation, or a failing assertion in a colocated `*.test.ts`. `wardMode: 'committed'` scopes to the files this branch has committed on top of origin, so
   the broken file must be a working-tree change (editing it makes it one). Real ward then exits non-zero and the broker
   appends the spiritmender + fresh ward on that real exit code. **Restore the file** (`git checkout -- <path>`) once the
   case is asserted so the tree is clean for the next run.
@@ -746,7 +746,7 @@ more — walk each of the ten `agentPromptClassificationStatics.promptNames` fil
    and stop only on `pass` (→ `done`) or `wall` (→ `blocked`)? For a named reviewer/walker: does it load the standards
    itself where relevant, does it fetch with `{ agent, questId }` and no `workItemId`, does it refuse to summon a
    sub-agent of its own (it is a LEAF), and does it refuse `signal-back` and (for the reviewer) do the git it owns —
-   build, ward `--staged`, commit once, push bare?
+   build, ward `--uncommitted`, commit once, push bare?
 3. **Trace each capability to a real mechanism:** does the prompt name the exact MCP tool / command / file path /
    static, and does it still exist? (`discover` to confirm — don't trust the prompt.) Are referenced signals/fields
    valid against current contracts (`signal-back` = `complete` + `operationStatus`; agents never write `operations`;

@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
+import { wardModeContract } from '../ward-mode/ward-mode-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 
 export const operationItemContract = z.object({
@@ -37,8 +38,7 @@ export const operationItemContract = z.object({
     .describe(
       'Orchestrator/Chaos-owned items (the plan item and the fixed verify tail) that cannot be deleted via modify-quest',
     ),
-  wardMode: z
-    .enum(['changed', 'full'])
+  wardMode: wardModeContract
     .optional()
     .describe('Only on role:ward items — which ward invocation the run-ward work item executes'),
   flowIds: z

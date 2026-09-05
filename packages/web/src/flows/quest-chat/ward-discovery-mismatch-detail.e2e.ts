@@ -16,7 +16,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 // Regression: a ward run can FAIL (exit 1) with EVERY check pass/skip — the failure is a discovery
 // mismatch (files discovered ≠ files processed), which ward exits 1 on because an unrun test is a
 // hidden regression. The reason lives only in ward's stdout + exit code; without ward stamping it
-// into the detail blob the execution panel showed only "Ward exit code: 1 (changed)" / a blank
+// into the detail blob the execution panel showed only "Ward exit code: 1 (committed)" / a blank
 // "ward_failed". The fix: ward flags the mismatched check (`discoveryMismatch: true` + the
 // only-discovered / only-processed file lists) and the panel renders a DISCOVERY MISMATCH breakdown.
 test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/skip)', () => {
@@ -69,10 +69,10 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
         {
           id: wardOpId,
           role: 'ward',
-          text: 'ward (changed)',
+          text: 'ward (committed)',
           status: 'in_progress',
           locked: true,
-          wardMode: 'changed',
+          wardMode: 'committed',
         },
       ],
       workItems: [
@@ -93,7 +93,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
           maxAttempts: 3,
         },
       ],
-      wardResults: [{ id: wardResultId, exitCode: 1, wardMode: 'changed' }],
+      wardResults: [{ id: wardResultId, exitCode: 1, wardMode: 'committed' }],
     });
 
     // The mismatch-only detail blob: every check pass/skip, but the e2e check carries
@@ -160,7 +160,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
 
     // The lightweight exit-code line still renders.
     await expect(executionPanel.getByTestId('execution-row-ward-result')).toContainText(
-      'Ward exit code: 1 (changed)',
+      'Ward exit code: 1 (committed)',
       { timeout: DETAIL_TIMEOUT },
     );
 

@@ -16,7 +16,7 @@
  * TRACKED files only; an untracked file is in no diff at all, and `gitUntrackedFilesAdapter` is the
  * other half of that reading.
  *
- * `packages/ward/src/brokers/git/diff-files/git-diff-files-broker.ts` resolves changed files by
+ * `packages/ward/src/brokers/git/diff-committed/git-diff-committed-broker.ts` resolves its file set by
  * detecting the repo's default branch and diffing against its merge-base — correct for ward's lint
  * scoping, wrong for review scope: once the default branch absorbs a quest's own implementation
  * commits, that diff silently collapses to whatever landed after them (one real quest returned 30

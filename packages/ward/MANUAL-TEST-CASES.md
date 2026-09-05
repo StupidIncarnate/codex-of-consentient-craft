@@ -43,7 +43,7 @@ Test cases for verifying ward's CLI behavior across scope levels, check types, a
   for typecheck errors instead.
 - **Using `var x = 1;` for lint mutations.** ESLint `--fix` auto-converts `var` to `const`, and `_x` prefix satisfies
   the unused-vars rule. Use an unused destructured param without underscore prefix instead (e.g., `{ value, broken }`).
-- **Using blank lines for `--changed` mutations.** ESLint `--fix` strips trailing blank lines, reverting your change and
+- **Using blank lines for `--uncommitted` mutations.** ESLint `--fix` strips trailing blank lines, reverting your change and
   leaving git clean. Use a comment (e.g., `// trivial change`) instead of a blank line.
 - **Using raw primitive types for typecheck mutations.** The pre-edit hook blocks raw `number`, `string`, `boolean`
   types. Instead, change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected).
@@ -189,9 +189,10 @@ All failures require modifying source files — see linked detail for exact chan
 | [10a](#10a-file-that-doesnt-exist)                              | `--only unit -- packages/ward/src/nonexistent.test.ts` | no crash, FAIL 0 files    |
 | [10b](#10b---only-with-invalid-check-type)                      | `--only banana -- packages/ward`                       | error message             |
 | [10c](#10c-empty-passthrough-just---)                           | `--only unit --`                                       | no file scope, runs all   |
-| [10d](#10d---changed-flag-requires-uncommitted-changes)         | `--changed`                                            | all checks, git diff      |
-| [10e](#10e---staged-flag-requires-an-unpushed-commit)           | `--staged`                                             | all checks, unpushed set  |
-| [10e-bis](#10e-bis-git-scope-flags-reject-every-narrowing-flag) | `--staged --only lint`                                 | rejected before any check |
+| [10d](#10d---uncommitted-flag-requires-a-dirty-working-tree)    | `--uncommitted`                                        | all checks, working tree  |
+| [10e](#10e---committed-flag-requires-an-unpushed-commit)        | `--committed`                                          | all checks, commit set    |
+| [10e-bis](#10e-bis-git-scope-flags-reject-every-narrowing-flag) | `--uncommitted --only lint`                            | rejected before any check |
+| [10e-ter](#10e-ter-the-two-git-scope-flags-combine)             | `--committed --uncommitted`                            | all checks, whole branch  |
 | [10f](#10f-no-tests-discovered-in-package)                      | `--only integration -- packages/shared`                | skip                      |
 
 ---
@@ -1230,49 +1231,59 @@ npm run ward -- --only unit --
 - Equivalent to no passthrough — runs all unit tests across all packages
 - No file scoping applied
 
-#### 10d. --changed flag (requires uncommitted changes)
+#### 10d. --uncommitted flag (requires a dirty working tree)
 
-**Modify:** Make a trivial change to `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
+**Modify:** Make a trivial change to `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`, and
+**separately** create a brand-new file `packages/ward/src/guards/is-check-type/scratch-new-file.ts` that you never
+`git add`. The second half is the point of the case — a `git diff` in any form reports tracked paths only.
 
 ```bash
-npm run ward -- --changed
+npm run ward -- --uncommitted
 ```
 
 **Expected:**
 
-- All five check types run, each scoped to the changed source files
-- lint: scoped to changed source files only — `lint @dungeonmaster/ward PASS  1 files, N discovered`
-- unit: scoped to changed source files via `--findRelatedTests`
-- typecheck: runs full tsc, post-filters errors to changed source files
+- All five check types run, each scoped to BOTH files — the edited one and the never-added one
+- lint: scoped to those source files only — `lint @dungeonmaster/ward PASS  2 files, N discovered`
+- unit: scoped to those source files via `--findRelatedTests`
+- typecheck: runs full tsc, post-filters errors to those source files
 - e2e: skip in packages that are not e2e-eligible
+- With a clean tree, the run prints the empty-scope line and exits 0 having run NOTHING
 
 **Mutation tip:** Don't use a blank line — ESLint `--fix` will strip it, leaving git clean. Use a comment instead.
 
-**Note:** `--changed` only passes source files (`.ts`, `.tsx`, `.js`, etc.) to check runners. Non-source files like
-`.md` are filtered out to avoid ESLint "file ignored" errors.
-
-**Revert the change after testing.**
-
-#### 10e. --staged flag (requires an unpushed commit)
-
-**Set up:** On a branch that tracks a remote, commit a trivial change to
-`packages/ward/src/guards/is-check-type/is-check-type-guard.ts` **without pushing it**. Then edit a second file and
-leave that edit uncommitted.
-
-```bash
-npm run ward -- --staged
-```
-
-**Expected:**
-
-- All five check types run, scoped to BOTH files — the committed-but-unpushed one and the uncommitted one
-- A file that was already pushed is NOT in scope, even when `--changed` would include it
-- With nothing unpushed and a clean tree, the run has no file scope and every check runs repo-wide
+**Note:** `--uncommitted` only passes source files (`.ts`, `.tsx`, `.js`, etc.) to check runners. Non-source files like
+`.md` are filtered out to avoid ESLint "file ignored" errors, and `.gitignore`d paths never enter the untracked half.
 
 **Verify the file set git reports:**
 
 ```bash
-git diff --name-only --diff-filter=d "$(git merge-base HEAD @{upstream})"
+git diff --name-only --diff-filter=d HEAD
+git ls-files --others --exclude-standard
+```
+
+**Revert the edit and delete the new file after testing.**
+
+#### 10e. --committed flag (requires an unpushed commit)
+
+**Set up:** Commit a trivial change to `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` **without
+pushing it**. Then edit a second file and leave that edit uncommitted.
+
+```bash
+npm run ward -- --committed
+```
+
+**Expected:**
+
+- All five check types run, scoped to the COMMITTED file alone
+- The uncommitted edit is NOT in scope — that file belongs to `--uncommitted`
+- A file already on `origin/main` is not in scope either
+- With nothing committed on top of origin's default branch, the run prints the empty-scope line and exits 0
+
+**Verify the file set git reports:**
+
+```bash
+git diff --name-only --diff-filter=d "$(git merge-base HEAD origin/main)" HEAD
 ```
 
 **Revert the commit and the edit after testing.**
@@ -1280,19 +1291,33 @@ git diff --name-only --diff-filter=d "$(git merge-base HEAD @{upstream})"
 #### 10e-bis. Git scope flags reject every narrowing flag
 
 ```bash
-npm run ward -- --staged --only lint
-npm run ward -- --changed --only lint
-npm run ward -- --staged --onlyTests "my test"
-npm run ward -- --changed -- packages/ward
-npm run ward -- --changed --staged
+npm run ward -- --uncommitted --only lint
+npm run ward -- --committed --only lint
+npm run ward -- --uncommitted --onlyTests "my test"
+npm run ward -- --committed -- packages/ward
 ```
 
 **Expected:**
 
 - Every one of these exits non-zero before any check runs
-- The first four print `<flag> cannot be combined with: <the offending flags>`
-- The last prints `--changed and --staged cannot be combined.`
+- Each prints `<flag> cannot be combined with: <the offending flags>`
 - Each error names the standalone invocation to use instead
+
+#### 10e-ter. The two git scope flags combine
+
+**Set up:** the same tree as 10e — one unpushed commit, plus one uncommitted edit to a different file.
+
+```bash
+npm run ward -- --committed --uncommitted
+```
+
+**Expected:**
+
+- The run is accepted, not rejected — these two are the one pair ward allows
+- All five check types run, scoped to the UNION: the committed file and the uncommitted one
+- A file that is in both halves (committed on this branch, then edited again) is listed once
+- Adding `--only lint` to the pair is still rejected, and the error names both flags:
+  `--committed --uncommitted cannot be combined with: --only`
 
 #### 10f. No tests discovered in package
 

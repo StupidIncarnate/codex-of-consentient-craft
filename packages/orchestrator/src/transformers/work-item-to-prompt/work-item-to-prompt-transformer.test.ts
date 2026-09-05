@@ -716,7 +716,7 @@ describe('workItemToPromptTransformer', () => {
       const wardResult = WardResultStub({
         id: 'cccccccc-8888-4222-9333-444444444444',
         exitCode: 1,
-        wardMode: 'changed',
+        wardMode: 'committed',
         runId: WardRunIdStub({ value: 'run-123' }),
       });
       const quest = QuestStub({
@@ -738,7 +738,7 @@ describe('workItemToPromptTransformer', () => {
         `Operation Item ID: ${String(operationId)}`,
         'Your operation item: [spiritmender] fix ward failures',
         '',
-        'Failed ward result: cccccccc-8888-4222-9333-444444444444 (mode: changed, runId: run-123)',
+        'Failed ward result: cccccccc-8888-4222-9333-444444444444 (mode: committed, runId: run-123)',
         'Ward detail blob: <questFolder>/ward-results/cccccccc-8888-4222-9333-444444444444.json',
       ].join('\n');
 
@@ -769,7 +769,7 @@ describe('workItemToPromptTransformer', () => {
       const wardResultFailedWithRunId = WardResultStub({
         id: 'eeeeeeee-9999-4222-9333-444444444444',
         exitCode: 1,
-        wardMode: 'changed',
+        wardMode: 'committed',
         runId: WardRunIdStub({ value: 'run-earlier' }),
       });
       const wardResultFailedNoRunId = WardResultStub({
@@ -974,7 +974,7 @@ describe('workItemToPromptTransformer', () => {
             WardResultStub({
               runId: WardRunIdStub({ value: '1785341050718-63d2' }),
               exitCode: 1,
-              wardMode: 'changed',
+              wardMode: 'committed',
             }),
           ],
         });
@@ -1058,7 +1058,7 @@ describe('workItemToPromptTransformer', () => {
             WardResultStub({
               runId: WardRunIdStub({ value: '1785341050718-63d2' }),
               exitCode: 1,
-              wardMode: 'changed',
+              wardMode: 'committed',
             }),
           ],
         });
