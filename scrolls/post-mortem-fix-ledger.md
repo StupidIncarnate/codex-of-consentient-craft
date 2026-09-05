@@ -1,10 +1,25 @@
-# Post-mortem fix ledger — quest 1be07040
+# Fix ledger — quest 1be07040
 
-The post-mortem at `scrolls/reports/00-QUEST-1be07040-POST-MORTEM.md` is the record of what was
-measured. This file is the record of what is being done about it. The post-mortem stays the place a
-close is written down — a shipped fix gets its `E` finding and its `G` fix struck through there, with
-what actually shipped written into the struck heading. This file only tracks work between "we agreed"
-and "it merged".
+Two documents measured this quest and each proposed fixes:
+
+| Document | Asked | Its fixes are numbered |
+|---|---|---|
+| `scrolls/reports/00-QUEST-1be07040-POST-MORTEM.md` | how each session ran, and what it cost | `G1`–`G25`, against findings `E1`–`E33` |
+| `scrolls/reports/00-DELIVERY-CHAIN-AUDIT.md` | whether the approved flow map became the delivery it promised | `H1`–`H14` |
+
+**The two lists overlap by about half.** Section "Open items" below merges them, so one row is one
+piece of work whatever each document called it.
+
+Those documents stay the record of what was measured, and the place a close is written down — a
+shipped fix gets its finding and its fix struck through there, with what actually shipped written into
+the struck heading. This file only tracks work between "we agreed" and "it merged".
+
+## Out of scope: siegemaster
+
+Another session owns making the siegemaster run its walks in parallel. Anything whose only edit lands
+in `siegemaster-prompt-statics.ts`, `siegemaster-walker-statics.ts` or `siegemaster-reviewer-statics.ts`
+belongs to that session, not this one. Rows below say so. Two rows are split, because half the edit is
+in a siegemaster file and half is not.
 
 ## How a fix moves
 
@@ -112,47 +127,64 @@ git worktree remove worktrees/pm-<gNN>-<slug> && git branch -d pm/<gNN>-<slug>
 
 ## Open items
 
-Savings are the post-mortem's own figures, kept so the discussion order has a basis.
+One row is one piece of work. The `Ref` column carries both documents' numbers where both proposed
+it. `=` means the two proposed the same edit to the same file. Savings are whichever document measured
+it more fully. `Owner` is `us` unless the siegemaster session owns it.
 
-### (i) One-line changes
+### (i) Code changes
 
-| Item | What it changes | Lane | Saving | Status |
-|---|---|---|---|---|
-| G3 | Wire `codeweaverScopeBlockTransformer` into the prompt renderer, or delete it | O | 21–48 min/quest | open |
-| G4 | Print the edge id in the flow render; `.strict()` on `flowNodeContract` | S | 0.6–1.4 min/cell, 2 destroyed sign-offs, 3 spilled results | open |
-| G5 | Re-measure or delete the `[GIT FORMS]` block | P | 2–4 min/cell, ~34 lines out of 3 prompts | open |
-| G6 | Render a real path for the spiritmender's ward blob | O | 6.4 min/dispatch | open |
+| Ref | What it changes | Lane | Saving | Owner | Status |
+|---|---|---|---|---|---|
+| **G3 = H1** | Wire `codeweaverScopeBlockTransformer` into the prompt renderer, or delete it | O | 21–48 min/quest | us | open |
+| **G4a = H2** | Print the edge id in the flow render | S | ~3.1 min/quest, ~400k chars of spilled tool result, 2 prompt-forbidden `stage:` calls | us | open |
+| **G4b = H3** | `.strict()` on `flowNodeContract` | S | recovers 2 destroyed sign-offs; turns silent data loss into a visible error | us | open |
+| **G6** | Render a real path for the spiritmender's ward blob | O | 6.4 min/dispatch | us | open |
+| **H4** | Route the checklist header's denominator through the same filter as its remainder; correct the legend | O | 0 realized min on this quest; 3 measured over-counts and full exposure on every resume | us | open — **the audit only** |
 
 ### (ii) Prompt edits
 
-| Item | What it changes | Lane | Saving | Status |
-|---|---|---|---|---|
-| G7 | Hardened build ban into every sub-agent and fixer brief template | P | 79–237 min/quest of sub-agent wall clock | open |
-| G8 | Commit checkpoint inside the siegemaster loop | P | up to 655 min of at-risk work, for ~10 min | open |
-| G9 | Destructive-git ban into the fixer and sub-agent brief templates | P | ~140 lines destroyed once; the risk of all of it | open |
-| G10 | Forbid grandchildren in every brief template | P | 4.5M–13M ctx-in and 3–11 min per affected item | open |
-| G11 | Fix the brief template's `PROVE` check types | P | ~31 min of downstream repair | open |
-| G12 | Rewrite step 5/6 to enumerate untracked files; move the diff read into step 5 | P | 10–25 min per greenfield cell | open |
-| G13 | Cap a fixer; make it hand back a red test | P | ~35 min and ~200k output per occurrence | open |
-| G14 | Scope the walker guide to the quest, not the operation item | P | 8–75 min per sibling flow | open |
-| G15 | Move the off-map probes off the back of the queue | P | converts a total loss of security coverage into ~35 min spent early | open |
-| G16 | Give the prompt a sub-agent outage rule | P | ~15 min per outage | open |
-| G17 | Make the siegemaster operation text match what the prompt scripts | S | 0 min, 1 lie removed | open |
-| G18 | Drop the unsatisfiable `FINDINGS:` instruction; give findings a real home | P + S | prevents a lost cross-cell observation | open |
-| G19 | 38 smaller prompt edits, each separately justified | P | see the post-mortem's table | open |
+| Ref | What it changes | Lane | Saving | Owner | Status |
+|---|---|---|---|---|---|
+| **H5** | Give the flowrider the siegemaster's licence to fix what no observable claims, and to author the observable for it | P | **205–467 min/quest** — the audit ranks it #1 | us | open — **the audit only** |
+| **G7** | Hardened build ban in every brief template | P | 79–237 min/quest of sub-agent wall clock | codeweaver + flowrider us; siegemaster theirs | open |
+| **G12 = H9a** | Enumerate untracked files; move the diff read into step 5 | P | 10–25 min per greenfield cell | us | open |
+| **G5 = H9b** | Re-measure or delete `[GIT FORMS]` | P | 2–4 min/cell, ~34 lines out of three prompts | codeweaver us; siegemaster theirs | open |
+| **G19-row = H6** | Name `get-qa-checklist` in the codeweaver prompt and in its reviewer | P | 0.2 min direct; four wrong counts and one falsely-reported compliance | us | open — the audit carries far more evidence than the post-mortem row did |
+| **G14 + comp = H8** | Flow-scope the operator maps and the walker guide | P | ~84 min of guide authoring, ~30–37 min of flowrider duplication | codeweaver + flowrider map half us; guide path theirs | open |
+| **G11** | Fix the brief template's `PROVE` check types | P | ~31 min of downstream repair | us | open |
+| **G10** | Forbid grandchildren in every brief template | P | 4.5M–13M ctx-in and 3–11 min per affected item | codeweaver + flowrider us | open |
+| **G9** | Destructive-git ban in the brief templates | P | ~140 lines destroyed once; the risk of all of it | codeweaver us; fixer half theirs | open |
+| **G18** | Drop the unsatisfiable `FINDINGS:` instruction; give findings a real home | P + S | prevents a lost cross-cell observation | us | open |
+| **G19** | 37 remaining smaller prompt edits | P | see the post-mortem's own table | mixed | open |
+| **G8, G13, G15, G16, G17 = H7** | The siegemaster's commit checkpoint, fixer cap, off-map ordering, outage rule and test-suite review | P | — | **theirs** | out of scope |
 
-**G19 is 38 rows, not one item.** Discussing it row by row would take longer than the fixes. The plan
-is one scoping pass over all 38, grouped by which file they land in, then we review the groups.
+**G19 is 37 remaining rows, not one item.** Discussing it row by row would take longer than the fixes.
+The plan is one scoping pass over all of them, grouped by which file they land in, then we review the
+groups.
 
 ### (iii) Design changes needing a decision
 
-| Item | The decision | Lane | Saving | Status |
-|---|---|---|---|---|
-| G20 | Which of three shapes for the standards triple — serve once, slice by folder type, or fill the gaps first. The post-mortem says do the gap-filling first, because slicing a document that is missing answers pushes work onto the explorers | M + P | ~261,000 tokens/item, ~2.1M/quest; the gap-filling half is ~4.9M tokens/cell | open |
-| G21 | Filter design decisions to the cell's own nodes in the `get-quest` render. Has to be decided together with G19's "make the map cover design decisions" row, because filtering too hard caused a whole extra wave on item [5] | M | 32% off every codeweaver's scope fetch | open |
-| G22 | Who runs the whole-branch ward, and when. `85a6f3818` made it expressible; nobody is told to run it | S | ~31 min/quest | open |
-| G23 | What an operator does when its own turn is 529ing. Three candidate homes: the dispatcher, the harness, or the ledger | P + O | 79.1 min on this quest, unbounded in general | open |
-| G25 | Whether spec completeness is the riftcarver's job or something the flowrider audits | data | prevents 2 of 3 known-open defects reaching a human | open |
+| Ref | The decision | Lane | Saving | Owner | Status |
+|---|---|---|---|---|---|
+| **H10** | Should the spec draw one node per route where routes differ in the code that serves them? Or should a package get a flow-less seam cell? Three HTTP routes converge on one `post-chat` node, so one of the three was built by nobody | design | 126.8 min of repair and 31.98 h of latency, on one bug — the audit ranks it #2 | us | open — **the audit only** |
+| **H11 ⊃ G25** | Add the coverage check that runs node → observable. **G25 is the narrow version of the same thing** — mint flow 3's three known-missing observables now. H11 is the systemic version. Decide them together | M/S | prevents 2 of 3 known-open defects reaching a human | us | open |
+| **G20** | The standards triple: serve once, slice by folder type, or fill the gaps first. The post-mortem says gap-filling first, because slicing a document that is missing answers pushes work onto the explorer fan-out | M + P | ~261,000 tokens/item, ~2.1M/quest; the gap-filling half is ~4.9M tokens/cell | us | open |
+| **G22** | Who runs the whole-branch ward, and when. `85a6f3818` made it expressible; nobody is told to run it | S | ~31 min/quest | us | open |
+| **G21** | Filter design decisions to the cell's own nodes in the `get-quest` render. Decide with G19's "make the map cover design decisions" row — filtering too hard cost a whole extra wave on item [5] | M | 32% off every codeweaver's scope fetch | us | open |
+| **H14** | Print the seven off-map families as context on the codeweaver's and flowrider's checklists, without adding them to either denominator. Four of flow 1's nine late observables were pure concurrency or interruption cases on a composer | O/S | correctness; no minutes attributable | us — **but tell the siegemaster session, it touches their charter** | open — **the audit only** |
+| **H13** | Which routing rule governs a glue unit: the owning node's tags, or the observable's own `package`. Both are deliberate and they disagree on every seam node | O/S | correctness | us | open — **the audit only** |
+| **H12** | When a later role authors an observable inside a closed cell's scope, should the ledger mint a `pt N`, or should the unit record its arrival time? | S | closes 2 permanently open units | us | open — **the audit only** |
+| **G23** | What an operator does when its own turn is 529ing. Three candidate homes: the dispatcher, the harness, or the ledger | P + O | 79.1 min on this quest, unbounded in general | siegemaster prompt half theirs; dispatcher half us | open |
+
+### Open questions carried from the audit's §I
+
+These are questions, not fixes. They need an answer before some rows above can be decided.
+
+| Ref | Question | Blocks |
+|---|---|---|
+| I5 | Who or what paused the quest — a human, or an orchestrator-side timeout? Settling it needs the server-side ledger, which no report examined | whether flow 3's siegemaster ever runs, and so whether §E5's three defects are ever owned |
+| I6 | Should the three questNote-only defects on flow 3 be minted as observables now? The counter-argument is the design's own: a session that did not measure a defect should not author its observable | G25 / H11 |
+| I7 | Does `check-modal-is-three-quarters-wide` mean the viewport or the modal-inner content box? A product question, correctly left unanswered by an agent | nothing here — it is yours to answer |
 
 ## Closed, and where the record lives
 
