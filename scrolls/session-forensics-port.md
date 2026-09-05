@@ -1,8 +1,11 @@
 # `packages/session-forensics`
 
-Digests Claude Code session transcripts and a quest's sign-off ledger, for post-mortem analysis of a
-quest run. A single quest's transcripts routinely exceed 200 MB across a dozen sessions and 300
-sub-agents; this turns them into something an analyst — human or agent — can work from.
+This package turns a finished quest into a report you can actually read. It takes two inputs: the transcripts Claude
+Code writes for every session, and the sign-off ledger the quest keeps as it runs. Use it after a quest ends, to work
+out where the time and the tokens went.
+
+One quest's transcripts routinely run past 200 MB, spread across a dozen sessions and 300 sub-agents. Nobody reads that.
+The reports here are small enough that a person, or an agent, can.
 
 Run it:
 
@@ -10,21 +13,32 @@ Run it:
 node packages/session-forensics/dist/bin/session-forensics-entry.js <command> <target>
 ```
 
-| Command | Target | Gives |
-|---|---|---|
-| `summary` | a session id, or `agent-<hex>` | wall clock, API responses, the five token counts, tool histogram |
-| `buckets` | same | spend per fixed window, so a total does not hide where it landed |
-| `gaps` | same | every gap over the floor, labelled with the sub-agents live across it, split into blocked versus truly idle |
-| `coverage` | a quest id | per flow, per sign-off track: owed, signed, confirmed, unconfirmable, unsigned |
+| Command    | Target                         | Gives                                                                                                                                               |
+|------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `summary`  | a session id, or `agent-<hex>` | How long it ran, how many API responses came back, the five token counts kept separate, and how many times each tool was called                     |
+| `buckets`  | same                           | The same spend split into fixed time windows, so you can see when it happened instead of only the total                                             |
+| `gaps`     | same                           | Every pause longer than the cutoff, each one labelled with the sub-agents that were running during it, and split into blocked versus genuinely idle |
+| `coverage` | a quest id                     | For each flow and each sign-off track: how many units were owed, signed, confirmed, unconfirmable and unsigned                                      |
 
-The package is a workspace but **deliberately absent from the root `package.json` dependencies**, so
-ward covers it and users who install `dungeonmaster` never receive it. Adding that one line is how it
-ships, when you want it to.
+Four of those words mean something specific in this repo. A **flow** is a graph of the paths through one feature — nodes
+are steps, edges join them. A **unit** is one thing inside a flow that has to be verified: a terminal node, a branch, an
+**observable** (something the flow says must be true or visible, which is not itself a step in the graph), or an off-map
+probe. A **sign-off track** is one reviewer role's column of sign-offs. There are three roles — codeweaver, flowrider
+and siegemaster — and each signs the same units separately.
 
-## Parity
+The five token counts are `input (uncached)`, `cache_read`, `cache_creation`, `output`, and the thinking share of that
+output. `summary` never adds them together. Reading from the cache and writing to the cache are priced differently, so
+one combined total cannot tell an expensive session apart from a well-cached one.
 
-`coverage` reproduces, exactly, the denominators three independent analyses derived against
-`get-qa-checklist` for quest `1be07040-b9ec-476c-a439-0b4fbb0123cd`:
+The package is a workspace, but it is deliberately missing from the root `package.json` dependencies. That buys two
+things. Ward still runs its checks over it — ward is the repo's runner for lint, typecheck and the tests. And people who
+install `dungeonmaster` never receive the package. To ship it, add that one line.
+
+## The output matches three counts done by hand
+
+Three separate analyses worked out these numbers by hand, using the `get-qa-checklist` tool, for quest
+`1be07040-b9ec-476c-a439-0b4fbb0123cd`. `coverage` now produces the same numbers, exactly. Each cell reads owed /
+signed. The owed figure is that track's **denominator** — the bottom half of "signed out of owed".
 
 | Flow | codeweaver | flowrider | siegemaster |
 |---|---|---|---|
@@ -32,49 +46,59 @@ ships, when you want it to.
 | `send-message-with-images` | 61 / 60 | 59 / 59 | 71 / 67 |
 | `render-images-in-transcript` | 69 / 68 | 68 / 68 | 75 / 0 |
 
-`summary` on session `d1b89f89-6f71-40c8-aaf3-094dedb15b8d` reproduces that item's forensic report:
-219.9 min, 714,282 output, 69,432,974 context-in.
+`summary` reproduces the forensic report for one session, `d1b89f89-6f71-40c8-aaf3-094dedb15b8d`, to the digit: 219.9
+min, 714,282 output, 69,432,974 context-in. Context-in is everything fed into the model on that session — uncached input
+plus `cache_read` plus `cache_creation`, added up.
 
-## Two numbers the output labels, because both were misread
+## Two numbers the output warns you about
 
-**`API CALLS` carries the parenthetical `(assistant records — one API response spans several
-transcript lines)`.** One response is split across a text record, a thinking record and one per
-tool_use, and every one of them repeats that response's usage. Counting lines overstates it several
-times over.
+Both of these numbers were misread before, so the output now labels each one.
 
-**`coverage` ends every render with `NOT AUTHORITATIVE`.** `isTrackOwedUnitGuard` applies four of the
-six exclusions in the orchestrator's `signoffTrackEligibilityStatics` — flow type, unit kind,
-observable provenance, verification method. The other two, flow slice and package slice, narrow by
-what an individual OPERATION ITEM declares, and a whole-quest reading has no operation item. So every
-number is an upper bound and `get-qa-checklist({ questId, operationItemId })` stays the authority.
+**`API CALLS` prints a warning beside it: `(assistant records — one API response spans several
+transcript lines)`.** The transcript writes a single API response as several lines: a text line, a thinking line, and
+one more line per tool_use. Every one of those lines repeats the same usage figures. Count the lines and you overstate
+the API calls several times over.
 
-## Two rules that cost real measurement error
+**`coverage` prints `NOT AUTHORITATIVE` at the end of every render.** Deciding whether a track owes a unit means
+applying six exclusions, which live in the orchestrator's `signoffTrackEligibilityStatics`.
+`isTrackOwedUnitGuard` applies four of them: flow type, unit kind, who added the observable, and how the unit gets
+verified. It cannot apply the other two, flow slice and package slice. Both of those narrow by what a single operation
+item declares, and reading a whole quest at once means there is no single operation item to read. So every `coverage`
+number is an upper bound, and
+`get-qa-checklist({ questId, operationItemId })` stays the authority.
 
-**A node typed `terminal` that still points onward is not a terminal unit** (`isTerminalUnitGuard`,
-quoting `flowriderPromptStatics`). On `paste-image-into-composer`, 7 nodes are typed terminal and 4
-carry an outgoing edge; the real count is 3. Counting all 7 put every track 4 above the true
-denominator.
+## Two counting rules people got wrong, and by how much
 
-**All seven off-map probe families are OWED on every runtime flow**, whatever `offMapSignoffs`
-contains — that array holds only the ones already signed. Counting the array under-reports what is
-owed, and on one flow reported 0 owed where 7 were.
+**A node labelled `terminal` that still has an arrow leaving it is not a terminal unit.**
+`isTerminalUnitGuard` enforces that, quoting `flowriderPromptStatics`. On the
+`paste-image-into-composer` flow, 7 nodes are labelled terminal and 4 of them carry an outgoing edge, so the real count
+is 3. Counting all 7 put every track's denominator 4 too high.
 
-## Reuse from `@dungeonmaster/shared` — check here before building
+**Every runtime flow owes all seven off-map probe families, whatever `offMapSignoffs` contains.** An off-map family is
+one of seven classes of breakage a flow graph structurally cannot draw: re-entry, concurrency, interruption, staleness,
+configuration, hostile input and performance. The
+`offMapSignoffs` array holds only the families someone has already signed, so counting the array under-reports what is
+owed. On one flow it reported 0 owed where the true answer was 7.
 
-Eight things were reused rather than rebuilt. The first cut of this port duplicated shared's path
-layer and had to be deleted:
+## What this package borrowed from `@dungeonmaster/shared`
 
-| Need | Use |
-|---|---|
-| `SessionId`, `AgentId`, `AbsoluteFilePath`, `FilePath`, `ContentText`, `QuestId`, `FlowNodeId`, `FlowNodeType`, `SignoffVerdict` | `@dungeonmaster/shared/contracts` |
-| the whole flow graph shape — `flowContract.array()` validates nodes, edges, observables and off-map sign-offs in one call | `flowContract` |
-| `DUNGEONMASTER_HOME` else `~/.dungeonmaster` | `dungeonmasterHomeFindBroker` |
-| safe JSON parsing | `safeJsonParseTransformer` |
-| the seven off-map probe families | `qaOffMapProbeStatics` |
-| every directory-name literal | `locationsStatics` — `no-bare-location-literals` enforces it |
-| fs / path / os I/O | the adapters, and their proxies from `@dungeonmaster/shared/testing` |
+Check this table before you build anything new. Eight things were reused rather than rebuilt. The first cut of this port
+wrote its own copy of shared's path layer, and the whole copy had to be deleted.
 
-The directory-name rule fires on the literal itself, wherever it sits.
+In the table below, a **contract** is a zod schema file. It is the only place raw data is allowed to become a validated,
+typed value.
+
+| Need                                                                                                                             | Use                                                                                                                               |
+|----------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `SessionId`, `AgentId`, `AbsoluteFilePath`, `FilePath`, `ContentText`, `QuestId`, `FlowNodeId`, `FlowNodeType`, `SignoffVerdict` | `@dungeonmaster/shared/contracts`                                                                                                 |
+| The whole flow graph shape. `flowContract.array()` validates nodes, edges, observables and off-map sign-offs in one call         | `flowContract`                                                                                                                    |
+| `DUNGEONMASTER_HOME`, falling back to `~/.dungeonmaster`                                                                         | `dungeonmasterHomeFindBroker`                                                                                                     |
+| Safe JSON parsing                                                                                                                | `safeJsonParseTransformer`                                                                                                        |
+| The seven off-map probe families                                                                                                 | `qaOffMapProbeStatics`                                                                                                            |
+| Every directory-name literal                                                                                                     | `locationsStatics`. The `no-bare-location-literals` rule enforces it                                                              |
+| fs / path / os I/O                                                                                                               | The adapters, plus their proxies from `@dungeonmaster/shared/testing`. A proxy is the sanctioned way to mock an adapter in a test |
+
+The directory-name rule fires on the string literal itself, wherever you put it.
 
 *Tried:*
 
@@ -88,19 +112,25 @@ The directory-name rule fires on the literal itself, wherever it sits.
 @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'subagents'. It belongs to `locationsStatics.userHome.claude.subagentsDir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal.
 ```
 
-Shared's three `locationsClaude*FindBroker` resolvers were read and deliberately NOT used: each needs
-a known `guildPath` to encode the project-dir slug, and `transcriptResolveBroker` exists precisely
-because the caller has only a bare id. It composes the same primitives instead.
+Shared has three `locationsClaude*FindBroker` resolvers. We read all three and chose not to use them. Each one needs a
+known `guildPath`, which it uses to build the project-directory slug.
+`transcriptResolveBroker` exists precisely for the case where the caller has nothing but a bare id, so it can never
+supply a `guildPath`. It composes the same primitives itself instead.
 
-Two one-line additions were made to shared, each in the sanctioned home for what it adds:
-`locationsStatics.repoRoot.dungeonmasterDevHome` and the `fs-read-file-sync-adapter.proxy` export in
+We added two lines to shared, each in the place that already owns what it adds:
+`locationsStatics.repoRoot.dungeonmasterDevHome`, and the `fs-read-file-sync-adapter.proxy` export in
 `testing.ts`.
 
-## Rules the pre-edit hook enforces, each of which blocked a write here
+## Twelve rules that blocked a write here, with the code that tripped each one
 
-1. **No regex literals in `statics/`** — only `contracts`, `guards`, `transformers` may hold one.
+A pre-edit hook lints a proposed file before the write lands, so a violation blocks the write rather than surfacing
+later in a test run. Every rule below stopped a real write in this package. The code under *Tried* is what triggered it.
+The text under *Blocked* is the message it printed, verbatim.
 
-   *Tried*, in a since-deleted `transcript-location-statics.ts`:
+1. **A `statics/` file cannot hold a regular-expression literal.** Only `contracts`, `guards` and
+   `transformers` may hold one.
+
+   *Tried*, in `transcript-location-statics.ts`, since deleted:
 
    ```ts
    cwdSeparatorPattern: /[^A-Za-z0-9]/gu,
@@ -108,7 +138,8 @@ Two one-line additions were made to shared, each in the sanctioned home for what
 
    *Blocked:* `Line 22:24 - Regex literals are not allowed in statics/ folder. Only allowed in: contracts, guards, transformers.`
 
-2. **Stub signature is exactly `({ ...props }: StubArgument<T> = {})`.**
+2. **A stub takes one parameter and its shape is fixed: `({ ...props }: StubArgument<T> = {})`.** A stub is the factory
+   that builds valid test data for one contract.
 
    *Tried*, in `token-usage.stub.ts`:
 
@@ -123,7 +154,9 @@ Two one-line additions were made to shared, each in the sanctioned home for what
    Line 4:32 - Function parameters must use object destructuring pattern: ({ param }: { param: Type })
    ```
 
-3. **No two `expect(x.a)` / `expect(x.b)` assertions on one object** — that reads as property bleedthrough.
+3. **Do not check two properties of one object in two separate assertions.** That means `expect(x.a)`
+   followed by `expect(x.b)`. Check the whole object once instead. Two separate checks leave every other property
+   unchecked, which is how a wrong value bleeds through unnoticed.
 
    *Tried*, in `transcript-location-statics.test.ts`:
 
@@ -134,9 +167,9 @@ Two one-line additions were made to shared, each in the sanctioned home for what
 
    *Blocked:* `Use single toStrictEqual on complete object instead of testing individual properties. Testing 2 properties of "transcriptLocationStatics" separately allows property bleedthrough`
 
-4. **A `transformers/` file cannot import `zod`.** Narrow loose external data with native TypeScript
-   (`typeof x === 'object' && x !== null && 'key' in x`), then hand the assembled object to a
-   CONTRACT's `.parse()`. `as`, `any` and `Reflect.get` are all banned as escape hatches.
+4. **A `transformers/` file cannot import `zod`.** Narrow loose external data with plain TypeScript checks
+   (`typeof x === 'object' && x !== null && 'key' in x`), then hand the assembled object to a contract's `.parse()`.
+   There is no escape hatch: `as`, `any` and `Reflect.get` are all banned.
 
    *Tried*, in `record-to-token-usage-transformer.ts`:
 
@@ -149,10 +182,13 @@ Two one-line additions were made to shared, each in the sanctioned home for what
    ```
 
    *Blocked:* `Line 18:1 - transformers/ cannot import external package "zod". Only internal imports allowed.`
-   — and, cascading off the same schema, five of
+   The same schema then cascaded into five more, all of this shape:
    `Line 24:17 - z.number() must be chained with .brand() - use z.number().positive().brand<'PositiveNumber'>() instead of z.number().positive()`
+   A brand is an invisible tag zod attaches to a type, so a plain `number` cannot be passed where a
+   `PositiveNumber` is required. Every number and string contract in this repo has to carry one.
 
-5. **Guard parameters must be optional** (`enforce-optional-guard-params`); return `false` when any is missing.
+5. **Every parameter of a guard must be optional**, enforced by `enforce-optional-guard-params`. The guard returns
+   `false` when any of them is missing.
 
    *Tried*, in `is-terminal-unit-guard.ts`:
 
@@ -176,9 +212,10 @@ Two one-line additions were made to shared, each in the sanctioned home for what
    Line 23:3 - Parameter "edgeSourceIds" in guard function must be optional (use "edgeSourceIds?: Type")
    ```
 
-   `is-track-owed-unit-guard.ts` took the identical block on its `track` and `unit` parameters.
+   `is-track-owed-unit-guard.ts` hit the identical block on its `track` and `unit` parameters.
 
-6. **A test file cannot import from `contracts/`** — build data through `.stub.ts`.
+6. **A test file cannot import from `contracts/`.** Build its data through the matching `.stub.ts`
+   instead.
 
    *Tried*, in `record-to-token-usage-transformer.test.ts`:
 
@@ -188,7 +225,7 @@ Two one-line additions were made to shared, each in the sanctioned home for what
 
    *Blocked:* `Line 2:1 - Test files must not import from contracts (including types). Use ../../contracts/transcript-record/transcript-record.stub instead.`
 
-7. **`brokers/` and `responders/` both require a two-level `<domain>/<action>/` path.**
+7. **`brokers/` and `responders/` both need a two-level `<domain>/<action>/` path.**
 
    *Tried:*
 
@@ -197,17 +234,18 @@ Two one-line additions were made to shared, each in the sanctioned home for what
    src/responders/digest-run/digest-run-responder.ts
    ```
 
-   *Blocked* — the violation is reported against line 1 of the import block, not against a name:
+   *Blocked.* Note where the error points: at line 1 of the import block, not at the offending name.
 
    ```
    Line 13:1 - Lvl2: Folder "brokers/" requires depth 2 but file is at depth 1. Expected pattern: src/brokers/brokers/[domain]/[action]/[domain]-[action]-broker.ts
    Line 12:1 - Lvl2: Folder "responders/" requires depth 2 but file is at depth 1. Expected pattern: src/responders/responders/[domain]/[action]/[domain]-[action]-responder.ts
    ```
 
-8. **`ban-primitives` reaches further than expected** — it blocks `as readonly string[]`, a `Map<string, X>`
-   generic (use `Map<X['idField'], X>`), and a return-type annotation on an inline `.map()` callback.
+8. **`ban-primitives` catches more than you expect.** It blocks three things that do not look like raw primitives at a
+   glance: the cast `as readonly string[]`, the generic `Map<string, X>` (write
+   `Map<X['idField'], X>` instead), and a return-type annotation on an inline `.map()` callback.
 
-   All three land the same message, so it is the *shape* that has to be recognised, not the wording:
+   All three produce the same message, so learn to recognise the *shape* rather than the wording:
    `Raw string type is not allowed. Use the discover endpoint to search for existing contracts (e.g., EmailAddress, UserName, FilePath, etc.). If none fits, create a new contract.`
 
    *Tried*, in `track-denominator-statics.test.ts`:
@@ -222,8 +260,9 @@ Two one-line additions were made to shared, each in the sanctioned home for what
    const byFlow = new Map<string, TrackCoverage[]>();
    ```
 
-   `records-to-summary-transformer.ts` took eight at once — `Line 37:26` string / `Line 37:34` number, and
-   the same pair on lines 38 and 39 — from three consecutive `new Map<string, number>()` declarations.
+   `records-to-summary-transformer.ts` took eight of these in a single write, from three consecutive
+   `new Map<string, number>()` declarations: `Line 37:26` for the string and `Line 37:34` for the number, then the same
+   pair again on lines 38 and 39.
 
    *Tried*, in `record-to-flat-text-transformer.ts` (`Line 25:42`):
 
@@ -237,8 +276,9 @@ Two one-line additions were made to shared, each in the sanctioned home for what
    .map((key): string => {
    ```
 
-9. **A NAMED helper `const fn = () => {}` is blocked even at module scope** (`forbid-non-exported-functions`);
-   only the file's primary export may be a named function. Anonymous callbacks are fine.
+9. **A named helper like `const fn = () => {}` is blocked anywhere in a file, module scope included.**
+   `forbid-non-exported-functions` allows one named function per file: the file's primary export. Anonymous callbacks
+   are fine.
 
    *Tried*, at module scope in `summary-to-text-transformer.ts`:
 
@@ -248,10 +288,11 @@ Two one-line additions were made to shared, each in the sanctioned home for what
 
    *Blocked:* `Line 20:22 - Non-exported functions are forbidden. All functions must be the primary export of their file. This appears to be a data transformation. Extract it to a new file in transformers/ folder with a DOMAIN-SPECIFIC name (e.g., transformers/format-user-name/format-user-name-transformer.ts). DO NOT use generic names like "helper", "util", "formatter". First, search the codebase to see if this functionality already exists before creating a new file.`
 
-   The first cut of `quest-find-broker.ts` took the same on a module-scope `const findQuestUnderRoot = ({ rootPath, questId }) => …`.
+   The first cut of `quest-find-broker.ts` hit the same rule, on a module-scope
+   `const findQuestUnderRoot = ({ rootPath, questId }) => …`.
 
-10. **`enforce-stub-usage` blocks a `const` whose initializer is not built from `*Stub()` spreads** — test
-    data that must bypass a contract's validation has to be inlined at the call site.
+10. **`enforce-stub-usage` blocks any `const` whose value is not built out of `*Stub()` spreads.**
+    Test data that has to bypass a contract's validation must be written inline at the call site instead.
 
     *Tried*, in `quest-to-units-transformer.test.ts`:
 
@@ -269,16 +310,17 @@ Two one-line additions were made to shared, each in the sanctioned home for what
     const flow = { ...validFlow, nodes: [node] };
     ```
 
-    *Blocked* — four times in that write, at `497:20`, `506:20`, `535:20`, `545:20`:
+    *Blocked* four times in that one write, at `497:20`, `506:20`, `535:20` and `545:20`:
     `Line 497:20 - Use stub function instead of inline object/array literal. Create or use existing stub for type "Object".`
 
-    A plain shared constant in the same file, `const UNSIGNED_TRACKS = { codeweaverSignoff: false, flowriderSignoff: false, siegemasterSignoff: false };`,
-    took the identical message at `Line 13:25`.
+    A plain shared constant in the same file drew the identical message at `Line 13:25`:
+    `const UNSIGNED_TRACKS = { codeweaverSignoff: false, flowriderSignoff: false, siegemasterSignoff: false };`
 
-11. **zod v3: a key present but `undefined` is not an absent key.** `Stub({ field: undefined })` yields an
-    own-property set to `undefined`, which `toStrictEqual` distinguishes from omission. To test a
-    genuinely absent optional, parse a literal that omits it and compare against a stub that omits it too.
-    Three agents hit this independently.
+11. **In zod v3, a key that is present and set to `undefined` is not the same as a missing key.**
+    `Stub({ field: undefined })` gives you an object that owns `field`, holding `undefined`, and
+    `toStrictEqual` treats that as different from an object with no `field` at all. To test an optional that is
+    genuinely absent, parse a literal that omits it, and compare against a stub that omits it too. Three agents hit this
+    independently.
 
     *Tried*, in `transcript-record-content-block-contract.test.ts`:
 
@@ -299,7 +341,7 @@ Two one-line additions were made to shared, each in the sanctioned home for what
     );
     ```
 
-    *Blocked* — not by lint, by jest (`npm run ward -- detail <runId> <filePath>`):
+    *Blocked* by jest rather than by lint. `npm run ward -- detail <runId> <filePath>` printed this:
 
     ```
     FAIL  "transcriptRecordContentBlockContract valid input VALID: {type: tool_use, name, input} => returns the branded block"
@@ -318,12 +360,12 @@ Two one-line additions were made to shared, each in the sanctioned home for what
       }
     ```
 
-    The whole failure is that one `-   "text": undefined,` line: the stub carried the own-property, the
-    parse omitted it. The fix asserted against a literal with `text` left out entirely.
+    The whole failure is that one `-   "text": undefined,` line. The stub carried the property; the parsed result did
+    not. The fix was to assert against a literal with `text` left out entirely.
 
-12. **Two lint rules fight over nullable `let`s.** `@typescript-eslint/init-declarations` wants
-    `= undefined`; `no-undef-init` strips it back off, so ward's `--fix` oscillates. Track the underlying
-    value instead and derive the nullable at the end.
+12. **Two lint rules contradict each other over a nullable `let`.**
+    `@typescript-eslint/init-declarations` demands `= undefined`. `no-undef-init` then strips it back off, so ward's
+    `--fix` pass oscillates between the two. Track the underlying value instead, and derive the nullable one at the end.
 
     *Tried*, in `records-to-summary-transformer.ts`:
 
@@ -339,28 +381,33 @@ Two one-line additions were made to shared, each in the sanctioned home for what
     @typescript-eslint/init-declarations Variable 'latestTimestamp' should be initialized on declaration. (line 45)
     ```
 
-    Appending `= undefined` to both lines and re-running ward produced those same two errors, verbatim,
-    twice more. A `Read` at offset 40 after each run showed line 44 back to
-    `let earliestTimestamp: TranscriptRecord['timestamp'];` — the `--fix` lint pass had already stripped
-    the initializer. `no-undef-init` never prints a message; it only autofixes, so the loop looks like
-    the same single error refusing to be fixed.
+    We appended `= undefined` to both lines and re-ran ward. It printed those same two errors, verbatim. That happened
+    twice more. After each run, a `Read` at offset 40 showed line 44 back to
+    `let earliestTimestamp: TranscriptRecord['timestamp'];` — ward's `--fix` lint pass had already stripped the
+    initializer off again. `no-undef-init` never prints a message of its own; it only autofixes. So from the outside the
+    loop looks like one error that refuses to be fixed.
 
-## Four provisional shapes, and what they turned out to be
+## Four bits of code we wrote, then later replaced
 
-Each of these passed lint and shipped, then a later pass tested its premise. Three were unnecessary;
-one was a real gap. The ratio is the point — most of what reads as sloppiness in agent-written code is
-a reasonable local decision made without context a later file created.
+All four of these passed lint and shipped. A later pass went back and tested the assumption behind each one. Three
+turned out to be unnecessary. One was a real gap in the code.
 
-| Was | Now | Why it existed |
-|---|---|---|
-| `ReturnType<typeof Math.floor>` in `records-to-buckets` | `ReturnType<typeof Number>` | an invented variant of a real idiom; the precedented spelling works in the same position |
-| `String(block.type) === 'tool_use'` | `block.type === 'tool_use'` | written to "sidestep branded-type comparability ambiguity" that was never tested for. `block.type` is `string & {brand}`; the direct comparison typechecks |
-| an inline `{ name?: string; input?: … }` in `tool-use-to-brief` | `TranscriptRecordContentBlock` | when that file was written the block schema was still a private const inside `transcript-record-contract.ts`. A later agent extracted it for unrelated reasons, which made the fix possible |
-| four contracts carrying their own timestamp | `isoTimestampContract` | a genuine gap. `transcript-record` and `turn-gap` branded their own (`TranscriptRecordTimestamp`, `TurnGapStartedAt`); `transcript-summary` and `time-bucket` carried bare `z.string().datetime()` with **no brand at all** |
+Notice the ratio. Three of the four were reasonable decisions at the moment they were made. Most of what reads as
+sloppiness in agent-written code is exactly that: a sensible local decision, made by an agent that did not have context
+a later file went on to create.
 
-Consolidating the timestamps needed **zero downstream re-brands**, for a reason worth knowing before
-attempting a similar change: a brand is a covariant subtype of `string`, and `.parse()` takes
-`unknown`. So every consumer either handed the value to a contract or read it as a plain string, and
-neither cared which brand it wore.
+| Was                                                             | Now                            | Why it existed                                                                                                                                                                                                                      |
+|-----------------------------------------------------------------|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ReturnType<typeof Math.floor>` in `records-to-buckets`         | `ReturnType<typeof Number>`    | An invented variation on a real idiom. The spelling that already had precedent works in the same position                                                                                                                           |
+| `String(block.type) === 'tool_use'`                             | `block.type === 'tool_use'`    | Written to "sidestep branded-type comparability ambiguity", which nobody ever tested for. `block.type` has type `string & {brand}`, so the direct comparison typechecks                                                             |
+| An inline `{ name?: string; input?: … }` in `tool-use-to-brief` | `TranscriptRecordContentBlock` | When that file was written, the block schema was still a private const inside `transcript-record-contract.ts`, so there was no type to import. A later agent extracted it for an unrelated reason, and that made this fix possible  |
+| Four contracts each carrying their own timestamp                | `isoTimestampContract`         | A genuine gap. `transcript-record` and `turn-gap` branded their own (`TranscriptRecordTimestamp`, `TurnGapStartedAt`), while `transcript-summary` and `time-bucket` carried a bare `z.string().datetime()` with **no brand at all** |
 
-`coverage` reproduces the parity table above unchanged after all four.
+Consolidating those four timestamps onto one contract needed **zero re-brands downstream**. The reason is worth knowing
+before you attempt a similar change. A branded type is `string` with an invisible tag attached, so a branded string is
+accepted anywhere a plain `string` is accepted. And `.parse()` takes
+`unknown`, so it accepts any value at all. Every consumer of these timestamps did one of those two things: it handed the
+value to a contract, or it read it as a plain string. Neither cares which brand the value wears, so neither needed
+changing.
+
+After all four changes, `coverage` still produces the table of numbers above, unchanged.
