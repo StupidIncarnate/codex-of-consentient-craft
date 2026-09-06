@@ -171,8 +171,8 @@ get-qa-checklist({ questId: 'QUEST_ID', operationItemId: 'OPERATION_ITEM_ID' })
 \`\`\`
 
 **\`get-quest\` returns the flow whole**: every node with its label, type and package tags, **every
-edge with its branch label**, every observable in full, the entry and exit points, the contracts and
-design decisions that govern it. **Never pass \`stage\` beside
+edge with its own \`<edge:…>\` id and its branch label**, every observable in full, the entry and exit
+points, the contracts and design decisions that govern it. **Never pass \`stage\` beside
 \`flowId\`** — that call is refused.
 
 ${spilledToolResultStatics.markdown}

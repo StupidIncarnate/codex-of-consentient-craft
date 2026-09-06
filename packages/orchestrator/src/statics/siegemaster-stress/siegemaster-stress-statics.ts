@@ -162,8 +162,8 @@ get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief>' })
 
 ${spilledToolResultStatics.markdown}
 
-Read your path through it once — every node, every edge label, every observable your \`UNITS:\` line
-named. **This is the only source you open.** Everything past this point is either prose you write
+Read your path through it once — every node, every edge with its own \`<edge:…>\` id and its branch
+label, every observable your \`UNITS:\` line named. **This is the only source you open.** Everything past this point is either prose you write
 yourself or work you hand to a sub-agent.
 
 ### 2. Enumerate every stress point — PASS 1
