@@ -540,9 +540,14 @@ before this run — never wired"* [report 08 §3].
 The reports' fix estimates range from about 0.3 min per item [02 §6 f1], through about 4 min
 [08 §6 f1] and about 4–6 min [04 §6 f4], up to 3–5 min × 7 cells = 21–35 min [07 §6 f5].
 
-### E5. The flow render demands an edge id it never prints — `structural`
+### ~~E5. The flow render demands an edge id it never prints~~ — FIXED 2026-09-05 in `5ede6d341`
 
-**What happens.** The prompt asks a codeweaver to write down an edge id that nothing ever shows it.
+**Fixed.** Every edge line now opens with its own `<edge:id>`. A labelled edge also carries `◀ YOURS` where its source
+node does, so a session stops tracing indentation upward to learn whether it owes the unit, and `flowNodeContract` gained
+`.strict()` so the nested-`edges` payload that destroyed two sign-offs is refused rather than stripped. See ~~G4~~ for
+what shipped and for the three sites the reports did not name.
+
+~~**What happens.** The prompt asks a codeweaver to write down an edge id that nothing ever shows it.~~
 The codeweaver prompt's "Recording what you claim" section requires
 `edges: [ { id: '<the labelled edge id>', codeweaverSignoff: { … } } ]`. The `get-quest` flow render
 prints edge **labels** and the **target node id**. It never prints `edge.id`. Source:
@@ -1721,9 +1726,35 @@ item, for the `get-project-map` call the block would replace [03 §6 f5].
 *"or delete it"*. Delete the 175-line transformer and its test, then cut the seam question from step
 5, so the prompt stops asking for something no data supports.
 
-#### G4. Print the edge id in the flow render — **≈0.6–1.4 min per cell, two destroyed sign-offs, and three spilled tool results**
+#### ~~G4. Print the edge id in the flow render~~ — SHIPPED 2026-09-05 in `5ede6d341`
 
-*Addresses E5.* **File:**
+*Addressed ~~E5~~.* **The reports named one line. It took four emit sites, a fifth in another file, and five pieces of
+prose.**
+
+The id renders as `<edge:no-image-item>` at the head of the line. Angle brackets because braces already mean packages
+(`{web ● 3}`) and square brackets already mean three things (`[#toId]`, `[type]`, `[C✓]`); the literal word `edge`
+because the failure was not only a missing id but an id written into the wrong array.
+
+| What shipped | Where | Why it was needed |
+|---|---|---|
+| the id on the ordinary edge line | `flow-graph-to-text-transformer.ts` | the line the reports found |
+| the id on the qualified cross-flow, bare-id cross-flow and back-reference lines | same file | **three more emit sites no report opened** |
+| the id on the inbound cross-flow line | `quest-flow-slice-transformer.ts` | a KEY promising an id on every arrow makes one bare arrow read as the bug |
+| `◀ YOURS` on a labelled edge | `flow-graph-to-text-transformer.ts` | the ownership rule was prose in the prompt and invisible in the render |
+| `.strict()` on `flowNodeContract` | `flow-node-contract.ts` | the companion below, which turns the silent strip into a refusal |
+| the KEY legend, the `Your package:` sentence, `get-quest-input-contract`, and four prompt statics | six files | each described the old line shape |
+
+**Unlabelled edges carry the id too**, though they mint no unit. Every node prints `[#id]` whether or not it is a
+terminal, and an id on only some arrows is indistinguishable from the omission being fixed. The `◀ YOURS` mark stays
+labelled-only, because a mark on a non-unit claims work nobody signs.
+
+**`.strict()` was checked before it was kept.** 103 real `quest.json` files parsed **98 / 5** with `.strict()`, and an
+identical **98 / 5** with `.passthrough()`, with no `unrecognized_keys` issue in either run. The five failures are
+pre-existing `invalid_enum_value` on the retired role names `blightscout` and `groundstomper`.
+
+**Cost:** renders grew 2.7–3.5%; the largest of the three measured sits at 66% of the 48,000-character ceiling.
+
+~~*Addresses E5.* **File:**~~
 `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`, lines 275
 and 281.
 

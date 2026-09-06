@@ -14,8 +14,9 @@
  * // Returns only the sections mapped to the 'spec' stage; excluded sections come back as empty arrays
  *
  * const sliced: GetQuestInput = getQuestInputContract.parse({ questId: 'add-auth', flowId: 'login', packageName: 'web' });
- * // Returns the login flow whole, with web's nodes marked and every observable on them printed —
- * // sibling packages' included — while a node web does not tag keeps its observables as a count
+ * // Returns the login flow whole, with web's nodes and the labelled edges leaving them marked, and
+ * // every observable on those nodes printed — sibling packages' included — while a node web does
+ * // not tag keeps its observables as a count
  */
 import { z } from 'zod';
 
@@ -29,12 +30,12 @@ export const getQuestInputContract = z
     questId: z.string().min(1).describe('The ID of the quest to retrieve').brand<'QuestId'>(),
     flowId: flowIdContract
       .describe(
-        'ONE flow, rendered whole: every node with the packages it lands in, every edge with its branch label, every observable, the contracts and design decisions that govern it, and the cross-flow edges in BOTH directions. This is the call a codeweaver, flowrider or siegemaster makes for the flow it owns — one call per flow, never the whole quest.',
+        'ONE flow, rendered whole: every node with the packages it lands in, every edge with its OWN id as `<edge:…>` and its branch label, every observable, the contracts and design decisions that govern it, and the cross-flow edges in BOTH directions. This is the call a codeweaver, flowrider or siegemaster makes for the flow it owns — one call per flow, never the whole quest.',
       )
       .optional(),
     packageName: packageNameContract
       .describe(
-        "Narrows the slice to ONE package. With flowId it MARKS that package's nodes in the whole flow and prints every observable on a marked node whatever package owns it — a seam node's other half is the contract this one has to meet — while a node the package does not tag keeps its observables as a per-package count. The graph is never filtered, because cutting a package's nodes out of it destroys the edges between them. Without flowId it is the foundation view: every contract this package owns, and which flows it tags nodes in. Codeweaver passes it; flowrider and siegemaster own a whole flow and do not.",
+        "Narrows the slice to ONE package. With flowId it MARKS that package's nodes in the whole flow, and every labelled edge LEAVING one of them, since a branch belongs to the node it leaves; it prints every observable on a marked node whatever package owns it — a seam node's other half is the contract this one has to meet — while a node the package does not tag keeps its observables as a per-package count. The graph is never filtered, because cutting a package's nodes out of it destroys the edges between them. Without flowId it is the foundation view: every contract this package owns, and which flows it tags nodes in. Codeweaver passes it; flowrider and siegemaster own a whole flow and do not.",
       )
       .optional(),
     stage: questStageContract
