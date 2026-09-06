@@ -840,8 +840,9 @@ Consumers read different parts:
 - **ChaosWhisperer** reads observables while authoring flows, contracts, and `packagesAffected` during the spec
   phase — it authors no operation items; those are DERIVED later, at Start Quest, from the flow nodes' package tags
   and the contracts' source paths
-- **Codeweaver** reads the observables filtered to its own package on its own flow as its acceptance targets, and signs the ones its
-  unit tests prove
+- **Codeweaver** reads every observable on the nodes its package tags, on its own flow, as its acceptance targets — a
+  sibling package's included, since a seam node's other half is the contract its own half must meet — and signs the
+  ones its unit tests prove that carry its own package
 - **Flowrider** uses the full observable to author the test suite that proves it, choosing the browser or below it
   per unit
 - **Siegemaster** uses the full observable to hand-drive the flow against a running system and get what breaks fixed

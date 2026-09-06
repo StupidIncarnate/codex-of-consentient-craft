@@ -243,6 +243,86 @@ describe('SessionViewWidget', () => {
     });
   });
 
+  describe('delivered entry content', () => {
+    it('VALID: {chat-output delivered over the WS} => #check-entry-lands-in-transcript the entry renders as a CHAT_MESSAGE carrying its own text, not just any CHAT_MESSAGE', async () => {
+      const proxy = SessionViewWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupGuilds({
+        guilds: [
+          GuildListItemStub({
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            urlSlug: 'my-guild' as never,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<SessionViewWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
+      const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
+
+      await waitFor(() => {
+        expect(proxy.getReplayHistorySent()).toBe(true);
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: replayProcessId,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'SESSION_ENTRY_TEXT',
+                  uuid: '00000000-0000-4000-8000-000000000002',
+                  timestamp: '2025-01-01T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: replayProcessId },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('CHAT_PANEL')).toBeInTheDocument();
+      });
+
+      const messageTexts = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .map((message) => String(message.textContent));
+      const matchIdx = messageTexts.findIndex((text) => text.includes('SESSION_ENTRY_TEXT'));
+
+      expect(matchIdx).toBe(0);
+    });
+  });
+
   describe('not found state', () => {
     it('EDGE: {chat-history-complete with no entries} => renders NOT_FOUND', async () => {
       const proxy = SessionViewWidgetProxy();

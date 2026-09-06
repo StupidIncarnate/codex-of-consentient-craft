@@ -38,6 +38,7 @@ import { playwrightJsonReportToPassingTransformer } from '../../../transformers/
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test-path-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { e2eArtifactsRemoveBroker } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
@@ -185,6 +186,13 @@ export const checkRunE2eBroker = async ({
   } catch {
     // report file may not exist if playwright crashed early; ignore
   }
+
+  // The Vite dependency cache this run minted under its own port. It has to be taken HERE, above
+  // the testNamePattern early return below: that return is a common path — `--onlyTests` matching
+  // nothing is normal in most packages — and cleanup placed at the end of the function would leak
+  // a full cache on every one of those runs. It also has to be after the port kill above, since
+  // the process that wrote the directory is still holding a port until then.
+  await e2eArtifactsRemoveBroker({ packageRoot, port: serverPort });
 
   const processedFiles: GitRelativePath[] = [];
   const lineFiles =

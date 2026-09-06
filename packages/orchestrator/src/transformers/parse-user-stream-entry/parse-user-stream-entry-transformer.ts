@@ -7,22 +7,26 @@
  * // Every entry carries uuid (`<line-uuid>:<item-index>` for content-array items, `<line-uuid>:user`
  * // for the user-text shorthand, `<line-uuid>:task-notification` for the lifted task_notification)
  * // and timestamp from the source line, so the web binding dedups duplicate dual-source emissions.
+ * // A supplied serverBaseUrl rewrites every pasted-image path in a user-text line into a server URL.
  */
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { extractTimestampFromJsonlLineTransformer } from '../extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
+import { imagePathToUrlTransformer } from '../image-path-to-url/image-path-to-url-transformer';
 import { mapContentItemToChatEntryTransformer } from '../map-content-item-to-chat-entry/map-content-item-to-chat-entry-transformer';
 
 export const parseUserStreamEntryTransformer = ({
   parsed,
   lineUuid,
   timestamp,
+  serverBaseUrl,
 }: {
   parsed: unknown;
   lineUuid?: string;
   timestamp?: string;
+  serverBaseUrl?: string;
 }): ChatEntry[] => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
@@ -103,9 +107,13 @@ export const parseUserStreamEntryTransformer = ({
   const contentArray = message.content;
 
   if (typeof contentArray === 'string' && contentArray.length > 0) {
+    const resolvedContent =
+      serverBaseUrl === undefined
+        ? contentArray
+        : String(imagePathToUrlTransformer({ content: contentArray, serverBaseUrl }));
     const userEntry = chatEntryContract.safeParse({
       role: 'user',
-      content: contentArray,
+      content: resolvedContent,
       ...(validSource ? { source: validSource } : {}),
       ...(validAgentId ? { agentId: validAgentId } : {}),
       uuid: `${resolvedLineUuid}:user`,

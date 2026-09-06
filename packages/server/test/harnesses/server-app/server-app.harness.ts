@@ -8,13 +8,42 @@
  * restore();
  */
 import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, writeFileSync, rmSync, chmodSync, readFileSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+  chmodSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  symlinkSync,
+} from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
+import { z } from 'zod';
+
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub, GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
+import type { Base64ImageData, FileName, FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import {
+  fileNameContract,
+  FilePathStub,
+  GuildNameStub,
+  GuildPathStub,
+  pastedImageUploadContract,
+  questIdContract,
+} from '@dungeonmaster/shared/contracts';
+import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
+
+// The directory a seeded symlink escapes INTO. Deliberately not `locationsStatics.quest.*`: the
+// whole point of the fixture is that this name is not one the confinement check recognises.
+const OUTSIDE_IMAGES_DIR_NAME = 'outside';
+
+// NOT a quest fixture, and not a valid Quest shape — do not read it as one or grow it into one.
+// It exists solely so a seeded image directory's parent passes imageServeBroker's "does a quest
+// file sit next to this images directory" existence check. Nothing parses these bytes.
+const QUEST_FILE_EXISTENCE_ONLY_CONTENT = '{}';
 
 // The real fake-Claude-CLI binary lives in the web package's own e2e harness (it records every
 // invocation's argv to `invocations.jsonl` BEFORE it even reads its response queue — see that
@@ -26,6 +55,13 @@ const REAL_FAKE_CLAUDE_CLI_BIN = join(
   '../../../../web/test/harnesses/claude-mock/bin/claude',
 );
 
+// Narrows the `unknown` waitForClaudeInvocation hands back so
+// waitForClaudeInvocationImagePaths can read `.prompt` as a real (branded) string, rather than
+// every caller reaching for its own inline structural cast on the invocation ledger's JSON.
+const claudeInvocationPromptContract = z.object({
+  prompt: z.string().brand<'ClaudeInvocationPrompt'>(),
+});
+
 export const serverAppHarness = (): {
   setupTestHome: (params: { baseName: string }) => () => void;
   toPlain: (value: unknown) => unknown;
@@ -35,6 +71,30 @@ export const serverAppHarness = (): {
     questFolder: string;
     quest: unknown;
   }) => void;
+  // Writes a REAL file to a real `images` directory in a fresh temp dir — a bytes-match-disk claim
+  // can't be settled against a mocked read, so a test that serves an image over HTTP and diffs the
+  // response against the file needs a genuine file on a genuine filesystem.
+  seedImageFile: (params: { baseName: string; fileName: string; bytes: Uint8Array }) => {
+    imagePath: FilePath;
+    dirPath: FilePath;
+    cleanup: () => void;
+  };
+  // Reach for THIS over seedImageFile when the test is about where a path RESOLVES rather than what
+  // it holds: it seeds a real symlink inside a real images directory pointing at a real file
+  // outside it, plus an ordinary sibling file inside that same directory as the control.
+  seedSymlinkEscapingImagesDir: (params: {
+    baseName: string;
+    linkFileName: string;
+    targetFileName: string;
+    targetBytes: Uint8Array;
+    siblingFileName: string;
+    siblingBytes: Uint8Array;
+  }) => {
+    symlinkPath: FilePath;
+    targetPath: FilePath;
+    siblingPath: FilePath;
+    cleanup: () => void;
+  };
   // Strips write permission from the quest's OWN directory (not the file — questPersistBroker
   // writes atomically via temp-file-then-rename, and a rename only needs write permission on the
   // DIRECTORY that holds both names, so chmod'ing quest.json itself would not stop the write).
@@ -68,6 +128,47 @@ export const serverAppHarness = (): {
     cwd: string;
     timeoutMs: number;
   }) => Promise<unknown>;
+  // Reads the quest's images subdirectory the same way pastedImagePersistBroker computes it —
+  // built directly from questId (locationsQuestFolderPathFindBroker joins questId verbatim, never
+  // whatever on-disk quest FOLDER name a caller chose for seedQuest) — so a caller that seeds
+  // questFolder === questId reads back the exact directory the broker writes to. Bundles
+  // existence, inode (for the not-recreated-on-a-second-send proof) and the raw file name list
+  // into one real fs read, so an absent directory reads as `exists: false` rather than a thrown
+  // ENOENT a caller has to guess the meaning of.
+  readImagesDir: (params: { dungeonmasterHome: string; guildId: string; questId: string }) => {
+    exists: boolean;
+    dirPath: FilePath;
+    ino: unknown;
+    fileNames: readonly FileName[];
+  };
+  // Reads an arbitrary file's REAL bytes back as base64 — the byte-for-byte proof a written
+  // pasted-image file matches what was posted. Takes a bare path rather than a questId-scoped one
+  // (unlike readImagesDir above) because callers already have one in hand: a name from
+  // readImagesDir's fileNames joined onto its dirPath, or a path from
+  // waitForClaudeInvocationImagePaths below.
+  readFileBase64: (params: { filePath: string }) => Base64ImageData;
+  // Reads the questId the create route minted back out of its JSON response body — narrowing the
+  // `unknown` shape by hand (no ad-hoc structural cast) and parsing the found value through
+  // questIdContract, since the create route is the one send surface where the caller cannot know
+  // the questId in advance (it does not exist until this response names it).
+  readCreatedQuestId: (params: { body: unknown }) => QuestId;
+  // Reads the `id` off every entry in a GET /api/quests response body — the honest way to prove
+  // how many quest directories exist for a guild (and which ones), without hand-building a full
+  // QuestListItem shape just to compare it (stepProgress/activeSessionId derivation lives deep in
+  // the orchestrator and is not this harness's concern to reconstruct field-for-field).
+  readListedQuestIds: (params: { body: unknown }) => readonly QuestId[];
+  // waitForClaudeInvocation above hands back `unknown` — honest for a value read off the fake
+  // CLI's own JSON ledger rather than a contract. Reach for THIS over that one when a caller needs
+  // the absolute paths a resumed chat's rewritten message embedded — the
+  // `![Pasted Image N](<path>)` tokens, in the order they appear in the `-p` prompt text. Parses
+  // the invocation through a zod contract internally (so no caller reaches for an inline
+  // structural cast on the `unknown` prompt field) and hands back only the paths, already
+  // FilePath-branded.
+  waitForClaudeInvocationImagePaths: (params: {
+    claudeQueueDir: FilePath;
+    cwd: string;
+    timeoutMs: number;
+  }) => Promise<readonly FilePath[]>;
 } => {
   const setupTestHome = ({ baseName }: { baseName: string }): (() => void) => {
     const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
@@ -106,6 +207,101 @@ export const serverAppHarness = (): {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
     mkdirSync(questDir, { recursive: true });
     writeFileSync(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
+  };
+
+  // Writes `bytes` to a real file inside a real `images` directory under a fresh temp dir — the
+  // layout pastedImagePersistBroker writes and imageServeBroker confines reads to, so a served
+  // fixture is shaped like the files this route actually exists to serve. `dirPath` is that images
+  // directory, so a caller can build a path to a file that was never written, for the missing-file
+  // case.
+  const seedImageFile = ({
+    baseName,
+    fileName,
+    bytes,
+  }: {
+    baseName: string;
+    fileName: string;
+    bytes: Uint8Array;
+  }): { imagePath: FilePath; dirPath: FilePath; cleanup: () => void } => {
+    const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
+    const dirPath = join(rootPath, locationsStatics.quest.imagesDir);
+    mkdirSync(dirPath, { recursive: true });
+    writeFileSync(
+      join(rootPath, locationsStatics.quest.questFile),
+      QUEST_FILE_EXISTENCE_ONLY_CONTENT,
+    );
+    const imagePath = join(dirPath, fileName);
+    writeFileSync(imagePath, bytes);
+
+    return {
+      imagePath: FilePathStub({ value: imagePath }),
+      dirPath: FilePathStub({ value: dirPath }),
+      cleanup: (): void => {
+        rmSync(rootPath, { recursive: true, force: true });
+      },
+    };
+  };
+
+  // A REAL symlink on a REAL filesystem: `<images>/<linkFileName>` points at
+  // `<outside>/<targetFileName>`, which holds `targetBytes`. Both live in one fresh OS-/tmp
+  // directory, never in the repo — the same mkdir-under-tmpdir shape seedImageFile above uses.
+  // (Not installTestbedCreateBroker, which this package cannot reach: importing
+  // `@dungeonmaster/testing`'s root barrel pulls msw's ESM `until-async` into a jest run this
+  // package does not transform, and every server integration suite fails to parse.) The sibling
+  // real file inside the same images directory is what makes the pair a controlled comparison — it
+  // proves a refusal of the link is caused by where the link POINTS, not by where the fixture
+  // happens to live. Mocking realpath instead would only ever prove the mock, so this fixture has
+  // to be a genuine link the kernel resolves.
+  const seedSymlinkEscapingImagesDir = ({
+    baseName,
+    linkFileName,
+    targetFileName,
+    targetBytes,
+    siblingFileName,
+    siblingBytes,
+  }: {
+    baseName: string;
+    linkFileName: string;
+    targetFileName: string;
+    targetBytes: Uint8Array;
+    siblingFileName: string;
+    siblingBytes: Uint8Array;
+  }): {
+    symlinkPath: FilePath;
+    targetPath: FilePath;
+    siblingPath: FilePath;
+    cleanup: () => void;
+  } => {
+    const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
+
+    const imagesDirPath = join(rootPath, locationsStatics.quest.imagesDir);
+    const outsideDirPath = join(rootPath, OUTSIDE_IMAGES_DIR_NAME);
+    mkdirSync(imagesDirPath, { recursive: true });
+    mkdirSync(outsideDirPath, { recursive: true });
+    // Only the images directory's own parent gets one: `outside` deliberately stays a
+    // non-quest-folder, so the escaping link has nowhere legitimate to land.
+    writeFileSync(
+      join(rootPath, locationsStatics.quest.questFile),
+      QUEST_FILE_EXISTENCE_ONLY_CONTENT,
+    );
+
+    const targetPath = join(outsideDirPath, targetFileName);
+    writeFileSync(targetPath, targetBytes);
+
+    const symlinkPath = join(imagesDirPath, linkFileName);
+    symlinkSync(targetPath, symlinkPath);
+
+    const siblingPath = join(imagesDirPath, siblingFileName);
+    writeFileSync(siblingPath, siblingBytes);
+
+    return {
+      symlinkPath: FilePathStub({ value: symlinkPath }),
+      targetPath: FilePathStub({ value: targetPath }),
+      siblingPath: FilePathStub({ value: siblingPath }),
+      cleanup: (): void => {
+        rmSync(rootPath, { recursive: true, force: true });
+      },
+    };
   };
 
   const makeQuestDirectoryReadOnly = ({
@@ -223,13 +419,81 @@ export const serverAppHarness = (): {
     return pollForInvocation({ invocationsPath, deadline: Date.now() + timeoutMs });
   };
 
+  const readImagesDir = ({
+    dungeonmasterHome,
+    guildId,
+    questId,
+  }: {
+    dungeonmasterHome: string;
+    guildId: string;
+    questId: string;
+  }): { exists: boolean; dirPath: FilePath; ino: unknown; fileNames: readonly FileName[] } => {
+    const dirPath = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
+    const exists = existsSync(dirPath);
+    return {
+      exists,
+      dirPath: FilePathStub({ value: dirPath }),
+      ino: exists ? statSync(dirPath).ino : null,
+      fileNames: exists ? readdirSync(dirPath).map((name) => fileNameContract.parse(name)) : [],
+    };
+  };
+
+  // base64ImageDataContract itself is not exported (only its Base64ImageData type is) — routing
+  // the read-back bytes through pastedImageUploadContract's own (exported) validation is what
+  // yields the branded value, using the same real validation the write path's contract enforces.
+  const readFileBase64 = ({ filePath }: { filePath: string }): Base64ImageData =>
+    pastedImageUploadContract.parse({
+      mediaType: 'image/png',
+      dataBase64: readFileSync(filePath).toString('base64'),
+    }).dataBase64;
+
+  const readCreatedQuestId = ({ body }: { body: unknown }): QuestId => {
+    if (typeof body !== 'object' || body === null || !('questId' in body)) {
+      throw new Error('quest-new response carried no questId');
+    }
+    return questIdContract.parse(body.questId);
+  };
+
+  const readListedQuestIds = ({ body }: { body: unknown }): readonly QuestId[] => {
+    if (typeof body !== 'object' || body === null || !('quests' in body)) {
+      throw new Error('quest-list response carried no quests array');
+    }
+    const { quests } = body;
+    if (!Array.isArray(quests)) {
+      throw new Error('quest-list response quests field was not an array');
+    }
+    return quests.map((quest) => {
+      if (typeof quest !== 'object' || quest === null || !('id' in quest)) {
+        throw new Error('quest-list response entry carried no id');
+      }
+      return questIdContract.parse(quest.id);
+    });
+  };
+
+  const waitForClaudeInvocationImagePaths = async (params: {
+    claudeQueueDir: FilePath;
+    cwd: string;
+    timeoutMs: number;
+  }): Promise<readonly FilePath[]> => {
+    const { prompt } = claudeInvocationPromptContract.parse(await waitForClaudeInvocation(params));
+    const matches = [...prompt.matchAll(new RegExp(pastedImageStatics.imageTokenPattern, 'gu'))];
+    return matches.map((match) => FilePathStub({ value: match[2] ?? '' }));
+  };
+
   return {
     setupTestHome,
     toPlain,
     seedQuest,
+    seedImageFile,
+    seedSymlinkEscapingImagesDir,
     makeQuestDirectoryReadOnly,
     registerRealGuild,
     configureFakeClaudeCli,
     waitForClaudeInvocation,
+    readImagesDir,
+    readFileBase64,
+    readCreatedQuestId,
+    readListedQuestIds,
+    waitForClaudeInvocationImagePaths,
   };
 };

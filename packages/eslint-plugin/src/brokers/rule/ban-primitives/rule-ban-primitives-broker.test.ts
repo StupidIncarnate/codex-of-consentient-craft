@@ -136,6 +136,13 @@ ruleTester.run('ban-primitives (allowPrimitiveInputs: true)', ruleBanPrimitivesB
       code: 'const fn = (input: string): FileName => input as FileName;',
       options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
     },
+    // ✅ VALID: Regression — defaulted destructured parameter with a raw string field
+    // (`({ input }: { input?: string } = {}) => {}`) wraps the ObjectPattern in an
+    // AssignmentPattern; this must still read as an input, not fall through unclassified.
+    {
+      code: 'export const factory = ({ input }: { input?: string } = {}): BrandedString => input as BrandedString;',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+    },
   ],
   invalid: [
     // ❌ INVALID: Raw string return type

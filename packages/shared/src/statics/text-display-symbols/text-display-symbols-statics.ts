@@ -19,8 +19,8 @@ export const textDisplaySymbolsStatics = {
     '  #id                         kebab-case identifier (use in modify-quest calls without the #)',
     '  [#id] {pkgs} label (type)   flow node, the packages it lands in, and its kind',
     '  ● #id {pkg} text            observable attached to the node above, and the package it belongs to',
-    '  → [#id]                     edge to next node',
-    '  →"label"                    labeled edge (decision branch)',
+    '  →<edge:id> [#to]            edge to the next node — the FIRST id is the EDGE, the second its target',
+    '  →<edge:id> "label" [#to]    labeled edge (decision branch); sign it by the <edge:…> id, in `edges`',
     '  ↩                           back-reference — node defined earlier, not repeated',
     '  ↗ cross-flow                edge to node in another flow (flowId:#nodeId)',
     '  ← MERGE                     node reachable from multiple paths',
@@ -32,10 +32,20 @@ export const textDisplaySymbolsStatics = {
     '  _delete:true                removes the entity when sent via modify-quest',
     '---',
   ],
-  // Suffixes a node the caller's own package tags, in a per-package flow slice. A slice MARKS
-  // rather than FILTERS: cutting a package's nodes out of the graph deletes the edges between
-  // them, and a measured case left one package three orphan nodes and no graph at all.
+  // Suffixes a node the caller's own package tags, in a per-package flow slice — and every LABELLED
+  // edge leaving such a node, because a branch is a verification unit whose owner is the node it
+  // leaves. An unlabelled edge never carries it: it is not a unit, so a mark there says a session
+  // owes something it does not. A slice MARKS rather than FILTERS: cutting a package's nodes out of
+  // the graph deletes the edges between them, and a measured case left one package three orphan
+  // nodes and no graph at all.
   ownedNode: '◀ YOURS',
+  // Wraps an EDGE's own id at the head of every edge line (`→<edge:no-image-item> "no image"
+  // [#paste-plain-text]`). Angle brackets rather than braces or bare square brackets: `[#…]` on the
+  // same line is the TARGET NODE and `{…}` is already the package convention, so a third meaning in
+  // either wrapper is a reader working out which field a bare id belongs to. The literal word
+  // `edge` is the payload — it names the `edges` array a sign-off for this unit is written into.
+  edgeIdOpen: '<edge:',
+  edgeIdClose: '>',
   // Opens every observable line (`● #id {pkg} text`), and annotates each package in a node's tag
   // set with how many of that node's observables are attributed to it (`{web ● 3, server}`). One
   // glyph for one kind of thing: a reader scanning a graph for what has to be true finds both the
@@ -50,12 +60,12 @@ export const textDisplaySymbolsStatics = {
     'KEY:',
     '  [#id] {pkgs} label (type)   flow node, the packages it lands in, and its kind',
     "  {web ● 3, server}           per package, how many of this node's observables are theirs — bare means none",
-    '  ◀ YOURS                     this node lands in YOUR package',
-    '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — only YOURS are listed',
+    '  ◀ YOURS                     this node lands in YOUR package — and on a labelled edge leaving it, that branch is yours to sign',
+    '  ● #id {pkg} text [type]     observable, the package that OWNS it, and its text — on a node you tag, every one is listed',
     '  (read-check)                settled by opening the source file, not by running a test',
     '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
-    '  → [#id]                     edge to next node',
-    '  →"label"                    labeled edge (decision branch — each one is a unit)',
+    '  →<edge:id> [#to]            edge to the next node — the FIRST id is the EDGE, the second its target',
+    '  →<edge:id> "label" [#to]    labeled edge (decision branch — each one is a unit, signed by its <edge:…> id in `edges`)',
     '  ↩                           back-reference — node defined earlier, not repeated',
     '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
     '  ← MERGE                     node reachable from multiple paths',
@@ -67,10 +77,11 @@ export const textDisplaySymbolsStatics = {
   // The KEY for a slice fetched with NO package — the flowrider / siegemaster / reviewer view, where
   // every node is the reader's and every observable renders. It is a SEPARATE array rather than the
   // one above because two of that one's lines are claims the unpackaged render never makes:
-  // `◀ YOURS` is emitted nowhere, and "only YOURS are listed" is the opposite of what happens. A
-  // reader handed both that KEY and the render's own "The WHOLE flow is yours" line has to work out
-  // which is lying. The colocated test pins that these two differ in exactly those two entries, so a
-  // line added to either has to be added to both.
+  // `◀ YOURS` is emitted nowhere, and there is no node-you-tag distinction to draw, because the
+  // reader tags none of them and reads all of them. A reader handed both that KEY and the render's
+  // own "The WHOLE flow is yours" line has to work out which is lying. The colocated test pins that
+  // these two differ in exactly those two entries, so a line added to either has to be added to
+  // both.
   flowSliceWholeFlowLegendLines: [
     '---',
     'KEY:',
@@ -79,8 +90,8 @@ export const textDisplaySymbolsStatics = {
     '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — every one is listed',
     '  (read-check)                settled by opening the source file, not by running a test',
     '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
-    '  → [#id]                     edge to next node',
-    '  →"label"                    labeled edge (decision branch — each one is a unit)',
+    '  →<edge:id> [#to]            edge to the next node — the FIRST id is the EDGE, the second its target',
+    '  →<edge:id> "label" [#to]    labeled edge (decision branch — each one is a unit, signed by its <edge:…> id in `edges`)',
     '  ↩                           back-reference — node defined earlier, not repeated',
     '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
     '  ← MERGE                     node reachable from multiple paths',

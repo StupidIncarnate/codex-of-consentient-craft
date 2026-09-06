@@ -2,16 +2,13 @@
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior, then
 // getRequestBody() to assert the posted body.
 
-import { StartEndpointMock } from '@dungeonmaster/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { RequestCountStub } from '@dungeonmaster/testing';
+import type { RequestCount } from '@dungeonmaster/testing';
 
-import { fetchPostWithStatusAdapterProxy } from '../../../adapters/fetch/post-with-status/fetch-post-with-status-adapter.proxy';
+import { xhrPostWithProgressAdapterProxy } from '../../../adapters/xhr/post-with-progress/xhr-post-with-progress-adapter.proxy';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 const BAD_REQUEST_STATUS = 400;
-
-type EndpointControl = ReturnType<typeof StartEndpointMock.listen>;
-type RequestCount = ReturnType<EndpointControl['getRequestCount']>;
 
 export const questFollowupBrokerProxy = (): {
   setupFollowup: (params: { chatProcessId: string }) => void;
@@ -20,44 +17,34 @@ export const questFollowupBrokerProxy = (): {
   setupRejectedNoBody: () => void;
   setupError: () => void;
   getRequestBody: () => unknown;
+  getRequestUrl: () => unknown;
   getRequestCount: () => RequestCount;
 } => {
-  fetchPostWithStatusAdapterProxy();
-  const fetchSpy = registerSpyOn({ object: globalThis, method: 'fetch', passthrough: true });
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'post',
-    url: webConfigStatics.api.routes.questFollowup,
+  const xhrProxy = xhrPostWithProgressAdapterProxy({
+    route: webConfigStatics.api.routes.questFollowup,
   });
 
   return {
     setupFollowup: ({ chatProcessId }): void => {
-      endpoint.resolves({ data: { chatProcessId } });
+      xhrProxy.respondsWith({ status: 200, body: { chatProcessId } });
     },
     setupFollowupWithoutChatProcessId: (): void => {
-      endpoint.resolves({ data: {} });
+      xhrProxy.respondsWith({ status: 200, body: {} });
     },
     setupRejected: ({ error }): void => {
-      endpoint.responds({ status: BAD_REQUEST_STATUS, body: { error } });
+      xhrProxy.respondsWith({ status: BAD_REQUEST_STATUS, body: { error } });
     },
     setupRejectedNoBody: (): void => {
-      endpoint.responds({ status: BAD_REQUEST_STATUS, body: {} });
+      xhrProxy.respondsWith({ status: BAD_REQUEST_STATUS, body: {} });
     },
     setupError: (): void => {
-      endpoint.networkError();
+      xhrProxy.networkError();
     },
-    // This broker only ever issues POST requests — that's the one real invariant to address by.
-    getRequestBody: (): unknown => {
-      const lastCall = fetchSpy.callsMatching([(): boolean => true, { method: 'POST' }]).at(-1);
-      if (!lastCall) {
-        return null;
-      }
-      const init = lastCall[1] as RequestInit | undefined;
-      if (typeof init?.body !== 'string') {
-        return null;
-      }
-      return JSON.parse(init.body) as unknown;
-    },
-    getRequestCount: (): RequestCount => endpoint.getRequestCount(),
+    getRequestBody: (): unknown => xhrProxy.getSentBody(),
+    getRequestUrl: (): unknown => xhrProxy.getSentUrl(),
+    // The XHR proxy's own count is an unbranded internal tally — this broker's callers assert on
+    // the branded RequestCount the rest of the codebase's endpoint mocks hand back.
+    getRequestCount: (): RequestCount =>
+      RequestCountStub({ value: Number(xhrProxy.getRequestCount()) }),
   };
 };

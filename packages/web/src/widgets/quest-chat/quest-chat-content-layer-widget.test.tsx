@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import {
   GuildIdStub,
+  PastedImageUploadStub,
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
@@ -12,8 +13,10 @@ import {
   QuestWorkItemIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
 import { QuestChatContentLayerWidgetProxy } from './quest-chat-content-layer-widget.proxy';
 
@@ -74,7 +77,7 @@ describe('QuestChatContentLayerWidget', () => {
   });
 
   describe('node mode create-quest surface', () => {
-    it('VALID: {node mode, questId null} => renders chat panel + dumpster raccoon column, not the /dumpster-create banner', async () => {
+    it('VALID: {node mode, questId null} => renders chat panel + an activity column settled on the empty state, not the /dumpster-create banner', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'node' });
       const guildId = GuildIdStub({ value: '44444444-5555-6666-7777-888888888888' });
@@ -96,10 +99,36 @@ describe('QuestChatContentLayerWidget', () => {
       expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
         'QUEST_CHAT_ACTIVITY',
       );
-      expect(queryByTestId('dumpster-raccoon-widget')?.getAttribute('data-testid')).toBe(
-        'dumpster-raccoon-widget',
-      );
+      // No quest exists yet on this route, and none will until the user sends a first message — so
+      // the activity column must NOT show the loading raccoon (nothing is in flight to wait for).
+      expect(queryByTestId('dumpster-raccoon-widget')).toBe(null);
       expect(queryByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER')).toBe(null);
+    });
+
+    it('VALID: {node mode, questId null} => activity column settles on an empty state, never the perpetual "Loading dumpster dungeon visuals..." placeholder', async () => {
+      // Regression guard: this route never creates a quest until the user sends a first message, so
+      // nothing is ever "loading" here — a loader that never resolves is a stuck UI, not a real
+      // in-flight state. See use-orchestration-mode/CLAUDE or quest-chat-content-layer-widget.tsx for
+      // the questId===null branch this pins.
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      const guildId = GuildIdStub({ value: '66666666-7777-8888-9999-aaaaaaaaaaaa' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('CHAT_PANEL');
+
+      expect(queryByTestId('DUMPSTER_RACCOON_LOADING')).toBe(null);
     });
 
     it('VALID: {node mode, questId null, first message sent} => POSTs quest-new and renders the typed message', async () => {
@@ -1409,6 +1438,336 @@ describe('QuestChatContentLayerWidget', () => {
       await findByTestId('QUEST_SPEC_PANEL');
 
       expect(queryByTestId('QUEST_LOAD_ERROR')).toBe(null);
+    });
+  });
+
+  describe('image-carrying send', () => {
+    it('VALID: {create surface, no questId yet, composer holds a pasted image before send} => #check-first-message-takes-image-path forwards the image to questNewBroker instead of the text-only branch', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupNewQuest({
+        questId: QuestIdStub({ value: 'q-image-create' }),
+        chatProcessId: ProcessIdStub({ value: 'proc-image-create' }),
+      });
+      const guildId = GuildIdStub({ value: 'aaaaaaa0-1111-2222-3333-444444444444' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+
+      const attachment = ComposerAttachmentStub({
+        attachmentId: '90000000-0000-4000-8000-000000000001',
+      });
+      const pastedBytes = new Uint8Array([5, 6, 7, 8]);
+      proxy.pasteImageIntoComposer({ attachment, bytes: pastedBytes });
+
+      await waitFor(() => {
+        expect(proxy.getComposerThumbnailAttachmentIds()).toStrictEqual([attachment.attachmentId]);
+      });
+
+      await proxy.typeMessage({ text: 'Add auth' });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getNewQuestRequestCount()).toBe(1);
+      });
+
+      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const bodies = await proxy.getNewQuestRequestBodies();
+
+      // The composer embeds a `[Pasted Image 1]` marker in the message text at the position the
+      // thumbnail sits — pasted before typing here, so it lands at the front (see
+      // chat-input-widget.test.tsx's own 'A[Pasted Image 1]B' case for the same marker mid-string).
+      // The wrong value that must turn this red is the widget dropping `images` entirely (the
+      // pre-fix `handleSend` destructured only `{ message }`) — this toStrictEqual fails outright
+      // against a body missing the `images` key.
+      expect(bodies.at(-1)).toStrictEqual({
+        message: '[Pasted Image 1]Add auth',
+        questType: 'feature',
+        images: [PastedImageUploadStub({ mediaType: 'image/png', dataBase64: expectedBase64 })],
+      });
+    });
+
+    it('VALID: {same message and image sent from the create surface and from a live quest} => #check-both-states-produce-same-body-shape both POSTs carry identical message-plus-images content, to two different routes', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupNewQuest({
+        questId: QuestIdStub({ value: 'q-shape-create' }),
+        chatProcessId: ProcessIdStub({ value: 'proc-shape-create' }),
+      });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-shape-chat' }) });
+      const guildId = GuildIdStub({ value: 'bbbbbbb0-1111-2222-3333-444444444444' });
+      const sharedMessage = 'Same request, twice';
+      // Both surfaces paste the image before typing, so both embed the SAME `[Pasted Image 1]`
+      // marker at the front of the wire message — see check-first-message-takes-image-path above
+      // for why the marker is there at all.
+      const expectedWireMessage = `[Pasted Image 1]${sharedMessage}`;
+      const pastedBytes = new Uint8Array([11, 22, 33, 44]);
+      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const sharedImages = [
+        PastedImageUploadStub({ mediaType: 'image/png', dataBase64: expectedBase64 }),
+      ];
+
+      const createRender = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+
+      const createAttachment = ComposerAttachmentStub({
+        attachmentId: '90000000-0000-4000-8000-000000000002',
+      });
+      proxy.pasteImageIntoComposer({ attachment: createAttachment, bytes: pastedBytes });
+
+      await waitFor(() => {
+        expect(proxy.getComposerThumbnailAttachmentIds()).toStrictEqual([
+          createAttachment.attachmentId,
+        ]);
+      });
+
+      await proxy.typeMessage({ text: sharedMessage });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getNewQuestRequestCount()).toBe(1);
+      });
+
+      // Unmounted before the second surface mounts — the create surface and the live-quest surface
+      // each render their own CHAT_PANEL/CHAT_INPUT, and getByTestId requires exactly one match.
+      createRender.unmount();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-shape-live' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+
+      const liveAttachment = ComposerAttachmentStub({
+        attachmentId: '90000000-0000-4000-8000-000000000003',
+      });
+      proxy.pasteImageIntoComposer({ attachment: liveAttachment, bytes: pastedBytes });
+
+      await waitFor(() => {
+        expect(proxy.getComposerThumbnailAttachmentIds()).toStrictEqual([
+          liveAttachment.attachmentId,
+        ]);
+      });
+
+      await proxy.typeMessage({ text: sharedMessage });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getChatRequestCount()).toBe(1);
+      });
+
+      const createBodies = await proxy.getNewQuestRequestBodies();
+
+      // Both real captured wire bodies are checked against the SAME message/images values
+      // (`expectedWireMessage`/`sharedImages`, computed once from one shared `pastedBytes` array)
+      // in ONE toStrictEqual rather than as two independently-typed literals — a divergence in
+      // EITHER surface's encoding (a dropped image, a re-encoded base64, a renamed key) fails this
+      // single assertion. questNewBroker's route always adds `questType` (existing, unrelated
+      // behaviour); questChatBroker's never carries one — the one field the two routes legitimately
+      // differ on, folded into this same object rather than a separate assertion. The route counts
+      // ride along in the same object so a regression back to POSTing the SAME route twice (instead
+      // of one-each) fails here too.
+      expect({
+        chatBody: proxy.getChatRequestBody(),
+        createBody: createBodies.at(-1),
+        newQuestRouteCount: proxy.getNewQuestRequestCount(),
+        chatRouteCount: proxy.getChatRequestCount(),
+      }).toStrictEqual({
+        chatBody: { message: expectedWireMessage, images: sharedImages },
+        createBody: { message: expectedWireMessage, questType: 'feature', images: sharedImages },
+        newQuestRouteCount: 1,
+        chatRouteCount: 1,
+      });
+    });
+  });
+
+  describe('image message dedupe against the delivered transcript copy', () => {
+    it('VALID: {image message sent from a live quest, then its transcript copy delivered under a real session} => #check-exactly-one-bubble only one CHAT_MESSAGE carries the text at each state, and #check-surviving-bubble-uses-url its image src swaps from the staged data URL to the served URL', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image' }) });
+      const guildId = GuildIdStub({ value: 'dddddddd-1111-2222-3333-444444444444' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-dedupe-image' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+
+      const attachment = ComposerAttachmentStub({
+        attachmentId: '90000000-0000-4000-8000-000000000009',
+      });
+      const pastedBytes = new Uint8Array([9, 8, 7, 6]);
+
+      // Text BEFORE and AFTER the image, so the marker lands mid-string: 'A[Pasted Image 1]B'.
+      await proxy.typeMessage({ text: 'A' });
+      proxy.pasteImageIntoComposer({ attachment, bytes: pastedBytes });
+
+      await waitFor(() => {
+        expect(proxy.getComposerThumbnailAttachmentIds()).toStrictEqual([attachment.attachmentId]);
+      });
+
+      await proxy.typeMessage({ text: 'B' });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getChatRequestCount()).toBe(1);
+      });
+
+      // STATE (a): only the optimistic entry exists yet. Its bubble carries the composed text, and
+      // its image is drawn from the staged data URL — no transcript copy has arrived.
+      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedDataUrl = `data:image/png;base64,${expectedBase64}`;
+
+      const bubblesBeforeDelivery = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .filter((bubble) => String(bubble.textContent).includes('AB'));
+      const [bubbleBeforeDelivery] = bubblesBeforeDelivery;
+      const imageBeforeDelivery = bubbleBeforeDelivery!.querySelector(
+        '[data-testid="CHAT_MESSAGE_IMAGE"]',
+      )!;
+
+      expect({
+        bubbleCount: bubblesBeforeDelivery.length,
+        imageSrc: imageBeforeDelivery.getAttribute('src'),
+      }).toStrictEqual({ bubbleCount: 1, imageSrc: expectedDataUrl });
+
+      // STATE (b): the transcript's own copy of the SAME message lands under a REAL sessionId, in
+      // the transcript's own markdown-token form plus the read-the-images trailer. The optimistic
+      // copy must fall out of entriesBySession (hasEquivalentChatEntryGuard), leaving exactly one
+      // bubble — a panel that renders both is the exact defect this pins.
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'q-dedupe-image',
+              sessionId: 'eeeeeeee-1111-4222-8333-444444444444',
+              chatProcessId: 'proc-dedupe-image',
+              entries: [
+                {
+                  role: 'user',
+                  content: `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+                  uuid: 'ffffffff-1111-4222-8333-444444444444',
+                  timestamp: '2025-01-01T00:00:01.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        const stillMatchingCount = screen
+          .queryAllByTestId('CHAT_MESSAGE')
+          .filter((bubble) => String(bubble.textContent).includes('AB')).length;
+
+        expect(stillMatchingCount).toBe(1);
+      });
+
+      const bubblesAfterDelivery = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .filter((bubble) => String(bubble.textContent).includes('AB'));
+      const [bubbleAfterDelivery] = bubblesAfterDelivery;
+      const imageAfterDelivery = bubbleAfterDelivery!.querySelector(
+        '[data-testid="CHAT_MESSAGE_IMAGE"]',
+      )!;
+
+      expect({
+        bubbleCount: bubblesAfterDelivery.length,
+        imageSrc: imageAfterDelivery.getAttribute('src'),
+      }).toStrictEqual({
+        bubbleCount: 1,
+        imageSrc: 'http://host/api/images?path=%2Fp%2Fx.png',
+      });
+    });
+  });
+
+  describe('create-surface rejection', () => {
+    it('ERROR: {questNewBroker rejects} => the composer catches the rejection and shows a toast with the exact error text, instead of clearing as if the send had succeeded', async () => {
+      // The wrong value this turns red against: handleSend's create-surface branch consuming the
+      // error into a chat entry and resolving anyway (its pre-fix behaviour) — ChatInputWidget would
+      // then run its SUCCESS path (clear text/thumbnails, no toast) for a quest that was never
+      // created. Only a REJECTED promise reaches ChatInputWidget's own `.catch`, which is what shows
+      // this toast — see chat-input-widget.tsx's handleSend and its 'rejection recovers the composer'
+      // tests for the half of this contract that lives at the widget level.
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupNewQuestError();
+      const guildId = GuildIdStub({ value: 'cccccc90-1111-2222-3333-444444444444' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+
+      await proxy.typeMessage({ text: 'Add auth' });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getNewQuestRequestCount()).toBe(1);
+      });
+
+      await waitFor(() => {
+        expect(proxy.getShownNotification()).toStrictEqual({
+          message: `xhrPostWithProgressAdapter: network error posting to /api/guilds/${guildId}/quests`,
+          color: 'red',
+        });
+      });
+
+      expect(proxy.getShownNotification()).toStrictEqual({
+        message: `xhrPostWithProgressAdapter: network error posting to /api/guilds/${guildId}/quests`,
+        color: 'red',
+      });
     });
   });
 });

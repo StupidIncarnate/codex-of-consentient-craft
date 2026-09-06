@@ -9,6 +9,7 @@ import {
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  UserChatEntryStub,
   WorkItemStub,
   WsMessageStub,
 } from '@dungeonmaster/shared/contracts';
@@ -40,6 +41,112 @@ describe('ServerInitResponder', () => {
       });
 
       expect(sendMock.mock.calls).toStrictEqual([]);
+    });
+  });
+
+  describe('websocket onMessage replay-history — relay to the orchestrator', () => {
+    it('VALID: {replay-history for TWO different sessionIds} => calls replayChatHistory exactly once for EACH sessionId, in order', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      const sessionIdOne = SessionIdStub({ value: 'session-relay-pin-one' });
+      const sessionIdTwo = SessionIdStub({ value: 'session-relay-pin-two' });
+      const guildId = GuildIdStub();
+      const chatProcessIdOne = ProcessIdStub({ value: 'relay-pin-proc-one' });
+      const chatProcessIdTwo = ProcessIdStub({ value: 'relay-pin-proc-two' });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId: sessionIdOne,
+          guildId,
+          chatProcessId: chatProcessIdOne,
+        }),
+        ws: client,
+      });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId: sessionIdTwo,
+          guildId,
+          chatProcessId: chatProcessIdTwo,
+        }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      expect(proxy.getReplayChatHistoryCalls()).toStrictEqual([
+        {
+          sessionId: sessionIdOne,
+          guildId,
+          chatProcessId: chatProcessIdOne,
+        },
+        {
+          sessionId: sessionIdTwo,
+          guildId,
+          chatProcessId: chatProcessIdTwo,
+        },
+      ]);
+    });
+  });
+
+  describe('websocket onMessage replay-history — the relayed frame keeps its replay flag', () => {
+    it('VALID: {chat-output carrying replay true and a user entry whose content is the pasted-image markdown token} => the frame the client receives still carries replay true and that exact entry, content/role/uuid included', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      const chatProcessId = ProcessIdStub({ value: 'replay-flag-proc' });
+      const sessionId = SessionIdStub({ value: 'session-replay-flag' });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId,
+          guildId: GuildIdStub(),
+          chatProcessId,
+        }),
+        ws: client,
+      });
+      sendMock.mockClear();
+
+      const pastedImageEntry = UserChatEntryStub({
+        content: '![Pasted Image 1](/api/images?path=%2Ftmp%2Fpasted-image-1.png)',
+      });
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-replay-flag' }),
+        payload: {
+          chatProcessId,
+          sessionId,
+          replay: true,
+          entries: [pastedImageEntry],
+        },
+      });
+
+      const parsedEnvelope = JSON.parse(String(sendMock.mock.calls[0]?.[0])) as Record<
+        PropertyKey,
+        unknown
+      >;
+
+      expect(parsedEnvelope).toStrictEqual({
+        type: 'chat-output',
+        payload: {
+          chatProcessId,
+          sessionId,
+          replay: true,
+          entries: [pastedImageEntry],
+          processId: 'p-replay-flag',
+        },
+        timestamp: '2024-01-01T00:00:00.000Z',
+      });
     });
   });
 
@@ -622,6 +729,61 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  describe('event subscription — a replay frame reaches the subscribed client', () => {
+    it('VALID: {chat-output for the subscribed quest} => the subscribed client receives the frame carrying that entry', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questIdX = QuestIdStub({ value: 'quest-replay-envelope-X' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdX, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendA = jest.fn();
+      const clientA = WsClientStub({ send: sendA });
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
+        ws: clientA,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendA.mockClear();
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-replay-envelope' }),
+        payload: {
+          questId: questIdX,
+          chatProcessId: 'cp-replay-envelope',
+          replay: true,
+          entries: [{ role: 'user', content: 'replayed message text' }],
+        },
+      });
+
+      const envelopeFrames = sendA.mock.calls
+        .map((c) => JSON.parse(String(c[0])) as Record<PropertyKey, unknown>)
+        .filter((m) => {
+          const p = m.payload as Record<PropertyKey, unknown> | undefined;
+          return p?.chatProcessId === 'cp-replay-envelope';
+        });
+
+      expect(envelopeFrames).toStrictEqual([
+        {
+          type: 'chat-output',
+          payload: {
+            questId: questIdX,
+            chatProcessId: 'cp-replay-envelope',
+            replay: true,
+            entries: [{ role: 'user', content: 'replayed message text' }],
+            processId: 'p-replay-envelope',
+          },
+          timestamp: '2024-01-01T00:00:00.000Z',
+        },
+      ]);
+    });
+  });
+
   describe('event subscription unresolved-questId isolation', () => {
     it('VALID: {chat-output whose questId cannot be resolved} => reaches NO subscribed client', async () => {
       const proxy = ServerInitResponderProxy();
@@ -939,41 +1101,72 @@ describe('ServerInitResponder', () => {
   });
 
   describe('websocket onMessage replay-history direct-send routing', () => {
-    it('VALID: {replay-history then chat-output stamped with same chatProcessId and questId} => requesting client receives the event', () => {
+    it('VALID: {two clients each send replay-history for DIFFERENT chatProcessIds; chat-output emitted for one} => the addressed client receives exactly that frame; the other client receives nothing', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
-      const replayProcessId = ProcessIdStub({ value: 'replay-direct-A' });
-      const linkedQuestId = QuestIdStub({ value: 'quest-replay-link' });
-      proxy.simulateConnection({ client });
+      const sendA = jest.fn();
+      const sendB = jest.fn();
+      const clientA = WsClientStub({ send: sendA });
+      const clientB = WsClientStub({ send: sendB });
+      const replayProcessIdA = ProcessIdStub({ value: 'replay-direct-two-A' });
+      const replayProcessIdB = ProcessIdStub({ value: 'replay-direct-two-B' });
+      const linkedQuestId = QuestIdStub({ value: 'quest-replay-link-two' });
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateConnection({ client: clientB });
       proxy.simulateMessage({
         data: JSON.stringify({
           type: 'replay-history',
-          sessionId: SessionIdStub({ value: 'sess-A' }),
+          sessionId: SessionIdStub({ value: 'sess-two-A' }),
           guildId: GuildIdStub(),
-          chatProcessId: replayProcessId,
+          chatProcessId: replayProcessIdA,
         }),
-        ws: client,
+        ws: clientA,
       });
-      sendMock.mockClear();
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId: SessionIdStub({ value: 'sess-two-B' }),
+          guildId: GuildIdStub(),
+          chatProcessId: replayProcessIdB,
+        }),
+        ws: clientB,
+      });
+      sendA.mockClear();
+      sendB.mockClear();
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-replay-A' }),
+        processId: ProcessIdStub({ value: 'p-replay-two-A' }),
         payload: {
-          chatProcessId: replayProcessId,
+          chatProcessId: replayProcessIdA,
           questId: linkedQuestId,
-          text: 'replay-linked-frame',
+          text: 'replay-linked-frame-two',
         },
       });
 
-      const matching = sendMock.mock.calls.filter((c) =>
-        String(c[0]).includes('"text":"replay-linked-frame"'),
-      ).length;
+      const framesA = sendA.mock.calls.map(
+        (c) => JSON.parse(String(c[0])) as Record<PropertyKey, unknown>,
+      );
+      const framesB = sendB.mock.calls.map(
+        (c) => JSON.parse(String(c[0])) as Record<PropertyKey, unknown>,
+      );
 
-      expect(matching).toBe(1);
+      expect({ framesA, framesB }).toStrictEqual({
+        framesA: [
+          {
+            type: 'chat-output',
+            payload: {
+              chatProcessId: replayProcessIdA,
+              questId: linkedQuestId,
+              text: 'replay-linked-frame-two',
+              processId: 'p-replay-two-A',
+            },
+            timestamp: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+        framesB: [],
+      });
     });
 
     it('VALID: {replay-history then orphan chat-output (no questId)} => requesting client still receives it via replay-direct path', () => {

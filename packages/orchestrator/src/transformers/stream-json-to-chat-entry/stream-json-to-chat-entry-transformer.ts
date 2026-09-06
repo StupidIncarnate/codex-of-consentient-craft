@@ -10,6 +10,7 @@
  * uuid for dedup and sorts by timestamp so streaming and replay paths produce identical DOM,
  * even when the dual-source convergence (parent stdout + sub-agent JSONL tail) emits the same
  * content twice.
+ * A supplied `serverBaseUrl` turns a user line's pasted-image paths into server URLs.
  */
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { streamJsonResultContract } from '../../contracts/stream-json-result/stream-json-result-contract';
@@ -20,8 +21,10 @@ import { parseUserStreamEntryTransformer } from '../parse-user-stream-entry/pars
 
 export const streamJsonToChatEntryTransformer = ({
   parsed,
+  serverBaseUrl,
 }: {
   parsed: unknown;
+  serverBaseUrl?: string;
 }): StreamJsonResult => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
@@ -58,7 +61,12 @@ export const streamJsonToChatEntryTransformer = ({
   }
 
   if (type === 'user') {
-    const entries = parseUserStreamEntryTransformer({ parsed, lineUuid, timestamp });
+    const entries = parseUserStreamEntryTransformer({
+      parsed,
+      lineUuid,
+      timestamp,
+      ...(serverBaseUrl === undefined ? {} : { serverBaseUrl }),
+    });
 
     return streamJsonResultContract.parse({ entries, sessionId: null });
   }

@@ -18,6 +18,7 @@ import type {
   AskUserQuestionItem,
   ChatEntry,
   ChatEntryUuid,
+  PastedImageUpload,
   ProcessId,
   Quest,
   QuestId,
@@ -49,10 +50,13 @@ import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comm
 import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
 import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';
+import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { isTrackedChatProcessGuard } from '../../guards/is-tracked-chat-process/is-tracked-chat-process-guard';
+import { pastedImageMemoryState } from '../../state/pasted-image-memory/pasted-image-memory-state';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
+import { dataUrlBuildTransformer } from '../../transformers/data-url-build/data-url-build-transformer';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
 import { replaceEpochChatEntryTimestampTransformer } from '../../transformers/replace-epoch-chat-entry-timestamp/replace-epoch-chat-entry-timestamp-transformer';
@@ -78,8 +82,16 @@ export const useQuestChatBinding = ({
   armStreaming: () => void;
   disarmStreaming: () => void;
   disarmFollowupStreaming: () => void;
-  sendMessage: (params: { message: UserInput }) => void;
-  sendFollowupMessage: (params: { message: UserInput }) => void;
+  sendMessage: (params: {
+    message: UserInput;
+    images?: readonly PastedImageUpload[];
+    onProgress?: UploadProgressHandler;
+  }) => Promise<void>;
+  sendFollowupMessage: (params: {
+    message: UserInput;
+    images?: readonly PastedImageUpload[];
+    onProgress?: UploadProgressHandler;
+  }) => Promise<void>;
   sendCommentBatch: (params: {
     comments: readonly CommentQueueEntry[];
   }) => Promise<CommentBatchSendResult>;
@@ -141,10 +153,40 @@ export const useQuestChatBinding = ({
   const [followupStreamingFromOutput, setFollowupStreamingFromOutput] = useState(false);
   const isFollowupStreaming = followupPendingTurn || followupStreamingFromOutput;
 
-  const entriesBySession = useMemo(
-    () => deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal }),
-    [entriesBySessionInternal],
-  );
+  // The uuids of the entries THIS HOOK made up — the optimistic copies sendMessage /
+  // sendCommentBatch / submitClarifyAnswers stage before a real sessionId exists for the turn, plus
+  // the error entries their rejection paths append. Recorded because the synthetic bucket is NOT an
+  // optimistic-only bucket, however much its key reads like one: `ChatStartResponder` routes its
+  // live `chat-output` by questId + workItemId and puts NO sessionId on the payload, so every entry
+  // a turn STREAMS lands under exactly the same key. Content-equality dedupe therefore has to know
+  // which of them the browser invented, and a uuid is the only thing that can say — a streamed
+  // sub-agent line and its replayed twin are the same words by definition.
+  const stagedUuidsRef = useRef<Set<ChatEntryUuid>>(new Set());
+
+  // Once the replayed copy of a staged entry lands in a REAL session's bucket, the staged copy has
+  // to fall out of the map or both render.
+  // Filtered HERE, in the memo, rather than in a widget: this map has two independent consumers —
+  // QuestChatContentLayerWidget's own flatten of every bucket into one transcript, and
+  // ExecutionPanelWidget's per-row `sessionEntries` fallback lookup — and a widget-side filter would
+  // have to be duplicated in both to cover them, with the second one easy to forget. This is the one
+  // place both consumers share.
+  const entriesBySession = useMemo(() => {
+    const derived = deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal });
+    const optimistic = derived.get(SYNTHETIC_SESSION_KEY);
+    if (optimistic === undefined) return derived;
+    const delivered: ChatEntry[] = [];
+    for (const [key, list] of derived) {
+      if (key !== SYNTHETIC_SESSION_KEY) delivered.push(...list);
+    }
+    const survivors = optimistic.filter(
+      (entry) =>
+        !stagedUuidsRef.current.has(entry.uuid) ||
+        !hasEquivalentChatEntryGuard({ entry, among: delivered }),
+    );
+    const next = new Map(derived);
+    next.set(SYNTHETIC_SESSION_KEY, survivors);
+    return next;
+  }, [entriesBySessionInternal]);
   const entriesByWorkItem = useMemo(
     () => deriveSortedChatEntriesMapTransformer({ source: entriesByWorkItemInternal }),
     [entriesByWorkItemInternal],
@@ -183,6 +225,40 @@ export const useQuestChatBinding = ({
       entries: [...localFiltered, ...workItemEntries],
     });
   }, [followupWorkItemId, entriesByWorkItem, followupLocalEntries]);
+
+  // An optimistic entry the memo above drops is the LAST reader of its pasted-image bytes:
+  // `remember` is keyed on that entry's own uuid, and the delivered copy displacing it arrives
+  // under a different uuid whose `![Pasted Image N](url)` tokens resolve against a served URL
+  // instead. So the moment the optimistic copy stops being rendered its bytes are unreachable —
+  // five images at five megabytes each per message, held for the life of the tab if nothing drops
+  // them.
+  //
+  // Evicted in an effect, never inside the memo: a memo may run more than once for the same input,
+  // and a `forget` from a pass React then discards would blank a picture still on screen. The
+  // dropped set is DERIVED rather than guessed — it is exactly the staged uuids the memo's survivor
+  // list no longer contains, so a surviving entry is never touched. A synthetic-bucket entry the
+  // WIRE delivered was never remembered, so forgetting one is a no-op.
+  useEffect(() => {
+    const staged = entriesBySessionInternal.get(SYNTHETIC_SESSION_KEY);
+    if (staged === undefined) return;
+    const surviving = new Set(
+      (entriesBySession.get(SYNTHETIC_SESSION_KEY) ?? []).map((entry) => entry.uuid),
+    );
+    for (const uuid of staged.keys()) {
+      if (!surviving.has(uuid)) pastedImageMemoryState.forget({ uuid });
+    }
+  }, [entriesBySession, entriesBySessionInternal]);
+
+  // The FOLLOW-UP tab's half of the same reclaim, against followupEntries' own filter. Kept as its
+  // own effect rather than folded into the one above because the two read different sources and
+  // change on different frames; one effect over both dep sets would re-walk each list every time
+  // the other moved.
+  useEffect(() => {
+    const surviving = new Set(followupEntries.map((entry) => entry.uuid));
+    for (const entry of followupLocalEntries) {
+      if (!surviving.has(entry.uuid)) pastedImageMemoryState.forget({ uuid: entry.uuid });
+    }
+  }, [followupEntries, followupLocalEntries]);
 
   const questIdRef = useRef<QuestId | null>(questId);
   questIdRef.current = questId;
@@ -233,12 +309,25 @@ export const useQuestChatBinding = ({
   // quest's bucket, while these optimistic entries carry no key at all and would render the
   // previous quest's question in the new quest's FOLLOW-UP tab.
   const previousQuestIdRef = useRef<QuestId | null>(questId);
+  // Mirror of followupLocalEntries for the switch effect below, which must NOT take the array as a
+  // dependency: it would then re-run on every follow-up entry and reset the running state mid-turn.
+  // Written during render, the same way questIdRef above carries questId into closures set up once.
+  const followupLocalEntriesRef = useRef<ChatEntry[]>(followupLocalEntries);
+  followupLocalEntriesRef.current = followupLocalEntries;
   useEffect(() => {
     const previousQuestId = previousQuestIdRef.current;
     previousQuestIdRef.current = questId;
     if (previousQuestId === null || previousQuestId === questId) return;
     setPendingTurn(false);
     setStreamingFromOutput(false);
+    // These entries are discarded WHOLESALE rather than filtered away, so the eviction effect above
+    // — which reads the filter's own output — never sees them go, and their pasted-image bytes stay
+    // reachable only through uuids nothing renders any more. This is the one place that can reclaim
+    // them. ONLY these: the session buckets survive the switch untouched, so their staged entries
+    // are still rendering and `recall` still has to answer for them.
+    for (const entry of followupLocalEntriesRef.current) {
+      pastedImageMemoryState.forget({ uuid: entry.uuid });
+    }
     setFollowupLocalEntries([]);
     setFollowupPendingTurn(false);
     setFollowupStreamingFromOutput(false);
@@ -486,9 +575,17 @@ export const useQuestChatBinding = ({
   }, [entriesBySession]);
 
   const sendMessage = useCallback(
-    ({ message }: { message: UserInput }): void => {
+    async ({
+      message,
+      images,
+      onProgress,
+    }: {
+      message: UserInput;
+      images?: readonly PastedImageUpload[];
+      onProgress?: UploadProgressHandler;
+    }): Promise<void> => {
       const activeQuestId = questIdRef.current;
-      if (!activeQuestId) return;
+      if (!activeQuestId) return Promise.resolve();
 
       const userEntry = chatEntryContract.parse({
         role: 'user',
@@ -496,6 +593,19 @@ export const useQuestChatBinding = ({
         uuid: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
       });
+      // The staged entry's content is bare `[Pasted Image N]` placeholders — no bytes, no URL. The
+      // renderer resolves each placeholder against this memory, keyed by the staged entry's own
+      // uuid, so the optimistic bubble can draw the pasted image before the server round-trip and
+      // its replayed copy (a DIFFERENT uuid) ever land.
+      if (images !== undefined && images.length > 0) {
+        pastedImageMemoryState.remember({
+          uuid: userEntry.uuid,
+          dataUrls: images.map((image) =>
+            dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+          ),
+        });
+      }
+      stagedUuidsRef.current.add(userEntry.uuid);
       setEntriesBySessionInternal((prev) =>
         upsertChatEntriesByUuidTransformer({
           prev,
@@ -517,8 +627,15 @@ export const useQuestChatBinding = ({
         ? questResumeBroker({ questId: activeQuestId })
         : Promise.resolve();
 
-      resumeStep
-        .then(async () => questChatBroker({ questId: activeQuestId, message }))
+      return resumeStep
+        .then(async () =>
+          questChatBroker({
+            questId: activeQuestId,
+            message,
+            ...(images === undefined ? {} : { images }),
+            ...(onProgress === undefined ? {} : { onProgress }),
+          }),
+        )
         .then(({ chatProcessId }) => {
           trackedChatProcessIdRef.current = chatProcessId;
         })
@@ -532,6 +649,7 @@ export const useQuestChatBinding = ({
             uuid: crypto.randomUUID(),
             timestamp: new Date().toISOString(),
           });
+          stagedUuidsRef.current.add(errorEntry.uuid);
           setEntriesBySessionInternal((prev) =>
             upsertChatEntriesByUuidTransformer({
               prev,
@@ -539,6 +657,10 @@ export const useQuestChatBinding = ({
               newEntries: [errorEntry],
             }),
           );
+          // The composer is the thing that toasts the server's own rejection text and restores the
+          // user's text and thumbnails — it can only do that if this promise rejects. Do not swallow
+          // this, do not wrap it: the caller must see the exact error the broker threw.
+          throw err;
         });
     },
     [quest],
@@ -551,39 +673,69 @@ export const useQuestChatBinding = ({
   // is no resume-if-paused step, because the tavernkeeper only ever runs against a quest that has
   // already left the execution phase (blocked/complete/merged) — that step exists for sendMessage's
   // relay composer and has no quest state to resume from here.
-  const sendFollowupMessage = useCallback(({ message }: { message: UserInput }): void => {
-    const activeQuestId = questIdRef.current;
-    if (!activeQuestId) return;
+  const sendFollowupMessage = useCallback(
+    async ({
+      message,
+      images,
+      onProgress,
+    }: {
+      message: UserInput;
+      images?: readonly PastedImageUpload[];
+      onProgress?: UploadProgressHandler;
+    }): Promise<void> => {
+      const activeQuestId = questIdRef.current;
+      if (!activeQuestId) return Promise.resolve();
 
-    const userEntry = chatEntryContract.parse({
-      role: 'user',
-      content: message,
-      uuid: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-    });
-    setFollowupLocalEntries((prev) => [...prev, userEntry]);
-    setFollowupPendingTurn(true);
-    // The previous turn's handle must not outlive it: a late completion for THAT process would
-    // otherwise match and clear the turn just committed.
-    followupTrackedChatProcessIdRef.current = null;
-
-    questFollowupBroker({ questId: activeQuestId, message })
-      .then(({ chatProcessId }) => {
-        followupTrackedChatProcessIdRef.current = chatProcessId;
-      })
-      .catch((err: unknown) => {
-        setFollowupPendingTurn(false);
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        const errorEntry = chatEntryContract.parse({
-          role: 'system',
-          type: 'error',
-          content: errorMessage,
-          uuid: crypto.randomUUID(),
-          timestamp: new Date().toISOString(),
-        });
-        setFollowupLocalEntries((prev) => [...prev, errorEntry]);
+      const userEntry = chatEntryContract.parse({
+        role: 'user',
+        content: message,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
       });
-  }, []);
+      // Same reasoning as sendMessage's own remember: the staged entry's content is bare
+      // placeholders, so the renderer needs the bytes stashed under this entry's own uuid to draw
+      // the optimistic bubble.
+      if (images !== undefined && images.length > 0) {
+        pastedImageMemoryState.remember({
+          uuid: userEntry.uuid,
+          dataUrls: images.map((image) =>
+            dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+          ),
+        });
+      }
+      setFollowupLocalEntries((prev) => [...prev, userEntry]);
+      setFollowupPendingTurn(true);
+      // The previous turn's handle must not outlive it: a late completion for THAT process would
+      // otherwise match and clear the turn just committed.
+      followupTrackedChatProcessIdRef.current = null;
+
+      return questFollowupBroker({
+        questId: activeQuestId,
+        message,
+        ...(images === undefined ? {} : { images }),
+        ...(onProgress === undefined ? {} : { onProgress }),
+      })
+        .then(({ chatProcessId }) => {
+          followupTrackedChatProcessIdRef.current = chatProcessId;
+        })
+        .catch((err: unknown) => {
+          setFollowupPendingTurn(false);
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          const errorEntry = chatEntryContract.parse({
+            role: 'system',
+            type: 'error',
+            content: errorMessage,
+            uuid: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+          });
+          setFollowupLocalEntries((prev) => [...prev, errorEntry]);
+          // Same contract as sendMessage's catch: the FOLLOW-UP composer toasts and restores from
+          // this rejection, so it must actually reject rather than resolve quietly.
+          throw err;
+        });
+    },
+    [],
+  );
 
   // Comment-batch send lives HERE rather than in the queue-bar widget because the panel entry is
   // this binding's job: Claude's --resume stream never echoes the prompt back, so a widget that
@@ -615,6 +767,7 @@ export const useQuestChatBinding = ({
           uuid: crypto.randomUUID(),
           timestamp: new Date().toISOString(),
         });
+        stagedUuidsRef.current.add(userEntry.uuid);
         setEntriesBySessionInternal((prev) =>
           upsertChatEntriesByUuidTransformer({
             prev,
@@ -650,6 +803,7 @@ export const useQuestChatBinding = ({
         uuid: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
       });
+      stagedUuidsRef.current.add(userEntry.uuid);
       setEntriesBySessionInternal((prev) =>
         upsertChatEntriesByUuidTransformer({
           prev,
@@ -679,6 +833,7 @@ export const useQuestChatBinding = ({
             uuid: crypto.randomUUID(),
             timestamp: new Date().toISOString(),
           });
+          stagedUuidsRef.current.add(errorEntry.uuid);
           setEntriesBySessionInternal((prev) =>
             upsertChatEntriesByUuidTransformer({
               prev,

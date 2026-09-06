@@ -1,4 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { playwrightConfigTemplateStatics } from '../../../statics/playwright-config-template/playwright-config-template-statics';
 import { InstallCreatePlaywrightResponderProxy } from './install-create-playwright-responder.proxy';
 
 describe('InstallCreatePlaywrightResponder', () => {
@@ -78,12 +79,7 @@ describe('InstallCreatePlaywrightResponder', () => {
       const writtenFiles = proxy.getWrittenFiles();
 
       expect(writtenFiles[0]?.path).toBe('/project/playwright.config.ts');
-      expect(writtenFiles[0]?.content).toBe(
-        `import { defineConfig } from '@playwright/test';
-
-export default defineConfig({ testMatch: '**/*.e2e.ts', timeout: 30_000 });
-`,
-      );
+      expect(writtenFiles[0]?.content).toBe(playwrightConfigTemplateStatics.content);
     });
   });
 });

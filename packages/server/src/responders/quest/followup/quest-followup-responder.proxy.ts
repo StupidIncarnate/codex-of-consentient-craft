@@ -48,6 +48,7 @@ registerModuleMock({
 import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
 import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
 import { orchestratorStartFollowupChatAdapterProxy } from '../../../adapters/orchestrator/start-followup-chat/orchestrator-start-followup-chat-adapter.proxy';
+import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestFollowupResponder } from './quest-followup-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -61,11 +62,19 @@ export const QuestFollowupResponderProxy = (): {
   setupStartFollowupChat: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   setupStartFollowupChatError: (params: { questId: QuestId; error: Error }) => void;
   getStartFollowupChatCalls: () => readonly unknown[];
+  setupPastedImageHome: (params: { homePath: string }) => void;
+  stagePastedImageIds: (params: { ids: readonly string[] }) => void;
+  getPastedImageWrittenPayloadFor: (params: { filePath: string }) => unknown;
+  getPastedImageWriteCallCount: () => unknown;
   callResponder: typeof QuestFollowupResponder;
 } => {
   const loadProxy = orchestratorLoadQuestAdapterProxy();
   const findPathProxy = orchestratorFindQuestPathAdapterProxy();
   const startFollowupChatProxy = orchestratorStartFollowupChatAdapterProxy();
+  // The persist broker is APPLICATION code and runs REAL here — this proxy only mocks the npm
+  // boundary underneath it (mkdir, writeFile, randomUUID, homedir). Its methods are re-exposed
+  // below under semantic names scoped to "pasted image", never handed back as a raw child proxy.
+  const pastedImageProxy = pastedImagePersistBrokerProxy();
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
@@ -96,6 +105,15 @@ export const QuestFollowupResponderProxy = (): {
     // Every call the adapter received, so a rejected-status test can prove it received NONE —
     // not just that the responder's own return value looks right.
     getStartFollowupChatCalls: (): readonly unknown[] => startFollowupChatProxy.getCalls(),
+    setupPastedImageHome: ({ homePath }: { homePath: string }): void => {
+      pastedImageProxy.setupHome({ homePath });
+    },
+    stagePastedImageIds: ({ ids }: { ids: readonly string[] }): void => {
+      pastedImageProxy.stageImageIds({ ids });
+    },
+    getPastedImageWrittenPayloadFor: ({ filePath }: { filePath: string }): unknown =>
+      pastedImageProxy.writtenPayloadFor({ filePath }),
+    getPastedImageWriteCallCount: (): unknown => pastedImageProxy.writeCallCount(),
     callResponder: QuestFollowupResponder,
   };
 };

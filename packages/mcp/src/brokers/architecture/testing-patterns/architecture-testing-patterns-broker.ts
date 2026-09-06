@@ -644,7 +644,11 @@ Each layer delegates setup to the layer below. The broker proxy is the only laye
 
 **The Playwright config + package-specific harnesses live in the e2e-eligible package.** \`<e2e-eligible-package>/playwright.config.ts\` (\`testMatch: '**/*.e2e.ts'\`) and \`<e2e-eligible-package>/test/harnesses/\` own the e2e stack. The \`testing\` package holds ONLY cross-package reshareables (register-mock, shared stubs, \`installTestbedCreateBroker\`) — it does NOT own e2e config, harnesses, or specs.
 
-**e2e imports are relative to the e2e-eligible package.** Spec files import \`{ test, expect, wireHarnessLifecycle }\` and the named harnesses from that package's own \`test/\` (e.g. \`test/harnesses/e2e-fixtures\`), NOT from \`@dungeonmaster/testing/e2e\`.
+**Nest Playwright's \`outputDir\` and Vite's \`cacheDir\` under the run's port** — \`test-results/<port>\`, \`node_modules/.vite-<port>\` — or parallel walks wipe each other's traces and cache. Ward reaps both, so it costs no disk.
+
+### The Dev Server a Run Starts Must Not Watch Files
+
+Playwright's \`webServer\` command must name a NO-WATCH script, and the block must set \`reuseExistingServer: false\`. A watcher that RESTARTS the process drops the port mid-suite, so in-flight requests get a bare 500 with an EMPTY body and several unrelated specs fail at once. A watcher that HOT-RELOADS reloads the page a spec is asserting on — a blank screenshot, then a timeout. **For Vite, \`hmr: false\` alone is not enough: add \`watch: null\`.** The scaffolded \`playwright.config.ts\` carries the whole rule in its comments.
 
 ### Assert the Full Transition
 

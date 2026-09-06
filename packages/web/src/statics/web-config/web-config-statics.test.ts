@@ -47,6 +47,23 @@ describe('webConfigStatics', () => {
         reconnectDelayMs: 3000,
         wardDetailTimeoutMs: 30000,
       },
+      pastedImage: {
+        draftImageStoreName: 'dungeonmaster-chat-draft-images',
+        brokenThumbnailSizePx: 32,
+        inlineImageMaxHeightPx: 200,
+        overlayWidthPercent: 75,
+        overlayMaxHeightPercent: 90,
+      },
+    });
+  });
+
+  it('VALID: exported value => pastedImage group carries all five keys and values', () => {
+    expect(webConfigStatics.pastedImage).toStrictEqual({
+      draftImageStoreName: 'dungeonmaster-chat-draft-images',
+      brokenThumbnailSizePx: 32,
+      inlineImageMaxHeightPx: 200,
+      overlayWidthPercent: 75,
+      overlayMaxHeightPercent: 90,
     });
   });
 });

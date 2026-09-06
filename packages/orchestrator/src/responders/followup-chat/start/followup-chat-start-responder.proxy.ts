@@ -65,6 +65,9 @@ export const FollowupChatStartResponderProxy = (): {
   // quest. Only its spawn-adapter-level methods (setupResumeSession, setupResumeWithWorktree,
   // setupResumeWithMissingWorktree, getSpawnedArgs) are used below, addressed so their OWN bundled
   // quest resolution never collides with this responder's real reads (see CWD_STAGING_QUEST_ID).
+  // `stageAddDirPathJoins` is ALSO called directly (not via one of those bundled methods) at the
+  // exact point chatSpawnBroker's own `--add-dir` computation lands in execution order — see the
+  // call sites below.
   const spawnProxy = chatSpawnBrokerProxy();
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
@@ -144,6 +147,14 @@ export const FollowupChatStartResponderProxy = (): {
       });
       getProxy.setupQuestFound({ quest: afterQuest }); // resolveChatQuestLayerBroker's own lookup
       getProxy.setupQuestFound({ quest: afterQuest }); // questCwdResolveBroker's own lookup
+      // chatSpawnBroker's own `--add-dir` computation runs here, right after the cwd lookup
+      // above and before the spawn. spawnProxy's bundled setupResumeSession/setupResumeWithWorktree
+      // below (via stageAccessibleSpawn) address a DIFFERENT, never-queried quest (see
+      // CWD_STAGING_QUEST_ID) and are staged AFTER this point, so calling the shared
+      // stageAddDirPathJoins() here — at the exact spot the five real path.join/homedir calls
+      // land in execution order — is what keeps this responder's own onComplete cycle below from
+      // being fed those five order-scoped one-shots instead of its own.
+      spawnProxy.stageAddDirPathJoins();
       // onComplete's own fire-and-forget questModifyBroker call (marking the item complete) loads
       // the quest AGAIN before merging — a fifth cycle, seeing the now-persisted afterQuest.
       modifyProxy.setupQuestFound({ quest: afterQuest });
@@ -172,6 +183,9 @@ export const FollowupChatStartResponderProxy = (): {
       modifyProxy.setupQuestFound({ quest }); // this responder's own persist's internal load
       getProxy.setupQuestFound({ quest }); // resolveChatQuestLayerBroker's own lookup
       getProxy.setupQuestFound({ quest }); // questCwdResolveBroker's own lookup
+      // chatSpawnBroker's own `--add-dir` computation runs here — see the matching comment in
+      // setupNewTavernkeeperItem above.
+      spawnProxy.stageAddDirPathJoins();
       // onComplete's own fire-and-forget questModifyBroker call (marking the item complete) loads
       // the quest AGAIN before merging — a fifth cycle. Item presence never changes for an already-
       // existing item, so it sees the same quest.
@@ -191,7 +205,8 @@ export const FollowupChatStartResponderProxy = (): {
     // accessibility check fails, and no spawn is ever staged (the responder throws first). The
     // responder catches that throw and issues a SECOND questModifyBroker call to mark the
     // tavernkeeper item `failed` rather than leaving it stuck `in_progress` — that call needs its
-    // own staged read/write cycle, the same as the responder's initial persist above it.
+    // own staged read/write cycle, the same as the responder's initial persist above it. No add-dir
+    // computation is staged here — chatSpawnBroker throws before ever reaching it.
     setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
       if (quest.worktreePath === undefined) {
         throw new Error(

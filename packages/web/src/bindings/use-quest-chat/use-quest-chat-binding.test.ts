@@ -1,5 +1,7 @@
+import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import {
   AskUserQuestionStub,
+  PastedImageUploadStub,
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
@@ -8,6 +10,7 @@ import {
   UserInputStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
@@ -15,6 +18,7 @@ import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/
 import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
+import { dataUrlBuildTransformer } from '../../transformers/data-url-build/data-url-build-transformer';
 
 import { useQuestChatBinding } from './use-quest-chat-binding';
 import { useQuestChatBindingProxy } from './use-quest-chat-binding.proxy';
@@ -932,10 +936,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message });
         },
       });
 
@@ -965,6 +966,80 @@ describe('useQuestChatBinding', () => {
         stopChat: expect.any(Function),
         stopFollowupChat: expect.any(Function),
       });
+    });
+
+    it('VALID: #check-subsequent-message-takes-image-path {mid-quest questId already in hand, composer holding an image} => the POST body carries both the tokenised message and the image', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-send-image-1' });
+      const message = UserInputStub({ value: 'Look at this [Pasted Image 1]' });
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-send-image' }) });
+      proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000d01'] });
+      proxy.setupTimestamps({ timestamps: ['2026-09-01T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({ message, images: [image] });
+        },
+      });
+
+      // The wrong value this turns red against: the binding dropping `images` on the way to the
+      // broker, which posts { message } alone and loses the attachment entirely.
+      expect(proxy.getChatRequestBody()).toStrictEqual({
+        message: 'Look at this [Pasted Image 1]',
+        images: [image],
+      });
+    });
+
+    // Regression guard for the re-throw step 1 adds: a widget that only checked the transcript, or
+    // only checked the rejection, would miss a regression on the half it didn't assert. The composer
+    // needs BOTH — the transcript entry to render the failure, the rejection to trigger its toast and
+    // restore the user's text/thumbnails.
+    it('ERROR: {questChatBroker rejects} => appends a system error entry AND rejects the returned promise', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-send-error-1' });
+      const message = UserInputStub({ value: 'This will fail' });
+      const userUuid = '00000000-0000-4000-8000-000000000d02';
+      const errorUuid = '00000000-0000-4000-8000-000000000d03';
+      const userTs = '2026-09-01T00:00:00.000Z';
+      const errorTs = '2026-09-01T00:00:01.000Z';
+      proxy.setupChatError();
+      proxy.setupUuids({ uuids: [userUuid, errorUuid] });
+      proxy.setupTimestamps({ timestamps: [userTs, errorTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await expect(result.current.sendMessage({ message })).rejects.toThrow(
+            /^xhrPostWithProgressAdapter: network error posting to \/api\/quests\/quest-send-error-1\/chat$/u,
+          );
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, [
+        { role: 'user', content: 'This will fail', uuid: userUuid, timestamp: userTs },
+        {
+          role: 'system',
+          type: 'error',
+          content:
+            'xhrPostWithProgressAdapter: network error posting to /api/quests/quest-send-error-1/chat',
+          uuid: errorUuid,
+          timestamp: errorTs,
+        },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
     });
   });
 
@@ -1204,10 +1279,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message });
         },
       });
 
@@ -1243,10 +1315,9 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await expect(result.current.sendMessage({ message })).rejects.toThrow(
+            /^POST \/api\/quests\/quest-pause-resume-2\/resume failed with status 500$/u,
+          );
         },
       });
 
@@ -1388,10 +1459,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
       const afterSend = result.current.isStreaming;
@@ -1473,10 +1541,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
 
@@ -1560,10 +1625,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
 
@@ -1936,10 +1998,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendFollowupMessage({ message });
         },
       });
 
@@ -1984,10 +2043,7 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await result.current.sendFollowupMessage({ message });
         },
       });
 
@@ -2008,7 +2064,7 @@ describe('useQuestChatBinding', () => {
       });
     });
 
-    it('EMPTY: {questId: null} => is a no-op, no POST and no followup entries', () => {
+    it('EMPTY: {questId: null} => is a no-op, no POST and no followup entries', async () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
 
@@ -2016,9 +2072,9 @@ describe('useQuestChatBinding', () => {
         renderCallback: () => useQuestChatBinding({ questId: null }),
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
         },
       });
 
@@ -2048,10 +2104,11 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Any updates?' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await expect(
+            result.current.sendFollowupMessage({
+              message: UserInputStub({ value: 'Any updates?' }),
+            }),
+          ).rejects.toThrow(/^Quest must be blocked, complete or merged for follow-up$/u);
         },
       });
 
@@ -2095,12 +2152,11 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'Show me the feature' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await expect(
+            result.current.sendFollowupMessage({
+              message: UserInputStub({ value: 'Show me the feature' }),
+            }),
+          ).rejects.toThrow(/^Failed to start follow-up chat$/u);
         },
       });
 
@@ -2134,22 +2190,16 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
+          await result.current.sendFollowupMessage({
             message: UserInputStub({ value: 'First question' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
+          await result.current.sendFollowupMessage({
             message: UserInputStub({ value: 'Second question' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
@@ -2547,22 +2597,16 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({
+          await result.current.sendMessage({
             message: UserInputStub({ value: 'Main composer message' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({
+          await result.current.sendFollowupMessage({
             message: UserInputStub({ value: 'Followup composer message' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
           });
         },
       });
@@ -2678,9 +2722,8 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'What broke?' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'What broke?' }),
           });
         },
       });
@@ -2792,9 +2835,8 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'What broke?' }) });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'What broke?' }),
           });
         },
       });
@@ -2834,13 +2876,12 @@ describe('useQuestChatBinding', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          result.current.sendMessage({ message: UserInputStub({ value: 'main turn' }) });
-          result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'followup turn' }),
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
+          await Promise.all([
+            result.current.sendMessage({ message: UserInputStub({ value: 'main turn' }) }),
+            result.current.sendFollowupMessage({
+              message: UserInputStub({ value: 'followup turn' }),
+            }),
+          ]);
         },
       });
 
@@ -2856,6 +2897,780 @@ describe('useQuestChatBinding', () => {
       }).toStrictEqual({
         isStreaming: true,
         isFollowupStreaming: false,
+      });
+    });
+  });
+
+  describe('entriesBySession dedupes the optimistic synthetic entry against its delivered twin', () => {
+    it('VALID: {send stages an optimistic entry, chat-output later delivers the SAME message under a real sessionId} => entriesBySession holds it exactly once, in the real session bucket, with the synthetic bucket emptied of it', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-dedupe-plain-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const optimisticUuid = '00000000-0000-4000-8000-000000000701';
+      const optimisticTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000702';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-plain-1' }) });
+      proxy.setupUuids({ uuids: [optimisticUuid] });
+      proxy.setupTimestamps({ timestamps: [optimisticTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-plain-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-plain-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: 'Hello there',
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      // The wrong value this turns red against: the synthetic bucket still carrying the optimistic
+      // copy alongside the delivered one (both entries visible), which is the double-render bug.
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, []);
+      expectedMap.set(sessionId, [
+        { role: 'user', content: 'Hello there', uuid: deliveredUuid, timestamp: deliveredTs },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+
+    it('VALID: {image-carrying message: optimistic copy holds bare placeholders, delivered copy holds resolved image refs plus a trailer} => entriesBySession still collapses to the delivered copy alone', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-dedupe-image-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const optimisticUuid = '00000000-0000-4000-8000-000000000703';
+      const optimisticTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000704';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image-1' }) });
+      proxy.setupUuids({ uuids: [optimisticUuid] });
+      proxy.setupTimestamps({ timestamps: [optimisticTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-image-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: deliveredContent,
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      // The wrong value this turns red against: BOTH copies rendering, because a raw string
+      // comparison can never see `A[Pasted Image 1]B` and `A![Pasted Image 1](url)B\n\n<trailer>`
+      // as the same message. Only normalised-content equality (hasEquivalentChatEntryGuard) catches it.
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, []);
+      expectedMap.set(sessionId, [
+        { role: 'user', content: deliveredContent, uuid: deliveredUuid, timestamp: deliveredTs },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+
+    it('VALID: {optimistic entry staged, no delivered twin ever arrives} => the optimistic entry survives in the synthetic bucket', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-dedupe-no-twin-1' });
+      const optimisticUuid = '00000000-0000-4000-8000-000000000705';
+      const optimisticTs = '2026-09-02T00:00:00.000Z';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-no-twin-1' }) });
+      proxy.setupUuids({ uuids: [optimisticUuid] });
+      proxy.setupTimestamps({ timestamps: [optimisticTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Still waiting' }) });
+        },
+      });
+
+      // The wrong value this turns red against: a filter that drops the synthetic bucket WHOLESALE
+      // (rather than entry-by-entry against delivered content) would make this array empty, and the
+      // user's just-sent message would vanish for the seconds before replay catches up.
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, [
+        { role: 'user', content: 'Still waiting', uuid: optimisticUuid, timestamp: optimisticTs },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+
+    it('VALID: {optimistic entry staged, a delivered entry with genuinely DIFFERENT content arrives on a real session} => the optimistic entry survives alongside the unrelated delivered entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-dedupe-different-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const optimisticUuid = '00000000-0000-4000-8000-000000000706';
+      const optimisticTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000707';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-different-1' }) });
+      proxy.setupUuids({ uuids: [optimisticUuid] });
+      proxy.setupTimestamps({ timestamps: [optimisticTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-different-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-different-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: 'A totally unrelated message',
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      // The wrong value this turns red against: a guard miscomparing roles/content evicting the
+      // optimistic entry even though the delivered entry is not its twin.
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, [
+        { role: 'user', content: 'Hello there', uuid: optimisticUuid, timestamp: optimisticTs },
+      ]);
+      expectedMap.set(sessionId, [
+        {
+          role: 'user',
+          content: 'A totally unrelated message',
+          uuid: deliveredUuid,
+          timestamp: deliveredTs,
+        },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+
+    it('VALID: {a live chat-output frame with NO sessionId repeats a line whose replayed twin already sits in a real session bucket} => the wire-delivered copy survives, because only a LOCALLY STAGED entry is a dedupe candidate', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-dedupe-wire-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const replayedUuid = '00000000-0000-4000-8000-000000000708';
+      const replayedTs = '2026-09-02T00:00:00.000Z';
+      const liveUuid = '00000000-0000-4000-8000-000000000709';
+      const liveTs = '2026-09-02T00:00:01.000Z';
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      // The replay of the pre-existing sub-agent JSONL: ChatReplayResponder stamps a sessionId, so
+      // this copy lands in a REAL session bucket.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-wire-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-replay' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'SUBAGENT_INNER_MARKER_xyz',
+                    uuid: replayedUuid,
+                    timestamp: replayedTs,
+                  },
+                ],
+              },
+              timestamp: replayedTs,
+            }),
+          });
+        },
+      });
+
+      // The same line arriving live off the sub-agent tail. ChatStartResponder's payload routes by
+      // questId + workItemId and carries NO sessionId, so this copy lands in the SYNTHETIC bucket —
+      // the same bucket the optimistic user entry uses, though nothing here staged it.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-wire-1',
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-live' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'SUBAGENT_INNER_MARKER_xyz',
+                    uuid: liveUuid,
+                    timestamp: liveTs,
+                  },
+                ],
+              },
+              timestamp: liveTs,
+            }),
+          });
+        },
+      });
+
+      // The wrong value this turns red against: an empty synthetic bucket. Content-equality dedupe
+      // applied to every synthetic entry eats the live copy — which is the ONLY copy carrying the
+      // Task's toolUseId as its agentId, so the sub-agent chain renders `(0 entries)` while the
+      // replayed twin floats above it as an orphan.
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(sessionId, [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'SUBAGENT_INNER_MARKER_xyz',
+          uuid: replayedUuid,
+          timestamp: replayedTs,
+        },
+      ]);
+      expectedMap.set(synthKey, [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'SUBAGENT_INNER_MARKER_xyz',
+          uuid: liveUuid,
+          timestamp: liveTs,
+        },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+  });
+
+  describe('pasted image bytes are remembered for the optimistic bubble', () => {
+    it('VALID: {sendMessage with images} => pastedImageMemoryState is written under the staged entry uuid, with dataUrls in upload order', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-remember-images-1' });
+      const message = UserInputStub({ value: 'Look at these [Pasted Image 1][Pasted Image 2]' });
+      const imageA = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=' });
+      const imageB = PastedImageUploadStub({ mediaType: 'image/jpeg', dataBase64: 'aGVsbG8=' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000801';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-remember-images-1' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({ message, images: [imageA, imageB] });
+        },
+      });
+
+      // The wrong value this turns red against: an empty array, because nothing ever called
+      // pastedImageMemoryState.remember for this uuid — the renderer would have no bytes to draw.
+      expect(
+        proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+      ).toStrictEqual([
+        dataUrlBuildTransformer({ mediaType: imageA.mediaType, dataBase64: imageA.dataBase64 }),
+        dataUrlBuildTransformer({ mediaType: imageB.mediaType, dataBase64: imageB.dataBase64 }),
+      ]);
+    });
+
+    it('EMPTY: {sendMessage with no images} => writes nothing to pastedImageMemoryState', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-remember-images-none-1' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000802';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-remember-images-none-1' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({ message: UserInputStub({ value: 'No images here' }) });
+        },
+      });
+
+      expect(
+        proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+      ).toStrictEqual([]);
+    });
+
+    it('VALID: {sendFollowupMessage with images} => pastedImageMemoryState is written under the staged entry uuid, with dataUrls in upload order', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-remember-images-followup-1' });
+      const message = UserInputStub({ value: 'Look at this [Pasted Image 1]' });
+      const image = PastedImageUploadStub({ mediaType: 'image/webp', dataBase64: 'aGVsbG8=' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000803';
+      proxy.setupFollowup({
+        chatProcessId: ProcessIdStub({ value: 'proc-remember-images-followup-1' }),
+      });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({ message, images: [image] });
+        },
+      });
+
+      expect(
+        proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+      ).toStrictEqual([
+        dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+      ]);
+    });
+  });
+
+  describe('pasted image bytes are released once the optimistic bubble is deduped away', () => {
+    it('VALID: {image message sent, then its delivered twin arrives on a real session} => the staged uuid holds no bytes any more', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-forget-images-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000901';
+      const stagedTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000902';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: [stagedTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-forget-images-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: deliveredContent,
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+
+      expect({
+        remembered: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        optimisticSurvivors: result.current.entriesBySession.get(synthKey),
+      }).toStrictEqual({
+        // `remembered` turns red on the leak itself: with nothing evicting, this is
+        // `[dataUrlBuildTransformer({...image})]` — the megabytes the deduped-away bubble staged,
+        // still pinned in the module-level Map for the life of the tab.
+        remembered: [],
+        // `optimisticSurvivors` turns red at the value `[{role: 'user', content: 'A[Pasted Image
+        // 1]B', uuid: stagedUuid, timestamp: stagedTs}]` if the dedupe never fired. That is what
+        // separates "eviction is broken" from "the precondition this test needs stopped holding" —
+        // without it a dedupe regression reads as an eviction regression.
+        optimisticSurvivors: [],
+      });
+    });
+
+    it('VALID: {image message sent, no delivered twin yet} => the staged uuid still holds its bytes for the bubble on screen', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-forget-images-none-1' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000903';
+      const stagedTs = '2026-09-02T00:00:00.000Z';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-none-1' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: [stagedTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+
+      expect({
+        remembered: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        optimisticSurvivors: result.current.entriesBySession.get(synthKey),
+      }).toStrictEqual({
+        // `remembered` turns red at `[]` — which is what a forget-everything eviction, or one run
+        // as a side effect inside the memo's own body, produces. The entry is still the ONLY copy
+        // of this message, so dropping its bytes blanks a picture the user is looking at.
+        remembered: [
+          dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+        ],
+        // `optimisticSurvivors` turns red at `[]` if the entry were not on screen after all, which
+        // would make the assertion above prove nothing about a live bubble.
+        optimisticSurvivors: [
+          { role: 'user', content: 'A[Pasted Image 1]B', uuid: stagedUuid, timestamp: stagedTs },
+        ],
+      });
+    });
+
+    it('VALID: {followup image message sent, then its delivered twin arrives on the tavernkeeper work item} => the staged uuid holds no bytes any more', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-forget-images-followup-1' });
+      const tavernkeeperSessionId = SessionIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'complete',
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+      const stagedUuid = '00000000-0000-4000-8000-000000000904';
+      const stagedTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000905';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupFollowup({
+        chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
+      });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: [stagedTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-forget-images-followup-1', quest },
+              timestamp: '2026-09-02T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-forget-images-followup-1',
+                workItemId: QuestWorkItemIdStub(),
+                chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: deliveredContent,
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({
+        remembered: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        followupEntries: result.current.followupEntries,
+      }).toStrictEqual({
+        // `remembered` turns red at `[dataUrlBuildTransformer({...image})]` — the FOLLOW-UP tab's
+        // own copy of the same leak. sendFollowupMessage calls remember exactly as sendMessage
+        // does, so an eviction wired only to the session memo leaves this half growing unbounded.
+        remembered: [],
+        // `followupEntries` turns red at a two-entry list if followupEntries' own filter never
+        // dropped the local copy — which would mean the bytes were still on screen and the
+        // assertion above was demanding a blanked image.
+        followupEntries: [
+          {
+            role: 'user',
+            content: deliveredContent,
+            uuid: deliveredUuid,
+            timestamp: deliveredTs,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {followup image staged, then questId switches to another quest} => the abandoned quest staged bytes are released', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId1 = QuestIdStub({ value: 'quest-forget-images-switch-old' });
+      const questId2 = QuestIdStub({ value: 'quest-forget-images-switch-new' });
+      const stagedUuid = '00000000-0000-4000-8000-000000000906';
+      const image = PastedImageUploadStub({ mediaType: 'image/png' });
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-switch' }) });
+      proxy.setupUuids({ uuids: [stagedUuid] });
+      proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
+
+      let activeQuestId = questId1;
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+            images: [image],
+          });
+        },
+      });
+
+      const beforeSwitch = proxy.getRememberedImages({
+        uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questId2;
+          rerender();
+        },
+      });
+
+      expect({
+        beforeSwitch,
+        afterSwitch: proxy.getRememberedImages({
+          uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        followupEntries: result.current.followupEntries,
+      }).toStrictEqual({
+        // `beforeSwitch` turns red at `[]` — nothing staged means the release below proves nothing,
+        // so this is what stops the pair from being vacuous.
+        beforeSwitch: [
+          dataUrlBuildTransformer({ mediaType: image.mediaType, dataBase64: image.dataBase64 }),
+        ],
+        // `afterSwitch` turns red at that same one-element array: the quest-switch leak, megabytes
+        // still pinned for a quest the user has navigated away from. The switch discards these
+        // entries wholesale rather than filtering them, so no derived-diff eviction ever sees them.
+        afterSwitch: [],
+        // `followupEntries` turns red at `[{role:'user', content:'A[Pasted Image 1]B', ...}]` if the
+        // switch stopped discarding them. That is the guard on the dangerous direction: were the
+        // entry still on screen, releasing its bytes above would have blanked a live image.
+        followupEntries: [],
+      });
+    });
+
+    it('VALID: {main-composer image staged too, then questId switches} => the still-rendered main-composer bytes survive the switch', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId1 = QuestIdStub({ value: 'quest-forget-images-keep-old' });
+      const questId2 = QuestIdStub({ value: 'quest-forget-images-keep-new' });
+      const mainUuid = '00000000-0000-4000-8000-000000000907';
+      const mainTs = '2026-09-02T00:00:00.000Z';
+      const followupUuid = '00000000-0000-4000-8000-000000000908';
+      const mainImage = PastedImageUploadStub({ mediaType: 'image/png' });
+      const followupImage = PastedImageUploadStub({ mediaType: 'image/jpeg' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-keep-main' }) });
+      proxy.setupFollowup({
+        chatProcessId: ProcessIdStub({ value: 'proc-forget-images-keep-followup' }),
+      });
+      proxy.setupUuids({ uuids: [mainUuid, followupUuid] });
+      proxy.setupTimestamps({ timestamps: [mainTs, '2026-09-02T00:00:01.000Z'] });
+
+      let activeQuestId = questId1;
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'Main A[Pasted Image 1]B' }),
+            images: [mainImage],
+          });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'Followup A[Pasted Image 1]B' }),
+            images: [followupImage],
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questId2;
+          rerender();
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+
+      expect({
+        mainRemembered: proxy.getRememberedImages({
+          uuid: mainUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        followupRemembered: proxy.getRememberedImages({
+          uuid: followupUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
+        }),
+        optimisticSurvivors: result.current.entriesBySession.get(synthKey),
+      }).toStrictEqual({
+        // `mainRemembered` turns red at `[]` for any switch handler that reclaims more than the
+        // entries the switch actually discards — `pastedImageMemoryState.clear()` being the obvious
+        // one. The session buckets are NOT cleared on a switch, so this entry is still rendering and
+        // emptying its slot blanks a picture on screen, which is worse than the leak.
+        mainRemembered: [
+          dataUrlBuildTransformer({
+            mediaType: mainImage.mediaType,
+            dataBase64: mainImage.dataBase64,
+          }),
+        ],
+        // `followupRemembered` turns red at the jpeg data URL — the leak this pair contrasts
+        // against, held here so one test states both halves of the boundary.
+        followupRemembered: [],
+        // `optimisticSurvivors` turns red at `[]` if the synthetic bucket were cleared on a switch
+        // after all, which would make the assertion above demand bytes that nothing reads.
+        optimisticSurvivors: [
+          { role: 'user', content: 'Main A[Pasted Image 1]B', uuid: mainUuid, timestamp: mainTs },
+        ],
       });
     });
   });

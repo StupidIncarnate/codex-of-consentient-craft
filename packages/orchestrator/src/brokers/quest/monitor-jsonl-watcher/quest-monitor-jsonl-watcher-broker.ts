@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Tails the registered monitor session's main JSONL plus every `subagents/agent-*.jsonl` sibling under `<projectDir>/subagents/`, feeds each line through the existing `chatLineProcessTransformer`, and emits the resulting ChatEntry batches via a caller-supplied `emit` callback. New sub-agent files that appear post-start are picked up via two paths: a 1s poll re-scan of the subagents directory (covers mid-flight Task() dispatches whose parent `user.tool_result` line has not landed yet) and the processor's `agent-detected` outputs (covers Task completion, where the parent line that registers the realAgentId is also when the processor learns the toolUseId↔realAgentId pair). Nested sub-agents (spawned by a sub-agent rather than the main session) are routed to the nearest ancestor work item by walking the processor's parent-chain maps via `resolveParentRealAgentId`.
+ * PURPOSE: Tails the registered monitor session's main JSONL plus every `subagents/agent-*.jsonl` sibling under `<projectDir>/subagents/`, feeds each line through the existing `chatLineProcessTransformer`, and emits the resulting ChatEntry batches via a caller-supplied `emit` callback. New sub-agent files that appear post-start are picked up via two paths: a 1s poll re-scan of the subagents directory (covers mid-flight Task() dispatches whose parent `user.tool_result` line has not landed yet) and the processor's `agent-detected` outputs (covers Task completion, where the parent line that registers the realAgentId is also when the processor learns the toolUseId↔realAgentId pair). Nested sub-agents (spawned by a sub-agent rather than the main session) are routed to the nearest ancestor work item by walking the processor's parent-chain maps via `resolveParentRealAgentId`. A tailed user line's pasted-image paths reach the browser as image URLs rather than filesystem paths.
  *
  * USAGE:
  * const handle = questMonitorJsonlWatcherBroker({
@@ -36,6 +36,7 @@ import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
+import { questGetServerConfigBroker } from '../get-server-config/quest-get-server-config-broker';
 import { scanSubagentsDirLayerBroker } from './scan-subagents-dir-layer-broker';
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
 
@@ -96,7 +97,9 @@ export const questMonitorJsonlWatcherBroker = ({
   // packages/orchestrator/CLAUDE.md. The processor's realAgentId↔toolUseId reverse map
   // must carry across both sources or sub-agent lines arrive keyed by realAgentId instead
   // of the Task's toolUseId and the web's chain grouping breaks.
-  const processor = chatLineProcessTransformer();
+  const processor = chatLineProcessTransformer({
+    serverBaseUrl: questGetServerConfigBroker().baseUrl,
+  });
 
   // A nested sub-agent has no work item of its own. Route its transcript to the nearest
   // ancestor work item by walking realChild -> realParent (via the processor's chain maps)

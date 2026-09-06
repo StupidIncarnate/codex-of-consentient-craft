@@ -6,10 +6,11 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "node ../../scripts/prune-vite-caches.mjs && vite",
+    "dev:no-watch": "node ../../scripts/prune-vite-caches.mjs && E2E_NO_WATCH=1 vite",
     "build": "vite build",
     "build:clean": "rm -rf dist && npm run build",
-    "preview": "vite preview",
+    "preview": "node ../../scripts/prune-vite-caches.mjs && vite preview",
     "test": "dungeonmaster-ward --only test",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "typecheck": "dungeonmaster-ward --only typecheck",

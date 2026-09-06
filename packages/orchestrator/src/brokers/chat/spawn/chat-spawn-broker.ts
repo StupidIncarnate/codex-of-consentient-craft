@@ -26,6 +26,10 @@ import type {
   SessionId,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
+import {
+  locationsQuestFolderPathFindBroker,
+  locationsQuestImagesPathFindBroker,
+} from '@dungeonmaster/shared/brokers';
 
 import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
@@ -42,6 +46,8 @@ export const chatSpawnBroker = async ({
   guildId,
   questType,
   questId,
+  mintedQuestId,
+  existingQuestId,
   message,
   sessionId,
   onEntries,
@@ -59,6 +65,13 @@ export const chatSpawnBroker = async ({
   // quest follows, and therefore which intake seed item questUserAddBroker attaches.
   questType?: QuestType;
   questId?: QuestId;
+  // The create-surface route's pre-picked id — see resolveChatQuestLayerBroker's header for why
+  // this is a separate channel from `questId` rather than an overload of it.
+  mintedQuestId?: QuestId;
+  // The main quest-chat route's own URL questId, for a caller that has already confirmed this
+  // quest exists — see resolveChatQuestLayerBroker's header for why a missing `sessionId`
+  // alongside it must resolve into THIS quest rather than fall through to minting a fresh one.
+  existingQuestId?: QuestId;
   message: string;
   sessionId?: SessionId;
   onEntries: (params: {
@@ -108,6 +121,8 @@ export const chatSpawnBroker = async ({
     guildId,
     ...(questType === undefined ? {} : { questType }),
     ...(questId === undefined ? {} : { questId }),
+    ...(mintedQuestId === undefined ? {} : { mintedQuestId }),
+    ...(existingQuestId === undefined ? {} : { existingQuestId }),
     ...(sessionId === undefined ? {} : { sessionId }),
     message,
   });
@@ -133,6 +148,16 @@ export const chatSpawnBroker = async ({
 
   const repoRootCwd = cwdResolution.cwd;
 
+  // Pasted images live under the quest's own folder (design decision
+  // #images-live-in-the-quest-folder), a tree disjoint from the spawn's cwd above — the quest's
+  // worktree or repo root. Granting `--add-dir` here is what lets the spawned CLI actually Read
+  // a path a rewritten message names; without it every pasted-image Read is denied outright in
+  // headless mode. Computed unconditionally (not gated on this turn carrying images) because a
+  // resumed session's prompt can still reference an EARLIER turn's image, and the CLI does not
+  // error when the directory doesn't exist yet.
+  const questFolderPath = locationsQuestFolderPathFindBroker({ guildId, questId: resolvedQuestId });
+  const imagesDirPath = locationsQuestImagesPathFindBroker({ questFolderPath });
+
   const launchResult = agentLaunchBroker({
     guildId,
     questId: resolvedQuestId,
@@ -143,6 +168,7 @@ export const chatSpawnBroker = async ({
     cwd: repoRootCwd,
     model: roleToModelTransformer({ role }),
     ...(sessionId ? { resumeSessionId: sessionId } : {}),
+    addDir: imagesDirPath,
     onEntries,
     // Required by the harness invariant. Chat-side has no consumer for raw text capture
     // (entries carry the renderable content) or signal-back (chat agents don't signal

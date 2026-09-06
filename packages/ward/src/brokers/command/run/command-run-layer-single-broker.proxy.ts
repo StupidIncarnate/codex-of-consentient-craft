@@ -11,6 +11,7 @@ import { checkRunIntegrationBrokerProxy } from '../../check-run/integration/chec
 import { checkRunE2eBrokerProxy } from '../../check-run/e2e/check-run-e2e-broker.proxy';
 import { storageSaveBrokerProxy } from '../../storage/save/storage-save-broker.proxy';
 import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broker.proxy';
+import { e2eArtifactsPruneBrokerProxy } from '../../e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy';
 
 export const commandRunLayerSingleBrokerProxy = (): {
   setupAllChecksPass: (params: { projectFolder: ProjectFolder }) => void;
@@ -36,6 +37,10 @@ export const commandRunLayerSingleBrokerProxy = (): {
   const e2eProxy = checkRunE2eBrokerProxy();
   const saveProxy = storageSaveBrokerProxy();
   const pruneProxy = storagePruneBrokerProxy();
+  // The e2e artifact sweep runs at the end of every invocation. Constructed and staged with
+  // NOTHING, so each of its three directory listings throws unmatched, the sweep's own catch reads
+  // that as "no candidates", and it touches no filesystem and removes nothing.
+  e2eArtifactsPruneBrokerProxy();
 
   // Both callers of this proxy (command-run-layer-single-broker.test.ts directly, and
   // command-run-broker.proxy.ts via the single-package path) save/prune against rootPath

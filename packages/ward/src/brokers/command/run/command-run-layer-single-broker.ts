@@ -27,6 +27,7 @@ import { checkRunIntegrationBroker } from '../../check-run/integration/check-run
 import { checkRunE2eBroker } from '../../check-run/e2e/check-run-e2e-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
+import { e2eArtifactsPruneBroker } from '../../e2e-artifacts/prune/e2e-artifacts-prune-broker';
 
 const CHECK_RUNNERS = {
   lint: checkRunLintBroker,
@@ -146,6 +147,11 @@ export const commandRunLayerSingleBroker = async ({
 
   await storageSaveBroker({ rootPath, wardResult });
   await storagePruneBroker({ rootPath });
+  // Sweeps whatever an e2e run left behind that never reached its own cleanup — a SIGKILL, a
+  // Ctrl-C, a cancelled CI job. It sits here rather than in the e2e broker so that EVERY ward
+  // invocation reaps them, including `--only lint`: a cache leaked at 09:00 should not wait for the
+  // next browser walk, which in a repo like this one may be hours away.
+  await e2eArtifactsPruneBroker({ packageRoot: rootPath });
 
   return wardResult;
 };
