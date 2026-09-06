@@ -471,9 +471,10 @@ describe('ChatReplayResponder', () => {
       const guild = GuildStub({ id: guildId });
       const lineUuid = 'pasted-image-single-entry-uuid';
 
-      // Quest list comes back EMPTY — sessionId belongs to no quest workItem. The unit under
-      // test (does the image token split the line into more than one entry?) does not depend
-      // on quest-linkage, so the orphan branch is the simplest path that still emits chat-output.
+      // Quest list comes back EMPTY — sessionId belongs to no quest workItem. What this case
+      // measures — whether the image token splits the line into more than one entry — does not
+      // depend on quest-linkage, so the orphan branch is the simplest path that still emits
+      // chat-output.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
         homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),

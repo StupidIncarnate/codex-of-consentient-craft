@@ -2,7 +2,6 @@ import {
   AgentIdStub,
   GuildListItemStub,
   QuestIdStub,
-  QuestListItemStub,
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
@@ -36,28 +35,26 @@ describe('ReconcileWatchersLayerResponder', () => {
     proxy.guildsProxy.returns({ guilds: [guild] });
     proxy.questsProxy.returns({
       guildId: guild.id,
-      quests: [QuestListItemStub({ id: questId, status: 'in_progress' })],
-    });
-    proxy.loadQuestProxy.returns({
-      questId,
-      quest: QuestStub({
-        id: questId,
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: workerWorkItemId }),
-            role: 'codeweaver',
-            status: 'in_progress',
-            sessionId: SessionIdStub({ value: workerSessionId }),
-          }),
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '22222222-2222-2222-2222-222222222222' }),
-            role: 'codeweaver',
-            status: 'in_progress',
-            sessionId: SessionIdStub({ value: dispatcherSessionId }),
-            agentId: AgentIdStub({ value: 'a750c8bc' }),
-          }),
-        ],
-      }),
+      quests: [
+        QuestStub({
+          id: questId,
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: workerWorkItemId }),
+              role: 'codeweaver',
+              status: 'in_progress',
+              sessionId: SessionIdStub({ value: workerSessionId }),
+            }),
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: '22222222-2222-2222-2222-222222222222' }),
+              role: 'codeweaver',
+              status: 'in_progress',
+              sessionId: SessionIdStub({ value: dispatcherSessionId }),
+              agentId: AgentIdStub({ value: 'a750c8bc' }),
+            }),
+          ],
+        }),
+      ],
     });
     proxy.startWatcherProxy.resolves({ parentSessionId: workerSessionId });
     proxy.startWatcherProxy.resolves({ parentSessionId: dispatcherSessionId });
@@ -103,22 +100,20 @@ describe('ReconcileWatchersLayerResponder', () => {
       proxy.guildsProxy.returns({ guilds: [guild] });
       proxy.questsProxy.returns({
         guildId: guild.id,
-        quests: [QuestListItemStub({ id: questId, status: 'in_progress' })],
-      });
-      proxy.loadQuestProxy.returns({
-        questId,
-        quest: QuestStub({
-          id: questId,
-          worktreePath,
-          workItems: [
-            WorkItemStub({
-              id: QuestWorkItemIdStub({ value: '66666666-6666-6666-6666-666666666666' }),
-              role: 'codeweaver',
-              status: 'in_progress',
-              sessionId: SessionIdStub({ value: workerSessionId }),
-            }),
-          ],
-        }),
+        quests: [
+          QuestStub({
+            id: questId,
+            worktreePath,
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: '66666666-6666-6666-6666-666666666666' }),
+                role: 'codeweaver',
+                status: 'in_progress',
+                sessionId: SessionIdStub({ value: workerSessionId }),
+              }),
+            ],
+          }),
+        ],
       });
       proxy.startWatcherProxy.resolves({ parentSessionId: workerSessionId });
 
@@ -142,22 +137,20 @@ describe('ReconcileWatchersLayerResponder', () => {
       proxy.guildsProxy.returns({ guilds: [guild] });
       proxy.questsProxy.returns({
         guildId: guild.id,
-        quests: [QuestListItemStub({ id: questId, status: 'explore_flows' })],
-      });
-      proxy.loadQuestProxy.returns({
-        questId,
-        quest: QuestStub({
-          id: questId,
-          status: 'explore_flows',
-          workItems: [
-            WorkItemStub({
-              id: QuestWorkItemIdStub({ value: '88888888-8888-8888-8888-888888888888' }),
-              role: 'chaoswhisperer',
-              status: 'in_progress',
-              sessionId: SessionIdStub({ value: intakeSessionId }),
-            }),
-          ],
-        }),
+        quests: [
+          QuestStub({
+            id: questId,
+            status: 'explore_flows',
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: '88888888-8888-8888-8888-888888888888' }),
+                role: 'chaoswhisperer',
+                status: 'in_progress',
+                sessionId: SessionIdStub({ value: intakeSessionId }),
+              }),
+            ],
+          }),
+        ],
       });
       proxy.startWatcherProxy.resolves({ parentSessionId: intakeSessionId });
 
@@ -190,22 +183,20 @@ describe('ReconcileWatchersLayerResponder', () => {
         proxy.guildsProxy.returns({ guilds: [guild] });
         proxy.questsProxy.returns({
           guildId: guild.id,
-          quests: [QuestListItemStub({ id: questId, status })],
-        });
-        proxy.loadQuestProxy.returns({
-          questId,
-          quest: QuestStub({
-            id: questId,
-            status,
-            workItems: [
-              WorkItemStub({
-                id: QuestWorkItemIdStub({ value: intakeWorkItemId }),
-                role: 'bughunt',
-                status: 'in_progress',
-                sessionId: SessionIdStub({ value: intakeSessionId }),
-              }),
-            ],
-          }),
+          quests: [
+            QuestStub({
+              id: questId,
+              status,
+              workItems: [
+                WorkItemStub({
+                  id: QuestWorkItemIdStub({ value: intakeWorkItemId }),
+                  role: 'bughunt',
+                  status: 'in_progress',
+                  sessionId: SessionIdStub({ value: intakeSessionId }),
+                }),
+              ],
+            }),
+          ],
         });
         proxy.startWatcherProxy.resolves({ parentSessionId: intakeSessionId });
 
@@ -226,21 +217,35 @@ describe('ReconcileWatchersLayerResponder', () => {
   });
 
   describe('terminal quests', () => {
-    // Covers the finished-quest-with-no-post-quest-session case: the summary carries no
-    // activeSessionId, so the pre-filter still excludes it and no quest.json is ever loaded for it.
-    // This is the reason the pre-filter still exists.
+    // The pair below is the whole rule for a finished quest, and quest STATUS is not part of it:
+    // an ACTIVE work item carrying a sessionId gets a tail, a terminal one does not. A finished
+    // quest is in scope precisely because a follow-up chat and a merge both run after it ended.
     it.each(['complete', 'abandoned'] as const)(
-      'EMPTY: {quest status: %s} => starts no tail even though a work item carries a sessionId',
+      'EMPTY: {quest status: %s whose only session belongs to a COMPLETE work item} => starts no tail',
       async (status) => {
         const proxy = ReconcileWatchersLayerResponderProxy();
 
         const questId = QuestIdStub({ value: 'terminal-quest' });
+        const spentSessionId = '12121212-1212-4121-8121-121212121212';
 
         const guild = GuildListItemStub();
         proxy.guildsProxy.returns({ guilds: [guild] });
         proxy.questsProxy.returns({
           guildId: guild.id,
-          quests: [QuestListItemStub({ id: questId, status })],
+          quests: [
+            QuestStub({
+              id: questId,
+              status,
+              workItems: [
+                WorkItemStub({
+                  id: QuestWorkItemIdStub({ value: '13131313-1313-4131-8131-131313131313' }),
+                  role: 'codeweaver',
+                  status: 'complete',
+                  sessionId: SessionIdStub({ value: spentSessionId }),
+                }),
+              ],
+            }),
+          ],
         });
 
         const result = await ReconcileWatchersLayerResponder({
@@ -266,27 +271,19 @@ describe('ReconcileWatchersLayerResponder', () => {
         proxy.questsProxy.returns({
           guildId: guild.id,
           quests: [
-            QuestListItemStub({
+            QuestStub({
               id: questId,
               status,
-              activeSessionId: SessionIdStub({ value: followupSessionId }),
+              workItems: [
+                WorkItemStub({
+                  id: QuestWorkItemIdStub({ value: followupWorkItemId }),
+                  role: 'tavernkeeper',
+                  status: 'in_progress',
+                  sessionId: SessionIdStub({ value: followupSessionId }),
+                }),
+              ],
             }),
           ],
-        });
-        proxy.loadQuestProxy.returns({
-          questId,
-          quest: QuestStub({
-            id: questId,
-            status,
-            workItems: [
-              WorkItemStub({
-                id: QuestWorkItemIdStub({ value: followupWorkItemId }),
-                role: 'tavernkeeper',
-                status: 'in_progress',
-                sessionId: SessionIdStub({ value: followupSessionId }),
-              }),
-            ],
-          }),
         });
         proxy.startWatcherProxy.resolves({ parentSessionId: followupSessionId });
 
@@ -315,7 +312,7 @@ describe('ReconcileWatchersLayerResponder', () => {
       },
     );
 
-    it('EMPTY: {quest status: merged, activeSessionId present but its tavernkeeper item is complete} => starts no tail', async () => {
+    it('EMPTY: {quest status: merged whose tavernkeeper item is complete} => starts no tail', async () => {
       const proxy = ReconcileWatchersLayerResponderProxy();
 
       const questId = QuestIdStub({ value: 'terminal-quest-idle-followup' });
@@ -327,27 +324,19 @@ describe('ReconcileWatchersLayerResponder', () => {
       proxy.questsProxy.returns({
         guildId: guild.id,
         quests: [
-          QuestListItemStub({
+          QuestStub({
             id: questId,
             status: 'merged',
-            activeSessionId: SessionIdStub({ value: followupSessionId }),
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: followupWorkItemId }),
+                role: 'tavernkeeper',
+                status: 'complete',
+                sessionId: SessionIdStub({ value: followupSessionId }),
+              }),
+            ],
           }),
         ],
-      });
-      proxy.loadQuestProxy.returns({
-        questId,
-        quest: QuestStub({
-          id: questId,
-          status: 'merged',
-          workItems: [
-            WorkItemStub({
-              id: QuestWorkItemIdStub({ value: followupWorkItemId }),
-              role: 'tavernkeeper',
-              status: 'complete',
-              sessionId: SessionIdStub({ value: followupSessionId }),
-            }),
-          ],
-        }),
       });
 
       const result = await ReconcileWatchersLayerResponder({

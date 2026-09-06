@@ -295,6 +295,182 @@ describe('questFindQuestPathBroker', () => {
     });
   });
 
+  describe('the canonical-path probe', () => {
+    it('VALID: {folder named with the questId} => answers from the probe without scanning any quest file', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: '11111111-1111-4111-8111-111111111111' });
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questsDirPath = `/home/user/.dungeonmaster/guilds/${guildId}/quests`;
+
+      // `questFolders: []` is the assertion doing the real work: the scan has NOTHING to find,
+      // so this can only pass if the probe answered. A probe that silently stopped working
+      // fails here with "not found in any guild" rather than passing on the scan's back.
+      proxy.setupQuestFound({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        guilds: [
+          {
+            dirName: FileNameStub({ value: guildId }),
+            questsDirPath: FilePathStub({ value: questsDirPath }),
+            probe: {
+              questFolderPath: FilePathStub({ value: `${questsDirPath}/${String(questId)}` }),
+              questFilePath: FilePathStub({
+                value: `${questsDirPath}/${String(questId)}/quest.json`,
+              }),
+              exists: true,
+              contents: FileContentsStub({
+                value: JSON.stringify(QuestStub({ id: String(questId), folder: String(questId) })),
+              }),
+            },
+            questFolders: [],
+          },
+        ],
+      });
+
+      const result = await questFindQuestPathBroker({ questId });
+
+      expect(result).toStrictEqual({
+        questPath: `${questsDirPath}/${String(questId)}`,
+        guildId,
+      });
+    });
+
+    it('VALID: {first guild has no such folder, second does} => returns the second guild', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: '22222222-2222-4222-8222-222222222222' });
+      const guildId1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+      const guildId2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+      const questsDir1 = `/home/user/.dungeonmaster/guilds/${guildId1}/quests`;
+      const questsDir2 = `/home/user/.dungeonmaster/guilds/${guildId2}/quests`;
+
+      proxy.setupQuestFound({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        guilds: [
+          {
+            dirName: FileNameStub({ value: guildId1 }),
+            questsDirPath: FilePathStub({ value: questsDir1 }),
+            probe: {
+              questFolderPath: FilePathStub({ value: `${questsDir1}/${String(questId)}` }),
+              questFilePath: FilePathStub({ value: `${questsDir1}/${String(questId)}/quest.json` }),
+              exists: false,
+            },
+            questFolders: [],
+          },
+          {
+            dirName: FileNameStub({ value: guildId2 }),
+            questsDirPath: FilePathStub({ value: questsDir2 }),
+            probe: {
+              questFolderPath: FilePathStub({ value: `${questsDir2}/${String(questId)}` }),
+              questFilePath: FilePathStub({ value: `${questsDir2}/${String(questId)}/quest.json` }),
+              exists: true,
+              contents: FileContentsStub({
+                value: JSON.stringify(QuestStub({ id: String(questId), folder: String(questId) })),
+              }),
+            },
+            questFolders: [],
+          },
+        ],
+      });
+
+      const result = await questFindQuestPathBroker({ questId });
+
+      expect(result).toStrictEqual({
+        questPath: `${questsDir2}/${String(questId)}`,
+        guildId: guildId2,
+      });
+    });
+
+    it('VALID: {folder named with the questId holds a file recording a DIFFERENT id} => falls through to the scan', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questsDirPath = `/home/user/.dungeonmaster/guilds/${guildId}/quests`;
+
+      proxy.setupQuestFound({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        guilds: [
+          {
+            dirName: FileNameStub({ value: guildId }),
+            questsDirPath: FilePathStub({ value: questsDirPath }),
+            // A folder whose NAME is the id we want, holding a file that records another one.
+            // The probe must not trust the name.
+            probe: {
+              questFolderPath: FilePathStub({ value: `${questsDirPath}/add-auth` }),
+              questFilePath: FilePathStub({ value: `${questsDirPath}/add-auth/quest.json` }),
+              exists: true,
+              contents: FileContentsStub({
+                value: JSON.stringify(QuestStub({ id: 'someone-else', folder: 'add-auth' })),
+              }),
+            },
+            questFolders: [
+              {
+                folderName: FileNameStub({ value: '001-add-auth' }),
+                questFilePath: FilePathStub({
+                  value: `${questsDirPath}/001-add-auth/quest.json`,
+                }),
+                questFolderPath: FilePathStub({ value: `${questsDirPath}/001-add-auth` }),
+                contents: FileContentsStub({
+                  value: JSON.stringify(QuestStub({ id: 'add-auth', folder: '001-add-auth' })),
+                }),
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questFindQuestPathBroker({ questId });
+
+      expect(result).toStrictEqual({
+        questPath: `${questsDirPath}/001-add-auth`,
+        guildId,
+      });
+    });
+
+    it('VALID: {questId that is not one directory name} => builds no probe path and answers from the scan', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: '../../etc/passwd' });
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questsDirPath = `/home/user/.dungeonmaster/guilds/${guildId}/quests`;
+
+      // stageProbe: false mirrors the broker skipping the probe entirely for this id — nothing
+      // is joined, so nothing may be staged. An id like this must never reach a path join.
+      proxy.setupQuestFound({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        stageProbe: false,
+        guilds: [
+          {
+            dirName: FileNameStub({ value: guildId }),
+            questsDirPath: FilePathStub({ value: questsDirPath }),
+            questFolders: [
+              {
+                folderName: FileNameStub({ value: '001-odd' }),
+                questFilePath: FilePathStub({ value: `${questsDirPath}/001-odd/quest.json` }),
+                questFolderPath: FilePathStub({ value: `${questsDirPath}/001-odd` }),
+                contents: FileContentsStub({
+                  value: JSON.stringify(QuestStub({ id: '../../etc/passwd', folder: '001-odd' })),
+                }),
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questFindQuestPathBroker({ questId });
+
+      expect(result).toStrictEqual({
+        questPath: `${questsDirPath}/001-odd`,
+        guildId,
+      });
+    });
+  });
+
   describe('error handling', () => {
     it('VALID: {guild with inaccessible quests dir} => skips guild and throws not found', async () => {
       const proxy = questFindQuestPathBrokerProxy();

@@ -50,6 +50,26 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
           ]
         : [];
 
+    // A quest only RESTS at a status the derivation owns while something on it is unfinished.
+    // `isAnyAgentRunning` marks exactly the two pauseable statuses `workItemsToQuestStatusTransformer`
+    // acts on (`in_progress`, `merging`); every other one it returns unchanged, which is why every
+    // other case here passes with a finished work item. For those two, a quest whose work items are
+    // all terminal and whose ledger is drained genuinely IS `complete` (or `merged`), so the
+    // orchestration-loop pass `OrchestrationResumeResponder` kicks off derives that and writes it
+    // moments after the restore lands — the restore is correct and then correctly superseded. Giving
+    // the intake session a non-terminal status is what makes the fixture describe the state its
+    // status claims, so there is a restored status left to read back.
+    //
+    // It stays a CHAT role deliberately, and the ledger stays drained. `hasIncompleteQuestWorkGuard`
+    // — which the resume responder consults to decide whether to switch the GLOBAL dispatcher on —
+    // excludes chat work items outright and counts every undrained operation item, so a live intake
+    // session is the ONE shape that holds the quest off a terminal derivation while keeping
+    // `dispatch.started: false` below. A non-chat work item or a pending operation would flip that
+    // guard and start the queue across every other quest in the suite.
+    const workItemStatus = questStatusMetadataStatics.statuses[status].isAnyAgentRunning
+      ? 'in_progress'
+      : 'complete';
+
     test(`VALID: {status: ${status}} => POST /pause sets pausedAtStatus=${status}; POST /resume restores status=${status}`, async ({
       request,
     }) => {
@@ -82,7 +102,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
             id: 'e2e00000-0000-4000-8000-0000000000a1',
             role: 'chaoswhisperer',
             sessionId,
-            status: 'complete',
+            status: workItemStatus,
           },
         ],
       });
@@ -115,9 +135,10 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
 
       const resumeBody = await resumeResponse.json();
 
-      // These fixtures carry no work items and no operations, so resume leaves the GLOBAL
-      // dispatcher alone — starting it would do nothing for this quest and would reach across
-      // every other quest in the suite.
+      // Every fixture here carries a drained ledger and no work item the dispatcher would pick up
+      // (a chat-role item never counts — see `hasIncompleteQuestWorkGuard`), so resume leaves the
+      // GLOBAL dispatcher alone — starting it would do nothing for this quest and would reach
+      // across every other quest in the suite.
       expect(resumeBody).toStrictEqual({
         resumed: true,
         restoredStatus: status,

@@ -2,6 +2,7 @@ import { readdirSync, Dirent } from 'fs';
 
 import {
   dungeonmasterHomeFindBrokerProxy,
+  fsExistsSyncAdapterProxy,
   fsReaddirWithTypesAdapterProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
@@ -9,7 +10,13 @@ import type { FileContents, FileName, FilePath } from '@dungeonmaster/shared/con
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { matchCandidatesLayerBrokerProxy } from './match-candidates-layer-broker.proxy';
+
+// The guild shape below is written out at each use site rather than named once: a `type` alias here
+// is rewritten to an `interface` by lint --fix, and `ban-adhoc-types` then rejects the interface in
+// a brokers/ file. A `probe` on a guild says what the broker's PROBE phase finds there; omit it and
+// the probe is staged to miss, which sends the lookup on to the scan — the shape every test written
+// against the scan already expects.
 
 const createMockDirent = ({
   name,
@@ -26,12 +33,65 @@ const createMockDirent = ({
   return dirent;
 };
 
-const setupGuildEntries = ({
+// The broker builds EVERY guild's probe path before it builds any scan path, because the probe is
+// one `map` over all guild directories followed by a `find`. pathJoin staging is a call-ordered
+// queue, so this pass must run over all guilds before setupScanEntries runs over any of them —
+// interleaving the two hands the scan a probe path and every dependent test fails at once.
+const setupProbeEntries = ({
   guilds,
-  guildsDir,
+  pathJoinProxy,
+  existsSyncProxy,
+  layerProxy,
+}: {
+  guilds: {
+    dirName: FileName;
+    questsDirPath: FilePath;
+    probe?: {
+      questFolderPath: FilePath;
+      questFilePath: FilePath;
+      exists: boolean;
+      contents?: FileContents;
+    };
+    questFolders: {
+      folderName: FileName;
+      questFilePath: FilePath;
+      questFolderPath: FilePath;
+      contents: FileContents;
+    }[];
+  }[];
+  pathJoinProxy: ReturnType<typeof pathJoinAdapterProxy>;
+  existsSyncProxy: ReturnType<typeof fsExistsSyncAdapterProxy>;
+  layerProxy: ReturnType<typeof matchCandidatesLayerBrokerProxy>;
+}): void => {
+  for (const guild of guilds) {
+    const probe = guild.probe ?? {
+      // A path no staging claims. Addressed as absent EXPLICITLY rather than left to the exists
+      // proxy's zero-argument default, so a sibling proxy staging its own catch-all cannot answer
+      // this call instead.
+      questFolderPath: `${String(guild.questsDirPath)}/__probe_miss__` as FilePath,
+      questFilePath: `${String(guild.questsDirPath)}/__probe_miss__/quest.json` as FilePath,
+      exists: false,
+      contents: undefined,
+    };
+
+    pathJoinProxy.returns({ result: probe.questFolderPath });
+    pathJoinProxy.returns({ result: probe.questFilePath });
+    existsSyncProxy.returns({ filePath: probe.questFilePath, result: probe.exists });
+
+    if (probe.contents !== undefined) {
+      layerProxy.setupCandidateFileOnce({
+        questFilePath: probe.questFilePath,
+        contents: probe.contents,
+      });
+    }
+  }
+};
+
+const setupScanEntries = ({
+  guilds,
   readdirReturns,
   pathJoinProxy,
-  readFileProxy,
+  layerProxy,
 }: {
   guilds: {
     dirName: FileName;
@@ -43,16 +103,10 @@ const setupGuildEntries = ({
       contents: FileContents;
     }[];
   }[];
-  guildsDir: FilePath;
   readdirReturns: (params: { dirPath: FilePath; entries: Dirent[] }) => void;
   pathJoinProxy: ReturnType<typeof pathJoinAdapterProxy>;
-  readFileProxy: ReturnType<typeof fsReadFileAdapterProxy>;
+  layerProxy: ReturnType<typeof matchCandidatesLayerBrokerProxy>;
 }): void => {
-  const guildDirents = guilds.map(({ dirName }) =>
-    createMockDirent({ name: dirName, parentPath: guildsDir }),
-  );
-  readdirReturns({ dirPath: guildsDir, entries: guildDirents });
-
   for (const guild of guilds) {
     pathJoinProxy.returns({ result: guild.questsDirPath });
 
@@ -64,19 +118,18 @@ const setupGuildEntries = ({
     for (const questFolder of guild.questFolders) {
       pathJoinProxy.returns({ result: questFolder.questFilePath });
       pathJoinProxy.returns({ result: questFolder.questFolderPath });
-      // Two reads land on this exact path per "get quest" cycle: the find broker's own
-      // candidate-match check (inside questFindQuestPathBroker), then the caller's separate
-      // questLoadBroker read of the same file. Staging two addressed one-shots (instead of a
-      // sticky `resolves`) means a SECOND setupQuestFound/setupQuestNotFound call for this same
-      // path (a later generation of the same quest file) queues its own pair after this one,
+      // Two reads land on this exact path per "get quest" cycle: the scan's own candidate-match
+      // check, then the caller's separate questLoadBroker read of the same file. Staging two
+      // addressed one-shots (instead of a sticky one) means a SECOND setupQuestFound call for this
+      // same path (a later generation of the same quest file) queues its own pair after this one,
       // rather than shadowing it for reads that haven't happened yet.
-      readFileProxy.resolvesOnceFor({
-        filePath: questFolder.questFilePath,
-        content: questFolder.contents,
+      layerProxy.setupCandidateFileOnce({
+        questFilePath: questFolder.questFilePath,
+        contents: questFolder.contents,
       });
-      readFileProxy.resolvesOnceFor({
-        filePath: questFolder.questFilePath,
-        content: questFolder.contents,
+      layerProxy.setupCandidateFileOnce({
+        questFilePath: questFolder.questFilePath,
+        contents: questFolder.contents,
       });
     }
   }
@@ -87,9 +140,16 @@ export const questFindQuestPathBrokerProxy = (): {
     homeDir: string;
     homePath: FilePath;
     guildsDir: FilePath;
+    stageProbe?: boolean;
     guilds: {
       dirName: FileName;
       questsDirPath: FilePath;
+      probe?: {
+        questFolderPath: FilePath;
+        questFilePath: FilePath;
+        exists: boolean;
+        contents?: FileContents;
+      };
       questFolders: {
         folderName: FileName;
         questFilePath: FilePath;
@@ -103,9 +163,16 @@ export const questFindQuestPathBrokerProxy = (): {
     homeDir: string;
     homePath: FilePath;
     guildsDir: FilePath;
+    stageProbe?: boolean;
     guilds: {
       dirName: FileName;
       questsDirPath: FilePath;
+      probe?: {
+        questFolderPath: FilePath;
+        questFilePath: FilePath;
+        exists: boolean;
+        contents?: FileContents;
+      };
       questFolders: {
         folderName: FileName;
         questFilePath: FilePath;
@@ -131,7 +198,10 @@ export const questFindQuestPathBrokerProxy = (): {
   // argument that discriminates this broker's call from fsReaddirAdapterProxy's.
   fsReaddirWithTypesAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const existsSyncProxy = fsExistsSyncAdapterProxy();
+  // The quest FILE reads happen inside matchCandidatesLayerBroker, so its proxy — not
+  // fsReadFileAdapterProxy — is what stages their contents. Both phases read through it.
+  const layerProxy = matchCandidatesLayerBrokerProxy();
 
   // readdirSync is a SHARED npm function — fsReaddirAdapterProxy (orchestrator's own
   // plain-filename listing, used by questListBroker) also mocks it, addressed by [dirPath]
@@ -159,13 +229,21 @@ export const questFindQuestPathBrokerProxy = (): {
       homePath,
       guildsDir,
       guilds,
+      stageProbe = true,
     }: {
       homeDir: string;
       homePath: FilePath;
       guildsDir: FilePath;
+      stageProbe?: boolean;
       guilds: {
         dirName: FileName;
         questsDirPath: FilePath;
+        probe?: {
+          questFolderPath: FilePath;
+          questFilePath: FilePath;
+          exists: boolean;
+          contents?: FileContents;
+        };
         questFolders: {
           folderName: FileName;
           questFilePath: FilePath;
@@ -176,7 +254,16 @@ export const questFindQuestPathBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: guildsDir });
-      setupGuildEntries({ guilds, guildsDir, readdirReturns, pathJoinProxy, readFileProxy });
+      readdirReturns({
+        dirPath: guildsDir,
+        entries: guilds.map(({ dirName }) =>
+          createMockDirent({ name: dirName, parentPath: guildsDir }),
+        ),
+      });
+      if (stageProbe) {
+        setupProbeEntries({ guilds, pathJoinProxy, existsSyncProxy, layerProxy });
+      }
+      setupScanEntries({ guilds, readdirReturns, pathJoinProxy, layerProxy });
     },
 
     setupNoGuilds: ({
@@ -198,13 +285,21 @@ export const questFindQuestPathBrokerProxy = (): {
       homePath,
       guildsDir,
       guilds,
+      stageProbe = true,
     }: {
       homeDir: string;
       homePath: FilePath;
       guildsDir: FilePath;
+      stageProbe?: boolean;
       guilds: {
         dirName: FileName;
         questsDirPath: FilePath;
+        probe?: {
+          questFolderPath: FilePath;
+          questFilePath: FilePath;
+          exists: boolean;
+          contents?: FileContents;
+        };
         questFolders: {
           folderName: FileName;
           questFilePath: FilePath;
@@ -215,7 +310,16 @@ export const questFindQuestPathBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: guildsDir });
-      setupGuildEntries({ guilds, guildsDir, readdirReturns, pathJoinProxy, readFileProxy });
+      readdirReturns({
+        dirPath: guildsDir,
+        entries: guilds.map(({ dirName }) =>
+          createMockDirent({ name: dirName, parentPath: guildsDir }),
+        ),
+      });
+      if (stageProbe) {
+        setupProbeEntries({ guilds, pathJoinProxy, existsSyncProxy, layerProxy });
+      }
+      setupScanEntries({ guilds, readdirReturns, pathJoinProxy, layerProxy });
     },
 
     setupQuestsReadError: ({
@@ -236,6 +340,13 @@ export const questFindQuestPathBrokerProxy = (): {
 
       const guildDirents = [createMockDirent({ name: guildDirName, parentPath: guildsDir })];
       readdirReturns({ dirPath: guildsDir, entries: guildDirents });
+
+      setupProbeEntries({
+        guilds: [{ dirName: guildDirName, questsDirPath, questFolders: [] }],
+        pathJoinProxy,
+        existsSyncProxy,
+        layerProxy,
+      });
 
       // The real broker joins guildsDir + guildDirName + questsDir into a SECOND, DISTINCT
       // directory before reading it — reusing guildsDir here would collide the two readdir

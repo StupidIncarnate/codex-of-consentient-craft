@@ -1,15 +1,25 @@
 /**
- * PURPOSE: Layer of QuestDrivenWatchersBootstrapResponder — walks every quest that can still hold a
- * live session (every non-terminal quest, plus a terminal quest carrying a post-quest session),
- * collects the distinct parent sessionIds carried by their active workItems, then diffs that set
+ * PURPOSE: Layer of QuestDrivenWatchersBootstrapResponder — walks every quest in every guild,
+ * collects the distinct parent sessionIds carried by their ACTIVE workItems, then diffs that set
  * against the caller-supplied watchers map: stops tails for sessionIds that dropped out, starts
- * tails for sessionIds that newly appeared. Spec-phase quests are included, so an intake
- * conversation streams into the browser chat panel while it is still being had; a finished quest is
- * included too, since a follow-up chat and a merge both run on a quest that has already terminated.
+ * tails for sessionIds that newly appeared. Spec-phase quests are in scope, so an intake
+ * conversation streams into the browser chat panel while it is still being had; so are finished
+ * quests, since a follow-up chat and a merge both run on a quest that has already terminated.
  *
  * USAGE:
  * const result = await ReconcileWatchersLayerResponder({ watchers, projectDir });
  * // Mutates `watchers` in place; returns counts for logging.
+ *
+ * ONE READ PER QUEST, and no quest status is used to narrow it. `questListBroker` already loads and
+ * parses every quest.json in a guild, so asking it for SUMMARIES and then re-loading each quest by
+ * id pays for every file twice — and the second pass costs a whole-home scan per quest to find a
+ * file the first pass just read. The only test that decides a tail is the one below: an active work
+ * item carrying a sessionId. A quest whose work items carry no session contributes nothing to that
+ * set whatever its status, so there is no status filter to apply and none to keep in step with the
+ * loop.
+ *
+ * This runs on a 3-second poll AND on every quest-modified outbox event, so its cost is paid
+ * continuously for the life of the server.
  */
 
 import {
@@ -23,14 +33,10 @@ import type {
   QuestWorkItemId,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
-import {
-  isActiveWorkItemStatusGuard,
-  isTerminalQuestStatusGuard,
-} from '@dungeonmaster/shared/guards';
+import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
-import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
+import { orchestratorListQuestsFullAdapter } from '../../../adapters/orchestrator/list-quests-full/orchestrator-list-quests-full-adapter';
 import { orchestratorStartMonitorWatcherAdapter } from '../../../adapters/orchestrator/start-monitor-watcher/orchestrator-start-monitor-watcher-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 
@@ -53,42 +59,14 @@ export const ReconcileWatchersLayerResponder = async ({
     guilds
       .filter((guild) => guild.valid)
       .map(async (guild) => {
-        const summaries = await orchestratorListQuestsAdapter({ guildId: guild.id });
-        for (const summary of summaries) {
-          guildPathByQuestId.set(summary.id, guild.path);
+        const quests = await orchestratorListQuestsFullAdapter({ guildId: guild.id });
+        for (const quest of quests) {
+          guildPathByQuestId.set(quest.id, guild.path);
         }
-        return summaries;
+        return quests;
       }),
   );
-  // Every non-terminal quest is a candidate, plus a terminal quest whose summary already carries
-  // an activeSessionId. The status is only a cheap pre-filter to avoid loading quest.json for
-  // quests that can no longer have a live session; the REAL target test is the
-  // active-work-item-with-a-sessionId scan below, which is what a tail actually needs.
-  //
-  // The spec phase is in scope: a quest at `created`/`explore_flows`/`review_flows` has an intake
-  // work item carrying the chat session's id, and its tail is what streams that conversation into
-  // the browser chat panel while the user is still having it in their terminal. Narrowing this to
-  // approved/design_approved/in_progress starts no watcher for those quests and the panel stays
-  // empty for the whole intake.
-  //
-  // A `complete` or `merged` quest can still be carrying a live post-quest session — a follow-up
-  // chat with the tavernkeeper, or a merge — so excluding every terminal quest here would leave
-  // that session's tail never started. `activeSessionId` on the summary (derived by
-  // questToListItemTransformer for every quest regardless of status) answers "does this quest have
-  // a session at all" without a quest.json load, so a finished quest that never had a follow-up is
-  // still skipped for free.
-  const activeQuestSummaries = questsByGuild
-    .flat()
-    .filter(
-      (summary) =>
-        !isTerminalQuestStatusGuard({ status: summary.status }) ||
-        summary.activeSessionId !== undefined,
-    );
-  const loadedQuests = await Promise.all(
-    activeQuestSummaries.map(async (summary) =>
-      orchestratorLoadQuestAdapter({ questId: summary.id }),
-    ),
-  );
+  const loadedQuests = questsByGuild.flat();
 
   const target = new Set<SessionId>();
   const projectDirBySessionId = new Map<SessionId, GuildPath>();
