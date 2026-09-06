@@ -186,10 +186,11 @@ Nodes your package tags are marked; a node it does not tag is still rendered, be
 to one package is not a smaller flow — it comes apart into disconnected pieces, and the branch
 conditions go with them.
 
-**Observables attributed to another package are collapsed to a count.** That is not truncation — the
-sibling cell builds them AND signs them. You cannot: the render gives you neither their ids nor their
-text. **Sign only observables printed in full**, and read the count as what the other half of a
-shared node is doing.
+**On a node marked \`◀ YOURS\` you see every observable on it, including the ones another package
+owns.** They are the other half of the contract you are building — the client's request shape for a
+route you serve, the render your bytes have to satisfy. **Read them.** Where one names something
+your own code must do, that is a requirement on you, and your \`MUST BE TRUE\` lines should carry it.
+**You still sign only the observables whose \`{package}\` is yours.**
 
 **EVERY CONTRACT UNDER A \`## Contracts\` heading CARRIES WORK OF YOURS.** A contract routes by FILE
 PATH — its own \`source\`, or an individual property's — so which ones are yours has nothing to do

@@ -318,14 +318,15 @@ const LEGEND_LINES = [
 ];
 
 const CONTRACT_HEADER_PREFIXES = ['#login-credentials', '  email'];
-const GRAPH_AND_OBSERVABLE_PREFIXES = ['[#', `${textDisplaySymbolsStatics.observable} `];
+const OBSERVABLE_PREFIX = `${textDisplaySymbolsStatics.observable} `;
+const GRAPH_AND_OBSERVABLE_PREFIXES = ['[#', OBSERVABLE_PREFIX];
 const GRAPH_AND_EDGE_PREFIXES = ['[#', '→'];
 const OWNERSHIP_LINE_PREFIXES = ['The WHOLE flow', 'Your package:'];
 const TRUNCATION_PREFIX = `[TRUNCATED at the ${String(questFlowSliceLimitsStatics.maxRenderChars)}-character ceiling`;
 
 describe('questFlowSliceTransformer', () => {
   describe('a codeweaver slice — one flow, one package', () => {
-    it('VALID: {flowId, packageName: web} => renders the whole slice, marking web and collapsing the rest', () => {
+    it('VALID: {flowId, packageName: web} => renders the whole slice, marking web and reading its seam node whole', () => {
       const result = questFlowSliceTransformer({
         quest: QUEST,
         flowId: 'login-flow' as never,
@@ -344,10 +345,11 @@ describe('questFlowSliceTransformer', () => {
         'Type: runtime',
         'Entry: login-page',
         'Exits: Dashboard shown | Signup started',
-        "Your package: web. Its nodes carry ◀ YOURS; only YOUR observables are listed, and each node's tag set counts the rest (●). The graph is NOT filtered — the nodes between yours are how yours connect.",
+        "Your package: web. Its nodes carry ◀ YOURS; on those nodes EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (●). The graph is NOT filtered — the nodes between yours are how yours connect.",
         '',
         '[#login-page] {web ● 1, server ● 1} Login page (state) ◀ YOURS',
         '  ● #form-renders {web} the form renders with an empty email field [ui-state]',
+        '  ● #session-probe {server} GET /api/session answers 401 for an anonymous visitor [api-call]',
         '  →"submits credentials" [#auth-check]',
         '  →"no account yet" signup-flow:signup-page ↗ cross-flow',
         '    target: [#signup-page] {web} Signup page (state) in flow #signup-flow "Sign up"',
@@ -373,6 +375,68 @@ describe('questFlowSliceTransformer', () => {
         '#no-third-party-auth: "No third-party identity provider"',
         '  Rationale: The user asked for a self-hosted login',
       ]);
+    });
+
+    // VISIBILITY IS THE NODE'S, OWNERSHIP IS THE OBSERVABLE'S. `login-page` is a seam — web and
+    // server both tag it — so BOTH cells read both of its observables, each still carrying the
+    // `{package}` that says who signs it. The server half is the request shape web's fetch has to
+    // send; the web half is the render server's bytes have to satisfy. A cell handed a digit
+    // instead of that sentence builds against a guess.
+    it('VALID: {flowId, packageName} => a seam node reads whole from BOTH sides, each tag intact', () => {
+      const webLines = String(
+        questFlowSliceTransformer({
+          quest: QUEST,
+          flowId: 'login-flow' as never,
+          packageName: 'web' as never,
+        }),
+      ).split('\n');
+      const serverLines = String(
+        questFlowSliceTransformer({
+          quest: QUEST,
+          flowId: 'login-flow' as never,
+          packageName: 'server' as never,
+        }),
+      ).split('\n');
+
+      expect({
+        web: webLines
+          .filter((line) => !LEGEND_LINES.some((legend) => legend === line))
+          .filter((line) => line.trimStart().startsWith(OBSERVABLE_PREFIX)),
+        server: serverLines
+          .filter((line) => !LEGEND_LINES.some((legend) => legend === line))
+          .filter((line) => line.trimStart().startsWith(OBSERVABLE_PREFIX)),
+      }).toStrictEqual({
+        web: [
+          '  ● #form-renders {web} the form renders with an empty email field [ui-state]',
+          '  ● #session-probe {server} GET /api/session answers 401 for an anonymous visitor [api-call]',
+        ],
+        server: [
+          '  ● #form-renders {web} the form renders with an empty email field [ui-state]',
+          '  ● #session-probe {server} GET /api/session answers 401 for an anonymous visitor [api-call]',
+          '    ● #rejects-bad-password {server} a wrong password answers 401 [api-call]',
+        ],
+      });
+    });
+
+    // AND THE SAVING IS STILL THERE. `auth-check` is server's alone, so web reads its brace count
+    // and no line under it — that count is the only signal web gets that anything is expected
+    // there, and it is what the whole graph outside a package's own nodes now costs.
+    it('VALID: {flowId, packageName: web} => a node web does not tag keeps its observables as a count', () => {
+      const lines = String(
+        questFlowSliceTransformer({
+          quest: QUEST,
+          flowId: 'login-flow' as never,
+          packageName: 'web' as never,
+        }),
+      ).split('\n');
+
+      expect({
+        theNodeLine: lines.filter((line) => line.trimStart().startsWith('[#auth-check]')),
+        itsObservable: lines.filter((line) => line.includes('#rejects-bad-password')),
+      }).toStrictEqual({
+        theNodeLine: ['  [#auth-check] {server ● 1} Credentials checked (decision)'],
+        itsObservable: [],
+      });
     });
 
     it('VALID: {flowId, packageName: server} => the contract renders for the ONE property whose own source lands in server', () => {
@@ -490,11 +554,12 @@ describe('questFlowSliceTransformer', () => {
     });
 
     // THE KEY MUST DESCRIBE THE RENDER IT SITS ABOVE. Two of the packaged legend's entries are
-    // claims this view never makes: `◀ YOURS` is emitted on no line, and "only YOURS are listed" is
-    // the opposite of what happens — every package's observables render. Serving that KEY here hands
-    // the reader two contradictory statements, since the ownership line directly under it says the
-    // whole flow is theirs, and the one it is likelier to act on is the one that is wrong.
-    it('VALID: {flowId, no packageName} => the KEY is the whole-flow one, naming no owned-node mark and no filtering', () => {
+    // claims this view never makes: `◀ YOURS` is emitted on no line, and "on a node you tag" names
+    // a distinction that does not exist here — this reader tags none of the nodes and reads all of
+    // them. Serving that KEY here hands the reader two contradictory statements, since the
+    // ownership line directly under it says the whole flow is theirs, and the one it is likelier to
+    // act on is the one that is wrong.
+    it('VALID: {flowId, no packageName} => the KEY is the whole-flow one, naming no owned-node mark and no per-node gate', () => {
       const lines = String(
         questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }),
       ).split('\n');
@@ -714,11 +779,11 @@ describe('questFlowSliceTransformer', () => {
     });
   });
 
-  // A MISSPELLED PACKAGE USED TO RENDER CLEAN. Nothing downstream treats an unknown package as an
-  // error — every observable just reads as somebody else's — so the slice came back with counts,
-  // no observable text and no `◀ YOURS` mark, which is exactly what a package that genuinely owns
-  // nothing on the flow looks like. Measured on a real quest: `orchastrator` for `orchestrator`
-  // hid nine observables the caller owned.
+  // A MISSPELLED PACKAGE RENDERS CLEAN WITHOUT THIS REFUSAL. Nothing downstream treats an unknown
+  // package as an error — no node reads as the caller's — so the slice would come back with brace
+  // counts, no observable text and no `◀ YOURS` mark, which is exactly what a package that
+  // genuinely owns nothing on the flow looks like. Measured on a real quest: `orchastrator` for
+  // `orchestrator` hid nine observables the caller owned.
   describe('a package name that is not on the quest', () => {
     it('INVALID: {packageName: "orchastrator"} => refuses and names the packages that DO exist, rather than rendering an empty slice', () => {
       const result = questFlowSliceTransformer({

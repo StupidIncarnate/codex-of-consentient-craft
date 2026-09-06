@@ -102,11 +102,11 @@ export const questFlowSliceTransformer = ({
   }
 
   // The same refusal the flow miss above gets, for the same reason and a sharper one. An unknown
-  // package is an error NOWHERE downstream: every observable simply reads as somebody else's, so the
-  // slice renders with no observable text and no `◀ YOURS` mark anywhere — which is
-  // INDISTINGUISHABLE from a package that genuinely owns nothing on this flow. Measured on a real
-  // quest: a caller that typed `orchastrator` for `orchestrator` was served a clean-looking render
-  // of a flow whose nine observables it owned, every one of them collapsed into a count.
+  // package is an error NOWHERE downstream: no node reads as the caller's, so the slice renders
+  // with no observable text and no `◀ YOURS` mark anywhere — which is INDISTINGUISHABLE from a
+  // package that genuinely owns nothing on this flow. Measured on a real quest: a caller that typed
+  // `orchastrator` for `orchestrator` was served a clean-looking render of a flow whose nine
+  // observables it owned, every one of them left behind a brace count.
   //
   // The closed set is every package the quest names ANYWHERE — declared in `packagesAffected`,
   // tagged on a node, or carried by an observable — rather than `packagesAffected` alone. A hydrated
@@ -190,7 +190,7 @@ export const questFlowSliceTransformer = ({
           ]
         : [
             contentTextContract.parse(
-              `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}; only YOUR observables are listed, and each node's tag set counts the rest (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
+              `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}; on those nodes EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
             ),
           ]),
       contentTextContract.parse(''),

@@ -641,7 +641,12 @@ describe('flowGraphToTextTransformer', () => {
       ]);
     });
 
-    it('VALID: {ownPackage: web, node carrying both sides} => own observables verbatim, every other package counted in the tag set', () => {
+    // A SEAM NODE IS READ WHOLE. The observables another package owns on a node this caller tags
+    // are the other half of the contract it is building — the request shape for a route it serves,
+    // the render its bytes have to satisfy — so every line prints, each still carrying the
+    // `{package}` that says who signs it. Measured on one cell of a real quest, filtering these by
+    // the observable's own package erased 9 of 18 lines.
+    it('VALID: {ownPackage: web, seam node web tags} => every observable prints, each carrying its own {package}', () => {
       const flow = FlowStub({
         entryPoint: 'post-chat' as never,
         nodes: [
@@ -686,6 +691,158 @@ describe('flowGraphToTextTransformer', () => {
       expect(result).toStrictEqual([
         '[#post-chat] {web ● 1, server ● 2, shared ● 1} POST the message (action) ◀ YOURS',
         '  ● #progress-bar-tracks-bytes {web} the progress bar advances as bytes are sent [ui-state]',
+        '  ● #body-carries-ordered-images {server} the request body carries the images in paste order [api-call]',
+        '  ● #images-dir-name-is-shared {shared} the images directory name is read from shared statics [custom]',
+        '  ● #rejects-a-sixth-image {server} a sixth image answers 400 [api-call]',
+        '  (terminal)',
+      ]);
+    });
+
+    // THE SAVING IS THE NODES THIS CALLER DOES NOT TAG. Their observables stay behind the brace
+    // count, which on such a node is the only signal that anything is expected there at all.
+    it('VALID: {ownPackage: web, node web does not tag} => none of its observables print and the brace count still does', () => {
+      const flow = FlowStub({
+        entryPoint: 'write-image-file' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'action',
+            packages: ['server' as never],
+            observables: [
+              FlowObservableStub({
+                id: 'file-lands-on-disk' as never,
+                description: 'each image is written under the quest images directory' as never,
+                type: 'file-exists',
+                package: 'server' as never,
+              }),
+              FlowObservableStub({
+                id: 'rejects-a-sixth-image' as never,
+                description: 'a sixth image answers 400' as never,
+                type: 'api-call',
+                package: 'server' as never,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
+
+      expect(result).toStrictEqual([
+        '[#write-image-file] {server ● 2} Write each image (action)',
+        '  (terminal)',
+      ]);
+    });
+
+    // BOTH KINDS OF NODE IN ONE RENDER, so the two rules are read against each other: the seam node
+    // prints all three of its observables under a `{web ● 1, server ● 2}` summary, and the
+    // server-only node prints none under a count that is the whole of what it says.
+    it('VALID: {ownPackage: web, one tagged node and one not} => the brace counts render on both, the observable lines on one', () => {
+      const flow = FlowStub({
+        entryPoint: 'send-pressed' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'send-pressed' as never,
+            label: 'Send pressed' as never,
+            type: 'action',
+            packages: ['web' as never, 'server' as never],
+            observables: [
+              FlowObservableStub({
+                id: 'composer-disables' as never,
+                description: 'the composer disables while the send is in flight' as never,
+                type: 'ui-state',
+                package: 'web' as never,
+              }),
+              FlowObservableStub({
+                id: 'post-carries-paths' as never,
+                description: 'POST /api/chat carries the image paths in paste order' as never,
+                type: 'api-call',
+                package: 'server' as never,
+              }),
+              FlowObservableStub({
+                id: 'rejects-a-sixth-image' as never,
+                description: 'a sixth image answers 400' as never,
+                type: 'api-call',
+                package: 'server' as never,
+              }),
+            ],
+          }),
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'action',
+            packages: ['server' as never],
+            observables: [
+              FlowObservableStub({
+                id: 'file-lands-on-disk' as never,
+                description: 'each image is written under the quest images directory' as never,
+                type: 'file-exists',
+                package: 'server' as never,
+              }),
+            ],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'e-one' as never,
+            from: 'send-pressed' as never,
+            to: 'write-image-file' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
+
+      expect(result).toStrictEqual([
+        '[#send-pressed] {web ● 1, server ● 2} Send pressed (action) ◀ YOURS',
+        '  ● #composer-disables {web} the composer disables while the send is in flight [ui-state]',
+        '  ● #post-carries-paths {server} POST /api/chat carries the image paths in paste order [api-call]',
+        '  ● #rejects-a-sixth-image {server} a sixth image answers 400 [api-call]',
+        '  →[#write-image-file]',
+        '  [#write-image-file] {server ● 1} Write each image (action)',
+        '    (terminal)',
+      ]);
+    });
+
+    // A STRAY ATTRIBUTION — an observable naming a package the node does not tag — is counted in a
+    // second brace group and, on a node the caller tags, printed like any other. The caller reading
+    // it is the only session that can report the mis-attribution.
+    it('EDGE: {ownPackage: web, observable naming a package the node does not tag} => it prints and is counted after the tagged packages', () => {
+      const flow = FlowStub({
+        entryPoint: 'post-chat' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'post-chat' as never,
+            label: 'POST the message' as never,
+            type: 'action',
+            packages: ['web' as never],
+            observables: [
+              FlowObservableStub({
+                id: 'progress-bar-tracks-bytes' as never,
+                description: 'the progress bar advances as bytes are sent' as never,
+                type: 'ui-state',
+                package: 'web' as never,
+              }),
+              FlowObservableStub({
+                id: 'images-dir-name-is-shared' as never,
+                description: 'the images directory name is read from shared statics' as never,
+                type: 'custom',
+                package: 'shared' as never,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
+
+      expect(result).toStrictEqual([
+        '[#post-chat] {web ● 1, shared ● 1} POST the message (action) ◀ YOURS',
+        '  ● #progress-bar-tracks-bytes {web} the progress bar advances as bytes are sent [ui-state]',
+        '  ● #images-dir-name-is-shared {shared} the images directory name is read from shared statics [custom]',
         '  (terminal)',
       ]);
     });
@@ -724,6 +881,48 @@ describe('flowGraphToTextTransformer', () => {
         '[#post-chat] {web ● 1, server ● 1} POST the message (action)',
         '  ● #progress-bar-tracks-bytes {web} the progress bar advances as bytes are sent [ui-state]',
         '  ● #body-carries-ordered-images {server} the request body carries the images in paste order [api-call]',
+        '  (terminal)',
+      ]);
+    });
+
+    // THE UNPACKAGED CALL CONSULTS NO TAG SET AT ALL — this is the flowrider / siegemaster /
+    // reviewer view, and it reads every observable on every node whatever the node is tagged with.
+    // Pinned on a node whose tags and whose observables' packages disagree, which is the one shape
+    // that could tell the two branches apart.
+    it('EMPTY: {no ownPackage, node tagging one package but carrying another’s observable} => both lines render', () => {
+      const flow = FlowStub({
+        entryPoint: 'write-image-file' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'action',
+            packages: ['server' as never],
+            observables: [
+              FlowObservableStub({
+                id: 'file-lands-on-disk' as never,
+                description: 'each image is written under the quest images directory' as never,
+                type: 'file-exists',
+                package: 'server' as never,
+              }),
+              FlowObservableStub({
+                id: 'progress-bar-tracks-bytes' as never,
+                description: 'the progress bar advances as bytes are sent' as never,
+                type: 'ui-state',
+                package: 'web' as never,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#write-image-file] {server ● 1, web ● 1} Write each image (action)',
+        '  ● #file-lands-on-disk {server} each image is written under the quest images directory [file-exists]',
+        '  ● #progress-bar-tracks-bytes {web} the progress bar advances as bytes are sent [ui-state]',
         '  (terminal)',
       ]);
     });
