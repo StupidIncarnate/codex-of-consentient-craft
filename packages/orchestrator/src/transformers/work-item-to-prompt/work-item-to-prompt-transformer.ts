@@ -15,9 +15,8 @@
  * prompt to a file, which hands the session a path instead of its instructions and reports no
  * failure.
  *
- * THREE EXTRAS SURVIVE, and each is a value no tool call returns at all: the dev server for
- * siegemaster (resolved by the broker from `.dungeonmaster.json`), the base branch for warpgate,
- * and the failed ward result + blob path for spiritmender.
+ * TWO EXTRAS SURVIVE, and each is a value no tool call returns at all: the base branch for
+ * warpgate, and the failed ward result + blob path for spiritmender.
  *
  * **Path discrimination — minion vs role:** the agent name is run through
  * `workItemRoleContract.safeParse`. If it fails, the caller is one of the parent-summoned minions
@@ -51,8 +50,6 @@ import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmas
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
-import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
-import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { roleToPromptTemplateTransformer } from '../role-to-prompt-template/role-to-prompt-template-transformer';
 
@@ -60,16 +57,10 @@ export const workItemToPromptTransformer = ({
   quest,
   workItem,
   agentName,
-  devServer,
 }: {
   quest: Quest;
   workItem: WorkItem;
   agentName: string;
-  // Dev-server config for flowrider/siegemaster, resolved by the broker from .dungeonmaster.json.
-  devServer?: {
-    devCommand: DevCommand;
-    devServerUrl: DevServerUrl;
-  };
 }): { prompt: ContentText } => {
   const parsedAgent = agentPromptNameContract.parse(agentName);
   const minionArguments = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItem.id)}`;
@@ -131,17 +122,6 @@ export const workItemToPromptTransformer = ({
       `Your operation item: [${linkedOperation.role}] ${String(linkedOperation.text)}`,
     ),
   ];
-
-  // Siegemaster only. Flowrider starts no server of its own — its Playwright runs bring one up from
-  // the project's own `webServer` config and tear it down again — so these lines would be dead
-  // context for it.
-  if (workItem.role === 'siegemaster' && devServer !== undefined) {
-    parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(`Dev Server Command: ${String(devServer.devCommand)}`),
-      contentTextContract.parse(`Dev Server URL: ${String(devServer.devServerUrl)}`),
-    );
-  }
 
   // Warpgate only. The prompt template tells the agent to resolve the base branch "recorded ON
   // THE QUEST in your Operation Context below" and never re-probe it — this is the half of that

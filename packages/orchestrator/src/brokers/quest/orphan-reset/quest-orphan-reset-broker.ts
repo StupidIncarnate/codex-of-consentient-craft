@@ -19,6 +19,16 @@
  *   wiped by the reset that walks through it. Without the exclusion the reactor falls
  *   into a stamp → start → reset → stop oscillation.
  *
+ *   `excludeWorkItemId` is the SAME protection keyed on an id that cannot move, and the
+ *   node-dispatch worker path needs it because `sessionId` can: that path dispatches a
+ *   RESUMED item under its retained session, so the reactor starts a watcher for the
+ *   retained id, and then the child's own init line re-stamps the item with the id Claude
+ *   CLI just minted. Between those two writes the item is genuinely running under a session
+ *   this sweep was not told about, and a sessionId-only exclusion resets it — clearing
+ *   sessionId/agentId/startedAt on a live agent, which the execution row renders as RUNNING
+ *   dropping back to PENDING mid-run. A work item's id is fixed for its whole life, so it is
+ *   the only handle that survives the window.
+ *
  * FRESHNESS: the guild/quest walk above is only a candidate filter. Which items are
  *   actually orphaned — and therefore what gets written — is decided from the quest loaded
  *   INSIDE its own modify lock, because the walk reads every quest.json under the
@@ -29,7 +39,11 @@
  *   re-runs a session that already signalled.
  */
 
-import { workItemContract, type SessionId } from '@dungeonmaster/shared/contracts';
+import {
+  workItemContract,
+  type QuestWorkItemId,
+  type SessionId,
+} from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
@@ -47,8 +61,10 @@ import { questOperationsUpdateBroker } from '../operations-update/quest-operatio
 
 export const questOrphanResetBroker = async ({
   excludeSessionId,
+  excludeWorkItemId,
 }: {
   excludeSessionId?: SessionId;
+  excludeWorkItemId?: QuestWorkItemId;
 } = {}): Promise<OrphanResetResult> => {
   const guilds = await guildListBroker();
 
@@ -76,6 +92,7 @@ export const questOrphanResetBroker = async ({
       const hasCandidateOrphan = candidate.workItems.some(
         (wi) =>
           isActiveWorkItemStatusGuard({ status: wi.status }) &&
+          wi.id !== excludeWorkItemId &&
           (excludeSessionId === undefined || wi.sessionId !== excludeSessionId),
       );
       if (!hasCandidateOrphan) {
@@ -95,6 +112,7 @@ export const questOrphanResetBroker = async ({
                 .filter(
                   (wi) =>
                     isActiveWorkItemStatusGuard({ status: wi.status }) &&
+                    wi.id !== excludeWorkItemId &&
                     (excludeSessionId === undefined || wi.sessionId !== excludeSessionId),
                 )
                 .map((wi) => wi.id),

@@ -270,6 +270,13 @@ describe('qaChecklistBuildTransformer', () => {
           flowId: 'a-flow',
           kind: 'branch',
           edgeId: 'decide-yes',
+          // The three endpoints survive the parse alongside the rendered `label`, because
+          // `qaChecklistToTextTransformer` finds a branch's SIBLING by matching `edgeFrom` across
+          // the item list to build its ARRIVAL line. Recovering them by parsing `label` apart
+          // would couple that renderer to this file's edge grammar.
+          edgeFrom: 'decide-here',
+          edgeLabel: 'valid',
+          edgeTo: 'yes-end',
           label: 'decide-here —"valid"→ yes-end',
           checkSurface: qaCheckSurfaceStatics.byKind.branch,
         },

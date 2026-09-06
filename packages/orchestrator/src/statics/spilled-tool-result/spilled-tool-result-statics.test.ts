@@ -8,7 +8,8 @@ import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-review
 import { glyphsmithPromptStatics } from '../glyphsmith-prompt/glyphsmith-prompt-statics';
 import { siegemasterPromptStatics } from '../siegemaster-prompt/siegemaster-prompt-statics';
 import { siegemasterReviewerStatics } from '../siegemaster-reviewer/siegemaster-reviewer-statics';
-import { siegemasterWalkerStatics } from '../siegemaster-walker/siegemaster-walker-statics';
+import { siegemasterStressStatics } from '../siegemaster-stress/siegemaster-stress-statics';
+import { siegemasterVerifierStatics } from '../siegemaster-verifier/siegemaster-verifier-statics';
 import { spiritmenderPromptStatics } from '../spiritmender-prompt/spiritmender-prompt-statics';
 import { tavernkeeperPromptStatics } from '../tavernkeeper-prompt/tavernkeeper-prompt-statics';
 import { warpgatePromptStatics } from '../warpgate-prompt/warpgate-prompt-statics';
@@ -26,7 +27,8 @@ const HOSTS = [
   ['codeweaver-reviewer', codeweaverReviewerStatics.prompt.template],
   ['flowrider-reviewer', flowriderReviewerStatics.prompt.template],
   ['siegemaster-reviewer', siegemasterReviewerStatics.prompt.template],
-  ['siegemaster-walker', siegemasterWalkerStatics.prompt.template],
+  ['siegemaster-verifier', siegemasterVerifierStatics.prompt.template],
+  ['siegemaster-stress', siegemasterStressStatics.prompt.template],
   ['chaoswhisperer-gap-minion', chaoswhispererGapMinionStatics.prompt.template],
   ['glyphsmith', glyphsmithPromptStatics.prompt.template],
   ['tavernkeeper', tavernkeeperPromptStatics.prompt.template],

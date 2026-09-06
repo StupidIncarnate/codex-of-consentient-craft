@@ -146,7 +146,6 @@ describe('runChatLayerBroker', () => {
         '--verbose',
         '--model',
         'opus',
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
         '--resume',

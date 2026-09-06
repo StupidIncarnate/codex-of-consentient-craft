@@ -37,7 +37,12 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, QaChecklist, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import type {
+  ContentText,
+  FlowEdgeRef,
+  QaChecklist,
+  QaChecklistItem,
+} from '@dungeonmaster/shared/contracts';
 import { qaCheckSurfaceStatics, textDisplaySymbolsStatics } from '@dungeonmaster/shared/statics';
 
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
@@ -175,6 +180,19 @@ export const qaChecklistToTextTransformer = ({
     }),
   ].join('\n');
 
+  // Sibling branches, indexed by the node they leave. A branch row already says where it GOES;
+  // only its siblings answer whether ARRIVING there is evidence that THIS branch is the one that
+  // ran. Indexed once here rather than searched per row, and read off `edgeFrom`/`edgeTo`/
+  // `edgeLabel` rather than parsed back out of the rendered label — that grammar belongs to
+  // `qaChecklistBuildTransformer`, and a renderer re-parsing it breaks silently when it changes.
+  const branchesByFrom = new Map<FlowEdgeRef, QaChecklistItem[]>();
+  byKind.branch.forEach((item) => {
+    if (item.edgeFrom === undefined) {
+      return;
+    }
+    branchesByFrom.set(item.edgeFrom, [...(branchesByFrom.get(item.edgeFrom) ?? []), item]);
+  });
+
   const unitBlock = (
     [
       ['TERMINALS', byKind.terminal],
@@ -193,7 +211,30 @@ export const qaChecklistToTextTransformer = ({
           const type = item.observableType === undefined ? '' : `  [${item.observableType}]`;
           const readCheck =
             item.verifyByReading === true ? `  ${textDisplaySymbolsStatics.readCheckMark}` : '';
-          return `${mark} ${String(item.id)}${type}${readCheck}\n    ${String(item.label)}`;
+          // ARRIVAL is a BRANCH-only line, and the two lookups below are safe to run for every
+          // kind: a non-branch item carries no `edgeFrom`, so both come back empty and `arrival`
+          // renders as ''. A branch unit carries NO observables of its own — `flowEdgeContract` is
+          // `{id, from, to, label?, …signoffs}` — so the generic BRANCH SURFACE sentence is all a
+          // walker gets, and it is not enough. `size-ok` produced a documented false green under
+          // it: the assertion could not tell branch-taken from branch-skipped, because both
+          // branches led to the same node.
+          const siblings = (
+            item.edgeFrom === undefined ? [] : (branchesByFrom.get(item.edgeFrom) ?? [])
+          ).filter((sibling) => sibling.id !== item.id);
+          const sharing = siblings.filter((sibling) => sibling.edgeTo === item.edgeTo);
+          const siblingNames = siblings
+            .map((sibling) => `"${String(sibling.edgeLabel)}" → ${String(sibling.edgeTo)}`)
+            .join(' , ');
+          const arrivalWithSiblings =
+            sharing.length === 0
+              ? `rule out its sibling ${siblingNames}. Arriving at ${String(item.edgeTo)} rather than there is the evidence, so show a value the two branches produce DIFFERENTLY — never one they both produce alike.`
+              : `prove ${String(item.edgeTo)} was reached by THIS branch and not by its sibling ${siblingNames}. A destination both branches share is not evidence of which one ran.`;
+          const arrivalBody =
+            siblings.length === 0
+              ? `this is the only labelled edge out of ${String(item.edgeFrom)}. Arriving at ${String(item.edgeTo)} proves the node was REACHED, not that this condition held — measure the condition itself.`
+              : arrivalWithSiblings;
+          const arrival = item.kind === 'branch' ? `\n    ARRIVAL: ${arrivalBody}` : '';
+          return `${mark} ${String(item.id)}${type}${readCheck}\n    ${String(item.label)}${arrival}`;
         }),
       ].join('\n'),
     )

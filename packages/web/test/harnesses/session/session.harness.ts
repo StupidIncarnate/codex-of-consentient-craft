@@ -10,8 +10,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
+  AbsoluteFilePathStub,
   AskUserQuestionToolResultStreamLineStub,
   AssistantAskUserQuestionStreamLineStub,
   AssistantReadToolUseStreamLineStub,
@@ -23,6 +24,7 @@ import {
   TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
+import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 const buildAnsweredClarificationLines = (): ReturnType<typeof JSON.stringify>[] => {
   const toolUseId = 'toolu_e2e_clarify_history';
@@ -249,11 +251,11 @@ export const sessionHarness = ({
   createSessionFileForQuest: (params: { sessionId: string }) => void;
   sessionFileExists: (params: { sessionId: string }) => boolean;
 } => {
-  const getJsonlDir = (): FilePath => {
-    const homeDir = os.homedir();
-    const encodedPath = guildPath.replace(/\//gu, '-');
-    return path.join(homeDir, '.claude', 'projects', encodedPath) as FilePath;
-  };
+  const getJsonlDir = (): AbsoluteFilePath =>
+    claudePathSlugEncoderTransformer({
+      homeDir: AbsoluteFilePathStub({ value: os.homedir() }),
+      projectPath: AbsoluteFilePathStub({ value: guildPath }),
+    });
 
   const createSessionFile = ({
     sessionId,

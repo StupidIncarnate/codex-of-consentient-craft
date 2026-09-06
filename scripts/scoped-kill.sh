@@ -11,10 +11,12 @@
 #      completely untouched.
 #
 # Strategy:
-#   1. Port sweep — kill whatever LISTENS on our mode's ports (always ours). Matching
-#      listeners only keeps processes that merely hold a connection to the port out of
-#      the blast radius: `lsof -ti :PORT` also reports clients, so an open browser tab
-#      pointed at the dev server makes Chrome's network process a match.
+#   1. Port sweep — kill whatever LISTENS on our mode's ports FROM INSIDE REPO_ROOT.
+#      Matching listeners only keeps processes that merely hold a connection to the port
+#      out of the blast radius: `lsof -ti :PORT` also reports clients, so an open browser
+#      tab pointed at the dev server makes Chrome's network process a match. The cwd test
+#      is what keeps it repo-scoped — a port number alone is not ownership, and two
+#      checkouts whose `.dungeonmaster.json` files agree collide on it.
 #   2. cwd sweep — for every node/tsx/vite candidate, read /proc/<pid>/cwd. If it is
 #      inside REPO_ROOT, classify it by mode and kill it only when it belongs to the
 #      mode being restarted. Other repos' processes have a cwd outside REPO_ROOT, so
@@ -84,6 +86,22 @@ is_safe() {
   return 1
 }
 
+# True when a pid's cwd is inside REPO_ROOT. BOTH sweeps need it. For the cwd sweep it is
+# the whole filter; for the port sweep it is what makes the sweep repo-scoped at all — a
+# port number is not ownership, and two checkouts of this repo pick colliding ports the
+# moment their `.dungeonmaster.json` files agree (at install defaults prod sweeps
+# 3737/3738 and dev sweeps 3738/3739, so the two overlap on 3738 within ONE repo too).
+# An unreadable /proc entry returns false and the pid is spared: it belongs to another
+# user, so it was never ours to kill.
+is_repo_cwd() {
+  irc_cwd="$(readlink "/proc/$1/cwd" 2>/dev/null || true)"
+  [ -n "$irc_cwd" ] || return 1
+  case "$irc_cwd" in
+    "$REPO_ROOT" | "$REPO_ROOT"/*) return 0 ;;
+  esac
+  return 1
+}
+
 # Classify a pid against MODE. Echoes one of:
 #   match   — belongs to the mode being restarted; kill it
 #   other   — belongs to the other mode, or to an unrelated DUNGEONMASTER_HOME; spare it
@@ -99,7 +117,21 @@ pid_mode() {
   # running `npm run dev` is a dev process even when it inherited prod's
   # DUNGEONMASTER_HOME from whatever spawned it — exactly the case during a dogfood
   # siege, where the siegemaster starts a dev server from inside the prod stack.
+  #
+  # A `--workspace=` invocation is NEVER a root launcher, and it MUST fall through to the
+  # env test below. `npm run dev` is a prefix of `npm run dev:no-watch`, so the arm below
+  # matched the Playwright e2e API server (`npm run dev:no-watch --workspace=@dungeonmaster/server`,
+  # playwright.config.ts) and its Vite half — and returned `match` for MODE=dev before the
+  # DUNGEONMASTER_HOME test could read `/tmp/dm-e2e-*` and spare them. Typing `npm run dev`
+  # here then killed an in-flight ward e2e run, which surfaced as
+  # `Timed out waiting 60000ms from config.webServer` in a run nobody had touched.
+  #
+  # Falling through costs the root launcher's own workspace children nothing: they inherit
+  # DUNGEONMASTER_HOME from it (`<repo>/.dungeonmaster-dev`), so the env test still calls
+  # them `match`. An e2e child carries `/tmp/dm-e2e-<pid>` and reads `other`; a child with no
+  # home at all reads `unknown`. Both are spared, which is the safe direction.
   case "$pm_cmdline" in
+    *--workspace*) ;;
     *"npm run dev"*|*".dungeonmaster-dev"*)
       if [ "$MODE" = "dev" ]; then echo match; else echo other; fi
       return 0
@@ -131,6 +163,7 @@ for p in $PORTS; do
   pids="$(lsof -ti "tcp:$p" -sTCP:LISTEN 2>/dev/null || true)"
   for pid in $pids; do
     if is_safe "$pid"; then continue; fi
+    if ! is_repo_cwd "$pid"; then continue; fi
     if do_kill "$pid"; then
       PORT_KILLED="$PORT_KILLED $pid"
     fi
@@ -159,13 +192,7 @@ if [ -d /proc ]; then
       *) continue ;;
     esac
 
-    cwd="$(readlink "$pid_dir/cwd" 2>/dev/null || true)"
-    [ -n "$cwd" ] || continue
-
-    case "$cwd" in
-      "$REPO_ROOT"|"$REPO_ROOT"/*) ;;
-      *) continue ;;
-    esac
+    if ! is_repo_cwd "$pid"; then continue; fi
 
     [ "$(pid_mode "$pid" "$cmdline")" = "match" ] || continue
 

@@ -23,9 +23,15 @@ riftcarver → codeweaver ×N (one session per PACKAGE, DERIVED at Start) → wa
 `codeweaver`, `flowrider` and `siegemaster` are **operators** (`agentPromptClassificationStatics.operatorRoleNames`),
 each running on **opus**: it reads code itself, briefs GENERIC `general-purpose` sub-agents in its own words to make the
 edits, reads the diff itself, then summons exactly ONE named sonnet reviewer sub-agent —
-`codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` — to grade the pass (siegemaster also dispatches
-`siegemaster-walker`, one at a time, to drive the flow by hand). The operator's own signal table offers only `done` and
-`blocked`; the session loops, unbounded, until its own reviewer's `NEXT:` line reads `pass`.
+`codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` — to grade the pass. **Siegemaster drives nothing
+itself**: it runs ROUNDS, one per path walk, each dispatching a `siegemaster-verifier` and a `siegemaster-stress` pair
+together — each in its own isolated lane (an API server, a Vite server and a headless Chromium the minion boots itself
+from a bare lane name) — the verifier signing the observable/terminal/branch units on its path and the stress tester
+signing its round's allocated off-map family, both directly. The operator's own signal table offers only `done` and
+`blocked`; codeweaver and flowrider loop, unbounded, until their own reviewer's `NEXT:` line reads `pass`, and
+siegemaster loops the same way until every round and re-walk is clean — its own `siegemaster-reviewer` runs only if a
+fixer changed code, so a quest whose every round comes back clean signals `done` off its own checklist arithmetic
+instead.
 
 plus the three non-failure "sad" paths and the sole block path:
 
@@ -33,7 +39,11 @@ plus the three non-failure "sad" paths and the sole block path:
   'partial'` generically to any code-changing role: it marks the operation item `complete` and appends a
   `"pt N: {text}"` continuation; a fresh work item runs it. For `ward` this is the verify fixpoint: a `pt N` chain
   converging on a green run. `codeweaver`/`flowrider`/`siegemaster`'s own prompts never send `partial` — each signals
-  only `done` (its own named reviewer said `pass`) or `blocked` (its reviewer named an environment wall).
+  only `done` or `blocked`. Codeweaver and flowrider signal `done` once their own named reviewer says `pass`, and
+  `blocked` once that reviewer names an environment wall. Siegemaster signals `done` once every round and re-walk is
+  clean — via its `siegemaster-reviewer`'s `pass` where a fixer ran, or straight off its own checklist arithmetic
+  where none did — and `blocked` when ANY round minion (verifier, stress tester, fixer, or the reviewer) reports the
+  wall.
 - **ward red → spiritmender → re-ward** — a red ward marks its work item `failed` + its operation item `complete`, then
   appends a `spiritmender` operation item + a fresh ward (`pt N`, same `wardMode`); the spiritmender runs before the
   re-ward (never two wards back-to-back).
@@ -91,8 +101,8 @@ you rebuild + reconnect once.
 4. **Seeding rules** (per `quest-lifecycle.md` §14): every work item carries exactly one `operations/<id>` link to an
    `operations[]` item that exists on the quest; each operation item is worked by exactly one work item (strict 1:1);
    work-item `id` + `dependsOn` entries are UUIDs; `dependsOn` between work items is the only ordering mechanism; a ready
-   ward or riftcarver item dispatches via its own MCP tool alone; use an `operational` flow for siegemaster runtime
-   seeds to avoid a dev server.
+   ward or riftcarver item dispatches via its own MCP tool alone. `get-agent-prompt` serves siegemaster no dev-server
+   config at all, so either flow type is safe to seed.
 5. Stub-agent recipe: a real `Task()` that calls `get-agent-prompt` then `signal-back` (a real Task is required for
    identity resolution via `_meta.claudecode/toolUseId` → `subagents/agent-*.jsonl`). Dispatch with `model: sonnet`.
 

@@ -381,6 +381,136 @@ describe('qaChecklistToTextTransformer', () => {
     );
   });
 
+  // A BRANCH UNIT CARRIES NO OBSERVABLES OF ITS OWN — `flowEdgeContract` is
+  // `{id, from, to, label?, …signoffs}` — so the generic `## BRANCH SURFACE` paragraph is the only
+  // guidance a walker gets for one, and it is not enough on its own. The measured failure is
+  // `size-ok` on `paste-image-into-composer`: the branch asserted that a small pasted PNG comes back
+  // at 40×30 with unchanged bytes, and the assertion stayed green because Chromium's PNG round-trip
+  // at identical dimensions is deterministic and lossless. It could not tell branch-taken from
+  // branch-skipped. ARRIVAL is generated per branch from the graph so the row itself names what
+  // would be ambiguous.
+  describe('the branch ARRIVAL line', () => {
+    it('VALID: {two branches out of one node to DIFFERENT nodes} => names the sibling and demands a value the two produce differently', () => {
+      const lines = qaChecklistToTextTransformer({
+        checklist: QaChecklistStub({
+          flowId: 'paste-image-into-composer',
+          items: [
+            QaChecklistItemStub({
+              id: 'paste-image-into-composer:branch:size-ok',
+              kind: 'branch',
+              label: 'over-size-cap —"at or under 5 MB"→ insert-thumbnail',
+              edgeId: 'size-ok',
+              edgeFrom: 'over-size-cap',
+              edgeLabel: 'at or under 5 MB',
+              edgeTo: 'insert-thumbnail',
+            }),
+            QaChecklistItemStub({
+              id: 'paste-image-into-composer:branch:size-over',
+              kind: 'branch',
+              label: 'over-size-cap —"over 5 MB"→ downscale-image',
+              edgeId: 'size-over',
+              edgeFrom: 'over-size-cap',
+              edgeLabel: 'over 5 MB',
+              edgeTo: 'downscale-image',
+            }),
+          ],
+          remainingItemIds: [],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect(lines.filter((line) => line.trim().startsWith('ARRIVAL:'))).toStrictEqual([
+        '    ARRIVAL: rule out its sibling "over 5 MB" → downscale-image. Arriving at insert-thumbnail rather than there is the evidence, so show a value the two branches produce DIFFERENTLY — never one they both produce alike.',
+        '    ARRIVAL: rule out its sibling "at or under 5 MB" → insert-thumbnail. Arriving at downscale-image rather than there is the evidence, so show a value the two branches produce DIFFERENTLY — never one they both produce alike.',
+      ]);
+    });
+
+    it('VALID: {two branches out of one node to the SAME node} => says the shared destination is not evidence of which ran', () => {
+      const lines = qaChecklistToTextTransformer({
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({
+              id: 'a-flow:branch:cached',
+              kind: 'branch',
+              label: 'fetch —"cached"→ render',
+              edgeId: 'cached',
+              edgeFrom: 'fetch',
+              edgeLabel: 'cached',
+              edgeTo: 'render',
+            }),
+            QaChecklistItemStub({
+              id: 'a-flow:branch:fresh',
+              kind: 'branch',
+              label: 'fetch —"fresh"→ render',
+              edgeId: 'fresh',
+              edgeFrom: 'fetch',
+              edgeLabel: 'fresh',
+              edgeTo: 'render',
+            }),
+          ],
+          remainingItemIds: [],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect(lines.filter((line) => line.trim().startsWith('ARRIVAL:'))).toStrictEqual([
+        '    ARRIVAL: prove render was reached by THIS branch and not by its sibling "fresh" → render. A destination both branches share is not evidence of which one ran.',
+        '    ARRIVAL: prove render was reached by THIS branch and not by its sibling "cached" → render. A destination both branches share is not evidence of which one ran.',
+      ]);
+    });
+
+    it('VALID: {one labelled edge out of a node} => says arriving proves the node was reached, not the condition', () => {
+      const lines = qaChecklistToTextTransformer({
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({
+              id: 'a-flow:branch:submitted',
+              kind: 'branch',
+              label: 'compose —"submitted"→ sent',
+              edgeId: 'submitted',
+              edgeFrom: 'compose',
+              edgeLabel: 'submitted',
+              edgeTo: 'sent',
+            }),
+          ],
+          remainingItemIds: [],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect(lines.filter((line) => line.trim().startsWith('ARRIVAL:'))).toStrictEqual([
+        '    ARRIVAL: this is the only labelled edge out of compose. Arriving at sent proves the node was REACHED, not that this condition held — measure the condition itself.',
+      ]);
+    });
+
+    it('VALID: {terminal, observable and off-map units} => carry no ARRIVAL line', () => {
+      const lines = qaChecklistToTextTransformer({
+        checklist: QaChecklistStub({
+          flowId: 'a-flow',
+          items: [
+            QaChecklistItemStub({ id: 'a-flow:observable:check-one' }),
+            QaChecklistItemStub({
+              id: 'a-flow:terminal:end-node',
+              kind: 'terminal',
+              label: 'The end',
+            }),
+            QaChecklistItemStub({
+              id: 'a-flow:off-map:concurrency',
+              kind: 'off-map',
+              label: 'double submit',
+            }),
+          ],
+          remainingItemIds: [],
+          paths: [],
+        }),
+      }).split('\n');
+
+      expect(lines.filter((line) => line.trim().startsWith('ARRIVAL:'))).toStrictEqual([]);
+    });
+  });
+
   describe('unit sections', () => {
     it('VALID: {all four kinds} => each gets its own counted subsection', () => {
       const lines = qaChecklistToTextTransformer({

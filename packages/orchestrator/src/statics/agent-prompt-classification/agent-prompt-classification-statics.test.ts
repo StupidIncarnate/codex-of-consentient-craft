@@ -12,7 +12,8 @@ describe('agentPromptClassificationStatics', () => {
           'flowrider-reviewer',
           'siegemaster',
           'siegemaster-reviewer',
-          'siegemaster-walker',
+          'siegemaster-stress',
+          'siegemaster-verifier',
           'spiritmender',
           'warpgate',
         ],
@@ -22,7 +23,8 @@ describe('agentPromptClassificationStatics', () => {
           'codeweaver-reviewer',
           'flowrider-reviewer',
           'siegemaster-reviewer',
-          'siegemaster-walker',
+          'siegemaster-stress',
+          'siegemaster-verifier',
         ],
         operatorRoleNames: ['codeweaver', 'flowrider', 'siegemaster'],
       });
@@ -124,7 +126,7 @@ describe('agentPromptClassificationStatics', () => {
       },
     );
 
-    it('VALID: {minionNames} => holds only the per-role reviewers, the siegemaster walker and the spec-phase minion', () => {
+    it('VALID: {minionNames} => holds only the per-role reviewers, the siegemaster verifier/stress pair and the spec-phase minion', () => {
       expect(
         agentPromptClassificationStatics.minionNames.filter(
           (name) =>
@@ -132,7 +134,7 @@ describe('agentPromptClassificationStatics', () => {
               (role) => name === `${role}-reviewer`,
             ),
         ),
-      ).toStrictEqual(['chaoswhisperer-gap-minion', 'siegemaster-walker']);
+      ).toStrictEqual(['chaoswhisperer-gap-minion', 'siegemaster-stress', 'siegemaster-verifier']);
     });
   });
 });

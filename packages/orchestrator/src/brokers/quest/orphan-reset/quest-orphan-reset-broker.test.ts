@@ -290,4 +290,80 @@ describe('questOrphanResetBroker', () => {
       expect(result).toStrictEqual({ orphansReset: 1 });
     });
   });
+
+  describe('excludeWorkItemId', () => {
+    it('VALID: {live item re-stamped with a sessionId the sweep was not told about} => preserved by id, returns orphansReset: 0', async () => {
+      // The node-dispatch race this exclusion exists for: the reactor starts a watcher for the
+      // sessionId the item carried at dispatch (a RESUMED item carries its retained one), and by
+      // the time this sweep reads the quest the child's init line has re-stamped the item with
+      // the session Claude CLI minted for this run. The item is RUNNING with a live child, so a
+      // sessionId-only exclusion resets an agent that is still working.
+      const proxy = questOrphanResetBrokerProxy();
+      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-00000000000a' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const watchedSessionId = SessionIdStub({ value: 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4' });
+      const respawnedSessionId = SessionIdStub({ value: 'f5f5f5f5-f5f5-4f5f-8f5f-f5f5f5f5f5f5' });
+      const liveWorkItemId = QuestWorkItemIdStub({ value: '55555555-5555-4555-8555-000000000001' });
+      const liveItem = WorkItemStub({
+        id: liveWorkItemId,
+        status: 'in_progress',
+        sessionId: respawnedSessionId,
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'q-restamped' }),
+        status: 'in_progress',
+        workItems: [liveItem],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      // Staged deliberately even though nothing should be written: without it the write path
+      // throws on an unmocked call, the broker swallows it, and `orphansReset: 0` would hold
+      // whether or not the exclusion worked.
+      proxy.setupModifyForQuest({ quest });
+
+      const result = await questOrphanResetBroker({
+        excludeSessionId: watchedSessionId,
+        excludeWorkItemId: liveWorkItemId,
+      });
+
+      expect(result).toStrictEqual({ orphansReset: 0 });
+    });
+
+    it('VALID: {excluded work item plus a genuine orphan} => only the orphan is reset', async () => {
+      const proxy = questOrphanResetBrokerProxy();
+      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-00000000000b' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const watchedSessionId = SessionIdStub({ value: 'a6a6a6a6-a6a6-4a6a-8a6a-a6a6a6a6a6a6' });
+      const liveWorkItemId = QuestWorkItemIdStub({ value: '44444444-4444-4444-8444-000000000001' });
+      const liveItem = WorkItemStub({
+        id: liveWorkItemId,
+        status: 'in_progress',
+        sessionId: SessionIdStub({ value: 'b7b7b7b7-b7b7-4b7b-8b7b-b7b7b7b7b7b7' }),
+      });
+      const orphanItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: '44444444-4444-4444-8444-000000000002' }),
+        status: 'in_progress',
+        sessionId: SessionIdStub({ value: 'c8c8c8c8-c8c8-4c8c-8c8c-c8c8c8c8c8c8' }),
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'q-restamped-mixed' }),
+        status: 'in_progress',
+        workItems: [liveItem, orphanItem],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      proxy.setupModifyForQuest({ quest });
+
+      const result = await questOrphanResetBroker({
+        excludeSessionId: watchedSessionId,
+        excludeWorkItemId: liveWorkItemId,
+      });
+
+      expect(result).toStrictEqual({ orphansReset: 1 });
+    });
+  });
 });

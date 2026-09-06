@@ -346,7 +346,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   `packages/orchestrator/src/statics/`, and the shape of that source is the design: **every prompt is ONE FILE, and its
   name says whose it is.** There is no shared template and no per-role pack.
 
-  The served roster is ten names (`agentPromptClassificationStatics.promptNames`):
+  The served roster is eleven names (`agentPromptClassificationStatics.promptNames`):
 
   | Name | Kind | File | Model |
   |---|---|---|---|
@@ -358,13 +358,15 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   | `codeweaver-reviewer` | minion | `codeweaver-reviewer/` | sonnet |
   | `flowrider-reviewer` | minion | `flowrider-reviewer/` | sonnet |
   | `siegemaster-reviewer` | minion | `siegemaster-reviewer/` | sonnet |
-  | `siegemaster-walker` | minion | `siegemaster-walker/` | sonnet |
+  | `siegemaster-stress` | minion | `siegemaster-stress/` | sonnet |
+  | `siegemaster-verifier` | minion | `siegemaster-verifier/` | sonnet |
   | `chaoswhisperer-gap-minion` | minion | `chaoswhisperer-gap-minion/` | sonnet |
 
   **The three operator roles brief GENERIC sub-agents for the work itself.** A sub-agent that edits a file is a
   `general-purpose` agent its operator briefs in its own words, against a map that operator wrote. Only the sub-agents
   that must fetch a quest and read git on their own carry a served prompt: each operator's own reviewer, and
-  `siegemaster-walker`, which drives a live system and needs the measurement discipline every time.
+  siegemaster's `siegemaster-verifier` / `siegemaster-stress` pair, which drive a live system by hand and need the
+  measurement discipline every round.
 
   Two shared blocks are interpolated into those prompts rather than repeated:
   `standardsReviewConcernsStatics.markdown` — the five standing quality concerns, in all three reviewers — and
@@ -386,8 +388,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   the operation item, and that operation item's TEXT. **No quest CONTENT is served with them.** The flow, the contracts
   and the units are each their own `get-quest` / `get-qa-checklist` call, spelled out in the role's own prompt, and the
   flow id and package name those calls take are inside the operation item's text (`… — package: <name> · flow: <id>`).
-  Three role-specific extras ride along, and each is a value no tool call returns: `Dev Server Command` /
-  `Dev Server URL` for siegemaster, `Base branch` for warpgate, and
+  Two role-specific extras ride along, and each is a value no tool call returns: `Base branch` for warpgate, and
   `Failed ward result` / `Ward detail blob` for spiritmender.
 
   A parent-summoned minion calls `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and gets
@@ -441,12 +442,11 @@ across three readers serves each of them answers it cannot use.
 ### 4. Check the RENDERER before promising a session what it will be handed
 
 A prompt that enumerates what a session receives is a claim about a transformer. **`workItemToPromptTransformer`
-serves FOUR IDS and three conditional extras — nothing else** — so a prompt sentence pointing at anything wider than
+serves FOUR IDS and two conditional extras — nothing else** — so a prompt sentence pointing at anything wider than
 that names a block no session will find. What a role fetches for itself is `get-quest` / `get-qa-checklist`, and each of
 those gates blocks on non-emptiness too. **Trace the render for the DEGENERATE case** — no flow, no package, no
-contract, an empty diff — never the happy one. Two of the extras are conditional: siegemaster gets no dev-server lines
-where `.dungeonmaster.json` declares no `devServer`, and spiritmender gets no ward lines where no `wardResult` has a
-non-zero `exitCode`.
+contract, an empty diff — never the happy one. Both extras are conditional: warpgate gets no `Base branch` line where
+`quest.baseBranch` is unset, and spiritmender gets no ward lines where no `wardResult` has a non-zero `exitCode`.
 
 ### 5. Validate by DRY-RUNNING the prompt against a real quest
 
@@ -583,11 +583,16 @@ named reviewer commits it.
   `get-qa-checklist({ questId, operationItemId })`, reads the implementation to learn the exact value each unit
   claims, chooses a LAYER per unit (in a real browser, or below one), writes the same shape of map, briefs a
   sub-agent per test file, reads the diff, then runs a `flowrider-reviewer`. It signs `flowriderSignoff`.
-- **Siegemaster** (eleven steps) starts the dev server and owns it for the whole session, then loops: ONE
-  `siegemaster-walker` drives one path through the flow and reports what it measured, generic FIXER sub-agents repair
-  what it found, and a FRESH walker re-drives the same path from the reset state. A `siegemaster-reviewer` grades the
-  repairs at the end. It signs `siegemasterSignoff`, and `reset-flow-signoffs` is its lever when a fix moves behaviour
-  an earlier walk already cleared.
+- **Siegemaster** (ten steps) writes ONE shared guide, then runs ROUNDS — one per path walk off the checklist's
+  `## WALK PATHS`, cheapest first. Each round dispatches a PAIR in one message — a `siegemaster-verifier` and a
+  `siegemaster-stress` — each in its own isolated LANE (an API server, a Vite server and a headless Chromium, booted by
+  a driver at `packages/web/test/siege-driver/`). The verifier walks the round's path, signs the
+  observable/terminal/branch units on it, then dispatches sub-agents that each write ONE FAILING TEST per defect it
+  found; the stress tester attacks the round's allocated off-map family the same way and signs only that family. Once
+  every round has run, generic FIXER sub-agents repair what was found and a FRESH verifier re-walks the same path from
+  the reset state to prove the fix — off-map is never re-walked, since each family had exactly one round. A
+  `siegemaster-reviewer` grades the repairs, only where a fixer ran. It signs `siegemasterSignoff`, and
+  `reset-flow-signoffs` is its lever when a fix moves behaviour an earlier round already cleared.
 
 Eight things about that shape are load-bearing, and each is a measurement rather than a preference:
 
@@ -595,9 +600,9 @@ Eight things about that shape are load-bearing, and each is a measurement rather
   block. `Read`, `discover`, `get-project-map`, `get-project-inventory`, `get-folder-detail`, `get-architecture`,
   `get-syntax-rules`, `get-testing-patterns`, `git diff`/`status`/`log`, `Agent`, `modify-quest` and `signal-back` are
   YOURS. `Edit`/`Write` on any path but its own map, `npm run build`, `npm run ward` in every form, and every git verb
-  but reading are NOT. That map is the ONE path Codeweaver and Flowrider may write; Siegemaster writes no file at all — its record
-  is what the walkers report and what its reviewer commits — and its Dev Server Command and `reset-flow-signoffs` are
-  its alone, added by the sections that name them.
+  but reading are NOT. That map is the ONE path Codeweaver and Flowrider may write; Siegemaster writes no file at all —
+  its record is what each round's verifier and stress tester report, in the round files they write themselves, and
+  what its reviewer commits — and `reset-flow-signoffs` is its alone, added by the section that names it.
 - **It reads the DIFF, never the tree.** A session that reads whole files mid-loop stops dispatching and starts
   hand-coding. Two things hold that off: the scope is one package or one flow rather than a whole repo, and the
   reading step is `git diff` plus the specific files where two pieces meet — bounded by how much changed rather than
@@ -611,8 +616,9 @@ Eight things about that shape are load-bearing, and each is a measurement rather
   operator waits for all of them before the next group. Two changes touching the same file never go out together.
   Flowrider adds one more rule: never two browser walks against the same package at once, because Playwright writes
   one report path per package and the second run overwrites a report the first is still reading. Siegemaster runs
-  exactly ONE walker at a time, always — there is one dev server and one reset lever, and two walks reset the state
-  under each other with neither able to tell.
+  exactly ONE ROUND at a time, always — a round's own verifier and stress tester go out together, each in its own
+  lane, but the next round never starts until both return; a lane reused across rounds would measure a previous
+  round's leftover state instead of a fresh one.
 - **A sub-agent's brief carries `npm run ward -- --only lint,test -- <its own paths>`, and `typecheck` is deliberately
   out.** Ward runs typecheck as `tsc -b`, which builds and writes the shared `dist/`, so a wave of sub-agents running
   it at once hands each other type errors on correct code. The reviewer's `--uncommitted` run is the typecheck. The
@@ -1167,7 +1173,7 @@ System" + "Failure handling".
 
 ### Minions (parent-summoned sub-agents)
 
-**There are FIVE minion names** (`agentPromptClassificationStatics.minionNames`), and they are the only sub-agents with
+**There are SIX minion names** (`agentPromptClassificationStatics.minionNames`), and they are the only sub-agents with
 a served prompt:
 
 - **`codeweaver-reviewer`**, **`flowrider-reviewer`**, **`siegemaster-reviewer`** — one per operator role. Each reads
@@ -1178,23 +1184,34 @@ a served prompt:
   the flow; flowrider's grades whether a test BITES, and takes the judging half of `flowEvidenceContractStatics`;
   siegemaster's grades REPAIRS, where the failure shape is a change that makes the symptom go away without touching what
   produced it — a widened type, a swallowed error, a defaulted value, a loosened assertion.
-- **`siegemaster-walker`** — drives ONE path through a flow by hand against the running system and reports what it
-  measured. It changes nothing, which is why it has a prompt at all: its parent's rule is that no sub-agent prompt
-  writes product code. What it needs that a brief should not carry every time is the measurement discipline — the
-  reset, the expected-value-first order, the branch coverage, the `BROKEN WOULD SHOW` record and the browser traps. It
-  stops only where it physically cannot go on; anything else it notes and keeps walking, so one pass surfaces the whole
-  path.
+- **`siegemaster-verifier`** — walks ONE path through a flow by hand, inside its own isolated LANE, against a system
+  siegemaster already has running there. Pass 1 walks the whole path and signs the observable/terminal/branch units on
+  it, dispatching nothing; only once that pass is closed does pass 2 dispatch sub-agents, two at a time, each turning
+  one recorded defect into a FAILING TEST. It changes nothing itself, and neither does anything it dispatches.
+- **`siegemaster-stress`** — attacks the SAME path, in the round's other lane, against the one off-map family
+  siegemaster allocated to that round (or none). Pass 1 enumerates every stress point the path exposes; pass 2
+  dispatches sub-agents, two at a time, each driving one point through the lane and writing a failing test for it. It
+  signs only the family it was handed, once.
 - **`chaoswhisperer-gap-minion`** — the one minion outside an operator's session. It runs in the SPEC phase, before any
   operation item exists, and validates spec completeness before approval.
 
 **A reviewer is the last agent in its chain.** It calls no `signal-back` and starts no sub-agent of its own — a
 grandchild would produce conclusions nobody reads, because the parent checks the minion's own output and not a
-grandchild's summary. A walker is a leaf for the same reason.
+grandchild's summary. **A verifier and a stress tester are not leaves — each dispatches its own pass-2 sub-agents to
+turn what it found into failing tests — but DEPTH STOPS AT TWO: those sub-agents spawn nothing further.** The reason
+they may dispatch at all is exactly the reason a reviewer may not: a reviewer's grandchild would produce a summary
+nobody reads, because the parent checks the minion's own output, not a grandchild's, while a verifier's or a stress
+tester's sub-agent output is a FILE — a red test on disk — that the operator and a later fixer both read directly. What
+it does not earn is a third level: one fixer on the send flow spawned ten `Explore` grandchildren and burned roughly
+4.5 million context tokens proving a single fix, a cost this design forbids at the brief rather than discovering after
+the fact.
 
 **Every minion fetches with `{ agent, questId }` and NO `workItemId`.** That fetch hands back its prompt, its Quest ID
 and nothing else — no operation item, no ledger, no flows, no packages. Everything narrower reaches it through its
 parent's brief: a reviewer gets an `OPERATION:` line naming the operation item id (or a `SWEEP:` line naming the paths
-`git status` listed), and a walker gets `FLOW:`, `PATH:`, `SERVER:`, `RESET:` and `UNITS:`.
+`git status` listed); a `siegemaster-verifier` gets `FLOW:`, `LANE:`, `PATH:`, `FORCE:`, `RESET:`, `UNITS:`,
+`SURFACES:`, `WORK ITEM:` and `GUIDE:`; a `siegemaster-stress` gets `FLOW:`, `PATH:`, `UNITS:`, `FAMILY:`, `LANE:`,
+`RESET:`, `PLAN:` and `WORK ITEM:`.
 
 `roleNames` and `minionNames` stay DISJOINT, and the mechanical stakes are what enforce it: a minion added to
 `roleNames` would widen `agentRoleContract` with a role no operation item can ever hold, and a role added to
@@ -1385,17 +1402,20 @@ keeping `sessionId` + the `resume` marker. Without it the blocking item is still
 recovery pass re-escalates and re-blocks — a resume that does nothing. The rearm persists BEFORE the status flip. Items
 whose operation item is `complete` are left alone, so a red ward's superseded `failed` item is not resurrected.
 
-**The dev server is Siegemaster's alone.** `agentPromptGetBroker` resolves `devServer.devCommand` + `devServer.port`
-from `.dungeonmaster.json` for `role === 'siegemaster'` ONLY, and `workItemToPromptTransformer` appends
-`Dev Server Command` / `Dev Server URL` to that role's Operation Context only.
+**Siegemaster no longer owns a dev server — each round's minion owns its own LANE.** `siegeLane`
+(`packages/web/test/siege-driver/siege-lane.ts`) stands up an API server, a Vite server and a headless Chromium
+against an OS-assigned port pair and a throwaway `DUNGEONMASTER_HOME` — one call per minion per round. Siegemaster
+allocates which two lane names/directories a round gets (never reused across rounds, never shared between the pair)
+and passes each on its own minion's `LANE:` line; it never starts, drives or stops one itself.
+`workItemToPromptTransformer` carries no dev-server extra for siegemaster any more (see "Editing or Creating a Prompt"
+rule 4).
 
-- **Siegemaster starts one by hand and owns it for the whole session**, because hands-on walking cannot lean on a
-  `webServer` that is torn down when an e2e run ends. It starts the server once, keeps it up for the session, and
-  stops it only as it is about to signal. Several units measure a difference from a value only that process's lifetime
-  provides — an uptime, a monotonic counter, an append-only log — so a restart mid-session destroys them for every
-  later walk with nothing to show it happened. Its walkers and fixers are forbidden to start, restart or stop it.
-  Teardown is a scoped kill (port + cwd), never a blanket one, and **a server that will not start is Siegemaster's
-  first defect, not a wall.**
+- **Each minion starts, drives and tears down its own lane.** The verifier needs one nothing else has touched; the
+  stress tester needs one it is free to kill, corrupt or hammer — the pair get separate lanes DELIBERATELY. Several
+  units measure a difference from a value only a lane's own process lifetime provides — an uptime, a monotonic
+  counter, an append-only log — so restarting a live lane mid-round destroys them for that round with nothing to show
+  it happened. Fixers are forbidden to touch any lane, and **a lane that will not start is a defect the round
+  surfaces, never a wall.**
 - **Codeweaver and Flowrider are given no dev server and need none.** A Flowrider browser walk brings its own up from
   the project's Playwright config (`webServer`) and tears it down with the run, and its specs navigate
   `baseURL`-relative so no URL reaches the test. A missing `webServer` block makes every unit it blocks
@@ -1532,12 +1552,14 @@ for two fetches racing. No worktree, or an unreadable HEAD, records nothing. It 
 | `chaoswhisperer-gap-minion` | ChaosWhisperer (inside `/dumpster-create`) | sonnet | Validate spec completeness before approval. It runs in the spec phase, before any operation item exists, and is the ONE minion name `agentPromptGetBroker` still serves when a `workItemId` arrives with it |
 | `codeweaver-reviewer` | Codeweaver, once per pass, plus once per sweep | sonnet | Reads the quest and git, opens every file the pass produced IN FULL, asks whether the code does what the flow says, whether the pieces fit, whether each unit test BITES, and what is missing — plus the five standing concerns. Fixes what is small, runs `npm run build` and `npm run ward -- --uncommitted` (twice at most), commits the pass ONCE and pushes bare. A LEAF: no sub-agents, no `signal-back` |
 | `flowrider-reviewer` | Flowrider, once per pass, plus once per sweep | sonnet | The same shape, over a TEST SUITE. Its distinctive question is whether an assertion bites — for each one, what wrong value turns it red — and it takes the judging half of `flowEvidenceContractStatics`. A LEAF |
-| `siegemaster-reviewer` | Siegemaster, once at the end of the loop, plus once per sweep | sonnet | The same shape, over REPAIRS. Its distinctive failure shape is a change that makes the symptom go away without touching the cause: a widened type, a swallowed error, a defaulted value, a loosened assertion. It re-drives nothing — a fresh walker does that. A LEAF |
-| `siegemaster-walker` | Siegemaster, ONE at a time, always | sonnet | Drives one path through the flow by hand against the running system and reports what it measured. Changes nothing. Stops only where it physically cannot go on; everything else it notes and keeps walking. A fresh walker is what proves a fix, because the fixer's own claim is not evidence. A LEAF |
+| `siegemaster-reviewer` | Siegemaster, once at the end of the loop, plus once per sweep | sonnet | The same shape, over REPAIRS. Its distinctive failure shape is a change that makes the symptom go away without touching the cause: a widened type, a swallowed error, a defaulted value, a loosened assertion. It re-drives nothing — a fresh verifier does that. A LEAF |
+| `siegemaster-verifier` | Siegemaster, one per round, alongside a `siegemaster-stress` | sonnet | Walks one path through the flow by hand, in its own lane, before dispatching anything: pass 1 signs the observable/terminal/branch units it measured; pass 2 dispatches sub-agents, two at a time, that each write ONE FAILING TEST for a recorded defect. Changes nothing itself. Depth stops at its own sub-agents |
+| `siegemaster-stress` | Siegemaster, one per round, alongside a `siegemaster-verifier` | sonnet | Attacks the same path in the round's other lane, against its allocated off-map family: pass 1 enumerates every stress point; pass 2 dispatches sub-agents, two at a time, that each drive one point through the lane and write a failing test for it. Signs only its one family. Depth stops at its own sub-agents |
 
 **Every minion fetches with `{ agent, questId }` and NO `workItemId`.** That fetch hands back its prompt, its Quest ID
 and nothing else — no operation item, no ledger, no flows, no packages — which is why its parent's brief carries the
-`OPERATION:` / `SWEEP:` line (a reviewer) or the `FLOW:` / `PATH:` / `SERVER:` / `RESET:` / `UNITS:` lines (a walker).
+`OPERATION:` / `SWEEP:` line (a reviewer) or the `FLOW:` / `LANE:` / `PATH:` / `RESET:` / `UNITS:` lines (a verifier
+or a stress tester).
 
 The relay roles that DO own a work item (`codeweaver`, `flowrider`, `siegemaster`, `spiritmender`, `warpgate`) fetch
 the same way plus a `workItemId` — `get-agent-prompt({agent, questId, workItemId})`, see "Agent Roles".
@@ -1566,30 +1588,31 @@ test that imports the orchestrator barrel must neutralize the scheduler the same
 `start-orchestrator.integration.test.ts` imports `StartOrchestrator` without neutralizing and carries
 the same latent leak.
 
-## Headless spawns get Claude-in-Chrome ONLY via `--chrome`, and the flag IS the grant
+## Headless spawns get no browser tools
 
 Claude Code attaches the Claude-in-Chrome MCP only when a session passes `--chrome` (or ran the
-interactive `/chrome` flow). A plain `claude -p` gets ZERO `mcp__claude-in-chrome__*` tools — the
-extension being installed, and the user's interactive session having the tools, are irrelevant to the
-child. `child-process-spawn-stream-json-adapter.ts` therefore passes `--chrome` unconditionally;
-siegemaster is the role that needs it, since its walkers drive `ui-state` observables in a real
-browser.
+interactive `/chrome` flow). `child-process-spawn-stream-json-adapter.ts` passes neither, so every
+headless `claude -p` child this package spawns starts with ZERO `mcp__claude-in-chrome__*` tools,
+regardless of whether the extension is installed or the user's own interactive session has the
+tools — those are irrelevant to the child.
 
-**No `settings.json` grant is required — the flag carries its own permission.** Verified against an
-isolated `CLAUDE_CONFIG_DIR` holding no chrome grant and with the project's allow-list ignored:
+Siegemaster's `ui-state` observables are driven by a Playwright lane
+(`packages/web/test/siege-driver/`), each round's verifier/stress pair holding its own headless
+Chromium — no session dispatched from this package needs `mcp__claude-in-chrome__*`.
+
+**`--chrome` is the only way to attach those tools to a headless child**, should a future role need
+them: Claude Code grants Claude-in-Chrome via that one CLI flag and nothing else, and the flag
+carries its own permission grant (no `settings.json` entry required) — verified against an isolated
+`CLAUDE_CONFIG_DIR` holding no chrome grant and with the project's allow-list ignored,
 `mcp__claude-in-chrome__tabs_context_mcp` was PERMITTED while `mcp__webstorm__*` was DENIED under the
-same `defaultMode`. Nothing to add to `settingsPermissionsAddBroker` / `dungeonmaster init`.
+same `defaultMode`. Two things to check before relying on it again: bypass-permissions mode disables
+it (`--dangerously-skip-permissions` + `--chrome` = no browser tools — verify the flag actually took
+effect, do not assume), and a sub-agent may not inherit it — the CLI reports the tool set "was fixed
+before the browser connection completed", relevant to the `/dumpster-launch` Task() dispatch path.
 
-Two ways it silently fails:
-- **Bypass-permissions mode disables it.** `--dangerously-skip-permissions` + `--chrome` = no browser
-  tools. Verify the flag actually took effect; do not assume.
-- **Sub-agents may not inherit it** — the CLI reports the tool set "was fixed before the browser
-  connection completed". Relevant to the `/dumpster-launch` Task() dispatch path, which the adapter
-  fix does NOT cover.
-
-The general rule still holds for every OTHER MCP server: an ungranted MCP tool in a headless `-p`
-child is denied outright, never prompted — which is why `agentGitPermissionsStatics` exists. Chrome is
-the exception because its CLI flag is itself the grant.
+The general rule holds for every OTHER MCP server: an ungranted MCP tool in a headless `-p` child is
+denied outright, never prompted — which is why `agentGitPermissionsStatics` exists. Chrome would be
+the exception, because its CLI flag is itself the grant.
 
 ## Never parallel-dispatch different roles
 

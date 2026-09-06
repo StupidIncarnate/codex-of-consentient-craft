@@ -82,13 +82,34 @@ export const questMonitorWatcherStartBroker = async ({
   const projectPath = absoluteFilePathContract.parse(projectDir);
   const sessionId = sessionIdContract.parse(parentSessionId);
 
+  // A top-level node-dispatch worker session uses a `proc-worker-` chatProcessId so the
+  // server's parent-source dispatcher-chatter filter (gated on the `proc-monitor-` prefix)
+  // leaves its main-session content intact — that content is the worker's actual output,
+  // not dispatcher chatter. Dispatcher (/dumpster-launch) sessions keep `proc-monitor-`.
+  // Resolved BEFORE the orphan reset below, which needs it as an exclusion key.
+  const mainSessionWorkItemId: QuestWorkItemId | undefined =
+    workerWorkItemId === undefined ? undefined : questWorkItemIdContract.parse(workerWorkItemId);
+
   // Orphan reset re-runs whenever a parent session is observed — if the prior launcher
   // died mid-flight, in_progress work items still carry the old session's metadata and
   // get-next-step would skip them. We pass `excludeSessionId: sessionId` so the very
   // workItem that triggered this watcher (stamped with parentSessionId by get-agent-prompt
   // moments ago) is preserved — otherwise the reactor falls into a stamp → start → reset
   // → stop oscillation on every dispatch.
-  await questOrphanResetBroker({ excludeSessionId: sessionId });
+  //
+  // `excludeWorkItemId` protects the SAME item by an id that cannot move under the sweep's
+  // feet. A node-dispatch worker is dispatched under whatever sessionId its work item already
+  // carried — a RESUMED item carries the retained one — and then the child's init line
+  // re-stamps the item with the session Claude CLI minted for this run. The reactor started
+  // this watcher for the id it saw first, so a sessionId-only exclusion stops matching the
+  // moment the re-stamp lands, and the sweep resets an agent that is still running. The whole
+  // reason that window is wide enough to lose is the walk under `FRESHNESS` in the reset
+  // broker: it reads every quest.json under the home, so it grows with everything ever left
+  // there.
+  await questOrphanResetBroker({
+    excludeSessionId: sessionId,
+    ...(mainSessionWorkItemId === undefined ? {} : { excludeWorkItemId: mainSessionWorkItemId }),
+  });
 
   // Quest-driven subscription state: per-quest sets of agentIds currently stamped on
   // in-progress work items. The watcher only tails subagent JSONLs whose agentId is in
@@ -107,12 +128,6 @@ export const questMonitorWatcherStartBroker = async ({
     sessionId,
   });
 
-  // A top-level node-dispatch worker session uses a `proc-worker-` chatProcessId so the
-  // server's parent-source dispatcher-chatter filter (gated on the `proc-monitor-` prefix)
-  // leaves its main-session content intact — that content is the worker's actual output,
-  // not dispatcher chatter. Dispatcher (/dumpster-launch) sessions keep `proc-monitor-`.
-  const mainSessionWorkItemId: QuestWorkItemId | undefined =
-    workerWorkItemId === undefined ? undefined : questWorkItemIdContract.parse(workerWorkItemId);
   const mainSessionQuestId: QuestId | undefined =
     workerQuestId === undefined ? undefined : questIdContract.parse(workerQuestId);
   const chatProcessId: ProcessId = processIdContract.parse(

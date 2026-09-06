@@ -17,7 +17,7 @@
  * any git spawn and no test that is not about it pays for it. `setupWorktreeHead` opts in.
  */
 
-import { pathJoinAdapterProxy, processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   FileContentsStub,
   FileNameStub,
@@ -26,10 +26,8 @@ import {
   repoRootCwdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
-import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
 import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-sha-adapter.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
@@ -46,14 +44,6 @@ type Quest = ReturnType<typeof QuestStub>;
 const WORKTREE_CWD = repoRootCwdContract.parse('/home/testuser/worktrees/quest-abc12345');
 const REPO_ROOT_CWD = repoRootCwdContract.parse('/home/testuser/my-guild');
 
-// The broker builds startPath as pathJoinAdapter([processCwdAdapter(), projectConfigFile]).
-// pathJoinAdapterProxy() defaults to a real '/'-join and processCwdAdapterProxy() defaults to
-// '/default/cwd' (both from @dungeonmaster/shared/testing), so this is the exact, real address
-// dungeonmasterConfigResolveAdapter is called with on the flowrider/siegemaster branch.
-const DEV_SERVER_CONFIG_START_PATH = FilePathStub({
-  value: `/default/cwd/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
-});
-
 export const agentPromptGetBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupLockedQuest: (params: { quest: Quest }) => void;
@@ -62,24 +52,10 @@ export const agentPromptGetBrokerProxy = (): {
   setupCwdUnresolvable: () => void;
   getStampedWorkItems: () => readonly unknown[];
   getGitSpawnedArgs: () => unknown;
-  setupDevServerConfig: (params: {
-    config: ReturnType<ReturnType<typeof dungeonmasterConfigResolveAdapterProxy>['makeRealConfig']>;
-  }) => void;
-  setupDevServer: (params: { devCommand: string; port: number; webPort?: number }) => void;
-  setupNoDevServerConfig: () => void;
-  getDevServerConfigStartPath: () => ReturnType<
-    ReturnType<typeof dungeonmasterConfigResolveAdapterProxy>['getResolvedStartPath']
-  >;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const loadProxy = questLoadBrokerProxy();
-  // Recovery I/O the broker performs for flowrider/siegemaster (dev-server config read). Existing
-  // role tests (codeweaver/minion) never hit this branch, so it is never called for them; the
-  // semantic methods below let dev-server tests stage the resolved config for the branch that
-  // DOES call it.
-  const configProxy = dungeonmasterConfigResolveAdapterProxy();
-  processCwdAdapterProxy();
 
   // Runs REAL — its proxy mocks the spawn at the I/O boundary, addressed on the `git` command, so
   // the stamp reads a genuine `git rev-parse HEAD` exit code and stdout. Unstaged, any git call
@@ -201,50 +177,5 @@ export const agentPromptGetBrokerProxy = (): {
 
     // The git argv the stamp actually spawned, or undefined when it never reached git.
     getGitSpawnedArgs: (): unknown => headShaProxy.getSpawnedArgs(),
-
-    // Stage the resolved .dungeonmaster.json for the flowrider/siegemaster dev-server branch.
-    setupDevServerConfig: ({
-      config,
-    }: {
-      config: ReturnType<
-        ReturnType<typeof dungeonmasterConfigResolveAdapterProxy>['makeRealConfig']
-      >;
-    }): void => {
-      configProxy.setupConfigResolved({ startPath: DEV_SERVER_CONFIG_START_PATH, config });
-    },
-
-    // Stage a resolved config carrying a devServer block from raw command + port. Builds the
-    // config via the config stub internally so siege dev-server tests don't construct contracts.
-    setupDevServer: ({
-      devCommand,
-      port,
-      webPort,
-    }: {
-      devCommand: string;
-      port: number;
-      webPort?: number;
-    }): void => {
-      const config = configProxy.makeConfigWithArgs({
-        devServer: { devCommand, port, ...(webPort === undefined ? {} : { webPort }) },
-      } as never);
-      configProxy.setupConfigResolved({ startPath: DEV_SERVER_CONFIG_START_PATH, config });
-    },
-
-    // Stage the siegemaster branch resolving a config with NO devServer block —
-    // the real DungeonmasterConfigStub() default (devServer is `.optional()`, no default),
-    // matching a repo that has a .dungeonmaster.json but no devServer configured.
-    setupNoDevServerConfig: (): void => {
-      configProxy.setupConfigResolved({
-        startPath: DEV_SERVER_CONFIG_START_PATH,
-        config: configProxy.makeRealConfig(),
-      });
-    },
-
-    // Capture the startPath the broker handed to dungeonmasterConfigResolveAdapter on the
-    // flowrider/siegemaster branch — the regression guard asserts it resolves to a file (not the
-    // bare cwd directory, whose dirname() walks above the repo root and misses
-    // .dungeonmaster.json).
-    getDevServerConfigStartPath: (): ReturnType<typeof configProxy.getResolvedStartPath> =>
-      configProxy.getResolvedStartPath(),
   };
 };

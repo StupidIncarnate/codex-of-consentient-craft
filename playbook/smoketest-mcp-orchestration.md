@@ -107,15 +107,21 @@ HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-resu
   the codeweaver session that owns the package the fix lands in. There is no separate bug-hunt implementation role.
 
 Each of `codeweaver`, `flowrider`, `siegemaster` is an **operator** (`agentPromptClassificationStatics.operatorRoleNames`)
-running on **opus**. It reads code itself (never opens the round-loop / minion machinery of an older design — there is
-none any more), briefs GENERIC `general-purpose` sub-agents in its own words to make edits, reads the diff itself, and
-summons exactly ONE named sonnet reviewer sub-agent to grade the pass — `codeweaver-reviewer`, `flowrider-reviewer`, or
-`siegemaster-reviewer` (siegemaster also dispatches `siegemaster-walker`, one at a time, to drive the flow by hand
-against a running system). The operator's own signal table offers only `done` and `blocked` — the session loops,
-unbounded, until its own reviewer's `NEXT:` line reads `pass`; a `partial` (and its `pt N` continuation) is a mechanism
-the responder still applies generically to any code-changing role, but these three operators never choose it. Only the
-named reviewer builds, wards (`npm run ward -- --uncommitted`), commits (once), and pushes (bare) — no code-writing
-sub-agent does any of that.
+running on **opus**. It briefs GENERIC `general-purpose` sub-agents in its own words to make edits and summons exactly
+ONE named sonnet reviewer sub-agent to grade the pass — `codeweaver-reviewer`, `flowrider-reviewer`, or
+`siegemaster-reviewer`. Codeweaver and flowrider read code themselves and read the diff before summoning their
+reviewer. **Siegemaster reads no code and drives nothing itself**: it runs ROUNDS, one per path walk, each
+dispatching a `siegemaster-verifier` and a `siegemaster-stress` pair together, each in its own isolated lane — its own
+API server, Vite server and headless Chromium, booted by the minion itself from a bare lane name — the verifier
+signing the observable/terminal/branch units on its path and the stress tester signing its round's allocated off-map
+family, both directly via their own `modify-quest` call. The operator's own signal table offers only `done` and
+`blocked` — codeweaver and flowrider loop, unbounded, until their own reviewer's `NEXT:` line reads `pass`; siegemaster
+loops the same way until every round and every re-walk is clean, and its own `siegemaster-reviewer` runs only if a
+fixer changed code — a quest whose every round comes back clean signals `done` straight off its own checklist
+arithmetic instead. A `partial` (and its `pt N` continuation) is a mechanism the responder still applies generically
+to any code-changing role, but these three operators never choose it. Only the named reviewer builds, wards (`npm run
+ward -- --uncommitted`), commits (once), and pushes (bare) — no code-writing sub-agent does any of that, and neither
+does a verifier or a stress tester.
 
 ---
 
@@ -215,10 +221,10 @@ gates and the input allowlist, so you can drop the quest into any state:
 ### 7. Seeding reference — minimal objects that pass save-invariants
 
 Paste these into `quest.json`, swapping ids as needed. Operation-item ids are UUIDs (branded `OperationItemId`); the
-`related-data-item-contract` regex is `^(operations|wardResults|riftcarverResults|flows)/[a-z0-9-]+$`. **An
-`operational` flow needs no dev server** — use it so a seeded siegemaster doesn't trigger `.dungeonmaster.json`
-dev-server resolution (a seeded flowrider brings its own via the project's Playwright config on a runtime flow, and
-needs none on an operational one).
+`related-data-item-contract` regex is `^(operations|wardResults|riftcarverResults|flows)/[a-z0-9-]+$`. **`get-agent-prompt`
+serves siegemaster no dev-server config at all** — a seeded siegemaster item never triggers `.dungeonmaster.json`
+dev-server resolution, whatever the flow type (a seeded flowrider still brings its own via the project's Playwright
+config on a runtime flow, and needs none on an operational one).
 
 ```jsonc
 // quest.operations[] — the ledger; each item is worked by exactly one work item
@@ -232,7 +238,7 @@ needs none on an operational one).
   { "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "codeweaver", "status": "pending", "spawnerType": "agent",   "dependsOn": [],                                       "relatedDataItems": ["operations/11111111-1111-1111-1111-111111111111"], "createdAt": "..." },
   { "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "ward",       "status": "pending", "spawnerType": "command", "dependsOn": ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"], "wardMode": "changed",                                                     "relatedDataItems": ["operations/22222222-2222-2222-2222-222222222222"], "createdAt": "..." }
 ],
-// quest.flows[] — read by flowrider/siegemaster for context; operational → no dev server
+// quest.flows[] — read by flowrider/siegemaster for context
 "flows": [
   { "id": "flow-1", "name": "smoketest flow", "flowType": "operational", "entryPoint": "cli", "exitPoints": ["done"], "nodes": [], "edges": [] }
 ]
@@ -319,10 +325,10 @@ the MCP `get-quest` view strips `workItems`/`wardResults`).
   (`agentRoleContract`, 5) is `codeweaver, flowrider, siegemaster, spiritmender, warpgate` — `riftcarver`/`ward` are
   deliberately excluded (they are commands, terminal by exit code) and the four chat roles are excluded too. No
   minion name is ever a role: `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`,
-  `siegemaster-walker`, and `chaoswhisperer-gap-minion` are `agentPromptNameContract` names only — a parent summons
-  them via the `Agent` tool with `{ agent, questId }` and NO `workItemId`, so they are never work items and never
-  appear on the ledger. `agentPromptClassificationStatics.roleNames` and `.minionNames` are DISJOINT, and the
-  colocated test pins that.
+  `siegemaster-verifier`, `siegemaster-stress`, and `chaoswhisperer-gap-minion` are `agentPromptNameContract` names
+  only — a parent summons them via the `Agent` tool with `{ agent, questId }` and NO `workItemId`, so they are never
+  work items and never appear on the ledger. `agentPromptClassificationStatics.roleNames` and `.minionNames` are
+  DISJOINT, and the colocated test pins that.
 - **ward retry budget** = `slotManagerStatics.ward.maxRetries` (the red-ward chain of a `wardMode` since the last green
   of that mode); riftcarver's repairable chain uses `slotManagerStatics.riftcarver.maxRetries` the same way. A locked
   role's `pt N` chain (if ever exercised) = `slotManagerStatics.<role>.maxAttempts` (3 for codeweaver, flowrider,
@@ -393,7 +399,7 @@ expand.
 | ward exit code                   | `execution-row-ward-result`                       | `Ward exit code: {n}` (+ `(mode)`) | green if 0 else red — see B3                             |
 | ward detail                      | `execution-row-ward-detail`                       | per-failure lines                  | HTTP fetch — see B3                                      |
 | error                            | `execution-row-error-message`                     | `Error: ...`                       | populates for a failed **ward**/**riftcarver** run, or a `blocked` signal's `blockedReason` |
-| agent transcript                 | inside `execution-row-expanded` (chat-entry-list) | text/tool rows/sub-agent chains    | auto-expands while `in_progress`; an operator's briefed sub-agents and its named reviewer/walker render as sub-agent chains inside its own row |
+| agent transcript                 | inside `execution-row-expanded` (chat-entry-list) | text/tool rows/sub-agent chains    | auto-expands while `in_progress`; an operator's briefed sub-agents and its named reviewer render as sub-agent chains inside its own row — for siegemaster, so do each round's `siegemaster-verifier`/`siegemaster-stress` pair, any fixers, and its reviewer where one runs |
 
 ## B2b. Operations ledger (rendered in BOTH the execution panel AND the QUEST SPEC tab)
 
@@ -430,8 +436,9 @@ detail breakdown only for a known-**failing** ward run.
   assert each row's transcript is **distinct**.
 - **Sub-agent chain collapse inside one transcript = `toolUseId`** (`collectSubagentChainsTransformer`). Chain header
   `SUBAGENT_CHAIN_HEADER` (`▾ SUB-AGENT "{desc}" ({n} entries)`), group `SUBAGENT_CHAIN`. A generic code-writing
-  sub-agent, a named reviewer (`codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer`), or
-  `siegemaster-walker` all render as a chain inside their parent operator's row.
+  sub-agent, a named reviewer (`codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer`), or — for
+  siegemaster — a round's `siegemaster-verifier`/`siegemaster-stress` pair, all render as a chain inside their parent
+  operator's row.
 
 ## B5. NOT observable in the UI — assert ONLY in `quest.json`
 
@@ -461,7 +468,8 @@ detail breakdown only for a known-**failing** ward run.
 >   never parallel-dispatch different roles** — `signal-back` does not gate on readiness, so a hand-batched pipeline
 >   force-completes items out of order and invalidates the run.
 > - The ONLY sub-agent activity in the model is a real operator role briefing generic sub-agents and its own named
->   reviewer (or `siegemaster-walker`) via the `Agent` tool. Those are inside the parent's turn, not separate
+>   reviewer (or, for siegemaster, each round's `siegemaster-verifier`/`siegemaster-stress` pair) via the `Agent` tool.
+>   Those are inside the parent's turn, not separate
 >   `get-next-step` dispatches — you never dispatch them, and a smoketest stub agent should not simulate them either
 >   (the stub's whole point is to exercise `get-agent-prompt`/`signal-back`, not the operator's internal briefing loop).
 > - **Operationally:** ONE `get-next-step` → dispatch its single returned entry → wait → assert `quest.json` →
@@ -486,8 +494,8 @@ Every step of every flow is the same six beats:
     - confirm strict 1:1: no second work item minted for one operation item.
 5. **ASSERT web** (no refresh):
     - the row status badge shows the right **label** (B1): `RUNNING` on dispatch → `DONE`/`FAILED` on outcome;
-    - the agent's log renders **under its own row**; a briefed sub-agent or named reviewer/walker renders as a chain
-      (B4);
+    - the agent's log renders **under its own row**; a briefed sub-agent or named reviewer (or, for siegemaster, a
+      round's verifier/stress pair) renders as a chain (B4);
     - **work-item insertions appear live** (advance's next row, a `pt N` continuation, a spliced spiritmender/fresh
       command) within a couple seconds; the operations ledger (B2b) grows;
     - ward rows show `Ward exit code: N` (+ detail for a failing run) (B3).
@@ -731,22 +739,28 @@ Verify each agent prompt still gives an LLM enough to do its job — every capab
 
 The three operator roles each carry their OWN prompt file, and each summons its own named reviewer sub-agent(s):
 `codeweaver-prompt` (+ `codeweaver-reviewer`), `flowrider-prompt` (+ `flowrider-reviewer`), `siegemaster-prompt` (+
-`siegemaster-reviewer` and `siegemaster-walker`), plus the shared blocks they interpolate
+`siegemaster-reviewer`, `siegemaster-verifier` and `siegemaster-stress`), plus the shared blocks they interpolate
 (`standards-review-concerns-statics`, `flow-evidence-contract-statics`), the bespoke prompts `spiritmender-prompt`,
 `warpgate-prompt`, `glyphsmith-prompt`, `tavernkeeper-prompt`, `dumpster-create-prompt`, `dumpster-hunt-prompt`, plus
 `chaoswhisperer-gap-minion`. There is no shared operator template and no generic planner/worker/reviewer minion any
-more — walk each of the ten `agentPromptClassificationStatics.promptNames` files on its own.
+more — walk each of the eleven `agentPromptClassificationStatics.promptNames` files on its own.
 
 ### Procedure (per prompt)
 
 1. **Read** the static.
-2. **Enumerate the required capabilities.** For an operator prompt: does it verify the item against git + the ledger
-   itself, read the code it needs to change, write its own working notes, brief generic sub-agents in its own words,
-   read the diff, summon exactly its own named reviewer (and, for siegemaster, `siegemaster-walker`), loop on `rework`,
-   and stop only on `pass` (→ `done`) or `wall` (→ `blocked`)? For a named reviewer/walker: does it load the standards
-   itself where relevant, does it fetch with `{ agent, questId }` and no `workItemId`, does it refuse to summon a
-   sub-agent of its own (it is a LEAF), and does it refuse `signal-back` and (for the reviewer) do the git it owns —
-   build, ward `--uncommitted`, commit once, push bare?
+2. **Enumerate the required capabilities.** For codeweaver/flowrider: does it verify the item against git + the
+   ledger itself, read the code it needs to change, write its own working notes, brief generic sub-agents in its own
+   words, read the diff, summon exactly its own named reviewer, loop on `rework`, and stop only on `pass` (→ `done`)
+   or `wall` (→ `blocked`)? For siegemaster, which reads no code and drives nothing itself: does it allocate a pair of
+   lane names and dispatch a `siegemaster-verifier`/`siegemaster-stress` pair per round, brief fixers once across
+   every round's findings, send fresh verifiers back over any path that had an issue, and summon its own
+   `siegemaster-reviewer` only when a fixer changed code? For a named reviewer (a LEAF — it summons no sub-agent of
+   its own): does it load the standards itself where relevant, does it fetch with `{ agent, questId }` and no
+   `workItemId`, does it refuse `signal-back`, and does it do the git it owns — build, ward `--uncommitted`, commit
+   once, push bare? For `siegemaster-verifier`/`siegemaster-stress` — the one exception that DOES dispatch, its own
+   pass-2 sub-agents, one level deeper and no further: does it walk its whole scope before dispatching anything, does
+   it brief each pass-2 sub-agent to write a FAILING test and nothing else, does it sign only what it measured
+   directly via `modify-quest`, and does it refuse `signal-back` too?
 3. **Trace each capability to a real mechanism:** does the prompt name the exact MCP tool / command / file path /
    static, and does it still exist? (`discover` to confirm — don't trust the prompt.) Are referenced signals/fields
    valid against current contracts (`signal-back` = `complete` + `operationStatus`; agents never write `operations`;

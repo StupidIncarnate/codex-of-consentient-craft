@@ -136,11 +136,17 @@ codeweaver ×N (DERIVED at Start, one item PER PACKAGE)
 Each of `codeweaver`, `flowrider`, `siegemaster` is an **operator**: it runs on **opus**, reads code itself, briefs
 GENERIC sub-agents (plain `general-purpose` `Agent` dispatches, briefed in its own words) to make the edits, reads the
 diff, and summons exactly ONE named sonnet reviewer sub-agent — `codeweaver-reviewer`, `flowrider-reviewer`, or
-`siegemaster-reviewer` (siegemaster also dispatches `siegemaster-walker` to drive the system by hand). The operator's
-own prompt offers only `done` and `blocked` — the loop inside one session is unbounded, ended by its own reviewer's
-`NEXT: pass` verdict, never by a round cap. **No standards-review item is seeded, and none is ever appended** — the
-five standards concerns are guidance taken by the operator's own named reviewer, in the same reading pass, and nothing
-about that review is written to `quest.json`.
+`siegemaster-reviewer`. **Siegemaster is the exception that reads no code and drives nothing itself**: it runs ROUNDS,
+one per path walk, each dispatching a `siegemaster-verifier` and a `siegemaster-stress` pair together, each in its own
+isolated lane (its own API server, Vite server and headless Chromium, booted by the minion itself from a bare lane
+name) — the verifier signing the observable/terminal/branch units on its path and the stress tester signing its
+round's allocated off-map family, both directly via their own `modify-quest` call. The operator's own prompt offers
+only `done` and `blocked` — codeweaver and flowrider loop, unbounded, ended by their own reviewer's `NEXT: pass`
+verdict, never by a round cap; siegemaster loops the same way until every round and every re-walk is clean, and its
+own `siegemaster-reviewer` runs only if a fixer changed code — a quest whose every round comes back clean signals
+`done` straight off its own checklist arithmetic instead. **No standards-review item is seeded, and none is ever
+appended** — the five standards concerns are guidance taken by the operator's own named reviewer, in the same reading
+pass, and nothing about that review is written to `quest.json`.
 
 ---
 
@@ -181,9 +187,9 @@ under Node mode) that first calls `get-agent-prompt({ agent, workItemId, questId
 Ward is the exception: it is a command item (`spawnerType: 'command'`) with no `get-agent-prompt` call — the dispatcher
 calls the `run-ward` MCP tool for it (§10).
 
-A NAMED sub-agent (a role's own reviewer, or `siegemaster-walker`) never goes through this dispatch path at all — its
-parent operator summons it directly via the `Agent` tool, fetching its prompt with `{ agent, questId }` and NO
-`workItemId`. It owns no work item and never calls `signal-back`.
+A NAMED sub-agent (a role's own reviewer, or — for siegemaster — a round's `siegemaster-verifier`/`siegemaster-stress`
+pair) never goes through this dispatch path at all — its parent operator summons it directly via the `Agent` tool,
+fetching its prompt with `{ agent, questId }` and NO `workItemId`. It owns no work item and never calls `signal-back`.
 
 ---
 
@@ -393,6 +399,5 @@ least satisfy those invariants.
   operation's status by hand.
 - `dependsOn` between work items is the ONLY ordering mechanism — no hardcoded role sequence.
 - A ready ward or riftcarver item always dispatches via its `run-ward`/`run-riftcarver` MCP tool, alone.
-- Use an `operational` flow for siegemaster runtime seeds to avoid needing a dev server (a siegemaster item resolves
-  `.dungeonmaster.json` dev-server config; flowrider's runtime-flow suites bring their own via Playwright's
-  `webServer` config instead).
+- `get-agent-prompt` serves siegemaster no dev-server config at all — a seeded item's flow type is free either way (a
+  seeded flowrider still brings its own dev server via Playwright's `webServer` config on a runtime flow).

@@ -86,29 +86,46 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
   change touches — never the whole tree), writes its own working notes, and **briefs generic sub-agents** (plain
   `general-purpose` `Agent` dispatches, in the operator's own words against what it read) to make the actual edits.
   When sub-agents return, the operator reads the diff itself and summons exactly ONE **named** reviewer sub-agent —
-  `codeweaver-reviewer`, `flowrider-reviewer`, or `siegemaster-reviewer` (siegemaster also dispatches
-  `siegemaster-walker` to drive the system by hand) — and reads that reviewer's terminal `NEXT:` line: `pass` ends the
-  session (`signal-back` with `done`), `rework` sends the named remainder back out for another pass, `wall` stops the
-  session and signals `blocked`. **The loop is unbounded and `partial` is not on an operator's signal table** — another
-  pass costs a pass inside the same session; a `partial` would cost a whole fresh session that has to reconstruct the
-  remainder out of git. No code-writing sub-agent commits, builds, or wards; the named reviewer is the only session on
-  the pass that runs `npm run build` / `npm run ward -- --uncommitted`, and it alone commits (once) and pushes (bare).
-- **Named sub-agent** — the five sub-agents with a served prompt (`agentPromptClassificationStatics.minionNames`):
-  `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`, `siegemaster-walker`, and the spec-phase
-  `chaoswhisperer-gap-minion`. All five run on **sonnet**. Each fetches with `{ agent, questId }` and **no
-  `workItemId`** — it owns no work item, and it never calls `signal-back`; everything narrower than "which quest" (an
-  operation item id, a flow, a set of paths) reaches it through its parent's own brief. A named sub-agent is a LEAF:
-  it summons no sub-agent of its own. `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` each grade a
-  different subject (product code against the flow; whether a test suite bites; whether a repair touched the cause or
-  just hid the symptom) but share one shape — read every file the pass produced in full, take the five standards
-  concerns in the same pass, fix what is small and clearly theirs, build, ward, commit, push, and answer with a
-  `NEXT:` line. `siegemaster-walker` drives one path through a flow by hand against the running system and changes
-  nothing — no build, no ward, no commit, no git.
+  `codeweaver-reviewer`, `flowrider-reviewer`, or `siegemaster-reviewer` — and reads that reviewer's terminal `NEXT:`
+  line: `pass` ends the session (`signal-back` with `done`), `rework` sends the named remainder back out for another
+  pass, `wall` stops the session and signals `blocked`. **Siegemaster is the one exception to "reads code itself":**
+  it drives nothing and reads no source of its own. Each ROUND instead dispatches a `siegemaster-verifier` and a
+  `siegemaster-stress` pair together, one per path walk, each in its own isolated lane, and each minion signs what it
+  measures directly — the operator itself signs nothing. Its own reviewer runs only once, after every round, and only
+  when a fixer changed code; a quest whose rounds all come back clean skips the reviewer and signals `done` straight
+  off its own checklist arithmetic instead. **The loop is unbounded and `partial` is not on an operator's signal
+  table** — another pass costs a pass inside the same session; a `partial` would cost a whole fresh session that has
+  to reconstruct the remainder out of git. No code-writing sub-agent commits, builds, or wards; the named reviewer,
+  where one runs, is the only session on the pass that runs `npm run build` / `npm run ward -- --uncommitted`, and it
+  alone commits (once) and pushes (bare).
+- **Named sub-agent** — the six sub-agents with a served prompt (`agentPromptClassificationStatics.minionNames`):
+  `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`, `siegemaster-verifier`, `siegemaster-stress`,
+  and the spec-phase `chaoswhisperer-gap-minion`. All six run on **sonnet**. Each fetches with `{ agent, questId }`
+  and **no `workItemId`** — it owns no work item, and it never calls `signal-back`; everything narrower than "which
+  quest" (an operation item id, a flow, a set of paths, an off-map family) reaches it through its parent's own brief.
+  `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` and `chaoswhisperer-gap-minion` are LEAVES: each
+  summons no sub-agent of its own. `siegemaster-verifier` and `siegemaster-stress` are the one exception — each walks
+  its whole scope first, dispatching nothing, then dispatches its OWN `general-purpose` sub-agents two at a time
+  against the numbered list it just closed, one per defect or stress point recorded, each writing a FAILING test.
+  Depth stops there, by the same rule that keeps every sub-agent from spawning a third level of its own.
+  `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` each grade a different subject (product code
+  against the flow; whether a test suite bites; whether a repair touched the cause or just hid the symptom) but share
+  one shape — read every file the pass produced in full, take the five standards concerns in the same pass, fix what
+  is small and clearly theirs, build, ward, commit, push, and answer with a `NEXT:` line. `siegemaster-verifier`
+  drives one path through a flow by hand against the running system and signs the observable, terminal and branch
+  units it measures there, directly, via its own `modify-quest` call; `siegemaster-stress` drives the same path
+  adversarially against the one off-map family its round was allocated and signs that family the same way. Neither
+  writes product code, and neither builds, wards or commits beyond the narrow `--only lint,test` ward each of ITS OWN
+  pass-2 sub-agents runs on the test file it just wrote.
 - **Operator convergence** — `codeweaver`, `flowrider` and `siegemaster` do NOT use the ward fixpoint, and do not
   gate `done` on sign-off completeness. Each operator signals `done` once its own named reviewer's `NEXT:` line reads
   `pass`, and `blocked` only on an environment wall its reviewer names `wall`. Sign-offs recorded along the way
   (`codeweaverSignoff`, `flowriderSignoff`, `siegemasterSignoff`) are a durable proof record for the next reader, not
   a completion gate — **an unsigned unit refuses nothing.** There is no aggregate status across the three tracks.
+  **Siegemaster is the one exception to "its reviewer's `NEXT:` line":** its reviewer runs only when a fixer changed
+  code — a quest whose every round comes back clean skips it and signals `done` straight off a fresh
+  `get-qa-checklist` read instead — and a `wall` can come from any round minion (verifier, stress tester, fixer, or
+  the reviewer when one runs), not the reviewer alone.
 - **Standards review** is NOT a role, NOT a ledger item, and writes NOTHING to `quest.json`. The five concerns
   (`craft`, `perf`, `dedup`, `integrity`, `test-cases`, from `standardsReviewConcernsStatics`) are GUIDANCE — "nothing
   counts what a reviewer answers here and no gate refuses a signal over a concern nobody took" (the statics file's own
@@ -335,8 +352,12 @@ Trace one feature quest end to end.
 8. **Verify roles** run in tail order — `flowrider`, then `siegemaster`. Both are **operators**:
    `flowrider` runs one session per flow, authoring the test suites that prove it in the browser and
    below it, signalling `done` once its own `flowrider-reviewer` says `pass`; `siegemaster` runs one
-   session PER flow, driving the running system by hand (via `siegemaster-walker`) and repairing what
-   it finds, signalling `done` once its own `siegemaster-reviewer` says `pass`. The two roles' tracks
+   session PER flow, driving nothing itself — it runs ROUNDS, one per path walk, each dispatching a
+   `siegemaster-verifier`/`siegemaster-stress` pair together, each in its own isolated lane, to drive
+   and sign what it measures directly, then briefs fixers once across every round's findings and sends
+   fresh verifiers back over any path that had an issue until every re-walk is clean, signalling `done`
+   once every round and re-walk is clean — via its `siegemaster-reviewer`'s `pass` when a fixer ran, or
+   straight off its own checklist arithmetic when none did. The two roles' tracks
    are INDEPENDENT — a `flowriderSignoff` does nothing to `siegemasterSignoff`'s gate, and vice versa.
    Each role's chain is keyed on role + base text — one chain PER FLOW for each. There is no
    standards-review item in this tail and none is appended to it: each session's own named reviewer
@@ -450,7 +471,8 @@ PER FLOW (its text carries the flow id), so each flow gets its own budget. The c
 carries the same `flowIds`.
 
 Both are **operators** and signal on their own reviewer's verdict, never on whether a pass changed code, and neither
-gates `done` on sign-off completeness. Each asks ONE question and answers only its own:
+gates `done` on sign-off completeness (siegemaster's own reviewer runs only if a fixer changed code — a clean pass
+signals `done` off its own checklist instead). Each asks ONE question and answers only its own:
 
 - **`flowrider` — is this flow proven by a test, in the browser and below it?** Its scope is the ONE flow its item
   names. It reads the implementation to learn the exact value each unit claims, chooses a LAYER per unit (Playwright
@@ -461,14 +483,27 @@ gates `done` on sign-off completeness. Each asks ONE question and answers only i
   its item names, runtime or operational, plus the SEVEN off-map breakage families it owns: `re-entry`,
   `concurrency`, `interruption`, `staleness`, `configuration`, `hostile-input`, `perf`. `hostile-input` is where this
   quest's security is established and `perf` is where its performance is measured, both off the running system. It
-  starts a dev server and owns it for the session, loops `siegemaster-walker` (drive one path, report what broke) and
-  fixer sub-agents (repair what the walker found) until a walk comes back clean, then summons a `siegemaster-reviewer`
-  to grade the repairs before signing `siegemasterSignoff`.
+  drives nothing itself: it runs ROUNDS, one per path walk off the checklist's ordered `WALK PATHS`, allocating one
+  off-map family per round from round one — never trailing behind the flow work, and never repeated — because a
+  probe deferred to the end of a session may never be reached: measured on one 553-minute session, the first off-map
+  probe went out at +226 minutes and still produced 6 of 9 real defects, while a second session died before reaching
+  four of the seven families. Each round dispatches a `siegemaster-verifier` and a `siegemaster-stress` pair
+  TOGETHER, each in its own isolated lane — its own API server, Vite server, headless Chromium page,
+  `DUNGEONMASTER_HOME` and port pair — because the stress tester kills processes and corrupts config in its lane on
+  purpose and the verifier needs a lane nothing else has touched. Each minion walks its whole scope first and
+  dispatches nothing, then dispatches sub-agents two at a time against its own closed list, each writing a FAILING
+  test per defect or stress point it recorded — the verifier signing the observable/terminal/branch units on its path
+  directly, the stress tester signing its allocated off-map family directly, both via their own `modify-quest` call.
+  Once every round has run, siegemaster briefs fixers ONCE for everything every round found, then sends fresh
+  verifiers back over any path that had an issue until every re-walk comes back clean. It summons a
+  `siegemaster-reviewer` to grade the repairs only if a fixer changed code — a quest whose every round comes back
+  clean skips the reviewer and signals `done` straight off its own checklist arithmetic. See SIEGE-1 through SIEGE-6
+  under "Invariants" for the testable shape of this design.
 
 | Role             | Happy (`done`)                                                                                            | Sad (`blocked`)                                                                       |
 |------------------|------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
 | **Flowrider**    | advance → the next `flowrider` item, or `siegemaster` on the last one, once its `flowrider-reviewer` says `pass` | environment wall its reviewer names `wall`; § (d) |
-| **Siegemaster**  | advance → the next `siegemaster` item, or `ward(full)` on the last one, once its `siegemaster-reviewer` says `pass` | environment wall its reviewer names `wall`; § (d) |
+| **Siegemaster**  | advance → the next `siegemaster` item, or `ward(full)` on the last one, once every round has run, every re-walk is clean, and every unit carries a verdict — via its `siegemaster-reviewer`'s `pass` when a fixer ran, or straight off its own checklist arithmetic when none did | environment wall reported by ANY round minion — verifier, stress tester, fixer, or the reviewer when one runs — as `wall`; § (d) |
 
 **`unconfirmable` is not a failure.** A unit no session of that role could ever settle is signed `unconfirmable` with
 its question, and the pass moves on — nothing about that verdict blocks `done`.
@@ -482,7 +517,7 @@ THREE independent top-level sign-offs:
 |---|---|---|
 | `codeweaverSignoff` | the `codeweaver-reviewer` that grades a codeweaver pass | is this proven by a unit test beside the code? |
 | `flowriderSignoff` | the `flowrider-reviewer` that grades a flowrider pass | is this proven by a flow-perspective test, in the browser or below it? |
-| `siegemasterSignoff` | the `siegemaster-reviewer` that grades a siegemaster pass | does this hold when a person drives the real system? |
+| `siegemasterSignoff` | `siegemaster-verifier` (observable/terminal/branch units on its own path) or `siegemaster-stress` (its allocated off-map family), each directly, as it measures | does this hold when a person drives the real system? |
 
 Each is `{ verdict, evidence, question?, workItemId, at }` and each `verdict` is one of exactly TWO values:
 
@@ -944,6 +979,39 @@ dispatchable while the wreckage is still in place.
   persists that BEFORE the status flip. A resume that only flipped the status would re-block on the
   next scan.
 
+### Siegemaster
+
+- **SIEGE-1 — A lane that will not boot is a defect, never a wall.** Each round allocates two fresh lanes, one per
+  minion, each carrying its own API server, Vite server, headless Chromium page, `DUNGEONMASTER_HOME` and port pair,
+  never reused across minions or rounds. A lane that fails to start, or whose server dies mid-round, is something
+  that round's own minion reports and a fixer repairs like any other finding — not an environment wall, and not a
+  `blocked` signal.
+- **SIEGE-2 — Pass 1 dispatches nothing, and a truncated pass 1 is invisible.** `siegemaster-verifier` walks its
+  whole path, and `siegemaster-stress` enumerates its whole stress list, before either dispatches a single sub-agent;
+  a minion that interleaves — fix one, find the next — exhausts itself partway and nothing downstream can tell its
+  list was cut short, because nothing records that a tail was ever owed. This is an authoring discipline stated in
+  each minion's own served prompt, not a check any broker runs.
+- **SIEGE-3 — Pass 2 is graded against the minion's OWN closed list, so a truncation there IS visible.** Each
+  minion's `COVERAGE:` line reports dispatched-vs-listed against the numbered list it closed at the end of its own
+  pass 1, never against the flow in the abstract. Siegemaster does not move a round to its fix step until every list
+  entry carries a sub-agent's return or a recorded reason it does not.
+- **SIEGE-4 — A test must be proven RED before it is trusted.** Every pass-2 sub-agent — dispatched by either
+  minion — must watch its new or extended test fail, against unchanged source, for the reason its brief names, before
+  it reports the test's path back. A test that passes when it was required to fail is not reported as done; the
+  fixer's own claim that a repair works is never evidence on its own either — only a fresh re-walk from the reset
+  state proves that.
+- **SIEGE-5 — A unit is signed once; a second sign-off on it silently discards the first's evidence.**
+  `siegemaster-verifier` and `siegemaster-stress` each write `siegemasterSignoff` directly, via their own
+  `modify-quest` call — never the parent, and never a reviewer — and `questModifyBroker` merges by unit id. This is
+  why siegemaster briefs each round's verifier with only the units still REMAINING on its path (an already-confirmed
+  unit never re-enters a later round's list), why each off-map family is allocated to exactly one round, and why a
+  fix that could have moved an already-walked flow's behaviour goes through `reset-flow-signoffs` rather than a bare
+  re-walk.
+- **SIEGE-6 — The reviewer is conditional, not automatic.** Unlike `codeweaver-reviewer` and `flowrider-reviewer`,
+  which grade every pass, `siegemaster-reviewer` is summoned once, after every round has run, and only if a fixer
+  changed code. A quest whose every round comes back clean signals `done` with no reviewer pass at all — its
+  sign-offs are the verifiers' and stress testers' own, written as they measured, and were never waiting on a review.
+
 ### Contract integrity
 
 - **C-1 — `dependsOn` references resolve** to existing work items in the same quest.
@@ -977,9 +1045,11 @@ dispatchable while the wreckage is still in place.
    ▼ ward (changed)   [run-ward]        → green → advance
    ▼ flowrider (one session per flow)   → done → advance     (reads code, briefs test-writing sub-agents,
                                                               one flowrider-reviewer, sign flowriderSignoff)
-   ▼ siegemaster (one session per flow) → done → advance     (owns a dev server, loops a siegemaster-walker
-                                                              + fixer sub-agents, one siegemaster-reviewer,
-                                                              sign siegemasterSignoff)
+   ▼ siegemaster (one session per flow) → done → advance     (runs ROUNDS — one per path walk, each a
+                                                              verifier/stress-tester pair in its own lane;
+                                                              fixers once, after all rounds; reviewer only
+                                                              if a fixer ran; verifier/stress sign
+                                                              siegemasterSignoff directly)
    ▼ ward (full)      [run-ward]        → green → advance
    No pending operation item remains → workItemsToQuestStatusTransformer derives complete ✓
 The dispatcher's next get-next-step picks up the next FIFO quest.

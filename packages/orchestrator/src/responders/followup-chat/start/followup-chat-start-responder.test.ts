@@ -145,7 +145,6 @@ describe('FollowupChatStartResponder', () => {
         '--verbose',
         '--model',
         'opus',
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
         '--resume',
@@ -219,7 +218,6 @@ describe('FollowupChatStartResponder', () => {
           '--verbose',
           '--model',
           'opus',
-          '--chrome',
           '--settings',
           '{"hooks":{}}',
           '--resume',
@@ -265,7 +263,6 @@ describe('FollowupChatStartResponder', () => {
         '--verbose',
         '--model',
         'opus',
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);

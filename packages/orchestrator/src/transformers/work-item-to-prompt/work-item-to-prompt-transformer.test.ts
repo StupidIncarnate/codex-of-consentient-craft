@@ -17,12 +17,8 @@ import { mcpToolResultStatics, workItemRoleStatics } from '@dungeonmaster/shared
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
-import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
-import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
-import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
@@ -34,8 +30,6 @@ import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 // excerpt would drift the moment a prompt is edited, and every assertion below compares the entire
 // served string.
 const CODEWEAVER_TEMPLATE = codeweaverPromptStatics.prompt.template;
-const FLOWRIDER_TEMPLATE = flowriderPromptStatics.prompt.template;
-const SIEGEMASTER_TEMPLATE = siegemasterPromptStatics.prompt.template;
 
 // Fixture scale for the MCP tool-result budget below, calibrated against a real dogfood quest
 // (e0210063): a 21-item ledger, seven flows, five affected packages, and a 1,530-character user
@@ -286,7 +280,7 @@ describe('workItemToPromptTransformer', () => {
     // below reached the served prompt once, and every one of them is fetchable — the flow through
     // `get-quest({ questId, flowId })`, the contracts through the `packageName` call beside it, the
     // units through `get-qa-checklist`. What is NOT fetchable stays, and has its own tests further
-    // down: the dev server, the base branch, and the failed ward blob.
+    // down: the base branch, and the failed ward blob.
     //
     // Each case pins the WHOLE substitution rather than asserting an absence, because an assertion
     // that some string is missing passes just as well when the render broke entirely.
@@ -609,95 +603,6 @@ describe('workItemToPromptTransformer', () => {
       });
     });
 
-    describe('dev-server pass-through is siegemaster-only', () => {
-      it('VALID: {role: siegemaster, devServer provided} => appends Dev Server Command + Dev Server URL lines', () => {
-        const questId = QuestIdStub({ value: 'my-quest' });
-        const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-4444-4222-9333-444444444444' });
-        const operationId = OperationItemIdStub({
-          value: 'ffffffff-4444-4222-9333-444444444444',
-        });
-        const operation = OperationItemStub({
-          id: operationId,
-          role: 'siegemaster',
-          text: 'manual-QA every quest flow',
-          status: 'in_progress',
-        });
-        const workItem = WorkItemStub({
-          id: workItemId,
-          role: 'siegemaster',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-        });
-        const quest = QuestStub({
-          id: questId,
-          operations: [operation],
-          workItems: [workItem],
-        });
-
-        const result = workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
-          devServer: {
-            devCommand: DevCommandStub({ value: 'npm run dev' }),
-            devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
-          },
-        });
-
-        const expectedArgs = [
-          `Quest ID: ${String(questId)}`,
-          `Work Item ID: ${String(workItemId)}`,
-          `Operation Item ID: ${String(operationId)}`,
-          'Your operation item: [siegemaster] manual-QA every quest flow',
-          '',
-          'Dev Server Command: npm run dev',
-          'Dev Server URL: http://localhost:3000',
-        ].join('\n');
-
-        expect(result.prompt).toBe(SIEGEMASTER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
-      });
-
-      // Flowrider never starts a server — Playwright's own `webServer` config owns the one its e2e
-      // run needs, and its tests navigate baseURL-relative. Even handed a resolved devServer, the
-      // transformer must not append the lines: they would invite a minion to author a `webServer`
-      // block into the shared Playwright config, which races when bundles run in parallel.
-      it('EDGE: {role: flowrider, devServer provided} => still omits Dev Server Command/URL lines', () => {
-        const questId = QuestIdStub({ value: 'my-quest' });
-        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5555-4222-9333-444444444444' });
-        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5555-4222-9333-444444444444' });
-        const operation = OperationItemStub({
-          id: operationId,
-          role: 'flowrider',
-          text: 'author the flow-perspective test suites',
-          status: 'in_progress',
-        });
-        const workItem = WorkItemStub({
-          id: workItemId,
-          role: 'flowrider',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-        });
-        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
-
-        const result = workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: 'flowrider' }),
-          devServer: {
-            devCommand: DevCommandStub({ value: 'npm run dev' }),
-            devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
-          },
-        });
-
-        const expectedArgs = [
-          `Quest ID: ${String(questId)}`,
-          `Work Item ID: ${String(workItemId)}`,
-          `Operation Item ID: ${String(operationId)}`,
-          'Your operation item: [flowrider] author the flow-perspective test suites',
-        ].join('\n');
-
-        expect(result.prompt).toBe(FLOWRIDER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
-      });
-    });
-
     it('VALID: {role: spiritmender, latest wardResult failed with runId} => appends Failed ward result + Ward detail blob lines', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8888-4222-9333-444444444444' });
@@ -986,10 +891,6 @@ describe('workItemToPromptTransformer', () => {
           quest,
           workItem,
           agentName,
-          devServer: {
-            devCommand: DevCommandStub({ value: 'npm run dev' }),
-            devServerUrl: DevServerUrlStub({ value: 'http://localhost:3737' }),
-          },
         });
 
         const servedBlock = JSON.stringify(
@@ -1070,10 +971,6 @@ describe('workItemToPromptTransformer', () => {
           quest,
           workItem,
           agentName,
-          devServer: {
-            devCommand: DevCommandStub({ value: 'npm run dev' }),
-            devServerUrl: DevServerUrlStub({ value: 'http://localhost:3737' }),
-          },
         });
 
         const servedBlock = JSON.stringify(

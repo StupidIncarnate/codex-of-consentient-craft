@@ -31,7 +31,7 @@ describe('siegemasterPromptStatics', () => {
     expect(Buffer.byteLength(TEMPLATE, 'utf8')).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
   });
 
-  it('VALID: served template => names its eleven top-level sections in document order', () => {
+  it('VALID: served template => names its twelve top-level sections in document order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^## .+$/gmu), (match) => match[0])).toStrictEqual([
       '## The words this page uses',
       '## What you do, and what you never do',
@@ -39,7 +39,8 @@ describe('siegemasterPromptStatics', () => {
       '## Your tools',
       '## The script',
       "## Reading a sub-agent's return",
-      '## Briefing a walker',
+      '## Briefing the verifier',
+      '## Briefing the stress tester',
       '## Briefing a fixer',
       '## Briefing your reviewer',
       '## Recording a spec change',
@@ -47,21 +48,22 @@ describe('siegemasterPromptStatics', () => {
     ]);
   });
 
-  // THE LOOP IS WALK, FIX, WALK AGAIN — the numbered script still runs once end to end, and the two
-  // dev-server steps (2 and 9) bracket it. Pinning the wording catches a step silently reordered.
-  it('VALID: served template => names its eleven script steps in order', () => {
+  // THE LOOP IS ROUND, THEN FIX, THEN RE-VERIFY — step 4 dispatches one round per path walk, in
+  // order; steps 5 to 7 are the fix-and-reverify convergence that follows it, and every round that
+  // had an issue coming back clean is what leaves that convergence. Pinning the wording catches a
+  // step silently reordered.
+  it('VALID: served template => names its ten script steps in order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^### \d+\. .+$/gmu), (match) => match[0])).toStrictEqual([
       '### 1. Fetch your flow, and the list of what you owe a verdict on',
-      '### 2. Start the dev server',
-      '### 3. Build the walker guide, then decide the walk order',
-      '### 4. Send ONE walker',
-      '### 5. Send fixers for what it found',
+      '### 2. Order your path walks',
+      '### 3. Build the guide, then allocate your off-map families',
+      '### 4. Send the pair for this path walk',
+      '### 5. Send fixers for what every round found',
       '### 6. Read what the fixers changed',
-      '### 7. Walk again',
+      '### 7. Verifiers re-walk the paths that had issues',
       '### 8. Run your reviewer — only if a fixer changed code',
       '### 9. Record what you claim, and what you found',
-      '### 10. Stop the dev server',
-      '### 11. Signal',
+      '### 10. Signal',
     ]);
   });
 
@@ -75,10 +77,11 @@ describe('siegemasterPromptStatics', () => {
     ).toBe(true);
   });
 
-  // THIS OPERATOR'S ROUTING TABLE IS THE REVIEWER'S, INSIDE STEP 8 — the loop that repeats is steps 4
-  // to 7, ended only by a clean walk, and only the reviewer's `NEXT:` line moves the operator on.
-  // Step 8 runs at all only when a fixer changed code: a reviewer reads CODE, and a flow that walked
-  // clean leaves it an empty diff to confirm.
+  // THIS OPERATOR'S ROUTING TABLE IS THE REVIEWER'S, INSIDE STEP 8 — the fix-and-reverify convergence
+  // that repeats is steps 5 to 7, ended only by every issue-carrying round coming back clean, and only
+  // the reviewer's `NEXT:` line moves the operator on. Step 8 runs at all only when a fixer changed
+  // code: a reviewer reads CODE, and a flow whose every round came back clean leaves it nothing to
+  // open, nothing to build against and nothing to commit.
   it("VALID: served template => routes the reviewer's NEXT: line through exactly pass, rework and wall", () => {
     expect({
       pass: hasIn({ needle: '| `pass` | go to step 9 |', text: TEMPLATE }),
@@ -87,8 +90,7 @@ describe('siegemasterPromptStatics', () => {
         text: TEMPLATE,
       }),
       wall: hasIn({
-        needle:
-          '| `wall` | go to step 9, stop the dev server at step 10, then signal `blocked` at step 11 |',
+        needle: '| `wall` | go to step 9, then signal `blocked` at step 10 |',
         text: TEMPLATE,
       }),
       noCap: hasIn({
@@ -102,17 +104,17 @@ describe('siegemasterPromptStatics', () => {
     expect({
       pass: hasIn({
         needle:
-          '| `pass` | from a walker: it reached the exit. **Read its `NOTED:` line — anything but `none` goes to step 5 before you walk on.** From a fixer: move on. |',
+          '| `pass` | from a verifier or a stress tester: it reached the exit. **Read its `NOTED:` line — anything but `none` goes to step 5 before you move to the next round.** From a fixer: move on. |',
         text: TEMPLATE,
       }),
       rework: hasIn({
         needle:
-          '| `rework` | from a walker, it found issues — go to step 5. From a fixer, it could not finish. |',
+          '| `rework` | from a verifier or a stress tester, it found issues — it still goes to step 5 with everything else this round found. From a fixer, it could not finish. |',
         text: TEMPLATE,
       }),
       wall: hasIn({
         needle:
-          '| `wall` | stop sending work out. Let anything running finish, then go to step 9, stop the dev server at step 10, and signal `blocked` at step 11 — never `done`. |',
+          '| `wall` | stop sending work out. Let anything running finish, then go to step 9, and signal `blocked` at step 10 — never `done`. |',
         text: TEMPLATE,
       }),
       missingLine: hasIn({
@@ -123,8 +125,8 @@ describe('siegemasterPromptStatics', () => {
   });
 
   // A WAVE OF FIXERS RUNNING WARD AT ONCE COLLIDES ON THE SHARED `dist/` IF ANY OF THEM TYPECHECKS —
-  // ward's typecheck is `tsc -b`, a build, and a build under the live system changes what the next
-  // walker measures. Scoping to `lint,test` keeps typecheck out; the reviewer's `--uncommitted` run is
+  // ward's typecheck is `tsc -b`, a build, and a build under a live lane changes what that round's
+  // re-walk measures. Scoping to `lint,test` keeps typecheck out; the reviewer's `--uncommitted` run is
   // where it happens, once, at the end.
   it("VALID: served template => scopes a fixer's own ward run to lint,test and forbids it from building", () => {
     expect({
@@ -140,8 +142,9 @@ describe('siegemasterPromptStatics', () => {
     }).toStrictEqual({ scopedRun: true, namesWhyLintTestOnly: true, neverBuild: true });
   });
 
-  // ALL THREE SUB-AGENT KINDS SHARE ONE DISPATCH SHAPE, so the walker, the fixer and the reviewer
-  // each carry the same `subagent_type`/`model` pair rather than three independent claims.
+  // ALL DISPATCHED SUB-AGENTS SHARE ONE DISPATCH SHAPE, so the verifier, the stress tester, the fixer
+  // and the reviewer each carry the same `subagent_type`/`model` pair rather than four independent
+  // claims.
   it('VALID: served template => dispatches every sub-agent with subagent_type general-purpose and model sonnet', () => {
     expect(
       hasIn({
@@ -151,18 +154,23 @@ describe('siegemasterPromptStatics', () => {
     ).toBe(true);
   });
 
-  it('VALID: served template => briefs the walker via get-agent-prompt naming siegemaster-walker with no workItemId', () => {
+  it('VALID: served template => briefs the verifier and the stress tester via get-agent-prompt with no workItemId', () => {
     expect({
-      fetchLine: hasIn({
+      verifierFetch: hasIn({
         needle:
-          "Call get-agent-prompt({ agent: 'siegemaster-walker', questId: 'QUEST_ID' }) FIRST, then follow what it returns exactly.",
+          "Call get-agent-prompt({ agent: 'siegemaster-verifier', questId: 'QUEST_ID' }) FIRST, then follow what it returns exactly.",
+        text: TEMPLATE,
+      }),
+      stressFetch: hasIn({
+        needle:
+          "Call get-agent-prompt({ agent: 'siegemaster-stress', questId: 'QUEST_ID' }) FIRST, then follow what it returns exactly.",
         text: TEMPLATE,
       }),
       neverAddYours: hasIn({
         needle: '**That fetch carries no `workItemId`. Never add yours.**',
         text: TEMPLATE,
       }),
-    }).toStrictEqual({ fetchLine: true, neverAddYours: true });
+    }).toStrictEqual({ verifierFetch: true, stressFetch: true, neverAddYours: true });
   });
 
   it('VALID: served template => briefs the reviewer via get-agent-prompt naming siegemaster-reviewer with no workItemId', () => {
@@ -186,17 +194,55 @@ describe('siegemasterPromptStatics', () => {
     }).toStrictEqual({ done: true, blocked: true });
   });
 
-  // THIS ROLE OWNS THE DEV SERVER FOR ITS WHOLE LIFETIME — started once at step 2, stopped once at
-  // step 9 — and never lets a walker or a fixer touch it.
-  it('VALID: served template => owns the dev server across the whole session, exclusively', () => {
+  // EACH ROUND RUNS IN TWO LANES OF ITS OWN, AND WHAT THIS OPERATOR ALLOCATES IS A NAME — the
+  // driver takes a bare token and builds `tmp/siege/<name>/` around it, so a directory-shaped
+  // string points a minion at a directory nothing will ever create. The operator starts neither
+  // lane: each minion starts the one it was named, so no round measures state a previous round
+  // left behind, and no name is ever reused.
+  it('VALID: served template => allocates two bare lane NAMES per round and starts neither itself', () => {
     expect({
-      startsOnce: hasIn({ needle: '**You own the dev server, and only you.**', text: TEMPLATE }),
-      neverRestart: hasIn({ needle: 'Never restart it mid-session.', text: TEMPLATE }),
-      walkerAndFixerLocked: hasIn({
-        needle: 'Never let a walker or a fixer touch it.',
+      noSingleOwnership: hasIn({ needle: 'You own the dev server, and only you.', text: TEMPLATE }),
+      freshLanePerRound: hasIn({
+        needle: 'Allocate this round TWO lane NAMES before you brief either one',
         text: TEMPLATE,
       }),
-    }).toStrictEqual({ startsOnce: true, neverRestart: true, walkerAndFixerLocked: true });
+      aNameIsNotAPath: hasIn({
+        needle: '**A name is a bare token, never a path.**',
+        text: TEMPLATE,
+      }),
+      minionStartsItsOwn: hasIn({
+        needle:
+          'the verifier and the stress tester each start their own lane from the name you gave them, drive it, and leave it to close itself. Nobody kills a lane.',
+        text: TEMPLATE,
+      }),
+      neverReuseALane: hasIn({
+        needle:
+          "A lane reused across rounds is a fresh round measuring a previous round's leftover state.",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      noSingleOwnership: false,
+      freshLanePerRound: true,
+      aNameIsNotAPath: true,
+      minionStartsItsOwn: true,
+      neverReuseALane: true,
+    });
+  });
+
+  // A DEAD LANE IS THE MINION'S TO REPLACE, NOT THE OPERATOR'S AND NOT A WALL — and the record has
+  // to carry the restart, because units measured either side of one are not comparable.
+  it('VALID: served template => routes a dead lane to the minion that started it, never to a wall', () => {
+    expect({
+      willNotStart: hasIn({
+        needle: '**A lane that will not start is NOT a wall.**',
+        text: TEMPLATE,
+      }),
+      diesMidRound: hasIn({
+        needle:
+          'A lane that dies mid-round is not a wall either — the minion that started it starts a fresh one under a new name, never you, and its record says where in the walk that happened, because nothing it measured before that restart is comparable with what it measured after.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ willNotStart: true, diesMidRound: true });
   });
 
   // THIS PROMPT TAKES NEITHER SHARED REVIEWER BLOCK NOR THE EVIDENCE CONTRACT — it walks a live

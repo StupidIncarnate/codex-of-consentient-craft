@@ -3,7 +3,8 @@ import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 import { codeweaverPromptStatics } from '../codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../flowrider-prompt/flowrider-prompt-statics';
 import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-reviewer-statics';
-import { siegemasterWalkerStatics } from '../siegemaster-walker/siegemaster-walker-statics';
+import { siegemasterStressStatics } from '../siegemaster-stress/siegemaster-stress-statics';
+import { siegemasterVerifierStatics } from '../siegemaster-verifier/siegemaster-verifier-statics';
 import { signoffTrackEligibilityStatics } from '../signoff-track-eligibility/signoff-track-eligibility-statics';
 import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
 
@@ -344,18 +345,18 @@ describe('flowEvidenceContractStatics', () => {
       });
     });
 
-    // PAIR: this block's verdict vocabulary and the three prompts that actually WRITE a sign-off.
+    // PAIR: this block's verdict vocabulary and the four prompts that actually WRITE a sign-off.
     // Those are not the three operators. Codeweaver and Flowrider sign from their sub-agents' PROVED
-    // lines, wave by wave — but Siegemaster signs nothing: its WALKER does, because it is the only
-    // session that ever drives the running system, and by the time anything else reads the record
-    // that system state is gone. Only the flowrider prompt interpolates this half, so the other two
-    // restate the vocabulary in their own words and the TOKEN is what has to agree. A prompt that
-    // signed a `gap` or a `deferred` would write a verdict `signoffContract` rejects, and the write
-    // fails at parse time.
+    // lines, wave by wave — but Siegemaster the OPERATOR signs nothing: its VERIFIER and STRESS
+    // minions do, because between them they are the only sessions that ever drive the running system,
+    // and by the time anything else reads the record that system state is gone. Only the flowrider
+    // prompt interpolates this half, so the other three restate the vocabulary in their own words and
+    // the TOKEN is what has to agree. A prompt that signed a `gap` or a `deferred` would write a
+    // verdict `signoffContract` rejects, and the write fails at parse time.
     //
     // The judging half is subtracted byte-exactly from the flowrider prompt before the count, so
     // that prompt is measured on its own words rather than on the text it is being checked against.
-    it('VALID: all three SIGNING prompts => sign in this vocabulary, and name no refused verdict', () => {
+    it('VALID: all four SIGNING prompts => sign in this vocabulary, and name no refused verdict', () => {
       // RAW: the verdict bullets are line-anchored, and the shared half is subtracted byte-exactly.
       const { judgingMarkdown: rawJudging } = flowEvidenceContractStatics;
       const verdicts = Array.from(rawJudging.matchAll(/^- \*\*`([a-z]+)`\*\* —/gmu)).flatMap(
@@ -369,7 +370,8 @@ describe('flowEvidenceContractStatics', () => {
       const authoredHalves = [
         codeweaverPromptStatics.prompt.template,
         flowriderPromptStatics.prompt.template,
-        siegemasterWalkerStatics.prompt.template,
+        siegemasterVerifierStatics.prompt.template,
+        siegemasterStressStatics.prompt.template,
       ].map((template) => template.split(rawJudging).join(''));
 
       expect({

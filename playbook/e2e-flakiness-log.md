@@ -23,6 +23,100 @@ Each entry follows this shape:
 
 ---
 
+## 2026-09-05 — The watcher's orphan sweep reset a LIVE agent, because its exclusion key moved (resume-execution-row-runs-again)
+
+**Branch / worktree:** `siege-chromium-lanes`
+**Failing spec:** `packages/web/src/flows/quest-chat/resume-execution-row-runs-again.e2e.ts` — failed at the
+`await expect(resumedRowRunning).toBeVisible({ timeout: PANEL_TIMEOUT })` immediately after
+`await expect(resumedRowPending).not.toBeVisible({ timeout: PANEL_TIMEOUT })`, with `element(s) not found`.
+Reported twice in full runs of ~331s; passes alone in ~9s.
+
+**Symptom:** "the resumed row leaves PENDING and then never reads RUNNING" — the PENDING half passes, the RUNNING
+half burns its whole 10s budget finding nothing.
+
+**Root cause (PRODUCT BUG).** The row does not go PENDING → RUNNING → DONE. A MutationObserver recording every
+badge the row ever wore caught it going **PENDING → RUNNING → PENDING → DONE**: an agent that is alive and
+working is reset to `pending` mid-run.
+
+`questMonitorWatcherStartBroker` calls `questOrphanResetBroker({ excludeSessionId })` on EVERY watcher start,
+and that sweep resets any active work item whose `sessionId` is not the excluded one, clearing
+`sessionId`/`agentId`/`startedAt`. Its liveness key is therefore a MUTABLE FIELD OF THE ITEM IT IS JUDGING, and
+on the node-dispatch path that field moves under it:
+
+1. `spawnBatchLayerBroker` pre-stamps the work item `in_progress`. This spec's item is a RESUMED one, so it
+   still carries the RETAINED `sessionId` the pause left on it.
+2. The persist reaches the outbox; `ReconcileWatchersLayerResponder` sees an active item carrying that retained
+   id and starts a watcher for it; `questMonitorWatcherStartBroker` fires the sweep with
+   `excludeSessionId: <retained>`.
+3. Concurrently the spawned child's init line lands and `spawnOneAgentLayerBroker` re-stamps the item with the
+   session Claude CLI just minted.
+4. The sweep's locked read now sees the item `in_progress` under a session it was never told about → resets it
+   to `pending`. The child is still running; it later signals back and the row finishes DONE, so nothing
+   downstream ever reports the stomp. The only witness is the row.
+
+**Why only in a full run.** The window between (2) and (4) is the sweep's own whole-home walk —
+`guildListBroker` + `questListBroker` per guild, which JSON-parses every quest.json under the home. `cleanGuilds()`
+removes a guild from config but never deletes its quest folders, so that walk grows monotonically across a run:
+a finished run's home holds 122 guild dirs / 132 quests. Alone, the walk is over before the init line lands.
+
+The assertion pair then turned a visible defect into an unreadable one. Playwright's web-first assertions are a
+SAMPLER: `playwright-core/lib/server/frames.js` runs `Frame.expect` through
+`retryWithProgressAndTimeouts(progress, [100, 250, 500, 1000], …)` and `pollAgainstDeadline` REPEATS the last
+interval, so from ~850ms in it looks once per second and reports `Error: element(s) not found` on a miss. The
+RUNNING window is 842 ms measured on an idle host (`PENDING@…333435`, `RUNNING@…333567`, `DONE@…334409`), and the
+stomp cuts it shorter still and puts a SECOND PENDING episode after it — so `not.toBeVisible(PENDING)` is
+routinely satisfied by a sample taken after the row already reached DONE, and the RUNNING assertion that follows
+starts on a DONE row and samples it ten more times. That is why the failure reads as "the row never ran" rather
+than "the row ran twice".
+
+**Fix location:**
+- `packages/orchestrator/src/brokers/quest/orphan-reset/quest-orphan-reset-broker.ts` — takes an optional
+  `excludeWorkItemId` and skips it in BOTH the candidate filter and the locked decision. A work item's id is
+  fixed for its whole life; its `sessionId` is not, so the id is the only handle that survives the window.
+- `packages/orchestrator/src/brokers/quest/monitor-watcher-start/quest-monitor-watcher-start-broker.ts` — passes
+  the `workerWorkItemId` the reactor supplied (the item whose stamp opened this watcher) as that exclusion, and
+  resolves it above the sweep instead of below it. Regression tests:
+  `quest-orphan-reset-broker.test.ts` → `excludeWorkItemId` — one hands the sweep a live item already re-stamped
+  with a session it was not told about and asserts zero resets, one adds a genuine orphan beside it and asserts
+  exactly one. Both stage `setupModifyForQuest` deliberately: without it the write path throws on an unmocked
+  call, the broker swallows it, and `orphansReset: 0` would hold whether or not the exclusion worked.
+- NEW `packages/web/test/harnesses/execution-row-status/execution-row-status.harness.ts` — a MutationObserver
+  installed as an init script (same shape as `chat-control.harness.ts`) that records the ORDERED, deduped
+  status-badge labels each named row wore. `characterData: true` is load-bearing: React rewrites the badge's text
+  node in place, which fires no `childList` record at all, so a childList-only observer holds only the label the
+  row first mounted with.
+- `packages/web/src/flows/quest-chat/resume-execution-row-runs-again.e2e.ts` — the `toBeVisible` pair becomes
+  `expect.poll(readStatuses).toStrictEqual(['PENDING', 'RUNNING', 'DONE'])`, and the done row's two point-in-time
+  `toHaveText('DONE')` checks become `toStrictEqual(['DONE'])`. Polling a monotonically-growing record is sound
+  where polling a transient DOM state is not: once RUNNING is recorded it stays recorded. The assertion got
+  STRICTER — it pins the order, so a row that jumped PENDING → DONE or bounced back to PENDING now fails, where
+  the old pair could pass on a lucky sample.
+
+**Negative results / dead ends:**
+
+- **Seeding the accumulated home and running the spec ALONE.** 132, 660, 3000 and 12000 quests all pass (7.4s /
+  8.5s / 13.1s / 39.9s), and it is worth knowing why, because it looks like it exonerates the accumulation and
+  does not. Alone, the sweep's walk and the child's init line BOTH slow down together, so the ordering that
+  produces the stomp never flips — measured at 1500 quests the RUNNING window is 1382 ms and the click→RUNNING
+  offset 1479 ms, both stretched in step. It takes the real suite's mix of work to separate them.
+- **Trying to synthesise the miss by tuning the fixture, with the OLD assertion pair.** Ten repeats each at
+  (1500 quests, 100ms lines), (2000 quests, 0ms lines) and (1000 quests, 200ms lines) all passed 10/10. On an
+  unloaded host the resume POST returns only ~100ms before the dispatch pre-stamp, which lands the transition in
+  the DENSE part of Playwright's grid (0/100/350ms) every time. Do not read those passes as a clean bill of
+  health — the OLD pair passes straight through a PENDING → RUNNING → PENDING → DONE bounce whenever a sample
+  happens to land in the RUNNING half.
+- **Bisecting for a poisoning predecessor.** There is no reproducing spec SET: specs 33–65 plus the target pass
+  (117s), specs 0–32 plus the target pass (107s), specs 0–65 pass (181s). Two full runs passed before the
+  assertion was tightened (252s, 264s) — passing THROUGH the bounce — and the very next full run with the
+  recorder in place caught it. The trigger is the accumulated home plus a full run's load, not a predecessor.
+
+**Reproducer:** run the whole suite with the recorder-based assertion in place
+(`npm run ward -- --only e2e`); the sequence assertion prints the actual badge sequence, and
+`['PENDING','RUNNING','PENDING','DONE']` IS the bug. There is no shorter one — running the spec alone against a
+seeded home reproduces the slow walk but not the ordering, for the reason in the first dead end above.
+
+---
+
 ## 2026-08-09 — The orphan-reset sweep undid a signal-back it never saw (resume-execution-row-runs-again)
 
 **Branch / worktree:** `queue-mergings`
@@ -949,5 +1043,7 @@ checked. Each entry below has a direct link to the entry above.
 | `FLOW_NODE` / `FLOW_OBSERVABLE_NODE` `waitFor visible` times out with "locator resolved to hidden", diagram canvas paints empty                                                                      | "Flow diagram renders blank: React Flow measurement discarded in the batch it landed in" — nodes are in the DOM at correct ELK positions but `visibility: hidden` forever. Any React Flow node handed over without `initialWidth`/`initialHeight` is one discarded measurement away from this                                                                                                                          |
 | `npm run ward` says `e2e: PASS` but `packages/web/test-results/` holds `-retry1` directories                                                                                                         | False green. `playwright.config.ts` sets `retries: 1` unconditionally. Re-run the named specs with `--retries=0` before believing a green e2e                                                                                                                                                                                                                                                                          |
 | A work item that already signalled back reads non-terminal again — `completedAt` + `actualSignal: complete` sitting on a `pending`/`failed` item, `startedAt` LATER than `completedAt`, `sessionId` gone — and its quest ends `blocked` after N empty-queue re-dispatches | "The orphan-reset sweep undid a signal-back it never saw" — `questOrphanResetBroker` decided from a whole-home walk taken outside the modify lock. Anything deciding a quest write from a read that is not inside `questOperationsUpdateBroker`'s own callback is exposed to the same widening window, because `questFindQuestPathBroker` re-parses every quest.json in the home and `cleanGuilds()` never deletes them |
+
+| A `not.toBeVisible(oldState)` passes and the `toBeVisible(newState)` right after it fails with `element(s) not found` — only in a full run, never alone | "The watcher's orphan sweep reset a LIVE agent" — an execution row that bounces RUNNING → PENDING → DONE reads exactly like a row that never ran, because Playwright's web-first assertions poll `[100, 250, 500, 1000]` and then REPEAT 1000ms and cannot see a sub-second state reliably. Record the badge SEQUENCE with a MutationObserver (`execution-row-status.harness.ts`) before theorising: the sequence names the defect, a sample cannot. And any sweep whose liveness key is a MUTABLE field of the item it is judging (`sessionId`, re-stamped by the child's init line) will stomp a live agent once its own whole-home walk outlives that re-stamp |
 
 When you fix a flake not yet in this catalog, add a new symptom row.

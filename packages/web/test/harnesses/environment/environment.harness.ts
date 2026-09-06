@@ -19,8 +19,9 @@ import * as os from 'os';
 import * as path from 'path';
 
 import type { FileName, FilePath } from '@dungeonmaster/shared/contracts';
-import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 // Real committer identity + disabled GPG signing, scoped to the child process env (not `-c` argv
 // flags, not a `git config` write) so these throwaway fixture commits never depend on, or mutate,
@@ -60,8 +61,9 @@ export const environmentHarness = ({
     // and JSONL files are keyed by encoded cwd (guildPath). Without this clear, a JSONL
     // written by a prior test with the same guildPath gets replayed into the next test
     // via subscribe-quest before the current fake CLI overwrites it — UI shows stale text.
-    const jsonlDir = FilePathStub({
-      value: path.join(os.homedir(), '.claude', 'projects', guildPath.replace(/\//gu, '-')),
+    const jsonlDir = claudePathSlugEncoderTransformer({
+      homeDir: AbsoluteFilePathStub({ value: os.homedir() }),
+      projectPath: AbsoluteFilePathStub({ value: guildPath }),
     });
     fs.rmSync(jsonlDir, { recursive: true, force: true });
   };

@@ -7,18 +7,16 @@ import {
   RelatedDataItemStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { codeweaverReviewerStatics } from '../../../statics/codeweaver-reviewer/codeweaver-reviewer-statics';
-import { flowriderPromptStatics } from '../../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { flowriderReviewerStatics } from '../../../statics/flowrider-reviewer/flowrider-reviewer-statics';
 import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
-import { siegemasterPromptStatics } from '../../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { siegemasterReviewerStatics } from '../../../statics/siegemaster-reviewer/siegemaster-reviewer-statics';
-import { siegemasterWalkerStatics } from '../../../statics/siegemaster-walker/siegemaster-walker-statics';
+import { siegemasterStressStatics } from '../../../statics/siegemaster-stress/siegemaster-stress-statics';
+import { siegemasterVerifierStatics } from '../../../statics/siegemaster-verifier/siegemaster-verifier-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
@@ -31,7 +29,8 @@ const MINION_PROMPTS = new Map([
   ['codeweaver-reviewer', ['sonnet', codeweaverReviewerStatics.prompt.template]],
   ['flowrider-reviewer', ['sonnet', flowriderReviewerStatics.prompt.template]],
   ['siegemaster-reviewer', ['sonnet', siegemasterReviewerStatics.prompt.template]],
-  ['siegemaster-walker', ['sonnet', siegemasterWalkerStatics.prompt.template]],
+  ['siegemaster-stress', ['sonnet', siegemasterStressStatics.prompt.template]],
+  ['siegemaster-verifier', ['sonnet', siegemasterVerifierStatics.prompt.template]],
 ]);
 
 // The case LISTS are derived from the classification statics, never transcribed — a prompt added
@@ -48,12 +47,6 @@ const MINION_FETCH_CASES = agentPromptClassificationStatics.minionNames.map((nam
 // and the broker exempts it by name — the case below the matrix.
 const OPERATOR_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
   (name) => name !== 'chaoswhisperer-gap-minion',
-);
-
-// Siegemaster ALONE stands a dev server up, so the honest denominator for "nobody else resolves
-// one" is every OTHER role rather than the two the old suite happened to name.
-const NON_SIEGEMASTER_ROLE_NAMES = agentPromptClassificationStatics.roleNames.filter(
-  (name) => name !== 'siegemaster',
 );
 
 // Two DIFFERENT worktree HEADs, so a stamp that moved is distinguishable from one that held.
@@ -244,257 +237,6 @@ describe('agentPromptGetBroker', () => {
         agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId }),
       ).rejects.toThrow(/has no resolvable operations\/<id> reference/u);
     });
-  });
-
-  describe('siegemaster dev-server delivery', () => {
-    it('VALID: {role: siegemaster, operation linked, devServer config resolves} => prompt includes Dev Server Command and Dev Server URL', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-1111-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'ffffffff-1111-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'siegemaster',
-        text: 'manual QA + review flowrider suite',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'siegemaster',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        operations: [operation],
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
-      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
-
-      const result = await agentPromptGetBroker({
-        agent: 'siegemaster',
-        questId: quest.id,
-        workItemId,
-      });
-
-      const expectedArgs = [
-        `Quest ID: ${String(quest.id)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [siegemaster] manual QA + review flowrider suite',
-        '',
-        'Dev Server Command: npm run dev',
-        `Dev Server URL: http://${environmentStatics.hostname}:4400`,
-      ].join('\n');
-
-      expect(result.prompt).toBe(
-        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-    });
-
-    it('VALID: {role: siegemaster, devServer declares webPort} => Dev Server URL carries the WEB port, not the API port', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-3333-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'ffffffff-3333-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'siegemaster',
-        text: 'manual QA + review flowrider suite',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'siegemaster',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        operations: [operation],
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
-      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400, webPort: 4401 });
-
-      const result = await agentPromptGetBroker({
-        agent: 'siegemaster',
-        questId: quest.id,
-        workItemId,
-      });
-
-      // 4401, never 4400. This is the one URL a hands-on QA session loads in a BROWSER, and the
-      // API origin renders no app — so the whole prompt is compared, which is what proves the
-      // API port appears nowhere in it.
-      const expectedArgs = [
-        `Quest ID: ${String(quest.id)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [siegemaster] manual QA + review flowrider suite',
-        '',
-        'Dev Server Command: npm run dev',
-        `Dev Server URL: http://${environmentStatics.hostname}:4401`,
-      ].join('\n');
-
-      expect(result.prompt).toBe(
-        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-    });
-
-    it('VALID: {role: siegemaster, operation linked} => resolves config from a repo-root config FILE path, not the bare cwd directory', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-2222-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'ffffffff-2222-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'siegemaster',
-        text: 'manual QA + review flowrider suite',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'siegemaster',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        operations: [operation],
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
-      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
-
-      await agentPromptGetBroker({
-        agent: 'siegemaster',
-        questId: quest.id,
-        workItemId,
-      });
-
-      // The config-find chain dirname()s startPath on its first iteration (it expects a FILE).
-      // Passing the bare cwd directory makes it search from cwd's PARENT and miss the repo-root
-      // .dungeonmaster.json, silently dropping the dev-server injection. The broker MUST pass a
-      // resolvable file at the repo root: <cwd>/.dungeonmaster.json (cwd mock = '/default/cwd').
-      expect(proxy.getDevServerConfigStartPath()).toBe(
-        `/default/cwd/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
-      );
-    });
-
-    it('EDGE: {role: siegemaster, no devServer config resolved} => prompt has NO Dev Server Command or Dev Server URL', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'ffffeeee-1111-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'ffffeeee-2222-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'siegemaster',
-        text: 'manual QA + review flowrider suite',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'siegemaster',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        operations: [operation],
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
-      proxy.setupNoDevServerConfig();
-
-      const result = await agentPromptGetBroker({
-        agent: 'siegemaster',
-        questId: quest.id,
-        workItemId,
-      });
-
-      const expectedArgs = [
-        `Quest ID: ${String(quest.id)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [siegemaster] manual QA + review flowrider suite',
-      ].join('\n');
-
-      expect(result.prompt).toBe(
-        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-    });
-  });
-
-  describe('flowrider is served no dev server even when one is configured', () => {
-    it('EDGE: {role: flowrider, devServer config available} => prompt has NO Dev Server lines (Playwright webServer owns it)', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3030-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3030-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'flowrider',
-        text: 'author the flow-perspective test suites',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'flowrider',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        operations: [operation],
-        workItems: [workItem],
-      });
-      proxy.setupQuestFound({ quest });
-      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
-
-      const result = await agentPromptGetBroker({
-        agent: 'flowrider',
-        questId: quest.id,
-        workItemId,
-      });
-
-      const expectedArgs = [
-        `Quest ID: ${String(quest.id)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [flowrider] author the flow-perspective test suites',
-      ].join('\n');
-
-      expect(result.prompt).toBe(
-        flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-    });
-  });
-
-  // The dev server is Siegemaster's ALONE — it stands one up by hand at its Gate 5 and owns it for
-  // the whole session. Every OTHER role is cycled here rather than the two the old suite named, so
-  // a role added to `roleNames` cannot quietly start resolving a config nobody meant it to have.
-  describe('dev-server resolution scoping', () => {
-    it.each(NON_SIEGEMASTER_ROLE_NAMES)(
-      'EDGE: {role: %s, devServer config available} => does not resolve dev-server config at all',
-      async (agent) => {
-        const proxy = agentPromptGetBrokerProxy();
-        const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3030-4222-9333-444444444444' });
-        const operationId = OperationItemIdStub({ value: 'eeeeeeee-3030-4222-9333-444444444444' });
-        const operation = OperationItemStub({
-          id: operationId,
-          role: agent,
-          text: 'core: config load+validate adapter',
-          status: 'pending',
-        });
-        const workItem = WorkItemStub({
-          id: workItemId,
-          role: agent,
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-        });
-        const quest = QuestStub({
-          id: QuestIdStub({ value: 'add-auth' }),
-          operations: [operation],
-          workItems: [workItem],
-        });
-        proxy.setupQuestFound({ quest });
-        proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
-
-        await agentPromptGetBroker({ agent, questId: quest.id, workItemId });
-
-        expect(proxy.getDevServerConfigStartPath()).toBe(undefined);
-      },
-    );
   });
 
   // `startRef` is the fork point of ONE work item's output. `signal-back` rebuilds the standards

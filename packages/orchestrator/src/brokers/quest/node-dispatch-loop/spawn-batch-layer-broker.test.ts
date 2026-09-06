@@ -67,7 +67,6 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         roleToModelStatics.codeweaver,
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -93,7 +92,6 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         'haiku',
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -173,7 +171,6 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         roleToModelStatics.codeweaver,
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
         '--resume',
@@ -203,7 +200,6 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         roleToModelStatics.codeweaver,
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -231,7 +227,6 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         roleToModelStatics.codeweaver,
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);

@@ -26,6 +26,7 @@
 
 import { z } from 'zod';
 
+import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
@@ -63,6 +64,15 @@ export const qaChecklistItemContract = z.object({
       'True on an observable settled by opening a source file rather than by running a test. `checkSurface` already carries the read-the-file wording; this field is what a renderer marks the line with, so the distinction survives a scan of the list.',
     ),
   edgeId: flowEdgeIdContract.optional(),
+  // The edge's own three endpoints, kept rather than collapsed into `label`. A renderer needs the
+  // SIBLING branch out of the same `from` node to say whether arriving at `to` is evidence that
+  // THIS branch ran, and it can only find that sibling by matching `edgeFrom` across the item list.
+  // Recovering them by parsing `label` back apart would couple every reader to
+  // `qaChecklistBuildTransformer`'s edge grammar, which is exactly the coupling `label` exists to
+  // absorb.
+  edgeFrom: flowEdgeContract.shape.from.optional(),
+  edgeLabel: flowEdgeContract.shape.label,
+  edgeTo: flowEdgeContract.shape.to.optional(),
   offMapFamily: qaOffMapFamilyContract.optional(),
 });
 

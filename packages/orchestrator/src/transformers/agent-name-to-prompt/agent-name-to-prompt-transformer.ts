@@ -38,7 +38,8 @@ import { flowriderReviewerStatics } from '../../statics/flowrider-reviewer/flowr
 import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { siegemasterReviewerStatics } from '../../statics/siegemaster-reviewer/siegemaster-reviewer-statics';
-import { siegemasterWalkerStatics } from '../../statics/siegemaster-walker/siegemaster-walker-statics';
+import { siegemasterStressStatics } from '../../statics/siegemaster-stress/siegemaster-stress-statics';
+import { siegemasterVerifierStatics } from '../../statics/siegemaster-verifier/siegemaster-verifier-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 
@@ -74,9 +75,13 @@ const AGENT_PROMPTS = {
     model: 'sonnet',
     template: siegemasterReviewerStatics.prompt.template,
   },
-  'siegemaster-walker': {
+  'siegemaster-stress': {
     model: 'sonnet',
-    template: siegemasterWalkerStatics.prompt.template,
+    template: siegemasterStressStatics.prompt.template,
+  },
+  'siegemaster-verifier': {
+    model: 'sonnet',
+    template: siegemasterVerifierStatics.prompt.template,
   },
 
   spiritmender: {

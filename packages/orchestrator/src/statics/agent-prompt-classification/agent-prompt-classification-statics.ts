@@ -17,8 +17,9 @@
  * discipline pack. The three operator roles — `codeweaver`, `flowrider`, `siegemaster` — brief
  * GENERIC sub-agents for the bulk of their work, so the only named minions are the ones whose
  * instructions cannot be written into a brief: each operator's own `<role>-reviewer`, and
- * `siegemaster-walker`, which drives a live system by hand. `chaoswhisperer-gap-minion` sits
- * outside that set entirely — it runs in the SPEC phase, before any operation item exists.
+ * siegemaster's `siegemaster-verifier` / `siegemaster-stress` pair, which drive a live system by
+ * hand. `chaoswhisperer-gap-minion` sits outside that set entirely — it runs in the SPEC phase,
+ * before any operation item exists.
  *
  * `roleNames` and `minionNames` are DISJOINT, and the mechanical stakes are what enforce it: a
  * minion added to `roleNames` would widen `agentRoleContract` with a role no operation item can
@@ -40,7 +41,8 @@ export const agentPromptClassificationStatics = {
     'flowrider-reviewer',
     'siegemaster',
     'siegemaster-reviewer',
-    'siegemaster-walker',
+    'siegemaster-stress',
+    'siegemaster-verifier',
     'spiritmender',
     'warpgate',
   ],
@@ -68,9 +70,12 @@ export const agentPromptClassificationStatics = {
     'codeweaver-reviewer',
     'flowrider-reviewer',
     'siegemaster-reviewer',
-    /** Siegemaster alone has a second named minion: a walk against a running system is driven by
-     * hand, and no brief can stand in for the instructions that takes. */
-    'siegemaster-walker',
+    /** Siegemaster alone has two further named minions: one verifies a whole path walk against the
+     * running system before anything is dispatched, and one attacks the same path adversarially.
+     * Neither can be replaced by a brief — both carry a measurement/enumeration discipline that
+     * needs restating every round. */
+    'siegemaster-stress',
+    'siegemaster-verifier',
   ],
   operatorRoleNames: ['codeweaver', 'flowrider', 'siegemaster'],
 } as const;

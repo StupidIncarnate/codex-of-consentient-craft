@@ -38,5 +38,32 @@ describe('claudePathSlugEncoderTransformer', () => {
 
       expect(result).toBe('/home/user/.claude/projects/-a-b-c-d-e');
     });
+
+    it('EDGE: {projectPath: "/home/u/repo/.claude/worktrees/x"} => keeps adjacent slash-then-dot hyphens uncollapsed', () => {
+      const result = claudePathSlugEncoderTransformer({
+        homeDir: AbsoluteFilePathStub({ value: '/home/u' }),
+        projectPath: AbsoluteFilePathStub({ value: '/home/u/repo/.claude/worktrees/x' }),
+      });
+
+      expect(result).toBe('/home/u/.claude/projects/-home-u-repo--claude-worktrees-x');
+    });
+
+    it('VALID: {projectPath: "/home/user/.config/src"} => encodes a dotfile segment and a plain segment distinctly', () => {
+      const result = claudePathSlugEncoderTransformer({
+        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
+        projectPath: AbsoluteFilePathStub({ value: '/home/user/.config/src' }),
+      });
+
+      expect(result).toBe('/home/user/.claude/projects/-home-user--config-src');
+    });
+
+    it('VALID: {projectPath: "/home/user/my_project (v2)"} => encodes underscores, spaces, and parens as hyphens', () => {
+      const result = claudePathSlugEncoderTransformer({
+        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
+        projectPath: AbsoluteFilePathStub({ value: '/home/user/my_project (v2)' }),
+      });
+
+      expect(result).toBe('/home/user/.claude/projects/-home-user-my-project--v2-');
+    });
   });
 });

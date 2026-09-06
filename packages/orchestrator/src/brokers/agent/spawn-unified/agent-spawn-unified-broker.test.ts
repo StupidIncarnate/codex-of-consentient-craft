@@ -321,7 +321,6 @@ describe('agentSpawnUnifiedBroker', () => {
         '--verbose',
         '--model',
         'opus',
-        '--chrome',
         '--settings',
         '{"hooks":{}}',
         '--resume',

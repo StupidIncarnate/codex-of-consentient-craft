@@ -1,6 +1,7 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
+import { executionRowStatusHarness } from '../../../test/harnesses/execution-row-status/execution-row-status.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
@@ -61,6 +62,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     const quests = questHarness({ request });
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
     const nav = navigationHarness({ page });
+    const rowStatus = executionRowStatusHarness({ page });
 
     const guild = await guilds.createGuild({
       name: 'Resume Execution Row Guild',
@@ -118,6 +120,11 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
       agentLineDelayMs: RUNNING_WINDOW_LINE_DELAY_MS,
     });
 
+    // Installed BEFORE the navigation, because the recorder is an init script: it has to be in
+    // place for the first render of the panel, or the row's opening PENDING is already history by
+    // the time anything is watching.
+    await rowStatus.recordStatuses({ rowTexts: [DONE_OP_TEXT, RUNNING_ROW_IDENTITY] });
+
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
@@ -163,14 +170,36 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
       dispatch: { started: true },
     });
 
-    // OLD UI GONE, NEW UI APPEARED — the previously in_progress row's PENDING badge disappears and
-    // the SAME row (same identity substring) reappears RUNNING. Proves it is THIS row that resumed,
-    // not merely that the quest status flipped or a WS frame fired.
-    await expect(resumedRowPending).not.toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(resumedRowRunning).toBeVisible({ timeout: PANEL_TIMEOUT });
+    // OLD UI GONE, NEW UI APPEARED — asserted as the ORDERED SEQUENCE of badges this one row wore,
+    // not as two point-in-time locator checks. A `toBeVisible` pair samples the DOM on Playwright's
+    // own schedule ([100, 250, 500, 1000] ms, then 1000 ms forever), and RUNNING is a state of the
+    // running agent: the fixture buys it roughly a second, so once the transition slips past that
+    // first 850 ms of dense polling the whole RUNNING window fits between two samples and the check
+    // reports `element(s) not found` on a transition the browser really did render. The recorder
+    // (`executionRowStatusHarness`, a MutationObserver installed above) sees every state the DOM
+    // ever held, so this assertion is decidable however brief RUNNING is — and it is STRICTER than
+    // the pair it replaces: it pins the ORDER, so a row that jumped PENDING → DONE, or bounced back
+    // to PENDING, fails here instead of passing on a lucky sample.
+    //
+    // Polling a monotonically-growing record is safe where polling a transient DOM state is not:
+    // once RUNNING is recorded it stays recorded, so a coarse poll cannot miss it — only the
+    // OBSERVATION has to be continuous, and the MutationObserver is what makes it so. RELAY_TIMEOUT
+    // rather than PANEL_TIMEOUT because this wait no longer measures one UI transition: it ends at
+    // DONE, so it spans the whole relay — dispatch pickup, the agent's run, signal-back. The test's
+    // real ceiling is the describe's own 60s either way; no budget below it moved.
+    await expect
+      .poll(async () => rowStatus.readStatuses({ rowText: RUNNING_ROW_IDENTITY }), {
+        timeout: RELAY_TIMEOUT,
+      })
+      .toStrictEqual(['PENDING', 'RUNNING', 'DONE']);
 
-    // The row that was already done never moved.
-    await expect(doneRow.getByTestId('execution-row-status-badge')).toHaveText('DONE');
+    // The row that was already done never moved — DONE and nothing else, for the whole run, rather
+    // than DONE at the two moments the old check happened to look.
+    await expect
+      .poll(async () => rowStatus.readStatuses({ rowText: DONE_OP_TEXT }), {
+        timeout: PANEL_TIMEOUT,
+      })
+      .toStrictEqual(['DONE']);
 
     // Let the queued outcome land so the run finishes cleanly rather than leaving a live child
     // process behind at test teardown.

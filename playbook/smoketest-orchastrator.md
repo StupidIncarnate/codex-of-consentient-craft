@@ -54,13 +54,19 @@ riftcarver → codeweaver ×N (one item PER PACKAGE) → ward(changed)
 ```
 
 Each of `codeweaver`, `flowrider`, `siegemaster` is an **OPERATOR** (`agentPromptClassificationStatics.operatorRoleNames`)
-running on **opus**: it reads code itself, briefs GENERIC `general-purpose` sub-agents in its own words to make the
-edits, reads the diff itself, and summons exactly ONE named sonnet reviewer sub-agent —
-`codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` — to grade the pass (siegemaster additionally
-dispatches `siegemaster-walker`, one at a time, to drive the flow by hand against a running system). The operator's own
-signal table offers only `done` and `blocked`: the session loops, unbounded, until its own reviewer's `NEXT:` line
-reads `pass`. Only the named reviewer builds, wards (`--uncommitted`), commits (once), and pushes (bare) — no code-writing
-sub-agent does any of that, and the operator itself never commits.
+running on **opus**, briefing GENERIC `general-purpose` sub-agents in its own words to make the edits and summoning
+exactly ONE named sonnet reviewer sub-agent — `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` — to
+grade the pass. Codeweaver and flowrider read the code themselves and read the diff before summoning their reviewer.
+**Siegemaster reads no code and drives nothing itself**: it runs ROUNDS, one per path walk, each dispatching a
+`siegemaster-verifier` and a `siegemaster-stress` pair together, each booting its OWN isolated lane (an API server, a
+Vite server and a headless Chromium) from a bare lane name, and each signing directly what it measured via its own
+`modify-quest` call — the verifier the observable/terminal/branch units on its path, the stress tester its round's
+allocated off-map family. The operator's own signal table offers only `done` and `blocked`: codeweaver and flowrider
+loop, unbounded, until their own reviewer's `NEXT:` line reads `pass`; siegemaster loops the same way until every
+round and every re-walk is clean, summoning its own `siegemaster-reviewer` only if a fixer changed code — a quest
+whose every round comes back clean signals `done` straight off its own checklist arithmetic instead. Only the named
+reviewer builds, wards (`--uncommitted`), commits (once), and pushes (bare) — no code-writing sub-agent does any of
+that, neither does a verifier or a stress tester, and the operator itself never commits.
 
 Consequences for this playbook:
 
@@ -240,8 +246,11 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
    relay: per-role happy/sad transitions, block ownership, the **Fixpoint** and **Operator convergence** bullets in Core
    concepts, and how quest status is derived. Read these if you need context on why `codeweaver` runs ONE session per
    PACKAGE, `flowrider` and `siegemaster` each run ONE session PER flow, why every one of those sessions is an OPERATOR
-   that reads code itself and briefs sub-agents rather than editing directly, and why they signal off their own
-   reviewer's verdict rather than a scope checklist.
+   that briefs sub-agents rather than editing directly — codeweaver and flowrider read the code themselves before
+   briefing; siegemaster reads none of its own and instead runs rounds, each dispatching a
+   `siegemaster-verifier`/`siegemaster-stress` pair in its own lane — and why codeweaver and flowrider signal off their
+   own reviewer's verdict while siegemaster signals off every round and re-walk coming back clean, summoning its own
+   reviewer only when a fixer changed code.
 
 **Resumption rules:**
 
@@ -291,30 +300,31 @@ Static policies. These hold for every run.
   that added a new export (e.g. `StartOrchestrator.resumeQuest`) will pass its own scoped ward inside its worktree
   (which ran its own build) but fail on master until the main tree rebuilds. Run `npm run build` at the repo root
   immediately after applying any sub-agent's patch, before handing off to the ward-runner agent.
-- **Two servers: smoke test (prod, manual) and agent-spawned (dev).** Siegemaster is the only role handed a dev server:
-  it resolves `devCommand` + dev `port` from `.dungeonmaster.json`, stands one up by hand for its walks, and tears it
-  down before signalling. Flowrider gets no dev-server config at all — the server a runtime flow's e2e suite needs
-  comes from the project's Playwright `webServer` block and lives only for that run. No other role (codeweaver, ward)
-  touches the dev-server lifecycle. The validation orchestrator (you) runs
-  `npm run prod` on ports 4800/4801 for the smoke-test UI you drive — the compiled server from `dist/`, exercising the
-  same code a real user would hit. A runtime-flow agent spawns its OWN test server via `npm run dev` on ports 4750/4751
-  per `.dungeonmaster.json`. The two MUST NOT overlap; the dev server kills whatever is on its configured ports before
-  binding, so a misaligned config (e.g. pointed at 4800) would murder the smoke-test server mid-quest. Current config is
-  correct out of the box.
+- **Three server situations, and only one is yours to manage.** The validation orchestrator (you) runs `npm run prod`
+  on ports 4800/4801 for the smoke-test UI you drive — the compiled server from `dist/`, exercising the same code a
+  real user would hit. Flowrider gets no dev-server config at all: the server a runtime flow's e2e suite needs comes
+  from the project's Playwright `webServer` block (ports 4750/4751 per `.dungeonmaster.json`) and lives only for that
+  run. **Siegemaster resolves no dev-server config either, and owns no server of its own** — each round's
+  `siegemaster-verifier` and `siegemaster-stress` pair instead boots its OWN isolated LANE (an API server, a Vite
+  server and a headless Chromium, plus its own `DUNGEONMASTER_HOME` under `tmp/siege/<lane-name>/`) from a bare lane
+  name, via the driver at `packages/*/test/siege-driver/siege-driver.ts`. The OS picks each lane's port pair, so two
+  lanes run at once within a round — one per minion — without colliding with each other, with the smoke-test prod
+  server, or with Flowrider's dev server, and a lane closes itself once nothing is driving it, so you never start,
+  stop, or manage one by hand. No other role (codeweaver, ward) touches any server lifecycle at all.
 - **MANDATORY: `npm run build` before every `npm run prod`.** Unlike `npm run dev` which uses `tsx watch` and runs from
   source, `npm run prod` runs the compiled server from `dist/` and serves the built web bundle via `vite preview`.
   ANY source change — contracts, statics, prompts, responders, brokers, widgets — is invisible to prod until `npm run
   build` is re-run. This applies to:
     - Your own edits between validation runs — the smoke-test server runs from dist/
     - Every fix-agent patch before the next run can exercise it
-    - Siegemaster's build preflight (already wired via `.dungeonmaster.json.devServer.buildCommand`) still runs — it
-      builds the orchestrator code that spawns siegemaster, even though siege's own dev server runs from source via tsx.
   Shortcut: `npm run prod:build-and-serve` does both in order. Use it whenever unsure whether dist is current.
 - **Ports and homes.** Everything comes from `.dungeonmaster.json` plus the root npm scripts — there are no `.env`
   files and no `DUNGEONMASTER_ENV`. prod = **4800** (server) / **4801** (web preview), home `<repo>/.dungeonmaster/`.
   dev = **4750** / **4751**, home `<repo>/.dungeonmaster-dev/` — a separate directory, not a subdirectory of the same
-  one. `npm run prod` and `npm run dev` each set `DUNGEONMASTER_HOME` inline, which is why the two queues never mix and
-  why a siege-spawned dev server cannot touch the smoke-test quest. Host is `dungeonmaster.localhost`.
+  one. `npm run prod` and `npm run dev` each set `DUNGEONMASTER_HOME` inline, which is why the two queues never mix. A
+  running siegemaster round never touches either home or either port pair — each lane its minions boot gets its own
+  fresh `DUNGEONMASTER_HOME` under `tmp/siege/<lane-name>/` and its own OS-picked ports, set by the driver script
+  itself, not by this config. Host is `dungeonmaster.localhost`.
 - **Agent crash mid-session (any role).** An `in_progress` work item observed during a get-next-step scan is orphaned;
   `recover-orphaned-work-items-layer-broker` flips it back to `pending` keeping `sessionId`/`agentId` + a `resume`
   marker, and Node/UI dispatch resumes the retained Claude session (`claude --resume`) so partial work survives — no
@@ -341,13 +351,16 @@ each run, in order:
    or kicking off a new run, terminate:
 
 - Any leftover `npm run prod` / `npm run dev` / vite / tsx / node server processes on ports 4800, 4801 (smoke test)
-  or 4750, 4751 (siege-spawned).
+  or 4750, 4751 (dev server / a Flowrider e2e run's webServer).
 - Any orchestrator-owned background `Bash` tool tasks (polling loops, server bg processes).
   - Any child Claude CLI processes still running from prior orchestration (`pgrep -af claude`).
-  - Any leftover test dev servers started by a prior siege run.
-    Use `npm run prod:kill` for the primary smoke-test server; `npm run dev:kill` for any leftover siege-spawned
-    dev processes; use `jobs` / `kill %N` for orchestrator-owned bg bash; use `pkill -f <pattern>` as a last resort. A
-    stale background process will hold ports, file locks, or keep emitting output that confuses the next run.
+  - Any leftover siege lane processes from a prior siegemaster run — each lane's own API server, Vite server and
+    headless Chromium under `tmp/siege/<lane-name>/`, on OS-picked ports. A lane closes itself once nothing is
+    driving it, so this is normally a non-issue; a crashed session can leave one running.
+    Use `npm run prod:kill` for the primary smoke-test server; `npm run dev:kill` for the dev server; use `jobs` /
+    `kill %N` for orchestrator-owned bg bash; use `pkill -f siege-driver` for a stale lane, or `pkill -f <pattern>` as
+    a last resort otherwise. A stale background process will hold ports, file locks, or keep emitting output that
+    confuses the next run.
 
 3. **Abandon any non-terminal prior-run quests.** Enumerate with `mcp__dungeonmaster__list-quests` and abandon every
    quest whose status is not already `complete` / `abandoned` / `blocked` via `mcp__dungeonmaster__modify-quest`
@@ -356,8 +369,8 @@ each run, in order:
 4. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs. The smoke-test server
    (prod) runs from `dist/` too, so this is mandatory before every server (re)start.
 5. **Start smoke-test server.** `npm run prod` (ports 4800/4801). Single process only. Leave it up for the whole run. Do
-   NOT run `npm run dev` — that port range is reserved for the dev server Siegemaster stands up during verification (and
-   for the one Playwright's `webServer` starts inside a Flowrider e2e run).
+   NOT run `npm run dev` — that port range is reserved for the one Playwright's `webServer` starts inside a Flowrider
+   e2e run. Siegemaster never touches it: each round's lanes get their own OS-picked ports instead.
 6. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
    first run of a validation session; append to it on subsequent runs.
 7. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4801/codex/session) → "New Chat" → describe the trivial
@@ -889,26 +902,38 @@ spiritmender path is Phase 2.3).
     - Dispatched only after the flowrider item for that flow (and the whole flowrider tail segment) signals `done`;
       the FIRST siegemaster item (one flow) is next in ledger order.
     - ONE siegemaster work item PER quest flow, each operation item carrying a single-element `flowIds` and text
-      suffixed `— flow: <id>`. Each session starts ONE dev server and owns it for the whole session, then loops: a
-      `siegemaster-walker` sub-agent (one at a time, always) drives one path through the flow by hand and reports what
-      it measured, GENERIC fixer sub-agents repair what it found, and a FRESH walker re-drives the same path from the
-      reset state — until a walk comes back clean. It then summons ONE `siegemaster-reviewer` to grade the repairs
-      (its distinctive question: did a fix touch the cause, or just hide the symptom — a widened type, a swallowed
-      error, a defaulted value, a loosened assertion) and writes `siegemasterSignoff`. A walker never starts, restarts,
-      or stops the dev server, and never runs `git`. Siegemaster is the LAST role that fixes BEHAVIOUR and has the
-      widest fix authority on the quest.
-    - `done` (its `siegemaster-reviewer` said `pass` — a landed fix is not by itself a reason to respawn) →
+      suffixed `— flow: <id>`. The session drives nothing itself and reads no source of its own: it runs ROUNDS, one
+      per path walk off the checklist's `## WALK PATHS`, cheapest first, allocating one of the seven off-map families
+      (`re-entry`, `concurrency`, `interruption`, `staleness`, `configuration`, `hostile-input`, `perf`) per round from
+      round one — never trailing behind the flow work. Each round dispatches a `siegemaster-verifier` and a
+      `siegemaster-stress` pair TOGETHER, each booting its OWN isolated lane from a bare name the operator allocates
+      (an API server, a Vite server, a headless Chromium page) — never shared between the pair and never reused by a
+      later round. The verifier walks its whole path first, dispatching nothing, then dispatches sub-agents that each
+      write a FAILING TEST per defect, signing the observable/terminal/branch units on its path directly; the stress
+      tester does the same over its allocated off-map family, signing that family directly. Once every round has run,
+      GENERIC fixer sub-agents repair what was found (once, across every round's findings — never mid-round), and a
+      FRESH verifier re-walks any path that had an issue from the reset state — off-map is never re-walked, since each
+      family had exactly one round. Only if a fixer changed code does it then summon ONE `siegemaster-reviewer` to
+      grade the repairs (its distinctive question: did a fix touch the cause, or just hide the symptom — a widened
+      type, a swallowed error, a defaulted value, a loosened assertion) — a quest whose every round comes back clean
+      skips the reviewer entirely and signals `done` straight off its own checklist arithmetic. A minion never touches
+      the other's lane, and none of the round's sub-agents — verifier, stress tester, or fixer — ever commits.
+      Siegemaster is the LAST role that fixes BEHAVIOUR and has the widest fix authority on the quest.
+    - `done` (every round and re-walk clean, and — where a fixer ran — its `siegemaster-reviewer` said `pass`) →
       advance to the NEXT siegemaster item (the following flow), or to `ward(full)` once the LAST flow's siegemaster
-      item is `done`. **Assert nothing is appended in between.** `blocked` (an environment wall its reviewer names
-      `wall`) → a `pt N` continuation carrying that SAME single `flowId` and an immediate halt. There is no
-      sign-off-completeness gate on `done`.
+      item is `done`. **Assert nothing is appended in between.** `blocked` (an environment wall reported by any round
+      minion, a fixer, or the reviewer) → a `pt N` continuation carrying that SAME single `flowId` and an immediate
+      halt. There is no sign-off-completeness gate on `done`.
 
 **→ PASS:** continue.
 
 ### 1.7 — Standards review (guidance inside each named reviewer, not a ledger item)
 
 There is no standards-review operation item to dispatch, and nothing about this review is written to `quest.json` at
-all. Instead, assert this on EVERY committing session above — codeweaver, flowrider, siegemaster:
+all. Instead, assert this on every committing session above — codeweaver, flowrider, and siegemaster **whenever a
+fixer changed code that pass** (siegemaster's reviewer is conditional: a quest whose every round comes back clean
+skips it entirely, along with the rest of this section, and signals `done` straight off its own checklist arithmetic
+instead):
 
 - **Assert sequence, per session:**
     1. The session dispatched its OWN named reviewer sub-agent (`codeweaver-reviewer` / `flowrider-reviewer` /
@@ -979,8 +1004,10 @@ duplicate-on-partial + the strict-1:1 guard.
 `flowrider` and `siegemaster` are both **operators** whose own prompts offer only `done` and `blocked` — neither is a
 fixpoint, and neither earns `done` merely by having changed code or by having every unit signed.
 
-- **Seed / drive (real path):** a flowrider / siegemaster session signals `operationStatus: 'blocked'` with a
-  `blockedReason` because its own named reviewer named an environment `wall`.
+- **Seed / drive (real path):** a flowrider session signals `operationStatus: 'blocked'` with a `blockedReason` because
+  its own named reviewer named an environment `wall`. A siegemaster session signals the same because ANY round
+  minion reported the wall — a verifier, a stress tester, a fixer, or its reviewer where one ran, not its reviewer
+  alone.
 - **Assert:**
     - Its operation item is marked `complete` and a `pt N` continuation is appended, carrying the SAME `flowIds`: a
       continuation that lost its `flowId` would silently work a different flow than the remainder names. The work item

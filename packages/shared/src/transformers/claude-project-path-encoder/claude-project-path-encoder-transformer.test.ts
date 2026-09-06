@@ -43,5 +43,39 @@ describe('claudeProjectPathEncoderTransformer', () => {
 
       expect(result).toBe('/home/user/.claude/projects/-a-b-c-d-e/deep-session.jsonl');
     });
+
+    it('EDGE: {projectPath: "/home/u/repo/.claude/worktrees/x"} => keeps adjacent slash-then-dot hyphens uncollapsed', () => {
+      const result = claudeProjectPathEncoderTransformer({
+        homeDir: AbsoluteFilePathStub({ value: '/home/u' }),
+        projectPath: AbsoluteFilePathStub({ value: '/home/u/repo/.claude/worktrees/x' }),
+        sessionId: SessionIdStub({ value: 'sess-dot' }),
+      });
+
+      expect(result).toBe(
+        '/home/u/.claude/projects/-home-u-repo--claude-worktrees-x/sess-dot.jsonl',
+      );
+    });
+
+    it('VALID: {projectPath: "/home/user/.config/src"} => encodes a dotfile segment and a plain segment distinctly', () => {
+      const result = claudeProjectPathEncoderTransformer({
+        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
+        projectPath: AbsoluteFilePathStub({ value: '/home/user/.config/src' }),
+        sessionId: SessionIdStub({ value: 'sess-cfg' }),
+      });
+
+      expect(result).toBe('/home/user/.claude/projects/-home-user--config-src/sess-cfg.jsonl');
+    });
+
+    it('VALID: {projectPath: "/home/user/my_project (v2)"} => encodes underscores, spaces, and parens as hyphens', () => {
+      const result = claudeProjectPathEncoderTransformer({
+        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
+        projectPath: AbsoluteFilePathStub({ value: '/home/user/my_project (v2)' }),
+        sessionId: SessionIdStub({ value: 'sess-chars' }),
+      });
+
+      expect(result).toBe(
+        '/home/user/.claude/projects/-home-user-my-project--v2-/sess-chars.jsonl',
+      );
+    });
   });
 });
