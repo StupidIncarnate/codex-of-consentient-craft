@@ -1754,6 +1754,11 @@ pre-existing `invalid_enum_value` on the retired role names `blightscout` and `g
 
 **Cost:** renders grew 2.7–3.5%; the largest of the three measured sits at 66% of the 48,000-character ceiling.
 
+**Tail, shipped 2026-09-05 in `c0b979fe1`.** The siegemaster prompt family kept describing edge lines the old way, and
+its verifier asked for `id: '<edge id>'` while giving no way to find one — the same shape the four codeweaver cells hit.
+Four files corrected: the siegemaster prompt, the stress walker, the verifier and the reviewer. The walker had split in
+two by then, so the write shape now lives in `siegemaster-verifier-statics.ts`.
+
 ~~*Addresses E5.* **File:**~~
 `packages/shared/src/transformers/flow-graph-to-text/flow-graph-to-text-transformer.ts`, lines 275
 and 281.

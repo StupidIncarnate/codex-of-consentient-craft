@@ -150,9 +150,28 @@ git worktree remove worktrees/pm-<gNN>-<slug> && git branch -d pm/<gNN>-<slug>
 |---|---|---|
 | A codeweaver reads every observable on a node its package tags | `55fc9655b` | `1788656577139-1c5e` |
 | Every edge line names its own id; a labelled edge carries `◀ YOURS`; `flowNodeContract` gains `.strict()` | `5ede6d341` | `1788665074376-26a4` |
+| A first message no longer sticks on STOP when its turn ends unheard | `a548a967a` | `1788672216967-5dcc` |
+| The siegemaster prompts name the edge id they ask for | `c0b979fe1` | `1788673498503-9952` |
 
-Both are struck in their source documents. The second closes **E5 / G4 / H2 / H3**; the first was in
-neither document.
+The second closes **E5 / G4 / H2 / H3** and is struck in both source documents. The fourth is its
+tail: the siegemaster prompt family kept describing edge lines the old way, and its verifier asked
+for an edge id while giving no way to find one. The first and third were in neither document.
+
+**The third came from ward, not from either report.** `chat-stop-first-message.e2e.ts` failed about
+37% of the time — 5 in 8 isolated runs. On a first message the browser cannot subscribe until the
+POST that CREATES the quest returns its id, and the agent can spawn and exit inside that round trip;
+the per-quest fan-out then drops the `chat-complete` and the composer holds STOP forever, with the
+user's only escape being to press it, which pauses the whole quest. The fan-out's own comment
+justified the drop with *"`subscribe-quest`'s replay reads the same lines back off disk, so the
+reader loses nothing"* — true for `chat-output`, false for `chat-complete`, because nothing writes a
+completion to disk.
+
+**Two latent issues that fix surfaced and deliberately did not touch:**
+
+| Issue | Why it was left |
+|---|---|
+| `chat-start-responder` never removes its registry entry, so dead chat processes accumulate for the server's lifetime and the stale-process watchdog keeps flagging them | Removing it orphans the post-exit main-session tail the entry exists to stop. It is also why the obvious liveness key was unusable — the registry answers "is teardown owed", not "is a turn running" |
+| The retained-completion map is never pruned per quest | Bounded at 8 small objects per quest, unbounded in quests. Real, and trivial in size |
 
 **Before dispatching any fix, ask what else reads the thing it changes.** Three times in one session a
 fix turned out to be coupled to something its own write-up never mentioned: G1 to a `vite.config.ts`
