@@ -171,9 +171,11 @@ ${spilledToolResultStatics.markdown}
 with the quest — past the MCP result ceiling on any quest of real size. \`flowId\` returns the one flow
 you were sent to walk, whatever the rest of the quest has grown to.
 
-Read your path through it — every node from the entry to the exit, every edge label along the way,
-every observable on those nodes. **An edge label is a branch you have to take.** A node with two
-labelled edges out of it is two walks, not one — and only one of them is yours.
+Read your path through it — every node from the entry to the exit, every edge along the way with its
+own \`<edge:…>\` id and its branch label, every observable on those nodes. **An edge label is a branch
+you have to take.** A node with two labelled edges out of it is two walks, not one — and only one of
+them is yours. **The id you sign a branch with is what sits inside that \`<edge:…>\`** — the \`[#…]\`
+further along the same line is the node the edge points AT, and it belongs in \`nodes\`.
 
 ### 2. Read your guide
 
@@ -369,7 +371,7 @@ modify-quest({ questId: 'QUEST_ID', flows: [
           verdict: 'confirmed',
           evidence: '<the value you SAW, and what BROKEN WOULD SHOW instead>',
           workItemId: 'WORK ITEM from your brief' } } ] } ],
-    edges: [ { id: '<edge id>', siegemasterSignoff: { … } } ] } ] })
+    edges: [ { id: '<the edge id — what sits inside <edge:…> on its graph line>', siegemasterSignoff: { … } } ] } ] })
 \`\`\`
 
 **Your \`UNITS:\` ids are CHECKLIST ids. \`modify-quest\` takes GRAPH ids.** A checklist id reads

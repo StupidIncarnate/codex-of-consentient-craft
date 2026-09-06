@@ -115,8 +115,8 @@ grows with the quest — past the MCP result ceiling on any quest of real size. 
 layer writes the result to a FILE and hands you an error stub, so you would grade this work holding a
 path instead of a spec, with nothing reporting a failure.
 
-Find the operation item your brief named, and read the flow it owns — nodes, edge labels, observables,
-entry and exit. That flow is what the repairs were supposed to make work.
+Find the operation item your brief named, and read the flow it owns — nodes, edges with their own
+\`<edge:…>\` ids and their branch labels, observables, entry and exit. That flow is what the repairs were supposed to make work.
 
 The checklist gives you each unit's own words and the layer it has to be measured at — \`## CHECK
 SURFACES\` for an observable's type, and the \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` /
