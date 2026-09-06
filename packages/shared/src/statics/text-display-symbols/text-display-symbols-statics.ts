@@ -51,7 +51,7 @@ export const textDisplaySymbolsStatics = {
     '  [#id] {pkgs} label (type)   flow node, the packages it lands in, and its kind',
     "  {web ● 3, server}           per package, how many of this node's observables are theirs — bare means none",
     '  ◀ YOURS                     this node lands in YOUR package',
-    '  ● #id {pkg} text [type]     observable, the package it belongs to, and its text — only YOURS are listed',
+    '  ● #id {pkg} text [type]     observable, the package that OWNS it, and its text — on a node you tag, every one is listed',
     '  (read-check)                settled by opening the source file, not by running a test',
     '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
     '  → [#id]                     edge to next node',
@@ -67,10 +67,11 @@ export const textDisplaySymbolsStatics = {
   // The KEY for a slice fetched with NO package — the flowrider / siegemaster / reviewer view, where
   // every node is the reader's and every observable renders. It is a SEPARATE array rather than the
   // one above because two of that one's lines are claims the unpackaged render never makes:
-  // `◀ YOURS` is emitted nowhere, and "only YOURS are listed" is the opposite of what happens. A
-  // reader handed both that KEY and the render's own "The WHOLE flow is yours" line has to work out
-  // which is lying. The colocated test pins that these two differ in exactly those two entries, so a
-  // line added to either has to be added to both.
+  // `◀ YOURS` is emitted nowhere, and there is no node-you-tag distinction to draw, because the
+  // reader tags none of them and reads all of them. A reader handed both that KEY and the render's
+  // own "The WHOLE flow is yours" line has to work out which is lying. The colocated test pins that
+  // these two differ in exactly those two entries, so a line added to either has to be added to
+  // both.
   flowSliceWholeFlowLegendLines: [
     '---',
     'KEY:',

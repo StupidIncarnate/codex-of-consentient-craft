@@ -406,9 +406,11 @@ describe('relayTailFanOutTransformer', () => {
 
     // The reason the cell matters, asserted end to end: an observable that reaches no session's
     // flow slice reaches nobody. The observation point is `questFlowSliceTransformer`, which is what
-    // `get-quest({ questId, flowId, packageName })` hands the codeweaver that owns the cell — it
-    // renders that package's own observables verbatim and collapses every other package's.
-    it('VALID: {both halves of a glue node’s observables} => each reaches the Must satisfy block of its own package’s cell', () => {
+    // `get-quest({ questId, flowId, packageName })` hands the codeweaver that owns the cell. A glue
+    // node is tagged by both packages, so BOTH cells render BOTH halves verbatim — each observable
+    // keeping the `{package}` that says which cell signs it. The fan-out is what buys each half a
+    // session at all; the render is what makes the other half readable to it.
+    it('VALID: {both halves of a glue node’s observables} => both reach BOTH cells, each carrying the package that signs it', () => {
       const quest = QuestStub({
         packagesAffected: [SERVER_PACKAGE, WEB_PACKAGE],
         flows: [
@@ -441,23 +443,27 @@ describe('relayTailFanOutTransformer', () => {
         ],
       });
 
-      const ownObservables = relayTailFanOutTransformer({ entry: CODEWEAVER_ENTRY, quest }).flatMap(
-        (slice) =>
-          String(
-            questFlowSliceTransformer({
-              quest,
-              flowId: FlowIdStub({ value: String(slice.flowIds[0]) }),
-              packageName: PackageNameStub({ value: String(slice.packageNames[0]) }),
-            }),
-          )
-            .split('\n')
-            .filter((line) => !SLICE_LEGEND_LINES.some((legend) => legend === line))
-            .filter((line) => /^\s+● #/u.test(line))
-            .map((line) => `${String(slice.packageNames[0])}${line}`),
+      const renderedObservables = relayTailFanOutTransformer({
+        entry: CODEWEAVER_ENTRY,
+        quest,
+      }).flatMap((slice) =>
+        String(
+          questFlowSliceTransformer({
+            quest,
+            flowId: FlowIdStub({ value: String(slice.flowIds[0]) }),
+            packageName: PackageNameStub({ value: String(slice.packageNames[0]) }),
+          }),
+        )
+          .split('\n')
+          .filter((line) => !SLICE_LEGEND_LINES.some((legend) => legend === line))
+          .filter((line) => /^\s+● #/u.test(line))
+          .map((line) => `${String(slice.packageNames[0])}${line}`),
       );
 
-      expect(ownObservables).toStrictEqual([
+      expect(renderedObservables).toStrictEqual([
         'server  ● #worktree-created {server} the worktree directory exists on disk [file-exists]',
+        'server  ● #execution-panel-live {web} the execution panel streams the running quest [ui-state]',
+        'web  ● #worktree-created {server} the worktree directory exists on disk [file-exists]',
         'web  ● #execution-panel-live {web} the execution panel streams the running quest [ui-state]',
       ]);
     });

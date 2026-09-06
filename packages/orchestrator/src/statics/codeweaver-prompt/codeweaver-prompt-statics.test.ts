@@ -189,6 +189,46 @@ describe('codeweaverPromptStatics', () => {
     }).toStrictEqual({ theCall: true, callCount: 2, saysOne: true });
   });
 
+  // A SEAM NODE IS READ WHOLE, AND SIGNED IN HALF. The render prints every observable on a node
+  // this package tags, its sibling's included, because the sibling half IS the spec for this half —
+  // the request shape for a route this cell serves, the render its bytes have to satisfy. Measured
+  // on one cell of a real quest, the old filter erased 9 of 18 lines, one of them the GET this
+  // session was writing the handler for. Both halves of the rule are pinned: READ them, and sign
+  // only your own — a prompt carrying the first without the second buys a verdict nothing backs.
+  it('VALID: served template => step 1 tells the session to read every observable on its own nodes and sign only its own', () => {
+    expect({
+      readsThemAll: hasIn({
+        needle:
+          '**On a node marked `◀ YOURS` you see every observable on it, including the ones another package owns.**',
+        text: TEMPLATE,
+      }),
+      theyAreTheContract: hasIn({
+        needle:
+          "They are the other half of the contract you are building — the client's request shape for a route you serve, the render your bytes have to satisfy. **Read them.**",
+        text: TEMPLATE,
+      }),
+      becomesARequirement: hasIn({
+        needle:
+          'Where one names something your own code must do, that is a requirement on you, and your `MUST BE TRUE` lines should carry it.',
+        text: TEMPLATE,
+      }),
+      signsItsOwnAlone: hasIn({
+        needle: '**You still sign only the observables whose `{package}` is yours.**',
+        text: TEMPLATE,
+      }),
+      noCollapsedCount: hasIn({
+        needle: 'Observables attributed to another package are collapsed to a count',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      readsThemAll: true,
+      theyAreTheContract: true,
+      becomesARequirement: true,
+      signsItsOwnAlone: true,
+      noCollapsedCount: false,
+    });
+  });
+
   // A CONTRACT IS THE ONE PART OF A CELL NO OBSERVABLE MENTIONS, so a missing one breaks no test the
   // session runs and ships as a hole. Step 5 is where the diff is read, which is the only point the
   // session can still send work back out.

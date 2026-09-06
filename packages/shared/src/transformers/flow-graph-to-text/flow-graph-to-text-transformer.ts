@@ -7,12 +7,21 @@
  * // Returns: ContentText[] with indented flow graph lines
  *
  * flowGraphToTextTransformer({flow, ownPackage, otherFlows: quest.flows});
- * // The same graph, with `ownPackage`'s nodes marked, every other package's observables collapsed
- * // to a count, and each cross-flow edge's target resolved out of `otherFlows`
+ * // The same graph, with `ownPackage`'s nodes marked, every observable on a node it tags printed
+ * // whatever package owns it, the observables on nodes it does not tag left to the brace counts,
+ * // and each cross-flow edge's target resolved out of `otherFlows`
  *
  * EVERY NODE LINE CARRIES ITS `{packages}`. A node's package tags are what route its terminal and
  * branch verification units — those carry no observable to read a package from — so a graph without
  * them cannot be reconciled against the ledger that slices work by package.
+ *
+ * VISIBILITY IS THE NODE'S, OWNERSHIP IS THE OBSERVABLE'S. `ownPackage` decides which NODES a
+ * caller reads in full; each observable keeps its own `{package}` tag, which is what still routes
+ * the sign-off. On a seam node — one two packages tag — both halves print, because they are two
+ * halves of one contract: the client's request shape is the spec for the route the server writes,
+ * and the render is the spec for the bytes it returns. Measured on one cell of a real quest,
+ * filtering by the observable's own package erased 9 of 18 lines, one of them the GET the session
+ * on the other side of that node was building the handler for.
  *
  * `ownPackage` MARKS, IT NEVER FILTERS. Measured on a real quest: filtering one flow to the three
  * nodes `shared` tags keeps ZERO of the six edges between them and hands that session three orphan
@@ -62,9 +71,9 @@ export const flowGraphToTextTransformer = ({
   otherFlows,
 }: {
   flow: Flow;
-  // The package whose nodes are marked and whose observables stay verbatim. Omitted for a whole-
-  // quest render and for the flowrider/siegemaster slice, both of which own every package on the
-  // flow and would read a mark on every line as noise.
+  // The package whose nodes are marked, and whose nodes' observables stay verbatim. Omitted for a
+  // whole-quest render and for the flowrider/siegemaster slice, both of which own every package on
+  // the flow and would read a mark on every line as noise.
   ownPackage?: PackageName | undefined;
   // The other flows on the quest, so a `flowId:nodeId` edge target can be resolved into a real
   // node. Omitted, the marker renders exactly as it always has — a bare stub.
@@ -142,10 +151,10 @@ export const flowGraphToTextTransformer = ({
       const isMerge = (incomingCounts.get(nodeId) ?? 0) > 1;
       const mergeMarker = isMerge ? ` ${SYM.merge}` : '';
       // The tag set carries each package's OBSERVABLE COUNT, so one line says both which packages
-      // land on this node and how much each is expected to prove. That count is where a sibling's
-      // observables live: a reader seeing `server ● 3` beside one `● #id:` line below knows three
-      // acceptance targets on this node belong to someone else, without a collapsed line per
-      // package restating a package name the braces already carry.
+      // land on this node and how much each is expected to prove. It reads two ways depending on
+      // the line under it: on a node the caller tags, where every observable prints, it is the
+      // summary of who owns what; on a node the caller does not tag, it is the only signal that
+      // anything is there at all.
       //
       // A package with no observable renders BARE rather than as `● 0` — the same convention the
       // sign-off markers use, where an absent marker means nothing recorded. It also leaves the
@@ -166,11 +175,10 @@ export const flowGraphToTextTransformer = ({
           return count === 0 ? name : `${name} ${SYM.observable} ${String(count)}`;
         })
         .join(', ')}}`;
-      const ownMarker =
+      const nodeTagsOwnPackage =
         ownPackageText !== undefined &&
-        node.packages.some((name) => String(name) === ownPackageText)
-          ? ` ${SYM.ownedNode}`
-          : '';
+        node.packages.some((name) => String(name) === ownPackageText);
+      const ownMarker = nodeTagsOwnPackage ? ` ${SYM.ownedNode}` : '';
       const nodeSignoffMarker = signoffMarkersToTextTransformer({
         codeweaverSignoff: node.codeweaverSignoff,
         flowriderSignoff: node.flowriderSignoff,
@@ -185,12 +193,14 @@ export const flowGraphToTextTransformer = ({
         ),
       );
 
-      const ownObservables =
-        ownPackageText === undefined
-          ? node.observables
-          : node.observables.filter((obs) => String(obs.package) === ownPackageText);
+      // THE NODE DECIDES WHAT IS READ; the observable's own `{package}` still decides who signs it.
+      // A caller that tags this node reads every line on it, its sibling's included — that sibling
+      // half is the requirement the caller's own half has to meet. A node the caller does not tag
+      // keeps its observables behind the brace counts, which is the whole of the saving.
+      const visibleObservables =
+        ownPackageText === undefined || nodeTagsOwnPackage ? node.observables : [];
 
-      for (const obs of ownObservables) {
+      for (const obs of visibleObservables) {
         const originMarker =
           obs.addedBy === 'spec' ? '' : ` ${SYM.observableOriginPrefix}${obs.addedBy}`;
         const readCheckMarker = obs.verifyByReading === true ? ` ${SYM.readCheckMark}` : '';
