@@ -154,6 +154,10 @@ git worktree remove worktrees/pm-<gNN>-<slug> && git branch -d pm/<gNN>-<slug>
 Both are struck in their source documents. The second closes **E5 / G4 / H2 / H3**; the first was in
 neither document.
 
+**Before dispatching any fix, ask what else reads the thing it changes.** Three times in one session a
+fix turned out to be coupled to something its own write-up never mentioned: G1 to a `vite.config.ts`
+no report opened, G4 to three more emit sites and a second file, and **H6 to H13** — see that row.
+
 **Two dispatches, and both times the file list I handed the agent was short.** The first found the
 `get-quest` MCP tool-schema `.describe()` and a result contract PURPOSE; the second found
 `flowrider-reviewer-statics.ts` and `codeweaver-reviewer-statics.ts`. Tell every agent to sweep for
@@ -217,7 +221,6 @@ it more fully. `Owner` is `us` unless the siegemaster session owns it.
 | **G7** | Hardened build ban in every brief template | P | 79–237 min/quest of sub-agent wall clock | codeweaver + flowrider us; siegemaster theirs | open |
 | **G12 = H9a** | Enumerate untracked files; move the diff read into step 5 | P | 10–25 min per greenfield cell | us | open |
 | **G5 = H9b** | Re-measure or delete `[GIT FORMS]` | P | 2–4 min/cell, ~34 lines out of three prompts | codeweaver us; siegemaster theirs | open |
-| **G19-row = H6** | Name `get-qa-checklist` in the codeweaver prompt and in its reviewer | P | 0.2 min direct; four wrong counts and one falsely-reported compliance | us | open — the audit carries far more evidence than the post-mortem row did |
 | **G14 + comp = H8** | Flow-scope the operator maps and the walker guide | P | ~84 min of guide authoring, ~30–37 min of flowrider duplication | codeweaver + flowrider map half us; guide path theirs | open |
 | **G11** | Fix the brief template's `PROVE` check types | P | ~31 min of downstream repair | us | open |
 | **G10** | Forbid grandchildren in every brief template | P | 4.5M–13M ctx-in and 3–11 min per affected item | codeweaver + flowrider us | open |
@@ -240,7 +243,7 @@ groups.
 | **G22** | Who runs the whole-branch ward, and when. `85a6f3818` made it expressible; nobody is told to run it | S | ~31 min/quest | us | open |
 | **G21** | Filter design decisions to the cell's own nodes in the `get-quest` render. Decide with G19's "make the map cover design decisions" row — filtering too hard cost a whole extra wave on item [5] | M | 32% off every codeweaver's scope fetch | us | open |
 | **H14** | Print the seven off-map families as context on the codeweaver's and flowrider's checklists, without adding them to either denominator. Four of flow 1's nine late observables were pure concurrency or interruption cases on a composer | O/S | correctness; no minutes attributable | us — **but tell the siegemaster session, it touches their charter** | open — **the audit only** |
-| **H13** | Which routing rule governs a glue unit: the owning node's tags, or the observable's own `package`. Both are deliberate and they disagree on every seam node | O/S | correctness | us | open — **the audit only** |
+| **H6 + H13, together** | Which routing rule owns a unit — the node's tags or the observable's own `package` — and only then, name `get-qa-checklist` in the codeweaver prompt. **These are one piece of work.** `get-qa-checklist` is called by flowrider, siegemaster and both their reviewers, and all four carry `packageNames: []`, which short-circuits the package filter — so the two rules cannot disagree for any caller that exists today. Give the codeweaver the tool first and the disagreement goes live: on `send-message-with-images` it would report **79 units owed across a flow that has 61**, each cell told it owes observables its own render attributes to a sibling. A session with two numbers and no way to choose is worse off than one with no tool | O/S | correctness; H6 is 0.2 min direct, four wrong counts and one falsely-reported compliance | us | open |
 | **H12** | When a later role authors an observable inside a closed cell's scope, should the ledger mint a `pt N`, or should the unit record its arrival time? | S | closes 2 permanently open units | us | open — **the audit only** |
 | **G23** | What an operator does when its own turn is 529ing. Three candidate homes: the dispatcher, the harness, or the ledger | P + O | 79.1 min on this quest, unbounded in general | siegemaster prompt half theirs; dispatcher half us | open |
 
