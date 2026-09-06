@@ -739,8 +739,9 @@ proposed this fix in identical form [post-mortem §E4].
 **The alternative is equally acceptable:** delete the 175-line transformer and its test, and cut the
 seam question from step 5, so the prompt stops asking for something no data supports.
 
-**H2. Print the edge id in the flow render — about 3.1 min of measured recovery, two spilled tool results,
-and the precondition for H3.**
+**~~H2. Print the edge id in the flow render~~ — SHIPPED 2026-09-05 in `5ede6d341`.** Every edge line now opens with
+its own `<edge:id>`, and a labelled edge carries `◀ YOURS` where its source node does. Four emit sites, not one,
+plus a fifth in `quest-flow-slice-transformer.ts` and five pieces of prose. See the post-mortem's ~~G4~~.
 
 **What it is.** The flow render prints a `[C✓]` sign-off marker beside an edge id it never prints.
 Print the id.
@@ -757,8 +758,9 @@ roughly 0.6 min [report 03] = **about 3.1 min across three cells**. Add a **135,
 [report 03 §3.3] and a **263,665-character** spill [report 09 §5 f4], plus the two prompt-forbidden
 `stage:` calls the prompt currently forces.
 
-**H3. Add `.strict()` to `flowNodeContract` — recovers 2 destroyed sign-offs and converts a class of
-silent data loss into a visible error.**
+**~~H3. Add `.strict()` to `flowNodeContract`~~ — SHIPPED 2026-09-05 in `5ede6d341`.** Checked before it was kept:
+103 real `quest.json` files parsed 98/5 with `.strict()` and an identical 98/5 with `.passthrough()`, no
+`unrecognized_keys` issue in either. The five failures are pre-existing enum errors on retired role names.
 
 **What it is.** A malformed sign-off write currently answers `{"success": true}` after silently
 stripping the payload. Make it refuse instead.
@@ -1007,7 +1009,7 @@ nine late observables are pure concurrency/interruption cases on a composer.**
 | 6 | **H6** — name `get-qa-checklist` | prompt | **0.2 min**; four wrong counts and one falsely-reported compliance |
 | 7 | **H11** — node → observable coverage check | design | prevents **2 of 3** known-open defects reaching a human |
 | 8 | **H7** — siegemaster step 7b | prompt | **~5 min** to buy a question that got 0.0 min across 1,208.5 |
-| 9 | **H2 + H3** — edge id, then `.strict()` | code | **≈3.1 min**, 2 recovered sign-offs, ~400k chars of spill |
+| 9 | ~~**H2 + H3**~~ — edge id, then `.strict()` | code | **SHIPPED** 2026-09-05 in `5ede6d341` |
 | 10 | **H4** — the header denominator and its legend | code | 0 realized min; **three measured over-counts** and full exposure on every resume |
 | 11 | **H12, H13, H14** | design | correctness; no minutes attributable |
 
