@@ -7,9 +7,27 @@
  * // Returns: ContentText[] with indented flow graph lines
  *
  * flowGraphToTextTransformer({flow, ownPackage, otherFlows: quest.flows});
- * // The same graph, with `ownPackage`'s nodes marked, every observable on a node it tags printed
- * // whatever package owns it, the observables on nodes it does not tag left to the brace counts,
- * // and each cross-flow edge's target resolved out of `otherFlows`
+ * // The same graph, with `ownPackage`'s nodes and the labelled edges leaving them marked, every
+ * // observable on a node it tags printed whatever package owns it, the observables on nodes it does
+ * // not tag left to the brace counts, and each cross-flow edge's target resolved out of `otherFlows`
+ *
+ * EVERY EDGE LINE OPENS WITH ITS OWN `<edge:id>`. A labelled edge is a verification unit signed by
+ * id into the flow's `edges` array, and the only other id on the line is `[#target]` — the node the
+ * edge points AT, which belongs in `nodes`. Measured on one quest, a render carrying the label and
+ * the target alone withheld 7 of the 8 edge ids one cell went on to sign; four sessions invented
+ * four different ways around it, and the one that nested an `edges` key inside a node object had
+ * two sign-offs silently stripped while `modify-quest` answered `{"success": true}`.
+ *
+ * THE UNLABELLED EDGES CARRY THE ID TOO, though they are not units. Every node prints `[#id]`
+ * whether or not it is a terminal, and every observable prints `#id` whether or not anyone has
+ * signed it — an id that appeared on only some edge lines would be indistinguishable from the
+ * omission above, and `modify-quest` addresses an unlabelled edge by id for a spec edit exactly as
+ * it addresses a labelled one.
+ *
+ * A LABELLED EDGE CARRIES `◀ YOURS` WHERE ITS SOURCE NODE DOES. Ownership of a branch is a property
+ * of the node the edge LEAVES, so a session that had to trace indentation upward to find out
+ * whether it owed the unit now reads the answer on the line. Only labelled edges are marked: an
+ * unlabelled one is not a unit, and a mark on it claims work nobody signs.
  *
  * EVERY NODE LINE CARRIES ITS `{packages}`. A node's package tags are what route its terminal and
  * branch verification units — those carry no observable to read a package from — so a graph without
@@ -230,10 +248,14 @@ export const flowGraphToTextTransformer = ({
       for (const edge of edges) {
         const toIdParsed = flowNodeIdContract.safeParse(edge.to);
         const edgeToStr = String(edge.to);
+        // ID FIRST, the same order the node and observable lines use, and it opens the line on
+        // EVERY edge whether or not the edge is a unit.
+        const edgeIdPart = `${SYM.edgeIdOpen}${String(edge.id)}${SYM.edgeIdClose} `;
         const labelPart = edge.label ? `"${String(edge.label)}" ` : '';
-        // The unlabelled cross-flow line keeps its single space after the arrow: a qualified
-        // `flowId:nodeId` target is not bracketed, so without it the id runs straight into the arrow.
-        const crossFlowLabelPart = edge.label ? `"${String(edge.label)}" ` : ' ';
+        // A LABELLED edge is the verification unit; an unlabelled one is a transition that forces
+        // nothing and mints none. The owner is the node the edge LEAVES — which is the node being
+        // rendered right now — so the branch carries exactly the mark that node carries.
+        const edgeOwnMarker = nodeTagsOwnPackage && edge.label ? ` ${SYM.ownedNode}` : '';
         const edgeSignoffMarker = String(
           signoffMarkersToTextTransformer({
             codeweaverSignoff: edge.codeweaverSignoff,
@@ -249,7 +271,7 @@ export const flowGraphToTextTransformer = ({
           // write evidence for a branch whose name it never saw.
           lines.push(
             contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${crossFlowLabelPart}${edgeToStr} ${SYM.crossFlow}${edgeSignoffMarker}`,
+              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}${edgeToStr} ${SYM.crossFlow}${edgeOwnMarker}${edgeSignoffMarker}`,
             ),
           );
           const target = crossFlowTargets.get(edgeToStr);
@@ -276,19 +298,19 @@ export const flowGraphToTextTransformer = ({
         if (isCrossFlow) {
           lines.push(
             contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${crossFlowLabelPart}${edgeToStr} ${SYM.crossFlow}${edgeSignoffMarker}`,
+              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}${edgeToStr} ${SYM.crossFlow}${edgeOwnMarker}${edgeSignoffMarker}`,
             ),
           );
         } else if (isBackRef) {
           lines.push(
             contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${labelPart} [#${edgeToStr}] ${SYM.backRef}${edgeSignoffMarker}`,
+              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}[#${edgeToStr}] ${SYM.backRef}${edgeOwnMarker}${edgeSignoffMarker}`,
             ),
           );
         } else {
           lines.push(
             contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${labelPart}[#${String(toId)}]${edgeSignoffMarker}`,
+              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}[#${String(toId)}]${edgeOwnMarker}${edgeSignoffMarker}`,
             ),
           );
           childrenToVisit.push({ nodeId: toId, depth: depth + DEPTH_INCREMENT });

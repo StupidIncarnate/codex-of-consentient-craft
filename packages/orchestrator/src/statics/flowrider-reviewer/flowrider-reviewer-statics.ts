@@ -107,7 +107,8 @@ grows with the quest — past the MCP result ceiling on any quest of real size. 
 layer writes the result to a FILE and hands you an error stub, so you would grade this work holding a
 path instead of a spec, with nothing reporting a failure.
 
-That call returns YOUR flow whole — every node, every edge with its branch label, every observable —
+That call returns YOUR flow whole — every node, every edge with its own \`<edge:…>\` id and its
+branch label, every observable —
 plus the other flows as ids and names only, which are not your scope. The checklist gives you every
 unit on it and the layer each is measured at: \`## CHECK SURFACES\` for an observable's type, and the
 \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` headings for the other kinds.
