@@ -290,6 +290,54 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       ]);
     });
+
+    it('VALID: {tailed main JSONL appends a user line whose content is A![Pasted Image 1](/p/x.png)B} => emitted entry content rewrites the pasted-image path to a server image URL', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-pasted-image' });
+      const activeQuestId = QuestIdStub({ value: 'pasted-image-quest' });
+
+      proxy.setupSubagentDirEmpty();
+      proxy.setupLines({
+        lines: [
+          '{"type":"user","uuid":"paste-line","timestamp":"2026-05-13T10:00:08.000Z","message":{"role":"user","content":"A![Pasted Image 1](/p/x.png)B"}}',
+        ],
+      });
+
+      const emitted: unknown[] = [];
+
+      questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => true,
+      });
+
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'user',
+              content:
+                'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
+              source: 'session',
+              uuid: 'paste-line:user',
+              timestamp: '2026-05-13T10:00:08.000Z',
+            },
+          ],
+          questId: activeQuestId,
+        },
+      ]);
+    });
   });
 
   describe('subagent JSONL tails', () => {

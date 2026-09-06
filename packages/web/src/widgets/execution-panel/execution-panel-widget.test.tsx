@@ -1388,7 +1388,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {press FOLLOW-UP} => tab bar holds FOLLOW-UP then EXECUTION then QUEST SPEC, with FOLLOW-UP active', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
@@ -1403,7 +1403,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {followupEntries with an assistant text entry} => renders it under the TAVERNKEEPER label', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const entries = [
         AssistantTextChatEntryStub({
           uuid: '00000000-0000-4000-8000-0000000007b1',
@@ -1431,7 +1431,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {press FOLLOW-UP then click EXECUTION} => FOLLOW-UP tab stays listed first while EXECUTION is active', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
@@ -1448,7 +1448,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {press FOLLOW-UP, switch to EXECUTION, press FOLLOW-UP again} => exactly one FOLLOW-UP tab exists and it is active', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
@@ -1465,7 +1465,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {FOLLOW-UP tab active} => mounts the same ChatPanelWidget the spec-phase chat uses, with its input and send button', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
@@ -1481,7 +1481,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {type message and click SEND on FOLLOW-UP tab} => calls onSendFollowupMessage with the typed text', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
@@ -1498,7 +1498,7 @@ describe('ExecutionPanelWidget', () => {
     it('EDGE: {onSendFollowupMessage removed while FOLLOW-UP tab is active} => clamps back to EXECUTION without throwing', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       const { rerender } = mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
@@ -1513,7 +1513,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const blockedQuest: Quest = QuestStub({ status: 'blocked' });
       const mergingQuest: Quest = QuestStub({ status: 'merging' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const entries = [
         AssistantTextChatEntryStub({
           uuid: '00000000-0000-4000-8000-0000000007a1',
@@ -1578,7 +1578,7 @@ describe('ExecutionPanelWidget', () => {
         (status) => {
           const proxy = ExecutionPanelWidgetProxy();
           const quest: Quest = QuestStub({ status });
-          const onSendFollowupMessage = jest.fn();
+          const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
           mantineRenderAdapter({
             ui: (
@@ -1595,7 +1595,7 @@ describe('ExecutionPanelWidget', () => {
         (status) => {
           const proxy = ExecutionPanelWidgetProxy();
           const quest: Quest = QuestStub({ status });
-          const onSendFollowupMessage = jest.fn();
+          const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
           mantineRenderAdapter({
             ui: (
@@ -1637,7 +1637,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {status: blocked, both handlers provided} => bar shows both segments with exact labels', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
       mantineRenderAdapter({
@@ -1658,7 +1658,7 @@ describe('ExecutionPanelWidget', () => {
     it('EMPTY: {status: in_progress, both handlers provided} => post-quest bar absent', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
       mantineRenderAdapter({
@@ -1677,7 +1677,7 @@ describe('ExecutionPanelWidget', () => {
     it('EMPTY: {status: merging, both handlers provided} => post-quest bar absent', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'merging' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
       mantineRenderAdapter({
@@ -1696,7 +1696,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {status: merged, both handlers provided} => FOLLOW-UP present and enabled, merge segment absent so an already-merged quest cannot be merged again', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'merged' });
-      const onSendFollowupMessage = jest.fn();
+      const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
       mantineRenderAdapter({

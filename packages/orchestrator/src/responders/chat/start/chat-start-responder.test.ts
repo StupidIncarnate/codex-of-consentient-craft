@@ -14,6 +14,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStartResponderProxy } from './chat-start-responder.proxy';
 
@@ -29,6 +30,12 @@ const flushAsync = async (remaining = 10): Promise<void> => {
   await flushCycle();
   await flushAsync(remaining - 1);
 };
+
+// proxy.getSpawnedArgs() is declared `() => unknown` (chatSpawnBrokerProxy delegates straight
+// through agentLaunchBrokerProxy's own `unknown`-typed getter). Narrowing here via Array.isArray
+// reads one positional value without an `as` cast or a conditional inside a test body.
+const spawnedArgvValueAt = ({ args, index }: { args: unknown; index: number }): unknown =>
+  Array.isArray(args) ? args[index] : undefined;
 
 describe('ChatStartResponder', () => {
   describe('basic start', () => {
@@ -77,6 +84,61 @@ describe('ChatStartResponder', () => {
       });
 
       expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    });
+
+    it('VALID: {resumed session, message carrying an absolute image path} => answers with the processId while the spawn carries the path unaltered', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub({ value: 'session-resume-image' });
+
+      // Quest-list staging MUST precede setupResumeSession — see the note on the mirrored
+      // "starts chat with session" test above for why the ordering matters.
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupPendingEmpty();
+
+      const capture = proxy.setupEventCapture();
+
+      const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
+      const message = `this one ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) not the other`;
+
+      const result = await proxy.callResponder({
+        guildId,
+        message,
+        sessionId,
+      });
+
+      // The server already rewrote the placeholder into a Markdown image token carrying the
+      // absolute path before calling this responder — the orchestrator's job is to carry that
+      // string through to the spawned CLI without altering it. questId is present because
+      // setupResumeSession (no questId passed) resolves chatQuestId against the sticky
+      // CREATED_QUEST_ID chatSpawnBrokerProxy mocks crypto.randomUUID to return.
+      expect(result).toStrictEqual({
+        chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      const args = proxy.getSpawnedArgs();
+
+      expect(spawnedArgvValueAt({ args, index: 0 })).toBe('-p');
+      expect(spawnedArgvValueAt({ args, index: 1 })).toBe(
+        `${message}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+      );
+
+      // The response resolved before the agent turn completed — no chat-complete for this
+      // spawn has been emitted yet.
+      expect(
+        capture.getEmittedEvents().filter((event) => event.type === 'chat-complete'),
+      ).toStrictEqual([]);
     });
   });
 
@@ -383,6 +445,57 @@ describe('ChatStartResponder', () => {
         'chat-session-started',
         'chat-complete',
       ]);
+    });
+  });
+
+  describe('existingQuestId resolution', () => {
+    // chat-start-responder.ts's `else if (existingQuestId)` branch reassigns `chatQuestType`
+    // from the looked-up quest and derives the intake role from
+    // `questTypeRegistryStatics[chatQuestType].initialWorkItemRole` before calling
+    // chatSpawnBroker with that role. A bug-hunt quest's intake item is a `bughunt` work item,
+    // not `chaoswhisperer` — resolveChatQuestLayerBroker's existingQuestId branch throws
+    // "Quest <id> has no <role> work item" when chatSpawnBroker is called with a role that has
+    // no matching work item on the quest. So a hardcoded role, or a missed `chatQuestType`
+    // reassignment (leaving it at the 'feature' default, which derives 'chaoswhisperer'), turns
+    // this test red by making the whole call reject instead of resolve — there is no bughunt
+    // item on this quest for a wrongly-derived 'chaoswhisperer' lookup to find.
+    it('VALID: {existingQuestId names a bug-hunt quest whose bughunt work item has no sessionId} => resolves without throwing, proving the role was derived as bughunt', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub();
+      // Matches the sticky crypto.randomUUID literal chatSpawnBrokerProxy mocks (see
+      // CREATED_QUEST_ID in chat-spawn-broker.proxy.ts). setupResumeSession({exitCode}) (no
+      // questId) stages chatSpawnBrokerProxy's own cwd-resolution fixture for a quest with THIS
+      // id — questRepoRootBroker's own internal questFindQuestPathBroker lookup matches quest
+      // files purely by their `id` field, so reusing this literal is what lets that lookup find
+      // a fixture at all. setupQuestGetImmediate below overrides every questGetBroker call
+      // (including chatSpawnBroker's own resolution) to return THIS quest, so its role/questType
+      // content is what actually drives the assertion regardless of the fixture's own shape.
+      const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const bughuntWorkItem = WorkItemStub({
+        id: 'bbbbbbbb-1111-4222-9333-444444444444',
+        role: 'bughunt',
+        status: 'complete',
+      });
+      const quest = QuestStub({
+        id: questId,
+        questType: 'bug-hunt',
+        workItems: [bughuntWorkItem],
+      });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupQuestGetImmediate({ quest });
+
+      const result = await proxy.callResponder({
+        guildId,
+        message: 'Reproduce the crash again',
+        existingQuestId: questId,
+      });
+
+      expect(result).toStrictEqual({
+        chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questId,
+      });
     });
   });
 

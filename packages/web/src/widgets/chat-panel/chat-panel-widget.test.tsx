@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import {
@@ -25,7 +25,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -46,7 +46,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -68,7 +68,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -94,7 +94,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -126,7 +126,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -156,7 +156,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -179,7 +179,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -196,7 +196,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -215,7 +215,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -228,7 +228,7 @@ describe('ChatPanelWidget', () => {
   describe('send message via button', () => {
     it('VALID: {typed message, click send} => calls onSendMessage and clears input', async () => {
       const proxy = ChatPanelWidgetProxy();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -246,12 +246,17 @@ describe('ChatPanelWidget', () => {
 
       expect(onSendMessage).toHaveBeenCalledTimes(1);
       expect(onSendMessage).toHaveBeenCalledWith({ message: 'Build auth flow' });
+
+      await waitFor(() => {
+        expect(proxy.isInputEmpty()).toBe(true);
+      });
+
       expect(proxy.isInputEmpty()).toBe(true);
     });
 
     it('EMPTY: {empty input, click send} => does not call onSendMessage', async () => {
       const proxy = ChatPanelWidgetProxy();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -273,7 +278,7 @@ describe('ChatPanelWidget', () => {
   describe('send message via enter key', () => {
     it('VALID: {typed message, press Enter} => calls onSendMessage and clears input', async () => {
       const proxy = ChatPanelWidgetProxy();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -290,12 +295,17 @@ describe('ChatPanelWidget', () => {
 
       expect(onSendMessage).toHaveBeenCalledTimes(1);
       expect(onSendMessage).toHaveBeenCalledWith({ message: 'Build auth flow' });
+
+      await waitFor(() => {
+        expect(proxy.isInputEmpty()).toBe(true);
+      });
+
       expect(proxy.isInputEmpty()).toBe(true);
     });
 
     it('VALID: {typed message, press Shift+Enter} => does not send message', async () => {
       const proxy = ChatPanelWidgetProxy();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -315,7 +325,7 @@ describe('ChatPanelWidget', () => {
 
     it('EMPTY: {empty input, press Enter} => does not call onSendMessage', async () => {
       const proxy = ChatPanelWidgetProxy();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -335,7 +345,7 @@ describe('ChatPanelWidget', () => {
 
     it('VALID: {typed message with whitespace, press Enter} => sends trimmed message', async () => {
       const proxy = ChatPanelWidgetProxy();
-      const onSendMessage = jest.fn();
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
       mantineRenderAdapter({
         ui: (
@@ -364,7 +374,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -381,7 +391,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -390,7 +400,7 @@ describe('ChatPanelWidget', () => {
       expect(proxy.isStreamingVisible()).toBe(false);
     });
 
-    it('VALID: {isStreaming: true} => disables textarea', () => {
+    it('VALID: {isStreaming: true, no send in flight} => #check-composer-typable-while-agent-streams leaves the composer editable', () => {
       ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
@@ -398,15 +408,17 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
       });
 
-      const textarea = screen.getByRole('textbox');
-
-      expect((textarea as HTMLTextAreaElement).disabled).toBe(true);
+      // CHAT_INPUT's editability tracks its OWN in-flight POST, not the agent's turn — a turn can
+      // run long after the POST that started it has already resolved, and the composer must not
+      // stay locked for the length of that turn. No send has been issued here, so `isStreaming`
+      // alone must not lock it.
+      expect(screen.getByTestId('CHAT_INPUT').getAttribute('contenteditable')).toBe('true');
     });
 
     it('VALID: {isStreaming: true} => shows stop button instead of send button', () => {
@@ -417,7 +429,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -435,7 +447,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -467,7 +479,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -498,7 +510,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -519,7 +531,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -559,7 +571,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -586,7 +598,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={jest.fn()}
           />
         ),
@@ -606,7 +618,7 @@ describe('ChatPanelWidget', () => {
           <ChatPanelWidget
             entries={[]}
             isStreaming={true}
-            onSendMessage={jest.fn()}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
             onStopChat={onStopChat}
           />
         ),
@@ -621,15 +633,16 @@ describe('ChatPanelWidget', () => {
   describe('readOnly mode', () => {
     it('VALID: {readOnly: true} => does not render chat input', () => {
       ChatPanelWidgetProxy();
-      const noop = (): void => undefined;
+      const noopSend = async (): Promise<void> => Promise.resolve();
+      const noopStop = (): void => undefined;
 
       mantineRenderAdapter({
         ui: (
           <ChatPanelWidget
             entries={[]}
             isStreaming={false}
-            onSendMessage={noop}
-            onStopChat={noop}
+            onSendMessage={noopSend}
+            onStopChat={noopStop}
             readOnly
           />
         ),
@@ -644,15 +657,16 @@ describe('ChatPanelWidget', () => {
         UserChatEntryStub({ content: 'Hello' }),
         AssistantTextChatEntryStub({ content: 'Hi' }),
       ];
-      const noop = (): void => undefined;
+      const noopSend = async (): Promise<void> => Promise.resolve();
+      const noopStop = (): void => undefined;
 
       mantineRenderAdapter({
         ui: (
           <ChatPanelWidget
             entries={entries}
             isStreaming={false}
-            onSendMessage={noop}
-            onStopChat={noop}
+            onSendMessage={noopSend}
+            onStopChat={noopStop}
             readOnly
           />
         ),

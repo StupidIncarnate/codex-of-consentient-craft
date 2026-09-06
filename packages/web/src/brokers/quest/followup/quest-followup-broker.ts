@@ -10,22 +10,36 @@
  */
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestId, UserInput } from '@dungeonmaster/shared/contracts';
+import type {
+  PastedImageUpload,
+  ProcessId,
+  QuestId,
+  UserInput,
+} from '@dungeonmaster/shared/contracts';
 
-import { fetchPostWithStatusAdapter } from '../../../adapters/fetch/post-with-status/fetch-post-with-status-adapter';
+import { xhrPostWithProgressAdapter } from '../../../adapters/xhr/post-with-progress/xhr-post-with-progress-adapter';
 import { questFollowupResponseContract } from '../../../contracts/quest-followup-response/quest-followup-response-contract';
+import type { UploadProgressHandler } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questFollowupBroker = async ({
   questId,
   message,
+  images,
+  onProgress,
 }: {
   questId: QuestId;
   message: UserInput;
+  images?: readonly PastedImageUpload[];
+  onProgress?: UploadProgressHandler;
 }): Promise<{ chatProcessId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questFollowup.replace(':questId', questId);
 
-  const result = await fetchPostWithStatusAdapter({ url, body: { message } });
+  const result = await xhrPostWithProgressAdapter({
+    url,
+    body: { message, ...(images === undefined || images.length === 0 ? {} : { images }) },
+    onProgress: onProgress ?? ((): void => undefined),
+  });
   const parsed = questFollowupResponseContract.safeParse(result.body);
 
   if (result.ok) {

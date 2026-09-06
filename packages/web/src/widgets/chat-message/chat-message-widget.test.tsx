@@ -55,6 +55,34 @@ describe('ChatMessageWidget', () => {
 
       expect(message.style.textAlign).toBe('left');
     });
+
+    it('VALID: {role: user, content: two lines} => renders the text unchanged inside CHAT_MESSAGE with whiteSpace pre-wrap', () => {
+      ChatMessageWidgetProxy();
+      const entry = UserChatEntryStub({ content: 'line one\nline two' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+      const text = screen.getByTestId('CHAT_MESSAGE_TEXT');
+
+      expect(message.contains(text)).toBe(true);
+      expect(message.textContent).toBe('YOUline one\nline two');
+      expect(text.style.whiteSpace).toBe('pre-wrap');
+    });
+
+    it('VALID: {role: user, content: markdown image token} => renders an img inside CHAT_MESSAGE', () => {
+      ChatMessageWidgetProxy();
+      const src = 'http://host/api/images?path=%2Fp%2Fx.png';
+      const entry = UserChatEntryStub({ content: `![Pasted Image 1](${src})` });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+      const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
+
+      expect(message.contains(image)).toBe(true);
+      expect(image.getAttribute('src')).toBe(src);
+    });
   });
 
   describe('assistant text message', () => {
@@ -323,6 +351,28 @@ describe('ChatMessageWidget', () => {
 
         '2px solid rgb(232, 121, 249)',
       ]);
+    });
+
+    it('VALID: {role: user, source: subagent, content: markdown image token} => keeps the SUB-AGENT PROMPT label and its own border colour while still rendering the image', () => {
+      ChatMessageWidgetProxy();
+      const src = 'http://host/api/images?path=%2Fp%2Fx.png';
+      const entry = UserChatEntryStub({
+        content: `before ![Pasted Image 1](${src}) after`,
+        source: 'subagent',
+      });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+      const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
+
+      expect(message.textContent).toBe('SUB-AGENT PROMPTbefore  after');
+      expect([message.style.borderLeft, message.style.borderRight]).toStrictEqual([
+        '2px solid rgb(232, 121, 249)',
+
+        '2px solid rgb(232, 121, 249)',
+      ]);
+      expect(image.getAttribute('src')).toBe(src);
     });
   });
 
@@ -953,6 +1003,23 @@ describe('ChatMessageWidget', () => {
 
       expect(messageText).toBe('YOUJust a normal message');
       expect(screen.queryByTestId('AGENT_PROMPT_SECTION')).toBe(null);
+    });
+
+    it('VALID: {role: user, isInjectedPrompt: true, content contains a markdown image token} => short-circuits to InjectedPromptLayerWidget and never mounts the image content layer', () => {
+      ChatMessageWidgetProxy();
+      const src = 'http://host/api/images?path=%2Fp%2Fx.png';
+      const entry = UserChatEntryStub({
+        content: `You are an agent.\n\n## User Request\n\n![Pasted Image 1](${src})`,
+        isInjectedPrompt: true,
+      });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const agentSection = screen.getByTestId('AGENT_PROMPT_SECTION');
+
+      expect(agentSection.textContent).toBe('AGENT PROMPTYou are an agent.');
+      expect(screen.queryByTestId('IMAGE_CONTENT_LAYER')).toBe(null);
+      expect(screen.queryByTestId('CHAT_MESSAGE_IMAGE')).toBe(null);
     });
   });
 });

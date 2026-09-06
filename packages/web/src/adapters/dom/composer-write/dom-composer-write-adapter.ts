@@ -1,0 +1,77 @@
+/**
+ * PURPOSE: Writing a segment list into the contenteditable editor is the RESTORE path only — a page
+ * reload rebuilding a persisted draft, or a draft pulled back from IndexedDB — never the
+ * per-keystroke path. A keystroke edits the DOM directly and lets domComposerReadAdapter derive the
+ * model back out of it; rebuilding the DOM from React state on every change would fight the
+ * browser's own caret handling.
+ *
+ * USAGE:
+ * domComposerWriteAdapter({ editor: editorElement, segments, attachments });
+ * // Replaces the editor's children with one node per segment and returns { success: true }
+ */
+
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
+import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';
+import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
+import type { ComposerSegment } from '../../../contracts/composer-segment/composer-segment-contract';
+import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
+import { composerCaretFillerElementTransformer } from '../../../transformers/composer-caret-filler-element/composer-caret-filler-element-transformer';
+
+export const domComposerWriteAdapter = ({
+  editor,
+  segments,
+  attachments,
+}: {
+  editor: HTMLElement;
+  segments: readonly ComposerSegment[];
+  attachments: ReadonlyMap<AttachmentId, ComposerAttachment>;
+}): AdapterResult => {
+  const nodes: Node[] = [];
+
+  segments.forEach((segment) => {
+    if (segment.kind === 'text') {
+      nodes.push(document.createTextNode(segment.text));
+      return;
+    }
+
+    const attachment = attachments.get(segment.attachmentId);
+    if (attachment === undefined) {
+      // The map is a snapshot of what this browser still holds bytes for. A segment naming an
+      // attachment that has fallen out of it (evicted from IndexedDB, a draft restored from
+      // another tab) is skipped rather than rendered as a broken image with no bytes behind it.
+      return;
+    }
+
+    const thumbnail = document.createElement('img');
+    thumbnail.setAttribute(chatComposerStatics.thumbnail.attributeName, segment.attachmentId);
+    thumbnail.setAttribute('data-testid', chatComposerStatics.thumbnail.testId);
+    thumbnail.setAttribute('contenteditable', 'false');
+    thumbnail.setAttribute('src', attachment.dataUrl);
+    // Bounds the RENDERED size only — matches domComposerInsertImageAdapter's paste-path thumbnail
+    // exactly, so a restored draft's <img> paints the same size as the one the user pasted rather
+    // than at the attachment's own (possibly much larger) intrinsic pixel dimensions.
+    thumbnail.style.maxHeight = `${String(chatComposerStatics.thumbnail.maxHeightPx)}px`;
+    thumbnail.style.maxWidth = `${String(chatComposerStatics.thumbnail.maxWidthPx)}px`;
+    thumbnail.style.objectFit = 'contain';
+    thumbnail.style.verticalAlign = 'middle';
+    nodes.push(thumbnail);
+  });
+
+  // A restored trailing newline with nothing after it hits the identical contenteditable quirk
+  // domComposerInsertTextAdapter already guards against on the live per-keystroke path: the browser
+  // cannot render or reliably hold a caret AFTER a trailing newline, so a click lands BEFORE it and
+  // the next keystroke lands there too. `nodes.at(-1)` (not "is this the last SEGMENT") is what to
+  // check — a trailing image segment whose attachment fell out of the map above is skipped rather
+  // than pushed, so the last node actually WRITTEN can be this text node even when it wasn't the last
+  // segment in the list. domComposerReadAdapter already excludes the marked <br> from the serialised
+  // text, so this never surfaces as an extra '\n' in a re-saved draft.
+  const lastNode = nodes.at(-1);
+  if (lastNode instanceof Text && lastNode.data.endsWith('\n')) {
+    nodes.push(composerCaretFillerElementTransformer({ ownerDocument: editor.ownerDocument }));
+  }
+
+  editor.replaceChildren(...nodes);
+
+  return { success: true as const };
+};

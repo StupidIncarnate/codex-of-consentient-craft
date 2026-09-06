@@ -1,4 +1,5 @@
 import { QuestIdStub, SessionIdStub, WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
 import { tavernkeeperPromptStatics } from '../../statics/tavernkeeper-prompt/tavernkeeper-prompt-statics';
@@ -226,6 +227,81 @@ describe('chatPromptBuildTransformer', () => {
           questId: QuestIdStub(),
         }),
       ).toThrow(/^chatPromptBuildTransformer has no template for role 'codeweaver'.*$/u);
+    });
+  });
+
+  describe('pasted image trailer', () => {
+    it('VALID: {sessionId, message carrying one image token} => returns the message with the trailer appended once', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionId = SessionIdStub({ value: 'session-images-1' });
+      const message = 'Look at this bug: ![Pasted Image 1](/tmp/screenshot-1.png)';
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message,
+        questId: null,
+        sessionId,
+      });
+
+      const expected = `${message}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      expect(result).toBe(expected);
+    });
+
+    it('VALID: {sessionId, message carrying two image tokens} => appends the sentinel exactly once', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionId = SessionIdStub({ value: 'session-images-2' });
+      const message =
+        'Compare these: ![Pasted Image 1](/tmp/screenshot-1.png) and ![Pasted Image 2](/tmp/screenshot-2.png)';
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message,
+        questId: null,
+        sessionId,
+      });
+
+      const expected = `${message}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      expect(result).toBe(expected);
+    });
+
+    it('VALID: {sessionId, message carrying no image token} => returns the message unchanged', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionId = SessionIdStub({ value: 'session-no-images' });
+      const message = 'Just continue please';
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message,
+        questId: null,
+        sessionId,
+      });
+
+      expect(result).toBe(message);
+    });
+
+    it('VALID: {no sessionId, chaoswhisperer role, message carrying an image token} => composed template prompt ends with the trailer', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const questId = QuestIdStub({ value: 'quest-with-images' });
+      const ABSOLUTE_IMAGE_PATH = '/tmp/screenshot-1.png';
+      const message = `Build auth ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH})`;
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message,
+        questId,
+      });
+
+      const trailer = `\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+      const imagePathOccurrenceCount = result.split(ABSOLUTE_IMAGE_PATH).length;
+
+      expect(result.slice(-trailer.length)).toBe(trailer);
+      expect(imagePathOccurrenceCount).toBe(2);
     });
   });
 });

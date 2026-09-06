@@ -75,6 +75,7 @@ export const ChatStartResponderProxy = ({
   triggerMainTailChange: () => void;
   setupQuestGetImmediate: (params: { quest: Quest }) => void;
   setupQuestGetDeferred: (params: { quest: Quest }) => { resolve: () => void };
+  getSpawnedArgs: () => unknown;
 } => {
   // Quest list proxy MUST be created first and set up with quest mocks
   // BEFORE chatSpawnBrokerProxy, because both use shared sequential mock
@@ -200,5 +201,6 @@ export const ChatStartResponderProxy = ({
         },
       };
     },
+    getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
   };
 };

@@ -32,6 +32,8 @@ export const ChatStartResponder = async ({
   guildId,
   message,
   questType,
+  mintedQuestId,
+  existingQuestId,
   sessionId,
 }: {
   guildId: GuildId;
@@ -39,6 +41,18 @@ export const ChatStartResponder = async ({
   // Which pipeline a NEWLY created quest follows — 'bug-hunt' spawns the BugHunt intake instead of
   // ChaosWhisperer. Ignored when resuming, where the existing quest's own type governs.
   questType?: QuestType;
+  // A pre-minted id from the create-surface chat route, which has already persisted the message's
+  // pasted images under this exact quest's folder — never supplied alongside `sessionId`, and kept
+  // as its own field (never merged into the resume-only `chatQuestId`/`questId` forwarded to
+  // chatSpawnBroker below) because `questId` WITHOUT `sessionId` already means something else there
+  // (a resume hint that turned out unusable — see resolveChatQuestLayerBroker's header).
+  mintedQuestId?: QuestId;
+  // The main quest-chat HTTP route's own URL questId — that route has already loaded this exact
+  // quest off disk before ever calling here, so it is never a guess. A missing `sessionId`
+  // alongside it means only "no session captured yet" (the async sessionId write from a prior
+  // turn may not have landed) — never "mint a different quest". See resolveChatQuestLayerBroker's
+  // header for the full three-channel rationale (`questId` / `mintedQuestId` / `existingQuestId`).
+  existingQuestId?: QuestId;
   sessionId?: SessionId;
 }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> => {
   if (sessionId) {
@@ -96,6 +110,29 @@ export const ChatStartResponder = async ({
     } catch {
       // Quest lookup failure should not block chat startup
     }
+  } else if (existingQuestId) {
+    // The main quest-chat route already confirmed this quest exists — a missing sessionId here
+    // is never a mint-fresh-quest signal (see the `existingQuestId` param doc above). Resolves
+    // the quest's own type (to pick the correct intake role below) and that role's work item in
+    // one lookup, since there is no sessionId to match against the way the branch above does.
+    try {
+      const result = await questGetBroker({
+        input: getQuestInputContract.parse({ questId: existingQuestId }),
+      });
+      if (result.success && result.quest) {
+        chatQuestId = result.quest.id;
+        chatQuestType = result.quest.questType;
+        const existingRole = workItemRoleContract.parse(
+          questTypeRegistryStatics[chatQuestType].initialWorkItemRole,
+        );
+        const intakeItem = result.quest.workItems.find((wi) => wi.role === existingRole);
+        if (intakeItem) {
+          chatWorkItemId = intakeItem.id;
+        }
+      }
+    } catch {
+      // Quest lookup failure should not block chat startup
+    }
   }
 
   // Buffer chat-output emits that arrive BEFORE chatWorkItemId is resolved. New-chat path:
@@ -138,13 +175,15 @@ export const ChatStartResponder = async ({
     // resolveChatQuestLayerBroker when sessionId is present so the resume path can
     // look up the intake work item for addressability.
     ...(chatQuestId !== null && { questId: chatQuestId }),
-    onQuestCreated: ({ questId, chatProcessId }) => {
-      chatQuestId = questId;
+    ...(mintedQuestId !== undefined && { mintedQuestId }),
+    ...(existingQuestId !== undefined && { existingQuestId }),
+    onQuestCreated: ({ questId: createdQuestId, chatProcessId }) => {
+      chatQuestId = createdQuestId;
       // Resolve the intake work item id created by questUserAddBroker, then flush
       // any chat-output frames buffered while we were learning it. Fire-and-forget — any
       // buffered emits stay buffered until the lookup resolves; once chatWorkItemId is
       // set, the in-line flush below kicks in on the next onEntries call.
-      questGetBroker({ input: getQuestInputContract.parse({ questId }) })
+      questGetBroker({ input: getQuestInputContract.parse({ questId: createdQuestId }) })
         .then((result) => {
           if (!result.success || !result.quest) return;
           const intakeItem = result.quest.workItems.find((wi) => wi.role === chatRole);
@@ -160,7 +199,7 @@ export const ChatStartResponder = async ({
               payload: {
                 chatProcessId: buffered.chatProcessId,
                 entries: buffered.entries,
-                questId,
+                questId: createdQuestId,
                 workItemId: intakeItem.id,
               },
             });
@@ -177,7 +216,7 @@ export const ChatStartResponder = async ({
               payload: {
                 chatProcessId: bufferedClarification.chatProcessId,
                 questions: bufferedClarification.questions,
-                questId,
+                questId: createdQuestId,
               },
             });
           }
@@ -187,7 +226,7 @@ export const ChatStartResponder = async ({
             type: 'quest-session-linked',
             processId: chatProcessId,
             payload: {
-              questId,
+              questId: createdQuestId,
               chatProcessId,
               workItemId: intakeItem.id,
               role: chatRole,
@@ -202,7 +241,7 @@ export const ChatStartResponder = async ({
       orchestrationEventsState.emit({
         type: 'quest-session-linked',
         processId: chatProcessId,
-        payload: { questId, chatProcessId, role: 'chaoswhisperer' },
+        payload: { questId: createdQuestId, chatProcessId, role: 'chaoswhisperer' },
       });
     },
     onEntries: ({ chatProcessId, entries }) => {

@@ -70,7 +70,7 @@ export const SessionViewWidget = (): React.JSX.Element => {
     <ChatPanelWidget
       entries={entries}
       isStreaming={false}
-      onSendMessage={(): void => undefined}
+      onSendMessage={async (): Promise<void> => Promise.resolve()}
       onStopChat={(): void => undefined}
       readOnly
     />

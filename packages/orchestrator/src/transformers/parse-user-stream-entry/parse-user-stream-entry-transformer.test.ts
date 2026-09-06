@@ -15,6 +15,10 @@ const normalize = (value: unknown): object => snakeKeysToCamelKeysTransformer({ 
 
 const UUID1 = '00000000-0000-4000-8000-000000000001';
 const TS = '1970-01-01T00:00:00.000Z';
+const BASE_URL = 'http://dungeonmaster.localhost:3737';
+const PASTED_IMAGE_LINE = 'A![Pasted Image 1](/p/x.png)B';
+const REWRITTEN_PASTED_IMAGE_LINE =
+  'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B';
 
 describe('parseUserStreamEntryTransformer', () => {
   describe('tool_result content', () => {
@@ -219,6 +223,69 @@ describe('parseUserStreamEntryTransformer', () => {
       });
 
       expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('serverBaseUrl image path rewriting', () => {
+    it('VALID: check-user-line-yields-one-entry: {content: pasted-image token, serverBaseUrl supplied} => parses to exactly one chat entry with role user', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(
+          UserTextStringStreamLineStub({
+            message: { role: 'user', content: PASTED_IMAGE_LINE },
+          }),
+        ),
+        serverBaseUrl: BASE_URL,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'user',
+          content: REWRITTEN_PASTED_IMAGE_LINE,
+          uuid: `${UUID1}:user`,
+          timestamp: TS,
+        },
+      ]);
+    });
+
+    it('VALID: {content carries an image token, serverBaseUrl supplied} => returned entry content is the rewritten URL string', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(
+          UserTextStringStreamLineStub({
+            message: { role: 'user', content: PASTED_IMAGE_LINE },
+          }),
+        ),
+        serverBaseUrl: BASE_URL,
+      });
+
+      expect(result[0]).toStrictEqual({
+        role: 'user',
+        content: REWRITTEN_PASTED_IMAGE_LINE,
+        uuid: `${UUID1}:user`,
+        timestamp: TS,
+      });
+    });
+
+    it('EDGE: {content carries an image token, serverBaseUrl omitted} => content comes back byte-identical to the raw string', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(
+          UserTextStringStreamLineStub({
+            message: { role: 'user', content: PASTED_IMAGE_LINE },
+          }),
+        ),
+      });
+
+      expect(result[0]).toStrictEqual({
+        role: 'user',
+        content: PASTED_IMAGE_LINE,
+        uuid: `${UUID1}:user`,
+        timestamp: TS,
+      });
     });
   });
 });

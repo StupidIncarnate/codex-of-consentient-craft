@@ -278,17 +278,29 @@ export const StartOrchestrator = {
     guildId,
     message,
     questType,
+    mintedQuestId,
+    existingQuestId,
     sessionId,
   }: {
     guildId: GuildId;
     message: string;
     questType?: QuestType;
+    // A pre-minted id from the create-surface chat route — see chat-start-responder.ts for why the
+    // caller, not this method, has to be the one who mints it, and why it cannot ride in on
+    // `questId` (that name is reserved for a resume hint elsewhere in this same call chain).
+    mintedQuestId?: QuestId;
+    // The main quest-chat HTTP route's own URL questId, for a caller that has already confirmed
+    // this quest exists — see resolveChatQuestLayerBroker's header for the full three-channel
+    // rationale (`questId` / `mintedQuestId` / `existingQuestId`).
+    existingQuestId?: QuestId;
     sessionId?: SessionId;
   }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> =>
     ChatStartFlow({
       guildId,
       message,
       ...(questType && { questType }),
+      ...(mintedQuestId && { mintedQuestId }),
+      ...(existingQuestId && { existingQuestId }),
       ...(sessionId && { sessionId }),
     }),
 

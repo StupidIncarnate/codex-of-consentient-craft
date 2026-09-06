@@ -23,6 +23,10 @@
  * reverse map (fully populated by PASS 1a) and calls registerParentChain so PASS 2 stamps B's
  * entries with parentAgentId = A's chain key — even though B's lines sort BEFORE A's
  * tool_result-for-B in timestamp order.
+ *
+ * Replayed user lines reach the browser already carrying image URLs rather than filesystem
+ * paths — the processor rewrites each pasted-image path against the server's own resolved
+ * base URL.
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
@@ -65,6 +69,7 @@ import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
+import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
 import { scopeSubagentFilesToDescendantsLayerBroker } from './scope-subagent-files-to-descendants-layer-broker';
 
 export const chatHistoryReplayBroker = async ({
@@ -183,7 +188,9 @@ export const chatHistoryReplayBroker = async ({
     // subagents directory may not exist
   }
 
-  const processor = chatLineProcessTransformer();
+  const processor = chatLineProcessTransformer({
+    serverBaseUrl: questGetServerConfigBroker().baseUrl,
+  });
   const sessionSource = chatLineSourceContract.parse('session');
   const subagentSource = chatLineSourceContract.parse('subagent');
 

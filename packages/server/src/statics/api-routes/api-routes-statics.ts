@@ -6,9 +6,15 @@
  * // Returns '/api/quests'
  */
 
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
+
 export const apiRoutesStatics = {
   health: {
     check: '/api/health',
+  },
+  images: {
+    serve: pastedImageStatics.serveRoutePath,
+    pathQueryParam: 'path',
   },
   quests: {
     list: '/api/quests',

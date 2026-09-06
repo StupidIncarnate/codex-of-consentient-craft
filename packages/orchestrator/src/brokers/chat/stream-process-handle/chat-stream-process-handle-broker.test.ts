@@ -9,6 +9,7 @@ import {
   SessionIdStub,
   SystemInitStreamLineStub,
   TaskToolResultStreamLineStub,
+  UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -22,6 +23,15 @@ const flushImmediate = async (): Promise<void> =>
 
 const UUID1 = '00000000-0000-4000-8000-000000000001' as const;
 const TS = '2025-01-01T00:00:00.000Z';
+
+// Derived from the broker's own onEntries parameter type (never imported from contracts) so
+// the pasted-image test below can narrow the union to the 'user' variant and assert its
+// `content` field directly, instead of comparing the whole entries array.
+type EmittedChatEntries = Parameters<
+  Parameters<typeof chatStreamProcessHandleBroker>[0]['onEntries']
+>[0]['entries'];
+type EmittedChatEntry = EmittedChatEntries[0];
+type EmittedUserChatEntry = Extract<EmittedChatEntry, { role: 'user' }>;
 
 describe('chatStreamProcessHandleBroker', () => {
   describe('plain-text fallback (claudeLineNormalizeBroker returns null)', () => {
@@ -666,6 +676,49 @@ describe('chatStreamProcessHandleBroker', () => {
       handle.onLine({ rawLine: 'plain ward output line' });
 
       expect(signalCalls).toStrictEqual([]);
+    });
+  });
+
+  describe('pasted-image path rewriting', () => {
+    it('VALID: {user line whose message.content is A![Pasted Image 1](/p/x.png)B} => emitted entry content is the rewritten /api/images URL', () => {
+      chatStreamProcessHandleBrokerProxy();
+
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'sess-image' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-image' });
+
+      const capturedEntries: EmittedChatEntries = [];
+
+      const handle = chatStreamProcessHandleBroker({
+        chatProcessId,
+        guildId,
+        sessionId,
+        onEntries: ({ entries }) => {
+          capturedEntries.push(...entries);
+        },
+        onText: () => {},
+        onSignal: () => {},
+      });
+
+      handle.onLine({
+        rawLine: streamLineToJsonLineTransformer({
+          streamLine: {
+            ...UserTextStringStreamLineStub({
+              message: { role: 'user', content: 'A![Pasted Image 1](/p/x.png)B' },
+            }),
+            uuid: 'line-uuid-image-1',
+            timestamp: '2025-01-01T00:00:00Z',
+          },
+        }),
+      });
+
+      const userEntry = capturedEntries.find(
+        (entry): entry is EmittedUserChatEntry => entry.role === 'user',
+      );
+
+      expect(userEntry?.content).toBe(
+        'A![Pasted Image 1](http://dungeonmaster.localhost:3737/api/images?path=%2Fp%2Fx.png)B',
+      );
     });
   });
 });

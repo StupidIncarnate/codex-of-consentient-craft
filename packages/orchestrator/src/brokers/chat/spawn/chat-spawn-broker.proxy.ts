@@ -1,3 +1,5 @@
+import { homedir } from 'os';
+import { join } from 'path';
 import type {
   AbsoluteFilePath,
   QuestId,
@@ -11,7 +13,11 @@ import {
   RepoRootCwdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import {
+  locationsQuestFolderPathFindBrokerProxy,
+  locationsQuestImagesPathFindBrokerProxy,
+} from '@dungeonmaster/shared/testing';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
@@ -33,6 +39,46 @@ const CREATED_QUEST_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 // Legacy (no-worktreePath) quests resolve their cwd from the guild's repo root. The actual
 // value is opaque to every scenario below except the ones that assert on it directly.
 const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/home/user/my-guild' });
+
+// chatSpawnBroker's `--add-dir` grant (chat-spawn-broker.ts) resolves the quest's images
+// directory through the real locations chain (locationsGuildPathFindBroker ->
+// locationsGuildQuestsPathFindBroker -> locationsQuestFolderPathFindBroker ->
+// locationsQuestImagesPathFindBroker), which makes FIVE real `path.join` calls (homePath,
+// guildPath, guildQuestsPath, questFolderPath, imagesDirPath) right after cwd resolution
+// completes, on EVERY chatSpawnBroker call, plus one `os.homedir()` call.
+//
+// None of the five joins is safe to content-address. A content match keyed on a locationsStatics
+// literal ('guilds'/'quests'/'images') looks selective, but registerMock's argument matching is a
+// PREFIX match — a 3-element address `[any, 'guilds', any]` also matches a 4-argument call like
+// questResolveQuestsPathBroker's own `join(homePath, 'guilds', guildId, 'quests')` (used by
+// questListBroker's guild-quests-dir scan). A content match wins over any competing onceFor([])
+// address regardless of registration order, so it silently steals that unrelated call away from
+// questResolveQuestsPathBrokerProxy's own staged one-shot — stranding that one-shot to answer
+// whatever unaddressed call comes next instead, corrupting a sibling cycle. (Measured: this broke
+// every chat-start-responder.test.ts scenario that stages questListBrokerProxy alongside this
+// proxy.) So all five joins are staged as plain ORDER-SCOPED one-shots, real-passthrough,
+// positioned by this call site landing exactly where the five calls fire in execution order:
+// right after this broker's own cwd-resolution staging, before the spawn adapter's own emit.
+//
+// os.homedir() takes no arguments, so every caller shares the address []. STICKY (not one-shot)
+// because two SEPARATE real computations must agree on it within one test: chatSpawnBroker's own
+// internal add-dir computation, and a test that separately re-computes the same locations chain to
+// build its expected value (chat-spawn-broker.test.ts's own --add-dir boundary test calls
+// locationsQuestFolderPathFindBroker/locationsQuestImagesPathFindBroker directly, AFTER
+// chatSpawnBroker has already run, and compares the two results). A live one-shot queued earlier
+// by another proxy still wins over this sticky default, so it cannot steal from anyone.
+const stageAddDirPathJoins = (): void => {
+  const realPathJoin = requireActual<{ join: typeof join }>({ module: 'path' });
+  const pathJoinHandle = registerMock({ fn: join });
+
+  pathJoinHandle.onceFor([]).implement((...segments: never[]) => realPathJoin.join(...segments));
+  pathJoinHandle.onceFor([]).implement((...segments: never[]) => realPathJoin.join(...segments));
+  pathJoinHandle.onceFor([]).implement((...segments: never[]) => realPathJoin.join(...segments));
+  pathJoinHandle.onceFor([]).implement((...segments: never[]) => realPathJoin.join(...segments));
+  pathJoinHandle.onceFor([]).implement((...segments: never[]) => realPathJoin.join(...segments));
+
+  registerMock({ fn: homedir }).calledWith([]).returns('/home/testuser');
+};
 
 export const chatSpawnBrokerProxy = (): {
   setupNewSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
@@ -77,6 +123,13 @@ export const chatSpawnBrokerProxy = (): {
   setupMainTailGuild: AgentLaunchProxy['setupMainTailGuild'];
   setupMainTailLines: AgentLaunchProxy['setupMainTailLines'];
   triggerMainTailChange: AgentLaunchProxy['triggerMainTailChange'];
+  // Exposed for composing proxies (e.g. FollowupChatStartResponderProxy) that drive
+  // chatSpawnBroker's own quest resolution directly via resolveChatQuestLayerBrokerProxy /
+  // questCwdResolveBrokerProxy rather than through setupNewSession/setupResumeSession/
+  // setupGlyphsmithSession — those three call this internally at the right point already;
+  // this lets a caller with its own resolution sequence stage the add-dir absorbers at the
+  // exact point its OWN cwd-resolution cycle finishes, without duplicating the mocking logic.
+  stageAddDirPathJoins: () => void;
 } => {
   // chatSpawnBroker delegates spawn lifecycle to agentLaunchBroker; loading its proxy
   // wires up the transitive agent-spawn-unified + chat-stream-process-handle + main-tail
@@ -94,6 +147,13 @@ export const chatSpawnBrokerProxy = (): {
   // proxy wires up the questGetBroker/questRepoRootBroker/fsIsAccessibleAdapter mocks that
   // decide the 'worktree' | 'repo-root' | 'missing-worktree' outcome.
   const cwdProxy = questCwdResolveBrokerProxy();
+  // locationsQuestFolderPathFindBroker/locationsQuestImagesPathFindBroker are imported by
+  // chat-spawn-broker.ts for its `--add-dir` computation; these calls satisfy
+  // enforce-proxy-child-creation, which tracks the import edge. The actual mocking for that
+  // computation is hand-rolled in stageAddDirPathJoins above (registerMock on the raw
+  // path.join/os.homedir, not on these brokers), so these are registration-only.
+  locationsQuestFolderPathFindBrokerProxy();
+  locationsQuestImagesPathFindBrokerProxy();
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(CREATED_QUEST_ID);
 
@@ -114,6 +174,7 @@ export const chatSpawnBrokerProxy = (): {
         quest: QuestStub({ id: CREATED_QUEST_ID }),
         repoRoot: DEFAULT_REPO_ROOT,
       });
+      stageAddDirPathJoins(); // chatSpawnBroker's own `--add-dir` computation — see header comment
       // The launcher's spawn mock receives the stdout lines + exit code.
       launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
@@ -159,6 +220,7 @@ export const chatSpawnBrokerProxy = (): {
         resolveProxy.setupQuestFound({ quest });
         cwdProxy.setupLegacyQuest({ quest, repoRoot: DEFAULT_REPO_ROOT });
       }
+      stageAddDirPathJoins(); // chatSpawnBroker's own `--add-dir` computation — see header comment
       launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -192,6 +254,7 @@ export const chatSpawnBrokerProxy = (): {
           });
       resolveProxy.setupQuestFound({ quest: seededQuest });
       cwdProxy.setupLegacyQuest({ quest: seededQuest, repoRoot: DEFAULT_REPO_ROOT });
+      stageAddDirPathJoins(); // chatSpawnBroker's own `--add-dir` computation — see header comment
       launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -288,5 +351,7 @@ export const chatSpawnBrokerProxy = (): {
     setupMainTailGuild: launchProxy.setupMainTailGuild,
     setupMainTailLines: launchProxy.setupMainTailLines,
     triggerMainTailChange: launchProxy.triggerMainTailChange,
+
+    stageAddDirPathJoins,
   };
 };

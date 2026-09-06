@@ -25,6 +25,7 @@ import { MarkdownTextWidget } from '../markdown-text/markdown-text-widget';
 import { ThinkingRowWidget } from '../thinking-row/thinking-row-widget';
 import { ToolResultContentWidget } from '../tool-result-content/tool-result-content-widget';
 import { ToolRowWidget } from '../tool-row/tool-row-widget';
+import { ImageContentLayerWidget } from './image-content-layer-widget';
 import { InjectedPromptLayerWidget } from './injected-prompt-layer-widget';
 
 type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
@@ -230,9 +231,7 @@ export const ChatMessageWidget = ({
         >
           {userLabel}
         </Text>
-        <Text ff="monospace" size="xs" style={{ color: colors.text, whiteSpace: 'pre-wrap' }}>
-          {entry.content}
-        </Text>
+        <ImageContentLayerWidget content={entry.content} entryUuid={entry.uuid} />
       </Box>
     );
   }

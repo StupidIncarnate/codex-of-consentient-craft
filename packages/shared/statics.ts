@@ -75,3 +75,7 @@ export * from './src/statics/package-build-order/package-build-order-statics';
 // measured over them — consumed by signoffTrackContract and signoffDenominatorTrackContract to
 // build their enums, and by every test that enumerates either list.
 export * from './src/statics/signoff-tracks/signoff-tracks-statics';
+
+// Pasted-image limits, token patterns and prompt trailer — one source read by the browser's
+// paste path, the server's write path and the orchestrator's prompt builder.
+export * from './src/statics/pasted-image/pasted-image-statics';

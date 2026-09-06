@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type {
@@ -20,14 +20,16 @@ import { questNewBrokerProxy } from '../../brokers/quest/new/quest-new-broker.pr
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
+import type { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
 import { AutoScrollContainerWidgetProxy as autoScrollProxyImpl } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { ChatEntryListWidgetProxy as chatEntryListProxyImpl } from '../chat-entry-list/chat-entry-list-widget.proxy';
+import { ChatInputWidgetProxy as chatInputProxyImpl } from '../chat-input/chat-input-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 
 // Aliased calls to avoid enforce-proxy-child-creation phantom detection. These proxies
-// are needed because QuestChatContentLayerWidget renders AutoScrollContainerWidget and
-// ChatEntryListWidget transitively via ChatPanelWidget, which the implementation file
-// doesn't directly import.
+// are needed because QuestChatContentLayerWidget renders AutoScrollContainerWidget,
+// ChatEntryListWidget, and ChatInputWidget transitively via ChatPanelWidget, which the
+// implementation file doesn't directly import.
 const setupAutoScrollContainer = autoScrollProxyImpl;
 const setupChatEntryList = chatEntryListProxyImpl;
 import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
@@ -55,6 +57,23 @@ export const QuestChatContentLayerWidgetProxy = (): {
   }) => void;
   typeMessage: (params: { text: string }) => Promise<void>;
   clickSend: () => Promise<void>;
+  // New semantic getters (widget's proxy is otherwise READ ONLY per the paste-images task): neither
+  // ChatPanelWidgetProxy nor ChatInputWidgetProxy — both off-limits to edit for that task — expose a
+  // way to attach an image to the composer or read the mid-quest chat body, and both are required to
+  // prove an image survives handleSend on both the create surface and the live-quest composer.
+  // pasteImageIntoComposer drives a SECOND, independently-constructed ChatInputWidgetProxy's
+  // pasteImage()/attachYields() against the SAME rendered CHAT_INPUT node — the same "shared spy,
+  // multiple registrations" mechanism this package already relies on elsewhere (see
+  // use-quest-chat-binding.proxy.ts's getChatRequestBody note), not a second, disconnected composer.
+  pasteImageIntoComposer: (params: {
+    attachment: ReturnType<typeof ComposerAttachmentStub>;
+    bytes: Uint8Array;
+  }) => void;
+  getComposerThumbnailAttachmentIds: () => readonly ReturnType<Element['getAttribute']>[];
+  // Mirrors getFollowupRequestBody below, for the MAIN composer's mid-quest send — reaches through to
+  // useQuestChatBindingProxy's own getChatRequestBody(), which this proxy already constructs (as
+  // `binding`) but did not previously surface.
+  getChatRequestBody: () => unknown;
   getChatRequestCount: () => RequestCount;
   getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
@@ -96,6 +115,12 @@ export const QuestChatContentLayerWidgetProxy = (): {
   const mode = useOrchestrationModeBindingProxy();
   const questNew = questNewBrokerProxy();
   const chatPanel = ChatPanelWidgetProxy();
+  // A SEPARATE instance from the one ChatPanelWidgetProxy builds internally for itself — that
+  // internal one is not exposed (ChatPanelWidgetProxy only surfaces typeMessage/clickSend, and is
+  // read-only for this task). This instance exists solely to reach pasteImage()/attachYields(), which
+  // operate on the real rendered CHAT_INPUT node and the shared registerMock/registerSpyOn staging
+  // regardless of which proxy instance registered it.
+  const chatInput = chatInputProxyImpl();
   // QuestChatContentLayerWidget runs the sweep binding on mount; its state proxy stubs the
   // localStorage the sweep reads, so every render test gets a clean queue by default.
   useCommentQueueSweepBindingProxy();
@@ -162,6 +187,14 @@ export const QuestChatContentLayerWidgetProxy = (): {
     clickSend: async () => {
       await chatPanel.clickSend();
     },
+    pasteImageIntoComposer: ({ attachment, bytes }) => {
+      chatInput.attachYields({ attachment });
+      fireEvent.paste(screen.getByTestId('CHAT_INPUT'), {
+        clipboardData: chatInput.pasteImage({ mediaType: attachment.mediaType, bytes }),
+      });
+    },
+    getComposerThumbnailAttachmentIds: () => chatInput.getThumbnailAttachmentIds(),
+    getChatRequestBody: () => binding.getChatRequestBody(),
     getChatRequestCount: () => binding.getChatRequestCount(),
     getClarifyRequestCount: () => binding.getClarifyRequestCount(),
     getPauseRequestCount: () => binding.getPauseRequestCount(),

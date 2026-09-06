@@ -1,5 +1,10 @@
 /**
- * PURPOSE: User-initiated quest creation — generates a new UUID and produces the quest.json via questCreateBroker with the quest type's intake seed work item already attached, so a single persist + outbox event covers the full initial state.
+ * PURPOSE: User-initiated quest creation — generates a new UUID (or uses a caller-supplied one) and
+ * produces the quest.json via questCreateBroker with the quest type's intake seed work item already
+ * attached, so a single persist + outbox event covers the full initial state. The optional
+ * `questId` exists for the create-surface chat route: pasted images have to be persisted under
+ * `<questFolder>/images` before this broker ever runs, which only works if the caller already
+ * minted the id this broker is about to create the quest under.
  *
  * USAGE:
  * const result = await questUserAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...' }), guildId: GuildIdStub() });
@@ -20,6 +25,7 @@ import type {
   AddQuestInput,
   AddQuestResult,
   GuildId,
+  QuestId,
   SessionId,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
@@ -30,14 +36,16 @@ import { questCreateBroker } from '../create/quest-create-broker';
 export const questUserAddBroker = async ({
   input,
   guildId,
+  questId: providedQuestId,
   sessionId,
 }: {
   input: AddQuestInput;
   guildId: GuildId;
+  questId?: QuestId;
   sessionId?: SessionId;
 }): Promise<AddQuestResult> => {
   try {
-    const questId = questIdContract.parse(crypto.randomUUID());
+    const questId = providedQuestId ?? questIdContract.parse(crypto.randomUUID());
 
     // The create-time seed role is quest-type specific: feature seeds a chaoswhisperer chat item,
     // bug-hunt a bughunt one. Both are chat roles, so the session that created the quest has a

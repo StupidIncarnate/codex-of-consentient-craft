@@ -19,6 +19,9 @@
  * translation map (populated as user tool_results are seen, and pre-seeded by the replay path
  * to cover lines that arrive before their completion tool_result in timestamp order). After
  * that normalization step, downstream code never has to know the source format.
+ *
+ * A `serverBaseUrl` supplied to the factory, when present, turns a user line's pasted-image
+ * paths into server URLs.
  */
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
@@ -45,7 +48,11 @@ import { toolUseIdsFromContentTransformer } from '../tool-use-ids-from-content/t
 
 const NUMERIC_TASK_NOTIFICATION_KEYS = new Set(['totalTokens', 'toolUses', 'durationMs']);
 
-export const chatLineProcessTransformer = (): ChatLineProcessor => {
+export const chatLineProcessTransformer = ({
+  serverBaseUrl,
+}: {
+  serverBaseUrl?: string;
+} = {}): ChatLineProcessor => {
   // Forward map: toolUseId → realAgentId, populated as user tool_result lines are processed.
   const agentIdMap = new Map<ToolUseId, AgentId>();
   // Reverse map: realAgentId → toolUseId, kept in sync so file-sourced sub-agent lines
@@ -322,7 +329,10 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
           ? undefined
           : parentChainMap.get(toolUseIdContract.parse(ownChainKey));
 
-      const { entries } = streamJsonToChatEntryTransformer({ parsed: original });
+      const { entries } = streamJsonToChatEntryTransformer({
+        parsed: original,
+        ...(serverBaseUrl === undefined ? {} : { serverBaseUrl }),
+      });
       const stampedEntries = entries.map((entry) => {
         const entryAgentIdRaw =
           'agentId' in entry && typeof entry.agentId === 'string' && entry.agentId.length > 0

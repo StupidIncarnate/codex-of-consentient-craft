@@ -1,3 +1,4 @@
+import { writeFile } from 'fs/promises';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type {
   AbsoluteFilePathStub,
@@ -7,7 +8,7 @@ import type {
   QuestStatus,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 // Combine StartOrchestrator method mocks with the questFindQuestPathBroker mock under
 // one explicit module-mock factory so both can coexist on @dungeonmaster/orchestrator.
@@ -49,6 +50,7 @@ import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchest
 import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
 import { orchestratorResumeQuestAdapterProxy } from '../../../adapters/orchestrator/resume-quest/orchestrator-resume-quest-adapter.proxy';
 import { orchestratorStartChatAdapterProxy } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter.proxy';
+import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestChatResponder } from './quest-chat-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -76,12 +78,26 @@ export const QuestChatResponderProxy = (): {
   getResumeQuestCalls: () => readonly unknown[];
   assertResumeCalledBeforeStartChat: () => boolean;
   getStartChatCallArgs: (params: { guildId: GuildId }) => unknown;
+  getStartChatCallCount: () => unknown;
+  setupPastedImageHome: (params: { homePath: string }) => void;
+  stagePastedImageIds: (params: { ids: readonly string[] }) => void;
+  getWrittenPayloadsInOrder: () => unknown[];
   callResponder: typeof QuestChatResponder;
 } => {
   const loadProxy = orchestratorLoadQuestAdapterProxy();
   const findPathProxy = orchestratorFindQuestPathAdapterProxy();
   const startChatProxy = orchestratorStartChatAdapterProxy();
   const resumeProxy = orchestratorResumeQuestAdapterProxy();
+  // pastedImagePersistBroker is APPLICATION code — it runs REAL. This proxy only mocks the npm
+  // boundary underneath it (mkdir, writeFile, randomUUID, homedir), composed exactly the way the
+  // broker's own test does.
+  const persistProxy = pastedImagePersistBrokerProxy();
+  // Extra READ-ONLY handle on the same npm `writeFile` persistProxy's own fsWriteFileBase64AdapterProxy
+  // already stages. It never calls .calledWith, only .callsMatching, so it cannot collide with that
+  // staging — same pattern pastedImagePersistBrokerProxy itself uses for its writeCallCount(). This is
+  // what lets a test see every write's raw base64 payload in invocation order without first computing
+  // each write's absolute destination path.
+  const writeCallsHandle = registerMock({ fn: writeFile });
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
@@ -134,12 +150,18 @@ export const QuestChatResponderProxy = (): {
       resumeProxy.throws({ questId, error: new Error(message) });
     },
     getResumeQuestCalls: (): readonly unknown[] => {
-      const resumeFn = StartOrchestrator.resumeQuest as jest.Mock;
-      return resumeFn.mock.calls.map(([firstArg]: readonly unknown[]) => firstArg);
+      const resumeFn = StartOrchestrator.resumeQuest as jest.MockedFunction<
+        typeof StartOrchestrator.resumeQuest
+      >;
+      return resumeFn.mock.calls.map(([firstArg]) => firstArg);
     },
     assertResumeCalledBeforeStartChat: (): boolean => {
-      const resumeFn = StartOrchestrator.resumeQuest as jest.Mock;
-      const startChatFn = StartOrchestrator.startChat as jest.Mock;
+      const resumeFn = StartOrchestrator.resumeQuest as jest.MockedFunction<
+        typeof StartOrchestrator.resumeQuest
+      >;
+      const startChatFn = StartOrchestrator.startChat as jest.MockedFunction<
+        typeof StartOrchestrator.startChat
+      >;
       const [resumeOrder] = resumeFn.mock.invocationCallOrder;
       const [startChatOrder] = startChatFn.mock.invocationCallOrder;
       if (resumeOrder === undefined || startChatOrder === undefined) {
@@ -149,6 +171,23 @@ export const QuestChatResponderProxy = (): {
     },
     getStartChatCallArgs: ({ guildId }: { guildId: GuildId }): unknown =>
       startChatProxy.getLastCalledArgs({ guildId }),
+    getStartChatCallCount: (): unknown => {
+      const startChatFn = StartOrchestrator.startChat as jest.MockedFunction<
+        typeof StartOrchestrator.startChat
+      >;
+      return startChatFn.mock.calls.length;
+    },
+    setupPastedImageHome: ({ homePath }: { homePath: string }): void => {
+      persistProxy.setupHome({ homePath });
+    },
+    stagePastedImageIds: ({ ids }: { ids: readonly string[] }): void => {
+      persistProxy.stageImageIds({ ids });
+    },
+    // Raw base64 payload per write, in the order fs actually received them — the images.map()
+    // callback in pastedImagePersistBroker starts each write synchronously in input order (see
+    // that broker's own proxy for why), so this is the posted order too.
+    getWrittenPayloadsInOrder: (): unknown[] =>
+      writeCallsHandle.callsMatching([]).map((call) => call[1]),
     callResponder: QuestChatResponder,
   };
 };
