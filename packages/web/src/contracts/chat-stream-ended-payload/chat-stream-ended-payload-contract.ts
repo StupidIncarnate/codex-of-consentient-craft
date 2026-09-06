@@ -10,6 +10,12 @@
  * (chat-history-complete) is the subscribe-quest replay draining — it fires ~250ms after a browser
  * binds a quest and says nothing about whether a turn is in flight. A consumer that treats the two
  * alike reports a just-sent message as idle.
+ *
+ * `retained` is a SECOND axis on top of `reason`, not a third reason: a retained frame is a real
+ * `turn-ended`, re-sent by the server at the end of a `subscribe-quest` for a turn that finished
+ * before this browser was listening. It stays distinguishable because the permissive arms of
+ * `isTrackedChatProcessGuard` — which let a LIVE completion clear a turn whose POST has not
+ * resolved yet — would let a re-delivery clear a turn it has nothing to do with.
  */
 
 import { z } from 'zod';
@@ -25,6 +31,7 @@ export const chatStreamEndedPayloadContract = z.object({
   chatProcessId: processIdContract.optional(),
   sessionId: sessionIdContract.optional(),
   questId: questIdContract.optional(),
+  retained: z.boolean().optional(),
 });
 
 export type ChatStreamEndedPayload = z.infer<typeof chatStreamEndedPayloadContract>;

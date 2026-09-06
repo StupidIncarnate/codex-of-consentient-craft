@@ -363,7 +363,6 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
     });
   });
 
-
   describe('prompt carrying an absolute image path', () => {
     it('VALID: {prompt carrying an absolute image path} => -p value is the prompt verbatim, path intact', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();

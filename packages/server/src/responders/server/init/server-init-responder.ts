@@ -60,6 +60,12 @@ type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
 const FLUSH_INTERVAL_MS = 100;
 
+// How many ended chat turns a quest keeps a re-deliverable record of. A browser can only be
+// reconciling a turn IT sent, which is the most recent one on that quest, so one would do for the
+// case this exists for; the window covers a reader whose socket missed several turns in a row.
+// A cap is what stops a relay that lives for days from holding one object per chat turn forever.
+const RETAINED_CHAT_COMPLETIONS_PER_QUEST = 8;
+
 // Per-quest event types route ONLY through the per-quest subscription filter.
 // Clients without a matching subscription do not receive these events.
 const PER_QUEST_EVENT_TYPES = new Set<OrchestrationEventType>([
@@ -137,6 +143,17 @@ export const ServerInitResponder = ({
   // opening frames of a transcript after later ones. Entries last the process lifetime; a
   // work item's owning quest never changes.
   const workItemQuestIdCache = new Map<QuestWorkItemId, QuestId>();
+  // The `chat-complete` frames this relay has already shipped, per quest, keyed by the chat process
+  // each one names and stamped `retained: true` so the browser can tell a re-delivery from a live
+  // frame. Re-sent to a client at the END of its `subscribe-quest`.
+  //
+  // The per-quest fan-out below drops a frame no client is subscribed for, and for `chat-output`
+  // that costs nothing — the subscribe replay reads the same lines back off the session JSONL. A
+  // completion has no such second copy: nothing writes it to disk, so a client that was not
+  // listening when it fired can never learn the turn ended. That is not a rare window on the
+  // first message of a quest, where the browser cannot subscribe until the POST that CREATES the
+  // quest returns its id, and the agent can spawn and exit inside that round trip.
+  const retainedChatCompleteByQuest = new Map<QuestId, Map<ProcessId, WsMessage>>();
 
   app.get(
     '/ws',
@@ -361,8 +378,31 @@ export const ServerInitResponder = ({
                     if (drainSendFailed) break;
                   }
                 }
-                // chat-history-complete is sent LAST — after every replay frame
-                // and every drained live frame for this subscription. Web's
+                // Re-deliver every chat turn this quest has already finished. A completion is not
+                // written to disk, so the replay above — which re-reads chat-output from the
+                // session JSONL — has no way to surface one; without this, a browser whose
+                // subscription landed after its own turn ended holds STOP with nothing left that
+                // could clear it. Each frame carries `retained: true`, and the browser applies it
+                // only when it names the turn that browser is actually tracking.
+                //
+                // Sent BEFORE chat-history-complete for the same reason the drain above is:
+                // that frame has to stay last.
+                if (!drainSendFailed) {
+                  const retainedCompletions = retainedChatCompleteByQuest.get(subQuestId);
+                  for (const retainedMsg of retainedCompletions?.values() ?? []) {
+                    try {
+                      subWs.send(JSON.stringify(retainedMsg));
+                    } catch {
+                      clientSubscriptions.delete(subWs);
+                      clients.delete(subWs);
+                      drainSendFailed = true;
+                      break;
+                    }
+                  }
+                }
+                // chat-history-complete is sent LAST — after every replay frame,
+                // every drained live frame and every retained completion for this
+                // subscription. Web's
                 // `useQuestChatBinding` flips `isStreaming` on each chat-output
                 // (TRUE) and on each chat-history-complete (FALSE), so any
                 // ordering that lets a chat-output land after chat-history-complete
@@ -652,6 +692,35 @@ export const ServerInitResponder = ({
         });
 
         if (PER_QUEST_EVENT_TYPES.has(type)) {
+          // Record the turn ending BEFORE the fan-out decides who gets it, because the case this
+          // exists for is exactly the one the fan-out cannot serve: nobody is subscribed yet.
+          if (
+            type === 'chat-complete' &&
+            payloadQuestId !== undefined &&
+            payloadChatProcessId !== undefined
+          ) {
+            let questCompletions = retainedChatCompleteByQuest.get(payloadQuestId);
+            if (questCompletions === undefined) {
+              questCompletions = new Map<ProcessId, WsMessage>();
+              retainedChatCompleteByQuest.set(payloadQuestId, questCompletions);
+            }
+            // Deleted first so a re-completed process moves to the END of the insertion order the
+            // eviction below reads as "oldest first".
+            questCompletions.delete(payloadChatProcessId);
+            questCompletions.set(
+              payloadChatProcessId,
+              wsMessageContract.parse({
+                type,
+                payload: { ...effectivePayload, processId, retained: true },
+                timestamp: envelope.timestamp,
+              }),
+            );
+            for (const oldestProcessId of questCompletions.keys()) {
+              if (questCompletions.size <= RETAINED_CHAT_COMPLETIONS_PER_QUEST) break;
+              questCompletions.delete(oldestProcessId);
+            }
+          }
+
           // Per-quest events fan out to subscribed clients whose subscription matches
           // the payload's questId, AND to any readonly-replay client tracked by
           // chatProcessId (SessionViewWidget — won't have a subscription). Track

@@ -208,7 +208,13 @@ export const QuestChatContentLayerWidget = ({
         ...(images === undefined ? {} : { images }),
         ...(onProgress === undefined ? {} : { onProgress }),
       })
-        .then(({ questId: newQuestId }) => {
+        .then(({ questId: newQuestId, chatProcessId }) => {
+          // Hand the turn's handle to the binding BEFORE navigating. The navigate is what mounts
+          // this widget against the new questId and sends the `subscribe-quest` — and that
+          // subscription's reply is the only route a completion has to a browser that could not
+          // have been listening when the agent it just created spawned and exited. That reply is
+          // matched against this handle, so it has to be in hand first.
+          armStreaming({ chatProcessId });
           const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
           if (result instanceof Promise) {
             result.catch((navError: unknown) => {

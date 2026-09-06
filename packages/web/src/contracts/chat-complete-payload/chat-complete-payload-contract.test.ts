@@ -25,6 +25,17 @@ describe('chatCompletePayloadContract', () => {
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
       });
     });
+
+    it('VALID: {with retained} => parses the subscribe-time re-delivery marker', () => {
+      const payload = ChatCompletePayloadStub({ retained: true });
+
+      const result = chatCompletePayloadContract.parse(payload);
+
+      expect(result).toStrictEqual({
+        chatProcessId: 'proc-12345',
+        retained: true,
+      });
+    });
   });
 
   describe('invalid payloads', () => {

@@ -79,7 +79,7 @@ export const useQuestChatBinding = ({
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   isStreaming: boolean;
   isFollowupStreaming: boolean;
-  armStreaming: () => void;
+  armStreaming: (params?: { chatProcessId: ProcessId }) => void;
   disarmStreaming: () => void;
   disarmFollowupStreaming: () => void;
   sendMessage: (params: {
@@ -463,20 +463,27 @@ export const useQuestChatBinding = ({
       // its own below. Filtering on the main handle alone would have dropped the tavernkeeper's own
       // completion whenever the main composer had a turn in flight, leaving the FOLLOW-UP tab on
       // STOP with nothing left to clear it.
+      //
+      // `retained` rides along to the guard on every call: it narrows the match to an exact handle,
+      // so a re-delivered completion for a turn that ended before this browser subscribed is
+      // dropped here outright unless one of the two composers is actually tracking it.
       predicate: (p) =>
         isTrackedChatProcessGuard({
           chatProcessId: p.chatProcessId,
           trackedChatProcessId: trackedChatProcessIdRef.current,
+          retained: p.retained,
         }) ||
         isTrackedChatProcessGuard({
           chatProcessId: p.chatProcessId,
           trackedChatProcessId: followupTrackedChatProcessIdRef.current,
+          retained: p.retained,
         }),
     }).subscribe((payload): void => {
       if (
         isTrackedChatProcessGuard({
           chatProcessId: payload.chatProcessId,
           trackedChatProcessId: trackedChatProcessIdRef.current,
+          retained: payload.retained,
         })
       ) {
         setStreamingFromOutput(false);
@@ -496,6 +503,7 @@ export const useQuestChatBinding = ({
         isTrackedChatProcessGuard({
           chatProcessId: payload.chatProcessId,
           trackedChatProcessId: followupTrackedChatProcessIdRef.current,
+          retained: payload.retained,
         })
       ) {
         setFollowupStreamingFromOutput(false);
@@ -870,11 +878,18 @@ export const useQuestChatBinding = ({
   }, []);
 
   // For the one turn this binding cannot POST itself: the first message, which must create its
-  // quest before there is a questId to send to. The caller owns that round-trip, so it arms here
-  // with no process handle and the wire disarms on `turn-ended` like any other turn.
-  const armStreaming = useCallback((): void => {
+  // quest before there is a questId to send to. The caller owns that round-trip, so it arms in two
+  // halves — bare on commit, then again with the `chatProcessId` its POST handed back.
+  //
+  // That second call is what makes this turn RECONCILABLE. Its quest does not exist when the user
+  // commits it, so the browser cannot subscribe to it until the POST returns — and an agent that
+  // spawns and exits inside that round trip addresses its `chat-complete` to a quest nobody is
+  // subscribed to, which the server drops. The server re-sends that completion at the end of the
+  // subscribe, stamped `retained`, and a retained frame is applied only on an exact handle match:
+  // without the handle there is nothing for it to match and the composer holds STOP forever.
+  const armStreaming = useCallback((params?: { chatProcessId: ProcessId }): void => {
     setPendingTurn(true);
-    trackedChatProcessIdRef.current = null;
+    trackedChatProcessIdRef.current = params?.chatProcessId ?? null;
   }, []);
 
   const disarmStreaming = useCallback((): void => {
