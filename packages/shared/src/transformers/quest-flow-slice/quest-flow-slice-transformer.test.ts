@@ -345,20 +345,20 @@ describe('questFlowSliceTransformer', () => {
         'Type: runtime',
         'Entry: login-page',
         'Exits: Dashboard shown | Signup started',
-        "Your package: web. Its nodes carry ◀ YOURS; on those nodes EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (●). The graph is NOT filtered — the nodes between yours are how yours connect.",
+        "Your package: web. Its nodes carry ◀ YOURS, and so does every labelled edge LEAVING one of them — a branch belongs to the node it leaves, and its id is the <edge:…> at the head of the line. On a marked node EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (●). The graph is NOT filtered — the nodes between yours are how yours connect.",
         '',
         '[#login-page] {web ● 1, server ● 1} Login page (state) ◀ YOURS',
         '  ● #form-renders {web} the form renders with an empty email field [ui-state]',
         '  ● #session-probe {server} GET /api/session answers 401 for an anonymous visitor [api-call]',
-        '  →"submits credentials" [#auth-check]',
-        '  →"no account yet" signup-flow:signup-page ↗ cross-flow',
+        '  →<edge:submits> "submits credentials" [#auth-check] ◀ YOURS',
+        '  →<edge:to-signup> "no account yet" signup-flow:signup-page ↗ cross-flow ◀ YOURS',
         '    target: [#signup-page] {web} Signup page (state) in flow #signup-flow "Sign up"',
         '    Your scope ENDS at the hand-off: prove the edge fires and the target flow is entered, not what it does next.',
         '  [#auth-check] {server ● 1} Credentials checked (decision)',
         '    (terminal)',
         '',
         '### Edges arriving from another flow',
-        '→"already has an account" into [#login-page]',
+        '→<edge:back-to-login> "already has an account" into [#login-page]',
         '  source: [#signup-page] {web} Signup page (state) in flow #signup-flow "Sign up"',
         '  Another flow enters yours here. Treat the arriving node as GIVEN; do not re-prove it.',
         '',
@@ -630,7 +630,7 @@ describe('questFlowSliceTransformer', () => {
           ),
       ).toStrictEqual([
         '[#login-page] {web, server} Login page (state) [F✓]',
-        '  →"submits credentials" auth-check ↗ cross-flow [S?]',
+        '  →<edge:submits> "submits credentials" auth-check ↗ cross-flow [S?]',
       ]);
     });
   });

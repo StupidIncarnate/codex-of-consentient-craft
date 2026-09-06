@@ -211,4 +211,52 @@ describe('flowNodeContract', () => {
       }).toThrow(/Required/u);
     });
   });
+
+  // THE SHAPE THAT COST TWO SIGN-OFFS. A session nested an `edges` array inside the node object —
+  // `edges` is a sibling of `nodes` on the FLOW, one level up — and used each edge's LABEL where
+  // its id belongs. Without `.strict()` zod drops the unknown key, `modify-quest` answers
+  // `{"success": true}`, and the session reports units it never wrote. The refusal has to name the
+  // key, because that is the whole of what tells the caller where the array actually goes.
+  describe('unknown keys', () => {
+    it("INVALID: {node carrying a nested edges array} => throws naming 'edges', instead of dropping it and reporting success", () => {
+      expect(() => {
+        flowNodeContract.parse({
+          id: 'clipboard-has-image',
+          label: 'Clipboard has image',
+          type: 'decision',
+          packages: ['auth-service'],
+          observables: [],
+          edges: [
+            {
+              id: 'no image',
+              codeweaverSignoff: {
+                verdict: 'confirmed',
+                evidence:
+                  'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
+                workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                at: '2026-01-01T00:00:00.000Z',
+              },
+            },
+          ],
+        });
+      }).toThrow(/Unrecognized key\(s\) in object: 'edges'/u);
+    });
+
+    it("INVALID: {node carrying a misspelt sign-off field} => throws naming 'codeweaverSignOff', so a typo is not a silent no-op", () => {
+      expect(() => {
+        flowNodeContract.parse({
+          id: 'clipboard-has-image',
+          label: 'Clipboard has image',
+          type: 'decision',
+          packages: ['auth-service'],
+          codeweaverSignOff: {
+            verdict: 'confirmed',
+            evidence: 'packages/x/src/a-transformer.test.ts:42 — flips to red',
+            workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            at: '2026-01-01T00:00:00.000Z',
+          },
+        });
+      }).toThrow(/Unrecognized key\(s\) in object: 'codeweaverSignOff'/u);
+    });
+  });
 });

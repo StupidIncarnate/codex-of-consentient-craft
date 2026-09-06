@@ -124,7 +124,8 @@ question 1 below: there is no flow for the code to match.
 
 Your brief's \`PACKAGE:\` and \`FLOW:\` lines are the scope — the render carries no operations section to look one up in.
 Then read that flow: every node the package is tagged on, every observable on those nodes, every edge
-label, and every contract whose source lands in that package.
+label — with the edge's own id at the head of its line as \`<edge:…>\`, which is what a branch
+sign-off names — and every contract whose source lands in that package.
 
 **The observables are your acceptance targets, in their own words.** Not your parent's summary of
 them, and not a paraphrase in a commit message.

@@ -47,7 +47,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#login-page] {auth-service} Login (state)',
-        '  \u2192[#dashboard]',
+        '  \u2192<edge:e-one> [#dashboard]',
         '  [#dashboard] {auth-service} Dashboard (state)',
         '    (terminal)',
       ]);
@@ -76,7 +76,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#check] {auth-service} Check (decision)',
-        '  \u2192"yes" [#success]',
+        '  \u2192<edge:e-one> "yes" [#success]',
         '  [#success] {auth-service} Success (terminal)',
         '    (terminal)',
       ]);
@@ -101,9 +101,9 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#start] {auth-service} Start (state)',
-        '  \u2192[#middle]',
+        '  \u2192<edge:e-one> [#middle]',
         '  [#middle] {auth-service} Middle (action)',
-        '    \u2192 [#start] \u21A9',
+        '    \u2192<edge:e-two> [#start] \u21A9',
       ]);
     });
   });
@@ -128,11 +128,11 @@ describe('flowGraphToTextTransformer', () => {
       expect(result[0]).toBe('[#a] {auth-service} A (state)');
       expect(result).toStrictEqual([
         '[#a] {auth-service} A (state)',
-        '  \u2192[#c]',
+        '  \u2192<edge:e-one> [#c]',
         '  [#c] {auth-service} C (state) \u2190 MERGE',
         '    (terminal)',
         '[#b] {auth-service} B (state)',
-        '  \u2192 [#c] \u21A9',
+        '  \u2192<edge:e-two> [#c] \u21A9',
       ]);
     });
   });
@@ -151,7 +151,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#start] {auth-service} Start (state)',
-        '  \u2192 other-node \u2197 cross-flow',
+        '  \u2192<edge:e-one> other-node \u2197 cross-flow',
       ]);
     });
   });
@@ -414,7 +414,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#check] {auth-service} Check (decision)',
-        '  →"yes" [#success] [F✓]',
+        '  →<edge:e-one> "yes" [#success] [F✓]',
         '  [#success] {auth-service} Success (terminal)',
         '    (terminal)',
       ]);
@@ -447,9 +447,9 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#start] {auth-service} Start (state)',
-        '  →[#middle]',
+        '  →<edge:e-one> [#middle]',
         '  [#middle] {auth-service} Middle (action)',
-        '    → [#start] ↩ [F✓ S?]',
+        '    →<edge:e-two> [#start] ↩ [F✓ S?]',
       ]);
     });
 
@@ -543,7 +543,7 @@ describe('flowGraphToTextTransformer', () => {
       expect(result).toStrictEqual([
         '[#check] {auth-service ● 1} Check (decision)',
         '  ● #shows-form {auth-service} shows login form [ui-state]',
-        '  →"yes" [#success]',
+        '  →<edge:e-one> "yes" [#success]',
         '  [#success] {auth-service} Success (terminal)',
         '    (terminal)',
       ]);
@@ -562,7 +562,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#start] {auth-service} Start (state)',
-        '  → other-node ↗ cross-flow',
+        '  →<edge:e-one> other-node ↗ cross-flow',
       ]);
     });
   });
@@ -633,9 +633,9 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#send-pressed] {web} Send pressed (action) ◀ YOURS',
-        '  →[#write-image-file]',
+        '  →<edge:e-one> [#write-image-file]',
         '  [#write-image-file] {server} Write each image (action)',
-        '    →[#clear-composer]',
+        '    →<edge:e-two> [#clear-composer]',
         '    [#clear-composer] {web, server} Composer clears (terminal) ◀ YOURS',
         '      (terminal)',
       ]);
@@ -800,7 +800,7 @@ describe('flowGraphToTextTransformer', () => {
         '  ● #composer-disables {web} the composer disables while the send is in flight [ui-state]',
         '  ● #post-carries-paths {server} POST /api/chat carries the image paths in paste order [api-call]',
         '  ● #rejects-a-sixth-image {server} a sixth image answers 400 [api-call]',
-        '  →[#write-image-file]',
+        '  →<edge:e-one> [#write-image-file]',
         '  [#write-image-file] {server ● 1} Write each image (action)',
         '    (terminal)',
       ]);
@@ -969,7 +969,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#draft-restored] {web} Draft restored (terminal)',
-        '  →"sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
+        '  →<edge:restored-draft-to-send> "sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
         '    target: [#send-pressed] {web} User presses Enter (action) in flow #send-message-with-images "Send a message carrying images"',
         '    Your scope ENDS at the hand-off: prove the edge fires and the target flow is entered, not what it does next.',
       ]);
@@ -1001,7 +1001,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#draft-restored] {web} Draft restored (terminal)',
-        '  →"sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
+        '  →<edge:restored-draft-to-send> "sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
       ]);
     });
 
@@ -1044,7 +1044,345 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#draft-restored] {web} Draft restored (terminal)',
-        '  → send-message-with-images:renamed-away ↗ cross-flow',
+        '  →<edge:restored-draft-to-send> send-message-with-images:renamed-away ↗ cross-flow',
+      ]);
+    });
+  });
+
+  // EVERY EDGE LINE NAMES ITS OWN EDGE. A branch sign-off is written by the edge's id into the
+  // flow's `edges` array, and the `[#…]` on the same line is the TARGET NODE, which lives in
+  // `nodes` — so both ids are on the line and the wrappers tell them apart. The real shapes are
+  // used verbatim: `{"id": "no-image-item", "from": "clipboard-has-image", "to":
+  // "paste-plain-text", "label": "no image"}` is one edge off a real quest whose id this render
+  // withheld.
+  describe('the edge id on every edge line', () => {
+    it('VALID: {labelled ordinary edge} => the line opens with <edge:id> and still ends with the target node id', () => {
+      const flow = FlowStub({
+        entryPoint: 'clipboard-has-image' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'clipboard-has-image' as never,
+            label: 'Clipboard has image' as never,
+            type: 'decision',
+          }),
+          FlowNodeStub({
+            id: 'paste-plain-text' as never,
+            label: 'Paste plain text' as never,
+            type: 'terminal',
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'no-image-item' as never,
+            from: 'clipboard-has-image' as never,
+            to: 'paste-plain-text' as never,
+            label: 'no image' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#clipboard-has-image] {auth-service} Clipboard has image (decision)',
+        '  →<edge:no-image-item> "no image" [#paste-plain-text]',
+        '  [#paste-plain-text] {auth-service} Paste plain text (terminal)',
+        '    (terminal)',
+      ]);
+    });
+
+    it('VALID: {cross-flow edge to a qualified flowId:nodeId target} => the edge id precedes the target', () => {
+      const flow = FlowStub({
+        id: 'paste-image-into-composer' as never,
+        entryPoint: 'draft-restored' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'draft-restored' as never,
+            label: 'Draft restored' as never,
+            type: 'terminal',
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'restored-draft-to-send' as never,
+            from: 'draft-restored' as never,
+            to: 'send-message-with-images:send-pressed' as never,
+            label: 'sends the restored draft' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#draft-restored] {auth-service} Draft restored (terminal)',
+        '  →<edge:restored-draft-to-send> "sends the restored draft" send-message-with-images:send-pressed ↗ cross-flow',
+      ]);
+    });
+
+    it('VALID: {cross-flow edge to a bare node id this flow does not hold} => the edge id precedes the target', () => {
+      const flow = FlowStub({
+        entryPoint: 'start' as never,
+        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' })],
+        edges: [
+          FlowEdgeStub({
+            id: 'start-to-elsewhere' as never,
+            from: 'start' as never,
+            to: 'other-node' as never,
+            label: 'hands off' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#start] {auth-service} Start (state)',
+        '  →<edge:start-to-elsewhere> "hands off" other-node ↗ cross-flow',
+      ]);
+    });
+
+    it('VALID: {back-reference edge} => the back-ref line carries the edge id before the target and the ↩', () => {
+      const flow = FlowStub({
+        entryPoint: 'start' as never,
+        nodes: [
+          FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' }),
+          FlowNodeStub({ id: 'middle' as never, label: 'Middle' as never, type: 'action' }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'start-to-middle' as never,
+            from: 'start' as never,
+            to: 'middle' as never,
+          }),
+          FlowEdgeStub({
+            id: 'retry-from-middle' as never,
+            from: 'middle' as never,
+            to: 'start' as never,
+            label: 'retry' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#start] {auth-service} Start (state)',
+        '  →<edge:start-to-middle> [#middle]',
+        '  [#middle] {auth-service} Middle (action)',
+        '    →<edge:retry-from-middle> "retry" [#start] ↩',
+      ]);
+    });
+
+    // AN UNLABELLED EDGE CARRIES ITS ID TOO, though it is not a verification unit. Every node line
+    // prints `[#id]` whether or not the node is a terminal, and every observable prints `#id`
+    // whether or not anyone signed it — so an id present on only some edge lines would read as the
+    // omission it exists to fix, and `modify-quest` names an unlabelled edge by id for a spec edit
+    // exactly as it names a labelled one.
+    it('VALID: {unlabelled edge} => it carries its id, with no label between the id and the target', () => {
+      const flow = FlowStub({
+        entryPoint: 'send-pressed' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'send-pressed' as never,
+            label: 'Send pressed' as never,
+            type: 'action',
+          }),
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'terminal',
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'send-writes-images' as never,
+            from: 'send-pressed' as never,
+            to: 'write-image-file' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#send-pressed] {auth-service} Send pressed (action)',
+        '  →<edge:send-writes-images> [#write-image-file]',
+        '  [#write-image-file] {auth-service} Write each image (terminal)',
+        '    (terminal)',
+      ]);
+    });
+  });
+
+  // A BRANCH BELONGS TO THE NODE THE EDGE LEAVES, so a labelled edge carries whatever mark that
+  // node carries. Without it a session has to trace indentation upward to find out whether it owes
+  // the unit.
+  describe('the owned-edge mark', () => {
+    it('VALID: {ownPackage: web} => a labelled edge leaving a web node is marked and one leaving a server node is not', () => {
+      const flow = FlowStub({
+        entryPoint: 'clipboard-has-image' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'clipboard-has-image' as never,
+            label: 'Clipboard has image' as never,
+            type: 'decision',
+            packages: ['web' as never],
+          }),
+          FlowNodeStub({
+            id: 'paste-plain-text' as never,
+            label: 'Paste plain text' as never,
+            type: 'terminal',
+            packages: ['web' as never],
+          }),
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'action',
+            packages: ['server' as never],
+          }),
+          FlowNodeStub({
+            id: 'done' as never,
+            label: 'Done' as never,
+            type: 'terminal',
+            packages: ['server' as never],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'no-image-item' as never,
+            from: 'clipboard-has-image' as never,
+            to: 'paste-plain-text' as never,
+            label: 'no image' as never,
+          }),
+          FlowEdgeStub({
+            id: 'has-image-item' as never,
+            from: 'clipboard-has-image' as never,
+            to: 'write-image-file' as never,
+            label: 'has image' as never,
+          }),
+          FlowEdgeStub({
+            id: 'write-done' as never,
+            from: 'write-image-file' as never,
+            to: 'done' as never,
+            label: 'written' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
+
+      expect(result).toStrictEqual([
+        '[#clipboard-has-image] {web} Clipboard has image (decision) ◀ YOURS',
+        '  →<edge:no-image-item> "no image" [#paste-plain-text] ◀ YOURS',
+        '  →<edge:has-image-item> "has image" [#write-image-file] ◀ YOURS',
+        '  [#paste-plain-text] {web} Paste plain text (terminal) ◀ YOURS',
+        '    (terminal)',
+        '  [#write-image-file] {server} Write each image (action)',
+        '    →<edge:write-done> "written" [#done]',
+        '    [#done] {server} Done (terminal)',
+        '      (terminal)',
+      ]);
+    });
+
+    it('VALID: {ownPackage: web, unlabelled edge leaving a web node} => no mark, because an unlabelled edge is not a unit', () => {
+      const flow = FlowStub({
+        entryPoint: 'send-pressed' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'send-pressed' as never,
+            label: 'Send pressed' as never,
+            type: 'action',
+            packages: ['web' as never],
+          }),
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'terminal',
+            packages: ['server' as never],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'send-writes-images' as never,
+            from: 'send-pressed' as never,
+            to: 'write-image-file' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow, ownPackage: 'web' as never });
+
+      expect(result).toStrictEqual([
+        '[#send-pressed] {web} Send pressed (action) ◀ YOURS',
+        '  →<edge:send-writes-images> [#write-image-file]',
+        '  [#write-image-file] {server} Write each image (terminal)',
+        '    (terminal)',
+      ]);
+    });
+
+    it('EMPTY: {no ownPackage} => no edge carries the mark, on the same graph that marks two with one', () => {
+      const flow = FlowStub({
+        entryPoint: 'clipboard-has-image' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'clipboard-has-image' as never,
+            label: 'Clipboard has image' as never,
+            type: 'decision',
+            packages: ['web' as never],
+          }),
+          FlowNodeStub({
+            id: 'paste-plain-text' as never,
+            label: 'Paste plain text' as never,
+            type: 'terminal',
+            packages: ['web' as never],
+          }),
+          FlowNodeStub({
+            id: 'write-image-file' as never,
+            label: 'Write each image' as never,
+            type: 'action',
+            packages: ['server' as never],
+          }),
+          FlowNodeStub({
+            id: 'done' as never,
+            label: 'Done' as never,
+            type: 'terminal',
+            packages: ['server' as never],
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'no-image-item' as never,
+            from: 'clipboard-has-image' as never,
+            to: 'paste-plain-text' as never,
+            label: 'no image' as never,
+          }),
+          FlowEdgeStub({
+            id: 'has-image-item' as never,
+            from: 'clipboard-has-image' as never,
+            to: 'write-image-file' as never,
+            label: 'has image' as never,
+          }),
+          FlowEdgeStub({
+            id: 'write-done' as never,
+            from: 'write-image-file' as never,
+            to: 'done' as never,
+            label: 'written' as never,
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#clipboard-has-image] {web} Clipboard has image (decision)',
+        '  →<edge:no-image-item> "no image" [#paste-plain-text]',
+        '  →<edge:has-image-item> "has image" [#write-image-file]',
+        '  [#paste-plain-text] {web} Paste plain text (terminal)',
+        '    (terminal)',
+        '  [#write-image-file] {server} Write each image (action)',
+        '    →<edge:write-done> "written" [#done]',
+        '    [#done] {server} Done (terminal)',
+        '      (terminal)',
       ]);
     });
   });
