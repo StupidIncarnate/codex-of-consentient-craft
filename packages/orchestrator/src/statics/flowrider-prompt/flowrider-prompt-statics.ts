@@ -158,8 +158,11 @@ get-quest({ questId: 'QUEST_ID', flowId: '<your flow>' })
 \`\`\`
 
 That returns your flow whole and is your ONLY route to it: every node with its label, type and
-package tags, **every edge with its branch label**, every observable in full, the entry and exit
-points, and the contracts and design decisions that govern it.
+package tags, **every edge with its own \`<edge:…>\` id and its branch label**, every observable in
+full, the entry and exit
+points, and the contracts and design decisions that govern it. **A branch sign-off names that
+\`<edge:…>\` id, in the flow's \`edges\` array** — the \`[#…]\` further along the same line is the node
+the edge points at, and belongs to \`nodes\`.
 
 ${spilledToolResultStatics.markdown}
 

@@ -1,9 +1,11 @@
 /**
- * PURPOSE: Adds .ward/ entry to target project's .gitignore file
+ * PURPOSE: Ensures the target repo's .gitignore carries every line ward's own output lands on, so a
+ * repo that runs ward does not grow untracked files it never asked for. Append-only and matched per
+ * entry, so a repo that already ignores some of them keeps its own ordering and comments.
  *
  * USAGE:
  * const result = await InstallWriteGitignoreResponder({ context });
- * // Creates or appends .ward/ to .gitignore, or skips if already present
+ * // Appends whichever gitignoreEntriesStatics lines are missing, creating .gitignore if absent
  */
 
 import {
@@ -16,10 +18,10 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { gitignoreEntriesStatics } from '../../../statics/gitignore-entries/gitignore-entries-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/ward';
 const GITIGNORE_FILENAME = '.gitignore';
-const WARD_ENTRY = '.ward/';
 
 export const InstallWriteGitignoreResponder = async ({
   context,
@@ -38,18 +40,23 @@ export const InstallWriteGitignoreResponder = async ({
     // File doesn't exist - will create new .gitignore
   }
 
-  if (existingContent.includes(WARD_ENTRY)) {
+  // Per ENTRY, not all-or-nothing. A repo that already ignores `.ward/` by hand still needs the
+  // other two, and an all-or-nothing check on the first line would skip them for ever.
+  const missing = gitignoreEntriesStatics.entries.filter(
+    (entry) => !existingContent.includes(entry),
+  );
+
+  if (missing.length === 0) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('.ward/ already in .gitignore'),
+      message: installMessageContract.parse('.gitignore already carries every ward entry'),
     };
   }
 
-  const newContent = existingContent
-    ? `${existingContent.trimEnd()}\n${WARD_ENTRY}\n`
-    : `${WARD_ENTRY}\n`;
+  const appended = `${missing.join('\n')}\n`;
+  const newContent = existingContent ? `${existingContent.trimEnd()}\n${appended}` : appended;
 
   await fsWriteFileAdapter({
     filePath: gitignorePath,
@@ -58,8 +65,8 @@ export const InstallWriteGitignoreResponder = async ({
 
   const action = existingContent ? 'merged' : 'created';
   const message = existingContent
-    ? 'Added .ward/ to existing .gitignore'
-    : 'Created .gitignore with .ward/';
+    ? `Added ${missing.join(', ')} to existing .gitignore`
+    : `Created .gitignore with ${missing.join(', ')}`;
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

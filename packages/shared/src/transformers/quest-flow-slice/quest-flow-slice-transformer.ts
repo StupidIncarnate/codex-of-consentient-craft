@@ -102,11 +102,11 @@ export const questFlowSliceTransformer = ({
   }
 
   // The same refusal the flow miss above gets, for the same reason and a sharper one. An unknown
-  // package is an error NOWHERE downstream: every observable simply reads as somebody else's, so the
-  // slice renders with no observable text and no `◀ YOURS` mark anywhere — which is
-  // INDISTINGUISHABLE from a package that genuinely owns nothing on this flow. Measured on a real
-  // quest: a caller that typed `orchastrator` for `orchestrator` was served a clean-looking render
-  // of a flow whose nine observables it owned, every one of them collapsed into a count.
+  // package is an error NOWHERE downstream: no node reads as the caller's, so the slice renders
+  // with no observable text and no `◀ YOURS` mark anywhere — which is INDISTINGUISHABLE from a
+  // package that genuinely owns nothing on this flow. Measured on a real quest: a caller that typed
+  // `orchastrator` for `orchestrator` was served a clean-looking render of a flow whose nine
+  // observables it owned, every one of them left behind a brace count.
   //
   // The closed set is every package the quest names ANYWHERE — declared in `packagesAffected`,
   // tagged on a node, or carried by an observable — rather than `packagesAffected` alone. A hydrated
@@ -190,7 +190,7 @@ export const questFlowSliceTransformer = ({
           ]
         : [
             contentTextContract.parse(
-              `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}; only YOUR observables are listed, and each node's tag set counts the rest (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
+              `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}, and so does every labelled edge LEAVING one of them — a branch belongs to the node it leaves, and its id is the ${SYM.edgeIdOpen}…${SYM.edgeIdClose} at the head of the line. On a marked node EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
             ),
           ]),
       contentTextContract.parse(''),
@@ -204,7 +204,10 @@ export const questFlowSliceTransformer = ({
     // INBOUND cross-flow edges. Nothing else surfaces these: a cross-flow edge is stored on the
     // flow that OWNS it, so the flow being entered has no record of the entry at all. Measured on a
     // real quest, one flow had one inbound edge and zero outbound — a session reading it would have
-    // written its arrange block assuming the target node has exactly one entry route.
+    // written its arrange block assuming the target node has exactly one entry route. The line
+    // carries the edge's `<edge:…>` id like every other arrow in the render, even though the edge
+    // belongs to the OTHER flow and is not this reader's unit: the KEY promises an id on every edge
+    // line, and one arrow without one reads as the omission the id exists to fix.
     const inboundEdges = quest.flows.flatMap((source) =>
       source.id === flow.id
         ? []
@@ -224,7 +227,7 @@ export const questFlowSliceTransformer = ({
         contentTextContract.parse('### Edges arriving from another flow'),
         ...inboundEdges.flatMap((inbound) => [
           contentTextContract.parse(
-            `${SYM.rightArrow}${inbound.edge.label === undefined ? '' : `"${String(inbound.edge.label)}" `}into [#${inbound.target.slice(`${String(flow.id)}:`.length)}]`,
+            `${SYM.rightArrow}${SYM.edgeIdOpen}${String(inbound.edge.id)}${SYM.edgeIdClose} ${inbound.edge.label === undefined ? '' : `"${String(inbound.edge.label)}" `}into [#${inbound.target.slice(`${String(flow.id)}:`.length)}]`,
           ),
           contentTextContract.parse(
             `${SYM.indent}source: [#${String(inbound.sourceNode.id)}] {${inbound.sourceNode.packages.map((name) => String(name)).join(', ')}} ${String(inbound.sourceNode.label)} (${inbound.sourceNode.type}) in flow #${String(inbound.source.id)} "${String(inbound.source.name)}"`,

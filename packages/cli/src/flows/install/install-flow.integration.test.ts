@@ -7,6 +7,7 @@ import {
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
+import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';
 
 describe('InstallFlow', () => {
   describe('add-dev-deps + create-playwright', () => {
@@ -58,12 +59,7 @@ describe('InstallFlow', () => {
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
       expect(packageJsonContent).toMatch(/^\s*"@playwright\/test": "\^1\.58\.2",$/mu);
-      expect(playwrightConfigContent).toBe(
-        `import { defineConfig } from '@playwright/test';
-
-export default defineConfig({ testMatch: '**/*.e2e.ts', timeout: 30_000 });
-`,
-      );
+      expect(playwrightConfigContent).toBe(playwrightConfigTemplateStatics.content);
     });
 
     it('VALID: {context: all devDependencies present, e2e-eligible target, playwright config exists} => returns skipped without overwriting', async () => {

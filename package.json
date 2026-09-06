@@ -8,6 +8,7 @@
   "scripts": {
     "build": "node scripts/build-workspaces.mjs",
     "build:clean": "rm -rf packages/*/dist && npm run build",
+    "clean:vite": "node scripts/prune-vite-caches.mjs",
     "test": "dungeonmaster-ward --only test",
     "lint": "dungeonmaster-ward --only lint",
     "typecheck": "dungeonmaster-ward --only typecheck",

@@ -180,16 +180,18 @@ whole quest, every flow on it, and that render grows as the quest does — past 
 on any quest of real size. 
 
 **\`get-quest\` returns your flow WHOLE**, not just your package's share of it: every node with its
-label, type and package tags, **every edge with its branch label**, every observable, the entry and
+label, type and package tags, **every edge with its own \`<edge:…>\` id and its branch label**, every
+observable, the entry and
 exit points, and the contracts and design decisions that govern it.
 Nodes your package tags are marked; a node it does not tag is still rendered, because a flow filtered
 to one package is not a smaller flow — it comes apart into disconnected pieces, and the branch
 conditions go with them.
 
-**Observables attributed to another package are collapsed to a count.** That is not truncation — the
-sibling cell builds them AND signs them. You cannot: the render gives you neither their ids nor their
-text. **Sign only observables printed in full**, and read the count as what the other half of a
-shared node is doing.
+**On a node marked \`◀ YOURS\` you see every observable on it, including the ones another package
+owns.** They are the other half of the contract you are building — the client's request shape for a
+route you serve, the render your bytes have to satisfy. **Read them.** Where one names something
+your own code must do, that is a requirement on you, and your \`MUST BE TRUE\` lines should carry it.
+**You still sign only the observables whose \`{package}\` is yours.**
 
 **EVERY CONTRACT UNDER A \`## Contracts\` heading CARRIES WORK OF YOURS.** A contract routes by FILE
 PATH — its own \`source\`, or an individual property's — so which ones are yours has nothing to do
@@ -223,9 +225,17 @@ edge is a UNIT your track can sign — as are the flow's terminal nodes. They ar
 they never appear in a \`MUST BE TRUE\` line; **name them to your sub-agents in the same brief and
 sign them like anything else.**
 
+**AN EDGE LINE CARRIES TWO IDS AND THEY GO IN DIFFERENT ARRAYS.** The \`<edge:…>\` at the head of the
+line is the EDGE's own id, and it is the one a branch sign-off names, inside the flow's \`edges\`
+array. The \`[#…]\` further along is the node the edge points AT, and it lives in \`nodes\`. Signing a
+branch by the target's id, or nesting an \`edges\` key inside a node object, writes a unit nothing
+reads — take the id off the line and put it where **Recording what you claim** shows.
+
 **A terminal or a labelled edge is YOURS only where the node it hangs off carries \`◀ YOURS\`** — for
-a branch, the node the edge LEAVES. The graph is unfiltered, so the rest are drawn to show you how
-yours connect, and they belong to another cell. Where their sign-off goes is under **Recording what you claim**.
+a branch, the node the edge LEAVES. You do not have to trace that yourself: a labelled edge leaving
+one of your nodes carries \`◀ YOURS\` on its own line. The graph is unfiltered, so the rest are drawn
+to show you how yours connect, and they belong to another cell. Where their sign-off goes is under
+**Recording what you claim**.
 
 ### 2. Explore the package
 
@@ -582,12 +592,14 @@ modify-quest({ questId: 'QUEST_ID', flows: [
 \`\`\`
 
 **A terminal unit's sign-off goes on the NODE itself, and a branch unit's on the EDGE** — same field
-name, same shape, one level up from an observable:
+name, same shape, one level up from an observable. **\`edges\` is a sibling of \`nodes\`, never a key
+inside one**: nested there it is refused outright rather than silently dropped, so a call that lands
+this shape wrongly comes back as an error instead of a success that recorded nothing.
 
 \`\`\`
 { id: '<your flow id>',
   nodes: [ { id: '<the terminal node id>', codeweaverSignoff: { … } } ],
-  edges: [ { id: '<the labelled edge id>',  codeweaverSignoff: { … } } ] }
+  edges: [ { id: '<the edge id — what sits inside <edge:…> on its graph line>', codeweaverSignoff: { … } } ] }
 \`\`\`
 
 - \`confirmed\` needs a test \`file:line\` AND what makes that test fail. "Fails if the text is wrong"

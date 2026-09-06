@@ -7,8 +7,9 @@
  *
  * `flowSlice` is present ONLY when the caller passed `flowId` or `packageName`, and it is already
  * RENDERED. It carries text rather than a narrowed Quest because the slice is defined by what it
- * SAYS about a flow — foreign observables collapsed to a count, a cross-flow edge's target resolved
- * out of a flow the caller cannot see — and none of that survives as a subset of the quest object.
+ * SAYS about a flow — the observables on a node the caller does not tag reduced to a count, a
+ * cross-flow edge's target resolved out of a flow the caller cannot see — and none of that survives
+ * as a subset of the quest object.
  * `quest` is still populated beside it, so a caller reading the JSON is never handed less than
  * before.
  */

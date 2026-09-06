@@ -42,9 +42,10 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/ward',
         success: true,
         action: 'created',
-        message: 'Created .gitignore with .ward/; Added ward scripts to package.json',
+        message:
+          'Created .gitignore with .ward/, test-results/, .ward-playwright-report*.json; Added ward scripts to package.json',
       });
-      expect(gitignoreContent).toMatch(/^\.ward\/\n$/u);
+      expect(gitignoreContent).toBe('.ward/\ntest-results/\n.ward-playwright-report*.json\n');
       expect(packageJsonContent).toBe(
         JSON.stringify(
           { name: 'proj', version: '1.0.0', scripts: installScriptsStatics.scripts },
@@ -61,7 +62,9 @@ describe('InstallFlow', () => {
 
       testbed.writeFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
-        content: FileContentStub({ value: 'node_modules/\n.ward/\n' }),
+        content: FileContentStub({
+          value: 'node_modules/\n.ward/\ntest-results/\n.ward-playwright-report*.json\n',
+        }),
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
@@ -83,7 +86,7 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/ward',
         success: true,
         action: 'skipped',
-        message: '.ward/ already in .gitignore; All ward scripts already present',
+        message: '.gitignore already carries every ward entry; All ward scripts already present',
       });
     });
   });

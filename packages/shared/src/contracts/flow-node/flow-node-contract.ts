@@ -18,6 +18,14 @@
  * sign-offs above and worse: it materialises an empty array into EVERY node of every persisted
  * quest.json on each re-parse, the mistake the sibling `flowObservableContract` records a measured
  * +116% file-size cost for. Required means every node on disk carries a real value.
+ *
+ * `.strict()` REFUSES an unknown key instead of stripping it, and it is the loud half of the
+ * edge-sign-off contract. A node object has nowhere to put `edges` — that array belongs to the FLOW,
+ * one level up — but a bare `z.object` drops the key and lets the write report success: measured on
+ * one quest, a session that nested `edges` inside a node was answered `{"success": true}` twice and
+ * lost two sign-offs, then reported 15 units settled over the 13 actually written. Strict turns that
+ * into a parse error naming the key. `modifyQuestInputContract` inherits it through `.extend()`, so
+ * the refusal lands on the caller's own payload rather than on a whole-quest re-parse afterwards.
  */
 
 import { z } from 'zod';
@@ -28,20 +36,22 @@ import { flowObservableContract } from '../flow-observable/flow-observable-contr
 import { packageNameContract } from '../package-name/package-name-contract';
 import { signoffContract } from '../signoff/signoff-contract';
 
-export const flowNodeContract = z.object({
-  id: flowNodeIdContract,
-  label: z.string().min(1).brand<'FlowNodeLabel'>(),
-  type: flowNodeTypeContract,
-  packages: z
-    .array(packageNameContract)
-    .min(1)
-    .describe(
-      "The packages this node lands in, every one of them also present in quest.packagesAffected. Authored with the node, because the observables that would hint at it do not exist yet. A node carrying more than one is a seam: it spans a package boundary, and it owns the glue verification units no single-package slice can. This list is what routes a node's terminal and branch units, which carry no observable to read a package from.",
-    ),
-  observables: z.array(flowObservableContract).default([]),
-  codeweaverSignoff: signoffContract.optional(),
-  flowriderSignoff: signoffContract.optional(),
-  siegemasterSignoff: signoffContract.optional(),
-});
+export const flowNodeContract = z
+  .object({
+    id: flowNodeIdContract,
+    label: z.string().min(1).brand<'FlowNodeLabel'>(),
+    type: flowNodeTypeContract,
+    packages: z
+      .array(packageNameContract)
+      .min(1)
+      .describe(
+        "The packages this node lands in, every one of them also present in quest.packagesAffected. Authored with the node, because the observables that would hint at it do not exist yet. A node carrying more than one is a seam: it spans a package boundary, and it owns the glue verification units no single-package slice can. This list is what routes a node's terminal and branch units, which carry no observable to read a package from.",
+      ),
+    observables: z.array(flowObservableContract).default([]),
+    codeweaverSignoff: signoffContract.optional(),
+    flowriderSignoff: signoffContract.optional(),
+    siegemasterSignoff: signoffContract.optional(),
+  })
+  .strict();
 
 export type FlowNode = z.infer<typeof flowNodeContract>;

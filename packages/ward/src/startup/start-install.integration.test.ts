@@ -39,9 +39,10 @@ describe('start-install integration', () => {
         packageName: '@dungeonmaster/ward',
         success: true,
         action: 'created',
-        message: 'Created .gitignore with .ward/; Added ward scripts to package.json',
+        message:
+          'Created .gitignore with .ward/, test-results/, .ward-playwright-report*.json; Added ward scripts to package.json',
       });
-      expect(gitignoreContent).toMatch(/^\.ward\/\n$/u);
+      expect(gitignoreContent).toBe('.ward/\ntest-results/\n.ward-playwright-report*.json\n');
     });
   });
 });
