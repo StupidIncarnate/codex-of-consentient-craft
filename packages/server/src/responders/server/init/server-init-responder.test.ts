@@ -316,6 +316,97 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  describe('websocket onMessage subscribe-quest retained chat-complete', () => {
+    // The first message of a quest cannot be subscribed to until the POST that CREATES that quest
+    // returns its id, and the agent it spawns can exit inside that round trip. The completion is
+    // then addressed to a quest nobody is subscribed to and the fan-out drops it — and unlike
+    // chat-output there is no on-disk copy for the replay to re-read, so this re-delivery is the
+    // browser's only route to learning its own turn is over.
+    it('VALID: {chat-complete fires with no subscriber, then a client subscribes to that quest} => it receives the completion stamped retained, before chat-history-complete', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-retained-completion' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
+      proxy.callResponder();
+
+      const completeHandler = proxy.getCapturedEventHandler({ type: 'chat-complete' });
+      completeHandler!({
+        processId: chatProcessId,
+        payload: { chatProcessId, questId, exitCode: 0 },
+      });
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const frames = sendMock.mock.calls.map(
+        (call) => JSON.parse(String(call[0])) as Record<PropertyKey, unknown>,
+      );
+      const completionFrame = frames.find((frame) => frame.type === 'chat-complete');
+
+      expect({
+        frameTypes: frames.map((frame) => frame.type),
+        completionPayload: completionFrame?.payload,
+      }).toStrictEqual({
+        frameTypes: ['quest-modified', 'chat-complete', 'chat-history-complete'],
+        completionPayload: {
+          chatProcessId,
+          questId,
+          exitCode: 0,
+          processId: chatProcessId,
+          retained: true,
+        },
+      });
+    });
+
+    it('VALID: {chat-complete for quest X, then a client subscribes to quest Y} => Y receives no completion', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questIdX = QuestIdStub({ value: 'quest-retained-X' });
+      const questIdY = QuestIdStub({ value: 'quest-retained-Y' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdY, workItems: [] }) });
+      proxy.callResponder();
+
+      const completeHandler = proxy.getCapturedEventHandler({ type: 'chat-complete' });
+      completeHandler!({
+        processId: ProcessIdStub({ value: 'chat-on-quest-X' }),
+        payload: {
+          chatProcessId: ProcessIdStub({ value: 'chat-on-quest-X' }),
+          questId: questIdX,
+          exitCode: 0,
+        },
+      });
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdY }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const frames = sendMock.mock.calls.map(
+        (call) => JSON.parse(String(call[0])) as Record<PropertyKey, unknown>,
+      );
+
+      expect(frames.map((frame) => frame.type)).toStrictEqual([
+        'quest-modified',
+        'chat-history-complete',
+      ]);
+    });
+  });
+
   describe('websocket onMessage subscribe-quest agentId forwarding', () => {
     it('VALID: {workItem carries agentId} => forwards both sessionId and agentId to replay adapter', async () => {
       const proxy = ServerInitResponderProxy();

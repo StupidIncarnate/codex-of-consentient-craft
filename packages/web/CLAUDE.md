@@ -213,13 +213,25 @@ SEND for the whole multi-second spawn window while the agent is already running.
 to forget. The only reason `armStreaming` is exported at all is the first message, which must create its quest before
 there is a `questId` to POST to.
 
+**The first message arms TWICE, and the second call is what makes it recoverable.** `armStreaming()` on commit, then
+`armStreaming({ chatProcessId })` with the handle the create POST hands back — before the navigate, because that
+navigate is what sends the `subscribe-quest` this turn's completion may only reach it through. Its quest does not
+exist when the user commits it, so the browser cannot be subscribed while the agent spawns; an agent that exits inside
+that round trip addresses its `chat-complete` to a quest nobody is subscribed to and the server drops it. The server
+re-sends it at the end of the subscribe, stamped `retained`, and a retained frame is matched against this handle and
+nothing else.
+
 **The clear-input is scoped to the turn being tracked.** Every send path retains the `chatProcessId`
 its POST returned (`trackedChatProcessIdRef`), and a `chatStreamEnded$` payload naming a DIFFERENT
 process is ignored outright — somebody else's turn ending must not report this quest's in-flight turn
-as idle. `null` means "armed with no handle yet" (the first message, and the sub-second window before
-a POST resolves); an untracked turn falls back to clearing on any `turn-ended`, which is what keeps a
-turn that emits nothing from sticking on STOP forever. Scope the clear; never pin the indicator on
+as idle. `null` means "armed with no handle yet" — the sub-second window before a POST resolves; an
+untracked turn falls back to clearing on any `turn-ended`, which is what keeps a turn that emits
+nothing from sticking on STOP forever. Scope the clear; never pin the indicator on
 optimistically, or a turn the harness never picked up becomes indistinguishable from a slow one.
+
+**A `retained` completion gets neither permissive arm** (`isTrackedChatProcessGuard`). It describes a turn that ended
+before this browser subscribed, so it says nothing about a turn committed since — and "armed with no handle yet" is
+exactly the state such a turn is in. Only an id-to-id match applies it.
 
 **There are TWO running states, one per composer, and a widget reads the one it belongs to.**
 `isStreaming` answers "is anything on this quest running"; `isFollowupStreaming` answers "is the tavernkeeper running".

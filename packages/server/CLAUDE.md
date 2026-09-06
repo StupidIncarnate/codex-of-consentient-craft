@@ -162,6 +162,14 @@ lines of a transcript after later ones, and makes delivery order depend on cache
 cache cannot answer for is therefore not delivered on this path — `subscribe-quest`'s replay reads
 the same lines back off disk, so the reader loses nothing.
 
+**`chat-complete` is the one per-quest frame that replay cannot recover, so the relay retains it.**
+Nothing writes a completion to disk; a dropped one is gone. `subscribe-quest` therefore re-sends the
+completions this relay has already shipped for that quest, stamped `retained: true`, before its
+`chat-history-complete`. The window that needs it is the FIRST message of a quest: the browser cannot
+subscribe until the POST that creates the quest returns its id, and the agent can spawn and exit
+inside that round trip, leaving the composer on STOP with nothing left that could clear it. The
+retention is capped per quest — a browser can only be reconciling a turn it sent itself.
+
 ## Dual-Homedir Pattern
 
 The server uses two different homedir adapters for two distinct storage locations:

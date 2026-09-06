@@ -1445,6 +1445,85 @@ describe('useQuestChatBinding', () => {
       });
     });
 
+    it('VALID: {first-message turn armed with the handle its POST returned, then a RETAINED chat-complete naming it} => isStreaming returns to false', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-retained-completion' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.armStreaming({ chatProcessId });
+        },
+      });
+      const whileArmed = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          // The turn ended before this browser could subscribe — its quest did not exist until the
+          // POST that created it returned. The server re-sends the completion it had nobody to
+          // deliver to, at the end of subscribe-quest, stamped `retained`.
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: { chatProcessId, exitCode: 0, retained: true },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({ whileArmed, afterRetainedCompletion: result.current.isStreaming }).toStrictEqual({
+        whileArmed: true,
+        afterRetainedCompletion: false,
+      });
+    });
+
+    it('VALID: {turn armed with NO handle yet, then a RETAINED chat-complete for some other turn} => isStreaming STAYS true', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-retained-vs-live' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.armStreaming();
+        },
+      });
+      const whileArmed = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          // A re-delivery describes a turn that finished BEFORE this browser subscribed, so it says
+          // nothing about the turn just committed here — whose POST has not handed back a handle
+          // yet. The permissive "no handle yet" arm a LIVE completion gets must not apply.
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'chat-an-earlier-turn' }),
+                exitCode: 0,
+                retained: true,
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({ whileArmed, afterRetainedCompletion: result.current.isStreaming }).toStrictEqual({
+        whileArmed: true,
+        afterRetainedCompletion: true,
+      });
+    });
+
     it('VALID: {sent turn, then chat-complete for a FOREIGN chatProcessId} => isStreaming holds until this turn own chat-complete arrives', async () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();

@@ -42,6 +42,18 @@ describe('chatStreamEndedPayloadContract', () => {
     ).toStrictEqual({ reason: 'history-replayed', questId });
   });
 
+  it('VALID: {turn-ended + retained} => parses the subscribe-time re-delivery of a finished turn', () => {
+    const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
+
+    expect(
+      chatStreamEndedPayloadContract.parse({
+        reason: 'turn-ended',
+        chatProcessId,
+        retained: true,
+      }),
+    ).toStrictEqual({ reason: 'turn-ended', chatProcessId, retained: true });
+  });
+
   it('INVALID: {no reason} => throws, so no emit site can ship an unlabelled stream end', () => {
     expect(() => {
       chatStreamEndedPayloadContract.parse({ questId: QuestIdStub({ value: 'q-1' }) });
