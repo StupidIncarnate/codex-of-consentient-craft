@@ -100,7 +100,15 @@ export default defineConfig({
       },
     },
     {
-      command: 'npm run dev --workspace=@dungeonmaster/web',
+      // `dev:no-watch`, never `dev` — the same rule as the API server above, for the same reason.
+      // Plain `vite` watches `packages/web/src` and hot-reloads, so an editor (or a parallel agent)
+      // saving a web file mid-run pushes a reload into the page a spec is asserting on. Measured:
+      // the page never came back — zero network requests after the reload, a blank white
+      // screenshot, no Playwright page snapshot at all, then a timeout on the response the spec was
+      // waiting for. The no-watch script sets `hmr: false` AND `watch: null`, which is what freezes
+      // the bundle for the whole run rather than only silencing the reload. Playwright starts this
+      // process once and tears it down at the end; the suite has no use for a watcher.
+      command: 'npm run dev:no-watch --workspace=@dungeonmaster/web',
       port: WEB_PORT,
       reuseExistingServer: false,
       env: {

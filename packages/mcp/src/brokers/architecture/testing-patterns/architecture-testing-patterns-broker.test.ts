@@ -437,6 +437,17 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => requires the webServer command to be a no-watch script, and names both Vite knobs', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### The Dev Server a Run Starts Must Not Watch Files$/mu);
+      expect(result).toMatch(
+        /^Playwright's `webServer` command must name a NO-WATCH script, and the block must set `reuseExistingServer: false`\. A watcher that RESTARTS the process drops the port mid-suite, so in-flight requests get a bare 500 with an EMPTY body and several unrelated specs fail at once\. A watcher that HOT-RELOADS reloads the page a spec is asserting on — a blank screenshot, then a timeout\. \*\*For Vite, `hmr: false` alone is not enough: add `watch: null`\.\*\* The scaffolded `playwright\.config\.ts` carries the whole rule in its comments\.$/mu,
+      );
+    });
+
     it('VALID: {} => harness section colocates e2e specs and web-relative fixtures', () => {
       architectureTestingPatternsBrokerProxy();
 
