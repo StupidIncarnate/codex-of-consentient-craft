@@ -15,6 +15,7 @@ import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-s
 import { netKillPortAdapterProxy } from '../../../adapters/net/kill-port/net-kill-port-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+import { e2eArtifactsRemoveBrokerProxy } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
@@ -29,6 +30,7 @@ export const checkRunE2eBrokerProxy = (): {
   setupFailWithEmptyOutput: (params: { projectFolder: ProjectFolder }) => void;
   setupNotE2eEligible: (params: { projectFolder: ProjectFolder }) => void;
   setupEligibleMissingConfig: (params: { projectFolder: ProjectFolder }) => void;
+  getRemovedCachePaths: (params: { projectFolder: ProjectFolder }) => readonly unknown[][];
   getSpawnedArgs: () => unknown;
   getSpawnedEnvValue: (params: { key: string }) => unknown;
   getSpawnedOptions: () => unknown;
@@ -47,6 +49,10 @@ export const checkRunE2eBrokerProxy = (): {
   // playwright json report best-effort, under a try/catch that ignores the outcome either way),
   // so there is no address worth describing here.
   fsUnlinkAdapterProxy();
+  // The broker discards this result and swallows its own errors, so nothing here needs staging for
+  // the run to work. It IS staged, because the removal is behaviour worth asserting: the port it
+  // deletes under, and that it still fires on the early-return path below.
+  const removeProxy = e2eArtifactsRemoveBrokerProxy();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
@@ -55,10 +61,20 @@ export const checkRunE2eBrokerProxy = (): {
   // params) address the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
-  // The broker names its Playwright report after the SERVER port, so these two numbers and the
-  // readFile address in setupPassWithJsonReport have to move together.
+  // The broker names its Playwright report AND its vite cache after the SERVER port, so this
+  // number, the readFile address in setupPassWithJsonReport, and the removal staged below all have
+  // to move together.
+  const STAGED_SERVER_PORT = 40_000;
+
   const queueFreePorts = (): void => {
-    freePortProxy.setupPorts({ firstPort: 40_000, secondPort: 51_244 });
+    freePortProxy.setupPorts({ firstPort: STAGED_SERVER_PORT, secondPort: 51_244 });
+  };
+
+  const stageCacheRemoval = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+    removeProxy.setupRemovable({
+      packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+      port: STAGED_SERVER_PORT,
+    });
   };
 
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
@@ -94,6 +110,7 @@ export const checkRunE2eBrokerProxy = (): {
     setupPass: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
+      stageCacheRemoval({ projectFolder });
       captureProxy.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
         exitCode: successCode,
@@ -111,6 +128,7 @@ export const checkRunE2eBrokerProxy = (): {
     }): void => {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
+      stageCacheRemoval({ projectFolder });
       captureProxy.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
         exitCode: successCode,
@@ -128,6 +146,7 @@ export const checkRunE2eBrokerProxy = (): {
     }): void => {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
+      stageCacheRemoval({ projectFolder });
       captureProxy.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
         exitCode: successCode,
@@ -151,6 +170,7 @@ export const checkRunE2eBrokerProxy = (): {
     }): void => {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
+      stageCacheRemoval({ projectFolder });
       captureProxy.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
         exitCode: failCode,
@@ -162,6 +182,7 @@ export const checkRunE2eBrokerProxy = (): {
     setupFailWithEmptyOutput: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
+      stageCacheRemoval({ projectFolder });
       captureProxy.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
         exitCode: failCode,
@@ -189,6 +210,15 @@ export const checkRunE2eBrokerProxy = (): {
       });
     },
 
+    getRemovedCachePaths: ({
+      projectFolder,
+    }: {
+      projectFolder: ProjectFolder;
+    }): readonly unknown[][] =>
+      removeProxy.getRemovedPaths({
+        packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+        port: STAGED_SERVER_PORT,
+      }),
     getSpawnedArgs: (): unknown =>
       captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
     getSpawnedEnvValue: ({ key }: { key: string }): unknown =>

@@ -433,7 +433,7 @@ describe('architectureTestingPatternsBroker', () => {
         /^\*\*The Playwright config \+ package-specific harnesses live in the e2e-eligible package\.\*\* `<e2e-eligible-package>\/playwright\.config\.ts` \(`testMatch: '\*\*\/\*\.e2e\.ts'`\) and `<e2e-eligible-package>\/test\/harnesses\/` own the e2e stack\. The `testing` package holds ONLY cross-package reshareables \(register-mock, shared stubs, `installTestbedCreateBroker`\) — it does NOT own e2e config, harnesses, or specs\.$/mu,
       );
       expect(result).toMatch(
-        /^\*\*e2e imports are relative to the e2e-eligible package\.\*\* Spec files import `\{ test, expect, wireHarnessLifecycle \}` and the named harnesses from that package's own `test\/` \(e\.g\. `test\/harnesses\/e2e-fixtures`\), NOT from `@dungeonmaster\/testing\/e2e`\.$/mu,
+        /^\*\*Nest Playwright's `outputDir` and Vite's `cacheDir` under the run's port\*\* — `test-results\/<port>`, `node_modules\/\.vite-<port>` — or parallel walks wipe each other's traces and cache\. Ward reaps both, so it costs no disk\.$/mu,
       );
     });
 

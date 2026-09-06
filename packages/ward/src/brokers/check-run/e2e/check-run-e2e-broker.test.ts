@@ -364,6 +364,62 @@ describe('checkRunE2eBroker', () => {
     });
   });
 
+  describe('the vite cache this run created', () => {
+    // Every run mints a ~39M dependency cache under a port the OS will never hand out again, and
+    // vite evicts none of it. Left alone this repo reached 3,048 directories and about 50 GB.
+    it('VALID: {a run allocated server port 40000} => removes node_modules/.vite-40000 after it', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getRemovedCachePaths({ projectFolder })).toStrictEqual([
+        [`${projectFolder.path}/node_modules/.vite-40000`, { recursive: true, force: true }],
+      ]);
+    });
+
+    // A --grep that matches nothing is normal in most packages, and it returns EARLY. Cleanup
+    // written at the end of the broker would leak a full cache on every one of those runs, so this
+    // asserts the removal happens above that return rather than after it.
+    it('VALID: {testNamePattern matches no spec, so the broker returns early} => still removes the cache', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'matches-nothing',
+      });
+
+      expect({
+        status: result.status,
+        removed: proxy.getRemovedCachePaths({ projectFolder }),
+      }).toStrictEqual({
+        status: 'skip',
+        removed: [
+          [`${projectFolder.path}/node_modules/.vite-40000`, { recursive: true, force: true }],
+        ],
+      });
+    });
+
+    // A failing run's traces are the only record of why it failed, and they live in
+    // test-results/<port>. The removal takes the cache and nothing else, so no pass/fail condition
+    // exists here to get backwards.
+    it('VALID: {the run FAILED} => removes the same one cache and nothing more', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupFail({ projectFolder, stdout: '1 failed' });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getRemovedCachePaths({ projectFolder })).toStrictEqual([
+        [`${projectFolder.path}/node_modules/.vite-40000`, { recursive: true, force: true }],
+      ]);
+    });
+  });
+
   describe('test name pattern', () => {
     it('VALID: {testNamePattern provided} => adds --grep and --pass-with-no-tests to playwright args', async () => {
       const projectFolder = ProjectFolderStub();

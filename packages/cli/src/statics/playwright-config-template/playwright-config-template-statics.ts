@@ -28,6 +28,21 @@ export default defineConfig({
   // Specs navigate baseURL-relative, so no port ever reaches a test file.
   use: { baseURL: \`http://127.0.0.1:\${String(WEB_PORT)}\` },
 
+  // Playwright CLEARS this folder when a run starts. Two runs sharing one folder means the second
+  // wipes the first's traces and screenshots, so a failure that really happened loses the evidence
+  // for why — which is what nesting it under the run's own port prevents. Ward reaps these once
+  // they are a week old, so a passing run leaving an empty folder behind costs nothing.
+  //
+  // DO THE SAME FOR VITE, in vite.config.ts, or parallel runs corrupt each other's
+  // dependency-optimizer cache:
+  //
+  //   cacheDir: \`node_modules/.vite-\${API_PORT}\`
+  //
+  // Ward removes that directory at the end of the run that made it, and sweeps any left by a run
+  // that was killed first — so the per-port split costs no disk. Without ward doing that, one
+  // cache per run accumulates at roughly 39 MB each and nothing ever evicts them.
+  outputDir: \`test-results/\${String(API_PORT)}\`,
+
   webServer: [
     {
       // REPLACE THIS with your app's dev script, and make that script a NO-WATCH one. A watching
