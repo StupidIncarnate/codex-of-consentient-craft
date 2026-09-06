@@ -13,7 +13,8 @@
  * and the scenario compares them structurally (toStrictEqual / toBe) rather than by property access.
  *
  * USAGE:
- * const composer = composerPasteHarness({ page });
+ * const composer = composerPasteHarness({ page });                // 'main' composer (the default)
+ * const followupComposer = composerPasteHarness({ page, surface: 'followup' });
  * await composer.beforeEach();                                    // clears storage before navigation
  * await composer.openComposerPage({ request, guildName, guildPath });
  * const dataUrl = await composer.buildImageDataUrl({ widthPx: 40, heightPx: 40, seed: 1 });
@@ -39,9 +40,16 @@ const DRAFT_DATABASE_VERSION = 1;
 const DRAFT_STORE_NAME = 'dungeonmaster-chat-draft-images';
 // Restated from chatComposerStatics.draftScope.createScopeKey — every draft read below is scoped
 // to whichever composer is currently on screen, derived from the CURRENT page's own URL exactly
-// as composerScopeKeyTransformer derives it for the MAIN composer: the live quest route's questId
-// segment (guildSlug/quest/:questId), or this sentinel on the bare guildSlug/quest create route.
+// as composerScopeKeyTransformer derives it: the live quest route's questId segment
+// (guildSlug/quest/:questId), or this sentinel on the bare guildSlug/quest create route.
 const CREATE_SCOPE_KEY = 'create';
+// Restated from chatComposerStatics.draftScope.followupSuffix. The URL alone cannot tell the two
+// composers on a quest route apart — the execution panel's FOLLOW-UP tab mounts a SECOND composer
+// at the SAME url as the quest's main one, and it keeps its own draft under this suffix — so a
+// spec driving that tab constructs its harness with `surface: 'followup'` and every draft read
+// below follows it there. Restated rather than imported for the same reason as the storage keys
+// above: a drift in the app's own copy must fail these reads rather than silently follow them.
+const FOLLOWUP_SCOPE_SUFFIX = ':followup';
 // A store name the app itself would never create — seedDecoyDraftDatabase uses this to reproduce a
 // database that exists, at the right version, but whose expected store never got created.
 const DECOY_STORE_NAME = 'decoy-store';
@@ -579,6 +587,8 @@ const READ_DRAFT_IMAGE_RECORDS_BROWSER_FN = async (params: {
   databaseName: string;
   storeName: string;
   createScopeKey: string;
+  followupSuffix: string;
+  surface: string;
 }) => {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(params.databaseName);
@@ -613,8 +623,12 @@ const READ_DRAFT_IMAGE_RECORDS_BROWSER_FN = async (params: {
   db.close();
 
   const pathParts = window.location.pathname.split('/').filter((part) => part.length > 0);
+  const questId = pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : null;
+  const mainScopeKey = questId === null ? params.createScopeKey : questId;
   const currentScopeKey =
-    pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : params.createScopeKey;
+    questId === null || params.surface !== 'followup'
+      ? mainScopeKey
+      : `${questId}${params.followupSuffix}`;
 
   // getAll() hands back `unknown[]` — a real boundary crossing (this is the origin's own IndexedDB
   // store, but the browser API gives no static guarantee of what a record actually holds) — so each
@@ -653,6 +667,8 @@ const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
   databaseName: string;
   storeName: string;
   createScopeKey: string;
+  followupSuffix: string;
+  surface: string;
 }) => {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(params.databaseName);
@@ -687,8 +703,12 @@ const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
   db.close();
 
   const pathParts = window.location.pathname.split('/').filter((part) => part.length > 0);
+  const questId = pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : null;
+  const mainScopeKey = questId === null ? params.createScopeKey : questId;
   const currentScopeKey =
-    pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : params.createScopeKey;
+    questId === null || params.surface !== 'followup'
+      ? mainScopeKey
+      : `${questId}${params.followupSuffix}`;
 
   // Same per-record shape check as READ_DRAFT_IMAGE_RECORDS_BROWSER_FN above, duplicated rather than
   // shared for the same reason the rest of this file duplicates browser-fn internals: a page.evaluate
@@ -696,7 +716,10 @@ const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
   const isDraftImageRecord = (
     record: unknown,
   ): record is { scopeKey: unknown; attachmentId: unknown } =>
-    typeof record === 'object' && record !== null && 'scopeKey' in record && 'attachmentId' in record;
+    typeof record === 'object' &&
+    record !== null &&
+    'scopeKey' in record &&
+    'attachmentId' in record;
 
   return records
     .filter(isDraftImageRecord)
@@ -710,18 +733,26 @@ const READ_DRAFT_IMAGE_ATTACHMENT_IDS_BROWSER_FN = async (params: {
 const READ_DRAFT_TEXT_BROWSER_FN = (params: {
   storageKeyPrefix: string;
   createScopeKey: string;
+  followupSuffix: string;
+  surface: string;
 }) => {
   const pathParts = window.location.pathname.split('/').filter((part) => part.length > 0);
+  const questId = pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : null;
+  const mainScopeKey = questId === null ? params.createScopeKey : questId;
   const currentScopeKey =
-    pathParts[1] === 'quest' && pathParts[2] !== undefined ? pathParts[2] : params.createScopeKey;
+    questId === null || params.surface !== 'followup'
+      ? mainScopeKey
+      : `${questId}${params.followupSuffix}`;
 
   return localStorage.getItem(`${params.storageKeyPrefix}:${currentScopeKey}`);
 };
 
 export const composerPasteHarness = ({
   page,
+  surface = 'main',
 }: {
   page: Page;
+  surface?: 'main' | 'followup';
 }): {
   beforeEach: () => Promise<void>;
   openComposerPage: (params: {
@@ -1031,6 +1062,8 @@ export const composerPasteHarness = ({
     page.evaluate(READ_DRAFT_TEXT_BROWSER_FN, {
       storageKeyPrefix: DRAFT_STORAGE_KEY_PREFIX,
       createScopeKey: CREATE_SCOPE_KEY,
+      followupSuffix: FOLLOWUP_SCOPE_SUFFIX,
+      surface,
     }),
 
   readDraftImageRecords: async (): Promise<readonly unknown[]> =>
@@ -1038,6 +1071,8 @@ export const composerPasteHarness = ({
       databaseName: DRAFT_DATABASE_NAME,
       storeName: DRAFT_STORE_NAME,
       createScopeKey: CREATE_SCOPE_KEY,
+      followupSuffix: FOLLOWUP_SCOPE_SUFFIX,
+      surface,
     }),
 
   // Same store, projected to just the attachmentId column — an orphaned-record assertion (N
@@ -1049,6 +1084,8 @@ export const composerPasteHarness = ({
       databaseName: DRAFT_DATABASE_NAME,
       storeName: DRAFT_STORE_NAME,
       createScopeKey: CREATE_SCOPE_KEY,
+      followupSuffix: FOLLOWUP_SCOPE_SUFFIX,
+      surface,
     }),
 
   focusComposer: async (): Promise<void> => {

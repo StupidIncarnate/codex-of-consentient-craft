@@ -108,6 +108,13 @@ export const ChatInputWidget = ({
   // ceiling is roughly 25 MB of IndexedDB records, which is what an unconditional write on every
   // character typed would rewrite.
   const lastSavedAttachmentIdsRef = useRef<readonly AttachmentId[]>([]);
+  // Counts content-changed steps, so a text-draft write that waited on an IndexedDB round trip can
+  // tell whether the composer still holds the content it captured. The write it carries is a
+  // SNAPSHOT taken before the wait; a keystroke landing during that wait persists newer text
+  // synchronously, and letting the snapshot land afterwards would replace that newer draft with
+  // older content. Whatever superseded it has already written (or is about to write) the current
+  // text, so a superseded write is dropped rather than re-derived.
+  const contentRevisionRef = useRef(0);
   const cancelledRestoreRef = useRef(false);
   // The scope whose draft this instance is currently showing. One ChatInputWidget instance outlives
   // a change of scope — the create surface's composer is still mounted when the route gains a
@@ -155,9 +162,9 @@ export const ChatInputWidget = ({
   }, [composerScope]);
 
   // Writes the localStorage half of the draft only. A standalone callback (not inlined into
-  // handleContentChanged below) because WHEN it runs now depends on whether the attachment list
-  // changed this call: unchanged, handleContentChanged calls this immediately; changed, it waits on
-  // the IndexedDB write settling first — see that callback for why the ordering matters.
+  // handleContentChanged below) because WHEN it runs depends on whether that call ADDS an
+  // attachment: an addition waits on the IndexedDB write settling first, everything else writes
+  // immediately — see that callback for why the ordering matters in each direction.
   const writeTextDraft = useCallback(
     ({ text }: { text: string }): void => {
       const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
@@ -194,17 +201,32 @@ export const ChatInputWidget = ({
 
       setIsEmpty(text.length === 0);
 
+      const revision = contentRevisionRef.current + 1;
+      contentRevisionRef.current = revision;
+
       const previousAttachmentIds = lastSavedAttachmentIdsRef.current;
       const attachmentIdsUnchanged =
         attachmentIds.length === previousAttachmentIds.length &&
         attachmentIds.every((attachmentId, index) => attachmentId === previousAttachmentIds[index]);
 
       if (attachmentIdsUnchanged && !force) {
-        // No attachment-list change means no IndexedDB write is racing this one — a plain
-        // keystroke persists its text immediately, same as before this ordering existed.
+        // No attachment-list change means no IndexedDB write to order this one against — a plain
+        // keystroke persists its text immediately.
         writeTextDraft({ text });
         return;
       }
+
+      // Only an attachment this step ADDS can put a placeholder token in localStorage ahead of the
+      // bytes behind it, so only an addition makes the text draft wait on the IndexedDB write. A
+      // removal is the mirror image and must NOT wait: waiting there is what leaves a token in
+      // localStorage naming bytes IndexedDB has already dropped — precisely the state the ordering
+      // exists to prevent — while writing the text first leaves at worst an orphaned record with no
+      // token pointing at it, which the next save overwrites.
+      const previouslySavedIds = new Set(previousAttachmentIds);
+      const addsAttachment = attachmentIds.some(
+        (attachmentId) => !previouslySavedIds.has(attachmentId),
+      );
+
       // Recorded before the write starts (not after it resolves) so a second content-changed step
       // for the same gesture would still see the new list as already "saved". In practice none of
       // the intercepted paths produce a second step: handlePaste and the handleBeforeInput
@@ -218,17 +240,24 @@ export const ChatInputWidget = ({
         .map((attachmentId) => attachmentsRef.current.get(attachmentId))
         .filter((attachment): attachment is ComposerAttachment => attachment !== undefined);
 
-      // The image bytes land in IndexedDB BEFORE the placeholder token reaches localStorage — the
-      // text draft is written only once this resolves, never before it. An interruption between
-      // the two (a reload racing a paste) then leaves at worst an IndexedDB record with no token
-      // pointing at it yet (invisible, harmless, overwritten by the next save), rather than a token
-      // in localStorage with no bytes behind it — a raw "[Pasted Image N]" the user could send as
-      // plain text. A failed write leaves the text draft exactly where it was (see the "durable
-      // write ordering" describe block in this widget's test): the token for THIS content is never
-      // written unless the bytes behind it committed first.
+      if (!addsAttachment) {
+        writeTextDraft({ text });
+      }
+
+      // For an addition, the image bytes land in IndexedDB BEFORE the placeholder token reaches
+      // localStorage — the text draft is written only once this resolves, never before it. An
+      // interruption between the two (a reload racing a paste) then leaves at worst an IndexedDB
+      // record with no token pointing at it yet (invisible, harmless, overwritten by the next save),
+      // rather than a token in localStorage with no bytes behind it — a raw "[Pasted Image N]" the
+      // user could send as plain text. A failed write leaves the text draft exactly where it was
+      // (see the "durable write ordering" describe block in this widget's test): the token for THIS
+      // content is never written unless the bytes behind it committed first. The revision check is
+      // what keeps that wait from costing the content typed DURING it — see contentRevisionRef.
       draftImagesSaveBroker({ scopeKey: composerScope, attachments: orderedAttachments })
         .then(() => {
-          writeTextDraft({ text });
+          if (addsAttachment && contentRevisionRef.current === revision) {
+            writeTextDraft({ text });
+          }
         })
         .catch((error: unknown) => {
           globalThis.console.error('[chat-input] failed to save draft images', error);

@@ -14,6 +14,10 @@ const GUILD_PATH = '/tmp/dm-e2e-composer-paste-draft-reload';
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
+// Ceiling on the durability gate every reload below takes first. The IndexedDB byte commit is a
+// handful of event-loop hops, so a healthy one lands in single-digit milliseconds — this bound
+// exists to fail loudly on a write that never commits at all, never to absorb a slow one.
+const DRAFT_DURABLE_TIMEOUT = 10_000;
 
 const OVER_CAP_WIDTH_PX = 6000;
 const OVER_CAP_HEIGHT_PX = 4000;
@@ -102,6 +106,23 @@ test.describe('Composer paste — draft persists across reload and restores into
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
     await page.keyboard.type('B');
 
+    // THE THUMBNAIL BEING IN THE DOM IS NOT THE BYTES BEING IN INDEXEDDB, and a reload issued
+    // before that write commits aborts it. The composer inserts the thumbnail and then fires the
+    // save as a fire-and-forget promise, so the retrying count above resolves several event-loop
+    // hops ahead of the record; the 'B' keystroke then writes the localStorage text — placeholder
+    // token included — synchronously, taking the ordering the composer normally holds (bytes
+    // first, then token) out of the picture. A reload landing in that window restores the token
+    // with no record behind it, which the composer correctly degrades to the bare text "AB" — the
+    // one outcome a broken restore and a lost write cannot be told apart by.
+    //
+    // Polling the REAL store until it names exactly the attachments on screen is a precondition,
+    // not a softened assertion: everything after the reload still demands exactly one restored
+    // thumbnail carrying the right bytes.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
+
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
@@ -165,6 +186,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     });
     await composer.pasteImage({ dataUrl: String(dataUrl) });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+
+    // Durability gate: the DOM thumbnail lands several event-loop hops ahead of the IndexedDB
+    // record behind it, so a reload issued on the count alone can abort the byte commit and leave
+    // the restore below nothing to rebuild from. Poll the REAL store, never a fixed wait.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
 
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
@@ -417,6 +446,14 @@ test.describe('Composer paste — draft persists across reload and restores into
 
     const [srcBeforeReload] = await composer.readThumbnailSrcs();
 
+    // Durability gate: the DOM thumbnail lands several event-loop hops ahead of the IndexedDB
+    // record behind it, so a reload issued on the count alone can abort the byte commit and leave
+    // the restore below nothing to rebuild from. Poll the REAL store, never a fixed wait.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
+
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
@@ -480,6 +517,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     });
     await composer.pasteImage({ dataUrl: String(dataUrl) });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
+
+    // Durability gate: the DOM thumbnail lands several event-loop hops ahead of the IndexedDB
+    // record behind it, so a reload issued on the count alone can abort the byte commit and leave
+    // the restore below nothing to rebuild from. Poll the REAL store, never a fixed wait.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
 
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
@@ -555,6 +600,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
     await page.keyboard.type('B');
 
+    // Durability gate: the DOM thumbnail lands several event-loop hops ahead of the IndexedDB
+    // record behind it, so a reload issued on the count alone can abort the byte commit and leave
+    // the restore below nothing to rebuild from. Poll the REAL store, never a fixed wait.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
+
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
@@ -627,6 +680,14 @@ test.describe('Composer paste — draft persists across reload and restores into
 
     const draftBeforeReload = await composer.readDraftText();
 
+    // Durability gate: the DOM thumbnail lands several event-loop hops ahead of the IndexedDB
+    // record behind it, so a reload issued on the count alone can abort the byte commit and leave
+    // the restore below nothing to rebuild from. Poll the REAL store, never a fixed wait.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
+
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
@@ -694,6 +755,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await composer.pasteImage({ dataUrl: String(dataUrl) });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
     const expectedBase64 = String(dataUrl).slice(String(dataUrl).indexOf(',') + 1);
+
+    // Durability gate: the DOM thumbnail lands several event-loop hops ahead of the IndexedDB
+    // record behind it, so a reload issued on the count alone can abort the byte commit and leave
+    // the restore below nothing to rebuild from. Poll the REAL store, never a fixed wait.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
 
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
@@ -845,6 +914,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     });
     await composer.pasteImage({ dataUrl: String(dataUrlB2) });
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(2);
+
+    // Durability gate: the DOM thumbnails land several event-loop hops ahead of the IndexedDB
+    // records behind them, so a reload issued on the count alone can abort the byte commit and
+    // leave the restore below nothing to rebuild from. Poll the REAL store, never a fixed wait.
+    const pastedAttachmentIds = await composer.readThumbnailAttachmentIds();
+    await expect
+      .poll(async () => composer.readDraftImageAttachmentIds(), { timeout: DRAFT_DURABLE_TIMEOUT })
+      .toStrictEqual(pastedAttachmentIds);
 
     await page.reload();
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });

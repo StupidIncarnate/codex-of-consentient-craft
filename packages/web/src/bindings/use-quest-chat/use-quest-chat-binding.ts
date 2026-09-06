@@ -153,9 +153,18 @@ export const useQuestChatBinding = ({
   const [followupStreamingFromOutput, setFollowupStreamingFromOutput] = useState(false);
   const isFollowupStreaming = followupPendingTurn || followupStreamingFromOutput;
 
-  // The synthetic (__no_session__) bucket holds every optimistic entry sendMessage/
-  // sendFollowupMessage stage before a real sessionId exists for the turn. Once the replayed copy
-  // lands in a REAL session's bucket, the synthetic copy has to fall out of the map or both render.
+  // The uuids of the entries THIS HOOK made up — the optimistic copies sendMessage /
+  // sendCommentBatch / submitClarifyAnswers stage before a real sessionId exists for the turn, plus
+  // the error entries their rejection paths append. Recorded because the synthetic bucket is NOT an
+  // optimistic-only bucket, however much its key reads like one: `ChatStartResponder` routes its
+  // live `chat-output` by questId + workItemId and puts NO sessionId on the payload, so every entry
+  // a turn STREAMS lands under exactly the same key. Content-equality dedupe therefore has to know
+  // which of them the browser invented, and a uuid is the only thing that can say — a streamed
+  // sub-agent line and its replayed twin are the same words by definition.
+  const stagedUuidsRef = useRef<Set<ChatEntryUuid>>(new Set());
+
+  // Once the replayed copy of a staged entry lands in a REAL session's bucket, the staged copy has
+  // to fall out of the map or both render.
   // Filtered HERE, in the memo, rather than in a widget: this map has two independent consumers —
   // QuestChatContentLayerWidget's own flatten of every bucket into one transcript, and
   // ExecutionPanelWidget's per-row `sessionEntries` fallback lookup — and a widget-side filter would
@@ -170,7 +179,9 @@ export const useQuestChatBinding = ({
       if (key !== SYNTHETIC_SESSION_KEY) delivered.push(...list);
     }
     const survivors = optimistic.filter(
-      (entry) => !hasEquivalentChatEntryGuard({ entry, among: delivered }),
+      (entry) =>
+        !stagedUuidsRef.current.has(entry.uuid) ||
+        !hasEquivalentChatEntryGuard({ entry, among: delivered }),
     );
     const next = new Map(derived);
     next.set(SYNTHETIC_SESSION_KEY, survivors);
@@ -594,6 +605,7 @@ export const useQuestChatBinding = ({
           ),
         });
       }
+      stagedUuidsRef.current.add(userEntry.uuid);
       setEntriesBySessionInternal((prev) =>
         upsertChatEntriesByUuidTransformer({
           prev,
@@ -637,6 +649,7 @@ export const useQuestChatBinding = ({
             uuid: crypto.randomUUID(),
             timestamp: new Date().toISOString(),
           });
+          stagedUuidsRef.current.add(errorEntry.uuid);
           setEntriesBySessionInternal((prev) =>
             upsertChatEntriesByUuidTransformer({
               prev,
@@ -754,6 +767,7 @@ export const useQuestChatBinding = ({
           uuid: crypto.randomUUID(),
           timestamp: new Date().toISOString(),
         });
+        stagedUuidsRef.current.add(userEntry.uuid);
         setEntriesBySessionInternal((prev) =>
           upsertChatEntriesByUuidTransformer({
             prev,
@@ -789,6 +803,7 @@ export const useQuestChatBinding = ({
         uuid: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
       });
+      stagedUuidsRef.current.add(userEntry.uuid);
       setEntriesBySessionInternal((prev) =>
         upsertChatEntriesByUuidTransformer({
           prev,
@@ -818,6 +833,7 @@ export const useQuestChatBinding = ({
             uuid: crypto.randomUUID(),
             timestamp: new Date().toISOString(),
           });
+          stagedUuidsRef.current.add(errorEntry.uuid);
           setEntriesBySessionInternal((prev) =>
             upsertChatEntriesByUuidTransformer({
               prev,

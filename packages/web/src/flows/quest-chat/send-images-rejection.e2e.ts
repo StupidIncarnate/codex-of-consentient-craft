@@ -53,7 +53,11 @@ test.describe('Composer send — images and a rejected send', () => {
     test.slow();
 
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    const composer = composerPasteHarness({ page });
+    // `surface: 'followup'` — the composer this test types into is the execution panel's FOLLOW-UP
+    // tab, which keeps its own draft under `<questId>:followup`, separate from the same quest's
+    // main composer at the same URL. Without it every draft read below would open the MAIN
+    // composer's key and answer null for a draft that is present.
+    const composer = composerPasteHarness({ page, surface: 'followup' });
     const send = composerSendHarness({ page });
     await send.recordComposerSendStates();
 
@@ -153,7 +157,8 @@ test.describe('Composer send — images and a rejected send', () => {
     test.slow();
 
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    const composer = composerPasteHarness({ page });
+    // FOLLOW-UP tab again — see the first test for why the surface has to be named here.
+    const composer = composerPasteHarness({ page, surface: 'followup' });
 
     const seeded = await followup.seedAndOpen({
       guildName: 'Send Images Rejection No Draft Guild',

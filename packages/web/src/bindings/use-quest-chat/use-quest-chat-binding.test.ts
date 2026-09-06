@@ -3124,6 +3124,102 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current.entriesBySession).toStrictEqual(expectedMap);
     });
+
+    it('VALID: {a live chat-output frame with NO sessionId repeats a line whose replayed twin already sits in a real session bucket} => the wire-delivered copy survives, because only a LOCALLY STAGED entry is a dedupe candidate', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-dedupe-wire-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const replayedUuid = '00000000-0000-4000-8000-000000000708';
+      const replayedTs = '2026-09-02T00:00:00.000Z';
+      const liveUuid = '00000000-0000-4000-8000-000000000709';
+      const liveTs = '2026-09-02T00:00:01.000Z';
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      // The replay of the pre-existing sub-agent JSONL: ChatReplayResponder stamps a sessionId, so
+      // this copy lands in a REAL session bucket.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-wire-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-replay' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'SUBAGENT_INNER_MARKER_xyz',
+                    uuid: replayedUuid,
+                    timestamp: replayedTs,
+                  },
+                ],
+              },
+              timestamp: replayedTs,
+            }),
+          });
+        },
+      });
+
+      // The same line arriving live off the sub-agent tail. ChatStartResponder's payload routes by
+      // questId + workItemId and carries NO sessionId, so this copy lands in the SYNTHETIC bucket —
+      // the same bucket the optimistic user entry uses, though nothing here staged it.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-wire-1',
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-live' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'SUBAGENT_INNER_MARKER_xyz',
+                    uuid: liveUuid,
+                    timestamp: liveTs,
+                  },
+                ],
+              },
+              timestamp: liveTs,
+            }),
+          });
+        },
+      });
+
+      // The wrong value this turns red against: an empty synthetic bucket. Content-equality dedupe
+      // applied to every synthetic entry eats the live copy — which is the ONLY copy carrying the
+      // Task's toolUseId as its agentId, so the sub-agent chain renders `(0 entries)` while the
+      // replayed twin floats above it as an orphan.
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(sessionId, [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'SUBAGENT_INNER_MARKER_xyz',
+          uuid: replayedUuid,
+          timestamp: replayedTs,
+        },
+      ]);
+      expectedMap.set(synthKey, [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'SUBAGENT_INNER_MARKER_xyz',
+          uuid: liveUuid,
+          timestamp: liveTs,
+        },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
   });
 
   describe('pasted image bytes are remembered for the optimistic bubble', () => {
