@@ -20,7 +20,7 @@ describe('riftcarverResultContract', () => {
       const result = RiftcarverResultStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         exitCode: 1,
-        failedStep: 'build',
+        failedStep: 'typecheck',
         outcome: 'repairable',
       });
 
@@ -30,7 +30,7 @@ describe('riftcarverResultContract', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         createdAt: '2024-01-15T10:00:00.000Z',
         exitCode: 1,
-        failedStep: 'build',
+        failedStep: 'typecheck',
         outcome: 'repairable',
       });
     });

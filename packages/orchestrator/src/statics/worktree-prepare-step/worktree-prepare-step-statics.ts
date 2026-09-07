@@ -9,8 +9,8 @@
  * worktreePrepareStepStatics.steps.nodeModules;
  * // Returns 'node_modules'
  *
- * worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.build];
- * // Returns 'repairable' — a build failure earns a spiritmender pass and a fresh attempt,
+ * worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.typecheck];
+ * // Returns 'repairable' — a compile failure earns a spiritmender pass and a fresh attempt,
  * // where 'git-state' halts the quest so no agent is dispatched into the repo-root checkout
  */
 
@@ -24,7 +24,7 @@ export const worktreePrepareStepStatics = {
     nodeModules: locationsStatics.repoRoot.nodeModules,
     seedDist: 'seed-dist',
     verifyLinks: 'verify-links',
-    build: 'build',
+    typecheck: 'typecheck',
   },
   classifications: {
     create: 'git-state',
@@ -44,6 +44,9 @@ export const worktreePrepareStepStatics = {
     // reports green, so dispatching a spiritmender into it would grade the main checkout too.
     'seed-dist': 'git-state',
     'verify-links': 'git-state',
-    build: 'repairable',
+    // REPAIRABLE: a compile error is inside the worktree, in the quest's own source, which is
+    // precisely what a spiritmender is dispatched to fix — and the fresh `pt N` carve re-running
+    // this step is how the loop learns whether the fix worked.
+    typecheck: 'repairable',
   },
 } as const;

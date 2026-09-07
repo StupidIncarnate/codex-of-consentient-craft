@@ -1,42 +1,27 @@
 /**
- * PURPOSE: Creates a git worktree and runs npm build in it for Claude Code WorktreeCreate hook
+ * PURPOSE: Refuses Claude Code's own WorktreeCreate path so this repo keeps exactly ONE route to a
+ * worktree, and a session that reached for the wrong one is told which one to use instead. Claude
+ * Code's own command leaves `node_modules` pointing at the main checkout, so every command run in
+ * that tree resolves the main checkout's packages and reports green against code the worktree never
+ * saw — a failure with no other symptom. Reach for the `create-worktree` MCP tool, which mirrors,
+ * seeds and audits the tree before handing the path back.
  *
  * USAGE:
- * const result = HookWorktreeCreateResponder({ input: WorktreeCreateHookDataStub() });
- * // Returns { worktreePath: '/path/to/worktree' } after creating worktree and building
+ * const { stderr, exitCode } = HookWorktreeCreateResponder();
+ * // exitCode 2 is the code Claude Code reads as a BLOCK, and the one that feeds stderr back to the
+ * //   model rather than showing it to the user alone
  */
 
-import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import type { WorktreeCreateHookData } from '../../../contracts/worktree-create-hook-data/worktree-create-hook-data-contract';
+import { errorMessageContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, ExitCode } from '@dungeonmaster/shared/contracts';
 
-const WORKTREE_DIR = '.claude/worktrees';
-const BRANCH_PREFIX = 'worktree-';
+import { hookExitCodeStatics } from '../../../statics/hook-exit-code/hook-exit-code-statics';
+import { worktreeBlockMessageStatics } from '../../../statics/worktree-block-message/worktree-block-message-statics';
 
-export const HookWorktreeCreateResponder = ({
-  input,
-}: {
-  input: WorktreeCreateHookData;
-}): { worktreePath: ReturnType<typeof pathJoinAdapter> } => {
-  const worktreePath = pathJoinAdapter({
-    paths: [input.cwd, WORKTREE_DIR, input.name],
-  });
-  const branch = `${BRANCH_PREFIX}${input.name}`;
-
-  childProcessExecSyncAdapter({
-    command: `git worktree add ${worktreePath} -b ${branch}`,
-    options: { cwd: input.cwd, encoding: 'utf8' },
-  });
-
-  childProcessExecSyncAdapter({
-    command: 'npm install',
-    options: { cwd: worktreePath, encoding: 'utf8' },
-  });
-
-  childProcessExecSyncAdapter({
-    command: 'npm run build',
-    options: { cwd: worktreePath, encoding: 'utf8' },
-  });
-
-  return { worktreePath };
-};
+export const HookWorktreeCreateResponder = (): {
+  stderr: ErrorMessage;
+  exitCode: ExitCode;
+} => ({
+  stderr: errorMessageContract.parse(`${worktreeBlockMessageStatics.blockMessage}\n`),
+  exitCode: exitCodeContract.parse(hookExitCodeStatics.blockingFailure),
+});

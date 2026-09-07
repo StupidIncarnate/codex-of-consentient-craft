@@ -2,7 +2,7 @@ import { QuestFlow } from './quest-flow';
 
 describe('QuestFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 16 registrations with correct tool names', () => {
+    it('VALID: returns 17 registrations with correct tool names', () => {
       const registrations = QuestFlow();
 
       const names = registrations.map(({ name }) => name);
@@ -24,6 +24,7 @@ describe('QuestFlow', () => {
         'get-server-config',
         'reset-flow-signoffs',
         'get-quest-summary',
+        'create-worktree',
       ]);
     });
 
@@ -33,6 +34,7 @@ describe('QuestFlow', () => {
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
       expect(handlerTypes).toStrictEqual([
+        'function',
         'function',
         'function',
         'function',
@@ -74,6 +76,7 @@ describe('QuestFlow', () => {
         'Returns the dungeonmaster server config { baseUrl, port } so slash commands can point the browser at the running server.',
         "Clears Siegemaster's walk sign-offs across ONE flow so the walk can be redone honestly: every observable, node, edge and off-map probe family on that flow loses its `siegemasterSignoff`. Flowrider's track is never touched. Call this after fixing a defect the walk exposed — the sign-offs already written measured a system that has changed underneath them. The flow must be declared by the calling work item's operation item, and a `walk-reset` note carrying your reason and the cleared count is appended to quest.planningNotes.questNotes.",
         'Returns what ACTUALLY happened on a quest, which `get-quest` and a status do not answer: per-flow, per-track sign-off coverage (confirmed / unconfirmable / outstanding); every observable added AFTER the user approved the spec, with the role that added it; every `unconfirmable` verdict with its evidence AND the question that would close it AND the work item that raised it; and the durable `questNotes` grouped by kind, open questions first. A quest reaches `complete` when its operations ledger drains, not when its three sign-off tracks (codeweaver, flowrider, siegemaster) finish — signing is a durable proof record, and `unconfirmable` signs a unit exactly as `confirmed` does, so a complete quest can still carry real holes, real unapproved scope and real unanswered questions, and this is the only surface that shows them. Call it when picking up a quest someone else worked, before a review, or before deciding what is left to do.',
+        "Creates an isolated git worktree at `worktrees/<name>` and returns its absolute path. This is the ONLY sanctioned way to get a worktree, and the tree it returns has four properties a hand-rolled `git worktree add` silently lacks: it sits under the repo's own `worktrees/`, its `node_modules` is mirrored so every command inside it resolves the worktree's OWN packages, its compiled output is seeded so ward, the hooks and the CLI can run there at all, and every link in it is audited to prove none resolves back into the main checkout. A worktree missing any of those looks completely normal until a run comes back green against code it never saw. IDEMPOTENT: asking twice for one name verifies and hands back the same tree rather than carving a second, which also makes this the call that REPAIRS a half-built one. Claude Code's own worktree command is blocked in this repo and names this tool.",
       ]);
     });
 
@@ -83,6 +86,7 @@ describe('QuestFlow', () => {
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
       expect(schemaTypes).toStrictEqual([
+        'object',
         'object',
         'object',
         'object',

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, reset-flow-signoffs, get-quest-summary)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, reset-flow-signoffs, get-quest-summary, create-worktree)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -19,6 +19,7 @@ import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
+import { CreateWorktreeLayerResponder } from './create-worktree-layer-responder';
 import { GetQuestLayerResponder } from './get-quest-layer-responder';
 import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
@@ -54,6 +55,7 @@ const layerResponders = new Map<
   [toolNameContract.parse('reset-flow-signoffs'), ResetFlowSignoffsLayerResponder],
   [toolNameContract.parse('get-quest-summary'), QuestSummaryLayerResponder],
   [toolNameContract.parse('run-riftcarver'), RunRiftcarverLayerResponder],
+  [toolNameContract.parse('create-worktree'), CreateWorktreeLayerResponder],
 ]);
 
 export const QuestHandleResponder = async ({

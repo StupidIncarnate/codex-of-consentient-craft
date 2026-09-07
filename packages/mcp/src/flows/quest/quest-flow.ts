@@ -1,14 +1,15 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, reset-flow-signoffs, get-quest-summary)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, reset-flow-signoffs, get-quest-summary, create-worktree)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 16 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns 17 ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { createQuestInputContract } from '../../contracts/create-quest-input/create-quest-input-contract';
+import { createWorktreeInputContract } from '../../contracts/create-worktree-input/create-worktree-input-contract';
 import { getBlightChecklistInputContract } from '../../contracts/get-blight-checklist-input/get-blight-checklist-input-contract';
 import { getNextStepInputContract } from '../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQaChecklistInputContract } from '../../contracts/get-qa-checklist-input/get-qa-checklist-input-contract';
@@ -61,6 +62,10 @@ const resetFlowSignoffsSchema = zodToJsonSchema(
 );
 const getQuestSummarySchema = zodToJsonSchema(
   getQuestSummaryInputContract as never,
+  jsonSchemaOptions,
+);
+const createWorktreeSchema = zodToJsonSchema(
+  createWorktreeInputContract as never,
   jsonSchemaOptions,
 );
 
@@ -182,5 +187,12 @@ export const QuestFlow = (): ToolRegistration[] => [
       'Returns what ACTUALLY happened on a quest, which `get-quest` and a status do not answer: per-flow, per-track sign-off coverage (confirmed / unconfirmable / outstanding); every observable added AFTER the user approved the spec, with the role that added it; every `unconfirmable` verdict with its evidence AND the question that would close it AND the work item that raised it; and the durable `questNotes` grouped by kind, open questions first. A quest reaches `complete` when its operations ledger drains, not when its three sign-off tracks (codeweaver, flowrider, siegemaster) finish — signing is a durable proof record, and `unconfirmable` signs a unit exactly as `confirmed` does, so a complete quest can still carry real holes, real unapproved scope and real unanswered questions, and this is the only surface that shows them. Call it when picking up a quest someone else worked, before a review, or before deciding what is left to do.' as never,
     inputSchema: getQuestSummarySchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest-summary' as never, args }),
+  },
+  {
+    name: 'create-worktree' as never,
+    description:
+      "Creates an isolated git worktree at `worktrees/<name>` and returns its absolute path. This is the ONLY sanctioned way to get a worktree, and the tree it returns has four properties a hand-rolled `git worktree add` silently lacks: it sits under the repo's own `worktrees/`, its `node_modules` is mirrored so every command inside it resolves the worktree's OWN packages, its compiled output is seeded so ward, the hooks and the CLI can run there at all, and every link in it is audited to prove none resolves back into the main checkout. A worktree missing any of those looks completely normal until a run comes back green against code it never saw. IDEMPOTENT: asking twice for one name verifies and hands back the same tree rather than carving a second, which also makes this the call that REPAIRS a half-built one. Claude Code's own worktree command is blocked in this repo and names this tool." as never,
+    inputSchema: createWorktreeSchema as never,
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'create-worktree' as never, args }),
   },
 ];

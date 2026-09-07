@@ -10,7 +10,7 @@ describe('worktreePrepareStepStatics', () => {
         nodeModules: 'node_modules',
         seedDist: 'seed-dist',
         verifyLinks: 'verify-links',
-        build: 'build',
+        typecheck: 'typecheck',
       },
       classifications: {
         create: 'git-state',
@@ -19,15 +19,17 @@ describe('worktreePrepareStepStatics', () => {
         node_modules: 'repairable',
         'seed-dist': 'git-state',
         'verify-links': 'git-state',
-        build: 'repairable',
+        typecheck: 'repairable',
       },
     });
   });
 
   describe('classifications are keyed by the step VALUE', () => {
-    it('VALID: {steps.build} => indexes straight into classifications', () => {
+    // REPAIRABLE: the compile error is in the quest's own source, inside the worktree a
+    // spiritmender is dispatched into, and the fresh carve re-running it is the repair verdict.
+    it('VALID: {steps.typecheck} => indexes straight into classifications', () => {
       expect(
-        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.build],
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.typecheck],
       ).toBe('repairable');
     });
 

@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Carves the quest's branch, worktree, node_modules and preflight build at the HEAD of the
- * relay, so that minutes-long workspace forge happens when the quest is next in line instead of
- * inside the Start POST. Reach for this over questRunWardBroker for the other command role: ward
+ * PURPOSE: Carves the quest's branch, worktree, node_modules mirror and compile check at the HEAD of
+ * the relay, so that the minutes-long workspace forge happens when the quest is next in line instead
+ * of inside the Start POST. Reach for this over questRunWardBroker for the other command role: ward
  * grades work that already exists and reports one exit code, where this one CREATES the workspace
  * every later role runs in, and so has to route three incompatible failure classes — a repairable
  * red that earns a spiritmender pass, a git-state red that halts rather than dispatch an agent into
@@ -18,9 +18,9 @@
  *      that ran between two attempts may have deleted, moved or repaired things the ledger knows
  *      nothing about. The collision check is skipped on a re-entry for the same reason in reverse:
  *      the branch it would refuse is the quest's OWN, so re-running it locks the quest out forever.
- *   2. THE BUILD IS THE ONE DELIBERATE EXCEPTION and has no done-check, because re-running it IS
- *      how the spiritmender's fix gets verified. The build is the verdict, not a side effect; a
- *      marker file "optimising" it away would let a pt N report green off the previous attempt.
+ *   2. THE TYPECHECK IS THE ONE DELIBERATE EXCEPTION and has no done-check, because re-running it IS
+ *      how the spiritmender's fix gets verified. It is the verdict, not a side effect; a marker file
+ *      "optimising" it away would let a pt N report green off the previous attempt.
  *
  * `baseRef` is written exactly once, ever: it is read in the same breath as creation and never
  * recomputed, because moving it after commits have landed folds the quest's own work into the review
@@ -38,7 +38,7 @@
  * //   and any spiritmender + pt N splice — in ONE atomic ledger write, and advances or blocks.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { childProcessSpawnStreamLinesAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import {
   errorMessageContract,
@@ -57,10 +57,7 @@ import {
   type RiftcarverResult,
 } from '@dungeonmaster/shared/contracts';
 import { isCompleteWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
-import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { configDefaultsStatics } from '@dungeonmaster/config';
 
-import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { gitCurrentBranchAdapter } from '../../../adapters/git/current-branch/git-current-branch-adapter';
 import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
@@ -74,15 +71,15 @@ import { QuestBranchNameTakenError } from '../../../errors/quest-branch-name-tak
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
 import { isPermissionDeniedErrorGuard } from '../../../guards/is-permission-denied-error/is-permission-denied-error-guard';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+import { wardCommandStatics } from '../../../statics/ward-command/ward-command-statics';
 import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-step/worktree-prepare-step-statics';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { questToGitNamesTransformer } from '../../../transformers/quest-to-git-names/quest-to-git-names-transformer';
 import { worktreeFailureDetailTransformer } from '../../../transformers/worktree-failure-detail/worktree-failure-detail-transformer';
-import { buildUntilGreenBroker } from '../../build/until-green/build-until-green-broker';
 import { gitDetectBaseBranchBroker } from '../../git/detect-base-branch/git-detect-base-branch-broker';
 import { riftcarverPersistResultBroker } from '../../riftcarver/persist-result/riftcarver-persist-result-broker';
-import { worktreePopulateNodeModulesBroker } from '../../worktree/populate-node-modules/worktree-populate-node-modules-broker';
 import { worktreePrepareBroker } from '../../worktree/prepare/worktree-prepare-broker';
+import { worktreeProvisionBroker } from '../../worktree/provision/worktree-provision-broker';
 import { questAdvanceBroker } from '../advance/quest-advance-broker';
 import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
@@ -297,11 +294,20 @@ export const questRunRiftcarverBroker = async ({
         stream.emit(`— skip push: ${branchName} already tracks an upstream —`);
       }
 
-      // NODE MODULES. Per-root done-checks live inside populateOneRootLayerBroker, which is why
-      // they are per ROOT rather than all-or-nothing: an attempt may have mirrored six roots of
-      // nine before dying, and a spiritmender may have `npm install`ed one of the rest by hand.
+      // PROVISION — the mirror, the dist seed and the link audit, in that order, through the SAME
+      // broker the `create-worktree` tool runs. Per-root done-checks live inside the mirror's own
+      // layer, which is why they are per ROOT rather than all-or-nothing: an attempt may have
+      // mirrored six roots of nine before dying, and a spiritmender may have `npm install`ed one of
+      // the rest by hand. The audit is why this is one call rather than a mirror on its own: it
+      // grades the links the mirror just wrote, so running it before the mirror (or not at all)
+      // passes on a bare tree and gates nothing.
+      //
+      // The three sub-steps classify differently, so the failing one NAMES itself rather than
+      // riding this frame's tracker: a mirror failure earns a spiritmender pass, while an unbuilt
+      // main checkout or a leaking link halt the quest instead of dispatching a session into a tree
+      // that would grade the main checkout.
       step.value = STEPS.nodeModules;
-      await worktreePopulateNodeModulesBroker({
+      const provisioned = await worktreeProvisionBroker({
         repoRoot,
         worktreePath,
         onLine: (line: string): void => {
@@ -309,44 +315,36 @@ export const questRunRiftcarverBroker = async ({
         },
       });
 
-      // BUILD. Deliberately has NO done-check — see this file's PURPOSE header.
-      step.value = STEPS.build;
-      // The config-find chain dirname()s startPath on its first iteration — it expects a FILE, so
-      // hand it the repo-root config file itself, NOT the bare repoRoot directory, which would
-      // dirname() to the repo root's PARENT and miss the config.
-      const configStartPath = filePathContract.parse(
-        pathJoinAdapter({ paths: [repoRoot, dungeonmasterHomeStatics.paths.projectConfigFile] }),
-      );
-      // Absence of a config file (ConfigNotFoundError) is a legitimate "no override" state — fall
-      // back to the same default the config contract itself applies. Any other error (malformed
-      // JSON, validation, permissions) MUST surface.
-      const config = await (async () => {
-        try {
-          return await dungeonmasterConfigResolveAdapter({ startPath: configStartPath });
-        } catch (error: unknown) {
-          if (error instanceof Error && error.name === 'ConfigNotFoundError') {
-            return null;
-          }
-          throw error;
-        }
-      })();
-      const buildCommand =
-        config?.devServer?.buildCommand ?? configDefaultsStatics.devServer.buildCommand;
+      if (!provisioned.ok) {
+        step.value = provisioned.failedStep;
+        throw provisioned.error;
+      }
 
-      const buildResult = await buildUntilGreenBroker({
-        buildCommand,
+      // TYPECHECK. Deliberately has NO done-check — see this file's PURPOSE header. This is the
+      // VERDICT the spiritmender repair loop re-runs to learn whether a fix worked; a marker file
+      // "optimising" it away would let a pt N report green off the previous attempt's result.
+      //
+      // Ward's typecheck is a per-package `tsc --noEmit` that resolves every `@dungeonmaster/*`
+      // import to the WORKTREE's own TypeScript source, so it compiles what this tree holds rather
+      // than what the seeded `dist` was built from.
+      step.value = STEPS.typecheck;
+      const typecheck = await childProcessSpawnStreamLinesAdapter({
+        // The same env override ward's own broker honours, so a harness pointing at a fake ward
+        // binary reaches this spawn too.
+        command: process.env.WARD_CLI_PATH ?? wardCommandStatics.bin,
+        args: [...wardCommandStatics.typecheckArgs],
         cwd: worktreePath,
         onLine: (line: string): void => {
           stream.emit(line);
         },
       });
 
-      if (!buildResult.success) {
+      if (typecheck.exitCode !== GREEN_EXIT_CODE) {
         throw new WorktreePrepareError({
-          step: STEPS.build,
+          step: STEPS.typecheck,
           detail: worktreeFailureDetailTransformer({
             worktreePath,
-            cause: String(buildResult.output),
+            cause: String(typecheck.output),
           }),
         });
       }

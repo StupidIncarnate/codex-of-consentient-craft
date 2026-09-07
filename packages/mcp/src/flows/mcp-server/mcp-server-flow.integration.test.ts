@@ -1883,6 +1883,7 @@ describe('McpServerFlow', () => {
       'get-agent-prompt',
       'run-ward',
       'run-riftcarver',
+      'create-worktree',
       'ask-user-question',
       'reset-flow-signoffs',
       'get-quest-summary',

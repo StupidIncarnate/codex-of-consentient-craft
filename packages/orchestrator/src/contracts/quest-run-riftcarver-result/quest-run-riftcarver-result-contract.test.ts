@@ -20,7 +20,7 @@ describe('questRunRiftcarverResultContract', () => {
       const result = QuestRunRiftcarverResultStub({
         exitCode: 1,
         outcome: 'repairable',
-        failedStep: 'build',
+        failedStep: 'typecheck',
       });
 
       expect(result).toStrictEqual({
@@ -30,7 +30,7 @@ describe('questRunRiftcarverResultContract', () => {
         exitCode: 1,
         riftcarverResultId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
         outcome: 'repairable',
-        failedStep: 'build',
+        failedStep: 'typecheck',
       });
     });
 

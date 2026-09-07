@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Represents an error when one step of git worktree preparation (create, node_modules
- * population, or build) fails after the branch/worktree names were confirmed available.
+ * population, the dist seed, the link audit, the compile check) fails after the branch/worktree
+ * names were confirmed available.
  *
  * USAGE:
  * throw new WorktreePrepareError({ step: 'create', detail: '/repo/worktrees/add-auth-7bc217a1' });

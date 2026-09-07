@@ -41,6 +41,7 @@ export const mcpToolsStatics = {
       'get-server-config',
       'reset-flow-signoffs',
       'get-quest-summary',
+      'create-worktree',
     ] as const,
   },
 } as const;

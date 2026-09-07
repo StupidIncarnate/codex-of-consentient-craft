@@ -1,25 +1,28 @@
 /**
- * PURPOSE: Runs a worktree's configured build command in repeated passes until it exits 0, for the
- * repos whose build script iterates packages in the order the package manager lists them rather than
- * in dependency order — a fresh worktree has no `dist` for a package that sorts before its own
- * dependencies, so each pass emits one more layer of the graph and the next gets further. Riftcarver
- * carves trees in ARBITRARY user repos whose build scripts this project does not control, which is
- * why the retry survives. Reach for this over calling `buildPreflightBroker` directly whenever the
- * tree has never been built.
+ * PURPOSE: Runs a tree's configured build command in repeated passes until it exits 0, for the repos
+ * whose build script iterates packages in the order the package manager lists them rather than in
+ * dependency order — a fresh tree has no `dist` for a package that sorts before its own
+ * dependencies, so each pass emits one more layer of the graph and the next gets further. Reach for
+ * this over calling `buildPreflightBroker` directly whenever the tree has never been built and the
+ * repo's build script is not one this project controls.
  *
  * A correctly ordered build goes green on pass 1, and `— build green on pass N/3 —` is what says so.
  * This repo's own build is ordered (`scripts/build-workspaces.mjs` topologically sorts the
- * workspaces), so a dogfood carve reporting pass 2 or 3 is a REGRESSION in that ordering, not
- * business as usual — the retry loop is why that bug can hide, and the banner is what surfaces it.
+ * workspaces), so a run reporting pass 2 or 3 is a REGRESSION in that ordering, not business as
+ * usual — the retry loop is why that bug can hide, and the banner is what surfaces it.
  *
- * Repeating the real command is what keeps every package compiled from the worktree's OWN source.
- * Copying the repo root's already-built `dist` in as a seed would also silence the missing-reference
- * error, but those files are type-checked against, so a seed seeded from a different branch reports
- * errors the worktree's branch does not have.
+ * A worktree's seeded `dist` neither replaces this nor conflicts with it, and the difference is what
+ * each artefact is FOR. The seed exists so a worktree can RUN — ward's own entry point, the hooks
+ * and the CLI are compiled output, and `git worktree add` cannot bring `dist` across because it is
+ * gitignored. It is not what anything compiles AGAINST: every `@dungeonmaster/*` import resolves
+ * through node10 resolution to that package's root barrel TypeScript, so a per-package `tsc --noEmit`
+ * reads the tree's own source and a `dist` carried in from another branch is invisible to it. The
+ * seed would only report a foreign branch's errors under a build that type-checks through
+ * `dist/*.d.ts`, which is what project references do and what a per-package check does not.
  *
- * Lives beside `buildPreflightBroker` under `brokers/build/` rather than inside the worktree-prepare
- * folder because both the Start layer and the riftcarver work item drive it, and a `-layer-` file is
- * importable only from its own domain folder.
+ * Lives beside `buildPreflightBroker` under `brokers/build/` rather than inside a worktree folder,
+ * because a `-layer-` file is importable only from its own domain folder and this is reachable from
+ * any of them.
  *
  * USAGE:
  * const { success, output } = await buildUntilGreenBroker({

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
- * PURPOSE: Entry point for WorktreeCreate hook that creates a git worktree and builds the project
+ * PURPOSE: Entry point for the WorktreeCreate hook, which blocks Claude Code's own worktree path and
+ * names the MCP tool that produces a usable tree. The hook stays REGISTERED precisely because
+ * registration is what makes it fire, and a hook that does not fire blocks nothing.
  *
  * USAGE:
  * echo '{"hook_event_name":"WorktreeCreate","worktree_path":"/path",...}' | node start-worktree-create-hook.ts
- * // Creates worktree, runs npm build, outputs worktree path to stdout
+ * // Writes the refusal to stderr and exits 2
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';

@@ -1,15 +1,15 @@
 /**
  * PURPOSE: Proxy for questRunRiftcarverBroker — mocks ONLY the child-process and fs adapter
  *   boundaries and backs them with a virtual quest-file store plus a virtual git/worktree world, so
- *   every broker between them (worktreePrepareBroker, worktreePopulateNodeModulesBroker,
- *   buildUntilGreenBroker, questModifyBroker, questOperationsUpdateBroker, questAdvanceBroker,
+ *   every broker between them (worktreePrepareBroker, worktreeProvisionBroker and the mirror, seed
+ *   and audit under it, questModifyBroker, questOperationsUpdateBroker, questAdvanceBroker,
  *   questBlockOnFailureBroker) runs REAL. That is what lets an idempotency test assert the ABSENCE
  *   of a git spawn or a symlink rather than the absence of a call to a stub.
  *
  * USAGE:
  * const proxy = questRunRiftcarverBrokerProxy();
  * proxy.setupQuest({ quest });
- * proxy.setupBuildFails({ lines: ['error TS2304'] });
+ * proxy.setupTypecheckFails({ lines: ['error TS2304'] });
  * await questRunRiftcarverBroker({ questId, workItemId, onLine: () => undefined });
  * expect(proxy.getWorktreeAddSpawns()).toStrictEqual([]);
  */
@@ -26,8 +26,8 @@ import {
 } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import {
+  childProcessSpawnStreamLinesAdapterProxy,
   locationsWorktreePathFindBrokerProxy,
-  pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
   adapterResultContract,
@@ -53,10 +53,6 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
-import { DungeonmasterConfigStub } from '@dungeonmaster/config';
-
-import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
-import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
@@ -70,11 +66,10 @@ import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-
 import { gitPushAdapterProxy } from '../../../adapters/git/push/git-push-adapter.proxy';
 import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
 import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-verify-ref-adapter.proxy';
-import { buildUntilGreenBrokerProxy } from '../../build/until-green/build-until-green-broker.proxy';
 import { gitDetectBaseBranchBrokerProxy } from '../../git/detect-base-branch/git-detect-base-branch-broker.proxy';
 import { riftcarverPersistResultBrokerProxy } from '../../riftcarver/persist-result/riftcarver-persist-result-broker.proxy';
-import { worktreePopulateNodeModulesBrokerProxy } from '../../worktree/populate-node-modules/worktree-populate-node-modules-broker.proxy';
 import { worktreePrepareBrokerProxy } from '../../worktree/prepare/worktree-prepare-broker.proxy';
+import { worktreeProvisionBrokerProxy } from '../../worktree/provision/worktree-provision-broker.proxy';
 import { questAdvanceBrokerProxy } from '../advance/quest-advance-broker.proxy';
 import { questBlockOnFailureBrokerProxy } from '../block-on-failure/quest-block-on-failure-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
@@ -113,9 +108,6 @@ registerModuleMock({ module: '../../../adapters/fs/readlink/fs-readlink-adapter'
 registerModuleMock({ module: '../../../adapters/fs/rename/fs-rename-adapter' });
 registerModuleMock({ module: '../../../adapters/fs/symlink/fs-symlink-adapter' });
 registerModuleMock({ module: '../../../adapters/fs/write-file/fs-write-file-adapter' });
-registerModuleMock({
-  module: '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter',
-});
 
 type QuestInput = ReturnType<typeof QuestStub>;
 type WorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
@@ -144,7 +136,7 @@ const UUID_SUFFIX_WIDTH = 2;
 
 const GIT_SUCCESS = 0;
 const GIT_FAILURE = 128;
-const BUILD_FAILURE = 1;
+const TYPECHECK_FAILURE = 1;
 
 const buildDirent = ({ name, isDir, isSymlink }: DirEntry): Dirent =>
   Object.assign(Object.create(Dirent.prototype) as Dirent, {
@@ -160,7 +152,6 @@ export const questRunRiftcarverBrokerProxy = (): {
   setupBaseBranchMasterOnly: () => void;
   setupBranchExistsInGit: () => void;
   setupWorktreeDirectoryOccupied: () => void;
-  setupConfiguredBuildCommand: (params: { buildCommand: string }) => void;
   setupWorktreeAddFails: (params: { output: string }) => void;
   setupWorktreeAddPermissionDenied: () => void;
   setupExistingWorktree: () => void;
@@ -168,7 +159,7 @@ export const questRunRiftcarverBrokerProxy = (): {
   setupAlreadyPushed: () => void;
   setupPushFails: (params: { output: string }) => void;
   setupNodeModulesMirrorFails: (params: { error: Error }) => void;
-  setupBuildFails: (params: { lines: readonly string[] }) => void;
+  setupTypecheckFails: (params: { lines: readonly string[] }) => void;
   getPersistedQuest: () => Quest;
   getWorktreeAddSpawns: () => readonly unknown[];
   getWorktreePruneSpawns: () => readonly unknown[];
@@ -176,7 +167,7 @@ export const questRunRiftcarverBrokerProxy = (): {
   getBranchCollisionProbes: () => readonly unknown[];
   getSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
   getNodeModulesCopySpawns: () => readonly unknown[];
-  getBuildSpawns: () => readonly unknown[];
+  getTypecheckSpawns: () => readonly unknown[];
   getRiftcarverLogWrites: () => readonly { path: unknown; contents: unknown }[];
   getPersistedWorkItemStatusesInWriteOrder: (params: {
     workItemId: WorkItemId;
@@ -187,9 +178,10 @@ export const questRunRiftcarverBrokerProxy = (): {
   // implementations below. Two are load-bearing: questModifyBrokerProxy re-applies the REAL
   // questModifyBroker over its module automock, and questBlockOnFailureBrokerProxy is switched to
   // passthrough so a blocked route exercises the real block flow.
-  pathJoinAdapterProxy();
+  // Created for enforce-proxy-child-creation and left UNADDRESSED: the ward typecheck spawn is
+  // answered by this proxy's own `spawnStreamImpl` below, which is staged last and therefore wins.
+  childProcessSpawnStreamLinesAdapterProxy();
   locationsWorktreePathFindBrokerProxy();
-  dungeonmasterConfigResolveAdapterProxy();
   fsIsAccessibleAdapterProxy();
   gitCurrentBranchAdapterProxy();
   gitHeadShaAdapterProxy();
@@ -198,11 +190,10 @@ export const questRunRiftcarverBrokerProxy = (): {
   gitPushAdapterProxy();
   gitUpstreamShaAdapterProxy();
   gitVerifyRefAdapterProxy();
-  buildUntilGreenBrokerProxy();
   gitDetectBaseBranchBrokerProxy();
   riftcarverPersistResultBrokerProxy();
-  worktreePopulateNodeModulesBrokerProxy();
   worktreePrepareBrokerProxy();
+  worktreeProvisionBrokerProxy();
   questAdvanceBrokerProxy();
   questFindQuestPathBrokerProxy();
   questGetBrokerProxy();
@@ -246,9 +237,9 @@ export const questRunRiftcarverBrokerProxy = (): {
     output: errorMessageContract.parse(''),
   };
   const nodeModulesError: { value: Error | null } = { value: null };
-  const buildOutcome: { exitCode: ExitCode; lines: readonly ErrorMessage[] } = {
+  const typecheckOutcome: { exitCode: ExitCode; lines: readonly ErrorMessage[] } = {
     exitCode: exitCodeContract.parse(GIT_SUCCESS),
-    lines: [errorMessageContract.parse('Build succeeded')],
+    lines: [errorMessageContract.parse('✓ typecheck')],
   };
 
   // Every implementation below is staged with `calledWith([])`: each is a generic simulator that
@@ -491,25 +482,16 @@ export const questRunRiftcarverBrokerProxy = (): {
   }> => {
     spawnStreamCalls.push({ command, args: [...args], cwd: String(cwd) });
     // Replay the staged output through the caller's callback exactly as the real adapter does, so a
-    // test can assert the build's lines actually reach `onLine` instead of only its exit code.
-    for (const line of buildOutcome.lines) {
+    // test can assert the typecheck's lines actually reach `onLine` instead of only its exit code.
+    for (const line of typecheckOutcome.lines) {
       onLine(String(line));
     }
     return Promise.resolve({
-      exitCode: buildOutcome.exitCode,
-      output: errorMessageContract.parse(buildOutcome.lines.join('\n')),
+      exitCode: typecheckOutcome.exitCode,
+      output: errorMessageContract.parse(typecheckOutcome.lines.join('\n')),
     });
   };
   spawnStreamHandle.calledWith([]).implement(spawnStreamImpl as never);
-
-  // No config file on disk is the default: ConfigNotFoundError is the legitimate "no override"
-  // state, so the build runs the config contract's own default command (`npm run build`).
-  const configHandle = registerMock({ fn: dungeonmasterConfigResolveAdapter });
-  const configImpl = async (): Promise<never> =>
-    Promise.reject(
-      Object.assign(new Error('No .dungeonmaster.json found'), { name: 'ConfigNotFoundError' }),
-    );
-  configHandle.calledWith([]).implement(configImpl as never);
 
   // Pin crypto.randomUUID + Date.prototype.toISOString so persisted ids and timestamps are
   // deterministic. Call #0 is always the riftcarverResultId; every later call (spiritmender op id,
@@ -617,16 +599,6 @@ export const questRunRiftcarverBrokerProxy = (): {
       accessiblePaths.add(filePathContract.parse(WORKTREE_PATH));
     },
 
-    // A `.dungeonmaster.json` that declares its own build command, rather than the absent-config
-    // default the constructor stages.
-    setupConfiguredBuildCommand: ({ buildCommand }: { buildCommand: string }): void => {
-      configHandle.calledWith([]).resolves(
-        DungeonmasterConfigStub({
-          devServer: { devCommand: 'npm run dev', port: 3738, buildCommand },
-        }),
-      );
-    },
-
     setupWorktreeNodeModulesAlreadyPopulated: (): void => {
       accessiblePaths.add(filePathContract.parse(`${WORKTREE_PATH}/node_modules`));
       dirEntries.set(filePathContract.parse(`${WORKTREE_PATH}/node_modules`), [
@@ -649,9 +621,9 @@ export const questRunRiftcarverBrokerProxy = (): {
       pushOutcome.output = errorMessageContract.parse(output);
     },
 
-    setupBuildFails: ({ lines }: { lines: readonly string[] }): void => {
-      buildOutcome.exitCode = exitCodeContract.parse(BUILD_FAILURE);
-      buildOutcome.lines = lines.map((line) => errorMessageContract.parse(line));
+    setupTypecheckFails: ({ lines }: { lines: readonly string[] }): void => {
+      typecheckOutcome.exitCode = exitCodeContract.parse(TYPECHECK_FAILURE);
+      typecheckOutcome.lines = lines.map((line) => errorMessageContract.parse(line));
     },
 
     getPersistedQuest: (): Quest => {
@@ -698,8 +670,11 @@ export const questRunRiftcarverBrokerProxy = (): {
     getNodeModulesCopySpawns: (): readonly unknown[] =>
       spawnCaptureCalls.filter((call) => call.command === 'cp').map((call) => call.args),
 
-    getBuildSpawns: (): readonly unknown[] =>
-      spawnStreamCalls.map((call) => ({ command: call.command, args: call.args, cwd: call.cwd })),
+    // The COMMAND is deliberately left out: `WARD_CLI_PATH` overrides it whenever a harness in the
+    // same worker points ward at a fake binary, so pinning it makes this answer depend on which
+    // other suite ran first. The args and the cwd are what say which ward run this is and where.
+    getTypecheckSpawns: (): readonly unknown[] =>
+      spawnStreamCalls.map((call) => ({ args: call.args, cwd: call.cwd })),
 
     getRiftcarverLogWrites: (): readonly { path: unknown; contents: unknown }[] =>
       [...files.entries()]

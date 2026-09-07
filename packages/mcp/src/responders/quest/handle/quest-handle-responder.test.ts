@@ -1,6 +1,7 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
 import {
+  AbsoluteFilePathStub,
   ContentTextStub,
   DesignDecisionStub,
   FlowNodeStub,
@@ -1294,6 +1295,72 @@ describe('QuestHandleResponder', () => {
             type: 'text',
             text: JSON.stringify(
               { success: false, error: 'Quest not found' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('create-worktree', () => {
+    it('VALID: {name} => dispatches to the worktree layer responder and returns the path', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupCreateWorktreeReturns({
+        name: 'probe',
+        result: { worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }) },
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-worktree' }),
+        args: { name: 'probe' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ path: '/repo/worktrees/probe' }, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('VALID: {name} => forwards the name to the worktree layer responder', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupCreateWorktreeReturns({
+        name: 'probe',
+        result: { worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }) },
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-worktree' }),
+        args: { name: 'probe' },
+      });
+
+      expect(proxy.getLastCreateWorktreeInput({ name: 'probe' })).toStrictEqual({ name: 'probe' });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupCreateWorktreeThrows({
+        name: 'probe',
+        error: new Error('Base branch not found'),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-worktree' }),
+        args: { name: 'probe' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Base branch not found' },
               null,
               JSON_INDENT_SPACES,
             ),

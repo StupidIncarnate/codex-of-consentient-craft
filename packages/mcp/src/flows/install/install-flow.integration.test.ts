@@ -90,6 +90,7 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__get-server-config',
                 'mcp__dungeonmaster__reset-flow-signoffs',
                 'mcp__dungeonmaster__get-quest-summary',
+                'mcp__dungeonmaster__create-worktree',
                 'Bash(git status:*)',
                 'Bash(git log:*)',
                 'Bash(git diff:*)',

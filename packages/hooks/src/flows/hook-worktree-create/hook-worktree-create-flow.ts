@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = HookWorktreeCreateFlow({ inputData: '{"worktree_path":"/path","branch":"my-branch",...}' });
- * // Returns ExecResult with worktree path on stdout
+ * // Returns ExecResult carrying the responder's refusal on stderr
  */
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
@@ -13,14 +13,17 @@ import { HookWorktreeCreateResponder } from '../../responders/hook/worktree-crea
 export const HookWorktreeCreateFlow = ({ inputData }: { inputData: string }): ExecResult => {
   try {
     const parsed: unknown = JSON.parse(inputData);
-    const input = worktreeCreateHookDataContract.parse(parsed);
+    // Parsed and discarded: the responder refuses every worktree whatever its name, but a hook
+    // handed a payload it cannot read is a wiring fault rather than a refusal, and the two answer
+    // with different exit codes.
+    worktreeCreateHookDataContract.parse(parsed);
 
-    const result = HookWorktreeCreateResponder({ input });
+    const result = HookWorktreeCreateResponder();
 
     return execResultContract.parse({
-      stderr: '',
-      stdout: result.worktreePath,
-      exitCode: 0,
+      stderr: result.stderr,
+      stdout: '',
+      exitCode: result.exitCode,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

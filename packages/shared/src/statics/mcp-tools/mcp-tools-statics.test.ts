@@ -34,6 +34,7 @@ describe('mcpToolsStatics', () => {
           'get-server-config',
           'reset-flow-signoffs',
           'get-quest-summary',
+          'create-worktree',
         ],
       },
     });

@@ -12,6 +12,7 @@ import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-sessio
 import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
+import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-responder.proxy';
 import { GetQuestLayerResponderProxy } from './get-quest-layer-responder.proxy';
 import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
 import { QuestSummaryLayerResponderProxy } from './quest-summary-layer-responder.proxy';
@@ -51,6 +52,7 @@ type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
 type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>;
 type ResetFlowSignoffsResult = Awaited<ReturnType<typeof StartOrchestrator.resetFlowSignoffs>>;
+type CreateWorktreeResult = Awaited<ReturnType<typeof StartOrchestrator.createWorktree>>;
 type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQuestSummary>>;
 type NextStep = ReturnType<typeof NextStepStub>;
 type QuestRunWardResult = ReturnType<typeof QuestRunWardResultStub>;
@@ -136,6 +138,9 @@ export const QuestHandleResponderProxy = (): {
   }) => void;
   setupGetServerConfigReturns: (params: { result: QuestGetServerConfigResult }) => void;
   setupGetServerConfigThrows: (params: { error: Error }) => void;
+  setupCreateWorktreeReturns: (params: { name: string; result: CreateWorktreeResult }) => void;
+  setupCreateWorktreeThrows: (params: { name: string; error: Error }) => void;
+  getLastCreateWorktreeInput: (params: { name: string }) => unknown;
   buildIdleNextStep: () => NextStep;
   buildRunWardResult: () => QuestRunWardResult;
   buildRunRiftcarverResult: () => QuestRunRiftcarverResult;
@@ -170,6 +175,7 @@ export const QuestHandleResponderProxy = (): {
   const runWardProxy = orchestratorRunWardAdapterProxy();
   const runRiftcarverProxy = RunRiftcarverLayerResponderProxy();
   const getServerConfigProxy = orchestratorGetServerConfigAdapterProxy();
+  const createWorktreeProxy = CreateWorktreeLayerResponderProxy();
 
   return {
     callResponder: QuestHandleResponder,
@@ -444,6 +450,23 @@ export const QuestHandleResponderProxy = (): {
     setupGetServerConfigThrows: ({ error }: { error: Error }): void => {
       getServerConfigProxy.throws({ error });
     },
+
+    setupCreateWorktreeReturns: ({
+      name,
+      result,
+    }: {
+      name: string;
+      result: CreateWorktreeResult;
+    }): void => {
+      createWorktreeProxy.setupReturns({ name, result });
+    },
+
+    setupCreateWorktreeThrows: ({ name, error }: { name: string; error: Error }): void => {
+      createWorktreeProxy.setupThrows({ name, error });
+    },
+
+    getLastCreateWorktreeInput: ({ name }: { name: string }): unknown =>
+      createWorktreeProxy.getLastCalledInputFor({ name }),
 
     buildIdleNextStep: (): NextStep => NextStepStub({ type: 'idle' }),
 

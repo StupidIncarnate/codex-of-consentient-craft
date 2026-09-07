@@ -156,4 +156,9 @@ export const smoketestProbeArgsStatics = {
     args: { questId: '{{questId}}' },
     summary: 'mcp-get-quest-summary-probe-ok',
   },
+  'create-worktree': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-create-worktree-not-in-mcp-suite',
+    note: 'create-worktree carves a REAL git branch and worktree under the guild repo, mirrors node_modules into it and copies every compiled dist across — minutes of filesystem and git mutation the smoketest harness has no way to unwind, and a probe that ran twice would hand back the first run’s tree rather than proving anything new. The worktree lifecycle it belongs to is the orchestration suite’s, through riftcarver.',
+  },
 } as const;

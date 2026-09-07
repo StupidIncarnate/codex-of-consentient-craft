@@ -5,21 +5,15 @@ import {
 } from '@dungeonmaster/shared/testing';
 import {
   BaseBranchNameStub,
-  FilePathStub,
   QuestBranchNameStub,
-  absoluteFilePathContract,
   filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
 
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { gitDetectBaseBranchBrokerProxy } from '../../../brokers/git/detect-base-branch/git-detect-base-branch-broker.proxy';
-import { worktreePopulateNodeModulesBrokerProxy } from '../../../brokers/worktree/populate-node-modules/worktree-populate-node-modules-broker.proxy';
 import { worktreePrepareBrokerProxy } from '../../../brokers/worktree/prepare/worktree-prepare-broker.proxy';
-import { worktreeSeedDistBrokerProxy } from '../../../brokers/worktree/seed-dist/worktree-seed-dist-broker.proxy';
-import { worktreeVerifyLinksBrokerProxy } from '../../../brokers/worktree/verify-links/worktree-verify-links-broker.proxy';
-
-const THIRD_PARTY_ENTRY = 'zod';
+import { worktreeProvisionBrokerProxy } from '../../../brokers/worktree/provision/worktree-provision-broker.proxy';
 
 export const WorktreeCreateResponderProxy = (): {
   setupRepoRoot: (params: { repoRoot: AbsoluteFilePath }) => void;
@@ -47,9 +41,7 @@ export const WorktreeCreateResponderProxy = (): {
   isAccessibleProxy.defaultsToNotFound();
   const detectBaseBranchProxy = gitDetectBaseBranchBrokerProxy();
   const prepareProxy = worktreePrepareBrokerProxy();
-  const populateProxy = worktreePopulateNodeModulesBrokerProxy();
-  const seedProxy = worktreeSeedDistBrokerProxy();
-  const verifyProxy = worktreeVerifyLinksBrokerProxy();
+  const provisionProxy = worktreeProvisionBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation and left UNADDRESSED: it stages nothing of its
   // own, so every worktree path a test names must match Node's real path.join output.
   locationsWorktreePathFindBrokerProxy();
@@ -71,11 +63,7 @@ export const WorktreeCreateResponderProxy = (): {
         baseBranch: BaseBranchNameStub({ value: 'main' }),
         sha,
       });
-      populateProxy.setupNoWorkspaceLinks({
-        repoRoot,
-        worktreePath,
-        thirdPartyEntry: THIRD_PARTY_ENTRY,
-      });
+      provisionProxy.setupBareWorktree({ repoRoot, worktreePath });
     },
 
     // Only the DIRECTORY is described, deliberately: the git step is the one gated on it, while the
@@ -89,21 +77,12 @@ export const WorktreeCreateResponderProxy = (): {
     },
 
     setupLeakingLink: ({ repoRoot, worktreePath, entryName, storedTarget }): void => {
-      populateProxy.setupNoWorkspaceLinks({
-        repoRoot,
+      provisionProxy.setupBareWorktree({ repoRoot, worktreePath });
+      provisionProxy.setupMirroredLinkEscapingTheWorktree({
         worktreePath,
-        thirdPartyEntry: THIRD_PARTY_ENTRY,
+        linkName: entryName,
+        absoluteTarget: storedTarget,
       });
-      verifyProxy.setupNodeModulesPresent({ worktreePath });
-      verifyProxy.setupDirectoryEntries({
-        dirPath: absoluteFilePathContract.parse(`${String(worktreePath)}/node_modules`),
-        entries: [{ name: entryName, isDir: false, isSymlink: true }],
-      });
-      verifyProxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: `${String(worktreePath)}/node_modules/${entryName}` }),
-        target: storedTarget,
-      });
-      seedProxy.setupPackagesDirAbsent();
     },
 
     getGitArgsList: (): readonly unknown[] => prepareProxy.getSpawnedArgsList(),

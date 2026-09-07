@@ -44,7 +44,7 @@ const RECORDED_BASE_REF = 'c0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ff';
 
 describe('questRunRiftcarverBroker', () => {
   describe('GREEN — a first carve on a quest with no git context', () => {
-    it('VALID: {no branch, no worktree, build passes} => carves, pins baseRef, completes both items and advances to the codeweaver', async () => {
+    it('VALID: {no branch, no worktree, typecheck passes} => carves, pins baseRef, completes both items and advances to the codeweaver', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const carveOp = OperationItemStub({
@@ -139,7 +139,7 @@ describe('questRunRiftcarverBroker', () => {
       );
     });
 
-    it('VALID: {carve runs} => streams every step banner and the build output to onLine, in order', async () => {
+    it('VALID: {carve runs} => streams every step banner and the typecheck output to onLine, in order', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const lines: unknown[] = [];
@@ -184,9 +184,7 @@ describe('questRunRiftcarverBroker', () => {
         `— git push -u origin ${BRANCH_NAME} —`,
         `— mirroring node_modules: ${WORKTREE_PATH} —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
-        '— build pass 1/3 —',
-        'Build succeeded',
-        '— build green on pass 1/3 —',
+        '✓ typecheck',
         `— CARVED: ${BRANCH_NAME} at ${HEAD_SHA} —`,
       ]);
     });
@@ -269,9 +267,7 @@ describe('questRunRiftcarverBroker', () => {
             `— git push -u origin ${BRANCH_NAME} —`,
             `— mirroring node_modules: ${WORKTREE_PATH} —`,
             `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
-            '— build pass 1/3 —',
-            'Build succeeded',
-            '— build green on pass 1/3 —',
+            '✓ typecheck',
             `— CARVED: ${BRANCH_NAME} at ${HEAD_SHA} —`,
           ].join('\n'),
         },
@@ -279,8 +275,8 @@ describe('questRunRiftcarverBroker', () => {
     });
   });
 
-  describe('REPAIRABLE — the build goes red with budget left', () => {
-    it('VALID: {build fails, first attempt} => carve item failed, op complete, spiritmender + pt 2 riftcarver spliced, spiritmender dispatched', async () => {
+  describe('REPAIRABLE — the typecheck goes red with budget left', () => {
+    it('VALID: {typecheck fails, first attempt} => carve item failed, op complete, spiritmender + pt 2 riftcarver spliced, spiritmender dispatched', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const carveOp = OperationItemStub({
@@ -312,7 +308,7 @@ describe('questRunRiftcarverBroker', () => {
           workItems: [carveItem],
         }),
       });
-      proxy.setupBuildFails({ lines: ['error TS2304: Cannot find name x'] });
+      proxy.setupTypecheckFails({ lines: ['error TS2304: Cannot find name x'] });
 
       const result = await questRunRiftcarverBroker({
         questId,
@@ -327,7 +323,7 @@ describe('questRunRiftcarverBroker', () => {
         exitCode: 1,
         riftcarverResultId: RIFTCARVER_RESULT_ID,
         outcome: 'repairable',
-        failedStep: 'build',
+        failedStep: 'typecheck',
       });
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
@@ -343,7 +339,7 @@ describe('questRunRiftcarverBroker', () => {
             OperationItemStub({
               id: SECOND_UUID,
               role: 'spiritmender',
-              text: `Spiritmender: fix riftcarver build failure — riftcarverResult ${RIFTCARVER_RESULT_ID}`,
+              text: `Spiritmender: fix riftcarver typecheck failure — riftcarverResult ${RIFTCARVER_RESULT_ID}`,
               status: 'in_progress',
               locked: true,
             }),
@@ -368,7 +364,7 @@ describe('questRunRiftcarverBroker', () => {
                 `operations/${CARVE_OP_ID}`,
                 `riftcarverResults/${RIFTCARVER_RESULT_ID}`,
               ],
-              errorMessage: 'riftcarver_build_failed',
+              errorMessage: 'riftcarver_typecheck_failed',
             }),
             WorkItemStub({
               id: FOURTH_UUID,
@@ -385,7 +381,7 @@ describe('questRunRiftcarverBroker', () => {
               id: RIFTCARVER_RESULT_ID,
               createdAt: FIXED_TIMESTAMP,
               exitCode: 1,
-              failedStep: 'build',
+              failedStep: 'typecheck',
               outcome: 'repairable',
             }),
           ],
@@ -448,18 +444,17 @@ describe('questRunRiftcarverBroker', () => {
         `— git push -u origin ${BRANCH_NAME} —`,
         `— mirroring node_modules: ${WORKTREE_PATH} —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
-        '— build pass 1/3 —',
-        'Build succeeded',
-        '— build green on pass 1/3 —',
+        '✓ typecheck',
         `— CARVED: ${BRANCH_NAME} at ${HEAD_SHA} —`,
       ]);
     });
   });
 
-  describe('build command resolution', () => {
-    // Without this case only the ConfigNotFoundError fallback is ever exercised, so a broker that
-    // ignored the resolved config entirely would stay green.
-    it('VALID: {.dungeonmaster.json declares devServer.buildCommand} => that command is what reaches the spawn, not the default', async () => {
+  describe('the compile verdict', () => {
+    // The carve's verdict is a WARD run scoped to typecheck, in the worktree — not a build, and not
+    // a ward run of any wider scope. Without this case a broker that ran the whole suite, or ran it
+    // against the main checkout, would stay green.
+    it('VALID: {carve runs} => spawns ward with --only typecheck, in the worktree', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const proxy = questRunRiftcarverBrokerProxy();
@@ -487,7 +482,6 @@ describe('questRunRiftcarverBroker', () => {
           ],
         }),
       });
-      proxy.setupConfiguredBuildCommand({ buildCommand: 'pnpm run compile' });
 
       const result = await questRunRiftcarverBroker({
         questId,
@@ -495,8 +489,8 @@ describe('questRunRiftcarverBroker', () => {
         onLine: () => undefined,
       });
 
-      expect(proxy.getBuildSpawns()).toStrictEqual([
-        { command: 'pnpm', args: ['run', 'compile'], cwd: WORKTREE_PATH },
+      expect(proxy.getTypecheckSpawns()).toStrictEqual([
+        { args: ['run', '--only', 'typecheck'], cwd: WORKTREE_PATH },
       ]);
       expect(result).toStrictEqual({
         success: true,
@@ -609,7 +603,7 @@ describe('questRunRiftcarverBroker', () => {
     // The mirror's own repairable route. The only other node_modules failure in this file is EACCES,
     // which the permission guard deliberately diverts to `blocked` — so without this case
     // `classifications['node_modules'] === 'repairable'` is never actually exercised, and a
-    // spiritmender spliced from the MIRROR rather than the build has no coverage at all.
+    // spiritmender spliced from the MIRROR rather than the typecheck has no coverage at all.
     it('VALID: {mirror fails for a non-permission reason} => spiritmender naming node_modules + pt 2 riftcarver spliced, quest keeps running', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
@@ -722,7 +716,7 @@ describe('questRunRiftcarverBroker', () => {
   });
 
   describe('REPAIRABLE — the repair budget is spent', () => {
-    it('VALID: {build fails, maxRetries carve operations since the last green} => no spiritmender appended, quest blocked, pending items skipped', async () => {
+    it('VALID: {typecheck fails, maxRetries carve operations since the last green} => no spiritmender appended, quest blocked, pending items skipped', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const priorRedOps = Array.from(
@@ -782,7 +776,7 @@ describe('questRunRiftcarverBroker', () => {
           workItems: [...priorRedItems, carveItem, pendingItem],
         }),
       });
-      proxy.setupBuildFails({ lines: ['error TS2304: Cannot find name x'] });
+      proxy.setupTypecheckFails({ lines: ['error TS2304: Cannot find name x'] });
 
       const result = await questRunRiftcarverBroker({
         questId,
@@ -797,7 +791,7 @@ describe('questRunRiftcarverBroker', () => {
         exitCode: 1,
         riftcarverResultId: RIFTCARVER_RESULT_ID,
         outcome: 'blocked',
-        failedStep: 'build',
+        failedStep: 'typecheck',
       });
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
@@ -826,7 +820,7 @@ describe('questRunRiftcarverBroker', () => {
                 `operations/${CARVE_OP_ID}`,
                 `riftcarverResults/${RIFTCARVER_RESULT_ID}`,
               ],
-              errorMessage: 'riftcarver_build_failed',
+              errorMessage: 'riftcarver_typecheck_failed',
             }),
             WorkItemStub({ ...pendingItem, status: 'skipped' }),
           ],
@@ -835,7 +829,7 @@ describe('questRunRiftcarverBroker', () => {
               id: RIFTCARVER_RESULT_ID,
               createdAt: FIXED_TIMESTAMP,
               exitCode: 1,
-              failedStep: 'build',
+              failedStep: 'typecheck',
               outcome: 'blocked',
             }),
           ],
@@ -1277,9 +1271,7 @@ describe('questRunRiftcarverBroker', () => {
         `— skip push: ${BRANCH_NAME} already tracks an upstream —`,
         `— mirroring node_modules: ${WORKTREE_PATH} —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
-        '— build pass 1/3 —',
-        'Build succeeded',
-        '— build green on pass 1/3 —',
+        '✓ typecheck',
         `— CARVED: ${BRANCH_NAME} at ${RECORDED_BASE_REF} —`,
       ]);
       expect(proxy.getPersistedQuest().baseRef).toBe(RECORDED_BASE_REF);
@@ -1341,7 +1333,7 @@ describe('questRunRiftcarverBroker', () => {
       expect(proxy.getPersistedQuest().status).toBe('complete');
     });
 
-    it('VALID: {branch + worktree recorded, directory GONE, branch STILL in git} => attaches to the existing branch without -b, does not block, still builds, and keeps the recorded baseRef', async () => {
+    it('VALID: {branch + worktree recorded, directory GONE, branch STILL in git} => attaches to the existing branch without -b, does not block, still typechecks, and keeps the recorded baseRef', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const proxy = questRunRiftcarverBrokerProxy();
@@ -1397,7 +1389,7 @@ describe('questRunRiftcarverBroker', () => {
       expect(proxy.getPersistedQuest().status).toBe('complete');
     });
 
-    it('VALID: {branch + worktree recorded, directory GONE, branch STILL in git} => prunes the stale registration, adds WITHOUT -b, and still runs the build', async () => {
+    it('VALID: {branch + worktree recorded, directory GONE, branch STILL in git} => prunes the stale registration, adds WITHOUT -b, and still runs the typecheck', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const proxy = questRunRiftcarverBrokerProxy();
@@ -1437,8 +1429,8 @@ describe('questRunRiftcarverBroker', () => {
       expect(proxy.getWorktreeAddSpawns()).toStrictEqual([
         ['worktree', 'add', WORKTREE_PATH, BRANCH_NAME],
       ]);
-      expect(proxy.getBuildSpawns()).toStrictEqual([
-        { command: 'npm', args: ['run', 'build'], cwd: WORKTREE_PATH },
+      expect(proxy.getTypecheckSpawns()).toStrictEqual([
+        { args: ['run', '--only', 'typecheck'], cwd: WORKTREE_PATH },
       ]);
     });
 
@@ -1501,14 +1493,12 @@ describe('questRunRiftcarverBroker', () => {
         `— skip push: ${BRANCH_NAME} already tracks an upstream —`,
         `— skip ${WORKTREE_PATH} (node_modules already populated) —`,
         `— mirroring node_modules: ${PACKAGE_WORKTREE_PATH} —`,
-        '— build pass 1/3 —',
-        'Build succeeded',
-        '— build green on pass 1/3 —',
+        '✓ typecheck',
         `— CARVED: ${BRANCH_NAME} at ${RECORDED_BASE_REF} —`,
       ]);
     });
 
-    it('VALID: {every other step skipped} => the build still spawns — it is the deliberate exception to the done-check rule', async () => {
+    it('VALID: {every other step skipped} => the typecheck still spawns — it is the deliberate exception to the done-check rule', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: CARVE_WORK_ITEM_ID });
       const proxy = questRunRiftcarverBrokerProxy();
@@ -1548,8 +1538,8 @@ describe('questRunRiftcarverBroker', () => {
 
       expect(proxy.getWorktreeAddSpawns()).toStrictEqual([]);
       expect(proxy.getHeadShaSpawns()).toStrictEqual([]);
-      expect(proxy.getBuildSpawns()).toStrictEqual([
-        { command: 'npm', args: ['run', 'build'], cwd: WORKTREE_PATH },
+      expect(proxy.getTypecheckSpawns()).toStrictEqual([
+        { args: ['run', '--only', 'typecheck'], cwd: WORKTREE_PATH },
       ]);
     });
 
@@ -1581,7 +1571,7 @@ describe('questRunRiftcarverBroker', () => {
           ],
         }),
       });
-      proxy.setupBuildFails({ lines: ['error TS2304: Cannot find name x'] });
+      proxy.setupTypecheckFails({ lines: ['error TS2304: Cannot find name x'] });
 
       await questRunRiftcarverBroker({
         questId,
@@ -1602,7 +1592,7 @@ describe('questRunRiftcarverBroker', () => {
             OperationItemStub({
               id: SECOND_UUID,
               role: 'spiritmender',
-              text: `Spiritmender: fix riftcarver build failure — riftcarverResult ${RIFTCARVER_RESULT_ID}`,
+              text: `Spiritmender: fix riftcarver typecheck failure — riftcarverResult ${RIFTCARVER_RESULT_ID}`,
               status: 'complete',
               locked: true,
             }),
@@ -1642,14 +1632,14 @@ describe('questRunRiftcarverBroker', () => {
           id: RIFTCARVER_RESULT_ID,
           createdAt: FIXED_TIMESTAMP,
           exitCode: 1,
-          failedStep: 'build',
+          failedStep: 'typecheck',
           outcome: 'repairable',
         }),
         RiftcarverResultStub({
           id: FIFTH_UUID,
           createdAt: FIXED_TIMESTAMP,
           exitCode: 1,
-          failedStep: 'build',
+          failedStep: 'typecheck',
           outcome: 'repairable',
         }),
       ]);

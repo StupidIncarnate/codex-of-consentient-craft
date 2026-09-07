@@ -28,10 +28,8 @@ import {
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { gitDetectBaseBranchBroker } from '../../../brokers/git/detect-base-branch/git-detect-base-branch-broker';
-import { worktreePopulateNodeModulesBroker } from '../../../brokers/worktree/populate-node-modules/worktree-populate-node-modules-broker';
 import { worktreePrepareBroker } from '../../../brokers/worktree/prepare/worktree-prepare-broker';
-import { worktreeSeedDistBroker } from '../../../brokers/worktree/seed-dist/worktree-seed-dist-broker';
-import { worktreeVerifyLinksBroker } from '../../../brokers/worktree/verify-links/worktree-verify-links-broker';
+import { worktreeProvisionBroker } from '../../../brokers/worktree/provision/worktree-provision-broker';
 import { BaseBranchNotFoundError } from '../../../errors/base-branch-not-found/base-branch-not-found-error';
 
 export const WorktreeCreateResponder = async ({
@@ -68,17 +66,24 @@ export const WorktreeCreateResponder = async ({
     });
   }
 
+  // The mirror, the seed and the audit are one broker rather than three calls here, so that the
+  // riftcarver carve runs the SAME body in the same order — the audit last, after the mirror,
+  // grading the links the mirror just wrote. It refuses to let the path out rather than repairing:
+  // a caller handed a leaking worktree runs commands that grade the main checkout and report green.
+  //
   // `() => undefined` is the DELIBERATE opt-out the streaming contract asks a caller to make out
   // loud (packages/shared/CLAUDE.md, "Streaming Adapters"). This entry point answers one value to
   // one caller and has no surface to put lines on; the riftcarver path, which runs for minutes in
   // front of a live panel, wires the real callback instead.
-  await worktreePopulateNodeModulesBroker({ repoRoot, worktreePath, onLine: () => undefined });
-  await worktreeSeedDistBroker({ repoRoot, worktreePath });
+  const provisioned = await worktreeProvisionBroker({
+    repoRoot,
+    worktreePath,
+    onLine: () => undefined,
+  });
 
-  // LAST, and after the mirror rather than before it, because the links it audits are the ones the
-  // mirror just wrote. It refuses to let the path out rather than repairing: a caller handed a
-  // leaking worktree runs commands that grade the main checkout and report green.
-  await worktreeVerifyLinksBroker({ worktreePath });
+  if (!provisioned.ok) {
+    throw provisioned.error;
+  }
 
   return { worktreePath };
 };

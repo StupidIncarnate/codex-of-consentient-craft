@@ -624,7 +624,7 @@ describe('questOperationsUpdateBroker', () => {
       const firstAttempt = RiftcarverResultStub({
         id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
         exitCode: 1,
-        failedStep: 'build',
+        failedStep: 'typecheck',
         outcome: 'repairable',
       });
       const quest = QuestStub({
