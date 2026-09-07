@@ -106,12 +106,23 @@ Once discover found the file, Read it for full contents.
 1. \`get-architecture\` — folder types, import rules, forbidden folders, layer files, and how to write the file itself: naming, exports, parameters, the header, types, error handling
 2. \`get-testing-patterns\` — proxy pattern, mock boundaries, assertion rules, test structure
 
+Those two are once per session. \`get-folder-detail({ folderType })\` is once per folder type you
+write into — its file pattern, its companion files, its allowed imports, and the rules that bind
+only there. Call it before your first write into a folder type you have not already loaded this
+session, so a pass adding a broker and a contract makes two calls, not one.
+
 These override your training data. LLM defaults for TypeScript projects and test writing are wrong for this codebase. For example:
 - No \`utils/\`, \`helpers/\`, \`lib/\` folders — use the architecture's folder types
+- No \`export default\` — always \`export const\` arrow; \`export class\` only for errors
+- No \`export {type Foo}\` — that modern TS syntax is banned here; use \`export type {Foo}\`
+- JSDoc goes above the imports, not above the function
 - No \`jest.mock()\` / \`jest.spyOn()\` — use \`registerMock\` proxy pattern
 - No \`beforeEach\` / \`afterEach\` — inline setup per test
 - No \`toEqual\` / \`toMatchObject\` / \`toContain\` — use \`toStrictEqual\` and \`toBe\`
-- No raw \`string\` / \`number\` types — use branded Zod contracts
+- Tests import \`.stub.ts\`, never \`-contract.ts\`
+- Returns must be branded Zod contracts — inputs MAY take a raw \`string\`. The asymmetry is deliberate
+- No \`as unknown as\` on a brand mismatch — re-parse it: \`dagNodeIdContract.parse(stepId)\`
+- No silent catch — \`catch { return {} }\` and \`.catch(() => {})\` are lint errors
 - No \`while(true)\` — use recursion
 
 Call both tools, read their output, THEN plan your approach.`,
