@@ -24,6 +24,8 @@ which. The owner has read sections 1 to 3 and settled the rows marked **Decided*
 | 4. Steps 0 to 7                        | The work, in order. Each step lists files, pinning tests, and done-when                     |
 | 5. Corrections owed to the scroll      | Claims in §J and §K the code contradicts                                                    |
 | 6. Bugs found on the way               | Not caused by the pivots, but in their path                                                 |
+| **10. Defects and surprises**          | **START HERE if you are picking this up cold. What broke, where this plan is wrong, what is still open** |
+| 9. Execution log                       | What each step measured, and every decision the implementing session changed                |
 
 Terms used throughout. **Ward** is the quality runner (`npm run ward`). **`dist/`** is a package's compiled output.
 **Stale green** is a check that passes against source it never saw. **Pivot 1** to **Pivot 5** are §J's five
@@ -1484,3 +1486,93 @@ A later agent checked for a recurrence deliberately: it snapshotted `git status 
 before and after a ward run and found them byte-identical, then swept for a bare `as unknown` not followed by `as` and
 confirmed all 17 hits legitimate. So it is intermittent, not constant — which is worse to diagnose, and the reason it
 is written down here.
+
+---
+
+## 10. Defects and surprises — the cold-start summary
+
+Everything this work turned up that a reader of sections 1 to 8 would not expect. Section 9 has the detail; this is
+the index. **A defect marked PRE-EXISTING was already true at `8ffc6f2f8` and is not a consequence of any pivot.**
+
+### 10.1 Defects found, none of them predicted by the plan
+
+| Defect | Where | State |
+|---|---|---|
+| **PRE-EXISTING.** The composer renders two thumbnails for two identical pasted images but serialises ONE placeholder — it showed the user two pictures and would send one. E2e had been red on `master` since 2026-09-02 and nobody knew, because recent full ward runs were killed before the browser stage. | `packages/web` chat input | **fixed** — `b94f23b04` |
+| **PRE-EXISTING.** Ward's memory test never measured a ward run. It spawned `src/startup/start-ward.ts`, which exports `StartWard` and never calls it — and its `PROCESS_TIMEOUT_MS` was 30s against a ~380s subject. Two independent reasons it could not work. | `packages/ward` | **fixed** — `abfbd64c3` |
+| **PRE-EXISTING.** `ward list` was never routed. `WardListResponder` and `commandListBroker` existed and were unit-tested, but `COMMANDS` had no entry — and ward's own smoke test asserted exit 0 for it, passing through the unknown-command path. | `ward-flow.ts` | **fixed** — `4ec91e59b` |
+| **PRE-EXISTING.** An unknown ward subcommand exited **0**. A CI job still calling a deleted name got a silent pass. §K1 flagged the trap; nothing had closed it. | `ward-flow.ts` | **fixed** — `4ec91e59b` |
+| **PRE-EXISTING.** Ward's own `eslint --fix` mangles a chained `X as unknown as Y` into a bare `as unknown`, turning compiling code into code that does not. **Ward can damage source while grading it.** Intermittent — a later deliberate before/after check found no recurrence. | `@typescript-eslint`, hit in `packages/eslint-plugin` | 4 files repaired; the autofix bug itself is upstream |
+| **PRE-EXISTING.** Two SERVED docs instruct `grep -r … packages/*/dist/`. Bash `grep` is blocked by this repo's own `PreToolUse` hook, so both tell an agent to do something the harness refuses. | `get-testing-patterns`, `get-syntax-rules` | step 6 |
+| **PRE-EXISTING.** Five undeclared cross-package imports, one of them `testing → shared` across **41 files of production source**. §J6 assumes this repo lint-enforces complete declarations. It does not. | repo-wide | recorded, out of scope — see 9.7 |
+| **PRE-EXISTING.** `packages/tooling/src/index.ts` is a re-export barrel with no top-level call. The plan's 3f row would have pointed a harness at it, turning that test into one that always passes. | `packages/tooling` | avoided — see 9.11 |
+| `npm run build:clean` was not clean: it removed `dist` but left `.ward/build.tsbuildinfo`, which step 5.2 had just moved OUT of `dist`, so `tsc` read the cache and emitted nothing at all. | root `package.json` | **fixed** — `83cb36585` |
+| `cli-entry.ts` hardcoded four `../` to the repo root, right only from `dist`. Running it from source resolved a directory too high and `runInit` died on `ENOENT`. | `packages/cli` | **fixed** — `183a97d55` |
+| Ward's memory harness polled ONE pid, but `tsx` forks a child to do the work, so it watched an idle supervisor. | `ward-runner.harness.ts` | **fixed** |
+| `shared-package-resolve-adapter`'s existence check only asked whether the directory existed, so `packages/` was silently accepted as the "shared" scan root and `discover` scanned every sibling package. | `packages/mcp` | **fixed** — `183a97d55` |
+
+### 10.2 Where the plan itself was wrong
+
+Each of these would have cost a session real time if taken on trust. The detail is in 9.4 and 9.11.
+
+| The plan says | The code says |
+|---|---|
+| §J3's stale-green demo: a testbed with two workspace packages running `ward --only unit` | `installTestbedCreateBroker` makes a bare directory — no `node_modules`, no jest, no ward. **The demo cannot be built as written.** See 9.1 |
+| D5.3/D5.4/D5.5: generate a `paths` map, because removing `references` breaks resolution | **Backwards.** `references` was FORCING resolution through `dist`. Measured four ways; all three decisions struck. See 9.13 |
+| D5.3: add `baseUrl: "."` to the root tsconfig | Measured a `DISCOVERY MISMATCH` regression in `eslint-plugin`, whose own `paths` re-anchor to the repo root. See 9.13 |
+| Step 5.2: the split is "already done" for `cli` and `eslint-plugin` | Both still published test code — 243 and 1,098 files. Their excludes covered test FILES and never `.proxy.`/`.stub.`/`.harness.` |
+| D5.9: `server` and `tooling` need a `files` field | **Four** packages do. `mcp` and `testing` lack one too |
+| D5.2's exclude list, applied uniformly | Breaks the build. `exclude` never drops an IMPORTED file, and under `composite` that is a hard `TS6307` — and **seven packages export proxies and stubs as public API**. See 9.13b |
+| D3.4: add a `source` key to `eslint-plugin`'s `"."` export | That export is a bare STRING, not an object. Adding `source` changes its shape |
+| Step 3f: spawn `tsx src/index.ts` for `tooling` | That file does nothing. See 9.11 |
+| §K8: `session-snippet-statics.test.ts` pins the old paragraph by ONE regex | **Two** tests pin it. The `Who owns a FULL run` assertion pins its paragraph verbatim too |
+| §6a: eight files carry the ban, findable by searching `[BUILD]` | The ban wears **four different tags**. `[SUB-AGENT WARD]` and `[NO BUILD, YOURSELF]` are invisible to that search |
+| Section 3C lists the pinned tests per role | Two more exist: `neverRunWardMcpTool` in two operator tests, and a case-sensitivity trap where the only lowercase `twice at most` lived inside the deleted block |
+| §J6: an undeclared cross-package import is a risk for a CONSUMER's repo | This repo has five. See 9.7 |
+| Section 4 lists two depth-coupled path walks | At least four. See 9.11 |
+| D7.3: add a `dist` location constant | Needed, but `worktreesDir` and `wardLocalDir` already existed — 7c's static was half-done |
+| 4d row (b): add `worktrees` to `WORKTREE_PARENTS` | Already there |
+| D5.6: `ward-smoke-test.ts` asserts a refs command | That file contains **no** `refs` occurrence. Its lines 578-629 smoke-test `ward list`, which is the real defect |
+
+### 10.3 Things the plan never mentions, found on the way
+
+- **The reviewer→operator return block carries a `BUILD:` field.** It is a wire format the operator prompts parse by
+  name, and each reviewer test pins the full ORDERED field list. Removing it is a coordinated six-file change. Step 6
+  does not mention it, and a `BUILD:` field nobody can fill is the last thing in those prompts asserting the old world.
+- **`packages/orchestrator/testing.ts` is a second package-root barrel**, exported as `@dungeonmaster/orchestrator/testing`
+  and imported by `mcp` and `server` across 14 files. `src/index.ts` is not the only entry point to check; `shared` has
+  ten root barrels.
+- **`tsc` writes `dist/` and never prunes it.** The first `check:published` after the split reported 11 failing
+  packages and 2,331 forbidden files in `orchestrator` — every one stale. Its prerequisite is `build:clean`.
+- **`packages/shared` has no `"."` export and no `main`.** `require.resolve('@dungeonmaster/shared')` throws
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Any generator walking `exports` must tolerate a missing `"."`.
+- **`NODE_OPTIONS` is inherited by grandchildren.** Putting `--conditions=source` on ward's jest child gave it to every
+  process a test spawned, so compiled children died resolving `.ts` files. See 9.10.
+- **Step 3b makes the PUBLISHED `testing` package read its own `src/` at runtime**, so it must never take a bare
+  `files: ["dist"]`. See 9.8.
+- **A ward run killed at the e2e stage is not a green run with a missing tail.** That is how a red `master` went
+  unnoticed for four days.
+
+### 10.4 Open, and nobody owns them
+
+| Item | Why it is open |
+|---|---|
+| `packages/shared` over-emits ~103 test-only proxies | Its exclude entries were dropped to fix `TS6307` BEFORE `composite` was removed. With composite gone, restoring them would emit only barrel-reachable files. Tarball size, not correctness |
+| `build-until-green-broker`'s header argues AGAINST seeding `dist` | It says a seed from another branch reports errors the worktree's branch does not have. `git worktree add` writes fresh mtimes so a seeded `dist` is never treated as up to date — but that header and D7.3 still contradict each other on the page |
+| `npm install` or `npm rebuild` run INSIDE a worktree | Hardlinking's one real hazard. `node-gyp` would rewrite `node-pty/build/*` through the shared inode and change the main checkout too. Nothing guards it |
+| The five undeclared cross-package imports | Recorded in 9.7, deliberately not folded into a step |
+| Two SERVED docs still say `grep -r` | Step 6 covers them; verify it landed |
+
+### 10.5 Dispatch hazards seen more than once
+
+Beyond 9.C's rules, three failure modes recurred and are worth expecting:
+
+1. **Two agents independently "repair" the same file.** `composite: true` was removed once and restored twice by
+   agents whose own briefs told them to include it and who watched it vanish mid-task. Both acted reasonably. Tell
+   agents what another agent is deliberately changing, not just what they may not touch.
+2. **Concurrent ward runs produce transient reds.** `packages/tooling` lint failed with 7 errors during one run and
+   passed cleanly minutes later; `packages/shared` lint crashed once with empty output and exit 1, then passed alone.
+   Re-run before diagnosing.
+3. **A build in flight breaks every other agent's ward.** Seven ward integration tests failed on
+   `TS2307: Cannot find module '@dungeonmaster/testing'` because `packages/testing/dist` did not exist for a few
+   seconds. This is why only the coordinator builds.
