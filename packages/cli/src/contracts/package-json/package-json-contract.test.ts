@@ -20,6 +20,18 @@ describe('packageJsonContract', () => {
 
       expect(result.devDependencies).toStrictEqual({});
     });
+
+    it('VALID: {workspaces: ["packages/*"]} => parses successfully', () => {
+      const result = packageJsonContract.parse({ workspaces: ['packages/*'] });
+
+      expect(result.workspaces).toStrictEqual(['packages/*']);
+    });
+
+    it('VALID: {no workspaces field} => parses object without workspaces', () => {
+      const result = packageJsonContract.parse({});
+
+      expect(result.workspaces).toBe(undefined);
+    });
   });
 
   describe('PackageJsonStub', () => {

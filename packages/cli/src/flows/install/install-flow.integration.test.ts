@@ -8,6 +8,7 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
 import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';
+import { jestConfigTemplateStatics } from '../../statics/jest-config-template/jest-config-template-statics';
 
 describe('InstallFlow', () => {
   describe('add-dev-deps + create-playwright', () => {
@@ -46,6 +47,9 @@ describe('InstallFlow', () => {
       const playwrightConfigContent = testbed.readFile({
         relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
       });
+      const jestConfigContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: 'jest.config.js' }),
+      });
 
       testbed.cleanup();
 
@@ -60,6 +64,7 @@ describe('InstallFlow', () => {
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
       expect(packageJsonContent).toMatch(/^\s*"@playwright\/test": "\^1\.58\.2",$/mu);
       expect(playwrightConfigContent).toBe(playwrightConfigTemplateStatics.content);
+      expect(jestConfigContent).toBe(jestConfigTemplateStatics.content);
     });
 
     it('VALID: {context: all devDependencies present, e2e-eligible target, playwright config exists} => returns skipped without overwriting', async () => {
@@ -152,6 +157,44 @@ describe('InstallFlow', () => {
           'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js',
       });
       expect(playwrightConfigContent).toBe(null);
+    });
+
+    it('VALID: {context: target has npm workspaces} => skips jest.config.js without writing it', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'flow-workspaces-root' }),
+      });
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'package.json' }),
+        content: FileContentStub({
+          value: JSON.stringify(
+            { name: 'monorepo-root', version: '1.0.0', workspaces: ['packages/*'] },
+            null,
+            2,
+          ),
+        }),
+      });
+
+      const result = await InstallFlow({
+        context: {
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+        },
+      });
+
+      const jestConfigContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: 'jest.config.js' }),
+      });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/cli',
+        success: true,
+        action: 'created',
+        message:
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js)',
+      });
+      expect(jestConfigContent).toBe(null);
     });
   });
 });

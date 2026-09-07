@@ -53,4 +53,28 @@ describe('InstallCreateJestResponder', () => {
       expect(proxy.getWrittenFiles()).toStrictEqual([]);
     });
   });
+
+  describe('target project has npm workspaces', () => {
+    it('VALID: {package.json has workspaces} => skips without writing, regardless of jest.config.js', async () => {
+      const proxy = InstallCreateJestResponderProxy();
+
+      proxy.setupWorkspacesRoot();
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/cli',
+        success: true,
+        action: 'skipped',
+        message: 'target project has npm workspaces (each package owns its own jest.config.js)',
+      });
+
+      expect(proxy.getWrittenFiles()).toStrictEqual([]);
+    });
+  });
 });
