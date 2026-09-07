@@ -5,11 +5,13 @@ describe('playwrightConfigTemplateStatics', () => {
     expect(playwrightConfigTemplateStatics).toStrictEqual({
       content: `import { defineConfig } from '@playwright/test';
 
+const DEFAULT_API_PORT = 3737;
+
 // Ward's e2e runner asks the OS for a free API port and a free web port INDEPENDENTLY, then passes
 // both. So the two numbers must never be guessed apart: Playwright waits on the port below and the
 // dev server has to bind that same one. A run where they disagree dies on
 // "Timed out waiting 60000ms from config.webServer" and says nothing else about why.
-const API_PORT = Number(process.env.DUNGEONMASTER_PORT) || 3737;
+const API_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_API_PORT;
 const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || API_PORT + 1;
 
 export default defineConfig({

@@ -4,8 +4,9 @@
  * PURPOSE: Thin CLI entry point that constructs install context and delegates to StartCli startup
  *
  * USAGE:
- * node cli-entry.js init   // Runs install across all packages
- * node cli-entry.js        // Launches HTTP server and opens browser
+ * node cli-entry.js init                                  // Runs install across all packages
+ * node cli-entry.js create-package --name foo --type library  // Scaffolds a new workspace package
+ * node cli-entry.js                                       // Launches HTTP server and opens browser
  */
 
 import { resolve } from 'path';
@@ -30,12 +31,12 @@ const DIRNAME_TO_ROOT_DEPTH = __filename.endsWith('.ts') ? '../../..' : '../../.
 // browser) must NOT fire. esbuild emits this entry at the bundle's top level, so `module` and
 // `require.main` here are the real Node CommonJS values, not a wrapped-module shim.
 if (require.main === module) {
-  const [command] = process.argv.slice(COMMAND_ARG_START_INDEX);
+  const [command, ...args] = process.argv.slice(COMMAND_ARG_START_INDEX);
 
   const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, DIRNAME_TO_ROOT_DEPTH));
   const targetProjectRoot = processCwdAdapter();
 
-  StartCli({ command, context: { dungeonmasterRoot, targetProjectRoot } }).catch(
+  StartCli({ command, args, context: { dungeonmasterRoot, targetProjectRoot } }).catch(
     (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
       process.stderr.write(`Error: ${errorMessage}\n`);

@@ -11,6 +11,7 @@ describe('StartCli', () => {
 
       await StartCli({
         command: 'init',
+        args: [],
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),

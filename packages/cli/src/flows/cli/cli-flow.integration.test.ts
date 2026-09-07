@@ -1,4 +1,9 @@
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import {
+  installTestbedCreateBroker,
+  BaseNameStub,
+  RelativePathStub,
+  FileContentStub,
+} from '@dungeonmaster/testing';
 import { FileContentsStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
@@ -14,6 +19,7 @@ describe('CliFlow', () => {
 
       await CliFlow({
         command: 'init',
+        args: [],
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
@@ -52,6 +58,7 @@ describe('CliFlow', () => {
 
       await CliFlow({
         command: 'statusline-tap',
+        args: [],
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
@@ -96,6 +103,7 @@ describe('CliFlow', () => {
       const firstStdout = harness.captureStdout();
       await CliFlow({
         command: 'statusline-tap',
+        args: [],
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
@@ -109,6 +117,7 @@ describe('CliFlow', () => {
       const secondStdout = harness.captureStdout();
       await CliFlow({
         command: 'statusline-tap',
+        args: [],
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
@@ -137,6 +146,7 @@ describe('CliFlow', () => {
 
       await CliFlow({
         command: 'statusline-tap',
+        args: [],
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
@@ -153,6 +163,78 @@ describe('CliFlow', () => {
 
       expect(stdoutOutput).toStrictEqual([inputData]);
       expect(snapshotPresent).toBe(false);
+    });
+  });
+
+  describe('command routing - create-package', () => {
+    const harness = cliStatuslineHarness();
+
+    it('VALID: {command: "create-package", args: --name/--type} => writes the package and registers it in the root package.json', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'cli-flow-create-package' }),
+      });
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'package.json' }),
+        content: FileContentStub({
+          value: `{\n  "name": "probe-root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"],\n  "dependencies": {\n    "@probe/shared": "*"\n  }\n}\n`,
+        }),
+      });
+      const stdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'create-package',
+        args: ['--name', 'widgets', '--type', 'library'],
+        context: {
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+        },
+      });
+
+      stdout.restore();
+      const generatedPackageJson = testbed.readFile({
+        relativePath: RelativePathStub({ value: 'packages/widgets/package.json' }),
+      });
+      const generatedSeed = testbed.readFile({
+        relativePath: RelativePathStub({
+          value: 'packages/widgets/src/statics/widgets/widgets-statics.ts',
+        }),
+      });
+      const rootPackageJson = testbed.readFile({
+        relativePath: RelativePathStub({ value: 'package.json' }),
+      });
+
+      testbed.cleanup();
+
+      expect(generatedPackageJson).toMatch(/^ {2}"name": "@probe\/widgets",$/mu);
+      expect(generatedSeed).toMatch(/^export const widgetsStatics = \{$/mu);
+      expect(rootPackageJson).toMatch(/^ {4}"@probe\/widgets": "\*",?$/mu);
+    });
+
+    it('INVALID: {command: "create-package", args: --type only} => throws naming the missing --name flag and writes nothing', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'cli-flow-create-package-missing-name' }),
+      });
+      const stdout = harness.captureStdout();
+
+      const attempt = CliFlow({
+        command: 'create-package',
+        args: ['--type', 'library'],
+        context: {
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+        },
+      });
+
+      await expect(attempt).rejects.toThrow(/^--name is required/u);
+
+      stdout.restore();
+      const packagesDir = testbed.listDir({
+        relativePath: RelativePathStub({ value: 'packages' }),
+      });
+
+      testbed.cleanup();
+
+      expect(packagesDir).toBe(null);
     });
   });
 });
