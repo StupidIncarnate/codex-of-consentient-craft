@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "incremental": true,
+    "tsBuildInfoFile": "./.ward/build.tsbuildinfo",
+    "declaration": true,
+    "declarationMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "exploratories/**/*",
+    "tests/tmp/**/*",
+    "jest.*.js",
+    "v1/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.proxy.ts",
+    "**/*.harness.ts",
+    "test/**",
+    "src/.test-tmp/**",
+    "src/_lint-testbed/**"
+  ]
+}

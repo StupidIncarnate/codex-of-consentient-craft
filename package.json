@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "build": "node scripts/build-workspaces.mjs",
-    "build:clean": "rm -rf packages/*/dist && npm run build",
+    "build:clean": "rm -rf packages/*/dist packages/*/.ward/build.tsbuildinfo && npm run build",
     "check:published": "node scripts/check-published-output.mjs",
     "clean:vite": "node scripts/prune-vite-caches.mjs",
     "test": "dungeonmaster-ward --only test",

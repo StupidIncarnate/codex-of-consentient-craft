@@ -1,14 +1,29 @@
 #!/usr/bin/env node
 /**
- * Fails when a package's compiled `dist/` carries test-only code.
+ * Grades what each package's compiled `dist/` ships, in TWO categories that get different verdicts.
  *
- * Test, proxy, stub and harness files exist to grade the source. Emitting them into `dist/` ships
- * them to every consumer, and — because a proxy file's whole job is to call `registerMock` —
- * hands a consumer's runtime a module graph that reaches into jest. The published tarball should
- * carry the implementation and nothing else.
+ * FORBIDDEN — `.test.`, `.integration.`, and anything under a `test/` directory inside dist. These
+ * grade the source and nothing imports them from outside the package, so a `dist/` carrying one is
+ * shipping a suite to every consumer. This category FAILS the script.
  *
- * PREREQUISITE: `npm run build` must have run. This script reads compiled output, so against a
- * clean tree it reports every package as having no dist and exits 1 telling you to build.
+ * PUBLISHED ON PURPOSE — `.proxy.`, `.stub.`, `.harness.`. These look like test-only code and are
+ * not: several packages export them as real public API, so a consumer's own tests can build the
+ * same fixtures and mock the same adapters. `@dungeonmaster/shared/contracts` re-exports the stub
+ * beside every contract, `@dungeonmaster/shared/testing` IS the proxy barrel, and
+ * `@dungeonmaster/testing` and `@dungeonmaster/config` export stubs from their own index. A file a
+ * barrel exports must compile into `dist/` or the export resolves to nothing — so this category is
+ * REPORTED and never fails. What makes it correct is the barrel: an entry here whose package
+ * exports nothing of the kind is a build config emitting more than it means to, and the fix is that
+ * package's `tsconfig.build.json` exclude list.
+ *
+ * `.d.ts` and `.js.map` siblings count as the same file by another extension, in both categories.
+ *
+ * PREREQUISITE: run `npm run build:clean`, not `npm run build`. This script reads compiled output,
+ * so against a clean tree it reports every package as having no dist and exits 1 telling you to
+ * build — and against a WARM one it grades files no current build config would emit. `tsc` writes
+ * `dist/` and never prunes it, so anything an exclude list started dropping is still sitting there
+ * from the build before it, and the FORBIDDEN count reads in the thousands while every config is
+ * correct. Only a cold tree answers the question this script asks.
  *
  * Ward does not run this. `scripts/**` is in eslint.config.js `ignores` and belongs to no
  * workspace package, so a ward invocation naming this file processes nothing. Run it directly:
@@ -21,40 +36,50 @@ import { join } from 'node:path';
 
 const PACKAGES_DIR = 'packages';
 
-// A compiled file is test-only when its name carries one of these markers, or when it sits
-// anywhere under a `test/` directory inside dist. `.d.ts` and `.js.map` siblings count too —
-// they are the same file by another extension.
-const TEST_NAME_MARKERS = ['.test.', '.proxy.', '.stub.', '.harness.', '.integration.'];
+const FORBIDDEN_NAME_MARKERS = ['.test.', '.integration.'];
+const INTENTIONAL_NAME_MARKERS = ['.proxy.', '.stub.', '.harness.'];
 const TEST_DIR_SEGMENT = 'test';
 
-const collectOffenders = ({ distPath, relative }) => {
-  const offenders = [];
+const collectFindings = ({ distPath, relative }) => {
+  const findings = { forbidden: [], intentional: [] };
 
   let entries;
   try {
     entries = readdirSync(distPath, { withFileTypes: true });
   } catch {
-    return offenders;
+    return findings;
   }
 
   for (const entry of entries) {
     const childRelative = relative === '' ? entry.name : `${relative}/${entry.name}`;
 
     if (entry.isDirectory()) {
+      // A `test/` directory inside dist is forbidden wholesale — every file under it, whatever
+      // it is named.
       if (entry.name === TEST_DIR_SEGMENT) {
-        offenders.push(...listEverything({ dirPath: join(distPath, entry.name), relative: childRelative }));
+        findings.forbidden.push(
+          ...listEverything({ dirPath: join(distPath, entry.name), relative: childRelative }),
+        );
         continue;
       }
-      offenders.push(...collectOffenders({ distPath: join(distPath, entry.name), relative: childRelative }));
+      const nested = collectFindings({ distPath: join(distPath, entry.name), relative: childRelative });
+      findings.forbidden.push(...nested.forbidden);
+      findings.intentional.push(...nested.intentional);
       continue;
     }
 
-    if (TEST_NAME_MARKERS.some((marker) => entry.name.includes(marker))) {
-      offenders.push(childRelative);
+    // Forbidden wins a name that carries both markers: `foo.stub.test.js` is a test.
+    if (FORBIDDEN_NAME_MARKERS.some((marker) => entry.name.includes(marker))) {
+      findings.forbidden.push(childRelative);
+      continue;
+    }
+
+    if (INTENTIONAL_NAME_MARKERS.some((marker) => entry.name.includes(marker))) {
+      findings.intentional.push(childRelative);
     }
   }
 
-  return offenders;
+  return findings;
 };
 
 const listEverything = ({ dirPath, relative }) => {
@@ -94,7 +119,7 @@ for (const dir of packageDirs) {
   }
 
   if (manifest.private === true) {
-    rows.push({ name: manifest.name, dir, skipped: 'private', count: 0, offenders: [] });
+    rows.push({ name: manifest.name, dir, skipped: 'private', forbidden: [], intentional: [] });
     continue;
   }
 
@@ -107,24 +132,25 @@ for (const dir of packageDirs) {
   }
 
   if (!distExists) {
-    rows.push({ name: manifest.name, dir, skipped: 'no dist', count: 0, offenders: [] });
+    rows.push({ name: manifest.name, dir, skipped: 'no dist', forbidden: [], intentional: [] });
     continue;
   }
 
   anyDistFound = true;
-  const offenders = collectOffenders({ distPath, relative: '' });
+  const findings = collectFindings({ distPath, relative: '' });
   rows.push({
     name: manifest.name,
     dir,
     skipped: null,
-    count: offenders.length,
-    offenders,
+    forbidden: findings.forbidden,
+    intentional: findings.intentional,
     filesField: manifest.files ?? null,
   });
 }
 
 const nameWidth = Math.max(...rows.map((row) => row.name.length));
-process.stdout.write('published dist — test-only files\n\n');
+process.stdout.write('published dist\n\n');
+process.stdout.write(`  ${'package'.padEnd(nameWidth)}  ${'FORBIDDEN'.padStart(9)}  ${'exported'.padStart(8)}\n`);
 
 for (const row of rows) {
   const label = row.name.padEnd(nameWidth);
@@ -133,7 +159,9 @@ for (const row of rows) {
     continue;
   }
   const filesNote = row.filesField === null ? '  NO files FIELD — publishes everything' : '';
-  process.stdout.write(`  ${label}  ${String(row.count).padStart(5)}${filesNote}\n`);
+  process.stdout.write(
+    `  ${label}  ${String(row.forbidden.length).padStart(9)}  ${String(row.intentional.length).padStart(8)}${filesNote}\n`,
+  );
 }
 
 if (!anyDistFound) {
@@ -141,23 +169,40 @@ if (!anyDistFound) {
   process.exit(1);
 }
 
-const failing = rows.filter((row) => row.skipped === null && row.count > 0);
+const publishingIntentional = rows.filter((row) => row.skipped === null && row.intentional.length > 0);
+
+if (publishingIntentional.length > 0) {
+  process.stdout.write(
+    '\nProxy / stub / harness files in dist — published on purpose by the packages whose barrels\nexport them, so these are reported and do not fail:\n',
+  );
+  for (const row of publishingIntentional) {
+    process.stdout.write(`\n  ${row.name} (${String(row.intentional.length)}):\n`);
+    for (const file of row.intentional.slice(0, 5)) {
+      process.stdout.write(`    dist/${file}\n`);
+    }
+    if (row.intentional.length > 5) {
+      process.stdout.write(`    ... and ${String(row.intentional.length - 5)} more\n`);
+    }
+  }
+}
+
+const failing = rows.filter((row) => row.skipped === null && row.forbidden.length > 0);
 
 if (failing.length > 0) {
-  process.stdout.write('\nFirst offenders per failing package:\n');
+  process.stdout.write('\nFirst FORBIDDEN files per failing package:\n');
   for (const row of failing) {
-    process.stdout.write(`\n  ${row.name} (${String(row.count)}):\n`);
-    for (const offender of row.offenders.slice(0, 5)) {
-      process.stdout.write(`    dist/${offender}\n`);
+    process.stdout.write(`\n  ${row.name} (${String(row.forbidden.length)}):\n`);
+    for (const file of row.forbidden.slice(0, 5)) {
+      process.stdout.write(`    dist/${file}\n`);
     }
-    if (row.offenders.length > 5) {
-      process.stdout.write(`    ... and ${String(row.offenders.length - 5)} more\n`);
+    if (row.forbidden.length > 5) {
+      process.stdout.write(`    ... and ${String(row.forbidden.length - 5)} more\n`);
     }
   }
   process.stderr.write(
-    `\n${String(failing.length)} package(s) publish test-only code. Narrow each one's build config exclude list.\n`,
+    `\n${String(failing.length)} package(s) publish test suites. Narrow each one's build config exclude list.\n`,
   );
   process.exit(1);
 }
 
-process.stdout.write('\nNo test-only files in any published dist.\n');
+process.stdout.write('\nNo test suites in any published dist.\n');

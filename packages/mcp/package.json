@@ -23,8 +23,11 @@
       "types": "./dist/testing.d.ts"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "postbuild": "cp src/statics/folder-constraints/*.md dist/src/statics/folder-constraints/ && chmod +x dist/src/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "jest",

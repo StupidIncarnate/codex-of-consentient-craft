@@ -202,5 +202,19 @@ describe('architectureOverviewBroker', () => {
       );
       expect(result).toMatch(/^ {2}"extends": "@dungeonmaster\/eslint-plugin\/tsconfig",$/mu);
     });
+
+    it('VALID: {} => documents the checking/build tsconfig split with a build script', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^A sibling `tsconfig\.build\.json` extends that checking config and carries only the fields that EMIT:$/mu,
+      );
+      expect(result).toMatch(/^ {2}"extends": "\.\/tsconfig\.json",$/mu);
+      expect(result).toMatch(
+        /^Each package's `build` script runs `tsc -p tsconfig\.build\.json`; ward's typecheck runs plain `tsc --noEmit` against the checking `tsconfig\.json` and never emits\.$/mu,
+      );
+    });
   });
 });

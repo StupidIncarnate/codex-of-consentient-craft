@@ -196,15 +196,27 @@ A \`brokers/\` file may import another package's \`contracts\`/\`adapters\`/\`br
 
 ### Consumer TypeScript config
 
-Each package \`tsconfig.json\` extends the published base and adds only per-package keys:
+Checking and emitting live in separate files. Each package's \`tsconfig.json\` extends the published base and adds only per-package CHECKING keys — no \`outDir\`, \`rootDir\`, \`composite\`, or \`declaration\`:
 
 \`\`\`json
 {
   "extends": "@dungeonmaster/eslint-plugin/tsconfig",
-  "compilerOptions": { "outDir": "./dist", "rootDir": "./", "composite": true, "declaration": true },
+  "compilerOptions": { "typeRoots": ["../../node_modules/@types", "../../@types"] },
   "include": ["src/**/*", "*.ts"]
 }
 \`\`\`
+
+A sibling \`tsconfig.build.json\` extends that checking config and carries only the fields that EMIT:
+
+\`\`\`json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "outDir": "./dist", "rootDir": "./", "composite": true, "declaration": true },
+  "exclude": ["**/*.test.ts", "test/**"]
+}
+\`\`\`
+
+Each package's \`build\` script runs \`tsc -p tsconfig.build.json\`; ward's typecheck runs plain \`tsc --noEmit\` against the checking \`tsconfig.json\` and never emits.
 
 The base carries the load-bearing options — \`moduleResolution: "node"\` (the node10 source-resolution rule above), the strict flags, \`esModuleInterop\`, \`resolveJsonModule\`. \`include: ["*.ts"]\` is what compiles the root barrels.
 

@@ -10,7 +10,13 @@
     "tsBuildInfoFile": "./.ward/build.tsbuildinfo"
   },
   "exclude": [
-    "**/*.test.ts", "**/*.test.tsx", "**/*.proxy.ts", "**/*.stub.ts",
-    "**/*.harness.ts", "test/**", "src/.test-tmp/**", "src/_lint-testbed/**"
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.proxy.ts",
+    "**/*.stub.ts",
+    "**/*.harness.ts",
+    "test/**",
+    "src/.test-tmp/**",
+    "src/_lint-testbed/**"
   ]
 }

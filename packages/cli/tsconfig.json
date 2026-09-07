@@ -1,13 +1,5 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "noEmit": false,
-    "rootDir": ".",
-    "outDir": "./dist",
-    "declarationMap": true,
-    "declaration": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "module": "commonjs",
     "moduleResolution": "node",
     "typeRoots": [
@@ -15,20 +7,6 @@
       "../../@types"
     ]
   },
-  "references": [
-    {
-      "path": "../orchestrator"
-    },
-    {
-      "path": "../server"
-    },
-    {
-      "path": "../shared"
-    },
-    {
-      "path": "../testing"
-    }
-  ],
   "include": [
     "src/**/*",
     "bin/**/*",

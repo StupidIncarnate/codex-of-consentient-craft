@@ -27,7 +27,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
       const mockContext = EslintContextStub({ report: mockReport });
       const functionNode = TsestreeStub({
         type: TsestreeNodeType.ArrowFunctionExpression,
-        body: [] as unknown as typeof functionNode.body,
+        body: [],
       });
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });

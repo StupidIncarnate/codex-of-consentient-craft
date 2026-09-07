@@ -1,29 +1,10 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "noEmit": false,
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "declarationMap": true,
-    "declaration": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "typeRoots": [
       "../../node_modules/@types",
       "../../@types"
     ]
   },
-  "references": [
-    {
-      "path": "../eslint-plugin"
-    },
-    {
-      "path": "../shared"
-    },
-    {
-      "path": "../testing"
-    }
-  ],
   "include": [
     "src/**/*"
   ],

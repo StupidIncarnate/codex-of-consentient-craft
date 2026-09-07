@@ -141,7 +141,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
       const mockContext = EslintContextStub({ report: mockReport });
       const functionNode = TsestreeStub({
         type: TsestreeNodeType.ArrowFunctionExpression,
-        body: [] as unknown as typeof functionNode.body,
+        body: [],
       });
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });

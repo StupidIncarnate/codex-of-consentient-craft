@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "build:clean": "rm -rf dist && npm run build",
     "test": "dungeonmaster-ward --only test",
     "typecheck": "dungeonmaster-ward --only typecheck",

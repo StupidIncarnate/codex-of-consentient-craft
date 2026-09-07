@@ -4,10 +4,13 @@
   "description": "HTTP and WebSocket server for Dungeonmaster web UI",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "tsx watch --conditions=source --clear-screen=false bin/server-entry.ts",
     "dev:no-watch": "tsx --conditions=source bin/server-entry.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "dungeonmaster-ward --only test",

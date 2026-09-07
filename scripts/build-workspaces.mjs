@@ -5,19 +5,19 @@
  * `npm run build --workspaces` iterates workspaces in directory order — alphabetically — which in
  * this repo means `cli` (which depends on orchestrator, server, shared and testing) compiles FIRST
  * and `testing` (which twelve packages depend on) compiles TENTH. Against a warm `dist/` nobody
- * notices; against a COLD tree every package that sorts before its own dependencies fails with
- * TS6305 "output file has not been built from source file", and each of those cascades into the
- * `{}`-fallback errors (TS2339 / TS7006 / TS2322) that follow from an unresolved cross-package
- * import. A fresh riftcarver worktree is the one place this repo reliably builds cold, which is why
- * the carve log was the only place the bug was visible.
+ * notices; against a COLD tree every package that sorts before its own dependencies cannot resolve
+ * its `@dungeonmaster/*` imports — nothing has written the `dist/` those types come from yet — and
+ * each of those cascades into the `{}`-fallback errors (TS2339 / TS7006 / TS2322) that follow from
+ * an unresolved cross-package import. A fresh riftcarver worktree is the one place this repo
+ * reliably builds cold, which is why the carve log was the only place the bug was visible.
  *
- * `tsc -b` would order the graph itself — every package is `composite: true` with correct
- * `references`, and the root tsconfig is solution-style for exactly that purpose — but it drives
- * each package's `tsconfig.json`, and `cli` / `eslint-plugin` deliberately build through a narrower
- * `tsconfig.build.json` that excludes tests. Build mode would emit test files into the published
- * `dist/`, and it would skip the non-tsc build steps besides (cli's esbuild bundle, mcp's statics
- * copy, the chmod postbuilds, web's vite build). So this script keeps each package's OWN build
- * script and only fixes the order they run in.
+ * `tsc -b` cannot take the ordering over: build mode needs `composite: true` and a `references`
+ * graph, and no config in this repo carries either — `composite` forbids a project from compiling
+ * a file its own `exclude` list drops, which is fatal here because several packages export their
+ * `*.stub.ts` / `*.proxy.ts` files as public API from a barrel the build config excludes. Build
+ * mode would also skip the non-tsc build steps (cli's esbuild bundle, mcp's statics copy, the
+ * chmod postbuilds, web's vite build). So this script keeps each package's OWN build script and
+ * only fixes the order they run in.
  *
  * The order is DERIVED from each package.json's `@dungeonmaster/*` dependencies on every run — a
  * hardcoded list would silently skip a package added later, which is worse than building it in the

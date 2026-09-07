@@ -1,23 +1,10 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "noEmit": false,
-    "rootDir": "./",
-    "outDir": "./dist",
-    "declarationMap": true,
-    "declaration": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "typeRoots": [
       "../../node_modules/@types",
       "../../@types"
     ]
   },
-  "references": [
-    {
-      "path": "../testing"
-    }
-  ],
   "include": [
     "src/**/*",
     "*.ts"

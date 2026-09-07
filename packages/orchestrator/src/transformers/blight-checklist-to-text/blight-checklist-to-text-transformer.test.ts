@@ -543,9 +543,9 @@ describe('blightChecklistToTextTransformer', () => {
       const groupCount = new Set(checklist.items.map((item) => String(item.implPath))).size;
       const unitCount = checklist.items.length;
       const expectedUnitCount = groupCount * concernsPerFile;
-      const firstImplBase = String(implFiles[0]!).slice(0, -'.ts'.length);
+      const firstImplBase = String(implFiles[0]).slice(0, -'.ts'.length);
       const firstImplPairedFiles = checklist.items
-        .filter((item) => String(item.implPath) === String(implFiles[0]!))
+        .filter((item) => String(item.implPath) === String(implFiles[0]))
         .map((item) => item.pairedFiles.map(String));
 
       // 34 companion files collapse onto 17 of the impl files, so the group count is strictly

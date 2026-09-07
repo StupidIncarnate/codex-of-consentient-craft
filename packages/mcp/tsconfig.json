@@ -1,33 +1,11 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "noEmit": false,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "declarationMap": true,
-    "declaration": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "typeRoots": [
       "../../node_modules/@types",
       "../../@types",
       "./@types"
     ]
   },
-  "references": [
-    {
-      "path": "../eslint-plugin"
-    },
-    {
-      "path": "../orchestrator"
-    },
-    {
-      "path": "../shared"
-    },
-    {
-      "path": "../ward"
-    }
-  ],
   "include": [
     "src/**/*",
     "test/**/*",
