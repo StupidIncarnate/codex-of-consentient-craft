@@ -97,6 +97,15 @@
             "command": "dungeonmaster-pre-search"
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-folder-detail"
+          }
+        ]
       }
     ],
     "SubagentStart": [
@@ -239,7 +248,6 @@
       "mcp__dungeonmaster__discover",
       "mcp__dungeonmaster__get-architecture",
       "mcp__dungeonmaster__get-folder-detail",
-      "mcp__dungeonmaster__get-syntax-rules",
       "mcp__dungeonmaster__get-testing-patterns",
       "mcp__dungeonmaster__signal-back",
       "mcp__dungeonmaster__start-quest",
