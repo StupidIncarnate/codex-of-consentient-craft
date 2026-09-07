@@ -262,7 +262,8 @@
       "Bash(ps:*)",
       "Bash(python3:*)",
       "Bash(git rev-parse:*)",
-      "Bash(git merge-base:*)"
+      "Bash(git merge-base:*)",
+      "mcp__dungeonmaster__create-worktree"
     ],
     "deny": [
       "Bash(sed:*)"
