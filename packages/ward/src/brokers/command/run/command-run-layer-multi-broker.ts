@@ -17,7 +17,6 @@ import {
 } from '../../../contracts/ward-result/ward-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import type { ProjectResult } from '../../../contracts/project-result/project-result-contract';
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
@@ -38,12 +37,10 @@ export const commandRunLayerMultiBroker = async ({
   config,
   projectFolders,
   rootPath,
-  preComputedTypecheck,
 }: {
   config: WardConfig;
   projectFolders: ProjectFolder[];
   rootPath: AbsoluteFilePath;
-  preComputedTypecheck?: Map<ProjectFolder['path'], ProjectResult>;
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
@@ -80,19 +77,7 @@ export const commandRunLayerMultiBroker = async ({
     handler: async (folder) => {
       const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
 
-      const hasPreComputedTypecheck = preComputedTypecheck?.has(folder.path) === true;
-
-      const effectiveCheckTypes = hasPreComputedTypecheck
-        ? checkTypes.filter((t) => t !== 'typecheck')
-        : checkTypes;
-
-      if (hasPreComputedTypecheck && effectiveCheckTypes.length === 0) {
-        return null;
-      }
-
-      if (hasPreComputedTypecheck) {
-        spawnArgs.push('--only', effectiveCheckTypes.join(','));
-      } else if (config.only) {
+      if (config.only) {
         spawnArgs.push('--only', config.only.join(','));
       }
 
@@ -166,7 +151,7 @@ export const commandRunLayerMultiBroker = async ({
       return {
         checks: commandRunLayerChildCrashBroker({
           projectFolder: folder,
-          checkTypes: effectiveCheckTypes,
+          checkTypes,
           exitCode: spawnResult.exitCode,
           output: spawnResult.output,
         }),
@@ -175,29 +160,16 @@ export const commandRunLayerMultiBroker = async ({
   });
 
   const allChecksByType = new Map<CheckType, CheckResult[]>();
-  const preComputedTypecheckProjectResults: ProjectResult[] = [];
 
   for (const checkType of checkTypes) {
     allChecksByType.set(checkType, []);
   }
 
   for (const subResult of subResults) {
-    if (subResult === null) {
-      continue;
-    }
     for (const check of subResult.checks) {
       const bucket = allChecksByType.get(check.checkType);
       if (bucket !== undefined) {
         bucket.push(check);
-      }
-    }
-  }
-
-  if (preComputedTypecheck !== undefined) {
-    for (const folder of projectFolders) {
-      const pre = preComputedTypecheck.get(folder.path);
-      if (pre !== undefined) {
-        preComputedTypecheckProjectResults.push(pre);
       }
     }
   }
@@ -211,14 +183,13 @@ export const commandRunLayerMultiBroker = async ({
     const projectResults = bucket.flatMap((c) =>
       c.projectResults.map((projectResult) => ({ ...projectResult, durationMs: c.durationMs })),
     );
-    const extraResults = checkType === 'typecheck' ? preComputedTypecheckProjectResults : [];
     // checkResultContract's durationMs stays the WALL CLOCK for the whole check: children in
     // `bucket` run concurrently (see promisePoolTransformer above), so the slowest one bounds how
     // long the check took overall — do not average or sum these.
     const aggregatedDurationMs = Math.max(0, ...bucket.map((c) => Number(c.durationMs)));
     return checkResultBuildTransformer({
       checkType,
-      projectResults: [...projectResults, ...extraResults],
+      projectResults,
       durationMs: durationMsContract.parse(aggregatedDurationMs),
     });
   });

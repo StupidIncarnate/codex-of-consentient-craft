@@ -15,8 +15,8 @@ export const workspaceDiscoverBrokerProxy = (): {
   const readProxy = fsReadFileAdapterProxy();
   const patternProxy = workspaceDiscoverLayerPatternBrokerProxy();
 
-  // Every caller (workspace-discover-broker.test.ts, command-run-broker.proxy.ts,
-  // ward-refs-responder.proxy.ts) resolves the root package.json for rootPath '/project'.
+  // Every caller (workspace-discover-broker.test.ts, command-run-broker.proxy.ts) resolves the
+  // root package.json for rootPath '/project'.
   const filePath = filePathContract.parse(
     `${AbsoluteFilePathStub({ value: '/project' })}/package.json`,
   );

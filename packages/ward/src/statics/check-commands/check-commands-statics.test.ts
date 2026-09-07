@@ -28,11 +28,6 @@ describe('checkCommandsStatics', () => {
         args: ['--noEmit', '--listFiles'],
         discoverPatterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
       },
-      typecheckRefs: {
-        bin: 'tsc',
-        args: ['-b', '--listFiles'],
-        discoverPatterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
-      },
       unit: {
         bin: 'jest',
         args: [
@@ -99,6 +94,26 @@ describe('checkCommandsStatics', () => {
         args: ['test', '--reporter=line,json'],
         discoverPatterns: ['**/*.e2e.ts'],
       },
+    });
+  });
+
+  // A quality checker that emits is a build wearing another name: it writes into every package's
+  // outDir, so two runs at once corrupt each other's output, and a consumer gets their tree
+  // compiled by a tool they asked to grade it. `tsc -b` is the only way a check reaches build
+  // mode, so the absence of that flag is the whole invariant.
+  //
+  // Derived rather than a second copy of the object above, so a check type added later is covered
+  // the day it is added.
+  describe('no check runs a compiler in build mode', () => {
+    it('VALID: every check command => passes no build-mode flag', () => {
+      // `.map(String)` widens each arg away from its `as const` literal type. Without it the
+      // comparison is a TYPE ERROR the moment no check carries `-b` — the very state this asserts —
+      // so the check would only compile while it was already failing.
+      const buildModeChecks = Object.entries(checkCommandsStatics)
+        .filter(([, command]) => command.args.map(String).includes('-b'))
+        .map(([checkType]) => checkType);
+
+      expect(buildModeChecks).toStrictEqual([]);
     });
   });
 });

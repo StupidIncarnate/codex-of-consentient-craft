@@ -8,10 +8,8 @@
  * // Returns: Map(pkgA -> [pkgB], pkgB -> [])
  *
  * WHEN-TO-USE: For a package DEPENDENCY TREE, where every package in `packages` belongs in the
- * graph regardless of any tsconfig/build eligibility. `projectReferencesDeriveTransformer` filters
- * its workspaces to `isCompositeEligible` BEFORE calling this — that filter is a tsconfig concern
- * and does not belong inside this transformer, or a non-composite-eligible package would silently
- * vanish from a graph that has nothing to do with tsconfig project references.
+ * graph. A caller that wants a narrower graph filters `packages` BEFORE calling — a filter applied
+ * inside here would silently drop a package from every OTHER caller's graph too.
  */
 
 import type { PackageJson } from '../../contracts/package-json/package-json-contract';

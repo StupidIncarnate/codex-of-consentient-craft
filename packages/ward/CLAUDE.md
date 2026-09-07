@@ -14,7 +14,7 @@ and `raw` subcommands.
 
 ## CLI Usage
 
-The binary is `dungeonmaster-ward`. It has four subcommands:
+The binary is `dungeonmaster-ward`. It has four subcommands — `run`, `list`, `detail`, `raw`:
 
 ```
 npm run ward                                       # Run checks (default if no subcommand given)
@@ -170,7 +170,12 @@ npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks
 
 **Inspect results after a run** — use CLI:
 
+- `npm run ward -- list [runId]` — the errors-by-file list for a run (the newest one when `runId` is omitted)
 - `npm run ward -- detail <runId> <filePath>` — drill into a file's errors
+
+**A subcommand `ward-flow` does not route exits 1.** Every caller reads the exit code as the verdict, so a name that
+routed nowhere — a typo, or a subcommand a CI job still names after a rename — must not come back as a clean run that
+checked nothing.
 
 ## Workflow: run → detail
 
@@ -277,13 +282,12 @@ walk skips ignored files silently, which is why a whole-repo run never showed th
 **Special case:** Typecheck always runs on the entire package regardless of file scope. There is no way to typecheck
 individual files with tsc.
 
-**Typecheck is the one check that WRITES.** In multi-package mode with project references, `command-run-broker` runs
-`checkCommandsStatics.typecheckRefs` — `tsc -b --listFiles`, once, from the repo root — instead of the per-package
-`tsc --noEmit`. `tsc -b` is BUILD mode: it emits into each package's `outDir` and writes `.tsbuildinfo`, so a ward run
-that includes `typecheck` is a build by another name. Two of them at once corrupt the shared `dist/`. That is why the
-orchestrator lets exactly one session per round run a ward, and why a worker's scoped ward carries `lint` plus tests
-and never `typecheck`. The non-emitting per-package path is still reachable: a project-references cycle makes
-`command-run-broker` fall back to it.
+**NO CHECK MAY EMIT.** Typecheck spawns `tsc --noEmit --listFiles` once per package, exactly like every other check —
+one child ward per workspace folder, each grading its own package. A quality checker that emits is a build wearing
+another name: it writes into every package's `outDir` and `.tsbuildinfo`, so two runs at once corrupt each other's
+output, and a consumer gets their tree compiled by a tool they asked to grade it. `tsc -b` is the only way a check
+reaches build mode, so `check-commands-statics.test.ts` asserts — derived over the whole statics object, not a
+hardcoded list — that no check command carries that flag.
 
 ## Underlying Commands
 

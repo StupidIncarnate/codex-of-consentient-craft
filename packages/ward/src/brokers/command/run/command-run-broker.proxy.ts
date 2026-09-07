@@ -4,8 +4,6 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
-import { projectReferencesSyncBrokerProxy } from '../../project-references/sync/project-references-sync-broker.proxy';
-import { checkRunTypecheckRefsBrokerProxy } from '../../check-run/typecheck-refs/check-run-typecheck-refs-broker.proxy';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
@@ -56,8 +54,6 @@ export const commandRunBrokerProxy = (): {
   const workspaceProxy = workspaceDiscoverBrokerProxy();
   const gitScopeProxy = commandRunLayerGitScopeBrokerProxy();
   const pathCheckProxy = commandRunLayerPathCheckBrokerProxy();
-  projectReferencesSyncBrokerProxy();
-  checkRunTypecheckRefsBrokerProxy();
   const folderProxy = commandRunLayerFolderBrokerProxy();
   const singleProxy = commandRunLayerSingleBrokerProxy();
   const multiProxy = commandRunLayerMultiBrokerProxy();

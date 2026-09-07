@@ -60,6 +60,38 @@ describe('WardFlow', () => {
     });
   });
 
+  describe('list command routing', () => {
+    it('VALID: {args: ["node", "ward", "list"]} with no stored result => routes to WardListResponder and resolves', async () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-list-no-result' });
+
+      await expect(WardFlow({ args: ['node', 'ward', 'list'], rootPath })).resolves.toStrictEqual({
+        success: true,
+      });
+    });
+
+    it('VALID: {args: ["node", "ward", "list", runId]} with existing ward result => routes to WardListResponder and resolves', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'ward-flow-list-result' }),
+      });
+
+      const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });
+
+      testbed.writeFile({
+        relativePath: wardResultRelativePath,
+        content: FileContentStub({ value: VALID_WARD_RESULT }),
+      });
+
+      await WardFlow({
+        args: ['node', 'ward', 'list', VALID_RUN_ID],
+        rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+      });
+
+      testbed.cleanup();
+
+      expect(testbed.readFile({ relativePath: wardResultRelativePath })).toBe(null);
+    });
+  });
+
   describe('raw command routing', () => {
     it('ERROR: {args: ["node", "ward", "raw"]} with missing runId and checkType => routes to WardRawResponder and resolves', async () => {
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-raw-missing' });
@@ -103,13 +135,20 @@ describe('WardFlow', () => {
     });
   });
 
+  // A NAME NOBODY ROUTES RAN NOTHING, so it may not report the exit code of a clean run. Every
+  // caller of ward reads the exit code as the verdict, and a CI job still naming a subcommand that
+  // no longer exists would otherwise go green having checked nothing.
   describe('unknown command routing', () => {
-    it('ERROR: {args: ["node", "ward", "unknown-command"]} => writes error to stderr and resolves', async () => {
+    it('ERROR: {args: ["node", "ward", "unknown-command"]} => writes error to stderr and exits non-zero', async () => {
+      process.exitCode = 0;
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-unknown' });
 
-      await expect(
-        WardFlow({ args: ['node', 'ward', 'unknown-command'], rootPath }),
-      ).resolves.toStrictEqual({ success: true });
+      const result = await WardFlow({ args: ['node', 'ward', 'unknown-command'], rootPath });
+
+      expect({ result, exitCode: process.exitCode }).toStrictEqual({
+        result: { success: true },
+        exitCode: 1,
+      });
     });
   });
 });

@@ -11,20 +11,20 @@ import {
   type AbsoluteFilePath,
   type AdapterResult,
 } from '@dungeonmaster/shared/contracts';
+import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';
+import { WardListResponder } from '../../responders/ward/list/ward-list-responder';
 import { WardDetailResponder } from '../../responders/ward/detail/ward-detail-responder';
 import { WardRawResponder } from '../../responders/ward/raw/ward-raw-responder';
-import { WardRefsResponder } from '../../responders/ward/refs/ward-refs-responder';
 
 const COMMAND_ARG_INDEX = 2;
 
 const COMMANDS = {
   run: 'run',
+  list: 'list',
   detail: 'detail',
   raw: 'raw',
-  refsSync: 'refs:sync',
-  refsCheck: 'refs:check',
 } as const;
 
 export const WardFlow = async ({
@@ -47,6 +47,11 @@ export const WardFlow = async ({
     return result;
   }
 
+  if (command === COMMANDS.list) {
+    await WardListResponder({ args, rootPath });
+    return result;
+  }
+
   if (command === COMMANDS.detail) {
     await WardDetailResponder({ args, rootPath });
     return result;
@@ -57,17 +62,11 @@ export const WardFlow = async ({
     return result;
   }
 
-  if (command === COMMANDS.refsSync) {
-    await WardRefsResponder({ args, rootPath, mode: 'sync' });
-    return result;
-  }
-
-  if (command === COMMANDS.refsCheck) {
-    await WardRefsResponder({ args, rootPath, mode: 'check' });
-    return result;
-  }
-
+  // A NAME NOBODY ROUTES MUST NOT EXIT 0. Every caller of ward — a CI job, a pre-push gate, a
+  // dispatched agent — reads the exit code as the verdict, so a subcommand that was renamed or
+  // never existed comes back as a silent pass while nothing was checked at all.
   process.stderr.write(`Unknown command: ${command}\n`);
-  process.stderr.write('Available commands: run, detail, raw, refs:sync, refs:check\n');
+  process.stderr.write('Available commands: run, list, detail, raw\n');
+  process.exitCode = wardExitCodeStatics.exitCodes.failing;
   return result;
 };
