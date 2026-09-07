@@ -922,15 +922,17 @@ got wrong, and any decision that changed. **Read this before starting a step.**
 | `3e9166b2a` | — | the handoff header and the e2e baseline |
 | `183a97d55` | 3 | Jest reads source — all six sub-parts |
 | `4ec91e59b` | 5.1 | Ward's typecheck stops being a build; 52 files deleted |
+| `bec0d9281` | — | 5.1's numbers, and the question D5.3 raised |
+| `b94f23b04` | — | the composer paste bug from 9.B, fixed |
+| `5857b1010` | 5.2 (1/2) | Root tsconfig drops `references`; **no `paths` map needed** |
 
-**Steps 1, 2, 3, 5.1 and part of 7c are DONE.** Remaining: 4, 5.2, 6, the rest of 7.
+**Steps 1, 2, 3, 5.1 and part of 7c are DONE**, plus half of 5.2. Remaining: 4, the twelve package splits in
+5.2, 6, and the rest of 7.
 
-**Two tests are red on `master` right now**, both known, neither a regression in the thing it names:
+**E2e is now 102 of 102**, confirmed by two independent runs — the fixing agent's `1788750577008-4f75` and a
+separate coordinator run. The composer bug in 9.B is closed.
 
-| Red | Cause | Owner |
-|---|---|---|
-| `start-ward.integration.test.ts` — RSS 329980 > 307200 | Step 3 rewrote that harness to spawn `tsx` and to sum the whole descendant process tree. The ceiling was calibrated against one plain `node dist/…` pid, so it is now comparing a different quantity. | being re-derived from measurement |
-| `composer-paste-multiple-images.e2e.ts` | Pre-dates all of this — see 9.B | being fixed |
+**One test is red on `master`**, and it is more interesting than it looks — see 9.15.
 
 **Landed in the working tree, NOT yet committed.** All of step 3, every sub-part, each verified by a scoped ward:
 
@@ -1313,6 +1315,72 @@ was never what made cross-package types resolve.
 If that holds, the generator, the transformer beside `packageBrowserTypeTransformer`, and the root script that
 rewrites the `paths` block are all machinery nobody needs, and D5.5 should be struck rather than implemented.
 
-**This is being measured before anything is built**: delete `references` from one small package, run its own
-typecheck, then move `packages/shared/dist` aside and run it again — the second half is P7, and it distinguishes
-"resolving to source" from "resolving to a stale build". The answer is recorded here when it lands.
+**Measured on `packages/config`. The answer is no — D5.3, D5.4 and D5.5 are STRUCK.**
+
+| # | `references` | `packages/shared/dist` | Exit | Errors |
+|---|---|---|---|---|
+| 1 | present | present | 0 | none |
+| 2 | **deleted** | present | 0 | none |
+| 3 | **deleted** | **moved aside** | **0** | **none** |
+| 4 | restored | still aside | **2** | **19**, led by 3× `TS6305` naming `packages/shared/dist/statics.d.ts` |
+
+Row 4 is the proof, and it inverts the plan's premise: **`references` was FORCING resolution through `dist`, not
+enabling it.** `--listFiles` over the same program counts 615 `.d.ts` and 0 source files from shared/testing WITH
+references, and 813 source `.ts` without.
+
+The mechanism is node10 (`moduleResolution: "node"`) ignoring the `exports` map and falling through the workspace
+symlink to the root-level source barrel. `@dungeonmaster/testing` resolves differently and is already fine: it
+declares `typesVersions`, which node10 DOES honour, so its subpaths map to `dist/src/*.d.ts` — unaffected by
+`references`, and needing no `paths` entry either.
+
+**`baseUrl: "."` is also struck, and this one cost a measured regression to learn.** Adding it turned
+`@dungeonmaster/eslint-plugin` red with a `DISCOVERY MISMATCH`. That package declares its own
+`paths: {"@dungeonmaster/eslint-plugin": ["./src/index.ts"]}` and has no local `baseUrl`; TypeScript anchors `paths`
+to `baseUrl` when one is set, so a root `baseUrl` inherited through `extends` re-anchored those paths to the repo
+root, `<repoRoot>/src/index.ts` does not exist, and resolution fell back to `node_modules` — dragging 23 of the
+package's own `dist/**/*.d.ts` into its program. Ward's own stored results, same command nine minutes apart with the
+package untouched:
+
+| Run | `filesCount` | `discoveredCount` |
+|---|---|---|
+| `run-1788750076191-e7af` (before) | 593 | 593 |
+| `run-1788750628645-275b` (after) | **616** | 593 |
+
+With no `paths` at root, `baseUrl` anchors nothing — its only remaining effect was breaking the one `paths` map this
+repo actually has. **Do not add it back.** If a later change genuinely needs it, the compensating fix is one line:
+give `packages/eslint-plugin/tsconfig.json` its own `"baseUrl": "."`.
+
+Root config after: `references`, `files: []` and `composite: false` gone; `ts-node` kept; no `include` added.
+`npm run ward -- --only typecheck`, run `1788750805912-2d2b`: **14 packages, 7561 files, 0 errors, no mismatch.**
+
+### 9.14 The step 5.2 split, and why the build is the coordinator's job
+
+The twelve package splits fan out three packages per agent, on disjoint sets. **Every agent is forbidden from
+running `npm run build`** — it rewrites every package's `dist`, so four agents building at once race each other.
+Each verifies with ward alone; the coordinator runs ONE `npm run build:clean` afterwards, which is also P9.
+
+Every build config takes the same exclude list (D5.2) and points `tsBuildInfoFile` at `./.ward/build.tsbuildinfo`
+rather than into `dist`, so `rm -rf dist` does not throw the incremental state away.
+
+Four packages need a `files` field they do not have — `server`, `mcp`, `tooling` take `["dist"]`. **`testing` must
+NOT**, for the reason in 9.8.
+
+### 9.15 The ward memory test has never measured a ward run
+
+`start-ward.integration.test.ts` asserts ward's peak RSS stays under a ceiling. Its harness spawns
+`tsx --conditions=source packages/ward/src/startup/start-ward.ts run --only lint`.
+
+**`src/startup/start-ward.ts` exports `StartWard` and never calls it.** Only `packages/ward/bin/ward-entry.ts`
+invokes it. So that spawn loads ward's import graph and exits — it never reaches `WardFlow`, never spawns eslint,
+never runs the `--only lint` in its own arguments. Measured: zero stdout, zero eslint children, about 2s. The same
+args against `bin/ward-entry.ts` fan out one eslint child per package, about 5.4s.
+
+**This is not new.** The pre-rewrite compiled `dist/src/startup/start-ward.js` is equally barren. The ceiling has
+been measuring tsx and esbuild loading a module graph, for as long as the test has existed.
+
+Eight measurements of that barren spawn: 301652, 303460, 307388, 303936, 303792, 303032, 302796, 301652 KB — a 1.9%
+spread sitting almost exactly on the old 307200 ceiling, which is why the same code passed at 19:44 and failed at
+19:57.
+
+Raising the ceiling would have made a test that asserts nothing go green. The harness is being repointed at
+`bin/ward-entry.ts` and the ceiling re-derived against a subject that actually runs.
