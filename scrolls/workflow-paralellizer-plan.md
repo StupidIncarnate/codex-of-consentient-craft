@@ -919,6 +919,18 @@ got wrong, and any decision that changed. **Read this before starting a step.**
 | `9910113fc` | 2 | Per-package `durationMs` instead of one `Math.max` |
 | `eec30778e` | 7c (part) | eslint ignores, skip-dir statics, prune-script header |
 | `4c68c29f4` | — | `npm run check:published`, and section 9 of this document |
+| `3e9166b2a` | — | the handoff header and the e2e baseline |
+| `183a97d55` | 3 | Jest reads source — all six sub-parts |
+| `4ec91e59b` | 5.1 | Ward's typecheck stops being a build; 52 files deleted |
+
+**Steps 1, 2, 3, 5.1 and part of 7c are DONE.** Remaining: 4, 5.2, 6, the rest of 7.
+
+**Two tests are red on `master` right now**, both known, neither a regression in the thing it names:
+
+| Red | Cause | Owner |
+|---|---|---|
+| `start-ward.integration.test.ts` — RSS 329980 > 307200 | Step 3 rewrote that harness to spawn `tsx` and to sum the whole descendant process tree. The ceiling was calibrated against one plain `node dist/…` pid, so it is now comparing a different quantity. | being re-derived from measurement |
+| `composer-paste-multiple-images.e2e.ts` | Pre-dates all of this — see 9.B | being fixed |
 
 **Landed in the working tree, NOT yet committed.** All of step 3, every sub-part, each verified by a scoped ward:
 
@@ -1256,3 +1268,51 @@ already the package's own `detect-duplicates` script". `packages/tooling/src/ind
 top-level call — running it exits 0 silently, having done nothing, which would have turned that harness into a test
 that always passes. The real entry is `bin/detect-duplicate-primitives.ts`, the file the old
 `dist/bin/detect-duplicate-primitives.js` was compiled from.
+
+### 9.12 Step 5.1 landed, and K5a's top predicted risk did not fire
+
+`npm run ward -- --only typecheck`, run `1788750075875-2b11`: **14 packages, 14 per-package children, 0
+`DISCOVERY MISMATCH`**, every package reporting `files == discovered`. Before the change it was 13 packages from one
+root `tsc -b`, printing no per-package line except `web`. §K5a ranked repo-wide `DISCOVERY MISMATCH` as the likeliest
+breakage; it does not fire, exactly as the probe predicted.
+
+52 files deleted, and a repo-wide scan for all 25 removed identifiers returns 0 dangling references.
+`fs-read-json-sync-adapter` survives, as section 9.4 said it must.
+
+Two things landed beyond the deletion, both from D5.6:
+
+- **An unknown subcommand now exits 1.** It exited 0, so a CI job still calling `ward refs:check` after this removal
+  would have got a silent pass — §K1's trap, closed.
+- **`ward list` is routed.** `WardListResponder` and `commandListBroker` existed and were unit-tested, but `COMMANDS`
+  had no entry, so `ward list` printed `Unknown command: list` and exited 0 — and ward's own smoke test asserted exit
+  0 for it, passing through the unknown-command path. Once the exit code became 1 that smoke test would have gone red
+  for the wrong reason.
+
+**A correction to the step 0 invariant test, worth stating because it is a trap of its own.** The test derives
+`Object.entries(checkCommandsStatics).filter(([, c]) => [...c.args].includes('-b'))`. Once `-b` leaves the `as const`
+union that spread is a TS2345 error — so **the test only compiled while it was already failing.** A test that cannot
+compile in the world it is meant to certify is not a guard. `c.args.map(String).includes('-b')` compiles in both
+worlds and asserts the same thing.
+
+### 9.13 5.1 may have removed the reason for D5.3's `paths` map — measure before building it
+
+D5.3 and D5.4 call for a generated `paths` map in the root `tsconfig.json`, plus a generator in `packages/shared` to
+produce it from each `package.json`'s `exports.source`. The premise is that removing `references` breaks cross-package
+type resolution.
+
+**That premise may already be false.** Two facts now hold at once:
+
+1. Ward's typecheck is a per-package `tsc --noEmit`. Only `tsc -b` follows `references`; a bare `tsc` does not.
+2. `npm run build` drives each package's own `build` script, which is a bare `tsc`.
+
+So **nothing in this repo consumes a `references` array any more.** And per the architecture doc, node10 resolution
+(`moduleResolution: "node"`) ignores the `exports` map entirely and resolves `@dungeonmaster/shared/contracts` to the
+root-level SOURCE file `packages/shared/contracts.ts` through the workspace symlink — which would mean `references`
+was never what made cross-package types resolve.
+
+If that holds, the generator, the transformer beside `packageBrowserTypeTransformer`, and the root script that
+rewrites the `paths` block are all machinery nobody needs, and D5.5 should be struck rather than implemented.
+
+**This is being measured before anything is built**: delete `references` from one small package, run its own
+typecheck, then move `packages/shared/dist` aside and run it again — the second half is P7, and it distinguishes
+"resolving to source" from "resolving to a stale build". The answer is recorded here when it lands.
