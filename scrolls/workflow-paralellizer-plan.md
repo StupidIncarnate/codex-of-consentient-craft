@@ -909,6 +909,67 @@ work-item join. That is a separate feature request against that package.
 Written by the session doing the work. Each entry records what a step measured, what the code said that this plan
 got wrong, and any decision that changed. **Read this before starting a step.**
 
+### 9.A Where this stands — read this first if you are picking the work up
+
+**Committed on `master`**, in order:
+
+| SHA | Step | What |
+|---|---|---|
+| `ba7dc4278` | 1 | Ward refuses to write a `tsconfig.json` it could not parse |
+| `9910113fc` | 2 | Per-package `durationMs` instead of one `Math.max` |
+| `eec30778e` | 7c (part) | eslint ignores, skip-dir statics, prune-script header |
+| `4c68c29f4` | — | `npm run check:published`, and section 9 of this document |
+
+**Landed in the working tree, NOT yet committed.** All of step 3, every sub-part, each verified by a scoped ward:
+
+| Part | What landed |
+|---|---|
+| 3a | `customExportConditions: ['source', …]` in the three jest configs; root `jest.config.js` deleted; `eslint-plugin`'s `"."` export converted from a bare string to the object form with `source` |
+| 3b | `require('tsx/cjs')` in all three ts-jest glue files; both `../dist/` requires in `proxy-mock-transformer.js` repointed to `../src/`; `jest.setup.js`'s try/catch deleted and its require repointed; `mcp/jest.config.cjs` switched to the shared barrel; `tsx` promoted to a real dependency of `testing` |
+| 3c | Both depth-coupled path walks replaced by upward searches, each as a new layer file |
+| 3d | `web/jest.config.cjs`'s MSW lifecycle setup repointed off `testing/dist` — this was 271 failures |
+| 3e | The three hook/mcp harness spawns now pass `--conditions=source` |
+| 3f | The three binary-spawning harnesses now run source under `tsx`; three artifact tests keep grading `dist` and say so |
+
+Also uncommitted: the step 0 test in `check-commands-statics.test.ts`, which stays red until 5.1 deletes
+`typecheckRefs`, and the two step 3 tests (`module-resolution.integration.test.ts`,
+`transform-path-sources.integration.test.ts`).
+
+**Why step 3 is not committed yet.** Ward cannot be green while step 5.1 is being edited in the same tree. The step 3
+commit is cut from the first full sweep that comes back green.
+
+**Order the remaining work runs in, and why:**
+
+1. **5.1** — ward stops using `tsc -b`. Independent of step 3. In flight.
+2. **A full `npm run ward`** — the real baseline, after 5.1 lands. Commit step 3 and 5.1 from it.
+3. **4** and **5.2** — parallel. 5.2 is twelve package splits, one agent each.
+4. **6** — the text surfaces. **Must follow 5.2**, or the repo asserts two worlds at once.
+5. **7a** (in flight), then **7b**, then **7d**.
+
+### 9.B The e2e baseline, and a failure that was already there
+
+`npm run ward -- --only e2e -- packages/web`, run `1788748950778-6ecf`, 549s: **102 files discovered, 101 passed, 1
+failed.**
+
+`packages/web/src/flows/quest-chat/composer-paste-multiple-images.e2e.ts` — pasting the IDENTICAL clipboard item
+twice renders two thumbnails (that assertion passes) but serialises one placeholder:
+
+```
+Expected: "text[Pasted Image 1][Pasted Image 2]"
+Received: "text[Pasted Image 1]"
+```
+
+So the composer shows the user two images and would send one. Every byte-DISTINCT two-image case passes, which points
+at something keyed on image content rather than on the paste event.
+
+**This predates all of this work.** The spec landed 2026-09-02 and has not been edited since; nothing in step 3
+touches web's paste path. **E2e has been red on `master` since then and nobody knew**, because the recent full ward
+runs were killed before reaching the browser stage — including this session's first attempt. Root `CLAUDE.md` rule 1
+makes it this session's to fix regardless, and it is being fixed.
+
+**The lesson for whoever runs the next full sweep:** a ward run that dies at the e2e stage is not a green run with a
+missing tail. It is a run whose slowest and least-covered check never reported.
+
 ### 9.0 One rule in section 0.1 could not be followed as written
 
 Section 0.1 says: before each commit, `npm run build` exit 0, then `npm run ward` exit 0. Step 0's own done-when is
@@ -1139,3 +1200,59 @@ section 4:
 
    The cleaner alternative, if someone wants `testing` to publish `dist` only, is to make the glue resolve `src` with
    a `dist` fallback. That is a real decision and nobody has taken it; until they do, the constraint above holds.
+
+### 9.9 Step 3c, and what it says about D5.4's generator
+
+Both depth-coupled path walks are replaced by upward searches rather than corrected hop counts, so neither can break
+again when a module moves between `src/` and `dist/`. Each is a layer file beside its parent, because
+`forbid-non-exported-functions` rules out a private nested helper and a shared walk would have to cross packages.
+
+- `install-testbed-create-broker` now climbs from `__dirname` to the nearest ancestor whose `package.json` declares
+  `workspaces`. Proven unchanged end to end: the old fixed-hop formula and the new live broker both answer
+  `/home/brutus-home/projects/codex-of-consentient-craft`.
+- `shared-package-resolve-adapter` climbs from the resolved `contracts` path to the nearest ancestor holding any
+  `package.json`.
+
+**The second one could not be written the way section 4 specifies, and the reason gates D5.4.**
+`packages/shared/package.json` has **no `"."` export and no `main` field at all** — its `exports` map holds only the
+nine folder-type subpaths. So `require.resolve('@dungeonmaster/shared/package.json')` and a bare
+`require.resolve('@dungeonmaster/shared')` both throw `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+
+D5.4 already says "emit no bare-name entry for a package whose `"."` has no `source`". This confirms the rule is
+load-bearing rather than defensive, and sharpens it: for `shared` there is no `"."` key **to inspect**, so the
+generator must tolerate a missing `"."` and not merely a `"."` without `source`. A generator that assumes every
+`exports` map has a `"."` crashes on the most-imported package in the repo.
+
+### 9.10 `NODE_OPTIONS=--conditions=source` LEAKS to grandchildren — a hazard 3b creates
+
+Part C of step 3b puts `NODE_OPTIONS=--conditions=source` on the jest process ward spawns, which is what the probe
+measured and is correct. But `NODE_OPTIONS` is inherited by EVERY descendant, and ward's spawn adapter passes
+`{...process.env}` down. So a test that itself spawns a child now hands that child source resolution too.
+
+**Where that bites: any test that deliberately exercises COMPILED output.** `packages/cli`'s
+`requireWithoutAutorun` requires the shipped esbuild bundle in a child process, to prove the bundle's
+`require.main === module` auto-run guard survives bundling. Under the inherited variable, that child resolved the
+bundle's externalised `require('@dungeonmaster/shared/…')` calls to `.ts` source, which plain Node cannot parse —
+`ERR_MODULE_NOT_FOUND`, surfacing as `exitedCleanly: false`.
+
+The fix is per-spawn and explicit: that one spawn sets `NODE_OPTIONS: ''`, so it measures what a real consumer of
+the published bundle gets. **Any future test that spawns plain `node` against built output needs the same.** The
+harness spawns do not, because they all invoke `tsx`, which reads `.ts` happily.
+
+### 9.11 Two more depth-coupled path walks, beyond the two section 4 names
+
+Step 3c's row lists two. There are at least four of the same shape, and step 3f hit a third:
+
+- `packages/cli/bin/cli-entry.ts` hardcoded four `../` levels to the repo root — correct only from
+  `dist/bin/cli-entry.js`. Run from source it resolved one directory too high and `runInit` died on
+  `ENOENT: scandir '<parent-of-repo>/packages'`. This is the same defect section 6's first bug row already describes
+  for a real `npm install` layout; running the source made it reachable from the test suite too.
+- `packages/ward/test/harnesses/ward-runner`'s memory monitor polled ONE pid. `tsx` always forks a child to do the
+  real work, so the monitored pid's RSS stayed flat and the 300MB ceiling was measuring nothing. It now walks
+  descendant pids.
+
+**And one plan row is simply wrong.** Section 4's 3f table says to spawn `tsx src/index.ts` for `tooling`, "which is
+already the package's own `detect-duplicates` script". `packages/tooling/src/index.ts` is a re-export barrel with no
+top-level call — running it exits 0 silently, having done nothing, which would have turned that harness into a test
+that always passes. The real entry is `bin/detect-duplicate-primitives.ts`, the file the old
+`dist/bin/detect-duplicate-primitives.js` was compiled from.
