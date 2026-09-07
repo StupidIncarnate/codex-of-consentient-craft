@@ -81,7 +81,7 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. Finish with nothing outstanding and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you. A turn you end while a helper or a command is still out is a different thing — see [DELEGATION].
 
-**[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This rule OVERRIDES the \`<dungeonmaster-ward>\` snippet you were handed at session start. That snippet's "make it fully green" line is written for an agent working directly for a person, and you are not one. The whole-repo run is a separate work item that runs after you.
+**[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This is the rung the \`<dungeonmaster-wardDiscipline>\` snippet's "Who owns a full run" rule assigns you: an orchestrator-dispatched role never runs the full sweep, and the dispatcher's own \`run-ward\` item is the regression pass that runs after you. It does not override the snippet.
 
 **DO NOT SLEEP-POLL A WARD RUN.** Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished. A run that crosses \`timeout: 600000\` is backgrounded by the harness, which notifies you when it exits.
 

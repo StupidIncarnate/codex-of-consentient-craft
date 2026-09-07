@@ -108,8 +108,9 @@ text 'Hello world' appears inside the codeweaver panel" — not "assert the code
 produces presence-only assertions, reject the tests and re-dispatch with explicit instructions about what content to
 assert on.
 
-After verification completes, dispatch a sub agent to run a full `npm run ward` at repo root and fix any issues.
-Commit any remaining changes.
+After verification completes, dispatch a sub agent to run `npm run ward -- -- <files>`, scoped to every file the plan
+touched, and fix any issues. A sub agent never runs the full sweep — that is the first rung root `CLAUDE.md`'s Ward
+Invocation Discipline assigns it. Commit any remaining changes.
 
 ## Plan Alignment Review
 
@@ -137,7 +138,8 @@ plan file at `<repo-root>/plan/...`, not `~/.claude/plans/...`.
    ```
 4. **If issues exist on the plan:**
    a. Dispatch agents to fix them (giving them the plan file path — the issues are right there on the steps).
-   b. After fixes, dispatch a sub agent to run `npm run ward` and fix any failures.
+   b. After fixes, dispatch a sub agent to run `npm run ward -- -- <files>`, scoped to the files just fixed, and fix
+   any failures. A sub agent stays on that first rung; it never runs the full sweep.
    c. **Return to step 1.** Re-read the plan, re-verify fixes, and remove resolved `> [!]` lines. Add new ones if
    the fix introduced its own problems. Do not assume agents got it right.
 5. **If no `> [!]` lines remain on any step**, the review is complete.

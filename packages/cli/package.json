@@ -22,7 +22,7 @@
     "build": "tsc -p tsconfig.build.json && npm run bundle",
     "bundle": "npx esbuild dist/bin/cli-entry.js --bundle --platform=node --format=cjs --outfile=dist/bin/dungeonmaster.js --external:@dungeonmaster/* --external:zod --define:__BUILD_TIMESTAMP__=\"\\\"$(date +'%b %d %I:%M %p')\\\"\"",
     "postbuild": "chmod +x dist/bin/*.js dist/startup/*.js 2>/dev/null || true",
-    "build:clean": "rm -rf dist && npm run build",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
     "test": "dungeonmaster-ward --only test",
     "test:integration": "dungeonmaster-ward --only integration",
     "lint": "dungeonmaster-ward --only lint",

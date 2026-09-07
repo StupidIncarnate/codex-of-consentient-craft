@@ -162,7 +162,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'run-riftcarver' as never,
     description:
-      "Carves a quest its workspace: detects the base branch, creates the quest branch and git worktree, mirrors node_modules into it, and runs the preflight build to convergence — then persists the streamed log and applies the outcome to the ledger. Riftcarver is the FIRST item of every new quest's relay, so /dumpster-launch reaches it before any agent runs. It BLOCKS for minutes while the workspace is forged; AWAIT it and do not call get-next-step again until it returns. There is no mode — a carve has only one scope." as never,
+      "Carves a quest its workspace: detects the base branch, creates the quest branch and git worktree, mirrors node_modules into it, and runs a scoped `ward run --only typecheck` to convergence — then persists the streamed log and applies the outcome to the ledger. Riftcarver is the FIRST item of every new quest's relay, so /dumpster-launch reaches it before any agent runs. It BLOCKS for minutes while the workspace is forged; AWAIT it and do not call get-next-step again until it returns. There is no mode — a carve has only one scope." as never,
     inputSchema: runRiftcarverSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'run-riftcarver' as never, args }),
   },

@@ -324,7 +324,8 @@ Static policies. These hold for every run.
 - **Ward invocation.** Orchestrator does NOT run ward directly — always delegate to a ward-runner agent. Agents use
   `npm run ward` from repo root with `timeout: 600000`. Never `cd` into a package; pass paths after `--` to scope.
 - **Fix agent scope.** Every fix agent is small-scope (≤3 files), one bug per agent. Rebuild `@dungeonmaster/shared` if
-  touched before ward.
+  touched, before running lint — lint is the one check that does not set `--conditions=source`, so it resolves
+  `@dungeonmaster/shared` through `dist/`. Typecheck, unit and integration read source directly and need no rebuild.
 - **Completion criterion.** Validation is NOT done until you can drive the full Phase 1 smoke flow end-to-end without
   hitting any blocking bug AND the working tree is clean of quest-generated artifacts. A clean Phase 1 run is the gate
   to Phase 2.
@@ -594,7 +595,8 @@ you do NOT have the RCA yet and must use the agent.
    `Root cause: path/to/file.ts:<line> — <one-sentence explanation>` from your own context.
 6. **Dispatch fix agents per the Fix Agent Launch Protocol** (see that section above). One bug per agent, hard file
    allowlist pre-declared by the orchestrator (derived from the RCA), `isolation: "worktree"` by default, Fix Agent
-   Prompt Requirements pasted verbatim into the prompt. Rebuild `@dungeonmaster/shared` if touched.
+   Prompt Requirements pasted verbatim into the prompt. Rebuild `@dungeonmaster/shared` if touched, before running
+   lint — the other checks read source directly and need no rebuild.
 7. **Verify the diff before accepting the report.** Run `git diff --stat HEAD` after the agent returns. If the delta
    exceeds the pre-declared allowlist or contains untracked files outside it, REJECT the work — `git reset --hard` +
    `git clean -fd`, then redispatch with a tighter prompt. Do NOT try to salvage a ballooned agent response.

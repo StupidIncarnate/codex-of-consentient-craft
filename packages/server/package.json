@@ -12,7 +12,7 @@
     "dev:no-watch": "tsx --conditions=source bin/server-entry.ts",
     "build": "tsc -p tsconfig.build.json",
     "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
-    "build:clean": "rm -rf dist && npm run build",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
     "test": "dungeonmaster-ward --only test",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "typecheck": "dungeonmaster-ward --only typecheck",

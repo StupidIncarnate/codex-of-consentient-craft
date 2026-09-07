@@ -69,7 +69,7 @@ and delegating to specialized AI agents. Think of it as a party system for your 
 
 - **ChaosWhisperer** - Runs the spec conversation in `/dumpster-create`; interviews you,
   authors flows and observables, gathers `packagesAffected[]`, and gates on your approval
-- **Riftcarver** - Carves the quest's branch, worktree and preflight build before anything else runs
+- **Riftcarver** - Carves the quest's branch and worktree, then runs a scoped typecheck before anything else runs
 - **Codeweaver** - Weaves elegant implementations and tests
 - **Flowrider** - Authors the test suites that prove each flow, in the browser and below it
 - **Siegemaster** - Hand-drives each flow against a running system and grades its suite

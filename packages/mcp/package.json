@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "postbuild": "cp src/statics/folder-constraints/*.md dist/src/statics/folder-constraints/ && chmod +x dist/src/startup/*.js 2>/dev/null || true",
-    "build:clean": "rm -rf dist && npm run build",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "typecheck": "tsc --noEmit",

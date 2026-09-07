@@ -40,7 +40,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
-    "build:clean": "rm -rf dist && npm run build",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
     "test": "dungeonmaster-ward --only test",
     "typecheck": "dungeonmaster-ward --only typecheck",
     "lint": "dungeonmaster-ward --only lint",

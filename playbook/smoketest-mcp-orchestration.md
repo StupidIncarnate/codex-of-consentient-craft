@@ -119,7 +119,7 @@ family, both directly via their own `modify-quest` call. The operator's own sign
 loops the same way until every round and every re-walk is clean, and its own `siegemaster-reviewer` runs only if a
 fixer changed code — a quest whose every round comes back clean signals `done` straight off its own checklist
 arithmetic instead. A `partial` (and its `pt N` continuation) is a mechanism the responder still applies generically
-to any code-changing role, but these three operators never choose it. Only the named reviewer builds, wards (`npm run
+to any code-changing role, but these three operators never choose it. Only the named reviewer wards (`npm run
 ward -- --uncommitted`), commits (once), and pushes (bare) — no code-writing sub-agent does any of that, and neither
 does a verifier or a stress tester.
 
@@ -756,7 +756,7 @@ more — walk each of the eleven `agentPromptClassificationStatics.promptNames` 
    every round's findings, send fresh verifiers back over any path that had an issue, and summon its own
    `siegemaster-reviewer` only when a fixer changed code? For a named reviewer (a LEAF — it summons no sub-agent of
    its own): does it load the standards itself where relevant, does it fetch with `{ agent, questId }` and no
-   `workItemId`, does it refuse `signal-back`, and does it do the git it owns — build, ward `--uncommitted`, commit
+   `workItemId`, does it refuse `signal-back`, and does it do the git it owns — ward `--uncommitted`, commit
    once, push bare? For `siegemaster-verifier`/`siegemaster-stress` — the one exception that DOES dispatch, its own
    pass-2 sub-agents, one level deeper and no further: does it walk its whole scope before dispatching anything, does
    it brief each pass-2 sub-agent to write a FAILING test and nothing else, does it sign only what it measured

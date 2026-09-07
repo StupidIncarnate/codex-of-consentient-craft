@@ -94,7 +94,7 @@ dungeonmaster clean
    a quest whose flows and observables you approve before any code is written.
 
 2. **Agent Orchestration**: The system sequentially spawns specialized Claude instances:
-   - **Riftcarver**: Carves the quest branch, worktree and preflight build
+   - **Riftcarver**: Carves the quest branch and worktree, then runs a scoped typecheck
    - **Codeweaver**: Implements each slice of the quest
    - **Flowrider**: Authors the test suites that prove each flow, in the browser and below it
    - **Siegemaster**: Hand-drives each flow against a running system and grades its suite

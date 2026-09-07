@@ -5,7 +5,7 @@
   "description": "Digests Claude Code session transcripts and quest sign-off ledgers for post-mortem analysis of a quest run",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "build:clean": "rm -rf dist && npm run build",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
     "postbuild": "chmod +x dist/bin/session-forensics-entry.js 2>/dev/null || true"
   },
   "files": [
