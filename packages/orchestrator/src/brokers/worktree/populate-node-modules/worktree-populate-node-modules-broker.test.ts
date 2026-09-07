@@ -11,7 +11,7 @@ type StreamedLine = ReturnType<typeof ErrorMessageStub>;
 
 describe('worktreePopulateNodeModulesBroker', () => {
   describe('workspace package carries its own node_modules', () => {
-    it('VALID: {workspace package with a react-router-dom-style third-party dep} => links BOTH the root-level workspace link and the per-package third-party entry', async () => {
+    it('VALID: {workspace package with a react-router-dom-style third-party dep} => symlinks the root-level workspace link and HARDLINKS the per-package third-party entry', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
@@ -34,11 +34,13 @@ describe('worktreePopulateNodeModulesBroker', () => {
           target: '../../packages/web',
           linkPath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster/web',
         },
-        {
-          target: '/repo/packages/web/node_modules/react-router-dom',
-          linkPath:
-            '/repo/worktrees/quest-slug-a1b2c3d4/packages/web/node_modules/react-router-dom',
-        },
+      ]);
+      expect(proxy.getAllCopyArgs()).toStrictEqual([
+        [
+          '-al',
+          '/repo/packages/web/node_modules/react-router-dom',
+          '/repo/worktrees/quest-slug-a1b2c3d4/packages/web/node_modules',
+        ],
       ]);
     });
   });
@@ -71,7 +73,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
   });
 
   describe('no workspace links at the root', () => {
-    it('VALID: {repo root with only third-party entries} => links only the root-level entries; no second-level population', async () => {
+    it('VALID: {repo root with only third-party entries} => hardlinks the root-level entries; no second-level population', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
@@ -84,11 +86,9 @@ describe('worktreePopulateNodeModulesBroker', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      expect(proxy.getAllSymlinks()).toStrictEqual([
-        {
-          target: '/repo/node_modules/zod',
-          linkPath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/zod',
-        },
+      expect(proxy.getAllSymlinks()).toStrictEqual([]);
+      expect(proxy.getAllCopyArgs()).toStrictEqual([
+        ['-al', '/repo/node_modules/zod', '/repo/worktrees/quest-slug-a1b2c3d4/node_modules'],
       ]);
     });
   });
@@ -173,7 +173,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
   });
 
   describe('resumed after a partial mirror', () => {
-    it('VALID: {root already populated, its workspace package not} => links ONLY the package entry and emits a skip line for the root', async () => {
+    it('VALID: {root already populated, its workspace package not} => mirrors ONLY the package entry and emits a skip line for the root', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
@@ -195,12 +195,13 @@ describe('worktreePopulateNodeModulesBroker', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
-      expect(proxy.getAllSymlinks()).toStrictEqual([
-        {
-          target: '/repo/packages/web/node_modules/react-router-dom',
-          linkPath:
-            '/repo/worktrees/quest-slug-a1b2c3d4/packages/web/node_modules/react-router-dom',
-        },
+      expect(proxy.getAllSymlinks()).toStrictEqual([]);
+      expect(proxy.getAllCopyArgs()).toStrictEqual([
+        [
+          '-al',
+          '/repo/packages/web/node_modules/react-router-dom',
+          '/repo/worktrees/quest-slug-a1b2c3d4/packages/web/node_modules',
+        ],
       ]);
       expect(streamed).toStrictEqual([
         '— skip /repo/worktrees/quest-slug-a1b2c3d4 (node_modules already populated) —',

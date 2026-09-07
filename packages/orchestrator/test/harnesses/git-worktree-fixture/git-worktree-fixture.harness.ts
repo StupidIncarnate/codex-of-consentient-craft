@@ -175,6 +175,13 @@ export const gitWorktreeFixtureHarness = (): {
         join(packageDir, 'package.json'),
         JSON.stringify({ name: `@dungeonmaster/${packageName}`, version: '1.0.0' }, null, 2),
       );
+      // A BUILT checkout, which is what every caller of this harness is standing in: `dist` is
+      // gitignored above, so it is never committed and `git worktree add` cannot bring it across —
+      // which is exactly the gap `worktreeSeedDistBroker` copies over, and exactly why it refuses a
+      // main checkout that has none. A fixture without it models a repo nobody has ever built.
+      const distDir = join(packageDir, 'dist');
+      mkdirSync(distDir, { recursive: true });
+      writeFileSync(join(distDir, 'index.js'), `module.exports = { name: '${packageName}' };\n`);
     }
     await runGit({ repoPath, args: ['add', '-A'] });
     await runGit({ repoPath, args: ['commit', '-m', 'base'], env: GIT_COMMIT_ENV });

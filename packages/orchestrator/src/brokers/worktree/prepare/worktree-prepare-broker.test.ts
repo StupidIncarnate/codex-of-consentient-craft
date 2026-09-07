@@ -186,4 +186,86 @@ describe('worktreePrepareBroker', () => {
       ]);
     });
   });
+
+  // `git worktree add` checks out TRACKED files and `dist` is gitignored, so the tree it makes has
+  // no compiled output — and ward's own entry point IS compiled output.
+  describe('the compiled output git could not bring across', () => {
+    it('VALID: {main checkout built, worktree has no dist yet} => copies the package dist with cp -a', async () => {
+      const proxy = worktreePrepareBrokerProxy();
+      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const sha = '1234567890abcdef1234567890abcdef12345678';
+      proxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha });
+      proxy.setupDistSeeded({ repoRoot, worktreePath, packageName: 'ward' });
+
+      const result = await worktreePrepareBroker({
+        repoRoot,
+        worktreePath,
+        branchName,
+        baseBranch,
+      });
+
+      expect(result).toStrictEqual({ baseRef: sha });
+      expect(proxy.getSeedCopyArgs()).toStrictEqual([
+        '-a',
+        '/repo/packages/ward/dist',
+        '/repo/worktrees/add-auth-7bc217a1/packages/ward/dist',
+      ]);
+    });
+
+    it('ERROR: {main checkout has no dist for a package} => rejects at step seed-dist naming that package', async () => {
+      const proxy = worktreePrepareBrokerProxy();
+      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const sha = '1234567890abcdef1234567890abcdef12345678';
+      proxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha });
+      proxy.setupUnbuiltMainCheckout({ repoRoot, worktreePath, packageName: 'ward' });
+
+      const error = await worktreePrepareBroker({
+        repoRoot,
+        worktreePath,
+        branchName,
+        baseBranch,
+      }).catch((thrown: unknown) => thrown);
+
+      expect({ name: (error as Error).name, message: (error as Error).message }).toStrictEqual({
+        name: 'WorktreePrepareError',
+        message: `Worktree preparation failed at seed-dist: ${worktreePath}: the main checkout at ${repoRoot} has no compiled output for 1 package(s) — run the repo's build before carving a worktree: ward`,
+      });
+      expect(proxy.getSeedCopyArgs()).toBe(undefined);
+    });
+  });
+
+  describe('a worktree whose links leave it', () => {
+    it('ERROR: {a node_modules link stored as an absolute main-checkout path} => rejects at step verify-links', async () => {
+      const proxy = worktreePrepareBrokerProxy();
+      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const sha = '1234567890abcdef1234567890abcdef12345678';
+      proxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha });
+      proxy.setupLeakingLink({
+        worktreePath,
+        entryName: '.bin',
+        storedTarget: '/repo/node_modules/.bin',
+      });
+
+      const error = await worktreePrepareBroker({
+        repoRoot,
+        worktreePath,
+        branchName,
+        baseBranch,
+      }).catch((thrown: unknown) => thrown);
+
+      expect({ name: (error as Error).name, message: (error as Error).message }).toStrictEqual({
+        name: 'WorktreePrepareError',
+        message: `Worktree preparation failed at verify-links: ${worktreePath}: 1 of 1 node_modules symlink(s) do not resolve inside the worktree, so every command run here would grade the main checkout: ${worktreePath}/node_modules/.bin -> /repo/node_modules/.bin (lands at /repo/node_modules/.bin)`,
+      });
+    });
+  });
 });

@@ -67,6 +67,13 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     });
     const worktreeListOutput = await git.gitWorktreeListOutput({ repoPath });
     const worktreeListMentionsPath = worktreeListOutput.includes(String(worktreePath));
+    // `dist` is gitignored in the fixture, so the checkout above cannot have produced it — its
+    // presence here is the seed and nothing else.
+    const seededDistContents = git.readTextFile({
+      absolutePath: AbsoluteFilePathStub({
+        value: `${worktreePath}/packages/shared/dist/index.js`,
+      }),
+    });
 
     testbed.cleanup();
 
@@ -78,6 +85,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       worktreeDirExists,
       worktreePackagesDirExists,
       worktreeListMentionsPath,
+      seededDistContents,
     }).toStrictEqual({
       baseRef: mainTipSha,
       questBranchSha: mainTipSha,
@@ -86,6 +94,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       worktreeDirExists: true,
       worktreePackagesDirExists: true,
       worktreeListMentionsPath: true,
+      seededDistContents: "module.exports = { name: 'shared' };\n",
     });
   }, 30_000);
 

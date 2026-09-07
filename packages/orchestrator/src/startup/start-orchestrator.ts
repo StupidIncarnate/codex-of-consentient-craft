@@ -76,6 +76,7 @@ import { QuestFlow } from '../flows/quest/quest-flow';
 import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
 import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
+import { WorktreeFlow } from '../flows/worktree/worktree-flow';
 
 // Bootstrap the cross-guild execution-queue runner on module load. Idempotent.
 ExecutionQueueFlow.bootstrap();
@@ -272,6 +273,18 @@ export const StartOrchestrator = {
     questId: string;
     input: ModifyQuestInput;
   }): Promise<ModifyQuestResult> => QuestFlow.modify({ questId, input }),
+
+  // The ONE sanctioned way to get a worktree, for every caller — an MCP tool, a riftcarver carve, a
+  // session asking for one by name. A hand-rolled `git worktree add` produces a tree with no
+  // compiled output (so nothing in it runs) or one whose `node_modules` links point back at the main
+  // checkout (so everything in it runs and grades the wrong tree while reporting green), and neither
+  // looks wrong until a run comes back green against code it never saw. IDEMPOTENT: an existing
+  // `worktrees/<name>` is verified and handed back, never re-carved.
+  createWorktree: async ({
+    name,
+  }: {
+    name: string;
+  }): Promise<Awaited<ReturnType<typeof WorktreeFlow.create>>> => WorktreeFlow.create({ name }),
 
   // Chat methods
   startChat: async ({

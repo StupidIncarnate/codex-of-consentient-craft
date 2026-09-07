@@ -22,6 +22,8 @@ export const worktreePrepareStepStatics = {
     baseBranch: 'base_branch',
     push: 'push',
     nodeModules: locationsStatics.repoRoot.nodeModules,
+    seedDist: 'seed-dist',
+    verifyLinks: 'verify-links',
     build: 'build',
   },
   classifications: {
@@ -35,6 +37,13 @@ export const worktreePrepareStepStatics = {
     // because no fresh session talks an operator's credentials into working.
     push: 'repairable',
     [locationsStatics.repoRoot.nodeModules]: 'repairable',
+    // GIT-STATE, alongside `create` and `base_branch`, because both describe a worktree that is
+    // not fit to be worked in rather than one that needs mending. A missing source `dist` means the
+    // MAIN checkout was never built, which no session dispatched into the worktree can fix; a link
+    // resolving outside the worktree means every command run there measures the wrong tree and
+    // reports green, so dispatching a spiritmender into it would grade the main checkout too.
+    'seed-dist': 'git-state',
+    'verify-links': 'git-state',
     build: 'repairable',
   },
 } as const;

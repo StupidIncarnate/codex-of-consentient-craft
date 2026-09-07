@@ -39,6 +39,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     packageName: string;
   }) => void;
   getAllSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
+  getAllCopyArgs: () => readonly unknown[];
 } => {
   // The layer runs REAL from this proxy's point of view — it is not an I/O boundary — so the
   // I/O it eventually reaches (readdir/readlink/symlink/mkdir/access) is what actually gets staged
@@ -84,9 +85,9 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
         dirPath: AbsoluteFilePathStub({ value: `${repoRoot}/node_modules` }),
         entries: [{ name: thirdPartyEntry, isDir: true, isSymlink: false }],
       });
-      layerProxy.setupSymlinkSucceeds({
-        target: FilePathStub({ value: `${repoRoot}/node_modules/${thirdPartyEntry}` }),
-      });
+      // A third-party entry is HARDLINKED, not linked at the source copy, so what the test stages
+      // is the `cp -al` invocation rather than a symlink.
+      layerProxy.setupCopySucceeds();
     },
 
     setupWorkspacePackageWithNodeModules: ({ repoRoot, packageName, thirdPartyEntry }): void => {
@@ -103,11 +104,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
         }),
         entries: [{ name: thirdPartyEntry, isDir: true, isSymlink: false }],
       });
-      layerProxy.setupSymlinkSucceeds({
-        target: FilePathStub({
-          value: `${repoRoot}/packages/${packageName}/node_modules/${thirdPartyEntry}`,
-        }),
-      });
+      layerProxy.setupCopySucceeds();
     },
 
     setupWorkspacePackageWithoutNodeModules: ({ repoRoot, packageName }): void => {
@@ -171,5 +168,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
 
     getAllSymlinks: (): readonly { target: unknown; linkPath: unknown }[] =>
       layerProxy.getAllSymlinks(),
+
+    getAllCopyArgs: (): readonly unknown[] => layerProxy.getAllCopyArgs(),
   };
 };

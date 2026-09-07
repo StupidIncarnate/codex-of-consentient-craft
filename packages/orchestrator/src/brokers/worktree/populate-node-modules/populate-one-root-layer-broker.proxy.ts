@@ -1,6 +1,8 @@
+import { spawn } from 'child_process';
 import type { Dirent } from 'fs';
 
 import {
+  childProcessSpawnCaptureAdapterProxy,
   fsMkdirAdapterProxy,
   fsReaddirWithTypesAdapterProxy,
   locationsNodeModulesPathFindBrokerProxy,
@@ -8,14 +10,21 @@ import {
 } from '@dungeonmaster/shared/testing';
 import {
   AbsoluteFilePathStub,
+  ErrorMessageStub,
+  ExitCodeStub,
   FilePathStub,
   type AbsoluteFilePath,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { fsReadlinkAdapterProxy } from '../../../adapters/fs/readlink/fs-readlink-adapter.proxy';
 import { fsSymlinkAdapterProxy } from '../../../adapters/fs/symlink/fs-symlink-adapter.proxy';
+
+const COPY_COMMAND = 'cp';
+const GREEN_EXIT_CODE = 0;
+const RED_EXIT_CODE = 1;
 
 const buildDirent = ({
   name,
@@ -51,7 +60,10 @@ export const populateOneRootLayerBrokerProxy = (): {
   setupReadlinkTarget: (params: { linkPath: FilePath; target: string }) => void;
   setupMkdirThrows: (params: { filepath: FilePath; error: Error }) => void;
   setupSymlinkSucceeds: (params: { target: FilePath }) => void;
+  setupCopySucceeds: () => void;
+  setupCopyFails: (params: { output: string }) => void;
   getAllSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
+  getAllCopyArgs: () => readonly unknown[];
 } => {
   const mkdirProxy = fsMkdirAdapterProxy();
   const readdirProxy = fsReaddirWithTypesAdapterProxy();
@@ -60,8 +72,14 @@ export const populateOneRootLayerBrokerProxy = (): {
   const isAccessibleProxy = fsIsAccessibleAdapterProxy();
   // Every root's done-check asks whether its TARGET node_modules is already there. "Not there" is
   // the honest default for a fresh worktree, so an undescribed target mirrors; a target described
-  // by setupTargetNodeModulesOnDisk below outranks this catch-all and skips.
+  // by setupTargetNodeModulesOnDisk below outranks this catch-all.
   isAccessibleProxy.defaultsToNotFound();
+  const spawnCaptureProxy = childProcessSpawnCaptureAdapterProxy();
+  // A READ-ONLY second handle on the same npm function. `childProcessSpawnCaptureAdapterProxy`
+  // exposes only the LAST call, and one populate can issue several `cp -al` invocations — the plain
+  // batch plus one per `@`-scope — so the whole list is what a test has to assert on. Nothing is
+  // staged through it, so it cannot collide with the staging above.
+  const spawnHandle = registerMock({ fn: spawn });
   // Both are wired to satisfy enforce-proxy-child-creation and both are left UNADDRESSED on
   // purpose: pathJoinAdapter's proxy defaults to a real path.join passthrough, and the locations
   // resolver stages nothing of its own, so every joined path used to stage the adapters above must
@@ -115,7 +133,25 @@ export const populateOneRootLayerBrokerProxy = (): {
     setupSymlinkSucceeds: ({ target }: { target: FilePath }): void => {
       symlinkProxy.succeeds({ target });
     },
+    setupCopySucceeds: (): void => {
+      spawnCaptureProxy.setupSuccess({
+        command: COPY_COMMAND,
+        exitCode: ExitCodeStub({ value: GREEN_EXIT_CODE }),
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
+    },
+    setupCopyFails: ({ output }: { output: string }): void => {
+      spawnCaptureProxy.setupSuccess({
+        command: COPY_COMMAND,
+        exitCode: ExitCodeStub({ value: RED_EXIT_CODE }),
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: output }),
+      });
+    },
     getAllSymlinks: (): readonly { target: unknown; linkPath: unknown }[] =>
       symlinkProxy.getAllSymlinks(),
+    getAllCopyArgs: (): readonly unknown[] =>
+      spawnHandle.callsMatching([COPY_COMMAND]).map((call) => call[1]),
   };
 };

@@ -3,6 +3,8 @@ import { EventEmitter, Readable } from 'stream';
 import {
   ErrorMessageStub,
   ExitCodeStub,
+  absoluteFilePathContract,
+  filePathContract,
   type AbsoluteFilePath,
   type BaseBranchName,
   type ErrorMessage,
@@ -16,6 +18,8 @@ import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-v
 import { gitWorktreeAddAdapterProxy } from '../../../adapters/git/worktree-add/git-worktree-add-adapter.proxy';
 import { gitWorktreePruneAdapterProxy } from '../../../adapters/git/worktree-prune/git-worktree-prune-adapter.proxy';
 import { worktreeDiscardBrokerProxy } from '../discard/worktree-discard-broker.proxy';
+import { worktreeSeedDistBrokerProxy } from '../seed-dist/worktree-seed-dist-broker.proxy';
+import { worktreeVerifyLinksBrokerProxy } from '../verify-links/worktree-verify-links-broker.proxy';
 
 // worktreePrepareBroker spawns bare `git` for FOUR distinct invocations — `worktree add`,
 // `rev-parse HEAD`, and, on a discard path, `worktree remove` + `branch -D` — so `command` alone
@@ -90,6 +94,22 @@ export const worktreePrepareBrokerProxy = (): {
     baseBranch: BaseBranchName;
     removeFailureOutput: string;
   }) => void;
+  setupUnbuiltMainCheckout: (params: {
+    repoRoot: AbsoluteFilePath;
+    worktreePath: AbsoluteFilePath;
+    packageName: string;
+  }) => void;
+  setupDistSeeded: (params: {
+    repoRoot: AbsoluteFilePath;
+    worktreePath: AbsoluteFilePath;
+    packageName: string;
+  }) => void;
+  setupLeakingLink: (params: {
+    worktreePath: AbsoluteFilePath;
+    entryName: string;
+    storedTarget: string;
+  }) => void;
+  getSeedCopyArgs: () => unknown;
   getSpawnedArgsList: () => readonly unknown[];
 } => {
   const handle = registerMock({ fn: spawn });
@@ -101,6 +121,11 @@ export const worktreePrepareBrokerProxy = (): {
   gitVerifyRefAdapterProxy();
   gitHeadShaAdapterProxy();
   worktreeDiscardBrokerProxy();
+  // These two run REAL from this proxy's point of view, so their own I/O is what gets staged. Both
+  // default to "nothing on disk", which is the honest reading of a scenario that describes neither:
+  // no `packages/` to seed from, and no `node_modules` to audit yet.
+  const seedProxy = worktreeSeedDistBrokerProxy();
+  const verifyProxy = worktreeVerifyLinksBrokerProxy();
 
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 128 });
@@ -221,6 +246,37 @@ export const worktreePrepareBrokerProxy = (): {
         }),
       );
     },
+
+    setupUnbuiltMainCheckout: ({ repoRoot, worktreePath, packageName }): void => {
+      seedProxy.setupPackages({
+        repoRoot,
+        worktreePath,
+        packages: [{ name: packageName, hasSourceDist: false, hasTargetDist: false }],
+      });
+    },
+
+    setupDistSeeded: ({ repoRoot, worktreePath, packageName }): void => {
+      seedProxy.setupPackages({
+        repoRoot,
+        worktreePath,
+        packages: [{ name: packageName, hasSourceDist: true, hasTargetDist: false }],
+      });
+      seedProxy.setupCopySucceeds();
+    },
+
+    setupLeakingLink: ({ worktreePath, entryName, storedTarget }): void => {
+      verifyProxy.setupNodeModulesPresent({ worktreePath });
+      verifyProxy.setupDirectoryEntries({
+        dirPath: absoluteFilePathContract.parse(`${String(worktreePath)}/node_modules`),
+        entries: [{ name: entryName, isDir: false, isSymlink: true }],
+      });
+      verifyProxy.setupReadlinkTarget({
+        linkPath: filePathContract.parse(`${String(worktreePath)}/node_modules/${entryName}`),
+        target: storedTarget,
+      });
+    },
+
+    getSeedCopyArgs: (): unknown => seedProxy.getCopyArgs(),
 
     getSpawnedArgsList: (): readonly unknown[] =>
       handle.callsMatching(['git']).map((call) => call[1]),

@@ -1487,11 +1487,12 @@ describe('questRunRiftcarverBroker', () => {
         },
       });
 
-      expect(proxy.getSymlinks()).toStrictEqual([
-        {
-          target: '/repo/packages/shared/node_modules/zod',
-          linkPath: `${PACKAGE_WORKTREE_PATH}/node_modules/zod`,
-        },
+      // A third-party entry is HARDLINKED, never linked at the source copy — that is what makes the
+      // worktree run its own binaries instead of the main checkout's. Only a workspace scope child
+      // stays a symlink, and this package root has none.
+      expect(proxy.getSymlinks()).toStrictEqual([]);
+      expect(proxy.getNodeModulesCopySpawns()).toStrictEqual([
+        ['-al', '/repo/packages/shared/node_modules/zod', `${PACKAGE_WORKTREE_PATH}/node_modules`],
       ]);
       expect(lines).toStrictEqual([
         '— skip base branch: main already recorded and still resolves —',

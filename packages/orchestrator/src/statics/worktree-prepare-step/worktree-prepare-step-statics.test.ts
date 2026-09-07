@@ -8,6 +8,8 @@ describe('worktreePrepareStepStatics', () => {
         baseBranch: 'base_branch',
         push: 'push',
         nodeModules: 'node_modules',
+        seedDist: 'seed-dist',
+        verifyLinks: 'verify-links',
         build: 'build',
       },
       classifications: {
@@ -15,6 +17,8 @@ describe('worktreePrepareStepStatics', () => {
         base_branch: 'git-state',
         push: 'repairable',
         node_modules: 'repairable',
+        'seed-dist': 'git-state',
+        'verify-links': 'git-state',
         build: 'repairable',
       },
     });
@@ -52,6 +56,23 @@ describe('worktreePrepareStepStatics', () => {
       expect(
         worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.push],
       ).toBe('repairable');
+    });
+
+    // GIT-STATE, not repairable: an unbuilt MAIN checkout is outside the worktree a spiritmender
+    // would be dispatched into, so a repair pass there could never make the seed succeed.
+    it('VALID: {steps.seedDist} => classifies git-state, because the unbuilt tree is the main checkout', () => {
+      expect(
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.seedDist],
+      ).toBe('git-state');
+    });
+
+    // GIT-STATE for the harsher reason: a worktree whose links leave it grades the MAIN checkout
+    // and reports green, so dispatching any session into it corrupts the answer rather than fixing
+    // anything.
+    it('VALID: {steps.verifyLinks} => classifies git-state, because a leaking worktree grades the wrong tree', () => {
+      expect(
+        worktreePrepareStepStatics.classifications[worktreePrepareStepStatics.steps.verifyLinks],
+      ).toBe('git-state');
     });
   });
 });

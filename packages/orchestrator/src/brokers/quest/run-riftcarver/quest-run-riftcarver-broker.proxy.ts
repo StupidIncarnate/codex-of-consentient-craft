@@ -175,6 +175,7 @@ export const questRunRiftcarverBrokerProxy = (): {
   getHeadShaSpawns: () => readonly unknown[];
   getBranchCollisionProbes: () => readonly unknown[];
   getSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
+  getNodeModulesCopySpawns: () => readonly unknown[];
   getBuildSpawns: () => readonly unknown[];
   getRiftcarverLogWrites: () => readonly { path: unknown; contents: unknown }[];
   getPersistedWorkItemStatusesInWriteOrder: (params: {
@@ -690,6 +691,12 @@ export const questRunRiftcarverBrokerProxy = (): {
         .map((call) => call.args),
 
     getSymlinks: (): readonly { target: unknown; linkPath: unknown }[] => [...symlinkCalls],
+
+    // The node_modules mirror's OTHER half. Only a workspace scope child stays a symlink; every
+    // third-party entry is hardlinked with `cp -al`, so a root that mirrored anything at all shows
+    // up here rather than in getSymlinks.
+    getNodeModulesCopySpawns: (): readonly unknown[] =>
+      spawnCaptureCalls.filter((call) => call.command === 'cp').map((call) => call.args),
 
     getBuildSpawns: (): readonly unknown[] =>
       spawnStreamCalls.map((call) => ({ command: call.command, args: call.args, cwd: call.cwd })),

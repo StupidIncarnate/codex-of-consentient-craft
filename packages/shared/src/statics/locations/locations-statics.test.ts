@@ -20,6 +20,7 @@ describe('locationsStatics', () => {
         ],
         nodeModulesBin: 'node_modules/.bin',
         nodeModules: 'node_modules',
+        dist: 'dist',
         worktreesDir: 'worktrees',
         dungeonmasterQuests: '.dungeonmaster-quests',
         dungeonmasterDevHome: '.dungeonmaster-dev',

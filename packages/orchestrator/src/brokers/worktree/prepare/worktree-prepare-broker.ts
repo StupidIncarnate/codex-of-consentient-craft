@@ -1,5 +1,9 @@
 /**
- * PURPOSE: Carves the quest's worktree and stamps its fork point — nothing else. The sha is read in
+ * PURPOSE: Carves the quest's worktree, stamps its fork point, seeds the compiled output `git` could
+ * not bring across, and refuses the tree if any of its links leave it. Reach for this over calling
+ * `gitWorktreeAddAdapter` yourself — a hand-rolled carve produces a tree with no `dist`, so nothing
+ * in it can run, or one whose links point back at the main checkout, so everything in it runs and
+ * grades the wrong tree while reporting green. The sha is read in
  * the same breath as creation, before node_modules or a build can touch the tree, because that is
  * the one moment a NEWLY created worktree's HEAD is guaranteed to equal the base branch tip the
  * quest forked from; recomputing it later would fold the quest's own commits into whatever measures
@@ -48,6 +52,8 @@ import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-
 import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-step/worktree-prepare-step-statics';
 import { worktreeFailureDetailTransformer } from '../../../transformers/worktree-failure-detail/worktree-failure-detail-transformer';
 import { worktreeDiscardBroker } from '../discard/worktree-discard-broker';
+import { worktreeSeedDistBroker } from '../seed-dist/worktree-seed-dist-broker';
+import { worktreeVerifyLinksBroker } from '../verify-links/worktree-verify-links-broker';
 
 type GitBaseRef = NonNullable<Quest['baseRef']>;
 
@@ -97,6 +103,18 @@ export const worktreePrepareBroker = async ({
   const baseRef = await gitHeadShaAdapter({ cwd: worktreePath });
 
   if (baseRef !== null) {
+    // SEED, then VERIFY, and the order is not interchangeable. `git worktree add` checks out
+    // TRACKED files, and `dist` is gitignored — so the tree it just made holds source and no
+    // compiled output at all, and ward's own entry point IS compiled output. The seed writes into
+    // the tree; verifying first would grade a tree still being assembled.
+    //
+    // Both are GIT-STATE steps (`worktreePrepareStepStatics.classifications`) and neither rolls the
+    // worktree back. An unbuilt main checkout and a leaking link set are both conditions no session
+    // dispatched INTO this worktree could fix, so the worktree is left exactly as it stands for the
+    // operator to look at rather than destroyed under them.
+    await worktreeSeedDistBroker({ repoRoot, worktreePath });
+    await worktreeVerifyLinksBroker({ worktreePath });
+
     return { baseRef };
   }
 
