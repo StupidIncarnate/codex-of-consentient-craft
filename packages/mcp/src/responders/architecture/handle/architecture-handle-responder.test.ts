@@ -101,21 +101,6 @@ describe('ArchitectureHandleResponder', () => {
     });
   });
 
-  describe('get-syntax-rules', () => {
-    it('VALID: {tool: get-syntax-rules} => returns syntax rules text', async () => {
-      const proxy = ArchitectureHandleResponderProxy();
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-syntax-rules' }),
-        args: {},
-      });
-
-      expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
-      });
-    });
-  });
-
   describe('get-testing-patterns', () => {
     it('VALID: {tool: get-testing-patterns} => returns testing patterns text', async () => {
       const proxy = ArchitectureHandleResponderProxy();

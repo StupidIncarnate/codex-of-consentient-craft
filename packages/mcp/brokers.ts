@@ -9,7 +9,6 @@
 
 // Architecture
 export * from './src/brokers/architecture/folder-detail/architecture-folder-detail-broker';
-export * from './src/brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 export * from './src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
 
 // Discover

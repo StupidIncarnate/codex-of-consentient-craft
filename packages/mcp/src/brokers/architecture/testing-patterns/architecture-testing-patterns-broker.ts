@@ -1033,15 +1033,11 @@ it('VALID: {user: regularUser} => returns user name')
 \`\`\``;
 
   // Common Anti-Patterns
-  const antiPatterns = `**Common testing anti-patterns are documented in syntax rules** - Use \`get-syntax-rules()\` for complete list with examples.
-
-**Categories:**
+  const antiPatterns = `**Categories:**
 - **Assertion Anti-Patterns**: Property bleedthrough, existence-only checks, count-only checks, weak matchers
 - **Mock/Proxy Anti-Patterns**: Direct mock manipulation, mocking app code, manual cleanup, jest.spyOn misuse, shared proxies
 - **Type Safety Anti-Patterns**: Using any, as, @ts-ignore to bypass errors
-- **Test Organization Anti-Patterns**: Testing implementation, shared state, unit testing DSL logic, comment organization
-
-See \`get-syntax-rules()\` testing.antiPatterns section for detailed violations and correct approaches.`;
+- **Test Organization Anti-Patterns**: Testing implementation, shared state, unit testing DSL logic, comment organization`;
 
   // Combine all sections in proper order
   const markdown = `# Testing Patterns & Philosophy

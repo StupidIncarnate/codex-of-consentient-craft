@@ -581,7 +581,7 @@ DO NOT TOUCH
   <other fixers' files>
 
 FIRST
-  get-architecture, get-syntax-rules, get-testing-patterns
+  get-architecture, get-testing-patterns
 
 PROVE
   npm run ward -- -- <this brief's own paths>

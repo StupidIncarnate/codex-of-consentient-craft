@@ -98,8 +98,8 @@ crossing into work your parent did not assign, and anything needing a decision g
 
 ### 1. Load the standards
 
-\`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\`. None takes an argument. Run all
-three before you open any code.
+\`get-architecture\` and \`get-testing-patterns\`. Neither takes an argument. Run both before you open
+any code.
 
 ### 2. Read the quest and the units
 

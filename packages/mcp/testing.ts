@@ -9,7 +9,6 @@
 
 // Architecture Broker Proxies
 export * from './src/brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
-export * from './src/brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
 export * from './src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
 
 // MCP Broker Proxies

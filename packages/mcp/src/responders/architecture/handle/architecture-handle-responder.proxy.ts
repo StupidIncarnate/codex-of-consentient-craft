@@ -22,7 +22,6 @@ import type {
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { mcpDiscoverBrokerProxy } from '../../../brokers/mcp/discover/mcp-discover-broker.proxy';
 import { architectureFolderDetailBrokerProxy } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
-import { architectureSyntaxRulesBrokerProxy } from '../../../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
 import { architectureTestingPatternsBrokerProxy } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
 import { discoverIgnoreStateProxy } from '../../../state/discover-ignore/discover-ignore-state.proxy';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
@@ -54,7 +53,6 @@ export const ArchitectureHandleResponderProxy = (): {
   const projectMapProxy = architectureProjectMapBrokerProxy();
   const discoverProxy = mcpDiscoverBrokerProxy();
   architectureFolderDetailBrokerProxy();
-  architectureSyntaxRulesBrokerProxy();
   architectureTestingPatternsBrokerProxy();
   const stateProxy = folderConstraintsStateProxy();
   stateProxy.setupClear();

@@ -411,29 +411,7 @@ No configuration found for this folder type.
 
 ---
 
-## 4. Tool: `get-syntax-rules`
-
-### Test 5.1: Get Universal Syntax Rules
-
-**Input:**
-
-```json
-{}
-```
-
-**Expected:**
-
-- A short redirect naming `get-architecture` as the place the rules live, and `get-testing-patterns` as the owner of
-  assertions and mocking
-
-**Verification:**
-
-- The rules themselves appear under "Writing a File" in `get-architecture`, covering naming and exports, parameters and
-  return types, the file header, types, control flow, errors, and the `Reflect` / CLI-output traps
-
----
-
-## 5. Error Handling & Edge Cases
+## 4. Error Handling & Edge Cases
 
 ### Test 6.1: Missing Required Parameters
 
@@ -498,7 +476,7 @@ No configuration found for this folder type.
 
 ---
 
-## 6. MCP Protocol Tests
+## 5. MCP Protocol Tests
 
 ### Test 7.1: List Tools
 
@@ -528,13 +506,6 @@ No configuration found for this folder type.
       "inputSchema": {
         ...
       }
-    },
-    {
-      "name": "get-syntax-rules",
-      "description": "...",
-      "inputSchema": {
-        ...
-      }
     }
   ]
 }
@@ -547,7 +518,7 @@ No configuration found for this folder type.
 - Response has `content` array
 - Content has `type: "text"`
 - For discover: text is valid JSON
-- For architecture/folder-detail/syntax-rules: text is valid markdown
+- For architecture/folder-detail: text is valid markdown
 
 ### Test 7.3: Server Initialization
 
@@ -560,7 +531,7 @@ No configuration found for this folder type.
 
 ---
 
-## 7. Performance Tests
+## 6. Performance Tests
 
 ### Test 8.1: Startup Time
 
@@ -588,7 +559,7 @@ No configuration found for this folder type.
 
 Use this checklist when manually testing:
 
-- [ ] All 5 tools are listed via ListTools
+- [ ] Every registered tool is listed via ListTools
 - [ ] `discover` returns results with glob pattern
 - [ ] `discover` filters by glob correctly
 - [ ] `discover` filters by grep correctly
@@ -601,7 +572,6 @@ Use this checklist when manually testing:
 - [ ] `get-architecture` returns full markdown overview
 - [ ] `get-folder-detail` works for all 14 folder types
 - [ ] `get-folder-detail` handles invalid folder types gracefully
-- [ ] `get-syntax-rules` returns the redirect to `get-architecture`
 - [ ] Invalid tool names return proper errors
 - [ ] Large result sets handled properly
 - [ ] Empty results return count: 0

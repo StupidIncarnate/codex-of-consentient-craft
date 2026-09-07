@@ -11,9 +11,9 @@
  * quest id substituted at `$ARGUMENTS`. It then walks TWELVE numbered steps:
  * 1. Steps 1-2 fetch: `get-quest` at `stage: "spec"` (the ONE call that carries flows, design
  *    decisions, contracts, tooling AND the `operations` ledger), then `get-project-map` for the
- *    packages the flows touch, plus `get-architecture` and `get-testing-patterns` — never
- *    `get-syntax-rules`. Nothing else is fetched until step 8, where an `existing` contract claim is
- *    verified with `get-project-inventory` + `Read`.
+ *    packages the flows touch, plus `get-architecture` and `get-testing-patterns`. Nothing else is
+ *    fetched until step 8, where an `existing` contract claim is verified with
+ *    `get-project-inventory` + `Read`.
  * 2. Steps 3-5 review flows (flowType coherence, observable distribution, happy and sad paths),
  *    design decisions, and the observables embedded in flow nodes
  * 3. Steps 6-8 check tangible values are concrete, tooling requirements, and contracts

@@ -122,8 +122,7 @@ YOURS
   get-qa-checklist                             the full list of units on your flow
   Read / discover / get-project-map            explore the code at step 3
   get-project-inventory / get-folder-detail    the same
-  get-architecture / get-syntax-rules          the repo's standards
-  get-testing-patterns
+  get-architecture / get-testing-patterns      the repo's standards
   Write on .quest-plans/<operationItemId>-map.md    step 4, and later edits to it
   git diff / git status / git log              step 6, reading what changed
   python3 -c                                   the substitute [WALL] names for grep/find/sed
@@ -217,9 +216,8 @@ prints none. They are the \`{…}\` set on each node line.
 
 ### 3. Read the implementation, and choose a layer per unit
 
-Load the repo's standards first: \`get-architecture\`, \`get-syntax-rules\` and
-\`get-testing-patterns\`. None takes an argument. They override your training defaults, which are wrong
-for this codebase.
+Load the repo's standards first: \`get-architecture\` and \`get-testing-patterns\`. None takes an
+argument. They override your training defaults, which are wrong for this codebase.
 
 Then read the code your flow runs through. You need to know the exact value each unit claims — the
 string, the status, the count, the order, the bound — before you can tell a sub-agent what to assert.
@@ -494,7 +492,7 @@ DO NOT TOUCH
   <other sub-agents' files> · the Playwright config · another flow's harness
 
 FIRST
-  get-architecture, get-syntax-rules, get-testing-patterns
+  get-architecture, get-testing-patterns
 
 PROVE
   npm run ward -- -- <this brief's own paths>

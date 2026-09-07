@@ -15,7 +15,7 @@ Solves the problem of LLMs reinventing the wheel and lacking architectural conte
 
 ## Architecture
 
-### MCP Endpoints (4 Tools)
+### MCP Endpoints
 
 #### 1. `discover` - File Discovery
 
@@ -43,16 +43,6 @@ get - folder - detail({
 })
 // Returns: Purpose, naming, imports, constraints, code examples
 ```
-
-#### 4. `get-syntax-rules` - Redirect
-
-```typescript
-get - syntax - rules()
-// Returns: a pointer to get-architecture, which carries the coding conventions
-```
-
-The conventions live in `get-architecture` under "Writing a File". They were only ever read alongside the folder rules,
-and a second copy drifted from the first.
 
 ### Comment Metadata Format
 
@@ -146,7 +136,6 @@ export const functionName = () => {
 - `mcp-discover-broker.ts` - Main orchestration for file discovery
 - `architecture-overview-broker.ts` - Generates architecture orientation docs
 - `architecture-folder-detail-broker.ts` - Generates folder-specific rule docs
-- `architecture-syntax-rules-broker.ts` - Generates universal syntax rules docs
 
 **Adapters:**
 
@@ -162,7 +151,7 @@ export const functionName = () => {
 **MCP Server:**
 
 - `start-mcp-server.ts` - MCP server initialization
-    - Registers 4 tools: discover, get-architecture, get-folder-detail, get-syntax-rules
+    - Registers the architecture tools: discover, get-architecture, get-folder-detail
     - Handles MCP protocol communication
 
 ## Development
@@ -228,7 +217,7 @@ discover({
 
 ## Integration with Claude Code
 
-The MCP server is configured in Claude Code settings and provides all 4 tools automatically.
+The MCP server is configured in Claude Code settings and provides these tools automatically.
 
 **Recommended Workflow:**
 

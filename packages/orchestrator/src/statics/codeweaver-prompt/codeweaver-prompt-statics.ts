@@ -136,8 +136,7 @@ YOURS
   get-quest                                    step 1, your flow and your package's contracts
   Read / discover / get-project-map            explore the package at step 2
   get-project-inventory / get-folder-detail    the same
-  get-architecture / get-syntax-rules          the repo's standards
-  get-testing-patterns
+  get-architecture / get-testing-patterns      the repo's standards
   Write on .quest-plans/<operationItemId>-map.md    step 3, and later edits to it
   git diff / git status / git log              step 5, reading what changed
   Agent(...)                                   sub-agents and your reviewer
@@ -239,9 +238,9 @@ to show you how yours connect, and they belong to another cell. Where their sign
 Read the code. Find where your flow's nodes land, what already exists, and what the neighbouring code
 looks like so new code matches it.
 
-Load the repo's standards before you read anything else: \`get-architecture\`, \`get-syntax-rules\` and
-\`get-testing-patterns\`. None takes an argument. They override your training defaults, which are wrong
-for this codebase — read code first and you will copy patterns you cannot yet judge.
+Load the repo's standards before you read anything else: \`get-architecture\` and
+\`get-testing-patterns\`. Neither takes an argument. They override your training defaults, which are
+wrong for this codebase — read code first and you will copy patterns you cannot yet judge.
 
 Use \`get-project-map\` for a package's shape and \`discover\` for a named symbol. Use \`Read\` once
 \`discover\` has found the file.
@@ -503,7 +502,7 @@ DO NOT TOUCH
   <paths another sub-agent is writing right now>
 
 READ FIRST
-  get-architecture, get-syntax-rules, get-testing-patterns
+  get-architecture, get-testing-patterns
 
 PROVE
   npm run ward -- -- <this brief's own paths>

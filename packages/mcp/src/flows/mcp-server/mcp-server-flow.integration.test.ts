@@ -1490,28 +1490,6 @@ describe('McpServerFlow', () => {
     });
   });
 
-  describe('tools/call with get-syntax-rules', () => {
-    it('VALID: {} => returns syntax rules markdown', async () => {
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 5001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'get-syntax-rules',
-          arguments: {},
-        },
-      });
-
-      const response = await client.sendRequest(request);
-
-      expect(response.error).toBe(undefined);
-
-      const result = ToolCallResultStub(response.result as never);
-
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^# Universal Syntax Rules$/mu);
-    });
-  });
-
   // Drives the REAL MCP boundary end-to-end for the walk-reset lever: spawned server subprocess,
   // real orchestrator, real quest.json on disk. The layer-responder and broker unit tests both mock
   // a layer, so this is the only place the registration, the dispatch branch, the ownership check
