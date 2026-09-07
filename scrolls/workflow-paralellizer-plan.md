@@ -1563,6 +1563,115 @@ Each of these would have cost a session real time if taken on trust. The detail 
 | The five undeclared cross-package imports | Recorded in 9.7, deliberately not folded into a step |
 | Two SERVED docs still say `grep -r` | Step 6 covers them; verify it landed |
 
+### 10.0 The three worst things found, all after the full ward went green
+
+A green ward is not the end of the audit. Each of these was found by reading source AFTER every step had landed and
+every check passed, and each would have shipped.
+
+**1. `@dungeonmaster/testing` published as TWO files, and had been for a long time.** `npm pack` produced
+`dist/src/index.js` and `package.json`. Nothing else. No `jest-config-base.js`, no `ts-jest/`, no `src/`.
+
+The repo-root `.npmignore` applies to workspace packs, and an explicit `files` field is what overrides it — `testing`
+was the only non-private package without one. Isolated A/B: the same directory packs 800 files under a root with no
+`.npmignore`, 2 files with one.
+
+So `require('@dungeonmaster/testing/jest-config-base')` — the line `dungeonmaster init` scaffolds into a consumer's
+`jest.config.js` — throws `MODULE_NOT_FOUND`. **A consumer's jest was dead before any of this work started.** Fixed
+by giving it a `files` field; 2 → 681 files.
+
+**2. Node does NOT fall through when a matched condition names a missing file.** Proven on a standalone probe:
+
+```
+plain                 -> { from: 'dist' }
+--conditions=source   -> Cannot find module '…/statics.ts'   MODULE_NOT_FOUND, exit 1
+```
+
+This matters because ward injects `NODE_OPTIONS=--conditions=source` into every jest child, and ward runs in consumer
+repos — while **eight non-private packages declare a `source` condition naming a file their `files` field never
+packs**: cli, config, eslint-plugin, mcp, orchestrator, shared, testing, tooling.
+
+Fixed behaviourally rather than declaratively: `sourceConditionSupportedBroker` probes for
+`node_modules/@dungeonmaster/shared/statics.ts` — present here through the workspace symlink, absent in an install —
+and ward injects the flag only when it can work. Packing the barrels was rejected: they `export *` from `src/**`, so
+honouring the condition means shipping eight packages' whole TypeScript trees.
+
+**3. The served architecture doc taught consumers the world this work removed.** `get-architecture` handed them
+`composite: true` in its build-config example, and told them each package's `jest.config.js` spreads the PUBLISHED
+base when 13 of 14 spread the REPO-ROOT one — and only the root one carries `customExportConditions`. A consumer
+following that sentence gets `dist` resolution: the stale-green defect, restored by instruction.
+
+### 10.0b Two defects `npm run init` itself revealed
+
+Running `build && link && init` to fix the permission gap surfaced two more:
+
+- **It recreated the root `jest.config.js` that step 3a deleted**, so that deletion undid itself on every initialise.
+  The template is right for a single-package consumer and wrong for a workspaces monorepo — no root `src/`, every
+  package has its own config, and it spreads the published base that omits the `source` condition. The installer now
+  skips when the target has `workspaces`, and says so.
+- **It also proved the install design is right.** `dumpster-launch.md` picked up a corrected sentence on its own,
+  because init writes that file FROM `slashCommandsStatics`. Editing the statics was the right place; the markdown
+  followed. Any future fix to a slash-command body belongs in the statics, never in the `.md`.
+
+### 10.4a THE FEATURE IS UNREACHABLE UNTIL SOMEONE RUNS `npm run init` — now done
+
+Measured, not suspected:
+
+```
+mcp permission entries in .claude/settings.json : 26
+tool names in mcpToolsStatics                   : 30
+tools with NO permission entry                  : ['create-worktree']
+```
+
+`create-worktree` is registered, tested, and proven to work — it returned a worktree in 2.8s with 87 relative links
+and 0 escaping. **It is also the only tool in the repo with no permission entry, while the `WorktreeCreate` hook now
+blocks the alternative route with exit 2.** Both doors are shut: a session cannot call the tool and cannot use Claude
+Code's own worktree command either.
+
+This is not a bug in the code. `.claude/settings.json` is GENERATED — root `CLAUDE.md` forbids hand-editing it — and
+it regenerates from each package's `StartInstall`. The fix is three commands from the repo root, in order, on a quiet
+tree:
+
+```
+npm run build
+npm link --workspaces
+npm run init
+```
+
+**Do this before believing any manual test of step 7.** A test that finds the tool unavailable is testing the missing
+permission, not the mechanism.
+
+**Done, at `af37b0f3a`.** After: 27 entries, `create-worktree` permitted, no tool without one. Anyone re-running
+`init` should expect it to also add `test-results/` to `.gitignore` and to regenerate `dumpster-launch.md` from the
+statics — both correct.
+
+### 10.4b What the perspectives audit found, after all eight steps landed
+
+A read-only audit graded the finished work against §C and §J2 from source. Four things are better than §J2
+claims and five are worse. **The five are the handover list.**
+
+**Worse than the scroll says:**
+
+| # | Finding | Where |
+|---|---|---|
+| 1 | **A resolution pin is a FALSE POSITIVE.** `import-path-resolver-middleware.ts:34` does `resolved.replace('/dist/','/').replace('.js','.ts')`, so `/packages/shared/dist/testing.js` and `/packages/shared/testing.ts` normalise to ONE string. Its test passes under either resolution. So `packages/testing/jest.config.js` — the config that spreads nothing and must be kept in step BY HAND — has no working pin, and `packages/web/jest.config.cjs` has none at all. Only the shared base config is genuinely pinned. | `packages/testing` |
+| 2 | **Ward now runs a build in a CONSUMER's repo.** `bundle-build-broker.ts:88` spawns that package's own `npm run build` during an e2e check. Output lands in `.ward/bundle`, never their `dist`, so C5's data loss is NOT reopened — but the session snippet now says "Ward builds nothing and reads source", which stopped being literally true when step 4 landed. | `packages/ward`, and the snippet |
+| 3 | **Two `--only lint,test` instructions survived the docs pass**, and the first auto-loads into every session working in that package. | `packages/ward/CLAUDE.md:186`, `docs/quest-role-paths.md:118` |
+| 4 | **C4's "choice" was never built.** §J2 says borrowing the main checkout's binaries becomes "an explicit opt-out rather than a side effect of `ln -s`". The side effect is gone and no opt-out exists — no flag, no config key, no statics entry. A "ward is stable" run cannot ask for the known-good binary. | orchestrator |
+| 5 | **C3 has not become C1's answer.** The provisioning primitive is complete and the relay does not use it: riftcarver carves ONE worktree per quest and every operator dispatches every sub-agent into that same tree. §J2's admitted same-file race is not merely unfixed — closing it needs an orchestration change nobody has started. | orchestrator |
+
+Also still on disk: `tmp/pm-worktree-setup.sh`, the hand-rolled third implementation §C3 warned about.
+
+**Better than the scroll says:** the `.claude/worktrees` route is hard-REFUSED (exit 2 naming the tool) rather than
+redirected; the link audit names each offending link, its stored target and where that target really lands, so the
+failure §C6a called symptomless now has a message; A9's gap closed by DELETION rather than by the generated `paths`
+map §J2 proposed, which is fewer moving parts; and `worktreeSeedDistBroker` refuses an unbuilt main checkout by name,
+listing every package missing a `dist` in one message.
+
+**Per-perspective verdicts:** C1 partly (the race remains, as §J2 admits) · C2 **closed** at the prompt layer ·
+C3 partly (primitive built, orchestration unwired) · C4 partly (default correct and enforced, opt-out absent) ·
+C5 **closed** for the data loss · C6 (a) closed, (b) partly — Playwright and lint still read `dist` — (c) the canary
+tier **open**, exactly as §J2 admits.
+
 ### 10.5 Dispatch hazards seen more than once
 
 Beyond 9.C's rules, three failure modes recurred and are worth expecting:
