@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "composite": false,
     "noEmit": true,
     "target": "ES2022",
     "module": "commonjs",
@@ -19,47 +18,6 @@
       "./@types"
     ]
   },
-  "references": [
-    {
-      "path": "./packages/testing"
-    },
-    {
-      "path": "./packages/shared"
-    },
-    {
-      "path": "./packages/config"
-    },
-    {
-      "path": "./packages/eslint-plugin"
-    },
-    {
-      "path": "./packages/hooks"
-    },
-    {
-      "path": "./packages/tooling"
-    },
-    {
-      "path": "./packages/ward"
-    },
-    {
-      "path": "./packages/orchestrator"
-    },
-    {
-      "path": "./packages/session-forensics"
-    },
-    {
-      "path": "./packages/local-eslint"
-    },
-    {
-      "path": "./packages/mcp"
-    },
-    {
-      "path": "./packages/server"
-    },
-    {
-      "path": "./packages/cli"
-    }
-  ],
   "exclude": [
     "node_modules",
     "dist",
@@ -75,6 +33,5 @@
     "compilerOptions": {
       "module": "commonjs"
     }
-  },
-  "files": []
+  }
 }
