@@ -4,7 +4,7 @@
  * USAGE:
  * const ward = wardRunnerHarness();
  * const { maxRssKb } = await ward.runAndMonitorMemory({ args: ['run', '--only', 'lint'] });
- * expect(maxRssKb).toBeLessThan(307200);
+ * expect(maxRssKb).toBeLessThan(4_000_000); // ceiling on the single biggest process, not a tree sum
  */
 import { spawn, execSync } from 'child_process';
 import { existsSync } from 'fs';
@@ -21,23 +21,38 @@ const REPO_ROOT = FilePathStub({
 const WARD_BIN = FilePathStub({
   value: path.resolve(String(REPO_ROOT), 'packages/ward/dist/src/startup/start-ward.js'),
 });
-// runAndMonitorMemory exercises real ward behaviour, so it spawns the source entry directly
-// under tsx instead of the built dist file. `--conditions=source` resolves every
+// runAndMonitorMemory exercises real ward behaviour, so it spawns the BIN ENTRY under tsx source
+// rather than the built dist file — `packages/ward/src/startup/start-ward.ts` exports `StartWard`
+// but never calls it (only `bin/ward-entry.ts` does), so spawning that file loads ward's module
+// graph and exits without ever reaching WardFlow or eslint. See start-ward.integration.test.ts's
+// comment for the measurements that proved it. `--conditions=source` resolves every
 // @dungeonmaster/* import to TS source (see jest.config.base.js's `customExportConditions`),
 // matching how `npm run dev` runs source.
 const WARD_SOURCE_ENTRY = FilePathStub({
-  value: path.resolve(String(REPO_ROOT), 'packages/ward/src/startup/start-ward.ts'),
+  value: path.resolve(String(REPO_ROOT), 'packages/ward/bin/ward-entry.ts'),
 });
 
 const POLL_MS = 100;
 const SLEEP_MS = 1000;
-const PROCESS_TIMEOUT_MS = 30_000;
+// A real `run --only lint` fans out to every workspace package (commandRunLayerMultiBroker,
+// CONCURRENCY_LIMIT = 4) and each child spawns its own eslint — measured full-repo wall time
+// ranges from ~90s quiet to 464s under heavy concurrent-agent load (see the integration test's
+// comment). 600_000ms matches this repo's own documented full-ward timeout convention and
+// comfortably outlasts the worst measured run, so the safety kill only fires on a genuine hang.
+const PROCESS_TIMEOUT_MS = 600_000;
 const EXEC_TIMEOUT_MS = 2000;
 
-// Unlike the old `node <dist-file>.js` spawn, tsx always forks a child to actually run the
-// target script (measured: `node_modules/.bin/tsx ...` still has a separate PID doing the real
-// work), so the spawned PID alone under-reports. Walk the whole descendant tree and sum RSS
-// across it so the ceiling still measures ward's real memory use.
+// tsx always forks a child to actually run the target script (measured: `node_modules/.bin/tsx
+// ...` still has a separate PID doing the real work), so the spawned PID alone under-reports.
+// Walk the whole descendant tree to FIND every process ward's run produced — up to 4 concurrent
+// per-package `dungeonmaster-ward` children (CONCURRENCY_LIMIT in commandRunLayerMultiBroker),
+// each spawning its own eslint grandchild — but report the MAX single-process RSS across that
+// tree, not the sum. RSS counts shared pages (the node binary, shared libraries, copy-on-write
+// pages) once PER PROCESS, so summing double-, triple-, quadruple-counts the same physical pages
+// across every concurrent eslint child; the sum has no physical memory meaning and drifts every
+// time a package is added or removed. The max answers the real question instead — did any ONE
+// ward process balloon — without double-counting and without depending on how many packages
+// happen to exist.
 const collectDescendantPids = (pid: ReturnType<typeof Number>): ReturnType<typeof Number>[] => {
   try {
     const output = execSync(`pgrep -P ${String(pid)}`, {
@@ -55,17 +70,17 @@ const collectDescendantPids = (pid: ReturnType<typeof Number>): ReturnType<typeo
   }
 };
 
-const treeRssKb = (rootPid: ReturnType<typeof Number>): ReturnType<typeof Number> =>
-  [rootPid, ...collectDescendantPids(rootPid)].reduce((sum, currentPid) => {
+const treeMaxRssKb = (rootPid: ReturnType<typeof Number>): ReturnType<typeof Number> =>
+  [rootPid, ...collectDescendantPids(rootPid)].reduce((max, currentPid) => {
     try {
       const result = execSync(`ps -o rss= -p ${String(currentPid)}`, {
         encoding: 'utf-8',
         timeout: EXEC_TIMEOUT_MS,
       });
       const rss = parseInt(result.trim(), 10);
-      return sum + (Number.isNaN(rss) ? 0 : rss);
+      return Number.isNaN(rss) ? max : Math.max(max, rss);
     } catch {
-      return sum;
+      return max;
     }
   }, 0);
 
@@ -99,7 +114,7 @@ export const wardRunnerHarness = (): {
 
     await new Promise<void>((resolve) => {
       const interval = setInterval(() => {
-        maxRssKb = Math.max(maxRssKb, treeRssKb(pid));
+        maxRssKb = Math.max(maxRssKb, treeMaxRssKb(pid));
       }, POLL_MS);
 
       wardProcess.on('exit', () => {

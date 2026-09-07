@@ -984,19 +984,33 @@ makes it this session's to fix regardless, and it is being fixed.
 **The lesson for whoever runs the next full sweep:** a ward run that dies at the e2e stage is not a green run with a
 missing tail. It is a run whose slowest and least-covered check never reported.
 
-### 9.C Dispatching rules this session learned the hard way
+### 9.C This session is C1, and it hit C1's documented problems
 
-Section 0.2 says what to fan out. These are the mechanics of doing it, and each one cost time before it was written
-down.
+The session implementing this plan runs six sub-agents against one branch and one working tree. That is **§C1**, and
+almost everything that went wrong in it is already catalogued in the scroll. Recording it as fresh advice would imply
+nobody read §C, so it is recorded here as CONFIRMATION instead — §J3 asks how we know the pivots worked, and a live
+C1 is evidence.
 
-| Rule | Why |
+| What happened here | Which perspective it is |
 |---|---|
-| **Tell every sub-agent: never end your turn while a ward run of yours is unfinished.** | A backgrounded task belongs to the agent that launched it, and its completion notification goes to that agent alone — the dispatcher never sees it. An agent that starts a ward, has it cross the foreground timeout, and then ends its turn DESTROYS the verdict. Its report arrives with no result in it and the dispatcher re-runs the whole thing. **Six agents did this before the rule was written.** Tell them to keep the turn alive doing other non-conflicting work; the notification re-enters them mid-turn. |
-| **Forbid `npm run build` in every agent working in parallel.** | A build rewrites every package's `dist`. Four agents building at once race each other and the loser's output is silently wrong. The dispatcher runs ONE build afterwards. |
-| **Name the files each agent may NOT touch, not just the ones it owns.** | Agents read `git status`, see a dozen files changing under them, and reasonably try to help. Two agents independently root-caused and started fixing the same `shared-package-resolve-adapter` defect. |
-| **Warn about dependencies BETWEEN agents' work.** | Step 3a makes jest resolve `@dungeonmaster/testing` to source, which breaks `install-testbed-create-broker` — 3c's file. Without a warning the 3a agent would have diagnosed 40 integration failures as its own. |
-| **Give an agent the measurement, not the conclusion, when the plan might be wrong.** | Told to "add a `paths` map", an agent adds one. Told to "measure whether a `paths` map is needed, then act", the same agent proved it is not — and struck three decision rows. |
-| **Say explicitly: do not weaken an assertion, do not raise a limit, do not add `--passWithNoTests`.** | Two agents hit a failing ceiling. Both reported it rather than raising it, and one found the ceiling had never measured its subject at all (9.15). |
+| Parallel agents had to be forbidden from running `npm run build`, because a build rewrites every package's `dist` and concurrent ones race | **§C2 / §E11.** The 158 counted builds, 34 in one work item. **Pivot 2 removes the writer, so this ban expires the day 5.2 lands** — that is the whole point of it |
+| Two agents independently root-caused and began fixing the same `shared-package-resolve-adapter`; every dispatch needed a "do not touch these files" list | **§C1's write race.** §J2 is explicit that Pivots 1-3 do NOT touch it, and that C1's sub-agents need a worktree each — "at that point C1 has become C3." The file partitioning done by hand in this session IS the workaround Pivot 5 replaces |
+| Each dispatch needed a warning about what another agent's landing change would break | §C1 again |
+
+**One thing is genuinely new and belongs to no perspective**, because it is a harness mechanic rather than a repo
+one:
+
+> **A sub-agent must never end its turn while a ward run of its own is unfinished.** A backgrounded task belongs to
+> the agent that launched it and its completion notification goes to that agent alone — the dispatcher never sees it.
+> An agent that starts a ward, has it cross the foreground timeout, and then ends its turn DESTROYS the verdict: its
+> report arrives with no result in it and the dispatcher re-runs the whole thing. **Six agents did this before the
+> rule was written.** Tell them to keep the turn alive on other non-conflicting work; the notification re-enters them
+> mid-turn.
+
+Two dispatch habits worth keeping, neither a perspective: hand an agent the MEASUREMENT rather than the conclusion
+whenever this plan might be wrong (told to add a `paths` map an agent adds one; told to measure whether one is needed,
+the same agent struck D5.3 through D5.5), and say explicitly that no assertion may be weakened and no limit raised
+(which is how 9.15 was found rather than papered over).
 
 ### 9.0 One rule in section 0.1 could not be followed as written
 
@@ -1367,6 +1381,45 @@ give `packages/eslint-plugin/tsconfig.json` its own `"baseUrl": "."`.
 Root config after: `references`, `files: []` and `composite: false` gone; `ts-node` kept; no `include` added.
 `npm run ward -- --only typecheck`, run `1788750805912-2d2b`: **14 packages, 7561 files, 0 errors, no mismatch.**
 
+### 9.13b `composite: true` is what the split really had to remove
+
+The split's exclude list broke `npm run build` with `TS6307`, and the cause is a rule worth stating once: **TypeScript's
+`exclude` only prunes the WILDCARD-discovered file set. It does not drop a file that a non-excluded file imports.**
+Under `composite: true`, an imported-but-excluded file is a hard error, because a composite project must list every
+file it compiles.
+
+That collides with a fact about this repo: **seven packages export proxy and stub files as real public API.**
+
+| Package | Through | proxies | stubs |
+|---|---|---|---|
+| shared | `contracts.ts`, `testing.ts` (10 root barrels) | 129 | 216 |
+| mcp | `brokers.ts`, `testing.ts` | 25 | 0 |
+| orchestrator | `testing.ts` | 5 | 13 |
+| session-forensics | `contracts.ts` (6 root barrels) | 0 | 15 |
+| testing | `src/index.ts` | 0 | 10 |
+| config | `index.ts` | 0 | 1 |
+| eslint-plugin | `src/index.ts` | 0 | 1 |
+
+`@dungeonmaster/shared/testing` IS the proxy barrel; `@dungeonmaster/orchestrator/testing` is imported by `mcp` and
+`server` across 14 files. So no exclude list can be right for both purposes at once while `composite` is on.
+
+**`composite` was removed from all 13 build configs, and that is the fix.** It exists to serve project references,
+every `references` array is now deleted, and nothing follows them. With it gone the exclude means "emit only what a
+barrel actually reaches" — strictly better than before.
+
+**Two more defects surfaced on the way there:**
+
+- **`npm run build:clean` was not clean.** `rm -rf packages/*/dist` left every `packages/*/.ward/build.tsbuildinfo`
+  in place — the buildinfo had just been moved OUT of `dist` by this very step — so `tsc` read the cache, concluded
+  everything was current, and emitted nothing. `packages/testing/dist` never came back and `shared` died on
+  `Cannot find module '@dungeonmaster/testing/register-mock'`. The script now removes the buildinfo too.
+- **`scripts/build-workspaces.mjs`'s header asserted `composite: true` and a solution-style root tsconfig**, and named
+  `TS6305` as the cold-tree failure. All three became false. Rewritten.
+
+**A trap for anyone reading `check:published` output:** `tsc` writes `dist/` and never prunes it. The first run after
+the split reported 11 failing packages and 2,331 forbidden files in `orchestrator` alone — every one of them left over
+from an older build. **Its prerequisite is `build:clean`, not `build`**, and the script now says so.
+
 ### 9.14 The step 5.2 split, and why the build is the coordinator's job
 
 The twelve package splits fan out three packages per agent, on disjoint sets. **Every agent is forbidden from
@@ -1396,5 +1449,38 @@ Eight measurements of that barren spawn: 301652, 303460, 307388, 303936, 303792,
 spread sitting almost exactly on the old 307200 ceiling, which is why the same code passed at 19:44 and failed at
 19:57.
 
-Raising the ceiling would have made a test that asserts nothing go green. The harness is being repointed at
-`bin/ward-entry.ts` and the ceiling re-derived against a subject that actually runs.
+Raising the ceiling would have made a test that asserts nothing go green.
+
+**Repointed at `bin/ward-entry.ts`, and a SECOND reason it measured nothing turned up:** the harness's
+`PROCESS_TIMEOUT_MS` was **30 seconds**. A real run takes about 380. So even aimed at the right entry, the old harness
+would have killed every run long before it finished.
+
+**Summing RSS across the tree is also the wrong quantity** and was rejected. RSS counts shared pages once PER PROCESS,
+so with four concurrent ward children each spawning eslint, the node binary and every copy-on-write page are counted
+again per process — the first re-measurement came in at 4.9 GB, which is not a memory figure. The assertion is now the
+**maximum single process** in the tree: it answers a real question, does not double-count, and does not drift when a
+package is added.
+
+Three measurements of the real subject: **3,051,796 / 2,933,088 / 2,352,580 KB**, 372-387s each. Ceiling 4,000,000 KB.
+
+**That number is evidence for §E12.** E12 argues memory, not core count, is the real cap on `CONCURRENCY_LIMIT`. A
+single ward child peaks near 3 GB, and `commandRunLayerMultiBroker` runs four at once. D7.8's default of 4 is now
+measured against something rather than assumed.
+
+### 9.16 Ward's own `eslint --fix` can break compiling code
+
+`@typescript-eslint/no-unnecessary-type-assertion`'s autofix mishandles a chained `X as unknown as Y`: it strips the
+outer cast and leaves a bare `as unknown`, turning type-correct code into code that does not compile. It rewrote four
+pre-existing files in `packages/eslint-plugin` during one agent's ward run and broke both typecheck and unit until
+repaired.
+
+**Ward runs `eslint --fix` on every lint check, so ward can damage source while grading it.** If a ward run reports
+typecheck failures in files nobody edited, `git diff` them before concluding anything.
+
+The correct repair in those four cases was deleting a cast that was never needed, not re-adding one — `TsestreeStub`'s
+`body` parameter already accepts a bare `[]`.
+
+A later agent checked for a recurrence deliberately: it snapshotted `git status --porcelain` across four packages
+before and after a ward run and found them byte-identical, then swept for a bare `as unknown` not followed by `as` and
+confirmed all 17 hits legitimate. So it is intermittent, not constant — which is worse to diagnose, and the reason it
+is written down here.
