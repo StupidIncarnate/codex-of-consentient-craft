@@ -984,6 +984,20 @@ makes it this session's to fix regardless, and it is being fixed.
 **The lesson for whoever runs the next full sweep:** a ward run that dies at the e2e stage is not a green run with a
 missing tail. It is a run whose slowest and least-covered check never reported.
 
+### 9.C Dispatching rules this session learned the hard way
+
+Section 0.2 says what to fan out. These are the mechanics of doing it, and each one cost time before it was written
+down.
+
+| Rule | Why |
+|---|---|
+| **Tell every sub-agent: never end your turn while a ward run of yours is unfinished.** | A backgrounded task belongs to the agent that launched it, and its completion notification goes to that agent alone — the dispatcher never sees it. An agent that starts a ward, has it cross the foreground timeout, and then ends its turn DESTROYS the verdict. Its report arrives with no result in it and the dispatcher re-runs the whole thing. **Six agents did this before the rule was written.** Tell them to keep the turn alive doing other non-conflicting work; the notification re-enters them mid-turn. |
+| **Forbid `npm run build` in every agent working in parallel.** | A build rewrites every package's `dist`. Four agents building at once race each other and the loser's output is silently wrong. The dispatcher runs ONE build afterwards. |
+| **Name the files each agent may NOT touch, not just the ones it owns.** | Agents read `git status`, see a dozen files changing under them, and reasonably try to help. Two agents independently root-caused and started fixing the same `shared-package-resolve-adapter` defect. |
+| **Warn about dependencies BETWEEN agents' work.** | Step 3a makes jest resolve `@dungeonmaster/testing` to source, which breaks `install-testbed-create-broker` — 3c's file. Without a warning the 3a agent would have diagnosed 40 integration failures as its own. |
+| **Give an agent the measurement, not the conclusion, when the plan might be wrong.** | Told to "add a `paths` map", an agent adds one. Told to "measure whether a `paths` map is needed, then act", the same agent proved it is not — and struck three decision rows. |
+| **Say explicitly: do not weaken an assertion, do not raise a limit, do not add `--passWithNoTests`.** | Two agents hit a failing ceiling. Both reported it rather than raising it, and one found the ceiling had never measured its subject at all (9.15). |
+
 ### 9.0 One rule in section 0.1 could not be followed as written
 
 Section 0.1 says: before each commit, `npm run build` exit 0, then `npm run ward` exit 0. Step 0's own done-when is
