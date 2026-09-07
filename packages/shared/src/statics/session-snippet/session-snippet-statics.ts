@@ -180,4 +180,24 @@ Applies to every ward run, in any repo, by any agent.
 **Who owns a FULL run.** An agent working directly for the user makes \`npm run ward\` exit 0 before a merge and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own \`run-ward\` item is the regression pass.`,
 
   packages: null,
+
+  commentDiscipline: `## Comments and History
+
+Applies to every comment and every instruction file you write, in any repository.
+
+**History belongs in the plan document for the change, written as a before/after.** That is the ONLY place how anything used to behave is recorded. Never a code comment, never an instruction file (\`CLAUDE.md\`, \`AGENTS.md\`, a README). State the rule as it stands, in the present tense — version control holds the rest.
+
+Never write: \`// previously this took a string\` · \`// we used to call the other broker here\` · "renamed from X" · "it no longer scaffolds a root config" (write "it scaffolds no root config").
+
+**Keep comments to a minimum.** One earns its place by recording the DECISION and the STATE behind the code: why it is this way, what breaks if you change it, the exact syntax that already cost a bug.
+
+Earns it: "\`.nullish()\`, not \`.optional()\` — the stream sends explicit null, which \`.optional()\` rejects." Does not: \`// parse the response\`.
+
+**A comment never re-explains the file.** Restating the code, the signature, or the file's own name teaches nothing and goes stale on the next edit.
+
+Never write: \`// loop over the users\` above a loop over users · a function's name repeated back as prose · a parameter list restated above the parameter list.
+
+**Never record a count of things that grow.** How many packages, how many rules, how many files a census found — they change, and a confidently wrong number is worse than none. Write the SHAPE, not the tally. A number recording what ONE run observed is evidence, not inventory: anchored to that run, it stays true — an error count from a named run, a byte size, a duration, a before/after delta. The test: would it change if someone added a file tomorrow, nothing having gone wrong? Yes, write the shape; no, keep it. Naming a specific file stays checkable; arithmetic over the set is what rots.
+
+Never write: "all thirteen build configs" · "ten of the fourteen export proxies" (write "every build config", "most of them").`,
 } as const;

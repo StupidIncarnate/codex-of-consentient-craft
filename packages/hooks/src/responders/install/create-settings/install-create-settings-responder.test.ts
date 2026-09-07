@@ -74,6 +74,14 @@ describe('InstallCreateSettingsResponder', () => {
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -101,6 +109,14 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
             },
           ],
           SubagentStop: [
@@ -194,6 +210,14 @@ describe('InstallCreateSettingsResponder', () => {
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -221,6 +245,14 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
             },
           ],
           SubagentStop: [
@@ -316,6 +348,14 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -336,6 +376,14 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
           ],
           SubagentStop: [{ hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] }],
           WorktreeCreate: [
@@ -432,6 +480,14 @@ describe('InstallCreateSettingsResponder', () => {
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -459,6 +515,14 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
             },
           ],
           SubagentStop: [

@@ -8,10 +8,11 @@ make before each step.
 §K, then reported what its package holds that §J touches, misses, or gets wrong. This plan merges those 15 reports.
 Every `path:line` below comes from one of them. The raw reports are not committed.
 
-**Status.** Implementation in progress against commit `8ffc6f2f8`. Section 9 is the execution log: what each step
-actually measured, every place the code contradicted this plan, and every decision the implementing session changed.
-**Read section 9 before starting a step** — several line numbers in sections 4 and 5 are stale, and section 9 says
-which. The owner has read sections 1 to 3 and settled the rows marked **Decided** in section 2.
+**Status. DONE.** All eight steps are implemented and committed on `master`, starting from `8ffc6f2f8`. Sections 4
+and 5 are the plan as it was WRITTEN, not as it was BUILT — several of their line numbers are stale and several of
+their decisions were struck outright after being measured. **Section 11 is the difference between the two.** Read it
+before you act on anything in section 2 or section 4. Section 9 is the execution log behind it, and section 10 is the
+defect index.
 
 **How to read it.**
 
@@ -24,7 +25,8 @@ which. The owner has read sections 1 to 3 and settled the rows marked **Decided*
 | 4. Steps 0 to 7                        | The work, in order. Each step lists files, pinning tests, and done-when                     |
 | 5. Corrections owed to the scroll      | Claims in §J and §K the code contradicts                                                    |
 | 6. Bugs found on the way               | Not caused by the pivots, but in their path                                                 |
-| **10. Defects and surprises**          | **START HERE if you are picking this up cold. What broke, where this plan is wrong, what is still open** |
+| **11. What changed from this plan**     | **START HERE if you are picking this up cold. Every decision struck, every claim that turned out backwards, every piece of work this plan never scheduled, and what is still open** |
+| 10. Defects and surprises              | The defect index behind section 11 — what broke, and where                                  |
 | 9. Execution log                       | What each step measured, and every decision the implementing session changed                |
 
 Terms used throughout. **Ward** is the quality runner (`npm run ward`). **`dist/`** is a package's compiled output.
@@ -913,6 +915,12 @@ got wrong, and any decision that changed. **Read this before starting a step.**
 
 ### 9.A Where this stands — read this first if you are picking the work up
 
+**ALL EIGHT STEPS ARE DONE AND COMMITTED.** The table below records the order they landed in; the entries
+after `5857b1010` were written as the work went on. **Section 11 is the consolidated list of what changed from
+the original plan** — read that before trusting any decision row in section 2.
+
+**What is left is in section 11.4.** Everything else in sections 9 and 10 is a record of finished work.
+
 **Committed on `master`**, in order:
 
 | SHA | Step | What |
@@ -928,8 +936,7 @@ got wrong, and any decision that changed. **Read this before starting a step.**
 | `b94f23b04` | — | the composer paste bug from 9.B, fixed |
 | `5857b1010` | 5.2 (1/2) | Root tsconfig drops `references`; **no `paths` map needed** |
 
-**Steps 1, 2, 3, 5.1 and part of 7c are DONE**, plus half of 5.2. Remaining: 4, the twelve package splits in
-5.2, 6, and the rest of 7.
+All eight steps are in the table above. Section 11 says what changed on the way.
 
 **E2e is now 102 of 102**, confirmed by two independent runs — the fixing agent's `1788750577008-4f75` and a
 separate coordinator run. The composer bug in 9.B is closed.
@@ -1557,11 +1564,7 @@ Each of these would have cost a session real time if taken on trust. The detail 
 
 | Item | Why it is open |
 |---|---|
-| `packages/shared` over-emits ~103 test-only proxies | Its exclude entries were dropped to fix `TS6307` BEFORE `composite` was removed. With composite gone, restoring them would emit only barrel-reachable files. Tarball size, not correctness |
-| `build-until-green-broker`'s header argues AGAINST seeding `dist` | It says a seed from another branch reports errors the worktree's branch does not have. `git worktree add` writes fresh mtimes so a seeded `dist` is never treated as up to date — but that header and D7.3 still contradict each other on the page |
-| `npm install` or `npm rebuild` run INSIDE a worktree | Hardlinking's one real hazard. `node-gyp` would rewrite `node-pty/build/*` through the shared inode and change the main checkout too. Nothing guards it |
 | The five undeclared cross-package imports | Recorded in 9.7, deliberately not folded into a step |
-| Two SERVED docs still say `grep -r` | Step 6 covers them; verify it landed |
 
 ### 10.0 The three worst things found, all after the full ward went green
 
@@ -1714,3 +1717,65 @@ Beyond 9.C's rules, three failure modes recurred and are worth expecting:
 3. **A build in flight breaks every other agent's ward.** Seven ward integration tests failed on
    `TS2307: Cannot find module '@dungeonmaster/testing'` because `packages/testing/dist` did not exist for a few
    seconds. This is why only the coordinator builds.
+
+---
+
+## 11. What changed from this plan
+
+Sections 4 and 5 are the plan as it was WRITTEN. This section is the plan as it was BUILT. **Where the two
+disagree, this section is right** — every row below was settled by measuring, not by reading.
+
+Read this before acting on any decision row in section 2, and before trusting any file table in section 4.
+
+### 11.1 Decisions struck outright — machinery the plan asked for and nobody needed
+
+| Decision | What the plan wanted | What replaced it | How it was settled |
+|---|---|---|---|
+| **D5.3, D5.4, D5.5** | A generated `paths` map in the root `tsconfig.json`, a generator transformer in `packages/shared`, and a root script to rewrite the block | **Nothing.** Deleting `references` was the entire fix | Measured four ways on `packages/config` (9.13). The plan's premise was inverted: `references` was FORCING resolution through `dist`, not enabling it. With `references` deleted AND `packages/shared/dist` moved aside, the typecheck still exits 0 — node10 resolution falls through the workspace symlink to the root barrel SOURCE. Restore `references` in that same state and you get 19 errors led by three `TS6305`s naming `shared/dist/statics.d.ts` |
+| **D5.3's `baseUrl: "."`** | Anchor the new `paths` map | **Nothing, and it must not come back** | Adding it re-anchored `eslint-plugin`'s own `paths` to the repo root and dragged 23 of that package's `dist/**/*.d.ts` into its program. Ward's stored results, same command nine minutes apart with the package untouched: 593 files before, 616 after, against 593 discovered |
+| **D5.1's grouped typecheck programs** | Deferred as "a later speed change" | Still deferred, and no longer worth revisiting for correctness | Per-package `--noEmit` reported 14 packages, 14 children, 0 `DISCOVERY MISMATCH`, first try. §K5a had ranked repo-wide mismatch as the likeliest breakage |
+
+### 11.2 Claims in this plan that turned out backwards
+
+| The plan said | What the code said | What was built instead |
+|---|---|---|
+| Step 0's stale-green demo: a testbed with two workspace packages running `ward --only unit` | `installTestbedCreateBroker` makes a bare directory — no `node_modules`, no jest, no ward. **The demo cannot be built as written** | Two direct assertions: jest resolves every `@dungeonmaster/*` import to a `.ts` file, and nothing on jest's transform path requires compiled output |
+| D5.2's exclude list applies uniformly | `exclude` only prunes the WILDCARD-discovered file set; it never drops a file another file imports. Under `composite: true` that is a hard `TS6307` — and **seven packages export proxies and stubs as public API** | `composite: true` removed from all 13 build configs. That, not the exclude list, was the blocker |
+| Step 5.2: the split is "already done" for `cli` and `eslint-plugin` | Both still published test code, 243 and 1,098 files. Their excludes covered `.test.` and never `.proxy.`, `.stub.` or `.harness.` | Both treated as unfinished |
+| D5.9: `server` and `tooling` need a `files` field | **Four** packages did. And `testing` must NOT take a bare `["dist"]` — step 3b made its PUBLISHED transformer read its own `src/` at runtime | `testing` ships `dist`, `src`, `ts-jest` and `jest-config-base.js` |
+| D3.4: add a `source` key to `eslint-plugin`'s `"."` export | That export was a bare STRING, not an object | Converted to the object form. A consumer-visible shape change, not an addition |
+| Step 3f: spawn `tsx src/index.ts` for `tooling` | That file is a re-export barrel with no top-level call. The harness would have exited 0 having done nothing — a test that always passes | `bin/detect-duplicate-primitives.ts` |
+| Section 4 names two depth-coupled path walks | At least four. `cli-entry.ts` and ward's memory harness were the other two | Each replaced by an upward search rather than a corrected hop count |
+| §J6: an undeclared cross-package import is a risk for a CONSUMER's repo | This repo has five, one of them `testing → shared` across **41 files of production source** | Recorded in 9.7, deliberately not fixed — see 11.4 |
+| D5.6: `ward-smoke-test.ts` asserts a refs command | That file contains no `refs` occurrence at all. The real defect was `ward list` being unrouted while its own smoke test asserted exit 0 through the unknown-command path | Both the routing and the exit code fixed |
+| §K8: one regex pins the `wardDiscipline` paragraph | Two tests pin it. The ban itself wore **four different tags**, two of them invisible to a `[BUILD]` search | All four unified on `[WARD SCOPE]` |
+
+### 11.3 Work this plan never scheduled, done anyway
+
+Each of these would have shipped. Every one is committed.
+
+| Found | Why it mattered | Commit |
+|---|---|---|
+| `@dungeonmaster/testing` packed as TWO files | The repo-root `.npmignore` applies to workspace packs, and only a `files` field overrides it. So `require('@dungeonmaster/testing/jest-config-base')` — the line `dungeonmaster init` scaffolds into a consumer's jest config — threw `MODULE_NOT_FOUND`. **A consumer's jest was dead before this work started.** 2 files → 681 | `71dfafe8d` |
+| Node does NOT fall through when a matched condition names a missing file | Ward injects `--conditions=source` into every jest child and runs in consumer repos, while eight non-private packages declare a `source` condition naming a file their `files` field never packs | `sourceConditionSupportedBroker` probes for the file and injects the flag only when it can work |
+| The served architecture doc taught consumers the world this work removed | `get-architecture` handed them `composite: true`, and said each package's jest config spreads the PUBLISHED base when 13 of 14 spread the repo-root one — and only the root one carries `customExportConditions`. A consumer following that sentence gets `dist` resolution: the stale-green defect, restored by instruction | `bcd64f016` |
+| `npm run init` recreated the root `jest.config.js` step 3a deleted | The deletion undid itself on every initialise. The template is right for a single-package consumer and wrong for a workspaces monorepo | `558082a4b` |
+| `create-worktree` had no permission entry | Registered, tested, and proven to work in 2.8s — and unreachable. The only tool in the repo without a permission entry, while the `WorktreeCreate` hook blocked the alternative route with exit 2. Both doors shut | `af37b0f3a` |
+| Ward's memory test had never measured a ward run | It spawned `src/startup/start-ward.ts`, which exports `StartWard` and never calls it — and its timeout was 30s against a ~380s subject. Two independent reasons it could not work | `abfbd64c3` |
+| The composer rendered two thumbnails for two identical pasted images and serialised ONE | E2e had been red on `master` since 2026-09-02 and nobody knew, because recent full wards were killed before the browser stage | `b94f23b04` |
+| `npm run build:clean` was not clean | It removed `dist` but left the buildinfo step 5.2 had just moved OUT of `dist`, so tsc read the cache and emitted nothing at all | `83cb36585` |
+
+### 11.4 Still open, and what each one needs
+
+| Item | Size | What it needs first |
+|---|---|---|
+| **Per-sub-agent worktrees** | 15+ files, an orchestration redesign | A design decision. `quest.worktreePath` is a single field, `questCwdResolveBroker` takes only `{ questId }`, and `SpawnInstruction` carries no path — so every sub-agent inherits its operator's cwd and the same-file race stands. No merge-back mechanism exists in any form |
+| **Borrowed-binaries opt-out** | ~8-10 files plus tests | Someone to want it. §J2 said borrowing the main checkout's binaries should become an explicit opt-out; the side effect is gone and no opt-out was built. A flag must thread contract → responder → populate-layer AND into `worktreeVerifyLinksBroker`, which would otherwise refuse the tree the flag just asked for |
+| **A role-migration mechanism** | unknown | A design decision, then a product one. The `migrations/` folder type has **never been used once** — no example, no runner, no discovery, no ledger — and its stated pattern (`migrations/[version]/[number]-[name].sql`) does not fit a JSON role rename. The contract that rejects a quest file is `workItemRoleStatics.names` in `packages/shared`, NOT the `agentPromptClassificationStatics.roleNames` that 10.0a names |
+| **Five undeclared cross-package imports** | a separate change | Nothing blocks it. Recorded in 9.7 and deliberately kept out of this plan's scope |
+
+One trap worth knowing, because it looks like a duplicate and is not:
+`packages/testing/src/middleware/import-path-resolver/import-path-resolver-middleware.test.ts:60` READS like a
+resolution pin and is not one — the middleware normalises `dist/x.js` and `x.ts` to the same string, so that
+assertion passes under either resolution. The real pins are the `module-resolution.integration.test.ts` files in
+`config`, `testing` and `web`. Delete one of those as a "duplicate" and the guard is gone.

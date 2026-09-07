@@ -448,7 +448,7 @@ describe('universalSyntaxRulesStatics', () => {
               '// Test times out → rerun → times out → rerun — never traces the actual failure path',
             ],
             correctApproach:
-              "Poll helpers must have max iterations and throw with current quest status + work item summary on timeout. When integration tests time out, trace the code path instead of retrying — search dist/ for stale references via discover({glob: 'packages/*/dist/**', grep: 'oldFieldName'}) (bash grep is blocked), check catch handlers for swallowed errors",
+              'Poll helpers must have max iterations and throw with current quest status + work item summary on timeout. When integration tests time out, trace the code path instead of retrying — jest runs under --conditions=source, so hunt stale references in SOURCE via discover({grep: "oldFieldName"}) (bash grep is blocked), and suspect a stale dist/ only when the harness SPAWNS a compiled artifact, since jest.setup.js strips the source condition off NODE_OPTIONS before any child inherits it — check catch handlers for swallowed errors',
           },
         },
       },

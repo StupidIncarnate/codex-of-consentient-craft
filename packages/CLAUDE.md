@@ -77,13 +77,19 @@ If your package uses `@dungeonmaster/shared` or other workspace packages, add th
 
 **Remember:** `@dungeonmaster/shared`'s package.json exports a `source` condition on every subpath, so ward's
 typecheck, unit and integration checks (which set `--conditions=source`) read edited contracts directly —
-no rebuild needed for those. Lint and every runtime path that does not set that condition (`npm run prod`,
-`dungeonmaster start` in a consumer, the MCP server, `npm run build` itself) still resolve `@dungeonmaster/shared`
-through `dist/`, so rebuild it before exercising any of those:
+no rebuild needed for those. Every runtime path that does not set that condition (`npm run prod`,
+`dungeonmaster start` in a consumer, the MCP server, `npm run build` itself) still resolves
+`@dungeonmaster/shared` through `dist/`, so rebuild it before exercising any of those:
 
 ```bash
 npm run build --workspace=@dungeonmaster/shared
 ```
+
+**Lint is a narrow special case, not a member of that list.** The files ESLint CHECKS resolve to source like
+every other check. What reads `dist/` is one import inside this repo's own lint rules: `eslint.config.js` loads
+them from TypeScript source, but they `import { locationsStatics } from '@dungeonmaster/shared/statics'` at
+module load, and ESLint sets no `source` condition. So rebuild `shared` before lint only when you changed a
+statics value a custom rule reads.
 
 ### 3. Jest Configuration
 

@@ -98,6 +98,84 @@ describe('sessionSnippetStatics', () => {
     expect(sessionSnippetStatics.ward.indexOf('Ward must be fully green')).toBe(-1);
   });
 
+  // EACH RULE IS THE WHOLE SNIPPET WITHOUT THE OTHERS. A model handed only "keep comments to a
+  // minimum" deletes the one comment that was carrying a decision; handed only "record the
+  // decision" it writes a changelog. The bold leads are pinned individually so a reword that drops
+  // one goes red here rather than in a consumer repo, where nothing measures it at all.
+  it('VALID: commentDiscipline snippet => carries every rule and routes history to the plan document', () => {
+    expect({
+      historyToPlanDoc: sessionSnippetStatics.commentDiscipline.includes(
+        '**History belongs in the plan document for the change, written as a before/after.**',
+      ),
+      neverInCommentOrInstructionFile: sessionSnippetStatics.commentDiscipline.includes(
+        'Never a code comment, never an instruction file',
+      ),
+      minimum: sessionSnippetStatics.commentDiscipline.includes('**Keep comments to a minimum.**'),
+      decisionAndState: sessionSnippetStatics.commentDiscipline.includes(
+        'recording the DECISION and the STATE behind the code',
+      ),
+      neverReExplains: sessionSnippetStatics.commentDiscipline.includes(
+        '**A comment never re-explains the file.**',
+      ),
+      noGrowingCounts: sessionSnippetStatics.commentDiscipline.includes(
+        '**Never record a count of things that grow.**',
+      ),
+    }).toStrictEqual({
+      historyToPlanDoc: true,
+      neverInCommentOrInstructionFile: true,
+      minimum: true,
+      decisionAndState: true,
+      neverReExplains: true,
+      noGrowingCounts: true,
+    });
+  });
+
+  // WITHOUT THE MEASUREMENT CARVE-OUT THE COUNT RULE READS AS "NO NUMBERS EVER", which strips the
+  // error counts, byte sizes and durations that are the only checkable part of a finding. A tally
+  // over a set goes false when someone adds to the set with nothing having gone wrong; a number
+  // anchored to one observed run does not. The carve-out and the on-the-spot test that separates
+  // the two are pinned alongside the bold lead, because the lead alone does not carry the
+  // distinction and a reader who loses it deletes evidence.
+  it('VALID: commentDiscipline snippet => spares a measurement from the ban on tallies', () => {
+    expect({
+      shapeNotTally: sessionSnippetStatics.commentDiscipline.includes(
+        'Write the SHAPE, not the tally.',
+      ),
+      measurementIsEvidence: sessionSnippetStatics.commentDiscipline.includes(
+        'A number recording what ONE run observed is evidence, not inventory',
+      ),
+      anchoredExamplesSurvive: sessionSnippetStatics.commentDiscipline.includes(
+        'an error count from a named run, a byte size, a duration, a before/after delta',
+      ),
+      onTheSpotTest: sessionSnippetStatics.commentDiscipline.includes(
+        'would it change if someone added a file tomorrow, nothing having gone wrong?',
+      ),
+      namingStaysFine: sessionSnippetStatics.commentDiscipline.includes(
+        'Naming a specific file stays checkable; arithmetic over the set is what rots.',
+      ),
+      neverWriteTally: sessionSnippetStatics.commentDiscipline.includes(
+        'Never write: "all thirteen build configs"',
+      ),
+    }).toStrictEqual({
+      shapeNotTally: true,
+      measurementIsEvidence: true,
+      anchoredExamplesSurvive: true,
+      onTheSpotTest: true,
+      namingStaysFine: true,
+      neverWriteTally: true,
+    });
+  });
+
+  // IT SHIPS INTO EVERY REPO THE INSTALLER TOUCHES, so a name only this repo holds reads there as an
+  // instruction about a package the reader cannot find.
+  it('VALID: commentDiscipline snippet => names no repo-local package, path or role', () => {
+    expect(
+      /dungeonmaster|packages\/|scrolls\/|codeweaver|flowrider|siegemaster/iu.test(
+        sessionSnippetStatics.commentDiscipline,
+      ),
+    ).toBe(false);
+  });
+
   it('VALID: discover snippet => flags shell grep/find/sed as blocked and points to ToolSearch', () => {
     expect(sessionSnippetStatics.discover).toMatch(
       /^`discover` is the ONLY way to search this codebase\. Native Glob, Grep, Search, and Find tools — plus shell `grep`\/`find`\/`sed` — are blocked by hooks\. `discover` and `get-project-map` are MCP \*\*tools\*\*: load them via `ToolSearch`, never as shell commands or skills\.$/mu,

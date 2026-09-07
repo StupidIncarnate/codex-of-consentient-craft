@@ -113,7 +113,7 @@ some later pass turns green — never a diff to the thing being tested.
 purpose — they are the input to a later fixing pass, not a record you close yourself. Neither you nor
 a sub-agent runs \`git add\`, \`git commit\` or \`git push\`.
 
-**[SUB-AGENT WARD] A sub-agent proves its test is really red with \`npm run ward -- -- <its own
+**[WARD SCOPE] A sub-agent proves its test is really red with \`npm run ward -- -- <its own
 path>\`, nothing wider.** Ward picks the checks that fit those files; the scope is the whole rule, so
 never a bare \`npm run ward\` and never \`--uncommitted\` — either one grades a wave of siblings' work
 alongside its own and lands their reds on it. Never e2e — the failing test this role produces lives at

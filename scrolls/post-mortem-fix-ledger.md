@@ -63,81 +63,29 @@ Three items straddle two lanes and have to be split into two dispatches: **G18**
 
 ## The worktree protocol
 
-Setup costs about 2.5 seconds, because `tmp/pm-worktree-setup.sh` symlinks `node_modules` back to the
-main checkout rather than installing. That is the same shape `worktreePopulateNodeModulesBroker`
-produces for quest worktrees.
+**One tool makes worktrees. Call `mcp__dungeonmaster__create-worktree({ name })`.** It returns a path
+under `worktrees/` with `node_modules` hardlinked, `dist` seeded, and every link verified as relative
+and inside the tree. It takes about 3 seconds. Never assemble `git worktree add` by hand, and never
+write a setup script: Claude Code's own worktree command is blocked in this repo and will tell you the
+same thing.
 
-```bash
-git worktree add worktrees/pm-<gNN>-<slug> -b pm/<gNN>-<slug> master
-tmp/pm-worktree-setup.sh /home/brutus-home/projects/codex-of-consentient-craft/worktrees/pm-<gNN>-<slug>
-```
-
-`tmp/` is gitignored, so the script is kept here too. Recreate it at `tmp/pm-worktree-setup.sh` and
-`chmod +x` it if it is missing.
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-ROOT="/home/brutus-home/projects/codex-of-consentient-craft"
-WT="$1"
-
-link_tree() {
-  local src="$1" dst="$2"
-  [ -d "$src" ] || return 0
-  mkdir -p "$dst"
-  for entry in "$src"/* "$src"/.bin; do
-    [ -e "$entry" ] || continue
-    local name; name="$(basename "$entry")"
-    if [[ "$name" == @* && -d "$entry" ]]; then
-      mkdir -p "$dst/$name"
-      for scoped in "$entry"/*; do
-        [ -e "$scoped" ] || continue
-        ln -sfn "$scoped" "$dst/$name/$(basename "$scoped")"
-      done
-    else
-      ln -sfn "$entry" "$dst/$name"
-    fi
-  done
-}
-
-link_tree "$ROOT/node_modules" "$WT/node_modules"
-for pkg in "$ROOT"/packages/*/node_modules; do
-  [ -d "$pkg" ] || continue
-  pkgname="$(basename "$(dirname "$pkg")")"
-  link_tree "$pkg" "$WT/packages/$pkgname/node_modules"
-done
-
-# Re-point every workspace package at THIS worktree's own source.
-for entry in "$ROOT"/node_modules/@dungeonmaster/*; do
-  [ -e "$entry" ] || continue
-  name="$(basename "$entry")"
-  target="$(readlink -f "$entry" || true)"
-  case "$target" in
-    "$ROOT"/packages/*)
-      ln -sfn "../../packages/$(basename "$target")" "$WT/node_modules/@dungeonmaster/$name"
-      ;;
-  esac
-done
-echo "linked node_modules into $WT"
-```
-
-**Do not drop that last loop.** The main checkout's `node_modules/@dungeonmaster/x` is a relative
-symlink to `../../packages/x`. Copying it by absolute path gives the worktree a link that resolves
-back into the **main checkout**, so a build in the worktree compiles the main checkout's code and
-ward grades it. That failure is silent: the run is green, the artifacts are byte-identical to before
-the change, and nothing says the wrong tree was measured. It was caught once, on the first fix
-dispatched through this protocol, by an agent that noticed its regenerated renders had not moved.
+**Why the verification step exists, and why a hand-rolled script kept getting it wrong.** The main
+checkout's `node_modules/@dungeonmaster/x` is a relative symlink to `../../packages/x`. Copy it by
+absolute path and the worktree gets a link resolving back into the **main checkout**, so a build in
+the worktree compiles the main checkout's code and ward grades it. That failure is silent: the run is
+green, the artifacts are byte-identical to before the change, and nothing says the wrong tree was
+measured. It was caught once, by an agent that noticed its regenerated renders had not moved.
+`worktreeVerifyLinksBroker` now refuses a tree in that state and names each offending link.
 
 The fix agent works only inside that path. Before it reports done it runs, from the worktree root:
 
 1. `git merge master` — pick up anything that landed while it worked.
-2. `npm run build` — on its own, unpiped, exit 0 confirmed. Takes about 1m40s.
-3. `npm run ward -- --only lint,typecheck,unit -- <every file it touched>` — a statics-file scope
-   runs in about 25 seconds.
+2. `npm run ward -- -- <every file it touched>` — no `--only`; ward picks the check types from the
+   paths it is handed. A statics-file scope runs in about 25 seconds. **No build.** Ward reads source.
 
-Then the session merging it runs a **full `npm run build && npm run ward` in the worktree** before
-merging to `master`. Prompt text is asserted by tests in other packages, so a file-scoped ward cannot
-see everything a prompt edit breaks. The full run is the gate that can.
+Then the session merging it runs a **full `npm run ward` in the worktree** before merging to `master`.
+Prompt text is asserted by tests in other packages, so a file-scoped ward cannot see everything a
+prompt edit breaks. The full run is the gate that can.
 
 ```bash
 git merge --no-ff pm/<gNN>-<slug>

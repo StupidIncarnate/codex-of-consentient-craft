@@ -204,7 +204,7 @@ These four root causes are common in this project:
 
 | Root cause | What it means here |
 |---|---|
-| A stale \`dist\` build after a contract changed, seen ONLY as a lint failure | Lint does not read source the way typecheck/unit/integration do — it still resolves \`@dungeonmaster/shared\` through \`dist/\`. Rebuild it: \`npm run build --workspace=@dungeonmaster/shared\`. |
+| A stale \`shared/dist\`, seen ONLY as a lint failure | Narrow, and it bites only after a \`locationsStatics\` change. This repo's own lint rules load from source, but they import \`@dungeonmaster/shared/statics\` at module load, and ESLint sets no \`source\` condition — so that ONE import reads \`dist/\`. Fix: \`npm run build --workspace=@dungeonmaster/shared\`. The files lint CHECKS read source like every other check, so nothing else here needs a build. |
 | A broken proxy chain | A mock returns the old shape after a contract changed. |
 | A branded type mismatch | The code passes a raw string where a branded type belongs. |
 | A missing companion file | The colocation rule requires a test, a proxy and a stub beside the implementation. |

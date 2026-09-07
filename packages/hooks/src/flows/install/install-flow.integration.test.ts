@@ -80,6 +80,14 @@ describe('InstallFlow', () => {
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -107,6 +115,14 @@ describe('InstallFlow', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
             },
           ],
           SubagentStop: [

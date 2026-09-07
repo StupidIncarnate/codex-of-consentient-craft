@@ -5,7 +5,12 @@ repo, so eslint never fires on anything in it — an eslint experiment run there
 exists at the root of this repo and keeps scratch files inside both the permission scope and the linted tree. Temp dirs
 that *tests* create are the exception — those belong in the OS `/tmp`, via `installTestbedCreateBroker`.
 
-**Critical: Do not ever record or write down how the code or workflows USED TO WORK in comments, docs, etc. That's git's job. The only historics you should ever record is tricky syntax that caused bugs and hard-earned lessons about the repo and its code.
+The **comment and history rules** — history in the change's plan document as a before/after and nowhere else, never in
+a code comment or a `CLAUDE.md`, comments kept to the minimum that records the decision and state behind the code, and
+never a re-explanation of the file — live in the `<dungeonmaster-commentDiscipline>` session snippet
+(`sessionSnippetStatics.commentDiscipline`), which every session and every sub-agent receives at start, in this repo
+and in every repo `dungeonmaster init` has touched. Fix them THERE, not here; a copy in this file would drift from the
+one the agents actually read.
 
 **Handoff and design docs go in `<repoRoot>/scrolls/`.** Anything written for a human or a future session to pick up —
 cross-session handoffs, dogfood runbooks, design proposals, the `scrolls/design/`
@@ -78,6 +83,16 @@ since each one boots an API server, a Vite server and a browser. Jest integratio
 **Worktrees come from one tool.** Call `mcp__dungeonmaster__create-worktree({ name })`. It returns a path under
 `worktrees/` with `node_modules` hardlinked, `dist` seeded, and its links verified. Claude Code's own worktree command
 is blocked in this repo and will tell you the same thing. Never assemble `git worktree add` by hand.
+
+**`npm rebuild` is the one command a worktree must not run.** `node_modules` is hardlinked, and npm replaces a
+package directory rather than writing into it, so installing packages is safe. node-gyp is the exception: it
+overwrites `node_modules/node-pty/build/Release/pty.node` in place, through the inode the main checkout shares.
+
+**A worktree is NOT hermetic for module resolution, and this fakes experiments.** It sits under the main checkout, so
+node10's walk-up escapes it: move a package's `dist` aside inside a worktree and resolution keeps climbing until it
+finds the main checkout's copy. A typecheck that should have failed then passes, and reads as "the premise was wrong".
+Any experiment that turns on a missing `dist` has to fence resolution to the worktree — build a `ts.resolveModuleName`
+host that hides paths outside it, rather than trusting the directory boundary.
 
 See `playbook/smoke-testing.md` for manual verification steps.
 

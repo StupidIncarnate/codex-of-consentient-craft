@@ -53,6 +53,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
           },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet commentDiscipline',
+              },
+            ],
+          },
         ],
         SubagentStart: [
           {
@@ -80,6 +88,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
           },
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet commentDiscipline',
+              },
+            ],
           },
         ],
         SubagentStop: [
@@ -143,6 +159,9 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       );
       expect(result.SessionStart[6]?.hooks[0]?.command).toBe(
         'dungeonmaster-session-snippet packages',
+      );
+      expect(result.SessionStart[7]?.hooks[0]?.command).toBe(
+        'dungeonmaster-session-snippet commentDiscipline',
       );
     });
 

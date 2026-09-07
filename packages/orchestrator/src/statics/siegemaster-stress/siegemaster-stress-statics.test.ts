@@ -107,7 +107,7 @@ describe('siegemasterStressStatics', () => {
     expect({
       ruleScopesIt: hasIn({
         needle:
-          '**[SUB-AGENT WARD] A sub-agent proves its test is really red with `npm run ward -- -- <its own path>`, nothing wider.**',
+          '**[WARD SCOPE] A sub-agent proves its test is really red with `npm run ward -- -- <its own path>`, nothing wider.**',
         text: TEMPLATE,
       }),
       neverBareNeverUncommitted: hasIn({

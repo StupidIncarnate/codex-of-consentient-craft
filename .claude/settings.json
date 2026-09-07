@@ -60,6 +60,14 @@
             "command": "dungeonmaster-session-snippet packages"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet commentDiscipline"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -145,6 +153,14 @@
           {
             "type": "command",
             "command": "dungeonmaster-session-snippet packages"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet commentDiscipline"
           }
         ]
       }

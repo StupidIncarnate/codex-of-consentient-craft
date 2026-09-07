@@ -37,11 +37,14 @@ When adding new functionality to `@dungeonmaster/shared`, you MUST:
    }
    ```
 
-4. **Rebuild the package** for every consumer path that does NOT set `--conditions=source` — lint, `npm run
-   prod`, `dungeonmaster start` in a consumer, the MCP server, and `npm run build` itself:
+4. **Rebuild the package** for every consumer path that does NOT set `--conditions=source` — `npm run prod`,
+   `dungeonmaster start` in a consumer, the MCP server, and `npm run build` itself:
    ```bash
    npm run build --workspace=@dungeonmaster/shared
    ```
+   Lint is NOT on that list, with one narrow exception: this repo's own lint rules load from TypeScript source
+   but import `locationsStatics` from this package at module load, and ESLint sets no `source` condition — so a
+   `locationsStatics` change, and only that, needs a rebuild before lint sees it.
 
 5. **Import in consuming packages**:
    ```typescript
@@ -108,6 +111,8 @@ finding the target file. The underlying walk lives in `brokers/config-root/find/
 - **Never** import from `@dungeonmaster/shared/dist/...` directly
 - **Always** use the subpath exports: `@dungeonmaster/shared/guards`, `@dungeonmaster/shared/contracts`, etc.
 - After modifying this package, a dependent package sees the change immediately under
-  `--conditions=source` (ward's typecheck, unit and integration checks); every other consumer — lint,
-  `npm run prod`, a published install, the MCP server — needs this package rebuilt first
+  `--conditions=source` (ward's typecheck, unit and integration checks); every other consumer —
+  `npm run prod`, a published install, the MCP server — needs this package rebuilt first. Lint reads source
+  for the files it checks; only a `locationsStatics` change needs a rebuild before lint, because this repo's
+  own rules import that one statics module as plain Node
 - The barrel export pattern keeps imports clean and maintainable
