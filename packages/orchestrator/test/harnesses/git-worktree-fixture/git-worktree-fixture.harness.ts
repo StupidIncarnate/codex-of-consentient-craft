@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Builds a real throwaway git repository per test (init, commits, branches, a synthetic
- * npm-workspace node_modules layout, and controllable build scripts) so the flowrider suites for
- * `quest-start-worktree` can drive real `git worktree add` / real fs symlinks / a real spawned
- * build process instead of a mocked `childProcessSpawnCaptureAdapter`. Reach for
+ * PURPOSE: Builds a real throwaway git repository per test (init, commits, branches, and a synthetic
+ * npm-workspace node_modules layout) so the flowrider suites for `quest-start-worktree` can drive
+ * real `git worktree add` and real fs symlinks instead of a mocked
+ * `childProcessSpawnCaptureAdapter`. Reach for
  * `orchestrationQuestHarness.initGitRepoAndCommitBase` instead when a test only needs ONE commit
  * on whatever branch git defaults to — this harness exists for tests that need to choose which of
  * main/master exist, leave the repo root dirty, or observe the real git argv a broker issued.
@@ -43,8 +43,6 @@ import {
   type RepoRelativePath,
 } from '@dungeonmaster/shared/contracts';
 
-const BUILD_SCRIPT_FILENAME_CONVERGING = 'converging-build.js';
-const BUILD_SCRIPT_FILENAME_FAILING = 'failing-build.js';
 const ARGV_LOG_FILENAME = 'argv.log';
 const SHIM_MODE = 0o755;
 
@@ -121,12 +119,6 @@ export const gitWorktreeFixtureHarness = (): {
   // other, valid links from populating. Must run AFTER writeWorkspaceNodeModulesFixture, which is
   // what creates the @dungeonmaster scope directory this reaches into.
   writeBrokenWorkspaceLink: (params: { repoPath: AbsoluteFilePath; packageName: FileName }) => void;
-  writeConvergingBuildScript: (params: { scriptDir: AbsoluteFilePath }) => {
-    buildCommand: ErrorMessage;
-  };
-  writeFailingBuildScript: (params: { scriptDir: AbsoluteFilePath }) => {
-    buildCommand: ErrorMessage;
-  };
   captureGitArgv: (params: {
     captureDir: AbsoluteFilePath;
   }) => Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }>;
@@ -162,12 +154,8 @@ export const gitWorktreeFixtureHarness = (): {
     // status --porcelain` would report as untracked (at the repo root for the worktree itself,
     // and inside the worktree's OWN status for node_modules/build output written after
     // preparation), corrupting a "this checkout stays clean" assertion for a reason unrelated to
-    // the invariant under test. `.build-pass-count` is this fixture's own marker file, written
-    // only by writeConvergingBuildScript's generated script — not something the real repo needs.
-    writeFileSync(
-      join(repoPath, '.gitignore'),
-      'worktrees/\nnode_modules\ndist\n.build-pass-count\n',
-    );
+    // the invariant under test.
+    writeFileSync(join(repoPath, '.gitignore'), 'worktrees/\nnode_modules\ndist\n');
     for (const packageName of packageNames) {
       const packageDir = join(repoPath, 'packages', packageName);
       mkdirSync(packageDir, { recursive: true });
@@ -378,48 +366,6 @@ export const gitWorktreeFixtureHarness = (): {
     }): void => {
       const scopeDir = join(repoPath, 'node_modules', '@dungeonmaster');
       symlinkSync(join('..', '..', 'packages', packageName), join(scopeDir, packageName));
-    },
-    writeConvergingBuildScript: ({
-      scriptDir,
-    }: {
-      scriptDir: AbsoluteFilePath;
-    }): { buildCommand: ErrorMessage } => {
-      mkdirSync(scriptDir, { recursive: true });
-      const scriptPath = join(scriptDir, BUILD_SCRIPT_FILENAME_CONVERGING);
-      writeFileSync(
-        scriptPath,
-        [
-          "const fs = require('fs');",
-          "const path = require('path');",
-          'const cwd = process.cwd();',
-          "const marker = path.join(cwd, '.build-pass-count');",
-          "const count = fs.existsSync(marker) ? Number(fs.readFileSync(marker, 'utf8')) + 1 : 1;",
-          'fs.writeFileSync(marker, String(count));',
-          "fs.mkdirSync(path.join(cwd, 'packages', 'shared', 'dist'), { recursive: true });",
-          "fs.writeFileSync(path.join(cwd, 'packages', 'shared', 'dist', 'contracts.js'), '// built pass ' + count + '\\n');",
-          'if (count < 2) {',
-          '  process.exit(1);',
-          '}',
-          "fs.mkdirSync(path.join(cwd, 'packages', 'web', 'dist'), { recursive: true });",
-          "fs.writeFileSync(path.join(cwd, 'packages', 'web', 'dist', 'index.html'), '<html></html>\\n');",
-          'process.exit(0);',
-          '',
-        ].join('\n'),
-      );
-      return { buildCommand: errorMessageContract.parse(`node ${scriptPath}`) };
-    },
-    writeFailingBuildScript: ({
-      scriptDir,
-    }: {
-      scriptDir: AbsoluteFilePath;
-    }): { buildCommand: ErrorMessage } => {
-      mkdirSync(scriptDir, { recursive: true });
-      const scriptPath = join(scriptDir, BUILD_SCRIPT_FILENAME_FAILING);
-      writeFileSync(
-        scriptPath,
-        "process.stderr.write('fixture build always fails\\n');\nprocess.exit(1);\n",
-      );
-      return { buildCommand: errorMessageContract.parse(`node ${scriptPath}`) };
     },
     captureGitArgv: async ({
       captureDir,
