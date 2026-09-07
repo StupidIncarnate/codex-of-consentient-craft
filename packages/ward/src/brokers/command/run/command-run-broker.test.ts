@@ -9,7 +9,7 @@ import { commandRunBroker } from './command-run-broker';
 import { commandRunBrokerProxy } from './command-run-broker.proxy';
 
 describe('commandRunBroker', () => {
-  // AN EMPTY FILE SCOPE IS NOT AN ABSENT ONE. `commandRunLayerGitScopeBroker` leaves `passthrough`
+  // AN EMPTY FILE SCOPE IS NOT AN ABSENT ONE. `gitScopeLayerBroker` leaves `passthrough`
   // unset when the diff holds no source file, and every consumer downstream reads unset as "no file
   // scope" — so the run graded the whole monorepo. On quest a7520e60 both round reviewers hit it
   // moments after pushing their own round: the git-scoped run had nothing left to measure and swept
@@ -184,7 +184,7 @@ describe('commandRunBroker', () => {
     });
 
     // THE SCOPE LIMIT, and the reason this reads the config the CALLER handed in rather than the one
-    // `commandRunLayerGitScopeBroker` returns — both write the same `passthrough` field. A git diff
+    // `gitScopeLayerBroker` returns — both write the same `passthrough` field. A git diff
     // legitimately holds root-level files nothing lints, so failing here would redden ordinary
     // `--uncommitted` runs. Pinning the WHOLE stdout list is what proves nothing extra was printed.
     it('VALID: {uncommitted: true resolves to a file no check processed} => prints no unprocessed-path guidance', async () => {
@@ -344,7 +344,7 @@ describe('commandRunBroker', () => {
     });
 
     // A CRASH IS A DIFFERENT CAUSE FROM AN UNCHECKED PATH, and it used to be reported as both: the
-    // ProjectResult `commandRunLayerChildCrashBroker` synthesises for a dead child carries
+    // ProjectResult `childCrashLayerBroker` synthesises for a dead child carries
     // `filesCount` 0, so the caller-typed scope above fired too and printed "they are on disk, and
     // every file-scoped check in this run reported 0 files" underneath the crash report. Both
     // sentences were true and the cause was wrong. Pinning the WHOLE stdout list is what proves the

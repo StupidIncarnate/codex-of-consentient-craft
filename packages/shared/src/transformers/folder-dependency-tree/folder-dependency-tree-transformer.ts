@@ -30,23 +30,27 @@ export const folderDependencyTreeTransformer = ({
     return importsA - importsB;
   });
 
+  // Padded off the widest label so every `# Can import:` starts in the same column — a fixed gutter
+  // puts a 6-character folder and a 12-character one at different offsets and the list stops scanning.
+  const LABEL_GUTTER = 2;
+  const labelWidth =
+    sortedFolders.reduce((widest, folder) => Math.max(widest, `${folder}/`.length), 0) +
+    LABEL_GUTTER;
+
   for (const folder of sortedFolders) {
     const config = folderConfigs[folder];
     if (!config) {
       continue;
     }
 
-    const imports = config.allowedImports;
-    const normalizedImports = imports.map((imp) => imp.replace(/\/$/u, ''));
+    const label = `${folder}/`.padEnd(labelWidth);
+    const normalizedImports = config.allowedImports.map((imp) => imp.replace(/\/$/u, ''));
 
     if (normalizedImports.length === 0) {
-      hierarchyLines.push(
-        contentTextContract.parse(`${folder}/          # Can import: nothing (leaf node)`),
-      );
+      hierarchyLines.push(contentTextContract.parse(`${label}# Can import: nothing (leaf node)`));
     } else {
-      const importList = normalizedImports.join(', ');
       hierarchyLines.push(
-        contentTextContract.parse(`${folder}/          # Can import: ${importList}`),
+        contentTextContract.parse(`${label}# Can import: ${normalizedImports.join(', ')}`),
       );
     }
   }

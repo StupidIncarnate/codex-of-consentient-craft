@@ -14,16 +14,16 @@ import type { WardConfig } from '../../../contracts/ward-config/ward-config-cont
 import { fileScopeEmptyStatics } from '../../../statics/file-scope-empty/file-scope-empty-statics';
 import { noFilesProcessedStatics } from '../../../statics/no-files-processed/no-files-processed-statics';
 import { pathNotFoundStatics } from '../../../statics/path-not-found/path-not-found-statics';
-import { commandRunLayerPathCheckBroker } from './command-run-layer-path-check-broker';
+import { pathCheckLayerBroker } from './path-check-layer-broker';
 import { hasNoFilesProcessedGuard } from '../../../guards/has-no-files-processed/has-no-files-processed-guard';
 import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 import { isExplicitPathScopeGuard } from '../../../guards/is-explicit-path-scope/is-explicit-path-scope-guard';
 import { isFileScopeRequestedGuard } from '../../../guards/is-file-scope-requested/is-file-scope-requested-guard';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
-import { commandRunLayerFolderBroker } from './command-run-layer-folder-broker';
-import { commandRunLayerGitScopeBroker } from './command-run-layer-git-scope-broker';
-import { commandRunLayerSingleBroker } from './command-run-layer-single-broker';
-import { commandRunLayerMultiBroker } from './command-run-layer-multi-broker';
+import { folderResolveLayerBroker } from './folder-resolve-layer-broker';
+import { gitScopeLayerBroker } from './git-scope-layer-broker';
+import { singlePackageLayerBroker } from './single-package-layer-broker';
+import { multiPackageLayerBroker } from './multi-package-layer-broker';
 import { passthroughNormalizeTransformer } from '../../../transformers/passthrough-normalize/passthrough-normalize-transformer';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
 import { hasCheckDiscoveryMismatchGuard } from '../../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
@@ -36,7 +36,7 @@ export const commandRunBroker = async ({
   config: WardConfig;
   rootPath: AbsoluteFilePath;
 }): Promise<AdapterResult> => {
-  const gitScopedConfig = await commandRunLayerGitScopeBroker({ config, rootPath });
+  const gitScopedConfig = await gitScopeLayerBroker({ config, rootPath });
 
   // AN EMPTY FILE SCOPE IS NOT AN ABSENT ONE, and every consumer below this line reads it as one:
   // `hasPassthrough` is `Array.isArray(passthrough) && length > 0` in five separate places, so a
@@ -85,7 +85,7 @@ export const commandRunBroker = async ({
   //
   // It runs AFTER normalization so the paths asked about are the repaired repo-relative ones, and
   // BEFORE `workspaceDiscoverBroker` so a typo costs no discovery.
-  const missingPaths = commandRunLayerPathCheckBroker({
+  const missingPaths = pathCheckLayerBroker({
     passthrough: resolvedConfig.passthrough,
     rootPath,
   });
@@ -104,10 +104,10 @@ export const commandRunBroker = async ({
   const wardResult =
     workspaces === null
       ? await (async () => {
-          const projectFolder = await commandRunLayerFolderBroker({ rootPath });
-          return commandRunLayerSingleBroker({ config: resolvedConfig, projectFolder, rootPath });
+          const projectFolder = await folderResolveLayerBroker({ rootPath });
+          return singlePackageLayerBroker({ config: resolvedConfig, projectFolder, rootPath });
         })()
-      : await commandRunLayerMultiBroker({
+      : await multiPackageLayerBroker({
           config: resolvedConfig,
           projectFolders: workspaces,
           rootPath,
@@ -149,7 +149,7 @@ export const commandRunBroker = async ({
   // `lint: WARN 0 files run` at exit 0, because `scripts/**` sits in eslint.config.js `ignores` and
   // belongs to no workspace package, so no child ward spawned at all.
   //
-  // IT BINDS ONLY PATHS A HUMAN TYPED. `commandRunLayerGitScopeBroker` writes a `--committed`/
+  // IT BINDS ONLY PATHS A HUMAN TYPED. `gitScopeLayerBroker` writes a `--committed`/
   // `--uncommitted` diff into the SAME `passthrough` field, and such a diff legitimately holds root-level
   // files nothing lints — reddening those would break the ordinary pre-push gate. So the question is
   // asked of `config`, the object the CALLER handed in, never of `resolvedConfig`.

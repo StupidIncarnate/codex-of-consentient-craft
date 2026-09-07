@@ -140,7 +140,7 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
   }
 
   // `--onlyTests` IS NOT A FILE SCOPE, and nothing downstream treats it as one: `filteredFolders`
-  // in commandRunLayerMultiBroker narrows on `passthrough` alone, so an unscoped pattern spawns a
+  // in multiPackageLayerBroker narrows on `passthrough` alone, so an unscoped pattern spawns a
   // child ward in every workspace package, and the pattern only reaches Jest as
   // `--testNamePattern`, which filters at EXECUTION — after every test file in that package has
   // been collected and transformed. Measured: `--only unit --onlyTests "<4 tests>"` with no `--`
@@ -152,7 +152,7 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
   // `--onlyTests` outright, so those callers get the one error about the flag they actually typed
   // rather than a second one demanding a file list they are forbidden to pass.
   //
-  // A CHILD WARD IS EXEMPT, and only a child: `commandRunLayerMultiBroker` spawns one per package
+  // A CHILD WARD IS EXEMPT, and only a child: `multiPackageLayerBroker` spawns one per package
   // its own `filteredFolders` already picked, so the sweep this rule prevents cannot happen there,
   // and a whole-package arg (`-- packages/ward`) slices to an empty per-file list with nothing to
   // forward. The parent says so with `wardSpawnCommandStatics.parentScopedFlag`.

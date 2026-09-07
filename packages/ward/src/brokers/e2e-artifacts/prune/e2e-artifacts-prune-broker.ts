@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Reclaims per-run e2e artifacts that outlived the run that made them. It runs at the END of
- * EVERY ward invocation — `commandRunLayerSingleBroker` calls it after every requested check type has
+ * EVERY ward invocation — `singlePackageLayerBroker` calls it after every requested check type has
  * finished, including a lint-only or typecheck-only run that never touches e2e at all. The sibling
  * remove broker handles the ordinary end-of-run case for the run's OWN artifacts; this one is the
  * backstop for every run that never reached that cleanup — a SIGKILL, a Ctrl-C, a CI job

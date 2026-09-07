@@ -18,6 +18,7 @@ import { contentTextContract } from '../../../contracts/content-text/content-tex
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { folderPurposeTransformer } from '../../../transformers/folder-purpose/folder-purpose-transformer';
 import { folderConstraintsTransformer } from '../../../transformers/folder-constraints/folder-constraints-transformer';
+import { fileSuffixExtensionTransformer } from '../../../transformers/file-suffix-extension/file-suffix-extension-transformer';
 import { fileSuffixFormatterTransformer } from '../../../transformers/file-suffix-formatter/file-suffix-formatter-transformer';
 import { firstFileSuffixTransformer } from '../../../transformers/first-file-suffix/first-file-suffix-transformer';
 
@@ -107,13 +108,27 @@ export const architectureFolderDetailBroker = ({
   const firstSuffix = firstFileSuffixTransformer({ config });
   const baseName = fileSuffixFormatterTransformer({ suffix: firstSuffix });
 
+  // A companion carries the implementation's own extension: `enforce-project-structure` derives the
+  // expected proxy suffix from it, so a `.tsx` widget takes `.proxy.tsx` and a `.proxy.ts` fails lint.
+  const extension = fileSuffixExtensionTransformer({ suffix: firstSuffix });
+  const testInfix = config.testType === 'integration' ? '.integration.test' : '.test';
+
+  sections.push(contentTextContract.parse(`- Implementation: \`{name}${firstSuffix}\`\n`));
+
+  if (config.testType !== 'none') {
+    sections.push(
+      contentTextContract.parse(`- Test: \`{name}${baseName}${testInfix}${extension}\`\n`),
+    );
+  }
+
   if (config.requireProxy) {
-    sections.push(contentTextContract.parse(`- Implementation: \`{name}${firstSuffix}\`\n`));
-    sections.push(contentTextContract.parse(`- Test: \`{name}${baseName}.test.ts\`\n`));
-    sections.push(contentTextContract.parse(`- Proxy: \`{name}${baseName}.proxy.ts\`\n`));
-  } else {
-    sections.push(contentTextContract.parse(`- Implementation: \`{name}${firstSuffix}\`\n`));
-    sections.push(contentTextContract.parse(`- Test: \`{name}${baseName}.test.ts\`\n`));
+    sections.push(contentTextContract.parse(`- Proxy: \`{name}${baseName}.proxy${extension}\`\n`));
+  }
+
+  // The stub replaces the entry suffix rather than appending to it, so a `user-contract.ts` pairs
+  // with `user.stub.ts` — `ban-contract-in-tests` sends every test import here instead.
+  if (config.requireStub) {
+    sections.push(contentTextContract.parse(`- Stub: \`{name}.stub${extension}\`\n`));
   }
   sections.push(contentTextContract.parse(''));
 

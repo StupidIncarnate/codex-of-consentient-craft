@@ -4,10 +4,10 @@
 widgets/
   user-card/
     user-card-widget.tsx
-    user-card-widget.proxy.ts
+    user-card-widget.proxy.tsx
     user-card-widget.test.tsx
     avatar-layer-widget.tsx        # Layer widget
-    avatar-layer-widget.proxy.ts
+    avatar-layer-widget.proxy.tsx
     avatar-layer-widget.test.tsx
 ```
 
@@ -52,73 +52,6 @@ export const UserCardWidget = ({userId, onUpdate}: UserCardWidgetProps): JSX.Ele
 };
 ```
 
-**COMPLEXITY MANAGEMENT:**
-
-- Keep files under 300 lines
-- If exceeding, decompose into layer widgets
-- Each layer widget has own proxy and tests
-
-**LAYER DECOMPOSITION:**
-
-Create layer widgets when they:
-
-- Call different bindings than parent
-- Have focused rendering responsibility
-- Need own proxy for test setup
-
-**LAYER FILE EXAMPLE:**
-
-```typescript
-// Parent widget
-// widgets/user-card/user-card-widget.tsx
-import {AvatarLayerWidget} from './avatar-layer-widget';
-import {UserMetaLayerWidget} from './user-meta-layer-widget';
-
-export const UserCardWidget = ({userId}: UserCardWidgetProps) => {
-    const {data: user} = useUserDataBinding({userId});  // Parent's binding
-    return (
-        <div>
-            <AvatarLayerWidget userId={userId} />
-            <h1>{user.name}</h1>
-            <UserMetaLayerWidget userId={userId} />
-        </div>
-    );
-};
-
-// Layer widget with own dependency
-// avatar-layer-widget.tsx
-export const AvatarLayerWidget = ({userId}: AvatarLayerWidgetProps) => {
-    const {data: avatar} = useAvatarDataBinding({userId});  // Different binding!
-    return <img src={avatar.url} alt={avatar.alt} />;
-};
-
-// Layer has own proxy for different dependency
-// avatar-layer-widget.proxy.ts
-export const avatarLayerWidgetProxy = () => {
-    const avatarBindingProxy = useAvatarDataBindingProxy();
-    return {
-        setupAvatar: ({userId, avatar}) => {
-            avatarBindingProxy.setupAvatar({userId, avatar});
-        }
-    };
-};
-
-// Layer test
-// avatar-layer-widget.test.tsx
-describe('AvatarLayerWidget', () => {
-    it('VALID: {avatar url} => renders avatar image', () => {
-        const proxy = avatarLayerWidgetProxy();
-        const userId = UserIdStub('user-1');
-        const avatar = AvatarStub({url: 'https://example.com/avatar.jpg'});
-
-        proxy.setupAvatar({userId, avatar});
-        render(<AvatarLayerWidget userId={userId} />);
-
-        expect(screen.getByRole('img')).toHaveAttribute('src', 'https://example.com/avatar.jpg');
-    });
-});
-```
-
 **EXAMPLES:**
 
 ```typescript
@@ -159,7 +92,7 @@ export const AvatarLayerWidget = ({userId}: AvatarLayerWidgetProps) => {
     return <img src={avatar.url} alt={avatar.alt} />;
 };
 
-// avatar-layer-widget.proxy.ts (Layer has own proxy for different dependency)
+// avatar-layer-widget.proxy.tsx (Layer has own proxy for different dependency)
 export const avatarLayerWidgetProxy = () => {
     const avatarBindingProxy = useAvatarDataBindingProxy();  // Different dependency
 
@@ -176,7 +109,7 @@ export const avatarLayerWidgetProxy = () => {
 Widget proxies delegate to child binding proxies and provide UI-specific test helpers.
 
 ```typescript
-// widgets/user-card/user-card-widget.proxy.ts
+// widgets/user-card/user-card-widget.proxy.tsx
 import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useUserDataBindingProxy} from '../../bindings/use-user-data/use-user-data-binding.proxy';

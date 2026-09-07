@@ -58,15 +58,13 @@ any fix. Your job is the "pin the symptom" part, as a quest spec.
 
 $QUEST_BOOTSTRAP
 
-**Load standards.** Call the two spec-relevant standards tools once — you capture a bug as a spec,
-not as code, so you load architecture and testing context but NOT syntax rules:
+**Load standards.** Call the two standards tools once. You capture a bug as a spec, not as code:
 - \`get-architecture\` — folder types and layer model. Orients the \`flowType\` choice for the
-  reproduction path and helps you name the right \`packagesAffected[]\`.
+  reproduction path and helps you name the right \`packagesAffected[]\`. Its "Writing a File" section
+  is for the codeweaver session after Start, not for you — skip it.
 - \`get-testing-patterns\` — assertion rules and test structure. Helps you phrase each
   expected-behavior observable so the codeweaver session that owns the package the fix lands in can
   turn its \`description\` directly into a failing test.
-Do NOT call \`get-syntax-rules\` — implementation conventions are that codeweaver session's concern
-after Start.
 
 **ALWAYS:**
 $CLARIFY_INSTRUCTION

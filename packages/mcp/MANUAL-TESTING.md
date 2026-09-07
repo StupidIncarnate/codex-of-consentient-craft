@@ -423,24 +423,13 @@ No configuration found for this folder type.
 
 **Expected:**
 
-- Returns formatted markdown with all syntax rules
-- Should include sections like:
-    - File Metadata (PURPOSE/USAGE)
-    - Naming Conventions
-    - Type Safety
-    - Error Handling
-    - Promise Handling
-    - Loop Control
-    - Function Exports
-    - CLI Output
-    - Performance
-    - Summary Checklist
+- A short redirect naming `get-architecture` as the place the rules live, and `get-testing-patterns` as the owner of
+  assertions and mocking
 
 **Verification:**
 
-- All sections present and properly formatted
-- Code examples included where applicable
-- ❌ and ✅ examples for each rule
+- The rules themselves appear under "Writing a File" in `get-architecture`, covering naming and exports, parameters and
+  return types, the file header, types, control flow, errors, and the `Reflect` / CLI-output traps
 
 ---
 
@@ -612,7 +601,7 @@ Use this checklist when manually testing:
 - [ ] `get-architecture` returns full markdown overview
 - [ ] `get-folder-detail` works for all 14 folder types
 - [ ] `get-folder-detail` handles invalid folder types gracefully
-- [ ] `get-syntax-rules` returns complete rules
+- [ ] `get-syntax-rules` returns the redirect to `get-architecture`
 - [ ] Invalid tool names return proper errors
 - [ ] Large result sets handled properly
 - [ ] Empty results return count: 0

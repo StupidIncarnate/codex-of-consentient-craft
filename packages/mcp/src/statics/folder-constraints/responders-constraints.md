@@ -219,63 +219,6 @@ Responders use `.test.ts` with `.proxy.ts` files. This is enforced by ESLint rul
 Responders require `.proxy.ts` files (`requireProxy: true` in folder config). Mock only I/O boundaries (adapters) in
 proxy files — all business logic runs real in tests.
 
-**LAYER FILE STRUCTURE:**
-
-```
-responders/user/create/
-  user-create-responder.ts                        # Parent
-  user-create-responder.test.ts
-  user-create-responder.proxy.ts
-
-  validate-request-layer-responder.ts             # Layer
-  validate-request-layer-responder.test.ts
-  validate-request-layer-responder.proxy.ts
-```
-
-**LAYER FILE EXAMPLE:**
-
-```typescript
-// Parent responder
-// responders/user/create/user-create-responder.ts
-import {validateRequestLayerResponder} from './validate-request-layer-responder';
-import {processUserCreationLayerResponder} from './process-user-creation-layer-responder';
-
-export const UserCreateResponder = async ({req, res}: ResponderParams) => {
-    const userData = validateRequestLayerResponder({req, res});
-    if (!userData) return;
-    const user = await processUserCreationLayerResponder({userData, res});
-    res.status(201).json(user);
-};
-
-// Layer implementation - focused responsibility
-// validate-request-layer-responder.ts
-export const validateRequestLayerResponder = ({req, res}: {
-    req: Request;
-    res: Response;
-}): UserCreateData | undefined => {
-    const body: unknown = req.body;
-    const validated = userCreateContract.safeParse(body);
-    if (!validated.success) {
-        res.status(400).json({error: validated.error});
-        return undefined;
-    }
-    return validated.data;
-};
-
-// Layer test
-// validate-request-layer-responder.test.ts
-describe('validateRequestLayerResponder', () => {
-    it('VALID: {valid body} => returns parsed data', () => {
-        const req = {body: {name: 'John', email: 'john@example.com'}} as Request;
-        const res = {status: jest.fn(), json: jest.fn()} as never;
-
-        const result = validateRequestLayerResponder({req, res});
-
-        expect(result).toStrictEqual({name: 'John', email: 'john@example.com'});
-    });
-});
-```
-
 **EXAMPLES:**
 
 ```typescript

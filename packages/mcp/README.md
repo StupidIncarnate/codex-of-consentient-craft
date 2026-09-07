@@ -8,9 +8,9 @@ codebase, plus architecture orientation tools.
 Solves the problem of LLMs reinventing the wheel and lacking architectural context by providing:
 
 - **File Discovery** - Shows what utilities exist (guards, transformers, brokers, widgets, etc.) with usage examples
-- **Architecture Orientation** - Complete project structure, folder types, and import hierarchy
+- **Architecture Orientation** - Project structure, folder types, import hierarchy, and the conventions for writing a
+  file: naming, exports, parameters, the header comment, types, error handling
 - **Folder-Specific Rules** - Detailed constraints and patterns for each folder type
-- **Universal Syntax Rules** - All coding conventions with examples
 - Helps LLMs make informed decisions about which utility to use and where code belongs
 
 ## Architecture
@@ -44,12 +44,15 @@ get - folder - detail({
 // Returns: Purpose, naming, imports, constraints, code examples
 ```
 
-#### 4. `get-syntax-rules` - Universal Syntax Rules
+#### 4. `get-syntax-rules` - Redirect
 
 ```typescript
 get - syntax - rules()
-// Returns: All coding conventions with examples and violations
+// Returns: a pointer to get-architecture, which carries the coding conventions
 ```
+
+The conventions live in `get-architecture` under "Writing a File". They were only ever read alongside the folder rules,
+and a second copy drifted from the first.
 
 ### Comment Metadata Format
 
@@ -197,14 +200,7 @@ get - folder - detail({folderType: "guards"})
 // Returns: purpose, naming conventions, import rules, constraints, code examples
 ```
 
-### 3. Get Universal Syntax Rules
-
-```typescript
-get - syntax - rules()
-// Returns: all coding conventions with examples
-```
-
-### 4. Discover Brokers for User Operations
+### 3. Discover Brokers for User Operations
 
 ```typescript
 discover({
@@ -236,11 +232,10 @@ The MCP server is configured in Claude Code settings and provides all 4 tools au
 
 **Recommended Workflow:**
 
-1. `get-architecture` → Understand where code goes
-2. `get-folder-detail` → Get folder-specific rules with examples
-3. `get-syntax-rules` → Get universal syntax conventions
-4. `discover({ glob: "packages/*/src/**" })` → Find existing code to reuse
-5. Write code following MCP-provided patterns (no need to read examples!)
+1. `get-architecture` → Where code goes, and how to write the file once you are there
+2. `get-folder-detail` → Folder-specific rules with examples
+3. `discover({ glob: "packages/*/src/**" })` → Find existing code to reuse
+4. Write code following MCP-provided patterns (no need to read examples!)
 
 **Key Philosophy:** MCP tools provide COMPLETE guidance with examples. Never read files just to discover patterns - only
 read files you're directly modifying.

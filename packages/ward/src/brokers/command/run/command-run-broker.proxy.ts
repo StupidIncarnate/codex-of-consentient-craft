@@ -9,11 +9,11 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import type { TestNamePatternMatch } from '../../../contracts/test-name-pattern-match/test-name-pattern-match-contract';
-import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
-import { commandRunLayerGitScopeBrokerProxy } from './command-run-layer-git-scope-broker.proxy';
-import { commandRunLayerPathCheckBrokerProxy } from './command-run-layer-path-check-broker.proxy';
-import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
-import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
+import { folderResolveLayerBrokerProxy } from './folder-resolve-layer-broker.proxy';
+import { gitScopeLayerBrokerProxy } from './git-scope-layer-broker.proxy';
+import { pathCheckLayerBrokerProxy } from './path-check-layer-broker.proxy';
+import { singlePackageLayerBrokerProxy } from './single-package-layer-broker.proxy';
+import { multiPackageLayerBrokerProxy } from './multi-package-layer-broker.proxy';
 
 // One eslint finding — a genuine red run, as opposed to a check that exits non-zero while
 // reporting nothing (the crash shape below).
@@ -52,13 +52,13 @@ export const commandRunBrokerProxy = (): {
   registerSpyOn({ object: process.stderr, method: 'write' }).calledWith([]).returns(true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
-  const gitScopeProxy = commandRunLayerGitScopeBrokerProxy();
-  const pathCheckProxy = commandRunLayerPathCheckBrokerProxy();
-  const folderProxy = commandRunLayerFolderBrokerProxy();
-  const singleProxy = commandRunLayerSingleBrokerProxy();
-  const multiProxy = commandRunLayerMultiBrokerProxy();
+  const gitScopeProxy = gitScopeLayerBrokerProxy();
+  const pathCheckProxy = pathCheckLayerBrokerProxy();
+  const folderProxy = folderResolveLayerBrokerProxy();
+  const singleProxy = singlePackageLayerBrokerProxy();
+  const multiProxy = multiPackageLayerBrokerProxy();
 
-  // Matches what commandRunLayerFolderBroker actually returns for rootPath '/project' when
+  // Matches what folderResolveLayerBroker actually returns for rootPath '/project' when
   // folderProxy stages a package.json named 'test-pkg'.
   const singlePackageProjectFolder = ProjectFolderStub({ name: 'test-pkg', path: '/project' });
 

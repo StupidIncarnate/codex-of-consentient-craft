@@ -11,7 +11,7 @@ import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/c
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { workspaceDiscoverLayerPatternBroker } from './workspace-discover-layer-pattern-broker';
+import { patternResolveLayerBroker } from './pattern-resolve-layer-broker';
 
 export const workspaceDiscoverBroker = async ({
   rootPath,
@@ -44,9 +44,7 @@ export const workspaceDiscoverBroker = async ({
   }
 
   const resolvedGroups = await Promise.all(
-    workspaces.map(async (w) =>
-      workspaceDiscoverLayerPatternBroker({ pattern: String(w), rootPath }),
-    ),
+    workspaces.map(async (w) => patternResolveLayerBroker({ pattern: String(w), rootPath })),
   );
 
   return resolvedGroups.flat();

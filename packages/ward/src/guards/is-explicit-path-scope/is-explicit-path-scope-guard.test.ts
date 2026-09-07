@@ -16,7 +16,7 @@ describe('isExplicitPathScopeGuard', () => {
     });
   });
 
-  // THE WHOLE REASON THIS GUARD EXISTS. `commandRunLayerGitScopeBroker` writes the diff into the
+  // THE WHOLE REASON THIS GUARD EXISTS. `gitScopeLayerBroker` writes the diff into the
   // same `passthrough` field, so a caller reading that field alone cannot tell a typed path from a
   // git-produced one — and a diff holding only `eslint.config.js` is an ordinary run, not a fault.
   describe('paths git produced', () => {

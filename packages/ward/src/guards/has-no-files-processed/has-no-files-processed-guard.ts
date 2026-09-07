@@ -24,7 +24,7 @@
  * discovery, not the processed list. The run-level count is the honest question this data answers.
  *
  * A CRASHED PROJECT MEASURED NOTHING, so it is dropped for the same reason a skip is: its zero is a
- * placeholder, not a reading. `commandRunLayerChildCrashBroker` synthesises a failing ProjectResult
+ * placeholder, not a reading. `childCrashLayerBroker` synthesises a failing ProjectResult
  * with `filesCount` left at its contract default when a child ward dies without writing a readable
  * result, and counting that zero printed "they are on disk, and every file-scoped check in this run
  * reported 0 files" underneath the crash report — both statements true, the cause misattributed, and

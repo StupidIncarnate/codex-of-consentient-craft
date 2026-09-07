@@ -13,7 +13,7 @@ import { StartWard } from './start-ward';
 // harness.runAndMonitorMemory spawns `npx tsx --conditions=source bin/ward-entry.ts run --only
 // lint` and walks the whole descendant pid tree (tsx's own process, the worker pid it forks to
 // actually run, esbuild, up to 4 concurrent per-package `dungeonmaster-ward` children —
-// CONCURRENCY_LIMIT in commandRunLayerMultiBroker — and each child's own eslint grandchild), then
+// CONCURRENCY_LIMIT in multiPackageLayerBroker — and each child's own eslint grandchild), then
 // asserts the MAX SINGLE-PROCESS RSS observed across that tree, not the sum.
 //
 // NOTE FOR A FUTURE READER: `src/startup/start-ward.ts` exports `StartWard` but never calls it —

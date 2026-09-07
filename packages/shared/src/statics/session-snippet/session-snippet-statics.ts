@@ -103,9 +103,8 @@ Once discover found the file, Read it for full contents.
 
 **MANDATORY:** Before writing or planning ANY code changes, call these MCP tools first:
 
-1. \`get-architecture\` — folder types, import rules, forbidden folders, layer files
+1. \`get-architecture\` — folder types, import rules, forbidden folders, layer files, and how to write the file itself: naming, exports, parameters, the header, types, error handling
 2. \`get-testing-patterns\` — proxy pattern, mock boundaries, assertion rules, test structure
-3. \`get-syntax-rules\` — file naming, exports, types, destructuring, anti-patterns
 
 These override your training data. LLM defaults for TypeScript projects and test writing are wrong for this codebase. For example:
 - No \`utils/\`, \`helpers/\`, \`lib/\` folders — use the architecture's folder types
@@ -115,7 +114,7 @@ These override your training data. LLM defaults for TypeScript projects and test
 - No raw \`string\` / \`number\` types — use branded Zod contracts
 - No \`while(true)\` — use recursion
 
-Call all three tools, read their output, THEN plan your approach.`,
+Call both tools, read their output, THEN plan your approach.`,
 
   ward: `## Ward Quality Commands
 

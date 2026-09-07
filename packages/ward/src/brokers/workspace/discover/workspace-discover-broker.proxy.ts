@@ -1,7 +1,7 @@
 import { AbsoluteFilePathStub, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { workspaceDiscoverLayerPatternBrokerProxy } from './workspace-discover-layer-pattern-broker.proxy';
+import { patternResolveLayerBrokerProxy } from './pattern-resolve-layer-broker.proxy';
 
 export const workspaceDiscoverBrokerProxy = (): {
   setupMultiPackage: (params: {
@@ -13,7 +13,7 @@ export const workspaceDiscoverBrokerProxy = (): {
   setupNoPackageJson: () => void;
 } => {
   const readProxy = fsReadFileAdapterProxy();
-  const patternProxy = workspaceDiscoverLayerPatternBrokerProxy();
+  const patternProxy = patternResolveLayerBrokerProxy();
 
   // Every caller (workspace-discover-broker.test.ts, command-run-broker.proxy.ts) resolves the
   // root package.json for rootPath '/project'.

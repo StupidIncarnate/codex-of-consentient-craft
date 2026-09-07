@@ -1,15 +1,15 @@
 import { folderConstraintsInitBroker } from './folder-constraints-init-broker';
 import { folderConstraintsInitBrokerProxy } from './folder-constraints-init-broker.proxy';
+import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 describe('folderConstraintsInitBroker', () => {
-  it('VALID: loads all 14 constraint markdown files from disk', async () => {
+  it('VALID: loads one constraint markdown file per folder type that has one', async () => {
     folderConstraintsInitBrokerProxy();
 
-    const { folderConstraints, layerConstraints } = await folderConstraintsInitBroker();
+    const { folderConstraints } = await folderConstraintsInitBroker();
 
-    expect(folderConstraints.size).toBe(14);
-    expect(layerConstraints).toMatch(/^# LAYER FILES - Decomposing Complex Components$/mu);
+    expect(folderConstraints.size).toBe(Object.keys(folderConstraintsStatics).length);
   });
 
   it('VALID: adapters constraints include translation boundary guidance', async () => {

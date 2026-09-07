@@ -162,7 +162,7 @@ describe('hasNoFilesProcessedGuard', () => {
   });
 
   // A CRASHED CHILD MEASURED NOTHING, so its zero is a placeholder rather than a reading.
-  // `commandRunLayerChildCrashBroker` synthesises a failing ProjectResult with `filesCount` left at
+  // `childCrashLayerBroker` synthesises a failing ProjectResult with `filesCount` left at
   // its contract default of 0 for a child ward that died without writing a readable result. Read
   // literally, that zero printed "they are on disk, and every file-scoped check in this run reported
   // 0 files" underneath the crash report, sending the reader to inspect paths that were never the

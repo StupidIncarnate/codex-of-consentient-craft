@@ -34,7 +34,7 @@ export const projectResultContract = z.object({
   // that never filtered by name (lint, typecheck) from one that filtered and found nothing.
   testNamePatternMatch: testNamePatternMatchContract.optional(),
   // This package's own wall clock for the check, distinct from checkResultContract's durationMs —
-  // that one is the whole check across every package (see command-run-layer-multi-broker). Defaults
+  // that one is the whole check across every package (see multi-package-layer-broker). Defaults
   // to 0 so parses that predate this field (saved .ward/ results, precomputed typecheck results with
   // no per-package split) keep working.
   durationMs: durationMsContract.default(0),

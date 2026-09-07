@@ -89,6 +89,104 @@ describe('architectureFolderDetailBroker', () => {
     });
   });
 
+  describe('companion filenames', () => {
+    it('VALID: {folderType: "brokers"} => test and proxy carry the implementation .ts extension', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'brokers' as never,
+      });
+      const section = result.slice(
+        result.indexOf('## Required Files'),
+        result.indexOf('## Special Features'),
+      );
+
+      expect(section).toBe(
+        '## Required Files\n\n**Proxy Required:** Yes\n\n- Implementation: `{name}-broker.ts`\n\n- Test: `{name}-broker.test.ts`\n\n- Proxy: `{name}-broker.proxy.ts`\n\n\n',
+      );
+    });
+
+    it('VALID: {folderType: "widgets"} => test and proxy carry the implementation .tsx extension', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'widgets' as never,
+      });
+      const section = result.slice(
+        result.indexOf('## Required Files'),
+        result.indexOf('## Special Features'),
+      );
+
+      expect(section).toBe(
+        '## Required Files\n\n**Proxy Required:** Yes\n\n- Implementation: `{name}-widget.tsx`\n\n- Test: `{name}-widget.test.tsx`\n\n- Proxy: `{name}-widget.proxy.tsx`\n\n\n',
+      );
+    });
+
+    it('VALID: {folderType: "flows"} => names an integration test and no proxy', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'flows' as never,
+      });
+      const section = result.slice(
+        result.indexOf('## Required Files'),
+        result.indexOf('## Special Features'),
+      );
+
+      expect(section).toBe(
+        '## Required Files\n\n**Proxy Required:** No\n\n- Implementation: `{name}-flow.ts`\n\n- Test: `{name}-flow.integration.test.ts`\n\n\n',
+      );
+    });
+
+    it('VALID: {folderType: "startup"} => names an integration test and no proxy', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'startup' as never,
+      });
+      const section = result.slice(
+        result.indexOf('## Required Files'),
+        result.indexOf('## Special Features'),
+      );
+
+      expect(section).toBe(
+        '## Required Files\n\n**Proxy Required:** No\n\n- Implementation: `{name}.ts`\n\n- Test: `{name}.integration.test.ts`\n\n\n',
+      );
+    });
+
+    it('VALID: {folderType: "contracts"} => names the stub file the tests must import', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'contracts' as never,
+      });
+      const section = result.slice(
+        result.indexOf('## Required Files'),
+        result.indexOf('## Special Features'),
+      );
+
+      expect(section).toBe(
+        '## Required Files\n\n**Proxy Required:** No\n\n- Implementation: `{name}-contract.ts`\n\n- Test: `{name}-contract.test.ts`\n\n- Stub: `{name}.stub.ts`\n\n\n',
+      );
+    });
+
+    it('EMPTY: {folderType: "assets"} => names no test file at all', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'assets' as never,
+      });
+      const section = result.slice(
+        result.indexOf('## Required Files'),
+        result.indexOf('## Special Features'),
+      );
+
+      expect(section).toBe(
+        '## Required Files\n\n**Proxy Required:** No\n\n- Implementation: `{name}`\n\n\n',
+      );
+    });
+  });
+
   describe('unknown folder type', () => {
     it('VALID: {folderType: "unknown-type"} => returns error message', () => {
       architectureFolderDetailBrokerProxy();

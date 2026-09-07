@@ -76,7 +76,7 @@ name. Ignored by lint and typecheck check types.
 ### `--onlyTests` requires a `-- <files>` scope
 
 `--onlyTests` is a test NAME filter and scopes nothing on its own. `filteredFolders` in
-`commandRunLayerMultiBroker` narrows on `passthrough` alone, so without a file list ward spawns a child in every
+`multiPackageLayerBroker` narrows on `passthrough` alone, so without a file list ward spawns a child in every
 workspace package, and the pattern reaches Jest as `--testNamePattern`, which filters at EXECUTION — after each package
 has collected and transformed every test file it owns. Measured: an unscoped `--only unit --onlyTests` run took **355s
 across 13 packages and 2560 transformed files to run 4 tests**; `web` and `shared` each paid over two minutes to report
@@ -84,7 +84,7 @@ across 13 packages and 2560 transformed files to run 4 tests**; `web` and `share
 
 A **bare `--` sets no passthrough**, so it is not a file scope and does not satisfy the rule.
 
-**A child ward is exempt, and only a child.** `commandRunLayerMultiBroker` spawns one child per
+**A child ward is exempt, and only a child.** `multiPackageLayerBroker` spawns one child per
 package `filteredFolders` already picked, so the monorepo sweep the rule prevents cannot happen
 there — and a whole-package arg (`-- packages/ward`) slices to an empty per-file list, so there is
 nothing left to put after the child's own `--`. The parent therefore appends
@@ -256,7 +256,7 @@ Three things make that predicate survive the runs it must not redden:
   make the answer `false` for every run that includes typecheck.
 - **A skipped check is not evidence.** Jest's "No tests found" becomes `status: 'skip'`, and a non-e2e-eligible package
   skips e2e outright. A run left with no file-scoped check at all (`--only typecheck`) therefore does not fail.
-- **A crashed project is not evidence either.** `commandRunLayerChildCrashBroker` synthesises a failing `ProjectResult`
+- **A crashed project is not evidence either.** `childCrashLayerBroker` synthesises a failing `ProjectResult`
   whose `filesCount` is the contract default 0, so a child ward that died would otherwise print the NO CHECK PROCESSED
   block under its own crash report — two true statements, the wrong cause. `hasNoFilesProcessedGuard` drops crashed
   results via `isCrashedProjectResultGuard`, per project result: a package that really did look at the scope and find
@@ -267,7 +267,7 @@ Three things make that predicate survive the runs it must not redden:
   discovery) — never the processed list. One check processing anything clears the whole scope.
 
 **Git-derived paths are exempt, and that is why the guard reads `config` and not `resolvedConfig`.**
-`commandRunLayerGitScopeBroker` writes a `--committed`/`--uncommitted` diff into the same `passthrough` field an explicit
+`gitScopeLayerBroker` writes a `--committed`/`--uncommitted` diff into the same `passthrough` field an explicit
 `-- <files>` list lands in, so the field alone cannot say who asked. `isExplicitPathScopeGuard` answers false whenever
 `committed` or `uncommitted` is set — a diff legitimately holds root-level files nothing lints, and reddening those would
 break the pre-push gate. Like `isFileScopeRequestedGuard` it classifies every `wardConfigContract` field
@@ -346,7 +346,7 @@ start-ward.ts (entry point)
   -> WardFlow (routes the four subcommands)
     -> WardRunResponder (parses CLI args for `run`)
       -> command-run-broker (resolves git scope, checks passthrough paths exist, picks a mode)
-        -> commandRunLayerSingleBroker (no workspaces: runs every requested check type
+        -> singlePackageLayerBroker (no workspaces: runs every requested check type
              in-process, one at a time, against the single project)
           -> check-run-lint-broker        (spawns eslint, parses JSON output)
           -> check-run-typecheck-broker   (spawns tsc --noEmit --listFiles, never emits)
@@ -355,22 +355,22 @@ start-ward.ts (entry point)
           -> check-run-e2e-broker         (spawns playwright, parses line+JSON output)
           -> storage-save-broker / storage-prune-broker
           -> e2e-artifacts-prune-broker (sweeps leaked e2e artifacts, every run, at the END)
-        -> commandRunLayerMultiBroker (workspaces: spawns a child `dungeonmaster-ward` in each
+        -> multiPackageLayerBroker (workspaces: spawns a child `dungeonmaster-ward` in each
              matching package — a pool of up to 4 concurrent — and merges their results)
           -> storage-save-broker / storage-prune-broker
 ```
 
 **A child's result is loaded BY ID or not at all.** `storageLoadBroker` called without a `runId` returns the newest
-file in that package's `.ward/` — the PREVIOUS run — so `commandRunLayerMultiBroker` only ever asks for the id the
+file in that package's `.ward/` — the PREVIOUS run — so `multiPackageLayerBroker` only ever asks for the id the
 child printed on its `run: <id>` summary line, and treats a missing id as a crash
-(`commandRunLayerChildCrashBroker`). Skipping that distinction reported a child killed at CLI-parse time as whatever
+(`childCrashLayerBroker`). Skipping that distinction reported a child killed at CLI-parse time as whatever
 the package last managed to do, at exit 0: `unit: PASS 1 packages (163 discovered) 2.0s` for a run whose entire wall
 clock was 0.2s, byte-identical across consecutive invocations. It defeats `hasNoFilesProcessedGuard` too, because the
 stale result claims files were processed. A child that reached its summary always printed the line — the summary and
 the result file come from the same `wardResult` — and the two paths that return before it (an empty file scope, a path
 not on disk) write neither, so a missing id means no result of this run exists to merge.
 
-In multi-package mode, `commandRunLayerMultiBroker` spawns a child `dungeonmaster-ward` process in each matching
+In multi-package mode, `multiPackageLayerBroker` spawns a child `dungeonmaster-ward` process in each matching
 workspace package — up to 4 concurrently, via a promise pool — and aggregates their results; each child still runs
 its own check types one at a time. Results are aggregated into a `WardResult` and saved for later inspection via
 `list`, `detail`, and `raw` subcommands.

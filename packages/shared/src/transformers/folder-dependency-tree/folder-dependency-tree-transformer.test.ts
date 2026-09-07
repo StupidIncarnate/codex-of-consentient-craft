@@ -63,7 +63,7 @@ describe('folderDependencyTreeTransformer', () => {
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: 'statics/          # Can import: nothing (leaf node)',
+          value: 'statics/  # Can import: nothing (leaf node)',
         }),
         graph: {
           statics: [],
@@ -86,7 +86,7 @@ describe('folderDependencyTreeTransformer', () => {
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: 'guards/          # Can import: statics',
+          value: 'guards/  # Can import: statics',
         }),
         graph: {
           guards: ['statics'],
@@ -111,9 +111,9 @@ describe('folderDependencyTreeTransformer', () => {
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: `statics/          # Can import: nothing (leaf node)
-contracts/          # Can import: statics
-guards/          # Can import: contracts, statics`,
+          value: `statics/    # Can import: nothing (leaf node)
+contracts/  # Can import: statics
+guards/     # Can import: contracts, statics`,
         }),
         graph: {
           statics: [],
@@ -143,8 +143,8 @@ guards/          # Can import: contracts, statics`,
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: `statics/          # Can import: nothing (leaf node)
-startup/          # Can import: flows, contracts`,
+          value: `statics/  # Can import: nothing (leaf node)
+startup/  # Can import: flows, contracts`,
         }),
         graph: {
           statics: [],
@@ -176,10 +176,10 @@ startup/          # Can import: flows, contracts`,
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: `statics/          # Can import: nothing (leaf node)
-guards/          # Can import: contracts, statics
-transformers/          # Can import: guards, contracts, statics
-brokers/          # Can import: transformers, guards, contracts, statics`,
+          value: `statics/       # Can import: nothing (leaf node)
+guards/        # Can import: contracts, statics
+transformers/  # Can import: guards, contracts, statics
+brokers/       # Can import: transformers, guards, contracts, statics`,
         }),
         graph: {
           statics: [],
@@ -210,7 +210,7 @@ brokers/          # Can import: transformers, guards, contracts, statics`,
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: 'statics/          # Can import: nothing (leaf node)',
+          value: 'statics/  # Can import: nothing (leaf node)',
         }),
         graph: {
           statics: [],
@@ -250,7 +250,7 @@ brokers/          # Can import: transformers, guards, contracts, statics`,
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: 'guards/          # Can import: statics, contracts',
+          value: 'guards/  # Can import: statics, contracts',
         }),
         graph: {
           guards: ['statics', 'contracts'],
@@ -273,7 +273,7 @@ brokers/          # Can import: transformers, guards, contracts, statics`,
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: 'adapters/          # Can import: node_modules, statics',
+          value: 'adapters/  # Can import: node_modules, statics',
         }),
         graph: {
           adapters: ['node_modules', 'statics'],

@@ -113,11 +113,9 @@ If your parent named no quest ID, ask the user for it.
 
 Identify the package(s) the quest's flows + observables touch (look at \`flows[].nodes\`, \`accompanyingFiles\`, observable types). Then call \`get-project-map({ packages: [...] })\` with those names to load just those connection-graph slices. You'll need this when verifying spec claims against the codebase in later steps.
 
-Also load the two project-standards tools — you are reviewing a spec, not writing code, so you need architecture and testing context but NOT syntax rules:
-- \`get-architecture\` — folder types, layer model, import rules. Anchors your judgment when you verify \`existing\` contract claims and check whether an observable's described behavior is architecturally coherent.
+Also load the two project-standards tools — you are reviewing a spec, not writing code:
+- \`get-architecture\` — folder types, layer model, import rules. Anchors your judgment when you verify \`existing\` contract claims and check whether an observable's described behavior is architecturally coherent. Skip its "Writing a File" section; file naming and export conventions are implementation concerns outside spec review.
 - \`get-testing-patterns\` — assertion rules, test structure, proxy/stub conventions. You use this to judge observable testability: an observable a Siegemaster could not turn into a concrete assertion is a finding.
-
-Do NOT call \`get-syntax-rules\` — file naming and export conventions are implementation concerns outside spec review.
 
 ### Step 3: Review Flows (Semantic)
 

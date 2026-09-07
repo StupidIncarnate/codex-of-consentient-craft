@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Answers "did the CALLER type these paths, or did git produce them" — the distinction
- * `config.passthrough` alone cannot make, because `commandRunLayerGitScopeBroker` writes a
+ * `config.passthrough` alone cannot make, because `gitScopeLayerBroker` writes a
  * `--committed`/`--uncommitted` diff into that very field. Reach for this over
  * `isFileScopeRequestedGuard` whenever a rule may only bind paths a human named: that guard says a
  * file scope was asked for at all, this one says WHO asked. A git diff legitimately carries

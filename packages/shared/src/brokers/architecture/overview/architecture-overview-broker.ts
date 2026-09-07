@@ -1,11 +1,11 @@
 /**
- * PURPOSE: Generate orientation map for LLMs entering the repo with folder types, architecture layers, decision tree, and critical rules
+ * PURPOSE: The one document an agent reads before it touches this repo — where a file goes, and how
+ * to write it once it is there. Most of the text is literal markdown rather than assembled from
+ * statics, so the output is readable in this file without rendering it.
  *
  * USAGE:
  * const markdown = architectureOverviewBroker();
- * // Returns ContentText markdown with folder types table, layer diagram, decision tree, and critical rules
- *
- * WHEN-TO-USE: When LLMs need a high-level overview of the project structure and architecture
+ * // Returns ContentText answering the get-architecture MCP tool
  */
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import {
@@ -48,24 +48,6 @@ export const architectureOverviewBroker = (): ContentText => {
 ${hierarchy}
 \`\`\``;
 
-  // Build decision tree from metadata (using same folder order, excluding non-code folders)
-  const decisionTreeLines: ContentText[] = [];
-  let decisionIndex = 1;
-
-  for (const { key: folderName, config } of folderEntries) {
-    // Skip assets and migrations from decision tree (not code folders)
-    if (folderName === 'assets' || folderName === 'migrations') {
-      continue;
-    }
-
-    decisionTreeLines.push(
-      contentTextContract.parse(`${decisionIndex}. ${config.meta.whenToUse} → ${folderName}/`),
-    );
-    decisionIndex++;
-  }
-
-  const decisionTree = contentTextContract.parse(`\`\`\`\n${decisionTreeLines.join('\n')}\n\`\`\``);
-
   // Build allowed layer folders list from config
   const allowsLayerFolders = folderEntries
     .filter(({ config }) => config.allowsLayerFiles)
@@ -73,109 +55,51 @@ ${hierarchy}
     .join(', ');
 
   // Combine all sections
-  const markdown =
-    `# Architecture Overview
+  const markdown = `# Architecture Overview
 
 ## Critical Context: Why This Architecture
 
-LLMs instinctively "squirrel away" code based on training data patterns. This creates chaos with folders like \`utils/\`, \`lib/\`, \`helpers/\`.
-
-This structure forces deterministic organization by:
-1. **Eliminating ambiguous folders** (utils, lib, helpers, common)
-2. **Using unconventional terms** (brokers, transformers, guards) to bypass LLM training patterns
-3. **Explicit import rules** mechanically enforced by ESLint
-
-**If you think "this should go in utils/" → refer to Forbidden Folders table below.**
+LLMs instinctively "squirrel away" code based on training data patterns, which produces \`utils/\`, \`lib/\`, \`helpers/\`. The folder names here are deliberately unconventional — brokers, transformers, guards — so no training pattern fires and every file has exactly one correct home. ESLint enforces the rest.
 
 ## Architecture Layer Diagram
 
 ${layerDiagram}
 
-## Decision Tree: Where Does Code Go?
-
-${decisionTree}
-
 ## Forbidden Folders - Where Code Actually Goes
 
 | ❌ FORBIDDEN | ✅ USE INSTEAD | WHY |
 |-------------|----------------|-----|
-| utils/ | adapters/ or transformers/ | Based on whether it wraps external packages or transforms data |
-| lib/ | adapters/ | External package wrappers only |
-| helpers/ | guards/ or transformers/ | Boolean functions → guards/, others → transformers/ |
-| common/ | Distribute by function | No catch-all folders allowed |
-| shared/ | Distribute by function | No catch-all folders allowed |
-| core/ | brokers/ | Business logic operations |
-| services/ | brokers/ | Business operations |
-| repositories/ | brokers/ | Data access operations |
-| models/ | contracts/ | Data definitions and validation |
-| types/ | contracts/ | All types and interfaces |
-| interfaces/ | contracts/ | Type definitions |
-| validators/ | contracts/ | Validation schemas only |
-| constants/ | statics/ | Immutable values, enums, config objects |
-| config/ | statics/ | Static configuration values |
-| enums/ | statics/ | Enumerations |
-| formatters/ | transformers/ | Data formatting |
-| mappers/ | transformers/ | Data mapping |
-| converters/ | transformers/ | Data conversion |
+| models/, types/, interfaces/, validators/ | contracts/ | Every type and every schema is a contract |
+| constants/, config/, enums/ | statics/ | Every immutable value is a static |
+| formatters/, mappers/, converters/ | transformers/ | Every A-to-B data change is a transformer |
+| core/, services/, repositories/ | brokers/ | Every business operation is a broker |
+| lib/ | adapters/ | Only adapters wrap an npm package |
+| utils/, helpers/ | adapters/, guards/ or transformers/ | Split by what it does: wraps a package, returns a boolean, or reshapes data |
+| common/, shared/ | Distribute by function | A catch-all folder has no rule to enforce |
 
-**Special Case: @types/ Folder**
-
-The \`@types/\` folder is allowed **at package root only** (not in \`src/\`) for global TypeScript type augmentations.
+\`@types/\` is the one exception, allowed at package root only:
 
 \`\`\`
 package-root/
 ├── @types/
-│   └── error-cause.d.ts     # Global type augmentations (extending Error, Window, etc.)
+│   └── error-cause.d.ts     # ONLY for augmenting built-ins: Error, Window, globalThis
 ├── src/
-│   └── contracts/           # Application contracts (NOT @types or types/)
+│   └── contracts/           # Every application type lives here instead
 └── package.json
 \`\`\`
 
-**Use for:** Extending built-in JavaScript/TypeScript types (\`Error\`, \`Window\`, etc.)
-**Do NOT use for:** Application types (those go in \`src/contracts/\`)
-
 ## Import Rules
 
-**Cross-Folder Import Rules:**
+Only **entry files** cross a domain folder boundary. An entry file's name is its folder path plus the folder suffix and nothing else — \`[folder-path]-[folder-suffix].ts\`.
 
-Only **entry files** can be imported across domain folders.
+- \`brokers/user/fetch/user-fetch-broker.ts\` ✅ name is the folder path
+- \`adapters/axios/get/axios-get-adapter.ts\` ✅ name is the folder path
+- \`contracts/user/user-contract.ts\` ✅ name is the folder path
+- \`brokers/user/fetch/validate-helper.ts\` ❌ extra word "validate"
+- \`brokers/user/fetch/validate-layer-broker.ts\` ❌ extra words "validate-layer"
+- \`widgets/user-card/avatar-layer-widget.tsx\` ❌ extra words "avatar-layer"
 
-**Entry files** = filename exactly matches folder path + suffix (no extra words)
-
-**Pattern:** \`[folder-path]-[folder-suffix].ts\`
-
-**Examples:**
-- \`brokers/user/fetch/user-fetch-broker.ts\` ✅ Entry file (filename = folder path)
-- \`adapters/axios/get/axios-get-adapter.ts\` ✅ Entry file (filename = folder path)
-- \`contracts/user/user-contract.ts\` ✅ Entry file (filename = folder path)
-- \`brokers/user/fetch/validate-helper.ts\` ❌ NOT entry (has extra "validate")
-- \`brokers/user/fetch/validate-layer-broker.ts\` ❌ NOT entry (has "validate-layer")
-- \`widgets/user-card/avatar-layer-widget.tsx\` ❌ NOT entry (has "avatar-layer")
-
-\`\`\`typescript
-// ✅ CORRECT - Importing entry file (name matches folders)
-` +
-    `import {userFetchBroker} ` +
-    `from '../../brokers/user/fetch/user-fetch-broker';
-` +
-    `import {axiosGetAdapter} ` +
-    `from '../../../adapters/axios/get/axios-get-adapter';
-
-// ❌ WRONG - Importing non-entry files (names have extra parts)
-` +
-    `import {validateHelper} ` +
-    `from '../../brokers/user/fetch/validate-helper';
-` +
-    `import {validateLayerBroker} ` +
-    `from '../../brokers/user/fetch/validate-layer-broker';
-` +
-    `import {avatarLayerWidget} ` +
-    `from '../user-card/avatar-layer-widget';
-\`\`\`
-
-**Same-folder imports:** Files within same domain folder can import each other freely (including helpers and layers).
-
-**Layer files** (\`-layer-\` in filename) are internal implementation details - they can ONLY be imported within their own domain folder, never across domains.
+Inside one domain folder every file may import every other, helpers and layers included. Across folders, only the ✅ rows are reachable at all.
 
 ## Cross-Package Public API
 
@@ -196,7 +120,7 @@ A \`brokers/\` file may import another package's \`contracts\`/\`adapters\`/\`br
 
 ### Consumer TypeScript config
 
-Checking and emitting live in separate files. Each package's \`tsconfig.json\` extends the published base and adds only per-package CHECKING keys — no \`outDir\`, \`rootDir\`, \`composite\`, or \`declaration\`:
+Checking and emitting live in separate files. \`tsconfig.json\` extends the published base and adds only checking keys:
 
 \`\`\`json
 {
@@ -206,7 +130,7 @@ Checking and emitting live in separate files. Each package's \`tsconfig.json\` e
 }
 \`\`\`
 
-A sibling \`tsconfig.build.json\` extends that checking config and carries only the fields that EMIT — \`noEmit: false\` among them, since the checking config it extends turns emit off:
+A sibling \`tsconfig.build.json\` extends it and carries only the keys that EMIT — \`noEmit: false\` among them, since the checking config turns emit off:
 
 \`\`\`json
 {
@@ -216,90 +140,57 @@ A sibling \`tsconfig.build.json\` extends that checking config and carries only 
 }
 \`\`\`
 
-**No config sets \`composite\`, and no config carries a \`references\` array.** Nothing consumes project references — each package builds and typechecks on its own — and \`composite\` forces every file the program reaches into \`include\`, so one import of a file the build config \`exclude\`s (a \`.test.ts\`, a harness) becomes a hard TS6307 rather than a file the emitter skips.
+\`build\` runs \`tsc -p tsconfig.build.json\`; ward's typecheck runs \`tsc --noEmit\` against \`tsconfig.json\` and writes nothing.
 
-Each package's \`build\` script runs \`tsc -p tsconfig.build.json\`; ward's typecheck runs plain \`tsc --noEmit\` against the checking \`tsconfig.json\` and never emits.
-
-The base carries the load-bearing options — \`moduleResolution: "node"\` (the node10 source-resolution rule above), the strict flags, \`esModuleInterop\`, \`resolveJsonModule\`. \`include: ["*.ts"]\` is what compiles the root barrels.
+**No config sets \`composite\` and none carries a \`references\` array.** Nothing consumes project references, and \`composite\` forces every file the program reaches into \`include\` — so one import of a file the build config \`exclude\`s (a \`.test.ts\`, a harness) becomes a hard TS6307 instead of a file the emitter skips.
 
 ### Consumer jest config
 
-Each package's \`jest.config.js\` spreads the REPO-ROOT \`jest.config.base.js\` (adding \`roots: ["<rootDir>/src"]\`), which registers the ts-jest AST transformers (so \`registerMock\` / proxy files work), the auto-reset setup (clears mocks, bans \`.skip\`/\`.todo\`, fails assertion-less tests), and \`testEnvironmentOptions.customExportConditions: ["source", "require", "default"]\`.
+Each package's \`jest.config.js\` spreads the REPO-ROOT \`jest.config.base.js\` and adds \`roots: ["<rootDir>/src"]\`. The base registers the ts-jest AST transformers that make \`registerMock\` and proxy files work, the auto-reset setup, and \`testEnvironmentOptions.customExportConditions: ["source", "require", "default"]\`.
 
-**That conditions list is the load-bearing key, and only the repo-root base carries it.** It is what makes a test resolve a sibling workspace package to the TypeScript a session just edited instead of to \`dist/\`; without it a suite grades the last build and goes green over changed source. The published \`@dungeonmaster/testing/jest-config-base\` deliberately omits it, because an INSTALLED package ships \`dist\` only and has no source barrel to resolve to — so spreading the published base inside this monorepo is the stale-green defect, and any jest config that pins its own \`testEnvironmentOptions\` instead of inheriting them has to repeat the list by hand.
+**That conditions list is the load-bearing key and only the repo-root base carries it.** It makes a test resolve a sibling workspace package to the TypeScript a session just edited instead of to \`dist/\`; without it a suite grades the last build and goes green over changed source. The published \`@dungeonmaster/testing/jest-config-base\` omits it deliberately, because an INSTALLED package ships \`dist\` only and has no source barrel to resolve to — so spreading the published base inside this monorepo IS the stale-green defect. A config that pins its own \`testEnvironmentOptions\` rather than inheriting them has to repeat the list by hand.
 
 ## Layer Files - Decomposing Complex Components
 
-**Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.
+**Purpose:** Decompose a file past 300 lines into focused, testable layers that stay inside the parent's domain folder.
 
 **Naming:** \`{descriptive-name}-layer-{folder-suffix}.{ext}\`
 
+The export is the whole filename, in the folder's own export case.
+
+- ✅ \`image-content-layer-widget.tsx\` exports \`ImageContentLayerWidget\`
+- ✅ \`validate-folder-depth-layer-broker.ts\` exports \`validateFolderDepthLayerBroker\`
+- ❌ \`image-content-layer.tsx\` — no folder suffix
+- ❌ \`chat-message-layer-image-content-widget.tsx\` — the descriptive name goes before \`-layer-\`, not after
+- ❌ \`image-content-layer-1-widget.tsx\` — never numbered
+
 **Allowed in:** ${allowsLayerFolders} only
 
-**Structure:**
+Anywhere else \`@dungeonmaster/enforce-project-structure\` rejects the file. A layer skips the domain-prefix check an entry file gets, so its descriptive name need not repeat the folder path — the folder suffix is still checked.
+
+**Structure:** flat beside the parent, never in a subfolder. Every layer carries its own proxy and its own test, and both take the implementation's extension, so a \`.tsx\` layer takes \`.proxy.tsx\` and \`.test.tsx\`.
+
 \`\`\`
-brokers/user/fetch/
-  user-fetch-broker.ts              # Parent - orchestrates layers
-  user-fetch-broker.proxy.ts
-  user-fetch-broker.test.ts
+widgets/chat-message/
+  chat-message-widget.tsx                  # Parent - orchestrates layers
+  chat-message-widget.proxy.tsx
+  chat-message-widget.test.tsx
 
-  validate-input-layer-broker.ts    # Layer - validation logic
-  validate-input-layer-broker.proxy.ts
-  validate-input-layer-broker.test.ts
+  image-content-layer-widget.tsx           # Layer - renders image content blocks
+  image-content-layer-widget.proxy.tsx
+  image-content-layer-widget.test.tsx
 
-  format-response-layer-broker.ts   # Layer - formatting logic
-  format-response-layer-broker.proxy.ts
-  format-response-layer-broker.test.ts
+  thinking-layer-widget.tsx                # Layer - renders thinking blocks
+  thinking-layer-widget.proxy.tsx
+  thinking-layer-widget.test.tsx
 \`\`\`
-
-**Layer files ARE:**
-- ✅ Co-located with parent (same directory, flat structure)
-- ✅ Full entities with own \`.proxy.ts\` and \`.test.ts\` if complex
-- ✅ Independently testable with their own test suite
-- ✅ Scoped to parent's domain (not reusable across codebase)
-- ✅ Named with \`-layer-\` infix before folder suffix
-
-**Layer files are NOT:**
-- ❌ Utilities (those go in \`transformers/\` or \`guards/\`)
-- ❌ Reusable across parents (create new domain folder instead)
-- ❌ Separate domains (create sibling folder instead)
-- ❌ In subfolders (must be flat with parent, no nesting)
 
 **Import rules:**
-- ✅ Parent can import layers (same folder)
-- ✅ Layers can import other layers (same folder)
-- ❌ Cannot import layers from different domain folders
-- ❌ Cannot import layers from different actions (even same domain)
+- ✅ Parent imports its layers by relative path (\`./image-content-layer-widget\`)
+- ✅ Layers import each other the same way
+- ❌ No file outside the folder imports a layer — not another domain, not a sibling action in the same domain
 
-**Example:**
-\`\`\`typescript
-// ✅ CORRECT - Same folder imports
-// In: brokers/user/fetch/user-fetch-broker.ts
-` +
-    `import {validateInputLayerBroker} ` +
-    `from './validate-input-layer-broker';
-` +
-    `import {formatResponseLayerBroker} ` +
-    `from './format-response-layer-broker';
-
-// ✅ CORRECT - Layer importing layer (same folder)
-// In: brokers/user/fetch/validate-input-layer-broker.ts
-` +
-    `import {formatResponseLayerBroker} ` +
-    `from './format-response-layer-broker';
-
-// ❌ WRONG - Cross-domain layer import
-// In: brokers/auth/login/auth-login-broker.ts
-` +
-    `import {validateInputLayerBroker} ` +
-    `from '../../user/fetch/validate-input-layer-broker';
-
-// ❌ WRONG - Different action layer import (same domain)
-// In: brokers/user/update/user-update-broker.ts
-` +
-    `import {validateInputLayerBroker} ` +
-    `from '../fetch/validate-input-layer-broker';
-\`\`\`
+**In \`adapters/\` only:** the npm-package call stays in the parent. Layers translate shapes the parent already fetched, so the adapter's proxy keeps mocking exactly one boundary.
 
 **When to create layer:**
 - Parent exceeds 300 lines
@@ -308,149 +199,202 @@ brokers/user/fetch/
 - Layer needs >10 test cases
 
 **When NOT to create layer:**
-- Logic is reusable → extract to \`guards/\` or \`transformers/\`
+- A second folder needs the logic → extract to \`guards/\` or \`transformers/\`
 - Logic is <50 lines → keep inline
-- Folder doesn't allow layers (see \`allowsLayerFiles\` in config)
 
-**Testing:**
-- Each layer has its own test file following standard proxy pattern
-- Create fresh proxy per test
-- Tests verify layer's focused responsibility independently
-
-**Lint Enforcement:**
-- \`@dungeonmaster/enforce-project-structure\` - validates folder allows layers
-- \`@dungeonmaster/enforce-implementation-colocation\` - validates layer has parent in same directory
-- File suffix rules - validates \`-layer-\` appears before folder suffix
+**Lint Enforcement:** \`enforce-project-structure\` checks the folder allows layers and that \`-layer-\` precedes the suffix; \`enforce-implementation-colocation\` checks the parent, proxy and test all sit in that directory.
 
 ## Extension Over Creation Philosophy
 
-**Golden Rule:** If a domain file exists, EXTEND it with options - never create variant files.
+**Golden Rule:** If a domain file exists, EXTEND it with options — never create a variant file. Search before creating anything: \`discover({ glob: "packages/*/src/brokers/**", grep: "user" })\`.
 
-**Search first using the \`discover\` MCP tool:**
-- \`{ glob: "packages/*/src/brokers/**", grep: "user" }\`
-- \`{ glob: "packages/*/src/bindings/**" }\`
+**EXTEND** when the change is an option on the same job — a flag (\`includeCompany\`), a filter (\`status?: 'active' | 'inactive'\`), a relation to join.
 
-**If domain exists → MUST extend, not create new**
+**CREATE NEW** when it is a different job — a new domain (the first payment broker), a new action (\`user-delete\` beside \`user-fetch\`), a different folder type (\`user-contract\` beside \`user-broker\`), or a second responsibility crowding one file.
 
-**When to EXTEND (add options):**
-- Adding optional behavior (includeCompany, includeRoles)
-- Adding filters (status?: 'active' | 'inactive')
-- Adding joins/relations (includeCompany?: boolean)
-
-**When to CREATE NEW:**
-- New domain (first payment broker)
-- New action (user-delete when only user-fetch exists)
-- Different folder type (user-contract, user-broker, use-user-binding)
-- Single responsibility violation
-
-**Examples by folder:**
-- **Bindings**: Extend with options (includeCompany, includeRoles)
-- **Transformers**: Create variants (each output shape = separate file)
-- **Widgets**: Extend with props (showCompany, showRoles)
-- **Brokers**: Create orchestration brokers, extend bindings with option
+**\`transformers/\` invert this rule:** each output shape gets its own file, never an option. An \`includePassword\` flag is how a password hash reaches a public API response.
 
 ## Frontend Data Flow (React)
 
-**Critical Rules:**
+1. **Widgets reach data through bindings, never brokers.** Bindings in the render phase, brokers in event handlers. A binding called from an event handler is a hook inside a callback, which React throws on.
 
-1. **Widgets get data through bindings, never brokers**
-   - ✅ Render: Call bindings only
-   - ✅ Events: Call brokers only
-   - ❌ Never call brokers in render
-   - ❌ Never call bindings in events (React error)
-
-2. **Bindings wrap single broker only (no orchestration)**
-   - If you \`await\` twice → move to brokers/
-   - Bindings return {data, loading, error}
-
-3. **Extend bindings with options, don't create variants**
-   - ✅ useUserDataBinding({userId, includeCompany})
-   - ❌ useUserWithCompanyBinding
-
-**Example:**
-\`\`\`typescript
-// ✅ CORRECT - Widget uses binding in render
-export const UserCardWidget = ({userId}) => {
-  const {data: user, loading, error} = useUserDataBinding({userId});
-
-  // ✅ CORRECT - Broker in event handler
-  const handleUpdate = async () => {
-    await userUpdateBroker({userId, data: user});
-  };
-
-  if (loading) return <div>Loading...</div>;
-  return <div>{user?.name}</div>;
-};
-
-// ❌ WRONG - Binding in event handler
-const handleClick = () => {
-  const {data} = useUserDataBinding({userId});  // React error!
-};
-\`\`\`
+2. **A binding wraps one broker and returns \`{data, loading, error}\`.** A second \`await\` means it is orchestrating, and orchestration belongs in \`brokers/\`.
 
 ## Backend Validation (Express/HTTP)
 
-**Boundary Validation Rule:**
+Every responder input from outside the process is \`unknown\` until a contract parses it. Outside means \`req.body\`, \`req.params\`, \`req.query\`, \`job.data\`, \`JSON.parse\` results, stdin, \`useParams()\` and \`localStorage\`.
 
-ALL responder inputs from external sources MUST be validated through contracts:
-
-**External sources:**
-- HTTP: req.body, req.params, req.query
-- Queues: job.data
-- Files: JSON.parse results
-- CLI: stdin
-- Browser: useParams(), localStorage
-
-**Pattern:**
 \`\`\`typescript
 export const UserCreateResponder = async ({req, res}: {
   req: Request;
   res: Response;
 }): Promise<void> => {
-  const body: unknown = req.body;  // Explicit unknown
-  const validated = userCreateContract.safeParse(body);
+  const body: unknown = req.body;                        // 1. never trust the framework's typing
+  const validated = userCreateContract.safeParse(body);  //    safeParse, so bad input is a 400 and not a throw
   if (!validated.success) {
     return res.status(400).json({error: validated.error});
   }
-  // Use validated.data with type safety
-  const user = await userCreateBroker({userData: validated.data});
-  res.json(user);
+
+  const user = await userCreateBroker({userData: validated.data});  // 2. every decision happens in the broker
+  res.status(201).json(userToDtoTransformer({user}));               // 3. transform out, so internal fields never ship
 };
 \`\`\`
 
-**Responders handle ONLY:**
-- Input validation/parsing (contracts)
-- Calling brokers
-- Output formatting (transformers)
-- HTTP status codes
+Those three steps and the status code are the whole job. A responder that branches on a business rule is a broker wearing the wrong suffix.
 
-**NO business logic in responders!**
+## Writing a File
 
-## Critical Rules Summary
+Every rule below is enforced by ESLint. A violation is a failed build, not a style note.
 
-**Never do these things (❌):**
-- ❌ Use while (true) - use recursion instead
-- ❌ Import from implementation files across folders - only import entry files
-- ❌ Use raw primitives (string, number) - use branded Zod types
-- ❌ Create utils/, helpers/, common/, shared/ folders
-- ❌ Use console.log() in CLI - use process.stdout.write()
-- ❌ Use delete with computed keys - use Reflect.deleteProperty()
+### Naming and exports
 
-**Always do these things (✅):**
-- ✅ Use object destructuring for function parameters
-- ✅ Explicit return types for all exported functions
-- ✅ Co-locate test files with implementation
-- ✅ Use async/await over .then() chains
-- ✅ File names in kebab-case
-- ✅ Metadata comments (PURPOSE/USAGE) at top of implementation files
+Filenames are kebab-case. One file exports one thing, as a \`const\` arrow function.
 
-### File Header PURPOSE
+\`\`\`typescript
+// user-fetch-broker.ts
+export const userFetchBroker = async ({userId}: {userId: UserId}): Promise<User> => { /* … */ };
 
-A file header's \`PURPOSE:\` line carries what the code cannot state about itself — why the file exists, and when to reach for THIS one rather than its nearest sibling. It must NOT restate the return shape, the throwing behaviour, the parameters, what a contract validates, or the file's own name; all of that is derivable from the file, so prose restating it can only drift.
+// userFetchBroker.ts               ❌ camelCase
+// format_date_transformer.ts       ❌ snake_case
+// UserContract.ts                  ❌ PascalCase
 
-Write \`PURPOSE\` LAST, after the implementation it summarizes. A PURPOSE written before the body describes intent, and intent and implementation diverge silently in the same authoring pass.
+export function userFetchBroker() {}          // ❌ not an arrow const
+export default function userFetchBroker() {}  // ❌ default export
+export default class User {}                  // ❌ default export
+\`\`\`
 
-**Get the full rule:** Use \`get-syntax-rules\` tool for the MUST/MUST NOT lists and worked examples from this repo ("What Belongs in PURPOSE").
+Error classes are the one \`export class\` exception. A default export is allowed only where a system genuinely REQUIRES one, never where it merely prefers one. Types supporting the file's one export may sit beside it; a second broker may not.
+
+Type exports have their own syntax, and the modern-looking one is banned:
+
+\`\`\`typescript
+export type User = {id: UserId; name: UserName};  // ✅ defining
+export type {User} from './user-contract';        // ✅ re-exporting from a barrel
+export {type User} from './user-contract';        // ❌ inline form, banned here
+\`\`\`
+
+### Parameters and return types
+
+A function takes ONE object argument, destructured, with the type written inline. The exception is an external API that dictates its own signature.
+
+\`ban-primitives\` is asymmetric on purpose: an input MAY take a raw \`string\`, a return MUST be branded.
+
+\`\`\`typescript
+export const updateUser = ({user, companyId}: {user: User; companyId: CompanyId}): Promise<User> => { /* … */ };
+
+export const updateUser = (user: User, companyId: CompanyId) => {};    // ❌ positional
+export const updateUser = ({user}: UpdateUserParams) => {};            // ❌ named type, not inline
+export const badFunction = ({userId}: {userId: string}) => {};         // ❌ no return type, so nothing is branded
+\`\`\`
+
+Pass whole objects rather than picking fields off them — that is what keeps the branded relationships intact. Where you genuinely need one identifier, take it as \`User['id']\`.
+
+Passing a branded value into another domain means re-parsing it, because \`StepId\` and \`DagNodeId\` are both branded strings and deliberately NOT assignable to each other:
+
+\`\`\`typescript
+const dagNodeId = dagNodeIdContract.parse(stepId);         // ✅ re-brands through validation
+const dagNodeId = stepId as unknown as DagNodeId;          // ❌ the assertion is the bug
+\`\`\`
+
+### File header
+
+Every implementation file opens with this block, ABOVE the imports — not attached to the function, which is where training data puts it. Test, proxy and stub files need none.
+
+\`\`\`typescript
+/**
+ * PURPOSE: Accepts a path already known to live inside the repo. Reach for this over
+ * pathSegmentContract when the value must reject an absolute prefix, and over
+ * absoluteFilePathContract when the value is persisted to a quest file that has to stay
+ * portable across machines.
+ *
+ * USAGE:
+ * repoRelativePathContract.parse('packages/shared/src/x.ts');
+ * // Returns a branded RepoRelativePath
+ *
+ * WHEN-TO-USE and WHEN-NOT-TO-USE are optional.
+ */
+\`\`\`
+
+**PURPOSE carries only what the code cannot state about itself:** why the file exists, and when to reach for THIS one over its nearest sibling. That second sentence is the highest-value line in the header and the one most often missing — a reader scanning \`discover\` output already has the name and the signature, and cannot get "which of these three is mine" anywhere else.
+
+Anything derivable from the file below will drift, so it goes in neither PURPOSE nor USAGE:
+
+\`\`\`typescript
+// ❌ PURPOSE: Parses a JSON string and returns the parsed value or undefined on failure
+//    Return shape — drifts the day it returns a discriminated result instead
+
+// ❌ PURPOSE: Zod schema for validating absolute file paths; throws when the path is empty
+//    The zod chain IS the spec, and .refine() already carries the message
+
+// ❌ PURPOSE: Transformer that transforms a quest into quest rows
+//    Restates the filename and says nothing else
+
+// ❌ PURPOSE: Takes {questId, flowId} and returns a QaChecklist
+//    Parameters and return type, both already in the signature
+\`\`\`
+
+The repo's own worst case is \`file-path-contract.ts\`, whose header reads "Zod schema for validating any file path (absolute or relative)". That restates the chain below it AND gets it wrong — the relative branch demands a \`./\` or \`../\` prefix, so a bare \`packages/shared/src/x.ts\` is rejected, which its own test pins. It spends its only line on what the chain already says and none on the question a reader arrives with.
+
+**Write PURPOSE LAST**, as a summary of code that already exists. Written first, it describes intent, and intent and implementation diverge silently inside the same authoring pass.
+
+### Types
+
+Never suppress a type error — \`@ts-ignore\` and \`@ts-expect-error\` are banned outright, and the fix is the contract the value actually needed. Every exported function declares its return type. Anything arriving from outside the process is \`unknown\` until a contract parses it.
+
+\`\`\`typescript
+const users: User[] = [];                    // ✅ explicit, because an empty literal infers never[]
+const userId = user.id;                      // ✅ inferred, already branded
+const data: any = response.data;             // ❌ loses everything
+
+const config = {apiUrl, port} satisfies Partial<Config>;  // ✅ validates shape, keeps literals
+const data = JSON.parse(response) as ApiResponse;         // ✅ you know what the compiler cannot
+const broken = {} as ComplexType;                         // ❌ hides every missing property
+\`\`\`
+
+\`as\` is for information the compiler lacks, never for silencing it.
+
+### Control flow
+
+Use \`async\`/\`await\`, and \`Promise.all\` whenever the calls do not depend on each other. Sequential \`await\`s are for when the second call needs the first one's result.
+
+Indeterminate loops are recursion with an early return — walking up a directory tree, resolving a config. \`while (true)\` is banned. Ordinary \`for\`, \`.map\`, \`.filter\` over a known collection are fine.
+
+Reach for a \`Map\` or \`Set\` before a nested \`.find\` inside a \`.filter\`; dataset sizes here are unknown. An index map still holds a branded value:
+
+\`\`\`typescript
+const indexMap = new Map<ChatEntry, ArrayIndex>();  // ✅
+const indexMap = new Map<ChatEntry, number>();      // ❌ raw number trips ban-primitives
+\`\`\`
+
+### Errors
+
+Every failure is logged, thrown, or handled. A \`.catch\` that does none of those is a lint error, and there is no wording that gets past it:
+
+\`\`\`typescript
+promise.catch(() => undefined);                 // ❌ silent swallow
+promise.catch(() => {});                        // ❌ empty
+promise.catch((_err) => { /* comment only */ }); // ❌ a comment is not handling
+
+promise.catch((error: unknown) => {             // ✅ fire-and-forget: log, do not block
+  process.stderr.write('[context] failed: ' + String(error) + '\\n');
+});
+\`\`\`
+
+An error message names the operation and the input that broke it. \`throw new Error('Config load failed')\` tells the next reader neither.
+
+### Two syntax traps
+
+\`\`\`typescript
+Reflect.deleteProperty(require.cache, resolvedPath);  // ✅
+delete require.cache[resolvedPath];                    // ❌ computed key
+
+process.stdout.write('Processed ' + count + ' files\\n');  // ✅ CLI output, newline explicit
+console.log('Processed ' + count + ' files');              // ❌
+\`\`\`
+
+\`Reflect.get\` and \`Reflect.set\` are confined to \`*-guard.ts\` and \`*-contract.ts\`. Everywhere else they return \`unknown\` and skip validation, which is how they became a universal escape hatch. Parse the shape through a contract at the boundary and read the fields directly.
+
+Delete dead code as you go — unused parameters, unreachable branches, commented-out blocks, stray \`console.log\`.
 
 ### Present-Tense Documentation
 
@@ -460,15 +404,7 @@ When the current design needs rationale, state that rationale in present tense (
 
 ### Testing Architecture
 
-**Mock only at I/O boundaries:**
-- Adapters mock npm packages (axios, fs)
-- Globals mock non-deterministic functions (Date.now)
-- Everything else runs REAL (brokers, guards, transformers, widgets)
-
-**Proxy pattern:**
-- Tests use \`.proxy.ts\` files for setup
-- Create fresh proxy per test
-- Proxies provide semantic methods, not raw mocks
+Mocks go at I/O boundaries and nowhere else. An adapter mocks its own npm package, a global mock covers non-determinism like \`Date.now\`, and every broker, guard, transformer and widget runs real. The \`.proxy.ts\` beside each file does that setup and exposes scenario methods rather than raw mocks.
 
 **Get full testing guidance:** Use \`get-testing-patterns\` tool for complete philosophy, proxy patterns, and assertion rules.
 

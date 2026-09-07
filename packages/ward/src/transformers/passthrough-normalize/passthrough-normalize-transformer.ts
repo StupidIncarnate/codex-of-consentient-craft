@@ -22,7 +22,7 @@
  * apart, so the fix belongs where the ambiguity is resolved rather than in five prompts that each
  * have to remember the exact spelling.
  *
- * IT RUNS AFTER THE GIT SCOPE LAYER, deliberately. `commandRunLayerGitScopeBroker` writes
+ * IT RUNS AFTER THE GIT SCOPE LAYER, deliberately. `gitScopeLayerBroker` writes
  * `passthrough` from `git diff --name-only`, which is already repo-relative, so this is a no-op on
  * that path — one call site covers both `--committed`/`--uncommitted` and an explicit `-- <files>` list
  * rather than trusting git's output format forever.

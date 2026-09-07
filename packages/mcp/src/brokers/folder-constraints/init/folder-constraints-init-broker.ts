@@ -14,7 +14,6 @@ import type { FolderType } from '@dungeonmaster/shared/contracts';
 
 export const folderConstraintsInitBroker = async (): Promise<{
   folderConstraints: Map<FolderType, ContentText>;
-  layerConstraints: ContentText;
 }> => {
   const constraintsMap = new Map<FolderType, ContentText>();
   const constraintsDir = pathResolveAdapter({
@@ -48,12 +47,5 @@ export const folderConstraintsInitBroker = async (): Promise<{
     }
   }
 
-  // Load layer constraints file
-  const layerConstraintsPath = pathResolveAdapter({
-    paths: [constraintsDir, 'layer-constraints.md'],
-  });
-  const layerContent = await fsReadFileAdapter({ filepath: layerConstraintsPath });
-  const layerConstraints = contentTextContract.parse(`\n${layerContent}`);
-
-  return { folderConstraints: constraintsMap, layerConstraints };
+  return { folderConstraints: constraintsMap };
 };

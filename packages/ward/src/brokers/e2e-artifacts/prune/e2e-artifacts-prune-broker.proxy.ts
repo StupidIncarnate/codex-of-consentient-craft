@@ -41,7 +41,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
 } => {
   // Read the clock rather than pinning it. The broker calls Date.now() a few milliseconds after
   // this, which is nothing against day-scale windows — and a spy here would fight the Date spy
-  // that command-run-layer-single-broker.proxy.ts stages for its deterministic runId.
+  // that single-package-layer-broker.proxy.ts stages for its deterministic runId.
   const NOW = Date.now();
 
   const readdirProxy = fsReaddirAdapterProxy();

@@ -34,7 +34,7 @@ const WARD_SOURCE_ENTRY = FilePathStub({
 
 const POLL_MS = 100;
 const SLEEP_MS = 1000;
-// A real `run --only lint` fans out to every workspace package (commandRunLayerMultiBroker,
+// A real `run --only lint` fans out to every workspace package (multiPackageLayerBroker,
 // CONCURRENCY_LIMIT = 4) and each child spawns its own eslint — measured full-repo wall time
 // ranges from ~90s quiet to 464s under heavy concurrent-agent load (see the integration test's
 // comment). 600_000ms matches this repo's own documented full-ward timeout convention and
@@ -45,7 +45,7 @@ const EXEC_TIMEOUT_MS = 2000;
 // tsx always forks a child to actually run the target script (measured: `node_modules/.bin/tsx
 // ...` still has a separate PID doing the real work), so the spawned PID alone under-reports.
 // Walk the whole descendant tree to FIND every process ward's run produced — up to 4 concurrent
-// per-package `dungeonmaster-ward` children (CONCURRENCY_LIMIT in commandRunLayerMultiBroker),
+// per-package `dungeonmaster-ward` children (CONCURRENCY_LIMIT in multiPackageLayerBroker),
 // each spawning its own eslint grandchild — but report the MAX single-process RSS across that
 // tree, not the sum. RSS counts shared pages (the node binary, shared libraries, copy-on-write
 // pages) once PER PROCESS, so summing double-, triple-, quadruple-counts the same physical pages
