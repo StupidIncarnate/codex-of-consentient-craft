@@ -598,8 +598,8 @@ Eight things about that shape are load-bearing, and each is a measurement rather
 
 - **The operator reads code and dispatches; it never edits a file.** Its prompt carries a YOURS / NOT YOURS tool
   block. `Read`, `discover`, `get-project-map`, `get-project-inventory`, `get-folder-detail`, `get-architecture`,
-  `get-syntax-rules`, `get-testing-patterns`, `git diff`/`status`/`log`, `Agent`, `modify-quest` and `signal-back` are
-  YOURS. `Edit`/`Write` on any path but its own map, `npm run ward -- --uncommitted`, a bare `npm run ward` (see
+  `get-testing-patterns`, `git diff`/`status`/`log`, `Agent`, `modify-quest` and `signal-back` are YOURS.
+  `Edit`/`Write` on any path but its own map, `npm run ward -- --uncommitted`, a bare `npm run ward` (see
   [WARD SCOPE]), and every git verb but reading are NOT. That map is the ONE path Codeweaver and Flowrider may write; Siegemaster writes no file at all —
   its record is what each round's verifier and stress tester report, in the round files they write themselves, and
   what its reviewer commits — and `reset-flow-signoffs` is its alone, added by the section that names it.

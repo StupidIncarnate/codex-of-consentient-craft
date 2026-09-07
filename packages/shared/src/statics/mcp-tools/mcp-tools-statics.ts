@@ -18,7 +18,6 @@ export const mcpToolsStatics = {
       'discover',
       'get-architecture',
       'get-folder-detail',
-      'get-syntax-rules',
       'get-testing-patterns',
       'get-quest',
       'modify-quest',

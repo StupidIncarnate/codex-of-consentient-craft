@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles architecture-related MCP tool calls (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns, get-project-map, get-project-inventory)
+ * PURPOSE: Handles architecture-related MCP tool calls (discover, get-architecture, get-folder-detail, get-testing-patterns, get-project-map, get-project-inventory)
  *
  * USAGE:
  * const result = await ArchitectureHandleResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
@@ -18,7 +18,6 @@ import {
 // sharedContentTextContract is used to brand the packageName string for the inventory broker call
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { architectureFolderDetailBroker } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker';
-import { architectureSyntaxRulesBroker } from '../../../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 import { architectureTestingPatternsBroker } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
 import { mcpDiscoverBroker } from '../../../brokers/mcp/discover/mcp-discover-broker';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
@@ -76,19 +75,6 @@ export const ArchitectureHandleResponder = async ({
       folderType,
       ...(supplementalConstraints && { supplementalConstraints }),
     });
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: contentTextContract.parse(result),
-        },
-      ],
-    };
-  }
-
-  if (tool === 'get-syntax-rules') {
-    const result = architectureSyntaxRulesBroker();
 
     return {
       content: [

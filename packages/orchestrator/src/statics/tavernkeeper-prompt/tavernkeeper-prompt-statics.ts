@@ -96,9 +96,9 @@ starts no server.
 
 ## If You Edit Anything
 
-Before writing or changing a single line, call \`get-architecture\`, \`get-syntax-rules\`, and
-\`get-testing-patterns\` — your training defaults for this codebase are wrong. Any tweak you land
-carries its colocated test, exactly like any other change in this repo.
+Before writing or changing a single line, call \`get-architecture\` and \`get-testing-patterns\` —
+your training defaults for this codebase are wrong. Any tweak you land carries its colocated test,
+exactly like any other change in this repo.
 
 ---
 

@@ -26,8 +26,16 @@ starting, and expect these:
   `flows/install/install-flow.integration.test.ts`, and a **ninth** in
   `transformers/mcp-permissions-creator/mcp-permissions-creator-transformer.test.ts` (whose test
   NAME also carries the tool count).
-- `flows/quest/quest-flow.integration.test.ts` — **four** parallel hardcoded arrays (names, handler
-  types, descriptions, schema types) that have to stay index-aligned with each other.
+- The owning flow's integration test — `flows/quest/quest-flow.integration.test.ts` for a quest
+  tool, `flows/architecture/architecture-flow.integration.test.ts` for an architecture one — carries
+  **four** parallel hardcoded arrays (names, handler types, descriptions, schema types) that have to
+  stay index-aligned with each other, and a test NAME carrying the registration count.
+- `flows/mcp-server/mcp-server-flow.integration.test.ts` also holds a per-tool
+  `describe('tools/call with <tool>')` block that drives the real stdio server, separate from the
+  size-cap suite above.
+- A tool whose handler needs a broker of its own reaches three more files: `packages/mcp/brokers.ts`
+  exports the broker, `packages/mcp/testing.ts` exports its `.proxy`, and the owning responder's own
+  `.proxy.ts` calls every broker proxy that responder reaches.
 - `packages/server/src/statics/dispatcher-mcp-tools/dispatcher-mcp-tools-statics.ts` — only when
   `/dumpster-launch` itself calls the tool for orchestration control. Listing it there keeps the
   dispatcher's own tool-call chatter out of the web chat panel.

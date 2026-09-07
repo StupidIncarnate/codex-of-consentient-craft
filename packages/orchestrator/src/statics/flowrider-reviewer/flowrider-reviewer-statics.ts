@@ -89,8 +89,8 @@ anything needing a decision goes into \`NEXT: rework\`.
 
 ### 1. Load the standards
 
-\`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\`. None takes an argument. Run all
-three before you open any code.
+\`get-architecture\` and \`get-testing-patterns\`. Neither takes an argument. Run both before you open
+any code.
 
 ### 2. Read the quest and the units
 

@@ -470,17 +470,14 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/^### The `\.harness\.ts` Pattern$/mu);
     });
 
-    it('VALID: {} => includes common anti-patterns reference', () => {
+    it('VALID: {} => lists the anti-pattern categories', () => {
       architectureTestingPatternsBrokerProxy();
 
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^## Common Anti-Patterns$/mu);
       expect(result).toMatch(
-        /^\*\*Common testing anti-patterns are documented in syntax rules\*\* - Use `get-syntax-rules\(\)` for complete list with examples\.$/mu,
-      );
-      expect(result).toMatch(
-        /^See `get-syntax-rules\(\)` testing\.antiPatterns section for detailed violations and correct approaches\.$/mu,
+        /^- \*\*Assertion Anti-Patterns\*\*: Property bleedthrough, existence-only checks, count-only checks, weak matchers$/mu,
       );
     });
 

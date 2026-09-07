@@ -43,7 +43,7 @@ describe('mcpToolNamesExtractTransformer', () => {
         value: `export const ArchitectureFlow = (): ToolRegistration[] => [
   { name: 'discover' as never, description: 'A' as never, inputSchema: s, handler: H },
   { name: 'get-architecture' as never, description: 'B' as never, inputSchema: s, handler: H },
-  { name: 'get-syntax-rules' as never, description: 'C' as never, inputSchema: s, handler: H },
+  { name: 'get-folder-detail' as never, description: 'C' as never, inputSchema: s, handler: H },
 ];`,
       });
 
@@ -52,7 +52,7 @@ describe('mcpToolNamesExtractTransformer', () => {
       expect(result.map(String)).toStrictEqual([
         'discover',
         'get-architecture',
-        'get-syntax-rules',
+        'get-folder-detail',
       ]);
     });
   });

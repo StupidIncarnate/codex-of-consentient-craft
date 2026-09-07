@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for architecture-related MCP tools (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns, get-project-map, get-project-inventory)
+ * PURPOSE: Returns ToolRegistration[] for architecture-related MCP tools (discover, get-architecture, get-folder-detail, get-testing-patterns, get-project-map, get-project-inventory)
  *
  * USAGE:
  * const registrations = ArchitectureFlow();
- * // Returns 7 ToolRegistration objects that delegate to ArchitectureHandleResponder
+ * // Returns 6 ToolRegistration objects that delegate to ArchitectureHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -46,13 +46,6 @@ export const ArchitectureFlow = (): ToolRegistration[] => [
     inputSchema: folderDetailSchema as never,
     handler: async ({ args }) =>
       ArchitectureHandleResponder({ tool: 'get-folder-detail' as never, args }),
-  },
-  {
-    name: 'get-syntax-rules' as never,
-    description: 'Returns universal syntax rules' as never,
-    inputSchema: emptySchema as never,
-    handler: async ({ args }) =>
-      ArchitectureHandleResponder({ tool: 'get-syntax-rules' as never, args }),
   },
   {
     name: 'get-testing-patterns' as never,

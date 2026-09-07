@@ -42,11 +42,6 @@ export const smoketestProbeArgsStatics = {
     args: { folderType: 'brokers' },
     summary: 'mcp-get-folder-detail-probe-ok',
   },
-  'get-syntax-rules': {
-    mode: 'call',
-    args: {},
-    summary: 'mcp-get-syntax-rules-probe-ok',
-  },
   'get-testing-patterns': {
     mode: 'call',
     args: {},

@@ -67,7 +67,6 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__discover',
                 'mcp__dungeonmaster__get-architecture',
                 'mcp__dungeonmaster__get-folder-detail',
-                'mcp__dungeonmaster__get-syntax-rules',
                 'mcp__dungeonmaster__get-testing-patterns',
                 'mcp__dungeonmaster__get-quest',
                 'mcp__dungeonmaster__modify-quest',

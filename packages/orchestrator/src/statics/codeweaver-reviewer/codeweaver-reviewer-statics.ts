@@ -99,9 +99,9 @@ sees a question and nothing resumes you with an answer. Decide it yourself, or h
 
 ### 1. Load the standards
 
-\`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\`. None takes an argument. Run all
-three before you open any code — they override your training defaults, which are wrong for this
-codebase, and code read before them is code you cannot yet judge.
+\`get-architecture\` and \`get-testing-patterns\`. None takes an argument. Run both before you open any
+code — they override your training defaults, which are wrong for this codebase, and code read before
+them is code you cannot yet judge.
 
 ### 2. Read the quest
 

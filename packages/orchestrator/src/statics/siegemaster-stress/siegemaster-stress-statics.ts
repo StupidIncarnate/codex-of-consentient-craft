@@ -277,7 +277,7 @@ DO NOT
   commit anything · spawn a sub-agent of your own — discover and Read for yourself
 
 FIRST
-  get-architecture, get-syntax-rules, get-testing-patterns
+  get-architecture, get-testing-patterns
 
 PROVE
   npm run ward -- -- <this test's own path>

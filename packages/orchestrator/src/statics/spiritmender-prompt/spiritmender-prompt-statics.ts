@@ -186,7 +186,6 @@ Before fixing anything, call these MCP tools for the rules your fixes must follo
 | \`get-architecture\` (no params) | Folder types, import rules, forbidden folders, layer files. |
 | \`get-testing-patterns\` | The proxy patterns, how to call \`registerMock\`, the assertion rules (\`toStrictEqual\` only), the forbidden matchers, the stub rules. |
 | \`get-folder-detail\`, once per folder type you work in | Naming patterns, companion file rules, import constraints. |
-| \`get-syntax-rules\` | Export conventions, file naming, destructuring rules. |
 
 ### 5. Diagnose Root Causes
 
@@ -195,7 +194,7 @@ Trace each error to its root cause:
 | Error kind | How to trace it |
 |---|---|
 | Type error | Is it a missing import, a wrong branded type, a stale interface, or a real logic bug? |
-| Lint error | Read the rule name. Is it an architecture rule (import hierarchy, colocation) or a syntax rule (naming, exports)? Call \`get-folder-detail\` for what the rule expects. |
+| Lint error | Read the rule name. Is it an architecture rule (import hierarchy, colocation) or a style rule (naming, exports)? Call \`get-folder-detail\` for what the rule expects. |
 | Test failure | Read the full diff. Is the test asserting stale behavior, or is the implementation returning the wrong shape? Check the proxy chain too. A mock can return the wrong type. |
 | Build error | The failing command was \`npm run build\`; fix the source it names, then re-run that command. A build error means a build was running — this role does not cause one and must not answer it by building something else. |
 | Server or runtime error | Read the error message. Then check the config files, the recent git changes, the entry points. |
