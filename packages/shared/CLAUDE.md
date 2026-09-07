@@ -21,11 +21,14 @@ When adding new functionality to `@dungeonmaster/shared`, you MUST:
       export * from './src/guards/another-guard/another-guard-guard';
       ```
 
-3. **Update package.json exports**:
+3. **Update package.json exports** — every subpath carries a `source` condition pointing at the barrel file
+   itself, so ward's `--conditions=source` checks (typecheck, unit, integration) read the edited TypeScript
+   directly, with no rebuild in between:
    ```json
    {
      "exports": {
        "./guards": {
+         "source": "./guards.ts",
          "import": "./dist/guards.js",
          "require": "./dist/guards.js",
          "types": "./dist/guards.d.ts"
@@ -34,7 +37,8 @@ When adding new functionality to `@dungeonmaster/shared`, you MUST:
    }
    ```
 
-4. **Rebuild the package**:
+4. **Rebuild the package** for every consumer path that does NOT set `--conditions=source` — lint, `npm run
+   prod`, `dungeonmaster start` in a consumer, the MCP server, and `npm run build` itself:
    ```bash
    npm run build --workspace=@dungeonmaster/shared
    ```
@@ -81,7 +85,7 @@ To resolve "the repo root", "the project root", or "the guild path" from a worki
 were the root.
 
 ```typescript
-import {cwdResolveBroker} from '@dungeonmaster/shared/cwd/resolve';
+import {cwdResolveBroker} from '@dungeonmaster/shared/brokers';
 
 const repoRoot = await cwdResolveBroker({startPath, kind: 'repo-root'});
 ```
@@ -103,5 +107,7 @@ finding the target file. The underlying walk lives in `brokers/config-root/find/
 
 - **Never** import from `@dungeonmaster/shared/dist/...` directly
 - **Always** use the subpath exports: `@dungeonmaster/shared/guards`, `@dungeonmaster/shared/contracts`, etc.
-- After modifying this package, dependent packages must rebuild to see changes
+- After modifying this package, a dependent package sees the change immediately under
+  `--conditions=source` (ward's typecheck, unit and integration checks); every other consumer — lint,
+  `npm run prod`, a published install, the MCP server — needs this package rebuilt first
 - The barrel export pattern keeps imports clean and maintainable

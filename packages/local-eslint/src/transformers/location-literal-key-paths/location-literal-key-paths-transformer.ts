@@ -11,7 +11,10 @@
  *
  * WHEN-TO-USE: Only the no-bare-location-literals rule should consume this. Filters out generic single-word literals via shouldRetainLocationLiteralGuard so JSDoc / unrelated string usage is not banned.
  *
- * NOTE: rule-broker imports `locationsStatics` from @dungeonmaster/shared/statics at module load. If the shared dist is stale this transformer simply walks the stale tree — caller is responsible for `npm run build --workspace=@dungeonmaster/shared` before lint runs (see plan/what-would-be-allowed-typed-stroustrup.md "Build-order requirement").
+ * NOTE: rule-broker imports `locationsStatics` from @dungeonmaster/shared/statics at module load. ESLint runs with
+ * no `--conditions=source`, so that import resolves through `dist/`; if the shared dist is stale this transformer
+ * simply walks the stale tree — caller is responsible for `npm run build --workspace=@dungeonmaster/shared` before
+ * lint runs.
  */
 import type { PathSegment, Identifier } from '@dungeonmaster/shared/contracts';
 import { pathSegmentContract, identifierContract } from '@dungeonmaster/shared/contracts';

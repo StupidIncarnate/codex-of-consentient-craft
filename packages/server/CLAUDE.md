@@ -64,11 +64,13 @@ processDevLogAdapter({ message: 'Chat started: questId=abc-123' });
 ### Activating Dev Logs
 
 ```bash
-VERBOSE=1 npm run dev --workspace=@dungeonmaster/server
+npm run dev
 ```
 
-This repo's root `npm run dev` and `npm run prod` scripts set `VERBOSE=1` inline, so maintainers get logs in both
-modes. End-users running the published binary do not see `[dev]` lines by default.
+Always the root-level script — never `npm run dev --workspace=@dungeonmaster/server` (see root `CLAUDE.md`,
+"Common Commands"). This repo's root `npm run dev` and `npm run prod` scripts set `VERBOSE=1` inline, so
+maintainers get logs in both modes without setting it themselves. End-users running the published binary do
+not see `[dev]` lines by default.
 
 ### Log Format
 

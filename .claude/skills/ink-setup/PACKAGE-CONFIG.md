@@ -11,11 +11,13 @@
   },
   "files": ["dist/**/*"],
   "scripts": {
-    "build": "tsc && npm run bundle",
+    "build": "tsc -p tsconfig.build.json && npm run bundle",
     "bundle": "npx esbuild dist/startup/start-my-cli.js --bundle --platform=node --format=esm --outfile=dist/bin/my-cli.mjs --external:ink --external:react --external:@dungeonmaster/* --external:zod",
     "postbuild": "chmod +x dist/bin/*.mjs dist/startup/*.js 2>/dev/null || true",
     "pretest": "rm -rf dist",
-    "test": "jest"
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint"
   },
   "dependencies": {
     "ink": "^3.2.0",
@@ -48,17 +50,16 @@
 - `ink-cjs` - Misleading name, still has `"type": "module"`
 - `ink-testing-library@^4.x` - ESM-only (use local `ink-test-render.ts` instead)
 
-## tsconfig.json
+## tsconfig.json and tsconfig.build.json
+
+`tsconfig.json` is the checking config — what `dungeonmaster-ward --only typecheck` runs (`tsc --noEmit`,
+never writes `dist/`). `tsconfig.build.json` extends it and adds the emit settings for `npm run build`.
 
 ```json
+// tsconfig.json
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "declarationMap": true,
-    "declaration": true,
-    "noEmit": false,
     "jsx": "react",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -74,16 +75,36 @@
 }
 ```
 
+```json
+// tsconfig.build.json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.proxy.ts"
+  ]
+}
+```
+
 ### Critical Settings
 
-| Setting            | Value                    | Why                              |
-|--------------------|--------------------------|----------------------------------|
-| `jsx`              | `"react"`                | Enable JSX/TSX                   |
-| `module`           | `"ESNext"`               | Output ESM imports               |
-| `moduleResolution` | `"bundler"`              | No .js extensions needed         |
-| `typeRoots`        | Points to `../../@types` | Access monorepo type definitions |
-| `declarationMap`   | `true`                   | Source map support for types     |
-| `declaration`      | `true`                   | Generate `.d.ts` files           |
+| Setting            | Value                       | Why                               |
+|--------------------|------------------------------|------------------------------------|
+| `jsx`              | `"react"`                    | Enable JSX/TSX                    |
+| `module`           | `"ESNext"`                   | Output ESM imports                |
+| `moduleResolution` | `"bundler"`                  | No .js extensions needed          |
+| `typeRoots`        | Points to `../../@types`     | Access monorepo type definitions  |
+| `declarationMap`   | `true` (build config only)   | Source map support for types      |
+| `declaration`      | `true` (build config only)   | Generate `.d.ts` files            |
 
 ### typeRoots
 

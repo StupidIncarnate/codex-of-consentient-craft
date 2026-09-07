@@ -242,16 +242,13 @@ Acceptable strategies:
 - Adjusting contracts to accept the actual wire format (when the wire format
   has multiple legitimate emit paths).
 
-### 3.2 Fix → build → unit → focused e2e — in that order, every time
+### 3.2 Fix → unit → focused e2e — in that order, every time
 
 ```bash
-# 1. After each source change:
-npm run build --workspace=@dungeonmaster/<package>
-
-# 2. Confirm types + lint + unit:
+# 1. Confirm types + lint + unit:
 npm run ward -- --only lint,typecheck,unit -- packages/<package>
 
-# 3. Re-run JUST the directly-affected spec at 15x:
+# 2. Re-run JUST the directly-affected spec at 15x:
 cd packages/web
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
   src/flows/<route>/<failing-spec>.e2e.ts > /tmp/repro.log 2>&1

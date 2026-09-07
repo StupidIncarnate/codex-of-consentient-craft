@@ -44,6 +44,11 @@ dispatch a sub agent to gather it and report back.
   per target file, in parallel. A single agent given 5 files will batch-plan, pick the easy 2, and punt on 3. Five
   parallel single-file agents produce consistent depth because each one's entire budget is dedicated to one file.
 
+## Worktrees
+
+When an agent needs an isolated worktree, it is obtained via `mcp__dungeonmaster__create-worktree({ name })` —
+never by assembling `git worktree add` by hand.
+
 ## Plan File Setup (DO THIS FIRST)
 
 Plans start out in `~/.claude/plans/`, which has permission issues when you (or agents) need to edit the plan to mark
@@ -67,7 +72,8 @@ progress or append `> [!]` review notes. **Before doing anything else:**
    b. **Once implementation reports back, dispatch verification in parallel** (single message, two sub-agent calls):
       - Sub agent A pulls the list of changed implementation files and verifies test coverage against project
         standards. Its job ends at reporting gaps — it does NOT fix them.
-      - Sub agent B runs `npm run ward --committed` at repo root and reports failures.
+      - Sub agent B runs `npm run ward -- --committed` at repo root and reports failures. Note the `--`: without
+        it, npm swallows `--committed` and the sub-agent gets a full unscoped run instead.
       Both read the same diff; neither blocks the other.
    c. **Fan out fixes in parallel** — if the coverage reviewer reports N gap files, dispatch N fix agents, ONE FILE
    per agent, in a single message with N invocations. Same for ward failures in independent files. Do NOT give one

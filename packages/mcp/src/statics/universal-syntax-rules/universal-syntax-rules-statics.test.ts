@@ -448,7 +448,7 @@ describe('universalSyntaxRulesStatics', () => {
               '// Test times out → rerun → times out → rerun — never traces the actual failure path',
             ],
             correctApproach:
-              'Poll helpers must have max iterations and throw with current quest status + work item summary on timeout. When integration tests time out, trace the code path instead of retrying — grep dist/ for stale references, check catch handlers for swallowed errors',
+              "Poll helpers must have max iterations and throw with current quest status + work item summary on timeout. When integration tests time out, trace the code path instead of retrying — search dist/ for stale references via discover({glob: 'packages/*/dist/**', grep: 'oldFieldName'}) (bash grep is blocked), check catch handlers for swallowed errors",
           },
         },
       },

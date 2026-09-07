@@ -32,4 +32,7 @@ dungeonmaster init
 
 - Unit tests use proxy files for mocking (no direct `jest.mock`/`jest.spyOn` — use `registerMock`/`registerSpyOn` from `@dungeonmaster/testing/register-mock`)
 - Integration tests for startup files use `installTestbedCreateBroker` for isolated temp directories
-- Integration test (`bin/cli-entry.integration.test.ts`) spawns the built binary via `test/harnesses/cli-bin/cli-bin.harness.ts`; requires `npm run build` first
+- Integration test (`bin/cli-entry.integration.test.ts`) uses `test/harnesses/cli-bin/cli-bin.harness.ts`. Its file-structure
+  assertions (`binExists`, `readBinContent`, `requireWithoutAutorun`) grade the built esbuild bundle at
+  `dist/bin/dungeonmaster.js`, so those require `npm run build` first. `runInit()` instead spawns the SOURCE entry
+  (`bin/cli-entry.ts`) directly under `tsx --conditions=source`, so it exercises real CLI behaviour without a build.

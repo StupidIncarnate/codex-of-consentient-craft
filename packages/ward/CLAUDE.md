@@ -3,11 +3,12 @@
 ## What This Package Does
 
 Ward is a quality orchestration CLI tool (`npm run ward`) that runs lint, typecheck, unit, integration, and e2e checks.
-It
-operates in two modes depending on whether the current project has npm workspaces:
+It operates in two modes depending on whether the current project has npm workspaces:
 
 - **Single-package mode** (no workspaces): Runs checks directly in the current working directory.
-- **Multi-package mode** (has workspaces): Spawns ward in each workspace package sequentially and combines results.
+- **Multi-package mode** (has workspaces): Spawns a child `dungeonmaster-ward` process in each workspace package —
+  up to 4 concurrently, via a promise pool — and merges their results. Within one package, its own check types
+  still run one at a time, in sequence.
 
 Ward parses structured JSON output from each tool and persists results for drill-down inspection via `list`, `detail`,
 and `raw` subcommands.
@@ -291,15 +292,21 @@ hardcoded list — that no check command carries that flag.
 
 ## Underlying Commands
 
-Ward spawns these commands per package:
+Ward spawns these commands per package (`checkCommandsStatics`; the jest extension alternation is
+`ts|tsx|js|jsx`):
 
-| Check Type  | Command                                                                             | With File Scope                                                              |
-|-------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| lint        | `npx eslint --format json .`                                                        | `npx eslint --format json <file1> <file2> ...` (replaces `.` with file list) |
-| typecheck   | `npx tsc --noEmit`                                                                  | `npx tsc --noEmit` (unchanged, always full project)                          |
-| unit        | `npx jest --json --no-color --testPathIgnorePatterns '\\.integration\\.test\\.ts$'` | Same + `--runInBand --findRelatedTests <files>`                              |
-| integration | `npx jest --json --no-color --testPathPatterns '\\.integration\\.test\\.ts$'`       | Same + `--runInBand --findRelatedTests <files>`                              |
-| e2e         | `npx playwright test --reporter=json`                                               | `npx playwright test --reporter=json <file1> <file2> ...`                    |
+- **lint:** `npx eslint --fix --stats --format json .` — file scope replaces `.` with the file list.
+- **typecheck:** `npx tsc --noEmit --listFiles` — always the full project; there is no per-file tsc mode,
+  so file scope changes nothing about the command. NO CHECK MAY EMIT, so this never carries `-b`.
+- **unit:** `npx jest --json --no-color --forceExit --detectOpenHandles --testPathIgnorePatterns
+  '\.integration\.test\.(ts|tsx|js|jsx)$|\.e2e\.test\.(ts|tsx|js|jsx)$'` — file scope adds `--runInBand
+  --findRelatedTests <files>` when every passthrough entry is a FILE, or `--runInBand --testPathPatterns
+  <dir1>|<dir2>` when the scope includes a DIRECTORY (mutually exclusive, not additive).
+- **integration:** `npx jest --json --no-color --forceExit --detectOpenHandles --testTimeout=30000
+  --testPathPatterns '\.integration\.test\.(ts|tsx|js|jsx)$'` — file entries add `--runInBand
+  --findRelatedTests <files>`; a directory in scope instead REWRITES the `--testPathPatterns` value in
+  place to `(?:<dir1>|<dir2>).*<original pattern>` and adds `--runInBand`.
+- **e2e:** `npx playwright test --reporter=line,json` — file scope appends the file list.
 
 **`--onlyTests` mapping:** When `--onlyTests <regex>` is provided, ward appends `--testNamePattern <regex>` to Jest
 commands (unit/integration) and `--grep <regex> --pass-with-no-tests` to Playwright commands (e2e). Lint and typecheck
@@ -330,20 +337,26 @@ the OS for the two independently, so a run that fails to pass the web port expli
 
 ## Architecture
 
-The broker chain for a `run` invocation:
+The broker chain for a `run` invocation. Neither `orchestrate-run-all-broker` nor any layer under that name
+exists — the real chain is:
 
 ```
-start-ward.ts (entry point, routes subcommands)
-  -> command-run-broker (sets up run)
-    -> orchestrate-run-all-broker (detects single vs multi-package, resolves file scope, iterates check types)
-      -> orchestrate-run-all-layer-check-broker (dispatches to the right check runner)
-        -> check-run-lint-broker      (spawns eslint, parses JSON output)
-        -> check-run-typecheck-broker (spawns tsc)
-        -> check-run-unit-broker      (spawns jest, parses JSON output, excludes integration tests)
-        -> check-run-integration-broker (spawns jest, parses JSON output, integration tests only)
-        -> check-run-e2e-broker       (spawns playwright, parses JSON output)
-    -> storage-save-broker (persists WardResult to disk)
-    -> storage-prune-broker (cleans old results)
+start-ward.ts (entry point)
+  -> WardFlow (routes the four subcommands)
+    -> WardRunResponder (parses CLI args for `run`)
+      -> command-run-broker (resolves git scope, checks passthrough paths exist, picks a mode)
+        -> commandRunLayerSingleBroker (no workspaces: runs every requested check type
+             in-process, one at a time, against the single project)
+          -> check-run-lint-broker        (spawns eslint, parses JSON output)
+          -> check-run-typecheck-broker   (spawns tsc --noEmit --listFiles, never emits)
+          -> check-run-unit-broker        (spawns jest, parses JSON output, excludes integration/e2e tests)
+          -> check-run-integration-broker (spawns jest, parses JSON output, integration tests only)
+          -> check-run-e2e-broker         (spawns playwright, parses line+JSON output)
+          -> storage-save-broker / storage-prune-broker
+          -> e2e-artifacts-prune-broker (sweeps leaked e2e artifacts, every run, at the END)
+        -> commandRunLayerMultiBroker (workspaces: spawns a child `dungeonmaster-ward` in each
+             matching package — a pool of up to 4 concurrent — and merges their results)
+          -> storage-save-broker / storage-prune-broker
 ```
 
 **A child's result is loaded BY ID or not at all.** `storageLoadBroker` called without a `runId` returns the newest
@@ -356,6 +369,7 @@ stale result claims files were processed. A child that reached its summary alway
 the result file come from the same `wardResult` — and the two paths that return before it (an empty file scope, a path
 not on disk) write neither, so a missing id means no result of this run exists to merge.
 
-In multi-package mode, `orchestrate-run-all-broker` spawns a child ward process in each workspace package and
-aggregates their results. Check types are iterated sequentially. Results are aggregated into a `WardResult` and saved
-for later inspection via `list`, `detail`, and `raw` subcommands.
+In multi-package mode, `commandRunLayerMultiBroker` spawns a child `dungeonmaster-ward` process in each matching
+workspace package — up to 4 concurrently, via a promise pool — and aggregates their results; each child still runs
+its own check types one at a time. Results are aggregated into a `WardResult` and saved for later inspection via
+`list`, `detail`, and `raw` subcommands.

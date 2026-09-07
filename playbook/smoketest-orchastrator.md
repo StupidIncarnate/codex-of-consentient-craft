@@ -65,7 +65,7 @@ allocated off-map family. The operator's own signal table offers only `done` and
 loop, unbounded, until their own reviewer's `NEXT:` line reads `pass`; siegemaster loops the same way until every
 round and every re-walk is clean, summoning its own `siegemaster-reviewer` only if a fixer changed code — a quest
 whose every round comes back clean signals `done` straight off its own checklist arithmetic instead. Only the named
-reviewer builds, wards (`--uncommitted`), commits (once), and pushes (bare) — no code-writing sub-agent does any of
+reviewer wards (`--uncommitted`), commits (once), and pushes (bare) — no code-writing sub-agent does any of
 that, neither does a verifier or a stress tester, and the operator itself never commits.
 
 Consequences for this playbook:
@@ -291,15 +291,6 @@ Static policies. These hold for every run.
   `<dungeonmasterHome>/dispatch-state.json`. Read the config before assuming which one to reach for; both drive the
   same `get-next-step` brain, so a checkpoint's expectations do not change with the mode — only how you start it.
 - **Single dev server policy.** Only one dev server process is up at any time across the whole run.
-- **Build before dev server.** Always run `npm run build` before starting the dev server (initial start AND every
-  restart after a fix). All packages run from `dist/`, so a stale build will mask or create bugs that don't reflect the
-  source tree.
-- **Build before ward.** The orchestrator MUST run `npm run build` before every ward invocation (scoped or full). Ward
-  resolves cross-package types and imports through each package's `dist/`, so a stale build surfaces as TS2339
-  "property X does not exist" on cross-package APIs even when the source is correct. This is NOT optional — a fix agent
-  that added a new export (e.g. `StartOrchestrator.resumeQuest`) will pass its own scoped ward inside its worktree
-  (which ran its own build) but fail on master until the main tree rebuilds. Run `npm run build` at the repo root
-  immediately after applying any sub-agent's patch, before handing off to the ward-runner agent.
 - **Three server situations, and only one is yours to manage.** The validation orchestrator (you) runs `npm run prod`
   on ports 4800/4801 for the smoke-test UI you drive — the compiled server from `dist/`, exercising the same code a
   real user would hit. Flowrider gets no dev-server config at all: the server a runtime flow's e2e suite needs comes
@@ -832,7 +823,7 @@ signals `complete`.
     - **The operator reads code and dispatches; it never edits a file itself.** Expanding the row should show the
       operator briefing GENERIC `general-purpose` sub-agents (in its own words, not a served prompt) to make the
       edits, then summoning exactly ONE `codeweaver-reviewer` sub-agent — visible as a distinct sub-agent chain — which
-      is the session that runs `npm run build` / `npm run ward -- --uncommitted`, commits, and pushes.
+      is the session that runs `npm run ward -- --uncommitted`, commits, and pushes.
     - **Strict 1:1.** Each codeweaver work item links exactly one operation item via
       `relatedDataItems: ['operations/<id>']`, and each operation item is worked by exactly one work item. Read
       `quest.json` `workItems[]` directly (MCP `get-quest` strips them) to verify.
@@ -876,10 +867,10 @@ spiritmender path is Phase 2.3).
     then chooses a LAYER per unit — a real browser via Playwright, or an integration/unit test below it — and briefs
     GENERIC `general-purpose` sub-agents to author the suite for each choice. It dispatches its own `flowrider-reviewer`
     — visible as a distinct sub-agent chain, the ONLY writer of `flowriderSignoff` on that flow, since the session that
-    authored a test is not the one that certifies it bites. The reviewer builds, wards `--uncommitted`, commits once, and
+    authored a test is not the one that certifies it bites. The reviewer wards `--uncommitted`, commits once, and
     pushes; the operator itself never commits.
-  - **Only the reviewer runs `npm run build` / `npm run ward`.** No code-writing sub-agent commits, builds, or wards —
-    that authority belongs to the ONE `flowrider-reviewer` alone.
+  - **Only the reviewer runs `npm run ward`.** No code-writing sub-agent commits or wards — that authority belongs to
+    the ONE `flowrider-reviewer` alone.
   - For a **runtime** flow's browser-layer units, the sub-agent's Playwright suite controls its own dev server
     (`webServer` config from `.dungeonmaster.json`'s project settings, or the Playwright config directly). Confirm the
     prod server on 4800/4801 stays LISTEN throughout; a dev server (4750/4751) comes up and goes down within the run.
@@ -942,7 +933,7 @@ instead):
        concerns (`craft`, `perf`, `dedup`, `integrity`, `test-cases`) in the SAME reading pass as its own role-specific
        judgment. It fixes what is small and clearly its own; anything structural or needing a decision it hands up in
        its `NEXT: rework` line instead of closing silently.
-    3. The reviewer then runs `npm run build` and `npm run ward -- --uncommitted` (at most twice — once more to check its
+    3. The reviewer then runs `npm run ward -- --uncommitted` (at most twice — once more to check its
        own fixes), commits the whole pass ONCE, and pushes bare.
     4. The reviewer answers with a `NEXT:` line — `pass` (parent signals `done`), `rework` (parent sends the named
        remainder back out to another sub-agent), or `wall` (parent signals `blocked`).

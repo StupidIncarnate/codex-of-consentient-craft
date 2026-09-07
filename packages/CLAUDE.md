@@ -6,18 +6,18 @@ This directory contains all workspace packages for the Dungeonmaster monorepo.
 
 When creating a new package in this monorepo, you MUST configure the following:
 
-### 1. Package tsconfig.json
+### 1. Package tsconfig.json and tsconfig.build.json
 
-**REQUIRED:** Every package must have a `tsconfig.json` that extends the root configuration:
+**REQUIRED:** Every package splits into two tsconfigs — `tsconfig.json` for checking (what ward's
+per-package `tsc --noEmit` runs) and `tsconfig.build.json` for emission (what `npm run build` runs).
+Neither is optional and neither substitutes for the other.
+
+`tsconfig.json` extends the root configuration and emits nothing:
 
 ```json
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "declarationMap": true,
-    "declaration": true,
-    "noEmit": false,
     "typeRoots": [
       "../../node_modules/@types",
       "../../@types"
@@ -30,12 +30,38 @@ When creating a new package in this monorepo, you MUST configure the following:
 }
 ```
 
+`tsconfig.build.json` extends the package's own `tsconfig.json` and adds the emit settings plus the
+test-file excludes:
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "declaration": true,
+    "declarationMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.proxy.ts"
+  ]
+}
+```
+
 **Why:** This ensures:
 
 - Type definitions from root `@types/` folder are available to the package
 - Consistent compiler settings across all packages
 - Proper module resolution for workspace dependencies
 - TypeScript can find custom type definitions in the root `@types/` directory
+- Ward's typecheck (`tsc --noEmit` against `tsconfig.json`) never writes `dist/` or a `.tsbuildinfo`,
+  so concurrent scoped runs never corrupt each other's output
+- `npm run build` (`tsc -p tsconfig.build.json`) is the only command that emits, and it never ships
+  test/proxy files as part of the package's public output
 
 ### 2. Package Dependencies
 
@@ -49,7 +75,11 @@ If your package uses `@dungeonmaster/shared` or other workspace packages, add th
 }
 ```
 
-**Remember:** After modifying contracts in `@dungeonmaster/shared`, you MUST rebuild it:
+**Remember:** `@dungeonmaster/shared`'s package.json exports a `source` condition on every subpath, so ward's
+typecheck, unit and integration checks (which set `--conditions=source`) read edited contracts directly —
+no rebuild needed for those. Lint and every runtime path that does not set that condition (`npm run prod`,
+`dungeonmaster start` in a consumer, the MCP server, `npm run build` itself) still resolve `@dungeonmaster/shared`
+through `dist/`, so rebuild it before exercising any of those:
 
 ```bash
 npm run build --workspace=@dungeonmaster/shared
@@ -84,15 +114,18 @@ Standard scripts for consistency across packages:
 ```json
 {
   "scripts": {
-    "build": "tsc",
-    "test": "jest",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint"
+    "build": "tsc -p tsconfig.build.json",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
   }
 }
 ```
 
-**Note:** ESLint automatically discovers files based on root `eslint.config.js` - no arguments needed.
+**Note:** ESLint automatically discovers files based on root `eslint.config.js` - no arguments needed. Use
+`npm run ward` (this package's own script, or the root-level command scoped to this package) for lint,
+typecheck and test — never invoke `tsc`, `eslint` or `jest` directly.
 
 ### 5. Register in Root package.json
 

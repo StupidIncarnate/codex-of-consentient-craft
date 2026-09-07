@@ -8,9 +8,10 @@ for LLM sessions and humans who need to check changes before merging.
 ## Scenario 1: `npm run dev` — smoke-test changes locally
 
 ```bash
-npm run build
 npm run dev
 ```
+
+No build needed first — `dev` is `tsx watch --conditions=source`, so it reads source directly.
 
 **Expected:**
 
@@ -169,7 +170,6 @@ behavior.
 After making runtime-config changes, run:
 
 ```bash
-npm run build
 npm run ward
 grep -r "DUNGEONMASTER_ENV" packages/ scripts/ .mcp.json package.json   # expect zero code hits
 grep -r "legacyProjectConfigFile" packages/                             # expect zero hits

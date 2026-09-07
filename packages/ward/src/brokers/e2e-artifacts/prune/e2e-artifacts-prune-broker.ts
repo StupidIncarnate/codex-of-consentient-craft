@@ -1,7 +1,9 @@
 /**
- * PURPOSE: Reclaims per-run e2e artifacts that outlived the run that made them. Reach for this at
- * the START of a ward invocation; the sibling remove broker handles the ordinary end-of-run case,
- * and this one is the backstop for every run that never reached it — a SIGKILL, a Ctrl-C, a CI job
+ * PURPOSE: Reclaims per-run e2e artifacts that outlived the run that made them. It runs at the END of
+ * EVERY ward invocation — `commandRunLayerSingleBroker` calls it after every requested check type has
+ * finished, including a lint-only or typecheck-only run that never touches e2e at all. The sibling
+ * remove broker handles the ordinary end-of-run case for the run's OWN artifacts; this one is the
+ * backstop for every run that never reached that cleanup — a SIGKILL, a Ctrl-C, a CI job
  * cancelled mid-suite. Measured on this repo before it existed: 3,048 leaked directories, about
  * 50 GB, oldest five months old.
  *
@@ -10,7 +12,9 @@
  * A bound port is proof a run owns the artifact. Ports RECUR, so the OS can hand a fresh run a port
  * whose stale directory is still on disk, and for the seconds before that run's server writes to it
  * the directory still reads as abandoned. Deleting it there kills a run already under way, and the
- * symptom names nothing that leads back here.
+ * symptom names nothing that leads back here. That check applies to the artifacts whose NAME is a
+ * port (`portKeyed`); the hashed bundle is named after its inputs and has no port to ask about, so
+ * age is the whole of its test.
  *
  * Each entry is deleted inside its OWN catch. Four browser walks sweep one directory at once, so
  * two processes racing for the same path is the common case rather than the edge one — and a single
@@ -48,12 +52,14 @@ export const e2eArtifactsPruneBroker = async ({
       // under node_modules/ being swept.
       const entries = await fsReaddirAdapter({ dirPath: parentPath }).catch(() => []);
 
-      const candidates = entries.filter((entry) =>
-        isPortSuffixedArtifactGuard({
-          name: String(entry),
-          prefix: artifact.prefix,
-          suffix: artifact.suffix,
-        }),
+      const candidates = entries.filter(
+        (entry) =>
+          !artifact.portKeyed ||
+          isPortSuffixedArtifactGuard({
+            name: String(entry),
+            prefix: artifact.prefix,
+            suffix: artifact.suffix,
+          }),
       );
 
       await Promise.all(
@@ -68,12 +74,14 @@ export const e2eArtifactsPruneBroker = async ({
               return;
             }
 
-            const port = networkPortContract.parse(
-              Number(name.slice(artifact.prefix.length, name.length - artifact.suffix.length)),
-            );
+            if (artifact.portKeyed) {
+              const port = networkPortContract.parse(
+                Number(name.slice(artifact.prefix.length, name.length - artifact.suffix.length)),
+              );
 
-            if (await netPortInUseAdapter({ port })) {
-              return;
+              if (await netPortInUseAdapter({ port })) {
+                return;
+              }
             }
 
             await fsRmAdapter({ filePath: entryPath, recursive: true, force: true });

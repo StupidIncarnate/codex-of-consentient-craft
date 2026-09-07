@@ -95,8 +95,8 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
   when a fixer changed code; a quest whose rounds all come back clean skips the reviewer and signals `done` straight
   off its own checklist arithmetic instead. **The loop is unbounded and `partial` is not on an operator's signal
   table** — another pass costs a pass inside the same session; a `partial` would cost a whole fresh session that has
-  to reconstruct the remainder out of git. No code-writing sub-agent commits, builds, or wards; the named reviewer,
-  where one runs, is the only session on the pass that runs `npm run build` / `npm run ward -- --uncommitted`, and it
+  to reconstruct the remainder out of git. No code-writing sub-agent commits or wards; the named reviewer,
+  where one runs, is the only session on the pass that runs `npm run ward -- --uncommitted`, and it
   alone commits (once) and pushes (bare).
 - **Named sub-agent** — the six sub-agents with a served prompt (`agentPromptClassificationStatics.minionNames`):
   `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`, `siegemaster-verifier`, `siegemaster-stress`,
@@ -111,11 +111,11 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
   `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` each grade a different subject (product code
   against the flow; whether a test suite bites; whether a repair touched the cause or just hid the symptom) but share
   one shape — read every file the pass produced in full, take the five standards concerns in the same pass, fix what
-  is small and clearly theirs, build, ward, commit, push, and answer with a `NEXT:` line. `siegemaster-verifier`
+  is small and clearly theirs, ward, commit, push, and answer with a `NEXT:` line. `siegemaster-verifier`
   drives one path through a flow by hand against the running system and signs the observable, terminal and branch
   units it measures there, directly, via its own `modify-quest` call; `siegemaster-stress` drives the same path
   adversarially against the one off-map family its round was allocated and signs that family the same way. Neither
-  writes product code, and neither builds, wards or commits beyond the narrow `--only lint,test` ward each of ITS OWN
+  writes product code, and neither wards or commits beyond the narrow `--only lint,test` ward each of ITS OWN
   pass-2 sub-agents runs on the test file it just wrote.
 - **Operator convergence** — `codeweaver`, `flowrider` and `siegemaster` do NOT use the ward fixpoint, and do not
   gate `done` on sign-off completeness. Each operator signals `done` once its own named reviewer's `NEXT:` line reads

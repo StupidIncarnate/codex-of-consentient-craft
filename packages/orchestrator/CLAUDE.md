@@ -527,7 +527,7 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   ├─ ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
   │
   │   Each of those three agent roles is an OPERATOR: it reads code, briefs sub-agents to change it,
-  │   reads what changed, and summons its own reviewer — which builds, wards, commits and pushes.
+  │   reads what changed, and summons its own reviewer — which wards, commits and pushes.
   │   There is no standards-review role on the ledger: the five standing concerns are taken by that
   │   reviewer, inside the operator's own turn, before it commits. See "How an operator session
   │   works" and "Minions".
@@ -619,17 +619,14 @@ Eight things about that shape are load-bearing, and each is a measurement rather
   exactly ONE ROUND at a time, always — a round's own verifier and stress tester go out together, each in its own
   lane, but the next round never starts until both return; a lane reused across rounds would measure a previous
   round's leftover state instead of a fresh one.
-- **A sub-agent's brief carries `npm run ward -- --only lint,test -- <its own paths>`, and `typecheck` is deliberately
-  out.** Ward runs typecheck as `tsc -b`, which builds and writes the shared `dist/`, so a wave of sub-agents running
-  it at once hands each other type errors on correct code. The reviewer's `--uncommitted` run is the typecheck. The
-  `run-ward` MCP tool is a different command — it grades the whole branch and lands the red on the operator's work
-  item — so no brief names it.
-- **The REVIEWER runs `npm run build` and `npm run ward -- --uncommitted`, and it is the ONLY session on the pass that runs
-  either.** `tsc` writes one shared `dist/` per package, and ward's typecheck is `tsc -b`, which is a build under
-  another name — so a second builder hands every sibling session type errors on correct code. The reviewer runs the
-  pair AFTER it has read every file, so it reads looking for what a compiler cannot name; it runs the pair **twice at
-  most**, the second run to check its own fixes; and a red still standing after that is its `NEXT: rework`, carrying
-  the failing output word for word.
+- **A sub-agent's brief carries `npm run ward -- -- <its own paths>` and lets ward pick the checks — every check,
+  including typecheck, runs scoped to those paths.** Ward's typecheck is a per-package `tsc --noEmit`; it emits
+  nothing, so several sub-agents running it at once cannot hand each other type errors. The `run-ward` MCP tool is a
+  different command — it grades the whole branch and lands the red on the operator's work item — so no brief names it.
+- **The REVIEWER runs `npm run ward -- --uncommitted`, and it is the ONLY session on the pass that runs it.** The
+  reviewer runs it AFTER it has read every file, so it reads looking for what a compiler cannot name; it runs it
+  **twice at most**, the second run to check its own fixes; and a red still standing after that is its
+  `NEXT: rework`, carrying the failing output word for word.
 - **A red is diagnosed before it is fixed, because the cheap answer is invisible.** The reviewer re-runs the failing
   file ALONE with `git diff` still empty; if it passes there, that is a FLAKE, the file that went red is not the
   broken one, and it is **`NEXT: rework`, not a repair** — the cause is in a different file, so finding it is a piece
@@ -1180,7 +1177,7 @@ a served prompt:
 - **`codeweaver-reviewer`**, **`flowrider-reviewer`**, **`siegemaster-reviewer`** — one per operator role. Each reads
   the quest, works out what changed from git, opens every file the pass produced IN FULL (not the diff — the file, which
   is what finds the false green a diff hides), takes the five standing concerns in the same reading pass, fixes what is
-  small and clearly its own, runs `npm run build` and `npm run ward -- --uncommitted`, commits the whole pass ONCE and
+  small and clearly its own, runs `npm run ward -- --uncommitted`, commits the whole pass ONCE and
   pushes. Each grades a different subject and asks a different question of it: codeweaver's grades product code against
   the flow; flowrider's grades whether a test BITES, and takes the judging half of `flowEvidenceContractStatics`;
   siegemaster's grades REPAIRS, where the failure shape is a change that makes the symptom go away without touching what
@@ -1551,7 +1548,7 @@ for two fetches racing. No worktree, or an unreadable HEAD, records nothing. It 
 | Minion | Summoned By | Model | Purpose |
 |---|---|---|---|
 | `chaoswhisperer-gap-minion` | ChaosWhisperer (inside `/dumpster-create`) | sonnet | Validate spec completeness before approval. It runs in the spec phase, before any operation item exists, and is the ONE minion name `agentPromptGetBroker` still serves when a `workItemId` arrives with it |
-| `codeweaver-reviewer` | Codeweaver, once per pass, plus once per sweep | sonnet | Reads the quest and git, opens every file the pass produced IN FULL, asks whether the code does what the flow says, whether the pieces fit, whether each unit test BITES, and what is missing — plus the five standing concerns. Fixes what is small, runs `npm run build` and `npm run ward -- --uncommitted` (twice at most), commits the pass ONCE and pushes bare. A LEAF: no sub-agents, no `signal-back` |
+| `codeweaver-reviewer` | Codeweaver, once per pass, plus once per sweep | sonnet | Reads the quest and git, opens every file the pass produced IN FULL, asks whether the code does what the flow says, whether the pieces fit, whether each unit test BITES, and what is missing — plus the five standing concerns. Fixes what is small, runs `npm run ward -- --uncommitted` (twice at most), commits the pass ONCE and pushes bare. A LEAF: no sub-agents, no `signal-back` |
 | `flowrider-reviewer` | Flowrider, once per pass, plus once per sweep | sonnet | The same shape, over a TEST SUITE. Its distinctive question is whether an assertion bites — for each one, what wrong value turns it red — and it takes the judging half of `flowEvidenceContractStatics`. A LEAF |
 | `siegemaster-reviewer` | Siegemaster, once at the end of the loop, plus once per sweep | sonnet | The same shape, over REPAIRS. Its distinctive failure shape is a change that makes the symptom go away without touching the cause: a widened type, a swallowed error, a defaulted value, a loosened assertion. It re-drives nothing — a fresh verifier does that. A LEAF |
 | `siegemaster-verifier` | Siegemaster, one per round, alongside a `siegemaster-stress` | sonnet | Walks one path through the flow by hand, in its own lane, before dispatching anything: pass 1 signs the observable/terminal/branch units it measured; pass 2 dispatches sub-agents, two at a time, that each write ONE FAILING TEST for a recorded defect. Changes nothing itself. Depth stops at its own sub-agents |

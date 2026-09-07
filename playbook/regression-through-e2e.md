@@ -222,11 +222,6 @@ You already know the root cause from Phase 1. Apply the fix. Then:
 1. Re-run the same `--onlyTests` invocation. Confirm the test now passes.
 2. Run a broader `npm run ward` (full suite, `timeout: 600000`). Confirm
    no other test regressed.
-3. Build before ward — stale `dist/` produces fake TS2339 errors:
-
-   ```bash
-   npm run build && npm run ward
-   ```
 
 If the failing-fix-passing-test cycle doesn't snap together cleanly:
 

@@ -202,8 +202,8 @@ compiler agent on `opus`. The brief tells it to:
 **Deduplication rule for the compiler.** Same file, mechanism or prompt passage means ONE entry
 keeping every report's number, attributed:
 
-> **`npm run build` is banned in sub-agent briefs and run anyway.** Counts by item: [3] 9 · [7] 9 ·
-> [9] 16 · [14] 24 · [16] 17 (10 of 10 fixers). Mechanism, stated most precisely by report 03: …
+> **A sub-agent piped `npm run ward` through `tail`, discarding the exit code.** Counts by item: [3] 9 ·
+> [7] 9 · [9] 16 · [14] 24 · [16] 17 (10 of 10 fixers). Mechanism, stated most precisely by report 03: …
 
 Same symptom with a different mechanism stays separate, and the entry says how they differ.
 

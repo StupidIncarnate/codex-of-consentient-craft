@@ -6,11 +6,14 @@ Test cases for verifying ward's CLI behavior across scope levels, check types, a
 
 ### Before you start
 
-1. **Rebuild all packages** before running any tests: `npm run build`
-2. **Rebuild ward specifically** after any ward source changes: `npm run build --workspace=@dungeonmaster/ward`
-3. All commands run from the **repo root** (`/home/brutus-home/projects/codex-of-consentient-craft`). If you `cd` into a
+1. **Rebuild ward** after any ward source changes: `npm run build --workspace=@dungeonmaster/ward`. `npm run ward`
+   invokes the compiled `dungeonmaster-ward` binary (`dist/bin/ward-entry.js`), so ward's own source edits are
+   invisible until this runs. **No other package needs a build first** — typecheck is a per-package `tsc --noEmit`
+   that reads source directly, and unit/integration run jest with `--conditions=source`, so the packages UNDER TEST
+   never need rebuilding for a ward run.
+2. All commands run from the **repo root** (`/home/brutus-home/projects/codex-of-consentient-craft`). If you `cd` into a
    package directory, ward will fail with "No files found".
-4. For e2e tests, the Playwright config auto-starts server + web dev servers. Kill any conflicting dev servers first.
+3. For e2e tests, the Playwright config auto-starts server + web dev servers. Kill any conflicting dev servers first.
 
 ### How to evaluate each test case
 
@@ -33,8 +36,10 @@ Test cases for verifying ward's CLI behavior across scope levels, check types, a
 
 ### Common mistakes to avoid
 
-- **Forgetting to rebuild after source changes.** Ward runs from `dist/`. If you changed source and didn't rebuild,
-  you're testing old code. Always `npm run build --workspace=@dungeonmaster/ward` after editing ward source.
+- **Forgetting to rebuild WARD after editing ward's own source.** `npm run ward` invokes the compiled
+  `dungeonmaster-ward` binary, so a ward source edit is invisible until `npm run build --workspace=@dungeonmaster/ward`
+  runs. This does NOT apply to the packages ward is checking — typecheck reads source directly (`tsc --noEmit`, no
+  build step) and unit/integration run under `--conditions=source`.
 - **Running from the wrong directory.** Ward resolves file paths relative to the repo root. If your cwd is
   `packages/ward`, jest will fail with "No files found".
 - **Forgetting to revert mutations.** Failure tests modify source files. If you don't revert, subsequent tests break.
@@ -111,8 +116,8 @@ Only the requested check type appears in the output. No other check types should
 | [2e](#2e-package-scope-all-integration-tests-in-package) | `--only integration -- packages/ward`                                                            | `int ... PASS N files`      | unit, e2e, lint, tc  |
 | [2f](#2f-no-scope-all-packages)                          | `--only integration`                                                                             | `int ... PASS` (all pkgs)   | unit, e2e, lint, tc  |
 | [3a](#3a-package-without-playwrightconfigts)             | `--only e2e -- packages/ward`                                                                    | `e2e ... skip`              | unit, int, lint, tc  |
-| [3c](#3c-single-e2e-test-file)                           | `--only e2e -- .../smoke.spec.ts`                                                                | `e2e ... PASS N files`      | unit, int, lint, tc  |
-| [3d](#3d-package-scope-all-e2e-tests)                    | `--only e2e -- packages/testing`                                                                 | `e2e ... PASS N files`      | unit, int, lint, tc  |
+| [3c](#3c-single-e2e-test-file)                           | `--only e2e -- .../smoke.e2e.ts`                                                                 | `e2e ... PASS N files`      | unit, int, lint, tc  |
+| [3d](#3d-package-scope-all-e2e-tests)                    | `--only e2e -- packages/web`                                                                     | `e2e ... PASS N files`      | unit, int, lint, tc  |
 | [3b](#3b-no-scope-all-packages)                          | `--only e2e`                                                                                     | `e2e ... PASS/skip` per pkg | unit, int, lint, tc  |
 | [4a](#4a-single-implementation-file)                     | `--only lint -- .../is-check-type-guard.ts`                                                      | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
 | [4b](#4b-single-test-file)                               | `--only lint -- .../is-check-type-guard.test.ts`                                                 | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
@@ -153,7 +158,7 @@ All failures require modifying source files — see linked detail for exact chan
 |-----------------------------------------------------------------------|--------------------------------------|-----------------------------------------------------------------|----------|----------|----------|----------|----------|
 | [1h](#1h-unit-test-failure)                                           | flip assertion in `.test.ts`         | `--only unit -- .../is-check-type-guard.test.ts`                | **FAIL** |          |          |          |          |
 | [2g](#2g-integration-test-failure)                                    | flip assertion in int test           | `--only int -- .../start-ward.integration.test.ts`              |          | **FAIL** |          |          |          |
-| [3f](#3f-e2e-test-failure)                                            | flip `'ok'` to `'broken'` in smoke   | `--only e2e --onlyTests "health" -- .../smoke.spec.ts`          |          |          | **FAIL** |          |          |
+| [3f](#3f-e2e-test-failure)                                            | flip `'ok'` to `'broken'` in smoke   | `--only e2e --onlyTests "health" -- .../smoke.e2e.ts`           |          |          | **FAIL** |          |          |
 | [4g](#4g-lint-failure--single-file)                                   | add unused `broken` param            | `--only lint -- .../is-check-type-guard.ts`                     |          |          |          | **FAIL** |          |
 | [4h](#4h-lint-failure--file-scoped-other-files-clean)                 | add unused `broken` param            | `--only lint -- .../is-check-type-guard.test.ts`                |          |          |          | PASS     |          |
 | [4i](#4i-lint-failure--package-scope-catches-it)                      | add unused `broken` param            | `--only lint -- packages/ward`                                  |          |          |          | **FAIL** |          |
@@ -484,7 +489,8 @@ E2E runs Playwright. Skips entirely if the package is not e2e-eligible (`package
 `frontend-react` or `frontend-ink`). An e2e-eligible package missing `playwright.config.ts` fails
 instead of skipping.
 E2E does NOT filter passthrough files by type — it passes them directly to Playwright.
-Only `packages/testing` has a `playwright.config.ts` in this repo.
+Only `packages/web` has a `playwright.config.ts` in this repo; its specs are colocated as `*.e2e.ts`
+under `packages/web/src/flows/<route>/`.
 
 **Prerequisites:**
 
@@ -505,12 +511,12 @@ npm run ward -- --only e2e -- packages/ward
 #### 3c. Single e2e test file
 
 ```bash
-npm run ward -- --only e2e -- packages/testing/e2e/web/smoke.spec.ts
+npm run ward -- --only e2e -- packages/web/src/flows/app/smoke.e2e.ts
 ```
 
 **Expected:**
 
-- Live: `e2e @dungeonmaster/testing PASS  N files`
+- Live: `e2e @dungeonmaster/web PASS  N files`
 - Playwright runs only the smoke spec
 - Summary: `e2e: PASS 1 packages (...)`
 
@@ -521,18 +527,19 @@ npm run ward -- --only e2e -- packages/testing/e2e/web/smoke.spec.ts
 #### 3d. Package scope (all e2e tests)
 
 ```bash
-npm run ward -- --only e2e -- packages/testing
+npm run ward -- --only e2e -- packages/web
 ```
 
 **Expected:**
 
-- Live: `e2e @dungeonmaster/testing PASS  N files, N discovered`
-- Runs ALL e2e test files in the testing package
+- Live: `e2e @dungeonmaster/web PASS  N files, N discovered`
+- Runs every e2e test file in the web package — this is the full suite (100+ specs as of this
+  writing), so expect this to take several minutes; prefer 3c for a quick check.
 
 #### 3e. E2e with --onlyTests pattern
 
 ```bash
-npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smoke.spec.ts
+npm run ward -- --only e2e --onlyTests "health" -- packages/web/src/flows/app/smoke.e2e.ts
 ```
 
 **Expected:**
@@ -543,29 +550,29 @@ npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smok
 
 #### 3f. E2E test failure
 
-**Modify:** `packages/testing/e2e/web/smoke.spec.ts`
-**Change:** Flip `expect(body.status).toBe('ok')` to `expect(body.status).toBe('broken')`
+**Modify:** `packages/web/src/flows/app/smoke.e2e.ts`
+**Change:** Inside the `toStrictEqual` on the health endpoint's body, flip `status: 'ok'` to `status: 'broken'`
 
 ```bash
-npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smoke.spec.ts
+npm run ward -- --only e2e --onlyTests "health" -- packages/web/src/flows/app/smoke.e2e.ts
 ```
 
 **Expected:**
 
-- Live: `e2e @dungeonmaster/testing FAIL  1 files, 1 errors, N discovered`
+- Live: `e2e @dungeonmaster/web FAIL  1 files, 1 errors, N discovered`
 - Summary: `e2e: FAIL  1 packages ...`
 - Error detail: `--- e2e ---` with test name and Expected/Received diff
 - Exit code: non-zero
-- Note: Playwright retries (configured 2 retries) — all 3 attempts fail
+- Note: Playwright retries (configured per `playwright.config.ts`) — every retry fails the same way
 
 **Drill-down verification:**
 
 - `ward-detail` with runId + filePath:
-  - Shows test name: `"smoke.spec.ts > Smoke Tests > health endpoint responds"`
-  - Shows diff: `Expected: "broken"` / `Received: "ok"`
-- `ward-detail` with runId + filePath `smoke.spec.ts`:
+  - Shows test name: `"Smoke Tests > VALID: health endpoint responds"`
+  - Shows diff naming `status: "broken"` on one side and `status: "ok"` on the other
+- `ward-detail` with runId + filePath `smoke.e2e.ts`:
   - Shows FAIL with test name and diff
-  - Shows source location `smoke.spec.ts:9:25`
+  - Shows the failing source location inside `smoke.e2e.ts`
 **Revert change after testing.**
 
 #### 3b. No scope (all packages)
