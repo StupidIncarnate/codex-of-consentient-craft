@@ -183,7 +183,8 @@ checked nothing.
 When ward finds failures, it prints a summary with truncated error info. To get full details (especially jest diffs for
 test failures), use the detail subcommand:
 
-1. Run checks: `npm run ward -- --only lint,test`
+1. Run checks on the paths you touched: `npm run ward -- -- <your own paths>` — no `--only`, since ward picks the
+   check types from the paths it is handed
 2. Run `npm run ward -- detail <runId> <filePath>` to drill into a specific file's errors
 
 **Why this matters:** The `run` output truncates test failure messages to the first line. The `detail` subcommand shows

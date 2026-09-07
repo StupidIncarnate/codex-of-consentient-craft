@@ -34,9 +34,13 @@ describe('sessionSnippetStatics', () => {
     );
   });
 
-  it('VALID: wardDiscipline snippet => scopes ward to the files given and denies ward needs a build', () => {
+  // WARD'S E2E CHECK DOES BUILD — it spawns the package's own `npm run build` into
+  // `<pkg>/.ward/bundle/<hash>/`. What stays true is WHERE ward writes: never your source tree and
+  // never your `dist`. The claim is pinned on that, so a snippet that goes back to promising ward
+  // builds nothing fails here rather than sending a session looking for a bundle ward never left.
+  it('VALID: wardDiscipline snippet => scopes ward to the files given and denies ward writes into source or dist', () => {
     expect(sessionSnippetStatics.wardDiscipline).toMatch(
-      /^\*\*Scope ward to the job\.\*\* Given specific files, run ward on those files and nothing wider: `npm run ward -- -- <files>`\..*Ward builds nothing and reads source; `npm run build` is a separate command and never a step before ward\.$/mu,
+      /^\*\*Scope ward to the job\.\*\* Given specific files, run ward on those files and nothing wider: `npm run ward -- -- <files>`\..*Ward never emits into your source tree or your `dist`; `npm run build` is a separate command and never a step before ward\.$/mu,
     );
   });
 

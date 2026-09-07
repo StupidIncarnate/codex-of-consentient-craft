@@ -167,7 +167,7 @@ Pass every path you touched after \`--\`. Repo-relative, no \`./\`.
 
 Applies to every ward run, in any repo, by any agent.
 
-**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run \`--uncommitted\` only to grade a whole working tree before you hand it back. Run a bare \`npm run ward\` only before merging into the default branch. Ward builds nothing and reads source; \`npm run build\` is a separate command and never a step before ward.
+**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run \`--uncommitted\` only to grade a whole working tree before you hand it back. Run a bare \`npm run ward\` only before merging into the default branch. Ward never emits into your source tree or your \`dist\`; \`npm run build\` is a separate command and never a step before ward.
 
 **Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
 

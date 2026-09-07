@@ -115,8 +115,9 @@ environment wall, or when a riftcarver hits a git-state or permission failure.
   drives one path through a flow by hand against the running system and signs the observable, terminal and branch
   units it measures there, directly, via its own `modify-quest` call; `siegemaster-stress` drives the same path
   adversarially against the one off-map family its round was allocated and signs that family the same way. Neither
-  writes product code, and neither wards or commits beyond the narrow `--only lint,test` ward each of ITS OWN
-  pass-2 sub-agents runs on the test file it just wrote.
+  writes product code, and neither wards or commits beyond the file-scoped `npm run ward -- -- <its own paths>` that
+  each of ITS OWN pass-2 sub-agents runs on the test file it just wrote — no `--only`, since ward picks the check
+  types from the paths it is handed.
 - **Operator convergence** — `codeweaver`, `flowrider` and `siegemaster` do NOT use the ward fixpoint, and do not
   gate `done` on sign-off completeness. Each operator signals `done` once its own named reviewer's `NEXT:` line reads
   `pass`, and `blocked` only on an environment wall its reviewer names `wall`. Sign-offs recorded along the way
