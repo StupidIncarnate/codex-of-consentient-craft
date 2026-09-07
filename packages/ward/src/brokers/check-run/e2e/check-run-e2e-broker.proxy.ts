@@ -10,6 +10,7 @@ import {
   filePathContract,
   absoluteFilePathContract,
 } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { netKillPortAdapterProxy } from '../../../adapters/net/kill-port/net-kill-port-adapter.proxy';
@@ -17,13 +18,20 @@ import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-f
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { e2eArtifactsRemoveBrokerProxy } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
+import { bundleBuildBrokerProxy } from '../../bundle/build/bundle-build-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 
+// The sha-256 of the three files bundleBuildBrokerProxy's single-package fixture stages, in sorted
+// path order relative to the package root. Editing any of those contents changes this number.
+const BUNDLE_HASH = '1d36195dbed4d762ee44bad0c0a391b267a8b412c2832995e82a59b16fe9d184';
+
 export const checkRunE2eBrokerProxy = (): {
   setupPass: (params: { projectFolder: ProjectFolder }) => void;
+  setupPassWithBundle: (params: { projectFolder: ProjectFolder }) => void;
+  getBundleDir: (params: { projectFolder: ProjectFolder }) => AbsoluteFilePath;
   setupPassWithOutput: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
   setupPassWithJsonReport: (params: { projectFolder: ProjectFolder; jsonContent: string }) => void;
   setupFail: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
@@ -54,6 +62,10 @@ export const checkRunE2eBrokerProxy = (): {
   // deletes under, and that it still fires on the early-return path below.
   const removeProxy = e2eArtifactsRemoveBrokerProxy();
   const binProxy = binResolveBrokerProxy();
+  // Every setup below except setupPassWithBundle leaves the bundle broker's own manifest read
+  // UNSTAGED, so it answers "no build script" and the run gets no bundle — which is what those
+  // setups' expectations describe.
+  const bundleProxy = bundleBuildBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
   const emptyMessage = ErrorMessageStub({ value: '' });
@@ -106,6 +118,19 @@ export const checkRunE2eBrokerProxy = (): {
     });
   };
 
+  const bundleDirFor = ({ projectFolder }: { projectFolder: ProjectFolder }): AbsoluteFilePath =>
+    bundleProxy.bundleDirFor({
+      packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+      hash: BUNDLE_HASH,
+    });
+
+  const stageCachedBundle = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+    bundleProxy.setupCachedSinglePackageBundle({
+      packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+      hash: BUNDLE_HASH,
+    });
+  };
+
   return {
     setupPass: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       setupPlaywrightConfigExists({ projectFolder });
@@ -118,6 +143,22 @@ export const checkRunE2eBrokerProxy = (): {
         stderr: emptyMessage,
       });
     },
+
+    setupPassWithBundle: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+      setupPlaywrightConfigExists({ projectFolder });
+      queueFreePorts();
+      stageCacheRemoval({ projectFolder });
+      stageCachedBundle({ projectFolder });
+      captureProxy.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
+        exitCode: successCode,
+        stdout: emptyMessage,
+        stderr: emptyMessage,
+      });
+    },
+
+    getBundleDir: ({ projectFolder }: { projectFolder: ProjectFolder }): AbsoluteFilePath =>
+      bundleDirFor({ projectFolder }),
 
     setupPassWithOutput: ({
       projectFolder,

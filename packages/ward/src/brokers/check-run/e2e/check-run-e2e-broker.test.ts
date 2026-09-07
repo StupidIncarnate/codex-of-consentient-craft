@@ -364,6 +364,33 @@ describe('checkRunE2eBroker', () => {
     });
   });
 
+  describe('the prebuilt bundle Playwright serves', () => {
+    it('VALID: {a bundle already built for these inputs} => names it in DUNGEONMASTER_WEB_BUNDLE_DIR', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPassWithBundle({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedEnvValue({ key: 'DUNGEONMASTER_WEB_BUNDLE_DIR' })).toBe(
+        String(proxy.getBundleDir({ projectFolder })),
+      );
+    });
+
+    // A package with no build script has no bundle to name. Pointing at a directory ward never
+    // built would have `vite preview` serve nothing and every spec fail on a blank page, so the
+    // variable is ABSENT and the consumer's config decides what to serve.
+    it('VALID: {no build script in the package} => omits DUNGEONMASTER_WEB_BUNDLE_DIR entirely', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedEnvValue({ key: 'DUNGEONMASTER_WEB_BUNDLE_DIR' })).toBe(undefined);
+    });
+  });
+
   describe('the vite cache this run created', () => {
     // Every run mints a ~39M dependency cache under a port the OS will never hand out again, and
     // vite evicts none of it. Left alone this repo reached 3,048 directories and about 50 GB.

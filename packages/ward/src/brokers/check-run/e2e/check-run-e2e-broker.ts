@@ -38,6 +38,7 @@ import { playwrightJsonReportToPassingTransformer } from '../../../transformers/
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test-path-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { bundleBuildBroker } from '../../bundle/build/bundle-build-broker';
 import { e2eArtifactsRemoveBroker } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -126,6 +127,33 @@ export const checkRunE2eBroker = async ({
       : [...args, '--grep', testNamePattern, '--pass-with-no-tests', ...e2eFiles];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
+  // The prebuilt UI bundle `vite preview` serves, keyed by a hash of every source in this package's
+  // `dependencies` closure — so a run whose inputs have not changed reuses the build instead of
+  // paying a dev server's startup and per-request transform for the whole suite.
+  //
+  // IT DOES NOT REMOVE THE E2E TOOLING'S NEED FOR BUILT `dist/`. Playwright's config loader and its
+  // spec transform use plain Node resolution with no export conditions, so `@dungeonmaster/shared`
+  // and `@dungeonmaster/testing` still resolve to `dist/` at runtime here. Those two must be built
+  // before an e2e run; the bundle replaces the dev SERVER, not the packages the harness imports.
+  const bundle = await bundleBuildBroker({ packageRoot });
+
+  if (bundle.error !== null) {
+    // No bundle means nothing for `vite preview` to serve, so every spec would fail on a page that
+    // never loads. Reporting the build output here is what names the actual cause.
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'fail',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: String(bundle.error),
+        exitCode: exitCodeContract.parse(1),
+      }),
+    });
+  }
+
   // Both ports come from their own bound socket, held open together. Do NOT simplify this to
   // `serverPort + 1`: nothing checks that a derived port is free, a concurrent run can be handed
   // it as ITS server port, and the netKillPortAdapter teardown below then kills that run's server
@@ -147,6 +175,12 @@ export const checkRunE2eBroker = async ({
       DUNGEONMASTER_PORT: String(serverPort),
       DUNGEONMASTER_WEB_PORT: String(webPort),
       PLAYWRIGHT_JSON_OUTPUT_NAME: String(jsonReportPath),
+      // Absent when the package has no build script to make a bundle with. The consumer's
+      // playwright config decides what to serve then; ward states what it has rather than
+      // pointing at a directory it never built.
+      ...(bundle.bundleDir === null
+        ? {}
+        : { DUNGEONMASTER_WEB_BUNDLE_DIR: String(bundle.bundleDir) }),
     },
   });
 

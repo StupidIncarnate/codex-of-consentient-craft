@@ -23,7 +23,7 @@
  *
  * USAGE:
  * await e2eArtifactsPruneBroker({ packageRoot });
- * // Removes stale port-named artifacts under that package; a package with none is a no-op
+ * // Removes stale run artifacts under that package; a package with none is a no-op
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';

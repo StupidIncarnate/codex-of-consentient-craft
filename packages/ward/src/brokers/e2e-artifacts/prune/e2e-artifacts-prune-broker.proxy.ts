@@ -5,6 +5,7 @@ import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-a
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { netPortInUseAdapterProxy } from '../../../adapters/net/port-in-use/net-port-in-use-adapter.proxy';
+import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
 const DAY_MS = 86_400_000;
 
@@ -70,9 +71,11 @@ export const e2eArtifactsPruneBrokerProxy = (): {
 
   return {
     setupEntries: ({ packageRoot, parentDir, entries }): void => {
-      // The broker reads all three parent dirs on every call, so the two a test does not describe
-      // are staged empty here. An unstaged readdir throws rather than answering nothing.
-      for (const dir of ['node_modules', 'test-results', '.']) {
+      // The broker reads EVERY parent dir in the statics on every call, so the ones a test does not
+      // describe are staged empty here. Derived from the statics rather than listed, so a new
+      // artifact row cannot leave one unstaged. An unstaged readdir throws rather than answering
+      // nothing.
+      for (const dir of e2eArtifactsStatics.artifacts.map((artifact) => artifact.parentDir)) {
         readdirProxy.returns({
           dirPath: parentPathFor({ packageRoot, parentDir: dir }),
           entries: dir === parentDir ? entries : [],

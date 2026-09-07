@@ -78,6 +78,63 @@ describe('e2eArtifactsPruneBroker', () => {
     });
   });
 
+  describe('the hashed bundle, which is not named after a port', () => {
+    // The name is a sha-256 of the bundle's inputs. Requiring digits would reject it outright, and
+    // parsing it as a port yields NaN — either way the directory is never reclaimed, so bundles
+    // accumulate at megabytes apiece while the sweep reports success.
+    it('VALID: {a hash-named bundle eight days old} => removes it with no port check', async () => {
+      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const hash = 'f740c8e2713632d9ec1dd0c6ef7ed6aa0e0df74273dc7210276c1a2f5c1e3d22';
+      const proxy = e2eArtifactsPruneBrokerProxy();
+
+      proxy.setupEntries({ packageRoot, parentDir: '.ward/bundle', entries: [hash] });
+      proxy.setupAge({ packageRoot, parentDir: '.ward/bundle', name: hash, daysOld: 8 });
+      proxy.setupRemovable({ packageRoot, parentDir: '.ward/bundle', name: hash });
+
+      await e2eArtifactsPruneBroker({ packageRoot });
+
+      expect(
+        proxy.getRemovedPaths({ packageRoot, parentDir: '.ward/bundle', name: hash }),
+      ).toStrictEqual([
+        [`/repo/packages/web/.ward/bundle/${hash}`, { recursive: true, force: true }],
+      ]);
+    });
+
+    it('VALID: {a hash-named bundle three days old} => keeps it, being inside the window', async () => {
+      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const hash = 'f740c8e2713632d9ec1dd0c6ef7ed6aa0e0df74273dc7210276c1a2f5c1e3d22';
+      const proxy = e2eArtifactsPruneBrokerProxy();
+
+      proxy.setupEntries({ packageRoot, parentDir: '.ward/bundle', entries: [hash] });
+      proxy.setupAge({ packageRoot, parentDir: '.ward/bundle', name: hash, daysOld: 3 });
+
+      await e2eArtifactsPruneBroker({ packageRoot });
+
+      expect(
+        proxy.getRemovedPaths({ packageRoot, parentDir: '.ward/bundle', name: hash }),
+      ).toStrictEqual([]);
+    });
+
+    // A build killed between `vite build` and the rename leaves this behind. It is nobody's bundle,
+    // and the pid in its name recurs, so age is the only thing that can decide it.
+    it('VALID: {a .tmp- directory a killed build left} => removes it once stale', async () => {
+      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const proxy = e2eArtifactsPruneBrokerProxy();
+
+      proxy.setupEntries({ packageRoot, parentDir: '.ward/bundle', entries: ['.tmp-8123'] });
+      proxy.setupAge({ packageRoot, parentDir: '.ward/bundle', name: '.tmp-8123', daysOld: 9 });
+      proxy.setupRemovable({ packageRoot, parentDir: '.ward/bundle', name: '.tmp-8123' });
+
+      await e2eArtifactsPruneBroker({ packageRoot });
+
+      expect(
+        proxy.getRemovedPaths({ packageRoot, parentDir: '.ward/bundle', name: '.tmp-8123' }),
+      ).toStrictEqual([
+        ['/repo/packages/web/.ward/bundle/.tmp-8123', { recursive: true, force: true }],
+      ]);
+    });
+  });
+
   describe('a port a live run still holds', () => {
     // Ports recur. A run handed 40000 seconds ago has not written to its cache yet, so the stale
     // directory still on disk reads as abandoned. Taking it kills that run, and the symptom points

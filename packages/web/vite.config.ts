@@ -17,14 +17,14 @@ const basePort = Number(portResolveBroker());
 const webPort = Number(process.env.DUNGEONMASTER_WEB_PORT) || basePort + 1;
 const { hostname } = environmentStatics;
 
-// Set by `dev:no-watch`, which is the ONLY thing Playwright starts. A test run needs the bundle
-// frozen for its whole length: `hmr: false` stops Vite pushing a reload into the page a spec is
-// mid-assertion on, and `watch: null` (chokidar off, per Vite's own ServerOptions docs) stops it
-// noticing an edit at all — without the second one Vite still invalidates the changed module and
-// serves the new code to the next `page.goto`, so an edit part-way through a run silently splits
-// the suite across two versions of the tree with nothing in the report saying so. Symptom when
-// this regresses: a spec whose page never boots — zero network requests, a blank white
-// screenshot, no Playwright page snapshot — then a timeout on whatever it waited for.
+// Set by `dev:no-watch`, for driving this app against a bundle that must not move under you —
+// a manual walk-through, or a harness that wants the dev server rather than the `preview` block
+// below. `hmr: false` stops Vite pushing a reload into the page you are mid-assertion on, and
+// `watch: null` (chokidar off, per Vite's own ServerOptions docs) stops it noticing an edit at
+// all — without the second one Vite still invalidates the changed module and serves the new code
+// to the next `page.goto`, so an edit part-way through splits a run across two versions of the
+// tree with nothing saying so. Symptom when this regresses: a page that never boots — zero
+// network requests, a blank white screenshot — then a timeout on whatever was awaited.
 const noWatch = process.env.E2E_NO_WATCH === '1';
 const frozenServerOptions = noWatch ? { hmr: false as const, watch: null } : {};
 

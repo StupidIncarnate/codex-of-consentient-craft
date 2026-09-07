@@ -1,8 +1,12 @@
 /**
- * PURPOSE: Names the three per-run artifacts an e2e run leaves in a package, and how long each is
- * worth keeping. Reach for this rather than spelling a path at a call site: the sweep and the
- * end-of-run removal must agree on every one of these, and a fourth artifact added in only one
- * place leaks silently.
+ * PURPOSE: Names the e2e artifacts a run leaves in a package, and how long each is worth keeping.
+ * Reach for this rather than spelling a path at a call site: the sweep and the end-of-run removal
+ * must agree on every one of these, and an artifact added in only one place leaks silently.
+ *
+ * `portKeyed` is what the sweep tests an entry's NAME against. Three of these are named after the
+ * port the run held, and a port is proof of ownership — it is checked for a live listener before
+ * anything is deleted. The bundle is named after a HASH OF ITS INPUTS instead, which is the whole
+ * reason it survives across runs, so there is no port to check and every entry under it is ward's.
  *
  * WHY THE TWO WINDOWS DIFFER. The Vite cache holds no evidence: a project setting
  * `optimizeDeps.force: true` re-optimizes from scratch every run and never reads a cache back. It
@@ -35,6 +39,7 @@ export const e2eArtifactsStatics = {
       prefix: '.vite-',
       suffix: '',
       ttlMs: CACHE_TTL_MS,
+      portKeyed: true,
     },
     {
       // Playwright's `outputDir`, where the project nests it by port so parallel runs stop clearing
@@ -43,6 +48,7 @@ export const e2eArtifactsStatics = {
       prefix: '',
       suffix: '',
       ttlMs: EVIDENCE_TTL_MS,
+      portKeyed: true,
     },
     {
       // Ward's own JSON report, named after the run's server port. Ward unlinks it best-effort at
@@ -51,6 +57,18 @@ export const e2eArtifactsStatics = {
       prefix: '.ward-playwright-report-',
       suffix: '.json',
       ttlMs: EVIDENCE_TTL_MS,
+      portKeyed: true,
+    },
+    {
+      // A prebuilt UI bundle, one directory per hash of the inputs that produced it, plus the
+      // `.tmp-<pid>` a killed build never renamed away. It gets the evidence window rather than the
+      // cache one because it is REUSED: a hash whose inputs have not changed in a week is still the
+      // right answer, and expiring it costs a full rebuild rather than reclaiming waste.
+      parentDir: '.ward/bundle',
+      prefix: '',
+      suffix: '',
+      ttlMs: EVIDENCE_TTL_MS,
+      portKeyed: false,
     },
   ],
 } as const;

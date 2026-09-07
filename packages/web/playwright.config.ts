@@ -14,6 +14,10 @@ const DEFAULT_E2E_PORT = 5737;
 const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_E2E_PORT;
 const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || TEST_PORT + 1;
 const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
+// Ward builds the UI once per hash of its inputs and hands the winning directory over here. The
+// fallback is this package's own `dist`, which is what a hand-run `npx playwright test` gets after
+// `npm run build --workspace=@dungeonmaster/web` — ward never reads or writes that path.
+const BUNDLE_DIR = process.env.DUNGEONMASTER_WEB_BUNDLE_DIR ?? path.resolve(__dirname, 'dist');
 const FAKE_CLAUDE_CLI = path.resolve(__dirname, 'test/harnesses/claude-mock/bin/claude');
 const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, 'claude-queue');
 const FAKE_WARD_QUEUE_DIR = path.join(TEST_HOME, 'ward-queue');
@@ -100,15 +104,16 @@ export default defineConfig({
       },
     },
     {
-      // `dev:no-watch`, never `dev` — the same rule as the API server above, for the same reason.
-      // Plain `vite` watches `packages/web/src` and hot-reloads, so an editor (or a parallel agent)
-      // saving a web file mid-run pushes a reload into the page a spec is asserting on. Measured:
-      // the page never came back — zero network requests after the reload, a blank white
-      // screenshot, no Playwright page snapshot at all, then a timeout on the response the spec was
-      // waiting for. The no-watch script sets `hmr: false` AND `watch: null`, which is what freezes
-      // the bundle for the whole run rather than only silencing the reload. Playwright starts this
-      // process once and tears it down at the end; the suite has no use for a watcher.
-      command: 'npm run dev:no-watch --workspace=@dungeonmaster/web',
+      // `preview`, never `dev`. This serves an ALREADY-BUILT directory as static files, so the
+      // bundle cannot change under a spec: there is no watcher to silence and no module graph to
+      // invalidate, and the suite skips both the dev server's startup and its per-request
+      // transform. The `preview` block in vite.config.ts carries the port and the `/api` and `/ws`
+      // proxies the specs reach the API server through.
+      //
+      // `--strictPort` because Playwright waits on exactly WEB_PORT: without it vite quietly picks
+      // the next free port and the run dies on `Timed out waiting 60000ms from config.webServer`,
+      // naming a timeout rather than the collision that caused it.
+      command: `npx vite preview --strictPort --outDir "${BUNDLE_DIR}"`,
       port: WEB_PORT,
       reuseExistingServer: false,
       env: {
