@@ -87,7 +87,7 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 Run it scoped to the files you name: \`npm run ward -- --only <checks> -- <file1> <file2>\`. Every path must be a FILE, never a bare directory (\`-- packages/<pkg>\`). A directory pulls in the whole package, and the harness then pushes the run into the background, where it takes minutes you did not need to spend.
 
-Three mechanics from the \`<dungeonmaster-wardDiscipline>\` snippet still apply to you: build first, pick one mode, run it once.
+Two mechanics from the \`<dungeonmaster-wardDiscipline>\` snippet still apply to you: re-run the failing command at the rung it was run, and run it once.
 
 **[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session.
 
@@ -197,14 +197,14 @@ Trace each error to its root cause:
 | Type error | Is it a missing import, a wrong branded type, a stale interface, or a real logic bug? |
 | Lint error | Read the rule name. Is it an architecture rule (import hierarchy, colocation) or a syntax rule (naming, exports)? Call \`get-folder-detail\` for what the rule expects. |
 | Test failure | Read the full diff. Is the test asserting stale behavior, or is the implementation returning the wrong shape? Check the proxy chain too. A mock can return the wrong type. |
-| Build error | Check whether a dependency package needs rebuilding: \`npm run build --workspace=@dungeonmaster/shared\`. |
+| Build error | The failing command was \`npm run build\`; fix the source it names, then re-run that command. A build error means a build was running — this role does not cause one and must not answer it by building something else. |
 | Server or runtime error | Read the error message. Then check the config files, the recent git changes, the entry points. |
 
 These four root causes are common in this project:
 
 | Root cause | What it means here |
 |---|---|
-| A stale \`dist\` build after a contract changed | Rebuild the source package. |
+| A stale \`dist\` build after a contract changed, seen ONLY as a lint failure | Lint does not read source the way typecheck/unit/integration do — it still resolves \`@dungeonmaster/shared\` through \`dist/\`. Rebuild it: \`npm run build --workspace=@dungeonmaster/shared\`. |
 | A broken proxy chain | A mock returns the old shape after a contract changed. |
 | A branded type mismatch | The code passes a raw string where a branded type belongs. |
 | A missing companion file | The colocation rule requires a test, a proxy and a stub beside the implementation. |
