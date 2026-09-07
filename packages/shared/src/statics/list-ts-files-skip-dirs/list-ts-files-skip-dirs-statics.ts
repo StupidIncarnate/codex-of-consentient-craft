@@ -11,6 +11,18 @@
  * to descend into a subdirectory
  */
 
+import { locationsStatics } from '../locations/locations-statics';
+
 export const listTsFilesSkipDirsStatics = {
-  skipDirNames: ['dist', 'node_modules', '.git', 'coverage', 'build', '.next', '.turbo'],
+  skipDirNames: [
+    'dist',
+    'node_modules',
+    '.git',
+    'coverage',
+    'build',
+    '.next',
+    '.turbo',
+    locationsStatics.repoRoot.wardLocalDir,
+    locationsStatics.repoRoot.worktreesDir,
+  ],
 } as const;

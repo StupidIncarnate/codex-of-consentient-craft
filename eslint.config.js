@@ -42,6 +42,7 @@ module.exports = [
       '**/*.min.css',
       '.git/**',
       'v1/**',
+      'worktrees/**',
       'scripts/**',
       '**/*.d.ts',
       '*.md',

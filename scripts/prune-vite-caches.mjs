@@ -13,6 +13,9 @@
  * scheduled, and a worktree sweeps its own tree from its own copy of this file.
  *
  * Run it by hand with `npm run clean:vite`.
+ *
+ * This script is repo-local, not general-purpose: it hardcodes this repo's own package layout
+ * (`packages/web`) rather than deriving it, so it does not port to another repo unmodified.
  */
 
 import { readdir, lstat, rm, unlink, readFile, stat } from 'node:fs/promises';
