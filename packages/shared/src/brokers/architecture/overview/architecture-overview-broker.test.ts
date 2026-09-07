@@ -164,11 +164,10 @@ describe('architectureOverviewBroker', () => {
 
       expect(result).toMatch(/^## Cross-Package Public API$/mu);
       expect(result).toMatch(/^### Consuming another package's API$/mu);
-      expect(result).toMatch(/^### Consumer TypeScript config$/mu);
-      expect(result).toMatch(/^### Consumer jest config$/mu);
+      expect(result).toMatch(/^### Starting a new package$/mu);
     });
 
-    it('VALID: {} => documents the node10 source-resolution rule and base tsconfig extends', () => {
+    it('VALID: {} => documents the node10 source-resolution rule for typecheck, lint, and runtime', () => {
       architectureOverviewBrokerProxy();
 
       const result = architectureOverviewBroker();
@@ -176,33 +175,26 @@ describe('architectureOverviewBroker', () => {
       expect(result).toMatch(
         /^- \*\*node10 resolution\*\* \(`moduleResolution: "node"`.*rebuild before running\.$/mu,
       );
-      expect(result).toMatch(/^ {2}"extends": "@dungeonmaster\/eslint-plugin\/tsconfig",$/mu);
     });
 
-    it('VALID: {} => documents the checking/build tsconfig split with a build script', () => {
+    it('VALID: {} => instructs create-package instead of hand-writing package configs', () => {
       architectureOverviewBrokerProxy();
 
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(
-        /^A sibling `tsconfig\.build\.json` extends it and carries only the keys that EMIT — `noEmit: false` among them, since the checking config turns emit off:$/mu,
+        /^Do not hand-write a package's `tsconfig\.json`, `tsconfig\.build\.json` or `jest\.config\.js`, and do not copy them off a sibling\. Run:$/mu,
       );
-      expect(result).toMatch(/^ {2}"extends": "\.\/tsconfig\.json",$/mu);
-      expect(result).toMatch(
-        /^`build` runs `tsc -p tsconfig\.build\.json`; ward's typecheck runs `tsc --noEmit` against `tsconfig\.json` and writes nothing\.$/mu,
-      );
+      expect(result).toMatch(/^dungeonmaster create-package --name <name> --type <packageType>$/mu);
     });
 
-    it('VALID: {} => the build config example emits without composite, and the ban on composite/references is stated', () => {
+    it('VALID: {} => bans composite and a references array, and states the TS6307 consequence', () => {
       architectureOverviewBrokerProxy();
 
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(
-        /^ {2}"compilerOptions": \{ "noEmit": false, "outDir": "\.\/dist", "rootDir": "\.\/", "declaration": true \},$/mu,
-      );
-      expect(result).toMatch(
-        /^\*\*No config sets `composite` and none carries a `references` array\.\*\* Nothing consumes project references, and `composite` forces every file the program reaches into `include` — so one import of a file the build config `exclude`s \(a `\.test\.ts`, a harness\) becomes a hard TS6307 instead of a file the emitter skips\.$/mu,
+        /^\*\*No config sets `composite`, and none carries a `references` array\.\*\* Nothing consumes project references, and `composite` forces every file the program reaches into `include` — so one import of a file the build config `exclude`s \(a `\.test\.ts`, a harness\) becomes a hard TS6307 instead of a file the emitter skips\.$/mu,
       );
     });
 
@@ -212,10 +204,7 @@ describe('architectureOverviewBroker', () => {
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(
-        /^Each package's `jest\.config\.js` spreads the REPO-ROOT `jest\.config\.base\.js` and adds `roots: \["<rootDir>\/src"\]`\. The base registers the ts-jest AST transformers that make `registerMock` and proxy files work, the auto-reset setup, and `testEnvironmentOptions\.customExportConditions: \["source", "require", "default"\]`\.$/mu,
-      );
-      expect(result).toMatch(
-        /^\*\*That conditions list is the load-bearing key and only the repo-root base carries it\.\*\* .+ has to repeat the list by hand\.$/mu,
+        /^\*\*A jest config inherits `testEnvironmentOptions` from the REPO-ROOT base and never pins its own\.\*\* That base alone carries `customExportConditions: \["source", "require", "default"\]`,.*The published `@dungeonmaster\/testing\/jest-config-base` omits the list deliberately — an INSTALLED package ships `dist` only and has no source barrel to resolve to — so spreading the published base inside this monorepo IS the stale-green defect\.$/mu,
       );
     });
   });
