@@ -16,6 +16,7 @@ import { gitRelativePathContract } from '../git-relative-path/git-relative-path-
 import { fileTimingContract } from '../file-timing/file-timing-contract';
 import { passingTestContract } from '../passing-test/passing-test-contract';
 import { testNamePatternMatchContract } from '../test-name-pattern-match/test-name-pattern-match-contract';
+import { durationMsContract } from '../duration-ms/duration-ms-contract';
 
 export const projectResultContract = z.object({
   projectFolder: projectFolderContract,
@@ -32,6 +33,11 @@ export const projectResultContract = z.object({
   // Absent unless the check applied a --onlyTests pattern, which lets the run distinguish a check
   // that never filtered by name (lint, typecheck) from one that filtered and found nothing.
   testNamePatternMatch: testNamePatternMatchContract.optional(),
+  // This package's own wall clock for the check, distinct from checkResultContract's durationMs —
+  // that one is the whole check across every package (see command-run-layer-multi-broker). Defaults
+  // to 0 so parses that predate this field (saved .ward/ results, precomputed typecheck results with
+  // no per-package split) keep working.
+  durationMs: durationMsContract.default(0),
 });
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

@@ -59,6 +59,9 @@ export const resultToDetailJsonTransformer = ({
             passingTests: project.passingTests,
             filesCount: project.filesCount,
             discoveredCount: project.discoveredCount,
+            // This package's own wall clock for the check — see project-result-contract.ts. A slow
+            // package's number no longer gets buried under the checkType-level aggregate.
+            durationMs: project.durationMs,
             // The discovered-vs-processed file lists ride along ONLY for a mismatched check, so the
             // web can name the unrun files. Omitted otherwise to keep every other blob lean.
             ...(discoveryMismatch

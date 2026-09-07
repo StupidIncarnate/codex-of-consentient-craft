@@ -204,8 +204,17 @@ export const commandRunLayerMultiBroker = async ({
 
   const checks = checkTypes.map((checkType) => {
     const bucket = allChecksByType.get(checkType) ?? [];
-    const projectResults = bucket.flatMap((c) => c.projectResults);
+    // Each entry in `bucket` is one CHILD ward's CheckResult for this checkType — a child runs
+    // scoped to exactly one package, so its `durationMs` is that package's own wall clock, not the
+    // whole check's. Stamping it onto every ProjectResult the child reported keeps that per-package
+    // number instead of losing it to the checkType-level aggregate below.
+    const projectResults = bucket.flatMap((c) =>
+      c.projectResults.map((projectResult) => ({ ...projectResult, durationMs: c.durationMs })),
+    );
     const extraResults = checkType === 'typecheck' ? preComputedTypecheckProjectResults : [];
+    // checkResultContract's durationMs stays the WALL CLOCK for the whole check: children in
+    // `bucket` run concurrently (see promisePoolTransformer above), so the slowest one bounds how
+    // long the check took overall — do not average or sum these.
     const aggregatedDurationMs = Math.max(0, ...bucket.map((c) => Number(c.durationMs)));
     return checkResultBuildTransformer({
       checkType,

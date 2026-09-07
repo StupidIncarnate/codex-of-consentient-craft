@@ -57,6 +57,7 @@ describe('commandRunLayerMultiBroker', () => {
               rawOutput: { stdout: '', stderr: '', exitCode: 0 },
               fileTimings: [],
               passingTests: [],
+              durationMs: 0,
             },
           ],
         },
@@ -105,6 +106,7 @@ describe('commandRunLayerMultiBroker', () => {
               },
               fileTimings: [],
               passingTests: [],
+              durationMs: 0,
             },
           ],
         },
@@ -182,6 +184,7 @@ describe('commandRunLayerMultiBroker', () => {
               },
               fileTimings: [],
               passingTests: [],
+              durationMs: 0,
             },
           ],
         },
@@ -254,6 +257,7 @@ describe('commandRunLayerMultiBroker', () => {
               },
               fileTimings: [],
               passingTests: [],
+              durationMs: 0,
             },
           ],
         },
@@ -746,6 +750,131 @@ describe('commandRunLayerMultiBroker', () => {
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
         ['run', '--only', 'lint'],
         ['run', '--only', 'lint'],
+      ]);
+    });
+  });
+
+  describe('per-package durations', () => {
+    it('VALID: {2 packages, children report different check durations} => each project result keeps its own child duration, check duration stays the slowest', async () => {
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 4200,
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/ward',
+                  path: '/home/user/project/packages/ward',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 5,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 900,
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/hooks',
+                  path: '/home/user/project/packages/hooks',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 3,
+              },
+            ],
+          },
+        ],
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+
+      const result = await commandRunLayerMultiBroker({
+        config,
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      expect(result.checks).toStrictEqual([
+        {
+          checkType: 'lint',
+          status: 'pass',
+          // Still the wall clock for the WHOLE check — the slowest child, not a stand-in copied
+          // onto every package.
+          durationMs: 4200,
+          projectResults: [
+            {
+              projectFolder: {
+                name: '@dungeonmaster/ward',
+                path: '/home/user/project/packages/ward',
+              },
+              status: 'pass',
+              errors: [],
+              testFailures: [],
+              filesCount: 5,
+              discoveredCount: 0,
+              onlyDiscovered: [],
+              onlyProcessed: [],
+              rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+              fileTimings: [],
+              passingTests: [],
+              durationMs: 4200,
+            },
+            {
+              projectFolder: {
+                name: '@dungeonmaster/hooks',
+                path: '/home/user/project/packages/hooks',
+              },
+              status: 'pass',
+              errors: [],
+              testFailures: [],
+              filesCount: 3,
+              discoveredCount: 0,
+              onlyDiscovered: [],
+              onlyProcessed: [],
+              rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+              fileTimings: [],
+              passingTests: [],
+              durationMs: 900,
+            },
+          ],
+        },
       ]);
     });
   });

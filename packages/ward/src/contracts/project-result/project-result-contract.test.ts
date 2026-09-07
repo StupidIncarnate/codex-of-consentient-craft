@@ -18,6 +18,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        durationMs: 0,
       });
     });
 
@@ -58,6 +59,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        durationMs: 0,
       });
     });
 
@@ -93,6 +95,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        durationMs: 0,
       });
     });
 
@@ -111,6 +114,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        durationMs: 0,
       });
     });
   });
@@ -226,6 +230,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        durationMs: 0,
       });
     });
   });
@@ -299,6 +304,26 @@ describe('projectResultContract', () => {
       );
 
       expect(result.onlyProcessed).toStrictEqual(['@types/error-cause.d.ts']);
+    });
+  });
+
+  describe('durationMs defaults', () => {
+    it('VALID: {durationMs omitted} => defaults to 0', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.durationMs).toBe(0);
+    });
+
+    it('VALID: {durationMs provided} => preserves value', () => {
+      const result = projectResultContract.parse(ProjectResultStub({ durationMs: 4200 }));
+
+      expect(result.durationMs).toBe(4200);
     });
   });
 });

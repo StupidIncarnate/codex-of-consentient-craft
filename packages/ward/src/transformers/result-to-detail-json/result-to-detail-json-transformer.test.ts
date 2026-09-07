@@ -61,6 +61,69 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  describe('preserves per-package durationMs', () => {
+    it('VALID: {wardResult: two projects with different durationMs} => each project keeps its own duration in JSON', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 4200,
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                durationMs: 4200,
+              }),
+              ProjectResultStub({
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                durationMs: 900,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailJsonTransformer({ wardResult });
+      const parsed: unknown = JSON.parse(result);
+
+      expect(parsed).toStrictEqual({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                passingTests: [],
+                filesCount: 0,
+                discoveredCount: 0,
+                durationMs: 4200,
+              },
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                passingTests: [],
+                filesCount: 0,
+                discoveredCount: 0,
+                durationMs: 900,
               },
             ],
           },
@@ -120,6 +183,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -178,6 +242,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -252,6 +317,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -308,6 +374,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -330,6 +397,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -386,6 +454,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
               {
                 projectFolder: { name: 'shared', path: '/home/user/project/packages/shared' },
@@ -403,6 +472,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -459,6 +529,7 @@ describe('resultToDetailJsonTransformer', () => {
                 ],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -510,6 +581,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
                 rawOutput: {
                   stdout: 'Cannot find module ./missing in src/index.ts',
                   stderr: 'jest exited with code 1',
@@ -564,6 +636,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
                 rawOutput: { stdout: expectedStdout, stderr: '', exitCode: 1 },
               },
             ],
@@ -623,6 +696,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
+                durationMs: 0,
               },
             ],
           },
@@ -674,6 +748,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 0,
                 discoveredCount: 2,
+                durationMs: 0,
                 onlyDiscovered: ['packages/web/a.e2e.ts', 'packages/web/b.e2e.ts'],
                 onlyProcessed: [],
               },
@@ -721,6 +796,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 8,
                 discoveredCount: 267,
+                durationMs: 0,
               },
             ],
           },
@@ -769,6 +845,7 @@ describe('resultToDetailJsonTransformer', () => {
                 passingTests: [],
                 filesCount: 42,
                 discoveredCount: 7,
+                durationMs: 0,
               },
             ],
           },
