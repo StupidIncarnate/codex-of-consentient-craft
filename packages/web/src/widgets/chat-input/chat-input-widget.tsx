@@ -108,12 +108,12 @@ export const ChatInputWidget = ({
   // ceiling is roughly 25 MB of IndexedDB records, which is what an unconditional write on every
   // character typed would rewrite.
   const lastSavedAttachmentIdsRef = useRef<readonly AttachmentId[]>([]);
-  // Counts content-changed steps, so a text-draft write that waited on an IndexedDB round trip can
-  // tell whether the composer still holds the content it captured. The write it carries is a
-  // SNAPSHOT taken before the wait; a keystroke landing during that wait persists newer text
-  // synchronously, and letting the snapshot land afterwards would replace that newer draft with
-  // older content. Whatever superseded it has already written (or is about to write) the current
-  // text, so a superseded write is dropped rather than re-derived.
+  // Counts content-changed steps, so the retraction a failed IndexedDB write schedules can tell
+  // whether the composer still holds the content that write was for. The text a retraction restores
+  // is a SNAPSHOT taken before the round trip; a keystroke landing during that round trip persists
+  // newer text synchronously, and letting a stale retraction land afterwards would replace that
+  // newer draft with older content. Whatever superseded it owns the draft from then on, so a
+  // superseded retraction is dropped rather than re-derived.
   const contentRevisionRef = useRef(0);
   const cancelledRestoreRef = useRef(false);
   // The scope whose draft this instance is currently showing. One ChatInputWidget instance outlives
@@ -162,9 +162,9 @@ export const ChatInputWidget = ({
   }, [composerScope]);
 
   // Writes the localStorage half of the draft only. A standalone callback (not inlined into
-  // handleContentChanged below) because WHEN it runs depends on whether that call ADDS an
-  // attachment: an addition waits on the IndexedDB write settling first, everything else writes
-  // immediately — see that callback for why the ordering matters in each direction.
+  // handleContentChanged below) because that callback writes through it twice per attachment
+  // change — once for the content it just persisted, and once more to retract that content if the
+  // IndexedDB write behind it fails.
   const writeTextDraft = useCallback(
     ({ text }: { text: string }): void => {
       const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
@@ -210,18 +210,16 @@ export const ChatInputWidget = ({
         attachmentIds.every((attachmentId, index) => attachmentId === previousAttachmentIds[index]);
 
       if (attachmentIdsUnchanged && !force) {
-        // No attachment-list change means no IndexedDB write to order this one against — a plain
-        // keystroke persists its text immediately.
+        // No attachment-list change means no IndexedDB write at all, so there is nothing this step
+        // could ever have to retract — a plain keystroke persists its text and is done.
         writeTextDraft({ text });
         return;
       }
 
-      // Only an attachment this step ADDS can put a placeholder token in localStorage ahead of the
-      // bytes behind it, so only an addition makes the text draft wait on the IndexedDB write. A
-      // removal is the mirror image and must NOT wait: waiting there is what leaves a token in
-      // localStorage naming bytes IndexedDB has already dropped — precisely the state the ordering
-      // exists to prevent — while writing the text first leaves at worst an orphaned record with no
-      // token pointing at it, which the next save overwrites.
+      // Only an attachment this step ADDS can leave a placeholder token in localStorage naming bytes
+      // IndexedDB never accepted, so only an addition arms the retraction below. A removal is the
+      // mirror image and needs none: its text names FEWER images than the store holds, which the
+      // next save overwrites and which a restore reads as an orphaned record nothing points at.
       const previouslySavedIds = new Set(previousAttachmentIds);
       const addsAttachment = attachmentIds.some(
         (attachmentId) => !previouslySavedIds.has(attachmentId),
@@ -240,28 +238,40 @@ export const ChatInputWidget = ({
         .map((attachmentId) => attachmentsRef.current.get(attachmentId))
         .filter((attachment): attachment is ComposerAttachment => attachment !== undefined);
 
-      if (!addsAttachment) {
-        writeTextDraft({ text });
-      }
+      // The draft that is durable RIGHT NOW — every token in it names bytes IndexedDB already
+      // accepted. Read before the write below overwrites it, because it is what the retraction
+      // restores; re-deriving it from the live DOM afterwards would rebuild the very content whose
+      // bytes failed.
+      const durableText = (() => {
+        const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
+        try {
+          return localStorage.getItem(scopedKey) ?? '';
+        } catch {
+          return '';
+        }
+      })();
 
-      // For an addition, the image bytes land in IndexedDB BEFORE the placeholder token reaches
-      // localStorage — the text draft is written only once this resolves, never before it. An
-      // interruption between the two (a reload racing a paste) then leaves at worst an IndexedDB
-      // record with no token pointing at it yet (invisible, harmless, overwritten by the next save),
-      // rather than a token in localStorage with no bytes behind it — a raw "[Pasted Image N]" the
-      // user could send as plain text. A failed write leaves the text draft exactly where it was
-      // (see the "durable write ordering" describe block in this widget's test): the token for THIS
-      // content is never written unless the bytes behind it committed first. The revision check is
-      // what keeps that wait from costing the content typed DURING it — see contentRevisionRef.
-      draftImagesSaveBroker({ scopeKey: composerScope, attachments: orderedAttachments })
-        .then(() => {
-          if (addsAttachment && contentRevisionRef.current === revision) {
-            writeTextDraft({ text });
-          }
-        })
-        .catch((error: unknown) => {
+      // The text draft is written in the SAME synchronous step that put the thumbnail on screen, so
+      // the persisted draft never names fewer images than the composer is showing. Holding it back
+      // for the IndexedDB round trip is what opens that gap, and a reload landing in it restores a
+      // composer one image short of what the user was looking at — with the bytes for that image
+      // sitting in the store, orphaned, because no token addresses them.
+      writeTextDraft({ text });
+
+      // Durability is held by RETRACTING the token instead of delaying it: a draft that SURVIVES
+      // never names bytes IndexedDB does not hold. A reload that outruns the retraction leaves the
+      // token behind, and composerParseDraftTransformer drops a token whose record is missing — so
+      // the worst case degrades to the surrounding text, never to a literal "[Pasted Image N]" the
+      // user could send as prose. The revision check is what keeps a retraction from costing content
+      // typed while the write was in flight — see contentRevisionRef.
+      draftImagesSaveBroker({ scopeKey: composerScope, attachments: orderedAttachments }).catch(
+        (error: unknown) => {
           globalThis.console.error('[chat-input] failed to save draft images', error);
-        });
+          if (addsAttachment && contentRevisionRef.current === revision) {
+            writeTextDraft({ text: durableText });
+          }
+        },
+      );
     },
     [writeTextDraft, composerScope],
   );

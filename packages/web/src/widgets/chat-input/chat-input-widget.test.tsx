@@ -1371,13 +1371,13 @@ describe('ChatInputWidget', () => {
   });
 
   describe('durable write ordering', () => {
-    // Defect 1 half (a) — the ORDER test. A reload racing a paste is inherently flaky (the
-    // walker's own repro reproduced 1 of 3 tries), so this proves the ordering guarantee directly
-    // instead of racing it: the localStorage token for a piece of content is never written unless
-    // the IndexedDB bytes behind it committed first. Forcing the IndexedDB write to fail is what
-    // makes that observable deterministically — if the token were written independently of (or
-    // before) the bytes, it would still show up here even though the byte write never landed.
-    it('ERROR: {paste an image while the IndexedDB draft store is unavailable} => #check-bytes-before-token localStorage never gains the placeholder token for that paste', async () => {
+    // Defect 1 half (a) — the DURABILITY test. A reload racing a paste is inherently flaky (the
+    // walker's own repro reproduced 1 of 3 tries), so this proves the guarantee directly instead of
+    // racing it: a draft that SURVIVES never names bytes IndexedDB does not hold. The composer
+    // writes the token in the same step that paints the thumbnail and retracts it if the byte write
+    // behind it fails, so forcing that write to fail is what makes the retraction observable
+    // deterministically — a token written with no retraction arming it would still be here.
+    it('ERROR: {paste an image while the IndexedDB draft store is unavailable} => #check-bytes-before-token localStorage does not keep the placeholder token for that paste', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
       proxy.indexedDbUnavailable({ error: new Error('indexedDB unavailable') });
@@ -1413,7 +1413,8 @@ describe('ChatInputWidget', () => {
       });
 
       // Gives the failed IndexedDB write's rejection every chance to be handled (it is — logged,
-      // not thrown) before asserting on localStorage's own, separately-persisted state.
+      // then the token retracted) before asserting on localStorage's own, separately-persisted
+      // state.
       await new Promise((resolve) => {
         setTimeout(resolve, 0);
       });
