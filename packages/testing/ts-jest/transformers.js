@@ -10,6 +10,13 @@
  */
 'use strict';
 
+// Jest loads this file, and each transformer it names, with plain Node `require` — before ts-jest
+// exists — so no jest export condition can reach them and an extensionless require of a `.ts` file
+// fails outright. Registering tsx's CJS hook here is what lets the requires below reach source.
+// It is repeated in EVERY transformer file, not just this barrel: ts-jest requires each
+// `astTransformers.before` entry by path on its own, and a jest config may hand-list one.
+require('tsx/cjs');
+
 module.exports = [
   { path: require.resolve('./proxy-mock-transformer.js') },
   { path: require.resolve('./harness-lifecycle-transformer.js') },

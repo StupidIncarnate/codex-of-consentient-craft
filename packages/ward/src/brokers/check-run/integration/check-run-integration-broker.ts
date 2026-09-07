@@ -145,10 +145,15 @@ export const checkRunIntegrationBroker = async ({
   }
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
+  // The jest configs ask for the `source` export condition through testEnvironmentOptions, which
+  // only governs what the TEST environment resolves. The transform glue's own
+  // `@dungeonmaster/shared` imports are resolved by NODE, outside that environment, so without this
+  // the jest process itself reads `dist/` while the tests it runs read source — measured.
   const result = await childProcessSpawnCaptureAdapter({
     command,
     args: finalArgs,
     cwd,
+    env: { NODE_OPTIONS: '--conditions=source' },
   });
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);

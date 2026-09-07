@@ -3,6 +3,9 @@ const dungeonmasterTransformers = require('./ts-jest/transformers.js');
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  // This config spreads nothing, so the repo's jest.config.base.js copy of this key never reaches
+  // it — the two have to be kept in step by hand.
+  testEnvironmentOptions: { customExportConditions: ['source', 'require', 'default'] },
   setupFilesAfterEnv: [
     '<rootDir>/src/jest.setup.js',
     '<rootDir>/src/startup/start-endpoint-mock-setup.ts',

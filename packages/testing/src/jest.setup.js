@@ -1,5 +1,30 @@
 // Global Jest setup for consistent test environment
 
+// Ward hands the jest process `--conditions=source` through NODE_OPTIONS, which is what makes the
+// transform glue's own `@dungeonmaster/*` imports resolve to source (see check-run-unit-broker).
+// NODE_OPTIONS is INHERITED, so without this every process a TEST spawns gets it too — and a
+// compiled child (a built hook binary, a bundled CLI) then resolves `@dungeonmaster/shared/statics`
+// to a `.ts` file it cannot require, and dies with no output. Measured: 7 SessionStart hooks all
+// returning error attachments, and 6 tooling/cli integration tests reporting exit 1 with an empty
+// stdout.
+//
+// Deleting the variable here does NOT weaken this process: Node parses NODE_OPTIONS once at
+// startup, so the condition stays applied to every resolution the worker makes afterwards. It only
+// stops the value being copied into children. Jest forks its workers from the MAIN process env,
+// which is untouched, so a restarted worker still starts with the flag.
+if (typeof process.env.NODE_OPTIONS === 'string') {
+  const withoutSourceCondition = process.env.NODE_OPTIONS.replace(
+    /(?:^|\s)--conditions=source(?=\s|$)/gu,
+    ' ',
+  ).trim();
+
+  if (withoutSourceCondition === '') {
+    delete process.env.NODE_OPTIONS;
+  } else {
+    process.env.NODE_OPTIONS = withoutSourceCondition;
+  }
+}
+
 // Wire harness lifecycle hooks — called by the harness-lifecycle-transformer
 // when it wraps *Harness() calls in integration test files
 globalThis.__wireHarnessLifecycle = (harness) => {
@@ -43,16 +68,14 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  // Clean up all integration test environments
-  try {
-    // Load from dist folder (jest.setup.js is in src, compiled files in dist)
-    const {
-      integrationEnvironmentCleanupAllBroker,
-    } = require('../dist/src/brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker.js');
-    integrationEnvironmentCleanupAllBroker();
-  } catch (error) {
-    // Module might not be built yet, skip cleanup functionality
-  }
+  // Clean up all integration test environments. This runs INSIDE jest's runtime, which resolves the
+  // extensionless specifier through moduleFileExtensions — so it reaches the .ts source with no
+  // loader. Deliberately unguarded: a catch here turns a missing module into silently skipped
+  // cleanup, which is indistinguishable from cleanup that ran.
+  const {
+    integrationEnvironmentCleanupAllBroker,
+  } = require('./brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker');
+  integrationEnvironmentCleanupAllBroker();
 
   // Restore real timers after each test
   jest.useRealTimers();

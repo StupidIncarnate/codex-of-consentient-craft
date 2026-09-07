@@ -81,7 +81,10 @@ export const mcpServerHarness = (): {
       baseName,
     });
 
-    const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {
+    // `--conditions=source` matches jest's `customExportConditions: ['source', ...]` (see
+    // jest.config.base.js) so this spawned MCP server child resolves `@dungeonmaster/*` imports
+    // to the same TypeScript source jest runs in-process, not whatever `dist/` was last built.
+    const serverProcess = spawn('npx', ['tsx', '--conditions=source', serverEntryPoint], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: testbed.guildPath,
       env: { ...process.env, DUNGEONMASTER_HOME: testbed.guildPath },

@@ -12,6 +12,10 @@
  */
 'use strict';
 
+// ts-jest requires this file by path on its own, so the tsx CJS hook has to be registered here too
+// — see the comment in transformers.js.
+require('tsx/cjs');
+
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');

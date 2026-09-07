@@ -1,5 +1,4 @@
-import { existsSync } from 'fs';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { findSharedPackageRootLayerAdapterProxy } from './find-shared-package-root-layer-adapter.proxy';
 
 export const sharedPackageResolveAdapterProxy = (): {
   packageRootExists: () => void;
@@ -7,29 +6,24 @@ export const sharedPackageResolveAdapterProxy = (): {
   srcExists: () => void;
   srcDoesNotExist: () => void;
 } => {
-  const handle = registerMock({ fn: existsSync });
-
-  // No address: the checked path comes from a real require.resolve() call, never mocked, so its
-  // exact value is environment-dependent and unknowable at staging time.
-  // Default: package root exists
-  handle.calledWith([]).returns(true);
+  const layerProxy = findSharedPackageRootLayerAdapterProxy();
 
   return {
     packageRootExists: (): void => {
-      handle.calledWith([]).returns(true);
+      layerProxy.packageRootExists();
     },
 
     packageRootDoesNotExist: (): void => {
-      handle.calledWith([]).returns(false);
+      layerProxy.packageRootDoesNotExist();
     },
 
     // Backwards-compatible aliases
     srcExists: (): void => {
-      handle.calledWith([]).returns(true);
+      layerProxy.packageRootExists();
     },
 
     srcDoesNotExist: (): void => {
-      handle.calledWith([]).returns(false);
+      layerProxy.packageRootDoesNotExist();
     },
   };
 };

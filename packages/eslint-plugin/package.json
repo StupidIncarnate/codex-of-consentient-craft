@@ -9,7 +9,12 @@
     "configs/**/*"
   ],
   "exports": {
-    ".": "./dist/index.js",
+    ".": {
+      "source": "./src/index.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
     "./tsconfig": "./configs/tsconfig.json",
     "./config": "./configs/eslint.dungeonmaster.js"
   },

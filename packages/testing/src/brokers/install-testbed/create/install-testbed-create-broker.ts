@@ -18,7 +18,6 @@ import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { cryptoRandomBytesAdapter } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter';
 import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
@@ -26,8 +25,10 @@ import { exitCodeContract } from '../../../contracts/exit-code/exit-code-contrac
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { installTestbedContract } from '../../../contracts/install-testbed/install-testbed-contract';
 import { dungeonmasterConfigContract } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { findRepoRootLayerBroker } from './find-repo-root-layer-broker';
 import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 import type { RelativePath } from '../../../contracts/relative-path/relative-path-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
@@ -74,8 +75,12 @@ export const installTestbedCreateBroker = ({
     fsMkdirAdapter({ dirPath: claudeDir, recursive: true });
   }
 
-  // Get path to dungeonmaster repo root (7 levels up from dist/src/brokers/install-testbed/create/)
-  const dungeonmasterPath = pathResolveAdapter({ paths: [__dirname, '../../../../../../..'] });
+  // Walk up from __dirname to the nearest package.json with a `workspaces` field — correct
+  // whether this package resolves to dist/src/... (published/runtime) or src/... directly
+  // (ts-jest, --conditions=source), unlike a fixed hop count off __dirname.
+  const dungeonmasterPath = findRepoRootLayerBroker({
+    startPath: filePathContract.parse(__dirname),
+  });
 
   const testbed: InstallTestbed = {
     guildPath: installTestbedContract.shape.guildPath.parse(projectPath),

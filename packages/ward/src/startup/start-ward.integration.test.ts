@@ -98,6 +98,10 @@ describe('StartWard', () => {
 
   describe('memory ceiling', () => {
     it('EDGE: {--only lint, all packages} => RSS stays under 300MB', async () => {
+      // wardBinExists() is this package's one "the build produced a runnable binary" assertion —
+      // it deliberately keeps reading dist/, unlike runAndMonitorMemory below which spawns
+      // source. `npm run build` is its prerequisite; run it before this test or it fails on a
+      // clean checkout even though nothing here is broken.
       expect(harness.wardBinExists()).toBe(true);
 
       const { maxRssKb } = await harness.runAndMonitorMemory({

@@ -12,14 +12,20 @@ module.exports = {
   preset: undefined,
   testEnvironment: 'jsdom',
   testEnvironmentOptions: {
-    customExportConditions: [''],
+    // The empty string is MSW's jsdom workaround and must stay in the list; `source` in front of it
+    // is what points a sibling workspace import at TypeScript instead of its last build.
+    customExportConditions: ['source', '', 'require', 'default'],
     url: 'http://localhost',
   },
   roots: ['<rootDir>/src', '<rootDir>/test'],
   setupFiles: ['<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
   setupFilesAfterEnv: [
     '<rootDir>/../../packages/testing/src/jest.setup.js',
-    '<rootDir>/../../packages/testing/dist/src/startup/start-endpoint-mock-setup.js',
+    // Source, not dist: the specs reach `endpointMock` through `@dungeonmaster/testing`, which the
+    // `source` condition above now resolves to src. A dist setup file would build MSW's server from
+    // a SECOND module instance, so every handler a spec registers lands on a server that is not the
+    // one listening — which surfaces as "[MSW] Cannot bypass a request", not as a resolution error.
+    '<rootDir>/../../packages/testing/src/startup/start-endpoint-mock-setup.ts',
     '@testing-library/jest-dom',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],

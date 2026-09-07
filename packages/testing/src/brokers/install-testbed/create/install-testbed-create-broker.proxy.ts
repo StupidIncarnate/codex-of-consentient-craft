@@ -14,9 +14,9 @@ import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 import { cryptoRandomBytesAdapterProxy } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter.proxy';
 import { childProcessExecSyncAdapterProxy } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter.proxy';
+import { findRepoRootLayerBrokerProxy } from './find-repo-root-layer-broker.proxy';
 
 export const installTestbedCreateBrokerProxy = (): Record<PropertyKey, never> => {
   fsWriteFileAdapterProxy();
@@ -27,9 +27,9 @@ export const installTestbedCreateBrokerProxy = (): Record<PropertyKey, never> =>
   fsReaddirAdapterProxy();
   pathJoinAdapterProxy();
   pathDirnameAdapterProxy();
-  pathResolveAdapterProxy();
   cryptoRandomBytesAdapterProxy();
   childProcessExecSyncAdapterProxy();
+  findRepoRootLayerBrokerProxy();
 
   return {};
 };

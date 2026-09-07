@@ -67,7 +67,11 @@ export const hookPersistentRunnerHarness = (): {
   const start = async ({ hookName }: { hookName: HookName }): Promise<void> => {
     const flowPath = resolveFlowPath({ hookName });
 
-    child = spawn('npx', ['tsx', WORKER_PATH, String(flowPath)], {
+    // `--conditions=source` matches jest's `customExportConditions: ['source', ...]` (see
+    // jest.config.base.js) so this worker child — and the flow module it dynamically imports —
+    // resolves `@dungeonmaster/*` imports to the same TypeScript source jest runs in-process,
+    // not whatever `dist/` was last built.
+    child = spawn('npx', ['tsx', '--conditions=source', WORKER_PATH, String(flowPath)], {
       cwd: process.cwd(),
       stdio: ['pipe', 'pipe', 'pipe'],
       // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting

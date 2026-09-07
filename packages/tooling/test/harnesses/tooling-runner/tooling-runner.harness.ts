@@ -19,8 +19,13 @@ import type { ExecErrorStub } from '../../../src/contracts/exec-error/exec-error
 
 type ExecError = ReturnType<typeof ExecErrorStub>;
 
+// Runs the source entry under plain tsx — no `--conditions=source`, matching this package's own
+// "detect-duplicates" npm script (package.json: `tsx src/index.ts`). That script's own target,
+// src/index.ts, is a re-export barrel with no top-level call (confirmed: running it does
+// nothing), so this points at the actual CLI entry point instead — the same file the built
+// `dist/bin/detect-duplicate-primitives.js` this replaced was compiled from.
 const ENTRY_PATH = FilePathStub({
-  value: path.join(process.cwd(), 'dist', 'bin', 'detect-duplicate-primitives.js'),
+  value: path.join(process.cwd(), 'bin', 'detect-duplicate-primitives.ts'),
 });
 
 const isExecError = (error: unknown): error is ExecError =>
@@ -38,7 +43,7 @@ export const toolingRunnerHarness = (): {
   }: {
     args: readonly string[];
   }): ReturnType<typeof CommandResultStub> => {
-    const command = `node ${String(ENTRY_PATH)} ${args.join(' ')}`;
+    const command = `npx tsx ${String(ENTRY_PATH)} ${args.join(' ')}`;
 
     try {
       const stdout = execSync(command, {

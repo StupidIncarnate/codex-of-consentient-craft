@@ -51,14 +51,21 @@ export const hookRunnerHarness = (): {
     const hookPath = resolveHookPath({ hookName });
     const input = JSON.stringify(hookData);
 
-    const result = spawnSync('npx', ['tsx', String(hookPath), ...(args ?? [])], {
-      input,
-      encoding: 'utf8',
-      cwd: process.cwd(),
-      // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
-      // ESLint-ignored paths so violation detection is still exercised.
-      env: { ...process.env, DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
-    });
+    // `--conditions=source` matches jest's `customExportConditions: ['source', ...]` (see
+    // jest.config.base.js) so this spawned child resolves `@dungeonmaster/*` imports to the same
+    // TypeScript source jest runs in-process, not whatever `dist/` was last built.
+    const result = spawnSync(
+      'npx',
+      ['tsx', '--conditions=source', String(hookPath), ...(args ?? [])],
+      {
+        input,
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
+        // ESLint-ignored paths so violation detection is still exercised.
+        env: { ...process.env, DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
+      },
+    );
 
     return ExecResultStub({
       exitCode: result.status === null ? 1 : result.status,
@@ -78,7 +85,10 @@ export const hookRunnerHarness = (): {
   }): ReturnType<typeof spawnSync> => {
     const hookPath = resolveHookPath({ hookName });
 
-    return spawnSync('npx', ['tsx', String(hookPath), ...(args ?? [])], {
+    // `--conditions=source` matches jest's `customExportConditions: ['source', ...]` (see
+    // jest.config.base.js) so this spawned child resolves `@dungeonmaster/*` imports to the same
+    // TypeScript source jest runs in-process, not whatever `dist/` was last built.
+    return spawnSync('npx', ['tsx', '--conditions=source', String(hookPath), ...(args ?? [])], {
       input: String(input),
       encoding: 'utf8',
       cwd: process.cwd(),

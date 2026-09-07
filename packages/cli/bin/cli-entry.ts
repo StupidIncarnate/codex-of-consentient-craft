@@ -16,7 +16,12 @@ import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { StartCli } from '../src/startup/start-cli';
 
 const COMMAND_ARG_START_INDEX = 2;
-const DIRNAME_TO_ROOT_DEPTH = '../../../..';
+// tsc compiles this file to dist/bin/cli-entry.js (rootDir "." + outDir "./dist" preserves the
+// bin/ folder) and esbuild's bundle lands at that same dist/bin depth, so both are 4 directories
+// above the repo root. The cli-bin test harness also spawns this file DIRECTLY from source via
+// tsx (bin/cli-entry.ts, only 3 up) so its behaviour tests exercise real source instead of a
+// stale dist/ — __filename's extension is the one signal that tells the two depths apart.
+const DIRNAME_TO_ROOT_DEPTH = __filename.endsWith('.ts') ? '../../..' : '../../../..';
 
 // Only auto-run the CLI when this file is the process entry point (`dungeonmaster` /
 // `node dungeonmaster.js`). When the built bin is imported/required instead — e.g. the

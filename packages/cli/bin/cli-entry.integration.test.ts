@@ -14,6 +14,10 @@ describe('dungeonmaster binary', () => {
   const harness = cliBinHarness();
 
   describe('file structure', () => {
+    // This describe block is the one place that keeps grading the built esbuild bundle instead
+    // of source — it's asking "did the build produce a runnable binary at the expected path?",
+    // which only dist/ can answer. `npm run build` is its prerequisite; run it before these
+    // tests or they fail on a clean checkout even though nothing here is broken.
     it('VALID: {} => bin file exists', () => {
       expect(harness.binExists()).toBe(true);
     });

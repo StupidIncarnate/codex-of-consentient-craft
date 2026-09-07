@@ -8,16 +8,20 @@
  */
 'use strict';
 
+// ts-jest requires this file by path on its own, so the tsx CJS hook has to be registered here too
+// — see the comment in transformers.js. It is what makes the two source requires below resolve.
+require('tsx/cjs');
+
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
 const {
   typescriptProxyMockTransformerMiddleware,
-} = require('../dist/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware');
+} = require('../src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware');
 const {
   typescriptProgramContract,
-} = require('../dist/src/contracts/typescript-program/typescript-program-contract');
+} = require('../src/contracts/typescript-program/typescript-program-contract');
 
 // Compute version from shared/testing.ts barrel AND all proxy files across the monorepo,
 // so cache invalidates when any proxy file's jest.mock() calls change.
