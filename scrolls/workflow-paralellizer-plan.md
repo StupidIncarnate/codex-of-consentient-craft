@@ -1600,6 +1600,35 @@ honouring the condition means shipping eight packages' whole TypeScript trees.
 base when 13 of 14 spread the REPO-ROOT one — and only the root one carries `customExportConditions`. A consumer
 following that sentence gets `dist` resolution: the stale-green defect, restored by instruction.
 
+### 10.0a The browser pass — what it confirmed, and the one thing it found
+
+Root `CLAUDE.md` says the browser is the verdict and a green backend proves only that the plumbing fired. So the app
+was driven by hand on `npm run dev` after the final ward.
+
+**Confirmed working:** the app loads; the guild list renders; the session list renders; the execution queue page
+renders with its empty state and PLAY control; **zero console errors** across every surface visited.
+
+**Found, and it is NOT this work's doing: five of seven local quest files are `UNREADABLE`.**
+
+| Deleted role still on disk | Quest files affected |
+|---|---|
+| `blightscout` | 4 |
+| `groundstomper` | 1 |
+
+`agentRoleContract` is `z.enum(agentPromptClassificationStatics.roleNames)`. Commit `df68c9a50` (2026-08-16, an
+ancestor of this work's starting point by three weeks) deleted `blightscout` from that list. Nothing migrated the
+quest files already written with it, so every one of them now fails contract validation and the UI cannot open it.
+
+**The UI is behaving correctly and should not be "fixed".** It names the file, prints the exact failing field paths
+(`operations.11.role`, `operations.12.role`) and the full expected enum, and tells the reader to fix the named field
+and reload. That is precisely what root `CLAUDE.md` asks for — a reader who clicks a failed row CAN see why it failed.
+
+**What is missing is a migration.** Renaming or deleting a role is a schema change to data already on disk, and this
+repo has a `migrations/` folder type for exactly that and no migration in it. Whoever takes this has to decide what
+`blightscout` and `groundstomper` became; that mapping is a product call, not something to guess. The affected data
+here is the dogfood dev queue (`.dungeonmaster-dev/`), so nothing a user relies on is lost — but a real consumer who
+upgrades across a role rename loses every quest they had.
+
 ### 10.0b Two defects `npm run init` itself revealed
 
 Running `build && link && init` to fix the permission gap surfaced two more:
