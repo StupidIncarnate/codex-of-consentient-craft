@@ -75,6 +75,10 @@ since each one boots an API server, a Vite server and a browser. Jest integratio
 `installTestbedCreateBroker` with their own tmp dirs. Nothing touches `<repo>/.dungeonmaster`,
 `<repo>/.dungeonmaster-dev`, or `~/.dungeonmaster` during tests.
 
+**Worktrees come from one tool.** Call `mcp__dungeonmaster__create-worktree({ name })`. It returns a path under
+`worktrees/` with `node_modules` hardlinked, `dist` seeded, and its links verified. Claude Code's own worktree command
+is blocked in this repo and will tell you the same thing. Never assemble `git worktree add` by hand.
+
 See `playbook/smoke-testing.md` for manual verification steps.
 
 ## Project Info
@@ -99,7 +103,7 @@ const testbed = installTestbedCreateBroker({
 
 **Shared Package**: `@dungeonmaster/shared` for code used by multiple packages
 
-- After modifying: `npm run build --workspace=@dungeonmaster/shared`
+- Ward, dev and every test read shared's source. Build it only for a row in the table above.
 - Import: `import {x} from '@dungeonmaster/shared/statics'`
 
 **JSONL Stream Line Stubs**: Tests that construct Claude CLI JSONL shapes (assistant messages, tool results, etc.) must
@@ -108,6 +112,20 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 ### Common Commands
 
 - **Build**: `npm run build`
+
+**Ward never needs a build. These do:**
+
+| Needs `npm run build` first                                     | Why                                                                              |
+|------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| `npm run prod`                                                   | runs `packages/server/dist/bin/server-entry.js`                                  |
+| `dungeonmaster start` in a consumer                              | serves `packages/web/dist`                                                       |
+| the MCP stdio child, after any change under `packages/mcp`       | it loaded `packages/mcp/dist/src/index.js` at boot; rebuild, then reconnect      |
+| `npm run init`                                                   | discovers `packages/*/dist/startup/start-install.js`                             |
+| the hook binaries, after any change under `packages/hooks`       | `.claude/settings.json` points at `packages/hooks/dist`                          |
+| a worktree, once, at creation                                    | the `create-worktree` tool seeds `dist` for you                                  |
+
+Never before `npm run ward`, `npm run dev`, or any test. Those read source.
+
 - **Start dev server**: `npm run dev` — **root-only.** Never `npm run dev --workspace=@dungeonmaster/<pkg>` and
   never `cd packages/<pkg> && npm run dev`. The root script is the canonical entry point: it kills stale
   instances, resolves ports from `.dungeonmaster.json`, sets `DUNGEONMASTER_HOME` and `DUNGEONMASTER_PORT`,
@@ -148,7 +166,7 @@ is produced the next time someone runs `npm run init`.
 
 **Ward is a root-level monorepo script.** These rules apply to ALL agents, including sub-agents in worktrees.
 
-The **mechanics** of invoking ward — build first and unpiped, never `cd` into a package, run it in the foreground
+The **mechanics** of invoking ward — never `cd` into a package, run it in the foreground
 with `timeout: 600000`, never sleep-poll it, run it once, and why a `No tests found` / `DISCOVERY MISMATCH` on a
 scoped run is a skip rather than a regression — live in the
 `<dungeonmaster-ward-discipline>` session snippet (`sessionSnippetStatics.wardDiscipline`), which every session and
@@ -164,6 +182,17 @@ the output file by hand, because the snippet then claimed no notification was co
 into sleeps.
 
 What stays below is the part that is a judgment call rather than a command-line mechanic.
+
+**Which ward you run depends on what you were given.** The `<dungeonmaster-wardDiscipline>` snippet states the three
+rungs. In this repo they mean:
+
+| You were                                                              | Run                              | Not                                        |
+|-----------------------------------------------------------------------|----------------------------------|--------------------------------------------|
+| given files, or you touched a handful                                 | `npm run ward -- -- <files>`     | `--uncommitted`, a bare `npm run ward`     |
+| asked to review a whole pass, or handing your tree back to the user   | `npm run ward -- --uncommitted`  | a bare `npm run ward`                      |
+| about to merge into `master`                                          | `npm run ward`                   | anything narrower                          |
+
+Sub-agents you dispatch are always on the first row. Tell them their files.
 
 1. **When the user asks for full ward (`npm run ward`) to pass, YOU OWN EVERY FAILURE.** Not just the
    failures you think your changes caused — every single red test, lint error, and typecheck error. This
@@ -238,6 +267,8 @@ writing the fix — a test that only checks per-row text is not a regression gua
 - **Use `model: "sonnet"` for large mechanical fan-outs** (lint cascades, mass refactors). These can
   spawn 30-50 agents across waves; opus is overkill for apply-the-contract work. Reserve opus for the
   orchestrator and genuinely hard debugging.
+- **Every sub-agent runs ward on its own files only.** Name the files in the brief. A sub-agent never
+  runs `--uncommitted` or a bare `npm run ward`; those are yours, after it returns.
 
 ## Searching From a Session Launched In This Repo
 

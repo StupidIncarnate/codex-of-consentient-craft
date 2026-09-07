@@ -53,7 +53,7 @@ describe('codeweaverReviewerStatics', () => {
       '### 3. Find out what changed',
       '### 4. Open every file the work produced',
       '### 5. Fix what you can',
-      '### 6. Build, then ward',
+      '### 6. Ward',
       '### 7. Commit and push',
       '### 8. Return',
     ]);
@@ -91,17 +91,36 @@ describe('codeweaverReviewerStatics', () => {
     ).toBe(true);
   });
 
-  // BUILD THEN WARD, IN THAT ORDER, AND ONLY THIS SESSION RUNS EITHER — `tsc` writes one shared
-  // `dist/` per package, so a second builder on the pass would hand every sibling phantom errors.
-  it('VALID: served template => builds then wards, in that order, twice at most', () => {
+  // ONE WARD, AND IT IS THIS SESSION'S ALONE — every sibling on the pass runs a ward scoped to its
+  // own paths, so a `--uncommitted` run before this one has read the work grades what nobody read.
+  it('VALID: served template => wards once, scoped to --uncommitted, after it has read everything', () => {
     expect({
-      order: TEMPLATE.indexOf('npm run build') < TEMPLATE.indexOf('npm run ward -- --uncommitted'),
-      pairFenced: hasIn({
-        needle: 'npm run build\nnpm run ward -- --uncommitted',
+      scopeRule: hasIn({
+        needle:
+          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, after you have read everything.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
-      twiceAtMost: hasIn({ needle: 'twice at most', text: TEMPLATE }),
-    }).toStrictEqual({ order: true, pairFenced: true, twiceAtMost: true });
+      neverWidensASubAgentsRun: hasIn({
+        needle:
+          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before you have read its work.",
+        text: TEMPLATE,
+      }),
+      lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
+      onceAfterReading: hasIn({
+        needle: 'Run it once, in the foreground, after you have read everything.',
+        text: TEMPLATE,
+      }),
+      twiceAtMost: hasIn({
+        needle: '**Fix reds, then run it once more. Twice at most.**',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      scopeRule: true,
+      neverWidensASubAgentsRun: true,
+      lineFenced: true,
+      onceAfterReading: true,
+      twiceAtMost: true,
+    });
   });
 
   // THE PASS ARRIVES ENTIRELY UNCOMMITTED, so `git status` / `git diff HEAD` plus the untracked
@@ -132,13 +151,12 @@ describe('codeweaverReviewerStatics', () => {
 
   // THE RETURN BLOCK IS A WIRE FORMAT its parent parses by field name — a field renamed or dropped
   // here is a parent reading nothing back for it.
-  it('VALID: served template => returns exactly these eight fields, in order', () => {
+  it('VALID: served template => returns exactly these seven fields, in order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^([A-Z]+):/gmu), (match) => match[1])).toStrictEqual([
       'VERDICT',
       'READ',
       'FIXES',
       'FINDINGS',
-      'BUILD',
       'WARD',
       'COMMIT',
       'NEXT',

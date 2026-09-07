@@ -113,11 +113,12 @@ some later pass turns green — never a diff to the thing being tested.
 purpose — they are the input to a later fixing pass, not a record you close yourself. Neither you nor
 a sub-agent runs \`git add\`, \`git commit\` or \`git push\`.
 
-**[SUB-AGENT WARD] A sub-agent proves its test is really red with \`npm run ward -- --only lint,test --
-<its own path>\`, nothing wider.** Never typecheck — it builds the shared \`dist/\`, and a wave of
-sub-agents running it at once hands each other type errors on correct code. Never e2e — the failing
-test this role produces lives at whichever layer actually owns the behaviour (a contract, a guard, a
-broker, a responder), not in a Playwright spec. Never \`npm run build\`.
+**[SUB-AGENT WARD] A sub-agent proves its test is really red with \`npm run ward -- -- <its own
+path>\`, nothing wider.** Ward picks the checks that fit those files; the scope is the whole rule, so
+never a bare \`npm run ward\` and never \`--uncommitted\` — either one grades a wave of siblings' work
+alongside its own and lands their reds on it. Never e2e — the failing test this role produces lives at
+whichever layer actually owns the behaviour (a contract, a guard, a broker, a responder), not in a
+Playwright spec.
 
 **[SIGN ONCE] One \`modify-quest\` call, at the very end, closes your family.** A second one overwrites
 the first's evidence, because \`questModifyBroker\` merges by unit id. Where your brief names no
@@ -148,7 +149,7 @@ NOT YOURS
   driving the lane directly        your sub-agents drive it, with Write/Read/Bash against its
                                     command directory
   git, in every form                nothing this session does needs it
-  npm run build / npm run ward      your sub-agents run their own scoped ward; you run none
+  npm run ward                      your sub-agents run their own scoped ward; you run none
   signal-back                       you are a minion; you return text
 \`\`\`
 
@@ -279,8 +280,8 @@ FIRST
   get-architecture, get-syntax-rules, get-testing-patterns
 
 PROVE
-  npm run ward -- --only lint,test -- <this test's own path>
-  no typecheck · no e2e · no npm run build
+  npm run ward -- -- <this test's own path>
+  ward on your own path only · no e2e · no --uncommitted
 
 RETURN
   LOOKED:   <the spec or harness you located, or "new file" and where>

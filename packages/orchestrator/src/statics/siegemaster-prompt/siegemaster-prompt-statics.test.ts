@@ -67,11 +67,11 @@ describe('siegemasterPromptStatics', () => {
     ]);
   });
 
-  it('VALID: served template => lists npm run build and npm run ward under NOT YOURS', () => {
+  it('VALID: served template => lists the reviewer sweep and the bare ward under NOT YOURS', () => {
     expect(
       hasIn({
         needle:
-          'NOT YOURS Edit / Write on any path fixers write code, not you driving anything — a browser, curl, a CLI walkers drive, not you ScheduleWakeup / ListAgents / any timer the notification IS the wake, see [HELPERS] npm run build see [BUILD] npm run ward, in every form see [BUILD]',
+          'NOT YOURS Edit / Write on any path fixers write code, not you driving anything — a browser, curl, a CLI walkers drive, not you ScheduleWakeup / ListAgents / any timer the notification IS the wake, see [HELPERS] npm run ward -- --uncommitted see [WARD SCOPE] npm run ward (bare) see [WARD SCOPE]',
         text: TEMPLATE,
       }),
     ).toBe(true);
@@ -124,22 +124,38 @@ describe('siegemasterPromptStatics', () => {
     }).toStrictEqual({ pass: true, rework: true, wall: true, missingLine: true });
   });
 
-  // A WAVE OF FIXERS RUNNING WARD AT ONCE COLLIDES ON THE SHARED `dist/` IF ANY OF THEM TYPECHECKS —
-  // ward's typecheck is `tsc -b`, a build, and a build under a live lane changes what that round's
-  // re-walk measures. Scoping to `lint,test` keeps typecheck out; the reviewer's `--uncommitted` run is
-  // where it happens, once, at the end.
-  it("VALID: served template => scopes a fixer's own ward run to lint,test and forbids it from building", () => {
+  // SCOPE IS THE WHOLE RULE. Ward picks its check types off the paths it is handed, so a fixer passes
+  // its own paths and nothing else — `--uncommitted` grades the whole working tree and a bare run
+  // grades the repo, and either one from a pair of concurrent fixers grades work that is not theirs.
+  // The reviewer's single `--uncommitted` sweep is the one wide run on the pass. The lane sentence is
+  // pinned beside them because it is the one measurement the old build ban carried that still holds:
+  // whatever a fixer compiles under a LIVE lane moves what that round is measuring.
+  it("VALID: served template => scopes a fixer's own ward run to its own paths and keeps a live lane out of it", () => {
     expect({
       scopedRun: hasIn({
-        needle: "npm run ward -- --only lint,test -- <this brief's own paths>",
+        needle: "npm run ward -- -- <this brief's own paths>",
         text: TEMPLATE,
       }),
-      namesWhyLintTestOnly: hasIn({
-        needle: '`--only lint,test` keeps typecheck out, and typecheck is the one that builds',
+      namesWhyOwnPathsOnly: hasIn({
+        needle:
+          'Each sub-agent you dispatch runs ward on its own files and\nnothing wider: `npm run ward -- -- <its own paths>`',
         text: TEMPLATE,
       }),
-      neverBuild: hasIn({ needle: 'no npm run build', text: TEMPLATE }),
-    }).toStrictEqual({ scopedRun: true, namesWhyLintTestOnly: true, neverBuild: true });
+      neverWidens: hasIn({
+        needle: 'ward on your own paths only · no --uncommitted · no bare ward · no commit',
+        text: TEMPLATE,
+      }),
+      buildUnderALiveLane: hasIn({
+        needle:
+          'A build under a live lane changes what that round is measuring, and it reads the difference back as a\ndefect.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      scopedRun: true,
+      namesWhyOwnPathsOnly: true,
+      neverWidens: true,
+      buildUnderALiveLane: true,
+    });
   });
 
   // ALL DISPATCHED SUB-AGENTS SHARE ONE DISPATCH SHAPE, so the verifier, the stress tester, the fixer

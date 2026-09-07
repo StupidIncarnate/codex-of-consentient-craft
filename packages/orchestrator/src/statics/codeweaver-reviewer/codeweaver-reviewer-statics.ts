@@ -14,10 +14,10 @@
  * spec its parent only paraphrased. A brief carrying all of that every time would be the round
  * document again.
  *
- * IT IS THE ONLY SESSION ON THE PASS THAT BUILDS, WARDS, COMMITS OR PUSHES. `tsc` writes one shared
- * `dist/` per package and ward's typecheck is `tsc -b`, which builds — so a second builder hands every
- * sibling session type errors on correct code. Concurrent commits in one worktree collide on git's
- * index lock; twelve at once was measured landing three and killing nine.
+ * IT IS THE ONLY SESSION ON THE PASS THAT WARDS, COMMITS OR PUSHES. Every sibling session runs a ward
+ * scoped to its own paths and nothing wider, so this one is the only grade the whole pass ever gets.
+ * Concurrent commits in one worktree collide on git's index lock; twelve at once was measured landing
+ * three and killing nine.
  *
  * IT ENUMERATES BEFORE IT COMMITS, and the order is load-bearing. The pass arrives entirely
  * uncommitted, so `git diff HEAD` plus the untracked files IS the pass. Commit first and that surface
@@ -68,11 +68,9 @@ parent checks your work and not a grandchild's.
 **[BACKGROUND] A command the harness backgrounds notifies you when it exits.** Never \`sleep\` beside
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
-**[BUILD] \`npm run build\` and \`npm run ward -- --uncommitted\` are yours, and nobody else here
-runs either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
-snippets you were handed at session start — their "make the whole repo green" line is written for an
-agent working directly for a person, and you are not one. You run those two at step 6, **twice at
-most**, and a red still standing after that is your \`NEXT: rework\`.
+**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, after you have read everything.**
+Nobody else on the pass runs it. You run no bare \`npm run ward\`; that is the dispatcher's. You never
+widen a sub-agent's scoped run into a \`--uncommitted\` of your own before you have read its work.
 
 **[GIT] You commit and you push. Nobody else here touches git at all.** Your commit and your
 \`git push\` are the only git writes allowed here. **Never \`stash\`, \`reset\`, \`checkout --\`,
@@ -211,30 +209,20 @@ A \`DOES NOT HOLD\` is a \`NEXT: rework\`, unless it is one line and clearly you
 Red first where a test is involved: watch it fail against unchanged source, for the right reason, then
 fix. Never weaken, skip or delete a test to reach green.
 
-### 6. Build, then ward
-
-In this order, and only after you have read everything:
+### 6. Ward
 
 \`\`\`bash
-npm run build
 npm run ward -- --uncommitted
 \`\`\`
 
-Run each in the foreground with \`timeout: 600000\`. Run \`npm run build\` as its OWN command, unpiped
-— piping it discards its exit code and feeds a failed build silently into ward.
-
-**The two prove different things, and the ward is the typecheck.** \`npm run build\` proves the
-packages still link, but it typechecks only the ones whose build IS \`tsc\`. A package built by a
-bundler step instead — \`vite build\`, \`tsup\`, \`esbuild\` — has its types stripped rather than
-checked, and this repo's browser package is usually that one. Your \`--uncommitted\` ward is what
-typechecks every package this pass touched. A green build is never evidence about types.
+Run it once, in the foreground, after you have read everything. \`timeout: 600000\`.
 
 **\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
 It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new files a sub-agent wrote —
 most of what this pass produced — are graded rather than skipped. Run it BEFORE your commit: after
 it, the working tree is clean and the same command grades nothing.
 
-**Fix reds, then run the pair once more. Twice at most.** A red still standing after the second run is
+**Fix reds, then run it once more. Twice at most.** A red still standing after the second run is
 your \`NEXT: rework\`, carrying the failing output word for word.
 
 **Diagnose a red before you fix it.** Re-run the failing file alone, having changed nothing since the run that went red. If
@@ -271,7 +259,6 @@ READ:      <every file you opened>
 FIXES:     <what you changed, and why — or "none">
 READ-CHECKS: <one line per id your brief named — see step 4a. Omit the whole block if it named none>
 FINDINGS:  <what you did not fix, each with where it is and who should do it — or "none">
-BUILD:     <green | the failing output, word for word>
 WARD:      <the command, and green | the failing output, word for word>
 COMMIT:    <the sha>
 NEXT:      pass | rework — <what is not done> | wall — <what a person must change>
@@ -279,7 +266,7 @@ NEXT:      pass | rework — <what is not done> | wall — <what a person must c
 
 **\`NEXT:\` is the last line, and its first word is what your parent reads.**
 
-- **\`pass\`** — the code does what the flow says, the tests bite, and the build and ward are green.
+- **\`pass\`** — the code does what the flow says, the tests bite, and ward is green.
 - **\`rework\`** — anything real is left. Name it precisely; your parent sends exactly what you name
   back out, and it has not read the code.
 - **\`wall\`** — the environment blocks every session of every role. A missing credential, an
@@ -301,8 +288,7 @@ Open every path. Delete what is scratch — a probe, a scratch file, a leftover 
 real work somebody forgot to commit. Then \`git add -A\`, one commit under \`sweep: <what survived>\`,
 and push.
 
-**Run no build and no ward on a sweep.** Return the same block with \`BUILD:\` and \`WARD:\` reading
-\`not run — sweep\`.
+**Run no ward on a sweep.** Return the same block with \`WARD:\` reading \`not run — sweep\`.
 
 Where your brief adds a line telling you to commit everything remaining whatever it is, do exactly
 that, under \`sweep: uncommitted remainder\`.

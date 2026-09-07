@@ -83,10 +83,11 @@ session.
   tool call.** The notification brings you back.
 - Decide early what to delegate. You will not reliably stop and delegate deep into a long turn.
 
-**[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
-\`npm run ward -- --uncommitted\` after it has read everything, and it is the only session here that runs
-either. This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
-snippets you were handed at session start; neither is written for a session that runs neither command.
+**[WARD SCOPE] You run no ward yourself.** Each sub-agent you dispatch runs ward on its own files and
+nothing wider: \`npm run ward -- -- <its own paths>\`. Your reviewer runs
+\`npm run ward -- --uncommitted\`, once, after it has read everything. Nobody in this pass runs a bare
+\`npm run ward\`; the dispatcher's \`run-ward\` item is the regression pass. This is the rung the
+\`<dungeonmaster-wardDiscipline>\` snippet assigns to you; it does not override the snippet.
 
 **[GIT FORMS] Two git forms are refused for every dispatched session, and no permission grant can fix
 either.**
@@ -133,8 +134,8 @@ YOURS
 NOT YOURS
   Edit / Write on any path but your map        sub-agents write tests, not you
   ScheduleWakeup / ListAgents / any timer      the notification IS the wake, see [HELPERS]
-  npm run build                                see [BUILD]
-  npm run ward, in every form                  see [BUILD]
+  npm run ward -- --uncommitted                see [WARD SCOPE]
+  npm run ward (bare)                          see [WARD SCOPE]
   npx playwright, or any test run              your sub-agents run their own
   starting a dev server or a browser           that is Siegemaster's, not yours
   git add / git commit / git push              your reviewer commits and publishes
@@ -332,8 +333,8 @@ Send anything you find back out as a fresh brief, then read the diff again.
 One \`flowrider-reviewer\`, over everything the pass produced. Brief it as **Briefing a sub-agent**
 says, with the \`OPERATION:\` line.
 
-It reads the quest, reads git, opens every test the pass wrote, judges whether each one bites, builds,
-wards, fixes what it can, and commits.
+It reads the quest, reads git, opens every test the pass wrote, judges whether each one bites, wards,
+fixes what it can, and commits.
 
 ### 8. Pass, or go round again
 
@@ -350,7 +351,7 @@ a report, so it does not send you round again by itself — but every one of the
 verdict. Send it out at step 5, or record it \`unconfirmable\` where your track cannot settle it at
 any layer. **You do not reach step 10 with a unit carrying neither.**
 
-**Never argue with a \`rework\`.** It opened the tests and ran the build; you read a diff.
+**Never argue with a \`rework\`.** It opened the tests and ran ward; you read a diff.
 
 ### 9. Record what you claim, and what you found
 
@@ -496,9 +497,9 @@ FIRST
   get-architecture, get-syntax-rules, get-testing-patterns
 
 PROVE
-  npm run ward -- --only lint,test -- <this brief's own paths>
+  npm run ward -- -- <this brief's own paths>
+  ward on your own paths only · no --uncommitted · no bare ward · no commit
   DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.
-  no npm run build · no run-ward MCP tool · no commit · never widen the ward
 
 RETURN
   PROVED:
@@ -521,9 +522,6 @@ Four lines there are load-bearing and each cost something real:
   layers, and a sub-agent with no surface picks the easiest reachable one — a mocked fetch for an
   \`api-call\`, jsdom for painted geometry. Your reviewer rejects on that disagreement alone, so the
   round pays a rework for a line you could have pasted.
-- **\`--only lint,test\` keeps typecheck out, and typecheck is the one that builds.** Ward runs it as
-  \`tsc -b\`, which writes the shared \`dist/\`, so a wave of sub-agents running it at once hands each
-  other type errors on correct code. Your reviewer's \`--uncommitted\` run is the typecheck.
 - **The \`run-ward\` MCP tool is not the same command.** It grades the whole branch and lands the red
   on your work item.
 - **\`PROVED\` and \`NOT PROVED\` are the only basis for what you sign.** Your map said what you
@@ -541,7 +539,7 @@ FLOW: <your flow id>
 
 **On a sweep, REPLACE the \`OPERATION:\` line with \`SWEEP: <the paths git status listed>\`** — its
 prompt reads a sweep brief as one INSTEAD of the other, and a brief carrying both makes it run the
-build and ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
+ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
 \`Commit every remaining path whatever it is, under sweep: uncommitted remainder\`.
 
 **That fetch carries no \`workItemId\`. Never add yours.** A sub-agent holding your work item id could

@@ -61,10 +61,9 @@ last agent in this chain.
 **[BACKGROUND] A command the harness backgrounds notifies you when it exits.** Never \`sleep\` beside
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
-**[BUILD] \`npm run build\` and \`npm run ward -- --uncommitted\` are yours, and nobody else here
-runs either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
-snippets you were handed at session start; their "make the whole repo green" line is written for an
-agent working directly for a person, and you are not one. Run them at step 6, **twice at most**.
+**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, after you have read everything.**
+Nobody else on the pass runs it. You run no bare \`npm run ward\`; that is the dispatcher's. You never
+widen a sub-agent's scoped run into a \`--uncommitted\` of your own before you have read its work.
 
 **[GIT] You commit and you push. Nobody else here touches git.** Never \`stash\`, \`reset\`,
 \`checkout --\`, \`clean\` or \`rebase\` — the whole of it is uncommitted when you arrive, on a branch
@@ -170,30 +169,20 @@ Four more questions, specific to this work:
 Take **The five standing concerns** further down this page against every file you opened at step 4.
 Same reading, same visit to each file — not a second pass over the tree.
 
-### 6. Build, then ward
-
-In this order, and only after you have read everything:
+### 6. Ward
 
 \`\`\`bash
-npm run build
 npm run ward -- --uncommitted
 \`\`\`
 
-Foreground, \`timeout: 600000\`. Run \`npm run build\` as its OWN command, unpiped — piping it discards
-its exit code and feeds a failed build silently into ward.
-
-**The two prove different things, and the ward is the typecheck.** \`npm run build\` proves the
-packages still link, but it typechecks only the ones whose build IS \`tsc\`. A package built by a
-bundler step instead — \`vite build\`, \`tsup\`, \`esbuild\` — has its types stripped rather than
-checked, and this repo's browser package is usually that one. \`--uncommitted\` is what typechecks
-every package this suite touched. A green build is never evidence about types.
+Run it once, in the foreground, after you have read everything. \`timeout: 600000\`.
 
 **\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
 It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new spec files a sub-agent
 wrote — most of what this pass produced — are graded rather than skipped. Run it BEFORE your commit:
 after it, the working tree is clean and the same command grades nothing.
 
-**Fix reds, then run the pair once more. Twice at most.** A red still standing is your
+**Fix reds, then run it once more. Twice at most.** A red still standing is your
 \`NEXT: rework\`, carrying the failing output word for word.
 
 **Diagnose a red before you fix it.** Re-run the failing file alone, having changed nothing since the run that went red. If
@@ -225,7 +214,6 @@ BITES:     <per unit: the file:line, and the wrong value that turns it red>
 UNCOVERED: <every checklist unit no test carries — or "none">
 FIXES:     <what you changed, and why — or "none">
 FINDINGS:  <what you did not fix, each with where it is — or "none">
-BUILD:     <green | the failing output, word for word>
 WARD:      <the command, and green | the failing output, word for word>
 COMMIT:    <the sha>
 NEXT:      pass | rework — <what is not done> | wall — <what a person must change>
@@ -234,7 +222,7 @@ NEXT:      pass | rework — <what is not done> | wall — <what a person must c
 **\`NEXT:\` is the last line, and its first word is what your parent reads.**
 
 - **\`pass\`** — every unit the work CLAIMED is proved by an assertion you opened and can name a
-  failing value for, and the build and ward are green. **A non-empty \`UNCOVERED:\` is a report for your
+  failing value for, and ward is green. **A non-empty \`UNCOVERED:\` is a report for your
   parent, not a \`rework\` by itself** — but name every unit in it, because your parent owes each one a
   verdict before it signals. Only a unit the work claimed and did not prove is a \`rework\`.
 - **\`rework\`** — anything real is left. **Quote the unit id and the unit's own words for each**, so
@@ -257,8 +245,7 @@ A brief carrying \`SWEEP:\` instead of \`OPERATION:\` is a smaller job. The path
 Open every path. Delete what is scratch. Keep what is real work somebody forgot to commit. Then
 \`git add -A\`, one commit under \`sweep: <what survived>\`, and push.
 
-**Run no build and no ward on a sweep.** Return the same block with \`BUILD:\` and \`WARD:\` reading
-\`not run — sweep\`.
+**Run no ward on a sweep.** Return the same block with \`WARD:\` reading \`not run — sweep\`.
 
 Where your brief adds a line telling you to commit everything remaining whatever it is, do exactly
 that, under \`sweep: uncommitted remainder\`.

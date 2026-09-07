@@ -30,13 +30,13 @@ describe('sessionSnippetStatics', () => {
 
   it('VALID: wardDiscipline snippet => splits FULL-run ownership by dispatch surface', () => {
     expect(sessionSnippetStatics.wardDiscipline).toMatch(
-      /^\*\*Who owns a FULL run\.\*\* An agent working directly for the user makes `npm run ward` exit 0 and owns every failure in it, including ones it did not cause\. An orchestrator-dispatched role is the opposite: it NEVER runs the full sweep — its Operating Rules override this snippet, and the dispatcher's own `run-ward` item is the regression pass\.$/mu,
+      /^\*\*Who owns a FULL run\.\*\* An agent working directly for the user makes `npm run ward` exit 0 before a merge and owns every failure in it, including ones it did not cause\. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own `run-ward` item is the regression pass\.$/mu,
     );
   });
 
-  it('VALID: wardDiscipline snippet => requires an unpiped build before ward', () => {
+  it('VALID: wardDiscipline snippet => scopes ward to the files given and denies ward needs a build', () => {
     expect(sessionSnippetStatics.wardDiscipline).toMatch(
-      /^\*\*Build first, unpiped\.\*\* .*Run `npm run build` as its OWN command and confirm it exits 0 — piping it \(`npm run build \| tail -3 && npm run ward`\) discards the exit code and feeds a failed build silently into ward\.$/mu,
+      /^\*\*Scope ward to the job\.\*\* Given specific files, run ward on those files and nothing wider: `npm run ward -- -- <files>`\..*Ward builds nothing and reads source; `npm run build` is a separate command and never a step before ward\.$/mu,
     );
   });
 

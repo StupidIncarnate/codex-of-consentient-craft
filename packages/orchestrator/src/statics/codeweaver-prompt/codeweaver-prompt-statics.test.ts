@@ -70,13 +70,14 @@ describe('codeweaverPromptStatics', () => {
     ]);
   });
 
-  // THIS OPERATOR RUNS NO BUILD AND NO WARD — its REVIEWER does. Both commands are named in the
-  // FORBIDDEN half of the tools table, right after the heading that opens it.
-  it('VALID: served template => lists npm run build and npm run ward under NOT YOURS', () => {
+  // THIS OPERATOR RUNS NO WARD — its REVIEWER runs the one `--uncommitted` sweep and its sub-agents
+  // run their own scoped ones. Both of the forms it must never reach for are named in the FORBIDDEN
+  // half of the tools table, right after the heading that opens it.
+  it('VALID: served template => lists the reviewer sweep and the bare ward under NOT YOURS', () => {
     expect(
       hasIn({
         needle:
-          'NOT YOURS Edit / Write on any path but your map sub-agents write code, not you ScheduleWakeup / ListAgents / any timer the notification IS the wake, see [HELPERS] npm run build see [BUILD] npm run ward, in every form see [BUILD]',
+          'NOT YOURS Edit / Write on any path but your map sub-agents write code, not you ScheduleWakeup / ListAgents / any timer the notification IS the wake, see [HELPERS] npm run ward -- --uncommitted see [WARD SCOPE] npm run ward (bare) see [WARD SCOPE]',
         text: TEMPLATE,
       }),
     ).toBe(true);
@@ -125,28 +126,33 @@ describe('codeweaverPromptStatics', () => {
     }).toStrictEqual({ pass: true, rework: true, wall: true, missingLine: true });
   });
 
-  // A WAVE OF SUB-AGENTS RUNNING WARD AT ONCE COLLIDES ON THE SHARED `dist/` IF ANY OF THEM
-  // TYPECHECKS — ward's typecheck is `tsc -b`, a build. Scoping to `lint,test` keeps that out; the
-  // reviewer's `--uncommitted` run is where typecheck happens, once, after every sub-agent has finished.
-  it("VALID: served template => scopes a sub-agent's own ward run to lint,test and forbids it from building", () => {
+  // SCOPE IS THE WHOLE RULE. Ward picks its check types off the paths it is handed, so a brief passes
+  // its own paths and nothing else — `--uncommitted` grades the whole working tree and a bare run
+  // grades the repo, and either one from a wave of sub-agents grades work that is not theirs and lands
+  // its red on this session. The reviewer's single `--uncommitted` sweep is the one wide run on a pass.
+  it("VALID: served template => scopes a sub-agent's own ward run to its own paths and forbids the wide forms", () => {
     expect({
       scopedRun: hasIn({
-        needle: "npm run ward -- --only lint,test -- <this brief's own paths>",
+        needle: "npm run ward -- -- <this brief's own paths>",
         text: TEMPLATE,
       }),
-      namesWhyLintTestOnly: hasIn({
-        needle: '`--only lint,test` keeps typecheck out, and typecheck is the one that builds',
+      namesWhyOwnPathsOnly: hasIn({
+        needle:
+          'Each sub-agent you dispatch runs ward on its own files and\nnothing wider: `npm run ward -- -- <its own paths>`',
         text: TEMPLATE,
       }),
-      neverBuild: hasIn({ needle: 'no npm run build', text: TEMPLATE }),
+      neverWidens: hasIn({
+        needle: 'ward on your own paths only · no --uncommitted · no bare ward · no commit',
+        text: TEMPLATE,
+      }),
       neverRunWardMcpTool: hasIn({
-        needle: 'no run-ward MCP tool',
+        needle: '**The `run-ward` MCP tool is not the same command.**',
         text: TEMPLATE,
       }),
     }).toStrictEqual({
       scopedRun: true,
-      namesWhyLintTestOnly: true,
-      neverBuild: true,
+      namesWhyOwnPathsOnly: true,
+      neverWidens: true,
       neverRunWardMcpTool: true,
     });
   });

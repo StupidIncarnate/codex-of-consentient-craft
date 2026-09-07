@@ -109,10 +109,10 @@ same command, your own name with \`-2\` appended, then \`-3\` — write into you
 had reached when it happened, and treat nothing you measured before it as comparable with what you
 measure after.
 
-**[NO BUILD, YOURSELF]** You never run \`npm run build\`, \`npm run ward\`, \`npx playwright\` or any
-test. A build under a live system changes what you are verifying, and you would read the difference
-back as a defect. Pass 2's sub-agents run one narrow ward slice each, on their own files only — see
-\`## Pass 2\` further down this page — and that is the only ward invocation anywhere in this chain.
+**[NO WARD, YOURSELF]** You never run ward, \`npx playwright\` or any test yourself; a run under a
+live system changes what you are verifying, and you would read the difference back as a defect. Pass
+2's sub-agents run one narrow ward slice each, on their own files only — see \`## Pass 2\` further
+down this page — and that is the only ward invocation anywhere in this chain.
 
 **[NO GIT BUT TO READ]** \`git diff\`, \`git log\` and \`git status\` are fine for understanding what a
 change did. Never \`add\`, \`commit\`, \`push\`, \`stash\`, \`reset\`, \`checkout --\`, \`clean\` or
@@ -340,10 +340,9 @@ test's path and nothing else it changed.
 
 ### 3. Its ward, and nothing wider
 
-Its brief carries exactly one ward line: \`npm run ward -- --only lint,test -- <its own paths>\`. Never
-\`typecheck\` — ward's typecheck is \`tsc -b\`, and it writes the shared \`dist/\`, so two sub-agents
-typechecking their own new test files at once hand each other type errors on correct code. Never
-\`e2e\`, and never \`npm run build\`.
+Its brief carries exactly one ward line: \`npm run ward -- -- <its own paths>\`, nothing wider — no
+\`--uncommitted\`, no bare ward, no \`npm run build\`. Scope is the whole rule: ward picks the checks
+that fit those files, and anything wider grades a sibling's uncommitted work alongside its own.
 
 ### 4. Depth stops with it
 

@@ -15,7 +15,7 @@
  *
  * IT DOES NOT RE-DRIVE ANYTHING. A fresh WALKER re-drives every fix from the reset state, and that
  * independent walk is what proves the repair. This session reads code. Giving it the live system would
- * duplicate the walker and put a build under a running server at the same time.
+ * duplicate the walker and put a ward run under a running server at the same time.
  *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test with
  * `standardsReviewConcernsStatics` interpolated in place.
@@ -39,7 +39,7 @@ nobody has checked is whether the fix was the right one.** That is yours.
 **You never call \`signal-back\`.** Your parent signals, once, after you return.
 
 **You never drive anything and you never touch the dev server.** It is running, your parent owns it,
-and a build under a live system changes what the next walk measures.
+and a ward run under a live system changes what the next walk measures.
 
 ## What you were given
 
@@ -70,9 +70,9 @@ last agent in this chain.
 **[BACKGROUND] A command the harness backgrounds notifies you when it exits.** Never \`sleep\` beside
 one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
-**[BUILD] \`npm run build\` and \`npm run ward -- --uncommitted\` are yours, and nobody else here runs
-either.** This rule overrides the \`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\`
-snippets you were handed at session start. Run them at step 5, **twice at most**.
+**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, after you have read everything.**
+Nobody else on the pass runs it. You run no bare \`npm run ward\`; that is the dispatcher's. You never
+widen a sub-agent's scoped run into a \`--uncommitted\` of your own before you have read its work.
 
 **[GIT] You commit and you push. Nobody else here touches git.** Never \`stash\`, \`reset\`,
 \`checkout --\`, \`clean\` or \`rebase\` — the repairs are uncommitted when you arrive, on a branch other
@@ -166,30 +166,20 @@ round may have committed repairs you are now building on.
 Then take **The five standing concerns** further down this page against those same files, in the
 same reading. Do not make a second pass over the tree for them.
 
-### 5. Build, then ward
-
-In this order, and only after you have read everything:
+### 5. Ward
 
 \`\`\`bash
-npm run build
 npm run ward -- --uncommitted
 \`\`\`
 
-Foreground, \`timeout: 600000\`. Run \`npm run build\` as its OWN command, unpiped — piping it discards
-its exit code and feeds a failed build silently into ward.
-
-**The two prove different things, and the ward is the typecheck.** \`npm run build\` proves the
-packages still link, but it typechecks only the ones whose build IS \`tsc\`. A package built by a
-bundler step instead — \`vite build\`, \`tsup\`, \`esbuild\` — has its types stripped rather than
-checked, and this repo's browser package is usually that one. \`--uncommitted\` is what typechecks
-every package a repair touched. A green build is never evidence about types.
+Run it once, in the foreground, after you have read everything. \`timeout: 600000\`.
 
 **\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
 It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new files a fixer wrote are
 graded rather than skipped. Run it BEFORE your commit: after it, the working tree is clean and the
 same command grades nothing.
 
-**Fix reds, then run the pair once more. Twice at most.** A red still standing is your
+**Fix reds, then run it once more. Twice at most.** A red still standing is your
 \`NEXT: rework\`, carrying the failing output word for word.
 
 **Diagnose a red before you fix it.** Re-run the failing file alone, having changed nothing since the run that went red. If
@@ -222,7 +212,6 @@ RIPPLES:   <every call site you opened, and whether it still holds>
 SPEC:      <where the flow no longer describes the code — or "flow still holds">
 FIXES:     <what you changed, and why — or "none">
 FINDINGS:  <what you did not fix, each with where it is — or "none">
-BUILD:     <green | the failing output, word for word>
 WARD:      <the command, and green | the failing output, word for word>
 COMMIT:    <the sha>
 NEXT:      pass | rework — <what is not done> | wall — <what a person must change>
@@ -251,8 +240,7 @@ Open every path. Delete what is scratch — a probe, a scratch fixture, a leftov
 experiment. Keep what is real work somebody forgot to commit. Then \`git add -A\`, one commit under
 \`sweep: <what survived>\`, and push.
 
-**Run no build and no ward on a sweep.** Return the same block with \`BUILD:\` and \`WARD:\` reading
-\`not run — sweep\`.
+**Run no ward on a sweep.** Return the same block with \`WARD:\` reading \`not run — sweep\`.
 
 Where your brief adds a line telling you to commit everything remaining whatever it is, do exactly
 that, under \`sweep: uncommitted remainder\`.

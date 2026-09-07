@@ -101,14 +101,39 @@ describe('siegemasterStressStatics', () => {
     }).toStrictEqual({ tag: true, measuredCost: true, briefedToDoItThemselves: true });
   });
 
-  it('VALID: served template => scopes every sub-agent ward run to lint and test on its own path alone', () => {
+  // SCOPE IS THE WHOLE RULE, NOT A LIST OF CHECK TYPES — a sub-agent grades its own path and ward
+  // picks what fits those files; a bare run or a `--uncommitted` lands a sibling's reds on it.
+  it("VALID: served template => scopes every sub-agent ward run to that sub-agent's own path alone", () => {
     expect({
-      ownScope: hasIn({
-        needle: "npm run ward -- --only lint,test -- <this test's own path>",
+      ruleScopesIt: hasIn({
+        needle:
+          '**[SUB-AGENT WARD] A sub-agent proves its test is really red with `npm run ward -- -- <its own path>`, nothing wider.**',
         text: TEMPLATE,
       }),
-      nothingWider: hasIn({ needle: 'no typecheck · no e2e · no npm run build', text: TEMPLATE }),
-    }).toStrictEqual({ ownScope: true, nothingWider: true });
+      neverBareNeverUncommitted: hasIn({
+        needle: 'never a bare `npm run ward` and never `--uncommitted`',
+        text: TEMPLATE,
+      }),
+      neverE2e: hasIn({
+        needle:
+          'Never e2e — the failing test this role produces lives at whichever layer actually owns the behaviour (a contract, a guard, a broker, a responder), not in a Playwright spec.',
+        text: TEMPLATE,
+      }),
+      ownScope: hasIn({
+        needle: "npm run ward -- -- <this test's own path>",
+        text: TEMPLATE,
+      }),
+      nothingWider: hasIn({
+        needle: 'ward on your own path only · no e2e · no --uncommitted',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      ruleScopesIt: true,
+      neverBareNeverUncommitted: true,
+      neverE2e: true,
+      ownScope: true,
+      nothingWider: true,
+    });
   });
 
   // WHAT IT SIGNS, AND ONLY ONCE — questModifyBroker merges by unit id, so a second sign-off on the

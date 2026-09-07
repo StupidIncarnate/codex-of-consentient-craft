@@ -131,11 +131,12 @@ describe('siegemasterVerifierStatics', () => {
         text: TEMPLATE,
       }),
       narrowWard: hasIn({
-        needle: 'npm run ward -- --only lint,test -- <its own paths>',
+        needle: 'Its brief carries exactly one ward line: `npm run ward -- -- <its own paths>`',
         text: TEMPLATE,
       }),
-      neverTypecheck: hasIn({
-        needle: "Never `typecheck` — ward's typecheck is `tsc -b`",
+      nothingWider: hasIn({
+        needle:
+          'nothing wider — no `--uncommitted`, no bare ward, no `npm run build`. Scope is the whole rule',
         text: TEMPLATE,
       }),
     }).toStrictEqual({
@@ -143,7 +144,7 @@ describe('siegemasterVerifierStatics', () => {
       mustFailForRealReason: true,
       reportsRedPath: true,
       narrowWard: true,
-      neverTypecheck: true,
+      nothingWider: true,
     });
   });
 

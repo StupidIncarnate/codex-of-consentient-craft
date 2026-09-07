@@ -48,7 +48,7 @@ describe('siegemasterReviewerStatics', () => {
       '### 2. Read the quest and the units',
       '### 3. Find out what changed',
       '### 4. Open every file the fixers changed',
-      '### 5. Build, then ward',
+      '### 5. Ward',
       '### 6. Commit and push',
       '### 7. Return',
     ]);
@@ -63,15 +63,36 @@ describe('siegemasterReviewerStatics', () => {
     ).toBe(true);
   });
 
-  it('VALID: served template => builds then wards, in that order, twice at most', () => {
+  // ONE WARD, AND IT IS THIS SESSION'S ALONE — every sibling on the pass runs a ward scoped to its
+  // own paths, so a `--uncommitted` run before this one has read the repairs grades what nobody read.
+  it('VALID: served template => wards once, scoped to --uncommitted, after it has read everything', () => {
     expect({
-      order: TEMPLATE.indexOf('npm run build') < TEMPLATE.indexOf('npm run ward -- --uncommitted'),
-      pairFenced: hasIn({
-        needle: 'npm run build\nnpm run ward -- --uncommitted',
+      scopeRule: hasIn({
+        needle:
+          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, after you have read everything.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
-      twiceAtMost: hasIn({ needle: 'twice at most', text: TEMPLATE }),
-    }).toStrictEqual({ order: true, pairFenced: true, twiceAtMost: true });
+      neverWidensASubAgentsRun: hasIn({
+        needle:
+          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before you have read its work.",
+        text: TEMPLATE,
+      }),
+      lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
+      onceAfterReading: hasIn({
+        needle: 'Run it once, in the foreground, after you have read everything.',
+        text: TEMPLATE,
+      }),
+      twiceAtMost: hasIn({
+        needle: '**Fix reds, then run it once more. Twice at most.**',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      scopeRule: true,
+      neverWidensASubAgentsRun: true,
+      lineFenced: true,
+      onceAfterReading: true,
+      twiceAtMost: true,
+    });
   });
 
   // ITS SUBJECT IS A SET OF REPAIRS, NOT A PASS — so the enumeration this reviewer names is "your
@@ -101,7 +122,7 @@ describe('siegemasterReviewerStatics', () => {
 
   // THIS REVIEWER GRADES A REPAIR, WHICH IS NOT THE SAME QUESTION AS EITHER SIBLING'S — so its return
   // carries `CAUSES`, `REDS`, `RIPPLES` and `SPEC` in place of the sibling-specific fields.
-  it('VALID: served template => returns exactly these twelve fields, in order', () => {
+  it('VALID: served template => returns exactly these eleven fields, in order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^([A-Z]+):/gmu), (match) => match[1])).toStrictEqual([
       'VERDICT',
       'READ',
@@ -111,7 +132,6 @@ describe('siegemasterReviewerStatics', () => {
       'SPEC',
       'FIXES',
       'FINDINGS',
-      'BUILD',
       'WARD',
       'COMMIT',
       'NEXT',

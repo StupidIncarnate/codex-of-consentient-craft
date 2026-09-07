@@ -88,13 +88,14 @@ session.
 - **With everything you can do done and a round's pair still out, end your turn on a plain message and
   no tool call.** The notification brings you back.
 
-**[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
-\`npm run ward -- --uncommitted\` at the end, twice at most, and it is the only session here that runs a
-BUILD or a typecheck. **No sub-agent you dispatch — verifier, stress tester or fixer — ever runs ward
-e2e or typecheck either**; a fixer's own \`--only lint,test\` ward is deliberate and keeps both out —
-see **Briefing a fixer**. A build under a live lane changes what that round is measuring, and it reads
-the difference back as a defect. This rule overrides the \`<dungeonmaster-ward>\` and
-\`<dungeonmaster-wardDiscipline>\` snippets you were handed at session start.
+**[WARD SCOPE] You run no ward yourself.** Each sub-agent you dispatch runs ward on its own files and
+nothing wider: \`npm run ward -- -- <its own paths>\`. Your reviewer runs
+\`npm run ward -- --uncommitted\`, once, after it has read everything. Nobody in this pass runs a bare
+\`npm run ward\`; the dispatcher's \`run-ward\` item is the regression pass. This is the rung the
+\`<dungeonmaster-wardDiscipline>\` snippet assigns to you; it does not override the snippet.
+
+A build under a live lane changes what that round is measuring, and it reads the difference back as a
+defect.
 
 **[GIT FORMS] Two git forms are refused for every dispatched session, and neither is a permission a
 grant could add.**
@@ -145,8 +146,8 @@ NOT YOURS
   Edit / Write on any path                     fixers write code, not you
   driving anything — a browser, curl, a CLI    walkers drive, not you
   ScheduleWakeup / ListAgents / any timer      the notification IS the wake, see [HELPERS]
-  npm run build                                see [BUILD]
-  npm run ward, in every form                  see [BUILD]
+  npm run ward -- --uncommitted                see [WARD SCOPE]
+  npm run ward (bare)                          see [WARD SCOPE]
   git add / git commit / git push              your reviewer commits and publishes
   git stash / reset / checkout -- / clean      never, on a branch other sessions share
   git rebase
@@ -395,7 +396,7 @@ review.
 
 Otherwise dispatch ONE \`siegemaster-reviewer\`, using **Briefing your reviewer** below. It reads the
 quest, reads git, opens every file your fixers changed, judges those repairs against what each round
-measured and against the five standing concerns, builds, wards, fixes what it can, and commits.
+measured and against the five standing concerns, wards, fixes what it can, and commits.
 
 | Its \`NEXT:\` line | You do |
 |---|---|
@@ -583,8 +584,8 @@ FIRST
   get-architecture, get-syntax-rules, get-testing-patterns
 
 PROVE
-  npm run ward -- --only lint,test -- <this brief's own paths>
-  no npm run build · no commit · never widen the ward
+  npm run ward -- -- <this brief's own paths>
+  ward on your own paths only · no --uncommitted · no bare ward · no commit
 
 RETURN
   CAUSE:   <what actually produced the symptom>
@@ -593,13 +594,10 @@ RETURN
   NEXT:    pass | rework — <what is left> | wall — <what a person must change>
 \`\`\`
 
-Three lines there are load-bearing and each cost something real:
+Two lines there are load-bearing and each cost something real:
 
 - **\`REACHES\` is what decides \`reset-flow-signoffs\`.** Without it you cannot tell whether a fix
   moved behaviour an earlier round already cleared.
-- **\`--only lint,test\` keeps typecheck out, and typecheck is the one that builds.** Ward runs it as
-  \`tsc -b\`, which writes the shared \`dist/\`, and a build under a live lane changes what that round's
-  re-walk measures. Your reviewer's \`--uncommitted\` run is the typecheck.
 - **No fixer touches any lane.** Several units measure a difference from a value only that lane's
   process lifetime provides, and a restart destroys them for that round with nothing to show it
   happened.
@@ -623,7 +621,7 @@ summarise it.
 
 **On a sweep, REPLACE the \`OPERATION:\` line with \`SWEEP: <the paths git status listed>\`** — its
 prompt reads a sweep brief as one INSTEAD of the other, and a brief carrying both makes it run the
-build and ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
+ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
 \`Commit every remaining path whatever it is, under sweep: uncommitted remainder\`. No
 \`workItemId\`. \`model: "sonnet"\`, alone in its message.
 

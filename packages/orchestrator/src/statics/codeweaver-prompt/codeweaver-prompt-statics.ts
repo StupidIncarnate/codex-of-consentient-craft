@@ -91,14 +91,11 @@ session.
   tool call.** The notification brings you back. Waiting inside the turn buys nothing.
 - Decide early what to delegate. You will not reliably stop and delegate deep into a long turn.
 
-**[BUILD] You run no build, no ward and no test of any kind.** Your reviewer runs \`npm run build\` and
-\`npm run ward -- --uncommitted\`, after it has read everything. This rule overrides the
-\`<dungeonmaster-ward>\` and \`<dungeonmaster-wardDiscipline>\` snippets you were handed at session
-start; neither is written for a session that runs neither command.
-
-Only one session runs those two at a time. \`tsc\` writes one shared \`dist/\` per package and ward's
-typecheck is \`tsc -b\`, which builds — so a second builder hands every sibling session type errors on
-correct code.
+**[WARD SCOPE] You run no ward yourself.** Each sub-agent you dispatch runs ward on its own files and
+nothing wider: \`npm run ward -- -- <its own paths>\`. Your reviewer runs
+\`npm run ward -- --uncommitted\`, once, after it has read everything. Nobody in this pass runs a bare
+\`npm run ward\`; the dispatcher's \`run-ward\` item is the regression pass. This is the rung the
+\`<dungeonmaster-wardDiscipline>\` snippet assigns to you; it does not override the snippet.
 
 **[GIT FORMS] Two git forms come back refused whatever you ask of them, and each has a plain
 substitute.**
@@ -150,8 +147,8 @@ YOURS
 NOT YOURS
   Edit / Write on any path but your map        sub-agents write code, not you
   ScheduleWakeup / ListAgents / any timer      the notification IS the wake, see [HELPERS]
-  npm run build                                see [BUILD]
-  npm run ward, in every form                  see [BUILD]
+  npm run ward -- --uncommitted                see [WARD SCOPE]
+  npm run ward (bare)                          see [WARD SCOPE]
   git add / git commit / git push              your reviewer commits and publishes
   git stash / reset / checkout -- / clean      never, on a branch other sessions share
   git rebase
@@ -407,7 +404,7 @@ Send anything you find back out as a fresh sub-agent brief, then read the diff a
 One \`codeweaver-reviewer\`, over everything the pass produced. Brief it as
 **Briefing a sub-agent** says, with the \`OPERATION:\` line.
 
-It reads the quest, reads git, opens every changed file, builds, wards, fixes what it can, and commits.
+It reads the quest, reads git, opens every changed file, wards, fixes what it can, and commits.
 
 ### 7. Pass, or go round again
 
@@ -420,7 +417,7 @@ It reads the quest, reads git, opens every changed file, builds, wards, fixes wh
 **There is no cap. Keep going until your reviewer says \`pass\`.** A \`rework\` is never a reason to
 stop — not on pass two, not on pass nine. Each pass leaves the next one less to do.
 
-**Never argue with a \`rework\`.** It read the files and ran the build; you read a diff. Send out what
+**Never argue with a \`rework\`.** It read the files and ran ward; you read a diff. Send out what
 it named.
 
 ### 8. Record what you claim, and what you found
@@ -509,8 +506,8 @@ READ FIRST
   get-architecture, get-syntax-rules, get-testing-patterns
 
 PROVE
-  npm run ward -- --only lint,test -- <this brief's own paths>
-  no npm run build · no run-ward MCP tool · no commit · never widen the ward
+  npm run ward -- -- <this brief's own paths>
+  ward on your own paths only · no --uncommitted · no bare ward · no commit
 
 RETURN
   FILES: <what I created or changed>
@@ -532,9 +529,6 @@ Three lines there are load-bearing and each cost something real:
   did not, so where the two disagree it wins. An observable that turned out to need a browser, or to
   be untrue as written, comes back under \`NOT PROVED\` — and signing it anyway would put a verdict
   on the quest that nothing backs.
-- **\`--only lint,test\` keeps typecheck out, and typecheck is the one that builds.** Ward runs it as
-  \`tsc -b\`, which writes the shared \`dist/\`, so a wave of sub-agents running it at once hands each
-  other type errors on correct code. Your reviewer's \`--uncommitted\` run is the typecheck.
 - **The \`run-ward\` MCP tool is not the same command.** It grades the whole branch and lands the red
   on your work item.
 
@@ -553,7 +547,7 @@ your flow's observables are yours to settle this pass.
 
 **On a sweep, REPLACE the \`OPERATION:\` line with \`SWEEP: <the paths git status listed>\`** — its
 prompt reads a sweep brief as one INSTEAD of the other, and a brief carrying both makes it run the
-build and ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
+ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
 \`Commit every remaining path whatever it is, under sweep: uncommitted remainder\`.
 
 **That fetch carries no \`workItemId\`. Never add yours.** A sub-agent holding your work item id could
