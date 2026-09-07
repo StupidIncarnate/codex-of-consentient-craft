@@ -754,6 +754,147 @@ describe('commandRunLayerMultiBroker', () => {
     });
   });
 
+  describe('ward concurrency config', () => {
+    it('VALID: {2 packages} => resolves the ward config exactly once, not once per package', async () => {
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/ward',
+                  path: '/home/user/project/packages/ward',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 5,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/hooks',
+                  path: '/home/user/project/packages/hooks',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 3,
+              },
+            ],
+          },
+        ],
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+
+      await commandRunLayerMultiBroker({
+        config,
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      // Two workspace folders were graded, but the config read happened once — a per-folder read
+      // would show up here as 2.
+      expect(proxy.getConfigResolveCallCount()).toBe(1);
+      expect(proxy.getConfigResolveFilePaths()).toStrictEqual([
+        { filePath: '/home/user/project/package.json' },
+      ]);
+    });
+
+    it('VALID: {.dungeonmaster.json sets ward.concurrency} => run still succeeds using the configured value', async () => {
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/ward', path: '/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 5,
+              },
+            ],
+          },
+        ],
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const projectFolders = [ProjectFolderStub()];
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupWardConcurrency({ rootPath, concurrency: 1 });
+      proxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent: subResult });
+
+      const result = await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
+
+      expect(result.checks).toStrictEqual([
+        {
+          checkType: 'lint',
+          status: 'pass',
+          durationMs: 0,
+          projectResults: [
+            {
+              projectFolder: { name: '@dungeonmaster/ward', path: '/project/packages/ward' },
+              status: 'pass',
+              errors: [],
+              testFailures: [],
+              filesCount: 5,
+              discoveredCount: 0,
+              onlyDiscovered: [],
+              onlyProcessed: [],
+              rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+              fileTimings: [],
+              passingTests: [],
+              durationMs: 0,
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe('per-package durations', () => {
     it('VALID: {2 packages, children report different check durations} => each project result keeps its own child duration, check duration stays the slowest', async () => {
       const wardSubResult = JSON.stringify({

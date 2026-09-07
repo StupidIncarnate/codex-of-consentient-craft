@@ -12,7 +12,7 @@ export { integrationEnvironmentCreateBroker } from './brokers/integration-enviro
 export { integrationEnvironmentCleanupAllBroker } from './brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker';
 export { integrationEnvironmentListBroker } from './brokers/integration-environment/list/integration-environment-list-broker';
 export type { TestGuild } from './contracts/test-guild/test-guild-contract';
-export type { DungeonmasterConfig } from './contracts/dungeonmaster-config/dungeonmaster-config-contract';
+export type { TestbedConfig } from './contracts/testbed-config/testbed-config-contract';
 
 // Install testbed utilities
 export { installTestbedCreateBroker } from './brokers/install-testbed/create/install-testbed-create-broker';
@@ -33,7 +33,7 @@ export { RequestCountStub } from './contracts/request-count/request-count.stub';
 export { MockSpawnResultStub } from './contracts/mock-spawn-result/mock-spawn-result.stub';
 export { MockProcessBehaviorStub } from './contracts/mock-process-behavior/mock-process-behavior.stub';
 export { TestGuildStub } from './contracts/test-guild/test-guild.stub';
-export { DungeonmasterConfigStub } from './contracts/dungeonmaster-config/dungeonmaster-config.stub';
+export { TestbedConfigStub } from './contracts/testbed-config/testbed-config.stub';
 export { InstallTestbedStub } from './contracts/install-testbed/install-testbed.stub';
 export { BaseNameStub } from './contracts/base-name/base-name.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';

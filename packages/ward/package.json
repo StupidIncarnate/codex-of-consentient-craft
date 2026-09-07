@@ -38,6 +38,7 @@
     "eslint-plugin-eslint-comments": "^3.2.0"
   },
   "dependencies": {
+    "@dungeonmaster/config": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^3.25.76"
   }

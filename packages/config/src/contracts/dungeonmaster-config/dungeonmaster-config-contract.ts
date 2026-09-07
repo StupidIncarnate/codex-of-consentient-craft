@@ -54,6 +54,17 @@ export const dungeonmasterConfigContract = z
           .brand<'TimeoutMs'>(),
       })
       .optional(),
+    ward: z
+      .object({
+        concurrency: z
+          .number()
+          .int()
+          .min(configDefaultsStatics.ward.concurrency.min)
+          .max(configDefaultsStatics.ward.concurrency.max)
+          .default(configDefaultsStatics.ward.concurrency.default)
+          .brand<'WardConcurrency'>(),
+      })
+      .optional(),
     dungeonmaster: z
       .object({
         port: networkPortContract.optional(),

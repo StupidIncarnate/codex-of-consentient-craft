@@ -11,7 +11,7 @@ import type { RelativePath } from '../relative-path/relative-path-contract';
 import type { FileContent } from '../file-content/file-content-contract';
 import type { ExitCode } from '../exit-code/exit-code-contract';
 import type { ProcessOutput } from '../process-output/process-output-contract';
-import type { DungeonmasterConfig } from '../dungeonmaster-config/dungeonmaster-config-contract';
+import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { FileName } from '../file-name/file-name-contract';
 
 export const installTestbedContract = z.object({
@@ -34,7 +34,7 @@ export type InstallTestbed = InstallTestbedData & {
   listDir: ({ relativePath }: { relativePath: RelativePath }) => readonly FileName[] | null;
   getClaudeSettings: () => unknown;
   getMcpConfig: () => unknown;
-  getDungeonmasterConfig: () => DungeonmasterConfig | null;
+  getDungeonmasterConfig: () => TestbedConfig | null;
   getEslintConfig: () => FileContent | null;
   runInitCommand: () => { exitCode: ExitCode; stdout: ProcessOutput; stderr: ProcessOutput };
 };

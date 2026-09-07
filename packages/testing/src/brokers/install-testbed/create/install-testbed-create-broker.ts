@@ -24,7 +24,7 @@ import { fileContentContract } from '../../../contracts/file-content/file-conten
 import { exitCodeContract } from '../../../contracts/exit-code/exit-code-contract';
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { installTestbedContract } from '../../../contracts/install-testbed/install-testbed-contract';
-import { dungeonmasterConfigContract } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import { testbedConfigContract } from '../../../contracts/testbed-config/testbed-config-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -34,7 +34,7 @@ import type { RelativePath } from '../../../contracts/relative-path/relative-pat
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { InstallTestbed } from '../../../contracts/install-testbed/install-testbed-contract';
-import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const installTestbedCreateBroker = ({
@@ -149,7 +149,7 @@ export const installTestbedCreateBroker = ({
       return JSON.parse(content) as unknown;
     },
 
-    getDungeonmasterConfig: (): DungeonmasterConfig | null => {
+    getDungeonmasterConfig: (): TestbedConfig | null => {
       const configPath = pathJoinAdapter({
         paths: [projectPath, locationsStatics.dungeonmasterHome.dir],
       });
@@ -157,7 +157,7 @@ export const installTestbedCreateBroker = ({
         return null;
       }
       const content = fsReadFileAdapter({ filePath: configPath });
-      return dungeonmasterConfigContract.parse(JSON.parse(content));
+      return testbedConfigContract.parse(JSON.parse(content));
     },
 
     getEslintConfig: (): FileContent | null => {

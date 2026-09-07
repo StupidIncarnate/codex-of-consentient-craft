@@ -11,7 +11,7 @@ import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { CommandName } from '../command-name/command-name-contract';
 import type { FileName } from '../file-name/file-name-contract';
 import type { FileContent } from '../file-content/file-content-contract';
-import type { DungeonmasterConfig } from '../dungeonmaster-config/dungeonmaster-config-contract';
+import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { PackageJson } from '../package-json/package-json-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 
@@ -30,7 +30,7 @@ export type TestGuild = TestGuildData & {
   readFile: ({ fileName }: { fileName: FileName }) => FileContent;
   writeFile: ({ fileName, content }: { fileName: FileName; content: FileContent }) => void;
   deleteFile: ({ fileName }: { fileName: FileName }) => void;
-  getConfig: () => DungeonmasterConfig | null;
+  getConfig: () => TestbedConfig | null;
   getPackageJson: () => PackageJson;
   getQuestFiles: ({ subdir }: { subdir?: FileName }) => FileName[];
   executeCommand: ({ command }: { command: CommandName }) => ExecResult;

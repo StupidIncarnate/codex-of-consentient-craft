@@ -7,8 +7,13 @@
  */
 
 import { childProcessSpawnStreamAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  filePathContract,
+  type AbsoluteFilePath,
+} from '@dungeonmaster/shared/contracts';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
+import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import {
@@ -67,7 +72,18 @@ export const commandRunLayerMultiBroker = async ({
         )
       : projectFolders;
 
-  const CONCURRENCY_LIMIT = 4;
+  // Resolved ONCE per run, before the promisePoolTransformer loop below spawns any per-folder
+  // handler — moving this inside that handler would re-walk the config tree once per workspace
+  // instead of once for the whole run. A consumer whose .dungeonmaster.json carries no `ward` key
+  // at all gets `ward: undefined` back (zod never fills a default for an absent PARENT key, only
+  // for fields inside one that's present), so the fallback to configDefaultsStatics is load-bearing,
+  // not decorative.
+  const dungeonmasterConfig = await configResolveBroker({
+    filePath: filePathContract.parse(`${String(rootPath)}/package.json`),
+  });
+  const CONCURRENCY_LIMIT = Number(
+    dungeonmasterConfig.ward?.concurrency ?? configDefaultsStatics.ward.concurrency.default,
+  );
 
   const runStartMs = Date.now();
 

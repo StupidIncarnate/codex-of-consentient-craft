@@ -35,6 +35,13 @@ describe('configDefaultsStatics', () => {
           default: 30000,
         },
       },
+      ward: {
+        concurrency: {
+          min: 1,
+          max: 10,
+          default: 4,
+        },
+      },
     });
   });
 });

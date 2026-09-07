@@ -2,9 +2,11 @@ import { childProcessSpawnStreamAdapterProxy } from '@dungeonmaster/shared/testi
 import {
   ExitCodeStub,
   absoluteFilePathContract,
+  filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { configResolveBroker, DungeonmasterConfigStub } from '@dungeonmaster/config';
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
@@ -40,8 +42,11 @@ export const commandRunLayerMultiBrokerProxy = (): {
     staleResultContent: string;
   }) => void;
   setupNoSpawns: (params: { rootPath: AbsoluteFilePath }) => void;
+  setupWardConcurrency: (params: { rootPath: AbsoluteFilePath; concurrency: number }) => void;
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
+  getConfigResolveCallCount: () => unknown;
+  getConfigResolveFilePaths: () => unknown[];
 } => {
   // Date.now/Math.random take no identifying argument — the receiver is what a spy cannot see.
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(runIdMockStatics.timestamp);
@@ -60,6 +65,13 @@ export const commandRunLayerMultiBrokerProxy = (): {
   const loadProxy = storageLoadBrokerProxy();
   commandRunLayerChildCrashBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
+
+  // Default: a resolved config carrying no `ward` key at all, matching what a consumer who has
+  // never heard of this key gets back for real (see P14) — the broker under test falls back to
+  // configDefaultsStatics.ward.concurrency.default on its own, so this default answer is what
+  // keeps every OTHER test in this file's observable behaviour unchanged.
+  const configResolveHandle = registerMock({ fn: configResolveBroker });
+  configResolveHandle.calledWith([]).resolves(DungeonmasterConfigStub());
 
   // Every child ward process embeds its own runId in the printed summary line, and this level's
   // own storageSaveBroker/storagePruneBroker calls generate a runId the same way — both read the
@@ -189,7 +201,27 @@ export const commandRunLayerMultiBrokerProxy = (): {
       pruneProxy.setupEmpty({ rootPath });
     },
 
+    // Addressed by the exact filePath the broker under test builds (rootPath's own package.json),
+    // which out-specifies the catch-all default staged above.
+    setupWardConcurrency: ({
+      rootPath,
+      concurrency,
+    }: {
+      rootPath: AbsoluteFilePath;
+      concurrency: number;
+    }): void => {
+      configResolveHandle
+        .calledWith([{ filePath: filePathContract.parse(`${String(rootPath)}/package.json`) }])
+        .resolves(DungeonmasterConfigStub({ ward: { concurrency } }));
+    },
+
     getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
     getAllSpawnedArgs: (): unknown[] => streamProxy.getAllSpawnedArgs(),
+    getConfigResolveCallCount: (): unknown => configResolveHandle.callsMatching([]).length,
+    // Deliberately un-narrowed: the whole `{filePath}` call argument, one entry per call. Inline
+    // structural casts are forbidden in brokers/, so the test asserts on this shape with
+    // toStrictEqual rather than the proxy destructuring it first.
+    getConfigResolveFilePaths: (): unknown[] =>
+      configResolveHandle.callsMatching([]).map((call) => call[0]),
   };
 };

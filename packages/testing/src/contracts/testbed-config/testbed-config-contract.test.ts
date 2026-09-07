@@ -1,15 +1,15 @@
-import { dungeonmasterConfigContract } from './dungeonmaster-config-contract';
-import { DungeonmasterConfigStub } from './dungeonmaster-config.stub';
+import { testbedConfigContract } from './testbed-config-contract';
+import { TestbedConfigStub } from './testbed-config.stub';
 
-describe('dungeonmasterConfigContract', () => {
+describe('testbedConfigContract', () => {
   describe('valid inputs', () => {
     it('VALID: {questFolder: "quest", wardCommands: {}} => parses minimal config', () => {
-      const config = DungeonmasterConfigStub({
+      const config = TestbedConfigStub({
         questFolder: 'quest',
         wardCommands: {},
       });
 
-      const parsed = dungeonmasterConfigContract.parse(config);
+      const parsed = testbedConfigContract.parse(config);
 
       expect(parsed).toStrictEqual({
         questFolder: 'quest',
@@ -18,7 +18,7 @@ describe('dungeonmasterConfigContract', () => {
     });
 
     it('VALID: {with wardCommands} => parses with ward commands', () => {
-      const config = DungeonmasterConfigStub({
+      const config = TestbedConfigStub({
         questFolder: 'dungeonmaster',
         wardCommands: {
           lint: 'eslint',
@@ -26,7 +26,7 @@ describe('dungeonmasterConfigContract', () => {
         },
       });
 
-      const parsed = dungeonmasterConfigContract.parse(config);
+      const parsed = testbedConfigContract.parse(config);
 
       expect(parsed).toStrictEqual({
         questFolder: 'dungeonmaster',
@@ -38,14 +38,14 @@ describe('dungeonmasterConfigContract', () => {
     });
 
     it('VALID: {with extra fields} => parses and passes through additional properties', () => {
-      const config = DungeonmasterConfigStub({
+      const config = TestbedConfigStub({
         questFolder: 'quest',
         wardCommands: { test: 'jest' },
         extraField: 'extra value',
         anotherField: 123,
       });
 
-      const parsed = dungeonmasterConfigContract.parse(config);
+      const parsed = testbedConfigContract.parse(config);
 
       expect(parsed).toStrictEqual({
         questFolder: 'quest',
@@ -56,7 +56,7 @@ describe('dungeonmasterConfigContract', () => {
     });
 
     it('VALID: {wardCommands with complex values} => parses with nested objects', () => {
-      const config = DungeonmasterConfigStub({
+      const config = TestbedConfigStub({
         questFolder: 'dungeonmaster',
         wardCommands: {
           lint: { command: 'eslint', flags: ['--fix'] },
@@ -64,7 +64,7 @@ describe('dungeonmasterConfigContract', () => {
         },
       });
 
-      const parsed = dungeonmasterConfigContract.parse(config);
+      const parsed = testbedConfigContract.parse(config);
 
       expect(parsed).toStrictEqual({
         questFolder: 'dungeonmaster',
@@ -76,12 +76,12 @@ describe('dungeonmasterConfigContract', () => {
     });
 
     it('EDGE: {empty wardCommands} => parses with empty object', () => {
-      const config = DungeonmasterConfigStub({
+      const config = TestbedConfigStub({
         questFolder: 'quest',
         wardCommands: {},
       });
 
-      const parsed = dungeonmasterConfigContract.parse(config);
+      const parsed = testbedConfigContract.parse(config);
 
       expect(parsed).toStrictEqual({
         questFolder: 'quest',
@@ -90,12 +90,12 @@ describe('dungeonmasterConfigContract', () => {
     });
 
     it('EDGE: {questFolder with path} => parses folder path', () => {
-      const config = DungeonmasterConfigStub({
+      const config = TestbedConfigStub({
         questFolder: 'src/dungeonmaster',
         wardCommands: {},
       });
 
-      const parsed = dungeonmasterConfigContract.parse(config);
+      const parsed = testbedConfigContract.parse(config);
 
       expect(parsed).toStrictEqual({
         questFolder: 'src/dungeonmaster',
@@ -107,7 +107,7 @@ describe('dungeonmasterConfigContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {questFolder: 123} => throws validation error for non-string', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({
+        return testbedConfigContract.parse({
           questFolder: 123 as never,
           wardCommands: {},
         });
@@ -116,7 +116,7 @@ describe('dungeonmasterConfigContract', () => {
 
     it('INVALID: {questFolder: null} => throws validation error for null', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({
+        return testbedConfigContract.parse({
           questFolder: null as never,
           wardCommands: {},
         });
@@ -125,7 +125,7 @@ describe('dungeonmasterConfigContract', () => {
 
     it('INVALID: {wardCommands: "commands"} => throws validation error for non-object', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({
+        return testbedConfigContract.parse({
           questFolder: 'quest',
           wardCommands: 'commands' as never,
         });
@@ -134,7 +134,7 @@ describe('dungeonmasterConfigContract', () => {
 
     it('INVALID: {wardCommands: null} => throws validation error for null', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({
+        return testbedConfigContract.parse({
           questFolder: 'quest',
           wardCommands: null as never,
         });
@@ -143,7 +143,7 @@ describe('dungeonmasterConfigContract', () => {
 
     it('INVALID: {wardCommands: []} => throws validation error for array', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({
+        return testbedConfigContract.parse({
           questFolder: 'quest',
           wardCommands: [] as never,
         });
@@ -152,7 +152,7 @@ describe('dungeonmasterConfigContract', () => {
 
     it('INVALID: {missing questFolder} => throws validation error', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({
+        return testbedConfigContract.parse({
           wardCommands: {},
         });
       }).toThrow(/Required/u);
@@ -160,7 +160,7 @@ describe('dungeonmasterConfigContract', () => {
 
     it('INVALID: {missing wardCommands} => throws validation error', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({
+        return testbedConfigContract.parse({
           questFolder: 'quest',
         });
       }).toThrow(/Required/u);
@@ -168,7 +168,7 @@ describe('dungeonmasterConfigContract', () => {
 
     it('INVALID: {empty object} => throws validation error for all fields', () => {
       expect(() => {
-        return dungeonmasterConfigContract.parse({});
+        return testbedConfigContract.parse({});
       }).toThrow(/Required/u);
     });
   });

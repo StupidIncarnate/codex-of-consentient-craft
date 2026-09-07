@@ -43,7 +43,7 @@ import type { FileContent } from '../../../contracts/file-content/file-content-c
 import type { CommandName } from '../../../contracts/command-name/command-name-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
-import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
 import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';
 import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 
@@ -175,14 +175,14 @@ export const integrationEnvironmentCreateBroker = ({
       }
     },
 
-    getConfig: (): DungeonmasterConfig | null => {
+    getConfig: (): TestbedConfig | null => {
       const configPath = pathJoinAdapter({
         paths: [projectPath, locationsStatics.dungeonmasterHome.dir],
       });
       if (!fsExistsAdapter({ filePath: configPath })) {
         return null;
       }
-      return JSON.parse(fsReadFileAdapter({ filePath: configPath })) as DungeonmasterConfig;
+      return JSON.parse(fsReadFileAdapter({ filePath: configPath })) as TestbedConfig;
     },
 
     getPackageJson: (): PackageJson => {

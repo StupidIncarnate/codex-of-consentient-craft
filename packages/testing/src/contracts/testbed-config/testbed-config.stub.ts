@@ -1,11 +1,9 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { dungeonmasterConfigContract } from './dungeonmaster-config-contract';
-import type { DungeonmasterConfig } from './dungeonmaster-config-contract';
+import { testbedConfigContract } from './testbed-config-contract';
+import type { TestbedConfig } from './testbed-config-contract';
 
-export const DungeonmasterConfigStub = ({
-  ...props
-}: StubArgument<DungeonmasterConfig> = {}): DungeonmasterConfig =>
-  dungeonmasterConfigContract.parse({
+export const TestbedConfigStub = ({ ...props }: StubArgument<TestbedConfig> = {}): TestbedConfig =>
+  testbedConfigContract.parse({
     questFolder: 'dungeonmaster',
     wardCommands: {},
     ...props,
