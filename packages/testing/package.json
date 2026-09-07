@@ -60,7 +60,7 @@
   "typesVersions": {
     "*": {
       "register-mock": [
-        "dist/src/register-mock.d.ts"
+        "src/register-mock.ts"
       ],
       "brokers/network-record/playwright": [
         "dist/src/brokers/network-record/playwright/network-record-playwright-broker.d.ts"
