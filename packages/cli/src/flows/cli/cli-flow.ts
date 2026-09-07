@@ -9,6 +9,7 @@
 import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
+import { CliCreatePackageResponder } from '../../responders/cli/create-package/cli-create-package-responder';
 import { CliInitResponder } from '../../responders/cli/init/cli-init-responder';
 import { CliServeResponder } from '../../responders/cli/serve/cli-serve-responder';
 import { CliStatuslineTapResponder } from '../../responders/cli/statusline-tap/cli-statusline-tap-responder';
@@ -17,13 +18,16 @@ const COMMANDS = {
   init: 'init',
   start: 'start',
   statuslineTap: 'statusline-tap',
+  createPackage: 'create-package',
 } as const;
 
 export const CliFlow = async ({
   command,
+  args,
   context,
 }: {
   command: string | undefined;
+  args: readonly string[];
   context: InstallContext;
 }): Promise<AdapterResult> => {
   if (command === COMMANDS.init) {
@@ -34,6 +38,10 @@ export const CliFlow = async ({
   if (command === COMMANDS.statuslineTap) {
     await CliStatuslineTapResponder();
     return adapterResultContract.parse({ success: true });
+  }
+
+  if (command === COMMANDS.createPackage) {
+    return CliCreatePackageResponder({ context, args });
   }
 
   await CliServeResponder();
