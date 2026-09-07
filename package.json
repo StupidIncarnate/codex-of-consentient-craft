@@ -24,7 +24,7 @@
     "prod:build-and-serve": "npm run build && npm run prod",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "npm run build && changeset publish",
+    "release": "npm run build:clean && npm run check:published && changeset publish",
     "claude": "claude",
     "claude:version": "claude --version"
   },

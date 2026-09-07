@@ -165,7 +165,7 @@ for (const row of rows) {
 }
 
 if (!anyDistFound) {
-  process.stderr.write('\nNo packages/*/dist found. Run `npm run build` first.\n');
+  process.stderr.write('\nNo packages/*/dist found. Run `npm run build:clean` first.\n');
   process.exit(1);
 }
 

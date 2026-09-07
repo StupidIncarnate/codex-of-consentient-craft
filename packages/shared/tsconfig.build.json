@@ -12,6 +12,8 @@
   "exclude": [
     "**/*.test.ts",
     "**/*.test.tsx",
+    "**/*.proxy.ts",
+    "**/*.stub.ts",
     "**/*.harness.ts",
     "test/**",
     "src/.test-tmp/**",
