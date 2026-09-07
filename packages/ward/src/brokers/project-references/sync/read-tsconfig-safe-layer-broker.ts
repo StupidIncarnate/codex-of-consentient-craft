@@ -1,9 +1,14 @@
 /**
- * PURPOSE: Reads a tsconfig.json file at the given path and parses it as TsconfigJsonWritable, returning undefined on any error
+ * PURPOSE: Reads a tsconfig.json on behalf of a caller that may go on to WRITE it. Reach for this
+ * over a plain read whenever the answer decides a write: a file that is absent and a file that is
+ * present but unreadable call for opposite actions, and a reader that cannot tell them apart
+ * overwrites a config it never understood.
  *
  * USAGE:
- * readTsconfigSafeLayerBroker({ tsconfigPath: filePathContract.parse('/repo/packages/shared/tsconfig.json') });
- * // Returns: TsconfigJsonWritable if readable and valid JSON, undefined if file is missing or unparseable
+ * readTsconfigSafeLayerBroker({ tsconfigPath: filePathContract.parse('/repo/tsconfig.json') });
+ * // { status: 'parsed', data }  — read, and the contract accepted it
+ * // { status: 'unparseable' }   — JSONC comments, malformed JSON, or a shape the contract rejects
+ * // { status: 'missing' }       — could not be read at all
  */
 
 import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
@@ -18,11 +23,20 @@ export const readTsconfigSafeLayerBroker = ({
   tsconfigPath,
 }: {
   tsconfigPath: FilePath;
-}): TsconfigJsonWritable | undefined => {
+}):
+  | { status: 'parsed'; data: TsconfigJsonWritable }
+  | { status: 'unparseable' }
+  | { status: 'missing' } => {
   try {
     const raw = fsReadJsonSyncAdapter({ filePath: filePathContract.parse(String(tsconfigPath)) });
-    return tsconfigJsonWritableContract.parse(raw);
-  } catch {
-    return undefined;
+    const parsed = tsconfigJsonWritableContract.safeParse(raw);
+
+    return parsed.success ? { status: 'parsed', data: parsed.data } : { status: 'unparseable' };
+  } catch (error) {
+    // `JSON.parse` is the only thing on this path that throws SyntaxError, so that error IS the
+    // JSONC case — and JSONC is what `tsc --init` writes, which makes it the common one rather
+    // than the exotic one. Every other read failure reports as missing, which refuses the write
+    // just as firmly; the two differ only in whether the caller says anything out loud.
+    return error instanceof SyntaxError ? { status: 'unparseable' } : { status: 'missing' };
   }
 };

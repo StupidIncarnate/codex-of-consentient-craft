@@ -25,11 +25,14 @@ export const workspaceInputBuildLayerBroker = async ({
   const tsconfigPath = filePathContract.parse(`${String(folder.path)}/tsconfig.json`);
   const pkgJsonPath = filePathContract.parse(`${String(folder.path)}/package.json`);
 
-  const tsconfigData = readTsconfigSafeLayerBroker({ tsconfigPath });
+  const tsconfigRead = readTsconfigSafeLayerBroker({ tsconfigPath });
   const parsedPkg = await readPackageJsonSafeLayerBroker({ pkgJsonPath });
 
+  // A tsconfig this reader could not parse leaves the package ineligible, so it is skipped rather
+  // than rewritten. That was already true when an unreadable file and an absent one were the same
+  // answer; it stays true now they are told apart.
   const isCompositeEligible =
-    tsconfigData !== undefined && tsconfigData.compilerOptions?.noEmit !== true;
+    tsconfigRead.status === 'parsed' && tsconfigRead.data.compilerOptions?.noEmit !== true;
 
   const dependencyNames =
     parsedPkg === undefined

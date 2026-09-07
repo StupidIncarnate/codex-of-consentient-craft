@@ -16,7 +16,6 @@ import {
 
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import { tsconfigJsonWritableContract } from '../../../contracts/tsconfig-json-writable/tsconfig-json-writable-contract';
 import type { TsconfigSyncPair } from '../../../contracts/tsconfig-sync-pair/tsconfig-sync-pair-contract';
 import { projectReferencesDeriveTransformer } from '../../../transformers/project-references-derive/project-references-derive-transformer';
 import { isTsconfigPairDriftedGuard } from '../../../guards/is-tsconfig-pair-drifted/is-tsconfig-pair-drifted-guard';
@@ -62,33 +61,61 @@ export const projectReferencesSyncBroker = async ({
     };
   }
 
-  const pairs: TsconfigSyncPair[] = [];
+  const packagePairs: TsconfigSyncPair[] = [];
 
   for (const ws of workspaces) {
     if (!ws.isCompositeEligible) {
       continue;
     }
     const tsconfigPath = absoluteFilePathContract.parse(`${String(ws.projectPath)}/tsconfig.json`);
-    const currentData =
-      readTsconfigSafeLayerBroker({ tsconfigPath: filePathContract.parse(String(tsconfigPath)) }) ??
-      tsconfigJsonWritableContract.parse({});
+    const currentRead = readTsconfigSafeLayerBroker({
+      tsconfigPath: filePathContract.parse(String(tsconfigPath)),
+    });
+    if (currentRead.status !== 'parsed') {
+      continue;
+    }
     const expectedRefs = deriveResult.perPackage.get(ws.projectPath) ?? [];
-    pairs.push({ tsconfigPath, currentData, expectedRefs, ensureComposite: true });
+    packagePairs.push({
+      tsconfigPath,
+      currentData: currentRead.data,
+      expectedRefs,
+      ensureComposite: true,
+    });
   }
 
+  // THE ROOT CONFIG HAS NO ELIGIBILITY TEST, and that is what made it the dangerous one. A package
+  // whose tsconfig failed to parse was already skipped as ineligible; the root fell through to an
+  // empty object and was then written from it, so a reader's `strict`, `target` and `paths` were
+  // replaced by a bare `references` array — data loss, in a published tool, announced as one line
+  // on stderr. Comments are not an exotic input either: `tsc --init` emits them.
+  //
+  // Absent is a separate answer from unreadable, and both refuse the write. Creating a root
+  // tsconfig a repo never had belongs to `dungeonmaster init`, not to a quality checker.
   const rootTsconfigPath = absoluteFilePathContract.parse(`${String(rootPath)}/tsconfig.json`);
-  const rootCurrentData =
-    readTsconfigSafeLayerBroker({
-      tsconfigPath: filePathContract.parse(String(rootTsconfigPath)),
-    }) ?? tsconfigJsonWritableContract.parse({});
-  pairs.push({
-    tsconfigPath: rootTsconfigPath,
-    currentData: rootCurrentData,
-    expectedRefs: deriveResult.root,
-    ensureComposite: false,
+  const rootRead = readTsconfigSafeLayerBroker({
+    tsconfigPath: filePathContract.parse(String(rootTsconfigPath)),
   });
 
-  const eligibleCount = fileCountContract.parse(pairs.length - 1);
+  if (rootRead.status === 'unparseable') {
+    process.stderr.write(
+      `ward: ${String(rootTsconfigPath)} is not valid JSON, so its project references were left alone\n`,
+    );
+  }
+
+  const pairs: TsconfigSyncPair[] =
+    rootRead.status === 'parsed'
+      ? [
+          ...packagePairs,
+          {
+            tsconfigPath: rootTsconfigPath,
+            currentData: rootRead.data,
+            expectedRefs: deriveResult.root,
+            ensureComposite: false,
+          },
+        ]
+      : packagePairs;
+
+  const eligibleCount = fileCountContract.parse(eligibleProjectPaths.length);
 
   const driftedPairs = pairs.filter((pair) => isTsconfigPairDriftedGuard({ pair }));
 
