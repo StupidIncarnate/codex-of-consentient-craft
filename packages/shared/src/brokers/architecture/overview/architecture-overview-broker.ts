@@ -206,15 +206,17 @@ Checking and emitting live in separate files. Each package's \`tsconfig.json\` e
 }
 \`\`\`
 
-A sibling \`tsconfig.build.json\` extends that checking config and carries only the fields that EMIT:
+A sibling \`tsconfig.build.json\` extends that checking config and carries only the fields that EMIT — \`noEmit: false\` among them, since the checking config it extends turns emit off:
 
 \`\`\`json
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "outDir": "./dist", "rootDir": "./", "composite": true, "declaration": true },
+  "compilerOptions": { "noEmit": false, "outDir": "./dist", "rootDir": "./", "declaration": true },
   "exclude": ["**/*.test.ts", "test/**"]
 }
 \`\`\`
+
+**No config sets \`composite\`, and no config carries a \`references\` array.** Nothing consumes project references — each package builds and typechecks on its own — and \`composite\` forces every file the program reaches into \`include\`, so one import of a file the build config \`exclude\`s (a \`.test.ts\`, a harness) becomes a hard TS6307 rather than a file the emitter skips.
 
 Each package's \`build\` script runs \`tsc -p tsconfig.build.json\`; ward's typecheck runs plain \`tsc --noEmit\` against the checking \`tsconfig.json\` and never emits.
 
@@ -222,7 +224,9 @@ The base carries the load-bearing options — \`moduleResolution: "node"\` (the 
 
 ### Consumer jest config
 
-Each package's \`jest.config.js\` spreads the published base \`@dungeonmaster/testing/jest-config-base\` (adding \`roots: ["<rootDir>/src"]\`), which registers the ts-jest AST transformers (so \`registerMock\` / proxy files work) and the auto-reset setup (clears mocks, bans \`.skip\`/\`.todo\`, fails assertion-less tests).
+Each package's \`jest.config.js\` spreads the REPO-ROOT \`jest.config.base.js\` (adding \`roots: ["<rootDir>/src"]\`), which registers the ts-jest AST transformers (so \`registerMock\` / proxy files work), the auto-reset setup (clears mocks, bans \`.skip\`/\`.todo\`, fails assertion-less tests), and \`testEnvironmentOptions.customExportConditions: ["source", "require", "default"]\`.
+
+**That conditions list is the load-bearing key, and only the repo-root base carries it.** It is what makes a test resolve a sibling workspace package to the TypeScript a session just edited instead of to \`dist/\`; without it a suite grades the last build and goes green over changed source. The published \`@dungeonmaster/testing/jest-config-base\` deliberately omits it, because an INSTALLED package ships \`dist\` only and has no source barrel to resolve to — so spreading the published base inside this monorepo is the stale-green defect, and any jest config that pins its own \`testEnvironmentOptions\` instead of inheriting them has to repeat the list by hand.
 
 ## Layer Files - Decomposing Complex Components
 

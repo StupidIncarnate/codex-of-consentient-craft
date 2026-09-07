@@ -42,6 +42,7 @@ import { jestJsonParsePassingTransformer } from '../../../transformers/jest-json
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
 export const checkRunUnitBroker = async ({
@@ -167,12 +168,14 @@ export const checkRunUnitBroker = async ({
   // The jest configs ask for the `source` export condition through testEnvironmentOptions, which
   // only governs what the TEST environment resolves. The transform glue's own
   // `@dungeonmaster/shared` imports are resolved by NODE, outside that environment, so without this
-  // the jest process itself reads `dist/` while the tests it runs read source — measured.
+  // the jest process itself reads `dist/` while the tests it runs read source — measured. Ward is
+  // published, so the broker below withholds the flag wherever the barrel it names is not on disk;
+  // see its header for what Node does with a matched condition pointing at a missing file.
   const result = await childProcessSpawnCaptureAdapter({
     command,
     args: finalArgs,
     cwd,
-    env: { NODE_OPTIONS: '--conditions=source' },
+    env: sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {},
   });
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);

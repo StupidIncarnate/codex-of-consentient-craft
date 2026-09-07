@@ -10,6 +10,7 @@ import {
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
+import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
@@ -32,9 +33,12 @@ export const checkRunIntegrationBrokerProxy = (): {
   }) => void;
   setupNoTestFiles: () => void;
   setDiscoveredFiles: (params: { files: string[] }) => void;
+  setupSourceConditionUnsupported: (params: { projectFolder: ProjectFolder }) => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedNodeOptions: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
   const globProxy = fsGlobSyncAdapterProxy();
   const binProxy = binResolveBrokerProxy();
@@ -154,7 +158,26 @@ export const checkRunIntegrationBrokerProxy = (): {
       globProxy.returnsForAnyPattern({ files });
     },
 
+    // Models a consumer's install: `@dungeonmaster/shared` packs `dist` only, so no ancestor of the
+    // project folder holds the `source` barrel. The catch-all default above answers true for every
+    // unstaged path, so each candidate has to be addressed by name to get back to false.
+    setupSourceConditionUnsupported: ({
+      projectFolder,
+    }: {
+      projectFolder: ProjectFolder;
+    }): void => {
+      sourceConditionProxy.setupUnsupported({
+        cwd: absoluteFilePathContract.parse(projectFolder.path),
+      });
+    },
+
     getSpawnedArgs: (): unknown =>
       captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
+
+    getSpawnedNodeOptions: (): unknown =>
+      captureProxy.getSpawnedEnvValue({
+        command: String(resolvedCommandRef.value),
+        key: 'NODE_OPTIONS',
+      }),
   };
 };

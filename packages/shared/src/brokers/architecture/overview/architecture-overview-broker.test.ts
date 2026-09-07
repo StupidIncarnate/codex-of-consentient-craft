@@ -209,11 +209,37 @@ describe('architectureOverviewBroker', () => {
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(
-        /^A sibling `tsconfig\.build\.json` extends that checking config and carries only the fields that EMIT:$/mu,
+        /^A sibling `tsconfig\.build\.json` extends that checking config and carries only the fields that EMIT — `noEmit: false` among them, since the checking config it extends turns emit off:$/mu,
       );
       expect(result).toMatch(/^ {2}"extends": "\.\/tsconfig\.json",$/mu);
       expect(result).toMatch(
         /^Each package's `build` script runs `tsc -p tsconfig\.build\.json`; ward's typecheck runs plain `tsc --noEmit` against the checking `tsconfig\.json` and never emits\.$/mu,
+      );
+    });
+
+    it('VALID: {} => the build config example emits without composite, and the ban on composite/references is stated', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^ {2}"compilerOptions": \{ "noEmit": false, "outDir": "\.\/dist", "rootDir": "\.\/", "declaration": true \},$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*No config sets `composite`, and no config carries a `references` array\.\*\* Nothing consumes project references — each package builds and typechecks on its own — and `composite` forces every file the program reaches into `include`, so one import of a file the build config `exclude`s \(a `\.test\.ts`, a harness\) becomes a hard TS6307 rather than a file the emitter skips\.$/mu,
+      );
+    });
+
+    it('VALID: {} => the jest passage names the repo-root base and its customExportConditions, not the published base', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^Each package's `jest\.config\.js` spreads the REPO-ROOT `jest\.config\.base\.js` \(adding `roots: \["<rootDir>\/src"\]`\), which registers the ts-jest AST transformers \(so `registerMock` \/ proxy files work\), the auto-reset setup \(clears mocks, bans `\.skip`\/`\.todo`, fails assertion-less tests\), and `testEnvironmentOptions\.customExportConditions: \["source", "require", "default"\]`\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*That conditions list is the load-bearing key, and only the repo-root base carries it\.\*\* .+ has to repeat the list by hand\.$/mu,
       );
     });
   });

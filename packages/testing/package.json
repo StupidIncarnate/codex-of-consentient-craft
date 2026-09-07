@@ -37,6 +37,13 @@
     },
     "./jest-config-base": "./jest-config-base.js"
   },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "ts-jest",
+    "jest-config-base.js"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",

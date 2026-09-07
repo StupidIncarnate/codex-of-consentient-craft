@@ -12,6 +12,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
+import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
@@ -35,9 +36,12 @@ export const checkRunUnitBrokerProxy = (): {
   setupNoTestFiles: () => void;
   setDiscoveredFiles: (params: { files: string[] }) => void;
   queueFsExists: (params: { result: boolean }) => void;
+  setupSourceConditionUnsupported: (params: { projectFolder: ProjectFolder }) => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedNodeOptions: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
   // Raw handle on the same existsSync mock existsProxy addresses, used only by queueFsExists below
   // to answer a specific SEQUENCE of calls (jest.config.js, then each candidate .test.<ext>
@@ -168,7 +172,26 @@ export const checkRunUnitBrokerProxy = (): {
       existsHandle.onceFor([]).returns(result);
     },
 
+    // Models a consumer's install: `@dungeonmaster/shared` packs `dist` only, so no ancestor of the
+    // project folder holds the `source` barrel. The catch-all default above answers true for every
+    // unstaged path, so each candidate has to be addressed by name to get back to false.
+    setupSourceConditionUnsupported: ({
+      projectFolder,
+    }: {
+      projectFolder: ProjectFolder;
+    }): void => {
+      sourceConditionProxy.setupUnsupported({
+        cwd: absoluteFilePathContract.parse(projectFolder.path),
+      });
+    },
+
     getSpawnedArgs: (): unknown =>
       captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
+
+    getSpawnedNodeOptions: (): unknown =>
+      captureProxy.getSpawnedEnvValue({
+        command: String(resolvedCommandRef.value),
+        key: 'NODE_OPTIONS',
+      }),
   };
 };

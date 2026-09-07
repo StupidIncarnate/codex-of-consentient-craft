@@ -300,6 +300,29 @@ describe('checkRunUnitBroker', () => {
     });
   });
 
+  describe('source export condition', () => {
+    it('VALID: {shared source barrel reachable} => spawns jest with NODE_OPTIONS=--conditions=source', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunUnitBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedNodeOptions()).toBe('--conditions=source');
+    });
+
+    it('VALID: {consumer install, shared packs dist only} => spawns jest with no NODE_OPTIONS at all', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupSourceConditionUnsupported({ projectFolder });
+      proxy.setupPass({ projectFolder });
+
+      await checkRunUnitBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedNodeOptions()).toBe(undefined);
+    });
+  });
+
   describe('file list filtering', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests and --runInBand with files to jest', async () => {
       const projectFolder = ProjectFolderStub();
