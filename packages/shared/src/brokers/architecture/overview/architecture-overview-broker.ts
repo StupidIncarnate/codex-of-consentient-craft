@@ -118,37 +118,21 @@ Import by a **folder-type subpath** (\`@scope/pkg/contracts\`) or from the **mai
 
 A \`brokers/\` file may import another package's \`contracts\`/\`adapters\`/\`brokers\` but not its \`flows\`/\`responders\`/\`widgets\`; a \`contracts/\` file may import only \`contracts\`/\`statics\`/\`errors\`; another package's \`flows/\` is importable only from a \`flows/\` file. \`adapters/\` (which alone allow \`node_modules\`) are the sanctioned boundary for anything else.
 
-### Consumer TypeScript config
+### Starting a new package
 
-Checking and emitting live in separate files. \`tsconfig.json\` extends the published base and adds only checking keys:
+Do not hand-write a package's \`tsconfig.json\`, \`tsconfig.build.json\` or \`jest.config.js\`, and do not copy them off a sibling. Run:
 
-\`\`\`json
-{
-  "extends": "@dungeonmaster/eslint-plugin/tsconfig",
-  "compilerOptions": { "typeRoots": ["../../node_modules/@types", "../../@types"] },
-  "include": ["src/**/*", "*.ts"]
-}
+\`\`\`bash
+dungeonmaster create-package --name <name> --type <packageType>
 \`\`\`
 
-A sibling \`tsconfig.build.json\` extends it and carries only the keys that EMIT — \`noEmit: false\` among them, since the checking config turns emit off:
+It writes every config that package type needs, registers the package in the root \`package.json\`, and seeds \`src/\` so the type detector recognises what it is. A hand-copy reliably loses the \`exclude\` entries keeping \`.stub.ts\` and \`.harness.ts\` out of \`dist\`, the \`incremental\` pair every \`build:clean\` deletes, and the jsdom and JSX setup a \`.tsx\` package needs.
 
-\`\`\`json
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": { "noEmit": false, "outDir": "./dist", "rootDir": "./", "declaration": true },
-  "exclude": ["**/*.test.ts", "test/**"]
-}
-\`\`\`
+Two rules outlive that command, because each describes an edit someone makes later:
 
-\`build\` runs \`tsc -p tsconfig.build.json\`; ward's typecheck runs \`tsc --noEmit\` against \`tsconfig.json\` and writes nothing.
+**No config sets \`composite\`, and none carries a \`references\` array.** Nothing consumes project references, and \`composite\` forces every file the program reaches into \`include\` — so one import of a file the build config \`exclude\`s (a \`.test.ts\`, a harness) becomes a hard TS6307 instead of a file the emitter skips.
 
-**No config sets \`composite\` and none carries a \`references\` array.** Nothing consumes project references, and \`composite\` forces every file the program reaches into \`include\` — so one import of a file the build config \`exclude\`s (a \`.test.ts\`, a harness) becomes a hard TS6307 instead of a file the emitter skips.
-
-### Consumer jest config
-
-Each package's \`jest.config.js\` spreads the REPO-ROOT \`jest.config.base.js\` and adds \`roots: ["<rootDir>/src"]\`. The base registers the ts-jest AST transformers that make \`registerMock\` and proxy files work, the auto-reset setup, and \`testEnvironmentOptions.customExportConditions: ["source", "require", "default"]\`.
-
-**That conditions list is the load-bearing key and only the repo-root base carries it.** It makes a test resolve a sibling workspace package to the TypeScript a session just edited instead of to \`dist/\`; without it a suite grades the last build and goes green over changed source. The published \`@dungeonmaster/testing/jest-config-base\` omits it deliberately, because an INSTALLED package ships \`dist\` only and has no source barrel to resolve to — so spreading the published base inside this monorepo IS the stale-green defect. A config that pins its own \`testEnvironmentOptions\` rather than inheriting them has to repeat the list by hand.
+**A jest config inherits \`testEnvironmentOptions\` from the REPO-ROOT base and never pins its own.** That base alone carries \`customExportConditions: ["source", "require", "default"]\`, which is what makes a test resolve a sibling workspace package to the TypeScript a session just edited instead of to \`dist/\`. Without it a suite grades the last build and goes green over changed source. The published \`@dungeonmaster/testing/jest-config-base\` omits the list deliberately — an INSTALLED package ships \`dist\` only and has no source barrel to resolve to — so spreading the published base inside this monorepo IS the stale-green defect.
 
 ## Layer Files - Decomposing Complex Components
 
