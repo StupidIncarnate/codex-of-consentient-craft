@@ -19,6 +19,10 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             matcher: 'Grep|Glob|Search|Find',
             hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
           },
+          {
+            matcher: 'Write',
+            hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
+          },
         ],
         PostToolUse: [
           {
@@ -145,6 +149,18 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
       expect(result.PreToolUse[2]?.hooks[0]?.command).toBe('dungeonmaster-pre-search');
+    });
+
+    it('VALID: includes PreToolUse with Write matcher for folder detail => returns correct matcher', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.PreToolUse[3]?.matcher).toBe('Write');
+    });
+
+    it('VALID: includes dungeonmaster-pre-folder-detail command => returns correct command', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.PreToolUse[3]?.hooks[0]?.command).toBe('dungeonmaster-pre-folder-detail');
     });
 
     it('VALID: includes dungeonmaster-session-snippet commands => returns correct commands', () => {

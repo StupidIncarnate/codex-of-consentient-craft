@@ -41,6 +41,10 @@ export const dungeonmasterHooksCreatorTransformer = (): {
           matcher: 'Grep|Glob|Search|Find',
           hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
         },
+        {
+          matcher: 'Write',
+          hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
+        },
       ],
       PostToolUse: [
         {

@@ -24,3 +24,20 @@ The block discriminator is `get-agent-prompt` **carrying a `workItemId`**: work-
 and must signal back; minions pass none, legitimately never signal, and are therefore exempt.
 `stop_hook_active` means the nudge already fired once — allow the stop and let the orchestrator's
 orphan-recovery backstop take it.
+
+## PreToolUse: `agent_id` marks a sub-agent, and its calls are in its own transcript
+
+`PreToolUse` carries `agent_id` (and `agent_type`) **only when a sub-agent is the caller**. That flag
+is the discriminator any hook needs before it reads a transcript, because a sub-agent's own `tool_use`
+lines are written to `<session>/subagents/agent-<agentId>.jsonl` and appear in the main
+`<sessionId>.jsonl` not at all. Most `tool_use` lines in a working repo are a sub-agent's, not the
+main session's — judging a sub-agent by `transcript_path` inspects a conversation it never wrote to
+and produces a false block. `transcriptResolveForHookBroker` resolves this: with an `agent_id` it
+returns only that agent's own file and returns `null` rather than falling back to `transcript_path`.
+
+Sub-agent lines carry `isSidechain: true` and a top-level `agentId`; the main session's carry
+`isSidechain: false`. Lines are flushed promptly — a call made in one turn is on disk before the next
+turn's hook fires — so a block-then-retry loop terminates.
+
+An MCP tool appears in a transcript under its namespaced name (`mcp__dungeonmaster__<tool>`), never
+the bare registered name.
