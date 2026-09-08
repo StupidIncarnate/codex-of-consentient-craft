@@ -76,6 +76,22 @@
             "command": "dungeonmaster-session-snippet buildDiscipline"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet worktrees"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet generatedConfig"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -186,6 +202,22 @@
           {
             "type": "command",
             "command": "dungeonmaster-session-snippet buildDiscipline"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet worktrees"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet generatedConfig"
           }
         ]
       }

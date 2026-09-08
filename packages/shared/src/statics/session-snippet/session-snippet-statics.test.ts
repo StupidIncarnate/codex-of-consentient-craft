@@ -246,4 +246,62 @@ describe('sessionSnippetStatics', () => {
       staleTreeNeedsClean: true,
     });
   });
+
+  // THE HOOK REFUSES CLAUDE CODE'S OWN WORKTREE COMMAND WITH EXIT 2 AND A MESSAGE. A session that
+  // never learned why reads that as an obstacle and hand-assembles `git worktree add` instead,
+  // producing a tree with no `node_modules` and no binaries — where ward cannot start and the
+  // failure looks like a broken repo. The tool call and the rebuild ban both have to arrive before
+  // the refusal does, which is what makes this a snippet rather than a line in one repo's
+  // instruction file.
+  it('VALID: worktrees snippet => names the one tool, bans the in-place native rebuild, and warns that resolution escapes', () => {
+    expect({
+      theOneTool: sessionSnippetStatics.worktrees.includes(
+        '**One tool makes a worktree: `mcp__dungeonmaster__create-worktree({ name })`.**',
+      ),
+      neverRecompileInside: sessionSnippetStatics.worktrees.includes(
+        '**Never recompile a native module inside a worktree.**',
+      ),
+      rebuildInTheMainCheckout: sessionSnippetStatics.worktrees.includes(
+        'Rebuild in the main checkout instead',
+      ),
+      notHermetic: sessionSnippetStatics.worktrees.includes(
+        '**A worktree is NOT hermetic, and that fakes experiments.**',
+      ),
+      // The rule is about ANY native module. Naming one package sends a reader looking for that
+      // package, and every repo installing dungeonmaster has a different set.
+      namesNoOnePackage: sessionSnippetStatics.worktrees.indexOf('node-pty'),
+    }).toStrictEqual({
+      theOneTool: true,
+      neverRecompileInside: true,
+      rebuildInTheMainCheckout: true,
+      notHermetic: true,
+      namesNoOnePackage: -1,
+    });
+  });
+
+  // A HAND-EDIT TO A GENERATED FILE SURVIVES UNTIL THE NEXT `dungeonmaster init` AND THEN VANISHES,
+  // which reads as the harness undoing work rather than as the install doing its job. The owner
+  // table is the actionable half: without it a session that accepts "edit the generator" still has
+  // to find which package generates the entry, and guesses.
+  it('VALID: generatedConfig snippet => bans the hand-edit, routes to the generator, and keeps the ungenerated case', () => {
+    expect({
+      bansTheHandEdit: sessionSnippetStatics.generatedConfig.includes(
+        '**Never hand-edit `.claude/settings.json`, `.claude/settings.local.json`, `.mcp.json`, or any `.env*` file.**',
+      ),
+      routesToTheGenerator: sessionSnippetStatics.generatedConfig.includes(
+        '**To change a generated entry, change the code that generates it, then re-run `dungeonmaster init`.**',
+      ),
+      namesTheHooksOwner: sessionSnippetStatics.generatedConfig.includes(
+        '`WorktreeCreate` | `@dungeonmaster/hooks` |',
+      ),
+      ungeneratedGoesToTheUser: sessionSnippetStatics.generatedConfig.includes(
+        'write up the cause and the exact one-line diff and ask the user to apply it',
+      ),
+    }).toStrictEqual({
+      bansTheHandEdit: true,
+      routesToTheGenerator: true,
+      namesTheHooksOwner: true,
+      ungeneratedGoesToTheUser: true,
+    });
+  });
 });

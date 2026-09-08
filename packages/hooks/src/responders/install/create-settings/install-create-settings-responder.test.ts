@@ -94,6 +94,22 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -135,6 +151,22 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
                 },
               ],
             },
@@ -250,6 +282,22 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -291,6 +339,22 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
                 },
               ],
             },
@@ -408,6 +472,22 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -441,6 +521,22 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
                 },
               ],
             },
@@ -560,6 +656,22 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -601,6 +713,22 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
                 },
               ],
             },

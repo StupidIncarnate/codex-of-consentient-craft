@@ -100,6 +100,22 @@ describe('InstallFlow', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -141,6 +157,22 @@ describe('InstallFlow', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
                 },
               ],
             },

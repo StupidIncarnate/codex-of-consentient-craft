@@ -221,4 +221,32 @@ Applies to every build, in any repo, by any agent.
 | ward itself, having edited ward's own source | that package |
 
 Scope it — \`npm run build --workspace=<name>\` when one package changed. A stale or cold tree needs \`build:clean\`: a plain build reads the incremental cache, decides the tree is current, and can emit nothing at all.`,
+
+  worktrees: `## Worktrees
+
+Applies in any repo \`dungeonmaster init\` has touched.
+
+**One tool makes a worktree: \`mcp__dungeonmaster__create-worktree({ name })\`.** It returns a path under \`worktrees/\` with \`node_modules\` hardlinked, the compiled output copied across, and every link verified to resolve inside the tree. Claude Code's own worktree command is refused by a hook naming this tool, and a hand-assembled \`git worktree add\` gives you a tree where nothing resolves — no \`node_modules\`, no binaries, so ward cannot start.
+
+**Never recompile a native module inside a worktree.** \`node_modules\` is hardlinked, so a package's files and the main checkout's are the same bytes. Installing is safe: npm REPLACES a package directory, which breaks the link cleanly. \`npm rebuild\` is not: node-gyp writes its output through the existing path, so the build lands in the main checkout and every other worktree at once. Rebuild in the main checkout instead — through that same hardlink, every worktree already has the result.
+
+**A worktree is NOT hermetic, and that fakes experiments.** It sits under the main checkout, so node's walk-up escapes it: move a package's compiled output aside inside a worktree and resolution keeps climbing until it finds the main checkout's copy. A typecheck that should have failed then passes, and reads back as "the premise was wrong". An experiment that turns on missing compiled output has to fence resolution to the worktree rather than trusting the directory boundary.`,
+
+  generatedConfig: `## Generated and Gated Config
+
+Applies in any repo \`dungeonmaster init\` has touched.
+
+**Never hand-edit \`.claude/settings.json\`, \`.claude/settings.local.json\`, \`.mcp.json\`, or any \`.env*\` file.** The settings files are GENERATED: each dungeonmaster package's \`StartInstall\` writes and merges its own section, so a hand-edit is overwritten the next time anyone runs \`dungeonmaster init\`. All four are also gated behind a permission prompt, which stalls an automated run — and dispatching a sub-agent to edit one hits the same wall.
+
+**To change a generated entry, change the code that generates it, then re-run \`dungeonmaster init\`.**
+
+| Entry | Owner |
+|---|---|
+| hook entries — \`PreToolUse\`, \`SessionStart\`, \`SubagentStart\`, \`WorktreeCreate\` | \`@dungeonmaster/hooks\` |
+| \`permissions.allow[]\` rows like \`mcp__dungeonmaster__<tool>\` | \`@dungeonmaster/mcp\` |
+| the \`.mcp.json\` server entry | \`@dungeonmaster/mcp\` |
+| \`worktrees/\` and its gitignore line | \`@dungeonmaster/orchestrator\` |
+| anything else | the package whose \`StartInstall\` writes it |
+
+For a gated file nothing generates — an \`.env\`, a hand-written \`.mcp.json\` — write up the cause and the exact one-line diff and ask the user to apply it. Do not reach for another tool to get around the prompt.`,
 } as const;

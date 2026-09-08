@@ -73,6 +73,22 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               },
             ],
           },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet worktrees',
+              },
+            ],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet generatedConfig',
+              },
+            ],
+          },
         ],
         SubagentStart: [
           {
@@ -114,6 +130,22 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               {
                 type: 'command',
                 command: 'dungeonmaster-session-snippet buildDiscipline',
+              },
+            ],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet worktrees',
+              },
+            ],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet generatedConfig',
               },
             ],
           },
@@ -189,6 +221,8 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
         packages: result.SessionStart[6]?.hooks[0]?.command,
         commentDiscipline: result.SessionStart[7]?.hooks[0]?.command,
         buildDiscipline: result.SessionStart[8]?.hooks[0]?.command,
+        worktrees: result.SessionStart[9]?.hooks[0]?.command,
+        generatedConfig: result.SessionStart[10]?.hooks[0]?.command,
       }).toStrictEqual({
         first: 'dungeonmaster-session-snippet discover',
         ward: 'dungeonmaster-session-snippet ward',
@@ -196,6 +230,8 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
         packages: 'dungeonmaster-session-snippet packages',
         commentDiscipline: 'dungeonmaster-session-snippet commentDiscipline',
         buildDiscipline: 'dungeonmaster-session-snippet buildDiscipline',
+        worktrees: 'dungeonmaster-session-snippet worktrees',
+        generatedConfig: 'dungeonmaster-session-snippet generatedConfig',
       });
     });
 

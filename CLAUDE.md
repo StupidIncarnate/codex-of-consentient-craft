@@ -5,12 +5,15 @@ repo, so eslint never fires on anything in it — an eslint experiment run there
 exists at the root of this repo and keeps scratch files inside both the permission scope and the linted tree. Temp dirs
 that *tests* create are the exception — those belong in the OS `/tmp`, via `installTestbedCreateBroker`.
 
-The **comment and history rules** — history in the change's plan document as a before/after and nowhere else, never in
-a code comment or a `CLAUDE.md`, comments kept to the minimum that records the decision and state behind the code, and
-never a re-explanation of the file — live in the `<dungeonmaster-commentDiscipline>` session snippet
-(`sessionSnippetStatics.commentDiscipline`), which every session and every sub-agent receives at start, in this repo
-and in every repo `dungeonmaster init` has touched. Fix them THERE, not here; a copy in this file would drift from the
-one the agents actually read.
+**Every rule about dungeonmaster's own operations lives in a session snippet, not in this file.** The snippets arrive
+in your context at session start — yours and every sub-agent's — in this repo and in every repo `dungeonmaster init`
+has touched: `<dungeonmaster-ward>`, `<dungeonmaster-wardDiscipline>`, `<dungeonmaster-buildDiscipline>`,
+`<dungeonmaster-worktrees>`, `<dungeonmaster-generatedConfig>`, `<dungeonmaster-commentDiscipline>`,
+`<dungeonmaster-discover>`, `<dungeonmaster-searchStrategy>`, `<dungeonmaster-folderTypes>`,
+`<dungeonmaster-modifyingCodeGuidance>`, `<dungeonmaster-packages>`. Their source is
+`packages/shared/src/statics/session-snippet/session-snippet-statics.ts`. **Change a rule THERE.** This file holds
+only what is true of THIS checkout and false of a consumer's — a copy of anything else drifts from the one the agents
+actually read.
 
 **Handoff and design docs go in `<repoRoot>/scrolls/`.** Anything written for a human or a future session to pick up —
 cross-session handoffs, dogfood runbooks, design proposals, the `scrolls/design/`
@@ -80,19 +83,8 @@ since each one boots an API server, a Vite server and a browser. Jest integratio
 `installTestbedCreateBroker` with their own tmp dirs. Nothing touches `<repo>/.dungeonmaster`,
 `<repo>/.dungeonmaster-dev`, or `~/.dungeonmaster` during tests.
 
-**Worktrees come from one tool.** Call `mcp__dungeonmaster__create-worktree({ name })`. It returns a path under
-`worktrees/` with `node_modules` hardlinked, `dist` seeded, and its links verified. Claude Code's own worktree command
-is blocked in this repo and will tell you the same thing. Never assemble `git worktree add` by hand.
-
-**`npm rebuild` is the one command a worktree must not run.** `node_modules` is hardlinked, and npm replaces a
-package directory rather than writing into it, so installing packages is safe. node-gyp is the exception: it
-overwrites `node_modules/node-pty/build/Release/pty.node` in place, through the inode the main checkout shares.
-
-**A worktree is NOT hermetic for module resolution, and this fakes experiments.** It sits under the main checkout, so
-node10's walk-up escapes it: move a package's `dist` aside inside a worktree and resolution keeps climbing until it
-finds the main checkout's copy. A typecheck that should have failed then passes, and reads as "the premise was wrong".
-Any experiment that turns on a missing `dist` has to fence resolution to the worktree — build a `ts.resolveModuleName`
-host that hides paths outside it, rather than trusting the directory boundary.
+**Fencing resolution to a worktree takes a `ts.resolveModuleName` host that hides paths outside it.** The
+`<dungeonmaster-worktrees>` snippet says why a worktree is not hermetic; this is the mechanism that works here.
 
 See `playbook/smoke-testing.md` for manual verification steps.
 
@@ -128,13 +120,7 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 
 - **Build**: `npm run build`
 
-The **build rules** — one process builds at a time and a dispatched agent is never it, every
-source-reading check needs none, and the table of what a build IS needed for — live in the
-`<dungeonmaster-buildDiscipline>` session snippet (`sessionSnippetStatics.buildDiscipline`), which every
-session and every sub-agent receives at start, in this repo and in every repo `dungeonmaster init` has
-touched. Fix them THERE, not here; a copy in this file would drift from the one the agents actually read.
-
-What stays below is the part that is specific to this repo, which the snippet cannot know:
+Four build cases the `<dungeonmaster-buildDiscipline>` snippet cannot know, because they are this checkout's:
 
 | Before this                                | Build                                    | Why                                                                                                                                                                       |
 |--------------------------------------------|------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -149,92 +135,29 @@ What stays below is the part that is specific to this repo, which the snippet ca
   runs `VERBOSE=1`, and spawns the server + web workspaces together under one wait. Running a workspace
   invocation directly skips all of that and quietly produces bugs (wrong cwd, no env vars, ports colliding
   with prod, etc.). Same rule for `npm run prod`.
-- **Codebase orientation**: Use `get-project-map` MCP tool for a compact map of all packages, folder types, file counts,
-  and domains (~6k tokens). Start here before using `discover` for targeted exploration.
-- **Quality checks (ward)**: See `get-architecture` MCP tool output for full ward usage, check types, flags, and
-  invocation patterns.
 
-## Never Edit `.claude/settings.json` Directly
+## Regenerating `.claude/settings.json` Here
 
-`.claude/settings.json` (and `settings.local.json`) have **permission issues** that block direct edits. Do NOT touch
-them by hand. They are generated/merged by package `StartInstall` functions (hooks, permissions, etc.).
+The `<dungeonmaster-generatedConfig>` snippet says to change the generator and re-run `dungeonmaster init`. In THIS
+checkout the CLI and the install scripts are the code you just edited, so `init` alone runs the previous build:
 
-**To change anything in `.claude/settings.json`:**
+```bash
+npm run build
+npm link --workspaces
+npm run init
+```
 
-1. Update the install logic in the package that owns that concern:
-    - Hook entries (`PreToolUse`, `SessionStart`, `WorktreeCreate`, etc.) → `@dungeonmaster/hooks`
-      (`transformers/dungeonmaster-hooks-creator/...` + `responders/install/create-settings/...`).
-    - MCP permissions (`permissions.allow[]` entries like `mcp__dungeonmaster__<tool>`) → `@dungeonmaster/mcp`
-      (`settingsPermissionsAddBroker`, generated from `mcpToolsStatics.tools.names`).
-    - Other settings → the package whose `StartInstall` writes them.
-2. From the repo root, run:
-   ```bash
-   npm run build
-   npm link --workspaces
-   npm run init
-   ```
-   `npm run init` invokes `dungeonmaster init`, which discovers each package's `dist/startup/start-install.js` and
-   executes its `StartInstall` — that's what regenerates/merges `.claude/settings.json`.
+A consumer needs only the last step. The generator for each entry — the hooks transformer, the MCP permissions
+broker — is named in the snippet's owner table.
 
-If you're tempted to hand-edit `.claude/settings.json` to add/remove an entry, stop — fix the install logic so the entry
-is produced the next time someone runs `npm run init`.
+## Which Checks Apply To A File Here
 
-## Ward Invocation Rules (MANDATORY)
-
-**Ward is a root-level monorepo script.** These rules apply to ALL agents, including sub-agents in worktrees.
-
-The **mechanics** of invoking ward — never `cd` into a package, run it in the foreground
-with `timeout: 600000`, never sleep-poll it, run it once, and why a `No tests found` / `DISCOVERY MISMATCH` on a
-scoped run is a skip rather than a regression — live in the
-`<dungeonmaster-ward-discipline>` session snippet (`sessionSnippetStatics.wardDiscipline`), which every session and
-every sub-agent receives at start, in this repo and in every repo `dungeonmaster init` has touched. Fix them THERE, not
-here; a copy in this file would drift from the one the agents actually read.
-
-**DO NOT SLEEP-POLL A WARD RUN.** This one is repeated here because it is the mechanic sessions invent their way
-around, and the invention costs whole minutes. Never `sleep` beside a ward run, never `tail` its output file, and
-never re-run it to find out whether the first one finished. A run that crosses `timeout: 600000` is backgrounded by
-the harness, **which notifies you when it exits** — carry on with other work and take the notification when it lands.
-Measured on quest a7520e60: two reviewers answered a backgrounded ward with `sleep 90` and then `sleep 240`, tailing
-the output file by hand, because the snippet then claimed no notification was coming. 815 seconds of that quest went
-into sleeps.
-
-What stays below is the part that is a judgment call rather than a command-line mechanic.
-
-**Which ward you run depends on what you were given.** The `<dungeonmaster-wardDiscipline>` snippet states the three
-rungs. In this repo they mean:
-
-| You were                                                            | Run                              | Not                                        |
-|---------------------------------------------------------------------|----------------------------------|--------------------------------------------|
-| given files, or you touched a handful                               | `npm run ward -- -- <files>`     | `--uncommitted`, a bare `npm run ward`     |
-| asked to review a whole pass, or handing your tree back to the user  | `npm run ward -- --uncommitted`  | a bare `npm run ward`                      |
-| about to merge into `master`, **or asked for a full run by the user** | `npm run ward`                   | anything narrower                          |
-
-Sub-agents you dispatch are always on the first row. Tell them their files.
-
-1. **When the user asks for full ward (`npm run ward`) to pass, YOU OWN EVERY FAILURE.** Not just the
-   failures you think your changes caused — every single red test, lint error, and typecheck error. This
-   is non-negotiable:
-
-   - ❌ "That failure is pre-existing / from master / unrelated to my changes." → **NO**. Fix it.
-   - ❌ "A different session caused that, not mine." → **NO**. Fix it.
-   - ❌ "That test is wrong but I didn't write it." → **NO**. Fix the test OR the code; make it green.
-   - ❌ "Git stash shows it fails without my changes too." → **Useful diagnostic, not an excuse**. Fix it.
-   - ✅ "Ward is red. I need to make it green before handing back to the user." → YES. Do that.
-
-   The user's smoke-testing loop is blocked while ward is red. Diagnose however you want, but the only
-   acceptable outcome is `npm run ward` exits 0. If a fix would have broad blast radius or requires
-   product decisions, surface that to the user BEFORE stopping — don't just report "out of scope" and
-   walk away from a red ward.
-
-2. **Which checks apply to a given file is repo-specific — narrow `--only`, never widen scope.**
-   That a scoped-run skip is not a regression is in the ward-discipline snippet; what that snippet cannot know is THIS
-   repo's folder-type → check-type mapping. Contract / guard / transformer files usually only have `unit`; flow /
-   startup have `unit` + `integration`; `e2e` only applies to e2e-eligible packages (`packageType` is `frontend-react`
-   or `frontend-ink` — see
-   `architecturePackageE2eEligibleDetectBroker` in `@dungeonmaster/shared`), not a hardcoded package name. So a
-   `DISCOVERY MISMATCH` is answered by narrowing to the checks that actually apply —
-   `npm run ward -- --only lint,typecheck,unit -- <files>` — not by widening the scope or adding flags. Say in the
-   commit which checks you ran and why.
+The `<dungeonmaster-wardDiscipline>` snippet says a `DISCOVERY MISMATCH` is answered by narrowing `--only`, never by
+widening scope. What it cannot know is THIS repo's folder-type → check-type mapping. Contract / guard / transformer
+files usually only have `unit`; flow / startup have `unit` + `integration`; `e2e` only applies to e2e-eligible
+packages (`packageType` is `frontend-react` or `frontend-ink` — see `architecturePackageE2eEligibleDetectBroker` in
+`@dungeonmaster/shared`), not a hardcoded package name. So the answer is
+`npm run ward -- --only lint,typecheck,unit -- <files>`. Say in the commit which checks you ran and why.
 
 ## Committing
 
@@ -249,13 +172,6 @@ committing straight to `master` is the norm here and is what the user means ever
 
 Branch only when the user asks for a branch in that message, or when they have said this session that
 work belongs on one.
-
-## Never Edit Infrastructure Files
-
-Beyond `.claude/settings*.json` (above), never directly edit `.mcp.json` or any `.env*` file. The
-harness gates these behind a permission prompt, which stalls any automated run — and dispatching a
-sub-agent to edit them hits the same wall. If root-cause analysis lands on one of these files, write
-up the cause and the exact one-line diff and ask the user to apply it.
 
 ## Verification Standards
 
@@ -284,8 +200,6 @@ writing the fix — a test that only checks per-row text is not a regression gua
 - **Use `model: "sonnet"` for large mechanical fan-outs** (lint cascades, mass refactors). These can
   spawn 30-50 agents across waves; opus is overkill for apply-the-contract work. Reserve opus for the
   orchestrator and genuinely hard debugging.
-- **Every sub-agent runs ward on its own files only.** Name the files in the brief. A sub-agent never
-  runs `--uncommitted` or a bare `npm run ward`; those are yours, after it returns.
 
 ## Searching From a Session Launched In This Repo
 
