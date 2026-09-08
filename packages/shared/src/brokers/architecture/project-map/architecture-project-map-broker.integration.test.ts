@@ -12,6 +12,7 @@ import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
 import { processCwdAdapter } from '../../../adapters/process/cwd/process-cwd-adapter';
+import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
 const cwd = String(processCwdAdapter());
 const projectRoot = AbsoluteFilePathStub({
@@ -50,13 +51,18 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     expect(missing).toStrictEqual([]);
   });
 
-  it('VALID: {real monorepo, packages: [all]} => library packages are filtered out (project-inventory shows them)', async () => {
+  it('VALID: {real monorepo, packages: [all]} => each library package renders a header then the inventory pointer', async () => {
     const lines = String(await allPackagesMap).split('\n');
-
     const libraryHeaders = ['# shared [library]', '# config [library]', '# testing [library]'];
-    const present = libraryHeaders.filter((header) => lines.includes(header));
 
-    expect(present).toStrictEqual([]);
+    const rendered = libraryHeaders.map((header) => {
+      const headerIndex = lines.indexOf(header);
+      return lines.slice(headerIndex, headerIndex + 3);
+    });
+
+    expect(rendered).toStrictEqual(
+      libraryHeaders.map((header) => [header, '', projectMapStatics.libraryNoFlowNotice]),
+    );
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits Boot header', async () => {

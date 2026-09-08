@@ -70,8 +70,8 @@ describe('sessionSnippetStatics', () => {
 
   // THE FILE-SCOPED FORM IS THE ONE MOST SESSIONS ACTUALLY NEED, and it is the one a reader cannot
   // derive from the flags table: `-- <files>` with no `--only` lets ward decide which checks apply to
-  // those paths, which is what a worker proving one chunk wants. The snippet sits 10 bytes under its
-  // 2048 cap, so this example is exactly the kind of line a later trim would take first.
+  // those paths, which is what a worker proving one chunk wants. The snippet runs within a handful of
+  // bytes of its 2048 cap, so this example is the kind of line a later trim reaches for first.
   it('VALID: ward snippet => shows the multi-file scoped invocation and how to spell the paths', () => {
     expect({
       multiFileExample: sessionSnippetStatics.ward.includes(

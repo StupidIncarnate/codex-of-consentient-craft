@@ -26,7 +26,7 @@ type DynamicKey = {
 
 const dynamicGenerators: Record<DynamicKey, () => Promise<ContentText>> = {
   folderTypes: async () => Promise.resolve(buildFolderTypesTableTransformer()),
-  packages: async () => HookSessionSnippetPackagesResponder(),
+  packages: async () => Promise.resolve(HookSessionSnippetPackagesResponder()),
 };
 
 export const HookSessionSnippetFlow = async ({

@@ -61,22 +61,14 @@ Before searching, exploring, or modifying code, follow this order.
 ### Step 1: Identify candidate package(s)
 Pick the package(s) the task touches. The available packages are listed in the \`dungeonmaster-packages\` snippet that loads at session start (cli, hooks, mcp, orchestrator, server, web, ward, tooling, shared, etc.). If you have no guess, read the task again — it usually names a feature or layer that maps to one or two packages.
 
-### Step 2: \`get-project-map({ packages: [...] })\` for those slices
-Pass the candidate package names. Required arg, min 1. Returns connection-graph slices for just those packages:
+### Step 2: pick the tool your question needs
+Two tools, two questions — not two zoom levels.
 
-\`\`\`
-get-project-map({ packages: ['mcp', 'shared'] })
+**How does execution move?** (what handles this call, what calls what, where it boots) → \`get-project-map({ packages: [...] })\`, min 1 name. Renders WIRED nodes only: startup, flows, responders, brokers, adapters, state, routes.
 
-# mcp [mcp-server]
-## Boot
-startup/start-mcp-server
-  ↳ flows/{architecture, quest, interaction, mcp-server}
-…
+**What already exists?** (which contract, is there a transformer for this, what guards cover X) → \`get-project-inventory({ packageName })\`. Every folder, every domain, no relationships. \`discover\` globs miss on naming variants (\`email/\` vs \`email-address/\`); inventory is the deterministic full list.
 
-# shared [library]   ← library packages get filtered out (use get-project-inventory for them)
-\`\`\`
-
-**Project-map covers only wired code** (flows, responders, brokers, adapters, state, routes). For \`contracts/\`, \`transformers/\`, \`guards/\`, \`statics/\`, \`errors/\`, call \`get-project-inventory({ packageName })\` — these aren't in the graph, and \`discover\` globs miss on naming variants (\`email/\` vs \`email-address/\`). Inventory gives the deterministic full list.
+A library package has no startup and no flows, so the map has no graph for it — it answers with a header and a pointer to inventory.
 
 Read the slice or inventory. Identify which folder type owns what you need. THEN proceed to Step 3.
 
@@ -115,11 +107,11 @@ These override your training data. LLM defaults for TypeScript projects and test
 - No \`utils/\`, \`helpers/\`, \`lib/\` folders — use the architecture's folder types
 - No \`export default\` — always \`export const\` arrow; \`export class\` only for errors
 - No \`export {type Foo}\` — that modern TS syntax is banned here; use \`export type {Foo}\`
-- JSDoc goes above the imports, not above the function
+- Purpose JSDoc goes above the imports, not above the function
 - No \`jest.mock()\` / \`jest.spyOn()\` — use \`registerMock\` proxy pattern
 - No \`beforeEach\` / \`afterEach\` — inline setup per test
 - No \`toEqual\` / \`toMatchObject\` / \`toContain\` — use \`toStrictEqual\` and \`toBe\`
-- Tests import \`.stub.ts\`, never \`-contract.ts\`
+- Tests import \`.stub.ts\`, never \`-contract.ts\`; Stubs import contract to parse with
 - Returns must be branded Zod contracts — inputs MAY take a raw \`string\`. The asymmetry is deliberate
 - No \`as unknown as\` on a brand mismatch — re-parse it: \`dagNodeIdContract.parse(stepId)\`
 - No silent catch — \`catch { return {} }\` and \`.catch(() => {})\` are lint errors
@@ -129,7 +121,7 @@ Call both tools, read their output, THEN plan your approach.`,
 
   ward: `## Ward Quality Commands
 
-**ALWAYS use \`npm run ward\`.** Never \`npx jest\`/\`eslint\`/\`tsc\`/\`playwright\` or \`npm test\` — pick a check type below.
+**Every check runs through \`npm run ward\`** — never \`npx jest\`/\`eslint\`/\`tsc\`/\`playwright\` or \`npm test\`. Scope it to your files; a bare run is the pre-merge sweep.
 
 ### Check Types
 
@@ -150,9 +142,9 @@ Call both tools, read their output, THEN plan your approach.`,
 | \`--onlyTests <regex>\` | Filter tests by name. \`\\|\` alternates. |
 | \`-- file1 file2\` | Passthrough file paths. |
 | \`--committed\` | All checks, on this branch's commits over \`origin/main\`. |
-| \`--uncommitted\` | All checks, on the working tree — untracked files included. |
+| \`--uncommitted\` | All checks, on the working tree. |
 
-**\`--uncommitted\` SEES UNTRACKED FILES**, so an all-new-files pass is graded, not skipped. **They combine** for the whole branch. Neither takes \`--only\`, \`--onlyTests\` or \`-- <files>\`; to narrow, scope it yourself.
+**\`--uncommitted\` GRADES untracked files**, so an all-new-files pass is never silently skipped. **\`--committed\` and \`--uncommitted\` combine** for the whole branch. Neither accepts \`--only\`, \`--onlyTests\` or \`-- <files>\` — re-run those as \`--only <types> -- <files>\`.
 
 **A 0-file git scope runs NOTHING**: ward says so and exits 0 — empty, not green.
 
@@ -162,7 +154,6 @@ Call both tools, read their output, THEN plan your approach.`,
 npm run ward                                  # All checks
 npm run ward -- -- pkg/a.ts pkg/a.test.ts     # THESE FILES — ward picks the checks
 npm run ward -- --only unit -- pkg/a.test.ts  # These files, one check type
-npm run ward -- --only unit --onlyTests "x" -- pkg/  # By name, SCOPED
 npm run ward -- -- packages/hooks             # One package
 npm run ward -- --committed --uncommitted     # Whole branch (or either half)
 \`\`\`

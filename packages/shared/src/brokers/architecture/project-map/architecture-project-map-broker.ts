@@ -82,18 +82,24 @@ export const architectureProjectMapBroker = async ({
     }),
   );
 
-  // Library packages have no startup tree to walk — they belong to get-project-inventory.
-  const renderableTargets = targetsWithType
-    .filter(({ packageType }) => packageType !== 'library')
-    .filter(({ packageName }) => requestedNames.includes(String(packageName)));
+  const requestedTargets = targetsWithType.filter(({ packageName }) =>
+    requestedNames.includes(String(packageName)),
+  );
 
-  const packageSections = renderableTargets.map(({ packageName, packageRoot, packageType }) =>
-    packageSectionBuildLayerBroker({
-      packageName,
-      packageRoot,
-      packageType,
-      projectRoot,
-    }),
+  // A library package has no startup tree to walk, so it gets a header and a pointer instead of a
+  // boot graph. Rendering nothing at all reads as "the package is missing", and a caller who asked
+  // for it by name is owed an answer rather than silence.
+  const packageSections = requestedTargets.map(({ packageName, packageRoot, packageType }) =>
+    packageType === 'library'
+      ? contentTextContract.parse(
+          `# ${String(packageName)} [${packageType}]\n\n${projectMapStatics.libraryNoFlowNotice}`,
+        )
+      : packageSectionBuildLayerBroker({
+          packageName,
+          packageRoot,
+          packageType,
+          projectRoot,
+        }),
   );
 
   const topLevelParts: ContentText[] = [

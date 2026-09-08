@@ -65,4 +65,6 @@ export const projectMapStatics = {
   },
   pointerFooter:
     '> Call `get-project-inventory({ packageName })` for the per-package folder/file detail.',
+  libraryNoFlowNotice:
+    'No execution flow to graph — a library package has no startup and no flows. Call `get-project-inventory({ packageName })` for its folders and files.',
 } as const;

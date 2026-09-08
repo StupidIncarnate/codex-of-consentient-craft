@@ -20,8 +20,8 @@ describe('architectureProjectMapBroker', () => {
     });
   });
 
-  describe('library packages excluded', () => {
-    it('VALID: {library package named shared, packages: [shared]} => output does NOT contain # shared [library] header', async () => {
+  describe('library packages', () => {
+    it('VALID: {library package named shared, packages: [shared]} => renders # shared [library] header', async () => {
       const proxy = architectureProjectMapBrokerProxy();
       const projectRoot = AbsoluteFilePathStub({ value: '/project' });
       proxy.setupLibraryPackage({ projectRoot, packageName: 'shared' });
@@ -35,7 +35,27 @@ describe('architectureProjectMapBroker', () => {
         String(result)
           .split('\n')
           .some((l) => l === '# shared [library]'),
-      ).toBe(false);
+      ).toBe(true);
+    });
+
+    it('VALID: {library package, packages: [shared]} => header is followed by the inventory pointer', async () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      proxy.setupLibraryPackage({ projectRoot, packageName: 'shared' });
+
+      const result = await architectureProjectMapBroker({
+        projectRoot,
+        packages: [PackageNameStub({ value: 'shared' })],
+      });
+
+      const lines = String(result).split('\n');
+      const headerIndex = lines.indexOf('# shared [library]');
+
+      expect(lines.slice(headerIndex, headerIndex + 3)).toStrictEqual([
+        '# shared [library]',
+        '',
+        projectMapStatics.libraryNoFlowNotice,
+      ]);
     });
 
     it('VALID: {library package, packages: [shared]} => output does not contain ## Boot heading', async () => {
@@ -74,7 +94,7 @@ describe('architectureProjectMapBroker', () => {
   });
 
   describe('empty monorepo (single-repo mode)', () => {
-    it('VALID: {no packages/ dir, root has no startups, packages: [root]} => root is treated as library and excluded', async () => {
+    it('VALID: {no packages/ dir, root has no startups, packages: [root]} => root renders as a library package', async () => {
       const proxy = architectureProjectMapBrokerProxy();
       const projectRoot = AbsoluteFilePathStub({ value: '/project' });
       proxy.setupEmptyMonorepo({ projectRoot });
@@ -88,7 +108,7 @@ describe('architectureProjectMapBroker', () => {
         String(result)
           .split('\n')
           .some((l) => l === '# root [library]'),
-      ).toBe(false);
+      ).toBe(true);
     });
   });
 
