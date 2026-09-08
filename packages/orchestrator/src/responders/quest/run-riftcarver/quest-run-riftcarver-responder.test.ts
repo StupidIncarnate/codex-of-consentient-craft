@@ -10,7 +10,7 @@ import { QuestRunRiftcarverResponderProxy } from './quest-run-riftcarver-respond
 
 const CARVE_OP_ID = '11111111-1111-4111-8111-111111111111';
 const CARVE_WORK_ITEM_ID = 'a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5';
-const CARVE_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight build';
+const CARVE_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight typecheck';
 
 // Virtual-git constants the broker proxy bakes in, restated here so the streamed banners can be
 // asserted verbatim rather than by shape.

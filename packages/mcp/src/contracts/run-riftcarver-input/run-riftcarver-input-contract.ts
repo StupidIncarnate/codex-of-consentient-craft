@@ -15,7 +15,7 @@ import { questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/
 export const runRiftcarverInputContract = z
   .object({
     questId: questIdContract.describe(
-      'Quest whose branch, worktree and preflight build are carved',
+      'Quest whose branch, worktree and preflight typecheck are carved',
     ),
     workItemId: questWorkItemIdContract.describe(
       'Work item the carve is being executed for — echo `result.workItemId` from the get-next-step step verbatim',

@@ -17,7 +17,7 @@ import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktr
 // each of those was CALLED WITH the right args, never that the real git state it produces is
 // correct. These three tests drive the actual broker against a throwaway repo built by
 // gitWorktreeFixtureHarness and read the resulting git/fs state back. The node_modules mirror and
-// the preflight build have their own integration suites beside their own brokers.
+// the preflight typecheck have their own integration suites beside their own brokers.
 describe('worktreePrepareBroker (integration) — real git worktree creation', () => {
   const git = gitWorktreeFixtureHarness();
 

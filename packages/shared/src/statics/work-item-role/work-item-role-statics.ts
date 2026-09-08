@@ -47,7 +47,7 @@
  *   composer in the FOLLOW-UP tab. Alone among the roles it is also excluded from quest status
  *   derivation, because its item is created after the quest terminated and asking a question must
  *   not make a finished quest read as running again.
- * - `riftcarver` — carves the quest branch, its worktree and the preflight build at the HEAD of the
+ * - `riftcarver` — carves the quest branch, its worktree and the preflight typecheck at the HEAD of the
  *   relay, so that workspace is forged when the quest is next in line rather than the moment its
  *   spec is approved. A member of `command`: it runs a deterministic git/npm sequence, so a
  *   dispatcher executes it directly and no Claude session is spawned for it.

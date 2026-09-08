@@ -201,7 +201,7 @@ describe('QuestFlow', () => {
           questId: {
             type: 'string',
             minLength: 1,
-            description: 'Quest whose branch, worktree and preflight build are carved',
+            description: 'Quest whose branch, worktree and preflight typecheck are carved',
           },
           workItemId: {
             type: 'string',

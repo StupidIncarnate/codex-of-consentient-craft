@@ -459,7 +459,7 @@ describe('ExecutionPanelWidget', () => {
           OperationItemStub({
             id: OP_ID_1,
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
             status: 'complete',
           }),
         ],
@@ -500,7 +500,7 @@ describe('ExecutionPanelWidget', () => {
           OperationItemStub({
             id: OP_ID_1,
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
             status: 'complete',
           }),
         ],

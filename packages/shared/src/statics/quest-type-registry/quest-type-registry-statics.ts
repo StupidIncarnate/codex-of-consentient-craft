@@ -9,7 +9,7 @@
  *
  * This is DATA only (statics may import statics, never brokers). `startImplementationOps` are the
  * implementation operation items the orchestrator seeds at Start, and BOTH quest types use it. Its
- * FIRST entry is `riftcarver` for either type: the branch, the worktree and the preflight build are
+ * FIRST entry is `riftcarver` for either type: the branch, the worktree and the preflight typecheck are
  * the head of the relay, so the workspace is forged when the quest is next in line rather than
  * inside the Start POST. After it BOTH types seed the same `codeweaver` item, which fans out into
  * one slice per (PACKAGE, FLOW) cell.
@@ -56,13 +56,13 @@ export const questTypeRegistryStatics = {
     startImplementationOps: [
       {
         role: 'riftcarver',
-        // FIRST for both quest types: nothing else can run until the branch, worktree and preflight
-        // build exist, and putting it here is what moves that minutes-long work off the Start POST
+        // FIRST for both quest types: nothing else can run until the branch, the worktree and a
+        // green preflight typecheck exist, and putting it here moves that minutes-long work off the Start POST
         // and onto the relay, where it happens when the quest is next in line. No `fanOutBy`, so it
         // seeds exactly one item; no `locked`, so it defaults TRUE and is enrolled in its
         // slotManagerStatics pt budget — a carve that cannot converge in a bounded number of
         // spiritmender passes is a halt worth surfacing rather than a loop.
-        text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+        text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
       },
       {
         role: 'codeweaver',
@@ -107,7 +107,7 @@ export const questTypeRegistryStatics = {
       {
         role: 'riftcarver',
         // Same head-of-relay seed as `feature`, and for the same reasons — see the note there.
-        text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+        text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
       },
       {
         role: 'codeweaver',

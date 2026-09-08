@@ -54,7 +54,7 @@ export const slotManagerStatics = {
   },
   riftcarver: {
     // Red-carve chain budget: the count of riftcarver operation items since the last GREEN
-    // riftcarver. Only the repairable failures (node_modules, build) spend it — a git-state or
+    // riftcarver. Only the repairable failures (push, node_modules, typecheck) spend it — a git-state or
     // permission failure blocks on the spot, whatever the budget says. `maxRetries` rather than
     // `maxAttempts` because, exactly like ward, the chain is counted from the ledger's own
     // role-filtered history rather than from one item's pt continuations.

@@ -34,7 +34,7 @@ Execution is a **reactive relay over the quest's `operations` ledger** — an or
   items + the fixed verify tail and creates the FIRST work item), and flips the quest to `in_progress`. It **spawns
   nothing, runs no git, and builds nothing** — assert that, it is a regression guard.
 - **The first item of every relay is `riftcarver`** — a `spawnerType: 'command'` role that creates the quest branch and
-  git worktree, mirrors `node_modules` into it, and runs the preflight build. It is what makes a workspace exist, and
+  git worktree, mirrors `node_modules` into it, and runs the preflight typecheck. It is what makes a workspace exist, and
   it runs only once the quest is actually next in line. Watching it is the point of the Riftcarver checkpoint below.
 - **Dispatch** actually runs the work. Two interchangeable dispatchers share one brain (`quest-get-next-step-broker` +
   `signal-back` + the dispatch scan):

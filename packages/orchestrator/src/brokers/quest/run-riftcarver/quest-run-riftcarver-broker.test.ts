@@ -37,7 +37,7 @@ const FIRST_CARVE_WORK_ITEM_ID = 'b2b2b2b2-c3c3-d4d4-e5e5-f6f6f6f6f6f6';
 const SECOND_CARVE_OP_ID = '33333333-3333-4333-8333-333333333333';
 const PENDING_WORK_ITEM_ID = 'c3c3c3c3-d4d4-e5e5-f6f6-a7a7a7a7a7a7';
 
-const CARVE_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight build';
+const CARVE_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight typecheck';
 // Deliberately NOT the sha the virtual git world reports for HEAD: a test that seeds the same value
 // on both sides cannot tell "kept the record" apart from "recomputed and got lucky".
 const RECORDED_BASE_REF = 'c0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ff';

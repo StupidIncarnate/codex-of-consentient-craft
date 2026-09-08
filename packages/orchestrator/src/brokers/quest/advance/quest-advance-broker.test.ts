@@ -156,7 +156,7 @@ describe('questAdvanceBroker', () => {
       const carveOp = OperationItemStub({
         id: '44444444-4444-4444-8444-444444444444',
         role: 'riftcarver',
-        text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+        text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
         status: 'pending',
       });
 
@@ -184,7 +184,7 @@ describe('questAdvanceBroker', () => {
             OperationItemStub({
               id: '44444444-4444-4444-8444-444444444444',
               role: 'riftcarver',
-              text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+              text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
               status: 'in_progress',
             }),
           ],

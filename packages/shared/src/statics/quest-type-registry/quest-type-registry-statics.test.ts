@@ -14,7 +14,7 @@ describe('questTypeRegistryStatics', () => {
         startImplementationOps: [
           {
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
           },
           {
             role: 'codeweaver',
@@ -45,7 +45,7 @@ describe('questTypeRegistryStatics', () => {
         startImplementationOps: [
           {
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
           },
           {
             role: 'codeweaver',

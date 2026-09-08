@@ -73,7 +73,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
             status: 'in_progress',
             locked: true,
             packageNames: [],
@@ -153,7 +153,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'riftcarver',
-          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
           flowIds: [],
         },
         {
@@ -216,7 +216,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'riftcarver',
-          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
           flowIds: [],
         },
         {
@@ -289,7 +289,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'riftcarver',
-          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
           flowIds: [],
         },
         {
@@ -329,7 +329,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'riftcarver',
-          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
           flowIds: [],
         },
         {
@@ -518,7 +518,7 @@ describe('questBuildRelayGraphBroker', () => {
       ).toStrictEqual([
         {
           role: 'riftcarver',
-          text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+          text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
           flowIds: [],
           packageNames: [],
         },
@@ -706,7 +706,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
             status: 'in_progress',
             locked: true,
             packageNames: [],
@@ -888,7 +888,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
             status: 'in_progress',
             locked: true,
             packageNames: [],
@@ -971,7 +971,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',
             role: 'riftcarver',
-            text: 'Riftcarver: carve the quest branch, worktree and preflight build',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
             status: 'in_progress',
             locked: true,
             packageNames: [],

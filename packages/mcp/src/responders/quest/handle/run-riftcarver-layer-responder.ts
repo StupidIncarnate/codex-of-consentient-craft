@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Handles the `run-riftcarver` MCP tool call — blocks on the orchestrator while a quest's
- * branch, worktree, node_modules mirror and preflight build are forged, then hands the outcome back
+ * branch, worktree, node_modules mirror and preflight typecheck are forged, then hands the outcome back
  * to the /dumpster-launch loop that asked for it.
  *
  * USAGE:

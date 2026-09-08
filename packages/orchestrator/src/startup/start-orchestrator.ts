@@ -490,7 +490,7 @@ export const StartOrchestrator = {
     mode: 'committed' | 'full';
   }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId, mode }),
 
-  // MCP-driven run-riftcarver (synchronous branch + worktree + preflight build, then persist)
+  // MCP-driven run-riftcarver (synchronous branch + worktree + preflight typecheck, then persist)
   runRiftcarver: async ({
     questId,
     workItemId,

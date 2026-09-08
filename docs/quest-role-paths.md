@@ -18,7 +18,7 @@ documented in `packages/orchestrator/CLAUDE.md`. This doc focuses on orchestrati
 
 A quest carries a small, ordered **`operations` ledger** (`quest.operations: OperationItem[]`) — the
 durable plan-and-status record. Its FIRST item, on every quest type, is a **`riftcarver`**: the
-command role that carves the quest branch, its worktree and the preflight build, so the workspace
+command role that carves the quest branch, its worktree and the preflight typecheck, so the workspace
 every later role runs in is forged when the quest is next in line rather than the moment its spec is
 approved. The orchestrator runs a **reactive relay**: it works the ledger one work-item session at a
 time. `questAdvanceBroker` finds the first `pending` operation item, creates exactly ONE work item
@@ -171,7 +171,7 @@ So the full relay, for a feature OR a bug-hunt quest alike, is:
 
 ```
 chaoswhisperer (feature) / bughunt (bug-hunt) — the intake chat item
-  → riftcarver (branch + worktree + node_modules mirror + preflight build)
+  → riftcarver (branch + worktree + node_modules mirror + preflight typecheck)
   → codeweaver ×N (DERIVED at Start, one item PER (PACKAGE, FLOW) CELL)
   → ward(changed)
   → flowrider ×N (DERIVED at Start, one item PER FLOW)
@@ -273,7 +273,7 @@ driven by the operations relay.
 | `created`                                       | `create-quest`                            | Intake agent's first action; seeds the plan operation item (see below)      |
 | `explore_flows` … `review_observables`          | ChaosWhisperer (via `modify-quest`)       | The only roles that set status directly                                     |
 | `flows_approved`, `approved`, `design_approved` | **User** (APPROVE button)                 | The approval gates; each requires non-empty `flows` — nothing else         |
-| `in_progress`                                   | `start-quest` / Start Quest button        | Spec locked; the relay is seeded and dispatch begins. Start is pure `quest.json` bookkeeping — it spawns nothing and touches no git, so the panel swap is immediate; the branch, worktree, `node_modules` mirror and preflight build belong to the `riftcarver` item it seeds at the head of the ledger |
+| `in_progress`                                   | `start-quest` / Start Quest button        | Spec locked; the relay is seeded and dispatch begins. Start is pure `quest.json` bookkeeping — it spawns nothing and touches no git, so the panel swap is immediate; the branch, worktree, `node_modules` mirror and preflight typecheck belong to the `riftcarver` item it seeds at the head of the ledger |
 | `complete`, `blocked`                           | Derived / set by the orchestrator         | `complete` derived by `workItemsToQuestStatusTransformer`; `blocked` set only by `quest-block-on-failure-broker` |
 | `paused`, `abandoned`                           | User                                      | Not derived over — owned by the user                                        |
 
@@ -331,7 +331,7 @@ Trace one feature quest end to end.
 4. **The dispatch loop** picks up the riftcarver work item and runs it as `run-riftcarver`
    (`spawnerType: 'command'`) via `quest-run-riftcarver-broker`: detect the base branch, `git worktree
    add`, pin `baseRef` from the new tree's HEAD, mirror `node_modules` for the repo root and every
-   workspace root, then run the preflight build to convergence. Every line streams live to the
+   workspace root, then run the preflight typecheck to convergence. Every line streams live to the
    execution row and is persisted to `<questFolder>/riftcarver-results/<id>.log`. On green the
    operation completes and advance dispatches the first `codeweaver`; on a red it routes by failure
    class (see the riftcarver path below).
@@ -604,7 +604,7 @@ ref. That ref is the only route the execution panel has to the detail.
 | **Ward**       | exit code   | `quest-run-ward-broker` marks the ward work item `complete` + the ward operation item `complete`, advance → next role | work item `failed`, ward operation item `complete`, then appends a **spiritmender** operation item + a **fresh ward** operation item (`pt N`, same `wardMode`) AFTER it, advance → the spiritmender runs next (never a ward back-to-back), then the fresh ward re-verifies |
 
 **Riftcarver's steps and their classes.** `create` and `base_branch` are `git-state`; `node_modules`
-and `build` are `repairable`. A `git-state` red BLOCKS deliberately rather than repairing, because
+and `typecheck` are `repairable`. A `git-state` red BLOCKS deliberately rather than repairing, because
 there is no worktree to dispatch a spiritmender into and the only checkout left is the repo root — the
 one place no agent may ever be sent. A permission-denied error overrides whatever class the step
 carries and blocks too: no fresh session of any role can talk an operator's filesystem out of saying
@@ -666,7 +666,7 @@ crash is all-or-nothing.
 
 | Class | Steps | What happens |
 |---|---|---|
-| `repairable`, budget left | `node_modules`, `build` | work item `failed` with `errorMessage: riftcarver_<step>_failed`, operation `complete`, a **spiritmender** operation item plus a fresh **`pt N` riftcarver** spliced immediately after it — the fresh carve copying the completed item's `flowIds` and `packageNames` — then advance → the spiritmender runs next, in the quest's own worktree |
+| `repairable`, budget left | `push`, `node_modules`, `typecheck` | work item `failed` with `errorMessage: riftcarver_<step>_failed`, operation `complete`, a **spiritmender** operation item plus a fresh **`pt N` riftcarver** spliced immediately after it — the fresh carve copying the completed item's `flowIds` and `packageNames` — then advance → the spiritmender runs next, in the quest's own worktree |
 | `repairable`, budget spent | same | `quest-block-on-failure-broker` |
 | `git-state` | `create`, `base_branch` | work item `failed` carrying git's own words verbatim, operation `complete`, then `quest-block-on-failure-broker` — **never a repo-root agent** |
 | permission-denied, ANY step | any | same as `git-state`, whatever the step's own class says |
@@ -674,7 +674,7 @@ crash is all-or-nothing.
 Three things about that routing are load-bearing:
 
 - **The spiritmender has somewhere to work.** `{ branchName, baseBranch, worktreePath, baseRef }` is persisted the
-  moment the git steps finish and BEFORE `node_modules` or the build runs, so a repair dispatched after either of
+  moment the git steps finish and BEFORE `node_modules` or the typecheck runs, so a repair dispatched after either of
   those fails lands in a real worktree — and the `pt N` carve behind it skips the git steps it can see are done.
 - **The error message is written for whoever can act on it.** A repairable red hands the spiritmender a
   machine-readable step name; a git-state or permission red hands the USER git's own text, because nothing downstream
@@ -907,22 +907,23 @@ dispatchable while the wreckage is still in place.
     `node_modules` mirror done-checks PER ROOT inside `populate-one-root-layer-broker`, because an
     attempt may have mirrored six roots of nine before dying. Every skip emits its own `— skip … —`
     line, so the streamed output IS the evidence the contract held.
-  - **The BUILD is the one deliberate exception and has NO done-check.** Re-running it is precisely
-    how the spiritmender's fix gets verified — the build is the verdict, not a side effect. A marker
-    file "optimising" it away would let a `pt N` report green off the previous attempt's result.
+  - **The TYPECHECK is the one deliberate exception and has NO done-check.** Re-running it is
+    precisely how the spiritmender's fix gets verified — the typecheck is the verdict, not a side
+    effect. A marker file "optimising" it away would let a `pt N` report green off the previous
+    attempt's result.
   - **The collision check is skipped on a re-entry, deliberately.** It guards the FIRST carve against
     a name some other work owns. On a `pt N` the quest already records the branch — it is the quest's
     OWN — so re-running the check would refuse the continuation against work attempt 1 did and lock
     the quest out permanently. This is the step that breaks first if a done-check is dropped.
 - **RIFT-2 — `baseRef` is written exactly once, ever.** It is read from the new worktree's HEAD in
-  the same breath as creation, before `node_modules` or the build can touch the tree, and NEVER
+  the same breath as creation, before `node_modules` or the typecheck can touch the tree, and NEVER
   recomputed once recorded — not even when the worktree is re-created and its fresh HEAD reads back a
   different sha. Moving it after commits have landed folds the quest's own work into the review base,
   the exact defect `baseRef` exists to fix. Riftcarver is its SOLE writer: `questBuildRelayGraphBroker`
   stamps none, because Start runs before any worktree exists and the only HEAD available there is the
   server process's own checkout.
 - **RIFT-3 — Routed by class, never by one rule.** `worktreePrepareStepStatics.classifications`,
-  keyed by step VALUE, sends `create` / `base_branch` to a block and `node_modules` / `build` to the
+  keyed by step VALUE, sends `create` / `base_branch` to a block and `node_modules` / `typecheck` to the
   spiritmender loop; `isPermissionDeniedErrorGuard` is checked FIRST and overrides both. **No agent is
   ever dispatched while the quest's only checkout is the repo root.**
 - **RIFT-4 — Bounded.** The repairable chain is the count of riftcarver operation items since the last
@@ -1039,7 +1040,7 @@ dispatchable while the wreckage is still in place.
 [DISPATCHER] Node/UI play button (or /dumpster-launch)
    ▼ riftcarver       [run-riftcarver]  → green → advance     (base branch → git worktree add → pin
                                                                baseRef → mirror node_modules → preflight
-                                                               build; streams live, log persisted to
+                                                               typecheck; streams live, log persisted to
                                                                riftcarver-results/<id>.log)
    ▼ codeweaver ×N (one session per cell)      → done → advance   (reads code, briefs sub-agents, one
                                                                     codeweaver-reviewer, sign codeweaverSignoff)
@@ -1067,7 +1068,7 @@ continuations and the ward/riftcarver splices. Standards review is inside each s
 that reviewer's own commit — not a step between two sessions, and nothing about it is recorded in `quest.json`.
 
 Sad-path insertions that keep the quest `in_progress`: a red ward inserts `spiritmender → fresh ward`; a REPAIRABLE
-riftcarver red (node_modules or build) inserts `spiritmender → pt N riftcarver`, and the pt N skips the git steps it
-can see are already done while re-running the build; a server crash resumes the in-flight session. The routes that
+riftcarver red (node_modules or typecheck) inserts `spiritmender → pt N riftcarver`, and the pt N skips the git steps
+it can see are already done while re-running the typecheck; a server crash resumes the in-flight session. The routes that
 reach `blocked` are an exhausted bounded loop (ward-retry, riftcarver-retry, or orphan recovery), an agent-reported
 environment wall, and a riftcarver `git-state` or permission failure.

@@ -3,9 +3,9 @@
  * two mechanisms each fail to: `git worktree add` checks out TRACKED files and `dist` is gitignored,
  * and the `node_modules` mirror copies a `@dungeonmaster/<pkg>` SYMLINK rather than the compiled
  * files behind it. Without this a worktree holds source and no binaries, and ward — whose own entry
- * point is compiled output — cannot run at all. Reach for this over letting the preflight build fill
- * the gap: the seed is measured at 1.57s against a 55-71s cold build, and the build that follows
- * then only has to cover what the worktree itself changes.
+ * point is compiled output — cannot run at all. Reach for this over building the worktree from cold
+ * to fill the gap: the seed is measured at 1.57s against a 55-71s cold build, and the preflight
+ * typecheck that follows emits nothing, so nothing else produces those binaries.
  *
  * The copy is `cp -a` and MUST NOT become `cp -al`. Compilers truncate-and-write the same inode, so
  * a hardlinked `dist` sends a worktree's rebuild straight back into the main checkout's output —

@@ -8,10 +8,10 @@ describe('worktreeFailureDetailTransformer', () => {
 
     const result = worktreeFailureDetailTransformer({
       worktreePath,
-      cause: 'npm run build exited with code 1',
+      cause: 'ward typecheck exited with code 1',
     });
 
-    expect(result).toBe('/repo/worktrees/quest-slug-a1b2c3d4: npm run build exited with code 1');
+    expect(result).toBe('/repo/worktrees/quest-slug-a1b2c3d4: ward typecheck exited with code 1');
   });
 
   it('VALID: {non-empty cleanupOutput} => appends the cleanup failure detail', () => {
@@ -20,12 +20,12 @@ describe('worktreeFailureDetailTransformer', () => {
 
     const result = worktreeFailureDetailTransformer({
       worktreePath,
-      cause: 'npm run build exited with code 1',
+      cause: 'ward typecheck exited with code 1',
       cleanupOutput,
     });
 
     expect(result).toBe(
-      '/repo/worktrees/quest-slug-a1b2c3d4: npm run build exited with code 1 (worktree cleanup also failed: rm -rf failed: EBUSY)',
+      '/repo/worktrees/quest-slug-a1b2c3d4: ward typecheck exited with code 1 (worktree cleanup also failed: rm -rf failed: EBUSY)',
     );
   });
 
@@ -35,10 +35,10 @@ describe('worktreeFailureDetailTransformer', () => {
 
     const result = worktreeFailureDetailTransformer({
       worktreePath,
-      cause: 'npm run build exited with code 1',
+      cause: 'ward typecheck exited with code 1',
       cleanupOutput,
     });
 
-    expect(result).toBe('/repo/worktrees/quest-slug-a1b2c3d4: npm run build exited with code 1');
+    expect(result).toBe('/repo/worktrees/quest-slug-a1b2c3d4: ward typecheck exited with code 1');
   });
 });

@@ -8,7 +8,7 @@
  * with nothing left to do.
  *
  * Everything here is bookkeeping over quest.json, so the POST answers in milliseconds. The branch,
- * the worktree, the node_modules mirror and the preflight build belong to the `riftcarver` operation
+ * the worktree, the node_modules mirror and the preflight typecheck belong to the `riftcarver` operation
  * item this seeds at the HEAD of the relay, where they stream live into the execution panel and run
  * only once the quest is actually next in line.
  *

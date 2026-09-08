@@ -96,11 +96,11 @@ export const questHydrateBroker = async ({
     const authoredRoles = new Set(blueprint.operations.map((operation) => operation.role));
 
     // Hydrate fabricates a quest directly at `in_progress`: it never runs Start, so the quest has no
-    // branch, no worktree and no preflight build, and no scripted scenario expects one. `riftcarver`
-    // is the item that would create all three, so it is dropped unless a blueprint authored one
-    // itself. Without this default the FIRST thing every hydrated quest dispatches is a real
-    // `git worktree add` + node_modules mirror + build against the developer's own checkout — which
-    // is precisely the work hydrate exists to skip.
+    // branch, no worktree and no preflight typecheck, and no scripted scenario expects one.
+    // `riftcarver` is the item that would create all three, so it is dropped unless a blueprint
+    // authored one itself. Without this default the FIRST thing every hydrated quest dispatches is a
+    // real `git worktree add` + node_modules mirror + typecheck against the developer's own
+    // checkout — which is precisely the work hydrate exists to skip.
     const skipRoles = new Set<WorkItemRole>([
       ...blueprint.skipRoles,
       ...(authoredRoles.has(RIFTCARVER_ROLE) ? [] : [RIFTCARVER_ROLE]),

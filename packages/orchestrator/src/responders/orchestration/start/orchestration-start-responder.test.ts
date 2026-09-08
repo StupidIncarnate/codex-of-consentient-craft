@@ -145,7 +145,7 @@ const EXISTING_WORKTREE_PATH = AbsoluteFilePathStub({
 
 // The riftcarver seed's text, restated from questTypeRegistryStatics (whose colocated test pins the
 // exact wording) so the regression assertion below reads as one literal object.
-const RIFTCARVER_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight build';
+const RIFTCARVER_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight typecheck';
 
 const DERIVED_PACKAGE_GRAPH = [
   PackageGraphEntryStub({
@@ -758,7 +758,7 @@ describe('OrchestrationStartResponder', () => {
 
     // Riftcarver heads `startImplementationOps` for EVERY quest type, so the first work item a
     // bug-hunt Start mints is the workspace-preparation command, not codeweaver — the branch, the
-    // worktree and the preflight build have to exist before any agent is dispatched into them.
+    // worktree and the preflight typecheck have to exist before any agent is dispatched into them.
     // `spawnerType: 'command'` is the assertion that matters here: it is what routes this item to
     // the dispatcher's own run path instead of a Claude spawn.
     it('VALID: {approved bug-hunt quest, empty operations} => first work item is the riftcarver command linked to the implementation op', async () => {

@@ -134,7 +134,7 @@ export const smoketestProbeArgsStatics = {
   'run-riftcarver': {
     mode: 'skip-from-suite',
     summary: 'mcp-run-riftcarver-not-in-mcp-suite',
-    note: 'run-riftcarver creates a real git branch and worktree, mirrors node_modules and runs the preflight build — minutes of real filesystem and git mutation against the guild repo, which the smoketest harness has no way to unwind. Its lifecycle belongs to the orchestration suite.',
+    note: 'run-riftcarver creates a real git branch and worktree, mirrors node_modules and runs the preflight typecheck — minutes of real filesystem and git mutation against the guild repo, which the smoketest harness has no way to unwind. Its lifecycle belongs to the orchestration suite.',
   },
   'get-server-config': {
     mode: 'call',

@@ -516,7 +516,7 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │   The operations ledger drives the order. BOTH quest types run the same sequence:
   ├─ riftcarver ──── mcp__dungeonmaster__run-riftcarver({questId, workItemId}); spawnerType: 'command'.
   │                   Carves the branch + worktree, pins baseRef from the new tree's HEAD, mirrors
-  │                   node_modules, runs the preflight build. Streams live; log persisted to
+  │                   node_modules, runs the preflight typecheck. Streams live; log persisted to
   │                   riftcarver-results/<id>.log. Nothing else can run until it goes green.
   ├─ codeweaver ──── ONE SESSION PER (PACKAGE, FLOW) CELL — one package's half of one flow;
   │                   product code plus the unit tests that prove it
@@ -782,7 +782,7 @@ Gate content (`questGateContentRequirementsStatics`, enforced by `has-quest-gate
 `Start Quest` transitions `approved → in_progress` directly (`orchestration-start-responder`), seeding the relay —
 and that is ALL it does: pure `quest.json` bookkeeping, no spawn and no git, so the POST answers in milliseconds and
 the `quest-modified` event that swaps the browser from the spec panel to the execution panel fires at once. The branch,
-worktree, `node_modules` mirror and preflight build are the `riftcarver` item it seeds at the head of the ledger, run
+worktree, `node_modules` mirror and preflight typecheck are the `riftcarver` item it seeds at the head of the ledger, run
 by the dispatcher when the quest is next in line. Once execution starts, quest status is DERIVED from work-item +
 operation state by `work-items-to-quest-status-transformer` (see "Completion").
 
@@ -877,7 +877,7 @@ reads the registry entry for `quest.questType`.
 made to the other fails there.
 
 **`startImplementationOps` leads with `riftcarver` for BOTH types**, and that placement is the whole design: the
-branch, the worktree, the `node_modules` mirror and the preflight build are the HEAD of the relay, so the workspace is
+branch, the worktree, the `node_modules` mirror and the preflight typecheck are the HEAD of the relay, so the workspace is
 forged when the quest is next in line rather than the moment its spec is approved — and Start Quest stays a
 millisecond status flip. The seed carries no `fanOutBy` (exactly one item) and no `locked` override (defaults true,
 enrolling it in `slotManagerStatics.riftcarver.maxRetries`).
@@ -975,7 +975,7 @@ take the whole quest.
 
 `riftcarver` is the first operation item on every quest, of either type. It detects the base branch, runs
 `git worktree add`, pins `baseRef` from the new tree's HEAD, mirrors `node_modules` for the repo root and every
-workspace root, and runs the preflight build to convergence — all under one `spawnerType: 'command'` work item, with
+workspace root, and runs the preflight typecheck to convergence — all under one `spawnerType: 'command'` work item, with
 every line streamed live to the execution row and persisted to `<questFolder>/riftcarver-results/<id>.log`. Putting it
 here rather than inside `POST /api/quests/:questId/start` is what keeps that POST at millisecond scale AND what stops
 a workspace being forged at spec-approval time for a quest that may sit behind several others.
@@ -1002,9 +1002,9 @@ Two rules qualify it, and both are load-bearing:
    some other work owns, but on a `pt N` the recorded branch is the quest's OWN, so re-running it would refuse the
    continuation against attempt 1's work and lock the quest out permanently. That is the step that breaks first if a
    done-check is dropped.
-2. **THE BUILD IS THE ONE DELIBERATE EXCEPTION and has no done-check**, because re-running it IS how the
-   spiritmender's fix gets verified. The build is the verdict, not a side effect; a marker file "optimising" it away
-   would let a `pt N` report green off the previous attempt's result.
+2. **THE TYPECHECK IS THE ONE DELIBERATE EXCEPTION and has no done-check**, because re-running it IS how the
+   spiritmender's fix gets verified. The typecheck is the verdict, not a side effect; a marker file "optimising" it
+   away would let a `pt N` report green off the previous attempt's result.
 
 **Riftcarver also PUSHES, once, right after it records the git context.** `git push -u origin <branchName>`, with its
 own done-check (`git rev-parse @{upstream}` succeeding means a prior attempt already did it, and the step emits
@@ -1017,14 +1017,14 @@ caught first by `isPermissionDeniedErrorGuard` and blocks, because no fresh sess
 working.
 
 **`baseRef` is written exactly once, ever.** Riftcarver is its sole writer, reading it in the same breath as creation
-before `node_modules` or the build can touch the tree, and never recomputing it once recorded — not even when the
+before `node_modules` or the typecheck can touch the tree, and never recomputing it once recorded — not even when the
 worktree is re-created and its fresh HEAD reads back a different sha. Moving it after commits have landed folds the
 quest's own work into the review base, the exact defect `baseRef` exists to fix. `questBuildRelayGraphBroker` stamps
 none: Start runs before any worktree exists, so the only HEAD available there is the server process's own checkout.
 
 **Failure routing is by CLASS**, off `worktreePrepareStepStatics.classifications` (keyed by the step's own VALUE, the
 thing `WorktreePrepareError` carries): `create` / `base_branch` are `git-state` and BLOCK the quest, deliberately, so
-no agent is ever dispatched into the repo-root checkout; `node_modules` / `build` are `repairable` and splice in a
+no agent is ever dispatched into the repo-root checkout; `push` / `node_modules` / `typecheck` are `repairable` and splice in a
 spiritmender plus a fresh `pt N` carve, bounded by `slotManagerStatics.riftcarver.maxRetries` counted since the last
 GREEN carve. `isPermissionDeniedErrorGuard` is checked FIRST and overrides the step's own class — no fresh session of
 any role can talk an operator's filesystem out of saying no. Full outcome table in
@@ -1034,13 +1034,13 @@ The whole outcome — work-item status, the operation completing, the `riftcarve
 `riftcarverResults/<id>` back-link, and any splice — rides ONE `questOperationsUpdateBroker` persist, so a crash is
 all-or-nothing. (Ward writes its results ref in a separate, earlier write; riftcarver's rides the same persist as the
 ledger mutation.) The git context `{ branchName, baseBranch, worktreePath, baseRef }` is persisted earlier still —
-right after the git steps, BEFORE `node_modules` and the build — so a spiritmender dispatched off a later failure has
+right after the git steps, BEFORE `node_modules` and the typecheck — so a spiritmender dispatched off a later failure has
 a real worktree to work in and the `pt N` behind it can see the git steps are done.
 
 `questHydrateBroker` DROPS the riftcarver item by default (unless a blueprint authors one itself): a hydrated quest is
 fabricated directly at `in_progress`, never through Start, so it has no workspace to carve and no scripted scenario
 expects one. Without that default the first thing every hydrated quest dispatches is a real `git worktree add` +
-mirror + build against the developer's own checkout — precisely the work hydrate exists to skip.
+mirror + typecheck against the developer's own checkout — precisely the work hydrate exists to skip.
 
 ### Warpgate — the one ledger item appended after the relay has drained
 
@@ -1344,12 +1344,12 @@ Riftcarver routing lives entirely in `quest-run-riftcarver-broker.ts`, and its `
 ward's two (`green | repairable | blocked`), because a carve fails in ways that need different answers:
 
 - **carve green** → mark the riftcarver operation item complete, advance → the first `codeweaver` item.
-- **carve red, `repairable` (`node_modules` / `build`), budget left** → work item `failed` with
+- **carve red, `repairable` (`push` / `node_modules` / `typecheck`), budget left** → work item `failed` with
   `errorMessage: riftcarver_<step>_failed`, operation `complete`, then a `spiritmender` operation item PLUS a fresh
   `pt N` riftcarver spliced immediately after it — the fresh carve copying the completed item's `flowIds` and
   `packageNames` — and advance. The spiritmender
   runs next, in the quest's own worktree — which exists because the git context was persisted before the mirror and
-  the build ran. Its operation text names the failing STEP and the riftcarver result id, so
+  the typecheck ran. Its operation text names the failing STEP and the riftcarver result id, so
   `operationPtChainTransformer` gives that attempt its own pt budget instead of one shared with every repair on the
   quest.
 - **carve red, `git-state` (`create` / `base_branch`), or a permission-denied error at ANY step, or a spent
@@ -1520,7 +1520,7 @@ restart.
 | Web UI `/queue` page play button       | Node dispatch mode. `POST /api/orchestration/dispatch/play` starts the server-side runner (headless `claude -p` children); pause stops new dispatches gracefully.         |
 | MCP `create-quest` tool                | Programmatic quest creation (used by ChaosWhisperer/BugHunt). Accepts optional `questType` so `/dumpster-hunt` births a `bug-hunt` quest.                                 |
 | MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — the active dispatcher picks the quest up on its next pass).                              |
-| Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls; mutates status and redirects to execute view. Does NOT spawn anything, and does NOT build anything — it is pure `quest.json` bookkeeping (startable gate, package graph, relay seed, status flip, queue entry) and touches no git, so the POST answers in milliseconds and the WebSocket-driven panel swap is immediate. The branch, worktree, `node_modules` mirror and preflight build are the `riftcarver` item it seeds at the head of the ledger. |
+| Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls; mutates status and redirects to execute view. Does NOT spawn anything, and does NOT build anything — it is pure `quest.json` bookkeeping (startable gate, package graph, relay seed, status flip, queue entry) and touches no git, so the POST answers in milliseconds and the WebSocket-driven panel swap is immediate. The branch, worktree, `node_modules` mirror and preflight typecheck are the `riftcarver` item it seeds at the head of the ledger. |
 
 ## Agents (MCP-Delivered)
 

@@ -387,7 +387,7 @@ test.describe('Quest Begin Transition', () => {
   }) => {
     // THE REPORTED SYMPTOM THIS GUARDS: clicking Begin Quest looked like nothing happened — the
     // spec panel kept rendering for minutes while POST /start sat pending, because the request
-    // carried the whole git lifecycle (worktree add, node_modules mirror, preflight build) and the
+    // carried the whole git lifecycle (worktree add, node_modules mirror, preflight typecheck) and the
     // quest-modified WS event that drives the panel swap cannot fire until that lands. The sibling
     // tests above prove the swap is WS-driven; this one proves it happens BEFORE any carving,
     // which is the half that was broken.
@@ -448,7 +448,7 @@ test.describe('Quest Begin Transition', () => {
 
     // Promptly, off the quest-modified WS event, with no reload: POST /start is pure quest.json
     // bookkeeping, so it answers in milliseconds. A carve back inside the request blows this
-    // timeout outright — `git worktree add` plus the node_modules mirror plus the preflight build
+    // timeout outright — `git worktree add` plus the node_modules mirror plus the preflight typecheck
     // take minutes on a real repo.
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The MCP-mode entry point for the carve — delegates to questRunRiftcarverBroker and puts
  * its output on the chat bus so a `/dumpster-launch` session shows the branch, worktree and
- * preflight build being forged live. Reach for this over QuestRunWardResponder for the other command
+ * preflight typecheck being forged live. Reach for this over QuestRunWardResponder for the other command
  * role; the two are deliberately the same shape, because the dispatcher-side difference between them
  * is which broker runs, never how their output reaches a UI.
  *

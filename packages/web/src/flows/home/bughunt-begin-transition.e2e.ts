@@ -133,7 +133,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // The RESPONSE, not just the request. A non-200 here is what the reported symptom looked like,
     // and a waitForRequest-only assertion passes on the run that produced it — the request is sent
     // either way. POST /start is pure quest.json bookkeeping (the branch, the worktree and the
-    // preflight build belong to the riftcarver item it seeds), so it answers in milliseconds.
+    // preflight typecheck belong to the riftcarver item it seeds), so it answers in milliseconds.
     const startResponsePromise = page.waitForResponse(
       (res) =>
         res.request().method() === 'POST' && res.url().includes(`/api/quests/${questId}/start`),
