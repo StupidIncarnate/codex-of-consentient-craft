@@ -59,8 +59,12 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/^\*\*When to parameterize:\*\*$/mu);
-      expect(result).toMatch(/^\*\*When NOT to parameterize \(DAMP wins\):\*\*$/mu);
+      expect(result).toMatch(
+        /^\*\*When to parameterize:\*\* 3 or more cases whose body, setup and assertion shape are identical and only the literal input differs — union variants, enum members, status matrices, error codes, boundary values\. The test proves one rule holds for every member of a set\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*When NOT to parameterize \(DAMP wins\):\*\* setup differs between cases, assertion shape differs beyond a simple mapping, each case carries a distinct meaning deserving its own sentence-length name, or there are only 2 cases\.$/mu,
+      );
       expect(result).toMatch(
         /^describe\.each\(PAUSEABLE_STATUSES\)\('pause-capable status: %s', \(status\) => \{$/mu,
       );
@@ -163,8 +167,8 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^### What Gets Mocked vs What Runs Real$/mu);
       expect(result).toMatch(/^Widget Test:$/mu);
-      expect(result).toMatch(/^│ Widget\s+\(REAL\)\s+│ ← Test renders this$/mu);
-      expect(result).toMatch(/^│\s+├─ Date\.now\(\)\s+\(MOCKED\)\s+│ ← Mock global function$/mu);
+      expect(result).toMatch(/^Widget\s+\(REAL\)\s+← Test renders this$/mu);
+      expect(result).toMatch(/^\s+├─ Date\.now\(\)\s+\(MOCKED\)\s+← Mock global function$/mu);
     });
 
     it('VALID: {} => includes quick reference table', () => {
@@ -191,7 +195,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^### Detailed Proxy Patterns$/mu);
       expect(result).toMatch(
-        /^\*\*Detailed proxy patterns for each folder type\*\* - Use `get-folder-detail\(\{ folderType: "\.\.\." \}\)` to see specific examples:$/mu,
+        /^\*\*Detailed proxy patterns for each folder type\*\* - Use `get-folder-detail\(\{ folderType: "\.\.\." \}\)` to see specific examples: adapters, brokers, bindings, widgets, responders, middleware, state, guards\.$/mu,
       );
       expect(result).toMatch(/^\*\*Empty Proxy Pattern:\*\*$/mu);
       expect(result).toMatch(
@@ -216,7 +220,9 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^### Child Proxy Creation$/mu);
-      expect(result).toMatch(/^\*\*When to assign child proxy to variable:\*\*$/mu);
+      expect(result).toMatch(
+        /^\*\*When to assign child proxy to variable:\*\* you call methods on it \(the delegation pattern\), or you use it in the return object\.$/mu,
+      );
     });
 
     it('VALID: {} => includes global function mocking', () => {
@@ -328,7 +334,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^## Integration Testing$/mu);
       expect(result).toMatch(
-        /^\*\*CRITICAL:\*\* Integration tests are \*\*ONLY for startup files and flows\*\*\. Use `\.integration\.test\.ts` extension\.$/mu,
+        /^\*\*CRITICAL:\*\* Integration tests are \*\*ONLY for startup files and flows\*\*\. Use `\.integration\.test\.ts` extension, colocated with the file under test — never in a separate test directory\.$/mu,
       );
     });
 
@@ -402,7 +408,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^## EndpointMock \(HTTP Mocking for Frontend Tests\)$/mu);
       expect(result).toMatch(
-        /^Use `StartEndpointMock` for \*\*any test that needs to mock HTTP responses\*\* — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter\.$/mu,
+        /^Use `StartEndpointMock` for \*\*any test that needs to mock HTTP responses\*\* — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter\. \*\*Always via the broker proxy layer\*\* — never call it directly in a test file\.$/mu,
       );
     });
 
@@ -470,14 +476,16 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/^### The `\.harness\.ts` Pattern$/mu);
     });
 
-    it('VALID: {} => lists the anti-pattern categories', () => {
+    it('VALID: {} => bans any/as/@ts-ignore and names the two allowed escape hatches', () => {
       architectureTestingPatternsBrokerProxy();
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/^## Common Anti-Patterns$/mu);
       expect(result).toMatch(
-        /^- \*\*Assertion Anti-Patterns\*\*: Property bleedthrough, existence-only checks, count-only checks, weak matchers$/mu,
+        /^\*\*Never silence a type error with `any`, `as`, or `@ts-ignore`\.\*\* Two escape hatches are allowed:$/mu,
+      );
+      expect(result).toMatch(
+        /^- \[ \] No `any`, `as` or `@ts-ignore` used to silence a type error$/mu,
       );
     });
 

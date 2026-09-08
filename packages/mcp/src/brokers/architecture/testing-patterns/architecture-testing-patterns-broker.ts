@@ -21,57 +21,24 @@ export const architectureTestingPatternsBroker = (): ContentText => {
 Use \`ReturnType<typeof StubName>\` ONLY when you need the type in function signatures or annotations:
 
 \`\`\`typescript
-// ❌ WRONG - Importing type from contract
-import type {User} from '../contracts/user/user-contract';
-
-// ✅ CORRECT - Most of the time, just call the stub (TypeScript infers the type)
+import type {User} from '../contracts/user/user-contract';  // ❌ type from a contract
 import {UserStub} from '../contracts/user/user.stub';
-const user = UserStub({id: userId}); // TypeScript knows this is User type
 
-// ✅ CORRECT - Only create type alias if needed in signatures
-type User = ReturnType<typeof UserStub>;
+const user = UserStub({id: userId});                         // ✅ the stub infers the type
+const other: ReturnType<typeof UserStub> = UserStub({id});   // ❌ redundant annotation
+
+type User = ReturnType<typeof UserStub>;                     // ✅ only for a signature
 const processUser = ({user}: {user: User}): void => { /* ... */ };
-
-// ❌ WRONG - Stub already returns typed value, don't annotate
-const user: ReturnType<typeof UserStub> = UserStub({id: userId});
 \`\`\`
 
-**Why:** Stubs are single source of truth for test data. They return typed values automatically.
+**Why:** Stubs are the single source of truth for test data, and they return typed values already.
 
-**Exception for mocks:** Use \`registerMock\` handles with stubs for branded types, not type assertions:
+**Never silence a type error with \`any\`, \`as\`, or \`@ts-ignore\`.** Two escape hatches are allowed:
 
-\`\`\`typescript
-// ✅ CORRECT - registerMock handle with branded type using stub
-handle.calledWith([]).resolves(FileContentsStub({value: 'content'}));
+- **Branded types in mocks** — pass a stub, not an assertion. \`handle.calledWith([]).resolves(FileContentsStub({value: 'content'}))\`, never \`.resolves('content' as FileContents)\`.
+- **Deliberately invalid input** — \`as never\`, never \`as string\` (that violates \`ban-primitives\`). \`expect(() => MyStub({value: 123 as never})).toThrow(/Expected string/u)\`.
 
-// ❌ WRONG - Type error or escape hatch
-handle.calledWith([]).resolves('content' as FileContents);
-\`\`\`
-
-**Exception for testing invalid inputs:** Use \`as never\`:
-
-\`\`\`typescript
-// ✅ CORRECT - Testing number fails string validation
-expect(() => MyStub({ value: 123 as never })).toThrow(/Expected string/u);
-
-// ❌ WRONG - Violates ban-primitives
-MyStub({ value: 123 as string })
-\`\`\`
-
-**exactOptionalPropertyTypes:** Omit optional properties instead of passing undefined:
-
-**CRITICAL:** This tsconfig setting causes runtime failures if you pass \`undefined\` explicitly. The LLM training instinct is to pass \`undefined\` for optional properties, but you MUST omit them instead.
-
-\`\`\`typescript
-// ✅ CORRECT - Omit optional parameter (don't pass it at all)
-expect(myGuard({value: 'test'})).toBe(false);
-
-// ❌ WRONG - Explicit undefined fails with exactOptionalPropertyTypes
-expect(myGuard({value: 'test', optional: undefined})).toBe(false);
-
-// LLM training says: optional?: string means you can pass undefined
-// This codebase says: optional?: string means you must OMIT it, not pass undefined
-\`\`\``;
+**exactOptionalPropertyTypes: OMIT an optional property, never pass \`undefined\`.** Your training says \`optional?: string\` accepts \`undefined\`; this tsconfig setting fails at runtime when you pass it. Write \`myGuard({value: 'test'})\`, not \`myGuard({value: 'test', optional: undefined})\`.`;
 
   // Core Principles - DAMP > DRY
   const dampPattern = `Tests should be **Descriptive And Meaningful**, not DRY. Each test must be readable standalone without looking at helpers.`;
@@ -80,19 +47,16 @@ expect(myGuard({value: 'test', optional: undefined})).toBe(false);
   const parameterizeStateMatrices = `**DAMP > DRY still holds.** But when a test is repeated 3 or more times with the only variation being an input value (cycling through every status in a union, every enum member, every invalid input variant), parameterize with \`it.each\`, \`test.each\`, or \`describe.each\`. The body, setup, and assertion shape must be identical across cases — only literal values change.
 
 \`\`\`typescript
-// ❌ WRONG - 15 near-identical tests differing only by status literal
+// ❌ WRONG - 15 near-identical tests differing only by the status literal
 it('EMPTY: {status: pending} => neither PAUSE nor RESUME button visible', () => { /* ... */ });
 it('EMPTY: {status: created} => neither PAUSE nor RESUME button visible', () => { /* ... */ });
-// ...13 more, identical body, only status differs
 
-// ✅ CORRECT - Parameterize the matrix; derive the list from the canonical static.
+// ✅ CORRECT - one parameterized test, list derived from the canonical static
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
-
-const NOT_PAUSE_RESUME_STATUSES = (
-  Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
-).filter((s) => {
+const STATUSES = Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[];
+const NOT_PAUSE_RESUME_STATUSES = STATUSES.filter((s) => {
   const meta = questStatusMetadataStatics.statuses[s];
   return !meta.isPauseable && !meta.isResumable;
 });
@@ -101,8 +65,7 @@ it.each(NOT_PAUSE_RESUME_STATUSES)(
   'EMPTY: {status: %s} => neither PAUSE nor RESUME button visible',
   (status) => {
     const proxy = ExecutionPanelWidgetProxy();
-    const quest: Quest = QuestStub({ status });
-    mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+    mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={QuestStub({ status })} /> });
     expect(proxy.hasPauseButton()).toBe(false);
     expect(proxy.hasResumeButton()).toBe(false);
   },
@@ -110,27 +73,19 @@ it.each(NOT_PAUSE_RESUME_STATUSES)(
 \`\`\`
 
 **Literals in \`expect(...)\` vs \`it.each(...)\`:**
-- \`expect(x).toBe('pending')\` — hardcoded string literals in assertions are fine. The expected value is the *specific output* for the *specific input* of that test case; it shouldn't change as the union grows.
-- \`it.each(['pending', 'created', ...])\` — **NEVER hardcode the list of cases.** If the input set is a finite list (every status in a union, every enum member, every role), import it from its \`*-statics.ts\` / Zod \`.options\` / exported readonly array and \`.filter()\`/\`.map()\` to derive the subset. A hardcoded \`it.each\` array silently goes stale the moment someone adds a new member to the union — the new member is quietly skipped and "covers every status" becomes a lie.
+- \`expect(x).toBe('pending')\` — a hardcoded literal in an assertion is fine. It is the specific output for that case's specific input, and it should not change as the union grows.
+- \`it.each([...])\` — **NEVER hardcode the list of cases.** Derive a finite input set (every status in a union, every enum member, every role) from its \`*-statics.ts\`, Zod \`.options\`, or exported readonly array, then \`.filter()\`/\`.map()\` the subset. A hardcoded array goes stale the moment someone adds a union member: the new member is silently skipped and "covers every status" becomes a lie.
 
-**When to parameterize:**
-- 3 or more cases with identical test body shape
-- Only literal input values differ (not setup, not assertion shape)
-- The test proves "this rule applies to every member of set X" — an invariant across a list
-- Cycling through union variants, enum members, status matrices, error codes, boundary values
+**When to parameterize:** 3 or more cases whose body, setup and assertion shape are identical and only the literal input differs — union variants, enum members, status matrices, error codes, boundary values. The test proves one rule holds for every member of a set.
 
-**When NOT to parameterize (DAMP wins):**
-- Setup differs between cases (different stubs, different mock configurations)
-- Assertion shape differs (different expected values per case beyond a simple mapping)
-- Each case has distinct semantic meaning that deserves its own sentence-length name
-- Only 2 cases — just write them inline
+**When NOT to parameterize (DAMP wins):** setup differs between cases, assertion shape differs beyond a simple mapping, each case carries a distinct meaning deserving its own sentence-length name, or there are only 2 cases.
 
-**Grouping related variants:** Use \`describe.each\` when multiple \`it\` blocks share the same parameterization (e.g., "for each pause-capable status, [PAUSE is visible] and [click PAUSE fires onPause]"). The same list-derivation rule applies — derive from a static.
+**Grouping related variants:** \`describe.each\` when several \`it\` blocks share one parameterization (e.g. "for each pause-capable status, [PAUSE is visible] and [click PAUSE fires onPause]"). The same derive-from-a-static rule applies.
 
 \`\`\`typescript
-const PAUSEABLE_STATUSES = (
-  Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
-).filter((s) => questStatusMetadataStatics.statuses[s].isPauseable);
+const PAUSEABLE_STATUSES = STATUSES.filter(
+  (s) => questStatusMetadataStatics.statuses[s].isPauseable,
+);
 
 describe.each(PAUSEABLE_STATUSES)('pause-capable status: %s', (status) => {
   it('VALID: {status} => PAUSE button visible', () => { /* ... */ });
@@ -141,7 +96,6 @@ describe.each(PAUSEABLE_STATUSES)('pause-capable status: %s', (status) => {
 **Subset-membership expected values:** When \`it.each\` iterates the full list and each case's expected value is "is this member in a subset?" (e.g., "is this status pauseable?"), derive the subset by filtering the same statics source. One statics source drives BOTH the iteration list AND the expected-subset set — don't hand-maintain a second hardcoded copy.
 
 \`\`\`typescript
-const STATUSES = Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[];
 const PAUSEABLE_STATUSES = new Set(
   STATUSES.filter((s) => questStatusMetadataStatics.statuses[s].isPauseable),
 );
@@ -151,10 +105,7 @@ it.each(STATUSES)('VALID: {status: %s} => returns expected flag', (status) => {
 });
 \`\`\`
 
-**Name template rules:**
-- Use \`%s\` for the positional case value in the title template
-- Keep the \`VALID:\`/\`INVALID:\`/\`EMPTY:\` prefix — \`enforce-test-name-prefix\` validates the substituted name
-- Keep the \`{input} => result\` shape so substituted titles still read naturally`;
+**Name template rules:** use \`%s\` for the positional case value; keep the \`VALID:\`/\`INVALID:\`/\`EMPTY:\` prefix, which \`enforce-test-name-prefix\` validates on the SUBSTITUTED name; keep the \`{input} => result\` shape so substituted titles still read naturally.`;
 
   // Core Principles - Test Behavior Not Implementation
   const testBehavior = `\`\`\`typescript
@@ -169,35 +120,26 @@ it("VALID: {price: 100} => calls _calculateTax()")
   const unitVsIntegration = `**Unit Test (mock dependencies):**
 - Pure transformation logic you control
 - Business rules, data transformations, validation
+- **Unit test:** transformers, contracts, business logic
 
 **Integration Test (real dependencies):**
-- Logic expressed in external system's DSL/query language
+- Logic expressed in an external system's DSL/query language
 - Pattern matching, querying, selecting against external structures
-- The external system must interpret your logic to validate it works
+- The external system must interpret your logic for the test to prove anything
+- **Integration test:** ESLint rules, SQL queries, GraphQL resolvers, regex patterns, template engines
 
 \`\`\`typescript
-// ❌ WRONG - Unit test for DSL-based logic
-it('VALID: rule detects missing return type', () => {
-  const mockContext = {report: jest.fn()};
-  const fakeNode = {type: 'ArrowFunctionExpression'};
-  rule.create(mockContext)['some-selector'](fakeNode);
-  expect(mockContext.report).toHaveBeenCalled();
-  // CSS selector never validated against real AST!
+// ❌ WRONG - unit test for DSL logic: the CSS selector is never validated against a real AST
+rule.create({report: jest.fn()})['some-selector']({type: 'ArrowFunctionExpression'});
+
+// ✅ CORRECT - ESLint parses real code, so the selector is proven to match a real AST
+ruleTester.run('explicit-return-types', rule, {
+  invalid: [{
+    code: \`export const foo = () => { return 'bar'; }\`,
+    errors: [{messageId: 'missingReturnType'}],
+  }],
 });
-
-// ✅ CORRECT - Integration test with real parsing
-it('INVALID: exported arrow function without return type => reports violation', () => {
-  const code = \`export const foo = () => { return 'bar'; }\`;
-  const results = ruleTester.run('explicit-return-types', rule, {
-    invalid: [{code, errors: [{messageId: 'missingReturnType'}]}]
-  });
-  // ESLint parses real code, validates selectors match actual AST
-});
-\`\`\`
-
-**Integration test when:** ESLint rules, SQL queries, GraphQL resolvers, Regex patterns, Template engines
-
-**Unit test when:** Transformers, Contracts, Business logic`;
+\`\`\``;
 
   // Test Structure
   const testStructure = `**Always use describe blocks** - never comments:
@@ -215,7 +157,7 @@ describe("UserValidator", () => {
   })
 })
 
-// ❌ WRONG - Comments instead of describe
+// ❌ WRONG - a comment where a describe belongs
 describe("UserValidator", () => {
   // validateAge tests
   it("VALID: {age: 18} => returns true")
@@ -229,106 +171,51 @@ describe("UserValidator", () => {
 - \`EDGE:\` - Boundary conditions
 - \`EMPTY:\` - Null/undefined/empty inputs
 
-**Input/Output format:**
-- \`{input}\` => action verb + result
-- \`{price: 100, tax: 0.1}\` => returns 110
-- \`{user: null}\` => throws 'User required'`;
+**Input/Output format:** \`{input}\` => action verb + result. \`{price: 100, tax: 0.1}\` => returns 110. \`{user: null}\` => throws 'User required'.`;
 
   // Core Assertions
   const assertions = `**Use toStrictEqual for all objects/arrays** - catches property bleedthrough:
 
 \`\`\`typescript
-// ✅ CORRECT - Tests complete object
-expect(result).toStrictEqual({
-  id: '123',
-  name: 'John'
-  // Extra properties cause FAILURE
-});
+// ✅ CORRECT - one assertion over the complete object; an extra property FAILS
+expect(result).toStrictEqual({id: '123', name: 'John'});
 
-// ❌ WRONG - Multiple assertions miss extra properties
+// ❌ WRONG - per-property assertions miss extras: {id, name, password: 'leaked!'} PASSES
 expect(result.id).toBe('123');
 expect(result.name).toBe('John');
-// {id, name, password: 'leaked!'} would PASS!
 
-// ❌ WRONG - Weak matchers
+// ❌ WRONG - weak matchers
 expect(result).toMatchObject({id: '123'}); // Extra properties pass
 expect(output).toContain('Error'); // Superset passes
-expect(config.includes('parser')).toBe(true); // Could be anywhere
-expect(typeof tsconfig.compilerOptions).toBe('object'); // Any object!
 \`\`\`
 
-**Test values, not existence:**
-\`\`\`typescript
-// ✅ CORRECT
-expect(userId).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+Assert VALUES, not existence — \`expect(userId).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479')\`, never \`.toBeDefined()\`. Assert CONTENT, not count — \`expect(items).toStrictEqual(['apple', 'banana'])\`, never \`.toHaveLength(2)\`. Assert the COMPLETE error object — \`{name, message, code}\`, no extras allowed.
 
-// ❌ WRONG
-expect(userId).toBeDefined(); // Could be any value!
-\`\`\`
+**Forbidden matchers - NEVER USE THESE (they let bugs through):**
 
-**Test content, not just count:**
-\`\`\`typescript
-// ✅ CORRECT
-expect(items).toStrictEqual(['apple', 'banana']);
-
-// ❌ WRONG
-expect(items).toHaveLength(2); // Could be wrong items!
-\`\`\`
-
-**Forbidden matchers - NEVER USE THESE (they allow bugs through):**
-
-\`\`\`typescript
-// ❌ FORBIDDEN MATCHERS
-expect().toEqual()                  // → Use .toStrictEqual()
-expect().toMatchObject()            // → Use .toStrictEqual()
-expect().toContain()                // → Use .toStrictEqual() for arrays, .toBe() or .toMatch(/^exact$/u) for strings
-expect().toBeTruthy()               // → Use .toBe(true)
-expect().toBeFalsy()                // → Use .toBe(false)
-expect().toMatch('text')            // → Use .toMatch(/^exact text$/u)
-expect().toHaveProperty('key')      // → Test actual value with .toBe()
-expect().toHaveLength(5)            // → Test complete array with .toStrictEqual()
-expect().toBeDefined()              // → Test actual value
-expect().toBeUndefined()            // → Use .toBe(undefined)
-expect.objectContaining({...})      // → Test complete object
-expect.arrayContaining([...])       // → Test complete array
-expect.stringContaining('text')     // → Use .toBe('exact full string') or .toMatch(/^exact$/u)
-expect.any(String)                  // → Test actual string value
-expect.any(Number)                  // → Test actual number
-expect.any(Object)                  // → Test complete object shape
-// EXCEPTION: expect.any(Function) is OK - can't compare functions
-
-// ❌ FORBIDDEN - Negated matchers (.not.*)
-expect(x).not.toBe(y)              // → Assert the actual expected value: .toBe(correctValue)
-expect(x).not.toHaveBeenCalled()   // → Use .toHaveBeenCalledTimes(0) paired with what WAS called
-expect(x).not.toContain(y)         // → Use .toStrictEqual() on the complete collection
-
-// ❌ FORBIDDEN - Tautological assertions
-expect(true).toBe(true)            // → Assert on actual return value, not a literal
-expect(false).toBe(false)          // → Assert on actual return: expect(result).toBe(false)
-
-// ❌ FORBIDDEN - Object.keys() in expect
-expect(Object.keys(obj)).toStrictEqual([...])  // → expect(obj).toStrictEqual({key: val, ...}) - assert keys AND values
-
-// ❌ FORBIDDEN - String.includes() in expect
-expect(str.includes('x')).toBe(true)           // → expect(str).toBe('exact full string')
-expect(String(x).includes('y')).toBe(true)     // → expect(String(x)).toBe('exact full string')
-
-// ❌ FORBIDDEN - Unpaired toHaveBeenCalledTimes
-expect(fn).toHaveBeenCalledTimes(2)            // → Must be paired with toHaveBeenCalledWith() in same test
-
-// ✅ CORRECT ALTERNATIVES
-expect(result).toStrictEqual({id: '123', name: 'John'});
-expect(flag).toBe(true);  // Not toBeTruthy()
-expect(text).toMatch(/^Error: Invalid input$/u);  // Full message with anchors
-expect(count).toBe(5);    // Exact value
-expect(['a', 'b', 'c']).toStrictEqual(['a', 'b', 'c']);  // Complete array
-expect(error).toStrictEqual({
-  name: 'ConnectionError',
-  message: 'Connection failed',
-  code: 'ECONNREFUSED'
-  // ALL error properties - no extras allowed
-});
-\`\`\``;
+| Forbidden | Use instead |
+|---|---|
+| \`.toEqual()\` | \`.toStrictEqual()\` |
+| \`.toMatchObject()\` | \`.toStrictEqual()\` |
+| \`.toContain()\` | \`.toStrictEqual()\` for arrays; \`.toBe()\` or \`.toMatch(/^exact$/u)\` for strings |
+| \`.toBeTruthy()\` / \`.toBeFalsy()\` | \`.toBe(true)\` / \`.toBe(false)\` |
+| \`.toMatch('text')\` | \`.toMatch(/^exact text$/u)\` — anchored, full message |
+| \`.toHaveProperty('key')\` | \`.toBe()\` on the actual value |
+| \`.toHaveLength(5)\` | \`.toStrictEqual()\` on the complete array |
+| \`.toBeDefined()\` | assert the actual value |
+| \`.toBeUndefined()\` | \`.toBe(undefined)\` |
+| \`expect.objectContaining({...})\` | assert the complete object |
+| \`expect.arrayContaining([...])\` | assert the complete array |
+| \`expect.stringContaining('text')\` | \`.toBe('exact full string')\` or \`.toMatch(/^exact$/u)\` |
+| \`expect.any(String / Number / Object)\` | the actual value, or the complete shape. EXCEPTION: \`expect.any(Function)\` is OK — functions cannot be compared |
+| \`expect(x).not.toBe(y)\` | \`.toBe(correctValue)\` — assert what it IS |
+| \`expect(x).not.toHaveBeenCalled()\` | \`.toHaveBeenCalledTimes(0)\`, paired with what WAS called |
+| \`expect(x).not.toContain(y)\` | \`.toStrictEqual()\` on the complete collection |
+| \`expect(true).toBe(true)\` | assert the actual return value, never a literal |
+| \`expect(Object.keys(obj)).toStrictEqual([...])\` | \`expect(obj).toStrictEqual({key: val})\` — keys AND values |
+| \`expect(str.includes('x')).toBe(true)\` | \`expect(str).toBe('exact full string')\` |
+| \`expect(typeof x).toBe('object')\` | the complete value — any object passes a typeof check |
+| \`expect(fn).toHaveBeenCalledTimes(2)\` alone | pair it with \`.toHaveBeenCalledWith()\` in the same test |`;
 
   // Proxy Architecture - Core Rule
   const proxyCore = `**Mock only at I/O boundaries. Everything else runs REAL.**
@@ -342,16 +229,14 @@ All business logic, transformers, guards, brokers, bindings, and React hooks run
   // What Gets Mocked diagram
   const mockingDiagram = `\`\`\`
 Widget Test:
-┌────────────────────────────────────────────┐
-│ Widget                     (REAL)          │ ← Test renders this
-│   └─ useBinding           (REAL)          │ ← Real React hook
-│       └─ Broker           (REAL)          │ ← Real business logic
-│           ├─ Date.now()    (MOCKED)       │ ← Mock global function
-│           ├─ Transformer  (REAL)          │ ← Real pure function
-│           ├─ Guard        (REAL)          │ ← Real boolean check
-│           └─ httpAdapter  (REAL)          │ ← Real adapter code
-│               └─ axios    (MOCKED)        │ ← Mock npm dependency (I/O)
-└────────────────────────────────────────────┘
+Widget                   (REAL)     ← Test renders this
+  └─ useBinding          (REAL)     ← Real React hook
+      └─ Broker          (REAL)     ← Real business logic
+          ├─ Date.now()  (MOCKED)   ← Mock global function
+          ├─ Transformer (REAL)     ← Real pure function
+          ├─ Guard       (REAL)     ← Real boolean check
+          └─ httpAdapter (REAL)     ← Real adapter code
+              └─ axios   (MOCKED)   ← Mock npm dependency (I/O)
 
 Only 2 things mocked: I/O npm dependencies + global functions
 *Exception: DSL/query adapters (ESLint, SQL, GraphQL) run fully real to validate logic
@@ -364,10 +249,10 @@ Only 2 things mocked: I/O npm dependencies + global functions
 | Errors | ❌ No | Throw directly in tests |
 | Adapters | ✅ Sometimes | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
 | Brokers | ✅ Sometimes | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked |
-| Guards | ❌ No | Pure boolean functions - run real, no mocking needed |
+| Guards | ❌ No | Pure boolean functions - run real. Optional proxy only to build semantic test data |
 | Transformers | ❌ No | Pure data transformation - run real, no mocking needed |
 | Statics | ❌ No | Immutable values - test with actual values |
-| State | ✅ Yes | Spy on methods, clear state, mock external stores |
+| State | ✅ Yes | Spy on methods, clear state in the constructor, mock external stores |
 | Bindings | ✅ Yes | Delegate to broker proxies |
 | Middleware | ✅ Yes | Delegate to adapter proxies |
 | Responders | ✅ Yes | Delegate to broker proxies |
@@ -375,16 +260,7 @@ Only 2 things mocked: I/O npm dependencies + global functions
 | Flows/Startup | ✅ Sometimes | Integration tests with .integration.proxy.ts for complex setup (spawning processes, clients) |`;
 
   // Proxy Patterns Overview
-  const proxyPatterns = `**Detailed proxy patterns for each folder type** - Use \`get-folder-detail({ folderType: "..." })\` to see specific examples:
-
-- **adapters/**: Mock npm dependencies (axios, fs, etc.) at I/O boundaries
-- **brokers/**: Compose adapter proxies, mock globals if code uses them
-- **bindings/**: Delegate to broker proxies
-- **widgets/**: Delegate to bindings + provide UI triggers/selectors
-- **responders/**: Delegate to broker proxies
-- **middleware/**: Delegate to adapter proxies
-- **state/**: Spy on methods, clear state in constructor
-- **guards/** (optional): Provide semantic data builders for test scenarios
+  const proxyPatterns = `**Detailed proxy patterns for each folder type** - Use \`get-folder-detail({ folderType: "..." })\` to see specific examples: adapters, brokers, bindings, widgets, responders, middleware, state, guards.
 
 **Empty Proxy Pattern:**
 
@@ -401,82 +277,45 @@ Use \`Record<PropertyKey, never>\` for type safety.`;
 \`\`\`typescript
 // ✅ CORRECT - Fresh proxy per test, created BEFORE calling implementation
 it('VALID: {userId} => fetches user', async () => {
-  const proxy = userFetchBrokerProxy(); // 1. Create proxy FIRST
-  proxy.setupUserFetch({userId, user});  // 2. Setup mocks
-  const result = await userFetchBroker({userId}); // 3. Call implementation
+  const proxy = userFetchBrokerProxy();            // 1. Create proxy FIRST
+  proxy.setupUserFetch({userId, user});            // 2. Setup mocks
+  const result = await userFetchBroker({userId});  // 3. Call implementation
   expect(result).toStrictEqual(user);
 });
 
-// ❌ WRONG - Shared proxy
-const proxy = userFetchBrokerProxy(); // Outside test
-it('test 1', () => { /* ... */ });
-it('test 2', () => { /* ... */ }); // Stale mocks!
+// ❌ WRONG - a proxy declared outside the tests leaves test 2 with stale mocks
+const proxy = userFetchBrokerProxy();
 \`\`\`
 
-**Why:** Each test needs isolated mocks. Shared proxies create test interdependencies.
+**Why that order:** a proxy sets up its mocks in its constructor (the function body — no \`beforeEach\` hooks, no \`bootstrap()\` methods). Call the implementation first and it runs with nothing mocked. Share one proxy across tests and those tests depend on each other.
 
-**CRITICAL ORDERING:** Proxy MUST be instantiated BEFORE calling the implementation under test. Proxies set up mocks in their constructor - if you call the implementation first, it runs without mocked dependencies.
+**Never write manual mock cleanup.** \`@dungeonmaster/testing\` resets every mock between tests. A \`mockReset()\`/\`mockClear()\` call in a test or proxy is redundant.
 
-**Assignment vs Just Calling:** assign the proxy to a variable when you call setup methods on it (the common case). Just call it without assigning when it returns \`{}\` and has no setup methods — rare, usually pure functions and transformers.
-
-**Constructor setup:** Proxies set up all mocks in their constructor (function body). No beforeEach hooks, no bootstrap() methods.
+**Assignment vs just calling:** assign the proxy to a variable when you call setup methods on it (the common case). Just call it without assigning when it returns \`{}\` and has no setup methods — rare, usually pure functions and transformers.
 
 A constructor-level \`calledWith([])\` catch-all answers EVERY call you did not describe more specifically, which silences the throw. Stage one only when a parent proxy builds this adapter without describing any call of its own, or when a spy exists purely to record-and-swallow output the test asserts separately via \`callsMatching\`.
 
-\`\`\`typescript
-// ✅ CORRECT - Setup in constructor with registerMock
-export const httpAdapterProxy = () => {
-  const handle = registerMock({ fn: axios }); // Setup here
-  return {
-    returns: ({ url, data }) => handle.calledWith([url]).resolves({ data }),
-  };
-};
-\`\`\`
-
-**No direct mock manipulation:** Tests use semantic proxy methods, never \`registerMock\` or \`jest.mocked()\` directly in test files.
+**No direct mock manipulation:** tests call semantic proxy methods. \`registerMock\`, \`jest.mocked()\`, \`jest.spyOn()\` and \`jest.mock()\` belong inside the proxy, never in a test file.
 
 \`\`\`typescript
-// ✅ CORRECT - Semantic proxy method (registerMock is inside the proxy)
+// ✅ CORRECT - semantic method; registerMock lives inside the proxy
 const proxy = axiosGetAdapterProxy();
 proxy.returns({url: UrlStub('/users/123'), data: user});
 
-// ❌ WRONG - Direct mock manipulation in test
-const mockAxios = jest.mocked(axios.get);
-mockAxios.mockResolvedValue({data: user});
-
-// ❌ WRONG - registerMock in test file (belongs in proxy)
-const handle = registerMock({ fn: readFile });
-handle.calledWith([]).resolves(Buffer.from(''));
+// ❌ WRONG - either of these in a test file
+jest.mocked(axios.get).mockResolvedValue({data: user});
+registerMock({ fn: readFile }).calledWith([]).resolves(Buffer.from(''));
 \`\`\``;
 
   // Child Proxy Creation
-  const childProxies = `**When to assign child proxy to variable:**
-- You call methods on it (delegation pattern)
-- You use it in return object
+  const childProxies = `**When to assign child proxy to variable:** you call methods on it (the delegation pattern), or you use it in the return object.
 
-**When to just call without assignment:**
-- Empty proxies returning \`{}\`
-- Only needed for \`enforce-proxy-child-creation\` rule
-- Never interact with child proxy
+**When to just call it without assignment:** empty proxies returning \`{}\`, needed only to satisfy \`enforce-proxy-child-creation\`, which you never interact with.
 
-\`\`\`typescript
-// ✅ CORRECT - Assign when used
-export const userProfileBrokerProxy = () => {
-  const httpProxy = httpAdapterProxy(); // Used below
-  return {
-    setupUserFetch: ({userId, user}) => {
-      httpProxy.returns({url: \`/users/\${userId}\`, data: user});
-    }
-  };
-};
-\`\`\`
-
-**Assign before you call setup on it:** \`const httpProxy = httpAdapterProxy(); httpProxy.returns(...)\` — not chained off the constructor call. \`enforce-proxy-patterns\` only recognises the Identifier form.`;
+Assign first, then call setup on the Identifier — \`const httpProxy = httpAdapterProxy(); httpProxy.returns(...)\`. Never chain setup off the constructor call: \`enforce-proxy-patterns\` only recognises the Identifier form. The Global Function Mocking example below shows the whole shape.`;
 
   // Global Function Mocking
-  const globalMocking = `ANY proxy can mock globals if the code being tested uses them. Not just brokers!
-
-Use \`registerMock\` for globals the same way you use it for module mocks:
+  const globalMocking = `ANY proxy can mock globals if the code being tested uses them. Not just brokers! Use \`registerMock\` exactly as you do for module mocks:
 
 \`\`\`typescript
 import { randomUUID } from 'crypto';
@@ -484,7 +323,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const userCreateBrokerProxy = () => {
   const httpProxy = httpAdapterProxy();
-  // registerMock works for globals too — calls are matched on arguments, so no collisions
+  // calls are matched on arguments, so globals collide with nothing
   const uuidHandle = registerMock({ fn: randomUUID });
   uuidHandle.calledWith([]).returns('f47ac10b-...'); // no args to key on — the honest catch-all
 
@@ -502,26 +341,15 @@ export const userCreateBrokerProxy = () => {
   const proxyEncapsulation = `**CRITICAL:** Proxies must expose semantic methods, NOT child proxies. Tests should never chain through multiple proxy levels.
 
 \`\`\`typescript
-// ❌ WRONG - Exposing child proxies forces tests to know internal structure
 export const questExecuteBrokerProxy = () => {
   const pathseekerProxy = pathseekerPhaseBrokerProxy();
   const codeweaverProxy = codeweaverPhaseBrokerProxy();
 
-  return {
-    pathseekerProxy,  // ❌ Exposes child
-    codeweaverProxy,  // ❌ Exposes child
-  };
-};
+  // ❌ WRONG - returning { pathseekerProxy, codeweaverProxy } forces every test to write:
+  // pathseekerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({...});
 
-// Test must navigate internal structure:
-pathseekerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({...});
-// ↑ This is BAD - test knows 5+ levels of internal proxy structure
-
-// ✅ CORRECT - Expose semantic methods that delegate internally
-export const questExecuteBrokerProxy = () => {
-  const pathseekerProxy = pathseekerPhaseBrokerProxy();
-  const codeweaverProxy = codeweaverPhaseBrokerProxy();
-
+  // ✅ CORRECT - one semantic method that delegates internally, so the test writes only:
+  //   proxy.setupQuestFile({questJson});
   return {
     setupQuestFile: ({questJson}: {questJson: string}): void => {
       pathseekerProxy.setupQuestFile({questJson});
@@ -529,15 +357,9 @@ export const questExecuteBrokerProxy = () => {
     },
   };
 };
-
-// Test uses semantic method - no knowledge of internal structure:
-proxy.setupQuestFile({questJson});  // ✅ Clean, semantic
 \`\`\`
 
-**Why:**
-1. **Encapsulation**: Each test only knows its direct proxy
-2. **Maintainability**: Internal restructuring doesn't break tests
-3. **Readability**: Tests describe WHAT scenario, not HOW to navigate proxy internals`;
+**Why:** each test knows only its direct proxy, internal restructuring stops breaking tests, and a test then describes WHAT scenario it sets up rather than HOW to navigate proxy internals.`;
 
   // Statics Proxy Pattern
   const staticsProxy = `**Statics proxies** override immutable values for edge case testing. Use \`Reflect.set()\` to mutate readonly constants at runtime, or \`registerSpyOn\` for getters.
@@ -562,20 +384,13 @@ export const apiStaticsProxy = () => {
   const noMagicNumbers = `**Extract magic numbers to statics files.** Tests and implementation should reference statics, not inline constants.
 
 \`\`\`typescript
-// ❌ WRONG - Magic number in contract
+// ❌ WRONG - magic number in the contract
 export const exitCodeContract = z.number().int().min(0).max(255).brand<'ExitCode'>();
 
-// ✅ CORRECT - Extract to statics
-// statics/exit-code/exit-code-statics.ts
-export const exitCodeStatics = {
-  limits: {
-    max: 255,
-  },
-} as const;
+// ✅ CORRECT - statics/exit-code/exit-code-statics.ts
+export const exitCodeStatics = { limits: { max: 255 } } as const;
 
-// contracts/exit-code/exit-code-contract.ts
-import {exitCodeStatics} from '../../statics/exit-code/exit-code-statics';
-
+// ✅ contracts/exit-code/exit-code-contract.ts
 export const exitCodeContract = z
   .number()
   .int()
@@ -587,51 +402,33 @@ export const exitCodeContract = z
 **Same principle applies to lists and enumerations** — see Parameterize State Matrices above for the full \`it.each\` derive-from-statics rule.`;
 
   // EndpointMock (StartEndpointMock)
-  const endpointMock = `### When to Use \`StartEndpointMock\`
+  const endpointMock = `Use \`StartEndpointMock\` for **any test that needs to mock HTTP responses** — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter. **Always via the broker proxy layer** — never call it directly in a test file.
 
-Use \`StartEndpointMock\` for **any test that needs to mock HTTP responses** — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter.
+**Do NOT use it for:** server-side tests (the server package mocks Hono's \`serve()\`, not fetch), or non-HTTP I/O (filesystem, child process — those use adapter proxies with \`registerMock\`).
 
-**Always use via the broker proxy layer** — never call \`StartEndpointMock\` directly in test files.
-
-### When NOT to Use \`StartEndpointMock\`
-
-- **Server-side tests** — The server package tests mock Hono's \`serve()\`, not fetch.
-- **Non-HTTP I/O** — Filesystem, child process, etc. use adapter proxies (\`registerMock\`).
-
-### JSON vs Non-JSON Responses
-
-- \`resolves({ data })\` — 200 OK with JSON body
-- \`responds({ status, body })\` — JSON response with explicit status code (4xx, 5xx, 201, 204)
-- \`respondRaw({ status, body, headers })\` — Non-JSON payloads (binary, text, HTML)
-- \`networkError()\` — Simulates connection refused / DNS failure
+| Method | Response |
+|---|---|
+| \`resolves({ data })\` | 200 OK with a JSON body |
+| \`responds({ status, body })\` | JSON with an explicit status code (4xx, 5xx, 201, 204) |
+| \`respondRaw({ status, body, headers })\` | Non-JSON payloads (binary, text, HTML) |
+| \`networkError()\` | Connection refused / DNS failure |
 
 \`\`\`typescript
-// Broker proxy using JSON helpers
 export const projectFetchBrokerProxy = () => {
   const endpoint = StartEndpointMock.listen({method: 'get', url: '/api/projects'});
 
   return {
-    setupProjects: ({projects}: { projects: readonly Project[] }): void => {
-      endpoint.resolves({data: projects});
-    },
-    setupNotFound: (): void => {
-      endpoint.responds({status: 404, body: {error: 'Not found'}});
-    },
+    setupProjects: ({projects}: { projects: readonly Project[] }): void =>
+      endpoint.resolves({data: projects}),
+    setupNotFound: (): void =>
+      endpoint.responds({status: 404, body: {error: 'Not found'}}),
   };
 };
 \`\`\`
 
-### The Full Proxy Chain
+**The full chain:** Test → Widget Proxy → Binding Proxy → Broker Proxy → \`StartEndpointMock.listen()\` → MSW. Each layer delegates setup to the layer below, and the broker proxy is the only layer that knows about \`StartEndpointMock\`.
 
-\`\`\`
-Test → Widget Proxy → Binding Proxy → Broker Proxy → StartEndpointMock.listen() → MSW
-\`\`\`
-
-Each layer delegates setup to the layer below. The broker proxy is the only layer that knows about \`StartEndpointMock\`.
-
-### MSW Lifecycle
-
-\`StartEndpointMockSetup\` manages the MSW server lifecycle automatically (start, per-test handler reset, close). To enable EndpointMock in a package, add \`start-endpoint-mock-setup.ts\` to \`setupFilesAfterEnv\` in \`jest.config.js\`.`;
+**MSW lifecycle:** \`StartEndpointMockSetup\` handles start, per-test handler reset and close. To enable EndpointMock in a package, add \`start-endpoint-mock-setup.ts\` to \`setupFilesAfterEnv\` in \`jest.config.js\`.`;
 
   // E2E Testing (Playwright)
   const e2eTesting = `E2E tests run the full stack (real server, real browser, real WebSocket). Only external dependencies (LLMs, third-party APIs) are mocked.
@@ -652,19 +449,17 @@ Playwright's \`webServer\` command must name a NO-WATCH script, and the block mu
 
 ### Assert the Full Transition
 
-Every user action that changes the UI must assert **three things**:
-
-1. **Request correctness** — the right HTTP method, URL, and body were sent
-2. **Old UI disappeared** — previous state elements are gone
-3. **New UI appeared** — expected elements are visible
+Every user action that changes the UI must assert **three things**: the request was correct (method, URL, body), the old UI disappeared, and the new UI appeared.
 
 \`\`\`typescript
-// ✅ CORRECT — checks request, disappearance, AND appearance
+// 1. request — set the watcher up BEFORE the click
+const patchPromise = page.waitForRequest(
+  (req) => req.method() === 'PATCH' && req.url().includes(\`/api/items/\${itemId}\`),
+);
 await page.getByText('Submit').click();
+expect((await patchPromise).postDataJSON()).toHaveProperty('status', 'active');
 
-const req = await patchPromise;
-expect(req.postDataJSON()).toHaveProperty('status', 'active');
-
+// 2. old UI gone, 3. new UI present
 await expect(page.getByText('Are you sure?')).not.toBeVisible({timeout: 5000});
 await expect(page.getByTestId('dashboard-panel')).toBeVisible({timeout: 10_000});
 \`\`\`
@@ -673,13 +468,7 @@ await expect(page.getByTestId('dashboard-panel')).toBeVisible({timeout: 10_000})
 
 ### Never Sleep, Always Wait for Elements
 
-\`\`\`typescript
-// ❌ WRONG — arbitrary sleep
-await page.waitForTimeout(3000);
-
-// ✅ CORRECT — wait for the specific element
-await expect(page.getByTestId('panel')).toBeVisible({timeout: 10_000});
-\`\`\`
+Never \`await page.waitForTimeout(3000)\`. Always wait for the specific element: \`await expect(page.getByTestId('panel')).toBeVisible({timeout: 10_000})\`.
 
 ### Drive State via Server/Filesystem Writes — ONLY for preconditions
 
@@ -701,16 +490,7 @@ await expect(page.getByText('Begin Quest modal')).toBeVisible();
 
 ### Observe Requests, Don't Intercept
 
-Use \`page.waitForRequest\` to observe outgoing requests — never \`page.route\` (intercepting is banned per the rule above).
-
-\`\`\`typescript
-const patchPromise = page.waitForRequest(
-  (req) => req.method() === 'PATCH' && req.url().includes(\`/api/items/\${itemId}\`),
-);
-await page.getByText('Save').click();
-const patchReq = await patchPromise;
-expect(patchReq.postDataJSON()).toHaveProperty('status', 'active');
-\`\`\`
+Use \`page.waitForRequest\` to observe outgoing requests, as in the transition example above — never \`page.route\`. Intercepting is banned for the same reason as PATCHing past a button: it replaces the thing the test is supposed to prove.
 
 ### Each Test Owns Its State
 
@@ -733,48 +513,10 @@ Just as \`src/\` is for application code, \`test/\` is for test infrastructure. 
 
 ### The \`.harness.ts\` Pattern
 
-Harness files are the e2e/integration equivalent of \`.proxy.ts\` files:
+Harness files are the e2e/integration equivalent of \`.proxy.ts\` files: a factory function, created at describe scope, exposing semantic methods and owning its own lifecycle. Tests never write \`beforeEach\`/\`afterEach\` — a harness declares optional \`beforeEach\` and \`afterEach\` properties, and a ts-jest AST transformer auto-wires those hooks.
 
 \`\`\`typescript
-// test/harnesses/quest/quest.harness.ts
-export const questHarness = () => {
-  return {
-    create: async ({request, guildId}) => {
-      const response = await request.post('/api/quests', {
-        data: {guildId, title: 'Test Quest', userRequest: 'Build feature'},
-      });
-      return response.json();
-    },
-    approve: async ({request, questId}) => {
-      await request.patch(\`/api/quests/\${questId}\`, {data: {status: 'approved'}});
-    },
-    clean: async ({request}) => { /* ... */ },
-  };
-};
-\`\`\`
-
-**Key properties:** Factory function, created at describe scope, semantic methods, owns its own lifecycle.
-
-### Import Boundaries
-
-- \`*.harness.ts\` → node:fs/path/os, contracts/stubs, other harnesses, test framework APIs
-- \`*.e2e.ts\` / \`*.integration.test.ts\` → harnesses and contracts/stubs only
-- **Scenario files CANNOT import:** node:fs, node:path, node:os, node:child_process, .proxy.ts files
-- **Harness files CANNOT import:** .proxy.ts files, contract value imports (use .stub.ts)
-- **Unit test files CANNOT import:** .harness.ts files
-
-### Mock Boundary Rules
-
-Only mock external services that are: not under your control, have no test mode, and are non-deterministic or costly.
-
-**Valid mocks:** LLM CLI → fake binary, payment processor without sandbox → stub HTTP server
-**Invalid mocks:** Your own HTTP endpoints, your own WebSocket messages, your own brokers/adapters
-
-### Harness Lifecycle
-
-Tests never write \`beforeEach\`/\`afterEach\`. Harnesses own their lifecycle by declaring optional \`beforeEach\` and \`afterEach\` properties. A ts-jest AST transformer auto-wires these hooks.
-
-\`\`\`typescript
+// test/harnesses/guild/guild.harness.ts
 export const guildHarness = () => {
   const createdGuildIds: string[] = [];
 
@@ -796,6 +538,21 @@ export const guildHarness = () => {
 \`\`\`
 
 **For Playwright:** Spec files use \`wireHarnessLifecycle()\` from test fixtures. Spec files MUST import \`{ test, expect }\` from the UI package's web-relative e2e fixtures (e.g. \`test/harnesses/e2e-fixtures\`), NOT from \`@playwright/test\` and NOT from \`@dungeonmaster/testing/e2e\`.
+
+### Import Boundaries
+
+- \`*.harness.ts\` → node:fs/path/os, contracts/stubs, other harnesses, test framework APIs
+- \`*.e2e.ts\` / \`*.integration.test.ts\` → harnesses and contracts/stubs only
+- **Scenario files CANNOT import:** node:fs, node:path, node:os, node:child_process, .proxy.ts files
+- **Harness files CANNOT import:** .proxy.ts files, contract value imports (use .stub.ts)
+- **Unit test files CANNOT import:** .harness.ts files
+
+### Mock Boundary Rules
+
+Only mock external services that are: not under your control, have no test mode, and are non-deterministic or costly.
+
+**Valid mocks:** LLM CLI → fake binary, payment processor without sandbox → stub HTTP server
+**Invalid mocks:** Your own HTTP endpoints, your own WebSocket messages, your own brokers/adapters
 
 ### Scenario File Rules
 
@@ -851,9 +608,8 @@ Describing fewer arguments than the call passes is a PREFIX match — \`['/a/f.j
 
 **Check the arguments you describe are the ones the function really receives.** \`calledWith([X])\` only fires if X equals what the npm function is actually called with, and callers often change it on the way down — a broker joining a cwd onto a glob pattern. Read the adapter to confirm.
 
-**Adapter proxy example (I/O boundary):**
-
 \`\`\`typescript
+// Adapter proxy at an I/O boundary
 export const fsWriteFileAdapterProxy = () => {
   const handle = registerMock({ fn: writeFile });
 
@@ -867,18 +623,7 @@ export const fsWriteFileAdapterProxy = () => {
 };
 \`\`\`
 
-For globals, use \`registerMock\` the same way — see Global Function Mocking above.
-
-\`\`\`typescript
-// ❌ WRONG - jest.mocked / jest.spyOn / jest.mock are all forbidden in proxies
-const mockReadFile = jest.mocked(readFile);
-jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-...');
-jest.mock('fs/promises');
-
-// ✅ CORRECT - registerMock replaces all three
-const handle = registerMock({ fn: readFile });
-const uuidHandle = registerMock({ fn: randomUUID });
-\`\`\`
+Globals work identically — see Global Function Mocking above.
 
 ### registerSpyOn — Spy on Global Object Methods
 
@@ -896,40 +641,23 @@ const timerSpy = registerSpyOn({ object: globalThis, method: 'setTimeout', passt
 
 **Common targets:** \`process.stdout.write\`, \`Date.now\`, \`crypto.randomUUID\`, \`Math.random\`
 
-### registerModuleMock — Replace Module Before Load
+### The Rest of \`@dungeonmaster/testing/register-mock\`
 
-Use \`registerModuleMock\` to replace an entire module before it loads. Runtime no-op — the AST transformer hoists it as \`jest.mock()\`.
-
-\`\`\`typescript
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
-
-registerModuleMock({
-  module: 'eslint-plugin-jest',
-  factory: () => ({ rules: {} }),
-});
-\`\`\`
-
-**When to use:** A module must be replaced before import to prevent crashes or side effects.
-
-### requireActual — Access Real Module Under Mock
-
-Use \`requireActual\` to access real module exports when a module is mocked. Wraps \`jest.requireActual\`.
+| Export | Reach for it when |
+|---|---|
+| \`registerModuleMock({ module, factory })\` | A whole module must be replaced BEFORE it loads, to stop a crash or a side effect. Runtime no-op — the AST transformer hoists it as \`jest.mock()\`. |
+| \`requireActual({ module })\` | A parent proxy needs the real implementation of something a child proxy mocked. Wraps \`jest.requireActual\`. |
+| \`registerIsolateModules\` | Testing an entry point with top-level side effects. Wraps \`jest.isolateModules\` + \`jest.doMock\`. |
 
 \`\`\`typescript
-import { requireActual } from '@dungeonmaster/testing/register-mock';
+registerModuleMock({ module: 'eslint-plugin-jest', factory: () => ({ rules: {} }) });
 
 const realPath = requireActual({ module: 'path' });
 handle.calledWith([]).implement((...args) => realPath.join(...args));
-\`\`\`
-
-**When to use:** A parent proxy needs the real implementation of something mocked by a child proxy.
-
-### registerIsolateModules
-
-For testing entry points with top-level side effects, see \`@dungeonmaster/testing/register-mock\` — \`registerIsolateModules\` wraps \`jest.isolateModules\` + \`jest.doMock\`.`;
+\`\`\``;
 
   // Integration Testing
-  const integrationTesting = `**CRITICAL:** Integration tests are **ONLY for startup files and flows**. Use \`.integration.test.ts\` extension.
+  const integrationTesting = `**CRITICAL:** Integration tests are **ONLY for startup files and flows**. Use \`.integration.test.ts\` extension, colocated with the file under test — never in a separate test directory.
 
 - **Startup files** — validate that the startup wires up the entire application correctly.
 - **Flows** — validate that the flow wires its responders/middleware/adapters correctly across the slice it owns (e.g., HTTP route → responder → broker, MCP request → handler, hook entry → responder).
@@ -937,21 +665,13 @@ For testing entry points with top-level side effects, see \`@dungeonmaster/testi
 **All other code** (brokers, guards, transformers, widgets, responders, adapters, etc.) uses **unit tests** (\`.test.ts\`) with colocated proxies.
 
 \`\`\`
-// ✅ CORRECT - Co-located with the file under test
 src/startup/
   start-my-app.ts
-  start-my-app.integration.test.ts   // <-- Co-located
-  start-my-app.proxy.ts              // <-- If needed for complex setup
+  start-my-app.integration.test.ts     // ✅ colocated
+  start-my-app.proxy.ts                // ✅ only when setup is complex (spawning processes, creating clients)
 
-src/flows/quest/
-  quest-flow.ts
-  quest-flow.integration.test.ts     // <-- Co-located
-
-// ❌ WRONG - Separate test directory
-test/start-my-app.integration.test.ts
+test/start-my-app.integration.test.ts  // ❌ separate test directory
 \`\`\`
-
-**When complex setup is needed** (spawning processes, creating clients), startup/flow integration tests can use a colocated proxy.
 
 **Debugging integration test timeouts:**
 
@@ -975,28 +695,18 @@ Integration tests that spawn processes or poll for state can time out silently �
   const noHooksConditionals = `**CRITICAL:** \`beforeEach\`, \`afterEach\`, \`beforeAll\`, \`afterAll\` are forbidden. All setup and teardown must be inline in each test.
 
 \`\`\`typescript
-// ❌ WRONG - Hooks forbidden
-beforeEach(() => {
-  fs.mkdirSync(tempDir, {recursive: true});
-});
-
-// ✅ CORRECT - Inline setup/teardown
+// ✅ CORRECT - setup and cleanup inline, inside the test
 it('VALID: test case => expected result', () => {
-  fs.mkdirSync(tempDir, {recursive: true}); // Inline setup
+  fs.mkdirSync(tempDir, {recursive: true});
   // test logic
-  fs.rmSync(tempDir, {recursive: true, force: true}); // Inline cleanup
+  fs.rmSync(tempDir, {recursive: true, force: true});
   expect(result).toBe(expected);
 });
 \`\`\`
 
-**No conditionals in tests:**
-\`\`\`typescript
-// ❌ WRONG - Conditional logic
-if (result.hasError) {
-  expect(result.error).toBe('Expected error');
-}
+**No conditionals in tests.** An \`if (result.hasError) { expect(...) }\` asserts nothing when the branch is not taken. Write one test per path instead:
 
-// ✅ CORRECT - Separate tests for different paths
+\`\`\`typescript
 it('VALID: {input: success state} => returns value', () => {
   expect(result).toStrictEqual({value: 'Expected value'});
 });
@@ -1019,25 +729,12 @@ it('ERROR: {input: error state} => returns error', () => {
 - **React/UI:** dynamic JSX values, conditional rendering (\`&&\`/ternary), event handlers (onClick/onChange/onSubmit)
 
 \`\`\`typescript
-// Manual analysis: Needs 3 tests
 const processUser = (user: User | null): string => {
-  if (!user) return 'No user';        // Branch 1
-  if (user.isAdmin) return 'Admin';   // Branch 2
-  return user.name;                   // Branch 3
+  if (!user) return 'No user';        // → it('EMPTY: {user: null} => returns "No user"')
+  if (user.isAdmin) return 'Admin';   // → it('VALID: {user: adminUser} => returns "Admin"')
+  return user.name;                   // → it('VALID: {user: regularUser} => returns user name')
 }
-
-// Tests needed:
-it('EMPTY: {user: null} => returns "No user"')
-it('VALID: {user: adminUser} => returns "Admin"')
-it('VALID: {user: regularUser} => returns user name')
 \`\`\``;
-
-  // Common Anti-Patterns
-  const antiPatterns = `**Categories:**
-- **Assertion Anti-Patterns**: Property bleedthrough, existence-only checks, count-only checks, weak matchers
-- **Mock/Proxy Anti-Patterns**: Direct mock manipulation, mocking app code, manual cleanup, jest.spyOn misuse, shared proxies
-- **Type Safety Anti-Patterns**: Using any, as, @ts-ignore to bypass errors
-- **Test Organization Anti-Patterns**: Testing implementation, shared state, unit testing DSL logic, comment organization`;
 
   // Combine all sections in proper order
   const markdown = `# Testing Patterns & Philosophy
@@ -1154,16 +851,13 @@ ${harnessPattern}
 
 ${editBlockingRules}
 
-## Common Anti-Patterns
-
-${antiPatterns}
-
 ## Summary Checklist
 
 Before writing any test, verify:
 
 - [ ] Created fresh proxy in test (not shared)
 - [ ] Used ReturnType<typeof Stub> for types (not contract imports)
+- [ ] No \`any\`, \`as\` or \`@ts-ignore\` used to silence a type error
 - [ ] Proxies use registerMock/registerSpyOn (not jest.mocked/jest.spyOn) and set up in constructor
 - [ ] Tests use semantic proxy methods (never registerMock/jest.mocked directly in tests)
 - [ ] Used toStrictEqual for objects/arrays (no weak matchers)
