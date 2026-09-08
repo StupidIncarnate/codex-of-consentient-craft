@@ -8,6 +8,9 @@
   "orchestration": {
     "slotCount": 1
   },
+  "ward": {
+    "concurrency": 2
+  },
   "devServer": {
     "buildCommand": "npm run build",
     "devCommand": "npm run dev",

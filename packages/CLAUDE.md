@@ -4,76 +4,35 @@ This directory contains all workspace packages for the Dungeonmaster monorepo.
 
 ## Creating New Packages
 
-When creating a new package in this monorepo, you MUST configure the following:
+Run the command. It writes every config the package type needs, registers the package in the root
+`package.json`, and seeds `src/` so the package-type detector recognises what it is:
 
-### 1. Package tsconfig.json and tsconfig.build.json
-
-**REQUIRED:** Every package splits into two tsconfigs — `tsconfig.json` for checking (what ward's
-per-package `tsc --noEmit` runs) and `tsconfig.build.json` for emission (what `npm run build` runs).
-Neither is optional and neither substitutes for the other.
-
-`tsconfig.json` extends the root configuration and emits nothing:
-
-```json
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "typeRoots": [
-      "../../node_modules/@types",
-      "../../@types"
-    ]
-  },
-  "include": [
-    "src/**/*",
-    "*.ts"
-  ]
-}
+```bash
+dungeonmaster create-package --name <name> --type <packageType>
 ```
 
-`tsconfig.build.json` extends the package's own `tsconfig.json` and adds the emit settings plus the
-test-file excludes:
+Run it with no arguments to be prompted instead; `--dry-run` prints the plan and writes nothing.
 
-```json
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": false,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "declaration": true,
-    "declarationMap": true
-  },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.proxy.ts"
-  ]
-}
-```
+**Do not hand-copy the configs off a sibling.** No two jest configs in this repo are alike — three
+packages use `jest.config.cjs` rather than `.js` — and a copy reliably loses the `exclude` entries
+that keep `.stub.ts` and `.harness.ts` out of `dist`, along with the `incremental` and
+`tsBuildInfoFile` pair every `build:clean` deletes.
 
-**Why:** This ensures:
+### What the two tsconfigs are for
 
-- Type definitions from root `@types/` folder are available to the package
-- Consistent compiler settings across all packages
-- Proper module resolution for workspace dependencies
-- TypeScript can find custom type definitions in the root `@types/` directory
-- Ward's typecheck (`tsc --noEmit` against `tsconfig.json`) never writes `dist/` or a `.tsbuildinfo`,
-  so concurrent scoped runs never corrupt each other's output
-- `npm run build` (`tsc -p tsconfig.build.json`) is the only command that emits, and it never ships
-  test/proxy files as part of the package's public output
+`tsconfig.json` is the CHECKING config, and what ward's per-package `tsc --noEmit` runs. It emits
+nothing, so concurrent scoped ward runs never corrupt each other's output.
 
-### 2. Package Dependencies
+`tsconfig.build.json` is the EMITTING config, what `npm run build` runs, and the only thing that
+writes `dist/`. Its `exclude` list is what keeps test, proxy, stub and harness files out of the
+package's published output.
 
-If your package uses `@dungeonmaster/shared` or other workspace packages, add them to dependencies:
+`web` is the one package with no build config: it builds through `vite build`, and
+`build-workspaces.mjs` keys on that file's absence to decide which packages `tsc` handles.
 
-```json
-{
-  "dependencies": {
-    "@dungeonmaster/shared": "*"
-  }
-}
-```
+### Depending on another workspace package
+
+Add it to `dependencies` as `"@dungeonmaster/shared": "*"`.
 
 **Remember:** `@dungeonmaster/shared`'s package.json exports a `source` condition on every subpath, so ward's
 typecheck, unit and integration checks (which set `--conditions=source`) read edited contracts directly —
@@ -91,65 +50,30 @@ them from TypeScript source, but they `import { locationsStatics } from '@dungeo
 module load, and ESLint sets no `source` condition. So rebuild `shared` before lint only when you changed a
 statics value a custom rule reads.
 
-### 3. Jest Configuration
+### Jest configuration
 
-**REQUIRED:** Every package must have a `jest.config.js` that extends the base configuration:
+Every package spreads the REPO-ROOT `jest.config.base.js`. That base carries the ts-jest AST
+transformers `registerMock` and the proxy files depend on, the auto-reset setup that clears mocks
+between tests, and `testEnvironmentOptions.customExportConditions`. **Inherit that last one; never
+pin your own `testEnvironmentOptions`** — the conditions list is what makes a test resolve a sibling
+workspace package to the TypeScript a session just edited rather than to `dist/`, and a suite that
+loses it grades the last build and goes green over changed source.
 
-```javascript
-// Extend shared Jest configuration
-const baseConfig = require('../../jest.config.base.js');
+Beyond the base, each package's config differs by what it tests: JSX packages override the preset and
+transform, `mcp` maps `.js` imports back to `.ts`, `web` resolves React to a single instance. The
+command writes the right one per package type.
 
-module.exports = {
-  ...baseConfig,
-  roots: ['<rootDir>/src'],
-  // Override setupFilesAfterEnv to use correct relative path from this package
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
-};
-```
+### Running checks
 
-**Why:**
+Use `npm run ward` — this package's own script, or the root command scoped to this package. Never
+invoke `tsc`, `eslint` or `jest` directly. ESLint discovers files from the root `eslint.config.js`,
+so it needs no arguments.
 
-- Extends base Jest config for consistent test environment
-- `setupFilesAfterEnv` points to `@dungeonmaster/testing` which automatically resets/clears/restores Jest mocks globally
-- No need to manually add `jest.clearAllMocks()` in individual test files
+### Why root registration matters
 
-### 4. Scripts
-
-Standard scripts for consistency across packages:
-
-```json
-{
-  "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "test": "dungeonmaster-ward --only test",
-    "typecheck": "dungeonmaster-ward --only typecheck",
-    "lint": "dungeonmaster-ward --only lint",
-    "ward": "dungeonmaster-ward"
-  }
-}
-```
-
-**Note:** ESLint automatically discovers files based on root `eslint.config.js` - no arguments needed. Use
-`npm run ward` (this package's own script, or the root-level command scoped to this package) for lint,
-typecheck and test — never invoke `tsc`, `eslint` or `jest` directly.
-
-### 5. Register in Root package.json
-
-**REQUIRED:** Add your new package to the root `package.json` dependencies so it gets installed when users install
-`dungeonmaster`:
-
-```json
-{
-   "dependencies": {
-      "@dungeonmaster/your-new-package": "*",
-      ...existing
-      packages...
-   }
-}
-```
-
-**Why:** The `workspaces` field only affects local development (symlinking). When users `npm install dungeonmaster`,
-they only get packages listed in `dependencies`. Without this step, your package won't be installed for end users.
+The command adds the package to the root `package.json` `dependencies`, and that field is what ships.
+`workspaces` only affects local symlinking, so a package missing from `dependencies` is not installed
+for anyone who runs `npm install dungeonmaster`.
 
 ## Type Definitions
 
