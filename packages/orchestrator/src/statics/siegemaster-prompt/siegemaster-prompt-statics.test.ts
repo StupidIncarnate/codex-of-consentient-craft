@@ -127,9 +127,10 @@ describe('siegemasterPromptStatics', () => {
   // SCOPE IS THE WHOLE RULE. Ward picks its check types off the paths it is handed, so a fixer passes
   // its own paths and nothing else — `--uncommitted` grades the whole working tree and a bare run
   // grades the repo, and either one from a pair of concurrent fixers grades work that is not theirs.
-  // The reviewer's single `--uncommitted` sweep is the one wide run on the pass. The lane sentence is
-  // pinned beside them because it is the one measurement the old build ban carried that still holds:
-  // whatever a fixer compiles under a LIVE lane moves what that round is measuring.
+  // The reviewer's single `--uncommitted` sweep is the one wide run on the pass. The lane sentences
+  // are pinned beside them for a reason of their own: whatever a fixer compiles under a LIVE lane
+  // moves what that round is measuring, and the rule itself belongs to the buildDiscipline snippet,
+  // so this prompt has to keep POINTING there rather than answering the question a second way.
   it("VALID: served template => scopes a fixer's own ward run to its own paths and keeps a live lane out of it", () => {
     expect({
       scopedRun: hasIn({
@@ -147,7 +148,12 @@ describe('siegemasterPromptStatics', () => {
       }),
       buildUnderALiveLane: hasIn({
         needle:
-          'A build under a live lane changes what that round is measuring, and it reads the difference back as a\ndefect.',
+          'A build under a live lane changes what that round is measuring, and the round reads\nthe difference back as a defect.',
+        text: TEMPLATE,
+      }),
+      routesTheBuildRuleToItsOwner: hasIn({
+        needle:
+          'Nobody on this pass runs a build either, and the `<dungeonmaster-buildDiscipline>` snippet is where\nthat rule lives.',
         text: TEMPLATE,
       }),
     }).toStrictEqual({
@@ -155,6 +161,7 @@ describe('siegemasterPromptStatics', () => {
       namesWhyOwnPathsOnly: true,
       neverWidens: true,
       buildUnderALiveLane: true,
+      routesTheBuildRuleToItsOwner: true,
     });
   });
 

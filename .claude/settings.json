@@ -68,6 +68,14 @@
             "command": "dungeonmaster-session-snippet commentDiscipline"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet buildDiscipline"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -170,6 +178,14 @@
           {
             "type": "command",
             "command": "dungeonmaster-session-snippet commentDiscipline"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet buildDiscipline"
           }
         ]
       }

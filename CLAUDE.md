@@ -118,7 +118,7 @@ const testbed = installTestbedCreateBroker({
 
 **Shared Package**: `@dungeonmaster/shared` for code used by multiple packages
 
-- Ward, dev and every test read shared's source. Build it only for a row in the table above.
+- Ward, dev and every test read shared's source. Build it only for a case the build rules below name.
 - Import: `import {x} from '@dungeonmaster/shared/statics'`
 
 **JSONL Stream Line Stubs**: Tests that construct Claude CLI JSONL shapes (assistant messages, tool results, etc.) must
@@ -128,18 +128,20 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 
 - **Build**: `npm run build`
 
-**Ward never needs a build. These do:**
+The **build rules** — one process builds at a time and a dispatched agent is never it, every
+source-reading check needs none, and the table of what a build IS needed for — live in the
+`<dungeonmaster-buildDiscipline>` session snippet (`sessionSnippetStatics.buildDiscipline`), which every
+session and every sub-agent receives at start, in this repo and in every repo `dungeonmaster init` has
+touched. Fix them THERE, not here; a copy in this file would drift from the one the agents actually read.
 
-| Needs `npm run build` first                                     | Why                                                                              |
-|------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| `npm run prod`                                                   | runs `packages/server/dist/bin/server-entry.js`                                  |
-| `dungeonmaster start` in a consumer                              | serves `packages/web/dist`                                                       |
-| the MCP stdio child, after any change under `packages/mcp`       | it loaded `packages/mcp/dist/src/index.js` at boot; rebuild, then reconnect      |
-| `npm run init`                                                   | discovers `packages/*/dist/startup/start-install.js`                             |
-| the hook binaries, after any change under `packages/hooks`       | `.claude/settings.json` points at `packages/hooks/dist`                          |
-| a worktree, once, at creation                                    | the `create-worktree` tool seeds `dist` for you                                  |
+What stays below is the part that is specific to this repo, which the snippet cannot know:
 
-Never before `npm run ward`, `npm run dev`, or any test. Those read source.
+| Before this                                | Build                                    | Why                                                                                                                                                                       |
+|--------------------------------------------|------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `npm run prod`                             | the whole repo                           | runs `packages/server/dist/bin/server-entry.js`, and `vite preview` serves `packages/web/dist`                                                                             |
+| lint, after a `locationsStatics` change    | `--workspace=@dungeonmaster/shared`      | `eslint.config.js` loads this repo's own rules from source, but they import `@dungeonmaster/shared/statics` at module load, and ESLint sets no `source` condition           |
+| `npm run check:published`                  | `npm run build:clean`                    | it grades compiled output, and a warm tree still holds emit that no current build config would produce                                                                     |
+| running anything in a fresh worktree       | nothing — `create-worktree` does it      | `git worktree add` checks out TRACKED files and `dist` is gitignored, so the tool `cp -a`s the main checkout's `dist` across at carve time                                 |
 
 - **Start dev server**: `npm run dev` — **root-only.** Never `npm run dev --workspace=@dungeonmaster/<pkg>` and
   never `cd packages/<pkg> && npm run dev`. The root script is the canonical entry point: it kills stale

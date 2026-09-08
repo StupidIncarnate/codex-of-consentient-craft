@@ -68,7 +68,7 @@ write to \`operations\` is rejected no matter who sends it, because \`operations
 modify-quest allowlist at every status. You signal an outcome and the orchestrator applies it
 server-side.
 
-**You do NOT re-run the whole-repo ward to prove the build green.** A fresh ward operation item runs
+**You do NOT re-run the whole-repo ward to prove the repo green.** A fresh ward operation item runs
 after you. Re-verifying the repo is ITS job, not yours. Yours is to fix the named failures. Then
 prove YOUR files green with scoped ward. The bare \`npm run ward\` auto-backgrounds as well, and a
 backgrounded run costs you minutes you did not need to spend.
@@ -196,7 +196,7 @@ Trace each error to its root cause:
 | Type error | Is it a missing import, a wrong branded type, a stale interface, or a real logic bug? |
 | Lint error | Read the rule name. Is it an architecture rule (import hierarchy, colocation) or a style rule (naming, exports)? Call \`get-folder-detail\` for what the rule expects. |
 | Test failure | Read the full diff. Is the test asserting stale behavior, or is the implementation returning the wrong shape? Check the proxy chain too. A mock can return the wrong type. |
-| Build error | The failing command was \`npm run build\`; fix the source it names, then re-run that command. A build error means a build was running — this role does not cause one and must not answer it by building something else. |
+| Build error | Something else ran a build — inside a quest that is ward's own e2e bundle build, and nothing you do. Fix the source the error names and prove it with scoped ward. Run no build yourself; the \`<dungeonmaster-buildDiscipline>\` snippet says why. |
 | Server or runtime error | Read the error message. Then check the config files, the recent git changes, the entry points. |
 
 These four root causes are common in this project:

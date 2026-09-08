@@ -319,8 +319,11 @@ changed.
 
 ## 6. What `dist` is for
 
-Ward never needs it. `npm run prod`, `dungeonmaster start` in a consumer, the MCP stdio child, `npm
-run init`, the hook binaries and `npm run build` itself all do.
+No package ward CHECKS needs it. `npm run prod`, `dungeonmaster start` in a consumer, the MCP stdio
+child, `npm run init`, the hook binaries and `npm run build` itself all do — and so does ward's own
+package, because `npm run ward` invokes the compiled `dist/bin/ward-entry.js` this package's `bin`
+field names, so an edit to ward's source is invisible until
+`npm run build --workspace=@dungeonmaster/ward` runs.
 
 **`build:clean` removes two things, not one.** Every build config points `tsBuildInfoFile` at
 `./.ward/build.tsbuildinfo` — beside `dist`, not inside it — so `rm -rf dist` alone leaves the

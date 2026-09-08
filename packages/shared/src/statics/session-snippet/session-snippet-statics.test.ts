@@ -38,9 +38,12 @@ describe('sessionSnippetStatics', () => {
   // `<pkg>/.ward/bundle/<hash>/`. What stays true is WHERE ward writes: never your source tree and
   // never your `dist`. The claim is pinned on that, so a snippet that goes back to promising ward
   // builds nothing fails here rather than sending a session looking for a bundle ward never left.
-  it('VALID: wardDiscipline snippet => scopes ward to the files given and denies ward writes into source or dist', () => {
+  // The clause HANDS OFF rather than ruling: `npm run ward` runs ward's own compiled binary, so
+  // "never a step before ward" was false for a session editing ward itself. buildDiscipline owns
+  // that case; a wardDiscipline that answers it again is two rules to keep in agreement.
+  it('VALID: wardDiscipline snippet => scopes ward to the files given and hands the build question to buildDiscipline', () => {
     expect(sessionSnippetStatics.wardDiscipline).toMatch(
-      /^\*\*Scope ward to the job\.\*\* Given specific files, run ward on those files and nothing wider: `npm run ward -- -- <files>`\..*Ward never emits into your source tree or your `dist`; `npm run build` is a separate command and never a step before ward\.$/mu,
+      /^\*\*Scope ward to the job\.\*\* Given specific files, run ward on those files and nothing wider: `npm run ward -- -- <files>`\..*Ward never emits into your source tree or your `dist`; a build is a separate command — see build-discipline\.$/mu,
     );
   });
 
@@ -180,5 +183,41 @@ describe('sessionSnippetStatics', () => {
     expect(sessionSnippetStatics.discover).toMatch(
       /^`discover` is the ONLY way to search this codebase\. Native Glob, Grep, Search, and Find tools — plus shell `grep`\/`find`\/`sed` — are blocked by hooks\. `discover` and `get-project-map` are MCP \*\*tools\*\*: load them via `ToolSearch`, never as shell commands or skills\.$/mu,
     );
+  });
+
+  // A BUILD IS THE ONE COMMAND THAT REACHES OUTSIDE THE AGENT RUNNING IT: it rewrites every
+  // package's compiled output with no lock, so it breaks siblings rather than itself. The rule has
+  // to arrive by snippet, because a dispatched sub-agent reads no root instruction file. It must
+  // also say what to do INSTEAD — an agent told only "do not build" invents a reason it is exempt.
+  it('VALID: buildDiscipline snippet => gives the build to one process and tells a dispatched agent to defer', () => {
+    expect(sessionSnippetStatics.buildDiscipline).toMatch(
+      /^\*\*Only one process builds at a time, and a dispatched agent is never it\.\*\*.*Do not build\. Report that a build is needed and let the coordinator run it\.$/mu,
+    );
+  });
+
+  // THE WARD ROW IS THE CASE THE OLD WORDING GOT WRONG. `npm run ward` invokes ward's own compiled
+  // binary, so a session editing ward's source and then running it grades the previous build — and
+  // every other surface said a build is never a step before ward. The row is the correction; drop
+  // it and the contradiction comes back.
+  it('VALID: buildDiscipline snippet => carries the ward-source row, the no-build-before-checks rule and the stale-tree command', () => {
+    expect({
+      wardOwnSourceRow: sessionSnippetStatics.buildDiscipline.includes(
+        "| ward itself, having edited ward's own source | that package |",
+      ),
+      sourceChecksNeedNone: sessionSnippetStatics.buildDiscipline.includes(
+        '**Nothing that reads source needs one.**',
+      ),
+      rebuildIsNotADiagnosis: sessionSnippetStatics.buildDiscipline.includes(
+        '"rebuild, then re-run the check" is not a diagnosis',
+      ),
+      staleTreeNeedsClean: sessionSnippetStatics.buildDiscipline.includes(
+        'A stale or cold tree needs `build:clean`',
+      ),
+    }).toStrictEqual({
+      wardOwnSourceRow: true,
+      sourceChecksNeedNone: true,
+      rebuildIsNotADiagnosis: true,
+      staleTreeNeedsClean: true,
+    });
   });
 });

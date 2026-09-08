@@ -172,7 +172,7 @@ describe('spiritmenderPromptStatics', () => {
 
   it('VALID: template => leaves the repo-wide re-verification to the fresh ward operation item', () => {
     const needle =
-      '**You do NOT re-run the whole-repo ward to prove the build green.** A fresh ward operation item runs after you. Re-verifying the repo is ITS job, not yours.';
+      '**You do NOT re-run the whole-repo ward to prove the repo green.** A fresh ward operation item runs after you. Re-verifying the repo is ITS job, not yours.';
     const found = template.slice(
       template.indexOf(needle),
       template.indexOf(needle) + needle.length,

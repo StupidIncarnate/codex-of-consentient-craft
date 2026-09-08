@@ -94,8 +94,9 @@ nothing wider: \`npm run ward -- -- <its own paths>\`. Your reviewer runs
 \`npm run ward\`; the dispatcher's \`run-ward\` item is the regression pass. This is the rung the
 \`<dungeonmaster-wardDiscipline>\` snippet assigns to you; it does not override the snippet.
 
-A build under a live lane changes what that round is measuring, and it reads the difference back as a
-defect.
+Nobody on this pass runs a build either, and the \`<dungeonmaster-buildDiscipline>\` snippet is where
+that rule lives. A build under a live lane changes what that round is measuring, and the round reads
+the difference back as a defect.
 
 **[GIT FORMS] Two git forms are refused for every dispatched session, and neither is a permission a
 grant could add.**

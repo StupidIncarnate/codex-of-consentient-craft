@@ -168,7 +168,7 @@ Pass every path you touched after \`--\`. Repo-relative, no \`./\`.
 
 Applies to every ward run, in any repo, by any agent.
 
-**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run \`--uncommitted\` only to grade a whole working tree before you hand it back. Run a bare \`npm run ward\` only before merging into the default branch. Ward never emits into your source tree or your \`dist\`; \`npm run build\` is a separate command and never a step before ward.
+**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run \`--uncommitted\` only to grade a whole working tree before you hand it back. Run a bare \`npm run ward\` only before merging into the default branch. Ward never emits into your source tree or your \`dist\`; a build is a separate command — see build-discipline.
 
 **Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
 
@@ -201,4 +201,24 @@ Never write: \`// loop over the users\` above a loop over users · a function's 
 **Never record a count of things that grow.** How many packages, how many rules, how many files a census found — they change, and a confidently wrong number is worse than none. Write the SHAPE, not the tally. A number recording what ONE run observed is evidence, not inventory: anchored to that run, it stays true — an error count from a named run, a byte size, a duration, a before/after delta. The test: would it change if someone added a file tomorrow, nothing having gone wrong? Yes, write the shape; no, keep it. Naming a specific file stays checkable; arithmetic over the set is what rots.
 
 Never write: "all thirteen build configs" · "ten of the fourteen export proxies" (write "every build config", "most of them").`,
+
+  buildDiscipline: `## Build Discipline
+
+Applies to every build, in any repo, by any agent.
+
+**Only one process builds at a time, and a dispatched agent is never it.** A build rewrites every package's compiled output with no lock, so a build in flight breaks every other agent's checks — one run lost seven ward integration tests to \`TS2307: Cannot find module\`, because that package's \`dist\` was absent for a few seconds. Dispatched by an orchestrator, or sharing a checkout with other agents? Do not build. Report that a build is needed and let the coordinator run it.
+
+**Nothing that reads source needs one.** Ward's lint, typecheck, unit and integration checks all resolve workspace packages to TypeScript, and so does the dev server. A build is never a step before them, and "rebuild, then re-run the check" is not a diagnosis.
+
+**Build only when the thing you are about to RUN is compiled output:**
+
+| About to run | Build |
+|---|---|
+| the production server, or \`dungeonmaster start\` | the whole repo |
+| \`dungeonmaster init\` | the whole repo |
+| an MCP tool, having edited the MCP package | that package, then reconnect the MCP |
+| a hook, having edited the hooks package | that package |
+| ward itself, having edited ward's own source | that package |
+
+Scope it — \`npm run build --workspace=<name>\` when one package changed. A stale or cold tree needs \`build:clean\`: a plain build reads the incremental cache, decides the tree is current, and can emit nothing at all.`,
 } as const;

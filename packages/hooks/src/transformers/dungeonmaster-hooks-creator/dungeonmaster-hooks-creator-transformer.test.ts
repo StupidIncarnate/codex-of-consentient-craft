@@ -65,6 +65,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               },
             ],
           },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet buildDiscipline',
+              },
+            ],
+          },
         ],
         SubagentStart: [
           {
@@ -98,6 +106,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               {
                 type: 'command',
                 command: 'dungeonmaster-session-snippet commentDiscipline',
+              },
+            ],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet buildDiscipline',
               },
             ],
           },
@@ -166,19 +182,21 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
     it('VALID: includes dungeonmaster-session-snippet commands => returns correct commands', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
-      expect(result.SessionStart[0]?.hooks[0]?.command).toBe(
-        'dungeonmaster-session-snippet discover',
-      );
-      expect(result.SessionStart[4]?.hooks[0]?.command).toBe('dungeonmaster-session-snippet ward');
-      expect(result.SessionStart[5]?.hooks[0]?.command).toBe(
-        'dungeonmaster-session-snippet wardDiscipline',
-      );
-      expect(result.SessionStart[6]?.hooks[0]?.command).toBe(
-        'dungeonmaster-session-snippet packages',
-      );
-      expect(result.SessionStart[7]?.hooks[0]?.command).toBe(
-        'dungeonmaster-session-snippet commentDiscipline',
-      );
+      expect({
+        first: result.SessionStart[0]?.hooks[0]?.command,
+        ward: result.SessionStart[4]?.hooks[0]?.command,
+        wardDiscipline: result.SessionStart[5]?.hooks[0]?.command,
+        packages: result.SessionStart[6]?.hooks[0]?.command,
+        commentDiscipline: result.SessionStart[7]?.hooks[0]?.command,
+        buildDiscipline: result.SessionStart[8]?.hooks[0]?.command,
+      }).toStrictEqual({
+        first: 'dungeonmaster-session-snippet discover',
+        ward: 'dungeonmaster-session-snippet ward',
+        wardDiscipline: 'dungeonmaster-session-snippet wardDiscipline',
+        packages: 'dungeonmaster-session-snippet packages',
+        commentDiscipline: 'dungeonmaster-session-snippet commentDiscipline',
+        buildDiscipline: 'dungeonmaster-session-snippet buildDiscipline',
+      });
     });
 
     it('VALID: SubagentStart matches SessionStart snippet entries => same snippet hooks', () => {
