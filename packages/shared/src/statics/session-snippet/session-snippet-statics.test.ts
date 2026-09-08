@@ -30,8 +30,25 @@ describe('sessionSnippetStatics', () => {
 
   it('VALID: wardDiscipline snippet => splits FULL-run ownership by dispatch surface', () => {
     expect(sessionSnippetStatics.wardDiscipline).toMatch(
-      /^\*\*Who owns a FULL run\.\*\* An agent working directly for the user makes `npm run ward` exit 0 before a merge and owns every failure in it, including ones it did not cause\. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own `run-ward` item is the regression pass\.$/mu,
+      /^\*\*Who owns a FULL run\.\*\* An agent working directly for the user makes a full `npm run ward` exit 0 and owns every failure in it, including ones it did not cause\. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own `run-ward` item is the regression pass\.$/mu,
     );
+  });
+
+  // A BARE WARD HAS TWO TRIGGERS AND THE SECOND ONE KEPT GOING MISSING. Stating only the merge case
+  // leaves a session asked outright for a full run reading its own instructions as a refusal. The
+  // ownership paragraph above names NEITHER trigger, deliberately: it answers WHO, this answers
+  // WHEN, and two paragraphs answering when is how the two drifted apart in the first place.
+  it('VALID: wardDiscipline snippet => gives a bare ward both of its triggers and keeps them in one place', () => {
+    expect({
+      bothTriggers: sessionSnippetStatics.wardDiscipline.includes(
+        'Run a bare `npm run ward` before a merge into the default branch, or when the user asks for one.',
+      ),
+      ownershipNamesNoTrigger:
+        sessionSnippetStatics.wardDiscipline.indexOf('exit 0 before a merge'),
+    }).toStrictEqual({
+      bothTriggers: true,
+      ownershipNamesNoTrigger: -1,
+    });
   });
 
   // WARD'S E2E CHECK DOES BUILD — it spawns the package's own `npm run build` into
@@ -84,10 +101,19 @@ describe('sessionSnippetStatics', () => {
       howToSpellThem: sessionSnippetStatics.ward.includes(
         'Pass every path you touched after `--`. Repo-relative, no `./`.',
       ),
+      // This snippet is the REFERENCE — check types, flags, invocations. When a bare run is right is
+      // a rule, so it belongs to ward-discipline, and stating it in both is what let this one keep
+      // calling a bare run the pre-merge sweep after the rule grew a second trigger.
+      routesBareRunToDiscipline: sessionSnippetStatics.ward.includes(
+        'see ward-discipline before a bare run',
+      ),
+      claimsNoTriggerItself: sessionSnippetStatics.ward.indexOf('pre-merge sweep'),
     }).toStrictEqual({
       multiFileExample: true,
       wardPicksTheChecks: true,
       howToSpellThem: true,
+      routesBareRunToDiscipline: true,
+      claimsNoTriggerItself: -1,
     });
   });
 

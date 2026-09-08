@@ -203,11 +203,11 @@ What stays below is the part that is a judgment call rather than a command-line 
 **Which ward you run depends on what you were given.** The `<dungeonmaster-wardDiscipline>` snippet states the three
 rungs. In this repo they mean:
 
-| You were                                                              | Run                              | Not                                        |
-|-----------------------------------------------------------------------|----------------------------------|--------------------------------------------|
-| given files, or you touched a handful                                 | `npm run ward -- -- <files>`     | `--uncommitted`, a bare `npm run ward`     |
-| asked to review a whole pass, or handing your tree back to the user   | `npm run ward -- --uncommitted`  | a bare `npm run ward`                      |
-| about to merge into `master`                                          | `npm run ward`                   | anything narrower                          |
+| You were                                                            | Run                              | Not                                        |
+|---------------------------------------------------------------------|----------------------------------|--------------------------------------------|
+| given files, or you touched a handful                               | `npm run ward -- -- <files>`     | `--uncommitted`, a bare `npm run ward`     |
+| asked to review a whole pass, or handing your tree back to the user  | `npm run ward -- --uncommitted`  | a bare `npm run ward`                      |
+| about to merge into `master`, **or asked for a full run by the user** | `npm run ward`                   | anything narrower                          |
 
 Sub-agents you dispatch are always on the first row. Tell them their files.
 

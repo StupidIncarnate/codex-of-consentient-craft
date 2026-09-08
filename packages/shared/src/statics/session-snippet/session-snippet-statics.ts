@@ -121,7 +121,7 @@ Call both tools, read their output, THEN plan your approach.`,
 
   ward: `## Ward Quality Commands
 
-**Every check runs through \`npm run ward\`** — never \`npx jest\`/\`eslint\`/\`tsc\`/\`playwright\` or \`npm test\`. Scope it to your files; a bare run is the pre-merge sweep.
+**Every check runs through \`npm run ward\`** — never \`npx jest\`/\`eslint\`/\`tsc\`/\`playwright\` or \`npm test\`. Scope it to your files; see ward-discipline before a bare run.
 
 ### Check Types
 
@@ -168,7 +168,7 @@ Pass every path you touched after \`--\`. Repo-relative, no \`./\`.
 
 Applies to every ward run, in any repo, by any agent.
 
-**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run \`--uncommitted\` only to grade a whole working tree before you hand it back. Run a bare \`npm run ward\` only before merging into the default branch. Ward never emits into your source tree or your \`dist\`; a build is a separate command — see build-discipline.
+**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run \`--uncommitted\` only to grade a whole working tree before you hand it back. Run a bare \`npm run ward\` before a merge into the default branch, or when the user asks for one. Ward never emits into your source tree or your \`dist\`; a build is a separate command — see build-discipline.
 
 **Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
 
@@ -178,7 +178,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **A skip on a scoped run is not a regression.** Jest's \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — on a \`-- <files>\` run, narrow \`--only\` rather than widen scope. \`--committed\`/\`--uncommitted\` reject \`--only\`; re-run those as \`--only <types> -- <files>\`.
 
-**Who owns a FULL run.** An agent working directly for the user makes \`npm run ward\` exit 0 before a merge and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own \`run-ward\` item is the regression pass.`,
+**Who owns a FULL run.** An agent working directly for the user makes a full \`npm run ward\` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own \`run-ward\` item is the regression pass.`,
 
   packages: null,
 
