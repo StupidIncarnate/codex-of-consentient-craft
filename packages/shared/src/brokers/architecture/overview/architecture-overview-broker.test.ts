@@ -260,7 +260,7 @@ describe('architectureOverviewBroker', () => {
       );
     });
 
-    it('VALID: {} => requires PURPOSE to carry why the file exists and which sibling to pick, written last', () => {
+    it('VALID: {} => requires PURPOSE to carry why the file exists and which sibling to pick', () => {
       architectureOverviewBrokerProxy();
 
       const result = architectureOverviewBroker();
@@ -268,8 +268,15 @@ describe('architectureOverviewBroker', () => {
       expect(result).toMatch(
         /^\*\*PURPOSE carries only what the code cannot state about itself:\*\* why the file exists, and when to reach for THIS one over its nearest sibling\. That second sentence is the highest-value line in the header and the one most often missing — a reader scanning `discover` output already has the name and the signature, and cannot get "which of these three is mine" anywhere else\.$/mu,
       );
+    });
+
+    it('VALID: {} => reconciles the write-last rule with the hook that demands PURPOSE up front', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
       expect(result).toMatch(
-        /^\*\*Write PURPOSE LAST\*\*, as a summary of code that already exists\. Written first, it describes intent, and intent and implementation diverge silently inside the same authoring pass\.$/mu,
+        /^\*\*PURPOSE must exist before the file does, and must be rewritten once the file is real\.\*\* The pre-edit lint hook refuses a write without it, so the header you first submit is necessarily written against a plan rather than an implementation — which is the drift this rule exists to catch\. Treat that first one as a placeholder\. Before you leave the file, read the body you actually wrote and REWRITE the header to describe it\.$/mu,
       );
     });
 

@@ -319,7 +319,9 @@ Anything derivable from the file below will drift, so it goes in neither PURPOSE
 
 The repo's own worst case is \`file-path-contract.ts\`, whose header reads "Zod schema for validating any file path (absolute or relative)". That restates the chain below it AND gets it wrong — the relative branch demands a \`./\` or \`../\` prefix, so a bare \`packages/shared/src/x.ts\` is rejected, which its own test pins. It spends its only line on what the chain already says and none on the question a reader arrives with.
 
-**Write PURPOSE LAST**, as a summary of code that already exists. Written first, it describes intent, and intent and implementation diverge silently inside the same authoring pass.
+**PURPOSE must exist before the file does, and must be rewritten once the file is real.** The pre-edit lint hook refuses a write without it, so the header you first submit is necessarily written against a plan rather than an implementation — which is the drift this rule exists to catch. Treat that first one as a placeholder. Before you leave the file, read the body you actually wrote and REWRITE the header to describe it.
+
+The two lines that go stale hardest are the ones worth re-reading: a PURPOSE naming a sibling the file no longer competes with, and a USAGE whose call no longer typechecks.
 
 ### Types
 
