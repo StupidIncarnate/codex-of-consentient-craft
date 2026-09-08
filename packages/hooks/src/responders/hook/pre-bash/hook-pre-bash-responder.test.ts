@@ -2,8 +2,43 @@ import { HookPreBashResponder } from './hook-pre-bash-responder';
 import { HookPreBashResponderProxy } from './hook-pre-bash-responder.proxy';
 import { HookDataStub } from '../../../contracts/hook-data/hook-data.stub';
 import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
+import { gitStashBlockStatics } from '../../../statics/git-stash-block/git-stash-block-statics';
 
 describe('HookPreBashResponder', () => {
+  describe('blocked commands — git stash', () => {
+    it.each(['git stash', 'git stash pop', 'git stash push -m "wip"', 'cd packages && git stash'])(
+      'VALID: {command: "%s"} => blocks with the stash refusal',
+      (command) => {
+        HookPreBashResponderProxy();
+        const hookData = HookDataStub({
+          tool_name: 'Bash',
+          tool_input: { command },
+        });
+
+        const result = HookPreBashResponder({ input: hookData });
+
+        expect(result).toStrictEqual({
+          shouldBlock: true,
+          message: gitStashBlockStatics.blockMessage,
+        });
+      },
+    );
+
+    it('VALID: {command: "git stash list"} => does not block a read-only stash', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'git stash list' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+      });
+    });
+  });
+
   describe('piped ward commands', () => {
     it('VALID: {command: "npm run ward | grep error"} => strips pipe and returns updated command', () => {
       HookPreBashResponderProxy();
