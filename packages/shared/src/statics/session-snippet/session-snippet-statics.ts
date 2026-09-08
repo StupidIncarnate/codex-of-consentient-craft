@@ -168,15 +168,15 @@ Pass every path you touched after \`--\`. Repo-relative, no \`./\`.
 
 Applies to every ward run, in any repo, by any agent.
 
-**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run \`--uncommitted\` only to grade a whole working tree before you hand it back. Run a bare \`npm run ward\` before a merge into the default branch, or when the user asks for one. Ward never emits into your source tree or your \`dist\`; a build is a separate command — see build-discipline.
+**Scope ward to the job.** Given specific files, run ward on those files and nothing wider: \`npm run ward -- -- <files>\`. Run a bare \`npm run ward\` before a merge into the default branch, or when the user asks for one. Ward never emits into your source tree or your \`dist\`; a build is a separate command — see build-discipline.
 
-**Never \`cd\` into a package.** Ward runs from the repo root; scope it by passing paths after \`--\`. Prefer explicit FILE paths — a bare directory pulls in the whole package.
+**Never \`cd\` into a package.** Ward runs from the repo root; scope it with paths after \`--\`. Prefer FILE paths; a bare directory pulls in the package.
 
-**Run it in the FOREGROUND and let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (ward takes 3-4 min repo-wide; the 2-min default kills it). **Never \`sleep\` on a ward run, and never \`tail\` its output file.** A run that crosses that timeout is backgrounded by the harness, and it notifies you when the run exits — do other work and read that notification. With nothing left to do meanwhile, end your turn; the notification re-enters you.
+**Run it in the FOREGROUND and let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (the 2-min default kills a repo-wide run). **Never \`sleep\` on a ward run, and never \`tail\` its output file.** A run crossing that timeout is backgrounded by the harness, and it notifies you when the run exits — do other work, or end your turn.
 
-**Run it ONCE.** Choose the right flags the first time; never re-run the same checks a second way, or follow a scoped run with a full one.
+**Run it ONCE per tree state, and fix on \`--uncommitted\`.** Right flags first time; never re-run the same checks hoping for a different answer. A FIX makes a new state, so re-running after one is fine — and a red found by a bare run costs another whole-repo run to confirm, where \`--uncommitted\` runs only what you touched. Iterate there to exit 0, THEN one bare run as the regression pass. **No typecheck is lost**: \`tsc --noEmit\` grades a touched package WHOLE whatever paths you pass.
 
-**A skip on a scoped run is not a regression.** Jest's \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — on a \`-- <files>\` run, narrow \`--only\` rather than widen scope. \`--committed\`/\`--uncommitted\` reject \`--only\`; re-run those as \`--only <types> -- <files>\`.
+**A skip on a scoped run is not a regression.** \`No tests found\` on a file-scoped run becomes \`status: 'skip'\`; full runs still fail loudly. Never reach for \`--passWithNoTests\`. \`DISCOVERY MISMATCH\` means the check type has no counterpart for those files — narrow \`--only\`, never widen scope.
 
 **Who owns a FULL run.** An agent working directly for the user makes a full \`npm run ward\` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own \`run-ward\` item is the regression pass.`,
 

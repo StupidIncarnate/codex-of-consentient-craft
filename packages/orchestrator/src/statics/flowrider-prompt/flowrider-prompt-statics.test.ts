@@ -131,7 +131,8 @@ describe('flowriderPromptStatics', () => {
         text: TEMPLATE,
       }),
       neverWidens: hasIn({
-        needle: 'ward on your own paths only · no --uncommitted · no bare ward · no commit',
+        needle:
+          '**YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**',
         text: TEMPLATE,
       }),
       neverRunWardMcpTool: hasIn({

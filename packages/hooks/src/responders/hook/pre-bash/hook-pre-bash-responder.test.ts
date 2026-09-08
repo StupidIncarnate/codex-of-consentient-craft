@@ -2,33 +2,47 @@ import { HookPreBashResponder } from './hook-pre-bash-responder';
 import { HookPreBashResponderProxy } from './hook-pre-bash-responder.proxy';
 import { HookDataStub } from '../../../contracts/hook-data/hook-data.stub';
 import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
-import { gitStashBlockStatics } from '../../../statics/git-stash-block/git-stash-block-statics';
+import { gitDestructiveBlockStatics } from '../../../statics/git-destructive-block/git-destructive-block-statics';
 
 describe('HookPreBashResponder', () => {
-  describe('blocked commands — git stash', () => {
-    it.each(['git stash', 'git stash pop', 'git stash push -m "wip"', 'cd packages && git stash'])(
-      'VALID: {command: "%s"} => blocks with the stash refusal',
-      (command) => {
-        HookPreBashResponderProxy();
-        const hookData = HookDataStub({
-          tool_name: 'Bash',
-          tool_input: { command },
-        });
-
-        const result = HookPreBashResponder({ input: hookData });
-
-        expect(result).toStrictEqual({
-          shouldBlock: true,
-          message: gitStashBlockStatics.blockMessage,
-        });
-      },
-    );
-
-    it('VALID: {command: "git stash list"} => does not block a read-only stash', () => {
+  describe('blocked commands — git verbs that take work from the shared checkout', () => {
+    it.each([
+      'git stash',
+      'git stash pop',
+      'git stash push -m "wip"',
+      'cd packages && git stash',
+      'git reset --hard HEAD~1',
+      'git clean -fd',
+      'git rebase master',
+      'git checkout -- packages/hooks/src/index.ts',
+      'git restore packages/hooks/src/index.ts',
+    ])('VALID: {command: "%s"} => blocks with the destructive-git refusal', (command) => {
       HookPreBashResponderProxy();
       const hookData = HookDataStub({
         tool_name: 'Bash',
-        tool_input: { command: 'git stash list' },
+        tool_input: { command },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
+        message: gitDestructiveBlockStatics.blockMessage,
+      });
+    });
+
+    it.each([
+      'git stash list',
+      'git reset',
+      'git clean -n',
+      'git rebase --abort',
+      'git checkout master',
+      'git restore --staged packages/hooks/src/index.ts',
+    ])('VALID: {command: "%s"} => does not block the form that takes nothing', (command) => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command },
       });
 
       const result = HookPreBashResponder({ input: hookData });

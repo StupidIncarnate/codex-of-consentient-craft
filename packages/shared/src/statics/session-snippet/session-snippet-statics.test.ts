@@ -88,6 +88,31 @@ describe('sessionSnippetStatics', () => {
     });
   });
 
+  // A BARE SWEEP IS THE WRONG PLACE TO FIND A RED, and `Run it ONCE` alone read as a ban on the fix
+  // loop that finds one cheaply. Ward's typecheck is a per-package `tsc --noEmit` grading every file
+  // in a package you touched whatever paths you pass, so `--uncommitted` reports the same type
+  // errors a bare run would for that package; a bare run only adds packages you did not touch.
+  // Measured on one guard file: the red took a 749-second sweep to surface and would have cost
+  // another to confirm, against 12 seconds scoped to that file. The two rules are ONE paragraph
+  // because splitting them is what let the ban and the loop contradict each other.
+  it('VALID: wardDiscipline snippet => sends the fix loop to --uncommitted and the bare run last', () => {
+    expect({
+      oneParagraph: sessionSnippetStatics.wardDiscipline.includes(
+        '**Run it ONCE per tree state, and fix on `--uncommitted`.**',
+      ),
+      iterateThenOneBareRun: sessionSnippetStatics.wardDiscipline.includes(
+        'Iterate there to exit 0, THEN one bare run as the regression pass.',
+      ),
+      typecheckIsNeverScoped: sessionSnippetStatics.wardDiscipline.includes(
+        '`tsc --noEmit` grades a touched package WHOLE whatever paths you pass',
+      ),
+    }).toStrictEqual({
+      oneParagraph: true,
+      iterateThenOneBareRun: true,
+      typecheckIsNeverScoped: true,
+    });
+  });
+
   // THE FILE-SCOPED FORM IS THE ONE MOST SESSIONS ACTUALLY NEED, and it is the one a reader cannot
   // derive from the flags table: `-- <files>` with no `--only` lets ward decide which checks apply to
   // those paths, which is what a worker proving one chunk wants. The snippet runs within a handful of

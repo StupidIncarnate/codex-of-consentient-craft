@@ -32,8 +32,14 @@
  *
  * `stash`, `reset` and `rebase` stay denied for everyone — those DISCARD or REWRITE work on a
  * branch several sessions share, and the operator that would have to notice cannot open a file to
- * see what went missing. `git worktree` is NOT granted: worktrees are created by the server at
- * Start, not by any agent.
+ * see what went missing. `clean` and `restore` are absent for the same reason. `git worktree` is
+ * NOT granted: worktrees are created by the server at Start, not by any agent.
+ *
+ * `checkout` is the one verb granted here and still refused in its destructive form.
+ * `isBlockedGitDestructiveCommandGuard` in `@dungeonmaster/hooks` blocks `git checkout -- <path>`
+ * and a bare `git checkout .` while leaving the branch switch warpgate cannot merge without. An
+ * entry in this list is a prefix match on the whole command string and cannot tell those apart; the
+ * hook reads the arguments, so that is where the narrowing lives.
  *
  * `rev-parse` and `merge-base` are granted because a dispatched session routinely needs to resolve
  * a REF rather than read a diff — a `codeweaver-reviewer` / `flowrider-reviewer` / `siegemaster-reviewer`

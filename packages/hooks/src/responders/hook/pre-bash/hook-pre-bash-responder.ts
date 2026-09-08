@@ -5,7 +5,7 @@
  * const result = HookPreBashResponder({ input: hookData });
  * // Returns { shouldBlock: boolean, message?: string } indicating whether to block the bash command
  */
-import { isBlockedGitStashCommandGuard } from '../../../guards/is-blocked-git-stash-command/is-blocked-git-stash-command-guard';
+import { isBlockedGitDestructiveCommandGuard } from '../../../guards/is-blocked-git-destructive-command/is-blocked-git-destructive-command-guard';
 import { isBlockedQualityCommandGuard } from '../../../guards/is-blocked-quality-command/is-blocked-quality-command-guard';
 import { isBlockedSearchCommandGuard } from '../../../guards/is-blocked-search-command/is-blocked-search-command-guard';
 import { isWardPipedCommandGuard } from '../../../guards/is-ward-piped-command/is-ward-piped-command-guard';
@@ -16,7 +16,7 @@ import { bashToolInputContract } from '../../../contracts/bash-tool-input/bash-t
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
 import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
-import { gitStashBlockStatics } from '../../../statics/git-stash-block/git-stash-block-statics';
+import { gitDestructiveBlockStatics } from '../../../statics/git-destructive-block/git-destructive-block-statics';
 import { wardTimeoutStatics } from '../../../statics/ward-timeout/ward-timeout-statics';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';
 import type { HookPreEditResponderResult } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
@@ -45,14 +45,14 @@ export const HookPreBashResponder = ({
 
   const { command, timeout } = parseResult.data;
 
-  // Checked before every rewrite branch below: a stash moves the whole working tree, and this
-  // checkout is shared with every other session and sub-agent running against it.
-  const isGitStashBlocked = isBlockedGitStashCommandGuard({ command });
+  // Checked before every rewrite branch below: these verbs take work away from the shared checkout
+  // every other session and sub-agent is running against, and no later branch can give it back.
+  const isGitDestructiveBlocked = isBlockedGitDestructiveCommandGuard({ command });
 
-  if (isGitStashBlocked) {
+  if (isGitDestructiveBlocked) {
     return hookPreEditResponderResultContract.parse({
       shouldBlock: true,
-      message: gitStashBlockStatics.blockMessage,
+      message: gitDestructiveBlockStatics.blockMessage,
     });
   }
 
