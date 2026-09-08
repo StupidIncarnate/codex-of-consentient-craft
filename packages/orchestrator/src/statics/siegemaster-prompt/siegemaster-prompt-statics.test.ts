@@ -61,7 +61,7 @@ describe('siegemasterPromptStatics', () => {
       '### 5. Send fixers for what every round found',
       '### 6. Read what the fixers changed',
       '### 7. Verifiers re-walk the paths that had issues',
-      '### 8. Run your reviewer — only if a fixer changed code',
+      '### 8. Run your reviewer',
       '### 9. Record what you claim, and what you found',
       '### 10. Signal',
     ]);
@@ -79,9 +79,9 @@ describe('siegemasterPromptStatics', () => {
 
   // THIS OPERATOR'S ROUTING TABLE IS THE REVIEWER'S, INSIDE STEP 8 — the fix-and-reverify convergence
   // that repeats is steps 5 to 7, ended only by every issue-carrying round coming back clean, and only
-  // the reviewer's `NEXT:` line moves the operator on. Step 8 runs at all only when a fixer changed
-  // code: a reviewer reads CODE, and a flow whose every round came back clean leaves it nothing to
-  // open, nothing to build against and nothing to commit.
+  // the reviewer's `NEXT:` line moves the operator on. Step 8 is gated on a DIRTY TREE rather than on
+  // a fixer having run: a round writes the guide, a record per verifier, a plan per stress tester and
+  // a failing test per defect, and the reviewer is the only session on the pass that wards or commits.
   it("VALID: served template => routes the reviewer's NEXT: line through exactly pass, rework and wall", () => {
     expect({
       pass: hasIn({ needle: '| `pass` | go to step 9 |', text: TEMPLATE }),
@@ -100,11 +100,74 @@ describe('siegemasterPromptStatics', () => {
     }).toStrictEqual({ pass: true, rework: true, wall: true, noCap: true });
   });
 
+  // THE REVIEWER IS THE ONLY SESSION ON THE PASS THAT WARDS OR COMMITS, so the gate in front of it
+  // decides whether the pass is graded at all. A round leaves files behind whatever it finds — the
+  // guide, a record per verifier, a plan per stress tester, a failing test per defect — so gating on
+  // "did a fixer run" sends a clean pass to a sweep, and a sweep runs no ward.
+  it('VALID: served template => gates step 8 on a dirty tree, not on whether a fixer ran', () => {
+    expect({
+      gateIsGitStatus: hasIn({
+        needle: '**`git status` first, and anything it lists means the reviewer runs.**',
+        text: TEMPLATE,
+      }),
+      namesWhatARoundLeaves: hasIn({
+        needle:
+          "the guide, one round record per verifier, one plan file per stress tester, and one failing test for every defect a minion's sub-agents recorded",
+        text: TEMPLATE,
+      }),
+      sweepRunsNoWard: hasIn({
+        needle: 'sends it to a sweep, which runs no ward at all',
+        text: TEMPLATE,
+      }),
+      cleanTreeIsTheOnlySkip: hasIn({
+        needle:
+          '**A clean `git status` is the one case that skips this step**, because nothing was produced: go to step 9.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      gateIsGitStatus: true,
+      namesWhatARoundLeaves: true,
+      sweepRunsNoWard: true,
+      cleanTreeIsTheOnlySkip: true,
+    });
+  });
+
+  // A MINION RETURNS THREE LINES AND WRITES EVERYTHING ELSE TO A FILE, because the parent's context is
+  // the scarcest thing in this design. So the two things this operator needs off a round — the symptom
+  // block a fixer brief quotes, and the list of failing tests its reviewer must not weaken — are read
+  // from `.quest-plans/` and forwarded, never recalled from a return.
+  it('VALID: served template => takes a round’s record from its file and forwards its red tests', () => {
+    expect({
+      recordsAreFiles: hasIn({
+        needle: '**The records you brief from are FILES, not returns.**',
+        text: TEMPLATE,
+      }),
+      readsThemFromQuestPlans: hasIn({
+        needle: '`ls .quest-plans/` and `Read` the ones this pass wrote.',
+        text: TEMPLATE,
+      }),
+      reviewerBriefCarriesRedTests: hasIn({
+        needle:
+          'RED TESTS:\n  <every path your rounds reported on a RED TESTS: or TESTS: line, one per line, or "none">',
+        text: TEMPLATE,
+      }),
+      andSaysWhyItMatters: hasIn({
+        needle: '**`RED TESTS:` is what stops your reviewer weakening your own evidence.**',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      recordsAreFiles: true,
+      readsThemFromQuestPlans: true,
+      reviewerBriefCarriesRedTests: true,
+      andSaysWhyItMatters: true,
+    });
+  });
+
   it("VALID: served template => reads a sub-agent's return and treats a missing NEXT: line as rework", () => {
     expect({
       pass: hasIn({
         needle:
-          '| `pass` | from a verifier or a stress tester: it reached the exit. **Read its `NOTED:` line — anything but `none` goes to step 5 before you move to the next round.** From a fixer: move on. |',
+          "| `pass` | from a verifier or a stress tester: it reached the exit. **Read its `RED TESTS:` line — a stress tester calls the same line `TESTS:`. Every path on it is a defect that minion's sub-agents already turned into a failing test, and every one of them goes to step 5.** From a fixer: move on. |",
         text: TEMPLATE,
       }),
       rework: hasIn({

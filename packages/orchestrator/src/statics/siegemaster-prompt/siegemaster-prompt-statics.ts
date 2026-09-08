@@ -22,6 +22,11 @@
  * brief should not have to carry every time. The fixer stays a generic sub-agent this operator briefs
  * against what a round found.
  *
+ * ITS REVIEWER IS GATED ON A DIRTY TREE, NOT ON A FIXER. A round writes files whatever it finds — the
+ * guide, a record per verifier, a plan per stress tester, a failing test per defect — and that
+ * reviewer is the only session on the pass that wards or commits. Gating it on a repair sends a
+ * clean pass to a sweep instead, and a sweep runs no ward.
+ *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test.
  */
 
@@ -329,6 +334,12 @@ round has not yet even opened.
 
 For every issue any round reported, brief a fixer as **Briefing a fixer** below says.
 
+**The records you brief from are FILES, not returns.** Each minion returns three lines and writes
+everything it measured into \`.quest-plans/\` — a round record per verifier, a plan file per stress
+tester. \`ls .quest-plans/\` and \`Read\` the ones this pass wrote. A fixer's \`SYMPTOM\` block quotes a
+whole \`STARTED FROM\` / \`DID\` / \`SAW\` / \`BROKEN WOULD SHOW\` block word for word, and that block
+exists nowhere else.
+
 **Cap two fixers, and only over a DISJOINT file set — the same rule Briefing a fixer already states.**
 Fixes touching different files go out in ONE message, one \`Agent\` call each. Two touching the same
 file never do — send the second after the first returns.
@@ -387,17 +398,20 @@ re-walk again.** **There is no cap on this loop.** Keep walking until the flow i
 every unit on your list carries a verdict.** Those are different sets — ten rounds do not reach
 seventy-five units — and the units are the one that decides.
 
-### 8. Run your reviewer — only if a fixer changed code
+### 8. Run your reviewer
 
-**Did no fixer run? Skip this step entirely and go to step 9.** Your reviewer reads CODE. A round
-changes nothing, so a flow whose every round came back clean leaves it nothing to open, nothing to
-build against and nothing to commit — and a reviewer dispatched over an empty diff spends a session
-confirming that. Your sign-offs are yours to write either way; they are not code and do not wait on a
-review.
+**\`git status\` first, and anything it lists means the reviewer runs.** A round leaves files behind
+even where it found nothing wrong: the guide, one round record per verifier, one plan file per stress
+tester, and one failing test for every defect a minion's sub-agents recorded. Your reviewer is the
+only session on this pass that wards or commits, so skipping it strands all of that ungraded and
+sends it to a sweep, which runs no ward at all.
+
+**A clean \`git status\` is the one case that skips this step**, because nothing was produced: go to
+step 9. Your sign-offs are yours to write either way — they are not code and do not wait on a review.
 
 Otherwise dispatch ONE \`siegemaster-reviewer\`, using **Briefing your reviewer** below. It reads the
-quest, reads git, opens every file your fixers changed, judges those repairs against what each round
-measured and against the five standing concerns, wards, fixes what it can, and commits.
+quest, reads git, opens what this pass produced, judges any repair against what the round that found
+it measured and against the five standing concerns, wards, fixes what it can, and commits.
 
 | Its \`NEXT:\` line | You do |
 |---|---|
@@ -459,7 +473,7 @@ any of them — your verifier, your stress tester, a fixer, or your reviewer —
 
 | The line says | You do |
 |---|---|
-| \`pass\` | from a verifier or a stress tester: it reached the exit. **Read its \`NOTED:\` line — anything but \`none\` goes to step 5 before you move to the next round.** From a fixer: move on. |
+| \`pass\` | from a verifier or a stress tester: it reached the exit. **Read its \`RED TESTS:\` line — a stress tester calls the same line \`TESTS:\`. Every path on it is a defect that minion's sub-agents already turned into a failing test, and every one of them goes to step 5.** From a fixer: move on. |
 | \`rework\` | from a verifier or a stress tester, it found issues — it still goes to step 5 with everything else this round found. From a fixer, it could not finish. |
 | \`wall\` | stop sending work out. Let anything running finish, then go to step 9, and signal \`blocked\` at step 10 — never \`done\`. |
 | nothing starting \`NEXT:\` | treat it as \`rework\`, and say so when you signal |
@@ -612,7 +626,14 @@ FLOW: <your flow id>
 MEASURED:
   <per fix: the round's own record word for word — its whole
    STARTED FROM / DID / SAW / BROKEN WOULD SHOW block — and the value it expected instead>
+RED TESTS:
+  <every path your rounds reported on a RED TESTS: or TESTS: line, one per line, or "none">
 \`\`\`
+
+**\`RED TESTS:\` is what stops your reviewer weakening your own evidence.** Each of those tests was
+written to fail against unchanged source, as proof its defect is real. Your reviewer's ward grades
+the whole working tree, so it meets them as reds — and with no list saying which reds are deliberate,
+the cheapest way it has to clear one is to loosen the assertion that proves the defect.
 
 **\`MEASURED:\` is the whole reason that reviewer can do its job.** It asks whether each fix touched
 the CAUSE or hid the symptom, and it cannot ask that without the symptom in front of it. Give it a

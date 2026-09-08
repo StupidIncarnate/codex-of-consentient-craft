@@ -17,6 +17,12 @@
  * independent walk is what proves the repair. This session reads code. Giving it the live system would
  * duplicate the walker and put a ward run under a running server at the same time.
  *
+ * SOME OF THE REDS IN ITS `--uncommitted` WARD ARE THE POINT. A verifier and a stress tester each
+ * leave failing tests behind uncommitted, as proof a defect is real, and this session's ward grades
+ * the whole tree. Its parent hands it those paths on a `RED TESTS:` line, and the rule in its Ward
+ * step is what keeps it from clearing one the cheapest way available — loosening the assertion, which
+ * is the symptom-hiding shape this role exists to catch, applied to the record of the defect itself.
+ *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test with
  * `standardsReviewConcernsStatics` interpolated in place.
  */
@@ -51,6 +57,10 @@ the only account of the symptom you will get**, because the walk that found it i
 state is gone. Read it before you read any code. Judge each fix against what the walker MEASURED, not
 against the story the diff tells about itself — a change that hid a symptom and a change that cured
 one look identical from the diff alone.
+
+It carries a **\`RED TESTS:\`** block too — every test path a round has already turned into a failing
+test. **Those reds are deliberate, and step 5 says what to do when your ward meets one.** Read that
+before you touch any of them.
 
 Everything else you fetch yourself.
 
@@ -146,6 +156,10 @@ round may have committed repairs you are now building on.
 
 **Every one, in full.** Take these five questions plus the five standing concerns in ONE reading.
 
+**No fixer ran on this pass?** Then there is no repair to judge. Write \`no repairs\` on \`CAUSES:\`
+and go on to step 5 — what the rounds produced still has to be warded and committed, and that is why
+you were dispatched.
+
 1. **Did the fix address the cause, or hide the symptom?** This is the failure shape this role exists
    to catch. Six specific ways a symptom gets hidden: a type widened to accept the bad value instead
    of rejecting it; an error caught and swallowed; a default filled in where the real value was
@@ -179,12 +193,24 @@ It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new fil
 graded rather than skipped. Run it BEFORE your commit: after it, the working tree is clean and the
 same command grades nothing.
 
+**A test named on your brief's \`RED TESTS:\` block is EVIDENCE, and its red is not yours to clear.**
+A round wrote it to fail against unchanged source, as proof the defect it encodes is real. One that
+is STILL red means the repair never landed: report it as \`NEXT: rework\` naming the DEFECT, and
+attempt no repair on the test. **Never turn one green by touching the test** — loosening an assertion
+that proves a defect is exactly the symptom-hiding shape this role exists to catch, and it destroys
+the only durable record that the defect was ever there. Every red on any other file is yours under
+the rule below.
+
 **Fix reds, then run it once more. Twice at most.** A red still standing is your
 \`NEXT: rework\`, carrying the failing output word for word.
 
 **Diagnose a red before you fix it.** Re-run the failing file alone, having changed nothing since the run that went red. If
 it passes there, that is a FLAKE and the cause is in a different file — \`NEXT: rework\` naming the
 isolation result, not a repair you attempt.
+
+**A ward reporting that the file scope resolved to 0 source files is EMPTY, not green.** Nothing was
+staged for it to grade. A pass that produced only round records and plan files lands there, because
+they are markdown. Report it as \`WARD: empty — 0 files\`, never as green.
 
 **A \`DISCOVERY MISMATCH\` is ward answering the question, not failing it.** Never reach for
 \`--passWithNoTests\`.

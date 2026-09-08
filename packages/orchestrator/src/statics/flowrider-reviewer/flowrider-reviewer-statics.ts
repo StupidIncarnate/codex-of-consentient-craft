@@ -189,6 +189,9 @@ after it, the working tree is clean and the same command grades nothing.
 it passes there, that is a FLAKE, the file that went red is not the broken one, and it is
 \`NEXT: rework\` naming the isolation result rather than a repair you attempt.
 
+**A ward reporting that the file scope resolved to 0 source files is EMPTY, not green.** Nothing was
+staged for it to grade. Report it as \`WARD: empty — 0 files\`, never as green.
+
 **A \`DISCOVERY MISMATCH\` is ward answering the question, not failing it.** Never reach for
 \`--passWithNoTests\`.
 

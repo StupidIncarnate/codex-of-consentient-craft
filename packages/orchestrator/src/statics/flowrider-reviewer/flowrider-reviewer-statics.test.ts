@@ -104,6 +104,19 @@ describe('flowriderReviewerStatics', () => {
     });
   });
 
+  // A 0-FILE GIT SCOPE RUNS NOTHING AND EXITS 0. `--uncommitted` takes its scope from whatever the
+  // tree happens to hold, so a pass whose only changes are the map file resolves to no source files at
+  // all. Read as green, that is a pass reported over a run that graded nothing.
+  it('VALID: served template => reports a 0-file ward scope as empty rather than green', () => {
+    expect(
+      hasIn({
+        needle:
+          '**A ward reporting that the file scope resolved to 0 source files is EMPTY, not green.** Nothing was staged for it to grade. Report it as `WARD: empty — 0 files`, never as green.',
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
   it('VALID: served template => enumerates what changed before it commits anything', () => {
     expect({
       enumerateFirst: hasIn({

@@ -95,6 +95,71 @@ describe('siegemasterReviewerStatics', () => {
     });
   });
 
+  // `--uncommitted` GRADES THE WHOLE TREE, AND A ROUND'S OWN EVIDENCE IS IN IT. A verifier and a
+  // stress tester each leave failing tests behind on purpose, uncommitted, as proof a defect is real.
+  // This reviewer meets them as reds. Without a rule naming them, the cheapest way it has to clear one
+  // is to loosen the assertion — which is the symptom-hiding shape this role exists to catch, applied
+  // to the record of the defect itself.
+  it('VALID: served template => refuses to clear a red its brief named as a round’s evidence', () => {
+    expect({
+      briefCarriesTheList: hasIn({
+        needle:
+          'It carries a **`RED TESTS:`** block too — every test path a round has already turned into a failing test.',
+        text: TEMPLATE,
+      }),
+      redIsNotItsToClear: hasIn({
+        needle:
+          "**A test named on your brief's `RED TESTS:` block is EVIDENCE, and its red is not yours to clear.**",
+        text: TEMPLATE,
+      }),
+      stillRedIsRework: hasIn({
+        needle:
+          'One that is STILL red means the repair never landed: report it as `NEXT: rework` naming the DEFECT, and attempt no repair on the test.',
+        text: TEMPLATE,
+      }),
+      neverGreenByTouchingTheTest: hasIn({
+        needle: '**Never turn one green by touching the test**',
+        text: TEMPLATE,
+      }),
+      everyOtherRedStaysItsOwn: hasIn({
+        needle: 'Every red on any other file is yours under the rule below.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      briefCarriesTheList: true,
+      redIsNotItsToClear: true,
+      stillRedIsRework: true,
+      neverGreenByTouchingTheTest: true,
+      everyOtherRedStaysItsOwn: true,
+    });
+  });
+
+  // A ROUND THAT FIXED NOTHING STILL LEAVES A TREE. Its guide, its per-verifier round records and its
+  // per-stress-tester plan files are markdown, so `--uncommitted` resolves to 0 source files and ward
+  // exits 0. Read as green, that is a pass reported over a run that graded nothing.
+  it('VALID: served template => reports a 0-file ward scope as empty rather than green', () => {
+    expect(
+      hasIn({
+        needle:
+          '**A ward reporting that the file scope resolved to 0 source files is EMPTY, not green.** Nothing was staged for it to grade. A pass that produced only round records and plan files lands there, because they are markdown. Report it as `WARD: empty — 0 files`, never as green.',
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
+  // A CLEAN ROUND STILL REACHES THIS REVIEWER, because its parent gates step 8 on a dirty tree rather
+  // than on a fixer having run. Every one of step 4's questions is about a repair, so a pass with no
+  // repair needs an exit that is not silence.
+  it('VALID: served template => carries an exit for a pass on which no fixer ran', () => {
+    expect(
+      hasIn({
+        needle:
+          '**No fixer ran on this pass?** Then there is no repair to judge. Write `no repairs` on `CAUSES:` and go on to step 5 — what the rounds produced still has to be warded and committed, and that is why you were dispatched.',
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
   // ITS SUBJECT IS A SET OF REPAIRS, NOT A PASS — so the enumeration this reviewer names is "your
   // scope", where its siblings say "the pass".
   it('VALID: served template => enumerates what changed before it commits anything', () => {
