@@ -1,5 +1,6 @@
 import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { elapsedPartsTransformer } from './elapsed-parts-transformer';
+import { durationDisplayTransformer } from '../duration-display/duration-display-transformer';
 
 describe('elapsedPartsTransformer', () => {
   describe('positive spans', () => {
@@ -53,6 +54,35 @@ describe('elapsedPartsTransformer', () => {
     it('EDGE: {endedAt before startedAt} => clamps to {hours: 0, minutes: 0, seconds: 0}', () => {
       const result = elapsedPartsTransformer({
         startedAt: IsoTimestampStub({ value: '2024-01-15T10:00:05.000Z' }),
+        endedAt: IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' }),
+      });
+
+      expect(result).toStrictEqual({ hours: 0, minutes: 0, seconds: 0 });
+    });
+
+    it('EDGE: {endedAt 30 seconds before startedAt} => clamps to {hours: 0, minutes: 0, seconds: 0}', () => {
+      const result = elapsedPartsTransformer({
+        startedAt: IsoTimestampStub({ value: '2024-01-15T10:00:30.000Z' }),
+        endedAt: IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' }),
+      });
+
+      expect(result).toStrictEqual({ hours: 0, minutes: 0, seconds: 0 });
+    });
+
+    it('EDGE: {endedAt 30 seconds before startedAt} => the clamped parts display as "<1m"', () => {
+      const elapsedParts = elapsedPartsTransformer({
+        startedAt: IsoTimestampStub({ value: '2024-01-15T10:00:30.000Z' }),
+        endedAt: IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' }),
+      });
+
+      const result = durationDisplayTransformer({ elapsedParts });
+
+      expect(result).toBe('<1m');
+    });
+
+    it('EDGE: {endedAt one hour before startedAt, clock skew} => clamps to {hours: 0, minutes: 0, seconds: 0}', () => {
+      const result = elapsedPartsTransformer({
+        startedAt: IsoTimestampStub({ value: '2024-01-15T11:00:00.000Z' }),
         endedAt: IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' }),
       });
 
