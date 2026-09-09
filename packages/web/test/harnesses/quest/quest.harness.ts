@@ -170,6 +170,9 @@ export const questHarness = ({
       wardMode?: string;
       packageNames?: string[];
     }[];
+    worktreePath?: string;
+    branchName?: string;
+    baseBranch?: string;
   }) => void;
   writeUnparseableQuestFile: (params: {
     questId: string;
@@ -222,6 +225,7 @@ export const questHarness = ({
     firstWorkItemStatus?: string;
     firstWorkItemSessionId?: string;
     flowriderScopeSignedOff?: boolean;
+    worktreePath?: string;
   }) => void;
 } => {
   const createQuest = async ({
@@ -267,6 +271,9 @@ export const questHarness = ({
     comments,
     wardResults = [],
     operations = [],
+    worktreePath,
+    branchName,
+    baseBranch,
   }: {
     questId: string;
     questFolder: string;
@@ -313,6 +320,14 @@ export const questHarness = ({
       wardMode?: string;
       packageNames?: string[];
     }[];
+    // The git context riftcarver writes when it carves. Seed these to stand a quest up in the
+    // state EVERY role after riftcarver actually runs in: its sessions run in the worktree, and
+    // Claude CLI encodes its JSONL directory from the child's cwd, so the server resolves that
+    // session's tail through `worktreePath` rather than the guild path. A fixture that leaves them
+    // unset can only ever exercise the pre-carve arrangement.
+    worktreePath?: string;
+    branchName?: string;
+    baseBranch?: string;
   }): void => {
     const seededPlanningNotes: PlanningNotesInput = planningNotes ?? {};
     const baseFlows: FlowInput[] = flows ?? DEFAULT_FLOWS;
@@ -326,6 +341,9 @@ export const questHarness = ({
       title,
       status,
       ...(questType === undefined ? {} : { questType }),
+      ...(worktreePath === undefined ? {} : { worktreePath }),
+      ...(branchName === undefined ? {} : { branchName }),
+      ...(baseBranch === undefined ? {} : { baseBranch }),
       createdAt: new Date().toISOString(),
       workItems: workItems.map((wi, index) => ({
         id: wi.id,
@@ -626,6 +644,7 @@ export const questHarness = ({
     firstWorkItemStatus = 'pending',
     firstWorkItemSessionId,
     flowriderScopeSignedOff = false,
+    worktreePath,
   }: {
     questId: string;
     questFolder: string;
@@ -650,6 +669,11 @@ export const questHarness = ({
     // measures. Set this whenever the ledger carries a `flowrider` item the spec drives to `done`:
     // signal-back recomputes that scope and refuses `done` while any unit is unsigned.
     flowriderScopeSignedOff?: boolean;
+    // Seeds the quest as ALREADY CARVED. Set it whenever the ledger's riftcarver item is seeded
+    // complete, because that is the only arrangement in which the roles after it run where they
+    // really run — in the worktree, writing their session JSONL under the worktree's own path
+    // encoding.
+    worktreePath?: string;
   }): void => {
     const [firstOp] = operations;
     if (firstOp === undefined) {
@@ -664,6 +688,7 @@ export const questHarness = ({
       status: 'in_progress',
       operations,
       ...(flowriderScopeSignedOff ? { flows: DEFAULT_FLOWS_FLOWRIDER_SIGNED } : {}),
+      ...(worktreePath === undefined ? {} : { worktreePath }),
       workItems: [
         {
           id: firstWorkItemId,

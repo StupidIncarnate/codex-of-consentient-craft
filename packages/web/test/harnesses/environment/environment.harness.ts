@@ -55,6 +55,7 @@ export const environmentHarness = ({
   cleanup: () => void;
   getHomedir: () => FilePath;
   listWorktreeDirNames: () => readonly FileName[];
+  carveQuestWorktree: (params: { name: string }) => FilePath;
 } => {
   const clearStaleJsonlForGuild = (): void => {
     // Default sessionId stubs share `e2e-session-00000000-0000-0000-0000-000000000000`,
@@ -203,11 +204,32 @@ export const environmentHarness = ({
       .map((entry) => FileNameStub({ value: entry }));
   };
 
+  // Stands the fixture repo up in the state a GREEN riftcarver leaves it in: a real
+  // `git worktree add` on its own branch, under the same `worktrees/` directory a real carve uses.
+  //
+  // This exists so a spec can start on the FAR SIDE of the carve without paying for one. Everything
+  // dispatched after riftcarver runs with its cwd set to this directory, and Claude CLI encodes its
+  // session-JSONL directory from that cwd — so a spec about what a post-carve role streams needs a
+  // worktree path that is real (a child is genuinely spawned there) and is NOT the guild path (or
+  // the two resolutions the spec is separating would agree by accident).
+  // `-B` rather than `-b`, because the fixture repo OUTLIVES the run (see clearWorktrees): the
+  // per-test cleanup removes the worktree DIRECTORY and prunes git's admin entries, but the quest
+  // BRANCH a previous run created is still there, and `-b` refuses a name that already exists. `-B`
+  // resets it to `main` instead, which is exactly the state a fresh carve wants.
+  const carveQuestWorktree = ({ name }: { name: string }): FilePath => {
+    const worktreePath = path.join(guildPath, locationsStatics.repoRoot.worktreesDir, name);
+
+    runGit(['worktree', 'add', '-B', `quest/${name}`, worktreePath, 'main']);
+
+    return FilePathStub({ value: worktreePath });
+  };
+
   return {
     beforeEach: setupGuildPath,
     setupGuildPath,
     cleanup,
     getHomedir,
     listWorktreeDirNames,
+    carveQuestWorktree,
   };
 };

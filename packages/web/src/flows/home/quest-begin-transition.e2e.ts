@@ -1,4 +1,5 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -25,8 +26,19 @@ const environment = environmentHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
 wireHarnessLifecycle({ harness: environment, testObj: test });
 
+// EVERY test here measures what `POST /api/quests/:questId/start` WRITES — the status flip, the
+// relay seed, the work item it mints, and the fact that it carves nothing inside its own request.
+// None of them is about what the queue then does with that, so all of them hold the queue shut.
+//
+// The hold is needed because start now PLAYS the dispatcher (QuestStartResponder, mirroring
+// resume): without it, Begin Quest enqueues a quest nothing ever picks up. With it, the loop wakes
+// on the enqueue that happens INSIDE the start request and begins the riftcarver carve underneath
+// every assertion below — a real carve, against the fixture repo, whose failure blocks the quest
+// and turns these into a coin flip. Pausing after the response cannot close that window; refusing
+// the play outright can.
 test.describe('Quest Begin Transition', () => {
   test.beforeEach(async ({ request }) => {
+    dispatchHarness({ request, guildPath: GUILD_PATH }).holdQueueWithMcpHeartbeat();
     await guildHarness({ request }).cleanGuilds();
     sessions.cleanSessionDirectory();
   });

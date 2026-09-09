@@ -1,4 +1,5 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -23,8 +24,13 @@ const sessions = wireHarnessLifecycle({
   testObj: test,
 });
 
+// This spec measures the queue BAR, so its quests are here to be COUNTED in the queue, never run
+// out of it. Start now PLAYS the dispatcher (QuestStartResponder, mirroring resume), so the queue
+// is held shut with the production play gate's own signal — a pause after the fact cannot win the
+// race against a loop that woke on the enqueue inside the start request.
 test.describe('Execution Queue Streaming', () => {
   test.beforeEach(async ({ request }) => {
+    dispatchHarness({ request, guildPath: GUILD_PATH }).holdQueueWithMcpHeartbeat();
     await guildHarness({ request }).cleanGuilds();
   });
 
@@ -89,9 +95,8 @@ test.describe('Execution Queue Streaming', () => {
     await request.post(`/api/quests/${questId1}/start`);
 
     // 4b. Pause quest 1 so it stays in the execution queue for the duration of the test. Pause
-    //     restores pausedAtStatus and keeps the QueueEntry in place; no dispatcher auto-runs in
-    //     e2e (dispatch normalizes to paused on boot), so the quest sits enqueued either way — the
-    //     pause just pins a stable status while quest 2 is enqueued alongside it.
+    //     restores pausedAtStatus and keeps the QueueEntry in place, pinning a stable status while
+    //     quest 2 is enqueued alongside it.
     await request.post(`/api/quests/${questId1}/pause`);
 
     // 5. Queue bar must appear with 'Quest 1/1' — proves DOM updated via WS,
