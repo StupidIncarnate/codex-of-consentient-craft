@@ -103,17 +103,18 @@ export const childProcessSpawnStreamJsonAdapter = ({
 
   const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';
 
-  // Print mode (`-p`) waits for the session's background tasks — `run_in_background: true`
-  // Bash shells — to finish once the final turn ends, but only up to a ceiling: BY DEFAULT
-  // 600 SECONDS, after which Claude Code TERMINATES them and exits, cutting the agent off
-  // mid-work. Our own guidance is what walks into that: the ward-discipline snippet tells
-  // every agent to background a whole-repo `npm run ward` and wait for the task
-  // notification, and that run is 3-4 minutes on an idle machine and longer under parallel
-  // dispatch. `0` means wait indefinitely.
+  // `0` asks print mode to wait indefinitely for the session's background tasks once the final
+  // turn ends. Measured against Claude Code 2.1.265 it changes NOTHING: the child exits within
+  // seconds and its background commands die with it, at every value of this variable, at the
+  // child's top level and inside a sub-agent alike. It is set anyway — it costs nothing on the
+  // spawn, and a later release may honour it. Do not read it as protection.
   //
-  // It is set HERE, on the spawn, and not exported in a shell: the orchestrator is a
-  // published package, so an end user running `dungeonmaster start` has no shell of ours to
-  // export from and would silently keep the 600s ceiling.
+  // What a spawned child's background command actually needs is the SubagentStop guard in
+  // @dungeonmaster/hooks, which refuses the stop while a `shell` task is running. The full
+  // measurement, and how to redo it after a CLI upgrade, is in this package's README.
+  //
+  // It is set HERE, on the spawn, and not exported in a shell: the orchestrator is a published
+  // package, so an end user running `dungeonmaster start` has no shell of ours to export from.
   const baseEnv = { ...process.env, CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS: '0' };
 
   // Haiku models do not support the Claude Code MCP tool-search loop, so smoketest

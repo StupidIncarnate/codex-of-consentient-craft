@@ -66,6 +66,11 @@ An interactive session behaves differently — it keeps the task alive and re-en
 it exits — so a rule written from a `/dumpster-launch` observation does not transfer to the Node
 dispatch path.
 
+**All of this is undocumented harness behaviour pinned to one CLI version, so re-measure after an
+upgrade.** `packages/orchestrator/README.md` holds the spawn-side half — what a headless child does
+to its background commands, what it does to an async helper, what the Bash `timeout` controls, and a
+recipe for redoing every measurement in about two minutes each.
+
 The block discriminator is `get-agent-prompt` **carrying a `workItemId`**: work-item agents pass one
 and must signal back; minions pass none, legitimately never signal, and are therefore exempt.
 `stop_hook_active` means the nudge already fired once — allow the stop and let the orchestrator's
