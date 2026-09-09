@@ -1,30 +1,39 @@
 /**
- * PURPOSE: Computes a human-readable duration string from two ISO timestamps
+ * PURPOSE: Formats one elapsed-time span into the label a work-item row shows beside its status.
+ * It is the single formatting function for that label whether the row is still running or has
+ * already finished — by the time `elapsedParts` reaches here the caller has already picked the
+ * end point (`Date.now()` for a running row, `completedAt` for a finished one), so this file has
+ * no way to tell the two cases apart and does not need to.
  *
  * USAGE:
- * durationDisplayTransformer({startedAt, completedAt});
- * // Returns '12s' or '2m 34s' as DisplayLabel
+ * durationDisplayTransformer({elapsedParts: ElapsedPartsStub({minutes: 4})});
+ * // Returns '4m' as a branded DisplayLabel
  */
 
-import type { WorkItem } from '@dungeonmaster/shared/contracts';
+import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
+import type { ElapsedParts } from '../../contracts/elapsed-parts/elapsed-parts-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 
-const MILLIS_PER_SECOND = 1000;
-const SECONDS_PER_MINUTE = 60;
-
 export const durationDisplayTransformer = ({
-  startedAt,
-  completedAt,
+  elapsedParts,
 }: {
-  startedAt: WorkItem['startedAt'];
-  completedAt: WorkItem['completedAt'];
+  elapsedParts: ElapsedParts;
 }): DisplayLabel => {
-  const ms = new Date(String(completedAt)).getTime() - new Date(String(startedAt)).getTime();
-  const totalSeconds = Math.floor(ms / MILLIS_PER_SECOND);
-  const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
-  const seconds = totalSeconds % SECONDS_PER_MINUTE;
-  const formatted = minutes > 0 ? `${String(minutes)}m ${String(seconds)}s` : `${String(seconds)}s`;
-  return displayLabelContract.parse(formatted);
+  const { minuteThresholdSeconds, hourThresholdMinutes } = elapsedDisplayConfigStatics.thresholds;
+  const { hours, minutes, seconds } = elapsedParts;
+  const totalMinutes = Number(hours) * hourThresholdMinutes + Number(minutes);
+  const totalSeconds = totalMinutes * minuteThresholdSeconds + Number(seconds);
+
+  if (totalSeconds < minuteThresholdSeconds) {
+    return displayLabelContract.parse('<1m');
+  }
+  if (totalMinutes < hourThresholdMinutes) {
+    return displayLabelContract.parse(`${String(totalMinutes)}m`);
+  }
+  // A whole hour prints `1h`, not `1h0m` — the zero carries no information.
+  return displayLabelContract.parse(
+    Number(minutes) === 0 ? `${String(hours)}h` : `${String(hours)}h${String(minutes)}m`,
+  );
 };

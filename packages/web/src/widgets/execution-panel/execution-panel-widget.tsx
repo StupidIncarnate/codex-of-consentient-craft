@@ -24,6 +24,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
+import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { CompletedCount } from '@dungeonmaster/shared/contracts';
@@ -195,6 +196,20 @@ export const ExecutionPanelWidget = ({
   const visibleWorkItems = quest.workItems.filter(
     (wi) => includeSkipped || !isSkippedWorkItemStatusGuard({ status: wi.status }),
   );
+
+  // One shared tick drives every visible running row's elapsed figure, rather than a timer per
+  // row — a per-row interval would start counting from that row's own mount time, so two items
+  // dispatched in the same batch (genuinely the same age) would drift apart by up to a tick
+  // period. `enabled` is what stops the timer: the binding clears its own interval once the last
+  // running row leaves in_progress. This predicate has to match ExecutionRowLayerWidget's own
+  // `isRunning` test exactly — a `queued` item passes isActiveWorkItemStatusGuard but the row
+  // draws no figure for it, and diverging from the row's test would hold the timer for a row that
+  // draws nothing.
+  const hasRunningWorkItem = visibleWorkItems.some((wi) => {
+    const wiRowStatus = wi.status as ExecutionStepStatus;
+    return wiRowStatus === ('in_progress' as ExecutionStepStatus) && wi.startedAt !== undefined;
+  });
+  const { now } = useElapsedTickBinding({ enabled: hasRunningWorkItem });
 
   const totalOperations = quest.operations.length as TotalCount;
   const completedOperations = quest.operations.filter((op) => op.status === 'complete')
@@ -375,6 +390,7 @@ export const ExecutionPanelWidget = ({
                   {...(includeSkipped ? { autoExpand: true } : {})}
                   attempt={wi.attempt}
                   maxAttempts={wi.maxAttempts}
+                  now={now}
                   {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
                   {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
                   {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}

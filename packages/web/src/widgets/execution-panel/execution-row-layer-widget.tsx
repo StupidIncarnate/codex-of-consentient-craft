@@ -27,12 +27,14 @@ import type { DisplayFilePath } from '../../contracts/display-file-path/display-
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
+import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
 import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
+import { elapsedPartsTransformer } from '../../transformers/elapsed-parts/elapsed-parts-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { mergeCommandOutputEntriesTransformer } from '../../transformers/merge-command-output-entries/merge-command-output-entries-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
@@ -58,6 +60,9 @@ export interface ExecutionRowLayerWidgetProps {
   maxAttempts?: WorkItem['maxAttempts'];
   startedAt?: WorkItem['startedAt'];
   completedAt?: WorkItem['completedAt'];
+  // The panel's shared 60-second tick supplies this; it is the end point a RUNNING item's figure
+  // measures to, and a finished item ignores it.
+  now?: IsoTimestamp;
   observablesSatisfied?: ObservableId[];
   inputContracts?: ContractName[];
   outputContracts?: ContractName[];
@@ -122,6 +127,7 @@ export const ExecutionRowLayerWidget = ({
   maxAttempts,
   startedAt,
   completedAt,
+  now,
   observablesSatisfied,
   inputContracts,
   outputContracts,
@@ -181,6 +187,11 @@ export const ExecutionRowLayerWidget = ({
     userClickedRef.current = false;
   }, [status]);
 
+  const isRunning = status === ('in_progress' as ExecutionStepStatus);
+  // A row shows a figure exactly when it has a startedAt AND an honest end point: completedAt if
+  // it has one, else `now` while running. Any other status with a startedAt has none — that
+  // startedAt is left over from a previous dispatch, not a span still in progress.
+  const elapsedEndPoint = completedAt ?? (isRunning ? now : undefined);
   const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
   const roleColor = executionStepStatusConfigStatics.roleColors[role];
   const isExpandable = EXPANDABLE_STATUSES.includes(status) || hasEntries;
@@ -317,7 +328,7 @@ export const ExecutionRowLayerWidget = ({
           </Text>
         ) : null}
 
-        {startedAt && completedAt ? (
+        {startedAt && elapsedEndPoint ? (
           <Text
             ff="monospace"
             data-testid="execution-row-duration"
@@ -327,7 +338,9 @@ export const ExecutionRowLayerWidget = ({
               flexShrink: 0,
             }}
           >
-            {durationDisplayTransformer({ startedAt, completedAt })}
+            {durationDisplayTransformer({
+              elapsedParts: elapsedPartsTransformer({ startedAt, endedAt: elapsedEndPoint }),
+            })}
           </Text>
         ) : null}
 

@@ -15,6 +15,7 @@ import {
 
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
 
@@ -837,7 +838,264 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.getByTestId('execution-row-duration').textContent).toBe('2m 34s');
+      expect(screen.getByTestId('execution-row-duration').textContent).toBe('2m');
+    });
+  });
+
+  describe('live elapsed duration on running rows', () => {
+    it('VALID: {in_progress work item started 4 minutes before the clock} => shows 4m, then 5m after one tick', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); 4 minutes earlier is 00:06:00 — spelled as a
+      // literal rather than `new Date(...).toISOString()` because a proxy elsewhere in this
+      // panel's tree (QuestSpecPanelWidgetProxy's comment-queue mock) stages a
+      // Date.prototype.toISOString() catch-all with no address to override for a specific instant.
+      const startedAt = '1970-01-01T00:06:00.000Z';
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getRowDurations()).toStrictEqual(['4m']);
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+      proxy.fireTick();
+
+      expect(proxy.getRowDurations()).toStrictEqual(['5m']);
+    });
+
+    it('VALID: {quest with three in_progress work items} => registers exactly one shared tick interval', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms — 00:10:00 past epoch.
+      const startedAt = '1970-01-01T00:10:00.000Z';
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'spiritmender',
+            status: 'in_progress',
+            startedAt,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'flowrider',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getTickIntervalCount()).toBe(1);
+    });
+
+    it('VALID: {two in_progress work items sharing one startedAt} => both rows read the same duration and move together after a tick', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); 4 minutes earlier is 00:06:00 — spelled as a
+      // literal rather than `new Date(...).toISOString()` because a proxy elsewhere in this
+      // panel's tree (QuestSpecPanelWidgetProxy's comment-queue mock) stages a
+      // Date.prototype.toISOString() catch-all with no address to override for a specific instant.
+      const startedAt = '1970-01-01T00:06:00.000Z';
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'spiritmender',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getRowDurations()).toStrictEqual(['4m', '4m']);
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+      proxy.fireTick();
+
+      expect(proxy.getRowDurations()).toStrictEqual(['5m', '5m']);
+    });
+
+    it('VALID: {one of two running work items moves to complete} => the still-running row keeps advancing after a tick', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); 4 minutes earlier is 00:06:00 — spelled as a
+      // literal rather than `new Date(...).toISOString()` because a proxy elsewhere in this
+      // panel's tree (QuestSpecPanelWidgetProxy's comment-queue mock) stages a
+      // Date.prototype.toISOString() catch-all with no address to override for a specific instant.
+      const startedAt = '1970-01-01T00:06:00.000Z';
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'spiritmender',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      const { rerender } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const partiallyStoppedQuest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            startedAt,
+            completedAt: '1970-01-01T00:10:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'spiritmender',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      rerender(<ExecutionPanelWidget quest={partiallyStoppedQuest} />);
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+      proxy.fireTick();
+
+      expect(proxy.getRowDurations()).toStrictEqual(['4m', '5m']);
+    });
+
+    it('VALID: {panel with a running row unmounts} => clears the shared tick interval', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms — 00:10:00 past epoch.
+      const startedAt = '1970-01-01T00:10:00.000Z';
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      const { unmount } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      unmount();
+
+      expect(proxy.getClearedTickCount()).toBe(1);
+    });
+
+    it('EMPTY: {work item at queued status carrying a startedAt} => registers no tick interval', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'queued',
+            startedAt: '1970-01-01T00:06:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getTickIntervalCount()).toBe(0);
+    });
+
+    it('VALID: {sole in_progress work item moves to complete} => clears the shared tick interval', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms — 00:10:00 past epoch.
+      const startedAt = '1970-01-01T00:10:00.000Z';
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      const { rerender } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const completeQuest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            startedAt,
+            completedAt: '1970-01-01T00:10:00.000Z',
+          }),
+        ],
+      });
+
+      rerender(<ExecutionPanelWidget quest={completeQuest} />);
+
+      expect(proxy.getClearedTickCount()).toBe(1);
     });
   });
 
