@@ -94,6 +94,23 @@ describe('HookSubagentStopResponder', () => {
     });
   });
 
+  // AN ASYNC-DISPATCHED SUB-AGENT IS LISTED AS ITS OWN RUNNING `subagent` TASK, so blocking on that
+  // entry wedges it: nothing it can do clears its own id, and the block repeats forever.
+  it('VALID: {running subagent task, minion transcript} => allows the stop rather than wedging the agent', async () => {
+    const proxy = HookSubagentStopResponderProxy();
+    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });
+
+    const result = await HookSubagentStopResponder({
+      hookInput: SubagentStopHookDataStub({
+        background_tasks: [
+          HookBackgroundTaskStub({ id: 'a4a98a1e1fbe45b1c', type: 'subagent', status: 'running' }),
+        ],
+      }),
+    });
+
+    expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
+  });
+
   it('VALID: {every background task completed, minion transcript} => allows the stop', async () => {
     const proxy = HookSubagentStopResponderProxy();
     proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });

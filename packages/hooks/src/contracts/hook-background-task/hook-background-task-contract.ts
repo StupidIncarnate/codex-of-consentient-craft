@@ -10,11 +10,15 @@
  */
 import { z } from 'zod';
 
-// `status` is an open branded string rather than an enum, deliberately. The event shape is
+// `status` and `type` are open branded strings rather than enums, deliberately. The event shape is
 // undocumented; a value an enum did not list would be REJECTED, and a rejected parse reads
 // downstream as "no background tasks" — failing open and losing the exact run this shape exists to
-// protect. Only `id` and `status` are required, because only those two were present on every
-// captured event.
+// protect.
+//
+// `type` is optional because the wire may omit it, but it is the field that separates the two
+// observed kinds and nothing may read this shape without it: `shell` is a backgrounded COMMAND,
+// while `subagent` is an AGENT — and an event lists the stopping agent itself under that type, with
+// `id` equal to the event's own `agent_id`.
 export const hookBackgroundTaskContract = z.object({
   id: z.string().min(1).brand<'HookBackgroundTaskId'>(),
   type: z.string().min(1).brand<'HookBackgroundTaskType'>().optional(),

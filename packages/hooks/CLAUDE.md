@@ -22,9 +22,24 @@ this): `agent_id`, `agent_type`, `stop_hook_active`, `last_assistant_message`, `
 
 ## `background_tasks` is the only report of work still in flight
 
-`background_tasks` is an array of `{ id, type, status, description, command }`, and a command the
-sub-agent backgrounded reads `status: 'running'` at the moment it tries to stop. Nothing else says
-so: a transcript records that a task was STARTED and never that it ended.
+`background_tasks` is an array of `{ id, type, status, description, … }`, and a command the sub-agent
+backgrounded reads `status: 'running'` at the moment it tries to stop. Nothing else says so: a
+transcript records that a task was STARTED and never that it ended.
+
+**`type` decides everything, and matching on `status` alone deadlocks the session.** Two types are
+observed, and only the first is a command a stop would destroy:
+
+| `type` | What the entry is | Shape |
+|---|---|---|
+| `shell` | a backgrounded command | `{ id, type: 'shell', status, description, command }` |
+| `subagent` | an AGENT — including **the stopping agent itself** | `{ id, type: 'subagent', status, description, agent_type }` |
+
+A sub-agent dispatched with `run_in_background: true` appears in its OWN event under `subagent`, with
+`id` equal to that event's `agent_id`. Blocking on it wedges the agent permanently: nothing it can do
+clears its own entry, and the block repeats every time it tries to stop. A `subagent` entry is safe
+to stop on for the same reason a helper is — measured, an async helper survives its parent's final
+response and finishes its work. An entry with NO `type` does not block either: an unrecognised entry
+failing open costs a lost command, and failing closed costs a wedged session.
 
 `hasRunningBackgroundTaskGuard` refuses the stop while any task is running, and that refusal is what
 keeps the command alive. **A headless `claude -p` session TERMINATES its background tasks the instant

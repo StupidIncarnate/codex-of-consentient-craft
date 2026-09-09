@@ -24,9 +24,17 @@ export const hasRunningBackgroundTaskGuard = ({
     return false;
   }
 
-  // `status` is branded and the static is a plain literal, so the two are not directly comparable;
-  // widening the branded value is what keeps this a comparison rather than a cast.
+  // BOTH halves are required, and `type` is the half that matters most. An event lists the stopping
+  // agent itself as a `subagent` task whose id is the event's own `agent_id`, so matching on
+  // `status` alone blocks every async-dispatched sub-agent on an entry nothing can clear. A missing
+  // `type` does NOT match: an unrecognised entry failing open costs a lost command, and failing
+  // closed costs a wedged session, which is the worse of the two.
+  //
+  // The fields are branded and the statics are plain literals, so the two are not directly
+  // comparable; widening the branded value keeps each of these a comparison rather than a cast.
   return backgroundTasks.some(
-    (task) => String(task.status) === hookBackgroundTaskStatics.status.running,
+    (task) =>
+      String(task.type) === hookBackgroundTaskStatics.type.shell &&
+      String(task.status) === hookBackgroundTaskStatics.status.running,
   );
 };
