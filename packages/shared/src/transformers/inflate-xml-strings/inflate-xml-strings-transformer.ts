@@ -17,8 +17,12 @@
  * the renderer with empty TOOL ERROR content. `<task-notification>` (the only consumer
  * that depends on inflation) sits at `message.content` as a string — object-property
  * position — so the scope keeps that flow working.
+ *
+ * A string the pattern accepts is not necessarily well-formed XML, so `parseXml` is
+ * allowed to reject it and the string survives — see the catch below.
  */
 
+import { safeXmlParseTransformer } from '../safe-xml-parse/safe-xml-parse-transformer';
 import { snakeKeysToCamelKeysTransformer } from '../snake-keys-to-camel-keys/snake-keys-to-camel-keys-transformer';
 
 const XML_PATTERN = /^\s*<[a-zA-Z][\w-]*\b[^>]*>[\s\S]*<\/[a-zA-Z][\w-]*>\s*$/u;
@@ -40,7 +44,16 @@ export const inflateXmlStringsTransformer = ({
     if (!XML_PATTERN.test(value)) {
       return value;
     }
-    const parsed = parseXml({ xml: value });
+    // XML_PATTERN proves only that the string OPENS and CLOSES with a tag; it cannot prove
+    // well-formedness, and prose wrapped in tags carries bare `<` and `&` characters that
+    // fast-xml-parser rejects (`duration stayed "<1m"` is a measured case). The only caller
+    // runs inside a readline `line` handler, where a throw is an uncaught exception that kills
+    // the server process — so an unparseable string stays a string.
+    const result = safeXmlParseTransformer({ xml: value, parseXml });
+    if (!result.ok) {
+      return value;
+    }
+    const parsed = result.value;
     if (typeof parsed !== 'object' || parsed === null) {
       return value;
     }

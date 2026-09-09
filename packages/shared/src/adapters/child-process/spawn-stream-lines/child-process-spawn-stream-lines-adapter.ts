@@ -49,16 +49,32 @@ export const childProcessSpawnStreamLinesAdapter = async ({
     const stdoutChunks: ErrorMessage[] = [];
     const stderrChunks: ErrorMessage[] = [];
 
+    // readline and the stderr stream call these handlers outside any caller frame, so a throwing
+    // `onLine` is an uncaught exception that kills the process — losing the accumulated output
+    // and the exit code of a command that may have run for minutes. Log and keep streaming: the
+    // subprocess result is still worth resolving when one line's consumer failed.
     const rl = createInterface({ input: child.stdout });
     rl.on('line', (line: string) => {
       stdoutChunks.push(errorMessageContract.parse(line));
-      onLine(line);
+      try {
+        onLine(line);
+      } catch (lineError: unknown) {
+        process.stderr.write(
+          `[spawn-stream-lines] onLine failed for ${command} stdout: ${String(lineError)}\n`,
+        );
+      }
     });
 
     child.stderr.on('data', (chunk: Buffer) => {
       const text = chunk.toString();
       stderrChunks.push(errorMessageContract.parse(text));
-      onLine(text);
+      try {
+        onLine(text);
+      } catch (lineError: unknown) {
+        process.stderr.write(
+          `[spawn-stream-lines] onLine failed for ${command} stderr: ${String(lineError)}\n`,
+        );
+      }
     });
 
     child.on('error', (error: Error) => {

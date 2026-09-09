@@ -9,6 +9,10 @@
  * });
  * // later:
  * stop();
+ *
+ * A throwing `onLine` is caught and written to stderr, never propagated: readline invokes the
+ * line handler outside any caller frame, so an unguarded throw there is an uncaught exception
+ * that kills the process. The tail survives it and keeps reading.
  */
 
 import { watch, createReadStream, statSync, existsSync } from 'fs';
@@ -239,7 +243,19 @@ export const fsWatchTailAdapter = ({
 
     rl.on('line', (line) => {
       if (!state.stopped && line.length > 0) {
-        onLine({ line });
+        try {
+          onLine({ line });
+        } catch (lineError: unknown) {
+          // Every consumer parses the line it is handed, and a tailed JSONL carries whatever an
+          // agent wrote. readline calls this handler outside any caller frame, so a throw here
+          // is an uncaught exception that kills the server mid-quest rather than dropping one
+          // line. Logged rather than sent to `onError`: several consumers no-op that channel
+          // because an orphan sub-agent reference ENOENTs there routinely, and a consumer bug
+          // must stay visible whatever a caller decided about expected tail noise.
+          process.stderr.write(
+            `[watch-tail] onLine failed for ${String(filePath)}: ${String(lineError)}\n`,
+          );
+        }
       }
     });
 

@@ -109,6 +109,28 @@ describe('claudeLineNormalizeBroker', () => {
       });
     });
 
+    it('ERROR: {rawLine whose content opens and closes with a tag but holds a bare "<"} => returns the string unchanged instead of throwing', () => {
+      // Captured from a real session: an agent report wrapped in tags quoted a duration as
+      // "<1m". fast-xml-parser rejects that with `readTagExp returned undefined at position
+      // 36`. The only caller is `onLine` inside a readline handler, so a propagating throw is
+      // an uncaught exception that kills the server mid-quest.
+      claudeLineNormalizeBrokerProxy();
+
+      expect(
+        claudeLineNormalizeBroker({
+          rawLine:
+            '{"type":"user","message":{"role":"user","content":"<task-notification>duration stayed \\"<1m\\", expanded content stayed present</task-notification>"}}',
+        }),
+      ).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content:
+            '<task-notification>duration stayed "<1m", expanded content stayed present</task-notification>',
+        },
+      });
+    });
+
     it('VALID: {rawLine with plain text content} => leaves content as string', () => {
       claudeLineNormalizeBrokerProxy();
 

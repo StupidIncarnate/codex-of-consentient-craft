@@ -145,7 +145,13 @@ export const childProcessSpawnStreamJsonAdapter = ({
   if (onStderrLine !== undefined && childProcess.stderr !== null) {
     const stderrReader = createInterface({ input: childProcess.stderr });
     stderrReader.on('line', (line: string) => {
-      onStderrLine({ line });
+      try {
+        onStderrLine({ line });
+      } catch (lineError: unknown) {
+        // readline calls this outside any caller frame, so a throw here is an uncaught
+        // exception that kills the server over a diagnostic line from a child process.
+        process.stderr.write(`[spawn-stream-json] onStderrLine failed: ${String(lineError)}\n`);
+      }
     });
   }
 

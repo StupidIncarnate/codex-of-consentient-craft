@@ -65,6 +65,7 @@ export * from './src/transformers/inflate-xml-strings/inflate-xml-strings-transf
 
 // Safe JSON Parse
 export * from './src/transformers/safe-json-parse/safe-json-parse-transformer';
+export * from './src/transformers/safe-xml-parse/safe-xml-parse-transformer';
 
 // Next Approval Quest Status
 export * from './src/transformers/next-approval-quest-status/next-approval-quest-status-transformer';
