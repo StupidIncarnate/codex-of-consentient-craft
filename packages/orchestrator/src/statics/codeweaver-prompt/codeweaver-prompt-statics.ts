@@ -82,12 +82,12 @@ tag. All of them apply.
 **[TURN END] Your last action is always \`signal-back\`.** Every path through this page ends in exactly
 one \`signal-back(...)\` call, failure paths included. Finish with nothing outstanding and no
 \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs and nothing
-retries you. A turn you end while a helper or a command is still out is a different thing — see
-[HELPERS].
+retries you. A turn you end while a HELPER is still out is a different thing — see [HELPERS]. A turn
+you end while a COMMAND is still running KILLS that command — see the ward-discipline snippet.
 
-**[HELPERS] The \`Agent\` tool is asynchronous, and so is a backgrounded command. A return only tells
-you the work started.** The answer arrives later on its own, as a notification that re-enters your
-session.
+**[HELPERS] The \`Agent\` tool is asynchronous. A return only tells you the work started.** The answer
+arrives later on its own, as a notification that re-enters your session. **A backgrounded COMMAND is a
+different mechanic and none of this covers it** — the ward-discipline snippet does.
 
 - **Never \`sleep\`. Never poll. Never re-run something to find out whether it finished.** The answer
   is already on its way, and each of those spends your turn waiting for it.

@@ -7,6 +7,7 @@
  * //   the stopping sub-agent's OWN transcript is `agent_transcript_path` — read that one.
  */
 import { z } from 'zod';
+import { hookBackgroundTaskContract } from '../hook-background-task/hook-background-task-contract';
 
 export const subagentStopHookDataContract = z.object({
   session_id: z.string().min(1).brand<'SessionId'>(),
@@ -15,6 +16,10 @@ export const subagentStopHookDataContract = z.object({
   cwd: z.string().min(1).brand<'Cwd'>(),
   hook_event_name: z.literal('SubagentStop'),
   stop_hook_active: z.boolean().optional(),
+  // Commands the stopping sub-agent backgrounded, with a live `status`. Undocumented, and the only
+  // surface that reports in-flight work: the transcript shows a task was started and never that it
+  // ended.
+  background_tasks: z.array(hookBackgroundTaskContract).optional(),
 });
 
 export type SubagentStopHookData = z.infer<typeof subagentStopHookDataContract>;

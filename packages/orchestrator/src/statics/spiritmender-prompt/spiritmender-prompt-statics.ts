@@ -83,13 +83,13 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This is the rung the \`<dungeonmaster-wardDiscipline>\` snippet's "Who owns a full run" rule assigns you: an orchestrator-dispatched role never runs the full sweep, and the dispatcher's own \`run-ward\` item is the regression pass that runs after you. It does not override the snippet.
 
-**DO NOT SLEEP-POLL A WARD RUN.** Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished. A run that crosses \`timeout: 600000\` is backgrounded by the harness, which notifies you when it exits.
+**DO NOT SLEEP-POLL A WARD RUN, AND DO NOT END YOUR TURN ON ONE.** Never \`sleep\` a guessed duration beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished. A run that crosses \`timeout: 600000\` is backgrounded by the harness and the call returns WITHOUT the result — ending your turn there terminates the run. Stay in the turn and wait on the condition until its exit line lands, then read the output once.
 
 Run it scoped to the files you name: \`npm run ward -- --only <checks> -- <file1> <file2>\`. Every path must be a FILE, never a bare directory (\`-- packages/<pkg>\`). A directory pulls in the whole package, and the harness then pushes the run into the background, where it takes minutes you did not need to spend.
 
 Two mechanics from the \`<dungeonmaster-wardDiscipline>\` snippet still apply to you: re-run the failing command at the rung it was run, and run it once.
 
-**[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session.
+**[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session. **A backgrounded COMMAND is a different mechanic and none of this covers it** — the ward-discipline snippet does.
 
 **Never \`sleep\`. Never poll. Never re-run a command to check whether it finished.** The answer is already on its way, and every one of those burns your turn waiting for something that is coming anyway.
 

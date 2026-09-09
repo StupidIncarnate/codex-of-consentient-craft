@@ -77,8 +77,12 @@ A \`SWEEP:\` line instead means a different, smaller job — see **On a sweep br
 **[TURN END] You return text. You call no \`signal-back\` and you start no sub-agent.** You are the
 last agent in this chain.
 
-**[BACKGROUND] A command the harness backgrounds notifies you when it exits.** Never \`sleep\` beside
-one, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
+**[BACKGROUND] A command the harness backgrounds is STILL RUNNING, and returning your report KILLS
+it.** A \`--uncommitted\` ward on a large pass outlives the Bash call, which comes back saying it moved
+to the background and carrying no result. Do not report there: stay in the turn and wait on the
+condition until the run's own exit line lands, then read the output once. Never \`sleep\` a guessed
+duration beside one, never \`tail\` its output file, and never re-run it to find out whether the first
+one finished.
 
 **[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, after you have read everything.**
 Nobody else on the pass runs it. You run no bare \`npm run ward\`; that is the dispatcher's. You never

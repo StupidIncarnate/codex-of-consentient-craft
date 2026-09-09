@@ -18,7 +18,38 @@ conversation. Read `agent_transcript_path`, falling back to `transcript_path` on
 
 Other fields present on the real event (established empirically — the Claude Code docs list none of
 this): `agent_id`, `agent_type`, `stop_hook_active`, `last_assistant_message`, `permission_mode`,
-`effort`, `background_tasks`.
+`effort`, `prompt_id`, `session_crons`, `background_tasks`.
+
+## `background_tasks` is the only report of work still in flight
+
+`background_tasks` is an array of `{ id, type, status, description, command }`, and a command the
+sub-agent backgrounded reads `status: 'running'` at the moment it tries to stop. Nothing else says
+so: a transcript records that a task was STARTED and never that it ended.
+
+`hasRunningBackgroundTaskGuard` refuses the stop while any task is running, and that refusal is what
+keeps the command alive. **A headless `claude -p` session TERMINATES its background tasks the instant
+its final response lands, and no notification can follow that response** — measured against Claude
+Code 2.1.265, where a whole-repo ward backgrounded by a sub-agent died mid-`e2e` while the session
+reported `is_error: false`. `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` does not change this at any value.
+
+Two rules follow, and they pull in opposite directions on purpose:
+
+- The background-task refusal **ignores `stop_hook_active`**, because it has to outlast a command
+  that is still running, and its message sends the agent away to act rather than to retry — so each
+  re-entry costs wall clock, not a loop.
+- The signal-back refusal **honours `stop_hook_active`** and nudges only once, because nothing there
+  is racing a clock and orphan recovery is the backstop.
+
+**The block message carries TWO branches, and dropping either one deadlocks somebody.** A command
+whose RESULT the agent needs (ward, a build, a suite) routes to *wait and poll*. A long-lived process
+the agent is FINISHED with (a dev server, a watcher, a siege lane) routes to *kill it, then stop* —
+because that kind never reports anything but `running`, so a wait-only message would hold every
+lane-owning minion open forever. Both branches end with the command no longer running, which is what
+clears the block without needing an escape hatch.
+
+An interactive session behaves differently — it keeps the task alive and re-enters the sub-agent when
+it exits — so a rule written from a `/dumpster-launch` observation does not transfer to the Node
+dispatch path.
 
 The block discriminator is `get-agent-prompt` **carrying a `workItemId`**: work-item agents pass one
 and must signal back; minions pass none, legitimately never signal, and are therefore exempt.

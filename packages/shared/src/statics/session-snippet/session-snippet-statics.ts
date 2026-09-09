@@ -172,7 +172,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **Never \`cd\` into a package.** Ward runs from the repo root; scope it with paths after \`--\`. Prefer FILE paths; a bare directory pulls in the package.
 
-**Run it in the FOREGROUND and let it block.** Call Bash without \`run_in_background\`, always with \`timeout: 600000\` (the 2-min default kills a repo-wide run). **Never \`sleep\` on a ward run, and never \`tail\` its output file.** A run crossing that timeout is backgrounded by the harness, and it notifies you when the run exits — do other work, or end your turn.
+**Let it block, with \`timeout: 600000\`** (the 2-min default kills a repo-wide run). A wide run outlives even that, and the harness then backgrounds it and returns you no result — background-tasks says what to do there, and it is never "end your turn". **Never \`sleep\` on a ward run, and never \`tail\` its output file.**
 
 **Run it ONCE per tree state, and fix on \`--uncommitted\`.** Right flags first time; never re-run the same checks hoping for a different answer. A FIX makes a new state, so re-running after one is fine — and a red found by a bare run costs another whole-repo run to confirm, where \`--uncommitted\` runs only what you touched. Iterate there to exit 0, THEN one bare run as the regression pass. **No typecheck is lost**: \`tsc --noEmit\` grades a touched package WHOLE whatever paths you pass.
 
@@ -181,6 +181,25 @@ Applies to every ward run, in any repo, by any agent.
 **Who owns a FULL run.** An agent working directly for the user makes a full \`npm run ward\` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own \`run-ward\` item is the regression pass.`,
 
   packages: null,
+
+  backgroundTasks: `## Background Commands and Ending Your Turn
+
+Applies to every long-running command, in any repo, by any agent.
+
+**A command can outlive the Bash call that started it.** Anything slow — a whole-repo ward, a build, an install, a browser run — crosses the call's timeout, and the harness moves it to the background. The call then returns saying so, carrying NO result. Give a long command \`timeout: 600000\` up front. \`run_in_background: true\` buys nothing: it blocks for that same timeout either way.
+
+**Your final response TERMINATES every background command you own, and no notification can follow it.** A command still running when you stop dies part-way, while your report reads clean and nothing tells you it happened.
+
+Every still-running command is in one of two cases, and both end with it no longer running:
+
+| Case | What you do |
+|---|---|
+| You need its RESULT — a ward, a build, a test run, an install | **Do not end your turn.** Stay in this turn and wait on the CONDITION: a bounded loop that returns the moment its marker or exit line appears, repeated as often as it takes. Then read the result once. |
+| You are DONE with it — a dev server, a preview, a watcher, a test lane | **Kill it now**, in this turn, then stop. Leaving it up does not keep it alive past your final response; it only strands its port. |
+
+**Wait on a condition, never on a guess.** Never \`sleep\` a fixed duration and assume it finished, never \`tail\` its output file, and never re-run it to find out whether the first one did.
+
+**A HELPER is a different mechanic.** The \`Agent\` tool is asynchronous and its notification re-enters you, so a helper still out is not what this page governs.`,
 
   commentDiscipline: `## Comments and History
 

@@ -64,18 +64,23 @@ describe('sessionSnippetStatics', () => {
     );
   });
 
-  // A WARD RUN THAT CROSSES ITS TIMEOUT IS BACKGROUNDED BY THE HARNESS, AND THE HARNESS NOTIFIES.
-  // The old wording claimed a hook blocked that outright — "there is no second mode and no output
-  // file anyone has to wait on" — so an agent that hit the real thing had no rule covering it and
-  // invented one. Two reviewers on one quest sleep-polled the output file (`sleep 90`, then
-  // `sleep 240`), 815 seconds of sleeps in total. The ban on ENDING a turn to wait still holds: a
-  // notification cannot follow a final response.
-  it('VALID: wardDiscipline snippet => bans sleeping on a ward run and names the exit notification', () => {
+  // A WARD RUN THAT CROSSES ITS TIMEOUT IS BACKGROUNDED BY THE HARNESS, AND THE CALL RETURNS NO
+  // RESULT. Two claims cost real work here. One said a hook blocked that outright — "there is no
+  // second mode and no output file anyone has to wait on" — so an agent meeting the real thing had
+  // no rule and invented one: two reviewers on a quest sleep-polled the output file (`sleep 90`,
+  // then `sleep 240`), 815 seconds of sleeps. The other promised a notification on exit, which a
+  // final response cannot receive: a measured run under a headless `claude -p` child killed a
+  // whole-repo ward mid-`e2e` while the session reported success. So this snippet points at
+  // background-tasks and refuses the turn-ending branch by name, and both dead claims stay gone.
+  it('VALID: wardDiscipline snippet => bans sleeping, and routes a backgrounded run to background-tasks', () => {
     expect({
       neverSleepNeverTail: sessionSnippetStatics.wardDiscipline.includes(
         '**Never `sleep` on a ward run, and never `tail` its output file.**',
       ),
-      notifiesOnExit: sessionSnippetStatics.wardDiscipline.includes(
+      routesToBackgroundTasks: sessionSnippetStatics.wardDiscipline.includes(
+        'background-tasks says what to do there, and it is never "end your turn"',
+      ),
+      dropsTheNotificationPromise: sessionSnippetStatics.wardDiscipline.indexOf(
         'it notifies you when the run exits',
       ),
       dropsTheOldFalsehood: sessionSnippetStatics.wardDiscipline.indexOf(
@@ -83,8 +88,35 @@ describe('sessionSnippetStatics', () => {
       ),
     }).toStrictEqual({
       neverSleepNeverTail: true,
-      notifiesOnExit: true,
+      routesToBackgroundTasks: true,
+      dropsTheNotificationPromise: -1,
       dropsTheOldFalsehood: -1,
+    });
+  });
+
+  // BOTH BRANCHES ARE LOAD-BEARING, AND DROPPING EITHER DEADLOCKS SOMEBODY. A command whose RESULT
+  // the agent needs routes to wait-and-poll. A long-lived process it is FINISHED with — a dev
+  // server, a watcher, a siege lane — routes to kill-then-stop, because that kind never reports
+  // anything but `running`, so a wait-only page would hold every lane-owning session open forever.
+  it('VALID: backgroundTasks snippet => carries the wait branch, the kill branch, and the turn-ending ban', () => {
+    expect({
+      terminatesOnFinalResponse: sessionSnippetStatics.backgroundTasks.includes(
+        '**Your final response TERMINATES every background command you own, and no notification can follow it.**',
+      ),
+      waitBranch: sessionSnippetStatics.backgroundTasks.includes('**Do not end your turn.**'),
+      killBranch: sessionSnippetStatics.backgroundTasks.includes('**Kill it now**'),
+      conditionNotGuess: sessionSnippetStatics.backgroundTasks.includes(
+        '**Wait on a condition, never on a guess.**',
+      ),
+      helperIsSeparate: sessionSnippetStatics.backgroundTasks.includes(
+        '**A HELPER is a different mechanic.**',
+      ),
+    }).toStrictEqual({
+      terminatesOnFinalResponse: true,
+      waitBranch: true,
+      killBranch: true,
+      conditionNotGuess: true,
+      helperIsSeparate: true,
     });
   });
 

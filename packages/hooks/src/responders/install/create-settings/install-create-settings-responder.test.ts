@@ -80,6 +80,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -137,6 +142,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
             },
             {
               hooks: [
@@ -268,6 +278,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -325,6 +340,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
             },
             {
               hooks: [
@@ -458,6 +478,11 @@ describe('InstallCreateSettingsResponder', () => {
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -508,6 +533,11 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
             {
               hooks: [
                 {
@@ -642,6 +672,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -699,6 +734,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
             },
             {
               hooks: [

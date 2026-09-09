@@ -257,7 +257,7 @@ describe('spiritmenderPromptStatics', () => {
       wardScoped: template.includes('[WARD] Run ward scoped, in the foreground'),
       wardNone: template.includes('You run no build, no ward, no test and no check of any kind.'),
       delegationSynchronous: template.includes(
-        'The `Agent`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.',
+        'The `Agent`/Task tool is ASYNCHRONOUS. A return only says the work STARTED.',
       ),
       delegationSpike: template.includes('You delegate LOOKING and CHECKING.'),
       delegationLeafBan: template.includes('You are the last agent in this chain.'),

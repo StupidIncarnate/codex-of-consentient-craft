@@ -1,5 +1,5 @@
 /**
- * PURPOSE: SubagentStop hook responder — reads the stopping sub-agent's transcript and, when a work-item agent is ending its turn without having called signal-back, returns a block decision that forces it to signal before it can stop
+ * PURPOSE: SubagentStop hook responder — refuses a sub-agent's stop on two independent grounds: a backgrounded command still running (which the stop would terminate, binding every sub-agent), and a work-item agent ending its turn without having called signal-back (which strands the work item)
  *
  * USAGE:
  * const result = await HookSubagentStopResponder({ hookInput: parsedStdin });
@@ -13,6 +13,7 @@ import { filePathContract } from '../../../contracts/file-path/file-path-contrac
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { transcriptToolInvocationsExtractTransformer } from '../../../transformers/transcript-tool-invocations-extract/transcript-tool-invocations-extract-transformer';
 import { subagentStopNeedsBlockGuard } from '../../../guards/subagent-stop-needs-block/subagent-stop-needs-block-guard';
+import { hasRunningBackgroundTaskGuard } from '../../../guards/has-running-background-task/has-running-background-task-guard';
 import { subagentStopBlockMessageStatics } from '../../../statics/subagent-stop-block-message/subagent-stop-block-message-statics';
 
 export const HookSubagentStopResponder = async ({
@@ -25,6 +26,23 @@ export const HookSubagentStopResponder = async ({
   const parseResult = subagentStopHookDataContract.safeParse(hookInput);
   if (!parseResult.success) {
     return allowResult;
+  }
+
+  // Refuse the stop while a backgrounded command is still out, BEFORE any transcript read: this
+  // binds every sub-agent rather than work-item agents alone, and needs no file I/O to decide.
+  // `stop_hook_active` is deliberately NOT consulted here, unlike the signal-back block below. That
+  // one nudges once and lets go to avoid spinning on a wedged agent; this one must keep refusing,
+  // because the whole point is to outlast a command that is still running, and the message sends the
+  // agent away to WAIT rather than to retry — so each re-entry costs wall clock, not a loop.
+  if (hasRunningBackgroundTaskGuard({ backgroundTasks: parseResult.data.background_tasks })) {
+    return execResultContract.parse({
+      stdout: JSON.stringify({
+        decision: 'block',
+        reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
+      }),
+      stderr: '',
+      exitCode: 0,
+    });
   }
 
   // For SubagentStop, `transcript_path` is the PARENT session transcript; the stopping

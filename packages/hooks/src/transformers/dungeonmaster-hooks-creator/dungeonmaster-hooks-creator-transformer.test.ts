@@ -61,6 +61,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             hooks: [
               {
                 type: 'command',
+                command: 'dungeonmaster-session-snippet backgroundTasks',
+              },
+            ],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
                 command: 'dungeonmaster-session-snippet commentDiscipline',
               },
             ],
@@ -116,6 +124,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
           },
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet backgroundTasks',
+              },
+            ],
           },
           {
             hooks: [
@@ -219,15 +235,17 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
         ward: result.SessionStart[4]?.hooks[0]?.command,
         wardDiscipline: result.SessionStart[5]?.hooks[0]?.command,
         packages: result.SessionStart[6]?.hooks[0]?.command,
-        commentDiscipline: result.SessionStart[7]?.hooks[0]?.command,
-        buildDiscipline: result.SessionStart[8]?.hooks[0]?.command,
-        worktrees: result.SessionStart[9]?.hooks[0]?.command,
-        generatedConfig: result.SessionStart[10]?.hooks[0]?.command,
+        backgroundTasks: result.SessionStart[7]?.hooks[0]?.command,
+        commentDiscipline: result.SessionStart[8]?.hooks[0]?.command,
+        buildDiscipline: result.SessionStart[9]?.hooks[0]?.command,
+        worktrees: result.SessionStart[10]?.hooks[0]?.command,
+        generatedConfig: result.SessionStart[11]?.hooks[0]?.command,
       }).toStrictEqual({
         first: 'dungeonmaster-session-snippet discover',
         ward: 'dungeonmaster-session-snippet ward',
         wardDiscipline: 'dungeonmaster-session-snippet wardDiscipline',
         packages: 'dungeonmaster-session-snippet packages',
+        backgroundTasks: 'dungeonmaster-session-snippet backgroundTasks',
         commentDiscipline: 'dungeonmaster-session-snippet commentDiscipline',
         buildDiscipline: 'dungeonmaster-session-snippet buildDiscipline',
         worktrees: 'dungeonmaster-session-snippet worktrees',

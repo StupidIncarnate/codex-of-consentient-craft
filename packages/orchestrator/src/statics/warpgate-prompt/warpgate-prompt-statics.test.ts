@@ -92,9 +92,11 @@ describe('warpgatePromptStatics', () => {
         "You are checking that a BASE MERGE did not break something outside the quest's own files. A scoped run cannot see that.",
       ),
       runsItRule2sWay: template.includes(
-        'The harness auto-backgrounds a whole-repo run, so [DELEGATION] governs it. Do these three things, in order: 1. Set `run_in_background: true`. 2. Wait for the task notification. 3. Read the output once.',
+        "A whole-repo run outlives the Bash call, so the harness backgrounds it and the call comes back with no result in it. Do these three things, in order: 1. Give the call `timeout: 600000`. 2. When it returns without the result, STAY IN THIS TURN and wait until the run's own exit line lands. 3. Read the output once.",
       ),
-      neverSleepAndTail: template.includes('Do NOT sleep and then tail the output.'),
+      neverSleepAndTail: template.includes(
+        'Do NOT end your turn while it is still running — that kills it. Do NOT sleep a guessed duration and then tail the output.',
+      ),
     }).toStrictEqual({
       wholeRepo: true,
       isTheException: true,
@@ -238,7 +240,7 @@ describe('warpgatePromptStatics', () => {
       wardScoped: template.includes('[WARD] Run ward scoped, in the foreground'),
       wardNone: template.includes('You run no build, no ward, no test and no check of any kind.'),
       delegationSynchronous: template.includes(
-        'The `Agent`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.',
+        'The `Agent`/Task tool is ASYNCHRONOUS. A return only says the work STARTED.',
       ),
       delegationSpike: template.includes('You delegate LOOKING and CHECKING.'),
       delegationLeafBan: template.includes('You are the last agent in this chain.'),

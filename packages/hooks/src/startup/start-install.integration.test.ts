@@ -83,6 +83,11 @@ describe('start-install integration', () => {
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -133,6 +138,11 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
             {
               hooks: [
                 {
@@ -256,6 +266,11 @@ describe('start-install integration', () => {
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -306,6 +321,11 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
             {
               hooks: [
                 {
@@ -438,6 +458,11 @@ describe('start-install integration', () => {
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -488,6 +513,11 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
             {
               hooks: [
                 {
@@ -621,6 +651,11 @@ describe('start-install integration', () => {
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
             {
               hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet commentDiscipline',
@@ -671,6 +706,11 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
             {
               hooks: [
                 {

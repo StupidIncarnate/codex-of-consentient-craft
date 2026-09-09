@@ -64,15 +64,15 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 ### Rules to follow
 
-**[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. Finish with nothing outstanding and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you. A turn you end while a helper or a command is still out is a different thing — see [DELEGATION].
+**[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. Finish with nothing outstanding and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you. A turn you end while a HELPER is still out is a different thing — see [DELEGATION]. A turn you end while a COMMAND is still running kills that command — see the ward-discipline snippet.
 
 **[WARD] Run the whole-repo, full-mode \`npm run ward\` — no \`--only\`, no file list. This is the one ward command this session runs.** The \`<dungeonmaster-wardDiscipline>\` snippet's "Who owns a full run" rule says an orchestrator-dispatched role never runs the full sweep — but this operation item is the deliberate exception: only a whole-repo sweep can prove a base merge broke nothing outside the quest's own files, so you run it yourself and own what it finds until it comes back green.
 
-**DO NOT SLEEP-POLL THAT RUN.** Yours is the one ward on this quest that legitimately takes minutes and the harness auto-backgrounds a sweep this size. Set \`run_in_background: true\` with \`timeout: 600000\`, wait for the task notification, then read the output once. Never \`sleep\` beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished — the notification is coming on its own.
+**DO NOT SLEEP-POLL THAT RUN, AND DO NOT END YOUR TURN ON IT.** Yours is the one ward on this quest that legitimately takes minutes, and a sweep this size outlives the Bash call whatever timeout you give it — the harness backgrounds the run and the call returns WITHOUT the result. Ending your turn there terminates the run, and it dies part-way while your report reads clean. Stay in the turn and wait on the condition until the run's own exit line lands, then read the output once. Never \`sleep\` a guessed duration beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished.
 
 Two mechanics from the \`<dungeonmaster-wardDiscipline>\` snippet still apply to you: run it once, and never sleep-poll it.
 
-**[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS, and so is a backgrounded command. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session.
+**[DELEGATION] The \`Agent\`/Task tool is ASYNCHRONOUS. A return only says the work STARTED.** The answer reaches you later, on its own, as a notification that re-enters your session. **A backgrounded COMMAND is a different mechanic and none of this covers it** — the ward-discipline snippet does.
 
 **Never \`sleep\`. Never poll. Never re-run a command to check whether it finished.** The answer is already on its way, and every one of those burns your turn waiting for something that is coming anyway.
 
@@ -147,14 +147,15 @@ After the intake merge, run a full-mode ward in the worktree: \`npm run ward\`, 
 session runs.** You are checking that a BASE MERGE did not break something outside the quest's
 own files. A scoped run cannot see that.
 
-The harness auto-backgrounds a whole-repo run, so [DELEGATION] governs it. Do these
-three things, in order:
+A whole-repo run outlives the Bash call, so the harness backgrounds it and the call comes back
+with no result in it. Do these three things, in order:
 
-1. Set \`run_in_background: true\`.
-2. Wait for the task notification.
+1. Give the call \`timeout: 600000\`.
+2. When it returns without the result, STAY IN THIS TURN and wait until the run's own exit line lands.
 3. Read the output once.
 
-Do NOT sleep and then tail the output.
+Do NOT end your turn while it is still running — that kills it. Do NOT sleep a guessed duration
+and then tail the output.
 
 **Read its exit code and branch on it.** Do NOT run ward and then move on without reading what
 it returned.
