@@ -1394,6 +1394,64 @@ describe('ExecutionRowLayerWidget', () => {
 
         expect(screen.getByTestId('execution-row-duration').textContent).toBe('1h13m');
       });
+
+      it('VALID: {in_progress <1m => complete 1h13m span, same now} => "<1m" is replaced by "1h13m" on that render', () => {
+        ExecutionRowLayerWidgetProxy();
+
+        const { rerender } = mantineRenderAdapter({
+          ui: (
+            <ExecutionRowLayerWidget
+              {...defaultProps()}
+              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+              now={NOW}
+            />
+          ),
+        });
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('<1m');
+
+        rerender(
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+            completedAt={IsoTimestampStub({ value: '2024-01-15T11:16:30.000Z' })}
+            now={NOW}
+          />,
+        );
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('1h13m');
+      });
+
+      it('VALID: {in_progress 1h13m => complete 2h span, same now} => "1h13m" is replaced by "2h" on that render', () => {
+        ExecutionRowLayerWidgetProxy();
+
+        const { rerender } = mantineRenderAdapter({
+          ui: (
+            <ExecutionRowLayerWidget
+              {...defaultProps()}
+              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+              now={NOW}
+            />
+          ),
+        });
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('1h13m');
+
+        rerender(
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+            completedAt={IsoTimestampStub({ value: '2024-01-15T10:51:00.000Z' })}
+            now={NOW}
+          />,
+        );
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('2h');
+      });
     });
 
     describe('paused and resumed', () => {
@@ -1468,6 +1526,62 @@ describe('ExecutionRowLayerWidget', () => {
         );
 
         expect(screen.getByTestId('execution-row-duration').textContent).toBe('<1m');
+      });
+
+      it('VALID: {in_progress <1m => pending, same now} => "<1m" figure disappears', () => {
+        ExecutionRowLayerWidgetProxy();
+
+        const { rerender } = mantineRenderAdapter({
+          ui: (
+            <ExecutionRowLayerWidget
+              {...defaultProps()}
+              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+              now={NOW}
+            />
+          ),
+        });
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('<1m');
+
+        rerender(
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'pending' })}
+            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+            now={NOW}
+          />,
+        );
+
+        expect(screen.queryByTestId('execution-row-duration')).toBe(null);
+      });
+
+      it('VALID: {in_progress 1h13m => pending, same now} => "1h13m" figure disappears', () => {
+        ExecutionRowLayerWidgetProxy();
+
+        const { rerender } = mantineRenderAdapter({
+          ui: (
+            <ExecutionRowLayerWidget
+              {...defaultProps()}
+              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+              now={NOW}
+            />
+          ),
+        });
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('1h13m');
+
+        rerender(
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'pending' })}
+            startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+            now={NOW}
+          />,
+        );
+
+        expect(screen.queryByTestId('execution-row-duration')).toBe(null);
       });
     });
   });
