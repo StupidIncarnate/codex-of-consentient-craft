@@ -291,6 +291,44 @@ describe('checkRunLintBroker', () => {
       );
     });
 
+    it('VALID: {eslint stats carrying parse and rules} => fileTimings keep the two halves apart', async () => {
+      const eslintOutput = JSON.stringify([
+        {
+          filePath: 'src/ran-first.ts',
+          messages: [],
+          stats: {
+            times: {
+              passes: [
+                {
+                  total: 3840.3,
+                  parse: { total: 3573.5 },
+                  rules: { 'prettier/prettier': { total: 242.5 } },
+                  fix: { total: 0 },
+                },
+              ],
+            },
+          },
+        },
+      ]);
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: eslintOutput });
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([
+        FileTimingStub({
+          filePath: 'src/ran-first.ts',
+          durationMs: 3840.3,
+          testMs: 0,
+          rulesMs: 242.5,
+        }),
+      ]);
+    });
+
     it('EDGE: {eslint output without stats} => returns empty fileTimings', async () => {
       const eslintOutput = JSON.stringify([{ filePath: 'src/index.ts', messages: [] }]);
       const projectFolder = ProjectFolderStub();

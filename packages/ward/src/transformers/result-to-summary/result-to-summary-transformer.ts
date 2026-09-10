@@ -164,26 +164,39 @@ export const resultToSummaryTransformer = ({
     }
 
     const slowTimings = slowFileTimingsTransformer({ check });
-    const hasTestMs = slowTimings.some((ft) => Number(ft.testMs) > 0);
 
     if (slowTimings.length === 0) {
       return [];
     }
 
-    const fileLines = slowTimings.map((ft) => {
-      const wall = `${(Number(ft.durationMs) / MS_PER_SECOND).toFixed(1)}s`;
-      if (!hasTestMs) {
-        return `  ${ft.filePath}  ${wall}`;
+    // BOTH numbers print, and the ranked one leads. A reader given only wall goes and edits a file
+    // whose whole cost was the run's shared startup; the pair is what tells them not to.
+    const isLint = check.checkType === 'lint';
+    const ranked = slowTimings.map((ft) => ({
+      filePath: ft.filePath,
+      wallMs: Number(ft.durationMs),
+      ownMs: Number(isLint ? ft.rulesMs : ft.testMs),
+    }));
+    const hasOwnMs = ranked.some((entry) => entry.ownMs > 0);
+    const ownWord = isLint ? 'in rules' : 'in tests';
+
+    const fileLines = ranked.map((entry) => {
+      const wall = `${(entry.wallMs / MS_PER_SECOND).toFixed(1)}s`;
+      if (!hasOwnMs) {
+        return `  ${entry.filePath}  ${wall}`;
       }
-      return `  ${ft.filePath}  ${(Number(ft.testMs) / MS_PER_SECOND).toFixed(1)}s in tests (${wall} wall)`;
+      return `  ${entry.filePath}  ${(entry.ownMs / MS_PER_SECOND).toFixed(1)}s ${ownWord} (${wall} wall)`;
     });
-    const note = hasTestMs
-      ? `\n  ${
-          check.checkType === 'e2e'
-            ? qualityGateStatics.slowFiles.browserNote
-            : qualityGateStatics.slowFiles.jestNote
-        }`
-      : '';
+
+    const noteByCheckType = {
+      lint: qualityGateStatics.slowFiles.lintNote,
+      typecheck: qualityGateStatics.slowFiles.jestNote,
+      unit: qualityGateStatics.slowFiles.jestNote,
+      integration: qualityGateStatics.slowFiles.jestNote,
+      e2e: qualityGateStatics.slowFiles.browserNote,
+    };
+    const note = hasOwnMs ? `\n  ${noteByCheckType[check.checkType]}` : '';
+
     return [`\n--- slow files (${check.checkType}) ---${note}\n${fileLines.join('\n')}`];
   });
 

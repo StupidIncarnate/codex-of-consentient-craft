@@ -46,6 +46,31 @@ describe('hasSlowFilesGuard', () => {
 
       expect(hasSlowFilesGuard({ wardResult })).toBe(true);
     });
+
+    it('VALID: {lint, one file over the rule threshold} => returns true', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                fileTimings: [
+                  FileTimingStub({
+                    filePath: 'src/big-widget.tsx',
+                    durationMs: 1900,
+                    testMs: 0,
+                    rulesMs: 1800,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(hasSlowFilesGuard({ wardResult })).toBe(true);
+    });
   });
 
   describe('runs it lets through', () => {
@@ -82,6 +107,31 @@ describe('hasSlowFilesGuard', () => {
                     filePath: 'src/first.test.ts',
                     durationMs: 30_600,
                     testMs: 200,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(hasSlowFilesGuard({ wardResult })).toBe(false);
+    });
+
+    it('EDGE: {lint, huge wall, small rule time} => returns false, because wall is the program build', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                fileTimings: [
+                  FileTimingStub({
+                    filePath: 'src/adapters/rxjs/take/rxjs-take-adapter.ts',
+                    durationMs: 8486.8,
+                    testMs: 0,
+                    rulesMs: 491.2,
                   }),
                 ],
               }),

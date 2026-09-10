@@ -147,16 +147,112 @@ describe('slowFileTimingsTransformer', () => {
     });
   });
 
-  describe('a check that reports no per-test durations', () => {
-    it('VALID: {lint, wall over the wall threshold} => falls back to wall', () => {
+  describe('lint, ranked on rule time', () => {
+    it('VALID: {the file that paid the program build} => is NOT listed, whatever its wall', () => {
       const check = CheckResultStub({
         checkType: 'lint',
         status: 'pass',
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/big.tsx', durationMs: 6000, testMs: 0 }),
-              FileTimingStub({ filePath: 'src/small.tsx', durationMs: 400, testMs: 0 }),
+              FileTimingStub({
+                filePath: 'src/adapters/rxjs/take/rxjs-take-adapter.ts',
+                durationMs: 8486.8,
+                testMs: 0,
+                rulesMs: 491.2,
+              }),
+              FileTimingStub({
+                filePath: 'src/small.ts',
+                durationMs: 37.6,
+                testMs: 0,
+                rulesMs: 30.3,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
+    });
+
+    it('VALID: {two files over the rule bar} => returns both, most rule time first', () => {
+      const check = CheckResultStub({
+        checkType: 'lint',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({
+                filePath: 'src/mid.tsx',
+                durationMs: 1400,
+                testMs: 0,
+                rulesMs: 1200,
+              }),
+              FileTimingStub({
+                filePath: 'src/worst.tsx',
+                durationMs: 1900,
+                testMs: 0,
+                rulesMs: 1800,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check }).map((t) => t.filePath)).toStrictEqual([
+        'src/worst.tsx',
+        'src/mid.tsx',
+      ]);
+    });
+
+    it('EDGE: {rule time exactly at the threshold} => not slow, the bar is exclusive', () => {
+      const check = CheckResultStub({
+        checkType: 'lint',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({
+                filePath: 'src/edge.tsx',
+                durationMs: 9000,
+                testMs: 0,
+                rulesMs: 1000,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
+    });
+
+    it('EDGE: {lint timings with no rule time at all} => returns nothing, never falls back to wall', () => {
+      const check = CheckResultStub({
+        checkType: 'lint',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: 'src/big.tsx', durationMs: 6000, testMs: 0, rulesMs: 0 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
+    });
+  });
+
+  describe('a jest check that reports no per-test durations', () => {
+    it('VALID: {every suite at 0 test time, wall over the wall threshold} => falls back to wall', () => {
+      const check = CheckResultStub({
+        checkType: 'unit',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: 'src/big.test.ts', durationMs: 6000, testMs: 0 }),
+              FileTimingStub({ filePath: 'src/small.test.ts', durationMs: 400, testMs: 0 }),
             ],
           }),
         ],
@@ -164,7 +260,7 @@ describe('slowFileTimingsTransformer', () => {
 
       const result = slowFileTimingsTransformer({ check });
 
-      expect(result.map((timing) => timing.filePath)).toStrictEqual(['src/big.tsx']);
+      expect(result.map((timing) => timing.filePath)).toStrictEqual(['src/big.test.ts']);
     });
   });
 

@@ -12,7 +12,9 @@ describe('passingTestsToTimingsTransformer', () => {
 
       const result = passingTestsToTimingsTransformer({ passingTests });
 
-      expect(result).toStrictEqual([{ filePath: 'src/a.e2e.ts', durationMs: 1250, testMs: 1250 }]);
+      expect(result).toStrictEqual([
+        { filePath: 'src/a.e2e.ts', durationMs: 1250, testMs: 1250, rulesMs: 0 },
+      ]);
     });
 
     it('VALID: {two specs} => one timing each, in first-seen order', () => {
@@ -25,8 +27,8 @@ describe('passingTestsToTimingsTransformer', () => {
       const result = passingTestsToTimingsTransformer({ passingTests });
 
       expect(result).toStrictEqual([
-        { filePath: 'src/b.e2e.ts', durationMs: 150, testMs: 150 },
-        { filePath: 'src/a.e2e.ts', durationMs: 900, testMs: 900 },
+        { filePath: 'src/b.e2e.ts', durationMs: 150, testMs: 150, rulesMs: 0 },
+        { filePath: 'src/a.e2e.ts', durationMs: 900, testMs: 900, rulesMs: 0 },
       ]);
     });
 
@@ -53,7 +55,7 @@ describe('passingTestsToTimingsTransformer', () => {
       ];
 
       expect(passingTestsToTimingsTransformer({ passingTests })).toStrictEqual([
-        { filePath: 'src/a.e2e.ts', durationMs: 0, testMs: 0 },
+        { filePath: 'src/a.e2e.ts', durationMs: 0, testMs: 0, rulesMs: 0 },
       ]);
     });
   });

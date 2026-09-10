@@ -8,17 +8,22 @@
  */
 export const qualityGateStatics = {
   slowFiles: {
-    // Two notes, because only one of them is true of each runner. A jest suite's wall time carries
-    // the package's one-time compile; Playwright has no compile to carry, and saying so anyway
-    // would tell a reader to discount the very number the e2e list is ranked on.
+    // One note per runner, because each carries a different startup cost in its wall figure. A jest
+    // suite's wall carries the package's one-time compile and eslint's carries the TypeScript
+    // program build; Playwright has neither, and saying so anyway would tell a reader to discount
+    // the very number the e2e list is ranked on.
     jestNote:
       "ranked on test-body time; wall also carries the package's one-time compile, charged to " +
       'whichever file reached a module first',
+    lintNote:
+      'ranked on rule time; wall also carries the TypeScript program build, charged to whichever ' +
+      'file the parser reached first',
     browserNote: 'ranked on test-body time, which excludes browser and server startup',
     heading: 'SLOW TESTS FAILED THIS RUN',
     guidance:
-      'Every suite named under "slow files" is over the test-body threshold. Fix the test, or ' +
-      'raise slowFileThresholdStatics deliberately — a run is not green while these stand.',
+      'Every file named under "slow files" is over its check\'s own-cost threshold — test-body ' +
+      'time for jest and Playwright, rule time for lint. Fix the file, or raise ' +
+      'slowFileThresholdStatics deliberately — a run is not green while these stand.',
   },
   openHandles: {
     heading: 'OPEN HANDLES FAILED THIS RUN',

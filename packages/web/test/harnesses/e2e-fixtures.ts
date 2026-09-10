@@ -1,11 +1,12 @@
 /**
- * PURPOSE: Extends Playwright test with two auto-fixtures every test gets with no opt-in —
- *          network recording, and a Node-dispatcher pause on each side of the test — and provides
- *          wireHarnessLifecycle for bridging harness hooks to Playwright
+ * PURPOSE: Extends Playwright test with the auto-fixtures every test gets with no opt-in — an
+ *          open-handle watch, network recording, and a Node-dispatcher pause on each side of the
+ *          test — and provides wireHarnessLifecycle for bridging harness hooks to Playwright.
+ *          Declaration order IS teardown order reversed, so it is load-bearing; see the watch.
  *
  * USAGE:
  * import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
- * // Network recording and the dispatcher pause run automatically — no setup needed
+ * // The watch, network recording and the dispatcher pause run automatically — no setup needed
  * // wireHarnessLifecycle bridges harness beforeEach/afterEach to Playwright's test hooks
  */
 import { test as base, expect } from '@playwright/test';
@@ -20,6 +21,29 @@ interface AutoFixtures {
 }
 
 export const test = base.extend<AutoFixtures>({
+  // Playwright is a THIRD process layer with its own leak surface, and neither of ward's other two
+  // detections reaches it: jest's `--detectOpenHandles` never runs here, and the timer watch ward
+  // arms for a jest worker is armed in a jest worker. A spec or a harness that leaves an interval
+  // behind therefore leaked silently, however green the run.
+  //
+  // Off unless ward asks — the harness answers to the same
+  // DUNGEONMASTER_OPEN_HANDLE_REPORT the jest side reads, and a run without it patches nothing.
+  //
+  // DECLARED FIRST so it tears down LAST, because Playwright tears fixtures down in the reverse of
+  // their setup order and a watch has to outlive what it watches. Reporting before the fixtures
+  // below have torn down samples the wrong window twice over: the network recorder's own body reads
+  // are still in flight, and `openHandleReportBroker` clears its list as it reports, so anything the
+  // later teardowns arm is handed to whichever test reports NEXT.
+  _openHandleWatch: [
+    async ({ request: _request }, use, testInfo) => {
+      const harness = openHandleWatchHarness();
+      harness.beforeEach();
+      await use(undefined);
+      harness.report({ testPath: testInfo.file });
+    },
+    { auto: true },
+  ],
+
   _networkRecording: [
     async ({ page }, use, testInfo) => {
       const harness = networkHarness({ page });
@@ -56,23 +80,6 @@ export const test = base.extend<AutoFixtures>({
       await harness.pause();
       await use(undefined);
       await harness.pause();
-    },
-    { auto: true },
-  ],
-
-  // Playwright is a THIRD process layer with its own leak surface, and neither of ward's other two
-  // detections reaches it: jest's `--detectOpenHandles` never runs here, and the timer watch ward
-  // arms for a jest worker is armed in a jest worker. A spec or a harness that leaves an interval
-  // behind therefore leaked silently, however green the run.
-  //
-  // Off unless ward asks — the harness answers to the same
-  // DUNGEONMASTER_OPEN_HANDLE_REPORT the jest side reads, and a run without it patches nothing.
-  _openHandleWatch: [
-    async ({ request: _request }, use, testInfo) => {
-      const harness = openHandleWatchHarness();
-      harness.beforeEach();
-      await use(undefined);
-      harness.report({ testPath: testInfo.file });
     },
     { auto: true },
   ],

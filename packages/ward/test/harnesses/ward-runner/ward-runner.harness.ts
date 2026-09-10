@@ -117,12 +117,9 @@ export const wardRunnerHarness = (): {
         maxRssKb = Math.max(maxRssKb, treeMaxRssKb(pid));
       }, POLL_MS);
 
-      wardProcess.on('exit', () => {
-        clearInterval(interval);
-        resolve();
-      });
-
-      setTimeout(() => {
+      // Cleared in the 'exit' handler below on the (normal) fast-settle path, so this fallback
+      // never sits armed for the rest of PROCESS_TIMEOUT_MS after ward has already finished.
+      const killTimeout = setTimeout(() => {
         clearInterval(interval);
         try {
           process.kill(-pid, 'SIGKILL');
@@ -131,6 +128,12 @@ export const wardRunnerHarness = (): {
         }
         resolve();
       }, PROCESS_TIMEOUT_MS);
+
+      wardProcess.on('exit', () => {
+        clearInterval(interval);
+        clearTimeout(killTimeout);
+        resolve();
+      });
     });
 
     await new Promise((resolve) => {

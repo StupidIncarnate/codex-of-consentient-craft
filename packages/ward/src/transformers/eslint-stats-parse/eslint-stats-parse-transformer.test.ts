@@ -8,7 +8,16 @@ const buildEslintResult = ({
   ...rest
 }: {
   filePath?: string;
-  stats?: { times?: { passes?: { total: number | string }[] } };
+  stats?: {
+    times?: {
+      passes?: {
+        total: number | string;
+        parse?: { total: number };
+        rules?: Record<string, { total: number }>;
+        fix?: { total: number };
+      }[];
+    };
+  };
   messages?: unknown[];
   errorCount?: number;
   warningCount?: number;
@@ -48,6 +57,110 @@ describe('eslintStatsParseTransformer', () => {
       expect(result).toStrictEqual([
         FileTimingStub({ filePath: 'src/a.ts', durationMs: 5.0, testMs: 0 }),
         FileTimingStub({ filePath: 'src/b.ts', durationMs: 5.0, testMs: 0 }),
+      ]);
+    });
+  });
+
+  describe('the compile/rules split', () => {
+    it('VALID: {a pass carrying parse, rules and fix} => rulesMs is rules plus fix, never parse', () => {
+      const entry = buildEslintResult({
+        filePath: 'src/index.ts',
+        stats: {
+          times: {
+            passes: [
+              {
+                total: 8486.8,
+                parse: { total: 7947.8 },
+                rules: {
+                  'prettier/prettier': { total: 300.2 },
+                  '@typescript-eslint/no-misused-promises': { total: 181.0 },
+                },
+                fix: { total: 10.0 },
+              },
+            ],
+          },
+        },
+      });
+
+      const result = eslintStatsParseTransformer({ eslintResults: [entry] });
+
+      expect(result).toStrictEqual([
+        FileTimingStub({
+          filePath: 'src/index.ts',
+          durationMs: 8486.8,
+          testMs: 0,
+          rulesMs: 491.2,
+        }),
+      ]);
+    });
+
+    it('VALID: {the file that paid the program build beside one that did not} => their rule times are comparable', () => {
+      const paidTheBuild = buildEslintResult({
+        filePath: 'src/ran-first.ts',
+        stats: {
+          times: {
+            passes: [
+              {
+                total: 3840.3,
+                parse: { total: 3573.5 },
+                rules: { 'prettier/prettier': { total: 242.5 } },
+                fix: { total: 0 },
+              },
+            ],
+          },
+        },
+      });
+      const ranLater = buildEslintResult({
+        filePath: 'src/ran-later.test.ts',
+        stats: {
+          times: {
+            passes: [
+              {
+                total: 358.4,
+                parse: { total: 9.3 },
+                rules: { 'prettier/prettier': { total: 334.9 } },
+                fix: { total: 0 },
+              },
+            ],
+          },
+        },
+      });
+
+      const result = eslintStatsParseTransformer({ eslintResults: [paidTheBuild, ranLater] });
+
+      expect(result).toStrictEqual([
+        FileTimingStub({
+          filePath: 'src/ran-first.ts',
+          durationMs: 3840.3,
+          testMs: 0,
+          rulesMs: 242.5,
+        }),
+        FileTimingStub({
+          filePath: 'src/ran-later.test.ts',
+          durationMs: 358.4,
+          testMs: 0,
+          rulesMs: 334.9,
+        }),
+      ]);
+    });
+
+    it('VALID: {two passes each with rules} => sums rule time across both', () => {
+      const entry = buildEslintResult({
+        filePath: 'src/index.ts',
+        stats: {
+          times: {
+            passes: [
+              { total: 12.5, parse: { total: 2.5 }, rules: { eqeqeq: { total: 9.0 } } },
+              { total: 3.2, parse: { total: 0.2 }, rules: { eqeqeq: { total: 2.5 } } },
+            ],
+          },
+        },
+      });
+
+      const result = eslintStatsParseTransformer({ eslintResults: [entry] });
+
+      expect(result).toStrictEqual([
+        FileTimingStub({ filePath: 'src/index.ts', durationMs: 15.7, testMs: 0, rulesMs: 11.5 }),
       ]);
     });
   });

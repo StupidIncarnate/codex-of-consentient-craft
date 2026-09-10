@@ -39,6 +39,12 @@ export const networkRecordPlaywrightBroker = ({
   const wsEntries: WsLogEntry[] = [];
   const requestTimestamps = new Map<RequestIdentity, EpochTimestamp>();
   const testStartMs = epochTimestampContract.parse(Date.now());
+  // A body read is a protocol round trip to the browser, and Playwright's emitter cannot await a
+  // listener — so the response handler can only start one, never wait for it. Holding each read
+  // here gives `dump` something to wait on: without it the reads a spec's last responses started
+  // are still on the event loop when that spec ends, which is what ward's open-handle watch reports
+  // as `setImmediate still armed`, naming `Response.text`'s caller.
+  const inFlightReads: Promise<void>[] = [];
 
   playwrightPageEventsAdapter({
     page,
@@ -88,21 +94,23 @@ export const networkRecordPlaywrightBroker = ({
           });
 
           if (hasCapturableBody) {
-            text()
-              .then((body) => {
-                const current = entries[matchIndex];
-                if (current && body) {
-                  entries[matchIndex] = networkLogEntryContract.parse({
-                    ...current,
-                    responseBody: body.slice(0, networkLogStatics.limits.maxBodyLength),
-                  });
-                }
-              })
-              .catch((error: unknown) => {
-                process.stderr.write(
-                  `[network-record] response body read failed: ${String(error)}\n`,
-                );
-              });
+            inFlightReads.push(
+              text()
+                .then((body) => {
+                  const current = entries[matchIndex];
+                  if (current && body) {
+                    entries[matchIndex] = networkLogEntryContract.parse({
+                      ...current,
+                      responseBody: body.slice(0, networkLogStatics.limits.maxBodyLength),
+                    });
+                  }
+                })
+                .catch((error: unknown) => {
+                  process.stderr.write(
+                    `[network-record] response body read failed: ${String(error)}\n`,
+                  );
+                }),
+            );
           }
         }
       }
@@ -148,6 +156,12 @@ export const networkRecordPlaywrightBroker = ({
 
   return {
     dump: async ({ testInfo }: { testInfo: TestInfoParam }): Promise<void> => {
+      // Ahead of every early return, because settling the recording is what the END of a test needs
+      // whether or not this one prints anything: a read left running belongs to the spec that
+      // started it, and the next spec's page is a different page. Spliced so the list holds only
+      // reads that are actually outstanding.
+      await Promise.all(inFlightReads.splice(0, inFlightReads.length));
+
       if (testInfo.status === undefined || testInfo.status === testInfo.expectedStatus) {
         return;
       }

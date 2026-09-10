@@ -216,7 +216,7 @@ describe('projectResultContract', () => {
       );
 
       expect(result.fileTimings).toStrictEqual([
-        { filePath: 'src/index.ts', durationMs: 150, testMs: 0 },
+        { filePath: 'src/index.ts', durationMs: 150, testMs: 0, rulesMs: 0 },
       ]);
     });
   });

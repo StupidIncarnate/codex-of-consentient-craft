@@ -191,17 +191,23 @@ test failures), use the detail subcommand:
 the full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of
 a failing run.
 
-### Read a slow-file line as two numbers, and believe the second one
+### Read a slow-file line as two numbers, and believe the first one
 
-Each line prints `<path>  Xs wall, Ys in tests`. **Wall time is not the file's cost.** It is jest's
-`endTime - startTime`, which spans building the ts-jest LanguageService and TypeScript program — paid by
-whichever file jest transforms FIRST, on the whole package's behalf. `Ys in tests` sums that suite's own
-assertion durations and has no compile in it.
+Each line prints `<path>  Ys <own cost> (Xs wall)`, and the list is RANKED on the own cost.
+**Wall time is not the file's cost**, in either runner:
 
-A wide gap means the file is innocent and editing it will achieve nothing. One file read 46.2s wall against
-83ms of test bodies; forcing a different file to run first moved the entire cost onto that one, and a
-private cold cache showed a peer the report scored at 5.8s actually cost MORE. Before optimising any file
-this list names, check `ward detail <runId>` for its per-test durations.
+| Check | Own cost printed as | What wall carries on top of it |
+|---|---|---|
+| `unit`, `integration` | `Ys in tests` — summed assertion durations | jest's `endTime - startTime`, spanning the ts-jest LanguageService and TypeScript program that whichever file jest transforms FIRST pays for the whole package |
+| `e2e` | `Ys in tests` — Playwright's per-test execution time | nothing; Playwright excludes browser boot, so both numbers match |
+| `lint` | `Ys in rules` — `stats.times.passes[].rules` plus `fix` | `parse`, where @typescript-eslint builds its TypeScript program once per eslint process and charges it to whichever file the parser reached first |
+
+A wide gap means the file is innocent and editing it will achieve nothing. One jest file read 46.2s wall
+against 83ms of test bodies; forcing a different file to run first moved the entire cost onto that one, and
+a private cold cache showed a peer the report scored at 5.8s actually cost MORE. Lint has the same shape at
+a smaller scale: one 40-file `web` batch reported 8.5s wall on an adapter whose own rule work was 0.5s, and
+each neighbouring batch of the same sweep named a different arbitrary file. Before optimising any file this
+list names, check `ward detail <runId>` for its per-test durations.
 
 ## How File Scoping Works
 

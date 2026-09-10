@@ -1009,7 +1009,7 @@ describe('resultToSummaryTransformer', () => {
       );
     });
 
-    it('VALID: {lint, which reports no per-test durations} => falls back to wall, one number, no note', () => {
+    it('VALID: {lint, one file over the rule bar} => prints rule time first, wall in brackets', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
@@ -1025,6 +1025,7 @@ describe('resultToSummaryTransformer', () => {
                     filePath: 'src/big-widget.tsx',
                     durationMs: 6000,
                     testMs: 0,
+                    rulesMs: 1800,
                   }),
                 ],
               }),
@@ -1041,7 +1042,45 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (5 files passed/0 files failed)\n\n--- slow files (lint) ---\n  src/big-widget.tsx  6.0s',
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (5 files passed/0 files failed)\n\n--- slow files (lint) ---\n  ranked on rule time; wall also carries the TypeScript program build, charged to whichever file the parser reached first\n  src/big-widget.tsx  1.8s in rules (6.0s wall)',
+        }),
+      );
+    });
+
+    it('VALID: {lint, a file whose wall is all program build} => no slow files section at all', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 40,
+                fileTimings: [
+                  FileTimingStub({
+                    filePath: 'src/adapters/rxjs/take/rxjs-take-adapter.ts',
+                    durationMs: 8486.8,
+                    testMs: 0,
+                    rulesMs: 491.2,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (40 files passed/0 files failed)',
         }),
       );
     });

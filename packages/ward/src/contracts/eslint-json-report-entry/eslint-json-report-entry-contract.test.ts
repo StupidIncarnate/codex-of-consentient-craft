@@ -45,6 +45,40 @@ describe('eslintJsonReportEntryContract', () => {
       });
     });
 
+    it('VALID: {a pass with parse, rules and fix} => keeps all three timing halves', () => {
+      const result = eslintJsonReportEntryContract.parse({
+        filePath: '/x/y.ts',
+        stats: {
+          times: {
+            passes: [
+              {
+                total: 3840.3,
+                parse: { total: 3573.5 },
+                rules: { 'prettier/prettier': { total: 242.5 }, eqeqeq: { total: 0.03 } },
+                fix: { total: 0 },
+              },
+            ],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual({
+        filePath: '/x/y.ts',
+        stats: {
+          times: {
+            passes: [
+              {
+                total: 3840.3,
+                parse: { total: 3573.5 },
+                rules: { 'prettier/prettier': { total: 242.5 }, eqeqeq: { total: 0.03 } },
+                fix: { total: 0 },
+              },
+            ],
+          },
+        },
+      });
+    });
+
     it('VALID: {ruleId: null} => parses successfully', () => {
       const result = eslintJsonReportEntryContract.parse({
         messages: [{ ruleId: null, severity: 2, message: 'syntax error' }],
