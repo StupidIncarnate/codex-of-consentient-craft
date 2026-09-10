@@ -10,6 +10,7 @@ import { ToolRowWidgetProxy } from '../tool-row/tool-row-widget.proxy';
 export const ChatEntryListWidgetProxy = (): {
   hasSubagentChain: () => boolean;
   getDurationTexts: () => HTMLElement['textContent'][];
+  getDurationTestIds: () => ReturnType<Element['getAttribute']>[];
 } => {
   ChatMessageWidgetProxy();
   ContextDividerWidgetProxy();
@@ -21,5 +22,7 @@ export const ChatEntryListWidgetProxy = (): {
   return {
     hasSubagentChain: (): boolean => screen.queryByTestId('SUBAGENT_CHAIN') !== null,
     getDurationTexts: (): HTMLElement['textContent'][] => subagentChainProxy.getDurationTexts(),
+    getDurationTestIds: (): ReturnType<Element['getAttribute']>[] =>
+      subagentChainProxy.getHeaderChildTestIds(),
   };
 };

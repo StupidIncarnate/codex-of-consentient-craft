@@ -1758,4 +1758,75 @@ describe('SubagentChainWidget', () => {
       });
     });
   });
+
+  describe('session transcript surface — no clock supplied', () => {
+    // The session-view chat panel holds no 60-second tick and hands no `now` down to this widget —
+    // every test below omits the prop entirely, which is exactly the input shape a chain in a
+    // replayed transcript sees.
+    it('EMPTY: {taskToolUse: null, taskNotification: null, no now} => renders no duration figure', () => {
+      const proxy = SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual([]);
+    });
+
+    it('VALID: {taskToolUse 10:00:00, taskNotification 10:04:30 with no durationMs, no now} => past the start decision, reads the timestamp gap', () => {
+      const proxy = SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        taskToolUse: TaskToolUseChatEntryStub({
+          agentId: 'agent-001',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        taskNotification: TaskNotificationChatEntryStub({
+          timestamp: '2026-09-10T10:04:30.000Z',
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+    });
+
+    it('VALID: {taskToolUse 10:00:00, taskNotification carrying durationMs 270000, no now} => reads the reported duration, not a timestamp gap', () => {
+      const proxy = SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        taskToolUse: TaskToolUseChatEntryStub({
+          agentId: 'agent-001',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        taskNotification: TaskNotificationChatEntryStub({
+          durationMs: 270000,
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+    });
+
+    it('EMPTY: {taskToolUse 10:00:00, taskNotification: null, no now} => unfinished chain with no clock renders nothing', () => {
+      const proxy = SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        taskToolUse: TaskToolUseChatEntryStub({
+          agentId: 'agent-001',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        taskNotification: null,
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual([]);
+    });
+  });
 });

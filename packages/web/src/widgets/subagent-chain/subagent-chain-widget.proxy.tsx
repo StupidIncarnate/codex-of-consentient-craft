@@ -18,6 +18,7 @@ export const SubagentChainWidgetProxy = (): {
   isAutoScrollHeld: () => boolean;
   getDurationTexts: () => HTMLElement['textContent'][];
   getHeaderChildTexts: () => Element['textContent'][];
+  getHeaderChildTestIds: () => ReturnType<Element['getAttribute']>[];
   allDurationsSitInAHeader: () => boolean;
   getDurationStyle: () => {
     fontFamily: CSSStyleDeclaration['fontFamily'];
@@ -61,6 +62,11 @@ export const SubagentChainWidgetProxy = (): {
       const [header] = screen.getAllByTestId('SUBAGENT_CHAIN_HEADER');
       if (header === undefined) throw new Error('No SUBAGENT_CHAIN_HEADER found');
       return Array.from(header.children).map((child) => child.textContent);
+    },
+    getHeaderChildTestIds: (): ReturnType<Element['getAttribute']>[] => {
+      const [header] = screen.getAllByTestId('SUBAGENT_CHAIN_HEADER');
+      if (header === undefined) throw new Error('No SUBAGENT_CHAIN_HEADER found');
+      return Array.from(header.children).map((child) => child.getAttribute('data-testid'));
     },
     allDurationsSitInAHeader: (): boolean =>
       screen

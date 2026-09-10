@@ -15,10 +15,13 @@ export const SessionViewWidgetProxy = (): {
   setupGuilds: ReturnType<typeof useGuildsBindingProxy>['setupGuilds'];
   getReplayHistorySent: () => boolean;
   getReplayHistoryMessage: () => unknown;
+  hasSubagentChain: () => boolean;
+  getDurationTexts: () => HTMLElement['textContent'][];
+  getDurationTestIds: () => ReturnType<Element['getAttribute']>[];
 } => {
   const guildsProxy = useGuildsBindingProxy();
   const replayProxy = useSessionReplayBindingProxy();
-  ChatPanelWidgetProxy();
+  const panelProxy = ChatPanelWidgetProxy();
   DumpsterRaccoonWidgetProxy();
 
   return {
@@ -39,5 +42,8 @@ export const SessionViewWidgetProxy = (): {
       const sent = replayProxy.getSentWsMessages();
       return sent.find(isReplayHistoryMessage);
     },
+    hasSubagentChain: (): boolean => panelProxy.hasSubagentChainCount({ count: 1 }),
+    getDurationTexts: () => panelProxy.getDurationTexts(),
+    getDurationTestIds: () => panelProxy.getDurationTestIds(),
   };
 };
