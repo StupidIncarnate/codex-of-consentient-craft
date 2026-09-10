@@ -67,14 +67,42 @@ beforeEach(() => {
   jest.restoreAllMocks();
 });
 
-afterEach(() => {
-  // Clean up all integration test environments. This runs INSIDE jest's runtime, which resolves the
-  // extensionless specifier through moduleFileExtensions — so it reaches the .ts source with no
-  // loader. Deliberately unguarded: a catch here turns a missing module into silently skipped
-  // cleanup, which is indistinguishable from cleanup that ran.
+// Required HERE, at setup-file scope, and NOT inside the afterEach below. Jest measures a test from
+// `test_start` to `test_done`, which brackets beforeEach and afterEach — so a require inside the
+// hook charges this graph's COMPILE to whichever test ran first in a worker. Measured on a cold
+// cache: 4.4s of "test time" against 0.1s of real assertions, on a different suite every run, and
+// the worst inflation across 176 mcp suites went 9.2s -> 0.0s when it moved here.
+// Setup-file scope is still inside jest's runtime, so the extensionless specifier still resolves
+// through moduleFileExtensions to the .ts source with no loader.
+const {
+  integrationEnvironmentCleanupAllBroker,
+} = require('./brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker');
+
+// Ward names a file here when it wants open handles reported. Unset means nobody asked, and none of
+// the tracking below is even loaded — so an ordinary run pays nothing for it.
+const openHandleReportPath = process.env.DUNGEONMASTER_OPEN_HANDLE_REPORT;
+
+if (openHandleReportPath) {
   const {
-    integrationEnvironmentCleanupAllBroker,
-  } = require('./brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker');
+    openHandleTrackingBroker,
+  } = require('./brokers/open-handle/tracking/open-handle-tracking-broker');
+  const { openHandleReportBroker } = require('./brokers/open-handle/report/open-handle-report-broker');
+
+  openHandleTrackingBroker.watch();
+
+  // afterAll, not afterEach: a timer armed in one test and cleared in a later one is not a leak, and
+  // jest runs afterAll OUTSIDE the test_start..test_done window, so this costs no test time either.
+  afterAll(() => {
+    openHandleReportBroker({
+      testPath: expect.getState().testPath || '',
+      reportPath: openHandleReportPath,
+    });
+  });
+}
+
+afterEach(() => {
+  // Clean up all integration test environments. Deliberately unguarded: a catch here turns a
+  // missing module into silently skipped cleanup, which is indistinguishable from cleanup that ran.
   integrationEnvironmentCleanupAllBroker();
 
   // Restore real timers after each test
