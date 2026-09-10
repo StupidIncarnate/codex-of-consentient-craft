@@ -74,6 +74,7 @@ describe('checkCommandsStatics', () => {
           '--testPathPatterns',
           '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         ],
+        relatedTestsIgnorePattern: '^(?!.*\\.integration\\.test\\.(ts|tsx|js|jsx)$)',
         discoverPatterns: [
           'src/**/*.integration.test.ts',
           'bin/**/*.integration.test.ts',

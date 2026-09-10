@@ -93,6 +93,20 @@ export const checkCommandsStatics = {
       '--testPathPatterns',
       `\\.integration\\.test\\.(${extRegex})$`,
     ],
+    // `--findRelatedTests` REPLACES jest's test-path filter, so `--testPathPatterns` above stops
+    // applying the moment the file branch adds it. Measured: a three-path scope holding no
+    // integration test at all ran three UNIT suites under this check's name, so every unit
+    // finding — a failure, a slow file, a leaked timer — was reported a second time against the
+    // wrong check, and the scope paid for its unit tests twice. An IGNORE pattern DOES survive
+    // `--findRelatedTests`, which is why `unit` above never had this. So "keep only integration
+    // tests" has to be spelled as "ignore everything else".
+    //
+    // Ward runs in other people's repos, so this names the file-suffix convention it already
+    // owns and NO directory. A `node_modules` or build-output entry would be this repo's folder
+    // names travelling inside a published tool; they are also unnecessary here, since this
+    // pattern only ever rides the `--findRelatedTests` branch, where the candidates are already
+    // the tests reachable from the source files the caller named.
+    relatedTestsIgnorePattern: `^(?!.*\\.integration\\.test\\.(${extRegex})$)`,
     discoverPatterns: integrationDiscoverPatterns,
   },
   e2e: {

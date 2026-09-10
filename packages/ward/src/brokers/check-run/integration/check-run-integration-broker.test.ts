@@ -185,6 +185,8 @@ describe('checkRunIntegrationBroker', () => {
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '^(?!.*\\.integration\\.test\\.(ts|tsx|js|jsx)$)',
         '--findRelatedTests',
         'src/index.ts',
       ]);
@@ -275,6 +277,8 @@ describe('checkRunIntegrationBroker', () => {
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '^(?!.*\\.integration\\.test\\.(ts|tsx|js|jsx)$)',
         '--findRelatedTests',
         'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
       ]);
@@ -340,6 +344,8 @@ describe('checkRunIntegrationBroker', () => {
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '^(?!.*\\.integration\\.test\\.(ts|tsx|js|jsx)$)',
         '--findRelatedTests',
         'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
       ]);

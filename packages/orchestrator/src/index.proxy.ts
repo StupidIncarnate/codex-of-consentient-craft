@@ -9,8 +9,15 @@ export const indexProxy = (): Record<PropertyKey, never> => {
   // Every module-load poller must be blocked, current and future, regardless of the delay each
   // one schedules with — there is no argument to key on that stays safe as pollers are added or
   // change their interval, so [] (matches every call) is the genuinely correct address here.
+  // The stand-in is an OBJECT, not a number: `timerSetIntervalAdapter` calls `.unref()` on what
+  // `setInterval` hands back, so a bare number makes every bootstrap throw at module load.
+  const fakeHandle = {
+    unref: (): void => undefined,
+    ref: (): void => undefined,
+    hasRef: (): boolean => false,
+  };
   const setIntervalSpy = registerSpyOn({ object: globalThis, method: 'setInterval' });
-  setIntervalSpy.calledWith([]).implement((() => 0 as never) as never);
+  setIntervalSpy.calledWith([]).implement((() => fakeHandle as never) as never);
 
   const clearIntervalSpy = registerSpyOn({ object: globalThis, method: 'clearInterval' });
   clearIntervalSpy.calledWith([]).implement((() => undefined) as never);

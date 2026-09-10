@@ -13,6 +13,14 @@ export const timerSetIntervalAdapterProxy = ({
   getRegisteredCallback: () => (() => void) | undefined;
 } => {
   const captured: { callback: (() => void) | undefined } = { callback: undefined };
+  // An OBJECT, not the number this used to hand back: the adapter calls `.unref()` on what
+  // `setInterval` returns, and a number has no such method. `hasRef` answers false to match, so a
+  // leak reporter reading this handle agrees with the adapter about what it did.
+  const fakeHandle = {
+    unref: (): void => undefined,
+    ref: (): void => undefined,
+    hasRef: (): boolean => false,
+  };
 
   const setIntervalSpy = registerSpyOn({
     object: globalThis,
@@ -23,7 +31,7 @@ export const timerSetIntervalAdapterProxy = ({
     .calledWith([(callback: unknown) => typeof callback === 'function', intervalMs])
     .implement(((callback: () => void) => {
       captured.callback = callback;
-      return 0 as never;
+      return fakeHandle as never;
     }) as never);
 
   const clearIntervalSpy = registerSpyOn({
@@ -31,8 +39,8 @@ export const timerSetIntervalAdapterProxy = ({
     method: 'clearInterval',
     passthrough: true,
   });
-  // The fake handle above always returns 0 — that is the real value clearInterval receives.
-  clearIntervalSpy.calledWith([0]).implement((() => undefined) as never);
+  // The fake handle above is what clearInterval really receives.
+  clearIntervalSpy.calledWith([fakeHandle]).implement((() => undefined) as never);
 
   return {
     triggerTick: (): void => {

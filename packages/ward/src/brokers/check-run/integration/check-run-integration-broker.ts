@@ -63,7 +63,7 @@ export const checkRunIntegrationBroker = async ({
   fileList: GitRelativePath[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
-  const { bin, args } = checkCommandsStatics.integration;
+  const { bin, args, relatedTestsIgnorePattern } = checkCommandsStatics.integration;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
   const hasPackageJestConfig = fsExistsSyncAdapter({
     filePath: filePathContract.parse(`${String(cwd)}/jest.config.js`),
@@ -161,8 +161,19 @@ export const checkRunIntegrationBroker = async ({
   // crash plus a DISCOVERY MISMATCH rather than anything naming the real cause. So the in-band
   // branch drops the budget the shared args carry.
   const inBandArgs = baseArgs.filter((arg) => !arg.startsWith('--maxWorkers'));
+  // The ignore pattern rides ONLY this branch, and it is what keeps this check to integration
+  // tests: `--findRelatedTests` replaces the `--testPathPatterns` value the shared args carry, so
+  // without it a source file's UNIT tests run here too. See the statics entry for the measurement.
   const finalArgs = hasFiles
-    ? [...inBandArgs, '--runInBand', '--detectOpenHandles', '--findRelatedTests', ...fileEntries]
+    ? [
+        ...inBandArgs,
+        '--runInBand',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        relatedTestsIgnorePattern,
+        '--findRelatedTests',
+        ...fileEntries,
+      ]
     : [...baseArgs];
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
