@@ -1840,7 +1840,7 @@ describe('questModifyBroker', () => {
       expect(persisted.pausedAtStatus).toBe('explore_flows');
     });
 
-    it('VALID: {pausedAtStatus: "in_progress", status: "paused"} => sets pausedAtStatus and transitions status', async () => {
+    it('INVALID: {status: "paused", pausedAtStatus: "in_progress"} => refuses the write outright, even with pausedAtStatus supplied — pausing is not a modify-quest transition', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
@@ -1858,16 +1858,14 @@ describe('questModifyBroker', () => {
 
       const result = await questModifyBroker({ input });
 
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect({
-        status: persisted.status,
-        pausedAtStatus: persisted.pausedAtStatus,
-      }).toStrictEqual({
-        status: 'paused',
-        pausedAtStatus: 'in_progress',
+      // Pause's side effects (killing registered subprocesses, resetting active work items to
+      // pending) live only behind POST /api/quests/:questId/pause (questPauseBroker), which loads,
+      // decides and persists in its own lock turn without ever calling this broker. Supplying
+      // `pausedAtStatus` alongside `status: 'paused'` does not earn the write back in — this broker
+      // has no processControls to perform the kill regardless of which fields ride along.
+      expect(result).toStrictEqual({
+        success: false,
+        error: `Status 'paused' must be set via POST /api/quests/:questId/pause, not modify-quest`,
       });
     });
 

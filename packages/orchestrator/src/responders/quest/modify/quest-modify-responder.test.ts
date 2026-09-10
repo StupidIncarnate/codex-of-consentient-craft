@@ -268,7 +268,7 @@ describe('QuestModifyResponder', () => {
       expect(registeredProcess?.processId).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
-    it('VALID: {in_progress quest, status→paused} => does NOT register orchestration process', async () => {
+    it('INVALID: {in_progress quest, status→paused} => the modify route refuses the write and does NOT register orchestration process', async () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -289,8 +289,13 @@ describe('QuestModifyResponder', () => {
         input,
       });
 
-      expect(result.success).toBe(true);
+      // questModifyBroker refuses a bare status:'paused' write outright — pause's side effects
+      // (killing registered subprocesses, resetting active work items to pending) live only behind
+      // the dedicated POST /api/quests/:questId/pause route. The PATCH route this responder serves
+      // is not a way to reach `paused` at all any more, so the write fails...
+      expect(result.success).toBe(false);
 
+      // ...and, consistently, no orchestration process is registered for a write that never landed.
       const registeredProcess = orchestrationProcessesState.findByQuestId({
         questId: 'add-auth' as ReturnType<typeof QuestStub>['id'],
       });

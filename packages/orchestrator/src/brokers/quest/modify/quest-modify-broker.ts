@@ -123,6 +123,23 @@ export const questModifyBroker = async ({
           });
         }
 
+        // `paused` carries REQUIRED side effects that live only behind the dedicated pause route
+        // (questPauseBroker): killing every registered subprocess and resetting active work items
+        // to pending. This broker cannot reproduce either — brokers cannot import state/, so there
+        // is no `processControls` to kill anything with — and the per-status field allowlist above
+        // has no way to express "the `status` field is allowed, but not THIS value of it" (it
+        // gates field NAMES per status, never a specific value). Left unguarded, a bare
+        // `status: 'paused'` write lands here, flips the quest to `paused`, and leaves every active
+        // work item reading `in_progress` — a row rendering a value neither writer wrote. Refuse it
+        // outright rather than produce that state: POST /api/quests/:questId/pause is the only way
+        // into `paused`.
+        if (validated.status === 'paused') {
+          return modifyQuestResultContract.parse({
+            success: false,
+            error: `Status 'paused' must be set via POST /api/quests/:questId/pause, not modify-quest`,
+          });
+        }
+
         if (validated.designDecisions) {
           quest.designDecisions = questArrayUpsertTransformer({
             existing: quest.designDecisions,

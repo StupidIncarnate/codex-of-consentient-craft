@@ -663,6 +663,223 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  // The no-op-PATCH trick this flow's own e2e suite uses (rewrite quest.json on disk, then PATCH
+  // the quest with the status it already has) forces exactly this onQuestChanged path to re-read
+  // and re-broadcast. Two such PATCHes landing back-to-back append TWO outbox lines for the same
+  // questId, and server-init-responder.ts fires `onQuestChanged` for each WITHOUT awaiting or
+  // sequencing the two `orchestratorLoadQuestAdapter` calls against each other (each is its own
+  // unawaited `.then()` chain — see the handler passed to `orchestratorOutboxWatchAdapter`). A read
+  // for the FIRST-fired event that happens to resolve SLOWER than the read for the SECOND-fired
+  // event broadcasts AFTER it, so the subscribed client's LAST-received frame is the stale one —
+  // a work item's duration figure would un-freeze / jump backward after already showing the
+  // correct, completed span.
+  describe('websocket onMessage subscribe-quest — concurrent onQuestChanged firings for one questId', () => {
+    it('VALID: {two onQuestChanged firings for the same questId; the first-fired read resolves slower than the second-fired read} => the client is left with the STALE quest as its last-received frame', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-outbox-race-1' });
+      const workItemId = QuestWorkItemIdStub();
+
+      const initialQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'in_progress',
+            startedAt: '2026-01-01T09:00:00.000Z',
+          }),
+        ],
+      });
+      proxy.setupLoadQuestSuccess({ quest: initialQuest });
+      proxy.setupFindQuestPathSuccess({
+        questId,
+        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        guildId: GuildIdStub(),
+      });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendMock.mockClear();
+
+      // staleQuest: what the FIRST-fired outbox event's own read resolves with once it finally
+      // completes — the work item still reads as running, no completedAt.
+      // freshQuest: what the SECOND-fired outbox event's read resolves with, immediately — the
+      // work item has already completed. This is the TRUE current state on disk by construction:
+      // it is the state a real second PATCH landed after the first, per questWithModifyLockBroker.
+      const staleQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'in_progress',
+            startedAt: '2026-01-01T09:00:00.000Z',
+          }),
+        ],
+      });
+      const freshQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'in_progress',
+            startedAt: '2026-01-01T09:00:00.000Z',
+            completedAt: '2026-01-01T09:04:12.000Z',
+          }),
+        ],
+      });
+      proxy.setupLoadQuestOutboxRace({
+        questId,
+        slowQuest: staleQuest,
+        slowDelayMs: 30,
+        fastQuest: freshQuest,
+      });
+
+      const { onQuestChanged } = proxy.getOutboxWatchCallbacks();
+      // Two outbox lines fired back-to-back — neither firing is awaited before the next, matching
+      // server-init-responder.ts's own fire-and-forget handler.
+      onQuestChanged!({ questId });
+      onQuestChanged!({ questId });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 60);
+      });
+
+      const completedAtByCall = sendMock.mock.calls.map((call) => {
+        const parsedMessage = WsMessageStub(JSON.parse(String(call[0])) as never);
+        const [, payloadQuestValue] = Object.values(parsedMessage.payload);
+        const payloadQuest = QuestStub(payloadQuestValue as never);
+        return payloadQuest.workItems[0]?.completedAt;
+      });
+
+      // Whichever order the two loads finish in, the LAST frame a subscribed client holds must
+      // never be staler than one it already received — otherwise a duration figure that already
+      // rendered the completed span un-freezes and starts ticking again. Currently this fails: the
+      // slower, first-fired read's stale broadcast lands SECOND and overwrites the correct one.
+      expect(completedAtByCall.at(-1)).toBe('2026-01-01T09:04:12.000Z');
+    });
+  });
+
+  // SYMPTOM this guards: a quest.json that becomes unparseable while a client is subscribed left
+  // that client's panel silently stale — the outbox path logged the failure and nothing more, so
+  // no WS frame ever told the browser its view had stopped updating. subscribe-quest's initial-load
+  // failure path already sends `quest-load-failed`; this is the same frame shape, sent from the
+  // OTHER load failure surface (a later outbox firing on an already-subscribed quest).
+  describe('websocket onMessage subscribe-quest — outbox load failure surfaces to subscribed clients', () => {
+    it('ERROR: {onQuestChanged fires for a subscribed quest and the load rejects} => the subscribed client receives quest-load-failed carrying the reason', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-outbox-load-failed-1' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendMock.mockClear();
+
+      proxy.setupLoadQuestFailure({
+        questId,
+        error: new Error('quest.json: comments.0.createdAt: Invalid datetime'),
+      });
+
+      const { onQuestChanged } = proxy.getOutboxWatchCallbacks();
+      onQuestChanged!({ questId });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const frames = sendMock.mock.calls.map(
+        (call) => JSON.parse(String(call[0])) as Record<PropertyKey, unknown>,
+      );
+
+      expect(frames).toStrictEqual([
+        {
+          type: 'quest-load-failed',
+          payload: {
+            questId,
+            error: 'quest.json: comments.0.createdAt: Invalid datetime',
+          },
+          timestamp: '2024-01-01T00:00:00.000Z',
+        },
+      ]);
+    });
+
+    // The per-quest chain's own .catch must never leave the chain wedged: a failed read is
+    // followed here by a firing that succeeds, and that later success must still reach the
+    // client. If emitting quest-load-failed could itself throw and escape the .catch, this
+    // firing would never run its own load — see outboxLoadChainByQuest's chaining comment.
+    it('VALID: {onQuestChanged fires and rejects, then fires again and the load succeeds} => the later success still broadcasts quest-modified', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-outbox-load-failed-recovers' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendMock.mockClear();
+
+      proxy.setupLoadQuestFailure({
+        questId,
+        error: new Error('quest.json unreadable'),
+      });
+
+      const { onQuestChanged } = proxy.getOutboxWatchCallbacks();
+      onQuestChanged!({ questId });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendMock.mockClear();
+
+      const recoveredQuest = QuestStub({ id: questId, workItems: [] });
+      proxy.setupLoadQuestSuccess({ quest: recoveredQuest });
+      onQuestChanged!({ questId });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const frameTypes = sendMock.mock.calls.map(
+        (call) => (JSON.parse(String(call[0])) as Record<PropertyKey, unknown>).type,
+      );
+
+      expect(frameTypes).toStrictEqual(['quest-modified']);
+    });
+  });
+
   describe('websocket onMessage subscribe-quest concurrent subscriptions', () => {
     it('VALID: {subscribe X then Y, unsubscribe X} => Y stays subscribed, X removed', async () => {
       const proxy = ServerInitResponderProxy();

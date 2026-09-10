@@ -15,6 +15,7 @@ import {
 
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
@@ -913,6 +914,32 @@ describe('ExecutionPanelWidget', () => {
       expect(proxy.getTickIntervalCount()).toBe(1);
     });
 
+    it('VALID: {quest with 60 in_progress work items} => still registers exactly one shared tick interval at realistic panel volume', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms — 00:10:00 past epoch.
+      const startedAt = '1970-01-01T00:10:00.000Z';
+      const workItems = Array.from({ length: 60 }, (_, i) =>
+        WorkItemStub({
+          id: `c0000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          role: 'codeweaver',
+          status: 'in_progress',
+          startedAt,
+        }),
+      );
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems,
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getTickIntervalCount()).toBe(1);
+    });
+
     it('VALID: {two in_progress work items sharing one startedAt} => both rows read the same duration and move together after a tick', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
@@ -1096,6 +1123,277 @@ describe('ExecutionPanelWidget', () => {
       rerender(<ExecutionPanelWidget quest={completeQuest} />);
 
       expect(proxy.getClearedTickCount()).toBe(1);
+    });
+
+    it('VALID: {60 in_progress work items flip to complete in one update} => clears the shared tick interval exactly once and never recomputes a duration afterward', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); 4 minutes earlier is 00:06:00 — spelled as a
+      // literal for the same reason the tests above do (QuestSpecPanelWidgetProxy's comment-queue
+      // mock owns the only Date.prototype.toISOString() catch-all with no address to override).
+      const runningStartedAt = '1970-01-01T00:06:00.000Z';
+      const runningWorkItems = Array.from({ length: 60 }, (_, i) =>
+        WorkItemStub({
+          id: `c0000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          role: 'codeweaver',
+          status: 'in_progress',
+          startedAt: runningStartedAt,
+        }),
+      );
+      const quest: Quest = QuestStub({ status: 'in_progress', workItems: runningWorkItems });
+
+      const { rerender } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getTickIntervalCount()).toBe(1);
+      expect(proxy.getClearedTickCount()).toBe(0);
+
+      // All 60 rows stop in the SAME state update — a batch completion, not a row-at-a-time
+      // drain — because that is the realistic "everything just finished" moment this test exists
+      // to cover; the sole-work-item case above already proves the boolean gate at N=1.
+      const stoppedWorkItems = Array.from({ length: 60 }, (_, i) =>
+        WorkItemStub({
+          id: `c0000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          role: 'codeweaver',
+          status: 'complete',
+          startedAt: runningStartedAt,
+          completedAt: '1970-01-01T00:10:00.000Z',
+        }),
+      );
+      const stoppedQuest: Quest = QuestStub({ status: 'in_progress', workItems: stoppedWorkItems });
+
+      rerender(<ExecutionPanelWidget quest={stoppedQuest} />);
+
+      expect(proxy.getClearedTickCount()).toBe(1);
+      // No new interval is ever registered once every row has stopped — the effect's cleanup ran
+      // and `enabled` stays false, so this count never climbs past the original registration.
+      expect(proxy.getTickIntervalCount()).toBe(1);
+
+      // With the interval cleared, there is no callback left for a tick boundary to invoke —
+      // advancing the mocked clock past one full tick period recomputes nothing, because nothing
+      // is left to fire it. This is the unit-test proxy for the real lane's "wait 65s past batch
+      // completion and confirm nothing on screen changes further."
+      const computeCountAfterClear = proxy.getDurationComputeCount();
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+
+      expect(proxy.getDurationComputeCount()).toBe(computeCountAfterClear);
+    });
+
+    it('VALID: {50 complete rows alongside 5 in_progress rows} => one tick recomputes duration for the 5 running rows only, never the 50 finished ones', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); 4 minutes earlier is 00:06:00 — spelled as a
+      // literal for the same reason the tests above do (QuestSpecPanelWidgetProxy's comment-queue
+      // mock owns the only Date.prototype.toISOString() catch-all with no address to override).
+      const runningStartedAt = '1970-01-01T00:06:00.000Z';
+      const finishedWorkItems = Array.from({ length: 50 }, (_, i) =>
+        WorkItemStub({
+          id: `a0000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          role: 'codeweaver',
+          status: 'complete',
+          startedAt: '2024-01-15T10:00:00.000Z',
+          completedAt: '2024-01-15T10:04:12.000Z',
+        }),
+      );
+      const runningWorkItems = Array.from({ length: 5 }, (_, i) =>
+        WorkItemStub({
+          id: `b0000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          role: 'spiritmender',
+          status: 'in_progress',
+          startedAt: runningStartedAt,
+        }),
+      );
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [...finishedWorkItems, ...runningWorkItems],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const computeCountBeforeTick = proxy.getDurationComputeCount();
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+      proxy.fireTick();
+
+      const computeCountAfterTick = proxy.getDurationComputeCount();
+
+      expect(computeCountAfterTick - computeCountBeforeTick).toBe(5);
+    });
+
+    it('VALID: {shared tick fires in the same act() batch as the row flipping to pending} => the duration figure is absent on that commit and stays absent after a further tick, never a stale pre-pause reading', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); 4 minutes earlier is 00:06:00 — spelled as a
+      // literal for the same reason the tests above do (QuestSpecPanelWidgetProxy's comment-queue
+      // mock owns the only Date.prototype.toISOString() catch-all with no address to override).
+      const startedAt = '1970-01-01T00:06:00.000Z';
+      const runningQuest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      const { rerender } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={runningQuest} />,
+      });
+
+      expect(proxy.getRowDurations()).toStrictEqual(['4m']);
+
+      const pausedQuest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'pending',
+            startedAt,
+          }),
+        ],
+      });
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+
+      // A websocket-delivered pause landing in the same JS turn as the shared interval's own tick
+      // is exactly what React's automatic batching folds into ONE commit — firing the raw tick
+      // callback and the quest rerender inside a single act() reproduces that turn deterministically,
+      // rather than hoping two real async callbacks coincide. #pause-costs-no-new-field claims the
+      // figure needs no bookkeeping beyond the status check because `isRunning` and `now` are read in
+      // the SAME expression on the SAME render — so whichever update React folds in first, the commit
+      // this act() flushes can only ever see the CURRENT status, never a torn pairing of stale status
+      // with fresh now (or vice versa).
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.fireTickWithoutAct();
+          rerender(<ExecutionPanelWidget quest={pausedQuest} />);
+        },
+      });
+
+      expect(proxy.getRowDurations()).toStrictEqual([]);
+      expect(screen.queryByTestId('execution-row-duration')).toBe(null);
+
+      // A further tick after the pause must not resurrect the figure — the row stays pending, and
+      // hasRunningWorkItem is already false, so this tick has no running row left to recompute.
+      proxy.fireTick();
+
+      expect(proxy.getRowDurations()).toStrictEqual([]);
+    });
+
+    // Models navigating away from a running row's quest (unmount) while the work item is still
+    // running, the item completing server-side during the absence, then navigating back (a FRESH
+    // mount, not a rerender of the same instance). Every other transition test in this describe
+    // block flips status via `rerender` on one live instance — this is the one variant that crosses
+    // an unmount boundary, so a component-instance-scoped bug (state that survives only because the
+    // same fiber kept running) would show here and nowhere else in this file. Split into two `it`s
+    // to stay under this file's per-test assertion cap.
+    it('VALID: {running row unmounted, item completes server-side while away, remounted with the already-complete props} => shows the frozen completed span and the DONE badge on the very first render of the remount', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      const startedAt = '1970-01-01T00:06:00.000Z';
+      const runningQuest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      const { unmount } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={runningQuest} />,
+      });
+
+      expect(proxy.getRowDurations()).toStrictEqual(['4m']);
+
+      unmount();
+
+      // The props a fresh mount receives after the item finished while the panel was gone — the
+      // server-side truth, not anything carried over from the unmounted instance.
+      const completedQuest: Quest = QuestStub({
+        status: 'complete',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            startedAt,
+            completedAt: '1970-01-01T00:12:34.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={completedQuest} />,
+      });
+
+      expect(proxy.getRowDurations()).toStrictEqual(['6m']);
+      expect(screen.getByTestId('execution-row-status-badge').textContent).toBe('DONE');
+    });
+
+    it('VALID: {running row unmounted, item completes server-side while away, remounted with the already-complete props} => registers no tick interval for the remount, distinct from the earlier mount already cleared on unmount', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      const startedAt = '1970-01-01T00:06:00.000Z';
+      const runningQuest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt,
+          }),
+        ],
+      });
+
+      const { unmount } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={runningQuest} />,
+      });
+
+      expect(proxy.getTickIntervalCount()).toBe(1);
+
+      unmount();
+
+      expect(proxy.getClearedTickCount()).toBe(1);
+
+      const completedQuest: Quest = QuestStub({
+        status: 'complete',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            startedAt,
+            completedAt: '1970-01-01T00:12:34.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={completedQuest} />,
+      });
+
+      // Still 1: hasRunningWorkItem reads false for the remount's own props, so the effect never
+      // calls setInterval again — this is not the earlier mount's interval left running, since that
+      // one was already cleared above.
+      expect(proxy.getTickIntervalCount()).toBe(1);
     });
   });
 

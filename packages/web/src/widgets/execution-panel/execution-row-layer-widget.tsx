@@ -7,7 +7,7 @@
  */
 
 import { Box, Text, UnstyledButton } from '@mantine/core';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   ContractName,
@@ -192,6 +192,22 @@ export const ExecutionRowLayerWidget = ({
   // it has one, else `now` while running. Any other status with a startedAt has none — that
   // startedAt is left over from a previous dispatch, not a span still in progress.
   const elapsedEndPoint = completedAt ?? (isRunning ? now : undefined);
+  // The panel's shared tick re-renders EVERY visible row on EVERY tick (ExecutionRowLayerWidget is
+  // not memoised, and now is threaded to every row regardless of status), so without this memo a
+  // finished row would re-invoke elapsedPartsTransformer — and its two Date.prototype.getTime()
+  // calls — on every tick right alongside the running rows whose figure actually needs to advance.
+  // startedAt and elapsedEndPoint are the only two inputs the figure depends on, and for a finished
+  // row elapsedEndPoint is its own completedAt, which never changes — so this dependency pair stays
+  // Object.is-stable across every one of those extra renders and the factory below is skipped.
+  const durationLabel = useMemo(
+    () =>
+      startedAt && elapsedEndPoint
+        ? durationDisplayTransformer({
+            elapsedParts: elapsedPartsTransformer({ startedAt, endedAt: elapsedEndPoint }),
+          })
+        : undefined,
+    [startedAt, elapsedEndPoint],
+  );
   const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
   const roleColor = executionStepStatusConfigStatics.roleColors[role];
   const isExpandable = EXPANDABLE_STATUSES.includes(status) || hasEntries;
@@ -328,7 +344,7 @@ export const ExecutionRowLayerWidget = ({
           </Text>
         ) : null}
 
-        {startedAt && elapsedEndPoint ? (
+        {durationLabel === undefined ? null : (
           <Text
             ff="monospace"
             data-testid="execution-row-duration"
@@ -338,11 +354,9 @@ export const ExecutionRowLayerWidget = ({
               flexShrink: 0,
             }}
           >
-            {durationDisplayTransformer({
-              elapsedParts: elapsedPartsTransformer({ startedAt, endedAt: elapsedEndPoint }),
-            })}
+            {durationLabel}
           </Text>
-        ) : null}
+        )}
 
         {headerContextLabel === null ? null : (
           <Text

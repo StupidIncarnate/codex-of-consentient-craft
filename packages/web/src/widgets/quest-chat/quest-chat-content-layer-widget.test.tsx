@@ -1439,6 +1439,58 @@ describe('QuestChatContentLayerWidget', () => {
 
       expect(queryByTestId('QUEST_LOAD_ERROR')).toBe(null);
     });
+
+    it('ERROR: {quest already loaded, then quest-load-failed for the same quest} => replaces the stale panel with the parse-reason error card', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-0000-1111-2222-333333333333' });
+      const quest = QuestStub({ id: 'q-goes-stale', status: 'review_flows' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-goes-stale' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_SPEC_PANEL');
+
+      // A WS reconnect resends subscribe-quest (routine in dev — see server CLAUDE.md's watcher
+      // restart), and if quest.json has since become unparseable that resend fails the same way a
+      // first load would: this quest-load-failed arrives for a quest ALREADY loaded successfully.
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-load-failed',
+            payload: { questId: quest.id, error: PARSE_FAILURE_REASON },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_LOAD_ERROR');
+
+      expect(queryByTestId('QUEST_LOAD_ERROR_REASON')?.textContent).toBe(PARSE_FAILURE_REASON);
+      // The stale panel must not linger once the load has definitively failed — a reader watching
+      // it has no way to tell "still fine" from "frozen forever" without this.
+      expect(queryByTestId('QUEST_SPEC_PANEL')).toBe(null);
+    });
   });
 
   describe('image-carrying send', () => {

@@ -154,6 +154,15 @@ export const ServerInitResponder = ({
   // first message of a quest, where the browser cannot subscribe until the POST that CREATES the
   // quest returns its id, and the agent can spawn and exit inside that round trip.
   const retainedChatCompleteByQuest = new Map<QuestId, Map<ProcessId, WsMessage>>();
+  // questOutboxWatchBroker fires onQuestChanged once per outbox line, synchronously, with no
+  // debounce — two lines for the SAME questId (e.g. two PATCHes landing back-to-back) fire two
+  // independent, unawaited orchestratorLoadQuestAdapter reads that can settle in either order.
+  // Chaining each firing onto the PREVIOUS firing's fully-settled promise (load, broadcast, and
+  // its own error handling) forces broadcasts to leave in outbox order, which is write order
+  // (questModifyBroker locks per questId; questPersistBroker writes atomically) — so a read for
+  // an earlier event can never resolve late enough to overwrite a later one's broadcast. Every
+  // firing still gets its own load and its own broadcast; this only reorders when each starts.
+  const outboxLoadChainByQuest = new Map<QuestId, Promise<void>>();
 
   app.get(
     '/ws',
@@ -870,7 +879,12 @@ export const ServerInitResponder = ({
 
   orchestratorOutboxWatchAdapter({
     onQuestChanged: ({ questId }) => {
-      orchestratorLoadQuestAdapter({ questId })
+      // Wait for whatever this questId's previous firing is already doing before starting this
+      // read — see outboxLoadChainByQuest above. The prior chain always resolves (its own
+      // .catch below never rethrows), so this .then always runs.
+      const previousChain = outboxLoadChainByQuest.get(questId) ?? Promise.resolve();
+      const chain = previousChain
+        .then(async () => orchestratorLoadQuestAdapter({ questId }))
         .then((quest) => {
           // The outbox fires on every quest persist, so this is where a newly-minted work
           // item's owning quest becomes known — before its agent has a session to write
@@ -899,7 +913,29 @@ export const ServerInitResponder = ({
         .catch((error: unknown) => {
           const reason = errorFormatReasonTransformer({ error });
           processDevLogAdapter({ message: `Outbox quest load failed for ${questId}: ${reason}` });
+          // Every subscribed client is otherwise left believing what it last saw is current — this
+          // is the same frame subscribe-quest's own initial-load failure sends (see above), reused
+          // here for the OTHER load-failure surface: a later outbox firing on an already-subscribed
+          // quest. Send is per-client try/catch, matching every other broadcast loop in this file,
+          // so one closed socket cannot make this .catch itself throw and reject `chain` —
+          // outboxLoadChainByQuest's ordering guarantee depends on this .catch always resolving.
+          const loadFailedEnvelope = wsMessageContract.parse({
+            type: 'quest-load-failed',
+            payload: { questId, error: reason },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          });
+          const serializedLoadFailed = JSON.stringify(loadFailedEnvelope);
+          for (const [client, subs] of clientSubscriptions) {
+            if (!subs.has(questId)) continue;
+            try {
+              client.send(serializedLoadFailed);
+            } catch {
+              clientSubscriptions.delete(client);
+              clients.delete(client);
+            }
+          }
         });
+      outboxLoadChainByQuest.set(questId, chain);
     },
     onError: ({ error }) => {
       processDevLogAdapter({ message: `Outbox watch error: ${String(error)}` });

@@ -44,7 +44,12 @@ export const workItemContract = z.object({
   retryCount: z.number().int().nonnegative().brand<'FailCount'>().default(0),
   lastWardRunId: fileNameContract.optional(),
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
-  startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
+  // `.nullish()`, not `.optional()` — a quest.json written before this field existed, or a
+  // producer that stamps `null` instead of omitting the key, sends an explicit `null` here.
+  // `.optional()` accepts an omitted key but rejects `null` outright, and this field sits inside
+  // `questContract`'s `workItems` array, so that rejection fails the WHOLE quest.json parse, not
+  // just this one row.
+  startedAt: z.string().datetime().brand<'IsoTimestamp'>().nullish(),
   startRef: z
     .string()
     .min(1)
@@ -53,7 +58,9 @@ export const workItemContract = z.object({
     .describe(
       "The quest worktree's HEAD sha at the moment this work item was FIRST served its prompt. `<startRef>..HEAD` is the range `get-blight-checklist`'s `since-ref` scope rebuilds its checklist over, and it is the only range that measures what THIS item produced: every minion commits its own work as it goes, so at signal time the tree is clean (a working-tree reading is empty by construction), HEAD~1 sees one piece, and a plan-scoped reading sees one round. Written ONCE and never rewritten — a resumed or re-served session keeps its ORIGINAL start, because re-stamping after a crash would shrink the reviewed range to whatever landed afterwards. Deliberately `.optional()` with NO default, so a work item that never resolved a worktree, a hydrated quest, and every item seeded before this field simply carry none, and that scope reports null for them rather than measuring something they could never satisfy.",
     ),
-  completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
+  // Same reasoning as `startedAt` above — `.nullish()` so an explicit `null` doesn't fail the
+  // whole quest.json parse.
+  completedAt: z.string().datetime().brand<'IsoTimestamp'>().nullish(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: questWorkItemIdContract.optional(),

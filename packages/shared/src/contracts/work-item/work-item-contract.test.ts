@@ -1,3 +1,4 @@
+import { QuestStub } from '../quest/quest.stub';
 import { RelatedDataItemStub } from '../related-data-item/related-data-item.stub';
 import { workItemContract } from './work-item-contract';
 import { WorkItemStub } from './work-item.stub';
@@ -369,6 +370,23 @@ describe('workItemContract', () => {
       }).toThrow(/Invalid datetime/u);
     });
 
+    // `.string().datetime()` with no `{ offset: true }` accepts ONLY a bare `Z` suffix — an
+    // offset-suffixed value (a producer that formats local time instead of normalizing to UTC)
+    // fails the whole quest.json parse here, before the elapsed-duration row logic ever sees it.
+    it('INVALID: {completedAt with a +05:00 offset instead of Z} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          startedAt: '2024-01-15T10:01:00.000Z',
+          completedAt: '2026-01-01T11:56:00.000+05:00',
+        });
+      }).toThrow(/Invalid datetime/u);
+    });
+
     it('INVALID: {invalid relatedDataItem format} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
@@ -526,6 +544,118 @@ describe('workItemContract', () => {
           actualSignal: 'failed-replan',
         });
       }).toThrow(/Invalid enum value/u);
+    });
+  });
+
+  describe('startedAt tolerates an explicit null without throwing', () => {
+    // Observed live: a quest.json seeded with `startedAt: null` (not omitted) fails THIS parse —
+    // `workItemContract` uses `.optional()`, which accepts `undefined` but rejects `null` outright
+    // — and the responder that loads quest.json has no per-item recovery, so the zod throw here
+    // becomes a `quest-load-failed` WS event for the WHOLE quest: every row in the execution panel
+    // renders blank, not just this one's duration figure. `.nullish()` accepts the null instead of
+    // throwing. It stays `null` in the parsed result rather than being erased back to an omitted
+    // key: the elapsed-duration row's own gate is `startedAt && elapsedEndPoint`, and `null` is
+    // already falsy there, so a null-valued field behaves exactly like an absent one downstream
+    // with no need for `workItemContract` to reshape zod's own output.
+    it('VALID: {startedAt: null} => parses without throwing, keeping null as a falsy value', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        startedAt: null as never,
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        startedAt: null,
+      });
+      expect(Boolean(result.startedAt)).toBe(false);
+    });
+  });
+
+  describe('completedAt tolerates an explicit null without throwing', () => {
+    // Same shape as the startedAt block above, on the sibling field the running-elapsed-duration
+    // row's own force condition turns on: a P2 work item (status other than in_progress, a real
+    // startedAt, `completedAt` present but explicitly null rather than omitted). `workItemContract`
+    // uses `.optional()` on completedAt too, which accepts `undefined` but rejects `null` outright,
+    // so this shape hits the same whole-quest `quest-load-failed` failure the startedAt block
+    // documents. `.nullish()` accepts the null instead of throwing, and it stays `null` in the
+    // parsed result — the row's force condition treats a falsy `completedAt` the same whether it
+    // is `null` or absent, so there is nothing downstream for `workItemContract` to normalize.
+    it('VALID: {completedAt: null} => parses without throwing, keeping null as a falsy value', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        startedAt: '2024-01-15T10:01:00.000Z',
+        completedAt: null as never,
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        startedAt: '2024-01-15T10:01:00.000Z',
+        completedAt: null,
+      });
+      expect(Boolean(result.completedAt)).toBe(false);
+    });
+  });
+
+  describe('a null startedAt inside a whole quest parse (the path that actually blanked the panel)', () => {
+    // `questContract.workItems` is `z.array(workItemContract)`, so parsing a QUEST routes each
+    // work item through zod's own internal element-parse, not through a direct
+    // `workItemContract.parse()` call — a field-level test alone cannot prove the fix covers this
+    // path. This is exactly where the reported symptom happened: one work item with
+    // `startedAt: null` failed the array-element parse, which failed the whole `questContract`
+    // parse, which is what the responder surfaced as `quest-load-failed` for the ENTIRE quest —
+    // every row blank, not just this one's duration.
+    it('VALID: {a quest whose only work item has startedAt: null} => the whole quest still parses', () => {
+      const quest = QuestStub({
+        workItems: [
+          WorkItemStub({
+            status: 'in_progress',
+            startedAt: null,
+          }),
+        ],
+      });
+
+      expect(quest.workItems).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'in_progress',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: [],
+          attempt: 0,
+          maxAttempts: 1,
+          retryCount: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+          startedAt: null,
+        },
+      ]);
+      expect(quest.workItems.every((item) => !item.startedAt)).toBe(true);
     });
   });
 

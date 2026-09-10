@@ -97,6 +97,83 @@ describe('useQuestChatBinding', () => {
     });
   });
 
+  // The execution panel's shared-tick design (#single-shared-tick) claims work does not climb
+  // per row. The binding's own subscribe effect only ever depends on `questId` (never on `quest`
+  // or its `workItems`), so the WS round trip that actually fetches row data cannot scale with
+  // row count by construction — these two cases pin that at a realistic 60-row size, not just the
+  // 1-2 row fixtures the rest of this file uses.
+  describe('data-fetch cost does not scale with quest size', () => {
+    it('VALID: {quest-modified carrying 5 in_progress work items} => exactly one subscribe-quest is sent and one message hydrates every row', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-scale-5' });
+      const workItems = Array.from({ length: 5 }, (_, i) =>
+        WorkItemStub({
+          id: `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          status: 'in_progress',
+          startedAt: '2026-01-01T11:59:00.000Z',
+        }),
+      );
+      const quest = QuestStub({ id: questId, workItems });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-scale-5', quest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(proxy.getSentWsMessages()).toStrictEqual([
+        { type: 'subscribe-quest', questId: 'quest-scale-5' },
+      ]);
+      expect(result.current.quest).toStrictEqual(quest);
+    });
+
+    it('VALID: {quest-modified carrying 60 in_progress work items} => still exactly one subscribe-quest is sent and one message hydrates every row', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-scale-60' });
+      const workItems = Array.from({ length: 60 }, (_, i) =>
+        WorkItemStub({
+          id: `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          status: 'in_progress',
+          startedAt: '2026-01-01T11:59:00.000Z',
+        }),
+      );
+      const quest = QuestStub({ id: questId, workItems });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-scale-60', quest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(proxy.getSentWsMessages()).toStrictEqual([
+        { type: 'subscribe-quest', questId: 'quest-scale-60' },
+      ]);
+      expect(result.current.quest).toStrictEqual(quest);
+    });
+  });
+
   describe('chat-output handling', () => {
     it('VALID: {chat-output with sessionId} => buckets entries under that session and sets isStreaming', () => {
       const proxy = useQuestChatBindingProxy();
@@ -436,6 +513,201 @@ describe('useQuestChatBinding', () => {
         stopChat: expect.any(Function),
         stopFollowupChat: expect.any(Function),
       });
+    });
+
+    // A delayed duplicate broadcast, or a reconnect replay racing a live update, can deliver two
+    // quest-modified frames for the same quest OUT OF true order. isQuestUpdateStaleGuard compares
+    // `quest.updatedAt` against the last-applied frame's, so a frame that finished a work item
+    // (completedAt set) is not undone by an OLDER-DATED frame that still shows that same work item
+    // in_progress with no completedAt — un-freezing a duration the execution row already committed
+    // to. The finished frame must win regardless of arrival order.
+    it('EDGE: {a completed-work-item frame followed by an OLDER-DATED still-running-shaped frame for the same quest} => the exposed quest keeps the finished work item, not whichever frame arrived last', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-stale-order-1' });
+      const workItemId = QuestWorkItemIdStub();
+
+      // Both frames carry an explicit, distinct `quest.updatedAt` — the shape round 4 actually
+      // measured in production, where a delayed duplicate broadcast DOES carry a timestamp. This is
+      // what makes the assertion below prove the freshness COMPARISON rather than passing merely
+      // because an undated frame gets special-cased; isQuestUpdateStaleGuard fails open on an undated
+      // frame, so this test would go green for the wrong reason if either quest omitted the field.
+      const finishedQuest = QuestStub({
+        id: questId,
+        updatedAt: '2026-01-01T09:00:12.500Z',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'complete',
+            startedAt: '2026-01-01T09:00:00.000Z',
+            completedAt: '2026-01-01T09:00:12.000Z',
+          }),
+        ],
+      });
+      const staleRunningQuest = QuestStub({
+        id: questId,
+        updatedAt: '2026-01-01T09:00:05.000Z',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'in_progress',
+            startedAt: '2026-01-01T09:00:00.000Z',
+          }),
+        ],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          // Frame A: the work item just finished.
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-stale-order-1', quest: finishedQuest },
+              timestamp: '2025-01-01T00:00:01.000Z',
+            }),
+          });
+          // Frame B: an OLDER-shaped duplicate/replay landing after A, still showing the work item
+          // running with no completedAt.
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-stale-order-1', quest: staleRunningQuest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.quest).toStrictEqual(finishedQuest);
+    });
+  });
+
+  // Two quest-updated frames for the SAME quest, fired in the same tick with NO gap between them
+  // (a batched server flush, or two persist-and-broadcast calls racing on the server) — as opposed
+  // to the reconnect-replay race above, where the two frames are separated by a real subscription
+  // teardown/rebuild. `isQuestUpdateStaleGuard` orders same-tick frames on `quest.updatedAt`
+  // exactly the way it orders any other pair, so the frame carrying the LATER `updatedAt` wins
+  // regardless of which one the stream hands the subscriber last. Both cases here put the FRESHER
+  // frame FIRST and the STALER one LAST — the opposite of arrival order — specifically to prove
+  // arrival order no longer decides the winner; the old (buggy) "whichever arrives last" behaviour
+  // would fail both of these.
+  describe('quest-updated same-tick frame ordering (resolved by updatedAt, not arrival order)', () => {
+    it('VALID: {a fresher finished frame then a staler still-running frame for the same quest, emitted back-to-back with no gap} => the FRESHER frame wins (finished), even though it arrived first', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-same-tick-a' });
+      const workItemId = QuestWorkItemIdStub();
+
+      const finishedQuest = QuestStub({
+        id: questId,
+        updatedAt: '2026-01-01T09:00:12.500Z',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'complete',
+            startedAt: '2026-01-01T09:00:00.000Z',
+            completedAt: '2026-01-01T09:00:12.000Z',
+          }),
+        ],
+      });
+      const stillRunningQuest = QuestStub({
+        id: questId,
+        updatedAt: '2026-01-01T09:00:05.000Z',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'in_progress',
+            startedAt: '2026-01-01T09:00:00.000Z',
+          }),
+        ],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          // Both frames dispatched inside the SAME act callback, with no await/tick between them —
+          // the same-microtask shape a batched server flush would produce.
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-same-tick-a', quest: finishedQuest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-same-tick-a', quest: stillRunningQuest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.quest).toStrictEqual(finishedQuest);
+    });
+
+    it('VALID: {a fresher still-running frame then a staler finished frame for the same quest, emitted back-to-back with no gap} => the FRESHER frame wins (still-running), proving the mechanism is symmetric', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-same-tick-b' });
+      const workItemId = QuestWorkItemIdStub();
+
+      const stillRunningQuest = QuestStub({
+        id: questId,
+        updatedAt: '2026-01-01T09:00:12.500Z',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'in_progress',
+            startedAt: '2026-01-01T09:00:00.000Z',
+          }),
+        ],
+      });
+      const finishedQuest = QuestStub({
+        id: questId,
+        updatedAt: '2026-01-01T09:00:05.000Z',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            status: 'complete',
+            startedAt: '2026-01-01T09:00:00.000Z',
+            completedAt: '2026-01-01T09:00:12.000Z',
+          }),
+        ],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-same-tick-b', quest: stillRunningQuest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-same-tick-b', quest: finishedQuest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.quest).toStrictEqual(stillRunningQuest);
     });
   });
 
@@ -2011,6 +2283,71 @@ describe('useQuestChatBinding', () => {
       ]);
 
       expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+
+    // check-reconnect-recovers-mutation-during-outage: the work item finished ENTIRELY during the
+    // outage window (server records completedAt while this client is disconnected), so no
+    // quest-modified for it is ever sent before the close, and none rides the close/reconnect
+    // itself — the resubscribe's own quest-modified is the FIRST and ONLY frame this client will
+    // ever see naming that completion. server-init-responder.ts sends quest-modified with the
+    // freshly-loaded quest unconditionally on every subscribe-quest (see its "Send current quest
+    // state to the subscribing client BEFORE replay" comment), so a client that re-sends
+    // subscribe-quest on every reconnect (the opens$ handler above) is never stuck reading a stale
+    // snapshot — it is a snapshot pull, not a wait for a future mutation event that will never
+    // arrive for an already-finished item.
+    it('VALID: {quest-modified carrying a newly-completed work item arrives only after reconnect} => quest reflects the finished work item', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-reconnect-finish-1' });
+      const workItems = [
+        WorkItemStub({
+          id: 'e2e00000-0000-4000-8000-000000000077',
+          status: 'complete',
+          startedAt: '2026-01-01T11:59:00.000Z',
+          completedAt: '2026-01-01T11:59:45.000Z',
+        }),
+      ];
+      const quest = QuestStub({ id: questId, workItems });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      expect(proxy.getSentWsMessages()).toStrictEqual([
+        { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
+      ]);
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.triggerWsClose();
+          proxy.triggerWsReconnect();
+        },
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(proxy.getSentWsMessages()).toStrictEqual([
+            { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
+            { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
+          ]);
+        },
+      });
+
+      // The only frame this test ever delivers — nothing carrying this work item's completion was
+      // sent before the close, and nothing rides the close/reconnect pair itself.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-reconnect-finish-1', quest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.quest).toStrictEqual(quest);
     });
   });
 

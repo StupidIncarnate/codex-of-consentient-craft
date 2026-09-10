@@ -87,6 +87,17 @@ export const ServerInitResponderProxy = (): {
   simulateDisconnect: (params: { ws: WsClient }) => void;
   setupLoadQuestSuccess: (params: { quest: Quest }) => void;
   setupLoadQuestFailure: (params: { questId: QuestId; error: Error }) => void;
+  // Stages what TWO overlapping onQuestChanged firings for the SAME questId each resolve with —
+  // the shape two outbox lines from two near-simultaneous PATCHes produce. `slowQuest` answers
+  // whichever onQuestChanged call fires FIRST but resolves after `slowDelayMs`; `fastQuest`
+  // answers the call that fires SECOND but resolves immediately — reproducing a read for an
+  // EARLIER event completing AFTER a read for a LATER one.
+  setupLoadQuestOutboxRace: (params: {
+    questId: QuestId;
+    slowQuest: Quest;
+    slowDelayMs: number;
+    fastQuest: Quest;
+  }) => void;
   setupReplaySuccess: () => void;
   setupReplayFailure: (params: { error: Error }) => void;
   enableDevLogs: () => void;
@@ -173,6 +184,20 @@ export const ServerInitResponderProxy = (): {
     },
     setupLoadQuestFailure: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       loadQuestProxy.throws({ questId, error });
+    },
+    setupLoadQuestOutboxRace: ({
+      questId,
+      slowQuest,
+      slowDelayMs,
+      fastQuest,
+    }: {
+      questId: QuestId;
+      slowQuest: Quest;
+      slowDelayMs: number;
+      fastQuest: Quest;
+    }): void => {
+      loadQuestProxy.returnsOnceDelayed({ questId, quest: slowQuest, delayMs: slowDelayMs });
+      loadQuestProxy.returnsOnce({ questId, quest: fastQuest });
     },
     setupReplaySuccess: (): void => {
       replayProxy.setupSuccess();

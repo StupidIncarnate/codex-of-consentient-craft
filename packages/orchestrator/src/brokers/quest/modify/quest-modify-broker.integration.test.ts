@@ -282,3 +282,89 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
     expect(loaded.quest!.branchName).toBe(branchName);
   });
 });
+
+// GAP: design decision #pause-costs-no-new-field (live-elapsed-duration-on-in-progress-work-items)
+// claims pausing always resets every active work item to pending via questPauseBroker
+// (packages/orchestrator/src/brokers/quest/pause/quest-pause-broker.ts). That broker is reachable
+// ONLY through `POST /api/quests/:questId/pause` (QuestPauseResponder) — a route distinct from
+// `PATCH /api/quests/:questId` (QuestModifyResponder -> questModifyBroker, this file's own subject;
+// see packages/server/src/flows/quest/quest-flow.ts). questInputForbiddenFieldsTransformer (the
+// per-status field allowlist) and questHasValidStatusTransitionGuard (the transition graph) both gate
+// a modify-quest `status` write, but neither one knows `paused` carries REQUIRED side effects that
+// live only in questPauseBroker: resetting active work items to pending and stamping
+// pausedAtStatus. questModifyBroker could not fully take pause's place even if it tried — killing the
+// quest's registered subprocesses needs `processControls`, which brokers cannot obtain (brokers
+// cannot import state/) — but nothing here stops it from at least refusing to leave an active work
+// item behind.
+//
+// Confirmed live against a running siege lane: seeded a quest with one `in_progress` work item, then
+// PATCHed `{status: 'paused'}` straight at the generic endpoint (the SAME endpoint this flow's own
+// e2e suite PATCHes with a same-value no-op to force a quest-modified broadcast). The call returned
+// 200. The execution panel then showed "RESUME QUEST" (proving the quest itself reads `paused`)
+// beside a work-item row still reading "RUNNING" with a live "4m" duration figure — a row that
+// renders a value neither a real pause nor a real resume ever wrote, indistinguishable on screen from
+// a quest that is actually still executing.
+describe('questModifyBroker vs the dedicated pause pipeline (integration — real disk)', () => {
+  const envHarness = orchestrationEnvironmentHarness();
+
+  it('VALID: {bare status:"paused" write on a quest with an active in_progress work item} => the write succeeds but leaves the active work item running, so the quest reads paused while its row does not', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'modify-bare-pause-leaves-item-running' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
+    });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'Bare Pause Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
+    const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
+
+    const hydrated = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+    const workItem = hydrated.quest!.workItems[0]!;
+    const startedAt = new Date(Date.now() - 30_000).toISOString();
+
+    // Arm the work item as the live, running row this gap targets — sequentially, before the
+    // bare-pause write below.
+    const armed = await questModifyBroker({
+      input: ModifyQuestInputStub({
+        questId,
+        workItems: [{ id: workItem.id, status: 'in_progress', startedAt }] as never,
+      }),
+    });
+
+    expect(armed.success).toBe(true);
+
+    const bareStatusResult = await questModifyBroker({
+      input: ModifyQuestInputStub({ questId, status: 'paused' }),
+    });
+
+    const final = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+    const finalWorkItem = final.quest!.workItems.find((item) => item.id === workItem.id)!;
+
+    restore();
+    testbed.cleanup();
+
+    // THE FIX: questModifyBroker refuses a bare `status: 'paused'` write outright rather than
+    // performing it incompletely. Pause's side effects — killing every registered subprocess and
+    // resetting active work items to pending — live only behind POST /api/quests/:questId/pause
+    // (questPauseBroker), which this broker cannot reproduce (brokers cannot import state/, so
+    // there is no `processControls` to kill anything with).
+    expect(bareStatusResult).toStrictEqual({
+      success: false,
+      error: `Status 'paused' must be set via POST /api/quests/:questId/pause, not modify-quest`,
+    });
+
+    // THE INVARIANT: a quest that reads `paused` must never carry a work item still reading
+    // `in_progress` — that combination is exactly what a viewer cannot render without showing a live
+    // duration figure under a quest that claims it is not running. Refusing the write keeps quest and
+    // item CONSISTENT: both still read `in_progress`, which is what is actually true on disk.
+    expect(final.quest!.status).toBe('in_progress');
+    expect(finalWorkItem.status).toBe('in_progress');
+  });
+});

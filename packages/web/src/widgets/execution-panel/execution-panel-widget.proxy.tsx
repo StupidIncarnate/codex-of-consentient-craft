@@ -31,6 +31,10 @@ const realToIsoString = (Date.prototype as unknown as Record<PropertyKey, unknow
   ISO_TO_STRING_METHOD_NAME
 ] as (this: Date) => ReturnType<Date['toISOString']>;
 
+// elapsedPartsTransformer's own arithmetic: one Date.prototype.getTime() call for endedAt, one for
+// startedAt, per invocation.
+const GET_TIME_CALLS_PER_ELAPSED_COMPUTE = 2;
+
 export const ExecutionPanelWidgetProxy = (): {
   clickTab: (params: { tabId: 'followup' | 'execution' | 'spec' }) => Promise<void>;
   hasTabBar: () => boolean;
@@ -70,9 +74,14 @@ export const ExecutionPanelWidgetProxy = (): {
   setClockMs: (params: { ms: number }) => void;
   advanceClockMs: (params: { ms: number }) => void;
   fireTick: () => void;
+  // Same tick callback as fireTick, without its own act() wrapper — for a test proving a same-batch
+  // race, which has to invoke this AND a prop-driven rerender inside ONE act() call to land both
+  // updates in the single commit React's automatic batching would produce for them.
+  fireTickWithoutAct: () => void;
   getTickIntervalCount: () => TickCallCount;
   getClearedTickCount: () => TickCallCount;
   getRowDurations: () => HTMLElement['textContent'][];
+  getDurationComputeCount: () => TickCallCount;
 } => {
   AutoScrollContainerWidgetProxy();
   DumpsterCommandBannerWidgetProxy();
@@ -98,6 +107,17 @@ export const ExecutionPanelWidgetProxy = (): {
   // formats a receiver it can trust instead of whatever `this` a plain property call would bind.
   const nowIsoHandle = registerSpyOn({ object: Date.prototype, method: 'toISOString' });
   nowIsoHandle.calledWith([]).implement(() => realToIsoString.call(new Date(Date.now())));
+
+  // elapsedPartsTransformer is the only caller of Date.prototype.getTime in a row's render path,
+  // and it calls it exactly twice per invocation (endedAt, then startedAt) — passthrough keeps
+  // every row's real duration correct while this spy counts how many rows recomputed one on the
+  // render pass just observed. GET_TIME_CALLS_PER_ELAPSED_COMPUTE turns that raw call count back
+  // into a row count.
+  const getTimeHandle = registerSpyOn({
+    object: Date.prototype,
+    method: 'getTime',
+    passthrough: true,
+  });
 
   const getAbandonBarButtons = (): HTMLElement[] => {
     const abandonBar = screen.queryByTestId('ABANDON_BAR');
@@ -226,9 +246,14 @@ export const ExecutionPanelWidgetProxy = (): {
         },
       });
     },
+    fireTickWithoutAct: (): void => {
+      elapsedTickProxy.fireTick();
+    },
     getTickIntervalCount: (): TickCallCount => elapsedTickProxy.getTickIntervalCount(),
     getClearedTickCount: (): TickCallCount => elapsedTickProxy.getClearedTickCount(),
     getRowDurations: (): HTMLElement['textContent'][] =>
       screen.queryAllByTestId('execution-row-duration').map((el) => el.textContent),
+    getDurationComputeCount: (): TickCallCount =>
+      getTimeHandle.callsMatching([]).length / GET_TIME_CALLS_PER_ELAPSED_COMPUTE,
   };
 };

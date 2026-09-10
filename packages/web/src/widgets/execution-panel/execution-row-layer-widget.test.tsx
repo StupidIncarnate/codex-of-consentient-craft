@@ -1265,6 +1265,28 @@ describe('ExecutionRowLayerWidget', () => {
 
         expect(screen.getByTestId('execution-row-duration').textContent).toBe('2h');
       });
+
+      // Models a full page reload landing seconds before a minute boundary: `now` here is not a
+      // value this row ticked its way to — it is the ONLY render this instance ever produces,
+      // exactly as a fresh mount after a reload would be. If the figure were ever derived from
+      // something other than the live startedAt/now pair passed to THIS render (a module-level
+      // cache, a value baked in before the reload), this is where it would show.
+      it('VALID: {in_progress, freshly mounted with startedAt 4m58s before now} => the one and only render shows "4m", not a value carried over from before the mount', () => {
+        ExecutionRowLayerWidgetProxy();
+
+        mantineRenderAdapter({
+          ui: (
+            <ExecutionRowLayerWidget
+              {...defaultProps()}
+              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              startedAt={IsoTimestampStub({ value: '2024-01-15T09:59:02.000Z' })}
+              now={NOW}
+            />
+          ),
+        });
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('4m');
+      });
     });
 
     describe('finished', () => {
@@ -1582,6 +1604,48 @@ describe('ExecutionRowLayerWidget', () => {
         );
 
         expect(screen.queryByTestId('execution-row-duration')).toBe(null);
+      });
+
+      it('EDGE: {in_progress startedAt 59.5s before now (still "<1m") => pending, same now} => duration stays absent on the pause commit AND the commit after it (no stale node survives a second render)', () => {
+        ExecutionRowLayerWidgetProxy();
+
+        const { rerender } = mantineRenderAdapter({
+          ui: (
+            <ExecutionRowLayerWidget
+              {...defaultProps()}
+              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:00.500Z' })}
+              now={NOW}
+            />
+          ),
+        });
+
+        expect(screen.getByTestId('execution-row-duration').textContent).toBe('<1m');
+
+        rerender(
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'pending' })}
+            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:00.500Z' })}
+            now={NOW}
+          />,
+        );
+
+        expect(screen.queryAllByTestId('execution-row-duration')).toStrictEqual([]);
+
+        // A further commit, with `now` pushed past the minute this row would have crossed into
+        // had it kept running — the panel's own 60s tick still fires for every OTHER running row
+        // and passes a fresh `now` down to this one too, even though this row is no longer running.
+        rerender(
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'pending' })}
+            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:00.500Z' })}
+            now={IsoTimestampStub({ value: '2024-01-15T10:05:00.000Z' })}
+          />,
+        );
+
+        expect(screen.queryAllByTestId('execution-row-duration')).toStrictEqual([]);
       });
     });
   });

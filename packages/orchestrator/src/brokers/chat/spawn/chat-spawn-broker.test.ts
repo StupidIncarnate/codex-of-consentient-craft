@@ -963,7 +963,7 @@ describe('chatSpawnBroker', () => {
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'resume-no-worktree' });
       const questId = QuestIdStub({ value: 'quest-no-worktree' });
-      const resolvedRepoRoot = RepoRootCwdStub({ value: '/home/user/repo-root' });
+      const resolvedRepoRoot = RepoRootCwdStub({ value: '/home/testuser' });
 
       proxy.setupResumeWithRepoRoot({ questId, sessionId, repoRoot: resolvedRepoRoot });
 

@@ -7,13 +7,20 @@
  * instant. `enabled` lets the panel hold no interval at all once nothing is left running, rather
  * than every row independently deciding when to stop.
  *
+ * A backgrounded tab's `setInterval` is throttled or fully suspended by the browser's own power
+ * policy, so the scheduled tick can silently miss its period for well over its `tickMs` while the
+ * tab is hidden. A `visibilitychange` listener that fires only on the transition TO visible
+ * resyncs `now` the instant the user returns, rather than leaving it pinned to whatever `now` the
+ * last successful tick produced until the next scheduled fire.
+ *
  * USAGE:
  * const { now } = useElapsedTickBinding({ enabled: hasRunningRow });
  * // `now` is a fresh IsoTimestamp on mount, then again every elapsedDisplayConfigStatics.refresh.tickMs
- * // while enabled; each row diffs its own startedAt against it
+ * // while enabled, and immediately on refocus after a background suspension; each row diffs its own
+ * // startedAt against it
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -25,6 +32,14 @@ export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): { now:
   // immediately, not "0m" for up to a whole tick period until the interval below fires once.
   const [nowMs, setNowMs] = useState(() => Date.now());
 
+  // Only the transition TO visible resyncs — a fire on hide would just relabel the same stale
+  // instant the interval was about to produce anyway, since nobody is looking at it while hidden.
+  const handleVisibilityChange = useCallback((): void => {
+    if (!document.hidden) {
+      setNowMs(Date.now());
+    }
+  }, []);
+
   useEffect(() => {
     if (!enabled) {
       return undefined;
@@ -34,11 +49,13 @@ export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): { now:
     const id = setInterval(() => {
       setNowMs(Date.now());
     }, elapsedDisplayConfigStatics.refresh.tickMs);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return (): void => {
       clearInterval(id);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [enabled]);
+  }, [enabled, handleVisibilityChange]);
 
   return { now: isoTimestampContract.parse(new Date(nowMs).toISOString()) };
 };

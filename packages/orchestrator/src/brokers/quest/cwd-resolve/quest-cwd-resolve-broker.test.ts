@@ -46,7 +46,7 @@ describe('questCwdResolveBroker', () => {
   it('VALID: {quest has no worktreePath} => falls back to the repo root that owns the quest guild', async () => {
     const proxy = questCwdResolveBrokerProxy();
     const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-    const repoRoot = RepoRootCwdStub({ value: '/resolved/repo/root' });
+    const repoRoot = RepoRootCwdStub({ value: '/home/testuser' });
     proxy.setupLegacyQuest({ quest, repoRoot });
 
     const result = await questCwdResolveBroker({ questId: QuestIdStub({ value: quest.id }) });

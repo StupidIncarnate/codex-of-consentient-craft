@@ -283,11 +283,16 @@ export const QuestChatContentLayerWidget = ({
   //  - otherwise (node mode either questId case; claude mode with questId set but quest not replayed)
   //    → the dual-panel chat surface. In node mode the first message creates the quest (handleSend)
   //    and the right panel is the dumpster loader; in claude mode it's the "Awaiting..." box.
-  // A load that definitively FAILED, ahead of every no-quest-yet branch below: those all read as
-  // "still loading", and a quest.json the contract rejects will never arrive, so leaving the reader
-  // on a loading surface hides the failure completely. questId is non-null whenever loadError is
-  // set — the binding only subscribes, and only matches this event, for a quest it was given.
-  if (quest === null && loadError !== null && questId !== null) {
+  // A load that definitively FAILED takes priority over every branch below, including a quest that
+  // already loaded successfully once: a WS reconnect resends `subscribe-quest` (routine in dev — see
+  // server CLAUDE.md's watcher-triggered restart), and if quest.json has since become unparseable
+  // that resend fails the same way a first load would, delivering `quest-load-failed` for a quest
+  // this binding already holds a GOOD `quest` object for. Gating this on `quest === null` rendered
+  // that case as the STALE quest with no sign anything had stopped updating — a reader watching this
+  // panel cannot tell "still current" from "frozen the moment the file broke" without this branch
+  // firing regardless of what `quest` holds. questId is non-null whenever loadError is set — the
+  // binding only subscribes, and only matches this event, for a quest it was given.
+  if (loadError !== null && questId !== null) {
     return (
       <Box
         data-testid="QUEST_CHAT"

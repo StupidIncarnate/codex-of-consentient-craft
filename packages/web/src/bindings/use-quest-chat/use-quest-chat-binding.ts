@@ -53,6 +53,7 @@ import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
+import { isQuestUpdateStaleGuard } from '../../guards/is-quest-update-stale/is-quest-update-stale-guard';
 import { isTrackedChatProcessGuard } from '../../guards/is-tracked-chat-process/is-tracked-chat-process-guard';
 import { pastedImageMemoryState } from '../../state/pasted-image-memory/pasted-image-memory-state';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
@@ -524,12 +525,43 @@ export const useQuestChatBinding = ({
         setPendingClarification({ questions: result.data.questions });
       });
 
+    // Tracks whether ANY quest-modified frame has been applied yet on THIS subscription, and the
+    // updatedAt of the last one applied. A plain object living in this effect's closure, not a ref:
+    // the whole effect tears down and recreates on every questId change, so a fresh subscription
+    // always starts with no baseline — the PREVIOUS quest's freshness must never gate the NEXT
+    // quest's first frame. One `const` object rather than two `let`s: `updatedAt` legitimately
+    // starts `undefined` (the field is optional on the quest contract), and a bare
+    // `let x: T = undefined` trips `no-undef-init` the moment `init-declarations` is satisfied by
+    // writing it — a property on an object literal is not a variable declaration, so neither rule
+    // applies here.
+    const questUpdateBaseline: { hasApplied: boolean; updatedAt: Quest['updatedAt'] } = {
+      hasApplied: false,
+      updatedAt: undefined,
+    };
+
     const questUpdatedSub = rxjsFilterAdapter({
       source: webSocketChannelState.questUpdated$(),
       predicate: (q) => q.id === questIdRef.current,
     }).subscribe((updatedQuest): void => {
       const questParsed = questContract.safeParse(updatedQuest);
       if (!questParsed.success) return;
+      // A delayed duplicate broadcast, or a reconnect replay racing a live update, can deliver an
+      // OLDER-shaped frame after a fresher one already landed — see isQuestUpdateStaleGuard for why
+      // `updatedAt` is the only trustworthy ordering signal the quest contract carries. The whole
+      // frame is dropped, not just its regressed field: none of what it would also overwrite below
+      // (the tavernkeeper work item id, the load-error clear) is any more trustworthy than the
+      // quest object it rode in on.
+      if (
+        questUpdateBaseline.hasApplied &&
+        isQuestUpdateStaleGuard({
+          incomingUpdatedAt: questParsed.data.updatedAt,
+          lastAppliedUpdatedAt: questUpdateBaseline.updatedAt,
+        })
+      ) {
+        return;
+      }
+      questUpdateBaseline.hasApplied = true;
+      questUpdateBaseline.updatedAt = questParsed.data.updatedAt;
       setQuest(questParsed.data);
       followupWorkItemIdRef.current =
         questParsed.data.workItems.find((workItem) =>
