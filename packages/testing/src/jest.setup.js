@@ -67,38 +67,55 @@ beforeEach(() => {
   jest.restoreAllMocks();
 });
 
-// Required HERE, at setup-file scope, and NOT inside the afterEach below. Jest measures a test from
-// `test_start` to `test_done`, which brackets beforeEach and afterEach — so a require inside the
-// hook charges this graph's COMPILE to whichever test ran first in a worker. Measured on a cold
-// cache: 4.4s of "test time" against 0.1s of real assertions, on a different suite every run, and
-// the worst inflation across 176 mcp suites went 9.2s -> 0.0s when it moved here.
-// Setup-file scope is still inside jest's runtime, so the extensionless specifier still resolves
-// through moduleFileExtensions to the .ts source with no loader.
-const {
-  integrationEnvironmentCleanupAllBroker,
-} = require('./brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker');
+// Loaded in `beforeAll`, and that placement is load-bearing in BOTH directions.
+//
+// Not inside the afterEach below: jest measures a test from `test_start` to `test_done`, and
+// jest-circus brackets beforeEach and afterEach inside that window — so a require in the hook
+// charges this graph's COMPILE to whichever test ran first in a worker. Measured on a cold cache:
+// 4.4s of "test time" against 0.1s of real assertions, a different suite every run, and the worst
+// inflation across 176 mcp suites went 9.2s to 0.0s once it moved out.
+//
+// Not at setup-file scope either, which is the obvious fix and breaks every test that mocks
+// anything in this graph. A setup file runs BEFORE the test file body, so the modules it requires
+// are already resolved by the time the transformer's hoisted `jest.mock()` calls run, and the
+// mocks then apply to nobody. It cost four `fsAppendFileAdapter` tests, which called the real
+// `appendFileSync` and got ENOENT off a real filesystem.
+//
+// `beforeAll` runs after the test file body and before its first test: outside the measured
+// window, inside the mocked registry.
+let integrationEnvironmentCleanupAllBroker;
+let openHandleReportBroker;
 
 // Ward names a file here when it wants open handles reported. Unset means nobody asked, and none of
-// the tracking below is even loaded — so an ordinary run pays nothing for it.
+// the tracking below is loaded at all — so an ordinary run pays nothing for it.
 const openHandleReportPath = process.env.DUNGEONMASTER_OPEN_HANDLE_REPORT;
 
-if (openHandleReportPath) {
-  const {
-    openHandleTrackingBroker,
-  } = require('./brokers/open-handle/tracking/open-handle-tracking-broker');
-  const { openHandleReportBroker } = require('./brokers/open-handle/report/open-handle-report-broker');
+beforeAll(() => {
+  ({
+    integrationEnvironmentCleanupAllBroker,
+  } = require('./brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker'));
 
-  openHandleTrackingBroker.watch();
+  if (openHandleReportPath) {
+    const {
+      openHandleTrackingBroker,
+    } = require('./brokers/open-handle/tracking/open-handle-tracking-broker');
+    ({
+      openHandleReportBroker,
+    } = require('./brokers/open-handle/report/open-handle-report-broker'));
+    openHandleTrackingBroker.watch();
+  }
+});
 
-  // afterAll, not afterEach: a timer armed in one test and cleared in a later one is not a leak, and
-  // jest runs afterAll OUTSIDE the test_start..test_done window, so this costs no test time either.
-  afterAll(() => {
+// afterAll, not afterEach: a timer armed in one test and cleared in a later one is not a leak, and
+// jest runs afterAll OUTSIDE the test_start..test_done window, so this costs no test time either.
+afterAll(() => {
+  if (openHandleReportBroker) {
     openHandleReportBroker({
       testPath: expect.getState().testPath || '',
       reportPath: openHandleReportPath,
     });
-  });
-}
+  }
+});
 
 afterEach(() => {
   // Clean up all integration test environments. Deliberately unguarded: a catch here turns a

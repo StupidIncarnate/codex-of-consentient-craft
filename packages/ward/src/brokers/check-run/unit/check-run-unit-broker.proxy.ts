@@ -4,6 +4,7 @@ import {
   fsExistsSyncAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
+  AbsoluteFilePathStub,
   ErrorMessageStub,
   ExitCodeStub,
   absoluteFilePathContract,
@@ -11,6 +12,11 @@ import {
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
+import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
+import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
+import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
@@ -37,6 +43,8 @@ export const checkRunUnitBrokerProxy = (): {
   setDiscoveredFiles: (params: { files: string[] }) => void;
   queueFsExists: (params: { result: boolean }) => void;
   setupSourceConditionUnsupported: (params: { projectFolder: ProjectFolder }) => void;
+  setupHandleReport: (params: { content: string }) => void;
+  getSpawnedHandleReportPath: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedNodeOptions: () => unknown;
 } => {
@@ -49,6 +57,19 @@ export const checkRunUnitBrokerProxy = (): {
   // which cannot express "this call gets true, the next gets false."
   const existsHandle = registerMock({ fn: existsSync });
   const globProxy = fsGlobSyncAdapterProxy();
+  // The broker asks the OS for a scratch dir, then reads and deletes the report jest appended to it.
+  // Default: an empty report, so a test that says nothing about leaks gets none.
+  const tmpdirProxy = osTmpdirAdapterProxy();
+  tmpdirProxy.returns({ path: '/tmp' });
+  const handleReportPath = openHandleReportPathTransformer({
+    tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+    checkType: 'unit',
+    processId: process.pid,
+  });
+  const handleReadProxy = fsReadFileAdapterProxy();
+  handleReadProxy.returns({ filePath: handleReportPath, content: '' });
+  const handleUnlinkProxy = fsUnlinkAdapterProxy();
+  handleUnlinkProxy.succeedsForAnyPath();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
@@ -184,6 +205,16 @@ export const checkRunUnitBrokerProxy = (): {
         cwd: absoluteFilePathContract.parse(projectFolder.path),
       });
     },
+
+    setupHandleReport: ({ content }: { content: string }): void => {
+      handleReadProxy.returns({ filePath: handleReportPath, content });
+    },
+
+    getSpawnedHandleReportPath: (): unknown =>
+      captureProxy.getSpawnedEnvValue({
+        command: String(resolvedCommandRef.value),
+        key: openHandleReportStatics.env.pathVar,
+      }),
 
     getSpawnedArgs: (): unknown =>
       captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),

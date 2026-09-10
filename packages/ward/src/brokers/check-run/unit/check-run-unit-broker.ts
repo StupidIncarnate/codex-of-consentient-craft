@@ -45,9 +45,15 @@ import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/
 import { jestJsonParsePassingTransformer } from '../../../transformers/jest-json-parse-passing/jest-json-parse-passing-transformer';
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
+import { openHandleReportParseTransformer } from '../../../transformers/open-handle-report-parse/open-handle-report-parse-transformer';
+import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
+import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
+import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 
 export const checkRunUnitBroker = async ({
   projectFolder,
@@ -185,6 +191,20 @@ export const checkRunUnitBroker = async ({
   }
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
+  // `--detectOpenHandles` above only reports from the MAIN thread, so the worker branch would
+  // otherwise report no leaks at all. `@dungeonmaster/testing`'s jest setup watches the timer
+  // globals instead and appends findings here, which works in a worker. The two are deliberately
+  // exclusive: on the in-band branch jest's own detection is richer (it sees sockets and child
+  // processes too), and running both would report every leaked timer twice.
+  // The OS scratch dir, never the package: ward GRADES untracked files on `--uncommitted`, so a
+  // file left in the repo by a killed run becomes a file the next run tries to lint.
+  const wantsTimerWatch = !finalArgs.includes('--detectOpenHandles');
+  const handleReportPath = openHandleReportPathTransformer({
+    tmpdir: osTmpdirAdapter(),
+    checkType: 'unit',
+    processId: process.pid,
+  });
+
   // The jest configs ask for the `source` export condition through testEnvironmentOptions, which
   // only governs what the TEST environment resolves. The transform glue's own
   // `@dungeonmaster/shared` imports are resolved by NODE, outside that environment, so without this
@@ -195,7 +215,12 @@ export const checkRunUnitBroker = async ({
     command,
     args: finalArgs,
     cwd,
-    env: sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {},
+    env: {
+      ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
+      ...(wantsTimerWatch
+        ? { [openHandleReportStatics.env.pathVar]: String(handleReportPath) }
+        : {}),
+    },
   });
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
@@ -278,6 +303,15 @@ export const checkRunUnitBroker = async ({
           stack: String(handle.stack ?? ''),
         }),
       );
+    }
+
+    // LAST in this block on purpose. A half-written line makes `JSON.parse` throw, and everything
+    // above is already assigned by then, so a mangled report costs the leak findings and nothing
+    // else. The file exists only when a suite actually left a timer armed.
+    if (wantsTimerWatch && fsExistsSyncAdapter({ filePath: handleReportPath })) {
+      const reportContent = await fsReadFileAdapter({ filePath: handleReportPath });
+      await fsUnlinkAdapter({ filePath: handleReportPath });
+      openHandles.push(...openHandleReportParseTransformer({ content: String(reportContent) }));
     }
   } catch {
     // non-JSON output, filesCount stays 0

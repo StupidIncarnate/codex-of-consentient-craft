@@ -841,7 +841,7 @@ describe('resultToSummaryTransformer', () => {
   });
 
   describe('slow file warnings', () => {
-    it('VALID: {wardResult: fileTimings exceeding threshold} => shows slow files section', () => {
+    it('VALID: {two suites over the test threshold} => lists both, slowest test bodies first', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
@@ -853,12 +853,17 @@ describe('resultToSummaryTransformer', () => {
                 status: 'pass',
                 filesCount: 10,
                 fileTimings: [
-                  FileTimingStub({ filePath: 'src/fast-file.test.ts', durationMs: 200 }),
+                  FileTimingStub({ filePath: 'src/fast.test.ts', durationMs: 200, testMs: 40 }),
                   FileTimingStub({
                     filePath: 'src/slow-flow.integration.test.ts',
                     durationMs: 8300,
+                    testMs: 8100,
                   }),
-                  FileTimingStub({ filePath: 'src/slow-widget.test.tsx', durationMs: 5200 }),
+                  FileTimingStub({
+                    filePath: 'src/slow-widget.test.tsx',
+                    durationMs: 5200,
+                    testMs: 2400,
+                  }),
                 ],
               }),
             ],
@@ -874,12 +879,54 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            "run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  wall time includes the package's one-time compile, charged to whichever file ran first\n  src/slow-flow.integration.test.ts  8.3s wall, 0.0s in tests\n  src/slow-widget.test.tsx  5.2s wall, 0.0s in tests",
+            "run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on test-body time; wall also carries the package's one-time compile, charged to whichever file reached a module first\n  src/slow-flow.integration.test.ts  8.1s in tests (8.3s wall)\n  src/slow-widget.test.tsx  2.4s in tests (5.2s wall)",
         }),
       );
     });
 
-    it('EDGE: {wardResult: all fileTimings below threshold} => no slow files section', () => {
+    it('VALID: {a file with huge wall and tiny test bodies} => is NOT listed', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'mcp', path: '/p/mcp' },
+                status: 'pass',
+                filesCount: 2,
+                fileTimings: [
+                  FileTimingStub({
+                    filePath: 'src/ran-first.test.ts',
+                    durationMs: 30_600,
+                    testMs: 200,
+                  }),
+                  FileTimingStub({
+                    filePath: 'src/really-slow.test.ts',
+                    durationMs: 3500,
+                    testMs: 2900,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            "run: 1739625600000-a3f1\nunit:      PASS  1 packages (2 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on test-body time; wall also carries the package's one-time compile, charged to whichever file reached a module first\n  src/really-slow.test.ts  2.9s in tests (3.5s wall)",
+        }),
+      );
+    });
+
+    it('EDGE: {every suite under the test threshold} => no slow files section', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
@@ -891,8 +938,8 @@ describe('resultToSummaryTransformer', () => {
                 status: 'pass',
                 filesCount: 5,
                 fileTimings: [
-                  FileTimingStub({ filePath: 'src/fast.test.ts', durationMs: 150 }),
-                  FileTimingStub({ filePath: 'src/ok.test.ts', durationMs: 4999 }),
+                  FileTimingStub({ filePath: 'src/fast.test.ts', durationMs: 9000, testMs: 150 }),
+                  FileTimingStub({ filePath: 'src/ok.test.ts', durationMs: 4999, testMs: 999 }),
                 ],
               }),
             ],
@@ -913,7 +960,7 @@ describe('resultToSummaryTransformer', () => {
       );
     });
 
-    it('VALID: {wardResult: slow files across multiple projects} => aggregates and sorts slowest first', () => {
+    it('VALID: {slow suites in two packages} => aggregates them into one list', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
@@ -925,14 +972,24 @@ describe('resultToSummaryTransformer', () => {
                 status: 'pass',
                 filesCount: 5,
                 fileTimings: [
-                  FileTimingStub({ filePath: 'src/widget.test.tsx', durationMs: 6000 }),
+                  FileTimingStub({
+                    filePath: 'src/widget.test.tsx',
+                    durationMs: 6000,
+                    testMs: 1400,
+                  }),
                 ],
               }),
               ProjectResultStub({
                 projectFolder: { name: 'cli', path: '/p/cli' },
                 status: 'pass',
                 filesCount: 3,
-                fileTimings: [FileTimingStub({ filePath: 'src/broker.test.ts', durationMs: 9000 })],
+                fileTimings: [
+                  FileTimingStub({
+                    filePath: 'src/broker.test.ts',
+                    durationMs: 9000,
+                    testMs: 4200,
+                  }),
+                ],
               }),
             ],
           }),
@@ -947,12 +1004,12 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            "run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  wall time includes the package's one-time compile, charged to whichever file ran first\n  src/broker.test.ts  9.0s wall, 0.0s in tests\n  src/widget.test.tsx  6.0s wall, 0.0s in tests",
+            "run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on test-body time; wall also carries the package's one-time compile, charged to whichever file reached a module first\n  src/broker.test.ts  4.2s in tests (9.0s wall)\n  src/widget.test.tsx  1.4s in tests (6.0s wall)",
         }),
       );
     });
 
-    it('VALID: {wardResult: fileTimings from a lint section, all testMs 0} => shows single number per file with no note', () => {
+    it('VALID: {lint, which reports no per-test durations} => falls back to wall, one number, no note', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({

@@ -13,20 +13,18 @@ import type { FileTiming } from '../../contracts/file-timing/file-timing-contrac
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import type { WardSummary } from '../../contracts/ward-summary/ward-summary-contract';
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
+import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
 import { slowFileThresholdStatics } from '../../statics/slow-file-threshold/slow-file-threshold-statics';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
+import { openHandleDisplayTransformer } from '../open-handle-display/open-handle-display-transformer';
 import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 import { isCrashedProjectResultGuard } from '../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 
 const CHECK_TYPE_PAD = 10;
 const MS_PER_SECOND = 1000;
-
-// Enough of an open handle's stack to name the adapter that opened it and the path that reached it,
-// without turning one leak into a screenful.
-const MAX_HANDLE_FRAMES = 3;
 
 export const resultToSummaryTransformer = ({
   wardResult,
@@ -166,31 +164,36 @@ export const resultToSummaryTransformer = ({
     }
 
     const allTimings: FileTiming[] = check.projectResults.flatMap((pr) => pr.fileTimings);
-    const slowTimings = allTimings
-      .filter((ft) => Number(ft.durationMs) > slowFileThresholdStatics.threshold.warnMs)
-      .sort((a, b) => Number(b.durationMs) - Number(a.durationMs));
+
+    // RANKED ON TEST TIME, never on wall. Wall is jest's `endTime - startTime`, which spans the
+    // package's one-time compile and its module evaluation — both charged to whichever suite
+    // reaches a module FIRST. Measured: one mcp file read 30.6s wall running first and 1.9s
+    // running last, the same tests either way, while the package's one genuinely slow file sat at
+    // 2.9s of test bodies in every order. Ranking on wall therefore ranks run position.
+    // Only jest reports per-test durations. A check that reports none (lint) has nothing but wall,
+    // so it keeps the wall threshold and prints one number.
+    const hasTestMs = allTimings.some((ft) => Number(ft.testMs) > 0);
+    const slowTimings = hasTestMs
+      ? allTimings
+          .filter((ft) => Number(ft.testMs) > slowFileThresholdStatics.threshold.testWarnMs)
+          .sort((a, b) => Number(b.testMs) - Number(a.testMs))
+      : allTimings
+          .filter((ft) => Number(ft.durationMs) > slowFileThresholdStatics.threshold.warnMs)
+          .sort((a, b) => Number(b.durationMs) - Number(a.durationMs));
 
     if (slowTimings.length === 0) {
       return [];
     }
 
-    // Both numbers, because wall time alone accuses the wrong file. It spans the ts-jest
-    // LanguageService and TypeScript program construction, which whichever file jest transforms
-    // FIRST pays on the whole package's behalf: one file measured 46.2s wall against 83ms of test
-    // bodies, and forcing a different file to run first moved the entire cost onto that one
-    // instead. A big gap between the two numbers means the file is not the problem.
-    // Only jest reports per-test durations, so lint timings carry no second number and get no
-    // note — there is no compile for a first file to absorb there.
-    const hasTestMs = slowTimings.some((ft) => Number(ft.testMs) > 0);
     const fileLines = slowTimings.map((ft) => {
       const wall = `${(Number(ft.durationMs) / MS_PER_SECOND).toFixed(1)}s`;
       if (!hasTestMs) {
         return `  ${ft.filePath}  ${wall}`;
       }
-      return `  ${ft.filePath}  ${wall} wall, ${(Number(ft.testMs) / MS_PER_SECOND).toFixed(1)}s in tests`;
+      return `  ${ft.filePath}  ${(Number(ft.testMs) / MS_PER_SECOND).toFixed(1)}s in tests (${wall} wall)`;
     });
     const note = hasTestMs
-      ? `\n  wall time includes the package's one-time compile, charged to whichever file ran first`
+      ? `\n  ranked on test-body time; wall also carries the package's one-time compile, charged to whichever file reached a module first`
       : '';
     return [`\n--- slow files (${check.checkType}) ---${note}\n${fileLines.join('\n')}`];
   });
@@ -201,7 +204,7 @@ export const resultToSummaryTransformer = ({
   const openHandleLines = wardResult.checks.flatMap((check) => {
     const handles = check.projectResults.flatMap((projectResult) =>
       projectResult.openHandles.map((handle) => ({
-        packageName: String(projectResult.projectFolder.name),
+        packageName: projectResult.projectFolder.name,
         handle,
       })),
     );
@@ -210,28 +213,40 @@ export const resultToSummaryTransformer = ({
       return [];
     }
 
-    const handleLines = handles.map(({ packageName, handle }) => {
-      const frames = String(handle.stack)
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.startsWith('at '));
-      // Every one of these stacks opens with node's own plumbing — `emitInitNative`,
-      // `initAsyncResource`, `setInterval` — and closes with jest's runtime, and neither end names
-      // the leak. The frames BETWEEN them are the caller's own code, and the chain matters more
-      // than any single frame: the adapter that opened the handle says what leaked, its callers say
-      // which code path got there. Falls back to the raw first frame when a handle was opened
-      // entirely inside a dependency, so a line still prints.
-      const ownFrames = frames.filter(
-        (line) => !line.includes('node:') && !line.includes('node_modules'),
-      );
-      const shown =
-        ownFrames.length > 0 ? ownFrames.slice(0, MAX_HANDLE_FRAMES) : frames.slice(0, 1);
-      const where = shown.map((line) => `\n      ${line}`).join('');
-      return `  ${packageName}  ${handle.message}${where}`;
-    });
+    // GROUPED, because one leak in a shared helper reports once per call. A proxy arming a
+    // setImmediate per mock child process filled a screen with nineteen entries carrying the same
+    // three frames, and the count is the whole difference between those and nineteen leaks.
+    const rendered = handles.map(({ packageName, handle }) =>
+      openHandleDisplayTransformer({ packageName, handle, cwd }),
+    );
+    // Keyed on the suite and the frame that ARMED the handle, not on the whole chain. One proxy
+    // arming a setImmediate per mock child process produced nineteen entries differing only in
+    // which test line called it, and the fix is one line in that proxy. The chain still prints,
+    // taken from the first report in each group.
+    const keyed = rendered.map((display) => ({
+      display,
+      key: String(display).split('\n').slice(0, openHandleStackStatics.summary.keyLines).join('\n'),
+    }));
+    const distinct = [...new Set(keyed.map((entry) => entry.key))]
+      .map((key) => ({
+        display: keyed.find((entry) => entry.key === key)?.display ?? key,
+        count: keyed.filter((entry) => entry.key === key).length,
+      }))
+      .sort((left, right) => right.count - left.count);
+
+    const handleLines = distinct
+      .slice(0, openHandleStackStatics.summary.maxGroups)
+      .map(({ display, count }) => {
+        const times = count > 1 ? `${String(count)}x ` : '';
+        return display.replace(/^ {2}(\S+) {2}/u, `  $1  ${times}`);
+      });
+    const moreLine =
+      distinct.length > openHandleStackStatics.summary.maxGroups
+        ? `\n  ... and ${String(distinct.length - openHandleStackStatics.summary.maxGroups)} more distinct leaks`
+        : '';
 
     return [
-      `\n--- open handles (${check.checkType}) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n${handleLines.join('\n')}`,
+      `\n--- open handles (${check.checkType}) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n${handleLines.join('\n')}${moreLine}`,
     ];
   });
 

@@ -7,6 +7,8 @@ import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub'
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 import { OpenHandleStub } from '../../../contracts/open-handle/open-handle.stub';
 
+import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
+
 import { checkRunUnitBroker } from './check-run-unit-broker';
 import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
 
@@ -1247,6 +1249,99 @@ describe('checkRunUnitBroker', () => {
       const totalViolations = violationCounts.reduce((sum, count) => sum + count, 0);
 
       expect(totalViolations).toBe(0);
+    });
+  });
+
+  describe('open handles from a worker run', () => {
+    it('VALID: {no file scope, so the worker branch} => spawns jest pointed at a report file', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunUnitBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedHandleReportPath()).toBe(
+        `/tmp/ward-open-handles-${String(process.pid)}-unit.jsonl`,
+      );
+    });
+
+    // Asserted against what ward's OWN process already had, not against undefined: the spawn
+    // adapter builds the child's env as `{...process.env, ...env}`, so a ward running under
+    // another ward inherits that parent's variable whatever this branch does. Equal to the
+    // inherited value is exactly the claim — this branch adds nothing of its own, because jest's
+    // `--detectOpenHandles` is doing the looking.
+    it('VALID: {file scope, so the in-band branch} => adds no report path of its own', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/index.test.ts' })],
+      });
+
+      expect(proxy.getSpawnedHandleReportPath()).toBe(
+        process.env[openHandleReportStatics.env.pathVar],
+      );
+    });
+
+    it('VALID: {report names a leaked interval} => that leak reaches openHandles', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({
+        projectFolder,
+        stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+      });
+      proxy.setupHandleReport({
+        content: `${JSON.stringify({
+          kind: 'setInterval',
+          testPath: 'src/poll.test.ts',
+          stack: 'at pollBroker (src/poll-broker.ts:12:3)',
+        })}\n`,
+      });
+
+      const result = await checkRunUnitBroker({ projectFolder, fileList: [] });
+
+      expect(result.openHandles).toStrictEqual([
+        OpenHandleStub({
+          name: 'setInterval',
+          message: 'setInterval still armed when src/poll.test.ts finished',
+          stack: 'at pollBroker (src/poll-broker.ts:12:3)',
+        }),
+      ]);
+    });
+
+    it('VALID: {report names two leaks} => both reach openHandles, in file order', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({
+        projectFolder,
+        stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+      });
+      proxy.setupHandleReport({
+        content: [
+          JSON.stringify({ kind: 'setInterval', testPath: 'a.test.ts', stack: 'at a (a.ts:1:1)' }),
+          JSON.stringify({ kind: 'setTimeout', testPath: 'b.test.ts', stack: 'at b (b.ts:2:2)' }),
+        ].join('\n'),
+      });
+
+      const result = await checkRunUnitBroker({ projectFolder, fileList: [] });
+
+      expect(result.openHandles.map((handle) => handle.name)).toStrictEqual([
+        'setInterval',
+        'setTimeout',
+      ]);
+    });
+
+    it('EMPTY: {report file empty} => openHandles stays empty', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+      proxy.setupHandleReport({ content: '' });
+
+      const result = await checkRunUnitBroker({ projectFolder, fileList: [] });
+
+      expect(result.openHandles).toStrictEqual([]);
     });
   });
 });
