@@ -12,7 +12,32 @@ const hasIn = ({ text, needle }: { text: string; needle: string }): boolean =>
 
 const TEMPLATE = siegemasterPromptStatics.prompt.template;
 
+// THE FENCED FIXER BRIEF IS THE ONLY PART A FIXER EVER READS — the operator copies it into an
+// `Agent` call and everything around it stays in the operator's own context. So a needle found
+// anywhere in the whole prompt proves nothing about what the fixer was told, and every rule a fixer
+// has to obey is asserted against this slice instead. This page holds several fences — the tools
+// table, the guide brief, the verifier, the stress tester and the reviewer — and `\nSYMPTOM\n` heads
+// exactly one of them.
+const FIXER_BRIEF_START = TEMPLATE.indexOf('\nSYMPTOM\n');
+const FIXER_BRIEF = TEMPLATE.slice(FIXER_BRIEF_START, TEMPLATE.indexOf('\n```', FIXER_BRIEF_START));
+
 describe('siegemasterPromptStatics', () => {
+  it('VALID: fixer brief slice => anchors on the one fence that starts with SYMPTOM', () => {
+    expect({
+      anchorOccurrences: TEMPLATE.split('\nSYMPTOM\n').length - 1,
+      startsWithTheAnchor: FIXER_BRIEF.startsWith('\nSYMPTOM\n'),
+      endsOnTheReturnBlock: FIXER_BRIEF.trimEnd().endsWith(
+        'NEXT:     pass | rework — <what is left> | wall — <what a person must change>',
+      ),
+      holdsNoOtherBriefsFetchLine: FIXER_BRIEF.includes('get-agent-prompt'),
+    }).toStrictEqual({
+      anchorOccurrences: 1,
+      startsWithTheAnchor: true,
+      endsOnTheReturnBlock: true,
+      holdsNoOtherBriefsFetchLine: false,
+    });
+  });
+
   it('VALID: served template => carries exactly one $ARGUMENTS slot, and it is last', () => {
     expect({
       count: TEMPLATE.split('$ARGUMENTS').length - 1,
@@ -226,6 +251,169 @@ describe('siegemasterPromptStatics', () => {
       neverWidens: true,
       buildUnderALiveLane: true,
       routesTheBuildRuleToItsOwner: true,
+    });
+  });
+
+  // A FIXER HOLDS THE `run-ward` MCP TOOL ITSELF, and reaches for it before the Bash line its brief
+  // names. Measured on the codeweaver track, whose brief carried the same gap: five of ten
+  // sub-agents called that tool with `{}`, got a zod dump naming three missing fields, and spent a
+  // turn recovering. The operator-facing sentence explaining why the fence refuses it lives OUTSIDE
+  // the fence, where no fixer reads it — which is why every needle below is matched against the
+  // fenced slice, and a whole-prompt match would go green over a brief that says nothing.
+  it('VALID: fixer brief => names the exact ward command and refuses the run-ward MCP tool inside the fence', () => {
+    expect({
+      exactCommand: hasIn({
+        needle:
+          "Run this EXACT command to verify your work: `npm run ward -- -- <this brief's own paths>` — two separate `--` tokens, both needed.",
+        text: FIXER_BRIEF,
+      }),
+      refusesTheMcpTool: hasIn({
+        needle:
+          '**NEVER the run-ward MCP tool.** Different command: it grades the whole branch, and it wants a quest id and a work item id you were not given. Reaching for it spends a turn on a validation error. Run the Bash line above.',
+        text: FIXER_BRIEF,
+      }),
+      underThePROVEHeading:
+        FIXER_BRIEF.indexOf('NEVER the run-ward MCP tool') > FIXER_BRIEF.indexOf('\nPROVE\n'),
+      ownPathsLineKept: hasIn({
+        needle:
+          '**YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**',
+        text: FIXER_BRIEF,
+      }),
+      discoveryMismatchIsNotAFailure: hasIn({
+        needle:
+          'DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.',
+        text: FIXER_BRIEF,
+      }),
+      operatorSentenceOutsideTheFence: hasIn({
+        needle:
+          '**Your fixer holds the `run-ward` MCP tool too, and reaches for it before the Bash line**',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      exactCommand: true,
+      refusesTheMcpTool: true,
+      underThePROVEHeading: true,
+      ownPathsLineKept: true,
+      discoveryMismatchIsNotAFailure: true,
+      operatorSentenceOutsideTheFence: true,
+    });
+  });
+
+  // THE BRIEF IS A BEST GUESS AND THE FIXER HAS THE CODE OPEN — this operator briefs from what a
+  // round MEASURED, never from reading the files, so a route it named can simply be the wrong one.
+  // The permission to follow the evidence is paired with the duty to declare it in the same block:
+  // on the audited codeweaver pass a sub-agent swapped a status comparison for a guard matching a
+  // wider set, shipped a real defect, and mentioned the swap in a footnote under `NEXT: pass`. This
+  // operator's reviewer exists to catch exactly that shape, so the deviation goes on the RETURN
+  // block — `DEVIATED:`, beside CAUSE / RED / REACHES / NEXT — rather than into prose. The rule
+  // blocks are carved out by name, or "evidence wins" reads as licence to loosen an assertion.
+  it('VALID: fixer brief => lets hard evidence beat a handed direction and forces the deviation onto the return', () => {
+    expect({
+      directionsAreAGuess: hasIn({
+        needle:
+          'LOOK AT and the cause it implies are my BEST GUESS. I briefed this from what a round measured across the file set that proves this flow; you have the code open and I do not.',
+        text: FIXER_BRIEF,
+      }),
+      evidenceWins: hasIn({
+        needle:
+          'Find HARD EVIDENCE against one of them — the cause is in another file, that route is not the one that runs — and follow the evidence, not the direction.',
+        text: FIXER_BRIEF,
+      }),
+      andIsReported: hasIn({
+        needle:
+          'Then put it on the DEVIATED line below. A deviation that shows up only in the change is a silent behaviour change: the reviewer behind you is there to catch a fix that hid a symptom, and it cannot see one you never declared.',
+        text: FIXER_BRIEF,
+      }),
+      rulesAreNotGuesses: hasIn({
+        needle:
+          'FIX, RED FIRST, DO NOT TOUCH and PROVE below are rules, not guesses. Evidence never moves those.',
+        text: FIXER_BRIEF,
+      }),
+      returnCarriesIt: hasIn({
+        needle:
+          'DEVIATED: <every direction of mine the evidence beat, what the evidence was, and what I did instead — or "none">',
+        text: FIXER_BRIEF,
+      }),
+      onTheReturnBlockNotInProse:
+        FIXER_BRIEF.indexOf('DEVIATED: <every direction of mine') >
+        FIXER_BRIEF.indexOf('\nRETURN\n'),
+    }).toStrictEqual({
+      directionsAreAGuess: true,
+      evidenceWins: true,
+      andIsReported: true,
+      rulesAreNotGuesses: true,
+      returnCarriesIt: true,
+      onTheReturnBlockNotInProse: true,
+    });
+  });
+
+  // WHEN TO SEND A SEARCH OUT IS THE ONE THING THE SNIPPET CANNOT SAY. The
+  // `<dungeonmaster-searchStrategy>` snippet reaches every session and every sub-agent with the shape
+  // an answer comes back in, so this page states the decision instead and never the shape — a second
+  // copy of the shape is the drift the snippet exists to remove. Measured on the flowrider track, whose
+  // prompt carried the same gap: an explorer dispatched to map an e2e setup built 103,000 tokens of
+  // context and returned one config file quoted whole, paying three times for what one `Read` pays for
+  // once. The clause sits in the operator's own boundaries section, above the script, so it governs
+  // every step of it; the fenced-slice assertion is what proves it was not handed down a level.
+  it('VALID: served template => gives the OPERATOR the when-to-delegate rule, and no fixer reads it', () => {
+    expect({
+      largeSearchSmallAnswer: hasIn({
+        needle: '**You send a search out only when the SEARCH is large and the ANSWER is small.**',
+        text: TEMPLATE,
+      }),
+      readItYourselfWhenYouKnowTheFile: hasIn({
+        needle:
+          'A file you can already name is a `Read`; an explorer fetching it is that `Read` with two extra hops and triple the tokens.',
+        text: TEMPLATE,
+      }),
+      theBriefIsJustTheQuestion: hasIn({
+        needle:
+          '**The brief is the question and nothing else** — every sub-agent starts with the `<dungeonmaster-searchStrategy>` snippet, which already tells it what to hand back.',
+        text: TEMPLATE,
+      }),
+      theSubjectIsTheOperator: hasIn({
+        needle:
+          "**This lever is the OPERATOR's and no minion's**: a verifier's and a stress tester's own sub-agents are the last level there is, a fixer dispatches nothing at all",
+        text: TEMPLATE,
+      }),
+      restatesNoReturnShape: hasIn({ needle: 'NOTHING FOUND', text: TEMPLATE }),
+      neverReachesTheFixer: hasIn({
+        needle: 'SEARCH is large and the ANSWER is small',
+        text: FIXER_BRIEF,
+      }),
+    }).toStrictEqual({
+      largeSearchSmallAnswer: true,
+      readItYourselfWhenYouKnowTheFile: true,
+      theBriefIsJustTheQuestion: true,
+      theSubjectIsTheOperator: true,
+      restatesNoReturnShape: false,
+      neverReachesTheFixer: false,
+    });
+  });
+
+  // A CLAUSE ABOUT EXPLORING IS EXACTLY WHAT REOPENS DEPTH. `siegemaster-verifier` and
+  // `siegemaster-stress` each carry a `[DEPTH STOPS AT TWO]` rule over the same measurement — one fixer
+  // that let its own sub-agent go looking spawned ten `Explore` grandchildren and burned roughly 4.5
+  // million context tokens proving a single fix — and this operator sits at the top of that chain. What
+  // holds the chain closed from HERE is that the dispatch roster is a closed four and the fenced fixer
+  // brief licenses no dispatch at all: no `Agent` call, no `subagent_type`, nothing sent exploring.
+  // Both held before the when-to-delegate clause landed and have to keep holding after it.
+  it('VALID: served template => keeps the dispatch roster closed and licenses no dispatch inside the fixer brief', () => {
+    expect({
+      closedRoster: hasIn({
+        needle: 'Agent(...) verifiers, stress testers, fixers, your reviewer',
+        text: TEMPLATE,
+      }),
+      fixerGetsNoAgentCall: FIXER_BRIEF.includes('Agent('),
+      fixerGetsNoSubagentType: FIXER_BRIEF.includes('subagent_type'),
+      fixerIsNeverSentExploring: /explor/iu.test(FIXER_BRIEF),
+      fixerDelegatesNothing: /delegat/iu.test(FIXER_BRIEF),
+    }).toStrictEqual({
+      closedRoster: true,
+      fixerGetsNoAgentCall: false,
+      fixerGetsNoSubagentType: false,
+      fixerIsNeverSentExploring: false,
+      fixerDelegatesNothing: false,
     });
   });
 

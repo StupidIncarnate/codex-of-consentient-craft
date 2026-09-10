@@ -336,12 +336,6 @@ SURFACES HERE — every place that could produce the reported symptom:
 RULED OUT — every place you looked that is not it:
   <path> — <what is there instead>
 
-Open every path you cite and read the line you name. A path you inferred from its name and never
-opened is worse than no line at all.
-
-Where you cannot find it at all, say NOTHING FOUND and name where you looked. An honest miss keeps
-the next agent off ground you already covered.
-
 Budget: four minutes and twenty-five tool calls, then return with whatever you have.
 \`\`\`
 

@@ -47,11 +47,99 @@ describe('siegemasterReviewerStatics', () => {
       '### 1. Load the standards',
       '### 2. Read the quest and the units',
       '### 3. Find out what changed',
-      '### 4. Open every file the fixers changed',
+      '### 4. Read one file the fixers changed, comment on it, then the next',
       '### 5. Ward',
       '### 6. Commit and push',
       '### 7. Return',
     ]);
+  });
+
+  // STEP 4 IS A LOOP, NOT A SWEEP. A live sibling reviewer ran twenty `discover` and `Read` calls
+  // back to back and then announced its ward, with no per-file judgement anywhere between them — a
+  // transcript a session that opened nothing could have produced word for word. One comment per
+  // file is the artifact a skim cannot forge.
+  it('VALID: served template => step 4 reads one file, comments on it, then opens the next', () => {
+    expect({
+      heading: hasIn({
+        needle: '### 4. Read one file the fixers changed, comment on it, then the next',
+        text: TEMPLATE,
+      }),
+      oneAtATime: hasIn({
+        needle:
+          '**Every one, in full, and ONE AT A TIME.** Open a file, read all of it, write its comment, then open the next.',
+        text: TEMPLATE,
+      }),
+      neverABatchedVerdict: hasIn({
+        needle: 'Never a batch of reads followed by a single verdict.',
+        text: TEMPLATE,
+      }),
+      commentNamesThePath: hasIn({ needle: '#### Comment — <path>', text: TEMPLATE }),
+      commentNamesTheVerdict: hasIn({
+        needle: '- **[MEETS|DOES NOT MEET]**: <the acceptance this file was supposed to meet>',
+        text: TEMPLATE,
+      }),
+      commentNamesWhatDecidedIt: hasIn({
+        needle: '- Because: <the one line, symbol or assertion in this file that decides it>',
+        text: TEMPLATE,
+      }),
+      noFileGoesUncommented: hasIn({
+        needle:
+          'Do NOT skip emitting a Comment block — not for a file you find nothing wrong with, not for a file that is not a repair at all. Skipping breaks the record.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      heading: true,
+      oneAtATime: true,
+      neverABatchedVerdict: true,
+      commentNamesThePath: true,
+      commentNamesTheVerdict: true,
+      commentNamesWhatDecidedIt: true,
+      noFileGoesUncommented: true,
+    });
+  });
+
+  // THE COMMENT IS WORTHLESS IF IT MAY WAIT. Written after the next file is open, it is a summary
+  // again — and this role's own subject is the change that clears a symptom without touching what
+  // produced it, which is exactly what a batched read does to a review.
+  it('VALID: served template => emits each comment before the next file is opened, and says why', () => {
+    expect({
+      beforeTheNextOpen: hasIn({
+        needle:
+          'Emit the comment as a text block IMMEDIATELY after reading that file, and BEFORE you open the next one.',
+        text: TEMPLATE,
+      }),
+      readBackLater: hasIn({
+        needle:
+          'You read these blocks back from your own context when you write `READ:` and `CAUSES:` in step 7.',
+        text: TEMPLATE,
+      }),
+      aBatchedVerdictIsUnfalsifiable: hasIn({
+        needle:
+          'a session that skimmed all twenty writes exactly the same verdict as a session that read them',
+        text: TEMPLATE,
+      }),
+      theOnlyDurableEvidence: hasIn({
+        needle: 'it is the only durable evidence that the file was read',
+        text: TEMPLATE,
+      }),
+      repairShapedHandwave: hasIn({
+        needle:
+          '**A batched read is the very handwave you were dispatched to catch.** A repair that widens a type, swallows an error, defaults a missing value or loosens an assertion makes the symptom go away without touching what produced it',
+        text: TEMPLATE,
+      }),
+      appliedToReviewing: hasIn({
+        needle:
+          'Reading four files at once and declaring them fine is that same move applied to reviewing',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      beforeTheNextOpen: true,
+      readBackLater: true,
+      aBatchedVerdictIsUnfalsifiable: true,
+      theOnlyDurableEvidence: true,
+      repairShapedHandwave: true,
+      appliedToReviewing: true,
+    });
   });
 
   it('VALID: served template => never calls signal-back, and the parent signals instead', () => {
@@ -65,11 +153,11 @@ describe('siegemasterReviewerStatics', () => {
 
   // ONE WARD, AND IT IS THIS SESSION'S ALONE — every sibling on the pass runs a ward scoped to its
   // own paths, so a `--uncommitted` run before this one has read the repairs grades what nobody read.
-  it('VALID: served template => wards once, scoped to --uncommitted, after it has read everything', () => {
+  it('VALID: served template => wards once, scoped to --uncommitted, behind the per-file comments', () => {
     expect({
       scopeRule: hasIn({
         needle:
-          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, after you have read everything.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
+          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, and it does not run until every file on your list carries its own written comment from step 4.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
       neverWidensASubAgentsRun: hasIn({
@@ -78,8 +166,9 @@ describe('siegemasterReviewerStatics', () => {
         text: TEMPLATE,
       }),
       lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
-      onceAfterReading: hasIn({
-        needle: 'Run it once, in the foreground, after you have read everything.',
+      onceBehindTheComments: hasIn({
+        needle:
+          'Run it once, in the foreground, and not until every file on your list carries its own written comment from step 4.',
         text: TEMPLATE,
       }),
       twiceAtMost: hasIn({
@@ -90,8 +179,82 @@ describe('siegemasterReviewerStatics', () => {
       scopeRule: true,
       neverWidensASubAgentsRun: true,
       lineFenced: true,
-      onceAfterReading: true,
+      onceBehindTheComments: true,
       twiceAtMost: true,
+    });
+  });
+
+  // THE WARD GATE IS A CHECKABLE CONDITION IN BOTH PLACES IT IS STATED. "After you have read
+  // everything" is a claim the session makes about itself and nothing can grade; "every file carries
+  // its comment" is a thing that is either in the transcript or is not.
+  it('VALID: served template => gates its ward on every file carrying its own comment, in both places', () => {
+    expect({
+      inTheScopeRule: hasIn({
+        needle:
+          '**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, and it does not run until every file on your list carries its own written comment from step 4.**',
+        text: TEMPLATE,
+      }),
+      inTheWardStep: hasIn({
+        needle:
+          'Run it once, in the foreground, and not until every file on your list carries its own written comment from step 4.',
+        text: TEMPLATE,
+      }),
+      statedTwiceAndNowhereElse:
+        TEMPLATE.replace(WHITESPACE_RUN, ' ').split('carries its own written comment from step 4')
+          .length - 1,
+    }).toStrictEqual({
+      inTheScopeRule: true,
+      inTheWardStep: true,
+      statedTwiceAndNowhereElse: 2,
+    });
+  });
+
+  // THE UNCHECKABLE WORDING IS REPLACED, NOT SUPPLEMENTED. Left standing beside the gate, it is the
+  // cheaper of the two to satisfy, so it is the one a session would read.
+  it('VALID: served template => carries no "after you have read everything" gate anywhere', () => {
+    expect({
+      inTheScopeRule: hasIn({
+        needle: '`npm run ward -- --uncommitted` is yours, once, after you have read everything',
+        text: TEMPLATE,
+      }),
+      inTheWardStep: hasIn({
+        needle: 'Run it once, in the foreground, after you have read everything',
+        text: TEMPLATE,
+      }),
+      anywhereAtAll: hasIn({ needle: 'after you have read everything', text: TEMPLATE }),
+    }).toStrictEqual({ inTheScopeRule: false, inTheWardStep: false, anywhereAtAll: false });
+  });
+
+  // GATING THE WARD MUST NOT DISTURB WHY SOME OF ITS REDS ARE THE POINT. `--uncommitted` grades the
+  // whole tree, and a round's deliberately failing tests are in that tree as the proof a defect is
+  // real — so the scope reasoning and the evidence rule are one passage and both survive the gate.
+  it('VALID: served template => keeps the reds-are-evidence reasoning under its --uncommitted ward', () => {
+    expect({
+      scopeReason: hasIn({
+        needle:
+          '**`--uncommitted` is the right scope because the whole pass is still uncommitted when you arrive.** It unions `git diff HEAD` with `git ls-files --others`, so the brand-new files a fixer wrote are graded rather than skipped.',
+        text: TEMPLATE,
+      }),
+      redsAreDeliberate: hasIn({
+        needle:
+          '**Those reds are deliberate, and step 5 says what to do when your ward meets one.**',
+        text: TEMPLATE,
+      }),
+      writtenAsProof: hasIn({
+        needle:
+          'A round wrote it to fail against unchanged source, as proof the defect it encodes is real.',
+        text: TEMPLATE,
+      }),
+      looseningIsTheShapeThisRoleCatches: hasIn({
+        needle:
+          'loosening an assertion that proves a defect is exactly the symptom-hiding shape this role exists to catch, and it destroys the only durable record that the defect was ever there',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      scopeReason: true,
+      redsAreDeliberate: true,
+      writtenAsProof: true,
+      looseningIsTheShapeThisRoleCatches: true,
     });
   });
 

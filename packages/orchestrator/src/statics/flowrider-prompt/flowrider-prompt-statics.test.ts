@@ -14,6 +14,16 @@ const hasIn = ({ text, needle }: { text: string; needle: string }): boolean =>
 
 const TEMPLATE = flowriderPromptStatics.prompt.template;
 
+// THE FENCED BRIEF TEMPLATE IS THE ONLY PART A SUB-AGENT EVER READS — the operator copies it into an
+// `Agent` call and everything around it stays in the operator's own context. So a needle found
+// anywhere in the whole prompt proves nothing about what the sub-agent was told, and every rule a
+// sub-agent has to obey is asserted against this slice instead.
+const BRIEF_TEMPLATE_START = TEMPLATE.indexOf('\nFILES\n');
+const BRIEF_TEMPLATE = TEMPLATE.slice(
+  BRIEF_TEMPLATE_START,
+  TEMPLATE.indexOf('\n```', BRIEF_TEMPLATE_START),
+);
+
 describe('flowriderPromptStatics', () => {
   it('VALID: served template => carries exactly one $ARGUMENTS slot, and it is last', () => {
     expect({
@@ -144,6 +154,194 @@ describe('flowriderPromptStatics', () => {
       namesWhyOwnPathsOnly: true,
       neverWidens: true,
       neverRunWardMcpTool: true,
+    });
+  });
+
+  // THE SUB-AGENT HOLDS THE `run-ward` MCP TOOL ITSELF, and a brief that only names a Bash line is
+  // not a refusal of it. Measured on the sibling codeweaver track, five of ten sub-agents reached
+  // for the tool first, called it with `{}`, and spent a turn recovering from a validation dump
+  // naming three fields their brief never gave them. The operator-facing bullet explaining why sits
+  // OUTSIDE the fence, so the session that needed it never read it — which is why this asserts on
+  // the fenced slice: the whole prompt carries that bullet and would go green over a brief that
+  // says nothing.
+  it('VALID: brief template => names the exact two-token ward command and refuses the run-ward MCP tool, both under PROVE inside the fence', () => {
+    expect({
+      imperativeExactCommand: hasIn({
+        needle:
+          "Call THIS EXACT command to prove your own work:\n  `npm run ward -- -- <this brief's own paths>`",
+        text: BRIEF_TEMPLATE,
+      }),
+      twoTokensSpeltOut: hasIn({
+        needle:
+          'Two separate `--` tokens — that is the real invocation, and one token is a different command.',
+        text: BRIEF_TEMPLATE,
+      }),
+      refusesTheMcpTool: hasIn({
+        needle:
+          '**NEVER the run-ward MCP tool.** Different command: it grades the whole branch, and it wants a quest id and a work item id you were not given, so reaching for it spends a turn on a validation error. Call the Bash line above.',
+        text: BRIEF_TEMPLATE,
+      }),
+      underThePROVEHeading:
+        BRIEF_TEMPLATE.indexOf('NEVER the run-ward MCP tool') > BRIEF_TEMPLATE.indexOf('\nPROVE\n'),
+      ownPathsLineKept: hasIn({
+        needle:
+          '**YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**',
+        text: BRIEF_TEMPLATE,
+      }),
+      discoveryMismatchLineKept: hasIn({
+        needle:
+          'DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.',
+        text: BRIEF_TEMPLATE,
+      }),
+      operatorBulletSaysWhyTheFenceRepeatsIt: hasIn({
+        needle:
+          '**The `run-ward` MCP tool is not the same command.** It grades the whole branch and lands the red\n  on your work item, and the fence above repeats that refusal because your sub-agent holds that tool\n  too and reaches for it before the Bash line you named.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      imperativeExactCommand: true,
+      twoTokensSpeltOut: true,
+      refusesTheMcpTool: true,
+      underThePROVEHeading: true,
+      ownPathsLineKept: true,
+      discoveryMismatchLineKept: true,
+      operatorBulletSaysWhyTheFenceRepeatsIt: true,
+    });
+  });
+
+  // A BRIEF IS A GUESS MADE WITHOUT THE CODE OPEN, and the sub-agent is the session that finds out.
+  // Both halves are pinned together because the permission alone does damage: on the audited
+  // codeweaver pass a sub-agent swapped a status comparison for a guard matching a wider set,
+  // shipped a real defect, and reported the swap in a `FILES:` footnote under `NEXT: pass`. Asserted
+  // on the fenced slice — the operator never reads its own brief back, so a rule outside the fence
+  // reaches nobody who could act on it.
+  it('VALID: brief template => lets hard evidence beat a direction, and reports every deviation as NOT PROVED or rework', () => {
+    const betweenPROVEAndRETURN = BRIEF_TEMPLATE.slice(
+      BRIEF_TEMPLATE.indexOf('\nPROVE\n'),
+      BRIEF_TEMPLATE.indexOf('\nRETURN\n'),
+    );
+
+    expect({
+      directionsAreABestGuess: hasIn({
+        needle:
+          'These directions are a best guess, made across a whole file set that proves one flow. You have\n  the code open and the session that wrote them does not.',
+        text: BRIEF_TEMPLATE,
+      }),
+      hardEvidenceWins: hasIn({
+        needle:
+          'Where you find HARD EVIDENCE against a direction —\n  the value under ASSERT is not what the implementation returns, the SURFACE cannot reach the\n  unit — the evidence wins, and you follow the evidence.',
+        text: BRIEF_TEMPLATE,
+      }),
+      deviationReportsAsAFailure: hasIn({
+        needle:
+          '**Report every deviation under NOT PROVED, or on the NEXT: rework line. Never as a note beside\n  NEXT: pass.**',
+        text: BRIEF_TEMPLATE,
+      }),
+      reasonGivenInOneClause: hasIn({
+        needle:
+          'This brief was written against the flow rather than the code in front of you, so a swap nobody is\n  told about is a change nobody reviewed.',
+        text: BRIEF_TEMPLATE,
+      }),
+      sitsBetweenPROVEAndRETURN: betweenPROVEAndRETURN.includes('\nIF THIS BRIEF IS WRONG\n'),
+    }).toStrictEqual({
+      directionsAreABestGuess: true,
+      hardEvidenceWins: true,
+      deviationReportsAsAFailure: true,
+      reasonGivenInOneClause: true,
+      sitsBetweenPROVEAndRETURN: true,
+    });
+  });
+
+  // A `FILES` BLOCK IS WHAT THE OPERATOR COULD PLAN, and a spec routinely needs one more file it
+  // could not — a fixture, a harness helper, a stub. The operator's map is the only place the
+  // grouping is written down, so a sub-agent that never sees it cannot tell a file nobody owns from
+  // one another group is mid-way through writing, and the two answers left to it are inventing its
+  // own rule or stopping. `DO NOT TOUCH` stays the explicit at-dispatch list; the map is the wider
+  // check behind it. Asserted on the fenced slice — the operator already knows where its own map is.
+  it('VALID: brief template => hands the sub-agent the map path, and scopes creating an unlisted file by that map', () => {
+    expect({
+      mapPath: hasIn({
+        needle: ".quest-plans/<operationItemId>-map.md — your files are in <this brief's group>.",
+        text: BRIEF_TEMPLATE,
+      }),
+      readInRelationToItsOwnGroup: hasIn({
+        needle:
+          'read it IN RELATION to your own files: find your\n  group, then read the groups around it, so you know what else is being built right now and\n  which sub-agent holds it.',
+        text: BRIEF_TEMPLATE,
+      }),
+      createsWhatTheMapLeavesUnowned: hasIn({
+        needle:
+          'Create any other file the work turns out to need — a fixture, a helper, a stub — WHEN the\n  map puts it in no other group.',
+        text: BRIEF_TEMPLATE,
+      }),
+      refusesAnotherGroupsFile: hasIn({
+        needle:
+          'Where the map puts it in another group, never create or edit\n  it, and name it on the NEXT: rework line instead.',
+        text: BRIEF_TEMPLATE,
+      }),
+      doNotTouchBlockKept: BRIEF_TEMPLATE.includes('\nDO NOT TOUCH\n'),
+      returnReportsEveryPath: hasIn({
+        needle:
+          'FILES: <every path I created or changed. Mark each one this brief did not list:\n   "(not in brief)">',
+        text: BRIEF_TEMPLATE,
+      }),
+      operatorPutsTheMapPathInEveryBrief: hasIn({
+        needle:
+          "**Every brief carries your map's path.** A sub-agent that cannot see the grouping cannot tell a\nfile nobody owns from one another group is mid-way through writing.",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      mapPath: true,
+      readInRelationToItsOwnGroup: true,
+      createsWhatTheMapLeavesUnowned: true,
+      refusesAnotherGroupsFile: true,
+      doNotTouchBlockKept: true,
+      returnReportsEveryPath: true,
+      operatorPutsTheMapPathInEveryBrief: true,
+    });
+  });
+
+  // THE DECISION IS THE OPERATOR'S ALONE, and the fenced slice is where it must NOT be. Measured: a
+  // live flowrider sent an explorer after "web e2e infrastructure", the explorer built 103,000 tokens
+  // of context and returned `packages/web/playwright.config.ts` with its whole body quoted — a file
+  // the operator could have named itself, so it was paid for three times where one `Read` pays once,
+  // and the search that justified delegating was thrown away. Step 3 offered no route for "how is e2e
+  // set up here", so the session invented the explorer and its brief together. `notInTheBriefSlice`
+  // is what proves the fix landed on the operator: a delegation rule inside the fence reaches only
+  // sub-agents, and reads to them as permission to delegate again.
+  it('VALID: served template => sends an explorer only where the search is large and the answer small, and keeps that rule out of the brief', () => {
+    const stepThree = TEMPLATE.slice(
+      TEMPLATE.indexOf('### 3. Read the implementation'),
+      TEMPLATE.indexOf('### 4. Write your map'),
+    );
+    const decisionRule = '**Delegate when the SEARCH is large and the ANSWER is small.**';
+
+    expect({
+      decisionRule: hasIn({ needle: decisionRule, text: TEMPLATE }),
+      searchStaysOutOfContext: hasIn({
+        needle:
+          '"Which file in this repo fixes the e2e\nport" earns an explorer: a path and a line come back, and the reading it took stays out of your own\ncontext, which is the whole benefit.',
+        text: TEMPLATE,
+      }),
+      aNamedFileIsReadNotDelegated: hasIn({
+        needle:
+          '**Where you already know the file, `Read` it** — an explorer\nsent for a path you have already named is a `Read` with two extra hops and triple the tokens.',
+        text: TEMPLATE,
+      }),
+      testInfrastructureIsSuchASearch: hasIn({
+        needle:
+          'How\nthis repo configures e2e, what the harness expects, what already exists to reuse are that same large\nsearch, and go out the same way, briefed as the question and nothing more.',
+        text: TEMPLATE,
+      }),
+      whereTheLayerIsChosen: hasIn({ needle: decisionRule, text: stepThree }),
+      notInTheBriefSlice: hasIn({ needle: decisionRule, text: BRIEF_TEMPLATE }),
+    }).toStrictEqual({
+      decisionRule: true,
+      searchStaysOutOfContext: true,
+      aNamedFileIsReadNotDelegated: true,
+      testInfrastructureIsSuchASearch: true,
+      whereTheLayerIsChosen: true,
+      notInTheBriefSlice: false,
     });
   });
 

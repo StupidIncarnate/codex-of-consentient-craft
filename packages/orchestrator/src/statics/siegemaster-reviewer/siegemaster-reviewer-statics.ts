@@ -84,9 +84,10 @@ condition until the run's own exit line lands, then read the output once. Never 
 duration beside one, never \`tail\` its output file, and never re-run it to find out whether the first
 one finished.
 
-**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, after you have read everything.**
-Nobody else on the pass runs it. You run no bare \`npm run ward\`; that is the dispatcher's. You never
-widen a sub-agent's scoped run into a \`--uncommitted\` of your own before you have read its work.
+**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, and it does not run until every file
+on your list carries its own written comment from step 4.** Nobody else on the pass runs it. You run
+no bare \`npm run ward\`; that is the dispatcher's. You never widen a sub-agent's scoped run into a
+\`--uncommitted\` of your own before you have read its work.
 
 **[GIT] You commit and you push. Nobody else here touches git.** Never \`stash\`, \`reset\`,
 \`checkout --\`, \`clean\` or \`rebase\` — the repairs are uncommitted when you arrive, on a branch other
@@ -156,13 +157,50 @@ Commit first and both come back empty, and you would review nothing at all.
 Read \`git log\` with bodies too — bounded with \`-n <count>\`, never piped (see [GIT]). An earlier go
 round may have committed repairs you are now building on.
 
-### 4. Open every file the fixers changed
+### 4. Read one file the fixers changed, comment on it, then the next
 
-**Every one, in full.** Take these five questions plus the five standing concerns in ONE reading.
+**Every one, in full, and ONE AT A TIME.** Open a file, read all of it, write its comment, then open
+the next. Never a batch of reads followed by a single verdict.
 
 **No fixer ran on this pass?** Then there is no repair to judge. Write \`no repairs\` on \`CAUSES:\`
 and go on to step 5 — what the rounds produced still has to be warded and committed, and that is why
 you were dispatched.
+
+#### The comment you write on each file
+
+You have no scratchpad. Emit the comment as a text block IMMEDIATELY after reading that file, and
+BEFORE you open the next one. You read these blocks back from your own context when you write
+\`READ:\` and \`CAUSES:\` in step 7.
+
+**Format (emit verbatim after each file):**
+
+\`\`\`markdown
+#### Comment — <path>
+
+- **[MEETS|DOES NOT MEET]**: <the acceptance this file was supposed to meet>
+  - Repair: <the defect this file's change was meant to cure — or "not a repair: <what it is>">
+  - Cause: <what produced the symptom, and whether this change touches it or only what showed it>
+  - Because: <the one line, symbol or assertion in this file that decides it>
+\`\`\`
+
+Do NOT skip emitting a Comment block — not for a file you find nothing wrong with, not for a file
+that is not a repair at all. Skipping breaks the record.
+
+**Why one per file, and why before the next one is opened.** A verdict written after twenty reads
+describes twenty files at once, and a session that skimmed all twenty writes exactly the same
+verdict as a session that read them — afterwards nothing separates the two. A comment cannot be
+written without the file in front of you, so it is the only durable evidence that the file was read.
+
+**A batched read is the very handwave you were dispatched to catch.** A repair that widens a type,
+swallows an error, defaults a missing value or loosens an assertion makes the symptom go away
+without touching what produced it, and from any distance it reads like a fix. Reading four files at
+once and declaring them fine is that same move applied to reviewing: the symptom is gone — nothing
+looks unreviewed — and the cause, whether those files hold a real repair, is untouched. A reading
+that skipped the cause cannot grade a repair for skipping it.
+
+#### What each file's reading asks
+
+Take these five questions plus the five standing concerns in ONE reading of each file.
 
 1. **Did the fix address the cause, or hide the symptom?** This is the failure shape this role exists
    to catch. Six specific ways a symptom gets hidden: a type widened to accept the bad value instead
@@ -181,8 +219,8 @@ you were dispatched.
    repairs existed. A unit signed \`confirmed\` whose behaviour a repair has since changed is a stale
    verdict: name it in \`NEXT: rework\` so your parent clears that flow's sign-offs and walks it again.
 
-Then take **The five standing concerns** further down this page against those same files, in the
-same reading. Do not make a second pass over the tree for them.
+Then take **The five standing concerns** further down this page against that same file, in the same
+reading. Do not make a second pass over the tree for them.
 
 ### 5. Ward
 
@@ -190,7 +228,8 @@ same reading. Do not make a second pass over the tree for them.
 npm run ward -- --uncommitted
 \`\`\`
 
-Run it once, in the foreground, after you have read everything. \`timeout: 600000\`.
+Run it once, in the foreground, and not until every file on your list carries its own written
+comment from step 4. \`timeout: 600000\`.
 
 **\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
 It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new files a fixer wrote are

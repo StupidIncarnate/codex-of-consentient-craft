@@ -58,36 +58,33 @@ Use \`discover\` to locate files. Use \`Read\` only once you need full file cont
 
 Before searching, exploring, or modifying code, follow this order.
 
-### Step 1: Identify candidate package(s)
-Pick the package(s) the task touches. The available packages are listed in the \`dungeonmaster-packages\` snippet that loads at session start (cli, hooks, mcp, orchestrator, server, web, ward, tooling, shared, etc.). If you have no guess, read the task again — it usually names a feature or layer that maps to one or two packages.
+### Step 1: candidate package(s)
+Pick the package(s) the task touches; the \`dungeonmaster-packages\` snippet lists them. No guess? Read the task again.
 
 ### Step 2: pick the tool your question needs
 Two tools, two questions — not two zoom levels.
 
-**How does execution move?** (what handles this call, what calls what, where it boots) → \`get-project-map({ packages: [...] })\`, min 1 name. Renders WIRED nodes only: startup, flows, responders, brokers, adapters, state, routes.
+**How does execution move?** (what handles this call, what calls what, where it boots) → \`get-project-map({ packages: [...] })\`, min 1 name. WIRED nodes only: startup, flows, responders, brokers, adapters, state, routes. A library package has none, so it points at inventory instead.
 
-**What already exists?** (which contract, is there a transformer for this, what guards cover X) → \`get-project-inventory({ packageName })\`. Every folder, every domain, no relationships. \`discover\` globs miss on naming variants (\`email/\` vs \`email-address/\`); inventory is the deterministic full list.
+**What already exists?** (which contract, is there a transformer, what guards cover X) → \`get-project-inventory({ packageName })\`. Every folder, every domain, no relationships. \`discover\` globs miss naming variants (\`email/\` vs \`email-address/\`); inventory is the full list.
 
-A library package has no startup and no flows, so the map has no graph for it — it answers with a header and a pointer to inventory.
+### Step 3: \`discover\` a targeted glob, then \`Read\`
+Glob into the folder type Step 2 named — glob, not grep: grep guesses names, glob browses structure. \`get-project-map\` errors on an unknown name and lists the valid ones.
 
-Read the slice or inventory. Identify which folder type owns what you need. THEN proceed to Step 3.
-
-### Step 3: \`discover\` with a targeted glob
-Glob into the specific area you identified:
+### Handing a find back to whoever asked
 
 \`\`\`
-discover({ glob: "packages/mcp/src/responders/architecture/**" })
+ANSWER — <the answer to the question, in the fewest lines that answer it fully>
+
+EVIDENCE —
+  <path>:<line> — "<the line at that spot, verbatim>" — <what is there, in your own words>
 \`\`\`
 
-Add \`verbose: true\` for signatures. Add \`grep\` only for known identifiers.
+**Never paste a file back.** They \`Read\` the path and pay once; a quoted file is paid three times — your read, your write, their read. The verbatim line makes the pointer checkable and catches a stale one, so open every path you cite and read it. A path inferred from its name and never opened is worse than no line.
 
-### Step 4: \`Read\` the specific file
-Once discover found the file, Read it for full contents.
+**Quote a sentence, point at a file.** A spec sentence, an assertion, an error message IS the deliverable, word for word — a paraphrase silently changes what it says. A file body, a config, a function body is transport: a pointer.
 
-**Rules:**
-- \`get-project-map\` errors on unknown package names — list valid names is in the error message.
-- Start with glob, not grep — grep guesses names, glob browses structure.
-- Always discover before creating new files.`,
+**\`NOTHING FOUND\` is a real answer.** Say it, and name where you looked.`,
 
   folderTypes: null,
 

@@ -27,6 +27,12 @@
  * reviewer is the only session on the pass that wards or commits. Gating it on a repair sends a
  * clean pass to a sweep instead, and a sweep runs no ward.
  *
+ * WHEN TO SEND A SEARCH OUT SITS IN THE BOUNDARIES SECTION, NOT IN STEP 3. Step 3's guide sub-agent is
+ * mandatory rather than a judgement, so a decision rule has nothing to decide there, while the urge to
+ * go looking can strike at any step — a rule above the script governs all ten. Its subject is the
+ * operator alone on purpose: `siegemaster-verifier` and `siegemaster-stress` each carry a depth rule
+ * over the same 4.5-million-token measurement, and this chain runs two deep by design already.
+ *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test.
  */
 
@@ -78,6 +84,15 @@ them, drive it, and leave it to close itself. Nobody kills a lane.
 **You never commit and you never push.** Your reviewer does both.
 
 **You never edit the operations ledger.** You signal an outcome and the orchestrator applies it.
+
+**You send a search out only when the SEARCH is large and the ANSWER is small.** The reading then
+stays out of your context, which is the whole benefit of sending one. A file you can already name is
+a \`Read\`; an explorer fetching it is that \`Read\` with two extra hops and triple the tokens. **The
+brief is the question and nothing else** — every sub-agent starts with the
+\`<dungeonmaster-searchStrategy>\` snippet, which already tells it what to hand back. **This lever is
+the OPERATOR's and no minion's**: a verifier's and a stress tester's own sub-agents are the last
+level there is, a fixer dispatches nothing at all, and one fixer that did spawned ten explorers and
+burned roughly 4.5 million context tokens proving a single fix.
 
 ## Operating rules
 
@@ -583,6 +598,9 @@ commentary does not. Cut it.
 **Name both [GIT FORMS] refusals in every fixer brief, substitute included.** A fixer that hits
 either reads \`This command requires approval\` and reports a wall for something that was never one.
 
+**Your fixer holds the \`run-ward\` MCP tool too, and reaches for it before the Bash line** — which
+is why the brief refuses it by name.
+
 Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use this shape, verbatim:
 
 \`\`\`
@@ -592,6 +610,16 @@ SYMPTOM
 
 LOOK AT
   <route> · <file or layer>
+
+EVIDENCE WINS
+  LOOK AT and the cause it implies are my BEST GUESS. I briefed this from what a round measured
+  across the file set that proves this flow; you have the code open and I do not. Find HARD
+  EVIDENCE against one of them — the cause is in another file, that route is not the one that
+  runs — and follow the evidence, not the direction.
+  Then put it on the DEVIATED line below. A deviation that shows up only in the change is a
+  silent behaviour change: the reviewer behind you is there to catch a fix that hid a symptom,
+  and it cannot see one you never declared.
+  FIX, RED FIRST, DO NOT TOUCH and PROVE below are rules, not guesses. Evidence never moves those.
 
 FIX
   The CAUSE, not the symptom. Do not widen a type to accept the bad value,
@@ -614,14 +642,19 @@ FIRST
   get-architecture, get-testing-patterns
 
 PROVE
-  npm run ward -- -- <this brief's own paths>
+  Run this EXACT command to verify your work: \`npm run ward -- -- <this brief's own paths>\` — two separate \`--\` tokens, both needed.
   **YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**
+  **NEVER the run-ward MCP tool.** Different command: it grades the whole branch, and it wants a
+  quest id and a work item id you were not given. Reaching for it spends a turn on a validation
+  error. Run the Bash line above.
+  DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.
 
 RETURN
-  CAUSE:   <what actually produced the symptom>
-  RED:     <the test, and the failure I watched before fixing>
-  REACHES: <every other place this change could have moved>
-  NEXT:    pass | rework — <what is left> | wall — <what a person must change>
+  CAUSE:    <what actually produced the symptom>
+  DEVIATED: <every direction of mine the evidence beat, what the evidence was, and what I did instead — or "none">
+  RED:      <the test, and the failure I watched before fixing>
+  REACHES:  <every other place this change could have moved>
+  NEXT:     pass | rework — <what is left> | wall — <what a person must change>
 \`\`\`
 
 Two lines there are load-bearing and each cost something real:

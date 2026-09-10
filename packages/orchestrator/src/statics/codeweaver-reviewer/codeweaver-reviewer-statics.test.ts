@@ -51,7 +51,7 @@ describe('codeweaverReviewerStatics', () => {
       '### 1. Load the standards',
       '### 2. Read the quest',
       '### 3. Find out what changed',
-      '### 4. Open every file the work produced',
+      '### 4. Judge one file at a time, writing the judgement down before you open the next',
       '### 5. Fix what you can',
       '### 6. Ward',
       '### 7. Commit and push',
@@ -91,35 +91,151 @@ describe('codeweaverReviewerStatics', () => {
     ).toBe(true);
   });
 
+  // THE READING STEP IS A LOOP, NOT A BATCH. A live reviewer of this shape ran twenty reads back to
+  // back and went straight to ward, and nothing in that transcript separated it from a session that
+  // opened none of the files. The per-file comment is the artifact that tells the two apart.
+  it('VALID: served template => reads one file at a time, writing that file’s comment before the next', () => {
+    expect({
+      oneAtATime: hasIn({ needle: '**Work the list ONE FILE AT A TIME.**', text: TEMPLATE }),
+      commentBeforeTheNextFile: hasIn({
+        needle:
+          "Then emit that file's comment as a text block, and only once it is written do you open the next file.",
+        text: TEMPLATE,
+      }),
+      neverABatch: hasIn({
+        needle: '**Never a batch of reads followed by a single verdict over all of them.**',
+        text: TEMPLATE,
+      }),
+      whyItIsWritten: hasIn({
+        needle:
+          '**The comment is the only durable evidence that the file was read**, which is why it is written while the file is still in front of you.',
+        text: TEMPLATE,
+      }),
+      aVerdictOverTwentyProvesNothing: hasIn({
+        needle:
+          'A verdict written after twenty reads describes twenty files at once and could have been written without opening any of them',
+        text: TEMPLATE,
+      }),
+      emittedAfterEachFileBeforeTheNext: hasIn({
+        needle:
+          '**Format for the per-file comment (emit verbatim after each file, before the next one):**',
+        text: TEMPLATE,
+      }),
+      noneSkipped: hasIn({
+        needle: 'A file carrying no comment of its own has not been reviewed',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      oneAtATime: true,
+      commentBeforeTheNextFile: true,
+      neverABatch: true,
+      whyItIsWritten: true,
+      aVerdictOverTwentyProvesNothing: true,
+      emittedAfterEachFileBeforeTheNext: true,
+      noneSkipped: true,
+    });
+  });
+
+  // THE COMMENT IS VOICED FOR WHAT THIS REVIEWER GRADES — product code against the flow. Each line
+  // of it is one of step 4's own questions, so a filled-in block IS the reading, written down.
+  it('VALID: served template => shapes the per-file comment around path, acceptance, evidence, fit, test and gap', () => {
+    expect({
+      path: hasIn({ needle: '#### Reviewed — <path>', text: TEMPLATE }),
+      acceptance: hasIn({
+        needle:
+          '- Acceptance: MEETS | DOES NOT MEET — <the observable or edge label this file was built for>',
+        text: TEMPLATE,
+      }),
+      evidence: hasIn({
+        needle: '- Evidence: <the line, branch or call in THIS file that decides that>',
+        text: TEMPLATE,
+      }),
+      fit: hasIn({
+        needle:
+          '- Fit: <the other side you opened against it — caller, contract, `package.json` — or "nothing else touches it">',
+        text: TEMPLATE,
+      }),
+      test: hasIn({
+        needle:
+          '- Test: <the test beside it, and the wrong value that turns it red — or "none in this work">',
+        text: TEMPLATE,
+      }),
+      missing: hasIn({
+        needle: '- Missing: <what the flow needs and this file does not carry — or "nothing">',
+        text: TEMPLATE,
+      }),
+      cleanFilesToo: hasIn({
+        needle: 'Emit one for every file, a clean one included',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      path: true,
+      acceptance: true,
+      evidence: true,
+      fit: true,
+      test: true,
+      missing: true,
+      cleanFilesToo: true,
+    });
+  });
+
   // ONE WARD, AND IT IS THIS SESSION'S ALONE — every sibling on the pass runs a ward scoped to its
   // own paths, so a `--uncommitted` run before this one has read the work grades what nobody read.
-  it('VALID: served template => wards once, scoped to --uncommitted, after it has read everything', () => {
+  // BOTH ward-gate sites name the written comments, because "I have read everything" is a claim the
+  // session makes about itself and one comment per file is a condition anybody can count.
+  it('VALID: served template => wards once, scoped to --uncommitted, gated on every file carrying its comment', () => {
     expect({
       scopeRule: hasIn({
         needle:
-          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, after you have read everything.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
+          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, and only once every file on your list carries its own written comment.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
       neverWidensASubAgentsRun: hasIn({
         needle:
-          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before you have read its work.",
+          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before that work's files carry their comments.",
         text: TEMPLATE,
       }),
       lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
-      onceAfterReading: hasIn({
-        needle: 'Run it once, in the foreground, after you have read everything.',
+      wardStepGate: hasIn({
+        needle:
+          'Run it once, in the foreground, once every file on your step 4 list carries its own written comment — count the comments against the files before you type the command.',
         text: TEMPLATE,
       }),
       twiceAtMost: hasIn({
         needle: '**Fix reds, then run it once more. Twice at most.**',
         text: TEMPLATE,
       }),
+      flakeIsolation: hasIn({
+        needle: '**Diagnose a red before you fix it.**',
+        text: TEMPLATE,
+      }),
     }).toStrictEqual({
       scopeRule: true,
       neverWidensASubAgentsRun: true,
       lineFenced: true,
-      onceAfterReading: true,
+      wardStepGate: true,
       twiceAtMost: true,
+      flakeIsolation: true,
+    });
+  });
+
+  // THE UNCHECKABLE CLAIM IS GONE, not merely joined by a checkable one. Left standing anywhere, it
+  // is the sentence a session quotes back at itself to justify warding after zero written comments.
+  it('VALID: served template => carries no self-reported "after you have read everything" gate', () => {
+    expect({
+      oldWardScopeClaim: hasIn({ needle: 'after you have read everything', text: TEMPLATE }),
+      oldWardStepClaim: hasIn({
+        needle: 'Run it once, in the foreground, after you have read everything.',
+        text: TEMPLATE,
+      }),
+      oldStepFourHeading: hasIn({
+        needle: '### 4. Open every file the work produced',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      oldWardScopeClaim: false,
+      oldWardStepClaim: false,
+      oldStepFourHeading: false,
     });
   });
 

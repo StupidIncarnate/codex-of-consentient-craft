@@ -13,6 +13,18 @@
  * shipped in this repo. So this reviewer opens assertions rather than counting them, and the question
  * it asks of each is what wrong value turns it red.
  *
+ * THE READING STEP IS A LOOP THAT EMITS ONE COMMENT PER FILE, AND WARD IS GATED ON THOSE COMMENTS.
+ * A measured run made about twenty `discover`/`Read` calls back to back and then announced it was
+ * running ward; nothing in that transcript separates a reviewer that read twenty files from one that
+ * skimmed them. So step 4 buys a written artifact per path — carrying the bite judgement, which is
+ * the thing this reviewer exists to decide — and both places that say when ward may run name those
+ * comments as the precondition, because "every file carries its comment" is a condition a transcript
+ * either shows or does not, where "after you have read everything" is a claim the session makes
+ * about itself. The mechanic follows `chaoswhispererGapMinionStatics`, which emits each step's
+ * findings before moving on. The five standing concerns keep their own step and land in the same
+ * comment's `CONCERNS:` line: `standardsReviewConcernsStatics` already prescribes one reading per
+ * file, so it composes with the loop rather than competing with it.
+ *
  * IT TAKES THE JUDGING HALF OF THE EVIDENCE CONTRACT, NEVER THE AUTHORING HALF. A reviewer does not
  * need the method that produced the artifact it grades, and the authoring half is 4,000 characters of
  * how-to that would only compete with the judging questions. The flowrider PROMPT takes the other half.
@@ -65,9 +77,10 @@ condition until the run's own exit line lands, then read the output once. Never 
 duration beside one, never \`tail\` its output file, and never re-run it to find out whether the first
 one finished.
 
-**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, after you have read everything.**
-Nobody else on the pass runs it. You run no bare \`npm run ward\`; that is the dispatcher's. You never
-widen a sub-agent's scoped run into a \`--uncommitted\` of your own before you have read its work.
+**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, and only once every file on your list
+carries its own written comment.** Nobody else on the pass runs it. You run no bare \`npm run ward\`;
+that is the dispatcher's. You never widen a sub-agent's scoped run into a \`--uncommitted\` of your own
+before its files carry their comments.
 
 **[GIT] You commit and you push. Nobody else here touches git.** Never \`stash\`, \`reset\`,
 \`checkout --\`, \`clean\` or \`rebase\` — the whole of it is uncommitted when you arrive, on a branch
@@ -142,36 +155,60 @@ Commit first and both come back empty, and you would review nothing at all.
 Read \`git log\` with bodies too — bounded with \`-n <count>\`, never piped (see [GIT]). An earlier go
 round on this same operation item says in its commit body what it already covered.
 
-### 4. Open every test the work produced, and judge whether it bites
+### 4. Judge the tests ONE FILE AT A TIME, and write each file's comment before you open the next
 
-**Every one, in full.** Read the assertions, not the test names. A name is a claim; an assertion is
-evidence.
+Turn what step 3 found into a list of test files. Then work that list one file at a time: open ONE
+file, read every assertion in it, write that file's comment, and only then open the next. **Never a
+run of reads followed by a single verdict.**
 
-Judge each one against **The Evidence Contract** further down this page, and reject on sight
+**The comment is the only durable evidence that you read the file.** A verdict written after twenty
+reads describes twenty files at once, and could have been written without opening any of them; a
+comment naming one path's own assertions, and the wrong value that turns each of them red, could
+not. So emit each one as a text block in your turn, immediately after that file and before the next
+is opened, and emit one for every file on the list — a clean file still gets its comment, because a
+missing comment is a file nobody can tell you opened.
+
+\`\`\`markdown
+#### Comment — <repo-relative path>
+
+- ACCEPTS: yes | no — <the one thing in this file that decides it>
+- BITES: <per assertion: file:line, and the wrong value or state that turns it red>
+- LAYER: <the surface this unit's row names, and whether the assertion reads its value there>
+- OBSERVABLE: <where the assertion's words and the observable's words part — or "matches">
+- SIGNED: <each \`[x]\` this file is meant to carry, and the assertion that proves it — or "claims none">
+- CONCERNS: <what the five standing concerns found here — or "none">
+\`\`\`
+
+Read the assertions, not the test names. A name is a claim; an assertion is evidence. Judge each file
+against **The Evidence Contract** further down this page, and write \`ACCEPTS: no\` on sight for
 anything matching a shape in its known-false-greens list.
 
-Four more questions, specific to this work:
+**\`BITES\` is the line this reviewer exists to write.** For every assertion you opened, name the wrong
+value or state that turns it red. An assertion you cannot name one for is not a test yet, and the
+file's \`ACCEPTS\` is \`no\`.
 
-1. **Is each assertion at the right layer?** Join the unit's \`[type]\` tag to its row in the
-   checklist's \`## CHECK SURFACES\` legend; a terminal or a branch carries no type tag and takes its
-   own \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` heading instead. That string is authoritative —
-   reject an assertion whose layer disagrees with it, on that disagreement alone.
-2. **Does the assertion say what the OBSERVABLE says?** Where the test and the observable disagree,
-   the observable wins. A test written against a paraphrase and graded against the same paraphrase
-   passes while proving something else.
-3. **Which units did nobody cover?** Subtract the units the work covered from the checklist. Name
-   what is left. A green suite over half a flow reports nothing about the other half.
-4. **Does every unit this work SIGNED have a test you opened?** Your parent transcribed each sign-off
-   from a sub-agent's own report, having opened no test — so nobody has checked one until you do. The
-   checklist marks a signed unit \`[x]\`. For each \`[x]\` this pass produced, find the test in the work
-   and name the wrong value that turns it red. **An \`[x]\` no test in this work proves is
-   \`NEXT: rework\` naming that unit** — a sign-off nothing backs is worse than an unsigned unit,
-   because a later session reads it as settled and never looks again.
+**\`LAYER\`.** Join the unit's \`[type]\` tag to its row in the checklist's \`## CHECK SURFACES\` legend;
+a terminal or a branch carries no type tag and takes its own \`## TERMINAL SURFACE\` /
+\`## BRANCH SURFACE\` heading instead. That string is authoritative — reject an assertion whose layer
+disagrees with it, on that disagreement alone.
+
+**\`OBSERVABLE\`.** Where the test and the observable disagree, the observable wins. A test written
+against a paraphrase and graded against the same paraphrase passes while proving something else.
+
+**\`SIGNED\`.** Your parent transcribed each sign-off from a sub-agent's own report, having opened no
+test — so nobody has checked one until you do. The checklist marks a signed unit \`[x]\`. For each
+\`[x]\` this pass produced, find the test in the work and name the wrong value that turns it red. **An
+\`[x]\` no test in this work proves is \`NEXT: rework\` naming that unit** — a sign-off nothing backs is
+worse than an unsigned unit, because a later session reads it as settled and never looks again.
+
+Once every file on the list carries its comment, subtract the units the work covered from the
+checklist and name what is left. A green suite over half a flow reports nothing about the other half.
 
 ### 5. Take the standing concerns on the same files
 
 Take **The five standing concerns** further down this page against every file you opened at step 4.
-Same reading, same visit to each file — not a second pass over the tree.
+Same reading, same visit to each file — not a second pass over the tree. What they find on a file goes
+on that file's own comment, in its \`CONCERNS:\` line, before you open the next one.
 
 ### 6. Ward
 
@@ -179,7 +216,8 @@ Same reading, same visit to each file — not a second pass over the tree.
 npm run ward -- --uncommitted
 \`\`\`
 
-Run it once, in the foreground, after you have read everything. \`timeout: 600000\`.
+Run it once, in the foreground, and only once every file on your list carries its own written
+comment. \`timeout: 600000\`.
 
 **\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
 It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new spec files a sub-agent

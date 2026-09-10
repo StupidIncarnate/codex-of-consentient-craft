@@ -55,7 +55,7 @@ describe('flowriderReviewerStatics', () => {
       '### 1. Load the standards',
       '### 2. Read the quest and the units',
       '### 3. Find out what changed',
-      '### 4. Open every test the work produced, and judge whether it bites',
+      "### 4. Judge the tests ONE FILE AT A TIME, and write each file's comment before you open the next",
       '### 5. Take the standing concerns on the same files',
       '### 6. Ward',
       '### 7. Commit and push',
@@ -74,34 +74,151 @@ describe('flowriderReviewerStatics', () => {
 
   // ONE WARD, AND IT IS THIS SESSION'S ALONE — every sibling on the pass runs a ward scoped to its
   // own paths, so a `--uncommitted` run before this one has read the work grades what nobody read.
-  it('VALID: served template => wards once, scoped to --uncommitted, after it has read everything', () => {
+  it("VALID: served template => wards once, scoped to --uncommitted, and never widens a sub-agent's run", () => {
     expect({
-      scopeRule: hasIn({
+      whoseItIs: hasIn({
         needle:
-          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, after you have read everything.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
+          "Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
       neverWidensASubAgentsRun: hasIn({
         needle:
-          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before you have read its work.",
+          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before its files carry their comments.",
         text: TEMPLATE,
       }),
       lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
-      onceAfterReading: hasIn({
-        needle: 'Run it once, in the foreground, after you have read everything.',
-        text: TEMPLATE,
-      }),
       twiceAtMost: hasIn({
         needle: '**Fix reds, then run it once more. Twice at most.**',
         text: TEMPLATE,
       }),
     }).toStrictEqual({
-      scopeRule: true,
+      whoseItIs: true,
       neverWidensASubAgentsRun: true,
       lineFenced: true,
-      onceAfterReading: true,
       twiceAtMost: true,
     });
+  });
+
+  // THE READING STEP IS A LOOP, AND THE LOOP'S OUTPUT IS THE ONLY THING THAT MAKES IT FALSIFIABLE. A
+  // measured run made about twenty `discover`/`Read` calls back to back and then announced it was
+  // running ward — nothing in that transcript separates a reviewer that read twenty files from one
+  // that skimmed them, because a single verdict over a batch could have been written without opening
+  // any of them.
+  it('VALID: served template => judges one test file at a time and comments before opening the next', () => {
+    expect({
+      stepHeading: hasIn({
+        needle:
+          "### 4. Judge the tests ONE FILE AT A TIME, and write each file's comment before you open the next",
+        text: TEMPLATE,
+      }),
+      oneFileAtATime: hasIn({
+        needle:
+          "work that list one file at a time: open ONE file, read every assertion in it, write that file's comment, and only then open the next",
+        text: TEMPLATE,
+      }),
+      neverABatch: hasIn({
+        needle: '**Never a run of reads followed by a single verdict.**',
+        text: TEMPLATE,
+      }),
+      emittedBeforeTheNextIsOpened: hasIn({
+        needle:
+          'emit each one as a text block in your turn, immediately after that file and before the next is opened',
+        text: TEMPLATE,
+      }),
+      oneForEveryFile: hasIn({
+        needle:
+          'emit one for every file on the list — a clean file still gets its comment, because a missing comment is a file nobody can tell you opened',
+        text: TEMPLATE,
+      }),
+      whyItIsWrittenDown: hasIn({
+        needle:
+          '**The comment is the only durable evidence that you read the file.** A verdict written after twenty reads describes twenty files at once, and could have been written without opening any of them',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      stepHeading: true,
+      oneFileAtATime: true,
+      neverABatch: true,
+      emittedBeforeTheNextIsOpened: true,
+      oneForEveryFile: true,
+      whyItIsWrittenDown: true,
+    });
+  });
+
+  // THE BITE JUDGEMENT RIDES IN THE COMMENT, because that is the one thing this reviewer exists to
+  // decide. A per-file comment with no failing value in it is the existence-only citation the
+  // evidence contract rejects, wearing a new format.
+  it('VALID: served template => the per-file comment carries the bite judgement', () => {
+    expect({
+      commentNamesThePath: hasIn({
+        needle: '#### Comment — <repo-relative path>',
+        text: TEMPLATE,
+      }),
+      acceptsLine: hasIn({
+        needle: '- ACCEPTS: yes | no — <the one thing in this file that decides it>',
+        text: TEMPLATE,
+      }),
+      bitesLine: hasIn({
+        needle:
+          '- BITES: <per assertion: file:line, and the wrong value or state that turns it red>',
+        text: TEMPLATE,
+      }),
+      concernsLine: hasIn({
+        needle: '- CONCERNS: <what the five standing concerns found here — or "none">',
+        text: TEMPLATE,
+      }),
+      biteIsTheJob: hasIn({
+        needle:
+          '**`BITES` is the line this reviewer exists to write.** For every assertion you opened, name the wrong value or state that turns it red.',
+        text: TEMPLATE,
+      }),
+      unnameableIsNotATest: hasIn({
+        needle:
+          "An assertion you cannot name one for is not a test yet, and the file's `ACCEPTS` is `no`.",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      commentNamesThePath: true,
+      acceptsLine: true,
+      bitesLine: true,
+      concernsLine: true,
+      biteIsTheJob: true,
+      unnameableIsNotATest: true,
+    });
+  });
+
+  // WARD IS GATED ON A CHECKABLE CONDITION, IN BOTH PLACES THAT NAME ONE. "After you have read
+  // everything" is a claim the session makes about itself and nothing checks; "every file carries its
+  // comment" is a condition its own transcript either shows or does not.
+  it('VALID: served template => gates ward on every file carrying its own comment, in both places', () => {
+    expect({
+      scopeRule: hasIn({
+        needle:
+          '**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, and only once every file on your list carries its own written comment.**',
+        text: TEMPLATE,
+      }),
+      wardStep: hasIn({
+        needle:
+          'Run it once, in the foreground, and only once every file on your list carries its own written comment.',
+        text: TEMPLATE,
+      }),
+      unfalsifiableClaimIsGone: hasIn({
+        needle: 'after you have read everything',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ scopeRule: true, wardStep: true, unfalsifiableClaimIsGone: false });
+  });
+
+  // THE STANDING CONCERNS STAY THEIR OWN STEP, but their findings land on the same per-file comment
+  // rather than in a sweep of their own — the shared block already prescribes one reading per file.
+  it("VALID: served template => the standing concerns land on the file's own comment", () => {
+    expect(
+      hasIn({
+        needle:
+          "What they find on a file goes on that file's own comment, in its `CONCERNS:` line, before you open the next one.",
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
   });
 
   // A 0-FILE GIT SCOPE RUNS NOTHING AND EXITS 0. `--uncommitted` takes its scope from whatever the

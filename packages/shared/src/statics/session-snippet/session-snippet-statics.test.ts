@@ -336,6 +336,57 @@ describe('sessionSnippetStatics', () => {
     });
   });
 
+  // AN EXPLORER'S RETURN IS PAID FOR THREE TIMES WHEN IT QUOTES A FILE — its read, its write, and
+  // the asker's read of the quote — where a pointer costs the asker one `Read` of the range it needs.
+  // Measured on a real dispatch: an explore agent built 103k of context mapping a package's e2e
+  // infrastructure and returned one config file with its full contents pasted in, so the search that
+  // justified delegating at all was thrown away and the quote was the only thing that survived. Every
+  // step above this section is about FINDING; nothing said what leaves. The verbatim anchor and the
+  // sentence/file split are pinned separately because either one alone inverts the rule: with no
+  // anchor a pointer cannot be checked and a stale one reads as a find, and with no split a spec
+  // sentence gets paraphrased into something it does not say.
+  it('VALID: searchStrategy snippet => fixes the return shape, bans pasting a file, and keeps NOTHING FOUND an answer', () => {
+    expect({
+      answerLine: sessionSnippetStatics.searchStrategy.includes(
+        'ANSWER — <the answer to the question, in the fewest lines that answer it fully>',
+      ),
+      evidenceLine: sessionSnippetStatics.searchStrategy.includes(
+        '  <path>:<line> — "<the line at that spot, verbatim>" — <what is there, in your own words>',
+      ),
+      neverPasteAFile: sessionSnippetStatics.searchStrategy.includes(
+        '**Never paste a file back.**',
+      ),
+      paidThreeTimes: sessionSnippetStatics.searchStrategy.includes(
+        'a quoted file is paid three times — your read, your write, their read',
+      ),
+      verbatimAnchorIsCheckable: sessionSnippetStatics.searchStrategy.includes(
+        'The verbatim line makes the pointer checkable and catches a stale one',
+      ),
+      quoteASentencePointAtAFile: sessionSnippetStatics.searchStrategy.includes(
+        '**Quote a sentence, point at a file.**',
+      ),
+      nothingFoundIsAnAnswer: sessionSnippetStatics.searchStrategy.includes(
+        '**`NOTHING FOUND` is a real answer.**',
+      ),
+      opensEveryPathItCites: sessionSnippetStatics.searchStrategy.includes(
+        'open every path you cite and read it',
+      ),
+      // The `SubagentStart` hook payload carries an `agent_type`, and exploring and reporting is a
+      // thing ANY kind of sub-agent does, so this section binds all of them unconditionally.
+      conditionsOnNoAgentType: sessionSnippetStatics.searchStrategy.indexOf('agent_type'),
+    }).toStrictEqual({
+      answerLine: true,
+      evidenceLine: true,
+      neverPasteAFile: true,
+      paidThreeTimes: true,
+      verbatimAnchorIsCheckable: true,
+      quoteASentencePointAtAFile: true,
+      nothingFoundIsAnAnswer: true,
+      opensEveryPathItCites: true,
+      conditionsOnNoAgentType: -1,
+    });
+  });
+
   // A HAND-EDIT TO A GENERATED FILE SURVIVES UNTIL THE NEXT `dungeonmaster init` AND THEN VANISHES,
   // which reads as the harness undoing work rather than as the install doing its job. The owner
   // table is the actionable half: without it a session that accepts "edit the generator" still has

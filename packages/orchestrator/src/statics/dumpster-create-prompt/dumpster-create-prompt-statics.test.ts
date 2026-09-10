@@ -8,6 +8,14 @@ import { dumpsterCreatePromptStatics } from './dumpster-create-prompt-statics';
 const WHITESPACE_RUN = /\s+/gu;
 const template = dumpsterCreatePromptStatics.prompt.template.replace(WHITESPACE_RUN, ' ');
 
+// The exploration brief, isolated from the two briefs that follow it. All three end with the same
+// budget line and the same "Nothing else goes in it" paragraph, so an assertion read against the
+// whole template would be satisfied by whichever brief happened to still carry the sentence.
+const explorationBrief = template.slice(
+  template.indexOf('## The exploration brief'),
+  template.indexOf('## The node-tagging brief'),
+);
+
 describe('dumpsterCreatePromptStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
     expect(dumpsterCreatePromptStatics).toStrictEqual({
@@ -582,6 +590,114 @@ describe('dumpsterCreatePromptStatics', () => {
 
     it('INVALID: prompt template => no longer mentions the deleted Groundstomper role', () => {
       expect(template.indexOf('Groundstomper')).toBe(-1);
+    });
+  });
+
+  // The `dungeonmaster-searchStrategy` session snippet reaches every sub-agent before its brief
+  // does, and its "Handing a find back to whoever asked" section carries the return contract:
+  // the ANSWER / EVIDENCE shape, never-paste-a-file, quote-a-sentence-point-at-a-file, and
+  // `NOTHING FOUND`. The brief says WHAT is being asked; the snippet says HOW to answer it. A
+  // second copy of the how drifts from the one the sub-agent actually reads — the copy deleted
+  // here had already lost the verbatim-quote column the snippet's EVIDENCE line carries.
+  describe('the exploration brief carries the assignment, not the return contract', () => {
+    // `returnPreamble` is read against the brief, not the whole template: the contract-shape brief
+    // further down opens its own PATH / SHAPE block with the same sentence, and that block is not a
+    // copy of anything the snippet carries.
+    it('VALID: prompt template => no longer restates the ANSWER / EVIDENCE return shape', () => {
+      expect({
+        returnPreamble: explorationBrief.indexOf('Return this and nothing else:'),
+        answerLine: template.indexOf('ANSWER —'),
+        evidenceLine: template.indexOf('EVIDENCE —'),
+      }).toStrictEqual({ returnPreamble: -1, answerLine: -1, evidenceLine: -1 });
+    });
+
+    it('VALID: prompt template => no longer restates the NOTHING FOUND rule', () => {
+      expect({
+        marker: template.indexOf('NOTHING FOUND'),
+        worthTheSame: template.indexOf(
+          'That is a real answer and it is worth the same as any other',
+        ),
+      }).toStrictEqual({ marker: -1, worthTheSame: -1 });
+    });
+
+    it('VALID: prompt template => no longer restates the open-every-path-you-cite rule', () => {
+      expect({
+        openEveryPath: template.indexOf('Open every path you cite'),
+        inferredPath: template.indexOf('A path you inferred from its name and never opened'),
+      }).toStrictEqual({ openEveryPath: -1, inferredPath: -1 });
+    });
+
+    it('VALID: exploration brief => still carries the header fields that name the assignment', () => {
+      const needle =
+        'REPO: <the repo path this session is working in> PACKAGES: <the packages this question most likely lives in — the ones you mapped> QUESTION: <the ONE code-level question this agent answers, written as a question>';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // The intake-only clause. It is TRUE FOR INTAKE AND FALSE FOR AN OPERATOR, whose whole job is
+    // build-time decisions, so it can never migrate into a snippet every session reads.
+    it('VALID: exploration brief => still forbids recommending where new code should go', () => {
+      const needle =
+        'Never recommend where new code should go, what to name a file, or which folder type should own the work. Those are build-time decisions this conversation does not make, and a recommendation here ends up in a specification that must not carry one.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: exploration brief => still opens on get-project-map for the packages the session mapped', () => {
+      const needle =
+        'Start by calling get-project-map for the packages named above, BEFORE you read any individual file. It anchors what you find in the same structural picture the session that briefed you is holding, so your answer lines up with the wiring that session has already seen.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: exploration brief => still bounds the agent to reporting what is on disk', () => {
+      const needle =
+        'You are answering a question about code that already exists. Report what is on disk. Decide nothing, design nothing, write nothing, change nothing.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: exploration brief => still caps the agent at four minutes and twenty-five tool calls', () => {
+      const needle =
+        'Budget: four minutes and twenty-five tool calls, then return with whatever you have.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // A rule about what the PARENT must not put in the brief, which no sub-agent snippet can carry.
+    it('VALID: exploration brief => still bars the spec from the message the sub-agent is sent', () => {
+      const needle =
+        "**Nothing else goes in it** — not the user's request, not the quest id, not the flows you have drafted so far, and not a question about how the feature should be built.";
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: prompt template => every pointer still names "The exploration brief"', () => {
+      expect({
+        neverReadFiles: template.includes(
+          '- NEVER read files directly - always use exploration sub-agents, each briefed with "The exploration brief" further down this page',
+        ),
+        roleSection: template.includes(
+          'for deeper code-level detail when needed — each one briefed with "The exploration brief" further down this page',
+        ),
+        exploreFlowsStep: template.includes(
+          '**Send each one "The exploration brief" further down this page, filled in. That brief is the whole message**, and it is what carries the `get-project-map`-first instruction into the agent\'s own prompt.',
+        ),
+        sectionOpener: template.includes(
+          '**Every exploration agent you start gets exactly this, filled in. Send it as the whole message.**',
+        ),
+      }).toStrictEqual({
+        neverReadFiles: true,
+        roleSection: true,
+        exploreFlowsStep: true,
+        sectionOpener: true,
+      });
     });
   });
 });

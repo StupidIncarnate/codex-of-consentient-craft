@@ -505,19 +505,6 @@ your answer lines up with the wiring that session has already seen.
 You are answering a question about code that already exists. Report what is on disk. Decide nothing,
 design nothing, write nothing, change nothing.
 
-Return this and nothing else:
-
-ANSWER — <the answer to the question, in the fewest lines that answer it fully>
-
-EVIDENCE —
-  <path>:<line> — <what is there, in your own words>
-
-Where the tree does not answer the question, say NOTHING FOUND and name where you looked. That is a
-real answer and it is worth the same as any other.
-
-Open every path you cite and read the line you name. A path you inferred from its name and never
-opened is worse than no line at all.
-
 Never recommend where new code should go, what to name a file, or which folder type should own the
 work. Those are build-time decisions this conversation does not make, and a recommendation here ends
 up in a specification that must not carry one.

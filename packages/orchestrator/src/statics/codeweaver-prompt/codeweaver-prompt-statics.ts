@@ -192,7 +192,7 @@ conditions go with them.
 **On a node marked \`◀ YOURS\` you see every observable on it, including the ones another package
 owns.** They are the other half of the contract you are building — the client's request shape for a
 route you serve, the render your bytes have to satisfy. **Read them.** Where one names something
-your own code must do, that is a requirement on you, and your \`MUST BE TRUE\` lines should carry it.
+your own code must do, that is a requirement on you, and your brief's \`UNITS\` rows should carry it.
 **You still sign only the observables whose \`{package}\` is yours.**
 
 **EVERY CONTRACT UNDER A \`## Contracts\` heading CARRIES WORK OF YOURS.** A contract routes by FILE
@@ -217,15 +217,15 @@ is about the shape of a source file: an import that has to be there, a literal t
 inlined, a symbol that has to be gone. No test reaches it. A green test proves the value is RIGHT,
 never where the value CAME FROM.
 
-So it never goes in a brief's \`MUST BE TRUE\` block, which is about tests. It goes in \`TRAPS\`,
+So it never goes in a brief's \`UNITS\` block, which is about tests. It goes in \`TRAPS\`,
 worded as the constraint the sub-agent has to honour while it writes. Your reviewer opens every file
 the pass produced and reports whether the statement holds; that report is what you sign from. See
 **Recording what you claim**.
 
 **Read the edges hardest.** Every branch your code has to take is a labelled edge, and a labelled
-edge is a UNIT your track can sign — as are the flow's terminal nodes. They are not observables, so
-they never appear in a \`MUST BE TRUE\` line; **name them to your sub-agents in the same brief and
-sign them like anything else.**
+edge is a UNIT your track can sign — as are the flow's terminal nodes. They are not observables, and
+a brief's \`UNITS\` block takes them anyway, as ordinary rows tagged \`[branch]\` and \`[terminal]\`.
+**Every unit in your cell goes on some brief as a tagged row, and you sign only what comes back.**
 
 **AN EDGE LINE CARRIES TWO IDS AND THEY GO IN DIFFERENT ARRAYS.** The \`<edge:…>\` at the head of the
 line is the EDGE's own id, and it is the one a branch sign-off names, inside the flow's \`edges\`
@@ -251,8 +251,16 @@ wrong for this codebase — read code first and you will copy patterns you canno
 Use \`get-project-map\` for a package's shape and \`discover\` for a named symbol. Use \`Read\` once
 \`discover\` has found the file.
 
-**Dispatch explorer sub-agents where the package is too large to read yourself.** Ask each for
-specific answers, not a summary. You decide what the map says; they only tell you what is there.
+**Delegate a SEARCH, never a READ.** An explorer earns its hops where the search is large and the
+answer is small — "which of these seventy-odd files configures X" comes back as one path, and the
+hunt that found it never enters your context. A file you can already name is the opposite case: an
+explorer sent to fetch a path you have already written down is a \`Read\` with two extra hops and
+three times the tokens. **Brief it with the question and nothing else** — the return shape reaches
+it from the \`<dungeonmaster-searchStrategy>\` snippet. **That licence is the OPERATOR's alone**: the
+\`DISCOVERY\` line you write into a code-writing sub-agent's brief further down this page refuses it
+that same move, because that session is already a level below you and its own exploring is how it
+learns the code it is about to change. You decide what the map says; an explorer only tells you what
+is there.
 
 **Read what the cells before you already landed, before you decide anything is missing:**
 
@@ -291,8 +299,16 @@ TRAPS
 \`\`\`
 
 **Order comes from what a change needs, not from the flow's shape.** Contracts and statics first,
-then the code that reads them, then the code that calls that. **Two changes go in one group only when
-they touch different files.**
+then the code that reads them, then the code that calls that.
+
+**Two changes share a group only when BOTH hold: they touch DIFFERENT FILES, and NEITHER NEEDS THE
+OTHER to have landed.** Both, every time. Apply only the first and you group two changes whose real
+order you then have to paper over inside the brief.
+
+**Never write a wait into a brief.** A file another brief is creating means those two briefs belong
+in DIFFERENT GROUPS — never in one group with a "if it is not there yet, re-check" line. A wait has
+no bound, no give-up and no \`wall\`, and a group that wins that race by 40 seconds reads exactly like
+one that lost it.
 
 **Name the observables you cannot prove here, and why.** Some of your cell's need a browser or a
 running system. Saying so is the answer, not a gap.
@@ -365,9 +381,8 @@ Brief a sub-agent per change, following **Briefing a sub-agent** below.
 **Every change in ONE group goes out in a SINGLE message**, one \`Agent\` call each, so they run at the
 same time. Wait for all of them to return and route each return, then send the next group.
 
-**Two changes touching the same file never go out together** — they overwrite each other. That is one
-of the two things groups are for. The other is ORDER: **a group never goes out before the group it
-needs has landed**, which is why contracts and statics come first and the code that reads them after.
+**Step 3's two grouping conditions bind here too**: two changes touching the same file never go out
+together, and a group never goes out before the group it needs has landed.
 
 **A group that returns \`rework\` does not stop the next group.** Send that change out again and carry
 on down the map; step 7 is where the round is judged, not here.
@@ -506,16 +521,38 @@ Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use 
 FILES
   <path>   new | edit
   <path>   new | edit
+  Create any other file the work turns out to need — a static, a transformer, a contract —
+  WHEN the MAP below puts it in no other group. Where the map puts it in another group it
+  is that group's: never create or edit it, and name it on the NEXT: rework line instead.
+  Anything under DO NOT TOUCH is the same, whatever the map says.
+
+MAP
+  <absolute path of the map this brief was cut from>
+  Read it, and read it AGAINST your own FILES above: find the group your files sit in, then
+  read the neighbouring groups, so you see what else is being built and by whom.
 
 DO
   1. <path> — <what, as a sketch>
        <pseudo-code, a type, a signature, or "mirror <path>">
   2. <path> — <the same>
 
-MUST BE TRUE
-  <unit-id>: "<its text, word for word from the quest>"
-    <an observable id, OR a terminal node id, OR a labelled edge id — a branch and a
-     terminal are units this track signs too, and neither is an observable>
+UNITS
+  <unit-id>  [observable | terminal | branch]  "<its text, word for word from the quest>"
+    ASSERT:   <the exact value a test reads to settle it>
+    FAILS IF: <the wrong value that turns that assertion red>
+  <unit-id>  [<…>]  "<…>"
+  A brief carrying no UNITS block is not workable, and the units are not yours to guess:
+  answer NEXT: rework and name the omission.
+
+RED FIRST
+  Watch it fail before you make it pass, and name that red in the return.
+  Behaviour already works on disk? Break the ONE line the test guards, run the spec,
+  capture the red, then put that line back BY EDITING IT BACK — never git checkout --,
+  on a branch other sessions share. Confirm git diff on that file is empty afterwards.
+  New code and its test written together, with no earlier behaviour to break? Run the spec
+  before the code exists and report THAT red — the module that does not resolve, the export
+  that is not defined. That is the whole procedure: never fabricate a red you did not watch,
+  never hedge it into a paragraph, and never invent a mutation protocol. Nobody asked for one.
 
 TRAPS
   <one line each: a lint rule, a branded type to re-parse, a pattern to copy>
@@ -526,32 +563,85 @@ DO NOT TOUCH
 READ FIRST
   get-architecture, get-testing-patterns
 
+DISCOVERY
+  Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
+  Exploring is how you learn the code you are about to change; hand it off and what it
+  found lands in someone else's summary instead of in the session doing the work.
+  You sit one level below the operator that briefed you, and nothing goes below you.
+
+THIS BRIEF IS A BEST GUESS
+  Every direction above is the operator's best guess across a file set that proves a
+  feature. You have the code open and it does not, so where you find HARD EVIDENCE against
+  a direction, the evidence wins — follow it.
+  The repo refusing what this brief says — a lint rule, a PreToolUse hook, a permission
+  denial — is neither a wall nor something to work around silently. Name the rule and what
+  it refused.
+  **Every deviation comes back under NOT PROVED, or on the NEXT: rework line. Never as a
+  note on a pass.** The operator chose that sketch against the flow, so a swap it never
+  sees is a behaviour change nobody reviewed.
+
 PROVE
-  npm run ward -- -- <this brief's own paths>
+  Verify your work by calling THIS EXACT COMMAND. Two separate \`--\` tokens — that is the
+  real invocation, not a typo:
+  \`npm run ward -- -- <this brief's own paths>\`
   **YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**
+  **NEVER the run-ward MCP tool.** It is not another route to the same result: it grades the
+  whole branch, and it takes a quest id and a work item id you were not given, so reaching
+  for it spends a turn on a validation error. Call the command above.
+  DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is
+  never the fix, and a skip is nothing to defend in the return.
 
 RETURN
-  FILES: <what I created or changed>
+  FILES: <every path I created or changed. Mark each one this brief did not list:
+   "(not in brief)">
   PROVED:
-    <unit-id> — <test file:line> · <the assertion, quoted> · <the wrong value that
-     turns it red> · <the red I watched before the code made it pass>
+    <an id from UNITS above, copied exactly — one line per id> — <test file:line> ·
+     <the assertion, quoted> · <the wrong value that turns it red> · <the red I watched,
+     per RED FIRST>
   NOT PROVED:
-    <unit-id> — <why. What I found that the observable does not account for, or the
-     layer it actually needs. Never "ran out of time".>
+    <an id from UNITS above, the same way> — <why. What I found that the unit does not
+     account for, the layer it actually needs, or the deviation I was forced into and what
+     forced it. Never "ran out of time".>
   NEXT: pass | rework — <what is left> | wall — <what a person must change>
 \`\`\`
 
-Three lines there are load-bearing and each cost something real:
+Each of those lines is load-bearing and each cost something real:
 
-- **\`MUST BE TRUE\` quotes the observable, never your paraphrase.** A sub-agent that builds against a
-  paraphrase and reports against the same paraphrase passes while proving something else.
+- **\`UNITS\` is ONE block and every unit on the brief is a row in it** — an observable, a terminal
+  node or a labelled edge, each tagged, each quoting the quest WORD FOR WORD. A sub-agent that builds
+  against your paraphrase and reports against the same paraphrase passes while proving something
+  else, and a unit smuggled into \`DO\` as an inline marker comes back signed by nothing.
+- **You substitute real ids into \`UNITS\`, and \`RETURN\` reports those SAME strings.** \`<unit-id>\`
+  is a placeholder in both blocks — an observable id, a terminal node id or a labelled edge id off
+  your flow. Leave \`<unit-id>\` standing in \`RETURN\` and the report comes back matching nothing you
+  asked for, and you can sign none of it.
+- **Every \`<…>\` in a brief is substituted or deleted before you dispatch it**, the pseudo-code in
+  your \`DO\` block included. One that survives is something the sub-agent has to reconstruct from
+  the code, and it reconstructs it its own way.
+- **A \`TRAPS\` entry names a rule you have READ this session, never one you remember.** A brief that
+  asserted a lint rule sanctioned an import the rule in fact refuses left its sub-agent unable to
+  tell which of the two was right.
+- **Never write "this is the last brief" into one.** Your loop is unbounded, so you cannot know it,
+  and a sub-agent that believes nothing follows it swallows a red rather than returning it. Say the
+  thing that is already true and needs no prediction: **this brief's own paths are green when it
+  returns, whatever runs after.**
 - **\`PROVED\` and \`NOT PROVED\` are the only basis for what you sign.** Your map said what you
   EXPECTED to be provable; this sub-agent is the session that found out. It opened the code and you
   did not, so where the two disagree it wins. An observable that turned out to need a browser, or to
   be untrue as written, comes back under \`NOT PROVED\` — and signing it anyway would put a verdict
   on the quest that nothing backs.
+- **Your map cannot name every file the work needs.** A static holding a constant, a transformer, a
+  contract to re-parse a branded type — a sub-agent finds those with the code open. So the brief lets
+  it create what \`FILES\` did not list, refuses it anything the map puts in another group or
+  \`DO NOT TOUCH\` names, and asks for the extras back marked. **A return naming files you did not
+  plan is the normal case**, not a sub-agent exceeding its brief; read them at step 5 like anything
+  else.
+- **Every brief carries your map's path in its \`MAP\` line.** \`DO NOT TOUCH\` only ever holds the
+  paths you happened to think of at dispatch; the map holds the whole grouping. A sub-agent that
+  cannot see it cannot tell a file nobody owns from one another group is mid-way through writing.
 - **The \`run-ward\` MCP tool is not the same command.** It grades the whole branch and lands the red
-  on your work item.
+  on your work item. The \`PROVE\` block refuses it by name because a sub-agent holds that tool too
+  and reaches for it first.
 
 Your reviewer's brief is shorter, because it has its own prompt:
 
@@ -574,7 +664,9 @@ ward a sweep forbids. On a SECOND sweep add one more line and nothing else:
 **That fetch carries no \`workItemId\`. Never add yours.** A sub-agent holding your work item id could
 signal on it and complete your work while you are still running.
 
-Dispatch your reviewer with \`model: "sonnet"\`, alone in its message, never beside anything else.
+Dispatch your reviewer with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`, alone in its
+message, never beside anything else. **There is no \`.claude/agents\` entry for it** — every
+sub-agent here is \`general-purpose\`, and the served prompt is what makes it a reviewer.
 
 ## Recording what you claim
 

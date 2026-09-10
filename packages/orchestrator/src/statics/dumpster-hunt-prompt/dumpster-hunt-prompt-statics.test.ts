@@ -8,6 +8,13 @@ import { dumpsterHuntPromptStatics } from './dumpster-hunt-prompt-statics';
 const WHITESPACE_RUN = /\s+/gu;
 const template = dumpsterHuntPromptStatics.prompt.template.replace(WHITESPACE_RUN, ' ');
 
+// The exploration brief, isolated from the "After approval" section that follows it, so an
+// assertion about the brief is read against the brief.
+const explorationBrief = template.slice(
+  template.indexOf('## The exploration brief'),
+  template.indexOf('## After approval'),
+);
+
 describe('dumpsterHuntPromptStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
     expect(dumpsterHuntPromptStatics).toStrictEqual({
@@ -285,6 +292,94 @@ describe('dumpsterHuntPromptStatics', () => {
       const foundIndex = template.indexOf(needle);
 
       expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+  });
+
+  // The `dungeonmaster-searchStrategy` session snippet reaches every sub-agent before its brief
+  // does, and its "Handing a find back to whoever asked" section carries the return contract:
+  // never-paste-a-file, open-every-path-you-cite, and `NOTHING FOUND`. The brief says WHAT is
+  // being asked and, here, imposes the two-list shape a bug hunt needs instead of the snippet's
+  // default; the rules it used to restate are the snippet's to state, and two copies drift.
+  describe('the exploration brief carries the assignment, not the return contract', () => {
+    it('VALID: template => no longer restates the open-every-path-you-cite rule', () => {
+      expect({
+        openEveryPath: template.indexOf('Open every path you cite'),
+        inferredPath: template.indexOf('A path you inferred from its name and never opened'),
+      }).toStrictEqual({ openEveryPath: -1, inferredPath: -1 });
+    });
+
+    it('VALID: template => no longer restates the NOTHING FOUND rule', () => {
+      expect({
+        marker: template.indexOf('NOTHING FOUND'),
+        honestMiss: template.indexOf(
+          'An honest miss keeps the next agent off ground you already covered',
+        ),
+      }).toStrictEqual({ marker: -1, honestMiss: -1 });
+    });
+
+    it('VALID: exploration brief => still carries the header fields that name the assignment', () => {
+      const needle =
+        "REPO: <the repo path this session is working in> PACKAGES: <the packages this symptom most likely lives in> SYMPTOM: <the symptom as reported, in the user's own words> ENTRY: <the URL, route, command or trigger the user named> QUESTION: <the ONE thing you need confirmed — usually where this symptom surfaces>";
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // The intake-only clause. It is TRUE FOR INTAKE AND FALSE FOR AN OPERATOR, whose whole job is
+    // build-time decisions, so it can never migrate into a snippet every session reads.
+    it('VALID: exploration brief => still forbids proposing a fix or a cause it did not read', () => {
+      const needle =
+        'Never fix the bug, and never propose a fix, an implementation, or a cause you did not read off the tree. A later session owns the fix; a fix suggested here ends up in a specification whose whole job is to pin the symptom.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: exploration brief => still bounds the agent to reporting what is on disk', () => {
+      const needle =
+        'You are confirming where a reported bug surfaces in code that already exists. Report what is on disk. Decide nothing, write nothing, change nothing.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // A bug hunt wants the places a symptom COULD come from and the places it does not, which is a
+    // different question from the snippet's single-answer default — so this shape stays, stated as
+    // the override it is.
+    it('VALID: exploration brief => still imposes the SURFACES HERE / RULED OUT two-list shape', () => {
+      const needle =
+        'Return TWO lists and nothing else. SURFACES HERE — every place that could produce the reported symptom: <path>:<line> — <what the code there does> — <why it could produce this symptom> RULED OUT — every place you looked that is not it: <path> — <what is there instead>';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: exploration brief => still caps the agent at four minutes and twenty-five tool calls', () => {
+      const needle =
+        'Budget: four minutes and twenty-five tool calls, then return with whatever you have.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    // A rule about what the PARENT must not put in the brief, which no sub-agent snippet can carry.
+    it('VALID: exploration brief => still bars the drafted spec from the message the sub-agent is sent', () => {
+      const needle =
+        '**Nothing else goes in it** — not the report beyond the symptom line above, not the flow you have drafted, not the observables.';
+      const foundIndex = explorationBrief.indexOf(needle);
+
+      expect(explorationBrief.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => every pointer still names "The exploration brief"', () => {
+      expect({
+        neverReadFiles: template.includes(
+          '- NEVER read files directly — use exploration sub-agents (Task tool, `subagent_type: "Explore"`) if you need to confirm where the bug surfaces. **Send each one "The exploration brief" further down this page, filled in. That brief is the whole message.**',
+        ),
+        sectionOpener: template.includes(
+          '**Every exploration agent you start gets exactly this, filled in. Send it as the whole message.**',
+        ),
+      }).toStrictEqual({ neverReadFiles: true, sectionOpener: true });
     });
   });
 

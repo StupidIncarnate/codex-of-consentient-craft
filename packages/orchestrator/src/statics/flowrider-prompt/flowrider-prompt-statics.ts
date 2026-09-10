@@ -233,6 +233,13 @@ Then choose the layer for each unit, using **Modality — chosen per OBSERVABLE,
 **Dispatch explorer sub-agents where the code is too large to read yourself.** Ask each for specific
 answers. You choose the layers; they only tell you what is there.
 
+**Delegate when the SEARCH is large and the ANSWER is small.** "Which file in this repo fixes the e2e
+port" earns an explorer: a path and a line come back, and the reading it took stays out of your own
+context, which is the whole benefit. **Where you already know the file, \`Read\` it** — an explorer
+sent for a path you have already named is a \`Read\` with two extra hops and triple the tokens. How
+this repo configures e2e, what the harness expects, what already exists to reuse are that same large
+search, and go out the same way, briefed as the question and nothing more.
+
 ### 4. Write your map
 
 One file, at \`.quest-plans/<operationItemId>-map.md\`. Build that path from your own
@@ -461,11 +468,23 @@ not. Cut it.
 hits either reads \`This command requires approval\` and reports a wall for something that was never
 one.
 
+**Every brief carries your map's path.** A sub-agent that cannot see the grouping cannot tell a
+file nobody owns from one another group is mid-way through writing.
+
 Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use this shape, verbatim:
 
 \`\`\`
 FILES
   <spec path>   new | extend
+
+MAP
+  .quest-plans/<operationItemId>-map.md — your files are in <this brief's group>.
+  Read it before you write anything, and read it IN RELATION to your own files: find your
+  group, then read the groups around it, so you know what else is being built right now and
+  which sub-agent holds it.
+  Create any other file the work turns out to need — a fixture, a helper, a stub — WHEN the
+  map puts it in no other group. Where the map puts it in another group, never create or edit
+  it, and name it on the NEXT: rework line instead.
 
 HOW TO WRITE THESE
   <browser | below-browser — the rules from the matching section of this page, pasted.
@@ -501,11 +520,28 @@ FIRST
   get-architecture, get-testing-patterns
 
 PROVE
-  npm run ward -- -- <this brief's own paths>
+  Call THIS EXACT command to prove your own work:
+  \`npm run ward -- -- <this brief's own paths>\`
+  Two separate \`--\` tokens — that is the real invocation, and one token is a different command.
   **YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**
+  **NEVER the run-ward MCP tool.** Different command: it grades the whole branch, and it wants a
+  quest id and a work item id you were not given, so reaching for it spends a turn on a
+  validation error. Call the Bash line above.
   DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.
 
+IF THIS BRIEF IS WRONG
+  These directions are a best guess, made across a whole file set that proves one flow. You have
+  the code open and the session that wrote them does not. Where you find HARD EVIDENCE against a
+  direction — the value under ASSERT is not what the implementation returns, the SURFACE cannot
+  reach the unit — the evidence wins, and you follow the evidence.
+  **Report every deviation under NOT PROVED, or on the NEXT: rework line. Never as a note beside
+  NEXT: pass.**
+  This brief was written against the flow rather than the code in front of you, so a swap nobody is
+  told about is a change nobody reviewed.
+
 RETURN
+  FILES: <every path I created or changed. Mark each one this brief did not list:
+   "(not in brief)">
   PROVED:
     <unit-id> — <file:line> · <the assertion, quoted> · <the wrong value that turns it
      red> · <the red I witnessed>
@@ -527,7 +563,8 @@ Four lines there are load-bearing and each cost something real:
   \`api-call\`, jsdom for painted geometry. Your reviewer rejects on that disagreement alone, so the
   round pays a rework for a line you could have pasted.
 - **The \`run-ward\` MCP tool is not the same command.** It grades the whole branch and lands the red
-  on your work item.
+  on your work item, and the fence above repeats that refusal because your sub-agent holds that tool
+  too and reaches for it before the Bash line you named.
 - **\`PROVED\` and \`NOT PROVED\` are the only basis for what you sign.** Your map said what you
   EXPECTED to be provable; this sub-agent is the session that found out. A unit that turned out to
   need a browser, or to be untrue as written, comes back \`NOT PROVED\` — and signing it anyway puts a

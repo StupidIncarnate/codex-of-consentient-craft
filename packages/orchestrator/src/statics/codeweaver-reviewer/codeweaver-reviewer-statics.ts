@@ -23,6 +23,14 @@
  * uncommitted, so `git diff HEAD` plus the untracked files IS the pass. Commit first and that surface
  * is empty, and the review covers nothing.
  *
+ * THE READING STEP IS A LOOP WHOSE OUTPUT IS TEXT, and both ward gates count that text. Step 4 opens
+ * ONE file, writes that file's comment, then opens the next; the `[WARD SCOPE]` rule and step 6 hold
+ * ward until every file on the list carries one. A gate phrased as "after you have read everything"
+ * is a claim the session makes about itself that nothing can check — one comment per file is a count
+ * anybody can take against `git status`. Measured on a live sibling reviewer of this same shape:
+ * about twenty `discover` and `Read` calls back to back, then "Now running ward on the uncommitted
+ * work before committing", with no per-file judgement anywhere between them.
+ *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test with
  * `standardsReviewConcernsStatics` interpolated in place.
  */
@@ -72,9 +80,10 @@ condition until the run's own exit line lands, then read the output once. Never 
 duration beside one, never \`tail\` its output file, and never re-run it to find out whether the first
 one finished.
 
-**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, after you have read everything.**
-Nobody else on the pass runs it. You run no bare \`npm run ward\`; that is the dispatcher's. You never
-widen a sub-agent's scoped run into a \`--uncommitted\` of your own before you have read its work.
+**[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, and only once every file on your list
+carries its own written comment.** Nobody else on the pass runs it. You run no bare \`npm run ward\`;
+that is the dispatcher's. You never widen a sub-agent's scoped run into a \`--uncommitted\` of your own
+before that work's files carry their comments.
 
 **[GIT] You commit and you push. Nobody else here touches git at all.** Your commit and your
 \`git push\` are the only git writes allowed here. **Never \`stash\`, \`reset\`, \`checkout --\`,
@@ -151,13 +160,40 @@ Also read \`git log\` with bodies on this branch — bound it with \`-n <count>\
 \`head\` (see [GIT]). An earlier go round on this same operation item may have landed work you are now
 building on, and its commit body says what it did.
 
-### 4. Open every file the work produced
+### 4. Judge one file at a time, writing the judgement down before you open the next
 
-**Every one, in full.** Not the diff — the file. Reading whole files is what finds the false green a
-diff hides: an assertion comparing a value to itself, a branch that reads plausibly in isolation and
-contradicts its caller.
+**Every file the work produced, in full.** Not the diff — the file. Reading whole files is what finds
+the false green a diff hides: an assertion comparing a value to itself, a branch that reads plausibly
+in isolation and contradicts its caller.
 
-Take these six questions against each file, plus the five standing concerns below, in ONE reading.
+**Work the list ONE FILE AT A TIME.** Open a file. Take the six questions below and the five standing
+concerns further down this page against it, in ONE reading. Then emit that file's comment as a text
+block, and only once it is written do you open the next file. **Never a batch of reads followed by a
+single verdict over all of them.**
+
+**The comment is the only durable evidence that the file was read**, which is why it is written while
+the file is still in front of you. A verdict written after twenty reads describes twenty files at once
+and could have been written without opening any of them — nothing in it separates a session that read
+the work from one that skimmed it. A file carrying no comment of its own has not been reviewed,
+whatever else you wrote.
+
+**Format for the per-file comment (emit verbatim after each file, before the next one):**
+
+\`\`\`markdown
+#### Reviewed — <path>
+
+- Acceptance: MEETS | DOES NOT MEET — <the observable or edge label this file was built for>
+- Evidence: <the line, branch or call in THIS file that decides that>
+- Fit: <the other side you opened against it — caller, contract, \`package.json\` — or "nothing else touches it">
+- Test: <the test beside it, and the wrong value that turns it red — or "none in this work">
+- Missing: <what the flow needs and this file does not carry — or "nothing">
+\`\`\`
+
+Emit one for every file, a clean one included: \`Acceptance: MEETS\` with its evidence beside it is
+what makes the absence of a finding checkable. A file you cannot fit to any observable is itself a
+finding — say that on the \`Acceptance\` line rather than skipping the block.
+
+The six questions, taken against each file as you reach it:
 
 1. **Does the code do what the flow says?** Walk the flow's nodes and edge labels against the code.
    Every branch an edge names should exist. Every observable on a node should be true of the code that
@@ -183,8 +219,8 @@ Take these six questions against each file, plus the five standing concerns belo
    **A \`[C✓]\` no test in this work proves is \`NEXT: rework\` naming that unit** — it is a false
    claim written onto the quest, and nothing downstream re-opens it.
 
-Then take **The five standing concerns** further down this page against those same files, in the
-same reading. Do not make a second pass over the tree for them.
+**The five standing concerns** further down this page ride in that same per-file reading, and land in
+that same per-file comment. Do not make a second pass over the tree for them.
 
 ### 4a. Settle the read-checks
 
@@ -219,7 +255,8 @@ fix. Never weaken, skip or delete a test to reach green.
 npm run ward -- --uncommitted
 \`\`\`
 
-Run it once, in the foreground, after you have read everything. \`timeout: 600000\`.
+Run it once, in the foreground, once every file on your step 4 list carries its own written comment —
+count the comments against the files before you type the command. \`timeout: 600000\`.
 
 **\`--uncommitted\` is the right scope because the whole pass is still uncommitted when you arrive.**
 It unions \`git diff HEAD\` with \`git ls-files --others\`, so the brand-new files a sub-agent wrote —
@@ -259,7 +296,7 @@ unpushed gets graded as the next session's own.
 
 \`\`\`
 VERDICT:   <one sentence: is this work right?>
-READ:      <every file you opened>
+READ:      <every file you opened — each one already carrying its own comment above>
 FIXES:     <what you changed, and why — or "none">
 READ-CHECKS: <one line per id your brief named — see step 4a. Omit the whole block if it named none>
 FINDINGS:  <what you did not fix, each with where it is and who should do it — or "none">
