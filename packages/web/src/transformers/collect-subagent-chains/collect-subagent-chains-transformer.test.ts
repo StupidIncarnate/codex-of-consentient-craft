@@ -168,6 +168,15 @@ describe('collectSubagentChainsTransformer', () => {
         'agentId (converged path)',
         TaskNotificationChatEntryStub({ taskId: 'task-fallback', agentId: 'agent-001' }),
       ],
+      [
+        'nested chain own notification (source: subagent, agentId converged path)',
+        TaskNotificationChatEntryStub({
+          taskId: 'task-fallback',
+          agentId: 'agent-001',
+          source: 'subagent',
+          durationMs: 4380000,
+        }),
+      ],
     ])(
       'VALID: {task_notification matched by %s} => included in chain',
       (_label, taskNotification) => {
@@ -585,6 +594,36 @@ describe('collectSubagentChainsTransformer', () => {
           ],
           taskNotification: null,
           entryCount: 4,
+          contextTokens: null,
+        },
+      ]);
+    });
+  });
+
+  describe('duplicate delivery of the same Task toolUseId', () => {
+    it('VALID: {same Task toolUseId delivered as two distinct entry objects} => produces exactly ONE subagent-chain group', () => {
+      // Two distinct objects, same agentId (the wire-level toolUseId) — this is the shape the
+      // watcher's first-attach re-read produces: the same Task tool-use line delivered twice as
+      // two separate ChatEntry objects, never the SAME object reference twice.
+      const firstDelivery = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+      const secondDelivery = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [firstDelivery, secondDelivery],
+      });
+
+      // The invariant is the RATIO: one toolUseId => one group. Asserting the whole array (rather
+      // than a filtered count) also pins WHICH delivery survives — a test that only checked a
+      // count would pass on two chains merged wrong just as easily as on one chain kept right.
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-001',
+          description: 'Run tests',
+          taskToolUse: firstDelivery,
+          innerGroups: [],
+          taskNotification: null,
+          entryCount: 0,
           contextTokens: null,
         },
       ]);

@@ -1183,6 +1183,65 @@ describe('chatLineProcessTransformer', () => {
         },
       ]);
     });
+
+    it('VALID: {user with content.taskNotification.usage nested object} => lifts totalTokens/toolUses/durationMs out of usage to the top level', () => {
+      // Claude CLI's real <task-notification> XML wraps the three metrics inside a <usage> child
+      // element — `<usage><total_tokens>28054</total_tokens><tool_uses>3</tool_uses>
+      // <duration_ms>9033</duration_ms></usage>` — so fastXmlParserParseAdapter (a plain nested
+      // parse, proven by its own doc example) inflates this to
+      // `taskNotification: { ..., usage: { totalTokens: '28054', toolUses: '3',
+      // durationMs: '9033' } }`, never as flat siblings of taskId/status. Every existing fixture
+      // in this file hands the flat shape directly, which never exercised this nesting.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({
+        parsed: {
+          type: 'user',
+          message: {
+            role: 'user',
+            content: {
+              taskNotification: {
+                taskId: 'acfc7f06a8ac21baf',
+                status: 'completed',
+                summary: 'Agent completed',
+                result: 'Made both MCP calls successfully.',
+                usage: {
+                  totalTokens: '28054',
+                  toolUses: '3',
+                  durationMs: '9033',
+                },
+              },
+            },
+          },
+        },
+        source,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'system',
+              type: 'task_notification',
+              taskId: 'acfc7f06a8ac21baf',
+              status: 'completed',
+              summary: 'Agent completed',
+              result: 'Made both MCP calls successfully.',
+              totalTokens: 28054,
+              toolUses: 3,
+              durationMs: 9033,
+              source: 'session',
+              uuid: `${UUID1}:task-notification`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
   });
 
   describe('nested sub-agent parentAgentId chain nesting', () => {

@@ -46,6 +46,21 @@ export const collectSubagentChainsTransformer = ({
       const agentId = (
         'agentId' in entry && entry.agentId !== undefined ? String(entry.agentId) : ''
       ) as ChainAgentId;
+
+      // Two independent delivery paths (a live JSONL tail's from-byte-0 first attach, and the
+      // independent subscribe-time replay) can hand this transformer the SAME Task tool-use line as
+      // two distinct ChatEntry objects sharing one toolUseId — Claude CLI writes exactly one Task
+      // line per toolUseId, so a second Task entry for an agentId already grouped is a re-delivery of
+      // the first, not a second invocation. agentId IS the toolUseId (the wire key this transformer
+      // groups on), so chainsByAgentId already answers "have we built this chain" for free. Skip the
+      // duplicate outright so exactly one subagent-chain group exists per toolUseId whatever the
+      // delivery path does. Empty agentId (malformed data with no toolUseId to key on) has no
+      // reliable identity to dedupe against, so it is exempt and always gets its own chain.
+      if (agentId !== '' && chainsByAgentId.has(agentId)) {
+        consumed.add(entry);
+        continue;
+      }
+
       const fullBucket = subagentMap.get(agentId) ?? [];
       const subagentEntries = fullBucket.filter((e) => e !== entry);
 

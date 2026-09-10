@@ -241,10 +241,13 @@ export const chatLineProcessTransformer = ({
 
         // Lift inflated <task-notification> XML from message.content into a top-level
         // taskNotification field so parse-user-stream-entry can build a task_notification
-        // ChatEntry from it. The XML inflater turned the content string into
-        // { taskNotification: { taskId, status, summary?, result?, totalTokens?, toolUses?, durationMs? } }
-        // and emits totalTokens/toolUses/durationMs as STRINGS (parseTagValue: false on the
-        // adapter), so we coerce those three to numbers here to satisfy the ChatEntry contract.
+        // ChatEntry from it. The XML inflater turns the content string into
+        // { taskNotification: { taskId, status, summary?, result?, usage?: { totalTokens?,
+        // toolUses?, durationMs? } } } — Claude CLI nests the three metrics inside a <usage>
+        // child element, so the inflated shape carries them as taskNotification.usage rather
+        // than as siblings of taskId/status/summary. All three (nested or, defensively, already
+        // flat) arrive as STRINGS (parseTagValue: false on the adapter), so we coerce them to
+        // numbers here to satisfy the ChatEntry contract.
         const { message } = original;
         if (message !== undefined) {
           const { content } = message;
@@ -254,6 +257,22 @@ export const chatLineProcessTransformer = ({
             if (typeof taskNotification === 'object' && taskNotification !== null) {
               const lifted: Record<PropertyKey, unknown> = {};
               for (const [k, v] of Object.entries(taskNotification)) {
+                if (k === 'usage' && typeof v === 'object' && v !== null) {
+                  for (const [usageKey, usageValue] of Object.entries(
+                    v as Record<PropertyKey, unknown>,
+                  )) {
+                    if (
+                      NUMERIC_TASK_NOTIFICATION_KEYS.has(usageKey) &&
+                      typeof usageValue === 'string'
+                    ) {
+                      const usageNum = Number(usageValue);
+                      if (!Number.isNaN(usageNum)) {
+                        lifted[usageKey] = usageNum;
+                      }
+                    }
+                  }
+                  continue;
+                }
                 if (NUMERIC_TASK_NOTIFICATION_KEYS.has(k) && typeof v === 'string') {
                   const num = Number(v);
                   if (!Number.isNaN(num)) {
