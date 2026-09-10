@@ -26,14 +26,17 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
     });
     const packageRoot = AbsoluteFilePathStub({ value: testbed.guildPath });
 
-    harness.seedDir({ packageRoot, relativePath: STALE_CACHE, daysOld: 5 });
-    harness.seedDir({ packageRoot, relativePath: FRESH_CACHE, daysOld: 1 });
-    harness.seedDir({ packageRoot, relativePath: RECENT_TRACE, daysOld: 5 });
-    harness.seedDir({ packageRoot, relativePath: OLD_TRACE, daysOld: 9 });
+    // Every age sits a clean 2x either side of the window it is grading, so neither a rounding
+    // error nor a slow testbed can decide the result: the cache window is one day, the evidence
+    // window two.
+    harness.seedDir({ packageRoot, relativePath: STALE_CACHE, daysOld: 2 });
+    harness.seedDir({ packageRoot, relativePath: FRESH_CACHE, daysOld: 0.5 });
+    harness.seedDir({ packageRoot, relativePath: RECENT_TRACE, daysOld: 1 });
+    harness.seedDir({ packageRoot, relativePath: OLD_TRACE, daysOld: 4 });
     // Playwright's DEFAULT outputDir naming, from a repo that never adopted per-port paths. This
     // fixture is what grades the blast radius.
     harness.seedDir({ packageRoot, relativePath: FOREIGN_TRACE, daysOld: 60 });
-    harness.seedFile({ packageRoot, relativePath: OLD_REPORT, daysOld: 9 });
+    harness.seedFile({ packageRoot, relativePath: OLD_REPORT, daysOld: 4 });
 
     await e2eArtifactsPruneBroker({ packageRoot });
 
@@ -54,12 +57,12 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
       foreignTrace,
       oldReport,
     }).toStrictEqual({
-      // Past the two-day cache window. This one is the 904 MB.
+      // Past the one-day cache window. This one is the 904 MB.
       staleCache: false,
       // Inside the cache window.
       freshCache: true,
-      // Five days old, but a trace keeps the seven-day evidence window — the same window ward's
-      // own run results get, and for the same reason.
+      // Older than the cache window, and still kept: a trace carries the evidence window instead,
+      // the same one ward's own run results get, and for the same reason.
       recentTrace: true,
       // Past the evidence window.
       oldTrace: false,

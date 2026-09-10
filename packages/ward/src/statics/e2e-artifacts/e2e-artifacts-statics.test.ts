@@ -9,21 +9,21 @@ describe('e2eArtifactsStatics', () => {
           parentDir: 'node_modules',
           prefix: '.vite-',
           suffix: '',
-          ttlMs: 172_800_000,
+          ttlMs: 86_400_000,
           portKeyed: true,
         },
         {
           parentDir: 'test-results',
           prefix: '',
           suffix: '',
-          ttlMs: 604_800_000,
+          ttlMs: 172_800_000,
           portKeyed: true,
         },
         {
           parentDir: '.',
           prefix: '.ward-playwright-report-',
           suffix: '.json',
-          ttlMs: 604_800_000,
+          ttlMs: 172_800_000,
           portKeyed: true,
         },
         {
@@ -50,17 +50,28 @@ describe('e2eArtifactsStatics', () => {
 
   // The evidence window is a MIRROR of ttlStatics.runResultTtl, copied because statics cannot
   // import statics. Pin the two together so a change to the ward-result window is not silently
-  // left behind here, where the same reasoning applies to Playwright traces.
+  // left behind here, where the same reasoning applies to Playwright traces. The Vite cache is
+  // spillage and the bundle is a reused cache, so neither answers the question this window asks.
   it('VALID: evidence-bearing artifacts => share the ward run-result TTL', () => {
     const evidenceTtls = e2eArtifactsStatics.artifacts
       .filter((artifact) => artifact.parentDir !== 'node_modules')
+      .filter((artifact) => artifact.parentDir !== '.ward/bundle')
       .map((artifact) => artifact.ttlMs);
 
-    expect(evidenceTtls).toStrictEqual([
-      ttlStatics.runResultTtl,
-      ttlStatics.runResultTtl,
-      ttlStatics.runResultTtl,
-    ]);
+    expect(evidenceTtls).toStrictEqual([ttlStatics.runResultTtl, ttlStatics.runResultTtl]);
+  });
+
+  // The bundle is a CACHE that is reused across runs, not evidence, so it must NOT be pinned to the
+  // run-result window. Measured on packages/web/.ward/bundle: the oldest bundle's `index-*.js` was
+  // served 2.99 days after that bundle was built, and under `relatime` that is a lower bound — a
+  // window sized for a repair session would have thrown it away and paid a full production build to
+  // rebuild it byte for byte. Its window must therefore outlast the evidence one.
+  it('VALID: the reused bundle => outlasts the evidence window rather than mirroring it', () => {
+    const bundle = e2eArtifactsStatics.artifacts.find(
+      (artifact) => artifact.parentDir === '.ward/bundle',
+    );
+
+    expect(Number(bundle?.ttlMs)).toBeGreaterThan(ttlStatics.runResultTtl);
   });
 
   // The cache is spillage, not evidence, so it must expire sooner than the traces do. A change

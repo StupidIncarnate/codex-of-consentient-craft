@@ -100,6 +100,10 @@ describe('e2eArtifactsPruneBroker', () => {
       ]);
     });
 
+    // Three days is INSIDE the bundle's window and outside the evidence one, which is the whole
+    // reason the bundle carries its own: measured reuse on this repo reached 2.99 days. This test
+    // and the eight-day one above are what pin that boundary — tie the bundle back to the evidence
+    // window and this is the test that goes red.
     it('VALID: {a hash-named bundle three days old} => keeps it, being inside the window', async () => {
       const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
       const hash = 'f740c8e2713632d9ec1dd0c6ef7ed6aa0e0df74273dc7210276c1a2f5c1e3d22';
