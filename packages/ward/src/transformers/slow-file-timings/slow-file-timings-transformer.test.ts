@@ -291,4 +291,123 @@ describe('slowFileTimingsTransformer', () => {
       expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
     });
   });
+
+  describe('the integration bar', () => {
+    it('VALID: {2.5s of test bodies, integration} => returns nothing, where the unit bar would flag it', () => {
+      const timings = [
+        FileTimingStub({
+          filePath: 'src/spawns.integration.test.ts',
+          durationMs: 4000,
+          testMs: 2500,
+        }),
+      ];
+
+      const asIntegration = slowFileTimingsTransformer({
+        check: CheckResultStub({
+          checkType: 'integration',
+          status: 'pass',
+          projectResults: [ProjectResultStub({ fileTimings: timings })],
+        }),
+      });
+      const asUnit = slowFileTimingsTransformer({
+        check: CheckResultStub({
+          checkType: 'unit',
+          status: 'pass',
+          projectResults: [ProjectResultStub({ fileTimings: timings })],
+        }),
+      });
+
+      expect({
+        integration: asIntegration.map((timing) => timing.filePath),
+        unit: asUnit.map((timing) => timing.filePath),
+      }).toStrictEqual({
+        integration: [],
+        unit: ['src/spawns.integration.test.ts'],
+      });
+    });
+
+    it('VALID: {3.5s of test bodies, integration} => returns it, because it is over the integration bar', () => {
+      const check = CheckResultStub({
+        checkType: 'integration',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({
+                filePath: 'src/slow.integration.test.ts',
+                durationMs: 5000,
+                testMs: 3500,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check }).map((timing) => timing.filePath)).toStrictEqual([
+        'src/slow.integration.test.ts',
+      ]);
+    });
+  });
+
+  describe('a file with a recorded allowance', () => {
+    // The absolute path jest reports, not the repo-relative key — matching has to survive that.
+    const ALLOWED_PATH = '/home/someone/checkout/packages/cli/bin/cli-entry.integration.test.ts';
+
+    it('VALID: {allowed file at 6s, over the 3s bar but under its own 8s} => returns nothing', () => {
+      const check = CheckResultStub({
+        checkType: 'integration',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: ALLOWED_PATH, durationMs: 9000, testMs: 6000 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
+    });
+
+    it('VALID: {allowed file at 9s, past its own 8s} => returns it, so a regression still fails', () => {
+      const check = CheckResultStub({
+        checkType: 'integration',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: ALLOWED_PATH, durationMs: 12_000, testMs: 9000 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check }).map((timing) => timing.filePath)).toStrictEqual([
+        ALLOWED_PATH,
+      ]);
+    });
+
+    it('VALID: {an unallowed neighbour at 6s} => returns only the neighbour', () => {
+      const check = CheckResultStub({
+        checkType: 'integration',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: ALLOWED_PATH, durationMs: 9000, testMs: 6000 }),
+              FileTimingStub({
+                filePath: '/home/someone/checkout/packages/cli/bin/other.integration.test.ts',
+                durationMs: 9000,
+                testMs: 6000,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check }).map((timing) => timing.filePath)).toStrictEqual([
+        '/home/someone/checkout/packages/cli/bin/other.integration.test.ts',
+      ]);
+    });
+  });
 });

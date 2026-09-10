@@ -49,14 +49,27 @@ export const slowFileTimingsTransformer = ({ check }: { check: CheckResult }): F
       .sort((left, right) => Number(right.durationMs) - Number(left.durationMs));
   }
 
-  // A browser spec navigates, waits for real paint and talks to a real server, so holding it to the
-  // jest bar would name every spec in the package and say nothing.
-  const bar =
-    check.checkType === 'e2e'
-      ? slowFileThresholdStatics.threshold.e2eTestWarnMs
+  // Three bars, because the three jest-shaped checks measure different work. A browser spec
+  // navigates, waits for real paint and talks to a real server; an integration test may spawn real
+  // processes, and a spawned child costs about a second here before doing anything of its own.
+  // Holding either to the unit bar would name every file and say nothing.
+  const jestBar =
+    check.checkType === 'integration'
+      ? slowFileThresholdStatics.threshold.integrationTestWarnMs
       : slowFileThresholdStatics.threshold.testWarnMs;
+  const bar =
+    check.checkType === 'e2e' ? slowFileThresholdStatics.threshold.e2eTestWarnMs : jestBar;
+
+  // Matched on the END of the path, because jest reports an absolute one and an allowance is
+  // written repo-relative. A file with an allowance is measured against ITS number rather than the
+  // bar, so a known price is excused and a regression past it still fails.
+  const allowances = Object.entries(slowFileThresholdStatics.allowed);
 
   return allTimings
-    .filter((timing) => Number(timing.testMs) > bar)
+    .filter((timing) => {
+      const allowance = allowances.find(([path]) => String(timing.filePath).endsWith(path));
+      const limit = allowance === undefined ? bar : allowance[1].testMs;
+      return Number(timing.testMs) > limit;
+    })
     .sort((left, right) => Number(right.testMs) - Number(left.testMs));
 };
