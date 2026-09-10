@@ -9,10 +9,16 @@
  * USAGE:
  * const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
  * // test.beforeEach: await dispatch.beforeEach();  // clears both queues + pauses the shared runner
- * // test.afterEach:  await dispatch.afterEach();   // pauses so a leftover loop never eats the next spec's queue
+ * // test.afterEach:  await dispatch.afterEach();   // pauses this spec's own loop within the turn
  * const { questId } = await dispatch.seedQuest({ guildId, title, userRequest, operations, firstWorkItemId });
  * await dispatch.playAndDrive({ questId, script: [{ role: 'codeweaver', outcome: 'done' }, ...] });
  * await dispatch.waitForQuest({ questId, predicate: ({ quest }) => quest.status === 'complete', timeoutMs: 20_000 });
+ *
+ * The pause BETWEEN specs is not this harness's job. `e2e-fixtures` pauses on both sides of every
+ * test through an auto-fixture, so a spec that never imports this file cannot leak a running loop
+ * into the next one. What `beforeEach` adds on top is the part no fixture can guess: it clears
+ * both mock queues and drops a previous spec's `mcpHeartbeatAt`, leaving the dispatcher paused but
+ * PLAYABLE.
  */
 
 import * as fs from 'fs';
@@ -29,6 +35,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { claudeMockHarness } from '../claude-mock/claude-mock.harness';
+import { dispatchPauseHarness } from '../dispatch-pause/dispatch-pause.harness';
 import { questHarness } from '../quest/quest.harness';
 import { wardMockHarness } from '../ward-mock/ward-mock.harness';
 
@@ -40,7 +47,6 @@ const dispatchStateModeContract = z
   .object({ state: z.object({ mode: z.string().brand<'DispatchMode'>() }) })
   .transform((body) => body.state.mode);
 const DISPATCH_PLAY_ROUTE = '/api/orchestration/dispatch/play';
-const DISPATCH_PAUSE_ROUTE = '/api/orchestration/dispatch/pause';
 const POLL_INTERVAL_MS = 100;
 const DISPATCH_STATE_FILE = 'dispatch-state.json';
 
@@ -125,10 +131,7 @@ export const dispatchHarness = ({
   });
   const wardMock = wardMockHarness({ guildPath });
   const quests = questHarness({ request });
-
-  const pause = async (): Promise<void> => {
-    await request.post(DISPATCH_PAUSE_ROUTE);
-  };
+  const { pause } = dispatchPauseHarness({ request });
 
   // Drops any `mcpHeartbeatAt` a previous spec's queue hold left behind, leaving the dispatcher
   // paused but PLAYABLE.
