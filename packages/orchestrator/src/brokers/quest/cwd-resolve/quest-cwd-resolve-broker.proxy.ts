@@ -11,6 +11,7 @@ type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
 export const questCwdResolveBrokerProxy = (): {
   setupWorktreePresent: (params: { quest: Quest }) => void;
   setupWorktreeMissing: (params: { quest: Quest }) => void;
+  setupSessionRow: (params: { quest: Quest }) => void;
   setupLegacyQuest: (params: { quest: Quest; repoRoot: RepoRootCwd }) => void;
   setupQuestNotFound: () => void;
 } => {
@@ -34,6 +35,13 @@ export const questCwdResolveBrokerProxy = (): {
           code: 'ENOENT',
         }),
       });
+    },
+
+    // Stages the quest read and NOTHING ELSE. The absent fsIsAccessibleAdapter staging is the
+    // assertion: a recorded session row is served without the worktree probe, so a broker that
+    // probed anyway would hit an unstaged mock and throw rather than pass quietly.
+    setupSessionRow: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
     },
 
     // A legacy (no-worktreePath) quest is looked up TWICE by the broker under test: once by

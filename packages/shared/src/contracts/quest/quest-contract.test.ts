@@ -8,6 +8,7 @@ import { QuestCommentStub } from '../quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { QuestNoteStub } from '../quest-note/quest-note.stub';
 import { QuestPackageEntryStub } from '../quest-package-entry/quest-package-entry.stub';
+import { QuestSessionStub } from '../quest-session/quest-session.stub';
 import { RiftcarverResultStub } from '../riftcarver-result/riftcarver-result.stub';
 import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
@@ -43,6 +44,7 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         planningNotes: {
           blightLedger: [],
           questNotes: [],
@@ -80,6 +82,7 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         planningNotes: {
           blightLedger: [],
           questNotes: [],
@@ -117,6 +120,7 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         planningNotes: {
           blightLedger: [],
           questNotes: [],
@@ -239,6 +243,7 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         planningNotes: {
           blightLedger: [],
           questNotes: [],
@@ -344,6 +349,62 @@ describe('questContract', () => {
       });
 
       expect(result.riftcarverResults).toStrictEqual([]);
+    });
+
+    it('VALID: quest without sessions field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.sessions).toStrictEqual([]);
+    });
+
+    it('VALID: quest whose sessions ran in two directories => keeps each row with its own cwd', () => {
+      const intakeSession = QuestSessionStub({
+        sessionId: 'e0047cb8-02a2-448f-a1cb-909c9681f999',
+        cwd: '/repo',
+        role: 'chaoswhisperer',
+      });
+      const worktreeSession = QuestSessionStub({
+        sessionId: '8e4e1efe-5619-4d0a-8604-5e92d01423b7',
+        cwd: '/repo/worktrees/add-auth',
+        role: 'codeweaver',
+      });
+      const quest = QuestStub({
+        worktreePath: '/repo/worktrees/add-auth',
+        sessions: [intakeSession, worktreeSession],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.sessions).toStrictEqual([intakeSession, worktreeSession]);
+    });
+
+    it('VALID: session row with no workItemId => parses, so an orphaned session keeps its row', () => {
+      const orphan = QuestSessionStub({
+        sessionId: 'f1e0766c-e7fe-47f5-a2e3-60f0fddf5e4c',
+        cwd: '/repo/worktrees/add-auth',
+        role: 'codeweaver',
+      });
+      const quest = QuestStub({ sessions: [orphan] });
+
+      const result = questContract.parse(quest);
+
+      expect(result.sessions).toStrictEqual([
+        {
+          sessionId: 'f1e0766c-e7fe-47f5-a2e3-60f0fddf5e4c',
+          cwd: '/repo/worktrees/add-auth',
+          role: 'codeweaver',
+          startedAt: '2024-01-15T10:00:00.000Z',
+        },
+      ]);
     });
 
     it('VALID: quest without workItems field => backward compat defaults to empty array', () => {
@@ -521,6 +582,7 @@ describe('questContract', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         planningNotes: {
           blightLedger: [],
           questNotes: [],

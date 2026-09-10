@@ -44,12 +44,13 @@ type GuildConfig = Parameters<ReturnType<typeof guildGetBrokerProxy>['setupConfi
 
 export const chatHistoryReplayBrokerProxy = (): {
   setupGuild: (params: { config: GuildConfig; homeDir: string; sessionId: SessionId }) => void;
-  setupMainSession: (params: { content: string }) => void;
-  setupSubagentDir: (params: { files: FileName[] }) => void;
-  setupSubagentFile: (params: { content: string }) => void;
-  setupSubagentDirMissing: () => void;
+  setupMainSession: (params: { content: string; sessionId?: SessionId }) => void;
+  setupSubagentDir: (params: { files: FileName[]; sessionId?: SessionId }) => void;
+  setupSubagentFile: (params: { content: string; sessionId?: SessionId }) => void;
+  setupSubagentDirMissing: (params?: { sessionId?: SessionId }) => void;
   setupCwdResolveSuccess: (params: { cwd: string }) => void;
   setupCwdResolveReject: (params: { error: Error }) => void;
+  setupQuestSession: (params: { questId: QuestId; sessionId: SessionId; cwd: string }) => void;
   setupQuestWorktree: (params: { questId: QuestId; worktreePath: string }) => void;
   setupQuestRepoRoot: (params: { questId: QuestId; repoRoot: string }) => void;
   setupQuestWorktreeMissing: (params: { questId: QuestId; worktreePath: string }) => void;
@@ -101,10 +102,21 @@ export const chatHistoryReplayBrokerProxy = (): {
     value: absoluteFilePathContract.parse('/unset'),
   };
   const sessionIdRef: { value: SessionId } = { value: sessionIdContract.parse('unset') };
+  // A cwd is a property of the SESSION, so a read is addressed at the directory the session it
+  // belongs to resolves to — which is what lets one test stage two sessions of one carved quest at
+  // two directories. `setupQuestSession` writes this map; the quest/guild-wide ref below answers a
+  // session with no row of its own.
+  const sessionPathOverridesRef = new Map<SessionId, AbsoluteFilePath>();
   const projectPathOverrideRef: { value: AbsoluteFilePath | undefined } = { value: undefined };
-  const subagentFileQueueRef: { value: FileName[] } = { value: [] };
+  // Keyed per session: two sessions each have their own subagents/ directory, so one shared queue
+  // would let one session's `setupSubagentFile` consume the other's filename.
+  const subagentFileQueuesRef = new Map<SessionId, FileName[]>();
 
-  const resolveProjectPath = (): AbsoluteFilePath => {
+  const resolveProjectPath = ({ sessionId }: { sessionId: SessionId }): AbsoluteFilePath => {
+    const sessionPath = sessionPathOverridesRef.get(sessionId);
+    if (sessionPath !== undefined) {
+      return sessionPath;
+    }
     if (projectPathOverrideRef.value !== undefined) {
       return projectPathOverrideRef.value;
     }
@@ -112,16 +124,16 @@ export const chatHistoryReplayBrokerProxy = (): {
     return absoluteFilePathContract.parse(String(guildPath ?? '/unset'));
   };
 
-  const resolveJsonlPath = (): AbsoluteFilePath =>
+  const resolveJsonlPath = ({ sessionId }: { sessionId: SessionId }): AbsoluteFilePath =>
     claudeProjectPathEncoderTransformer({
       homeDir: homeDirRef.value,
-      projectPath: resolveProjectPath(),
-      sessionId: sessionIdRef.value,
+      projectPath: resolveProjectPath({ sessionId }),
+      sessionId,
     });
 
-  const resolveSubagentsDir = (): AbsoluteFilePath =>
+  const resolveSubagentsDir = ({ sessionId }: { sessionId: SessionId }): AbsoluteFilePath =>
     absoluteFilePathContract.parse(
-      `${stripJsonlSuffixTransformer({ filePath: resolveJsonlPath() })}/subagents`,
+      `${stripJsonlSuffixTransformer({ filePath: resolveJsonlPath({ sessionId }) })}/subagents`,
     );
 
   return {
@@ -146,23 +158,46 @@ export const chatHistoryReplayBrokerProxy = (): {
           .resolves(repoRootCwdContract.parse(String(startPath)));
       }
     },
-    setupMainSession: ({ content }: { content: string }): void => {
-      readJsonlProxy.returns({ filePath: resolveJsonlPath(), content });
+    setupMainSession: ({
+      content,
+      sessionId,
+    }: {
+      content: string;
+      sessionId?: SessionId;
+    }): void => {
+      readJsonlProxy.returns({
+        filePath: resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value }),
+        content,
+      });
     },
-    setupSubagentDir: ({ files }: { files: FileName[] }): void => {
-      readdirProxy.returns({ dirPath: resolveSubagentsDir(), files });
-      subagentFileQueueRef.value = [...files];
+    setupSubagentDir: ({
+      files,
+      sessionId,
+    }: {
+      files: FileName[];
+      sessionId?: SessionId;
+    }): void => {
+      const targetSessionId = sessionId ?? sessionIdRef.value;
+      readdirProxy.returns({ dirPath: resolveSubagentsDir({ sessionId: targetSessionId }), files });
+      subagentFileQueuesRef.set(targetSessionId, [...files]);
     },
-    setupSubagentFile: ({ content }: { content: string }): void => {
-      const fileName = subagentFileQueueRef.value.shift();
+    setupSubagentFile: ({
+      content,
+      sessionId,
+    }: {
+      content: string;
+      sessionId?: SessionId;
+    }): void => {
+      const targetSessionId = sessionId ?? sessionIdRef.value;
+      const fileName = (subagentFileQueuesRef.get(targetSessionId) ?? []).shift();
       const filePath = absoluteFilePathContract.parse(
-        `${resolveSubagentsDir()}/${String(fileName)}`,
+        `${resolveSubagentsDir({ sessionId: targetSessionId })}/${String(fileName)}`,
       );
       readJsonlProxy.returns({ filePath, content });
     },
-    setupSubagentDirMissing: (): void => {
+    setupSubagentDirMissing: ({ sessionId }: { sessionId?: SessionId } = {}): void => {
       readdirProxy.throws({
-        dirPath: resolveSubagentsDir(),
+        dirPath: resolveSubagentsDir({ sessionId: sessionId ?? sessionIdRef.value }),
         error: new Error('ENOENT: no such file or directory'),
       });
     },
@@ -179,10 +214,33 @@ export const chatHistoryReplayBrokerProxy = (): {
         cwdResolveMock.calledWith([{ startPath, kind: 'repo-root' }]).throws(error);
       }
     },
-    // The three questCwdResolveBroker scenarios below ALSO drive projectPathOverrideRef, the
-    // same ref setupCwdResolveSuccess uses — the broker computes its JSONL path from whichever
-    // cwd it resolved, regardless of which of the two resolution paths (questId vs guild
-    // walk-up) produced it, so resolveJsonlPath() only needs to know the WINNING cwd.
+    // Each questCwdResolveBroker scenario below records the cwd it resolves, so a read staged
+    // afterwards is addressed at the directory that scenario produces.
+    //
+    // The two levels mirror the broker's own precedence. `setupQuestSession` records PER SESSION
+    // and stages the more specific `[{ questId, sessionId }]` address — registerMock matches an
+    // object argument by SUBSET, so it outranks a `[{ questId }]` staging for that one session's
+    // call while every other session on the quest still gets the quest-wide answer, which
+    // `setupQuestWorktree` / `setupQuestRepoRoot` write to projectPathOverrideRef (the same ref
+    // setupCwdResolveSuccess uses, since the broker computes its JSONL path from whichever cwd
+    // won, whatever resolved it).
+    setupQuestSession: ({
+      questId,
+      sessionId,
+      cwd,
+    }: {
+      questId: QuestId;
+      sessionId: SessionId;
+      cwd: string;
+    }): void => {
+      questCwdMock.calledWith([{ questId, sessionId }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'session',
+          cwd: repoRootCwdContract.parse(cwd),
+        }),
+      );
+      sessionPathOverridesRef.set(sessionId, absoluteFilePathContract.parse(cwd));
+    },
     setupQuestWorktree: ({
       questId,
       worktreePath,

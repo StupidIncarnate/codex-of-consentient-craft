@@ -5,14 +5,11 @@ import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { questGetServerConfigBrokerProxy } from '../../quest/get-server-config/quest-get-server-config-broker.proxy';
 import { chatSubagentTailBrokerProxy } from '../subagent-tail/chat-subagent-tail-broker.proxy';
 
-type GuildConfig = Parameters<
-  ReturnType<typeof chatSubagentTailBrokerProxy>['setupGuild']
->[0]['config'];
-
 export const chatStreamProcessHandleBrokerProxy = (): {
-  setupSubagentGuild: (params: { config: GuildConfig; homeDir: string }) => void;
+  setupSubagentHomeDir: (params: { homeDir: string }) => void;
   setupSubagentLines: (params: { lines: readonly string[] }) => void;
   triggerSubagentChange: () => void;
+  lastSubagentWatchedPath: () => unknown;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
@@ -33,8 +30,8 @@ export const chatStreamProcessHandleBrokerProxy = (): {
   const dateMock: SpyOnHandle = registerSpyOn({ object: Date.prototype, method: 'toISOString' });
 
   return {
-    setupSubagentGuild: ({ config, homeDir }: { config: GuildConfig; homeDir: string }): void => {
-      subagentTailProxy.setupGuild({ config, homeDir });
+    setupSubagentHomeDir: ({ homeDir }: { homeDir: string }): void => {
+      subagentTailProxy.setupHomeDir({ homeDir });
     },
     setupSubagentLines: ({ lines }: { lines: readonly string[] }): void => {
       subagentTailProxy.setupLines({ lines });
@@ -42,6 +39,7 @@ export const chatStreamProcessHandleBrokerProxy = (): {
     triggerSubagentChange: (): void => {
       subagentTailProxy.triggerChange();
     },
+    lastSubagentWatchedPath: (): unknown => subagentTailProxy.lastWatchedPath(),
     setupUuids: ({
       uuids,
     }: {

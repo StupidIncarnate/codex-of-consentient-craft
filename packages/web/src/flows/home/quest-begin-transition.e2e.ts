@@ -38,7 +38,18 @@ wireHarnessLifecycle({ harness: environment, testObj: test });
 // the play outright can.
 test.describe('Quest Begin Transition', () => {
   test.beforeEach(async ({ request }) => {
-    dispatchHarness({ request, guildPath: GUILD_PATH }).holdQueueWithMcpHeartbeat();
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+
+    // The heartbeat hold refuses every LATER play, but it cannot stop a loop that is ALREADY
+    // running — and under a whole-package sweep an earlier spec leaves one running. The mode that
+    // loop reads is an in-memory mirror, so writing the state file does not reach it either; only
+    // the pause route does. Without this, the running loop reaches this fixture's quest, orphan
+    // recovery resets its work item to the retry ceiling, and the quest lands on `blocked` while
+    // the assertion below is waiting for `in_progress`. Reproduced on master (104-spec sweep,
+    // commit 32a43c61e) as well as here, so it predates the session-cwd work.
+    await dispatch.beforeEach();
+    dispatch.holdQueueWithMcpHeartbeat();
+
     await guildHarness({ request }).cleanGuilds();
     sessions.cleanSessionDirectory();
   });

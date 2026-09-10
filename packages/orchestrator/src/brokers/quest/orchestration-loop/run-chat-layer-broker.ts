@@ -2,15 +2,16 @@
  * PURPOSE: Spawns chaos/glyph agents from the orchestration loop. Delegates the spawn lifecycle to `agentLaunchBroker` so chat-from-loop launches identically to chat-from-server (chatSpawnBroker) and to every other orchestration agent. Builds the prompt via chatPromptBuildTransformer, resolves cwd, and forwards the launcher's onEntries to the loop's onAgentEntry. Writes sessionId + completion status back to the work item once the spawn exits.
  *
  * USAGE:
- * await runChatLayerBroker({ questId, workItem, guildId, userMessage, onAgentEntry });
+ * await runChatLayerBroker({ questId, workItem, userMessage, onAgentEntry });
  */
 
 import {
+  absoluteFilePathContract,
   adapterResultContract,
   sessionIdContract,
+  workItemRoleContract,
   type AdapterResult,
   type ExitCode,
-  type GuildId,
   type QuestId,
   type SessionId,
   type UserInput,
@@ -27,17 +28,16 @@ import { roleToModelTransformer } from '../../../transformers/role-to-model/role
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
+import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
 
 export const runChatLayerBroker = async ({
   questId,
   workItem,
-  guildId,
   userMessage,
   onAgentEntry,
 }: {
   questId: QuestId;
   workItem: WorkItem;
-  guildId: GuildId;
   userMessage?: UserInput;
   onAgentEntry: OnAgentEntryCallback;
 }): Promise<AdapterResult> => {
@@ -82,7 +82,6 @@ export const runChatLayerBroker = async ({
     }>((resolve) => {
       let trackedSessionId: SessionId | null = null;
       agentLaunchBroker({
-        guildId,
         processIdPrefix,
         prompt,
         cwd: resolvedCwd,
@@ -130,6 +129,18 @@ export const runChatLayerBroker = async ({
           questId,
           workItems: [{ id: workItem.id, sessionId: sessionIdContract.parse(sessionId) }],
         } as ModifyQuestInput,
+      });
+      // `resolvedCwd` is the cwd this child was launched with a few lines above, so the row records
+      // where the transcript really is. Best-effort: the chat itself already ran, and losing the
+      // bookkeeping row must not fail a turn that succeeded.
+      await questSessionRecordBroker({
+        questId,
+        sessionId: sessionIdContract.parse(sessionId),
+        cwd: absoluteFilePathContract.parse(resolvedCwd),
+        role: workItemRoleContract.parse(workItem.role),
+        workItemId: workItem.id,
+      }).catch((error: unknown) => {
+        process.stderr.write(`[run-chat] session cwd record failed: ${String(error)}\n`);
       });
     }
 

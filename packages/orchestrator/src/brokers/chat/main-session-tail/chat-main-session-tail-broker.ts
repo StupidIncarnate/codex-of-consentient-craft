@@ -2,14 +2,19 @@
  * PURPOSE: Tails the MAIN session JSONL file for lines appended AFTER the parent Claude CLI stdout closes, feeding them through the same processor used during streaming so background-agent task-notifications (written post-exit) reach the web as chat-output events
  *
  * USAGE:
- * const stop = await chatMainSessionTailBroker({
+ * const stop = chatMainSessionTailBroker({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
- *   guildId: GuildIdStub({ value: 'f47ac10b-...' }),
+ *   cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
  *   processor: <same processor instance used during streaming>,
  *   chatProcessId: ProcessIdStub({ value: 'proc-123' }),
  *   onEntries: ({ chatProcessId, entries }) => { },
  * });
  * // Returns a stop function. Call it on session teardown.
+ *
+ * `cwd` is the directory the tailed session was SPAWNED in, and it is required: Claude CLI names
+ * the `~/.claude/projects/<encoded-cwd>/` directory from the child's own cwd, so a carved quest
+ * writes its post-carve roles under the worktree's encoding and its intake conversation under the
+ * repo root's. Deriving one directory per guild reaches at most one of those two groups.
  *
  * WHEN-TO-USE: After `chatSpawnBroker.onComplete` fires, to catch late appends to the main
  * session JSONL. Claude CLI writes background-agent completion notifications after the parent
@@ -23,30 +28,28 @@
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import { guildGetBroker } from '../../guild/get/guild-get-broker';
 
-export const chatMainSessionTailBroker = async ({
+export const chatMainSessionTailBroker = ({
   sessionId,
-  guildId,
+  cwd,
   processor,
   onEntries,
   chatProcessId,
 }: {
   sessionId: SessionId;
-  guildId: GuildId;
+  cwd: RepoRootCwd;
   processor: ChatLineProcessor;
   onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
   chatProcessId: ProcessId;
-}): Promise<() => void> => {
-  const guild = await guildGetBroker({ guildId });
-  const projectPath = absoluteFilePathContract.parse(guild.path);
+}): (() => void) => {
+  const projectPath = absoluteFilePathContract.parse(cwd);
   const homeDir = osUserHomedirAdapter();
 
   const jsonlPath = claudeProjectPathEncoderTransformer({

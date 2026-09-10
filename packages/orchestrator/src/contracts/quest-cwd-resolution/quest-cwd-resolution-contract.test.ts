@@ -4,6 +4,26 @@ import { questCwdResolutionContract } from './quest-cwd-resolution-contract';
 import { QuestCwdResolutionStub } from './quest-cwd-resolution.stub';
 
 describe('questCwdResolutionContract', () => {
+  describe('session variant', () => {
+    it('VALID: {kind: session, cwd} => parses successfully', () => {
+      const cwd = RepoRootCwdStub({ value: '/repo' });
+
+      const result = questCwdResolutionContract.parse({ kind: 'session', cwd });
+
+      expect(result).toStrictEqual({ kind: 'session', cwd });
+    });
+
+    it('INVALID: {kind: session, missing cwd} => throws Required', () => {
+      expect(() => questCwdResolutionContract.parse({ kind: 'session' })).toThrow(/Required/u);
+    });
+
+    it('INVALID: {kind: session, cwd: relative path} => throws absolute-path error', () => {
+      expect(() =>
+        questCwdResolutionContract.parse({ kind: 'session', cwd: 'relative/path' }),
+      ).toThrow(/Path must be absolute/u);
+    });
+  });
+
   describe('worktree variant', () => {
     it('VALID: {kind: worktree, cwd} => parses successfully', () => {
       const cwd = RepoRootCwdStub({ value: '/repo/worktrees/quest-1' });

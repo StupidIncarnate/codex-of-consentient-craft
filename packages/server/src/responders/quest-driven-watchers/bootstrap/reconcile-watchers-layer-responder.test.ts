@@ -2,6 +2,7 @@ import {
   AgentIdStub,
   GuildListItemStub,
   QuestIdStub,
+  QuestSessionStub,
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
@@ -84,12 +85,12 @@ describe('ReconcileWatchersLayerResponder', () => {
     ).toBe(true);
   });
 
-  // Claude CLI encodes the JSONL directory from the child's cwd. Every role after riftcarver is
-  // spawned in the quest's WORKTREE, so a tail started against the guild path watches a file that
-  // is never written — the row streams nothing live, and only a browser reload fills it from
-  // subscribe-quest's replay, which resolves the session through the quest's own recorded cwd.
-  describe('project dir follows the quest cwd', () => {
-    it('VALID: {carved quest (worktreePath set), active worker session} => starts the tail against the WORKTREE, not the guild path', async () => {
+  // Claude CLI encodes the JSONL directory from the child's own cwd, so the tail's address is a
+  // property of the SESSION. A quest's own `worktreePath` is the fallback used only for a session
+  // the quest recorded no row for, and it is right just while every session on the quest shares one
+  // cwd — which stops being true the moment riftcarver carves.
+  describe('project dir follows the session cwd, falling back to the quest', () => {
+    it('VALID: {carved quest, no sessions row, active worker session} => falls back to the WORKTREE, not the guild path', async () => {
       const proxy = ReconcileWatchersLayerResponderProxy();
 
       const questId = QuestIdStub({ value: 'carved-quest' });
@@ -127,7 +128,118 @@ describe('ReconcileWatchersLayerResponder', () => {
       ).toBe(true);
     });
 
-    it('VALID: {spec-phase quest (no worktreePath), active intake session} => keeps the guild path, because no worktree exists to run in', async () => {
+    it('VALID: {carved quest whose sessions row places this session at the REPO ROOT} => starts the tail there, not at the worktree', async () => {
+      const proxy = ReconcileWatchersLayerResponderProxy();
+
+      const questId = QuestIdStub({ value: 'carved-quest' });
+      const intakeSessionId = 'e0047cb8-02a2-448f-a1cb-909c9681f999';
+      const worktreePath = '/repo/worktrees/add-auth-a1b2c3d4';
+
+      const guild = GuildListItemStub();
+      proxy.guildsProxy.returns({ guilds: [guild] });
+      proxy.questsProxy.returns({
+        guildId: guild.id,
+        quests: [
+          QuestStub({
+            id: questId,
+            worktreePath,
+            sessions: [
+              QuestSessionStub({
+                sessionId: SessionIdStub({ value: intakeSessionId }),
+                cwd: '/repo',
+                role: 'chaoswhisperer',
+              }),
+            ],
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: '66666666-6666-6666-6666-666666666666' }),
+                role: 'chaoswhisperer',
+                status: 'in_progress',
+                sessionId: SessionIdStub({ value: intakeSessionId }),
+              }),
+            ],
+          }),
+        ],
+      });
+      proxy.startWatcherProxy.resolves({ parentSessionId: intakeSessionId });
+
+      // The responder's own fallback is deliberately NOT '/repo', so a map miss falling through to
+      // it can never be mistaken for the row being read.
+      await ReconcileWatchersLayerResponder({
+        watchers: new Map(),
+        projectDir: '/never-used-fallback',
+      });
+
+      expect(
+        proxy.startWatcherProxy.startedWithProjectDir({
+          parentSessionId: intakeSessionId,
+          projectDir: '/repo',
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {one sessionId across TWO quests, only the SECOND recording a row} => uses the recorded cwd, not the first quest guess', async () => {
+      const proxy = ReconcileWatchersLayerResponderProxy();
+
+      const sharedSessionId = 'e0047cb8-02a2-448f-a1cb-909c9681f999';
+      const worktreePath = '/repo/worktrees/add-auth-a1b2c3d4';
+
+      const guild = GuildListItemStub();
+      proxy.guildsProxy.returns({ guilds: [guild] });
+      proxy.questsProxy.returns({
+        guildId: guild.id,
+        quests: [
+          QuestStub({
+            id: QuestIdStub({ value: 'guessing-quest' }),
+            folder: '001-guessing-quest',
+            worktreePath,
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: '66666666-6666-6666-6666-666666666666' }),
+                role: 'codeweaver',
+                status: 'in_progress',
+                sessionId: SessionIdStub({ value: sharedSessionId }),
+              }),
+            ],
+          }),
+          QuestStub({
+            id: QuestIdStub({ value: 'recording-quest' }),
+            folder: '002-recording-quest',
+            worktreePath,
+            sessions: [
+              QuestSessionStub({
+                sessionId: SessionIdStub({ value: sharedSessionId }),
+                cwd: '/repo',
+                role: 'codeweaver',
+              }),
+            ],
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: '99999999-9999-9999-9999-999999999999' }),
+                role: 'codeweaver',
+                status: 'in_progress',
+                sessionId: SessionIdStub({ value: sharedSessionId }),
+              }),
+            ],
+          }),
+        ],
+      });
+      proxy.startWatcherProxy.resolves({ parentSessionId: sharedSessionId });
+
+      await ReconcileWatchersLayerResponder({
+        watchers: new Map(),
+        projectDir: '/never-used-fallback',
+      });
+
+      expect(
+        proxy.startWatcherProxy.startedWithProjectDir({
+          parentSessionId: sharedSessionId,
+          projectDir: '/repo',
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {spec-phase quest, no sessions row, active intake session} => keeps the guild path, because no worktree exists to run in', async () => {
       const proxy = ReconcileWatchersLayerResponderProxy();
 
       const questId = QuestIdStub({ value: 'spec-quest' });

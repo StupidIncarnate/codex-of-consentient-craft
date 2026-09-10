@@ -362,6 +362,9 @@ export * from './src/contracts/ward-result/ward-result.stub';
 export * from './src/contracts/riftcarver-result/riftcarver-result-contract';
 export * from './src/contracts/riftcarver-result/riftcarver-result.stub';
 
+export * from './src/contracts/quest-session/quest-session-contract';
+export * from './src/contracts/quest-session/quest-session.stub';
+
 export * from './src/contracts/work-item/work-item-contract';
 export * from './src/contracts/work-item/work-item.stub';
 

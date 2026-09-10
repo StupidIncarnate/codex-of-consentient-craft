@@ -14,6 +14,7 @@ import { signalBackBrokerProxy } from '../../../brokers/signal/back/signal-back-
 import { orchestratorGetAgentPromptAdapterProxy } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter.proxy';
 import { orchestratorHandleSignalBackAdapterProxy } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
+import { orchestratorRecordQuestSessionAdapterProxy } from '../../../adapters/orchestrator/record-quest-session/orchestrator-record-quest-session-adapter.proxy';
 import { InteractionHandleResponder } from './interaction-handle-responder';
 import { ResolveSubagentIdentityLayerResponderProxy } from './resolve-subagent-identity-layer-responder.proxy';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
@@ -60,6 +61,10 @@ export const InteractionHandleResponderProxy = (): {
   // Same story for the get-agent-prompt work-item stamp: the questId varies per test and the
   // stamp's result is never read, so this stages an explicit wildcard resolve too.
   modifyProxy.returns({ result: ModifyQuestResultStub() });
+  // And again for the session-cwd row the same stamp appends: the sessionId is discovered by the
+  // JSONL scan rather than supplied by the test, so there is no per-test address to key on.
+  const recordSessionProxy = orchestratorRecordQuestSessionAdapterProxy();
+  recordSessionProxy.returns({});
   const layerProxy = ResolveSubagentIdentityLayerResponderProxy();
 
   return {

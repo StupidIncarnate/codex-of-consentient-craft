@@ -35,6 +35,7 @@ import type {
   OperationItem,
   Quest,
   QuestId,
+  QuestSession,
   RiftcarverResult,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
@@ -62,6 +63,7 @@ export const questOperationsUpdateBroker = async ({
     worktreePath?: NonNullable<Quest['worktreePath']>;
     packageGraph?: Quest['packageGraph'];
     riftcarverResults?: RiftcarverResult[];
+    sessions?: QuestSession[];
   } | null;
 }): Promise<{ quest: Quest } | null> =>
   questWithModifyLockBroker({
@@ -103,6 +105,11 @@ export const questOperationsUpdateBroker = async ({
       // all-or-nothing in one write — and riding this broker keeps `riftcarverResults` off the
       // modify-quest allowlist entirely, since no agent ever writes it.
       const nextRiftcarverResults = changes.riftcarverResults ?? quest.riftcarverResults;
+      // The session ledger rides here for the same reason riftcarver's ref does, and stays off the
+      // modify-quest allowlist entirely: no agent writes it, and the row recording where a session
+      // ran must land atomically with the work-item stamp naming that session — a crash between two
+      // writes leaves a sessionId whose directory nothing knows.
+      const nextSessions = changes.sessions ?? quest.sessions;
 
       const mutated = questContract.parse({
         ...quest,
@@ -110,6 +117,7 @@ export const questOperationsUpdateBroker = async ({
         workItems: nextWorkItems,
         packageGraph: nextPackageGraph,
         riftcarverResults: nextRiftcarverResults,
+        sessions: nextSessions,
         ...(nextBaseRef === undefined ? {} : { baseRef: nextBaseRef }),
         ...(nextBranchName === undefined ? {} : { branchName: nextBranchName }),
         ...(nextBaseBranch === undefined ? {} : { baseBranch: nextBaseBranch }),

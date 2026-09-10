@@ -24,6 +24,8 @@ import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.p
 import { chatStreamProcessHandleBrokerProxy } from '../stream-process-handle/chat-stream-process-handle-broker.proxy';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
+import { questSessionRecordBroker } from '../../quest/session-record/quest-session-record-broker';
+import { questSessionRecordBrokerProxy } from '../../quest/session-record/quest-session-record-broker.proxy';
 import { resolveChatQuestLayerBrokerProxy } from './resolve-chat-quest-layer-broker.proxy';
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;
@@ -120,7 +122,7 @@ export const chatSpawnBrokerProxy = (): {
   // Delegated to agentLaunchBrokerProxy so callers (e.g. chat-start-responder tests) can
   // seed the post-exit main-session-tail mocks the launcher's onComplete starts. The
   // responder no longer touches chatMainSessionTailBroker directly — the launcher owns it.
-  setupMainTailGuild: AgentLaunchProxy['setupMainTailGuild'];
+  setupMainTailHomeDir: AgentLaunchProxy['setupMainTailHomeDir'];
   setupMainTailLines: AgentLaunchProxy['setupMainTailLines'];
   triggerMainTailChange: AgentLaunchProxy['triggerMainTailChange'];
   // Exposed for composing proxies (e.g. FollowupChatStartResponderProxy) that drive
@@ -154,6 +156,17 @@ export const chatSpawnBrokerProxy = (): {
   // path.join/os.homedir, not on these brokers), so these are registration-only.
   locationsQuestFolderPathFindBrokerProxy();
   locationsQuestImagesPathFindBrokerProxy();
+  // The session-cwd row rides the same per-quest lock and quest-file walk as the ledger writes and
+  // has its own suite, so it is mocked at the module boundary rather than staged through the quest
+  // file proxies. This call satisfies enforce-proxy-child-creation, which tracks the import edge.
+  questSessionRecordBrokerProxy();
+  // Fire-and-forget from a callback: the sessionId comes from the child's own init line, so there
+  // is no per-test address to key on and the row's content is asserted by that broker's own suite.
+  // An unstaged call would throw INSIDE the spawn's `.catch`, adding a stderr line that tests
+  // asserting on stderr would then have to account for.
+  registerMock({ fn: questSessionRecordBroker })
+    .calledWith([])
+    .resolves({ success: true as const });
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(CREATED_QUEST_ID);
 
@@ -348,7 +361,7 @@ export const chatSpawnBrokerProxy = (): {
 
     getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
 
-    setupMainTailGuild: launchProxy.setupMainTailGuild,
+    setupMainTailHomeDir: launchProxy.setupMainTailHomeDir,
     setupMainTailLines: launchProxy.setupMainTailLines,
     triggerMainTailChange: launchProxy.triggerMainTailChange,
 

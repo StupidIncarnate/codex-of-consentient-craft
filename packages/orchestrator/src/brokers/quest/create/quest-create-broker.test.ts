@@ -61,6 +61,7 @@ describe('questCreateBroker', () => {
       workItems: [],
       wardResults: [],
       riftcarverResults: [],
+      sessions: [],
       planningNotes: {
         blightLedger: [],
         questNotes: [],

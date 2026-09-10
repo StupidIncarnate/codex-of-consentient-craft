@@ -2,10 +2,8 @@ import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
-  GuildConfigStub,
-  GuildIdStub,
-  GuildStub,
   ProcessIdStub,
+  RepoRootCwdStub,
   SessionIdStub,
   SystemInitStreamLineStub,
   TaskToolResultStreamLineStub,
@@ -40,7 +38,7 @@ describe('chatStreamProcessHandleBroker', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       proxy.setupTimestamps({ timestamps: [TS] });
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const sessionId = SessionIdStub({ value: 'sess-fallback' });
       const chatProcessId = ProcessIdStub({ value: 'proc-fallback' });
 
@@ -48,7 +46,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         sessionId,
         onEntries: ({ chatProcessId: cpid, entries, sessionId: sid }) => {
           calls.push({ chatProcessId: cpid, entries, sessionId: sid });
@@ -79,13 +77,13 @@ describe('chatStreamProcessHandleBroker', () => {
     it('EMPTY: {rawLine: ""} => onEntries never fires', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-empty' });
       const calls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: (params) => {
           calls.push(params);
         },
@@ -103,7 +101,7 @@ describe('chatStreamProcessHandleBroker', () => {
     it('VALID: {rawLine: assistant text JSON} => onEntries fires with parsed entries', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const sessionId = SessionIdStub({ value: 'sess-text' });
       const chatProcessId = ProcessIdStub({ value: 'proc-text' });
 
@@ -111,7 +109,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         sessionId,
         onEntries: (params) => {
           calls.push(params);
@@ -156,13 +154,13 @@ describe('chatStreamProcessHandleBroker', () => {
     it('VALID: {system/init line first then assistant text} => second emit carries memoized sessionId from init', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-init' });
       const calls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: ({ sessionId: sid, entries }) => {
           calls.push({ sessionId: sid, entryCount: entries.length });
         },
@@ -203,12 +201,10 @@ describe('chatStreamProcessHandleBroker', () => {
   describe('sub-agent dispatch', () => {
     it('VALID: {parent emits Task tool_use + tool_result with toolUseResult.agentId after init} => agent-detected starts chatSubagentTailBroker; sub-agent line tails through onEntries with source=subagent and agentId=toolUseId', async () => {
       const proxy = chatStreamProcessHandleBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-subagent' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupSubagentGuild({ config, homeDir: '/home/user' });
+      proxy.setupSubagentHomeDir({ homeDir: '/home/user' });
       proxy.setupSubagentLines({
         lines: [
           streamLineToJsonLineTransformer({
@@ -230,7 +226,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: ({ entries }) => {
           allEntries.push(...entries);
         },
@@ -342,19 +338,17 @@ describe('chatStreamProcessHandleBroker', () => {
 
     it('VALID: {handle.stop() called after sub-agent setup} => no further sub-agent entries flow through onEntries', async () => {
       const proxy = chatStreamProcessHandleBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-stop' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupSubagentGuild({ config, homeDir: '/home/user' });
+      proxy.setupSubagentHomeDir({ homeDir: '/home/user' });
       proxy.setupSubagentLines({ lines: [] });
 
       const allCapturedEntries: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: ({ entries }) => {
           allCapturedEntries.push(...entries);
         },
@@ -451,7 +445,7 @@ describe('chatStreamProcessHandleBroker', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       proxy.setupTimestamps({ timestamps: [TS] });
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-text-fallback' });
 
       const textCalls: unknown[] = [];
@@ -459,7 +453,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: () => {},
         onText: ({ chatProcessId: cpid, text }) => {
           textCalls.push({ chatProcessId: cpid, text });
@@ -483,14 +477,14 @@ describe('chatStreamProcessHandleBroker', () => {
     it('VALID: {assistant text JSON line} => onText fires once with extracted text', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-text-json' });
 
       const textCalls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: () => {},
         onText: ({ chatProcessId: cpid, text }) => {
           textCalls.push({ chatProcessId: cpid, text });
@@ -524,14 +518,14 @@ describe('chatStreamProcessHandleBroker', () => {
     it('EMPTY: {assistant tool_use JSON line with no text content} => onText does not fire', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-text-no-fire' });
 
       const textCalls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: () => {},
         onText: (params) => {
           textCalls.push(params);
@@ -569,14 +563,14 @@ describe('chatStreamProcessHandleBroker', () => {
     it('VALID: {assistant signal-back tool_use line} => onSignal fires once with parsed StreamSignal', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-signal' });
 
       const signalCalls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: () => {},
         onText: () => {},
         onSignal: ({ chatProcessId: cpid, signal }) => {
@@ -620,14 +614,14 @@ describe('chatStreamProcessHandleBroker', () => {
     it('EMPTY: {assistant text JSON line} => onSignal does not fire', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-no-signal' });
 
       const signalCalls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: () => {},
         onText: () => {},
         onSignal: (params) => {
@@ -658,14 +652,14 @@ describe('chatStreamProcessHandleBroker', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       proxy.setupTimestamps({ timestamps: [TS] });
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const chatProcessId = ProcessIdStub({ value: 'proc-fallback-no-signal' });
 
       const signalCalls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         onEntries: () => {},
         onText: () => {},
         onSignal: (params) => {
@@ -683,7 +677,7 @@ describe('chatStreamProcessHandleBroker', () => {
     it('VALID: {user line whose message.content is A![Pasted Image 1](/p/x.png)B} => emitted entry content is the rewritten /api/images URL', () => {
       chatStreamProcessHandleBrokerProxy();
 
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const cwd = RepoRootCwdStub({ value: '/home/user/my-project' });
       const sessionId = SessionIdStub({ value: 'sess-image' });
       const chatProcessId = ProcessIdStub({ value: 'proc-image' });
 
@@ -691,7 +685,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const handle = chatStreamProcessHandleBroker({
         chatProcessId,
-        guildId,
+        cwd,
         sessionId,
         onEntries: ({ entries }) => {
           capturedEntries.push(...entries);

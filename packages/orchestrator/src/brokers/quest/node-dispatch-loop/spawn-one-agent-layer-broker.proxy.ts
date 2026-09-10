@@ -12,12 +12,19 @@ import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-sp
 import { questGetBroker } from '../get/quest-get-broker';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
+import { questSessionRecordBrokerProxy } from '../session-record/quest-session-record-broker.proxy';
 
 // The overload-retry path re-reads the quest to check whether the dying child signalled back
 // during the backoff. quest-get-broker's fs-walk has its own test suite; here it only supplies
 // that one status, so it is mocked at the module boundary rather than staged through four
 // filesystem proxies.
 registerModuleMock({ module: '../get/quest-get-broker' });
+
+// The session-cwd row rides the same per-quest lock and quest-file walk as the ledger writes, and
+// has its own suite. Here it is a side effect this broker fires and never reads, so it is mocked at
+// the module boundary for the same reason as quest-get-broker above.
+registerModuleMock({ module: '../session-record/quest-session-record-broker' });
 
 const PROCESS_UUID = '00000000-0000-4000-8000-00000000d15b';
 
@@ -50,6 +57,7 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   const timerProxy = timerSetTimeoutAdapterProxy();
   // Wired to satisfy dependency discovery; the module mock above supplies the return values.
   questGetBrokerProxy();
+  questSessionRecordBrokerProxy();
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(PROCESS_UUID);
 
@@ -62,6 +70,13 @@ export const spawnOneAgentLayerBrokerProxy = (): {
     stderr.push(String(chunk));
     return true;
   }) as never);
+
+  // No per-test address to key on: the sessionId comes from the child's own init line and the row's
+  // content is asserted by the session-record broker's own suite, so this stages an explicit
+  // wildcard resolve rather than leaving the call unstaged.
+  registerMock({ fn: questSessionRecordBroker })
+    .calledWith([])
+    .resolves({ success: true as const });
 
   const getMock = registerMock({ fn: questGetBroker });
   // Default: the quest carries no matching work item, so the retry proceeds (the terminal check

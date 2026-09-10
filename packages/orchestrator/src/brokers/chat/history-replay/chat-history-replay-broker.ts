@@ -87,19 +87,22 @@ export const chatHistoryReplayBroker = async ({
   // session-view path).
   agentId?: AgentId;
   guildId: GuildId;
-  // When set, the session's JSONL directory is resolved through the quest's own recorded cwd
-  // (questCwdResolveBroker) instead of walking up from the guild path — chat sessions now spawn
-  // with the quest's worktree as cwd, so Claude CLI encodes the JSONL path from that worktree,
-  // not the guild path. Left undefined for a session with no linked quest (e.g. the raw
-  // session-view path replayed by `chat-replay-responder`'s orphan branch) — there is no
-  // quest-recorded worktree to prefer for that case, so it keeps the guild-path walk-up below.
+  // When set, the JSONL directory is resolved through the quest rather than by walking up from the
+  // guild path — and resolved FOR THIS SESSION, since `sessionId` rides along to
+  // questCwdResolveBroker. That ordering is the whole point: a carved quest's intake conversation
+  // ran at the repo root while every role after riftcarver ran in the worktree, so the quest's own
+  // `worktreePath` describes at most one of the two groups. A session with a recorded row reads
+  // that row; one without falls back to the per-quest answer, unchanged.
+  //
+  // Left undefined for a session with no linked quest (the raw session-view path replayed by
+  // `chat-replay-responder`'s orphan branch), which keeps the guild-path walk-up below.
   questId?: QuestId;
   onEntries: (params: { entries: ChatEntry[] }) => void;
 }): Promise<AdapterResult> => {
   const result = adapterResultContract.parse({ success: true });
   const resolvedProjectPath = await (async () => {
     if (questId !== undefined) {
-      const resolution = await questCwdResolveBroker({ questId });
+      const resolution = await questCwdResolveBroker({ questId, sessionId });
       if (resolution.kind === 'missing-worktree') {
         throw new Error(
           `Cannot replay chat history for quest ${questId}: worktree not found: ${resolution.worktreePath}`,

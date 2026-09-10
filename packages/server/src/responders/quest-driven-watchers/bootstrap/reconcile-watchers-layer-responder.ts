@@ -34,6 +34,7 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import { orchestratorListQuestsFullAdapter } from '../../../adapters/orchestrator/list-quests-full/orchestrator-list-quests-full-adapter';
@@ -70,6 +71,10 @@ export const ReconcileWatchersLayerResponder = async ({
 
   const target = new Set<SessionId>();
   const projectDirBySessionId = new Map<SessionId, GuildPath>();
+  // Which entries came from a quest's own `sessions` ledger rather than from the per-quest guess.
+  // Tracked separately so "measured beats inferred" holds regardless of the order guilds are walked
+  // in — see the comment at the assignment below.
+  const recordedProjectDirSessions = new Set<SessionId>();
   // Sessions whose active work item carries a sessionId but NO agentId are top-level
   // node-dispatch workers (spawn-batch stamps sessionId, never agentId; /dumpster-launch
   // get-agent-prompt stamps BOTH). Their own agent (codeweaver/flowrider/…) writes the
@@ -82,18 +87,12 @@ export const ReconcileWatchersLayerResponder = async ({
   // per-quest event — a frame with no questId reaches no subscriber at all.
   const workerQuestIdBySessionId = new Map<SessionId, QuestId>();
   for (const quest of loadedQuests) {
-    // A CARVED quest runs its sessions in the WORKTREE, and Claude CLI encodes the JSONL
-    // directory from the child's cwd — so every role dispatched after riftcarver writes under the
-    // worktree's encoding, not the guild's. Resolving this from the guild path alone pointed the
-    // tail at a file that never appears: the execution row streamed nothing live, and only a
-    // browser reload filled it, because subscribe-quest's replay resolves the same session
-    // through the quest's OWN recorded cwd (chatHistoryReplayBroker's `questId` param →
-    // questCwdResolveBroker) and therefore finds the real file. Live and replay disagreeing about
-    // where a session lives is the whole defect.
-    //
-    // `worktreePath` is undefined for the entire spec phase, so an intake chat still resolves to
-    // the guild path; and the active-work-item filter below means a session recorded BEFORE the
-    // carve is already out of scope rather than being re-targeted at a worktree it never ran in.
+    // The FALLBACK, for a session the quest recorded no row for. Claude CLI encodes the JSONL
+    // directory from the child's own cwd, so this per-quest guess is right only while every
+    // session on the quest shares one: it holds through the spec phase, and stops holding the
+    // moment riftcarver carves, because the intake conversation stays under the guild encoding
+    // while every role after the carve writes under the worktree's. Live and replay disagreeing
+    // about where a session lives is the whole defect the ledger below closes.
     const questProjectDir =
       quest.worktreePath === undefined
         ? guildPathByQuestId.get(quest.id)
@@ -102,7 +101,20 @@ export const ReconcileWatchersLayerResponder = async ({
       if (wi.sessionId === undefined) continue;
       if (!isActiveWorkItemStatusGuard({ status: wi.status })) continue;
       target.add(wi.sessionId);
-      if (questProjectDir !== undefined && !projectDirBySessionId.has(wi.sessionId)) {
+      // A recorded row is where the session ACTUALLY ran, so it outranks the guess above — and it
+      // must outrank it whichever quest the walk reached first. One sessionId legitimately appears
+      // on work items across SEVERAL quests (a `/dumpster-launch` dispatcher stamps its own session
+      // on every item it dispatches), so a plain first-writer-wins would let the first quest's
+      // guess lock the map and a later quest's real row never land. Two guesses still keep
+      // first-writer-wins, which is the arbitrary tie-break the ledger retires one session at a
+      // time.
+      const recordedCwd = questSessionCwdTransformer({ quest, sessionId: wi.sessionId });
+      if (recordedCwd !== null) {
+        if (!recordedProjectDirSessions.has(wi.sessionId)) {
+          projectDirBySessionId.set(wi.sessionId, guildPathContract.parse(recordedCwd));
+          recordedProjectDirSessions.add(wi.sessionId);
+        }
+      } else if (questProjectDir !== undefined && !projectDirBySessionId.has(wi.sessionId)) {
         projectDirBySessionId.set(wi.sessionId, questProjectDir);
       }
       if (wi.agentId === undefined && !workerWorkItemIdBySessionId.has(wi.sessionId)) {

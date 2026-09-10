@@ -6,7 +6,7 @@ import type {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { ExitCodeStub, GuildConfigStub } from '@dungeonmaster/shared/contracts';
+import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
@@ -21,8 +21,6 @@ import { pendingClarificationStateProxy } from '../../../state/pending-clarifica
 import { ChatStartResponder } from './chat-start-responder';
 
 registerModuleMock({ module: '../../../brokers/quest/get/quest-get-broker' });
-
-type GuildConfig = ReturnType<typeof GuildConfigStub>;
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;
 
@@ -70,7 +68,7 @@ export const ChatStartResponderProxy = ({
       payload: Record<PropertyKey, unknown>;
     }[];
   };
-  setupMainTailGuild: (params: { config: GuildConfig; homeDir: string }) => void;
+  setupMainTailHomeDir: (params: { homeDir: string }) => void;
   setupMainTailLines: (params: { lines: readonly string[] }) => void;
   triggerMainTailChange: () => void;
   setupQuestGetImmediate: (params: { quest: Quest }) => void;
@@ -167,7 +165,7 @@ export const ChatStartResponderProxy = ({
 
       return { getEmittedEvents: () => emittedEvents };
     },
-    setupMainTailGuild: spawnProxy.setupMainTailGuild,
+    setupMainTailHomeDir: spawnProxy.setupMainTailHomeDir,
     setupMainTailLines: spawnProxy.setupMainTailLines,
     triggerMainTailChange: spawnProxy.triggerMainTailChange,
     // Resolve questGetBroker immediately with the supplied quest. Use when the test wants

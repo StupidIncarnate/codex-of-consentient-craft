@@ -498,6 +498,237 @@ describe('chatHistoryReplayBroker', () => {
         /Cannot replay chat history for quest .*: worktree not found: \/home\/user\/worktrees\/quest-missing99/u,
       );
     });
+
+    it('VALID: {quest records a worktreePath AND a sessions row placing this session at the repo root} => reads the REPO-ROOT directory, not the worktree', async () => {
+      // A cwd is a property of the SESSION, not of the quest: the intake conversation of a carved
+      // quest ran at the repo root, so its transcript is under the repo-root encoding even though
+      // the quest's own `worktreePath` names the worktree every later role ran in. The JSONL read
+      // is staged ONLY at the repo-root address, so a resolution that ignored the recorded row and
+      // took the quest-wide worktree answer would miss its address and reject.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questId = QuestIdStub({ value: '3d2f8a1c-7e4b-4c9d-8a1f-2b3c4d5e6f70' });
+      const sessionId = SessionIdStub({ value: 'test-session-intake-at-repo-root' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupQuestWorktree({ questId, worktreePath: '/home/user/worktrees/quest-abc12345' });
+      proxy.setupQuestSession({ questId, sessionId, cwd: '/home/user/my-project' });
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","uuid":"intake-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"intake reply"}]}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        questId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'intake reply',
+            source: 'session',
+            uuid: 'intake-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {two sessions on one carved quest — intake at the repo root, codeweaver in the worktree} => each replay reads its own directory', async () => {
+      // The two halves of a carved quest's transcript live in two `~/.claude/projects/` directories
+      // at once. Each session's JSONL is staged at its OWN address with its own content, so a
+      // resolution that answered one directory for the whole quest would read the wrong file for
+      // one of the two calls and reject on an unstaged address.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questId = QuestIdStub({ value: '5a7c9e11-2b4d-4f60-9c83-1e2d3f405162' });
+      const intakeSessionId = SessionIdStub({ value: 'test-session-carved-intake' });
+      const codeweaverSessionId = SessionIdStub({ value: 'test-session-carved-codeweaver' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId: intakeSessionId, homeDir: '/home/user' });
+      proxy.setupQuestSession({
+        questId,
+        sessionId: intakeSessionId,
+        cwd: '/home/user/my-project',
+      });
+      proxy.setupQuestSession({
+        questId,
+        sessionId: codeweaverSessionId,
+        cwd: '/home/user/worktrees/quest-abc12345',
+      });
+      proxy.setupMainSession({
+        sessionId: intakeSessionId,
+        content:
+          '{"type":"assistant","uuid":"carved-intake-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"intake at repo root"}]}}',
+      });
+      proxy.setupMainSession({
+        sessionId: codeweaverSessionId,
+        content:
+          '{"type":"assistant","uuid":"carved-codeweaver-line-uuid","timestamp":"2025-01-01T00:00:02Z","message":{"content":[{"type":"text","text":"codeweaver in worktree"}]}}',
+      });
+      proxy.setupSubagentDirMissing({ sessionId: intakeSessionId });
+      proxy.setupSubagentDirMissing({ sessionId: codeweaverSessionId });
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId: intakeSessionId,
+        guildId,
+        questId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+      await chatHistoryReplayBroker({
+        sessionId: codeweaverSessionId,
+        guildId,
+        questId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'intake at repo root',
+            source: 'session',
+            uuid: 'carved-intake-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
+          },
+        ],
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'codeweaver in worktree',
+            source: 'session',
+            uuid: 'carved-codeweaver-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02Z',
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {sessions row present, recorded worktree gone from disk} => replays from the recorded cwd instead of throwing', async () => {
+      // A transcript lives under `~/.claude/projects/`, so it outlives the directory it was written
+      // from. A recorded row is therefore served WITHOUT the worktree accessibility probe: the same
+      // quest that throws `worktree not found` for a session with no row (the ERROR case above)
+      // replays normally for a session that has one.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questId = QuestIdStub({ value: '7e1b4c26-8d3a-4f52-9b07-6c5d4e3f2a19' });
+      const sessionId = SessionIdStub({ value: 'test-session-row-outlives-worktree' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupQuestWorktreeMissing({
+        questId,
+        worktreePath: '/home/user/worktrees/quest-deleted7',
+      });
+      proxy.setupQuestSession({
+        questId,
+        sessionId,
+        cwd: '/home/user/worktrees/quest-deleted7',
+      });
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","uuid":"outlived-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"transcript outlived the worktree"}]}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        questId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'transcript outlived the worktree',
+            source: 'session',
+            uuid: 'outlived-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {quest records a worktreePath and no sessions row for this session} => keeps the worktree-derived directory', async () => {
+      // The fallback: a row belongs to ONE session, so a quest that records a row for a sibling
+      // session still answers this one with its quest-wide worktree. The sibling's row is staged
+      // and its directory is never staged for a read, so a lookup that matched the wrong row would
+      // address an unstaged path and reject.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questId = QuestIdStub({ value: '9f0a1b2c-3d4e-4a5b-8c6d-7e8f9a0b1c2d' });
+      const sessionId = SessionIdStub({ value: 'test-session-no-row-of-its-own' });
+      const siblingSessionId = SessionIdStub({ value: 'test-session-sibling-with-a-row' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupQuestWorktree({ questId, worktreePath: '/home/user/worktrees/quest-abc12345' });
+      proxy.setupQuestSession({
+        questId,
+        sessionId: siblingSessionId,
+        cwd: '/home/user/my-project',
+      });
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","uuid":"fallback-worktree-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"worktree fallback reply"}]}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        questId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'worktree fallback reply',
+            source: 'session',
+            uuid: 'fallback-worktree-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
+          },
+        ],
+      ]);
+    });
   });
 
   describe('two-pass sub-agent correlation', () => {

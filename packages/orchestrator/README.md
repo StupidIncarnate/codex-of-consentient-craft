@@ -1,9 +1,10 @@
 # Harness behaviour this package depends on
 
-**Every claim on this page is measured against Claude Code `2.1.265`, and none of it is documented by
-Anthropic.** It is harness behaviour, not API, so it can change in any release. Before trusting a
-line here, check `claude --version`; if it does not read `2.1.265`, re-measure before relying on it.
-The last section says how.
+**Every claim on this page is measured, and none of it is documented by Anthropic.** It is harness
+behaviour, not API, so it can change in any release. Claims were measured against Claude Code
+`2.1.265` unless a section names its own version. Before trusting a line here, check
+`claude --version` against the version that line was measured at; if it has moved, re-measure. The
+last section says how.
 
 This matters because `child-process-spawn-stream-json-adapter.ts` spawns a headless `claude -p`
 child for every Node-dispatched role, and a headless child does not behave like the interactive
@@ -61,11 +62,51 @@ the task silent and with it printing every 5 s — all lost the task while the c
 17 s. The adapter still sets it, defensively and at no cost, in case a later release honours it. The
 protection that actually works is the `SubagentStop` guard.
 
+## Where a session's transcript is written — measured against `2.1.266`
+
+Claude CLI writes every transcript under `~/.claude/projects/`, never inside the project. **One
+input decides which folder: the session's own cwd**, with every character that is not an ASCII
+letter or digit replaced by `-`, one for one. `claudeProjectPathEncoderTransformer` mirrors that
+rule.
+
+```
+~/.claude/projects/<encoded cwd>/<sessionId>.jsonl
+~/.claude/projects/<encoded cwd>/<sessionId>/subagents/agent-<realAgentId>.jsonl
+~/.claude/projects/<encoded cwd>/<sessionId>/subagents/agent-<realAgentId>.meta.json
+```
+
+Four things follow, each measured directly:
+
+- **A sub-agent is not a session.** It gets no session id and no directory of its own. Every line of
+  its file carries the PARENT's `sessionId` and the PARENT's `cwd`, plus `isSidechain: true`. Its own
+  identity lives only in the filename and the `.meta.json` sidecar.
+- **A sub-agent inherits its parent's cwd, and nothing an agent does changes that.** A parent sitting
+  in the repo root that calls `create-worktree` and then dispatches a sub-agent gets a sub-agent
+  whose own `pwd` is still the repo root — it reaches the worktree only through absolute paths. A
+  parent whose cwd IS a worktree gets a sub-agent in that worktree.
+- **Nesting is flat.** A sub-agent spawned by a sub-agent lands in the same single `subagents/`
+  directory as its grandparent's own children, never inside its parent. Depth survives only as
+  `spawnDepth` in the sidecar. Measured to depth 3.
+- **A project-local `.claude/` directory plays no part.** A worktree whose `.claude/` was deleted
+  still got its own encoded directory, named from the cwd, holding both the session and its
+  sub-agent.
+
+**The consequence for this package: a carved quest's transcripts are split across two directories** —
+the intake conversation under the repo root's encoding, every role dispatched after the carve under
+the worktree's. Code resolving one directory per QUEST reaches only one of those two groups. A cwd is
+a property of the SESSION, not of the quest.
+
 ## Re-measuring after a CLI upgrade
 
-The four claims above are each a two-minute probe, and none needs a ward run. Spawn a `claude -p`
+The four background-command claims above are each a two-minute probe, and none needs a ward run. Spawn a `claude -p`
 child with this package's argv and a prompt that dispatches one sub-agent; have that sub-agent
 background a command writing a marker file after a delay longer than the turn; end the turn; then
 check whether the marker appears. Vary one thing at a time — the env var, the Bash `timeout`, whether
 the outstanding work is a command or an `Agent` — and read the marker rather than the session's own
 report, which claims success either way.
+
+The transcript-location claims are one more probe of about a minute. Snapshot the directory names
+under `~/.claude/projects/`; create a worktree and delete its `.claude/`; spawn a `claude -p` child
+with that worktree as its cwd and a prompt that dispatches one sub-agent; then diff the snapshot.
+Read the directory that appears and the `cwd` recorded inside the files, never the session's own
+account of where it was.

@@ -61,6 +61,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -110,6 +111,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -150,6 +152,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -194,6 +197,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -234,6 +238,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -281,6 +286,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -340,6 +346,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -395,6 +402,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -433,6 +441,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -475,6 +484,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -513,6 +523,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],
@@ -551,6 +562,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         riftcarverResults: [],
+        sessions: [],
         comments: [],
         planningNotes: {
           blightLedger: [],

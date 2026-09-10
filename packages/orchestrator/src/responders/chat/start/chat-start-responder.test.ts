@@ -8,8 +8,6 @@ import {
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
-  GuildStub,
-  GuildConfigStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -394,8 +392,6 @@ describe('ChatStartResponder', () => {
       const proxy = ChatStartResponderProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const sessionLine = JSON.stringify({ session_id: 'new-session-abc' });
       // Quest seeded with the chaoswhisperer work item that questUserAddBroker creates
       // for new chats — both quest.id and workItem.id derive from the mocked
@@ -406,7 +402,7 @@ describe('ChatStartResponder', () => {
       });
 
       proxy.setupNewSession({ exitCode, stdoutLines: [sessionLine] });
-      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
+      proxy.setupMainTailHomeDir({ homeDir: '/home/testuser' });
       proxy.setupMainTailLines({ lines: [] });
       // Resolve the chaoswhisperer work-item lookup immediately so chatWorkItemId is set
       // BEFORE the sessionId$ promise drives onSessionIdExtracted → chat-session-started.
@@ -504,8 +500,6 @@ describe('ChatStartResponder', () => {
       const proxy = ChatStartResponderProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const firstAssistantLine = JSON.stringify({
         ...AssistantTextStreamLineStub({
           message: { role: 'assistant', content: [{ type: 'text', text: 'first reply' }] },
@@ -529,7 +523,7 @@ describe('ChatStartResponder', () => {
         exitCode,
         stdoutLines: [firstAssistantLine, secondAssistantLine],
       });
-      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
+      proxy.setupMainTailHomeDir({ homeDir: '/home/testuser' });
       proxy.setupMainTailLines({ lines: [] });
       // Hold the chaoswhisperer work-item lookup unresolved so the stdout-driven
       // chat-output emits arrive while chatWorkItemId is still null and get buffered.
@@ -607,8 +601,6 @@ describe('ChatStartResponder', () => {
       const proxy = ChatStartResponderProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const askLine = JSON.stringify(AssistantAskUserQuestionStreamLineStub());
       const seededQuest = QuestStub({
         id: QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -616,7 +608,7 @@ describe('ChatStartResponder', () => {
       });
 
       proxy.setupNewSession({ exitCode, stdoutLines: [askLine] });
-      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
+      proxy.setupMainTailHomeDir({ homeDir: '/home/testuser' });
       proxy.setupMainTailLines({ lines: [] });
       // Hold the chaoswhisperer work-item lookup unresolved so the clarification fires
       // while chatQuestId is still null and gets pushed to clarificationBuffer.
