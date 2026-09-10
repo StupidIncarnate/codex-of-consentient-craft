@@ -63,11 +63,14 @@ test.describe('Operations duplicate-on-partial (pt-N continuation)', () => {
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: exactly ONE ledger row — the seeded codeweaver operation, in_progress ([>]).
-    const markers = page.getByTestId('OPERATIONS_LEDGER_ROW_MARKER');
-    await expect(markers).toHaveText(['[>]'], { timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText(['[CODEWEAVER]']);
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_TEXT')).toHaveText([BASE_TEXT]);
+    // BEFORE: exactly ONE row — the work item running the seeded codeweaver operation, named by
+    // that operation's text. Nothing is unclaimed, so the list has no pending tail.
+    const rows = executionPanel.getByTestId('execution-row-layer-widget');
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['RUNNING'], {
+      timeout: PANEL_TIMEOUT,
+    });
+    await expect(rows.getByTestId('execution-row-role-badge')).toHaveText(['[CODEWEAVER]']);
+    await expect(rows.filter({ hasText: BASE_TEXT })).toHaveCount(1);
 
     // Drive the relay: codeweaver -> partial (appends the pt continuation directly after the
     // completed item), then codeweaver pt 2 -> done.
@@ -129,14 +132,15 @@ test.describe('Operations duplicate-on-partial (pt-N continuation)', () => {
         .sort((a, b) => a.localeCompare(b)),
     );
 
-    // AFTER (UI): the single seeded row is gone; the ledger now shows BOTH rows — the original and
-    // its pt-2 continuation — complete ([x]).
-    await expect(markers).toHaveText(['[x]', '[x]'], { timeout: LEDGER_TIMEOUT });
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
+    // AFTER (UI): the list now shows BOTH work-item rows — the original and the one running its
+    // pt-2 continuation — DONE, and the pt-2 audit trail reads on the row that ran it.
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['DONE', 'DONE'], {
+      timeout: LEDGER_TIMEOUT,
+    });
+    await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[CODEWEAVER]',
       '[CODEWEAVER]',
     ]);
-    // Pin the pt-2 audit trail on the UI too.
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_TEXT')).toHaveText([BASE_TEXT, PT2_TEXT]);
+    await expect(rows.filter({ hasText: PT2_TEXT })).toHaveCount(1);
   });
 });

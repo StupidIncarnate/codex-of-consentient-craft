@@ -170,10 +170,8 @@ test.describe.skip('Ward Execution Streaming', () => {
 
     await wardRow.click();
 
-    // Ward chat entries are mostly text — execution-panel's collapseToTail hides everything
-    // before the last text anchor. Click "Show N earlier" to reveal the full ward transcript.
-    await executionPanel.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').first().click();
-
+    // A DONE row opens on its whole transcript — the tail window only holds while the item is
+    // running — so the ward output is on screen without touching the "Show N earlier" toggle.
     // Ward output lines should be visible in the expanded row after streaming.
     // Scope to the execution panel because the activity panel also flattens session entries and
     // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
@@ -359,10 +357,8 @@ test.describe.skip('Ward Execution Streaming', () => {
 
     await floorBossWardRow.click();
 
-    // Ward chat entries are mostly text — execution-panel's collapseToTail hides everything
-    // before the last text anchor. Click "Show N earlier" to reveal the full ward transcript.
-    await executionPanel.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').first().click();
-
+    // A DONE row opens on its whole transcript — the tail window only holds while the item is
+    // running — so the ward output is on screen without touching the "Show N earlier" toggle.
     // Ward output lines should be visible in the expanded row after streaming.
     // Scope to the execution panel because the activity panel also flattens session entries and
     // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.

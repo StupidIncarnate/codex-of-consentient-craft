@@ -132,8 +132,11 @@ test.describe('Quest Begin Transition', () => {
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
-    // The seeded operations relay renders as the ledger inside the execution panel.
-    await expect(page.getByTestId('OPERATIONS_LEDGER')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    // The seeded operations relay renders as the numbered execution rows inside the panel — one
+    // per work item, then one per operation nothing has claimed yet.
+    await expect(
+      page.getByTestId('execution-panel-widget').getByTestId('execution-row-layer-widget').first(),
+    ).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 

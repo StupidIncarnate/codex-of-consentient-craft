@@ -4,6 +4,9 @@
  * USAGE:
  * <SubagentChainWidget group={subagentChainGroup} />
  * // Renders collapsed chain header, expands to show inner tool groups and messages
+ *
+ * <SubagentChainWidget group={subagentChainGroup} defaultShowAllEarlier={true} />
+ * // Same, with the tail window open: every entry renders and the toggle offers to hide them again.
  */
 
 import { Box, Text } from '@mantine/core';
@@ -40,6 +43,9 @@ export interface SubagentChainWidgetProps {
   // it is nested inside. Chains rendered straight into a scroll panel take the default and pin flush
   // to its top.
   stickyTop?: CssPixels;
+  // Which way the tail window starts, until the reader touches the toggle. The toggle renders either
+  // way, so a chain opened whole can still be folded back down by hand.
+  defaultShowAllEarlier?: boolean;
 }
 
 const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
@@ -47,10 +53,16 @@ const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
 export const SubagentChainWidget = ({
   group,
   stickyTop = STICKY_TOP_ROOT,
+  defaultShowAllEarlier = false,
 }: SubagentChainWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
   const [expanded, setExpanded] = useState(true);
-  const [showAllEarlier, setShowAllEarlier] = useState(false);
+  // Derived every render, not seeded into `useState`: a chain mounts while its work item is still
+  // running, so a state initialiser reads `false` once and keeps it — leaving the chain tail-collapsed
+  // after the item finished under a reader who never unmounted the row. `readerToggled` is what still
+  // lets a click win from then on, in either direction.
+  const [readerToggled, setReaderToggled] = useState<boolean | null>(null);
+  const showAllEarlier = readerToggled ?? defaultShowAllEarlier;
   const { anchorRef, holdAnchor } = useDisclosureAnchorBinding();
 
   if (group.kind !== 'subagent-chain') return null;
@@ -182,7 +194,7 @@ export const SubagentChainWidget = ({
                   hiddenCount={tailStartIndexContract.parse(wouldHideCount)}
                   expanded={showAllEarlier}
                   onToggle={(): void => {
-                    setShowAllEarlier((prev) => !prev);
+                    setReaderToggled(!showAllEarlier);
                   }}
                   testId={toggleTestIdContract.parse('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE')}
                 />
@@ -207,6 +219,7 @@ export const SubagentChainWidget = ({
                     key={`inner-${String(position)}`}
                     group={inner}
                     stickyTop={innerStickyTop}
+                    defaultShowAllEarlier={defaultShowAllEarlier}
                   />,
                 );
                 continue;

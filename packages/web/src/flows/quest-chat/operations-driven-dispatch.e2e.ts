@@ -79,16 +79,21 @@ test.describe('Operations-driven dispatch', () => {
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: the seeded ledger — first row in_progress ([>]), the rest pending ([ ]).
-    const markers = page.getByTestId('OPERATIONS_LEDGER_ROW_MARKER');
-    await expect(markers).toHaveText(['[>]', '[ ]', '[ ]', '[ ]'], { timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
+    // BEFORE: one numbered list — the dispatched first operation's work-item row RUNNING, then the
+    // three operations no work item has claimed yet, PENDING, in seeded ledger order.
+    const rows = executionPanel.getByTestId('execution-row-layer-widget');
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
+      ['RUNNING', 'PENDING', 'PENDING', 'PENDING'],
+      { timeout: PANEL_TIMEOUT },
+    );
+    await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[CODEWEAVER]',
       '[CODEWEAVER]',
       '[WARD]',
       '[FLOWRIDER]',
     ]);
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(committed)');
+    // The ward row is named by its operation text, which is where its (committed) mode reads.
+    await expect(rows.filter({ hasText: 'ward (committed)' })).toHaveCount(1);
 
     // Drive the relay: codeweaver -> done, codeweaver -> done, ward -> green, flowrider -> done.
     // Nothing is appended between them — the standards review runs inside each session's own turn.
@@ -142,12 +147,13 @@ test.describe('Operations-driven dispatch', () => {
         .sort((a, b) => a.localeCompare(b)),
     );
 
-    // AFTER (UI): the old markers are gone; all four ledger rows read complete ([x]), in the
-    // seeded order codeweaver, codeweaver, ward, flowrider.
-    await expect(markers).toHaveText(['[x]', '[x]', '[x]', '[x]'], {
-      timeout: LEDGER_TIMEOUT,
-    });
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
+    // AFTER (UI): every operation is claimed by a work item now, so the list is four work-item rows
+    // and no pending tail — all DONE, in the seeded order codeweaver, codeweaver, ward, flowrider.
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
+      ['DONE', 'DONE', 'DONE', 'DONE'],
+      { timeout: LEDGER_TIMEOUT },
+    );
+    await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[CODEWEAVER]',
       '[CODEWEAVER]',
       '[WARD]',

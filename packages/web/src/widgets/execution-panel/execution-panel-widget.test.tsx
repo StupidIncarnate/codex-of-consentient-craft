@@ -152,25 +152,14 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('operations ledger', () => {
-    it('EMPTY: {no operations} => does not render the operations ledger', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'in_progress', operations: [] });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.hasOperationsLedger()).toBe(false);
-    });
-
-    it('VALID: {operations with mixed statuses} => renders ledger rows in ledger order with status markers', () => {
+  describe('unclaimed operation rows', () => {
+    it('VALID: {2 work items claiming 2 of 3 operations} => renders 3 rows, the third carrying the unclaimed operation text and continuing the numbering at 03', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
         operations: [
           OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
-          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'in_progress' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'complete' }),
           OperationItemStub({
             id: OP_ID_3,
             role: 'ward',
@@ -179,26 +168,40 @@ describe('ExecutionPanelWidget', () => {
             wardMode: 'committed',
           }),
         ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_2}`],
+          }),
+        ],
       });
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.hasOperationsLedger()).toBe(true);
-      expect(proxy.getOperationsLedgerRows().map((r) => r.textContent)).toStrictEqual([
-        '[x][CODEWEAVER]build the broker',
-        '[>][CODEWEAVER]wire the flow',
-        '[ ][WARD]verify: ward(committed)',
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CODEWEAVER]build the brokerDONE',
+        '▸02[CODEWEAVER]wire the flowDONE',
+        '···03[WARD]verify: wardPENDING',
       ]);
     });
 
-    it('VALID: {operations and work items} => ledger renders above the work-item rows', () => {
+    it('VALID: {operations and work items} => the bordered checklist box is not in this panel', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
         operations: [
           OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'in_progress' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'pending' }),
         ],
         workItems: [
           WorkItemStub({
@@ -214,16 +217,98 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.hasOperationsLedger()).toBe(true);
+      expect(proxy.hasOperationsLedger()).toBe(false);
+      expect(screen.queryByTestId('OPERATIONS_LEDGER_ROW')).toBe(null);
+    });
 
-      const floorContent = screen.getByTestId('execution-panel-floor-content');
-      const orderedTestIds = Array.from(
-        floorContent.querySelectorAll(
-          '[data-testid="OPERATIONS_LEDGER"], [data-testid="execution-row-layer-widget"]',
-        ),
-      ).map((el) => el.getAttribute('data-testid'));
+    it('VALID: {every operation claimed by a work item} => renders one row per visible work item and nothing after them', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'pending' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'pending',
+            relatedDataItems: [`operations/${OP_ID_2}`],
+          }),
+        ],
+      });
 
-      expect(orderedTestIds).toStrictEqual(['OPERATIONS_LEDGER', 'execution-row-layer-widget']);
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CODEWEAVER]build the brokerDONE',
+        '···02[CODEWEAVER]wire the flowPENDING',
+      ]);
+    });
+
+    it('VALID: {one operation claimed by a skipped work item, one claimed by nothing} => only the genuinely unclaimed one gets a row', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'pending' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'pending' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'skipped',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'ward',
+            status: 'complete',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[WARD]WardDONE',
+        '···02[CODEWEAVER]wire the flowPENDING',
+      ]);
+    });
+
+    it('EMPTY: {quest with zero operations} => renders the work-item rows and adds nothing after them', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CHAOSWHISPERER]ChaoswhispererDONE',
+      ]);
     });
   });
 
@@ -270,7 +355,7 @@ describe('ExecutionPanelWidget', () => {
       ]);
     });
 
-    it('EDGE: {work item with operations ref that does not resolve} => falls back to capitalized role name', () => {
+    it('EDGE: {work item with operations ref that does not resolve} => falls back to capitalized role name, and the operation nothing claimed takes the next row', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -293,6 +378,7 @@ describe('ExecutionPanelWidget', () => {
 
       expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
         '▸01[CODEWEAVER]CodeweaverDONE',
+        '···02[CODEWEAVER]build the brokerPENDING',
       ]);
     });
 
@@ -793,7 +879,13 @@ describe('ExecutionPanelWidget', () => {
 
       const messages = proxy.getExecutionMessages();
 
-      expect(messages.map((m) => m.textContent)).toStrictEqual(['SUB-AGENTnested line three']);
+      // The work item is `complete`, so its row opens on the whole transcript and the chain
+      // renders every line it claims in its header rather than just its tail.
+      expect(messages.map((m) => m.textContent)).toStrictEqual([
+        'SUB-AGENTnested line one',
+        'SUB-AGENTnested line two',
+        'SUB-AGENTnested line three',
+      ]);
     });
   });
 

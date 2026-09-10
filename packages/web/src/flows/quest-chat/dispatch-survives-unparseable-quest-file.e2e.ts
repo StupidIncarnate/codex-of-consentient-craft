@@ -91,8 +91,15 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    const markers = page.getByTestId('OPERATIONS_LEDGER_ROW_MARKER');
-    await expect(markers).toHaveText(['[>]', '[ ]'], { timeout: PANEL_TIMEOUT });
+    // One numbered list: the work item running the first operation, then the second operation no
+    // work item has claimed yet.
+    const rows = executionPanel.getByTestId('execution-row-layer-widget');
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
+      ['RUNNING', 'PENDING'],
+      {
+        timeout: PANEL_TIMEOUT,
+      },
+    );
 
     // The relay advances codeweaver#1 -> codeweaver#2, one dispatch each, so the FIFO script is
     // exactly two outcomes.
@@ -124,6 +131,8 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
       { role: 'codeweaver', status: 'complete' },
     ]);
 
-    await expect(markers).toHaveText(['[x]', '[x]'], { timeout: LEDGER_TIMEOUT });
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['DONE', 'DONE'], {
+      timeout: LEDGER_TIMEOUT,
+    });
   });
 });

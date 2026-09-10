@@ -882,5 +882,137 @@ describe('ChatEntryListWidget', () => {
         /^▸ Show \d+ earlier entries$/u,
       );
     });
+
+    describe('defaultShowAllEarlier', () => {
+      it('VALID: {collapseToTail true, defaultShowAllEarlier omitted} => only LAST text renders, toggle offers to Show', () => {
+        ChatEntryListWidgetProxy();
+
+        mantineRenderAdapter({
+          ui: (
+            <ChatEntryListWidget
+              entries={buildSevenEntryFixture()}
+              isStreaming={false}
+              collapseToTail={true}
+            />
+          ),
+        });
+
+        expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+          `CHAOSWHISPERER${LAST}`,
+        ]);
+        expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual(
+          [],
+        );
+        expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+          /^▸ Show 3 earlier entries$/u,
+        );
+      });
+
+      it('VALID: {collapseToTail true, defaultShowAllEarlier true} => all 3 texts and both tool rows render, toggle offers to Hide', () => {
+        ChatEntryListWidgetProxy();
+
+        mantineRenderAdapter({
+          ui: (
+            <ChatEntryListWidget
+              entries={buildSevenEntryFixture()}
+              isStreaming={false}
+              collapseToTail={true}
+              defaultShowAllEarlier={true}
+            />
+          ),
+        });
+
+        expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+          `CHAOSWHISPERER${FIRST}`,
+          `CHAOSWHISPERER${MIDDLE}`,
+          `CHAOSWHISPERER${LAST}`,
+        ]);
+        expect(
+          screen.queryAllByTestId('TOOL_ROW').map((t) => t.getAttribute('data-testid')),
+        ).toStrictEqual(['TOOL_ROW', 'TOOL_ROW']);
+        expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+          /^▾ Hide 3 earlier entries$/u,
+        );
+      });
+
+      it('VALID: {collapseToTail true, defaultShowAllEarlier true, reader clicks the toggle} => FIRST and MIDDLE disappear again', async () => {
+        ChatEntryListWidgetProxy();
+
+        mantineRenderAdapter({
+          ui: (
+            <ChatEntryListWidget
+              entries={buildSevenEntryFixture()}
+              isStreaming={false}
+              collapseToTail={true}
+              defaultShowAllEarlier={true}
+            />
+          ),
+        });
+
+        await userEvent.click(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE'));
+
+        expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+          `CHAOSWHISPERER${LAST}`,
+        ]);
+        expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+          /^▸ Show 3 earlier entries$/u,
+        );
+      });
+
+      it('VALID: {collapseToTail true, defaultShowAllEarlier true, list holds a sub-agent chain} => the chain shows its own earlier entries too', () => {
+        ChatEntryListWidgetProxy();
+
+        mantineRenderAdapter({
+          ui: (
+            <ChatEntryListWidget
+              entries={[
+                AssistantTextChatEntryStub({ content: FIRST }),
+                TaskToolUseChatEntryStub({
+                  toolUseId: 'task-a',
+                  agentId: 'agent-a',
+                  toolInput: JSON.stringify({
+                    description: 'Backend minion',
+                    prompt: 'Do backend work',
+                  }),
+                }),
+                AssistantTextChatEntryStub({
+                  content: 'CHAIN_EARLIEST_marker',
+                  source: 'subagent',
+                  agentId: 'agent-a',
+                }),
+                AssistantTextChatEntryStub({
+                  content: 'CHAIN_ANCHOR_marker',
+                  source: 'subagent',
+                  agentId: 'agent-a',
+                }),
+                AssistantToolUseChatEntryStub({
+                  toolUseId: 'use_chain',
+                  toolName: 'Grep',
+                  source: 'subagent',
+                  agentId: 'agent-a',
+                }),
+                AssistantToolResultChatEntryStub({
+                  toolName: 'use_chain',
+                  source: 'subagent',
+                  agentId: 'agent-a',
+                }),
+              ]}
+              isStreaming={false}
+              collapseToTail={true}
+              defaultShowAllEarlier={true}
+            />
+          ),
+        });
+
+        expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+          `CHAOSWHISPERER${FIRST}`,
+          'SUB-AGENTCHAIN_EARLIEST_marker',
+          'SUB-AGENTCHAIN_ANCHOR_marker',
+        ]);
+        expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+          'Grep',
+        ]);
+      });
+    });
   });
 });

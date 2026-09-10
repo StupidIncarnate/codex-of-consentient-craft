@@ -7,6 +7,10 @@
  *
  * <ChatEntryListWidget entries={entries} isStreaming={true} roleLabel={role} swapTrailingEmptyThinkingForIndicator collapseToTail />
  * // Execution variant: renders the full transcript; swaps a trailing empty-content thinking entry for a streaming indicator. With collapseToTail, hides everything before the most recent message anchor (text/user/system entry or sub-agent chain) behind a "Show N earlier entries" toggle.
+ *
+ * <ChatEntryListWidget entries={entries} isStreaming={false} collapseToTail defaultShowAllEarlier />
+ * // Same execution variant with the tail window starting OPEN — every entry renders, here and in
+ * // the sub-agent chains this list holds, and the toggle offers to hide them again.
  */
 
 import { useState } from 'react';
@@ -50,6 +54,10 @@ export interface ChatEntryListWidgetProps {
   showEndStreamingIndicator?: boolean;
   swapTrailingEmptyThinkingForIndicator?: boolean;
   collapseToTail?: boolean;
+  // Which way the tail window starts, until the reader touches the toggle — here and, forwarded, in
+  // every sub-agent chain this list renders. The toggle renders either way, so a transcript opened
+  // whole can still be folded back down by hand.
+  defaultShowAllEarlier?: boolean;
   // Forwarded untouched to the expandables this list renders: the list itself has no header of its
   // own, so it adds nothing to the offset — it only carries what its host already pinned.
   stickyTop?: CssPixels;
@@ -69,10 +77,16 @@ export const ChatEntryListWidget = ({
   showEndStreamingIndicator = false,
   swapTrailingEmptyThinkingForIndicator = false,
   collapseToTail = false,
+  defaultShowAllEarlier = false,
   stickyTop = STICKY_TOP_ROOT,
   isCommandOutput = false,
 }: ChatEntryListWidgetProps): React.JSX.Element => {
-  const [showAllEarlier, setShowAllEarlier] = useState(false);
+  // Derived every render, not seeded into `useState`: this list mounts while its work item is still
+  // running, so a state initialiser reads `false` once and keeps it — leaving the transcript
+  // tail-collapsed after the item finished under a reader who never unmounted the row.
+  // `readerToggled` is what still lets a click win from then on, in either direction.
+  const [readerToggled, setReaderToggled] = useState<boolean | null>(null);
+  const showAllEarlier = readerToggled ?? defaultShowAllEarlier;
   const groupedEntries = collectSubagentChainsTransformer({ entries });
 
   // Flatten singles into a chat entry list (preserving order), then merge tool_use+tool_result
@@ -101,7 +115,12 @@ export const ChatEntryListWidget = ({
     if (group.kind === 'subagent-chain') {
       renderUnits.push({
         element: (
-          <SubagentChainWidget key={`chain-${String(i)}`} group={group} stickyTop={stickyTop} />
+          <SubagentChainWidget
+            key={`chain-${String(i)}`}
+            group={group}
+            stickyTop={stickyTop}
+            defaultShowAllEarlier={defaultShowAllEarlier}
+          />
         ),
         isAnchor: true,
         isSubagentChain: true,
@@ -251,7 +270,7 @@ export const ChatEntryListWidget = ({
         hiddenCount={tailStartIndexContract.parse(wouldHideCount)}
         expanded={showAllEarlier}
         onToggle={(): void => {
-          setShowAllEarlier((prev) => !prev);
+          setReaderToggled(!showAllEarlier);
         }}
         testId={toggleTestIdContract.parse('CHAT_LIST_SHOW_EARLIER_TOGGLE')}
       />

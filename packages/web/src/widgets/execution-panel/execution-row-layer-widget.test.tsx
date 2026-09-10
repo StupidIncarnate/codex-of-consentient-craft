@@ -767,6 +767,109 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
+  describe('finished rows open on the whole transcript', () => {
+    const transcript = (): ReturnType<typeof AssistantTextChatEntryStub>[] => [
+      AssistantTextChatEntryStub({ content: 'ROW_FIRST_marker' }),
+      AssistantToolUseChatEntryStub({ toolUseId: 'use_a', toolName: 'Read' }),
+      AssistantToolResultChatEntryStub({ toolName: 'use_a' }),
+      AssistantTextChatEntryStub({ content: 'ROW_MIDDLE_marker' }),
+      AssistantToolUseChatEntryStub({ toolUseId: 'use_b', toolName: 'Bash' }),
+      AssistantToolResultChatEntryStub({ toolName: 'use_b' }),
+      AssistantTextChatEntryStub({ content: 'ROW_LAST_marker' }),
+    ];
+
+    it('VALID: {status: in_progress, expanded, 3 texts + 2 tool-pairs} => only the last text renders, earlier text is absent', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={transcript()}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        'CODEWEAVERROW_LAST_marker',
+      ]);
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([]);
+    });
+
+    it('VALID: {status: complete, reader opens the row, SAME transcript} => every text and both tool rows render', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            entries={transcript()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('execution-row-header'));
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        'CODEWEAVERROW_FIRST_marker',
+        'CODEWEAVERROW_MIDDLE_marker',
+        'CODEWEAVERROW_LAST_marker',
+      ]);
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+        'Read',
+        'Bash',
+      ]);
+    });
+
+    it('VALID: {status: failed, reader opens the row, SAME transcript} => every text renders', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            entries={transcript()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('execution-row-header'));
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        'CODEWEAVERROW_FIRST_marker',
+        'CODEWEAVERROW_MIDDLE_marker',
+        'CODEWEAVERROW_LAST_marker',
+      ]);
+    });
+
+    it('VALID: {status: complete, reader opens the row then clicks the toggle} => the transcript folds back to its tail', async () => {
+      const proxy = ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            entries={transcript()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('execution-row-header'));
+      await proxy.clickShowEarlier();
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        'CODEWEAVERROW_LAST_marker',
+      ]);
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([]);
+    });
+  });
+
   describe('ward results rendering', () => {
     it('VALID: {wardResults with exitCode 0} => renders ward exit code with success', async () => {
       ExecutionRowLayerWidgetProxy();
@@ -1963,10 +2066,10 @@ describe('ExecutionRowLayerWidget', () => {
     });
 
     // The counterpart to the case above, and the reason merging is gated on the ROLE: an agent's
-    // consecutive text entries are genuinely separate messages. This row still collapses to its
-    // tail (`collapseToTail`), so the proof of no-merge is that the one visible block carries the
-    // LAST message alone — a merged row would read 'CODEWEAVERfirst\nsecond\nthird'.
-    it('VALID: {codeweaver row, three text entries} => does NOT join them, leaving the tail message standing alone', () => {
+    // consecutive text entries are genuinely separate messages. The row is not running, so its
+    // transcript opens whole and each message stands in its own block — a merged row would be ONE
+    // block reading 'CODEWEAVERfirst\nsecond\nthird'.
+    it('VALID: {codeweaver row, three text entries} => does NOT join them, rendering one block per message', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1986,7 +2089,11 @@ describe('ExecutionRowLayerWidget', () => {
 
       const blocks = screen.getAllByTestId('CHAT_MESSAGE');
 
-      expect(blocks.map((block) => block.textContent)).toStrictEqual(['CODEWEAVERthird']);
+      expect(blocks.map((block) => block.textContent)).toStrictEqual([
+        'CODEWEAVERfirst',
+        'CODEWEAVERsecond',
+        'CODEWEAVERthird',
+      ]);
     });
   });
 });

@@ -8,7 +8,6 @@ import { useElapsedTickBindingProxy } from '../../bindings/use-elapsed-tick/use-
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
-import { OperationsLedgerWidgetProxy } from '../operations-ledger/operations-ledger-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
@@ -49,7 +48,6 @@ export const ExecutionPanelWidgetProxy = (): {
   getStepRows: () => HTMLElement[];
   getRoleBadges: () => (HTMLElement['textContent'] | null)[];
   hasOperationsLedger: () => boolean;
-  getOperationsLedgerRows: () => HTMLElement[];
   getActionButtons: () => HTMLElement[];
   getAbandonButtons: () => HTMLElement[];
   clickButtonByLabel: (params: { label: string }) => Promise<void>;
@@ -91,7 +89,6 @@ export const ExecutionPanelWidgetProxy = (): {
   QuestSpecPanelWidgetProxy();
   QuestTitleBarWidgetProxy();
 
-  const ledgerProxy = OperationsLedgerWidgetProxy();
   const chatPanelProxy = ChatPanelWidgetProxy();
   const elapsedTickProxy = useElapsedTickBindingProxy();
 
@@ -179,8 +176,10 @@ export const ExecutionPanelWidgetProxy = (): {
     getStepRows: (): HTMLElement[] => screen.queryAllByTestId('execution-row-layer-widget'),
     getRoleBadges: (): (HTMLElement['textContent'] | null)[] =>
       screen.queryAllByTestId('execution-row-role-badge').map((el) => el.textContent),
-    hasOperationsLedger: (): boolean => ledgerProxy.hasLedger(),
-    getOperationsLedgerRows: (): HTMLElement[] => ledgerProxy.getLedgerRows(),
+    // The checklist box belongs to the QUEST SPEC tab now, so this reads the EXECUTION tab's own
+    // DOM directly rather than delegating to OperationsLedgerWidgetProxy — the panel no longer
+    // renders that widget, and the assertion this serves is that it is absent.
+    hasOperationsLedger: (): boolean => screen.queryByTestId('OPERATIONS_LEDGER') !== null,
     getActionButtons: (): HTMLElement[] => {
       const actionBar = screen.queryByTestId('execution-panel-action-bar');
       if (!actionBar) {

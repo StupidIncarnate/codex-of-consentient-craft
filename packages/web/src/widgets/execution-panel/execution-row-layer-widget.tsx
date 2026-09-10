@@ -478,6 +478,10 @@ export const ExecutionRowLayerWidget = ({
               roleLabel={role}
               swapTrailingEmptyThinkingForIndicator={true}
               collapseToTail={true}
+              // The tail window earns its keep only while output is still streaming in. A reader who
+              // opens a finished row wants the whole transcript, sub-agent chains included; the
+              // toggle stays rendered either way, so a long one can still be folded back down.
+              defaultShowAllEarlier={!isRunning}
               stickyTop={STICKY_TOP_INSIDE_ROW}
               isCommandOutput={isCommandRow}
             />

@@ -73,14 +73,21 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: ward in_progress ([>]), flowrider pending ([ ]); ward row carries its (committed) mode.
-    const markers = page.getByTestId('OPERATIONS_LEDGER_ROW_MARKER');
-    await expect(markers).toHaveText(['[>]', '[ ]'], { timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
+    // BEFORE: one numbered list — the dispatched ward row RUNNING, then the flowrider operation no
+    // work item has claimed yet, PENDING. The ward row is named by its operation text, which is
+    // where its (committed) mode reads.
+    const rows = executionPanel.getByTestId('execution-row-layer-widget');
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
+      ['RUNNING', 'PENDING'],
+      {
+        timeout: PANEL_TIMEOUT,
+      },
+    );
+    await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[WARD]',
       '[FLOWRIDER]',
     ]);
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText('(committed)');
+    await expect(rows.filter({ hasText: 'ward (committed)' })).toHaveCount(1);
 
     await dispatch.playAndDrive({
       questId: String(questId),
@@ -115,9 +122,11 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       { role: 'flowrider', status: 'complete', wardMode: null },
     ]);
 
-    // AFTER (UI): both seeded rows complete ([x]); no spiritmender recovery pair appeared.
-    await expect(markers).toHaveText(['[x]', '[x]'], { timeout: LEDGER_TIMEOUT });
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
+    // AFTER (UI): both rows read DONE; no spiritmender recovery pair appeared.
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['DONE', 'DONE'], {
+      timeout: LEDGER_TIMEOUT,
+    });
+    await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[WARD]',
       '[FLOWRIDER]',
     ]);
@@ -163,8 +172,13 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    const markers = page.getByTestId('OPERATIONS_LEDGER_ROW_MARKER');
-    await expect(markers).toHaveText(['[>]', '[ ]'], { timeout: PANEL_TIMEOUT });
+    const rows = executionPanel.getByTestId('execution-row-layer-widget');
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
+      ['RUNNING', 'PENDING'],
+      {
+        timeout: PANEL_TIMEOUT,
+      },
+    );
 
     // All four outcomes are queued up front so no dispatched work item ever finds an empty queue
     // (an under-queued spiritmender spawn would exit red-on-empty with no signal-back and churn
@@ -234,20 +248,19 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       { role: 'flowrider', status: 'complete' },
     ]);
 
-    // AFTER (UI): the ledger grew live to four rows — ward, the spliced spiritmender, the fresh
-    // ward, and the flowrider — all complete ([x]); both ward rows keep their (committed) mode.
-    await expect(markers).toHaveText(['[x]', '[x]', '[x]', '[x]'], {
-      timeout: LEDGER_TIMEOUT,
-    });
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText([
+    // AFTER (UI): the list grew live to four rows — the red ward, the spliced spiritmender, the
+    // fresh ward, and the flowrider. Both ward rows keep their (committed) mode, which they carry
+    // in the operation text they are named by (the continuation reads "pt 2: ward (committed)").
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
+      ['FAILED', 'DONE', 'DONE', 'DONE'],
+      { timeout: LEDGER_TIMEOUT },
+    );
+    await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[WARD]',
       '[SPIRITMENDER]',
       '[WARD]',
       '[FLOWRIDER]',
     ]);
-    await expect(page.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText([
-      '(committed)',
-      '(committed)',
-    ]);
+    await expect(rows.filter({ hasText: 'ward (committed)' })).toHaveCount(2);
   });
 });

@@ -1,12 +1,13 @@
 /**
- * PURPOSE: Composes the execution panel with tab bar, status bar, operations ledger, work-item
- * rows, and — once a quest stops running — the follow-up chat tab and the post-quest action bar
- * (FOLLOW-UP, merge) for the quest execution view
+ * PURPOSE: Composes the execution panel with tab bar, status bar, the numbered execution rows, and
+ * — once a quest stops running — the follow-up chat tab and the post-quest action bar (FOLLOW-UP,
+ * merge) for the quest execution view
  *
  * USAGE:
  * <ExecutionPanelWidget quest={quest} />
  * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs (FOLLOW-UP joins them once opened);
- * // the operations ledger renders above one row per work item in quest.workItems order
+ * // the execution tab is ONE numbered list — a row per visible work item in quest.workItems order,
+ * // then a row per operation no work item has claimed, in quest.operations order
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -52,10 +53,10 @@ import {
 import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
+import { unclaimedOperationsTransformer } from '../../transformers/unclaimed-operations/unclaimed-operations-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
-import { OperationsLedgerWidget } from '../operations-ledger/operations-ledger-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
@@ -197,6 +198,14 @@ export const ExecutionPanelWidget = ({
     (wi) => includeSkipped || !isSkippedWorkItemStatusGuard({ status: wi.status }),
   );
 
+  // The tail of the one numbered list: the plan items nothing has been dispatched for yet. Derived
+  // from quest.workItems rather than visibleWorkItems, so an operation whose work item was skipped
+  // stays off the tail instead of reappearing as if it were still waiting.
+  const unclaimedOperations = unclaimedOperationsTransformer({
+    operations: quest.operations,
+    workItems: quest.workItems,
+  });
+
   // One shared tick drives every visible running row's elapsed figure, rather than a timer per
   // row — a per-row interval would start counting from that row's own mount time, so two items
   // dispatched in the same batch (genuinely the same age) would drift apart by up to a tick
@@ -321,7 +330,6 @@ export const ExecutionPanelWidget = ({
             testId={FLOOR_CONTENT_TEST_ID}
             style={{ flex: 1, padding: '0 12px 12px', minHeight: EXECUTION_FLOOR_MIN_HEIGHT }}
           >
-            <OperationsLedgerWidget operations={quest.operations} flows={quest.flows} />
             {visibleWorkItems.map((wi, wiIndex) => {
               const wiOwnEntries =
                 workItemEntries.get(wi.id) ??
@@ -407,6 +415,22 @@ export const ExecutionPanelWidget = ({
                 />
               );
             })}
+            {/* The numbering continues straight on from the work-item rows above, because this is
+                ONE list: an operation nothing has claimed is the next thing that will run, not a
+                separate register. The row is handed no entries, no timestamps and no results —
+                nothing has run for it, so there is nothing for a disclosure to open onto. */}
+            {unclaimedOperations.map((op, opIndex) => (
+              <ExecutionRowLayerWidget
+                key={op.id}
+                order={(visibleWorkItems.length + opIndex + 1) as RowOrder}
+                name={displayLabelContract.parse(op.text)}
+                role={op.role as unknown as ExecutionRole}
+                status={op.status as ExecutionStepStatus}
+                files={[] as DisplayFilePath[]}
+                dependsOn={[] as DependencyLabel[]}
+                isAdhoc={false}
+              />
+            ))}
           </AutoScrollContainerWidget>
           {((isAnyAgentRunningQuestStatusGuard({ status: quest.status }) && onPause) ||
             (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange)) && (

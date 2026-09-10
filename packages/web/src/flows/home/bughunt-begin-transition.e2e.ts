@@ -169,7 +169,9 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
-    await expect(page.getByTestId('OPERATIONS_LEDGER')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(
+      page.getByTestId('execution-panel-widget').getByTestId('execution-row-layer-widget').first(),
+    ).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(specPanel).not.toBeVisible();
 
     const questResponse = await request.get(`/api/quests/${questId}`);
