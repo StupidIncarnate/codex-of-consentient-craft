@@ -32,7 +32,10 @@ export const devDependenciesStatics = {
     jest: '^30.0.4',
     prettier: '^3.6.2',
     'ts-jest': '^29.4.0',
-    'ts-node': '^10.9.2',
+    // No `ts-node`. The `eslint.config.js` this CLI scaffolds is plain JavaScript requiring the
+    // PUBLISHED `@dungeonmaster/eslint-plugin`, which is compiled output, so a consumer project
+    // loads no TypeScript at eslint time and needs no loader for it. `tsx` below covers what does
+    // need one — a dev server, a script run straight from source.
     tsx: '^4.0.0',
     typescript: '^5.8.3',
   },

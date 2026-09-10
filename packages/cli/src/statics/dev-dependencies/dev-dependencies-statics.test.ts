@@ -28,7 +28,6 @@ describe('devDependenciesStatics', () => {
         jest: '^30.0.4',
         prettier: '^3.6.2',
         'ts-jest': '^29.4.0',
-        'ts-node': '^10.9.2',
         tsx: '^4.0.0',
         typescript: '^5.8.3',
       },

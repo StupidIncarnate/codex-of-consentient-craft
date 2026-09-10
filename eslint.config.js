@@ -1,5 +1,10 @@
-// Register TypeScript loader for development
-require('ts-node/register');
+// The TypeScript loader for the `.ts` requires below. `tsx/cjs` and not `ts-node/register`:
+// ts-node compiles in memory, per process, keeping nothing, so every process that loads this file
+// re-transpiles the plugin source and the ~500 `shared` modules behind it. tsx transpiles with
+// esbuild into a content-keyed disk cache, so the next process reads what the last one built.
+// This file is loaded by every lint run AND by every spawned hook child in the hooks integration
+// suite, which is where the cost was measured.
+require('tsx/cjs');
 
 const tsparser = require('@typescript-eslint/parser');
 const prettierConfig = require('eslint-config-prettier');
