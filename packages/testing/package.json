@@ -35,6 +35,12 @@
       "require": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.js",
       "types": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.d.ts"
     },
+    "./brokers": {
+      "source": "./brokers.ts",
+      "import": "./dist/brokers.js",
+      "require": "./dist/brokers.js",
+      "types": "./dist/brokers.d.ts"
+    },
     "./jest-config-base": "./jest-config-base.js"
   },
   "files": [

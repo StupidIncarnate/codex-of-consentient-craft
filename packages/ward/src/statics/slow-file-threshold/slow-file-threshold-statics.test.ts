@@ -6,6 +6,7 @@ describe('slowFileThresholdStatics', () => {
       threshold: {
         warnMs: 5000,
         testWarnMs: 1000,
+        e2eTestWarnMs: 5000,
       },
     });
   });

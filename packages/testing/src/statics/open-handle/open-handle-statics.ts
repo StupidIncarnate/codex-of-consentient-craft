@@ -21,9 +21,18 @@ export const openHandleStatics = {
     // Enough frames to name what armed the timer and the path that reached it. The frames above
     // these are node's own timer plumbing and this package's own wrapper, which name no caller.
     maxStackFrames: 8,
-    // Matches the watch adapter's own frames and NOT its test file, which shares the basename and
-    // is a legitimate caller. A bare 'timers-watch-adapter' swallowed every frame of that test.
-    selfFrame: 'timers-watch-adapter.ts:',
-    internalFrame: 'node:internal',
+    // BOTH extensions, because the same frame appears twice over: jest resolves this package to
+    // TypeScript source, while Playwright resolves it to the build. Matching only `.ts:` left the
+    // adapter's own frame at the top of every finding a browser run produced.
+    // The colon is what keeps `timers-watch-adapter.test.ts` — a legitimate caller — out of this.
+    selfFrames: ['timers-watch-adapter.ts:', 'timers-watch-adapter.js:'],
+    // A timer armed entirely inside node's plumbing or a dependency is not ours to fix, and
+    // Playwright arms them constantly: a clean five-spec browser batch reported 74 of them, every
+    // one a `setTimeout` its own waiting machinery had outstanding. Dropping these is what makes a
+    // browser run's leak list mean anything.
+    // `node:` and not `node:internal`: Playwright's browser transport arms its timers from
+    // `node:events`, so the narrower marker left `at CRSession.emit (node:events:518:28)` standing
+    // as the only frame of a finding — 15 of them on a clean five-spec batch.
+    foreignFrames: ['node:', 'node_modules'],
   },
 } as const;

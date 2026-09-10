@@ -35,7 +35,14 @@ export const slowFileTimingsTransformer = ({ check }: { check: CheckResult }): F
       .sort((left, right) => Number(right.durationMs) - Number(left.durationMs));
   }
 
+  // A browser spec navigates, waits for real paint and talks to a real server, so holding it to the
+  // jest bar would name every spec in the package and say nothing.
+  const bar =
+    check.checkType === 'e2e'
+      ? slowFileThresholdStatics.threshold.e2eTestWarnMs
+      : slowFileThresholdStatics.threshold.testWarnMs;
+
   return allTimings
-    .filter((timing) => Number(timing.testMs) > slowFileThresholdStatics.threshold.testWarnMs)
+    .filter((timing) => Number(timing.testMs) > bar)
     .sort((left, right) => Number(right.testMs) - Number(left.testMs));
 };

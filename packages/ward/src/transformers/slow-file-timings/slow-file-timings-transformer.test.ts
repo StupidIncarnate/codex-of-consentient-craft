@@ -93,6 +93,60 @@ describe('slowFileTimingsTransformer', () => {
     });
   });
 
+  describe('a browser check, held to its own bar', () => {
+    it('VALID: {e2e spec at 1.4s} => not slow, because a browser spec is not a jest suite', () => {
+      const check = CheckResultStub({
+        checkType: 'e2e',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: 'src/a.e2e.ts', durationMs: 1400, testMs: 1400 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
+    });
+
+    it('VALID: {e2e spec at 6s} => slow, because it is over the browser bar', () => {
+      const check = CheckResultStub({
+        checkType: 'e2e',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: 'src/slow.e2e.ts', durationMs: 6000, testMs: 6000 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check }).map((t) => t.filePath)).toStrictEqual([
+        'src/slow.e2e.ts',
+      ]);
+    });
+
+    it('VALID: {a unit suite at the same 1.4s} => slow, so the two bars really do differ', () => {
+      const check = CheckResultStub({
+        checkType: 'unit',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({ filePath: 'src/a.test.ts', durationMs: 1400, testMs: 1400 }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check }).map((t) => t.filePath)).toStrictEqual([
+        'src/a.test.ts',
+      ]);
+    });
+  });
+
   describe('a check that reports no per-test durations', () => {
     it('VALID: {lint, wall over the wall threshold} => falls back to wall', () => {
       const check = CheckResultStub({

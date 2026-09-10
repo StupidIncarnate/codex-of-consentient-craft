@@ -5,6 +5,10 @@ describe('qualityGateStatics', () => {
     it('VALID: exported value => matches the full expected object', () => {
       expect(qualityGateStatics).toStrictEqual({
         slowFiles: {
+          jestNote:
+            "ranked on test-body time; wall also carries the package's one-time compile, charged " +
+            'to whichever file reached a module first',
+          browserNote: 'ranked on test-body time, which excludes browser and server startup',
           heading: 'SLOW TESTS FAILED THIS RUN',
           guidance:
             'Every suite named under "slow files" is over the test-body threshold. Fix the test, ' +

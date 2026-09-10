@@ -13,6 +13,7 @@ import type { WardResult } from '../../contracts/ward-result/ward-result-contrac
 import type { WardSummary } from '../../contracts/ward-summary/ward-summary-contract';
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
+import { qualityGateStatics } from '../../statics/quality-gate/quality-gate-statics';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
@@ -177,7 +178,11 @@ export const resultToSummaryTransformer = ({
       return `  ${ft.filePath}  ${(Number(ft.testMs) / MS_PER_SECOND).toFixed(1)}s in tests (${wall} wall)`;
     });
     const note = hasTestMs
-      ? `\n  ranked on test-body time; wall also carries the package's one-time compile, charged to whichever file reached a module first`
+      ? `\n  ${
+          check.checkType === 'e2e'
+            ? qualityGateStatics.slowFiles.browserNote
+            : qualityGateStatics.slowFiles.jestNote
+        }`
       : '';
     return [`\n--- slow files (${check.checkType}) ---${note}\n${fileLines.join('\n')}`];
   });

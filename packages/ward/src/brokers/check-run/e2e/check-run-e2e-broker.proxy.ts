@@ -15,6 +15,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { netKillPortAdapterProxy } from '../../../adapters/net/kill-port/net-kill-port-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { e2eArtifactsRemoveBrokerProxy } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
@@ -53,6 +54,8 @@ export const checkRunE2eBrokerProxy = (): {
   globProxy.returnsForPattern({ pattern: '**/*.e2e.ts', files: ['discovered.ts'] });
   netKillPortAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
+  const tmpdirProxy = osTmpdirAdapterProxy();
+  tmpdirProxy.returns({ path: '/tmp' });
   // Unstaged: fsUnlinkAdapter's return value is discarded by the broker (it deletes the
   // playwright json report best-effort, under a try/catch that ignores the outcome either way),
   // so there is no address worth describing here.

@@ -22,8 +22,13 @@ export const timerArmStackTransformer = ({
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.startsWith('at '))
-    .filter((line) => !line.includes(openHandleStatics.report.selfFrame))
-    .filter((line) => !line.includes(openHandleStatics.report.internalFrame))
+    // A frame with no line:column names no source and so names nothing anyone can fix.
+    // `at new Promise (<anonymous>)` is the one that matters: it is what remains of a
+    // Playwright-internal wait once its node_modules frames are gone, and it survived the foreign
+    // filter to leave 50 unactionable findings on a clean five-spec batch.
+    .filter((line) => /:\d+:\d+\)?$/u.test(line))
+    .filter((line) => !openHandleStatics.report.selfFrames.some((mark) => line.includes(mark)))
+    .filter((line) => !openHandleStatics.report.foreignFrames.some((mark) => line.includes(mark)))
     .slice(0, openHandleStatics.report.maxStackFrames);
 
   return armedTimerContract.shape.stack.parse(frames.join('\n'));

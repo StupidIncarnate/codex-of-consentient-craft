@@ -35,6 +35,12 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import { extractPlaywrightLineFilesTransformer } from '../../../transformers/extract-playwright-line-files/extract-playwright-line-files-transformer';
 import { parsePlaywrightCrashOutputTransformer } from '../../../transformers/parse-playwright-crash-output/parse-playwright-crash-output-transformer';
 import { playwrightJsonReportToPassingTransformer } from '../../../transformers/playwright-json-report-to-passing/playwright-json-report-to-passing-transformer';
+import { passingTestsToTimingsTransformer } from '../../../transformers/passing-tests-to-timings/passing-tests-to-timings-transformer';
+import { openHandleReportParseTransformer } from '../../../transformers/open-handle-report-parse/open-handle-report-parse-transformer';
+import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
+import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
+import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
+import type { OpenHandle } from '../../../contracts/open-handle/open-handle-contract';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test-path-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
@@ -167,11 +173,23 @@ export const checkRunE2eBroker = async ({
     `${projectFolder.path}/.ward-playwright-report-${String(serverPort)}.json`,
   );
 
+  // Playwright is a THIRD process layer with its own leak surface, and neither of ward's other two
+  // detections reaches it: jest's `--detectOpenHandles` never runs here, and the timer watch ward
+  // arms for a jest worker is armed in a jest worker. The web package's e2e fixtures answer this
+  // variable and append per test. Named by the SERVER PORT, like the report beside it, so two
+  // browser walks against one package cannot overwrite each other's findings.
+  const handleReportPath = openHandleReportPathTransformer({
+    tmpdir: osTmpdirAdapter(),
+    checkType: 'e2e',
+    processId: serverPort,
+  });
+
   const result = await childProcessSpawnCaptureAdapter({
     command,
     args: finalArgs,
     cwd,
     env: {
+      [openHandleReportStatics.env.pathVar]: String(handleReportPath),
       DUNGEONMASTER_PORT: String(serverPort),
       DUNGEONMASTER_WEB_PORT: String(webPort),
       PLAYWRIGHT_JSON_OUTPUT_NAME: String(jsonReportPath),
@@ -220,6 +238,22 @@ export const checkRunE2eBroker = async ({
   } catch {
     // report file may not exist if playwright crashed early; ignore
   }
+
+  // The file exists only when a spec actually left a timer armed.
+  const openHandles = await (async (): Promise<OpenHandle[]> => {
+    if (!fsExistsSyncAdapter({ filePath: handleReportPath })) {
+      return [];
+    }
+    try {
+      const content = await fsReadFileAdapter({ filePath: handleReportPath });
+      await fsUnlinkAdapter({ filePath: handleReportPath });
+      return openHandleReportParseTransformer({ content: String(content) });
+    } catch {
+      // A half-written line makes JSON.parse throw. Losing the leak findings is a far better
+      // outcome than losing the whole e2e result to a parse error.
+      return [];
+    }
+  })();
 
   // The Vite dependency cache this run minted under its own port. It has to be taken HERE, above
   // the testNamePattern early return below: that return is a common path — `--onlyTests` matching
@@ -274,6 +308,11 @@ export const checkRunE2eBroker = async ({
     onlyDiscovered,
     onlyProcessed,
     passingTests,
+    // Playwright reports per TEST; ward's slow-file list and its slow-file verdict both work in
+    // suites, so the durations are rolled up here. Without this the e2e check reports no timings at
+    // all and `hasSlowFilesGuard` is blind to every browser spec in the repo.
+    fileTimings: passingTestsToTimingsTransformer({ passingTests }),
+    openHandles,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

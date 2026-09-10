@@ -24,8 +24,13 @@ export const openHandleReportBroker = ({
   testPath: string;
   reportPath?: string | undefined;
 }): readonly OpenHandleFinding[] => {
+  // An EMPTY stack means every frame belonged to node or a dependency — the transformer keeps only
+  // frames naming code this repo owns. Such a timer is not ours to clear, and Playwright arms them
+  // by the dozen: a clean five-spec browser batch reported 74 of them, all from its own waiting
+  // machinery. Reporting those would make the leak list something people learn to scroll past.
   const findings = openHandleTrackingBroker
     .pending()
+    .filter((armed) => String(armed.stack).length > 0)
     .map((armed) =>
       openHandleFindingContract.parse({ kind: armed.kind, testPath, stack: armed.stack }),
     );

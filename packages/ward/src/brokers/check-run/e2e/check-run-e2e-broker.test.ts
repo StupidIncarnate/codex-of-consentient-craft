@@ -3,6 +3,7 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
+import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 
 import { checkRunE2eBroker } from './check-run-e2e-broker';
@@ -309,6 +310,16 @@ describe('checkRunE2eBroker', () => {
               durationMs: 1234,
             }),
           ],
+          // Playwright reports per TEST and ward's slow-file verdict works in suites, so the
+          // durations are rolled up. Without these the e2e check reports no timings at all and
+          // `hasSlowFilesGuard` is blind to every browser spec in the repo.
+          fileTimings: [
+            FileTimingStub({
+              filePath: 'packages/web/src/flows/app/smoke.e2e.ts',
+              durationMs: 1234,
+              testMs: 1234,
+            }),
+          ],
           rawOutput: RawOutputStub({
             stdout: '',
             stderr: '',
@@ -316,6 +327,41 @@ describe('checkRunE2eBroker', () => {
           }),
         }),
       );
+    });
+
+    it('VALID: {two tests in one spec} => rolls their durations into one file timing', async () => {
+      const projectFolder = ProjectFolderStub();
+      const jsonContent = JSON.stringify({
+        suites: [
+          {
+            title: 'packages/web/src/flows/app/smoke.e2e.ts',
+            specs: [
+              {
+                title: 'loads',
+                file: 'packages/web/src/flows/app/smoke.e2e.ts',
+                tests: [{ results: [{ status: 'passed', duration: 1200 }] }],
+              },
+              {
+                title: 'renders',
+                file: 'packages/web/src/flows/app/smoke.e2e.ts',
+                tests: [{ results: [{ status: 'passed', duration: 800 }] }],
+              },
+            ],
+          },
+        ],
+      });
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPassWithJsonReport({ projectFolder, jsonContent });
+
+      const result = await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(result.fileTimings).toStrictEqual([
+        FileTimingStub({
+          filePath: 'packages/web/src/flows/app/smoke.e2e.ts',
+          durationMs: 2000,
+          testMs: 2000,
+        }),
+      ]);
     });
 
     it('VALID: {json report missing} => returns empty passingTests', async () => {

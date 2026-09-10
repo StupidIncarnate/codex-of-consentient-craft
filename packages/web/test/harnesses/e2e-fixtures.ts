@@ -11,10 +11,12 @@
 import { test as base, expect } from '@playwright/test';
 import { dispatchPauseHarness } from './dispatch-pause/dispatch-pause.harness';
 import { networkHarness } from './network/network.harness';
+import { openHandleWatchHarness } from './open-handle-watch/open-handle-watch.harness';
 
 interface AutoFixtures {
   _networkRecording: undefined;
   _dispatcherPaused: undefined;
+  _openHandleWatch: undefined;
 }
 
 export const test = base.extend<AutoFixtures>({
@@ -54,6 +56,23 @@ export const test = base.extend<AutoFixtures>({
       await harness.pause();
       await use(undefined);
       await harness.pause();
+    },
+    { auto: true },
+  ],
+
+  // Playwright is a THIRD process layer with its own leak surface, and neither of ward's other two
+  // detections reaches it: jest's `--detectOpenHandles` never runs here, and the timer watch ward
+  // arms for a jest worker is armed in a jest worker. A spec or a harness that leaves an interval
+  // behind therefore leaked silently, however green the run.
+  //
+  // Off unless ward asks — the harness answers to the same
+  // DUNGEONMASTER_OPEN_HANDLE_REPORT the jest side reads, and a run without it patches nothing.
+  _openHandleWatch: [
+    async ({ request: _request }, use, testInfo) => {
+      const harness = openHandleWatchHarness();
+      harness.beforeEach();
+      await use(undefined);
+      harness.report({ testPath: testInfo.file });
     },
     { auto: true },
   ],
