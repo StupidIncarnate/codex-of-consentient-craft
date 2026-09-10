@@ -20,6 +20,7 @@ module.exports = {
           allowJs: true,
           esModuleInterop: true,
           skipLibCheck: true,
+          isolatedModules: true,
           module: 'commonjs',
           moduleResolution: 'node',
         },

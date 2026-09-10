@@ -21,8 +21,12 @@ export const typescriptSourceFileGetterAdapter = ({
   program: TypescriptProgram;
   filePath: FilePath;
 }): TypescriptSourceFile | undefined => {
-  // Try to get from program first
-  const fromProgram = (program as unknown as ts.Program).getSourceFile(filePath);
+  // Try to get from program first. There may be NO program: ts-jest builds one only when
+  // `isolatedModules` is off, and on its transpile path `this.program` is never assigned before the
+  // transformer factory reads it. Reaching through an absent program would throw a TypeError inside
+  // the transform, which surfaces as a compile failure naming this file rather than the config that
+  // caused it — so an absent program simply means "parse it yourself" below.
+  const fromProgram = (program as unknown as ts.Program | undefined)?.getSourceFile(filePath);
   if (fromProgram) {
     return fromProgram as unknown as TypescriptSourceFile;
   }

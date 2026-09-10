@@ -10,7 +10,12 @@ module.exports = {
     '^.+\\.[jt]s$': [
       'ts-jest',
       {
-        tsconfig: { allowJs: true, esModuleInterop: true, skipLibCheck: true },
+        tsconfig: {
+          allowJs: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          isolatedModules: true,
+        },
         astTransformers: {
           before: dungeonmasterTransformers,
         },

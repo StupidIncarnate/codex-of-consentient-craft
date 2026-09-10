@@ -21,6 +21,7 @@ module.exports = {
           allowJs: true,
           esModuleInterop: true,
           skipLibCheck: true,
+          isolatedModules: true,
         },
         astTransformers: {
           before: dungeonmasterTransformers,

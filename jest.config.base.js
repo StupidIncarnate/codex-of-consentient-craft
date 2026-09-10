@@ -19,6 +19,7 @@ module.exports = {
           allowJs: true,
           esModuleInterop: true,
           skipLibCheck: true,
+          isolatedModules: true,
         },
         // `diagnostics: false` looks like free speed here and is not — measured on
         // `packages/config` at 3.4% of cold-cache CPU and nothing at all warm, because a warm
