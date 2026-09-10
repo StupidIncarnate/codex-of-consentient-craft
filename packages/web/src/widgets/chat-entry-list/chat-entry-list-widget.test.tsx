@@ -11,6 +11,7 @@ import {
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
+import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { ChatEntryListWidget } from './chat-entry-list-widget';
 import { ChatEntryListWidgetProxy } from './chat-entry-list-widget.proxy';
 
@@ -1013,6 +1014,63 @@ describe('ChatEntryListWidget', () => {
           'Grep',
         ]);
       });
+    });
+  });
+
+  describe('subagent chain rendering', () => {
+    it('VALID: {entries containing a Task tool use} => renders a SUBAGENT_CHAIN element', () => {
+      const proxy = ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              TaskToolUseChatEntryStub({ agentId: 'agent-xyz' }),
+              AssistantTextChatEntryStub({
+                content: 'sub working',
+                source: 'subagent',
+                agentId: 'agent-xyz',
+              }),
+            ]}
+            isStreaming={false}
+          />
+        ),
+      });
+
+      expect(proxy.hasSubagentChain()).toBe(true);
+    });
+  });
+
+  describe('now forwarding to sub-agent chains', () => {
+    it('VALID: {rendered with now, then rerendered without now, chain has no completion notification} => duration renders only while now is supplied', () => {
+      const proxy = ChatEntryListWidgetProxy();
+      const entries = [
+        TaskToolUseChatEntryStub({
+          agentId: 'agent-clock',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        AssistantTextChatEntryStub({
+          content: 'still working',
+          source: 'subagent',
+          agentId: 'agent-clock',
+        }),
+      ];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={entries}
+            isStreaming={false}
+            now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+          />
+        ),
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+
+      rerender(<ChatEntryListWidget entries={entries} isStreaming={false} />);
+
+      expect(proxy.getDurationTexts()).toStrictEqual([]);
     });
   });
 });

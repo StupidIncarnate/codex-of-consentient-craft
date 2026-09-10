@@ -2014,6 +2014,103 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
+  // The row's own `execution-row-duration` figure (see the `duration display` block above) has its
+  // own start/end rules and its own element. This block covers a DIFFERENT element — the sub-agent
+  // chain's `subagent-chain-duration` — and the ONE thing this row decides for it: whether the
+  // panel's shared clock ever reaches the transcript at all.
+  describe('subagent chain clock forwarding', () => {
+    // A non-null Task tool-use entry with no completion notification: the chain has a usable start
+    // and no frozen end, so a live figure is possible and the row's own status is what decides
+    // whether one actually renders.
+    const runningSubagentEntries = (): ReturnType<typeof AssistantTextChatEntryStub>[] => [
+      TaskToolUseChatEntryStub({ agentId: 'agent-001', timestamp: '2026-09-10T10:00:00.000Z' }),
+      AssistantTextChatEntryStub({
+        content: 'Sub-agent working...',
+        source: 'subagent',
+        agentId: 'agent-001',
+      }),
+    ];
+    const NOW = IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' });
+
+    it("VALID: {status: in_progress, entries: Task tool use + subagent text} => the SUBAGENT_CHAIN element renders inside the row's own element", () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={runningSubagentEntries()}
+          />
+        ),
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+      const chain = screen.getByTestId('SUBAGENT_CHAIN');
+
+      expect(row.contains(chain)).toBe(true);
+    });
+
+    it('VALID: {status: in_progress, now supplied} => renders one subagent-chain-duration element carrying the elapsed band', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={runningSubagentEntries()}
+            now={NOW}
+          />
+        ),
+      });
+
+      const texts = screen.queryAllByTestId('subagent-chain-duration').map((el) => el.textContent);
+
+      expect(texts).toStrictEqual(['4m']);
+    });
+
+    it('VALID: {status: complete, autoExpand, SAME entries and now as the in_progress case} => renders no subagent-chain-duration element', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            autoExpand={true}
+            entries={runningSubagentEntries()}
+            now={NOW}
+          />
+        ),
+      });
+
+      const texts = screen.queryAllByTestId('subagent-chain-duration').map((el) => el.textContent);
+
+      expect(texts).toStrictEqual([]);
+    });
+
+    it('VALID: {status: failed, autoExpand, SAME entries and now as the in_progress case} => renders no subagent-chain-duration element', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            autoExpand={true}
+            entries={runningSubagentEntries()}
+            now={NOW}
+          />
+        ),
+      });
+
+      const texts = screen.queryAllByTestId('subagent-chain-duration').map((el) => el.textContent);
+
+      expect(texts).toStrictEqual([]);
+    });
+  });
+
   // A command work item streams one entry per LINE, and the renderer draws one labelled, bordered
   // block per entry — so a build printed a role header above every single line, blank lines
   // included. These assert the BLOCK COUNT, not just the text: a check that the lines are present

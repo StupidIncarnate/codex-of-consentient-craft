@@ -11,6 +11,11 @@
  * <ChatEntryListWidget entries={entries} isStreaming={false} collapseToTail defaultShowAllEarlier />
  * // Same execution variant with the tail window starting OPEN — every entry renders, here and in
  * // the sub-agent chains this list holds, and the toggle offers to hide them again.
+ *
+ * <ChatEntryListWidget entries={entries} isStreaming={true} now={currentIsoTimestamp} />
+ * // `now` is forwarded untouched to every SubagentChainWidget this list renders, including nested
+ * // chains, so their headers can show a live duration. This list holds no clock of its own and
+ * // starts no interval — omit `now` and an unfinished chain shows no figure at all.
  */
 
 import { useState } from 'react';
@@ -20,6 +25,7 @@ import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
+import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/is-message-anchor-entry-guard';
@@ -61,6 +67,10 @@ export interface ChatEntryListWidgetProps {
   // Forwarded untouched to the expandables this list renders: the list itself has no header of its
   // own, so it adds nothing to the offset — it only carries what its host already pinned.
   stickyTop?: CssPixels;
+  // The execution panel's shared 60-second clock, forwarded untouched to every sub-agent
+  // chain this list renders. This list holds no clock of its own and starts no interval —
+  // its host decides whether a running chain gets one at all.
+  now?: IsoTimestamp;
   // Set by a COMMAND work item's row (ward, riftcarver). Its text entries are raw program output,
   // not agent-authored markdown, so they render verbatim — npm's `> pkg build` script echo is a
   // blockquote to a markdown parser, and a build log is full of backticks and asterisks besides.
@@ -79,6 +89,7 @@ export const ChatEntryListWidget = ({
   collapseToTail = false,
   defaultShowAllEarlier = false,
   stickyTop = STICKY_TOP_ROOT,
+  now,
   isCommandOutput = false,
 }: ChatEntryListWidgetProps): React.JSX.Element => {
   // Derived every render, not seeded into `useState`: this list mounts while its work item is still
@@ -120,6 +131,7 @@ export const ChatEntryListWidget = ({
             group={group}
             stickyTop={stickyTop}
             defaultShowAllEarlier={defaultShowAllEarlier}
+            {...(now === undefined ? {} : { now })}
           />
         ),
         isAnchor: true,

@@ -1,5 +1,6 @@
 /**
- * PURPOSE: Renders a collapsible sub-agent chain with header showing description and entry count
+ * PURPOSE: Renders a collapsible sub-agent chain with header showing description, entry count,
+ * and — while the caller is still ticking — the chain's own elapsed-duration figure
  *
  * USAGE:
  * <SubagentChainWidget group={subagentChainGroup} />
@@ -7,6 +8,12 @@
  *
  * <SubagentChainWidget group={subagentChainGroup} defaultShowAllEarlier={true} />
  * // Same, with the tail window open: every entry renders and the toggle offers to hide them again.
+ *
+ * <SubagentChainWidget group={subagentChainGroup} now={currentIsoTimestamp} />
+ * // `now` is threaded down only while the owning execution row is in_progress. The header then
+ * // shows a live duration that keeps pace with `now` until a completion notification arrives, at
+ * // which point the figure freezes on the notification's own gap. Every nested chain gets the same
+ * // `now` and computes its own figure independently.
  */
 
 import { Box, Text } from '@mantine/core';
@@ -20,6 +27,7 @@ import type {
   SingleGroup,
 } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
+import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -31,6 +39,8 @@ import { computeTokenAnnotationsTransformer } from '../../transformers/compute-t
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
+import { subagentDurationLabelTransformer } from '../../transformers/subagent-duration-label/subagent-duration-label-transformer';
+import { subagentElapsedInputTransformer } from '../../transformers/subagent-elapsed-input/subagent-elapsed-input-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { ShowEarlierToggleWidget } from '../show-earlier-toggle/show-earlier-toggle-widget';
 import { ToolRowWidget } from '../tool-row/tool-row-widget';
@@ -46,14 +56,20 @@ export interface SubagentChainWidgetProps {
   // Which way the tail window starts, until the reader touches the toggle. The toggle renders either
   // way, so a chain opened whole can still be folded back down by hand.
   defaultShowAllEarlier?: boolean;
+  // The execution panel's shared 60-second clock, threaded down only while the owning row
+  // is in_progress. Absent means an unfinished chain shows no figure at all, which is what
+  // stops a sub-agent that stopped hours ago still climbing on screen.
+  now?: IsoTimestamp;
 }
 
 const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
+const DURATION_FONT_SIZE = 9;
 
 export const SubagentChainWidget = ({
   group,
   stickyTop = STICKY_TOP_ROOT,
   defaultShowAllEarlier = false,
+  now,
 }: SubagentChainWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
   const [expanded, setExpanded] = useState(true);
@@ -66,6 +82,13 @@ export const SubagentChainWidget = ({
   const { anchorRef, holdAnchor } = useDisclosureAnchorBinding();
 
   if (group.kind !== 'subagent-chain') return null;
+
+  const elapsedInput = subagentElapsedInputTransformer({
+    group,
+    ...(now === undefined ? {} : { now }),
+  });
+  const durationLabel =
+    elapsedInput === null ? null : subagentDurationLabelTransformer({ input: elapsedInput });
 
   const chevron = expanded ? '▾' : '▸';
 
@@ -151,6 +174,15 @@ export const SubagentChainWidget = ({
         >
           &quot;{group.description}&quot; ({entrySuffix})
         </Text>
+        {durationLabel === null ? null : (
+          <Text
+            ff="monospace"
+            data-testid="subagent-chain-duration"
+            style={{ fontSize: DURATION_FONT_SIZE, color: colors['text-dim'], flexShrink: 0 }}
+          >
+            {durationLabel}
+          </Text>
+        )}
       </Box>
 
       {expanded ? (
@@ -220,6 +252,7 @@ export const SubagentChainWidget = ({
                     group={inner}
                     stickyTop={innerStickyTop}
                     defaultShowAllEarlier={defaultShowAllEarlier}
+                    {...(now === undefined ? {} : { now })}
                   />,
                 );
                 continue;

@@ -7,12 +7,14 @@ import {
   AssistantToolUseChatEntryStub,
   CssPixelsStub,
   TaskNotificationChatEntryStub,
+  TaskToolUseChatEntryStub,
   UserChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
 import {
   SingleGroupStub,
   SubagentChainGroupStub,
 } from '../../contracts/chat-entry-group/chat-entry-group.stub';
+import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { SubagentChainWidget } from './subagent-chain-widget';
 import { SubagentChainWidgetProxy } from './subagent-chain-widget.proxy';
 
@@ -263,10 +265,15 @@ describe('SubagentChainWidget', () => {
     it('VALID: {expanded with task notification} => renders notification at bottom', () => {
       SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({
+        taskToolUse: TaskToolUseChatEntryStub({
+          agentId: 'agent-001',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
         taskNotification: TaskNotificationChatEntryStub({
           taskId: 'agent-001',
           status: 'completed',
           summary: 'Tests passed',
+          timestamp: '2026-09-10T10:04:00.000Z',
         }),
       });
 
@@ -281,7 +288,7 @@ describe('SubagentChainWidget', () => {
         'CHAT_MESSAGE',
       ]);
       expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent).toBe(
-        '\u25BE SUB-AGENT"Run tests" (2 entries)',
+        '\u25BE SUB-AGENT"Run tests" (2 entries)4m',
       );
     });
 
@@ -1311,6 +1318,444 @@ describe('SubagentChainWidget', () => {
 
       // 23 (execution row) + 31 (this chain) — the running total, not this chain's height alone.
       expect([toolHeader.style.top, toolHeader.style.zIndex]).toStrictEqual(['54px', '46']);
+    });
+  });
+
+  describe('duration display', () => {
+    describe('placement inside the header', () => {
+      it('VALID: {taskToolUse present, now supplied} => duration is the header’s last child, after the chevron label and description', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          description: 'Run tests',
+          entryCount: 2,
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={group}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getHeaderChildTexts()).toStrictEqual([
+          '▾ SUB-AGENT',
+          '"Run tests" (2 entries)',
+          '4m',
+        ]);
+        expect(proxy.allDurationsSitInAHeader()).toBe(true);
+      });
+    });
+
+    describe('styling', () => {
+      it('VALID: {taskToolUse present, now supplied} => renders in monospace, font size 9, colour text-dim', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={group}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        const style = proxy.getDurationStyle();
+
+        expect(style).toStrictEqual({
+          fontFamily: 'var(--mantine-font-family-monospace)',
+          fontSize: '9px',
+          color: 'rgb(138, 114, 96)',
+        });
+      });
+    });
+
+    describe('no start', () => {
+      it('EMPTY: {taskToolUse: null, now supplied} => renders no subagent-chain-duration element', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={group}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual([]);
+      });
+
+      it('EMPTY: {taskToolUse: null, now supplied} => no duration element exists in the DOM', () => {
+        SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={group}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        expect(screen.queryByTestId('subagent-chain-duration')).toBe(null);
+      });
+    });
+
+    describe('finished chain, no clock', () => {
+      it('VALID: {taskToolUse 10:00:00, taskNotification 10:04:30, no now} => renders "4m"', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T10:04:30.000Z',
+          }),
+        });
+
+        mantineRenderAdapter({
+          ui: <SubagentChainWidget group={group} />,
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+      });
+    });
+
+    describe('live figure', () => {
+      it('VALID: {taskToolUse 270000ms before now, taskNotification: null, single render} => reads "4m" with no rerender', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={group}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:30.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+      });
+
+      it('VALID: {taskToolUse present, taskNotification: null, now supplied} => renders exactly one duration element', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={group}
+              now={IsoTimestampStub({ value: '2026-09-10T10:00:30.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['<1m']);
+      });
+
+      it('VALID: {live chain rerendered with a completion notification} => second read reflects the notification, not the clock', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const now = IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' });
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+        });
+
+        const { rerender } = mantineRenderAdapter({
+          ui: <SubagentChainWidget group={group} now={now} />,
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+
+        const updated = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T10:01:00.000Z',
+          }),
+        });
+
+        rerender(<SubagentChainWidget group={updated} now={now} />);
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['1m']);
+      });
+    });
+
+    describe('nested chains', () => {
+      it('VALID: {chain with only SingleGroup inner entries, now supplied} => renders exactly one duration — its own', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+          innerGroups: [{ kind: 'single', entry: UserChatEntryStub({ source: 'subagent' }) }],
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={group}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+      });
+
+      it('VALID: {outer chain with one nested chain, both with taskToolUse, now supplied} => renders exactly two durations', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const inner = SubagentChainGroupStub({
+          description: 'Inner',
+          agentId: 'agent-002',
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-002',
+            timestamp: '2026-09-10T10:02:00.000Z',
+          }),
+          taskNotification: null,
+        });
+        const outer = SubagentChainGroupStub({
+          description: 'Outer',
+          agentId: 'agent-001',
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+          innerGroups: [inner],
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={outer}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m', '2m']);
+      });
+
+      it('VALID: {chain with two nested chains, now supplied} => renders three durations, one per header', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const innerA = SubagentChainGroupStub({
+          description: 'Inner A',
+          agentId: 'agent-002',
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-002',
+            timestamp: '2026-09-10T10:01:00.000Z',
+          }),
+          taskNotification: null,
+        });
+        const innerB = SubagentChainGroupStub({
+          description: 'Inner B',
+          agentId: 'agent-003',
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-003',
+            timestamp: '2026-09-10T10:02:00.000Z',
+          }),
+          taskNotification: null,
+        });
+        const outer = SubagentChainGroupStub({
+          description: 'Outer',
+          agentId: 'agent-001',
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+          innerGroups: [innerA, innerB],
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={outer}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m', '3m', '2m']);
+      });
+
+      it('VALID: {inner chain frozen by its own notification, outer chain still running off the clock} => outer and inner read different bands in one render', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const inner = SubagentChainGroupStub({
+          description: 'Inner',
+          agentId: 'agent-002',
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-002',
+            timestamp: '2026-09-10T09:00:00.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T09:10:00.000Z',
+          }),
+        });
+        const outer = SubagentChainGroupStub({
+          description: 'Outer',
+          agentId: 'agent-001',
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: null,
+          innerGroups: [inner],
+        });
+
+        mantineRenderAdapter({
+          ui: (
+            <SubagentChainWidget
+              group={outer}
+              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            />
+          ),
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m', '10m']);
+      });
+    });
+
+    describe('figure values', () => {
+      it.each([
+        { durationMs: 9033, expected: '<1m' },
+        { durationMs: 270000, expected: '4m' },
+        { durationMs: 3600000, expected: '1h' },
+        { durationMs: 4380000, expected: '1h13m' },
+      ])('VALID: {durationMs: $durationMs} => renders $expected', ({ durationMs, expected }) => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T10:05:00.000Z',
+            durationMs,
+          }),
+        });
+
+        mantineRenderAdapter({
+          ui: <SubagentChainWidget group={group} />,
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual([expected]);
+      });
+
+      it('VALID: {taskToolUse 10:00:00, taskNotification 10:10:00 with durationMs 270000} => renders "4m", not the 10m gap', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T10:10:00.000Z',
+            durationMs: 270000,
+          }),
+        });
+
+        mantineRenderAdapter({
+          ui: <SubagentChainWidget group={group} />,
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+      });
+
+      it('VALID: {taskToolUse 10:00:00, taskNotification 10:04:30, no durationMs} => renders "4m" off the gap', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T10:04:30.000Z',
+          }),
+        });
+
+        mantineRenderAdapter({
+          ui: <SubagentChainWidget group={group} />,
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+      });
+
+      it('VALID: {taskToolUse 10:00:00, taskNotification 10:00:30, no durationMs} => renders "<1m"', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T10:00:30.000Z',
+          }),
+        });
+
+        mantineRenderAdapter({
+          ui: <SubagentChainWidget group={group} />,
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['<1m']);
+      });
+
+      it('EDGE: {taskToolUse 10:04:30, taskNotification 10:00:00 (backwards), no durationMs} => renders "<1m", not a negative figure', () => {
+        const proxy = SubagentChainWidgetProxy();
+        const group = SubagentChainGroupStub({
+          taskToolUse: TaskToolUseChatEntryStub({
+            agentId: 'agent-001',
+            timestamp: '2026-09-10T10:04:30.000Z',
+          }),
+          taskNotification: TaskNotificationChatEntryStub({
+            timestamp: '2026-09-10T10:00:00.000Z',
+          }),
+        });
+
+        mantineRenderAdapter({
+          ui: <SubagentChainWidget group={group} />,
+        });
+
+        expect(proxy.getDurationTexts()).toStrictEqual(['<1m']);
+      });
     });
   });
 });

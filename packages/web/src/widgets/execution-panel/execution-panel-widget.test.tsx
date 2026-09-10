@@ -8,6 +8,7 @@ import {
   QuestWorkItemIdStub,
   RiftcarverResultStub,
   SessionIdStub,
+  TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
   WardResultStub,
   WorkItemStub,
@@ -1486,6 +1487,163 @@ describe('ExecutionPanelWidget', () => {
       // calls setInterval again — this is not the earlier mount's interval left running, since that
       // one was already cleared above.
       expect(proxy.getTickIntervalCount()).toBe(1);
+    });
+  });
+
+  describe('sub-agent chain duration on running rows', () => {
+    it('VALID: {in_progress work item, Task tool use stamped one tick before the clock, no completion notification} => chain reads 1m, then 2m after the clock advances one tick', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); one tick period earlier is 00:09:00 — the Task
+      // tool use's own timestamp, since a chain's duration measures from ITS OWN start, not the
+      // work item's.
+      const taskStartedAt = '1970-01-01T00:09:00.000Z';
+      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000001' });
+      const workItemEntries = new Map([
+        [
+          workItemId,
+          [TaskToolUseChatEntryStub({ agentId: 'agent-001', timestamp: taskStartedAt })],
+        ],
+      ]);
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt: taskStartedAt,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
+      });
+
+      expect(proxy.getSubagentChainDurations()).toStrictEqual(['1m']);
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+      proxy.fireTick();
+
+      expect(proxy.getSubagentChainDurations()).toStrictEqual(['2m']);
+    });
+
+    it('EDGE: {in_progress work item, Task tool use stamped three ticks before the clock, no completion notification arrives} => chain reads 3m, then 4m after the clock advances one tick', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); three tick periods earlier is 00:07:00.
+      const taskStartedAt = '1970-01-01T00:07:00.000Z';
+      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000002' });
+      const workItemEntries = new Map([
+        [
+          workItemId,
+          [TaskToolUseChatEntryStub({ agentId: 'agent-002', timestamp: taskStartedAt })],
+        ],
+      ]);
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt: taskStartedAt,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
+      });
+
+      expect(proxy.getSubagentChainDurations()).toStrictEqual(['3m']);
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+      proxy.fireTick();
+
+      expect(proxy.getSubagentChainDurations()).toStrictEqual(['4m']);
+    });
+
+    it('VALID: {in_progress work item whose chain HAS a completion notification} => chain reads the same 5m span before and after the clock advances one tick', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      const taskStartedAt = '1970-01-01T00:00:00.000Z';
+      const notificationEndedAt = '1970-01-01T00:05:00.000Z';
+      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000003' });
+      const workItemEntries = new Map([
+        [
+          workItemId,
+          [
+            TaskToolUseChatEntryStub({ agentId: 'agent-003', timestamp: taskStartedAt }),
+            TaskNotificationChatEntryStub({ agentId: 'agent-003', timestamp: notificationEndedAt }),
+          ],
+        ],
+      ]);
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt: taskStartedAt,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
+      });
+
+      expect(proxy.getSubagentChainDurations()).toStrictEqual(['5m']);
+
+      proxy.advanceClockMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
+      proxy.fireTick();
+
+      // The row is still in_progress, so the panel's shared clock kept ticking — but this chain's
+      // own notification already fixed its end point, so the figure does not follow that clock.
+      expect(proxy.getSubagentChainDurations()).toStrictEqual(['5m']);
+    });
+
+    it('VALID: {in_progress work item whose transcript holds three distinct Task tool uses} => registers exactly one shared tick interval, and all three chains render a duration', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
+      proxy.setClockMs({ ms: clockMs });
+      // clockMs is 600,000ms (00:10:00 past epoch); one tick period earlier is 00:09:00.
+      const taskStartedAt = '1970-01-01T00:09:00.000Z';
+      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000004' });
+      const workItemEntries = new Map([
+        [
+          workItemId,
+          [
+            TaskToolUseChatEntryStub({ agentId: 'agent-004', timestamp: taskStartedAt }),
+            TaskToolUseChatEntryStub({ agentId: 'agent-005', timestamp: taskStartedAt }),
+            TaskToolUseChatEntryStub({ agentId: 'agent-006', timestamp: taskStartedAt }),
+          ],
+        ],
+      ]);
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            startedAt: taskStartedAt,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
+      });
+
+      expect(proxy.getTickIntervalCount()).toBe(1);
+      expect(proxy.getSubagentChainDurations()).toStrictEqual(['1m', '1m', '1m']);
     });
   });
 

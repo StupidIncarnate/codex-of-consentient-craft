@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Renders an expandable execution work-item row with status, role badge, and metadata
+ * PURPOSE: Renders an expandable execution work-item row with status, role badge, and metadata.
+ * Forwards the panel's shared clock (`now`) to its own transcript only while the row is
+ * in_progress, so a sub-agent chain inside a finished, failed or replayed row renders no live
+ * duration figure.
  *
  * USAGE:
  * <ExecutionRowLayerWidget order={order} name={name} role={role} status={status} files={files} dependsOn={deps} isAdhoc={false} />
@@ -37,6 +40,7 @@ import { durationDisplayTransformer } from '../../transformers/duration-display/
 import { elapsedPartsTransformer } from '../../transformers/elapsed-parts/elapsed-parts-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { mergeCommandOutputEntriesTransformer } from '../../transformers/merge-command-output-entries/merge-command-output-entries-transformer';
+import { runningRowNowTransformer } from '../../transformers/running-row-now/running-row-now-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { RiftcarverResultDetailLayerWidget } from './riftcarver-result-detail-layer-widget';
@@ -188,6 +192,11 @@ export const ExecutionRowLayerWidget = ({
   }, [status]);
 
   const isRunning = status === ('in_progress' as ExecutionStepStatus);
+  // The clock a running row's OWN transcript ticks against — a chain nested inside a finished,
+  // failed or replayed row gets none, so nothing on screen climbs for a sub-agent that stopped
+  // hours ago. Resolved through a transformer rather than inline: this arrow function already
+  // sits at the `complexity: max 50` ceiling `eslintRuleStatics` enforces.
+  const chainNow = runningRowNowTransformer({ isRunning, now });
   // A row shows a figure exactly when it has a startedAt AND an honest end point: completedAt if
   // it has one, else `now` while running. Any other status with a startedAt has none — that
   // startedAt is left over from a previous dispatch, not a span still in progress.
@@ -484,6 +493,7 @@ export const ExecutionRowLayerWidget = ({
               defaultShowAllEarlier={!isRunning}
               stickyTop={STICKY_TOP_INSIDE_ROW}
               isCommandOutput={isCommandRow}
+              {...(chainNow === undefined ? {} : { now: chainNow })}
             />
           ) : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}

@@ -16,6 +16,14 @@ export const SubagentChainWidgetProxy = (): {
   hasInnerGroupCount: (params: { count: number }) => boolean;
   setupAutoScrollReleased: () => void;
   isAutoScrollHeld: () => boolean;
+  getDurationTexts: () => HTMLElement['textContent'][];
+  getHeaderChildTexts: () => Element['textContent'][];
+  allDurationsSitInAHeader: () => boolean;
+  getDurationStyle: () => {
+    fontFamily: CSSStyleDeclaration['fontFamily'];
+    fontSize: CSSStyleDeclaration['fontSize'];
+    color: CSSStyleDeclaration['color'];
+  };
 } => {
   const anchorProxy = useDisclosureAnchorBindingProxy();
   ChatMessageWidgetProxy();
@@ -47,5 +55,29 @@ export const SubagentChainWidgetProxy = (): {
       screen.queryByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE') !== null,
     hasInnerGroupCount: ({ count }: { count: number }): boolean =>
       screen.queryAllByTestId('CHAT_MESSAGE').length === count,
+    getDurationTexts: (): HTMLElement['textContent'][] =>
+      screen.queryAllByTestId('subagent-chain-duration').map((el) => el.textContent),
+    getHeaderChildTexts: (): Element['textContent'][] => {
+      const [header] = screen.getAllByTestId('SUBAGENT_CHAIN_HEADER');
+      if (header === undefined) throw new Error('No SUBAGENT_CHAIN_HEADER found');
+      return Array.from(header.children).map((child) => child.textContent);
+    },
+    allDurationsSitInAHeader: (): boolean =>
+      screen
+        .queryAllByTestId('subagent-chain-duration')
+        .every((el) => el.closest('[data-testid="SUBAGENT_CHAIN_HEADER"]') !== null),
+    getDurationStyle: (): {
+      fontFamily: CSSStyleDeclaration['fontFamily'];
+      fontSize: CSSStyleDeclaration['fontSize'];
+      color: CSSStyleDeclaration['color'];
+    } => {
+      const [element] = screen.getAllByTestId('subagent-chain-duration');
+      if (element === undefined) throw new Error('No subagent-chain-duration element found');
+      return {
+        fontFamily: element.style.fontFamily,
+        fontSize: element.style.fontSize,
+        color: element.style.color,
+      };
+    },
   };
 };
