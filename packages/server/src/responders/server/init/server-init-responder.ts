@@ -846,6 +846,10 @@ export const ServerInitResponder = ({
     });
   }
 
+  // .unref()-ed: the listening socket honoServeAdapter opened above is what keeps this process
+  // alive, matching timer-set-interval-adapter.ts's precedent — a background flush loop must
+  // never be the one thing standing between a caller with no listening socket (a unit test) and
+  // a clean exit.
   const flushIntervalHandle = setInterval(() => {
     if (pipelineChatOutputBuffer.length === 0) return;
 
@@ -876,6 +880,7 @@ export const ServerInitResponder = ({
       }
     }
   }, FLUSH_INTERVAL_MS);
+  flushIntervalHandle.unref();
 
   orchestratorOutboxWatchAdapter({
     onQuestChanged: ({ questId }) => {
