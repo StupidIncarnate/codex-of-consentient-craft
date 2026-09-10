@@ -26,6 +26,47 @@ this): `agent_id`, `agent_type`, `stop_hook_active`, `last_assistant_message`, `
 backgrounded reads `status: 'running'` at the moment it tries to stop. Nothing else says so: a
 transcript records that a task was STARTED and never that it ended.
 
+## The array is SESSION-wide and names no owner
+
+Every entry the session holds arrives in every agent's event. Measured against Claude Code 2.1.267,
+three ways:
+
+| Who started the command | Who reads it in their own stop event |
+|---|---|
+| a sibling sub-agent dispatched in the same message | every sibling, each of the three |
+| the top-level session, before dispatching | its child AND its grandchild |
+| the stopping agent itself | itself |
+
+No field on an entry says which. `id`, `type`, `status`, `description` and `command` is the whole
+shape — there is no `agent_id` on a task, and `description` is not stable enough to key on (one
+measured run gave one shell a paraphrase and its two siblings the raw command).
+
+**So ownership has to be recovered from the transcript, and the `id` is what recovers it.** The
+harness prints the id into the STARTING agent's own transcript and nowhere else: across three probes
+a shell id appeared in its owner's transcript and in no sibling's, no child's and no parent's.
+`backgroundTasksOwnedSelectTransformer` matches on that id rather than on the sentence around it, so
+a wording change in the Bash result text cannot silently unscope it. Two wordings are observed and
+both carry the id — `Command running in background with ID: <id>` for an explicit
+`run_in_background`, and `… was moved to the background (ID: <id>)` for a call the harness
+backgrounded on its own.
+
+**An unscoped check wedges the whole session.** On one measured quest run, 56 of 70 sub-agents were
+refused a stop 1085 times between them, and 34 of those 56 had started no command at all — they were
+held on a siege lane a sibling or a parent owned. No sub-agent has a tool that clears a `shell`:
+`KillShell` and `BashOutput` are absent from a sub-agent's tool set, `TaskStop` reaches agents only,
+and those sessions ran 94 `ToolSearch` queries hunting for one before giving up.
+
+**An entry disappears when its process exits** — it does not linger as `completed`. A sub-agent that
+backgrounded a command, waited in-turn for it to finish and then stopped read `background_tasks: []`.
+So a block over a live command clears itself the moment the command ends, and a block that never
+clears means the process really is still running.
+
+**A detached process is not tracked at all.** A command launched with `setsid nohup … &` from a
+foreground Bash call produced no entry, and the process outlived the agent, the session and the
+`claude -p` child. That is the route for a long-lived lane nobody intends to reap — at the cost of
+the harness no longer reaping it either, and of a permission-allowlist entry, since the generated
+allowlist carries no `setsid` pattern and a headless child is denied outright rather than prompted.
+
 **`type` decides everything, and matching on `status` alone deadlocks the session.** Two types are
 observed, and only the first is a command a stop would destroy:
 
@@ -41,8 +82,9 @@ to stop on for the same reason a helper is — measured, an async helper survive
 response and finishes its work. An entry with NO `type` does not block either: an unrecognised entry
 failing open costs a lost command, and failing closed costs a wedged session.
 
-`hasRunningBackgroundTaskGuard` refuses the stop while any task is running, and that refusal is what
-keeps the command alive. **A headless `claude -p` session TERMINATES its background tasks the instant
+`hasRunningBackgroundTaskGuard` refuses the stop while any task in the list it is handed is running,
+and that refusal is what keeps the command alive. It decides no ownership of its own — hand it
+`backgroundTasksOwnedSelectTransformer`'s output, never a raw `background_tasks` array. **A headless `claude -p` session TERMINATES its background tasks the instant
 its final response lands, and no notification can follow that response** — measured against Claude
 Code 2.1.265, where a whole-repo ward backgrounded by a sub-agent died mid-`e2e` while the session
 reported `is_error: false`. `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` does not change this at any value.
@@ -57,10 +99,22 @@ Two rules follow, and they pull in opposite directions on purpose:
 
 **The block message carries TWO branches, and dropping either one deadlocks somebody.** A command
 whose RESULT the agent needs (ward, a build, a suite) routes to *wait and poll*. A long-lived process
-the agent is FINISHED with (a dev server, a watcher, a siege lane) routes to *kill it, then stop* —
-because that kind never reports anything but `running`, so a wait-only message would hold every
-lane-owning minion open forever. Both branches end with the command no longer running, which is what
-clears the block without needing an escape hatch.
+the agent is FINISHED with (a dev server, a watcher, a siege lane) routes to *shut it down, then
+stop* — because that kind never reports anything but `running`, so a wait-only message would hold
+every lane-owning minion open forever. Both branches end with the command no longer running, which is
+what clears the block without needing an escape hatch.
+
+**The shut-down branch names an ORDERLY shutdown before a kill, and that ordering is load-bearing.**
+A siege lane's driver spawns its API server, its Vite server and its browser detached, so it can take
+the group down together — which means a SIGKILL on the driver strands all three while the block
+clears anyway, and the agent reads that as success. The message routes to the process's own channel
+first (`{"name":"end"}` into the lane's command directory, for a siege lane) and to a kill only where
+no such channel exists.
+
+**The message also states that the block names only the agent's OWN commands**, now that ownership is
+scoped. Agents that could not clear an unscoped block went hunting the process table: one reported
+"45 processes killed in this final sweep", wiping every concurrent round's lane, and another killed a
+lane a sibling was still driving.
 
 An interactive session behaves differently — it keeps the task alive and re-enters the sub-agent when
 it exits — so a rule written from a `/dumpster-launch` observation does not transfer to the Node

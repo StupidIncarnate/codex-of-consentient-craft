@@ -285,8 +285,10 @@ describe('siegemasterPromptStatics', () => {
   // driver takes a bare token and builds `tmp/siege/<name>/` around it, so a directory-shaped
   // string points a minion at a directory nothing will ever create. The operator starts neither
   // lane: each minion starts the one it was named, so no round measures state a previous round
-  // left behind, and no name is ever reused.
-  it('VALID: served template => allocates two bare lane NAMES per round and starts neither itself', () => {
+  // left behind, and no name is ever reused. Each minion CLOSES its own too, with the driver's own
+  // `end`; a KILL stays banned for everyone, because the driver spawns its servers and browser
+  // detached and only that shutdown reaches them.
+  it('VALID: served template => allocates two bare lane NAMES per round, starts neither, and has each minion close its own', () => {
     expect({
       noSingleOwnership: hasIn({ needle: 'You own the dev server, and only you.', text: TEMPLATE }),
       freshLanePerRound: hasIn({
@@ -299,7 +301,7 @@ describe('siegemasterPromptStatics', () => {
       }),
       minionStartsItsOwn: hasIn({
         needle:
-          'the verifier and the stress tester each start their own lane from the name you gave them, drive it, and leave it to close itself. Nobody kills a lane.',
+          "the verifier and the stress tester each start their own lane from the name you gave\nthem, drive it, and close it themselves with the driver's own `end` command once their round is\nrecorded. Nobody KILLS a lane, and nobody closes one they did not start.",
         text: TEMPLATE,
       }),
       neverReuseALane: hasIn({

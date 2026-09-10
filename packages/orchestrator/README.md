@@ -41,6 +41,27 @@ parent was re-entered with the result in a second turn. So "end your turn while 
 sound, and only a backgrounded COMMAND is unsafe. `hasRunningBackgroundTaskGuard` draws exactly that
 line — see `packages/hooks/CLAUDE.md`.
 
+## A stop event's `background_tasks` spans the whole SESSION — measured at `2.1.267`
+
+The array a stop hook reads is not the stopping agent's own commands. It is every command and every
+async agent the session holds, with no field saying who started which. A sibling sub-agent's command
+appears in its siblings' events; a command the top-level session started appears in its child's AND
+its grandchild's.
+
+That is what makes a lane-per-minion design expensive here. One long-lived process — a siege lane, a
+dev server, a watcher — refuses a stop for every agent in the session, and only the one that started
+it can end it. On one measured quest run 56 of 70 sub-agents were refused 1085 times, 34 of them
+holding nothing at all.
+
+Ownership is recoverable from the transcript: the harness prints the task's `id` into the starting
+agent's own transcript and nowhere else. `@dungeonmaster/hooks` scopes on exactly that — see
+`packages/hooks/CLAUDE.md` for the shape, both result wordings, and the entry lifecycle.
+
+**A detached process escapes the ledger entirely.** `setsid nohup <cmd> &` from a foreground Bash
+call produces no `background_tasks` entry at all, and the process outlives the agent, the session
+and the `claude -p` child. A lane launched that way blocks nobody — and is reaped by nothing but its
+own idle timeout, so it needs one.
+
 ## `run_in_background: true` blocks a sub-agent for the Bash `timeout`
 
 It does not return immediately inside a sub-agent. It blocks for whatever `timeout` the call carries,

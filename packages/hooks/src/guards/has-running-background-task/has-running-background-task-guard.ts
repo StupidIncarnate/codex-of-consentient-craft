@@ -1,9 +1,14 @@
 /**
- * PURPOSE: Answers whether a stopping sub-agent still has a backgrounded command out. Reach for this
+ * PURPOSE: Answers whether a list of background tasks still holds a live command. Reach for this
  * over subagentStopNeedsBlockGuard when the question is "would ending this turn destroy work in
  * flight": that guard asks whether a work item was left unsignalled, which is a different failure
  * and is scoped to work-item agents alone. This one binds every sub-agent, because a headless
  * session TERMINATES its background tasks the moment its final response lands.
+ *
+ * It answers over WHATEVER LIST IT IS HANDED and decides no ownership of its own. A raw
+ * `background_tasks` array is session-wide, so pass it through
+ * backgroundTasksOwnedSelectTransformer first — otherwise this returns true for a sibling's lane
+ * and refuses a stop the agent has no way to earn.
  *
  * USAGE:
  * hasRunningBackgroundTaskGuard({ backgroundTasks });

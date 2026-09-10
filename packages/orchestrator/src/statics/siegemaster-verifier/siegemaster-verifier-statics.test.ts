@@ -322,11 +322,6 @@ describe('siegemasterVerifierStatics', () => {
         text: TEMPLATE,
       }),
       onceOnly: hasIn({ needle: '**Start it ONCE and never again this round.**', text: TEMPLATE }),
-      neverStopsIt: hasIn({
-        needle:
-          '**You never stop it either**: it closes itself once no new command has arrived for its idle window.',
-        text: TEMPLATE,
-      }),
       laneNameIsNotAPath: hasIn({
         needle:
           'the bare NAME of your Playwright lane for this round. Not a path: you hand that name to the driver and it builds every directory under it.',
@@ -336,19 +331,58 @@ describe('siegemasterVerifierStatics', () => {
         needle: '`Read` `tmp/siege/<your LANE: name>/lane.json` — the manifest it wrote at boot',
         text: TEMPLATE,
       }),
-      neverSendsEnd: hasIn({
-        needle: '**Never send `end`**: it closes the lane on the spot',
-        text: TEMPLATE,
-      }),
     }).toStrictEqual({
       startsItFirst: true,
       theCommand: true,
       backgrounded: true,
       onceOnly: true,
-      neverStopsIt: true,
       laneNameIsNotAPath: true,
       readsTheManifest: true,
-      neverSendsEnd: true,
+    });
+  });
+
+  // THE LANE IS ALSO THIS SESSION'S TO CLOSE, and `end` is the only shutdown that reaches the API
+  // server, Vite server and browser the driver spawned detached. A stop hook refuses a turn while a
+  // backgrounded command runs, so a lane left up holds this session open on the one entry only it
+  // can clear — and the sessions that could not clear it went hunting the process table and killed
+  // other rounds' lanes mid-walk. `end` stays banned MID-WALK, which is the case that kills a walk
+  // in progress.
+  it('VALID: served template => closes its own lane with `end` as its last action and kills nothing', () => {
+    expect({
+      closesItLast: hasIn({
+        needle:
+          '**[CLOSE YOUR LANE LAST]** Closing the lane you started is your FINAL action, after your record is\nwritten and before you return.',
+        text: TEMPLATE,
+      }),
+      theEndCommand: hasIn({
+        needle: 'Write  <commandsDir>/999-end.json   { "name": "end" }',
+        text: TEMPLATE,
+      }),
+      refusalClearsItself: hasIn({
+        needle:
+          'a stop refused over that\ncommand clears itself the next time you try — give your final response again rather than doing\nanything about it.',
+        text: TEMPLATE,
+      }),
+      leavingItUpStrandsThree: hasIn({
+        needle:
+          'a lane torn down that way strands its API server, its Vite server and\nits browser',
+        text: TEMPLATE,
+      }),
+      neverKillsAProcess: hasIn({
+        needle: "**Never kill a process to get out of a turn.** Not the driver's, not anything",
+        text: TEMPLATE,
+      }),
+      endIsNeverMidWalk: hasIn({
+        needle: '**`end` is your LAST command and never one mid-walk**',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      closesItLast: true,
+      theEndCommand: true,
+      refusalClearsItself: true,
+      leavingItUpStrandsThree: true,
+      neverKillsAProcess: true,
+      endIsNeverMidWalk: true,
     });
   });
 
