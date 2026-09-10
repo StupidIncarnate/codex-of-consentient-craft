@@ -9,7 +9,7 @@
     "slotCount": 1
   },
   "ward": {
-    "concurrency": 2
+    "concurrency": 4
   },
   "devServer": {
     "buildCommand": "npm run build",

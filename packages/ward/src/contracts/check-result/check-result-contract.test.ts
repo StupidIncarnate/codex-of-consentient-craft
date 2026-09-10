@@ -62,6 +62,7 @@ describe('checkResultContract', () => {
             onlyProcessed: [],
             fileTimings: [],
             passingTests: [],
+            openHandles: [],
             rawOutput: { stdout: '', stderr: 'error', exitCode: 1 },
             durationMs: 0,
           },

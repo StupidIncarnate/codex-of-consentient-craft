@@ -31,6 +31,10 @@ import {
   fileTimingContract,
   type FileTiming,
 } from '../../../contracts/file-timing/file-timing-contract';
+import {
+  openHandleContract,
+  type OpenHandle,
+} from '../../../contracts/open-handle/open-handle-contract';
 import { isNonIntegrationTestGuard } from '../../../guards/is-non-integration-test/is-non-integration-test-guard';
 import { isNoTestsFoundGuard } from '../../../guards/is-no-tests-found/is-no-tests-found-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
@@ -136,11 +140,24 @@ export const checkRunIntegrationBroker = async ({
       baseArgs[patternIndex + 1] = `(?:${dirPattern}).*${existingPattern}` as (typeof baseArgs)[0];
     }
   }
+  // Only a scope naming FILES stays in band. A handful of files cannot fill a worker pool, and
+  // ts-jest's LanguageService is built once PER WORKER, so spreading four files over four workers
+  // pays that construction four times to save nothing. Every other scope — a directory, a whole
+  // package, the whole repo — takes the `--maxWorkers` budget from `checkCommandsStatics`.
+  //
+  // That branch is also the ONLY place `--detectOpenHandles` can do anything: jest collects handles
+  // from the main thread and reports none from workers, which is why the flag implies `--runInBand`
+  // and why passing it globally single-threaded the whole repo. Here it rides a branch that was
+  // already serial, so leak detection costs no parallelism — and it matters most in this check,
+  // where the tests spawn real processes, bind real ports and open real files.
+  // Jest REFUSES both at once — "Both --runInBand and --maxWorkers were specified, only one is
+  // allowed" — and answers with its usage banner and a non-zero exit, which ward reports as a
+  // crash plus a DISCOVERY MISMATCH rather than anything naming the real cause. So the in-band
+  // branch drops the budget the shared args carry.
+  const inBandArgs = baseArgs.filter((arg) => !arg.startsWith('--maxWorkers'));
   const finalArgs = hasFiles
-    ? [...baseArgs, '--runInBand', '--findRelatedTests', ...fileEntries]
-    : hasDirs
-      ? [...baseArgs, '--runInBand']
-      : [...baseArgs, '--runInBand'];
+    ? [...inBandArgs, '--runInBand', '--detectOpenHandles', '--findRelatedTests', ...fileEntries]
+    : [...baseArgs];
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
   }
@@ -187,6 +204,7 @@ export const checkRunIntegrationBroker = async ({
   let numPassedTests = 0;
   const processedFiles: GitRelativePath[] = [];
   const fileTimings: FileTiming[] = [];
+  const openHandles: OpenHandle[] = [];
 
   if (status === 'fail') {
     try {
@@ -220,11 +238,24 @@ export const checkRunIntegrationBroker = async ({
               fileTimingContract.parse({
                 filePath: gitRelativePathContract.parse(String(name)),
                 durationMs: Number(endTime) - Number(startTime),
+                testMs: (tr.assertionResults ?? []).reduce(
+                  (sum, assertion) => sum + Number(assertion.duration ?? 0),
+                  0,
+                ),
               }),
             );
           }
         }
       }
+    }
+    for (const handle of parsed.openHandles ?? []) {
+      openHandles.push(
+        openHandleContract.parse({
+          name: String(handle.name ?? 'Error'),
+          message: String(handle.message ?? ''),
+          stack: String(handle.stack ?? ''),
+        }),
+      );
     }
   } catch {
     // non-JSON output, filesCount stays 0
@@ -262,6 +293,7 @@ export const checkRunIntegrationBroker = async ({
     onlyProcessed,
     fileTimings,
     passingTests,
+    openHandles,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

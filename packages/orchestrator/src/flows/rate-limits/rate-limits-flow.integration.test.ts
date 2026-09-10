@@ -6,8 +6,16 @@ import { rateLimitsWatcherHarness } from '../../../test/harnesses/rate-limits-wa
 
 import { RateLimitsFlow } from './rate-limits-flow';
 
+// The watcher's production cadence is 5s, and every wait below is denominated in POLL CYCLES
+// rather than seconds. Bootstrapping the watcher at 25ms lets each test observe MORE cycles than
+// a seconds-long wait against the default ever did: NO_EVENT_WINDOW spans 20 of them where the
+// same claim used to be made over a wait covering one.
+const POLL_INTERVAL = ElapsedMsStub({ value: 25 });
+// A deadline, not a sleep — pollUntil resolves the instant its condition holds, so this costs
+// wall clock only when the condition genuinely never arrives.
 const TICK_TIMEOUT = ElapsedMsStub({ value: 8000 });
 const SETTLE_DELAY = ElapsedMsStub({ value: 200 });
+const NO_EVENT_WINDOW = ElapsedMsStub({ value: 500 });
 const TEST_TIMEOUT_MS = 20000;
 
 describe('RateLimitsFlow', () => {
@@ -19,7 +27,10 @@ describe('RateLimitsFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'rate-limits-flow-write' }),
       });
-      const env = harness.setupHome({ tempDir: testbed.guildPath });
+      const env = harness.setupHome({
+        tempDir: testbed.guildPath,
+        pollIntervalMs: POLL_INTERVAL,
+      });
       const snapshot = RateLimitsSnapshotStub();
       harness.writeSnapshot({ tempDir: testbed.guildPath, snapshot });
 
@@ -52,7 +63,10 @@ describe('RateLimitsFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'rate-limits-flow-malformed' }),
       });
-      const env = harness.setupHome({ tempDir: testbed.guildPath });
+      const env = harness.setupHome({
+        tempDir: testbed.guildPath,
+        pollIntervalMs: POLL_INTERVAL,
+      });
       harness.writeRaw({ tempDir: testbed.guildPath, content: 'not json at all' });
 
       const handler = jest.fn();
@@ -93,14 +107,17 @@ describe('RateLimitsFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'rate-limits-flow-empty' }),
       });
-      const env = harness.setupHome({ tempDir: testbed.guildPath });
+      const env = harness.setupHome({
+        tempDir: testbed.guildPath,
+        pollIntervalMs: POLL_INTERVAL,
+      });
 
       const handler = jest.fn();
       const subscription = harness.subscribeRateLimitsUpdated({ handler });
 
       RateLimitsFlow.bootstrap();
 
-      await harness.delayMs({ ms: TICK_TIMEOUT });
+      await harness.delayMs({ ms: NO_EVENT_WINDOW });
       const finalState = harness.getStateSnapshot();
       const finalCalls = handler.mock.calls.length;
 

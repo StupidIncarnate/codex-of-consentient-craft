@@ -110,21 +110,17 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo} => orchestrator section inlines runChatLayerBroker under orchestration-loop', async () => {
-    const result = await architectureProjectMapBroker({
-      projectRoot,
-      packages: [PackageNameStub({ value: 'orchestrator' })],
-    });
-    const lines = String(result).split('\n');
+    // packageSectionBuildLayerBroker renders a package's section from (packageName, packageRoot,
+    // packageType, projectRoot) alone — identical whether reached via a single-package request or
+    // via allPackagesMap's all-packages request — so this reads orchestrator's slice out of the
+    // module-scope scan instead of paying for a second full walk of it.
+    const lines = String(await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l.endsWith('→ runChatLayerBroker'))).toBe(true);
   });
 
   it('VALID: {real monorepo} => mcp section does NOT include phantom from-string imports inside testing-patterns markdown', async () => {
-    const result = await architectureProjectMapBroker({
-      projectRoot,
-      packages: [PackageNameStub({ value: 'mcp' })],
-    });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     expect(lines.some((l) => /→ contracts\/?user/u.test(l))).toBe(false);
     expect(lines.some((l) => /→ statics\/?exit-code/u.test(l))).toBe(false);
@@ -137,11 +133,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo} => web section renders binding broker chain by export name (questQueueBroker)', async () => {
-    const result = await architectureProjectMapBroker({
-      projectRoot,
-      packages: [PackageNameStub({ value: 'web' })],
-    });
-    const lines = String(result).split('\n');
+    const lines = String(await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l.endsWith('→ questQueueBroker'))).toBe(true);
   });

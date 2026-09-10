@@ -15,6 +15,7 @@ import { rawOutputContract } from '../raw-output/raw-output-contract';
 import { gitRelativePathContract } from '../git-relative-path/git-relative-path-contract';
 import { fileTimingContract } from '../file-timing/file-timing-contract';
 import { passingTestContract } from '../passing-test/passing-test-contract';
+import { openHandleContract } from '../open-handle/open-handle-contract';
 import { testNamePatternMatchContract } from '../test-name-pattern-match/test-name-pattern-match-contract';
 import { durationMsContract } from '../duration-ms/duration-ms-contract';
 
@@ -30,6 +31,10 @@ export const projectResultContract = z.object({
   onlyProcessed: z.array(gitRelativePathContract).default([]),
   fileTimings: z.array(fileTimingContract).default([]),
   passingTests: z.array(passingTestContract).default([]),
+  // Async resources still open when the suite finished. Jest can only collect these while running
+  // in band, so this is populated on a FILE-scoped run and empty on a worker run — an empty array
+  // means "nobody looked", never "nothing leaked".
+  openHandles: z.array(openHandleContract).default([]),
   // Absent unless the check applied a --onlyTests pattern, which lets the run distinguish a check
   // that never filtered by name (lint, typecheck) from one that filtered and found nothing.
   testNamePatternMatch: testNamePatternMatchContract.optional(),

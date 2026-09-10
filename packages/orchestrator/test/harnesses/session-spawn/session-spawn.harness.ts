@@ -1,11 +1,16 @@
 /**
- * PURPOSE: Harness for spawning a real Claude CLI session, collecting its stdout, and reading back
- * the on-disk session transcript so a test can assert what Claude Code actually recorded (e.g.
- * which SessionStart hook attachments landed, and in what order) instead of asking the spawned
- * model to self-report on its own system prompt — a self-report measured wrong roughly 1 time in 6.
+ * PURPOSE: Harness for the two halves of the SessionStart-snippet chain. `settingsSnippetKeys`
+ * reads the `--settings` blob the adapter would hand the CLI and reports which snippets it
+ * registers — no spawn, no network. `spawnAndCollect` spawns a real Claude CLI session, collects
+ * its stdout, and reads back the on-disk session transcript so a test can assert what Claude Code
+ * actually recorded (which SessionStart hook attachments landed, and in what order) instead of
+ * asking the spawned model to self-report on its own system prompt — a self-report measured wrong
+ * roughly 1 time in 6. Reach for the first for anything a settings blob can answer; the second
+ * costs a live, billed model turn and answers only what the CLI's own behaviour can.
  *
  * USAGE:
  * const harness = sessionSpawnHarness();
+ * const keys = await harness.settingsSnippetKeys();
  * const { assistantText, exitCode, transcript } = await harness.spawnAndCollect({ prompt });
  * // transcript is the parsed contents of ~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl
  */
@@ -20,6 +25,7 @@ import {
   type AbsoluteFilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
@@ -45,6 +51,10 @@ interface TranscriptEntry {
 // claudeCodeParentSessionFindByToolUseIdBroker).
 const MAX_TRANSCRIPT_ATTEMPTS = 60;
 const TRANSCRIPT_POLL_INTERVAL_MS = 250;
+
+// The one shape a registered snippet takes in .claude/settings.json: the hook binary followed by
+// the snippet key, whichever hook event it sits under.
+const SNIPPET_COMMAND_PATTERN = /dungeonmaster-session-snippet ([A-Za-z]+)/gu;
 
 const extractAssistantText = ({ lines }: { lines: PromptText[] }): PromptText => {
   const texts: PromptText[] = [];
@@ -120,12 +130,34 @@ const readTranscriptWithRetry = async ({
 };
 
 export const sessionSpawnHarness = (): {
+  settingsSnippetKeys: () => Promise<readonly unknown[]>;
   spawnAndCollect: (params: { prompt: PromptText }) => Promise<{
     assistantText: PromptText;
     exitCode: ExitCode;
     transcript: TranscriptEntry[];
   }>;
 } => ({
+  // Reads the SAME file childProcessSpawnStreamJsonAdapter reads and passes verbatim as
+  // `--settings` (its colocated unit suite pins that pass-through), so the keys returned here are
+  // the snippets the spawned CLI is asked to run. Matched by REGEX over the raw text rather than by
+  // walking parsed JSON: the shape would need an ad-hoc structural type, which lint refuses, or a
+  // cross-package dependency on the hooks package's settings contract. Every registration of a
+  // snippet is one `dungeonmaster-session-snippet <key>` command string wherever it sits, so the
+  // union of matched keys answers both directions — a key with no command, and a command naming a
+  // key that no longer exists.
+  settingsSnippetKeys: async (): Promise<readonly unknown[]> => {
+    const startPath = FilePathStub({ value: __dirname });
+    const repoRoot = await cwdResolveBroker({ startPath, kind: 'repo-root' });
+    const settingsPath = absoluteFilePathContract.parse(
+      `${String(repoRoot)}/${locationsStatics.repoRoot.claude.dir}/${locationsStatics.repoRoot.claude.settings}`,
+    );
+    const contents = await readFile(String(settingsPath), 'utf8');
+    const matched = [...contents.matchAll(SNIPPET_COMMAND_PATTERN)].map((match) =>
+      String(match[1]),
+    );
+    return [...new Set(matched)].sort();
+  },
+
   spawnAndCollect: async ({
     prompt,
   }: {

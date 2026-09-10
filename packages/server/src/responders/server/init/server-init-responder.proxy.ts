@@ -17,40 +17,33 @@ import {
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
-// Preserve real orchestrator exports (contracts, types) while mocking functions used by adapters
+// Named explicitly rather than spread from jest.requireActual: this responder's whole
+// dependent tree only ever reaches four exports off '@dungeonmaster/orchestrator' —
+// StartOrchestrator (loadQuest, replayChatHistory, stopAllChats, findQuestByWorkItemId — the
+// methods this tree's adapters actually call; orchestratorOutboxWatchAdapter mocks its own
+// local adapter module instead, so questOutboxWatchBroker never needs to be supplied here),
+// orchestrationEventsState.on, and questFindQuestPathBroker.
+// isoTimestampContract is the one export that must stay CALLABLE (server's own
+// contracts/iso-timestamp/iso-timestamp-contract.ts re-exports it verbatim, and this responder
+// calls `.parse()` on it for every WS envelope, always with a string already produced by
+// `Date.prototype.toISOString()`). A real zod schema is not needed to make that call safe:
+// every downstream consumer of the parsed value (wsMessageContract) carries its OWN independent
+// `z.string().datetime().brand<'IsoTimestamp'>()` check rather than reusing this export, so an
+// identity `parse` that hands the already-valid value back is behaviorally exact — generic
+// rather than typed `string` so it stays off ban-primitives — and it sidesteps pulling in zod
+// (or the orchestrator barrel) through this factory at all.
 registerModuleMock({
   module: '@dungeonmaster/orchestrator',
   factory: () => ({
-    ...jest.requireActual('@dungeonmaster/orchestrator'),
+    isoTimestampContract: { parse: <T>(value: T): T => value },
     StartOrchestrator: {
-      addGuild: jest.fn(),
-      addQuest: jest.fn(),
-      browseDirectories: jest.fn(),
-      findQuestByWorkItemId: jest.fn(),
-      getGuild: jest.fn(),
-      getQuest: jest.fn(),
-      getQuestStatus: jest.fn(),
-      listGuilds: jest.fn(),
-      listQuests: jest.fn(),
       loadQuest: jest.fn(),
-      modifyQuest: jest.fn(),
-      pauseQuest: jest.fn(),
-      abandonQuest: jest.fn(),
-      recoverActiveQuests: jest.fn(),
-      removeGuild: jest.fn(),
       replayChatHistory: jest.fn(),
-      startChat: jest.fn(),
-      startDesignChat: jest.fn(),
-      startQuest: jest.fn(),
       stopAllChats: jest.fn(),
-      stopChat: jest.fn(),
-      updateGuild: jest.fn(),
+      findQuestByWorkItemId: jest.fn(),
     },
     orchestrationEventsState: {
       on: jest.fn(),
-      off: jest.fn(),
-      emit: jest.fn(),
-      removeAllListeners: jest.fn(),
     },
     questFindQuestPathBroker: jest.fn(),
   }),

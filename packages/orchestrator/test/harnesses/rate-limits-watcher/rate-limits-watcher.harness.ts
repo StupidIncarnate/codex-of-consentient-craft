@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const harness = rateLimitsWatcherHarness();
- * const env = harness.setupHome({ tempDir: testbed.guildPath });
+ * const env = harness.setupHome({ tempDir: testbed.guildPath, pollIntervalMs: ElapsedMsStub({ value: 25 }) });
  * harness.writeSnapshot({ tempDir: testbed.guildPath, snapshot });
  * const sub = harness.subscribeRateLimitsUpdated();
  * await harness.pollUntil({ condition: () => harness.getStateSnapshot() !== null, timeoutMs: ElapsedMsStub({ value: 8000 }) });
@@ -27,7 +27,9 @@ const SNAPSHOT_FILENAME = 'rate-limits.json';
 const POLL_STEP_MS = ElapsedMsStub({ value: 50 });
 
 export const rateLimitsWatcherHarness = (): {
-  setupHome: ({ tempDir }: { tempDir: GuildPath }) => { restore: () => void };
+  setupHome: ({ tempDir, pollIntervalMs }: { tempDir: GuildPath; pollIntervalMs: ElapsedMs }) => {
+    restore: () => void;
+  };
   writeSnapshot: ({
     tempDir,
     snapshot,
@@ -58,9 +60,22 @@ export const rateLimitsWatcherHarness = (): {
     restore: () => void;
   };
 } => ({
-  setupHome: ({ tempDir }: { tempDir: GuildPath }): { restore: () => void } => {
+  // RateLimitsBootstrapResponder reads DUNGEONMASTER_RATE_LIMITS_POLL_MS once, at the moment
+  // bootstrap() is called, and falls back to the 5s production cadence when it is unset. Setting
+  // it here is what lets a test observe the SAME number of poll cycles in milliseconds instead of
+  // seconds — the env has to be in place BEFORE the test calls bootstrap(), which is why it rides
+  // setupHome rather than a separate call a test could forget.
+  setupHome: ({
+    tempDir,
+    pollIntervalMs,
+  }: {
+    tempDir: GuildPath;
+    pollIntervalMs: ElapsedMs;
+  }): { restore: () => void } => {
     const savedHome = process.env.DUNGEONMASTER_HOME;
+    const savedPollIntervalMs = process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS;
     process.env.DUNGEONMASTER_HOME = tempDir;
+    process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS = String(pollIntervalMs);
     fs.mkdirSync(tempDir, { recursive: true });
 
     return {
@@ -73,6 +88,11 @@ export const rateLimitsWatcherHarness = (): {
           Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
         } else {
           process.env.DUNGEONMASTER_HOME = savedHome;
+        }
+        if (savedPollIntervalMs === undefined) {
+          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_RATE_LIMITS_POLL_MS');
+        } else {
+          process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS = savedPollIntervalMs;
         }
       },
     };

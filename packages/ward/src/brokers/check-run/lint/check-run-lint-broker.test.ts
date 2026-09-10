@@ -283,8 +283,8 @@ describe('checkRunLintBroker', () => {
           filesCount: 2,
           discoveredCount: 2,
           fileTimings: [
-            FileTimingStub({ filePath: 'src/index.ts', durationMs: 15.7 }),
-            FileTimingStub({ filePath: 'src/utils.ts', durationMs: 8.1 }),
+            FileTimingStub({ filePath: 'src/index.ts', durationMs: 15.7, testMs: 0 }),
+            FileTimingStub({ filePath: 'src/utils.ts', durationMs: 8.1, testMs: 0 }),
           ],
           rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 0 }),
         }),

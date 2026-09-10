@@ -1,5 +1,6 @@
 import { projectResultContract } from './project-result-contract';
 import { ProjectResultStub } from './project-result.stub';
+import { OpenHandleStub } from '../open-handle/open-handle.stub';
 
 describe('projectResultContract', () => {
   describe('valid inputs', () => {
@@ -18,6 +19,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        openHandles: [],
         durationMs: 0,
       });
     });
@@ -59,6 +61,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        openHandles: [],
         durationMs: 0,
       });
     });
@@ -95,6 +98,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        openHandles: [],
         durationMs: 0,
       });
     });
@@ -114,6 +118,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        openHandles: [],
         durationMs: 0,
       });
     });
@@ -210,7 +215,9 @@ describe('projectResultContract', () => {
         }),
       );
 
-      expect(result.fileTimings).toStrictEqual([{ filePath: 'src/index.ts', durationMs: 150 }]);
+      expect(result.fileTimings).toStrictEqual([
+        { filePath: 'src/index.ts', durationMs: 150, testMs: 0 },
+      ]);
     });
   });
 
@@ -230,6 +237,7 @@ describe('projectResultContract', () => {
         onlyProcessed: [],
         fileTimings: [],
         passingTests: [],
+        openHandles: [],
         durationMs: 0,
       });
     });
@@ -324,6 +332,38 @@ describe('projectResultContract', () => {
       const result = projectResultContract.parse(ProjectResultStub({ durationMs: 4200 }));
 
       expect(result.durationMs).toBe(4200);
+    });
+  });
+
+  describe('openHandles defaults', () => {
+    it('VALID: {openHandles omitted} => defaults to empty array', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.openHandles).toStrictEqual([]);
+    });
+
+    it('VALID: {openHandles provided} => preserves value', () => {
+      const openHandle = OpenHandleStub({
+        name: 'Error',
+        message: 'TCPSERVERWRAP',
+        stack: 'at Server.listen (src/startup/start-server.ts:12:5)',
+      });
+
+      const result = projectResultContract.parse(ProjectResultStub({ openHandles: [openHandle] }));
+
+      expect(result.openHandles).toStrictEqual([
+        {
+          name: 'Error',
+          message: 'TCPSERVERWRAP',
+          stack: 'at Server.listen (src/startup/start-server.ts:12:5)',
+        },
+      ]);
     });
   });
 });

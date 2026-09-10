@@ -21,6 +21,8 @@ type HookName =
   | 'start-pre-bash-hook'
   | 'start-post-edit-hook'
   | 'start-pre-edit-hook'
+  | 'start-pre-folder-detail-hook'
+  | 'start-pre-search-hook'
   | 'start-session-snippet-hook'
   | 'start-subagent-stop-hook';
 

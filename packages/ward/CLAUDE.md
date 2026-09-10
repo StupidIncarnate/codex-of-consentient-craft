@@ -191,6 +191,18 @@ test failures), use the detail subcommand:
 the full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of
 a failing run.
 
+### Read a slow-file line as two numbers, and believe the second one
+
+Each line prints `<path>  Xs wall, Ys in tests`. **Wall time is not the file's cost.** It is jest's
+`endTime - startTime`, which spans building the ts-jest LanguageService and TypeScript program — paid by
+whichever file jest transforms FIRST, on the whole package's behalf. `Ys in tests` sums that suite's own
+assertion durations and has no compile in it.
+
+A wide gap means the file is innocent and editing it will achieve nothing. One file read 46.2s wall against
+83ms of test bodies; forcing a different file to run first moved the entire cost onto that one, and a
+private cold cache showed a peer the report scored at 5.8s actually cost MORE. Before optimising any file
+this list names, check `ward detail <runId>` for its per-test durations.
+
 ## How File Scoping Works
 
 Ward has three file scoping mechanisms: passthrough (`--`), committed (`--committed`), and uncommitted
@@ -299,15 +311,55 @@ Ward spawns these commands per package (`checkCommandsStatics`; the jest extensi
 - **lint:** `npx eslint --fix --stats --format json .` — file scope replaces `.` with the file list.
 - **typecheck:** `npx tsc --noEmit --listFiles` — always the full project; there is no per-file tsc mode,
   so file scope changes nothing about the command. NO CHECK MAY EMIT, so this never carries `-b`.
-- **unit:** `npx jest --json --no-color --forceExit --detectOpenHandles --testPathIgnorePatterns
-  '\.integration\.test\.(ts|tsx|js|jsx)$|\.e2e\.test\.(ts|tsx|js|jsx)$'` — file scope adds `--runInBand
-  --findRelatedTests <files>` when every passthrough entry is a FILE, or `--runInBand --testPathPatterns
-  <dir1>|<dir2>` when the scope includes a DIRECTORY (mutually exclusive, not additive).
-- **integration:** `npx jest --json --no-color --forceExit --detectOpenHandles --testTimeout=30000
+- **unit:** `npx jest --json --no-color --forceExit --maxWorkers=25% --testPathIgnorePatterns
+  '\.integration\.test\.(ts|tsx|js|jsx)$|\.e2e\.test\.(ts|tsx|js|jsx)$'` — a scope naming only FILES adds
+  `--runInBand --findRelatedTests <files>`; a scope including a DIRECTORY adds `--testPathPatterns
+  <dir1>|<dir2>` and keeps the worker budget (mutually exclusive, not additive).
+- **integration:** `npx jest --json --no-color --forceExit --maxWorkers=25% --testTimeout=30000
   --testPathPatterns '\.integration\.test\.(ts|tsx|js|jsx)$'` — file entries add `--runInBand
   --findRelatedTests <files>`; a directory in scope instead REWRITES the `--testPathPatterns` value in
-  place to `(?:<dir1>|<dir2>).*<original pattern>` and adds `--runInBand`.
+  place to `(?:<dir1>|<dir2>).*<original pattern>` and keeps the worker budget.
 - **e2e:** `npx playwright test --reporter=line,json` — file scope appends the file list.
+
+### Two pools multiply, and `--detectOpenHandles` collapses both
+
+**Only a scope naming FILES runs in band.** A handful of files cannot fill a worker pool, and ts-jest
+builds its LanguageService and TypeScript program once PER WORKER — so spreading four files across four
+workers pays that construction four times to save nothing. Every wider scope, `-- packages/shared`
+included at 570 files, runs on the worker budget.
+
+**`--maxWorkers` is a PERCENTAGE, never a count.** Each worker builds its own TypeScript program, so a
+count tuned for a 12-core box exhausts memory on a laptop. Jest resolves the percentage against the
+machine, and it multiplies with ward's own package concurrency rather than replacing it: at
+`configDefaultsStatics.ward.concurrency.default` packages in flight and 25% each, a run lands on the
+whole machine and no more. A repo that lowers `ward.concurrency` leaves cores idle and may raise the
+share to compensate.
+
+### Leak detection rides the in-band branch, and only that branch
+
+**`--detectOpenHandles` belongs on the FILE-scoped branch and nowhere else.** Jest collects open handles
+from the main thread and reports none from workers, which is exactly why it treats the flag as implying
+`--runInBand` — `if (runInBand || detectOpenHandles)` in `@jest/core`, commented there as "detectOpenHandles
+makes no sense without runInBand, because it cannot detect leaks in workers". So the flag is free where the
+run was already serial, and ruinous anywhere else.
+
+**Never put it in `checkCommandsStatics` or `jest.config.base.js`.** From either place it applies to every
+run and single-threads the whole repo on every core the machine has. It also installs an async_hooks `init`
+hook that builds a 100-frame `ErrorWithStack` per async resource and symbolicates each through
+source-map-support: 24.7% of a profiled 69s web run.
+
+**The pre-commit gate is where leaks get caught.** `--committed` and `--uncommitted` resolve to a file list
+before any check runs, so they take the in-band branch — every file a session touched is checked for leaks,
+and the whole-repo sweep stays parallel.
+
+Ward parses jest's `openHandles` (present in `--json`, serialized as Errors carrying `message`, `name` and
+`stack`) onto `ProjectResult.openHandles`, and the summary prints an `open handles` section naming the
+package, the libuv handle type and the frame that opened it. **An empty array means nobody looked, never
+that nothing leaked** — a worker run always reports none.
+
+A leak is REPORTED, not failed. One orchestrator suite leaks an interval deliberately
+(`packages/orchestrator/CLAUDE.md` documents it), and a check that reddens on a known-accepted case is one
+people learn to scroll past. `--forceExit` is what stops a leaked handle hanging the run.
 
 **`--onlyTests` mapping:** When `--onlyTests <regex>` is provided, ward appends `--testNamePattern <regex>` to Jest
 commands (unit/integration) and `--grep <regex> --pass-with-no-tests` to Playwright commands (e2e). Lint and typecheck

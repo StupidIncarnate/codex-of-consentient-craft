@@ -7,6 +7,7 @@ import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
 import { FileTimingStub } from '../../contracts/file-timing/file-timing.stub';
 import { WardSummaryStub } from '../../contracts/ward-summary/ward-summary.stub';
+import { OpenHandleStub } from '../../contracts/open-handle/open-handle.stub';
 import { resultToSummaryTransformer } from './result-to-summary-transformer';
 
 describe('resultToSummaryTransformer', () => {
@@ -873,7 +874,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  src/slow-flow.integration.test.ts  8.3s\n  src/slow-widget.test.tsx  5.2s',
+            "run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  wall time includes the package's one-time compile, charged to whichever file ran first\n  src/slow-flow.integration.test.ts  8.3s wall, 0.0s in tests\n  src/slow-widget.test.tsx  5.2s wall, 0.0s in tests",
         }),
       );
     });
@@ -946,7 +947,211 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  src/broker.test.ts  9.0s\n  src/widget.test.tsx  6.0s',
+            "run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  wall time includes the package's one-time compile, charged to whichever file ran first\n  src/broker.test.ts  9.0s wall, 0.0s in tests\n  src/widget.test.tsx  6.0s wall, 0.0s in tests",
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: fileTimings from a lint section, all testMs 0} => shows single number per file with no note', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                fileTimings: [
+                  FileTimingStub({
+                    filePath: 'src/big-widget.tsx',
+                    durationMs: 6000,
+                    testMs: 0,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (5 files passed/0 files failed)\n\n--- slow files (lint) ---\n  src/big-widget.tsx  6.0s',
+        }),
+      );
+    });
+  });
+
+  describe('open handle reporting', () => {
+    it('VALID: {wardResult: no open handles} => omits open handles section', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: one open handle} => shows open handles section', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                openHandles: [OpenHandleStub()],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  TCPSERVERWRAP\n      at Server.listen (src/startup/start-server.ts:12:5)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: handle stack with multiple own frames} => renders every own frame, indented', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                openHandles: [
+                  OpenHandleStub({
+                    message: 'FSREQCALLBACK',
+                    stack: 'Error\n  at first (a.ts:1:1)\n  at second (b.ts:2:2)',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  FSREQCALLBACK\n      at first (a.ts:1:1)\n      at second (b.ts:2:2)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: handle with empty stack} => renders the line with no frame after it', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                openHandles: [OpenHandleStub({ message: 'Timeout', stack: '' })],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  Timeout',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: handles from two packages} => each labelled with its own package name', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                openHandles: [OpenHandleStub({ message: 'TCPSERVERWRAP' })],
+              }),
+              ProjectResultStub({
+                projectFolder: { name: 'cli', path: '/p/cli' },
+                status: 'pass',
+                filesCount: 3,
+                openHandles: [OpenHandleStub({ message: 'Timeout', stack: '' })],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  TCPSERVERWRAP\n      at Server.listen (src/startup/start-server.ts:12:5)\n  cli  Timeout',
         }),
       );
     });

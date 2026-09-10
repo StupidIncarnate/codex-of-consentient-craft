@@ -41,6 +41,14 @@ const integrationDiscoverPatterns = allExts.flatMap((ext) => [
 // Regex alternation for all extensions: ts|tsx|js|jsx
 const extRegex = allExts.join('|');
 
+// Jest resolves the percentage against the machine's cores, so this multiplies with ward's OWN
+// package concurrency rather than replacing it: `configDefaultsStatics.ward.concurrency.default`
+// packages in flight, this share of the cores each, lands on the whole machine and no more.
+// A repo that lowers `ward.concurrency` leaves cores idle and may raise it to compensate.
+// Percentage, never a count: every worker builds its own ts-jest LanguageService and TypeScript
+// program, so a count that suits a 12-core box exhausts memory on a laptop.
+const maxWorkersBudget = '--maxWorkers=25%';
+
 export const checkCommandsStatics = {
   lint: {
     bin: 'eslint',
@@ -54,11 +62,17 @@ export const checkCommandsStatics = {
   },
   unit: {
     bin: 'jest',
+    // No `--detectOpenHandles` HERE. Jest reads it as implying `--runInBand`
+    // (`if (runInBand || detectOpenHandles)` in @jest/core), so from this list — which every run
+    // shares — it single-threads the whole repo whatever the machine has, and its async_hooks stack
+    // capture cost 24.7% of a profiled 69s web run. Leak detection is not lost: the check-run
+    // brokers add the flag on the FILE-scoped branch, which is already in band, so it costs nothing
+    // there. `--forceExit` is what stops a leaked handle hanging the run.
     args: [
       '--json',
       '--no-color',
       '--forceExit',
-      '--detectOpenHandles',
+      maxWorkersBudget,
       '--testPathIgnorePatterns',
       // `.e2e.test` is retained defensively here too: e2e is Playwright-only (`*.e2e.ts`),
       // so the Jest `.e2e.test` suffix is unused after the rename, but a stray one should
@@ -74,7 +88,7 @@ export const checkCommandsStatics = {
       '--json',
       '--no-color',
       '--forceExit',
-      '--detectOpenHandles',
+      maxWorkersBudget,
       '--testTimeout=30000',
       '--testPathPatterns',
       `\\.integration\\.test\\.(${extRegex})$`,

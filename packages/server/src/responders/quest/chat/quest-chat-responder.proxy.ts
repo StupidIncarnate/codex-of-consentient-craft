@@ -12,10 +12,13 @@ import { registerMock, registerModuleMock } from '@dungeonmaster/testing/registe
 
 // Combine StartOrchestrator method mocks with the questFindQuestPathBroker mock under
 // one explicit module-mock factory so both can coexist on @dungeonmaster/orchestrator.
+// Named explicitly rather than spread from jest.requireActual: this responder's whole
+// dependent tree (its adapters, its broker, its contracts) only ever imports
+// StartOrchestrator and questFindQuestPathBroker off this module, so those are the only
+// two exports the factory needs to supply.
 registerModuleMock({
   module: '@dungeonmaster/orchestrator',
   factory: () => ({
-    ...jest.requireActual('@dungeonmaster/orchestrator'),
     StartOrchestrator: {
       addGuild: jest.fn(),
       addQuest: jest.fn(),

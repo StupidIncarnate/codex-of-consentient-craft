@@ -28,11 +28,22 @@ const jestSuiteResultContract = z
   })
   .passthrough();
 
+// Jest serializes each open handle as an Error through its own `serializeToJSON`, which keeps only
+// `message`, `name` and `stack` — so this mirrors that shape and nothing wider.
+const jestOpenHandleContract = z
+  .object({
+    name: z.string().brand<'JestOpenHandleName'>().optional(),
+    message: z.string().brand<'JestOpenHandleMessage'>().optional(),
+    stack: z.string().brand<'JestOpenHandleStack'>().optional(),
+  })
+  .passthrough();
+
 export const jestJsonReportContract = z
   .object({
     numTotalTestSuites: z.number().brand<'JestNumTotalTestSuites'>().optional(),
     numPassedTests: z.number().brand<'JestNumPassedTests'>().optional(),
     testResults: z.array(jestSuiteResultContract).optional(),
+    openHandles: z.array(jestOpenHandleContract).optional(),
   })
   .passthrough();
 

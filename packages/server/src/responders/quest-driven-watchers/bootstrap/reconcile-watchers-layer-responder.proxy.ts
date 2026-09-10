@@ -6,13 +6,14 @@ import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 // StartOrchestrator method mock stops intercepting and the REAL guild list is read off the
 // developer's own ~/.dungeonmaster. One factory supplying both is what keeps them coexisting —
 // the same shape quest-chat-responder.proxy.ts uses for questFindQuestPathBroker.
+// No spread from jest.requireActual: besides forcing the barrel's own module-load bootstraps to
+// evaluate inside the factory (before the test file's imports have initialised), this responder's
+// whole dependent tree (its adapters, its contract, its guard, its transformer) only ever imports
+// StartOrchestrator.listGuilds, StartOrchestrator.startMonitorWatcher and questListBroker off this
+// module, so those are the only exports the factory needs to supply.
 registerModuleMock({
   module: '@dungeonmaster/orchestrator',
   factory: () => ({
-    ...jest.requireActual('@dungeonmaster/orchestrator'),
-    // Replaced WHOLE rather than spread from the real object: spreading it forces the barrel's
-    // own module-load bootstraps to evaluate inside the factory, which runs before the test
-    // file's imports have initialised.
     StartOrchestrator: {
       listGuilds: jest.fn(),
       startMonitorWatcher: jest.fn(),

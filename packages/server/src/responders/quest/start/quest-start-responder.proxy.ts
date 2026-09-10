@@ -1,14 +1,15 @@
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 import type { ProcessIdStub, QuestId, QuestStub } from '@dungeonmaster/shared/contracts';
 
-// Explicit factory so the rest of the orchestrator barrel stays REAL: a bare
-// `registerMock({ fn: StartOrchestrator.<method> })` inside the adapter proxies below hoists into a
-// factory-less `jest.mock('@dungeonmaster/orchestrator')` that automocks the whole barrel, and every
-// class it exports comes back as a stub whose `instanceof` no longer holds.
+// Explicit factory: a bare `registerMock({ fn: StartOrchestrator.<method> })` inside the adapter
+// proxies below hoists into a factory-less `jest.mock('@dungeonmaster/orchestrator')` that
+// automocks the whole barrel, and every class it exports comes back as a stub whose `instanceof`
+// no longer holds. No spread from jest.requireActual either — this responder's whole dependent
+// tree (its adapters, its contract, its guard) only ever imports StartOrchestrator off this
+// module, so StartOrchestrator is the only export the factory needs to supply.
 registerModuleMock({
   module: '@dungeonmaster/orchestrator',
   factory: () => ({
-    ...jest.requireActual('@dungeonmaster/orchestrator'),
     StartOrchestrator: {
       getQuest: jest.fn(),
       startQuest: jest.fn(),

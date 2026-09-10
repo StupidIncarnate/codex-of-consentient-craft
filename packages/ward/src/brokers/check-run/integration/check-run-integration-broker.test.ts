@@ -4,6 +4,7 @@ import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
+import { OpenHandleStub } from '../../../contracts/open-handle/open-handle.stub';
 
 import { checkRunIntegrationBroker } from './check-run-integration-broker';
 import { checkRunIntegrationBrokerProxy } from './check-run-integration-broker.proxy';
@@ -137,6 +138,31 @@ describe('checkRunIntegrationBroker', () => {
     });
   });
 
+  describe('unscoped run', () => {
+    it('VALID: {no fileList} => passes --maxWorkers=25% and stays off --runInBand', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--maxWorkers=25%',
+        '--testTimeout=30000',
+        '--testPathPatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
+      ]);
+    });
+  });
+
   describe('file list filtering', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests and --runInBand with files to jest', async () => {
       const projectFolder = ProjectFolderStub();
@@ -154,11 +180,11 @@ describe('checkRunIntegrationBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/index.ts',
       ]);
@@ -166,7 +192,7 @@ describe('checkRunIntegrationBroker', () => {
   });
 
   describe('directory path filtering', () => {
-    it('VALID: {fileList with directory path} => combines directory with integration pattern in --testPathPatterns', async () => {
+    it('VALID: {fileList with directory path} => combines directory with integration pattern in --testPathPatterns, and stays off --runInBand', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();
       proxy.setDiscoveredFiles({
@@ -185,15 +211,14 @@ describe('checkRunIntegrationBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
+        '--maxWorkers=25%',
         '--testTimeout=30000',
         '--testPathPatterns',
         '(?:src/flows/chat-replay).*\\.integration\\.test\\.(ts|tsx|js|jsx)$',
-        '--runInBand',
       ]);
     });
 
-    it('VALID: {fileList with multiple directory paths} => joins paths in combined pattern', async () => {
+    it('VALID: {fileList with multiple directory paths} => joins paths in combined pattern, and stays off --runInBand', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();
       proxy.setDiscoveredFiles({
@@ -218,11 +243,10 @@ describe('checkRunIntegrationBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
+        '--maxWorkers=25%',
         '--testTimeout=30000',
         '--testPathPatterns',
         '(?:src/flows/quest|src/flows/install).*\\.integration\\.test\\.(ts|tsx|js|jsx)$',
-        '--runInBand',
       ]);
     });
 
@@ -246,11 +270,11 @@ describe('checkRunIntegrationBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
       ]);
@@ -311,11 +335,11 @@ describe('checkRunIntegrationBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
       ]);
@@ -353,7 +377,7 @@ describe('checkRunIntegrationBroker', () => {
   });
 
   describe('testNamePattern', () => {
-    it('VALID: {testNamePattern provided} => appends --testNamePattern to jest args', async () => {
+    it('VALID: {testNamePattern provided, no file scope} => appends --testNamePattern to jest args and stays off --runInBand', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();
       proxy.setupPass({ projectFolder });
@@ -370,11 +394,10 @@ describe('checkRunIntegrationBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
+        '--maxWorkers=25%',
         '--testTimeout=30000',
         '--testPathPatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
-        '--runInBand',
         '--testNamePattern',
         'should connect',
       ]);
@@ -619,10 +642,12 @@ describe('checkRunIntegrationBroker', () => {
             FileTimingStub({
               filePath: 'src/flows/install/install.integration.test.ts',
               durationMs: 3500,
+              testMs: 0,
             }),
             FileTimingStub({
               filePath: 'src/flows/quest/quest.integration.test.ts',
               durationMs: 1200,
+              testMs: 0,
             }),
           ],
           rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
@@ -649,6 +674,223 @@ describe('checkRunIntegrationBroker', () => {
       });
 
       expect(result.fileTimings).toStrictEqual([]);
+    });
+
+    it('VALID: {jest output with assertionResults carrying durations} => returns testMs summed from assertion durations', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [
+          {
+            name: 'src/flows/install/install.integration.test.ts',
+            assertionResults: [
+              { status: 'passed', fullName: 'VALID: {a} => b', duration: 320 },
+              { status: 'passed', fullName: 'VALID: {c} => d', duration: 180 },
+            ],
+            startTime: 5000,
+            endTime: 8500,
+          },
+        ],
+        numTotalTestSuites: 1,
+        numPassedTests: 2,
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([
+        FileTimingStub({
+          filePath: 'src/flows/install/install.integration.test.ts',
+          durationMs: 3500,
+          testMs: 500,
+        }),
+      ]);
+    });
+
+    it('EDGE: {jest output with null and absent assertion duration} => coerces both to 0 in the testMs sum', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [
+          {
+            name: 'src/flows/install/install.integration.test.ts',
+            assertionResults: [
+              { status: 'passed', fullName: 'VALID: {a} => b', duration: 90 },
+              { status: 'passed', fullName: 'VALID: {c} => d', duration: null },
+              { status: 'passed', fullName: 'VALID: {e} => f' },
+            ],
+            startTime: 5000,
+            endTime: 8500,
+          },
+        ],
+        numTotalTestSuites: 1,
+        numPassedTests: 3,
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([
+        FileTimingStub({
+          filePath: 'src/flows/install/install.integration.test.ts',
+          durationMs: 3500,
+          testMs: 90,
+        }),
+      ]);
+    });
+  });
+
+  describe('openHandles', () => {
+    it('VALID: {jest output with openHandles entries} => returns matching OpenHandle values on the result', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [],
+        numTotalTestSuites: 1,
+        openHandles: [
+          {
+            name: 'Error',
+            message: 'TCPSERVERWRAP',
+            stack: 'at Server.listen (src/startup/start-server.ts:12:5)',
+          },
+          {
+            name: 'Error',
+            message: 'Timeout',
+            stack: 'at Timeout._onTimeout (src/adapters/poll/poll-adapter.ts:8:3)',
+          },
+        ],
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.openHandles).toStrictEqual([
+        OpenHandleStub({
+          name: 'Error',
+          message: 'TCPSERVERWRAP',
+          stack: 'at Server.listen (src/startup/start-server.ts:12:5)',
+        }),
+        OpenHandleStub({
+          name: 'Error',
+          message: 'Timeout',
+          stack: 'at Timeout._onTimeout (src/adapters/poll/poll-adapter.ts:8:3)',
+        }),
+      ]);
+    });
+
+    it('EDGE: {openHandles entry with no name, message or stack} => coerces name to Error and message/stack to empty string', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [],
+        numTotalTestSuites: 1,
+        openHandles: [{}],
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.openHandles).toStrictEqual([
+        OpenHandleStub({ name: 'Error', message: '', stack: '' }),
+      ]);
+    });
+
+    it('EMPTY: {jest output with no openHandles key} => returns empty openHandles', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [],
+        numTotalTestSuites: 1,
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.openHandles).toStrictEqual([]);
+    });
+  });
+
+  // Jest refuses `--runInBand` and `--maxWorkers` together and exits non-zero with its usage
+  // banner, which ward then reports as a crash plus a DISCOVERY MISMATCH naming nothing close to
+  // the real cause. Derived from the args each scope actually spawns — never a copy of any
+  // expected array above — so a scope this broker grows later stays covered without editing this
+  // test.
+  describe('no jest command carries both --runInBand and a --maxWorkers flag', () => {
+    it('VALID: {file scope, directory scope, mixed scope, unscoped run} => spawns no jest command with both flags', async () => {
+      const projectFolder = ProjectFolderStub();
+
+      const fileScopeProxy = checkRunIntegrationBrokerProxy();
+      fileScopeProxy.setupPass({ projectFolder });
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({
+            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+          }),
+        ],
+      });
+      const fileScopeArgs = String(fileScopeProxy.getSpawnedArgs()).split(',');
+
+      const directoryScopeProxy = checkRunIntegrationBrokerProxy();
+      directoryScopeProxy.setDiscoveredFiles({
+        files: ['src/flows/chat-replay/chat-replay.integration.test.ts', 'discovered.ts'],
+      });
+      directoryScopeProxy.setupPass({ projectFolder });
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/flows/chat-replay' })],
+      });
+      const directoryScopeArgs = String(directoryScopeProxy.getSpawnedArgs()).split(',');
+
+      const mixedScopeProxy = checkRunIntegrationBrokerProxy();
+      mixedScopeProxy.setupPass({ projectFolder });
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({
+            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+          }),
+          GitRelativePathStub({ value: 'src/flows/install' }),
+        ],
+      });
+      const mixedScopeArgs = String(mixedScopeProxy.getSpawnedArgs()).split(',');
+
+      const unscopedProxy = checkRunIntegrationBrokerProxy();
+      unscopedProxy.setupPass({ projectFolder });
+      await checkRunIntegrationBroker({ projectFolder, fileList: [] });
+      const unscopedArgs = String(unscopedProxy.getSpawnedArgs()).split(',');
+
+      const scopedArgLists = [fileScopeArgs, directoryScopeArgs, mixedScopeArgs, unscopedArgs];
+
+      const violationCounts = scopedArgLists.map((argsList) => {
+        const runInBandCount = argsList.filter((arg) => arg === '--runInBand').length;
+        const maxWorkersCount = argsList.filter((arg) => arg.startsWith('--maxWorkers')).length;
+        return Math.min(runInBandCount, maxWorkersCount);
+      });
+
+      const totalViolations = violationCounts.reduce((sum, count) => sum + count, 0);
+
+      expect(totalViolations).toBe(0);
     });
   });
 });

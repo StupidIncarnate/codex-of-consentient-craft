@@ -24,6 +24,10 @@ import { isCrashedProjectResultGuard } from '../../guards/is-crashed-project-res
 const CHECK_TYPE_PAD = 10;
 const MS_PER_SECOND = 1000;
 
+// Enough of an open handle's stack to name the adapter that opened it and the path that reached it,
+// without turning one leak into a screenful.
+const MAX_HANDLE_FRAMES = 3;
+
 export const resultToSummaryTransformer = ({
   wardResult,
   cwd,
@@ -170,13 +174,70 @@ export const resultToSummaryTransformer = ({
       return [];
     }
 
-    const fileLines = slowTimings.map(
-      (ft) => `  ${ft.filePath}  ${(Number(ft.durationMs) / MS_PER_SECOND).toFixed(1)}s`,
+    // Both numbers, because wall time alone accuses the wrong file. It spans the ts-jest
+    // LanguageService and TypeScript program construction, which whichever file jest transforms
+    // FIRST pays on the whole package's behalf: one file measured 46.2s wall against 83ms of test
+    // bodies, and forcing a different file to run first moved the entire cost onto that one
+    // instead. A big gap between the two numbers means the file is not the problem.
+    // Only jest reports per-test durations, so lint timings carry no second number and get no
+    // note — there is no compile for a first file to absorb there.
+    const hasTestMs = slowTimings.some((ft) => Number(ft.testMs) > 0);
+    const fileLines = slowTimings.map((ft) => {
+      const wall = `${(Number(ft.durationMs) / MS_PER_SECOND).toFixed(1)}s`;
+      if (!hasTestMs) {
+        return `  ${ft.filePath}  ${wall}`;
+      }
+      return `  ${ft.filePath}  ${wall} wall, ${(Number(ft.testMs) / MS_PER_SECOND).toFixed(1)}s in tests`;
+    });
+    const note = hasTestMs
+      ? `\n  wall time includes the package's one-time compile, charged to whichever file ran first`
+      : '';
+    return [`\n--- slow files (${check.checkType}) ---${note}\n${fileLines.join('\n')}`];
+  });
+
+  // Jest can only collect these from the main thread, so they arrive from FILE-scoped runs and
+  // never from a worker run. Reported, not failed: one orchestrator suite leaks an interval on
+  // purpose, so reddening on sight would make the signal something people learn to skip past.
+  const openHandleLines = wardResult.checks.flatMap((check) => {
+    const handles = check.projectResults.flatMap((projectResult) =>
+      projectResult.openHandles.map((handle) => ({
+        packageName: String(projectResult.projectFolder.name),
+        handle,
+      })),
     );
-    return [`\n--- slow files (${check.checkType}) ---\n${fileLines.join('\n')}`];
+
+    if (handles.length === 0) {
+      return [];
+    }
+
+    const handleLines = handles.map(({ packageName, handle }) => {
+      const frames = String(handle.stack)
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.startsWith('at '));
+      // Every one of these stacks opens with node's own plumbing — `emitInitNative`,
+      // `initAsyncResource`, `setInterval` — and closes with jest's runtime, and neither end names
+      // the leak. The frames BETWEEN them are the caller's own code, and the chain matters more
+      // than any single frame: the adapter that opened the handle says what leaked, its callers say
+      // which code path got there. Falls back to the raw first frame when a handle was opened
+      // entirely inside a dependency, so a line still prints.
+      const ownFrames = frames.filter(
+        (line) => !line.includes('node:') && !line.includes('node_modules'),
+      );
+      const shown =
+        ownFrames.length > 0 ? ownFrames.slice(0, MAX_HANDLE_FRAMES) : frames.slice(0, 1);
+      const where = shown.map((line) => `\n      ${line}`).join('');
+      return `  ${packageName}  ${handle.message}${where}`;
+    });
+
+    return [
+      `\n--- open handles (${check.checkType}) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n${handleLines.join('\n')}`,
+    ];
   });
 
   const summaryLines = [runLine, ...checkLines];
 
-  return wardSummaryContract.parse([...summaryLines, ...slowFileLines, ...detailLines].join('\n'));
+  return wardSummaryContract.parse(
+    [...summaryLines, ...slowFileLines, ...openHandleLines, ...detailLines].join('\n'),
+  );
 };

@@ -5,6 +5,7 @@ import { TestFailureStub } from '../../../contracts/test-failure/test-failure.st
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
+import { OpenHandleStub } from '../../../contracts/open-handle/open-handle.stub';
 
 import { checkRunUnitBroker } from './check-run-unit-broker';
 import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
@@ -323,6 +324,30 @@ describe('checkRunUnitBroker', () => {
     });
   });
 
+  describe('unscoped run', () => {
+    it('VALID: {no fileList} => passes --maxWorkers=25% and stays off --runInBand', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--maxWorkers=25%',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
+      ]);
+    });
+  });
+
   describe('file list filtering', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests and --runInBand with files to jest', async () => {
       const projectFolder = ProjectFolderStub();
@@ -340,10 +365,10 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/index.ts',
       ]);
@@ -351,7 +376,7 @@ describe('checkRunUnitBroker', () => {
   });
 
   describe('directory path filtering', () => {
-    it('VALID: {fileList with directory path} => uses --testPathPatterns instead of --findRelatedTests', async () => {
+    it('VALID: {fileList with directory path} => uses --testPathPatterns instead of --findRelatedTests, and stays off --runInBand', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setDiscoveredFiles({
@@ -370,16 +395,15 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
+        '--maxWorkers=25%',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
-        '--runInBand',
         '--testPathPatterns',
         'src/brokers/quest/orchestration-loop',
       ]);
     });
 
-    it('VALID: {fileList with multiple directory paths} => joins paths with pipe in --testPathPatterns', async () => {
+    it('VALID: {fileList with multiple directory paths} => joins paths with pipe in --testPathPatterns, and stays off --runInBand', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setDiscoveredFiles({
@@ -404,10 +428,9 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
+        '--maxWorkers=25%',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
-        '--runInBand',
         '--testPathPatterns',
         'src/brokers/quest|src/transformers',
       ]);
@@ -468,10 +491,10 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/brokers/quest/spawn-ward-layer-broker.test.ts',
       ]);
@@ -509,7 +532,7 @@ describe('checkRunUnitBroker', () => {
   });
 
   describe('testNamePattern', () => {
-    it('VALID: {testNamePattern provided} => appends --testNamePattern to jest args', async () => {
+    it('VALID: {testNamePattern provided, no file scope} => appends --testNamePattern to jest args and stays off --runInBand', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setupPass({ projectFolder });
@@ -526,16 +549,15 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
+        '--maxWorkers=25%',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
-        '--runInBand',
         '--testNamePattern',
         'my specific test',
       ]);
     });
 
-    it('VALID: {testNamePattern with directory path} => appends both --testPathPatterns and --testNamePattern', async () => {
+    it('VALID: {testNamePattern with directory path} => appends both --testPathPatterns and --testNamePattern, and stays off --runInBand', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setDiscoveredFiles({
@@ -555,10 +577,9 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
+        '--maxWorkers=25%',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
-        '--runInBand',
         '--testPathPatterns',
         'src/brokers/quest',
         '--testNamePattern',
@@ -714,10 +735,10 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/foo/foo.ts',
       ]);
@@ -772,10 +793,10 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/foo/foo.test.ts',
       ]);
@@ -807,10 +828,10 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/a/a.ts',
       ]);
@@ -836,10 +857,10 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/widgets/app.tsx',
       ]);
@@ -894,10 +915,10 @@ describe('checkRunUnitBroker', () => {
         '--json',
         '--no-color',
         '--forceExit',
-        '--detectOpenHandles',
         '--testPathIgnorePatterns',
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
+        '--detectOpenHandles',
         '--findRelatedTests',
         'src/orphan.test.ts',
       ]);
@@ -998,8 +1019,8 @@ describe('checkRunUnitBroker', () => {
           onlyDiscovered: ['discovered.ts'],
           onlyProcessed: ['src/foo.test.ts', 'src/bar.test.ts'],
           fileTimings: [
-            FileTimingStub({ filePath: 'src/foo.test.ts', durationMs: 250 }),
-            FileTimingStub({ filePath: 'src/bar.test.ts', durationMs: 800 }),
+            FileTimingStub({ filePath: 'src/foo.test.ts', durationMs: 250, testMs: 0 }),
+            FileTimingStub({ filePath: 'src/bar.test.ts', durationMs: 800, testMs: 0 }),
           ],
           rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
         }),
@@ -1023,6 +1044,209 @@ describe('checkRunUnitBroker', () => {
       });
 
       expect(result.fileTimings).toStrictEqual([]);
+    });
+
+    it('VALID: {jest output with assertionResults carrying durations} => returns testMs summed from assertion durations', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [
+          {
+            name: 'src/foo.test.ts',
+            assertionResults: [
+              { status: 'passed', fullName: 'VALID: {a} => b', duration: 15 },
+              { status: 'passed', fullName: 'VALID: {c} => d', duration: 7 },
+            ],
+            startTime: 1000,
+            endTime: 1250,
+          },
+        ],
+        numTotalTestSuites: 1,
+        numPassedTests: 2,
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([
+        FileTimingStub({ filePath: 'src/foo.test.ts', durationMs: 250, testMs: 22 }),
+      ]);
+    });
+
+    it('EDGE: {jest output with null and absent assertion duration} => coerces both to 0 in the testMs sum', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [
+          {
+            name: 'src/foo.test.ts',
+            assertionResults: [
+              { status: 'passed', fullName: 'VALID: {a} => b', duration: 12 },
+              { status: 'passed', fullName: 'VALID: {c} => d', duration: null },
+              { status: 'passed', fullName: 'VALID: {e} => f' },
+            ],
+            startTime: 1000,
+            endTime: 1250,
+          },
+        ],
+        numTotalTestSuites: 1,
+        numPassedTests: 3,
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([
+        FileTimingStub({ filePath: 'src/foo.test.ts', durationMs: 250, testMs: 12 }),
+      ]);
+    });
+  });
+
+  describe('openHandles', () => {
+    it('VALID: {jest output with openHandles entries} => returns matching OpenHandle values on the result', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [],
+        numTotalTestSuites: 1,
+        openHandles: [
+          {
+            name: 'Error',
+            message: 'TCPSERVERWRAP',
+            stack: 'at Server.listen (src/startup/start-server.ts:12:5)',
+          },
+          {
+            name: 'Error',
+            message: 'Timeout',
+            stack: 'at Timeout._onTimeout (src/adapters/poll/poll-adapter.ts:8:3)',
+          },
+        ],
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.openHandles).toStrictEqual([
+        OpenHandleStub({
+          name: 'Error',
+          message: 'TCPSERVERWRAP',
+          stack: 'at Server.listen (src/startup/start-server.ts:12:5)',
+        }),
+        OpenHandleStub({
+          name: 'Error',
+          message: 'Timeout',
+          stack: 'at Timeout._onTimeout (src/adapters/poll/poll-adapter.ts:8:3)',
+        }),
+      ]);
+    });
+
+    it('EDGE: {openHandles entry with no name, message or stack} => coerces name to Error and message/stack to empty string', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [],
+        numTotalTestSuites: 1,
+        openHandles: [{}],
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.openHandles).toStrictEqual([
+        OpenHandleStub({ name: 'Error', message: '', stack: '' }),
+      ]);
+    });
+
+    it('EMPTY: {jest output with no openHandles key} => returns empty openHandles', async () => {
+      const jestOutput = JSON.stringify({
+        testResults: [],
+        numTotalTestSuites: 1,
+        success: true,
+      });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.openHandles).toStrictEqual([]);
+    });
+  });
+
+  // Jest refuses `--runInBand` and `--maxWorkers` together and exits non-zero with its usage
+  // banner, which ward then reports as a crash plus a DISCOVERY MISMATCH naming nothing close to
+  // the real cause. Derived from the args each scope actually spawns — never a copy of any
+  // expected array above — so a scope this broker grows later stays covered without editing this
+  // test.
+  describe('no jest command carries both --runInBand and a --maxWorkers flag', () => {
+    it('VALID: {file scope, directory scope, mixed scope, unscoped run} => spawns no jest command with both flags', async () => {
+      const projectFolder = ProjectFolderStub();
+
+      const fileScopeProxy = checkRunUnitBrokerProxy();
+      fileScopeProxy.setupPass({ projectFolder });
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+      });
+      const fileScopeArgs = String(fileScopeProxy.getSpawnedArgs()).split(',');
+
+      const directoryScopeProxy = checkRunUnitBrokerProxy();
+      directoryScopeProxy.setDiscoveredFiles({
+        files: ['src/brokers/quest/orchestration-loop/some-broker.test.ts', 'discovered.ts'],
+      });
+      directoryScopeProxy.setupPass({ projectFolder });
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/brokers/quest/orchestration-loop' })],
+      });
+      const directoryScopeArgs = String(directoryScopeProxy.getSpawnedArgs()).split(',');
+
+      const mixedScopeProxy = checkRunUnitBrokerProxy();
+      mixedScopeProxy.setupPass({ projectFolder });
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({ value: 'src/index.ts' }),
+          GitRelativePathStub({ value: 'src/brokers/quest' }),
+        ],
+      });
+      const mixedScopeArgs = String(mixedScopeProxy.getSpawnedArgs()).split(',');
+
+      const unscopedProxy = checkRunUnitBrokerProxy();
+      unscopedProxy.setupPass({ projectFolder });
+      await checkRunUnitBroker({ projectFolder, fileList: [] });
+      const unscopedArgs = String(unscopedProxy.getSpawnedArgs()).split(',');
+
+      const scopedArgLists = [fileScopeArgs, directoryScopeArgs, mixedScopeArgs, unscopedArgs];
+
+      const violationCounts = scopedArgLists.map((argsList) => {
+        const runInBandCount = argsList.filter((arg) => arg === '--runInBand').length;
+        const maxWorkersCount = argsList.filter((arg) => arg.startsWith('--maxWorkers')).length;
+        return Math.min(runInBandCount, maxWorkersCount);
+      });
+
+      const totalViolations = violationCounts.reduce((sum, count) => sum + count, 0);
+
+      expect(totalViolations).toBe(0);
     });
   });
 });

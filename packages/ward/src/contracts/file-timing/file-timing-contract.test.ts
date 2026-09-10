@@ -9,6 +9,7 @@ describe('fileTimingContract', () => {
       expect(result).toStrictEqual({
         filePath: 'src/index.ts',
         durationMs: 150,
+        testMs: 20,
       });
     });
 
@@ -23,6 +24,7 @@ describe('fileTimingContract', () => {
       expect(result).toStrictEqual({
         filePath: 'packages/ward/src/brokers/test.ts',
         durationMs: 8300,
+        testMs: 20,
       });
     });
   });
@@ -58,6 +60,7 @@ describe('fileTimingContract', () => {
       expect(result).toStrictEqual({
         filePath: 'src/index.ts',
         durationMs: 150,
+        testMs: 20,
       });
     });
 
@@ -67,7 +70,29 @@ describe('fileTimingContract', () => {
       expect(result).toStrictEqual({
         filePath: 'src/utils.ts',
         durationMs: 150,
+        testMs: 20,
       });
+    });
+  });
+
+  describe('testMs defaults', () => {
+    it('VALID: {testMs omitted} => defaults to 0', () => {
+      const result = fileTimingContract.parse({
+        filePath: 'src/index.ts',
+        durationMs: 150,
+      });
+
+      expect(result.testMs).toBe(0);
+    });
+
+    it('VALID: {testMs provided} => preserves value', () => {
+      const result = fileTimingContract.parse({
+        filePath: 'src/index.ts',
+        durationMs: 150,
+        testMs: 83,
+      });
+
+      expect(result.testMs).toBe(83);
     });
   });
 });
