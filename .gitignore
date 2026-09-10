@@ -83,3 +83,6 @@ _lint-testbed/
 .claude/worktrees
 worktrees/
 test-results/
+
+# Python bytecode from the sweep tool
+__pycache__/
