@@ -16,6 +16,9 @@ import { noFilesProcessedStatics } from '../../../statics/no-files-processed/no-
 import { pathNotFoundStatics } from '../../../statics/path-not-found/path-not-found-statics';
 import { pathCheckLayerBroker } from './path-check-layer-broker';
 import { hasNoFilesProcessedGuard } from '../../../guards/has-no-files-processed/has-no-files-processed-guard';
+import { hasOpenHandlesGuard } from '../../../guards/has-open-handles/has-open-handles-guard';
+import { hasSlowFilesGuard } from '../../../guards/has-slow-files/has-slow-files-guard';
+import { qualityGateStatics } from '../../../statics/quality-gate/quality-gate-statics';
 import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 import { isExplicitPathScopeGuard } from '../../../guards/is-explicit-path-scope/is-explicit-path-scope-guard';
 import { isFileScopeRequestedGuard } from '../../../guards/is-file-scope-requested/is-file-scope-requested-guard';
@@ -159,6 +162,24 @@ export const commandRunBroker = async ({
       .join('\n');
     process.stdout.write(
       `\n${noFilesProcessedStatics.heading}\n${scopeList}\n\n${noFilesProcessedStatics.guidance}\n`,
+    );
+    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+  }
+
+  // A SLOW SUITE AND A LEAKED HANDLE ARE FAILURES, not notes. Neither makes any single file's check
+  // fail — jest exits 0 on both — so without these two the run goes green over exactly the defects
+  // that make later runs slow and flaky. The sections above already name every one of them; these
+  // only decide the exit code.
+  if (hasSlowFilesGuard({ wardResult })) {
+    process.stdout.write(
+      `\n${qualityGateStatics.slowFiles.heading}\n${qualityGateStatics.slowFiles.guidance}\n`,
+    );
+    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+  }
+
+  if (hasOpenHandlesGuard({ wardResult })) {
+    process.stdout.write(
+      `\n${qualityGateStatics.openHandles.heading}\n${qualityGateStatics.openHandles.guidance}\n`,
     );
     process.exitCode = wardExitCodeStatics.exitCodes.failing;
   }

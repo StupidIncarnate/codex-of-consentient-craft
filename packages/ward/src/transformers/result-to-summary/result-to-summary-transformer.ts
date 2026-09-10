@@ -9,16 +9,15 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
-import type { FileTiming } from '../../contracts/file-timing/file-timing-contract';
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import type { WardSummary } from '../../contracts/ward-summary/ward-summary-contract';
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
-import { slowFileThresholdStatics } from '../../statics/slow-file-threshold/slow-file-threshold-statics';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
 import { openHandleDisplayTransformer } from '../open-handle-display/open-handle-display-transformer';
+import { slowFileTimingsTransformer } from '../slow-file-timings/slow-file-timings-transformer';
 import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 import { isCrashedProjectResultGuard } from '../../guards/is-crashed-project-result/is-crashed-project-result-guard';
@@ -163,23 +162,8 @@ export const resultToSummaryTransformer = ({
       return [];
     }
 
-    const allTimings: FileTiming[] = check.projectResults.flatMap((pr) => pr.fileTimings);
-
-    // RANKED ON TEST TIME, never on wall. Wall is jest's `endTime - startTime`, which spans the
-    // package's one-time compile and its module evaluation — both charged to whichever suite
-    // reaches a module FIRST. Measured: one mcp file read 30.6s wall running first and 1.9s
-    // running last, the same tests either way, while the package's one genuinely slow file sat at
-    // 2.9s of test bodies in every order. Ranking on wall therefore ranks run position.
-    // Only jest reports per-test durations. A check that reports none (lint) has nothing but wall,
-    // so it keeps the wall threshold and prints one number.
-    const hasTestMs = allTimings.some((ft) => Number(ft.testMs) > 0);
-    const slowTimings = hasTestMs
-      ? allTimings
-          .filter((ft) => Number(ft.testMs) > slowFileThresholdStatics.threshold.testWarnMs)
-          .sort((a, b) => Number(b.testMs) - Number(a.testMs))
-      : allTimings
-          .filter((ft) => Number(ft.durationMs) > slowFileThresholdStatics.threshold.warnMs)
-          .sort((a, b) => Number(b.durationMs) - Number(a.durationMs));
+    const slowTimings = slowFileTimingsTransformer({ check });
+    const hasTestMs = slowTimings.some((ft) => Number(ft.testMs) > 0);
 
     if (slowTimings.length === 0) {
       return [];
