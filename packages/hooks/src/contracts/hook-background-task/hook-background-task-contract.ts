@@ -1,8 +1,13 @@
 /**
- * PURPOSE: One entry of the `background_tasks` array Claude Code delivers on a SubagentStop event —
- * a command the stopping sub-agent backgrounded, and whether it is still out. Reach for this over
- * reading the sub-agent's transcript when the question is "is work still in flight right now": the
- * transcript records that a task was STARTED and never that it finished.
+ * PURPOSE: One entry of the `background_tasks` array Claude Code delivers on a stop event — a
+ * command or an agent somewhere in the SESSION, and whether it is still out. Reach for this over
+ * reading a transcript when the question is "is work still in flight right now": the transcript
+ * records that a task was STARTED and never that it finished.
+ *
+ * Nothing here says WHO started it. The array spans the whole session — a sibling sub-agent's, a
+ * child's and the top-level session's commands all arrive in one agent's event looking identical to
+ * its own — so ownership is answered by matching `id` against the stopping agent's own transcript,
+ * in backgroundTasksOwnedSelectTransformer.
  *
  * USAGE:
  * hookBackgroundTaskContract.parse({ id: 'bcibjy15w', type: 'shell', status: 'running' });

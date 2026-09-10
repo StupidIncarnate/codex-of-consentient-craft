@@ -1,4 +1,5 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -16,8 +17,13 @@ const sessions = wireHarnessLifecycle({
   testObj: test,
 });
 
+// This spec only wants its quests ENQUEUED so the bar can list them — quest B is rewritten to
+// `blocked` on the line after its start. Start now PLAYS the dispatcher (QuestStartResponder,
+// mirroring resume), which would spawn a codeweaver against an empty mock queue underneath that
+// rewrite, so the queue is held shut with the production play gate's own signal.
 test.describe('A merging quest is listed in the cross-guild execution queue', () => {
   test.beforeEach(async ({ request }) => {
+    dispatchHarness({ request, guildPath: GUILD_PATH }).holdQueueWithMcpHeartbeat();
     await guildHarness({ request }).cleanGuilds();
   });
 

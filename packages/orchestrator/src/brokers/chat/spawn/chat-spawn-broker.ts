@@ -14,7 +14,11 @@
  * // `handle` exposes stop() + initialDrains() for chat lifecycle composition.
  */
 
-import { sessionIdContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  sessionIdContract,
+  workItemRoleContract,
+} from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntry,
   GuildId,
@@ -39,6 +43,7 @@ import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
 import type { chatStreamProcessHandleBroker } from '../stream-process-handle/chat-stream-process-handle-broker';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
+import { questSessionRecordBroker } from '../../quest/session-record/quest-session-record-broker';
 import { resolveChatQuestLayerBroker } from './resolve-chat-quest-layer-broker';
 
 export const chatSpawnBroker = async ({
@@ -159,7 +164,6 @@ export const chatSpawnBroker = async ({
   const imagesDirPath = locationsQuestImagesPathFindBroker({ questFolderPath });
 
   const launchResult = agentLaunchBroker({
-    guildId,
     questId: resolvedQuestId,
     questWorkItemId: chatWorkItemId,
     // 'design' is glyphsmith's alone; every spec-intake role (chaoswhisperer, bughunt) is a chat.
@@ -192,6 +196,18 @@ export const chatSpawnBroker = async ({
         } as ModifyQuestInput,
       }).catch((error: unknown) => {
         process.stderr.write(`[chat-spawn] session-id quest link failed: ${String(error)}\n`);
+      });
+      // `repoRootCwd` is the cwd this child was launched with, so the row records where the
+      // conversation's transcript really is. An intake chat runs BEFORE the carve, so its row is
+      // the repo root and stays that way once the quest's own `worktreePath` moves on.
+      questSessionRecordBroker({
+        questId: resolvedQuestId,
+        sessionId: sessionIdContract.parse(extractedSid),
+        cwd: absoluteFilePathContract.parse(repoRootCwd),
+        role: workItemRoleContract.parse(role),
+        workItemId: chatWorkItemId,
+      }).catch((error: unknown) => {
+        process.stderr.write(`[chat-spawn] session cwd record failed: ${String(error)}\n`);
       });
     },
     onComplete: ({ chatProcessId: cpid, exitCode, sessionId: extractedSessionId }) => {

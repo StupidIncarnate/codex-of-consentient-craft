@@ -274,6 +274,17 @@ export const StartOrchestrator = {
     input: ModifyQuestInput;
   }): Promise<ModifyQuestResult> => QuestFlow.modify({ questId, input }),
 
+  // Appends one row to `quest.sessions`, recording the cwd a session ran in. Deliberately NOT part
+  // of `modifyQuest`: `sessions` is absent from `modifyQuestInputContract`, so no agent-facing tool
+  // can reach it. The MCP child is the caller that needs this — Claude CLI encodes a transcript's
+  // directory from the session's own cwd, and only the MCP process (one per Claude session) knows
+  // what that is. Deriving it from the quest instead records the worktree for a `/dumpster-launch`
+  // dispatcher that actually ran at the repo root.
+  recordQuestSession: async (
+    params: Parameters<typeof QuestFlow.recordSession>[0],
+  ): Promise<Awaited<ReturnType<typeof QuestFlow.recordSession>>> =>
+    QuestFlow.recordSession(params),
+
   // The ONE sanctioned way to get a worktree, for every caller — an MCP tool, a riftcarver carve, a
   // session asking for one by name. A hand-rolled `git worktree add` produces a tree with no
   // compiled output (so nothing in it runs) or one whose `node_modules` links point back at the main

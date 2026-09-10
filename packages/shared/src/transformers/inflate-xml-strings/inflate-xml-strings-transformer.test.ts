@@ -23,6 +23,19 @@ const stubParseXml = (params: { xml: string }): unknown => {
   return {};
 };
 
+// Mirrors fast-xml-parser: it throws on a string the XML_PATTERN accepts but that is not
+// well-formed, rather than returning a partial result.
+const throwingParseXml = (): unknown => {
+  throw new Error('readTagExp returned undefined at position 396');
+};
+
+const parseXmlThrowingOnBrokenOnly = ({ xml }: { xml: string }): unknown => {
+  if (xml === '<a><b>1</b></a>') {
+    return { a: { b: '1' } };
+  }
+  throw new Error('readTagExp returned undefined at position 12');
+};
+
 describe('inflateXmlStringsTransformer', () => {
   describe('XML string inflation', () => {
     it('VALID: {value: "<task-notification>...</task-notification>"} => returns parsed object with camelCased tag names', () => {
@@ -149,6 +162,50 @@ describe('inflateXmlStringsTransformer', () => {
           parseXml: () => null,
         }),
       ).toBe('<a>1</a>');
+    });
+  });
+
+  describe('malformed XML the pattern accepts', () => {
+    it('ERROR: parser throws on a bare "<" in prose => returns the string unchanged instead of propagating', () => {
+      // XML_PATTERN checks only that the string opens and closes with a tag. Prose wrapped in
+      // tags carries characters fast-xml-parser rejects, and the only caller runs inside a
+      // readline handler where a throw is an uncaught exception that kills the server process.
+      expect(
+        inflateXmlStringsTransformer({
+          value: '<report>duration stayed "<1m", expanded content stayed present</report>',
+          parseXml: throwingParseXml,
+        }),
+      ).toBe('<report>duration stayed "<1m", expanded content stayed present</report>');
+    });
+
+    it('ERROR: parser throws on an XML string at an object-property position => leaves the property a string', () => {
+      expect(
+        inflateXmlStringsTransformer({
+          value: {
+            type: 'assistant',
+            message: { role: 'assistant', content: '<report>a < b</report>' },
+          },
+          parseXml: throwingParseXml,
+        }),
+      ).toStrictEqual({
+        type: 'assistant',
+        message: { role: 'assistant', content: '<report>a < b</report>' },
+      });
+    });
+
+    it('ERROR: parser throws on one property while another parses => inflates only the parsable one', () => {
+      expect(
+        inflateXmlStringsTransformer({
+          value: {
+            broken: '<report>a < b</report>',
+            fine: '<a><b>1</b></a>',
+          },
+          parseXml: parseXmlThrowingOnBrokenOnly,
+        }),
+      ).toStrictEqual({
+        broken: '<report>a < b</report>',
+        fine: { a: { b: '1' } },
+      });
     });
   });
 

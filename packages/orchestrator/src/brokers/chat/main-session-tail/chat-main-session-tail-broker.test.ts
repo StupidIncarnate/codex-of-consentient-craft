@@ -1,11 +1,5 @@
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import {
-  GuildStub,
-  GuildConfigStub,
-  GuildIdStub,
-  ProcessIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 import { ChatLineAgentDetectedStub } from '../../../contracts/chat-line-output/chat-line-output.stub';
@@ -25,14 +19,11 @@ describe('chatMainSessionTailBroker', () => {
   describe('tailing main session lines', () => {
     it('VALID: {task-notification line appended post-exit} => dispatches parsed task_notification entry via onEntries', async () => {
       const proxy = chatMainSessionTailBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-main-tail' });
       const chatProcessId = ProcessIdStub({ value: 'proc-main-1' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const processor = chatLineProcessTransformer();
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
         lines: [
           JSON.stringify({
@@ -50,9 +41,9 @@ describe('chatMainSessionTailBroker', () => {
 
       const batches: unknown[] = [];
 
-      await chatMainSessionTailBroker({
+      chatMainSessionTailBroker({
         sessionId,
-        guildId,
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         processor,
         chatProcessId,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -85,11 +76,8 @@ describe('chatMainSessionTailBroker', () => {
 
     it("VALID: {main-session line tailed} => calls processor.processLine with parsed line and source='session' (no agentId)", async () => {
       const proxy = chatMainSessionTailBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-main-args' });
       const chatProcessId = ProcessIdStub({ value: 'proc-main-args' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const calls: Parameters<ReturnType<typeof ChatLineProcessorStub>['processLine']>[0][] = [];
       const processor = ChatLineProcessorStub({
         processLine: (params) => {
@@ -102,12 +90,12 @@ describe('chatMainSessionTailBroker', () => {
         '{"type":"assistant","message":{"content":[{"type":"text","text":"main session line"}]}}';
       const expectedParsed = claudeLineNormalizeBroker({ rawLine });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({ lines: [rawLine] });
 
-      await chatMainSessionTailBroker({
+      chatMainSessionTailBroker({
         sessionId,
-        guildId,
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         processor,
         chatProcessId,
         onEntries: () => {},
@@ -126,14 +114,11 @@ describe('chatMainSessionTailBroker', () => {
 
     it("VALID: {existing file content} => fsWatchTailAdapter invoked with startPosition: 'end' so existing content is NOT re-emitted", async () => {
       const proxy = chatMainSessionTailBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-main-startpos' });
       const chatProcessId = ProcessIdStub({ value: 'proc-main-startpos' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const processor = chatLineProcessTransformer();
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupExistingFileWithContent();
       proxy.setupLines({
         lines: [
@@ -141,9 +126,9 @@ describe('chatMainSessionTailBroker', () => {
         ],
       });
 
-      await chatMainSessionTailBroker({
+      chatMainSessionTailBroker({
         sessionId,
-        guildId,
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         processor,
         chatProcessId,
         onEntries: () => {},
@@ -157,23 +142,20 @@ describe('chatMainSessionTailBroker', () => {
 
     it('EMPTY: {non user/assistant line} => dispatches nothing', async () => {
       const proxy = chatMainSessionTailBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-main-noise' });
       const chatProcessId = ProcessIdStub({ value: 'proc-main-noise' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const processor = chatLineProcessTransformer();
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
         lines: ['{"type":"system","subtype":"init"}'],
       });
 
       const batches: unknown[] = [];
 
-      await chatMainSessionTailBroker({
+      chatMainSessionTailBroker({
         sessionId,
-        guildId,
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         processor,
         chatProcessId,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -189,11 +171,8 @@ describe('chatMainSessionTailBroker', () => {
 
     it("EDGE: {processor returns type:'agent-detected'} => silently ignored, onEntries never fires", async () => {
       const proxy = chatMainSessionTailBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-main-agent-detected' });
       const chatProcessId = ProcessIdStub({ value: 'proc-main-agent-detected' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const processor = ChatLineProcessorStub({
         processLine: () => [
           ChatLineAgentDetectedStub({
@@ -203,16 +182,16 @@ describe('chatMainSessionTailBroker', () => {
         ],
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
         lines: ['{"type":"assistant","message":{"content":[{"type":"text","text":"anything"}]}}'],
       });
 
       const batches: unknown[] = [];
 
-      await chatMainSessionTailBroker({
+      chatMainSessionTailBroker({
         sessionId,
-        guildId,
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         processor,
         chatProcessId,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -228,20 +207,17 @@ describe('chatMainSessionTailBroker', () => {
 
     it('VALID: {stop handle} => returns a function that stops further emissions', async () => {
       const proxy = chatMainSessionTailBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-main-stop' });
       const chatProcessId = ProcessIdStub({ value: 'proc-main-stop' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
       const processor = chatLineProcessTransformer();
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupHomeDir({ homeDir: '/home/user' });
 
       const batches: unknown[] = [];
 
-      const stop = await chatMainSessionTailBroker({
+      const stop = chatMainSessionTailBroker({
         sessionId,
-        guildId,
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         processor,
         chatProcessId,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -256,6 +232,48 @@ describe('chatMainSessionTailBroker', () => {
       await flushImmediate();
 
       expect(batches).toStrictEqual([]);
+    });
+  });
+
+  describe('which project directory the transcript is read from', () => {
+    it('VALID: {cwd: repo root} => tails the JSONL encoded from that cwd', async () => {
+      const proxy = chatMainSessionTailBrokerProxy();
+
+      proxy.setupHomeDir({ homeDir: '/home/user' });
+
+      chatMainSessionTailBroker({
+        sessionId: SessionIdStub({ value: 'session-at-repo-root' }),
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        processor: chatLineProcessTransformer(),
+        chatProcessId: ProcessIdStub({ value: 'proc-main-repo-root' }),
+        onEntries: () => {},
+      });
+
+      await flushImmediate();
+
+      expect(proxy.lastWatchedPath()).toBe(
+        '/home/user/.claude/projects/-home-user-my-project/session-at-repo-root.jsonl',
+      );
+    });
+
+    it("VALID: {cwd: a worktree under the guild path} => tails the WORKTREE's encoding, not the guild's", async () => {
+      const proxy = chatMainSessionTailBrokerProxy();
+
+      proxy.setupHomeDir({ homeDir: '/home/user' });
+
+      chatMainSessionTailBroker({
+        sessionId: SessionIdStub({ value: 'session-in-worktree' }),
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project/worktrees/quest-c8171a64' }),
+        processor: chatLineProcessTransformer(),
+        chatProcessId: ProcessIdStub({ value: 'proc-main-worktree' }),
+        onEntries: () => {},
+      });
+
+      await flushImmediate();
+
+      expect(proxy.lastWatchedPath()).toBe(
+        '/home/user/.claude/projects/-home-user-my-project-worktrees-quest-c8171a64/session-in-worktree.jsonl',
+      );
     });
   });
 });

@@ -4,25 +4,21 @@ import {
 } from '@dungeonmaster/shared/testing';
 
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
-import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
-
-type GuildConfig = Parameters<ReturnType<typeof guildGetBrokerProxy>['setupConfig']>[0]['config'];
 
 export const chatMainSessionTailBrokerProxy = (): {
-  setupGuild: (params: { config: GuildConfig; homeDir: string }) => void;
+  setupHomeDir: (params: { homeDir: string }) => void;
   setupLines: (params: { lines: readonly string[] }) => void;
   setupExistingFileWithContent: () => void;
   triggerChange: () => void;
   lastStartPositionWasFromFileEnd: () => boolean;
+  lastWatchedPath: () => unknown;
 } => {
   claudeLineNormalizeBrokerProxy();
-  const guildProxy = guildGetBrokerProxy();
   const homedirProxy = osUserHomedirAdapterProxy();
   const tailProxy = fsWatchTailAdapterProxy();
 
   return {
-    setupGuild: ({ config, homeDir }: { config: GuildConfig; homeDir: string }): void => {
-      guildProxy.setupConfig({ config });
+    setupHomeDir: ({ homeDir }: { homeDir: string }): void => {
       homedirProxy.returns({ path: homeDir });
     },
     setupLines: ({ lines }: { lines: readonly string[] }): void => {
@@ -35,5 +31,6 @@ export const chatMainSessionTailBrokerProxy = (): {
       tailProxy.triggerChange();
     },
     lastStartPositionWasFromFileEnd: (): boolean => tailProxy.lastStartPositionWasFromFileEnd(),
+    lastWatchedPath: (): unknown => tailProxy.lastWatchedPath(),
   };
 };

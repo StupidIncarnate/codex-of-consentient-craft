@@ -4,7 +4,7 @@
  * USAGE:
  * const { stop, initialDrain } = await chatSubagentTailBroker({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
- *   guildId: GuildIdStub({ value: 'f47ac10b-...' }),
+ *   cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
  *   agentId: AgentIdStub({ value: 'agent-1' }),
  *   processor: chatLineProcessTransformer(),
  *   onEntries: ({ chatProcessId, entries }) => { },
@@ -15,6 +15,12 @@
  * // pre-existing lines to reach the renderer (chat-start-responder.onComplete relies on
  * // this — without the await the readline 'line' events queued by the synthetic-emit
  * // drain race against state.stopped and silently drop sub-agent entries).
+ *
+ * `cwd` is the directory the PARENT session was spawned in, and it is required: a sub-agent
+ * inherits its parent's cwd, and Claude CLI names the `~/.claude/projects/<encoded-cwd>/`
+ * directory from that cwd — so a carved quest's sub-agents write under the worktree's encoding.
+ * This broker also mkdir+touches the path before watching it, so a guild-derived answer would
+ * CREATE an empty file at the wrong address and tail that forever.
  */
 
 import {
@@ -28,7 +34,7 @@ import {
   fileContentsContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
@@ -40,25 +46,23 @@ import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tai
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import { guildGetBroker } from '../../guild/get/guild-get-broker';
 
 export const chatSubagentTailBroker = async ({
   sessionId,
-  guildId,
+  cwd,
   agentId,
   processor,
   onEntries,
   chatProcessId,
 }: {
   sessionId: SessionId;
-  guildId: GuildId;
+  cwd: RepoRootCwd;
   agentId: AgentId;
   processor: ChatLineProcessor;
   onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
   chatProcessId: ProcessId;
 }): Promise<{ stop: () => void; initialDrain: Promise<void> }> => {
-  const guild = await guildGetBroker({ guildId });
-  const projectPath = absoluteFilePathContract.parse(guild.path);
+  const projectPath = absoluteFilePathContract.parse(cwd);
   const homeDir = osUserHomedirAdapter();
 
   const jsonlPath = claudeProjectPathEncoderTransformer({

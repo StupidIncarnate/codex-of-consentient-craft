@@ -15,8 +15,8 @@ type SpawnExitOnKillReturn = ReturnType<
 type SuccessConfigParams = Parameters<
   ReturnType<typeof agentSpawnUnifiedBrokerProxy>['setupSuccessConfig']
 >[0];
-type MainTailGuildParams = Parameters<
-  ReturnType<typeof startMainTailLayerBrokerProxy>['setupGuild']
+type MainTailHomeDirParams = Parameters<
+  ReturnType<typeof startMainTailLayerBrokerProxy>['setupHomeDir']
 >[0];
 
 const LAUNCHER_PROCESS_UUID = '00000000-0000-4000-8000-000000000a01';
@@ -32,9 +32,10 @@ export const agentLaunchBrokerProxy = (): {
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
-  setupMainTailGuild: (params: MainTailGuildParams) => void;
+  setupMainTailHomeDir: (params: MainTailHomeDirParams) => void;
   setupMainTailLines: (params: { lines: readonly string[] }) => void;
   triggerMainTailChange: () => void;
+  mainTailWatchedPath: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
   const spawnProxy = agentSpawnUnifiedBrokerProxy();
@@ -47,7 +48,7 @@ export const agentLaunchBrokerProxy = (): {
   // Change` (which fires mainTailLayerProxy's closure) finds it empty.
   chatStreamProcessHandleBrokerProxy();
   // startMainTailLayerBrokerProxy wires up the chatMainSessionTailBroker proxy chain so
-  // launcher tests can seed guild config, tail lines, and trigger appends without going
+  // launcher tests can seed the home dir, tail lines, and trigger appends without going
   // through the underlying main-session-tail broker proxy directly. Registered AFTER
   // chatStreamProcessHandleBrokerProxy so its fsWatchTailAdapter closure is the active
   // mock impl when the launcher's main-tail call fires.
@@ -90,8 +91,8 @@ export const agentLaunchBrokerProxy = (): {
     },
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
     getSpawnedOptions: (): unknown => spawnProxy.getSpawnedOptions(),
-    setupMainTailGuild: (params: MainTailGuildParams): void => {
-      mainTailLayerProxy.setupGuild(params);
+    setupMainTailHomeDir: (params: MainTailHomeDirParams): void => {
+      mainTailLayerProxy.setupHomeDir(params);
     },
     setupMainTailLines: ({ lines }: { lines: readonly string[] }): void => {
       mainTailLayerProxy.setupLines({ lines });
@@ -99,6 +100,7 @@ export const agentLaunchBrokerProxy = (): {
     triggerMainTailChange: (): void => {
       mainTailLayerProxy.triggerChange();
     },
+    mainTailWatchedPath: (): unknown => mainTailLayerProxy.lastWatchedPath(),
     // Delegates to the underlying spawn proxy so callers (e.g. chatSpawnBrokerProxy tests)
     // can verify that the resolved cwd was forwarded to the launcher's spawn call.
     getSpawnedCwd: (): RepoRootCwd | undefined => spawnProxy.getSpawnedCwd(),

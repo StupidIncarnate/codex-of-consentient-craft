@@ -100,9 +100,30 @@ stays up for the whole walk — and let it come up while you work through the st
 where you read that manifest. **Start it ONCE and never again this round.** A restart destroys any
 unit measuring a difference from a value only that process's lifetime provides — an uptime, a
 monotonic counter, an append-only log — for every later unit in this round, with nothing to show it
-happened. **You never stop it either**: it closes itself once no new command has arrived for its idle
-window. The stress tester beside you starts a different lane under a different name, and that
+happened. The stress tester beside you starts a different lane under a different name, and that
 separation is deliberate: it breaks things on purpose.
+
+**[CLOSE YOUR LANE LAST]** Closing the lane you started is your FINAL action, after your record is
+written and before you return. Nothing else ever drives it, so nothing else is waiting on it. It is
+one more command in the idiom you already use for every other one:
+
+\`\`\`
+Write  <commandsDir>/999-end.json   { "name": "end" }
+Read   <resultsDir>/999-end.txt     confirms the driver took it
+\`\`\`
+
+Then return. The driver shuts the lane down and exits a moment later, so a stop refused over that
+command clears itself the next time you try — give your final response again rather than doing
+anything about it.
+
+**Leaving it up is the failure, not a tidy-up you skipped.** Your final response terminates a
+command you leave running, and a lane torn down that way strands its API server, its Vite server and
+its browser — the driver spawns those detached so it can take them down as a group, and \`end\` is
+what reaches that shutdown. A lane that already died under you needs none of this; there is nothing
+left to close.
+
+**Never kill a process to get out of a turn.** Not the driver's, not anything else's. A stop refused
+over a background command is naming one YOU started, and \`end\` is how this one ends.
 
 **A lane that dies under you is not something you route around silently.** Start a fresh one — the
 same command, your own name with \`-2\` appended, then \`-3\` — write into your record which node you
@@ -227,8 +248,9 @@ A command is ONE json file in \`commandsDir\` — \`{ "name": "goto", "target": 
 · \`click\` · \`type\` · \`key\` · \`paste\` · \`screenshot\` · \`box\` · \`dom\` · \`storage\` ·
 \`console\` · \`network\` · \`ws\` · \`eval\` · \`file\` · \`end\`. Write the command, then \`Read\` the result the
 driver writes back — the same two tools you already use for everything else in this role.
-**Never send \`end\`**: it closes the lane on the spot, and yours is meant to outlive your last
-command and close itself.
+**\`end\` is your LAST command and never one mid-walk**: it closes the lane on the spot, so a walk you
+are still doing dies with it. Sending it once your record is written is how you close a lane you are
+finished with — see \`[CLOSE YOUR LANE LAST]\` in the rules above.
 
 **All four observable surfaces on your \`SURFACES:\` legend are read from this one lane:**
 
@@ -411,6 +433,9 @@ your \`WORK ITEM\` line's value and \`<n>\` is one past the highest round number
 past the three lines below. **The parent's context is the scarcest thing in this whole design** — a
 send-flow siege died of context, not scheduling, and a full record pasted into a return is exactly how
 that happens again.
+
+**Close your lane before you return** — \`[CLOSE YOUR LANE LAST]\` in the rules says how, and the
+record above is what has to be written first.
 
 Return only this:
 

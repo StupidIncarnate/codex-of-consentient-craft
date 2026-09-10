@@ -21,6 +21,7 @@ import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
+import { questSessionContract } from '../quest-session/quest-session-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { questTitleContract } from '../quest-title/quest-title-contract';
@@ -141,6 +142,12 @@ export const questContract = z.object({
     .default([])
     .describe(
       "One entry per riftcarver attempt, referenced by that attempt's work item via relatedDataItems. Each attempt appends its own ref and writes its own riftcarver-results/{id}.log, so a repaired carve leaves the whole pt chain's history rather than overwriting the attempt that failed.",
+    ),
+  sessions: z
+    .array(questSessionContract)
+    .default([])
+    .describe(
+      "One row per Claude session that ran on this quest, recording the cwd it ran in — appended once when the session is first stamped and never rewritten. Claude CLI encodes its JSONL directory from the session's own cwd, and `worktreePath` describes only the sessions dispatched AFTER the carve, so the read paths that locate a finished transcript resolve it here rather than deriving one answer for the whole quest. Keyed on the SESSION: a row whose `workItemId` a re-plan has replaced keeps its transcript reachable, and every spawn-side caller keeps asking the per-quest question instead.",
     ),
   planningNotes: z
     .object({

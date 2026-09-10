@@ -102,8 +102,30 @@ outside this session depends on that process surviving your probes.
 **A probe that kills the lane leaves it dead, and you start a fresh one before the next drive** — the
 same command, your own name with \`-2\` appended, then \`-3\`. Write into your \`PLAN:\` file which
 points ran before each restart and which after: a process's own lifetime is a value some probes
-measure against, so points either side of a restart are not comparable. **You never stop a lane
-yourself**; one nothing is driving closes itself once its idle window passes.
+measure against, so points either side of a restart are not comparable.
+
+**[CLOSE YOUR LANE LAST]** Closing whichever lane is still up is your FINAL action, after your
+\`PLAN:\` file is written and your family is signed. Nothing else drives it — the verifier's is a
+different lane under a different name — so nothing else is waiting on it:
+
+\`\`\`
+Write  <commandsDir>/999-end.json   { "name": "end" }
+Read   <resultsDir>/999-end.txt     confirms the driver took it
+\`\`\`
+
+Then return. The driver shuts the lane down and exits a moment later, so a stop refused over that
+command clears itself the next time you try — give your final response again rather than doing
+anything about it.
+
+**Leaving it up is the failure, not a tidy-up you skipped.** Your final response terminates a
+command you leave running, and a lane torn down that way strands its API server, its Vite server and
+its browser — the driver spawns those detached so it can take them down as a group, and \`end\` is
+what reaches that shutdown. Lanes an earlier probe already killed need none of this, and neither does
+a run whose last probe took the lane with it; there is nothing left to close.
+
+**Never go hunting the process table.** A stop refused over a background command is naming one YOU
+started, and \`end\` is how a lane ends. Killing something you did not start takes down another
+session's walk mid-measurement.
 
 **[NO PRODUCT CODE] Every sub-agent you brief writes a TEST, never the code under it.** A stress point
 that turns out to already be handled becomes a \`confirmed\` in your own sign-off, or a red test that
@@ -139,7 +161,9 @@ YOURS
                                   it — see [THE LANE IS YOURS TO BREAK]
   get-quest                     step 1, once
   Read on your lane.json        the manifest, for the addresses your briefs quote
-  Write                         your PLAN: path only — nothing else
+  Write                         your PLAN: path, and the one \`end\` command that closes your lane
+                                  at the very end — see [CLOSE YOUR LANE LAST]. Nothing else.
+  Read on your own end result   confirming the driver took that one command
   Agent(...)                    your PASS 2 sub-agents, two at a time
   modify-quest                  step 5, your one family, once
 
@@ -147,7 +171,8 @@ NOT YOURS
   Read / discover on source code   your sub-agents do this, not you
   Edit / Write on any other path   a sub-agent writes the test; you write no code and no test
   driving the lane directly        your sub-agents drive it, with Write/Read/Bash against its
-                                    command directory
+                                    command directory — \`end\` is the one exception, and it is
+                                    the last thing you do rather than part of any walk
   git, in every form                nothing this session does needs it
   npm run ward                      your sub-agents run their own scoped ward; you run none
   signal-back                       you are a minion; you return text
@@ -261,7 +286,8 @@ LANE
   value, filePath and timeoutMs optional — answered by the file of the same basename in resultsDir,
   whose first line is OK or FAIL. The verbs are goto, waitFor, click, type, key, paste, screenshot,
   box, dom, storage, console, network, ws, eval, file, end. Never send \`end\`: it closes the lane on
-  everybody. Reset instead, so the page is free for whoever drives next.
+  everybody, and closing this one belongs to the session that briefed you, after every point has
+  run. Reset instead, so the page is free for whoever drives next.
 
 DO
   1. Drive this exact stress point through the lane. Watch what actually happens — a crash, a
@@ -304,6 +330,9 @@ NEXT:     pass | rework — <what is left> | wall — <what a person must change
 **Your full record — the list, every sub-agent's return, your sign-off — lives in your \`PLAN:\` file.
 Return only these three lines.** Your parent's context is the scarcest thing in this design; a
 send-flow siege died of context before it died of anything else.
+
+**Close your lane before you return** — \`[CLOSE YOUR LANE LAST]\` in the rules says how, and the
+\`PLAN:\` file and the sign-off are what have to be written first.
 
 ## The quest id
 

@@ -116,36 +116,54 @@ const clearClaudeQueue = ({ queueDir }: { queueDir: string }): void => {
 
 export const claudeMockHarness = ({
   guildPath,
+  agentCwd,
 }: {
   guildPath: string;
+  // WHERE THE FAKE CLI WILL ACTUALLY RUN, when that is not the guild path. The queue is scoped by
+  // the spawned child's own `process.cwd()`, and the orchestrator sets that to the quest's cwd — so
+  // once a quest is CARVED, every agent after riftcarver runs in the WORKTREE and looks for its
+  // queued response under the worktree's encoding, not the guild's. A spec covering anything past
+  // the carve has to say so here, or its response is queued somewhere the child never looks and the
+  // spawn dies red-on-empty. Defaults to the guild path, which is where an uncarved quest runs.
+  agentCwd?: string;
 }): {
   beforeEach: () => void;
   queueResponse: (params: { response: ClaudeQueueResponse }) => void;
   clearQueue: () => void;
   readInvocations: () => readonly ClaudeInvocation[];
-} => ({
-  beforeEach: (): void => {
-    // Clear both the root queue (legacy unscoped responses) and this test's cwd-scoped subdir.
-    // Prevents leftover responses from prior tests from being consumed by this test's spawns.
+} => {
+  const spawnCwd = agentCwd ?? guildPath;
+
+  // Both scopes are cleared whether or not they differ, so a spec that carves does not inherit a
+  // response an earlier uncarved spec left under the guild scope.
+  const clearAllScopes = (): void => {
     clearClaudeQueue({ queueDir: getRootQueueDir() });
     clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath }) });
-  },
-  queueResponse: ({ response }: { response: ClaudeQueueResponse }): void => {
-    queueClaudeResponse({ queueDir: getScopedQueueDir({ guildPath }), response });
-  },
-  clearQueue: (): void => {
-    clearClaudeQueue({ queueDir: getRootQueueDir() });
-    clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath }) });
-  },
-  readInvocations: (): readonly ClaudeInvocation[] => {
-    const invocationsPath = path.join(getScopedQueueDir({ guildPath }), INVOCATIONS_FILE);
-    if (!fs.existsSync(invocationsPath)) {
-      return [];
-    }
-    return fs
-      .readFileSync(invocationsPath, 'utf8')
-      .split('\n')
-      .filter((line) => line.trim().length > 0)
-      .map((line) => claudeInvocationContract.parse(JSON.parse(line)));
-  },
-});
+    clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath: spawnCwd }) });
+  };
+
+  return {
+    // Clear the root queue (legacy unscoped responses) and every cwd-scoped subdir this harness
+    // can write to. Prevents leftover responses from prior tests being consumed by this test's
+    // spawns.
+    beforeEach: clearAllScopes,
+    queueResponse: ({ response }: { response: ClaudeQueueResponse }): void => {
+      queueClaudeResponse({ queueDir: getScopedQueueDir({ guildPath: spawnCwd }), response });
+    },
+    clearQueue: clearAllScopes,
+    readInvocations: (): readonly ClaudeInvocation[] => {
+      const invocationsPath = path.join(
+        getScopedQueueDir({ guildPath: spawnCwd }),
+        INVOCATIONS_FILE,
+      );
+      if (!fs.existsSync(invocationsPath)) {
+        return [];
+      }
+      return fs
+        .readFileSync(invocationsPath, 'utf8')
+        .split('\n')
+        .filter((line) => line.trim().length > 0)
+        .map((line) => claudeInvocationContract.parse(JSON.parse(line)));
+    },
+  };
+};

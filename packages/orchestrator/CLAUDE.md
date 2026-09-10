@@ -18,6 +18,23 @@ the file tail is the single rendering source, so lines are never double-emitted.
 
 DO NOT ADD MIGRATION LOGIC! THIS PACKAGE IS STILL GREENFIELD!
 
+### Which directory those files are in
+
+**The session's cwd, and only the cwd, decides which `~/.claude/projects/<encoded-cwd>/` directory a
+transcript is written to.** A sub-agent is not a session: it gets no session id and no directory of
+its own, it inherits its parent's cwd, and a sub-agent spawned by a sub-agent lands flat in the same
+`subagents/` folder rather than inside its parent. A project-local `.claude/` directory has no part
+in it.
+
+So **a carved quest's transcripts are split across TWO directories** — the intake conversation under
+the repo root's encoding, every role dispatched after the carve under the worktree's. A cwd is a
+property of the SESSION, not of the quest, and anything resolving one directory per quest reads only
+one of the two groups.
+
+This is undocumented harness behaviour that can change in any release. `README.md` in this package
+states each finding against the Claude Code version it was measured on, and carries the recipe for
+re-measuring after an upgrade.
+
 ### The unified funnel
 
 Every line from every source — parent session JSONL tail, sub-agent JSONL file, replay of

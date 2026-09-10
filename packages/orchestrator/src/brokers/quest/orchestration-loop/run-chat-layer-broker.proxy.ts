@@ -8,9 +8,13 @@ import {
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
 import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
+import { questSessionRecordBrokerProxy } from '../session-record/quest-session-record-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -42,6 +46,16 @@ export const runChatLayerBrokerProxy = (): {
   // its proxy wires up the questGetBroker/questRepoRootBroker/fsIsAccessibleAdapter mocks that
   // decide the 'worktree' | 'repo-root' | 'missing-worktree' outcome.
   const cwdProxy = questCwdResolveBrokerProxy();
+  // The session-cwd row rides the same per-quest lock and quest-file walk as the ledger writes and
+  // has its own suite, so this call is registration-only: it satisfies enforce-proxy-child-creation,
+  // which tracks the import edge, while the staging below answers the call itself.
+  questSessionRecordBrokerProxy();
+  // Fire-and-forget after the spawn exits: the sessionId comes from the child's own init line, so
+  // there is no per-test address to key on and the row's content is asserted by that broker's own
+  // suite. An unstaged call would throw inside the `.catch` and add a stderr line.
+  registerMock({ fn: questSessionRecordBroker })
+    .calledWith([])
+    .resolves({ success: true as const });
 
   // NOTE ON STAGING ORDER: questGetBrokerProxy/questRepoRootBrokerProxy/questModifyBrokerProxy
   // all compose questFindQuestPathBrokerProxy, whose pathJoin/readFile stand-ins for

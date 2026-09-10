@@ -48,6 +48,10 @@ describe('ResolveSubagentIdentityLayerResponder', () => {
     expect(result).toStrictEqual({
       sessionId: parentSessionId,
       agentId: realAgentId,
+      // The directory the scan searched and found the transcript in — the MCP child's own cwd, which
+      // is the calling session's. Recorded so the read paths locate this session's JSONL without
+      // re-deriving it from the quest, whose worktree may not be where this session ran.
+      cwd: '/home/user/proj',
     });
   });
 

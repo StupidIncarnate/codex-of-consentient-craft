@@ -1,6 +1,5 @@
 import {
   AbsoluteFilePathStub,
-  GuildIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -30,7 +29,6 @@ describe('runChatLayerBroker', () => {
           questId,
           workItem,
           userMessage: UserInputStub({ value: 'Help me build auth' }),
-          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).resolves.toStrictEqual({ success: true });
@@ -52,7 +50,6 @@ describe('runChatLayerBroker', () => {
           questId,
           workItem,
           userMessage: UserInputStub({ value: 'Design the login page' }),
-          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).resolves.toStrictEqual({ success: true });
@@ -75,7 +72,6 @@ describe('runChatLayerBroker', () => {
           questId,
           workItem,
           userMessage: UserInputStub({ value: 'Help me build auth' }),
-          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/spawn claude ENOENT/u);
@@ -102,7 +98,6 @@ describe('runChatLayerBroker', () => {
           questId,
           workItem,
           userMessage: UserInputStub({ value: 'Help me build auth' }),
-          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/Chat agent exited with code 1/u);
@@ -131,7 +126,6 @@ describe('runChatLayerBroker', () => {
         questId,
         workItem,
         userMessage,
-        guildId: GuildIdStub(),
         onAgentEntry: jest.fn(),
       });
 
@@ -174,7 +168,6 @@ describe('runChatLayerBroker', () => {
         questId,
         workItem,
         userMessage: UserInputStub({ value: 'Help me build auth' }),
-        guildId: GuildIdStub(),
         onAgentEntry: jest.fn(),
       });
 
@@ -206,7 +199,6 @@ describe('runChatLayerBroker', () => {
       await runChatLayerBroker({
         questId,
         workItem,
-        guildId: GuildIdStub(),
         userMessage: UserInputStub({ value: 'Help me build auth' }),
         onAgentEntry,
       });
@@ -243,7 +235,6 @@ describe('runChatLayerBroker', () => {
           questId,
           workItem,
           userMessage: UserInputStub({ value: 'Help me build auth' }),
-          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/\/repo\/worktrees\/add-auth/u);

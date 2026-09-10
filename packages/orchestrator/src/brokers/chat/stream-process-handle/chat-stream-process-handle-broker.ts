@@ -4,7 +4,7 @@
  * USAGE:
  * const handle = chatStreamProcessHandleBroker({
  *   chatProcessId,
- *   guildId,
+ *   cwd,
  *   sessionId,
  *   onEntries: ({ chatProcessId, entries, sessionId }) => { },
  *   onText: ({ chatProcessId, text }) => { },
@@ -16,10 +16,14 @@
  * });
  * await handle.initialDrains();
  * handle.stop();
+ *
+ * `cwd` is the spawn's own cwd, forwarded to every sub-agent tail this handle starts: a sub-agent
+ * inherits its parent's cwd, and that cwd is what names the `~/.claude/projects/` directory Claude
+ * CLI writes the sub-agent JSONL under.
  */
 
 import { chatEntryContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
@@ -39,14 +43,14 @@ import { chatSubagentTailBroker } from '../subagent-tail/chat-subagent-tail-brok
 
 export const chatStreamProcessHandleBroker = ({
   chatProcessId,
-  guildId,
+  cwd,
   sessionId: initialSessionId,
   onEntries,
   onText,
   onSignal,
 }: {
   chatProcessId: ProcessId;
-  guildId: GuildId;
+  cwd: RepoRootCwd;
   sessionId?: SessionId;
   onEntries: (params: {
     chatProcessId: ProcessId;
@@ -159,7 +163,7 @@ export const chatStreamProcessHandleBroker = ({
           const realAgentId: AgentId = output.agentId;
           const setup = chatSubagentTailBroker({
             sessionId: sid,
-            guildId,
+            cwd,
             agentId: realAgentId,
             processor,
             chatProcessId,

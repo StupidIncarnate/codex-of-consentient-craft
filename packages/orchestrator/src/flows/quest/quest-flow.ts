@@ -37,6 +37,7 @@ import { QuestListWithSkipsResponder } from '../../responders/quest/list-with-sk
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest-mcp-create-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
+import { QuestRecordSessionResponder } from '../../responders/quest/record-session/quest-record-session-responder';
 import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monitor-watcher-start/quest-monitor-watcher-start-responder';
 import { QuestResetFlowSignoffsResponder } from '../../responders/quest/reset-flow-signoffs/quest-reset-flow-signoffs-responder';
 import { QuestRunRiftcarverResponder } from '../../responders/quest/run-riftcarver/quest-run-riftcarver-responder';
@@ -62,6 +63,9 @@ type GetBlightChecklistResult = Awaited<ReturnType<typeof QuestGetBlightChecklis
 
 type ResetFlowSignoffsParams = Parameters<typeof QuestResetFlowSignoffsResponder>[0];
 type ResetFlowSignoffsResult = Awaited<ReturnType<typeof QuestResetFlowSignoffsResponder>>;
+
+type RecordSessionParams = Parameters<typeof QuestRecordSessionResponder>[0];
+type RecordSessionResult = Awaited<ReturnType<typeof QuestRecordSessionResponder>>;
 
 type ListParams = Parameters<typeof QuestListResponder>[0];
 type ListResult = Awaited<ReturnType<typeof QuestListResponder>>;
@@ -152,6 +156,24 @@ export const QuestFlow = {
 
   modify: async ({ questId, input }: ModifyParams): Promise<ModifyResult> =>
     QuestModifyResponder({ questId, input }),
+
+  // Separate from `modify` on purpose: `sessions` is absent from `modifyQuestInputContract`, so no
+  // agent-facing tool can reach it. This is the only route an out-of-process caller has to append a
+  // row, and the MCP child is the one that needs it — it alone knows the calling session's real cwd.
+  recordSession: async ({
+    questId,
+    sessionId,
+    cwd,
+    role,
+    workItemId,
+  }: RecordSessionParams): Promise<RecordSessionResult> =>
+    QuestRecordSessionResponder({
+      questId,
+      sessionId,
+      cwd,
+      role,
+      ...(workItemId === undefined ? {} : { workItemId }),
+    }),
 
   mcpCreate: async ({
     userRequest,

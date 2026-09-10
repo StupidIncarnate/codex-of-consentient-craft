@@ -65,6 +65,7 @@ export * from './src/transformers/inflate-xml-strings/inflate-xml-strings-transf
 
 // Safe JSON Parse
 export * from './src/transformers/safe-json-parse/safe-json-parse-transformer';
+export * from './src/transformers/safe-xml-parse/safe-xml-parse-transformer';
 
 // Next Approval Quest Status
 export * from './src/transformers/next-approval-quest-status/next-approval-quest-status-transformer';
@@ -130,3 +131,7 @@ export * from './src/transformers/quest-package-entries-to-text/quest-package-en
 
 // A single flow, rendered whole, for the role that owns it (get-quest's flowId/packageName slice)
 export * from './src/transformers/quest-flow-slice/quest-flow-slice-transformer';
+
+// One SESSION -> the cwd it ran in, off the quest's own ledger. Shared by the replay read and the
+// live-tail read so the two cannot disagree about where a transcript lives.
+export * from './src/transformers/quest-session-cwd/quest-session-cwd-transformer';

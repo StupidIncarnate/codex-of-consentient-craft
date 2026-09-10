@@ -10,11 +10,18 @@
  *
  * USAGE:
  * const identity = await ResolveSubagentIdentityLayerResponder({ meta });
- * // Returns { sessionId, agentId } | undefined
+ * // Returns { sessionId, agentId, cwd } | undefined
+ *
+ * `cwd` is the MCP stdio child's own working directory, which IS the calling session's — Claude Code
+ * spawns one MCP child per session. It rides along because Claude CLI encodes a transcript's
+ * directory from the session's cwd, and for a `/dumpster-launch` dispatcher on a CARVED quest that
+ * directory is the repo root while the quest's own `worktreePath` says otherwise. Recording the
+ * quest's answer there would enshrine a wrong directory instead of merely guessing one.
  */
 
 import {
   absoluteFilePathContract,
+  type AbsoluteFilePath,
   type AgentId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
@@ -29,7 +36,7 @@ export const ResolveSubagentIdentityLayerResponder = async ({
   meta,
 }: {
   meta?: Record<string, unknown>;
-}): Promise<{ sessionId: SessionId; agentId: AgentId } | undefined> => {
+}): Promise<{ sessionId: SessionId; agentId: AgentId; cwd: AbsoluteFilePath } | undefined> => {
   // Claude Code surfaces `claudecode/toolUseId` on every MCP call from a Task-dispatched
   // sub-agent. Without it we cannot identify the caller deterministically — no fallback.
   const toolUseIdRaw = meta?.[TOOL_USE_ID_META_KEY];
@@ -52,5 +59,6 @@ export const ResolveSubagentIdentityLayerResponder = async ({
     return undefined;
   }
 
-  return { sessionId: found.parentSessionId, agentId: found.realAgentId };
+  // `projectDir` is the ONE directory the scan searched, so a hit proves the transcript is under it.
+  return { sessionId: found.parentSessionId, agentId: found.realAgentId, cwd: projectDir };
 };

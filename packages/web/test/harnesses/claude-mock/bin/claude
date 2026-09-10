@@ -217,57 +217,79 @@ function postSignalBack() {
     });
 }
 
-// Write JSONL session file (mimics real Claude CLI writing ~/.claude/projects/...)
-function writeJsonlSessionFile() {
-    if (!sessionId) return;
+// Resolve (and create) the session JSONL path the real Claude CLI would write to under
+// ~/.claude/projects/<cwd-encoded>/. Returns null when the queued response named no sessionId,
+// which is the "this spawn has no session to write" case.
+function resolveJsonlSessionPath() {
+    if (!sessionId) return null;
 
     const homeDir = os.homedir();
     const projectPath = process.cwd();
     const encodedPath = projectPath.replace(/\//g, '-');
     const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
-    const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
 
     fs.mkdirSync(jsonlDir, {recursive: true});
 
-    // Build JSONL entries using same data structures as stream-json stubs
-    const entries = [];
+    return path.join(jsonlDir, `${sessionId}.jsonl`);
+}
 
-    // Add user message entry (same shape as real Claude JSONL). It carries a uuid for the same
-    // reason every queued line does: this file is tailed by more than one reader at a time, and an
-    // unstamped line is keyed on a fresh random uuid by each of them, so the user's own message
-    // renders once per tail.
+const jsonlSessionPath = resolveJsonlSessionPath();
+
+// THE SESSION FILE IS WRITTEN AS THE TURN RUNS, ONE LINE AT A TIME — never in one blob at exit.
+// The live execution-panel path for a dispatched agent is a TAIL of this file (the server's
+// quest-driven watchers → quest-monitor-jsonl-watcher-broker); stdout only reaches the panel for
+// the `command` roles that have no session. So a mock that wrote the whole file inside finish()
+// left the tailed file absent for the entire life of the "agent", and every dispatch-driven spec
+// could observe a role's transcript ONLY post-mortem, through a reload's replay. That is why no
+// spec in this suite could assert a second role streaming live, and why the bug where exactly that
+// broke shipped twice.
+//
+// Both readers see the SAME uuid per line, because `lines` is stamped once up front (see
+// stampLineUuid above). That is what collapses the stdout copy and the tailed copy into one entry
+// instead of rendering the line twice.
+
+// Truncate a fresh run's file and lay down the user message, before the first line is emitted, so
+// a tail attaching mid-turn reads a file that already reflects this turn and not the previous one.
+// A --resume run appends to what is already there, exactly as the real CLI continues a session.
+function openJsonlSessionFile() {
+    if (jsonlSessionPath === null) return;
+
+    const isResume = process.argv.includes('--resume');
+    if (!isResume) {
+        fs.writeFileSync(jsonlSessionPath, '');
+    }
+
+    // The user message carries a uuid for the same reason every queued line does: this file is
+    // tailed by more than one reader at a time, and an unstamped line is keyed on a fresh random
+    // uuid by each of them, so the user's own message renders once per tail.
     if (userMessage) {
-        entries.push(JSON.stringify({
+        fs.appendFileSync(jsonlSessionPath, JSON.stringify({
             type: 'user',
             message: {role: 'user', content: userMessage},
             uuid: randomUUID(),
-        }));
+        }) + '\n');
+    }
+}
+
+// Persist ONE emitted stream line, if it is a kind the real CLI records.
+//
+// Real Claude CLI writes BOTH assistant content AND user/tool_result lines to the session JSONL —
+// when the web's subscribe-quest replays, it needs both halves to pair tool_use with its
+// tool_result. Filtering out user lines here would mean file-replay shows tool_uses with no results
+// paired (orphan render), even though streaming delivered them correctly. That breaks
+// stream-vs-replay parity. system/result lines are the ones the CLI does not record.
+function appendJsonlSessionLine(line) {
+    if (jsonlSessionPath === null) return;
+
+    try {
+        const parsed = JSON.parse(line);
+        if (parsed.type !== 'assistant' && parsed.type !== 'user') return;
+    } catch {
+        // Unparseable lines are not recorded, matching the previous filter's behaviour.
+        return;
     }
 
-    // Add assistant AND user entries from stream lines (filter out system/result types).
-    // Real Claude CLI writes BOTH assistant content AND user/tool_result lines to the
-    // session JSONL — when the web's subscribe-quest replays, it needs both halves to
-    // pair tool_use with its tool_result. Filtering out user lines here would mean
-    // file-replay shows tool_uses with no results paired (orphan render), even though
-    // streaming delivered them correctly. This breaks stream-vs-replay parity.
-    for (const line of lines) {
-        try {
-            const parsed = JSON.parse(line);
-            if (parsed.type === 'assistant' || parsed.type === 'user') {
-                entries.push(line);
-            }
-        } catch {
-            // Skip unparseable lines
-        }
-    }
-
-    // For --resume flows, append to existing file; otherwise overwrite
-    const isResume = process.argv.includes('--resume');
-    if (isResume) {
-        fs.appendFileSync(jsonlPath, entries.join('\n') + '\n');
-    } else {
-        fs.writeFileSync(jsonlPath, entries.join('\n') + '\n');
-    }
+    fs.appendFileSync(jsonlSessionPath, line + '\n');
 }
 
 // A real orchestrator session dispatches a reviewer-minion over its round's output, and that
@@ -328,7 +350,8 @@ function postReviewDisposition() {
 
 // Runs once every queued stream line has been emitted. In hang mode the process blocks forever
 // (init line already emitted so sessionId stamps). Otherwise it optionally records a review
-// disposition and signals back (both awaited), writes the JSONL session file, and exits.
+// disposition and signals back (both awaited), then exits. The JSONL session file needs no write
+// here — every line it holds was appended as it was emitted.
 async function finish() {
     if (hang) {
         // Keep the event loop alive indefinitely — a restart spec kills this child.
@@ -343,7 +366,6 @@ async function finish() {
         await postSignalBack();
     }
 
-    writeJsonlSessionFile();
     process.exit(exitCode);
 }
 
@@ -355,7 +377,10 @@ function writeLine() {
         return;
     }
 
+    // stdout first, then the session file: a tail that wakes between the two reads a file one line
+    // short, which is a state the real CLI also passes through and which the uuid dedup absorbs.
     process.stdout.write(lines[index] + '\n');
+    appendJsonlSessionLine(lines[index]);
     index++;
 
     if (index >= lines.length) {
@@ -365,4 +390,5 @@ function writeLine() {
     }
 }
 
+openJsonlSessionFile();
 writeLine();

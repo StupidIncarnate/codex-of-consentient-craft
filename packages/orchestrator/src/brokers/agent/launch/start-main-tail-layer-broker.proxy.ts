@@ -1,16 +1,19 @@
 import { chatMainSessionTailBrokerProxy } from '../../chat/main-session-tail/chat-main-session-tail-broker.proxy';
 
-type GuildParams = Parameters<ReturnType<typeof chatMainSessionTailBrokerProxy>['setupGuild']>[0];
+type HomeDirParams = Parameters<
+  ReturnType<typeof chatMainSessionTailBrokerProxy>['setupHomeDir']
+>[0];
 
 export const startMainTailLayerBrokerProxy = (): {
-  setupGuild: (params: GuildParams) => void;
+  setupHomeDir: (params: HomeDirParams) => void;
   setupLines: (params: { lines: readonly string[] }) => void;
   triggerChange: () => void;
+  lastWatchedPath: () => unknown;
 } => {
   const tailProxy = chatMainSessionTailBrokerProxy();
   return {
-    setupGuild: (params: GuildParams): void => {
-      tailProxy.setupGuild(params);
+    setupHomeDir: (params: HomeDirParams): void => {
+      tailProxy.setupHomeDir(params);
     },
     setupLines: ({ lines }: { lines: readonly string[] }): void => {
       tailProxy.setupLines({ lines });
@@ -18,5 +21,6 @@ export const startMainTailLayerBrokerProxy = (): {
     triggerChange: (): void => {
       tailProxy.triggerChange();
     },
+    lastWatchedPath: (): unknown => tailProxy.lastWatchedPath(),
   };
 };

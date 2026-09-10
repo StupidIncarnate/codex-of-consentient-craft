@@ -52,10 +52,30 @@ const minionLine = JSON.stringify({
   },
 });
 
+// `background_tasks` names no owner, so the responder decides ownership by finding the task's id
+// in the stopping agent's own transcript. HookBackgroundTaskStub's default id is `bcibjy15w`; this
+// line is the harness's own Bash result text, verbatim from a measured run, carrying that id.
+const startedOwnShellLine = JSON.stringify({
+  message: {
+    role: 'user',
+    content: [
+      {
+        type: 'tool_result',
+        tool_use_id: 't0',
+        content:
+          'Command running in background with ID: bcibjy15w. Output is being written to: /tmp/claude-1001/proj/session/tasks/bcibjy15w.output. You will be notified when it completes.',
+      },
+    ],
+  },
+});
+
 describe('HookSubagentStopResponder', () => {
-  it('VALID: {minion transcript but a running background task} => blocks, because the ban is not scoped to work-item agents', async () => {
+  it('VALID: {minion transcript but a running command it started} => blocks, because the ban is not scoped to work-item agents', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });
+    proxy.setupTranscript({
+      filePath: TRANSCRIPT_PATH,
+      contents: [minionLine, startedOwnShellLine].join('\n'),
+    });
 
     const result = await HookSubagentStopResponder({
       hookInput: SubagentStopHookDataStub({
@@ -73,9 +93,12 @@ describe('HookSubagentStopResponder', () => {
     });
   });
 
-  it('VALID: {running background task and stop_hook_active true} => still blocks, unlike the signal-back nudge', async () => {
+  it('VALID: {running command it started and stop_hook_active true} => still blocks, unlike the signal-back nudge', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });
+    proxy.setupTranscript({
+      filePath: TRANSCRIPT_PATH,
+      contents: [minionLine, startedOwnShellLine].join('\n'),
+    });
 
     const result = await HookSubagentStopResponder({
       hookInput: SubagentStopHookDataStub({
@@ -111,6 +134,92 @@ describe('HookSubagentStopResponder', () => {
     expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
   });
 
+  // PARALLEL SIBLINGS. Measured: three sub-agents dispatched in one message each backgrounded one
+  // command, and every one of the three read all three shells in its own SubagentStop event. An
+  // unscoped refusal holds every sibling open on lanes it cannot reach.
+  it('VALID: {running shells a sibling sub-agent started} => allows the stop', async () => {
+    const proxy = HookSubagentStopResponderProxy();
+    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });
+
+    const result = await HookSubagentStopResponder({
+      hookInput: SubagentStopHookDataStub({
+        background_tasks: [
+          HookBackgroundTaskStub({ id: 'bea151ik3', type: 'shell', status: 'running' }),
+          HookBackgroundTaskStub({ id: 'by021g0b3', type: 'shell', status: 'running' }),
+        ],
+      }),
+    });
+
+    expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
+  });
+
+  // PARENT'S COMMAND. Measured: a top-level session backgrounded one command and then dispatched a
+  // child and a grandchild; that one shell appeared in both of their stop events, and neither had
+  // started anything.
+  it('VALID: {running shell the top-level session started} => allows the stop', async () => {
+    const proxy = HookSubagentStopResponderProxy();
+    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });
+
+    const result = await HookSubagentStopResponder({
+      hookInput: SubagentStopHookDataStub({
+        background_tasks: [
+          HookBackgroundTaskStub({ id: 'bopp2p21w', type: 'shell', status: 'running' }),
+        ],
+      }),
+    });
+
+    expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
+  });
+
+  it('VALID: {own running shell beside two siblings shells} => blocks on its own', async () => {
+    const proxy = HookSubagentStopResponderProxy();
+    proxy.setupTranscript({
+      filePath: TRANSCRIPT_PATH,
+      contents: [minionLine, startedOwnShellLine].join('\n'),
+    });
+
+    const result = await HookSubagentStopResponder({
+      hookInput: SubagentStopHookDataStub({
+        background_tasks: [
+          HookBackgroundTaskStub({ id: 'bea151ik3', type: 'shell', status: 'running' }),
+          HookBackgroundTaskStub({ status: 'running' }),
+          HookBackgroundTaskStub({ id: 'by021g0b3', type: 'shell', status: 'running' }),
+        ],
+      }),
+    });
+
+    expect(result).toStrictEqual({
+      stdout: JSON.stringify({
+        decision: 'block',
+        reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
+      }),
+      stderr: '',
+      exitCode: 0,
+    });
+  });
+
+  // Ownership is unanswerable with no transcript, and the two mistakes cost differently: a needless
+  // refusal costs one re-entry, a missed one costs the command.
+  it('ERROR: {transcript read fails while a shell runs} => blocks, because ownership cannot be ruled out', async () => {
+    const proxy = HookSubagentStopResponderProxy();
+    proxy.setupReadError({ filePath: TRANSCRIPT_PATH });
+
+    const result = await HookSubagentStopResponder({
+      hookInput: SubagentStopHookDataStub({
+        background_tasks: [HookBackgroundTaskStub({ status: 'running' })],
+      }),
+    });
+
+    expect(result).toStrictEqual({
+      stdout: JSON.stringify({
+        decision: 'block',
+        reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
+      }),
+      stderr: '',
+      exitCode: 0,
+    });
+  });
+
   it('VALID: {every background task completed, minion transcript} => allows the stop', async () => {
     const proxy = HookSubagentStopResponderProxy();
     proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });
@@ -124,9 +233,12 @@ describe('HookSubagentStopResponder', () => {
     expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
   });
 
-  it('VALID: {running background task on a work-item agent} => reports the background task, not the missing signal-back', async () => {
+  it('VALID: {running command it started on a work-item agent} => reports the background task, not the missing signal-back', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: workItemAgentLine });
+    proxy.setupTranscript({
+      filePath: TRANSCRIPT_PATH,
+      contents: [workItemAgentLine, startedOwnShellLine].join('\n'),
+    });
 
     const result = await HookSubagentStopResponder({
       hookInput: SubagentStopHookDataStub({

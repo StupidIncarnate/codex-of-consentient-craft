@@ -4,7 +4,6 @@
  * USAGE:
  * const { processId, handle, kill, sessionId$ } = agentLaunchBroker({
  *   role,
- *   guildId,
  *   questId,
  *   questWorkItemId,
  *   processIdPrefix: 'proc',
@@ -24,7 +23,6 @@ import type {
   AbsoluteFilePath,
   ChatEntry,
   ExitCode,
-  GuildId,
   ProcessId,
   QuestId,
   QuestWorkItemId,
@@ -45,7 +43,6 @@ import { composeKillLayerBroker } from './compose-kill-layer-broker';
 import { startMainTailLayerBroker } from './start-main-tail-layer-broker';
 
 export const agentLaunchBroker = ({
-  guildId,
   questId,
   questWorkItemId,
   processIdPrefix,
@@ -65,7 +62,6 @@ export const agentLaunchBroker = ({
   abortSignal,
   addDir,
 }: {
-  guildId: GuildId;
   // questId + questWorkItemId are forwarded to `registerProcess` only. Chat-spawn callers
   // pass them so the orchestration-processes registry can locate this agent later. Loop
   // layer brokers omit them today (loop-level processId already carries the kill switch).
@@ -135,19 +131,18 @@ export const agentLaunchBroker = ({
   // tests stay free of inline-object stubs while the launcher itself can populate one
   // slot when the tail comes up.
   const tailStopMap = new Map<'stop', () => void>();
-  // Killed-state tracker. The post-exit tail starts asynchronously in `onComplete`'s
-  // `.then` chain; if the caller kills the launch (e.g. the chat-start-responder finds a
-  // running process for the resumed quest and kills it before spawning the next turn)
-  // BEFORE the tail's startup Promise resolves, the kill misses the tail entirely. The
-  // tail then starts with no stop registered, lives on, and emits the next turn's JSONL
-  // appends — duplicating what stdout streamed. Set is sized 0 (not killed) or 1
-  // (killed); checked inside the tail-startup `.then` so a late-arriving stop fires
-  // immediately when the launcher is already killed.
+  // Killed-state tracker. The post-exit tail starts inside `onComplete`, which the spawn
+  // fires long after the caller may have killed the launch (e.g. the chat-start-responder
+  // finds a running process for the resumed quest and kills it before spawning the next
+  // turn). Without this the tail starts with no stop registered, lives on, and emits the
+  // next turn's JSONL appends — duplicating what stdout streamed. Set is sized 0 (not
+  // killed) or 1 (killed); checked at tail startup so an already-killed launcher stops the
+  // tail on the spot.
   const killedStateSet = new Set<'killed'>();
 
   const handle = chatStreamProcessHandleBroker({
     chatProcessId: processId,
-    guildId,
+    cwd,
     ...(resumeSessionId === undefined ? {} : { sessionId: resumeSessionId }),
     onEntries,
     onText,
@@ -190,30 +185,33 @@ export const agentLaunchBroker = ({
       // caller-supplied resumeSessionId when CLI didn't re-emit system/init.
       const resolvedSid = completedSessionId ?? resumeSessionId ?? null;
       if (resolvedSid !== null) {
-        startMainTailLayerBroker({
-          sessionId: resolvedSid,
-          guildId,
-          processor: handle.processor,
-          chatProcessId: processId,
-          onEntries,
-        })
-          .then((stop) => {
-            // Race guard: if the launcher was killed BEFORE this Promise resolved (e.g.
-            // chat-start-responder's resume path killed the prior process to clear the
-            // way for the next turn), stop the tail immediately so it never picks up
-            // the next turn's JSONL appends. Without this, the orphan tail watches the
-            // same JSONL the new turn writes to, double-emitting every entry.
-            if (killedStateSet.has('killed')) {
-              stop();
-              return;
-            }
-            tailStopMap.set('stop', stop);
-          })
-          .catch((error: unknown) => {
-            process.stderr.write(
-              `[agent-launch] post-exit main-tail wiring failed: ${error instanceof Error ? error.message : String(error)}\n`,
-            );
+        // The spawn invokes this handler from its own event emitter, outside any caller
+        // frame, so a throw escaping here is an uncaught exception that kills the process
+        // and skips the `onComplete` below. A tail that cannot start costs the post-exit
+        // appends; it must not cost the completion.
+        try {
+          const stopMainTail = startMainTailLayerBroker({
+            sessionId: resolvedSid,
+            cwd,
+            processor: handle.processor,
+            chatProcessId: processId,
+            onEntries,
           });
+          // Kill guard: a launcher killed before the CLI exit reached this handler (e.g.
+          // chat-start-responder's resume path killed the prior process to clear the way
+          // for the next turn) has no stop slot left to fill, so the tail is stopped on the
+          // spot. Without this, the orphan tail watches the same JSONL the new turn writes
+          // to, double-emitting every entry.
+          if (killedStateSet.has('killed')) {
+            stopMainTail();
+          } else {
+            tailStopMap.set('stop', stopMainTail);
+          }
+        } catch (error: unknown) {
+          process.stderr.write(
+            `[agent-launch] post-exit main-tail wiring failed: ${error instanceof Error ? error.message : String(error)}\n`,
+          );
+        }
       }
 
       onComplete({ chatProcessId: processId, exitCode, sessionId: completedSessionId });

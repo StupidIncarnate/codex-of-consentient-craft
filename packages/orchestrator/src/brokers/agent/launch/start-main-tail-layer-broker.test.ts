@@ -1,10 +1,4 @@
-import {
-  GuildConfigStub,
-  GuildIdStub,
-  GuildStub,
-  ProcessIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 
@@ -15,12 +9,7 @@ describe('startMainTailLayerBroker', () => {
   describe('tail startup', () => {
     it('VALID: {tail emits assistant text line} => onEntries fires with sessionId stamped on payload', async () => {
       const proxy = startMainTailLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
-        homeDir: '/home/user',
-      });
+      proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
         lines: [
           JSON.stringify({
@@ -39,9 +28,9 @@ describe('startMainTailLayerBroker', () => {
       const onEntries = jest.fn();
       const sessionId = SessionIdStub({ value: 'session-tail-test' });
 
-      const stop = await startMainTailLayerBroker({
+      const stop = startMainTailLayerBroker({
         sessionId,
-        guildId,
+        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         processor: chatLineProcessTransformer(),
         chatProcessId: ProcessIdStub({ value: 'proc-tail-test' }),
         onEntries,

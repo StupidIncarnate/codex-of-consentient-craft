@@ -1,11 +1,16 @@
 import { fsWatchTailAdapter } from './fs-watch-tail-adapter';
 import { fsWatchTailAdapterProxy } from './fs-watch-tail-adapter.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 const flushPromises = async (): Promise<void> =>
   new Promise((resolve) => {
     setImmediate(resolve);
   });
+
+// process.stderr.write is addressed by the WRITTEN STRING, so the whole line has to be staged.
+const XML_FAILURE_PREFIX = '[watch-tail] onLine failed for /tmp/test.jsonl: ';
+const CONSUMER_FAILURE_LINE = `${XML_FAILURE_PREFIX}Error: consumer blew up\n`;
 
 describe('fsWatchTailAdapter', () => {
   describe('line reading', () => {
@@ -441,6 +446,103 @@ describe('fsWatchTailAdapter', () => {
 
       // No drain ever ran (triggerChange was never called), so onLine was never invoked.
       expect(onLine).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('a throwing onLine', () => {
+    it('ERROR: onLine throws on one line => the throw does not propagate out of the readline handler', async () => {
+      // readline calls the line handler outside any caller frame, so an unguarded throw is an
+      // uncaught exception that kills the server. Every consumer parses the line it is handed.
+      const proxy = fsWatchTailAdapterProxy();
+      const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+      stderrSpy
+        .calledWith([`${XML_FAILURE_PREFIX}Error: readTagExp returned undefined at position 396\n`])
+        .returns(true);
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine: () => {
+          throw new Error('readTagExp returned undefined at position 396');
+        },
+        onError: () => {},
+      });
+
+      proxy.setupLines({ lines: ['{"bad":"line"}'] });
+      proxy.triggerChange();
+
+      await expect(handle.initialDrain).resolves.toBe(undefined);
+    });
+
+    it('ERROR: onLine throws on the first line => later lines are still delivered', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+      stderrSpy.calledWith([CONSUMER_FAILURE_LINE]).returns(true);
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+      onLine.mockImplementationOnce(() => {
+        throw new Error('consumer blew up');
+      });
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError: () => {},
+      });
+
+      proxy.setupLines({ lines: ['poison', 'survivor-one', 'survivor-two'] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(onLine).toHaveBeenCalledTimes(3);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'poison' });
+      expect(onLine).toHaveBeenNthCalledWith(2, { line: 'survivor-one' });
+      expect(onLine).toHaveBeenNthCalledWith(3, { line: 'survivor-two' });
+    });
+
+    it('ERROR: onLine throws => writes the file path and the failure to stderr', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+      stderrSpy.calledWith([CONSUMER_FAILURE_LINE]).returns(true);
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine: () => {
+          throw new Error('consumer blew up');
+        },
+        onError: () => {},
+      });
+
+      proxy.setupLines({ lines: ['{"bad":"line"}'] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(stderrSpy.callsMatching([CONSUMER_FAILURE_LINE])).toStrictEqual([
+        [CONSUMER_FAILURE_LINE],
+      ]);
+    });
+
+    it('ERROR: onLine throws => onError is not called, so a consumer that no-ops it does not hide the bug', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+      stderrSpy.calledWith([CONSUMER_FAILURE_LINE]).returns(true);
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onError = jest.fn();
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine: () => {
+          throw new Error('consumer blew up');
+        },
+        onError,
+      });
+
+      proxy.setupLines({ lines: ['{"bad":"line"}'] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(onError).toHaveBeenCalledTimes(0);
     });
   });
 });

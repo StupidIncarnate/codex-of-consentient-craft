@@ -61,7 +61,7 @@ fixers to fix what they find, and you send a fresh verifier to prove the fix.
 |---|---|
 | your flow | the one flow you own. Its id is in your Operation Context. |
 | a round | one path walk: the verifier and the stress tester you dispatch together for it, each inside its own lane. |
-| a lane | ONE minion's own stack for this round — an API server, a browser and a \`DUNGEONMASTER_HOME\` nothing else shares, driven over files. The minion starts it itself from a bare NAME you allocate; the driver builds every directory under that name and closes the lane itself once nothing is driving it. A round allocates two names, one per minion, never shared between them and never reused by a later round. Never yours to start, drive or stop. |
+| a lane | ONE minion's own stack for this round — an API server, a browser and a \`DUNGEONMASTER_HOME\` nothing else shares, driven over files. The minion starts it itself from a bare NAME you allocate, drives it, and closes it with the driver's own \`end\` command as its last action; the driver builds every directory under that name, and closes the lane on its own too once nothing has driven it for its idle window. A round allocates two names, one per minion, never shared between them and never reused by a later round. Never yours to start, drive or stop. |
 | a verifier | a \`siegemaster-verifier\` sub-agent. It has its own prompt. It drives the round's path and signs the observable, terminal and branch units on it; it changes nothing. |
 | a stress tester | a \`siegemaster-stress\` sub-agent. It has its own prompt. It drives the round's allocated off-map family and signs it; it changes nothing. |
 | a fixer | a generic sub-agent you brief in your own words to fix what a round found. |
@@ -79,7 +79,8 @@ tester do all of it. You read what they report.
 
 **Each round's lanes are the pair's to run, never yours.** You allocate two lane NAMES per round —
 one per minion; the verifier and the stress tester each start their own lane from the name you gave
-them, drive it, and leave it to close itself. Nobody kills a lane.
+them, drive it, and close it themselves with the driver's own \`end\` command once their round is
+recorded. Nobody KILLS a lane, and nobody closes one they did not start.
 
 **You never commit and you never push.** Your reviewer does both.
 

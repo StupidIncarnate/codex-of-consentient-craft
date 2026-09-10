@@ -1,4 +1,5 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -25,8 +26,30 @@ const environment = environmentHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
 wireHarnessLifecycle({ harness: environment, testObj: test });
 
+// EVERY test here measures what `POST /api/quests/:questId/start` WRITES — the status flip, the
+// relay seed, the work item it mints, and the fact that it carves nothing inside its own request.
+// None of them is about what the queue then does with that, so all of them hold the queue shut.
+//
+// The hold is needed because start now PLAYS the dispatcher (QuestStartResponder, mirroring
+// resume): without it, Begin Quest enqueues a quest nothing ever picks up. With it, the loop wakes
+// on the enqueue that happens INSIDE the start request and begins the riftcarver carve underneath
+// every assertion below — a real carve, against the fixture repo, whose failure blocks the quest
+// and turns these into a coin flip. Pausing after the response cannot close that window; refusing
+// the play outright can.
 test.describe('Quest Begin Transition', () => {
   test.beforeEach(async ({ request }) => {
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+
+    // The heartbeat hold refuses every LATER play, but it cannot stop a loop that is ALREADY
+    // running — and under a whole-package sweep an earlier spec leaves one running. The mode that
+    // loop reads is an in-memory mirror, so writing the state file does not reach it either; only
+    // the pause route does. Without this, the running loop reaches this fixture's quest, orphan
+    // recovery resets its work item to the retry ceiling, and the quest lands on `blocked` while
+    // the assertion below is waiting for `in_progress`. Reproduced on master (104-spec sweep,
+    // commit 32a43c61e) as well as here, so it predates the session-cwd work.
+    await dispatch.beforeEach();
+    dispatch.holdQueueWithMcpHeartbeat();
+
     await guildHarness({ request }).cleanGuilds();
     sessions.cleanSessionDirectory();
   });

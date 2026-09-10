@@ -172,9 +172,9 @@ describe('siegemasterStressStatics', () => {
   });
 
   // `end` IS THE ONE VERB A SUB-AGENT MAY NOT SEND — the driver stops its whole lane on it, taking
-  // the browser and both servers down for every sub-agent that drives after this one. A lane needs
-  // no closing anyway: it closes itself once its idle window passes with no command in it.
-  it('VALID: served template => names every one of the sixteen lane commands and forbids sending end', () => {
+  // the browser and both servers down for every sub-agent that drives after this one. It belongs to
+  // the session that started the lane, once every point has run.
+  it('VALID: served template => names every one of the sixteen lane commands and forbids a sub-agent sending end', () => {
     expect({
       allSixteen: hasIn({
         needle:
@@ -183,7 +183,7 @@ describe('siegemasterStressStatics', () => {
       }),
       neverEnd: hasIn({
         needle:
-          'Never send `end`: it closes the lane on everybody. Reset instead, so the page is free for whoever drives next.',
+          'Never send `end`: it closes the lane on\n  everybody, and closing this one belongs to the session that briefed you, after every point has\n  run. Reset instead, so the page is free for whoever drives next.',
         text: TEMPLATE,
       }),
       commandShape: hasIn({
@@ -224,18 +224,64 @@ describe('siegemasterStressStatics', () => {
         needle: 'Write into your `PLAN:` file which points ran before each restart and which after',
         text: TEMPLATE,
       }),
-      neverStopsOne: hasIn({
-        needle:
-          '**You never stop a lane yourself**; one nothing is driving closes itself once its idle window passes.',
-        text: TEMPLATE,
-      }),
     }).toStrictEqual({
       startsItFirst: true,
       theCommand: true,
       laneNameIsNotAPath: true,
       restartsAfterAKill: true,
       recordsWhichSideOfIt: true,
-      neverStopsOne: true,
+    });
+  });
+
+  // WHICHEVER LANE IS STILL UP AT THE END IS THIS SESSION'S TO CLOSE, and `end` is the only shutdown
+  // that reaches the API server, Vite server and browser the driver spawned detached. A stop hook
+  // refuses a turn while a backgrounded command runs, so a lane left up holds this session open on
+  // the one entry only it can clear — and the sessions that could not clear it went hunting the
+  // process table and killed other rounds' lanes mid-walk. Its own probes may already have taken
+  // the lane, which is why the rule says nothing is left to close in that case rather than
+  // demanding a shutdown that would fail.
+  it('VALID: served template => closes its last live lane with `end` and hunts no processes', () => {
+    expect({
+      closesItLast: hasIn({
+        needle:
+          '**[CLOSE YOUR LANE LAST]** Closing whichever lane is still up is your FINAL action, after your\n`PLAN:` file is written and your family is signed.',
+        text: TEMPLATE,
+      }),
+      theEndCommand: hasIn({
+        needle: 'Write  <commandsDir>/999-end.json   { "name": "end" }',
+        text: TEMPLATE,
+      }),
+      refusalClearsItself: hasIn({
+        needle:
+          'a stop refused over that\ncommand clears itself the next time you try — give your final response again rather than doing\nanything about it.',
+        text: TEMPLATE,
+      }),
+      leavingItUpStrandsThree: hasIn({
+        needle:
+          'a lane torn down that way strands its API server, its Vite server and\nits browser',
+        text: TEMPLATE,
+      }),
+      aDeadLaneNeedsNothing: hasIn({
+        needle:
+          'Lanes an earlier probe already killed need none of this, and neither does\na run whose last probe took the lane with it; there is nothing left to close.',
+        text: TEMPLATE,
+      }),
+      noProcessHunting: hasIn({
+        needle: '**Never go hunting the process table.**',
+        text: TEMPLATE,
+      }),
+      writeIsScopedToPlanAndEnd: hasIn({
+        needle: 'your PLAN: path, and the one `end` command that closes your lane',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      closesItLast: true,
+      theEndCommand: true,
+      refusalClearsItself: true,
+      leavingItUpStrandsThree: true,
+      aDeadLaneNeedsNothing: true,
+      noProcessHunting: true,
+      writeIsScopedToPlanAndEnd: true,
     });
   });
 

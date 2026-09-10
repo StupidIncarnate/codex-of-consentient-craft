@@ -18,6 +18,7 @@ export const fsWatchTailAdapterProxy = (): {
   setupExistingFileWithContent: () => void;
   lastStartPositionWasFromFileEnd: () => boolean;
   lastStartPositionWasZero: () => boolean;
+  lastWatchedPath: () => unknown;
 } => {
   const mockWatch: MockHandle = registerMock({ fn: watch });
   const mockCreateReadStream: MockHandle = registerMock({ fn: createReadStream });
@@ -43,6 +44,10 @@ export const fsWatchTailAdapterProxy = (): {
     close: jest.fn(),
   });
   const watchCallbacks: (() => void)[] = [];
+  // The path handed to fs.watch, recorded per call. Staging cannot be ADDRESSED by path (see
+  // above), but the path the adapter opens is still the observable a caller asserts on: it is
+  // the whole output of the `~/.claude/projects/<encoded-cwd>/` resolution its broker did.
+  const watchedPaths: unknown[] = [];
   const pendingLinesBatches: unknown[] = [];
   const pendingStreamErrors: Error[] = [];
   const recordedStartPositions: unknown[] = [];
@@ -52,7 +57,8 @@ export const fsWatchTailAdapterProxy = (): {
     .calledWith([])
     .implement(() => ({ size: fileSizeState.bytes }) as ReturnType<typeof statSync>);
 
-  mockWatch.calledWith([]).implement((_path: unknown, listener: unknown) => {
+  mockWatch.calledWith([]).implement((path: unknown, listener: unknown) => {
+    watchedPaths.push(path);
     watchCallbacks.push(listener as () => void);
     return watchEmitter as unknown as FSWatcher;
   });
@@ -153,5 +159,7 @@ export const fsWatchTailAdapterProxy = (): {
       const last = recordedStartPositions[recordedStartPositions.length - 1];
       return last === 0;
     },
+
+    lastWatchedPath: (): unknown => watchedPaths[watchedPaths.length - 1],
   };
 };

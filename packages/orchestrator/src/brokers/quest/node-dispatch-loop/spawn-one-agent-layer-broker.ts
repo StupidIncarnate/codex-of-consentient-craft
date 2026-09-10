@@ -30,11 +30,13 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 import {
+  absoluteFilePathContract,
   adapterResultContract,
   getQuestInputContract,
   modifyQuestInputContract,
   processIdContract,
   sessionIdContract,
+  workItemRoleContract,
 } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
@@ -48,6 +50,7 @@ import { roleToModelTransformer } from '../../../transformers/role-to-model/role
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
+import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
 
 export const spawnOneAgentLayerBroker = async ({
   instruction,
@@ -150,6 +153,23 @@ export const spawnOneAgentLayerBroker = async ({
               questId: instruction.questId,
               workItems: [{ id: instruction.workItemId, sessionId: parsed }],
             }),
+          });
+          // `cwd` is this child's ACTUAL working directory — the same value handed to
+          // agentSpawnUnifiedBroker above — so the row records where the transcript really is
+          // rather than where the quest currently points. An overload retry recurses with the same
+          // cwd and the append is idempotent on sessionId, so a resumed attempt re-records nothing.
+          // Its OWN catch, not the outer one: a bookkeeping row that fails to land must not report
+          // itself as a failed sessionId stamp, which is the line an operator would act on.
+          await questSessionRecordBroker({
+            questId: instruction.questId,
+            sessionId: parsed,
+            cwd: absoluteFilePathContract.parse(cwd),
+            role: workItemRoleContract.parse(instruction.role),
+            workItemId: instruction.workItemId,
+          }).catch((error: unknown) => {
+            process.stderr.write(
+              `[node-dispatch] session cwd record failed for work item ${instruction.workItemId}: ${String(error)}\n`,
+            );
           });
         })
         .catch((error: unknown) => {
