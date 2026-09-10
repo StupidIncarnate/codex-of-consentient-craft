@@ -519,6 +519,12 @@ DO NOT TOUCH
 FIRST
   get-architecture, get-testing-patterns
 
+DISCOVERY
+  Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
+  Exploring is how you learn the code you are about to prove; hand it off and what it
+  found lands in someone else's summary instead of in the session writing the test.
+  You sit one level below the operator that briefed you, and nothing goes below you.
+
 PROVE
   Call THIS EXACT command to prove your own work:
   \`npm run ward -- -- <this brief's own paths>\`

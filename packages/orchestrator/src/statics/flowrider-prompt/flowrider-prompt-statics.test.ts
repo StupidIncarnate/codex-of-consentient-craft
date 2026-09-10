@@ -460,4 +460,41 @@ describe('flowriderPromptStatics', () => {
       waves: false,
     });
   });
+
+  // DEPTH STOPS AT THE SUB-AGENT, and until this landed nothing in this prompt said so at any
+  // level. Measured on the sibling codeweaver track: a sub-agent whose brief asserted a lint
+  // permission the repo's own rule refuses could not tell which of the two was right, dispatched an
+  // `Explore` agent of its own to find out, and deviated silently on what came back. The cost is
+  // bounded here and unbounded one level further out — a fixer that let its own sub-agent go
+  // looking spawned ten `Explore` grandchildren and burned roughly 4.5 million context tokens on a
+  // single fix, which is the incident `siegemaster-verifier` and `siegemaster-stress` both cite.
+  //
+  // Asserted against the FENCE, because the operator's own text licenses exactly this move one
+  // level up: a whole-prompt needle would go green over a brief that says nothing.
+  it('VALID: brief template => makes the sub-agent explore for itself and dispatch nothing below it', () => {
+    expect({
+      ownDiscovery: hasIn({
+        needle: 'Do your OWN discovery, with the discover tool.',
+        text: BRIEF_TEMPLATE,
+      }),
+      refusesToDelegateExploring: hasIn({
+        needle: '**Never dispatch a sub-agent to explore.**',
+        text: BRIEF_TEMPLATE,
+      }),
+      saysWhyItIsWorthKeeping: hasIn({
+        needle: "found lands in someone else's summary instead of in the session writing the test",
+        text: BRIEF_TEMPLATE,
+      }),
+      namesItsOwnLevel: hasIn({
+        needle:
+          'You sit one level below the operator that briefed you, and nothing goes below you.',
+        text: BRIEF_TEMPLATE,
+      }),
+    }).toStrictEqual({
+      ownDiscovery: true,
+      refusesToDelegateExploring: true,
+      saysWhyItIsWorthKeeping: true,
+      namesItsOwnLevel: true,
+    });
+  });
 });

@@ -160,9 +160,12 @@ describe('siegemasterReviewerStatics', () => {
           "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, and it does not run until every file on your list carries its own written comment from step 4.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
+      // THE THIRD GATE SITE, and the one that reads differently enough to survive a check on the
+      // other two. Widening a sub-agent's run is gated on the same comments, not on a claim about
+      // having read — which is how both sibling reviewers say it.
       neverWidensASubAgentsRun: hasIn({
         needle:
-          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before you have read its work.",
+          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before that work's files carry their comments.",
         text: TEMPLATE,
       }),
       lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
@@ -222,7 +225,19 @@ describe('siegemasterReviewerStatics', () => {
         text: TEMPLATE,
       }),
       anywhereAtAll: hasIn({ needle: 'after you have read everything', text: TEMPLATE }),
-    }).toStrictEqual({ inTheScopeRule: false, inTheWardStep: false, anywhereAtAll: false });
+      // The widen clause is the third site carrying an unfalsifiable read-claim, and it wears
+      // different words from the two above, so neither of those needles reaches it. Presence of the
+      // replacement is asserted in the ward-gate test; this pins that the old wording is GONE.
+      widenCarriesNoReadClaim: hasIn({
+        needle: 'of your own before you have read its work',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      inTheScopeRule: false,
+      inTheWardStep: false,
+      anywhereAtAll: false,
+      widenCarriesNoReadClaim: false,
+    });
   });
 
   // GATING THE WARD MUST NOT DISTURB WHY SOME OF ITS REDS ARE THE POINT. `--uncommitted` grades the

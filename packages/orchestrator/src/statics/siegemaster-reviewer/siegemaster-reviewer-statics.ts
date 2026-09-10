@@ -87,7 +87,7 @@ one finished.
 **[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, and it does not run until every file
 on your list carries its own written comment from step 4.** Nobody else on the pass runs it. You run
 no bare \`npm run ward\`; that is the dispatcher's. You never widen a sub-agent's scoped run into a
-\`--uncommitted\` of your own before you have read its work.
+\`--uncommitted\` of your own before that work's files carry their comments.
 
 **[GIT] You commit and you push. Nobody else here touches git.** Never \`stash\`, \`reset\`,
 \`checkout --\`, \`clean\` or \`rebase\` — the repairs are uncommitted when you arrive, on a branch other
