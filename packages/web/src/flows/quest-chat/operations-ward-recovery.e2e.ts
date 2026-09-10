@@ -73,12 +73,16 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: one numbered list — the dispatched ward row RUNNING, then the flowrider operation no
-    // work item has claimed yet, PENDING. The ward row is named by its operation text, which is
+    // BEFORE: one numbered list — the work item minted for the ward operation, then the flowrider
+    // operation no work item has claimed yet. The ward row is named by its operation text, which is
     // where its (committed) mode reads.
+    //
+    // Both read PENDING. The ledger box this replaced drew OPERATION status, which flips to
+    // `in_progress` when a work item is minted; a row draws WORK-ITEM status, which stays `pending`
+    // until something dispatches it, and every e2e test pauses the dispatcher.
     const rows = executionPanel.getByTestId('execution-row-layer-widget');
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['RUNNING', 'PENDING'],
+      ['PENDING', 'PENDING'],
       {
         timeout: PANEL_TIMEOUT,
       },
@@ -172,9 +176,11 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
+    // Both PENDING for the same reason as the green case above: a row draws WORK-ITEM status, and
+    // the dispatcher is paused in every e2e test, so a minted work item has not run yet.
     const rows = executionPanel.getByTestId('execution-row-layer-widget');
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['RUNNING', 'PENDING'],
+      ['PENDING', 'PENDING'],
       {
         timeout: PANEL_TIMEOUT,
       },
@@ -261,6 +267,12 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       '[WARD]',
       '[FLOWRIDER]',
     ]);
-    await expect(rows.filter({ hasText: 'ward (committed)' })).toHaveCount(2);
+    // Scoped to the WARD rows by their role badge, not by the operation text alone: the spliced
+    // spiritmender is NAMED after the ward it repairs — `Spiritmender: fix ward (committed)
+    // failures — wardResult <id>` — so a bare `hasText: 'ward (committed)'` matches three rows and
+    // proves nothing about which of them is a ward.
+    const wardRows = rows.filter({ hasText: '[WARD]' });
+    await expect(wardRows).toHaveCount(2);
+    await expect(wardRows.filter({ hasText: '(committed)' })).toHaveCount(2);
   });
 });

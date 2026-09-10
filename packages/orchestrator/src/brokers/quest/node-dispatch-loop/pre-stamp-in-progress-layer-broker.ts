@@ -47,8 +47,13 @@ export const preStampInProgressLayerBroker = async ({
       );
       const quest = await questLoadBroker({ questFilePath });
 
-      // TEMPORARY RED-PROOF: guard intentionally removed to reproduce the unconditional pre-stamp
-      // bug before the fix. Restored immediately after watching the integration test fail.
+      // Read from the quest as loaded for THIS write, inside the same lock the persist goes
+      // through. A pause that landed while this dispatch was already in flight has reset the item
+      // to pending, and stamping over that reading leaves a "ghost running" row on a paused quest.
+      if (isUserPausedQuestStatusGuard({ status: quest.status })) {
+        return { stamped: false };
+      }
+
       const nextWorkItems = quest.workItems.map((workItem) =>
         workItem.id === workItemId
           ? workItemContract.parse({

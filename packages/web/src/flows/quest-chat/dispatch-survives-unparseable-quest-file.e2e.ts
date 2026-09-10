@@ -91,11 +91,13 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // One numbered list: the work item running the first operation, then the second operation no
-    // work item has claimed yet.
+    // One numbered list: the work item minted for the first operation, then the second operation no
+    // work item has claimed yet. Both read PENDING — a row draws WORK-ITEM status, not the
+    // operation status the ledger box used to draw, and every e2e test pauses the dispatcher, so a
+    // minted work item has not run yet.
     const rows = executionPanel.getByTestId('execution-row-layer-widget');
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['RUNNING', 'PENDING'],
+      ['PENDING', 'PENDING'],
       {
         timeout: PANEL_TIMEOUT,
       },

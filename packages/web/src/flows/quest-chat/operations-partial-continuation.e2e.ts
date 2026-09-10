@@ -63,10 +63,15 @@ test.describe('Operations duplicate-on-partial (pt-N continuation)', () => {
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: exactly ONE row — the work item running the seeded codeweaver operation, named by
+    // BEFORE: exactly ONE row — the work item minted for the seeded codeweaver operation, named by
     // that operation's text. Nothing is unclaimed, so the list has no pending tail.
+    //
+    // It reads PENDING, not RUNNING, and that is the difference from the ledger box this replaced.
+    // The box drew OPERATION status, which flips to `in_progress` when a work item is minted; a
+    // row draws WORK-ITEM status, which stays `pending` until something dispatches it, and every
+    // e2e test pauses the dispatcher.
     const rows = executionPanel.getByTestId('execution-row-layer-widget');
-    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['RUNNING'], {
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['PENDING'], {
       timeout: PANEL_TIMEOUT,
     });
     await expect(rows.getByTestId('execution-row-role-badge')).toHaveText(['[CODEWEAVER]']);

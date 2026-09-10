@@ -258,14 +258,18 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
           (wi) =>
             wi.id === HOUR_WI &&
             wi.status === 'in_progress' &&
-            wi.startedAt !== undefined &&
+            // `typeof` rather than `!== undefined`: workItemContract takes `.nullish()` here, so a
+            // quest.json carrying an explicit null parses and only a string check narrows both.
+            typeof wi.startedAt === 'string' &&
             wi.startedAt > hoursStartedAt,
         ),
     });
     const runningHourWorkItems = runningQuest.workItems.filter((wi) => wi.id === HOUR_WI);
     expect(runningHourWorkItems.map((wi) => wi.status)).toStrictEqual(['in_progress']);
     expect(
-      runningHourWorkItems.map((wi) => wi.startedAt !== undefined && wi.startedAt > hoursStartedAt),
+      runningHourWorkItems.map(
+        (wi) => typeof wi.startedAt === 'string' && wi.startedAt > hoursStartedAt,
+      ),
     ).toStrictEqual([true]);
 
     // observable:check-resumed-row-restarts — the figure reappears reading exactly '<1m', never

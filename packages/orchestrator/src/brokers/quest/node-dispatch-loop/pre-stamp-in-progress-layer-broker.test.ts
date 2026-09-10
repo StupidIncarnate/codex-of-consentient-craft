@@ -1,4 +1,9 @@
-import { QuestIdStub, QuestStub, QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestIdStub,
+  QuestStub,
+  QuestWorkItemIdStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { preStampInProgressLayerBroker } from './pre-stamp-in-progress-layer-broker';
@@ -24,6 +29,7 @@ describe('preStampInProgressLayerBroker', () => {
       expect(result).toStrictEqual({ stamped: true });
 
       const persisted = proxy.getLastPersistedQuest();
+
       expect(persisted.workItems).toStrictEqual([
         WorkItemStub({
           id: workItemId,
@@ -56,6 +62,7 @@ describe('preStampInProgressLayerBroker', () => {
       expect(result).toStrictEqual({ stamped: true });
 
       const persisted = proxy.getLastPersistedQuest();
+
       expect(persisted.workItems).toStrictEqual([
         WorkItemStub({
           id: targetId,

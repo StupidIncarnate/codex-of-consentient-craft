@@ -79,11 +79,18 @@ test.describe('Operations-driven dispatch', () => {
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: one numbered list — the dispatched first operation's work-item row RUNNING, then the
-    // three operations no work item has claimed yet, PENDING, in seeded ledger order.
+    // BEFORE: one numbered list of four — the work item minted for the first operation, then the
+    // three operations no work item has claimed yet, in seeded ledger order.
+    //
+    // All four read PENDING, and the first one is the reason this reads differently from the
+    // ledger box it replaced. That box drew OPERATION status, which flips to `in_progress` the
+    // moment `questAdvanceBroker` mints a work item for it. A row draws WORK-ITEM status, which
+    // stays `pending` until something dispatches it — and every e2e test pauses the dispatcher, so
+    // nothing does. That the relay advanced is asserted against the quest below, where operation
+    // status actually lives.
     const rows = executionPanel.getByTestId('execution-row-layer-widget');
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['RUNNING', 'PENDING', 'PENDING', 'PENDING'],
+      ['PENDING', 'PENDING', 'PENDING', 'PENDING'],
       { timeout: PANEL_TIMEOUT },
     );
     await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
