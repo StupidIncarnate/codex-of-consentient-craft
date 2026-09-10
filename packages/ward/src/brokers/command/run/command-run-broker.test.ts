@@ -208,8 +208,36 @@ describe('commandRunBroker', () => {
           '  only discovered: discovered.ts',
           '',
         ].join('\n'),
-        '\nDISCOVERY MISMATCH — ward discovered files that were not processed (or vice versa). Every test must run; an unrun test is a hidden regression. This run is FAILING until each mismatch below is investigated and resolved at the root cause:\n  - typecheck\n  - unit\n  - integration\n\nFor each check above: read the "only processed" / "only discovered" lines in the summary, then determine WHY discovery and processing diverged (e.g. test runner config drift from ward\'s discovery globs, untyped imports pulling in dist files, files matching a pattern they shouldn\'t, missing config exclusions). Fix the root cause — do not paper over the mismatch by adjusting ward\'s discovery to match the buggy state.\n',
+        '\nDISCOVERY MISMATCH — ward discovered files that were not processed (or vice versa). Every test must run; an unrun test is a hidden regression. This run is FAILING until each mismatch below is investigated and resolved at the root cause:\n  - typecheck\n  - integration\n\nFor each check above: read the "only processed" / "only discovered" lines in the summary, then determine WHY discovery and processing diverged (e.g. test runner config drift from ward\'s discovery globs, untyped imports pulling in dist files, files matching a pattern they shouldn\'t, missing config exclusions). Fix the root cause — do not paper over the mismatch by adjusting ward\'s discovery to match the buggy state.\n',
       ]);
+    });
+
+    // The guidance block and the summary lines above it name the SAME checks. `unit` skipped on
+    // this scoped run, so its summary line is absent — and it is absent from the guidance too.
+    // Listing a check there that the summary never mentioned sent a reader hunting for a line
+    // that was not printed.
+    it('VALID: {uncommitted: true resolves to a file no check processed} => guidance names only the checks the summary flagged', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackagePass();
+      proxy.setupUncommittedWithOneEditedFile();
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ uncommitted: true });
+
+      await commandRunBroker({ config, rootPath });
+
+      const [summary, guidance] = proxy.getStdoutCalls();
+      const flaggedInSummary = String(summary)
+        .split('\n')
+        .filter((line) => line.includes('DISCOVERY MISMATCH'))
+        .map((line) => line.split(':')[0]);
+      const listedInGuidance = String(guidance)
+        .split('\n')
+        .filter((line) => line.startsWith('  - '))
+        .map((line) => line.slice(4));
+
+      expect(listedInGuidance).toStrictEqual(flaggedInSummary);
     });
   });
 

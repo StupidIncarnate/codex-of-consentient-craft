@@ -49,6 +49,46 @@ describe('hasCheckDiscoveryMismatchGuard', () => {
     });
   });
 
+  describe('skipped project results', () => {
+    it('VALID: {skip with discovered>0 and files=0, hasPassthrough} => returns false', () => {
+      const check = CheckResultStub({
+        projectResults: [ProjectResultStub({ status: 'skip', filesCount: 0, discoveredCount: 7 })],
+      });
+
+      expect(hasCheckDiscoveryMismatchGuard({ check, hasPassthrough: true })).toBe(false);
+    });
+
+    it('VALID: {skip with discovered>0 and files=0, no passthrough} => returns true', () => {
+      const check = CheckResultStub({
+        projectResults: [ProjectResultStub({ status: 'skip', filesCount: 0, discoveredCount: 7 })],
+      });
+
+      expect(hasCheckDiscoveryMismatchGuard({ check, hasPassthrough: false })).toBe(true);
+    });
+
+    it('VALID: {skip alongside a matched package, hasPassthrough} => returns false', () => {
+      const check = CheckResultStub({
+        projectResults: [
+          ProjectResultStub({ status: 'skip', filesCount: 0, discoveredCount: 7 }),
+          ProjectResultStub({ status: 'pass', filesCount: 12, discoveredCount: 12 }),
+        ],
+      });
+
+      expect(hasCheckDiscoveryMismatchGuard({ check, hasPassthrough: true })).toBe(false);
+    });
+
+    it('VALID: {skip alongside a package that really did diverge, hasPassthrough} => returns true', () => {
+      const check = CheckResultStub({
+        projectResults: [
+          ProjectResultStub({ status: 'skip', filesCount: 0, discoveredCount: 7 }),
+          ProjectResultStub({ status: 'pass', filesCount: 0, discoveredCount: 12 }),
+        ],
+      });
+
+      expect(hasCheckDiscoveryMismatchGuard({ check, hasPassthrough: true })).toBe(true);
+    });
+  });
+
   describe('zero discovered', () => {
     it('VALID: {discovered=0} => returns false', () => {
       const check = CheckResultStub({

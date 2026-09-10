@@ -134,13 +134,14 @@ export const hookPersistentRunnerHarness = (): {
     if (currentChild) {
       currentChild.stdin!.end();
       await new Promise<void>((resolve) => {
-        currentChild.on('close', () => {
-          resolve();
-        });
-        setTimeout(() => {
+        const killTimeout = setTimeout(() => {
           currentChild.kill();
           resolve();
         }, 5000);
+        currentChild.on('close', () => {
+          clearTimeout(killTimeout);
+          resolve();
+        });
       });
     }
     if (currentRl) {

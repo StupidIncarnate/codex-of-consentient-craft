@@ -79,10 +79,11 @@ describe('ResolveCallerSessionLayerResponder', () => {
       expect(result).toBe(NEWEST_SESSION);
     });
 
-    // Exhausts the scan's real flush-race retry budget (claudeSessionScanStatics: 30 × 100ms)
-    // before falling through, so this case genuinely takes ~3s. The budget is a production
-    // timing constant, not something to shrink for the test's convenience.
+    // Fake timers virtualize the scan's real flush-race retry budget (claudeSessionScanStatics:
+    // 30 x 100ms): every pass still runs for real, exhausting the full budget, but the ~3s of
+    // setTimeout delay between passes costs no wall-clock time.
     it('VALID: {meta toolUseId matches no session JSONL} => falls back to the newest-mtime session', async () => {
+      jest.useFakeTimers();
       const proxy = ResolveCallerSessionLayerResponderProxy();
 
       proxy.setupSessions({
@@ -98,12 +99,15 @@ describe('ResolveCallerSessionLayerResponder', () => {
         ],
       });
 
-      const result = await ResolveCallerSessionLayerResponder({
+      const resultPromise = ResolveCallerSessionLayerResponder({
         meta: { 'claudecode/toolUseId': MATCHING_TOOL_USE_ID },
       });
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
 
       expect(result).toBe(NEWEST_SESSION);
-    }, 15_000);
+      jest.useRealTimers();
+    });
 
     it('VALID: {meta toolUseId is not a string} => falls back to the newest-mtime session', async () => {
       const proxy = ResolveCallerSessionLayerResponderProxy();
