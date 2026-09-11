@@ -28,12 +28,16 @@ export const slowFileThresholdStatics = {
     // the bar that leaves that alone while naming a test doing markedly more.
     integrationTestWarnMs: 3000,
     // Summed eslint rule time plus fix, with the TypeScript program build left out. Measured over
-    // a whole-package lint of `web` and of `shared` on a quiet machine: medians of 14ms and 8.5ms,
-    // 99th percentiles of 293ms and 109ms, and single worst files of 873ms and 596ms — nothing
-    // reached a second. Held at the jest bar rather than dropped to the low hundreds because rule
-    // time roughly doubles under CPU contention (one 40-file batch's worst file went 335ms to
-    // 636ms at 3x oversubscription), and a flagged file FAILS the run.
-    lintRulesWarnMs: 1000,
+    // a whole-repo lint of all 7758 files: median 14ms, 90th percentile 50ms, 99th 219ms, and a
+    // top file at 1148ms with the next at 778ms.
+    //
+    // TWO SECONDS, not the one the jest bars use, because rule time roughly doubles under CPU
+    // contention — one 40-file batch's worst file went 335ms to 636ms at 3x oversubscription —
+    // and a flagged file FAILS the run. At one second the gate named zero files on one whole-repo
+    // run and one on the next, the same tree both times, which reports the machine rather than the
+    // code. Two clears twice the worst healthy file and still catches anything that doubles past
+    // it.
+    lintRulesWarnMs: 2000,
     // A browser spec navigates, waits for real paint and talks to a real server, so it cannot be
     // held to the jest bar. Playwright reports execution time per test and excludes browser boot,
     // so this is still test-body time and not startup.
@@ -100,7 +104,7 @@ export const slowFileThresholdStatics = {
       slowestTestMs: 5000,
       why: 'spawns the hook binary; the child loads the shared module graph before it reads stdin',
     },
-    'src/flows/quest-chat/send-images-chat-route.e2e.ts': {
+    'flows/quest-chat/send-images-chat-route.e2e.ts': {
       slowestTestMs: 12000,
       why: 'its worst case sends images deliberately large enough for an upload progress bar to paint and climb from 0 to 100, so the transfer time IS what the test observes; a smaller payload would finish before the bar could be seen at all',
     },

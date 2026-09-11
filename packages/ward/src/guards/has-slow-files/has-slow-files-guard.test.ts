@@ -70,7 +70,7 @@ describe('hasSlowFilesGuard', () => {
                     filePath: 'src/big-widget.tsx',
                     durationMs: 1900,
                     testMs: 0,
-                    rulesMs: 1800,
+                    rulesMs: 3600,
                   }),
                 ],
               }),
