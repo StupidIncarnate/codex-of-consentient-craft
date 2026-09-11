@@ -8,21 +8,23 @@
  */
 export const qualityGateStatics = {
   slowFiles: {
-    // One note per runner, because each carries a different startup cost in its wall figure. A jest
-    // suite's wall carries the package's one-time compile and eslint's carries the TypeScript
-    // program build; Playwright has neither, and saying so anyway would tell a reader to discount
-    // the very number the e2e list is ranked on.
+    // One note per runner. A test-running check is judged on its WORST SINGLE TEST, so its note
+    // says to look there and gives the suite total beside it as context — a total alone cannot
+    // tell a file holding one slow test from a file holding many cheap ones. Lint runs no tests,
+    // so it keeps a wall comparison, and what its wall carries is the TypeScript program build.
     jestNote:
-      "ranked on test-body time; wall also carries the package's one-time compile, charged to " +
-      'whichever file reached a module first',
+      'ranked on the slowest single test; the suite total and test count follow it, so a big file ' +
+      'reads differently from a slow one',
     lintNote:
       'ranked on rule time; wall also carries the TypeScript program build, charged to whichever ' +
       'file the parser reached first',
-    browserNote: 'ranked on test-body time, which excludes browser and server startup',
+    browserNote:
+      'ranked on the slowest single test, which excludes browser and server startup; the spec ' +
+      'total and test count follow it',
     heading: 'SLOW TESTS FAILED THIS RUN',
     guidance:
-      'Every file named under "slow files" is over its check\'s own-cost threshold — test-body ' +
-      'time for jest and Playwright, rule time for lint. Fix the file, or raise ' +
+      'Every file named under "slow files" holds a test over its check\'s threshold — the slowest ' +
+      'single test for jest and Playwright, rule time for lint. Fix that test, or raise ' +
       'slowFileThresholdStatics deliberately — a run is not green while these stand.',
   },
   openHandles: {

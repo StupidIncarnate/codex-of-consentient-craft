@@ -24,10 +24,18 @@ export const passingTestsToTimingsTransformer = ({
   const paths = [...new Set(passingTests.map((test) => String(test.suitePath)))];
 
   return paths.map((path) => {
-    const total = passingTests
-      .filter((test) => String(test.suitePath) === path)
-      .reduce((sum, test) => sum + Number(test.durationMs), 0);
+    const own = passingTests.filter((test) => String(test.suitePath) === path);
+    const total = own.reduce((sum, test) => sum + Number(test.durationMs), 0);
+    // The slow-file gate reads the worst single test rather than the sum, so a spec is judged on
+    // whether any ONE of its cases is slow and not on how many it holds.
+    const worst = own.reduce((slowest, test) => Math.max(slowest, Number(test.durationMs)), 0);
 
-    return fileTimingContract.parse({ filePath: path, durationMs: total, testMs: total });
+    return fileTimingContract.parse({
+      filePath: path,
+      durationMs: total,
+      testMs: total,
+      slowestTestMs: worst,
+      testCount: own.length,
+    });
   });
 };

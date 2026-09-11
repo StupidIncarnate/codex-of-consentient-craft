@@ -14,18 +14,18 @@ export const slowFileThresholdStatics = {
     // module evaluation, both of which land on whichever suite reaches a module FIRST, so it says
     // where a file sat in the run rather than what it cost. Used only where nothing better exists.
     warnMs: 5000,
-    // Summed assertion durations: the test bodies themselves. Measured across two packages on a
-    // warm cache, one suite of 176 exceeded 1s and none exceeded 3s, so this names the outliers
-    // rather than a third of the repo.
+    // The WORST SINGLE TEST in a unit suite, not the suite's sum — see `fileTimingContract` for
+    // why a sum grades a file on how many tests it holds. Measured across the thirteen slowest
+    // unit files in this repo: the worst single test anywhere was 413ms, and the files that used
+    // to trip a summed bar hold 87, 96 and 153 tests at 18-20ms each. So a second of ONE test is
+    // well clear of anything healthy here, and it is the bar that caught the real defect this was
+    // calibrated against — one test sitting through a responder's real 3s retry budget.
     testWarnMs: 1000,
     // An integration test may spawn real processes — that is what makes it one — and a spawned
     // child in this repo costs about a second before doing any work of its own: node boot plus the
     // `@dungeonmaster/shared` module graph, measured at 0.97s for `start-pre-bash-hook`, which
-    // lints nothing. Held ABOVE the unit bar for that reason and no higher: across the whole
-    // integration check, 110 of 126 files finish under one second, so a file over three is either
-    // spawning or worth a look. Two whole-check runs flagged the SAME eleven files at this bar; at
-    // five seconds one run flagged eight and the next three, which is a gate reporting the
-    // machine's load rather than the suite.
+    // lints nothing. So ONE test doing a spawn and its work sits near two seconds, and three is
+    // the bar that leaves that alone while naming a test doing markedly more.
     integrationTestWarnMs: 3000,
     // Summed eslint rule time plus fix, with the TypeScript program build left out. Measured over
     // a whole-package lint of `web` and of `shared` on a quiet machine: medians of 14ms and 8.5ms,
@@ -41,67 +41,60 @@ export const slowFileThresholdStatics = {
     // reported all 111.
     e2eTestWarnMs: 5000,
   },
-  // Files that may exceed their bar, each with the cost that was measured and why that cost is the
-  // test doing its job. A file over its OWN number still fails, so this excuses a known price and
-  // never a regression. A key is matched against the END of the path jest reports, which is
-  // absolute.
+  // Files whose WORST SINGLE TEST may exceed its bar, each with the cost that was measured and
+  // why that cost is the test doing its job. A file past its OWN number still fails, so this
+  // excuses a known price and never a regression. A key is matched against the END of the path
+  // jest reports, which is absolute.
   //
-  // WHY THE NUMBERS LOOK GENEROUS. They are what a FULL run reports, which is what the gate
-  // grades, and a full run puts four packages and each one's jest workers on the machine at once.
-  // The same file measures far less alone: `start-pre-edit-hook` read 33.0s in a whole-check run,
-  // 18.3s running its package by itself and 16.0s running on its own. Two whole-check runs back to
-  // back then spread 10% to 35% on these files, worst on the biggest, so each entry carries
-  // roughly half again over the higher of the two. That buys a gate which catches a file doubling
-  // rather than one which catches a busy afternoon.
+  // EVERY ENTRY IS A REAL SUBPROCESS. Nothing here is on the list for its size: the gate reads the
+  // worst single test, so a file holding 153 cheap tests is a big file and never reaches this
+  // list. Switching to that reading took the flagged set from sixteen files to these nine, and the
+  // seven that dropped off — a tooling flow at 8.9s, a server flow, two orchestrator flows — were
+  // every one of them a suite total rather than a slow test.
   //
-  // Every entry spawns real OS processes. Nothing here waits on a sleep or a poll; the cost is
-  // node booting and loading the `@dungeonmaster/shared` graph, once per child.
+  // THE NUMBERS CARRY HEADROOM FOR CONTENTION. They are what a FULL run reports, which is what the
+  // gate grades, and a full run puts four packages and each one's jest workers on the machine at
+  // once. The same test measures far less alone: `start-pre-edit-hook`'s worst case read 11.9s in a
+  // whole-check run and 4.0s running that file by itself. So each entry sits near half again over
+  // the higher figure, which buys a gate that catches a test doubling rather than one that catches
+  // a busy afternoon.
   allowed: {
     'packages/hooks/src/startup/start-pre-edit-hook.integration.test.ts': {
-      testMs: 50000,
-      why: 'two spawnSync children for the exit-0 and exit-2 paths — one process yields one exit code, so they cannot share one — plus a persistent worker, and each of the three loads the repo eslint config',
+      slowestTestMs: 18000,
+      why: 'a spawnSync child that lints through the real eslint config; its sibling case covers the exit-2 path, and one process yields one exit code so the two cannot share a spawn',
     },
     'packages/hooks/src/startup/start-post-edit-hook.integration.test.ts': {
-      testMs: 20000,
-      why: 'spawns the hook binary per case and lints through the real eslint config in each child',
-    },
-    'packages/tooling/src/flows/primitive-duplicate-detection/primitive-duplicate-detection-flow.integration.test.ts':
-      {
-        testMs: 14000,
-        why: 'runs the tooling CLI as a real process per case, over files it writes to a fresh temp directory each time',
-      },
-    'packages/ward/src/startup/start-ward.integration.test.ts': {
-      testMs: 10000,
-      why: 'spawns ward itself and watches the child, so one case costs a whole ward run',
+      slowestTestMs: 14000,
+      why: 'spawns the hook binary and lints through the real eslint config inside the child',
     },
     'packages/mcp/src/startup/start-mcp-server.integration.test.ts': {
-      testMs: 10000,
+      slowestTestMs: 11000,
       why: 'boots a real MCP server child and speaks the protocol to it over stdio',
     },
-    'packages/hooks/src/startup/start-post-ask-question-hook.integration.test.ts': {
-      testMs: 9000,
-      why: 'spawns the hook binary per case; the child loads the shared graph before it reads stdin',
-    },
-    'packages/hooks/src/startup/start-pre-search-hook.integration.test.ts': {
-      testMs: 9000,
-      why: 'spawns the hook binary per case; the child loads the shared graph before it reads stdin',
-    },
-    'packages/hooks/src/startup/start-pre-folder-detail-hook.integration.test.ts': {
-      testMs: 9000,
-      why: 'spawns the hook binary per case; the child loads the shared graph before it reads stdin',
-    },
-    'packages/hooks/src/startup/start-worktree-create-hook.integration.test.ts': {
-      testMs: 8000,
-      why: 'spawns the hook binary per case; the child loads the shared graph before it reads stdin',
-    },
-    'packages/cli/bin/cli-entry.integration.test.ts': {
-      testMs: 8000,
-      why: 'runs the real dungeonmaster CLI in a child and requires the built bundle there, which is the only way to prove the published entry point loads',
+    'packages/ward/src/startup/start-ward.integration.test.ts': {
+      slowestTestMs: 10000,
+      why: 'spawns ward itself and watches the child, so one case costs a whole ward run',
     },
     'packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.integration.test.ts':
       {
-        testMs: 8000,
-        why: 'the adapter under test spawns child processes, so every case is a real spawn and its stream',
+        slowestTestMs: 7000,
+        why: 'the adapter under test spawns child processes, so the case is a real spawn and its stream',
       },
+    'packages/hooks/src/startup/start-post-ask-question-hook.integration.test.ts': {
+      slowestTestMs: 6000,
+      why: 'spawns the hook binary; the child loads the shared module graph before it reads stdin',
+    },
+    'packages/cli/bin/cli-entry.integration.test.ts': {
+      slowestTestMs: 6000,
+      why: 'runs the real dungeonmaster CLI in a child and requires the built bundle there, which is the only way to prove the published entry point loads',
+    },
+    'packages/hooks/src/startup/start-worktree-create-hook.integration.test.ts': {
+      slowestTestMs: 5000,
+      why: 'spawns the hook binary; the child loads the shared module graph before it reads stdin',
+    },
+    'packages/hooks/src/startup/start-pre-folder-detail-hook.integration.test.ts': {
+      slowestTestMs: 5000,
+      why: 'spawns the hook binary; the child loads the shared module graph before it reads stdin',
+    },
   },
 } as const;

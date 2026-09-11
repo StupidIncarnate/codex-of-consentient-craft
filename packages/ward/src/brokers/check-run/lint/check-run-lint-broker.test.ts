@@ -283,8 +283,20 @@ describe('checkRunLintBroker', () => {
           filesCount: 2,
           discoveredCount: 2,
           fileTimings: [
-            FileTimingStub({ filePath: 'src/index.ts', durationMs: 15.7, testMs: 0 }),
-            FileTimingStub({ filePath: 'src/utils.ts', durationMs: 8.1, testMs: 0 }),
+            FileTimingStub({
+              filePath: 'src/index.ts',
+              durationMs: 15.7,
+              testMs: 0,
+              slowestTestMs: 0,
+              testCount: 0,
+            }),
+            FileTimingStub({
+              filePath: 'src/utils.ts',
+              durationMs: 8.1,
+              testMs: 0,
+              slowestTestMs: 0,
+              testCount: 0,
+            }),
           ],
           rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 0 }),
         }),
@@ -324,6 +336,8 @@ describe('checkRunLintBroker', () => {
           filePath: 'src/ran-first.ts',
           durationMs: 3840.3,
           testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
           rulesMs: 242.5,
         }),
       ]);

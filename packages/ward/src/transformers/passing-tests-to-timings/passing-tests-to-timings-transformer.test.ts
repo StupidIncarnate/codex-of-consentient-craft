@@ -13,7 +13,14 @@ describe('passingTestsToTimingsTransformer', () => {
       const result = passingTestsToTimingsTransformer({ passingTests });
 
       expect(result).toStrictEqual([
-        { filePath: 'src/a.e2e.ts', durationMs: 1250, testMs: 1250, rulesMs: 0 },
+        {
+          filePath: 'src/a.e2e.ts',
+          durationMs: 1250,
+          testMs: 1250,
+          slowestTestMs: 600,
+          testCount: 3,
+          rulesMs: 0,
+        },
       ]);
     });
 
@@ -27,8 +34,42 @@ describe('passingTestsToTimingsTransformer', () => {
       const result = passingTestsToTimingsTransformer({ passingTests });
 
       expect(result).toStrictEqual([
-        { filePath: 'src/b.e2e.ts', durationMs: 150, testMs: 150, rulesMs: 0 },
-        { filePath: 'src/a.e2e.ts', durationMs: 900, testMs: 900, rulesMs: 0 },
+        {
+          filePath: 'src/b.e2e.ts',
+          durationMs: 150,
+          testMs: 150,
+          slowestTestMs: 100,
+          testCount: 2,
+          rulesMs: 0,
+        },
+        {
+          filePath: 'src/a.e2e.ts',
+          durationMs: 900,
+          testMs: 900,
+          slowestTestMs: 900,
+          testCount: 1,
+          rulesMs: 0,
+        },
+      ]);
+    });
+
+    it('VALID: {two tests differ} => testMs sums, slowestTestMs takes the larger', () => {
+      const passingTests = [
+        PassingTestStub({ suitePath: 'src/a.e2e.ts', testName: 'fast', durationMs: 30 }),
+        PassingTestStub({ suitePath: 'src/a.e2e.ts', testName: 'slow', durationMs: 500 }),
+      ];
+
+      const result = passingTestsToTimingsTransformer({ passingTests });
+
+      expect(result).toStrictEqual([
+        {
+          filePath: 'src/a.e2e.ts',
+          durationMs: 530,
+          testMs: 530,
+          slowestTestMs: 500,
+          testCount: 2,
+          rulesMs: 0,
+        },
       ]);
     });
 
@@ -55,7 +96,14 @@ describe('passingTestsToTimingsTransformer', () => {
       ];
 
       expect(passingTestsToTimingsTransformer({ passingTests })).toStrictEqual([
-        { filePath: 'src/a.e2e.ts', durationMs: 0, testMs: 0, rulesMs: 0 },
+        {
+          filePath: 'src/a.e2e.ts',
+          durationMs: 0,
+          testMs: 0,
+          slowestTestMs: 0,
+          testCount: 2,
+          rulesMs: 0,
+        },
       ]);
     });
   });

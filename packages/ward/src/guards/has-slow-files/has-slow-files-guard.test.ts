@@ -15,7 +15,12 @@ describe('hasSlowFilesGuard', () => {
             projectResults: [
               ProjectResultStub({
                 fileTimings: [
-                  FileTimingStub({ filePath: 'src/a.test.ts', durationMs: 3500, testMs: 2900 }),
+                  FileTimingStub({
+                    filePath: 'src/a.test.ts',
+                    durationMs: 3500,
+                    testMs: 2900,
+                    slowestTestMs: 2900,
+                  }),
                 ],
               }),
             ],
@@ -36,7 +41,12 @@ describe('hasSlowFilesGuard', () => {
             projectResults: [
               ProjectResultStub({
                 fileTimings: [
-                  FileTimingStub({ filePath: 'src/b.test.ts', durationMs: 9000, testMs: 8100 }),
+                  FileTimingStub({
+                    filePath: 'src/b.test.ts',
+                    durationMs: 9000,
+                    testMs: 8100,
+                    slowestTestMs: 8100,
+                  }),
                 ],
               }),
             ],

@@ -6,17 +6,19 @@ describe('qualityGateStatics', () => {
       expect(qualityGateStatics).toStrictEqual({
         slowFiles: {
           jestNote:
-            "ranked on test-body time; wall also carries the package's one-time compile, charged " +
-            'to whichever file reached a module first',
+            'ranked on the slowest single test; the suite total and test count follow it, so a ' +
+            'big file reads differently from a slow one',
           lintNote:
             'ranked on rule time; wall also carries the TypeScript program build, charged to ' +
             'whichever file the parser reached first',
-          browserNote: 'ranked on test-body time, which excludes browser and server startup',
+          browserNote:
+            'ranked on the slowest single test, which excludes browser and server startup; the ' +
+            'spec total and test count follow it',
           heading: 'SLOW TESTS FAILED THIS RUN',
           guidance:
-            'Every file named under "slow files" is over its check\'s own-cost threshold — ' +
-            'test-body time for jest and Playwright, rule time for lint. Fix the file, or raise ' +
-            'slowFileThresholdStatics deliberately — a run is not green while these stand.',
+            'Every file named under "slow files" holds a test over its check\'s threshold — the ' +
+            'slowest single test for jest and Playwright, rule time for lint. Fix that test, or ' +
+            'raise slowFileThresholdStatics deliberately — a run is not green while these stand.',
         },
         openHandles: {
           heading: 'OPEN HANDLES FAILED THIS RUN',

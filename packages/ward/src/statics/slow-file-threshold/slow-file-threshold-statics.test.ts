@@ -36,7 +36,7 @@ describe('slowFileThresholdStatics', () => {
   it.each(ALLOWANCE_ENTRIES)(
     'VALID: {allowance: %s} => is looser than the integration bar it overrides',
     (_filePath, allowance) => {
-      expect(allowance.testMs).toBeGreaterThan(
+      expect(allowance.slowestTestMs).toBeGreaterThan(
         slowFileThresholdStatics.threshold.integrationTestWarnMs,
       );
     },

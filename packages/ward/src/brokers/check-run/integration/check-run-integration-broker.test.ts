@@ -649,11 +649,15 @@ describe('checkRunIntegrationBroker', () => {
               filePath: 'src/flows/install/install.integration.test.ts',
               durationMs: 3500,
               testMs: 0,
+              slowestTestMs: 0,
+              testCount: 0,
             }),
             FileTimingStub({
               filePath: 'src/flows/quest/quest.integration.test.ts',
               durationMs: 1200,
               testMs: 0,
+              slowestTestMs: 0,
+              testCount: 0,
             }),
           ],
           rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
@@ -682,7 +686,7 @@ describe('checkRunIntegrationBroker', () => {
       expect(result.fileTimings).toStrictEqual([]);
     });
 
-    it('VALID: {jest output with assertionResults carrying durations} => returns testMs summed from assertion durations', async () => {
+    it('VALID: {jest output with assertionResults carrying unequal durations} => sums into testMs, takes the larger into slowestTestMs', async () => {
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -708,16 +712,21 @@ describe('checkRunIntegrationBroker', () => {
         fileList: [],
       });
 
+      // 320 and 180 are unequal on purpose: testMs (500, the sum) and slowestTestMs (320, the
+      // larger) must land on different numbers for this to prove the gate reads the max and not
+      // the sum.
       expect(result.fileTimings).toStrictEqual([
         FileTimingStub({
           filePath: 'src/flows/install/install.integration.test.ts',
           durationMs: 3500,
           testMs: 500,
+          slowestTestMs: 320,
+          testCount: 2,
         }),
       ]);
     });
 
-    it('EDGE: {jest output with null and absent assertion duration} => coerces both to 0 in the testMs sum', async () => {
+    it('EDGE: {jest output with null and absent assertion duration} => coerces both to 0 in testMs and slowestTestMs, testCount still counts every assertion', async () => {
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -749,6 +758,8 @@ describe('checkRunIntegrationBroker', () => {
           filePath: 'src/flows/install/install.integration.test.ts',
           durationMs: 3500,
           testMs: 90,
+          slowestTestMs: 90,
+          testCount: 3,
         }),
       ]);
     });

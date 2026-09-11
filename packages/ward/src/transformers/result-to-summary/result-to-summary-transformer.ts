@@ -170,22 +170,31 @@ export const resultToSummaryTransformer = ({
     }
 
     // BOTH numbers print, and the ranked one leads. A reader given only wall goes and edits a file
-    // whose whole cost was the run's shared startup; the pair is what tells them not to.
+    // whose whole cost was the run's shared startup; the pair is what tells them not to. For a
+    // jest check the ranked figure is the WORST SINGLE TEST, and the suite total rides alongside
+    // it with the test count — that pair is what separates one slow test from a file with many
+    // cheap ones, which a total alone reads as identical.
     const isLint = check.checkType === 'lint';
     const ranked = slowTimings.map((ft) => ({
       filePath: ft.filePath,
       wallMs: Number(ft.durationMs),
-      ownMs: Number(isLint ? ft.rulesMs : ft.testMs),
+      ownMs: Number(isLint ? ft.rulesMs : ft.slowestTestMs),
+      suiteMs: Number(ft.testMs),
+      testCount: Number(ft.testCount),
     }));
     const hasOwnMs = ranked.some((entry) => entry.ownMs > 0);
-    const ownWord = isLint ? 'in rules' : 'in tests';
 
     const fileLines = ranked.map((entry) => {
       const wall = `${(entry.wallMs / MS_PER_SECOND).toFixed(1)}s`;
       if (!hasOwnMs) {
         return `  ${entry.filePath}  ${wall}`;
       }
-      return `  ${entry.filePath}  ${(entry.ownMs / MS_PER_SECOND).toFixed(1)}s ${ownWord} (${wall} wall)`;
+      const own = `${(entry.ownMs / MS_PER_SECOND).toFixed(1)}s`;
+      if (isLint) {
+        return `  ${entry.filePath}  ${own} in rules (${wall} wall)`;
+      }
+      const suite = `${(entry.suiteMs / MS_PER_SECOND).toFixed(1)}s`;
+      return `  ${entry.filePath}  ${own} slowest test (${String(entry.testCount)} tests, ${suite} total)`;
     });
 
     const noteByCheckType = {

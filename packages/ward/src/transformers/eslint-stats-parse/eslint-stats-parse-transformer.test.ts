@@ -38,7 +38,13 @@ describe('eslintStatsParseTransformer', () => {
       const result = eslintStatsParseTransformer({ eslintResults: [entry] });
 
       expect(result).toStrictEqual([
-        FileTimingStub({ filePath: 'src/index.ts', durationMs: 13.7, testMs: 0 }),
+        FileTimingStub({
+          filePath: 'src/index.ts',
+          durationMs: 13.7,
+          testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
+        }),
       ]);
     });
 
@@ -55,8 +61,20 @@ describe('eslintStatsParseTransformer', () => {
       const result = eslintStatsParseTransformer({ eslintResults: [entryA, entryB] });
 
       expect(result).toStrictEqual([
-        FileTimingStub({ filePath: 'src/a.ts', durationMs: 5.0, testMs: 0 }),
-        FileTimingStub({ filePath: 'src/b.ts', durationMs: 5.0, testMs: 0 }),
+        FileTimingStub({
+          filePath: 'src/a.ts',
+          durationMs: 5.0,
+          testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
+        }),
+        FileTimingStub({
+          filePath: 'src/b.ts',
+          durationMs: 5.0,
+          testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
+        }),
       ]);
     });
   });
@@ -89,6 +107,8 @@ describe('eslintStatsParseTransformer', () => {
           filePath: 'src/index.ts',
           durationMs: 8486.8,
           testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
           rulesMs: 491.2,
         }),
       ]);
@@ -133,12 +153,16 @@ describe('eslintStatsParseTransformer', () => {
           filePath: 'src/ran-first.ts',
           durationMs: 3840.3,
           testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
           rulesMs: 242.5,
         }),
         FileTimingStub({
           filePath: 'src/ran-later.test.ts',
           durationMs: 358.4,
           testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
           rulesMs: 334.9,
         }),
       ]);
@@ -160,7 +184,14 @@ describe('eslintStatsParseTransformer', () => {
       const result = eslintStatsParseTransformer({ eslintResults: [entry] });
 
       expect(result).toStrictEqual([
-        FileTimingStub({ filePath: 'src/index.ts', durationMs: 15.7, testMs: 0, rulesMs: 11.5 }),
+        FileTimingStub({
+          filePath: 'src/index.ts',
+          durationMs: 15.7,
+          testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
+          rulesMs: 11.5,
+        }),
       ]);
     });
   });
@@ -188,7 +219,13 @@ describe('eslintStatsParseTransformer', () => {
       const result = eslintStatsParseTransformer({ eslintResults: [entryWithStats, entryWithout] });
 
       expect(result).toStrictEqual([
-        FileTimingStub({ filePath: 'src/a.ts', durationMs: 10.0, testMs: 0 }),
+        FileTimingStub({
+          filePath: 'src/a.ts',
+          durationMs: 10.0,
+          testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
+        }),
       ]);
     });
   });
@@ -242,7 +279,13 @@ describe('eslintStatsParseTransformer', () => {
       const result = eslintStatsParseTransformer({ eslintResults: [entry] });
 
       expect(result).toStrictEqual([
-        FileTimingStub({ filePath: 'src/index.ts', durationMs: 5.0, testMs: 0 }),
+        FileTimingStub({
+          filePath: 'src/index.ts',
+          durationMs: 5.0,
+          testMs: 0,
+          slowestTestMs: 0,
+          testCount: 0,
+        }),
       ]);
     });
   });

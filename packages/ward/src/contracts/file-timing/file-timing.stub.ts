@@ -6,6 +6,8 @@ export const FileTimingStub = ({ ...props }: StubArgument<FileTiming> = {}): Fil
     filePath: 'src/index.ts',
     durationMs: 150,
     testMs: 20,
+    slowestTestMs: 20,
+    testCount: 1,
     rulesMs: 0,
     ...props,
   });

@@ -318,6 +318,8 @@ describe('checkRunE2eBroker', () => {
               filePath: 'packages/web/src/flows/app/smoke.e2e.ts',
               durationMs: 1234,
               testMs: 1234,
+              slowestTestMs: 1234,
+              testCount: 1,
             }),
           ],
           rawOutput: RawOutputStub({
@@ -329,7 +331,7 @@ describe('checkRunE2eBroker', () => {
       );
     });
 
-    it('VALID: {two tests in one spec} => rolls their durations into one file timing', async () => {
+    it('VALID: {two tests in one spec with unequal durations} => sums into testMs, takes the larger into slowestTestMs', async () => {
       const projectFolder = ProjectFolderStub();
       const jsonContent = JSON.stringify({
         suites: [
@@ -355,11 +357,16 @@ describe('checkRunE2eBroker', () => {
 
       const result = await checkRunE2eBroker({ projectFolder, fileList: [] });
 
+      // 1200 and 800 are unequal on purpose: testMs (2000, the sum) and slowestTestMs (1200, the
+      // larger) must land on different numbers for this to prove the gate reads the max and not
+      // the sum.
       expect(result.fileTimings).toStrictEqual([
         FileTimingStub({
           filePath: 'packages/web/src/flows/app/smoke.e2e.ts',
           durationMs: 2000,
           testMs: 2000,
+          slowestTestMs: 1200,
+          testCount: 2,
         }),
       ]);
     });

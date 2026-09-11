@@ -12,8 +12,18 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/a.test.ts', durationMs: 2000, testMs: 1400 }),
-              FileTimingStub({ filePath: 'src/b.test.ts', durationMs: 9000, testMs: 4200 }),
+              FileTimingStub({
+                filePath: 'src/a.test.ts',
+                durationMs: 2000,
+                testMs: 1400,
+                slowestTestMs: 1400,
+              }),
+              FileTimingStub({
+                filePath: 'src/b.test.ts',
+                durationMs: 9000,
+                testMs: 4200,
+                slowestTestMs: 4200,
+              }),
             ],
           }),
         ],
@@ -38,8 +48,14 @@ describe('slowFileTimingsTransformer', () => {
                 filePath: 'src/ran-first.test.ts',
                 durationMs: 30_600,
                 testMs: 200,
+                slowestTestMs: 200,
               }),
-              FileTimingStub({ filePath: 'src/real.test.ts', durationMs: 3500, testMs: 2900 }),
+              FileTimingStub({
+                filePath: 'src/real.test.ts',
+                durationMs: 3500,
+                testMs: 2900,
+                slowestTestMs: 2900,
+              }),
             ],
           }),
         ],
@@ -57,7 +73,12 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/edge.test.ts', durationMs: 9000, testMs: 1000 }),
+              FileTimingStub({
+                filePath: 'src/edge.test.ts',
+                durationMs: 9000,
+                testMs: 1000,
+                slowestTestMs: 1000,
+              }),
             ],
           }),
         ],
@@ -73,12 +94,22 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/web.test.ts', durationMs: 6000, testMs: 1400 }),
+              FileTimingStub({
+                filePath: 'src/web.test.ts',
+                durationMs: 6000,
+                testMs: 1400,
+                slowestTestMs: 1400,
+              }),
             ],
           }),
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/cli.test.ts', durationMs: 9000, testMs: 4200 }),
+              FileTimingStub({
+                filePath: 'src/cli.test.ts',
+                durationMs: 9000,
+                testMs: 4200,
+                slowestTestMs: 4200,
+              }),
             ],
           }),
         ],
@@ -101,7 +132,12 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/a.e2e.ts', durationMs: 1400, testMs: 1400 }),
+              FileTimingStub({
+                filePath: 'src/a.e2e.ts',
+                durationMs: 1400,
+                testMs: 1400,
+                slowestTestMs: 1400,
+              }),
             ],
           }),
         ],
@@ -117,7 +153,12 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/slow.e2e.ts', durationMs: 6000, testMs: 6000 }),
+              FileTimingStub({
+                filePath: 'src/slow.e2e.ts',
+                durationMs: 6000,
+                testMs: 6000,
+                slowestTestMs: 6000,
+              }),
             ],
           }),
         ],
@@ -135,7 +176,12 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/a.test.ts', durationMs: 1400, testMs: 1400 }),
+              FileTimingStub({
+                filePath: 'src/a.test.ts',
+                durationMs: 1400,
+                testMs: 1400,
+                slowestTestMs: 1400,
+              }),
             ],
           }),
         ],
@@ -159,12 +205,14 @@ describe('slowFileTimingsTransformer', () => {
                 filePath: 'src/adapters/rxjs/take/rxjs-take-adapter.ts',
                 durationMs: 8486.8,
                 testMs: 0,
+                slowestTestMs: 0,
                 rulesMs: 491.2,
               }),
               FileTimingStub({
                 filePath: 'src/small.ts',
                 durationMs: 37.6,
                 testMs: 0,
+                slowestTestMs: 0,
                 rulesMs: 30.3,
               }),
             ],
@@ -186,12 +234,14 @@ describe('slowFileTimingsTransformer', () => {
                 filePath: 'src/mid.tsx',
                 durationMs: 1400,
                 testMs: 0,
+                slowestTestMs: 0,
                 rulesMs: 1200,
               }),
               FileTimingStub({
                 filePath: 'src/worst.tsx',
                 durationMs: 1900,
                 testMs: 0,
+                slowestTestMs: 0,
                 rulesMs: 1800,
               }),
             ],
@@ -216,6 +266,7 @@ describe('slowFileTimingsTransformer', () => {
                 filePath: 'src/edge.tsx',
                 durationMs: 9000,
                 testMs: 0,
+                slowestTestMs: 0,
                 rulesMs: 1000,
               }),
             ],
@@ -233,7 +284,13 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/big.tsx', durationMs: 6000, testMs: 0, rulesMs: 0 }),
+              FileTimingStub({
+                filePath: 'src/big.tsx',
+                durationMs: 6000,
+                testMs: 0,
+                slowestTestMs: 0,
+                rulesMs: 0,
+              }),
             ],
           }),
         ],
@@ -251,8 +308,18 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/big.test.ts', durationMs: 6000, testMs: 0 }),
-              FileTimingStub({ filePath: 'src/small.test.ts', durationMs: 400, testMs: 0 }),
+              FileTimingStub({
+                filePath: 'src/big.test.ts',
+                durationMs: 6000,
+                testMs: 0,
+                slowestTestMs: 0,
+              }),
+              FileTimingStub({
+                filePath: 'src/small.test.ts',
+                durationMs: 400,
+                testMs: 0,
+                slowestTestMs: 0,
+              }),
             ],
           }),
         ],
@@ -272,7 +339,12 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: 'src/slow.test.ts', durationMs: 9000, testMs: 4200 }),
+              FileTimingStub({
+                filePath: 'src/slow.test.ts',
+                durationMs: 9000,
+                testMs: 4200,
+                slowestTestMs: 4200,
+              }),
             ],
           }),
         ],
@@ -299,6 +371,7 @@ describe('slowFileTimingsTransformer', () => {
           filePath: 'src/spawns.integration.test.ts',
           durationMs: 4000,
           testMs: 2500,
+          slowestTestMs: 2500,
         }),
       ];
 
@@ -337,6 +410,7 @@ describe('slowFileTimingsTransformer', () => {
                 filePath: 'src/slow.integration.test.ts',
                 durationMs: 5000,
                 testMs: 3500,
+                slowestTestMs: 3500,
               }),
             ],
           }),
@@ -349,18 +423,23 @@ describe('slowFileTimingsTransformer', () => {
     });
   });
 
-  describe('a file with a recorded allowance', () => {
-    // The absolute path jest reports, not the repo-relative key — matching has to survive that.
-    const ALLOWED_PATH = '/home/someone/checkout/packages/cli/bin/cli-entry.integration.test.ts';
-
-    it('VALID: {allowed file at 6s, over the 3s bar but under its own 8s} => returns nothing', () => {
+  // The reason the gate reads the worst single test rather than the suite total. Both files below
+  // cost the same 2.7 seconds of test bodies; only one of them holds a slow test.
+  describe('a big file against a slow file', () => {
+    it('VALID: {153 tests at 18ms each} => returns nothing, because no single test is slow', () => {
       const check = CheckResultStub({
-        checkType: 'integration',
+        checkType: 'unit',
         status: 'pass',
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: ALLOWED_PATH, durationMs: 9000, testMs: 6000 }),
+              FileTimingStub({
+                filePath: 'src/widgets/execution-panel/execution-panel-widget.test.tsx',
+                durationMs: 5000,
+                testMs: 2754,
+                slowestTestMs: 165,
+                testCount: 153,
+              }),
             ],
           }),
         ],
@@ -369,14 +448,71 @@ describe('slowFileTimingsTransformer', () => {
       expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
     });
 
-    it('VALID: {allowed file at 9s, past its own 8s} => returns it, so a regression still fails', () => {
+    it('VALID: {3 tests, one of them 2.6s} => returns it, at the same suite total', () => {
+      const check = CheckResultStub({
+        checkType: 'unit',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({
+                filePath:
+                  'src/responders/quest/handle/resolve-caller-session-layer-responder.test.ts',
+                durationMs: 5000,
+                testMs: 2754,
+                slowestTestMs: 2600,
+                testCount: 3,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check }).map((timing) => timing.filePath)).toStrictEqual([
+        'src/responders/quest/handle/resolve-caller-session-layer-responder.test.ts',
+      ]);
+    });
+  });
+
+  describe('a file with a recorded allowance', () => {
+    // The absolute path jest reports, not the repo-relative key — matching has to survive that.
+    const ALLOWED_PATH =
+      '/home/someone/checkout/packages/hooks/src/startup/start-pre-edit-hook.integration.test.ts';
+
+    it('VALID: {allowed file at 6s, over the 3s bar but under its own 18s} => returns nothing', () => {
       const check = CheckResultStub({
         checkType: 'integration',
         status: 'pass',
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: ALLOWED_PATH, durationMs: 12_000, testMs: 9000 }),
+              FileTimingStub({
+                filePath: ALLOWED_PATH,
+                durationMs: 9000,
+                testMs: 6000,
+                slowestTestMs: 6000,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
+    });
+
+    it('VALID: {allowed file at 20s, past its own 18s} => returns it, so a regression still fails', () => {
+      const check = CheckResultStub({
+        checkType: 'integration',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({
+                filePath: ALLOWED_PATH,
+                durationMs: 24_000,
+                testMs: 20_000,
+                slowestTestMs: 20_000,
+              }),
             ],
           }),
         ],
@@ -394,11 +530,18 @@ describe('slowFileTimingsTransformer', () => {
         projectResults: [
           ProjectResultStub({
             fileTimings: [
-              FileTimingStub({ filePath: ALLOWED_PATH, durationMs: 9000, testMs: 6000 }),
               FileTimingStub({
-                filePath: '/home/someone/checkout/packages/cli/bin/other.integration.test.ts',
+                filePath: ALLOWED_PATH,
                 durationMs: 9000,
                 testMs: 6000,
+                slowestTestMs: 6000,
+              }),
+              FileTimingStub({
+                filePath:
+                  '/home/someone/checkout/packages/hooks/src/startup/other.integration.test.ts',
+                durationMs: 9000,
+                testMs: 6000,
+                slowestTestMs: 6000,
               }),
             ],
           }),
@@ -406,7 +549,7 @@ describe('slowFileTimingsTransformer', () => {
       });
 
       expect(slowFileTimingsTransformer({ check }).map((timing) => timing.filePath)).toStrictEqual([
-        '/home/someone/checkout/packages/cli/bin/other.integration.test.ts',
+        '/home/someone/checkout/packages/hooks/src/startup/other.integration.test.ts',
       ]);
     });
   });

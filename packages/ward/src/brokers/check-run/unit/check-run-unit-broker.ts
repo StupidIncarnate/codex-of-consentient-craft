@@ -289,6 +289,13 @@ export const checkRunUnitBroker = async ({
                   (sum, assertion) => sum + Number(assertion.duration ?? 0),
                   0,
                 ),
+                // The gate reads THIS, not the sum above — see fileTimingContract for why a sum
+                // grades a file on how many tests it holds.
+                slowestTestMs: (tr.assertionResults ?? []).reduce(
+                  (worst, assertion) => Math.max(worst, Number(assertion.duration ?? 0)),
+                  0,
+                ),
+                testCount: (tr.assertionResults ?? []).length,
               }),
             );
           }

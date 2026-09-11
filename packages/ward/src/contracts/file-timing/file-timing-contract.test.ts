@@ -10,6 +10,8 @@ describe('fileTimingContract', () => {
         filePath: 'src/index.ts',
         durationMs: 150,
         testMs: 20,
+        slowestTestMs: 20,
+        testCount: 1,
         rulesMs: 0,
       });
     });
@@ -26,6 +28,8 @@ describe('fileTimingContract', () => {
         filePath: 'packages/ward/src/brokers/test.ts',
         durationMs: 8300,
         testMs: 20,
+        slowestTestMs: 20,
+        testCount: 1,
         rulesMs: 0,
       });
     });
@@ -63,6 +67,8 @@ describe('fileTimingContract', () => {
         filePath: 'src/index.ts',
         durationMs: 150,
         testMs: 20,
+        slowestTestMs: 20,
+        testCount: 1,
         rulesMs: 0,
       });
     });
@@ -74,6 +80,8 @@ describe('fileTimingContract', () => {
         filePath: 'src/utils.ts',
         durationMs: 150,
         testMs: 20,
+        slowestTestMs: 20,
+        testCount: 1,
         rulesMs: 0,
       });
     });
@@ -132,8 +140,62 @@ describe('fileTimingContract', () => {
         filePath: 'src/index.ts',
         durationMs: 8486.8,
         testMs: 0,
+        slowestTestMs: 0,
+        testCount: 0,
         rulesMs: 491.2,
       });
+    });
+  });
+
+  describe('slowestTestMs defaults', () => {
+    it('VALID: {slowestTestMs omitted} => defaults to 0', () => {
+      const result = fileTimingContract.parse({
+        filePath: 'src/index.ts',
+        durationMs: 150,
+      });
+
+      expect(result.slowestTestMs).toBe(0);
+    });
+
+    it('INVALID: {negative slowestTestMs} => throws validation error', () => {
+      expect(() =>
+        fileTimingContract.parse({
+          filePath: 'src/index.ts',
+          durationMs: 150,
+          slowestTestMs: -1,
+        }),
+      ).toThrow(/too_small/u);
+    });
+  });
+
+  describe('testCount defaults', () => {
+    it('VALID: {testCount omitted} => defaults to 0', () => {
+      const result = fileTimingContract.parse({
+        filePath: 'src/index.ts',
+        durationMs: 150,
+      });
+
+      expect(result.testCount).toBe(0);
+    });
+
+    it('INVALID: {negative testCount} => throws validation error', () => {
+      expect(() =>
+        fileTimingContract.parse({
+          filePath: 'src/index.ts',
+          durationMs: 150,
+          testCount: -1,
+        }),
+      ).toThrow(/too_small/u);
+    });
+
+    it('INVALID: {non-integer testCount} => throws validation error', () => {
+      expect(() =>
+        fileTimingContract.parse({
+          filePath: 'src/index.ts',
+          durationMs: 150,
+          testCount: 1.5,
+        }),
+      ).toThrow(/Expected integer/u);
     });
   });
 });
