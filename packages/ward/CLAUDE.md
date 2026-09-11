@@ -367,6 +367,37 @@ A leak is REPORTED, not failed. One orchestrator suite leaks an interval deliber
 (`packages/orchestrator/CLAUDE.md` documents it), and a check that reddens on a known-accepted case is one
 people learn to scroll past. `--forceExit` is what stops a leaked handle hanging the run.
 
+### A check that DIED of memory is reported apart from one that failed
+
+A Node check that exhausts memory reaches ward as a plain non-zero exit with output no parser can
+read, so `errors` lands empty and `filesCount` stays 0 — printed as `lint @dungeonmaster/<pkg> FAIL
+0 files, 0 errors`, which names no cause. Ward prints an `out of memory` block above the detail
+instead, naming the package and which evidence fired.
+
+Two shapes, and neither is visible from the exit code alone:
+
+| how it dies | what it leaves |
+|---|---|
+| V8 heap limit | `JavaScript heap out of memory` on stderr, SIGABRT, exit **134** |
+| kernel out-of-memory reaper | **SIGKILL**, and the process says nothing at all |
+
+**`RawOutput.signal` is what separates the second from an ordinary failure.** A child killed from
+outside chose no exit code of its own, so `childProcessSpawnCaptureAdapter` hands back 1 — identical
+to eslint failing over lint errors. That adapter reports the signal ALONGSIDE the exit code rather
+than folding it in, and `signal` is `null` (never absent) so one value means "not killed" whether the
+field was written, left off by an early return that spawned nothing, or read from a `.ward/` result
+saved before the field existed.
+
+`isOutOfMemoryFailureGuard` ORs the three pieces of evidence, because each arrives alone in a real
+case. It excludes SIGTERM deliberately: that is the spawn adapter's own timeout kill, and reporting a
+timeout as memory sends a reader after the wrong thing.
+
+**This replaced a test.** A memory-ceiling integration test used to spawn a real full-repo lint
+sweep and assert the max single-process RSS. A ceiling measured on one machine says nothing about the
+laptop where memory actually runs out, and it cost about 130s on every integration run to say it.
+Reading the exit code and signal of the children ward already spawns costs nothing on a healthy run
+and fires on the machine that ran out.
+
 **`--onlyTests` mapping:** When `--onlyTests <regex>` is provided, ward appends `--testNamePattern <regex>` to Jest
 commands (unit/integration) and `--grep <regex> --pass-with-no-tests` to Playwright commands (e2e). Lint and typecheck
 ignore it. `--pass-with-no-tests` keeps Playwright from failing a package on its own when the grep matches nothing

@@ -692,7 +692,13 @@ Integration tests that spawn processes or poll for state can time out silently �
 - **Raw primitives** (\`@dungeonmaster/ban-primitives\`): return types must be branded; to test invalid inputs use \`as never\`, never \`as string\`.`;
 
   // No Hooks or Conditionals
-  const noHooksConditionals = `**CRITICAL:** \`beforeEach\`, \`afterEach\`, \`beforeAll\`, \`afterAll\` are forbidden. All setup and teardown must be inline in each test.
+  const noHooksConditionals = `**CRITICAL:** in a UNIT test, \`beforeEach\`, \`afterEach\`, \`beforeAll\` and \`afterAll\` are forbidden — \`jest/no-hooks\` and \`jest/require-hook\` refuse them, along with any statement at describe scope. All setup and teardown goes inline in each test.
+
+**An integration or e2e test MAY use them, and the lint config says so**: \`jest/no-hooks\` is turned off for \`*.integration.test.ts\`, \`*.e2e.test.ts\`, \`*.e2e.ts\` and \`*.harness.ts\`, and nowhere else. Those files own child processes, servers and browsers — things that must be started once for a suite and torn down after it, which no amount of inline setup expresses.
+
+**Reach for \`beforeAll\` there when a cost belongs to the SUITE rather than to a test.** Jest measures a test from \`test_start\` to \`test_done\` and brackets \`beforeEach\`/\`afterEach\` inside that window; \`beforeAll\` runs outside it. Measured with one 500ms sleep in three placements: 7ms charged to the first test from \`beforeAll\`, 502ms from \`beforeEach\`, 505ms from \`afterEach\`. So booting a child, compiling its module graph or waiting on a live session belongs in \`beforeAll\`, with the \`it\` blocks asserting on what it captured — otherwise whichever test happens to run first is reported as the slow one.
+
+**A unit test has the other half of that mechanism: a STATIC import.** Everything a static import pulls in is transformed when jest requires the test file, before any test starts. A dynamic \`await import(...)\` of a large module graph does it inside the test body instead.
 
 \`\`\`typescript
 // ✅ CORRECT - setup and cleanup inline, inside the test

@@ -344,9 +344,31 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^## No Hooks or Conditionals$/mu);
-      expect(result).toMatch(
-        /^\*\*CRITICAL:\*\* `beforeEach`, `afterEach`, `beforeAll`, `afterAll` are forbidden\. All setup and teardown must be inline in each test\.$/mu,
-      );
+
+      // The ban is SCOPED, and an unscoped reading is what sends a session hand-rolling inline
+      // setup for a child process an integration suite has to start once. Pin both halves.
+      const unitNeedle =
+        '**CRITICAL:** in a UNIT test, `beforeEach`, `afterEach`, `beforeAll` and `afterAll` are forbidden';
+      const exemptionNeedle =
+        '**An integration or e2e test MAY use them, and the lint config says so**';
+      const windowNeedle =
+        '**Reach for `beforeAll` there when a cost belongs to the SUITE rather than to a test.**';
+
+      expect(
+        result.slice(result.indexOf(unitNeedle), result.indexOf(unitNeedle) + unitNeedle.length),
+      ).toBe(unitNeedle);
+      expect(
+        result.slice(
+          result.indexOf(exemptionNeedle),
+          result.indexOf(exemptionNeedle) + exemptionNeedle.length,
+        ),
+      ).toBe(exemptionNeedle);
+      expect(
+        result.slice(
+          result.indexOf(windowNeedle),
+          result.indexOf(windowNeedle) + windowNeedle.length,
+        ),
+      ).toBe(windowNeedle);
     });
 
     it('VALID: {} => includes the edit-blocking lint rules section', () => {

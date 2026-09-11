@@ -1596,10 +1596,24 @@ rate-limits poller reads `~/.dungeonmaster/rate-limits.json` every 5s and, on a 
 read failure (concurrent processes during a full ward run), writes `rate-limits-watch read error: …`
 to `process.stderr` — landing inside a LATER test file's stderr spy window and failing it.
 
-`index.test.ts` calls `indexProxy()` (`index.proxy.ts`) before `await import('./index')`, which spies
-`globalThis.setInterval`/`clearInterval` so module-load timers never start; a leak-guard test asserts
-`process.getActiveResourcesInfo()`'s Timeout count is unchanged across the import. **Any new unit
-test that imports the orchestrator barrel must neutralize the scheduler the same way.**
+`index.test.ts` imports `./index.proxy` FIRST and the barrel second, and that ORDER is the whole
+mechanism. `index.proxy.ts` spies `globalThis.setInterval`/`clearInterval` at MODULE SCOPE, so the
+spies are already installed by the time a CJS require reaches the barrel and its bootstraps run.
+Verified rather than assumed: make that implementation throw, and the barrel import dies with the
+thrown message. **Any new unit test that imports the orchestrator barrel must import that proxy above
+it.**
+
+The barrel import is STATIC for a second reason. `./index` pulls the whole package, so a dynamic
+`await import('./index')` transforms 1,467 files INSIDE the test body, and ward's slow-test gate then
+reads a compile as a slow test — measured at 13.1s on a cold cache against 5ms warm, the same work
+either way. A static import is transformed when jest requires the test file, before any test starts.
+
+**There is no leak-guard test here, and that is a finding rather than a gap.** A
+`process.getActiveResourcesInfo()` Timeout count taken either side of the import comes back unchanged
+whether the spies are installed or not — measured both ways — so it passed for every tree and proved
+nothing about the mock it was written to protect. Guarding this for real means first finding what the
+bootstraps actually register.
+
 `start-orchestrator.integration.test.ts` imports `StartOrchestrator` without neutralizing and carries
 the same latent leak.
 
