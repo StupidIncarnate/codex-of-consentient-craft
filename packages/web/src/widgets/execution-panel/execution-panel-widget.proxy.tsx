@@ -14,6 +14,8 @@ import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-wid
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 // The elapsed-tick binding proxy's own call-count type, reached via its return type rather than
 // redeclared — both getTickIntervalCount and getClearedTickCount forward it as-is.
 type ElapsedTickProxy = ReturnType<typeof useElapsedTickBindingProxy>;
@@ -127,7 +129,7 @@ export const ExecutionPanelWidgetProxy = (): {
   const clickAbandonBarButton = async ({ label }: { label: string }): Promise<void> => {
     const target = getAbandonBarButtons().find((btn) => btn.textContent === label);
     if (target) {
-      await userEvent.click(target);
+      await userEvent.click(target, userEventStatics.options);
     }
   };
 
@@ -138,7 +140,7 @@ export const ExecutionPanelWidgetProxy = (): {
     }
     const btn = container.querySelector('[data-testid="PIXEL_BTN"]');
     if (btn) {
-      await userEvent.click(btn);
+      await userEvent.click(btn, userEventStatics.options);
     }
   };
 
@@ -146,7 +148,7 @@ export const ExecutionPanelWidgetProxy = (): {
     clickTab: async ({ tabId }: { tabId: 'followup' | 'execution' | 'spec' }): Promise<void> => {
       const tab = screen.queryByTestId(`execution-panel-tab-${tabId}`);
       if (tab) {
-        await userEvent.click(tab);
+        await userEvent.click(tab, userEventStatics.options);
       }
     },
     hasTabBar: (): boolean => screen.queryByTestId('execution-panel-tab-bar') !== null,
@@ -196,7 +198,7 @@ export const ExecutionPanelWidgetProxy = (): {
       const buttons = Array.from(actionBar.querySelectorAll('[data-testid="PIXEL_BTN"]'));
       const target = buttons.find((btn) => btn.textContent === label);
       if (target) {
-        await userEvent.click(target);
+        await userEvent.click(target, userEventStatics.options);
       }
     },
     clickAbandon: async (): Promise<void> => {

@@ -11,6 +11,8 @@ import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type FlowsProxy = ReturnType<typeof FlowsLayerWidgetProxy>;
 type SetupPositionsArgs = Parameters<FlowsProxy['setupPositions']>[0];
 type QueueBarProxy = ReturnType<typeof CommentQueueBarWidgetProxy>;
@@ -75,10 +77,10 @@ export const QuestSpecPanelWidgetProxy = (): {
       queueBarProxy.setupQueuedComments(args);
     },
     clickDetailsTab: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('QUEST_SPEC_TAB_details'));
+      await userEvent.click(screen.getByTestId('QUEST_SPEC_TAB_details'), userEventStatics.options);
     },
     clickSpecTab: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('QUEST_SPEC_TAB_spec'));
+      await userEvent.click(screen.getByTestId('QUEST_SPEC_TAB_spec'), userEventStatics.options);
     },
     getTabLabels: (): HTMLElement['textContent'][] =>
       Array.from(screen.getByTestId('QUEST_SPEC_TAB_BAR').children).map(
@@ -109,7 +111,7 @@ export const QuestSpecPanelWidgetProxy = (): {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
       if (approveButton) {
-        await userEvent.click(approveButton);
+        await userEvent.click(approveButton, userEventStatics.options);
       }
     },
     clickAbandon: async (): Promise<void> => {
@@ -120,7 +122,7 @@ export const QuestSpecPanelWidgetProxy = (): {
           (button) => button.textContent === 'ABANDON QUEST',
         );
         if (abandonButton) {
-          await userEvent.click(abandonButton);
+          await userEvent.click(abandonButton, userEventStatics.options);
         }
       }
     },
@@ -132,7 +134,7 @@ export const QuestSpecPanelWidgetProxy = (): {
           (button) => button.textContent === 'CONFIRM ABANDON',
         );
         if (confirmButton) {
-          await userEvent.click(confirmButton);
+          await userEvent.click(confirmButton, userEventStatics.options);
         }
       }
     },
@@ -142,7 +144,7 @@ export const QuestSpecPanelWidgetProxy = (): {
         const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
         const cancelButton = Array.from(buttons).find((button) => button.textContent === 'CANCEL');
         if (cancelButton) {
-          await userEvent.click(cancelButton);
+          await userEvent.click(cancelButton, userEventStatics.options);
         }
       }
     },

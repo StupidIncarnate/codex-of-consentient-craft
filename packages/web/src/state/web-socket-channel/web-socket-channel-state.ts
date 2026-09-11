@@ -104,6 +104,17 @@ export const webSocketChannelState = {
   openConnection: (): void => {
     if (internalState.url === null) return;
     if (internalState.socket !== null) return;
+    // A caller reaching here — connect(), the reconnect timer firing for real, or a caller that
+    // bypasses the timer to force an immediate reconnect (the state proxy's `triggerReconnect`,
+    // which tests use to simulate the delay elapsing without waiting it out) — means any
+    // previously scheduled reconnect is no longer wanted. Clearing it HERE, not only in
+    // disconnect()/clear(), is what stops the real timer surviving a bypassed reconnect: once a
+    // fresh connection attempt starts, `reconnectTimer` is never revisited again on this cycle,
+    // so anywhere else is too late.
+    if (internalState.reconnectTimer !== null) {
+      globalThis.clearTimeout(internalState.reconnectTimer);
+      internalState.reconnectTimer = null;
+    }
 
     internalState.socket = websocketConnectAdapter({
       url: internalState.url,
@@ -116,8 +127,11 @@ export const webSocketChannelState = {
         internalState.isOpen = false;
         internalState.socket = null;
         if (!internalState.shouldReconnect) return;
+        // Left unset here on purpose — see the clear at the top of this function. Nulling it in
+        // this callback (the shape this replaced) discards the only reference to the still-real,
+        // still-scheduled timer the instant a test replays this callback early instead of waiting
+        // out RECONNECT_DELAY_MS_VALUE, which is exactly what left it armed after the test ended.
         internalState.reconnectTimer = globalThis.setTimeout(() => {
-          internalState.reconnectTimer = null;
           webSocketChannelState.openConnection();
         }, RECONNECT_DELAY_MS_VALUE);
       },

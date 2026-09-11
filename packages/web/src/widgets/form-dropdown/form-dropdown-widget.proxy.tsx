@@ -3,13 +3,15 @@ import userEvent from '@testing-library/user-event';
 
 import type { DropdownOption } from '../../contracts/dropdown-option/dropdown-option-contract';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const FormDropdownWidgetProxy = (): {
   selectOption: (params: { value: DropdownOption }) => Promise<void>;
   getValue: () => DropdownOption;
 } => ({
   selectOption: async ({ value }: { value: DropdownOption }): Promise<void> => {
     const select = screen.getByTestId('FORM_DROPDOWN');
-    await userEvent.selectOptions(select, value);
+    await userEvent.selectOptions(select, value, userEventStatics.options);
   },
   getValue: (): DropdownOption => {
     const select = screen.getByTestId<HTMLSelectElement>('FORM_DROPDOWN');

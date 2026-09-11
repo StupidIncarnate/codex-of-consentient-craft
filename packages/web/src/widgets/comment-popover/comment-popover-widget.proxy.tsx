@@ -7,6 +7,8 @@ import { useCommentQueueBindingProxy } from '../../bindings/use-comment-queue/us
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type QueuedEntry = ReturnType<typeof CommentQueueEntryStub>;
 type QueueProxy = ReturnType<typeof useCommentQueueBindingProxy>;
 
@@ -48,7 +50,7 @@ export const CommentPopoverWidgetProxy = (): {
   // buttons run real — so it is constructed for the child-proxy rule and never interacted with;
   // this widget's own selectors address the buttons by their comment-specific testids.
   IconButtonWidgetProxy();
-  const user = userEvent.setup();
+  const user = userEvent.setup(userEventStatics.options);
 
   const textarea = (): HTMLTextAreaElement => screen.getByTestId('COMMENT_TEXTAREA');
 

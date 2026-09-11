@@ -6,6 +6,8 @@ import type { FormInputValue } from '../../contracts/form-input-value/form-input
 import { FormInputWidgetProxy } from '../form-input/form-input-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const QuestClarifyPanelWidgetProxy = (): {
   clickOption: (params: { label: AskUserQuestionOption['label'] }) => Promise<void>;
   clickOther: () => Promise<void>;
@@ -23,11 +25,11 @@ export const QuestClarifyPanelWidgetProxy = (): {
       const options = screen.getAllByTestId('CLARIFY_OPTION');
       const target = options.find((el) => el.textContent?.includes(label));
       if (target) {
-        await userEvent.click(target);
+        await userEvent.click(target, userEventStatics.options);
       }
     },
     clickOther: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('CLARIFY_OTHER_BTN'));
+      await userEvent.click(screen.getByTestId('CLARIFY_OTHER_BTN'), userEventStatics.options);
     },
     typeFreeform: async ({ text }: { text: FormInputValue }): Promise<void> => {
       await formInputProxy.changeValue({ value: text });

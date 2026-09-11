@@ -12,6 +12,8 @@ import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-la
 import { FlowObservableNodeLayerWidgetProxy } from './flow-observable-node-layer-widget.proxy';
 import { FlowPortalNodeLayerWidgetProxy } from './flow-portal-node-layer-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type ProxyInstance = ReturnType<typeof elkLayoutAdapterProxy>;
 type ReturnsPositionsArgs = Parameters<ProxyInstance['returnsPositions']>[0];
 
@@ -60,7 +62,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   FlowNodeDetailPanelLayerWidgetProxy();
   FlowObservableNodeLayerWidgetProxy();
   FlowPortalNodeLayerWidgetProxy();
-  const user = userEvent.setup();
+  const user = userEvent.setup(userEventStatics.options);
   // The widget logs a rejected ELK layout directly from its catch (no thrown error surfaces to
   // React), so any test that triggers that path would otherwise throw here. passthrough: true —
   // console.error is a shared sink; React's own internal warnings (e.g. act() warnings) also flow

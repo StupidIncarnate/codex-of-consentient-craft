@@ -6,6 +6,8 @@ import { RiftcarverResultDetailLayerWidgetProxy } from './riftcarver-result-deta
 import { StreamingBarLayerWidgetProxy } from './streaming-bar-layer-widget.proxy';
 import { WardResultDetailLayerWidgetProxy } from './ward-result-detail-layer-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const ExecutionRowLayerWidgetProxy = (): {
   clickShowEarlier: () => Promise<void>;
   hasShowEarlierToggle: () => boolean;
@@ -20,7 +22,10 @@ export const ExecutionRowLayerWidgetProxy = (): {
 
   return {
     clickShowEarlier: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE'));
+      await userEvent.click(
+        screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE'),
+        userEventStatics.options,
+      );
     },
     hasShowEarlierToggle: (): boolean =>
       screen.queryByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE') !== null,

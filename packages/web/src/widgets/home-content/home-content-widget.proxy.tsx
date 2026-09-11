@@ -34,6 +34,8 @@ import { GuildEmptyStateWidgetProxy } from '../guild-empty-state/guild-empty-sta
 import { GuildListWidgetProxy } from '../guild-list/guild-list-widget.proxy';
 import { GuildSessionListWidgetProxy } from '../guild-session-list/guild-session-list-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
@@ -159,7 +161,7 @@ export const HomeContentWidgetProxy = (): {
     clickAddSession: async (): Promise<void> => {
       const sessionListEl = screen.getByTestId('GUILD_SESSION_LIST');
       const addButton = within(sessionListEl).getByTestId('PIXEL_BTN');
-      await userEvent.click(addButton);
+      await userEvent.click(addButton, userEventStatics.options);
     },
     isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),
     isSessionEmptyStateVisible: (): boolean => sessionList.hasEmptyState(),
@@ -184,7 +186,7 @@ export const HomeContentWidgetProxy = (): {
     },
     isQueueLinkVisible: (): boolean => screen.queryByTestId('HOME_QUEUE_LINK') !== null,
     clickQueueLink: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('HOME_QUEUE_LINK'));
+      await userEvent.click(screen.getByTestId('HOME_QUEUE_LINK'), userEventStatics.options);
     },
     setupConsoleErrorCapture: (): SpyOnHandle => consoleErrorHandle,
     setupCreateGuildError: (): void => {

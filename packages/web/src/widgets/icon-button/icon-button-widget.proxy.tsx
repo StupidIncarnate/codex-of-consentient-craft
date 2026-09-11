@@ -1,6 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const IconButtonWidgetProxy = (): {
   click: () => Promise<void>;
   accessibleName: () => HTMLElement['ariaLabel'];
@@ -13,7 +15,7 @@ export const IconButtonWidgetProxy = (): {
   isDisabled: () => boolean;
   tagName: () => HTMLElement['tagName'];
 } => {
-  const user = userEvent.setup();
+  const user = userEvent.setup(userEventStatics.options);
   const button = (): HTMLElement => screen.getByTestId('ICON_BUTTON');
 
   return {

@@ -6,6 +6,8 @@ import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
 import { DirectoryBrowserModalWidgetProxy } from '../directory-browser-modal/directory-browser-modal-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const GuildEmptyStateWidgetProxy = (): {
@@ -26,10 +28,10 @@ export const GuildEmptyStateWidgetProxy = (): {
 
   return {
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {
-      await userEvent.type(screen.getByTestId('GUILD_NAME_INPUT'), value);
+      await userEvent.type(screen.getByTestId('GUILD_NAME_INPUT'), value, userEventStatics.options);
     },
     typeGuildPath: async ({ value }: { value: string }): Promise<void> => {
-      await userEvent.type(screen.getByTestId('GUILD_PATH_INPUT'), value);
+      await userEvent.type(screen.getByTestId('GUILD_PATH_INPUT'), value, userEventStatics.options);
     },
     getGuildPathValue: (): HTMLElement['textContent'] => {
       const wrapper = screen.getByTestId('GUILD_PATH_INPUT');
@@ -43,7 +45,7 @@ export const GuildEmptyStateWidgetProxy = (): {
       if (!browseBtn) {
         throw new Error('BROWSE button not found');
       }
-      await userEvent.click(browseBtn);
+      await userEvent.click(browseBtn, userEventStatics.options);
     },
     clickCreate: async (): Promise<void> => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -51,7 +53,7 @@ export const GuildEmptyStateWidgetProxy = (): {
       if (!createBtn) {
         throw new Error('CREATE button not found');
       }
-      await userEvent.click(createBtn);
+      await userEvent.click(createBtn, userEventStatics.options);
     },
     clickCancel: async (): Promise<void> => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -59,7 +61,7 @@ export const GuildEmptyStateWidgetProxy = (): {
       if (!cancelBtn) {
         throw new Error('CANCEL button not found');
       }
-      await userEvent.click(cancelBtn);
+      await userEvent.click(cancelBtn, userEventStatics.options);
     },
     setupDirectoryBrowse: ({ entries }: { entries: DirectoryEntry[] }): void => {
       directoryBrowser.setupEntries({ entries });

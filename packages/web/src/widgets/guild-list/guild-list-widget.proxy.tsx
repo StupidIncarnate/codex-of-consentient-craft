@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const GuildListWidgetProxy = (): {
   isItemVisible: (params: { testId: string }) => boolean;
   isItemSelected: (params: { testId: string }) => boolean;
@@ -20,10 +22,10 @@ export const GuildListWidgetProxy = (): {
       return element.style.color === 'rgb(251, 191, 36)';
     },
     clickItem: async ({ testId }: { testId: string }): Promise<void> => {
-      await userEvent.click(screen.getByTestId(testId));
+      await userEvent.click(screen.getByTestId(testId), userEventStatics.options);
     },
     clickAddButton: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('PIXEL_BTN'));
+      await userEvent.click(screen.getByTestId('PIXEL_BTN'), userEventStatics.options);
     },
     hasHeader: (): boolean => screen.queryByText('GUILDS') !== null,
   };

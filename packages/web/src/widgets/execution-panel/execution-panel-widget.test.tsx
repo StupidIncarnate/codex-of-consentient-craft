@@ -20,6 +20,8 @@ import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-confi
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type Quest = ReturnType<typeof QuestStub>;
 
 const OP_ID_1 = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d401';
@@ -436,7 +438,7 @@ describe('ExecutionPanelWidget', () => {
         .getStepRows()[0]!
         .querySelector('[data-testid="execution-row-header"]')!;
 
-      await userEvent.click(rowHeader);
+      await userEvent.click(rowHeader, userEventStatics.options);
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
       expect(screen.queryByTestId('execution-row-files')).toBe(null);
@@ -525,7 +527,7 @@ describe('ExecutionPanelWidget', () => {
         .getAllByTestId('execution-row-layer-widget')[0]!
         .querySelector('[data-testid="execution-row-header"]')!;
 
-      await userEvent.click(wardRowHeader);
+      await userEvent.click(wardRowHeader, userEventStatics.options);
 
       expect(screen.getByTestId('execution-row-ward-result').textContent).toBe(
         'Ward exit code: 1 (committed)',
@@ -573,7 +575,7 @@ describe('ExecutionPanelWidget', () => {
         .getAllByTestId('execution-row-layer-widget')[0]!
         .querySelector('[data-testid="execution-row-header"]')!;
 
-      await userEvent.click(riftcarverRowHeader);
+      await userEvent.click(riftcarverRowHeader, userEventStatics.options);
 
       expect(screen.getByTestId('execution-row-riftcarver-result').textContent).toBe(
         'Riftcarver exit code: 1 (repairable)',
@@ -614,7 +616,7 @@ describe('ExecutionPanelWidget', () => {
         .getAllByTestId('execution-row-layer-widget')[0]!
         .querySelector('[data-testid="execution-row-header"]')!;
 
-      await userEvent.click(riftcarverRowHeader);
+      await userEvent.click(riftcarverRowHeader, userEventStatics.options);
 
       expect(screen.queryByTestId('execution-row-riftcarver-result')).toBe(null);
     });

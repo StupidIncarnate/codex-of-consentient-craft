@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const QuestApprovedModalWidgetProxy = (): {
   hasModal: () => boolean;
   getTitle: () => HTMLElement['textContent'];
@@ -36,7 +38,7 @@ export const QuestApprovedModalWidgetProxy = (): {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const target = buttons.find((el) => el.textContent === 'Keep Chatting');
       if (target) {
-        await userEvent.click(target);
+        await userEvent.click(target, userEventStatics.options);
       }
     },
     hasNewQuestButton: (): boolean => {

@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 
 import { DirectoryBrowserModalWidgetProxy } from '../directory-browser-modal/directory-browser-modal-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const GuildAddModalWidgetProxy = (): {
   typeName: (params: { name: string }) => Promise<void>;
   clickBrowse: () => Promise<void>;
@@ -21,16 +23,19 @@ export const GuildAddModalWidgetProxy = (): {
     typeName: async ({ name }: { name: string }): Promise<void> => {
       const input = screen.getByTestId('GUILD_NAME_INPUT');
       await userEvent.clear(input);
-      await userEvent.type(input, name);
+      await userEvent.type(input, name, userEventStatics.options);
     },
     clickBrowse: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('BROWSE_BUTTON'));
+      await userEvent.click(screen.getByTestId('BROWSE_BUTTON'), userEventStatics.options);
     },
     clickCreate: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('CREATE_GUILD_BUTTON'));
+      await userEvent.click(screen.getByTestId('CREATE_GUILD_BUTTON'), userEventStatics.options);
     },
     clickCancel: async (): Promise<void> => {
-      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Cancel' }),
+        userEventStatics.options,
+      );
     },
     isCreateDisabled: (): boolean => {
       const button = screen.getByTestId('CREATE_GUILD_BUTTON');

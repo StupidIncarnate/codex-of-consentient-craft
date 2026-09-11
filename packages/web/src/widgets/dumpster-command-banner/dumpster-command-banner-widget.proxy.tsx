@@ -7,6 +7,8 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { clipboardWriteAdapterProxy } from '../../adapters/clipboard/write/clipboard-write-adapter.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const DumpsterCommandBannerWidgetProxy = (): {
   hasBanner: () => boolean;
   getCommandText: () => HTMLElement['textContent'];
@@ -29,7 +31,7 @@ export const DumpsterCommandBannerWidgetProxy = (): {
     clickCopy: async (): Promise<void> => {
       const banner = screen.getByTestId('DUMPSTER_COMMAND_BANNER');
       const button = within(banner).getByTestId('PIXEL_BTN');
-      await userEvent.click(button);
+      await userEvent.click(button, userEventStatics.options);
     },
     setupClipboardSucceeds: ({ text }: { text: string }): void => {
       clipboard.succeeds({ text });

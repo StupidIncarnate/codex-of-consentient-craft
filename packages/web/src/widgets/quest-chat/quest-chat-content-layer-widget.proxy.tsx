@@ -41,6 +41,8 @@ import { QuestLoadErrorWidgetProxy } from '../quest-load-error/quest-load-error-
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 import { QuestSummaryWidgetProxy } from '../quest-summary/quest-summary-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const QuestChatContentLayerWidgetProxy = (): {
   setupConnectedChannel: () => void;
   deliverWsMessage: (params: { data: string }) => void;
@@ -182,7 +184,11 @@ export const QuestChatContentLayerWidgetProxy = (): {
     // Drives the real <select> the create surface renders, so the test exercises the same change
     // event a user's selection fires rather than reaching into component state.
     selectQuestType: async ({ label }) => {
-      await userEvent.selectOptions(screen.getByTestId('FORM_DROPDOWN'), label);
+      await userEvent.selectOptions(
+        screen.getByTestId('FORM_DROPDOWN'),
+        label,
+        userEventStatics.options,
+      );
     },
     clickSend: async () => {
       await chatPanel.clickSend();

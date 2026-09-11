@@ -8,6 +8,8 @@ import { ReactFlowDiagramWidgetProxy } from '../react-flow-diagram/react-flow-di
 import { SectionHeaderWidgetProxy } from '../section-header/section-header-widget.proxy';
 import { FlowTabQueueMarkLayerWidgetProxy } from './flow-tab-queue-mark-layer-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type ReactFlowProxy = ReturnType<typeof ReactFlowDiagramWidgetProxy>;
 type SetupPositionsArgs = Parameters<ReactFlowProxy['setupPositions']>[0];
 type QueuedEntry = ReturnType<typeof CommentQueueEntryStub>;
@@ -32,7 +34,7 @@ export const FlowsLayerWidgetProxy = (): {
   SectionHeaderWidgetProxy();
   const reactFlowProxy = ReactFlowDiagramWidgetProxy();
   const tabMarkProxy = FlowTabQueueMarkLayerWidgetProxy();
-  const user = userEvent.setup();
+  const user = userEvent.setup(userEventStatics.options);
 
   return {
     setupPositions: (args: SetupPositionsArgs): void => {

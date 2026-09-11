@@ -24,6 +24,8 @@ import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-wid
 import { RateLimitsStackWidgetProxy } from '../rate-limits-stack/rate-limits-stack-widget.proxy';
 import { SessionViewWidgetProxy } from '../session-view/session-view-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
@@ -128,7 +130,7 @@ export const AppWidgetProxy = (): {
       screen.queryByTestId('dumpster-raccoon-widget') !== null ||
       screen.queryByTestId('NOT_FOUND') !== null,
     clickLogoLink: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('LOGO_LINK'));
+      await userEvent.click(screen.getByTestId('LOGO_LINK'), userEventStatics.options);
     },
     isLogoLinkVisible: (): boolean => screen.queryByTestId('LOGO_LINK') !== null,
     isQuestQueueBarVisible: (): boolean => screen.queryByTestId('QUEST_QUEUE_BAR') !== null,

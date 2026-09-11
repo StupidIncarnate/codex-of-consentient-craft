@@ -18,6 +18,8 @@ import { orchestrationDispatchPauseBrokerProxy } from '../../brokers/orchestrati
 import { orchestrationDispatchPlayBrokerProxy } from '../../brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type DispatchState = ReturnType<typeof DispatchStateStub>;
 type PlayProxy = ReturnType<typeof orchestrationDispatchPlayBrokerProxy>;
 type PauseProxy = ReturnType<typeof orchestrationDispatchPauseBrokerProxy>;
@@ -63,7 +65,7 @@ export const DispatchToggleWidgetProxy = (): {
     },
     clickToggle: async (): Promise<void> => {
       const toggle = screen.getByTestId('DISPATCH_TOGGLE');
-      await userEvent.click(within(toggle).getByTestId('PIXEL_BTN'));
+      await userEvent.click(within(toggle).getByTestId('PIXEL_BTN'), userEventStatics.options);
     },
     hasToggleLabel: ({ text }: { text: string }): boolean => pixelBtn.hasLabel({ text }),
     hasToggle: (): boolean => screen.queryByTestId('DISPATCH_TOGGLE') !== null,

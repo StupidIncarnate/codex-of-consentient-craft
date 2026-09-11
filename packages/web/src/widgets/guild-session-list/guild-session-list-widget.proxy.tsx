@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const GuildSessionListWidgetProxy = (): {
   hasHeader: () => boolean;
   hasEmptyState: () => boolean;
@@ -73,13 +75,13 @@ export const GuildSessionListWidgetProxy = (): {
       return checkedInput?.value ?? null;
     },
     clickSession: async ({ testId }: { testId: string }): Promise<void> => {
-      await userEvent.click(screen.getByTestId(testId));
+      await userEvent.click(screen.getByTestId(testId), userEventStatics.options);
     },
     clickAddButton: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('PIXEL_BTN'));
+      await userEvent.click(screen.getByTestId('PIXEL_BTN'), userEventStatics.options);
     },
     clickFilterOption: async ({ label }: { label: string }): Promise<void> => {
-      await userEvent.click(screen.getByText(label));
+      await userEvent.click(screen.getByText(label), userEventStatics.options);
     },
     isDeleteButtonVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
@@ -96,7 +98,7 @@ export const GuildSessionListWidgetProxy = (): {
       return Boolean(element?.querySelector('[data-testid="IconSkull"]'));
     },
     clickDeleteButton: async ({ testId }: { testId: string }): Promise<void> => {
-      await userEvent.click(screen.getByTestId(testId));
+      await userEvent.click(screen.getByTestId(testId), userEventStatics.options);
     },
     isPopoverVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
@@ -115,10 +117,10 @@ export const GuildSessionListWidgetProxy = (): {
       return button?.disabled === true;
     },
     clickBanish: async (): Promise<void> => {
-      await userEvent.click(screen.getByText('Banish'));
+      await userEvent.click(screen.getByText('Banish'), userEventStatics.options);
     },
     clickSpare: async (): Promise<void> => {
-      await userEvent.click(screen.getByText('Spare'));
+      await userEvent.click(screen.getByText('Spare'), userEventStatics.options);
     },
   };
 };

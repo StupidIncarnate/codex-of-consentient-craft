@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 export const QuestTitleBarWidgetProxy = (): {
   hasTitleBar: () => boolean;
   hasTitleText: () => boolean;
@@ -22,7 +24,7 @@ export const QuestTitleBarWidgetProxy = (): {
     const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
     const target = Array.from(buttons).find((button) => button.textContent === label);
     if (target) {
-      await userEvent.click(target);
+      await userEvent.click(target, userEventStatics.options);
     }
   };
 

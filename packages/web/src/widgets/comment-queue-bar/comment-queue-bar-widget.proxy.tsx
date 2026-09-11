@@ -24,6 +24,8 @@ import type { CommentAnchorStub } from '../../contracts/comment-anchor/comment-a
 import { CommentBatchSendResultStub } from '../../contracts/comment-batch-send-result/comment-batch-send-result.stub';
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type QueuedEntry = ReturnType<typeof CommentQueueEntryStub>;
 type StaleAnchor = ReturnType<typeof CommentAnchorStub>;
 type SendResult = ReturnType<typeof CommentBatchSendResultStub>;
@@ -65,7 +67,7 @@ export const CommentQueueBarWidgetProxy = (): {
   // Clear and Send are IconButtonWidgets. Its proxy mocks nothing, so this constructs it for the
   // child-proxy rule only — this proxy addresses both buttons by their own queue-bar testids.
   IconButtonWidgetProxy();
-  const user = userEvent.setup();
+  const user = userEvent.setup(userEventStatics.options);
 
   // The widget calls onSend exactly one way — a single `{ comments }` payload object — so the
   // address is a predicate over that one invariant. Staging and reads share it, which keeps `.at()`

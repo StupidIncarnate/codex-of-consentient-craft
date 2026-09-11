@@ -5,6 +5,8 @@ import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
 
 import { useDirectoryBrowserBindingProxy } from '../../bindings/use-directory-browser/use-directory-browser-binding.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const DirectoryBrowserModalWidgetProxy = (): {
@@ -27,16 +29,22 @@ export const DirectoryBrowserModalWidgetProxy = (): {
       browserProxy.setupError();
     },
     clickGoUp: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('GO_UP_BUTTON'));
+      await userEvent.click(screen.getByTestId('GO_UP_BUTTON'), userEventStatics.options);
     },
     clickSelect: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('SELECT_DIRECTORY_BUTTON'));
+      await userEvent.click(
+        screen.getByTestId('SELECT_DIRECTORY_BUTTON'),
+        userEventStatics.options,
+      );
     },
     clickCancel: async (): Promise<void> => {
-      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Cancel' }),
+        userEventStatics.options,
+      );
     },
     clickDirectoryEntry: async ({ name }: { name: string }): Promise<void> => {
-      await userEvent.click(screen.getByTestId(`DIR_ENTRY_${name}`));
+      await userEvent.click(screen.getByTestId(`DIR_ENTRY_${name}`), userEventStatics.options);
     },
     getCurrentPath: (): HTMLElement['textContent'] => {
       const element = screen.queryByTestId('CURRENT_PATH_DISPLAY');

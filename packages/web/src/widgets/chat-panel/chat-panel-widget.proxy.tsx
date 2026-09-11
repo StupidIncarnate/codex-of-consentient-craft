@@ -6,6 +6,8 @@ import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-wid
 import { ChatInputWidgetProxy } from '../chat-input/chat-input-widget.proxy';
 import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
 
+import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
 const SHIFT_ON_TOKEN = '{shift>}';
 const SHIFT_OFF_TOKEN = '{/shift}';
 const ENTER_TOKEN = '{enter}';
@@ -95,10 +97,10 @@ export const ChatPanelWidgetProxy = (): {
       return Promise.resolve();
     },
     clickSend: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('SEND_BUTTON'));
+      await userEvent.click(screen.getByTestId('SEND_BUTTON'), userEventStatics.options);
     },
     clickStop: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('STOP_BUTTON'));
+      await userEvent.click(screen.getByTestId('STOP_BUTTON'), userEventStatics.options);
     },
     isInputEmpty: (): boolean => (screen.getByTestId('CHAT_INPUT').textContent ?? '').length === 0,
     isStreamingVisible: (): boolean => screen.queryByTestId('STREAMING_INDICATOR') !== null,
