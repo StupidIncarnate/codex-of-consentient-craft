@@ -1,7 +1,5 @@
 import { slowFileThresholdStatics } from './slow-file-threshold-statics';
 
-const ALLOWANCE_ENTRIES = Object.entries(slowFileThresholdStatics.allowed);
-
 describe('slowFileThresholdStatics', () => {
   it('VALID: exported thresholds => match expected shape', () => {
     expect(slowFileThresholdStatics.threshold).toStrictEqual({
@@ -30,43 +28,4 @@ describe('slowFileThresholdStatics', () => {
       slowFileThresholdStatics.threshold.testWarnMs,
     );
   });
-
-  // An allowance under the bar excuses nothing — the bar already lets that file through — so it is
-  // an entry someone forgot to delete after making the file fast, and it reads as a live exception.
-  it.each(ALLOWANCE_ENTRIES)(
-    'VALID: {allowance: %s} => is looser than the integration bar it overrides',
-    (_filePath, allowance) => {
-      expect(allowance.slowestTestMs).toBeGreaterThan(
-        slowFileThresholdStatics.threshold.integrationTestWarnMs,
-      );
-    },
-  );
-
-  // A number with no reason beside it is a number nobody can review, and the whole point of an
-  // allowance is that it is a written decision rather than a silent exemption.
-  it.each(ALLOWANCE_ENTRIES)(
-    'VALID: {allowance: %s} => carries a reason a reader can act on',
-    (_filePath, allowance) => {
-      expect(allowance.why.length).toBeGreaterThan(30);
-    },
-  );
-
-  // The key is matched against the END of the absolute path jest reports, so it must be a relative
-  // path fragment: a leading slash or a `./` never matches and the allowance would silently do
-  // nothing. It must also carry a directory, since a bare filename would match that name in any
-  // package — and a published ward runs in repos whose package names it cannot know.
-  it.each(ALLOWANCE_ENTRIES)(
-    'VALID: {allowance: %s} => is a relative path fragment carrying a directory',
-    (filePath) => {
-      expect({
-        startsWithSlash: filePath.startsWith('/'),
-        startsWithDot: filePath.startsWith('.'),
-        carriesADirectory: filePath.includes('/'),
-      }).toStrictEqual({
-        startsWithSlash: false,
-        startsWithDot: false,
-        carriesADirectory: true,
-      });
-    },
-  );
 });

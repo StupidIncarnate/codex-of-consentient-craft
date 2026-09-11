@@ -68,16 +68,7 @@ export const slowFileTimingsTransformer = ({ check }: { check: CheckResult }): F
   const bar =
     check.checkType === 'e2e' ? slowFileThresholdStatics.threshold.e2eTestWarnMs : jestBar;
 
-  // Matched on the END of the path, because jest reports an absolute one and an allowance is
-  // written repo-relative. A file with an allowance is measured against ITS number rather than the
-  // bar, so a known price is excused and a regression past it still fails.
-  const allowances = Object.entries(slowFileThresholdStatics.allowed);
-
   return allTimings
-    .filter((timing) => {
-      const allowance = allowances.find(([path]) => String(timing.filePath).endsWith(path));
-      const limit = allowance === undefined ? bar : allowance[1].slowestTestMs;
-      return Number(timing.slowestTestMs) > limit;
-    })
+    .filter((timing) => Number(timing.slowestTestMs) > bar)
     .sort((left, right) => Number(right.slowestTestMs) - Number(left.slowestTestMs));
 };
