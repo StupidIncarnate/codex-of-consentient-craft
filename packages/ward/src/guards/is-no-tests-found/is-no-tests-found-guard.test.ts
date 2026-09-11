@@ -49,4 +49,25 @@ describe('isNoTestsFoundGuard', () => {
   it('EDGE: {output: undefined} => returns false', () => {
     expect(isNoTestsFoundGuard({})).toBe(false);
   });
+
+  describe('jest colour codes', () => {
+    // Ward passes `--no-color` on every jest command and jest bolds this banner anyway, so the real
+    // captured line begins with an escape rather than with the words.
+    it('VALID: {bolded banner as jest really emits it} => returns true', () => {
+      expect(
+        isNoTestsFoundGuard({
+          output:
+            '\u001b[1mNo tests found, exiting with code 1\u001b[22m\nRun with `--passWithNoTests` to exit with code 0',
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {the words inside a jest JSON test name} => returns false', () => {
+      expect(
+        isNoTestsFoundGuard({
+          output: '{"testResults":[{"title":"No tests found when the folder is empty"}]}',
+        }),
+      ).toBe(false);
+    });
+  });
 });

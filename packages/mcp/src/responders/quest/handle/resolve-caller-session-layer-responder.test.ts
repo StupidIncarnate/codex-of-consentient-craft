@@ -106,7 +106,6 @@ describe('ResolveCallerSessionLayerResponder', () => {
       const result = await resultPromise;
 
       expect(result).toBe(NEWEST_SESSION);
-      jest.useRealTimers();
     });
 
     it('VALID: {meta toolUseId is not a string} => falls back to the newest-mtime session', async () => {
