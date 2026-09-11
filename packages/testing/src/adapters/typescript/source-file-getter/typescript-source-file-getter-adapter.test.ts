@@ -12,9 +12,18 @@ describe('typescriptSourceFileGetterAdapter', () => {
       // Use this actual test file as input - it's a real .ts file
       const filePath = FilePathStub({ value: __filename });
 
+      // The adapter reads `program.getSourceFile(filePath)` and nothing else, so what this proves
+      // is that a REAL program over a real file on disk answers that lookup — no ambient
+      // declaration takes any part in it. Both options exist to keep those declarations out of the
+      // program: omitting `types` makes TypeScript pull in every package under node_modules/@types
+      // (445 source files, 556ms), and `noLib` drops the default lib chain on top of that
+      // (30 files and 95ms, against 23 files and 31ms). The root file and its own module graph are
+      // what remain, which is the whole fixture.
       const tsProgram = ts.createProgram([filePath], {
         skipLibCheck: true,
         noEmit: true,
+        types: [],
+        noLib: true,
       });
       const program = TypescriptProgramStub({ value: tsProgram });
 

@@ -87,21 +87,26 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
     if (config.exitOnKill) {
       // Exit only when kill() is called (for timeout testing)
       mockChildProcess.kill = jest.fn().mockImplementation(() => {
+        // `.unref()`: a real child's 'exit' never blocks Node on its own, and most tests here never
+        // drive the loop far enough to observe this callback (they assert argv/options, not
+        // lifecycle). Unref makes packages/testing's isTimerHoldingLoopGuard read it as not holding
+        // the loop, so it stops reporting as a leaked handle, while still firing in the same order
+        // for callers (chat-spawn-broker, quest-run-riftcarver-broker) that DO await it.
         setImmediate(() => {
           mockChildProcess.emit('exit', config.exitCodeOnKill);
-        });
+        }).unref();
         return true;
       });
     } else {
       mockChildProcess.kill = jest.fn().mockReturnValue(true);
-      // Schedule exit or error emission
+      // Schedule exit or error emission asynchronously; `.unref()` for the same reason as above.
       setImmediate(() => {
         if (config.error) {
           mockChildProcess.emit('error', config.error);
         } else if (config.exitCode !== null) {
           mockChildProcess.emit('exit', config.exitCode);
         }
-      });
+      }).unref();
     }
 
     return mockChildProcess;

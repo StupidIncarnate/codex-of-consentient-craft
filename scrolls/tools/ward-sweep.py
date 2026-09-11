@@ -6,7 +6,17 @@ WHY BATCHES AND NOT ONE FULL RUN. A file-scoped ward run takes jest's IN-BAND br
 `--detectOpenHandles` — so it sees sockets, child processes and file watchers, not only the timers a
 worker run can catch. A full run cannot have that: `shouldRunInBand` in @jest/core reads
 `if (runInBand || detectOpenHandles) return true`, so asking for it single-threads the whole repo.
-Batching is what makes the stronger detection affordable.
+Batching is what makes that detection affordable.
+
+WHAT THIS SWEEP DOES NOT SEE, AND WHY A FULL RUN IS STILL OWED. The two detectors are not one
+strictly stronger than the other, and running only this one hides a whole class. Jest's own
+collector waits about 30ms plus a garbage-collection cycle before it looks, so a fast-firing
+`setImmediate` settles on its own and is never reported. `@dungeonmaster/testing`'s timer watcher —
+the WORKER-branch detector, which this sweep never reaches — checks at each test file's own
+teardown with no grace period, and catches exactly those. Measured: the mock child process in
+`child-process-spawn-stream-json-adapter.proxy.ts` armed 18 un-cleared immediates that every batch
+here reported clean and that one `--only unit` run over the package reported in full. So triage the
+sweep AND a whole-check run of each type; neither alone is the answer.
 
 WHY EVERY RECORD CARRIES THE WHOLE COMMAND. A finding is only worth anything if it can be re-run,
 and a batch's identity IS its file list — forty paths that no summary line repeats. Each record

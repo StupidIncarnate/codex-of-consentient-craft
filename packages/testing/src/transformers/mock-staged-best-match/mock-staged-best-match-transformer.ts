@@ -8,6 +8,12 @@
  * Higher mockArgsMatchTransformer score wins. At equal specificity a live one-shot outranks a
  * sticky staging — otherwise the later-written staging wins, so a test overrides a proxy default
  * written earlier. A consumed one-shot is skipped entirely.
+ *
+ * Each candidate is scored ONCE and the score is carried alongside it. Scoring is a pure function
+ * of a candidate's own args and this same call, so re-deriving the leader's score per candidate can
+ * only return what the first pass did — and it is not free: `mockArgsMatchTransformer` ends in a
+ * zod parse, measured at 1.15us inside jest, which one orchestration-resume test alone reaches
+ * about ten thousand times.
  */
 
 import type { StagedCall } from '../../contracts/staged-call/staged-call-contract';
@@ -19,22 +25,23 @@ export const mockStagedBestMatchTransformer = ({
 }: {
   staged: StagedCall[];
   actual: readonly unknown[];
-}): StagedCall | undefined =>
-  staged.reduce<StagedCall | undefined>((winner, candidate) => {
+}): StagedCall | undefined => {
+  const scored = staged.flatMap((candidate) => {
     const score =
       candidate.once && candidate.consumed
         ? null
         : mockArgsMatchTransformer({ staged: candidate.args, actual });
 
-    if (score === null) {
-      return winner;
-    }
+    return score === null ? [] : [{ candidate, score }];
+  });
 
-    if (winner === undefined) {
-      return candidate;
-    }
+  if (scored.length === 0) {
+    return undefined;
+  }
 
-    const winnerScore = mockArgsMatchTransformer({ staged: winner.args, actual }) ?? -1;
-
-    return score > winnerScore || (score === winnerScore && !winner.once) ? candidate : winner;
-  }, undefined);
+  return scored.reduce((winner, entry) =>
+    entry.score > winner.score || (entry.score === winner.score && !winner.candidate.once)
+      ? entry
+      : winner,
+  ).candidate;
+};
