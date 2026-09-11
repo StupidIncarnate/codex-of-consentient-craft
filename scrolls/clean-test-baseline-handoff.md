@@ -1,81 +1,144 @@
-# Handoff: run the sweep, triage what it finds, merge a clean baseline
+# Handoff: the sweep ran, the baseline is green, and here is what is left
 
-Everything below is committed on branch `clean-test-baseline`, in the worktree of the same name.
-The tooling is finished and verified. **The sweep itself has not been run** — that is the next
-session's job.
+Branch `clean-test-baseline`, in the worktree of the same name. The sweep has been run and
+triaged. Both gates pass:
 
-## Run this
-
-```bash
-cd worktrees/clean-test-baseline
-python3 scrolls/tools/ward-sweep.py <out-dir>
+```
+npm run ward                       # 5 checks, 14 packages, exit 0
+npm run ward -- --committed --uncommitted   # exit 0
 ```
 
-7,702 files. 14 typecheck jobs, 193 batches of 40, 23 e2e batches of 5. Roughly 45-90 minutes at
-the default 4 non-e2e jobs and 2 e2e jobs. It writes as it goes, so a killed run keeps everything
-it already found:
+| Check | Files | Result |
+|---|---|---|
+| lint | 7,758 | PASS |
+| typecheck | 7,736 | PASS |
+| unit | 2,726 | PASS |
+| integration | 126 | PASS |
+| e2e | 111 | PASS |
 
-| File | What is in it |
+No slow files, no open handles, no discovery mismatches.
+
+## What the sweep found
+
+**Not one test failure, lint error or typecheck error in the whole repo.** Every finding across
+232 sweep jobs was a slow file, a leaked handle, or a discovery alarm. Two of the four were
+defects in the INSTRUMENT rather than in the code it was grading.
+
+### The instrument was wrong twice before its numbers meant anything
+
+**Ward's integration check was running unit tests.** `--findRelatedTests` replaces jest's
+test-path filter, so `--testPathPatterns` stopped applying the moment a file-scoped run added
+it. A three-path scope holding no integration test at all ran three unit suites under the
+integration check's name. Every unit finding was reported twice, once against the wrong check,
+and every scope paid for its unit tests twice.
+
+**A skipped check read as a discovery mismatch.** A skip carries its package's discovery count
+while processing nothing, so comparing the two across one reddened whole batches over a check
+that correctly declined to run.
+
+### The four leak causes
+
+| Cause | Hits |
 |---|---|
-| `<out-dir>/progress.jsonl` | every job — command, exit code, run id, seconds, reasons |
-| `<out-dir>/findings.jsonl` | only the jobs with something to report, whole |
-| `<out-dir>/report.md` | the same, rendered, with each job's `ward detail` inline |
-| `<out-dir>/logs/<id>.log` | the raw ward output |
-| `<out-dir>/logs/<id>.detail.log` | the whole `ward detail <runId>` |
+| `rateLimitsWatchBroker` interval, never unref'd | 38 |
+| `child-process-spawn-stream-json-adapter.proxy.ts` immediate per mock child | 18 |
+| `ward-runner.harness.ts` 600s safety-kill timeout | 12 |
+| `server-init-responder.ts` 100ms flush loop | 12 |
+| `hook-persistent-runner.harness.ts` 5s kill fallback | 7 |
+| web e2e network recorder reading bodies fire-and-forget | 6 |
+| `image-overlay` (Mantine's own `useFocusTrap`) and the websocket reconnect timer | 10 |
 
-`--limit N` runs the first N jobs, `--packages a,b` narrows to packages,
-`--only-kinds typecheck,batch,e2e` narrows to job kinds.
+### Two real races the whole-check runs caught that the batches did not
 
-**Batches, not one full run, because a file-scoped ward run takes jest's IN-BAND branch.** That
-branch carries `--detectOpenHandles`, which sees sockets, child processes and file watchers — not
-only the timers a worker run can catch. A full run cannot have that: `shouldRunInBand` in
-`@jest/core` reads `if (runInBand || detectOpenHandles) return true`, so asking for it
-single-threads the whole repo. The sweep therefore finds strictly more than `npm run ward` does.
+**The rate-limits poller emitted one change as two events.** Its tick awaits a file read and
+only compares against `lastJson` once that resolves, so two overlapping ticks both read the
+content as new. A 5s production cadence and a sub-millisecond local read hide it; a loaded
+machine does not.
 
-## Then
+**The websocket reconnect timer could not be cancelled.** `onClose` armed a 3000ms backoff and
+then discarded its own handle, so a reconnect reached any other way left a live OS timer that
+`disconnect()` had nothing to clear.
 
-1. Triage `report.md`. Every record carries the exact command, so a fix can be re-checked by
-   re-running one string.
-2. Fix, then `npm run ward -- --uncommitted` over what you touched.
-3. One bare `npm run ward` as the regression pass.
-4. Merge to master.
+### What made things fast
 
-## What already changed, and what it means for the sweep's output
-
-**A slow suite and a leaked handle now FAIL a run.** They never did before — jest exits 0 on both —
-so the repo has an unknown number of each, standing. Expect the first sweep to be noisy for reasons
-that are real rather than tooling faults.
-
-Three baseline defects are already known, found while building this:
-
-| Where | What |
+| Change | Effect |
 |---|---|
-| `packages/orchestrator/.../child-process-spawn-stream-json-adapter.proxy.ts:98` | arms a `setImmediate` per mock child process and never clears it — 18 leaks in one suite |
-| `packages/ward/test/harnesses/ward-runner/ward-runner.harness.ts:125` | leaves a `setTimeout` armed after `start-ward.integration.test.ts` |
-| `packages/shared/.../process-cwd-adapter.ts` | a PIPEWRAP that outlives several ward suites |
+| `eslint.config.js` loads through `tsx/cjs`, not `ts-node/register` | config load per child 8.3s to 1.7s |
+| `userEvent` gets `delay: null` from a shared static | 4.9ms per click and 2.0ms per character, across 59 call sites |
+| `mockStagedBestMatchTransformer` scores each candidate once | shared by all 2,726 test files |
+| the hooks harness launches tsx directly, not through `npx` | two fewer process launches per spawn |
+| `typescript-source-file-getter-adapter.test.ts` builds its program with `types: []` | 627ms to 130ms |
 
-**Slow-file ranking changed from wall time to test-body time.** Wall spans the package's one-time
-compile and its module evaluation, both charged to whichever suite reaches a module first — one mcp
-file read 30.6s running first and 1.9s running last, the same tests either way. See
-`scrolls/reports/compile-vs-test-time.md` for the measurements.
+## Read this before you touch ward's slow-file gate
 
-**Two thresholds, in `slowFileThresholdStatics`.** `testWarnMs` is 1s for jest, calibrated on two
-packages warm where one suite of 176 exceeded it. `e2eTestWarnMs` is 5s for browser specs,
-calibrated on FIVE specs that summed 0.2s to 1.4s each. **That second number is the weakest thing
-here** — revisit it once the sweep has reported all 111.
+**It reads the SLOWEST SINGLE TEST, not the suite total.** A sum grades a file on how many
+tests it holds: one web suite is 153 tests at about 18ms each, so it tripped a one-second bar
+while holding nothing slower than 165ms — and the cheapest way to pass a bar like that is to
+delete tests. Across the thirteen slowest unit files the worst single test measured 413ms.
+Switching the metric took unit from twenty flagged files to zero and integration from sixteen
+to nine, with no allowance needed for any unit file.
 
-**`isolatedModules` is on** (merged from `isolated-modules-experiment`). `--only unit` alone no
-longer type-checks; ward's `typecheck` still grades every test file. See
-`scrolls/isolated-modules-handoff.md`.
+**A jest timeout does not cover this.** A timeout catches a test that HANGS. A test sitting at
+4.9s under a 5s timeout passes silently forever, and no timeout can be tightened to
+"suspiciously slow" without failing legitimate work.
+
+**Every bar is calibrated on the whole repo now, and the calibrations are in
+`slowFileThresholdStatics` beside each number.** The e2e bar in particular — which the previous
+handoff called the weakest number here — now rests on all 110 specs and 440 tests, where the
+median spec's worst test runs 0.53s and exactly one spec holds a test over five seconds.
+
+## What is left
+
+### 1. The allowance list ships this repo's own file paths
+
+`slowFileThresholdStatics.allowed` names `packages/hooks/...`, `packages/mcp/...`,
+`packages/cli/...`. **Ward is published.** A consumer who installs dungeonmaster gets ward
+carrying an allowance list for dungeonmaster's own test files. One entry already had to be
+keyed package-relative because `no-hardcoded-package-name` refused the frontend package by
+name, which is the same problem showing through.
+
+The right home is `.dungeonmaster.json`, which ward already reads — `multiPackageLayerBroker`
+resolves `ward.concurrency` through `configResolveBroker` today. The threading is contained:
+both entry points into the gate (`hasSlowFilesGuard` and `resultToSummaryTransformer`) take a
+whole `WardResult`, and only `commandRunBroker` calls the guard. It needs a field on
+`dungeonmasterConfigContract`, which is a published contract, so it is a decision rather than a
+tidy-up.
+
+### 2. Every hook costs about a second of real session latency
+
+Measured: `start-pre-bash-hook`, which lints nothing, still costs **0.97s per child** — node
+boot plus the `@dungeonmaster/shared` module graph, 477 modules. The pre-edit lint hook costs
+about **4s on every Edit and Write**, of which roughly 1.0s is that floor, 1.7s the eslint
+config and 1.3s the actual linting.
+
+That is latency a user feels in the editor, not test overhead. Splitting the `shared` barrels
+so a hook pulls only what it needs is the lever, and it would drop the slowest integration
+tests as a side effect.
+
+### 3. Slow-file numbers move with machine load
+
+Ward runs four packages at once, each with `--maxWorkers=25%` — the whole machine twice over.
+The same test measured 11.9s in a whole-check run, 18.3s for its package alone under the old
+sum metric, and 4.0s running its file by itself. Two back-to-back whole-check runs spread 10%
+to 35%. Every threshold and allowance carries headroom for that, which means the gate catches a
+test that DOUBLES rather than one that drifts. Lowering ward's own concurrency would sharpen it
+at the cost of a longer whole-repo run; nobody has measured that trade.
 
 ## Two traps worth not re-discovering
 
-**A require at setup-file scope breaks every test that mocks anything in its graph.** A setup file
-runs before the test file body, so its modules resolve before the transformer's hoisted
-`jest.mock()` calls run, and the mocks then apply to nobody. That is why `jest.setup.js` loads the
-cleanup broker in `beforeAll` — outside jest's measured window AND inside the mocked registry.
+**The two leak detectors do not nest, and the sweep only runs one of them.** Jest's own
+collector waits about 30ms plus a garbage-collection cycle before it looks, so a fast-firing
+`setImmediate` settles on its own and is never reported. `@dungeonmaster/testing`'s timer
+watcher — the WORKER-branch detector, which a file-scoped sweep never reaches — checks at each
+file's teardown with no grace period and catches exactly those. The 18 immediates in the spawn
+proxy were reported clean by every sweep batch and in full by one `--only unit` run. Triage the
+sweep AND a whole-check run of each type.
 
-**Playwright's own timers look exactly like leaks.** A clean five-spec batch reported 74 findings
-before the three filters in `openHandleStatics.report` were right: both extensions of the watch
-adapter's own frame, `node:` rather than `node:internal`, and dropping any frame with no
-`line:column`. If e2e leak reports ever flood again, that is the first place to look.
+**Jest colours its "No tests found" banner even under `--no-color`.** A line-anchored match
+never fires against it, which made eight packages report `(crash) No tests found` where the
+honest answer was a skip. `scrolls/tools/ward-sweep.py` carries the first trap in its own
+header; this one lives in `isNoTestsFoundGuard`.
+
+**Playwright's own timers still look exactly like leaks**, and the fixture ORDER is what
+settles it: `_openHandleWatch` is declared first so it tears down last, because Playwright
+reverses setup order and the watch was otherwise sampling before the network dump had drained.
