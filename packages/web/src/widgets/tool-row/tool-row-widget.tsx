@@ -27,6 +27,7 @@ import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/
 import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { offscreenPlaceholderStatics } from '../../statics/offscreen-placeholder/offscreen-placeholder-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { elideMiddleTransformer } from '../../transformers/elide-middle/elide-middle-transformer';
 import { formatToolInputTransformer } from '../../transformers/format-tool-input/format-tool-input-transformer';
@@ -150,6 +151,14 @@ export const ToolRowWidget = ({
         borderLeft: `3px solid ${accentColor}`,
         borderRadius: 2,
         marginBottom: 2,
+        // A finished work item opens its whole transcript, so a reader lands on hundreds of these
+        // at once and the browser pays layout and paint for every one. This lets it skip the rows
+        // that are nowhere near the scrollport and reserve the placeholder height instead, which is
+        // exact here: a collapsed row lays out to precisely that. It does not disturb the header
+        // below — that header's travel was already bounded by THIS box, which is the only thing the
+        // containment this property implies would change.
+        contentVisibility: 'auto',
+        containIntrinsicSize: `auto ${String(offscreenPlaceholderStatics.heights.toolRow)}px`,
       }}
     >
       <UnstyledButton

@@ -19,6 +19,7 @@ import { toolResultDisplayContentContract } from '../../contracts/tool-result-di
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { offscreenPlaceholderStatics } from '../../statics/offscreen-placeholder/offscreen-placeholder-statics';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
 import { MarkdownTextWidget } from '../markdown-text/markdown-text-widget';
@@ -46,6 +47,15 @@ export interface ChatMessageWidgetProps {
 const BORDER_WIDTH = '2px solid';
 const LABEL_FONT_WEIGHT = 600;
 const RESULT_EXPANDED_MAX_HEIGHT = 300;
+// Every branch below returns one entry of a transcript that a finished work item now opens whole,
+// so a reader lands on hundreds of them and the browser lays out and paints every one. This lets it
+// skip the entries nowhere near the scrollport and hold their place with a reserved height instead.
+// Spread into all six branches rather than written per branch: what it reserves has to match what a
+// message really lays out to, and six independent copies is six chances for one to drift.
+const OFFSCREEN_PLACEHOLDER = {
+  contentVisibility: 'auto',
+  containIntrinsicSize: `auto ${String(offscreenPlaceholderStatics.heights.chatMessage)}px`,
+} as const;
 
 export const ChatMessageWidget = ({
   entry,
@@ -97,6 +107,7 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${colors['loot-rare']}`,
           borderRight: `${BORDER_WIDTH} ${colors['loot-rare']}`,
           textAlign: 'left',
+          ...OFFSCREEN_PLACEHOLDER,
         }}
       >
         <Text
@@ -181,6 +192,7 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${colors.danger}`,
           borderRight: `${BORDER_WIDTH} ${colors.danger}`,
           textAlign: 'center',
+          ...OFFSCREEN_PLACEHOLDER,
         }}
       >
         <Text
@@ -220,6 +232,7 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${userBorderColor}`,
           borderRight: `${BORDER_WIDTH} ${userBorderColor}`,
           textAlign: 'left',
+          ...OFFSCREEN_PLACEHOLDER,
         }}
       >
         <Text
@@ -254,6 +267,7 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${textBorderColor}`,
           borderRight: `${BORDER_WIDTH} ${textBorderColor}`,
           textAlign: 'left',
+          ...OFFSCREEN_PLACEHOLDER,
         }}
       >
         <Text
@@ -318,6 +332,7 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${colors.warning}`,
           borderRight: `${BORDER_WIDTH} ${colors.warning}`,
           textAlign: 'left',
+          ...OFFSCREEN_PLACEHOLDER,
         }}
       >
         <Text
@@ -358,6 +373,7 @@ export const ChatMessageWidget = ({
         borderLeft: `${BORDER_WIDTH} ${toolResultColor}`,
         borderRight: `${BORDER_WIDTH} ${toolResultColor}`,
         textAlign: 'left',
+        ...OFFSCREEN_PLACEHOLDER,
       }}
     >
       <Text
