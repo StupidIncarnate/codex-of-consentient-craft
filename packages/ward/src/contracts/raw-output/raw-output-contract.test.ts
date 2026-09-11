@@ -12,6 +12,7 @@ describe('rawOutputContract', () => {
         stdout: 'All checks passed',
         stderr: '',
         exitCode: 0,
+        signal: null,
       });
     });
 
@@ -22,6 +23,7 @@ describe('rawOutputContract', () => {
         stdout: '',
         stderr: 'Error found',
         exitCode: 1,
+        signal: null,
       });
     });
   });
@@ -50,6 +52,7 @@ describe('rawOutputContract', () => {
         stdout: '',
         stderr: '',
         exitCode: 0,
+        signal: null,
       });
     });
 
@@ -58,12 +61,14 @@ describe('rawOutputContract', () => {
         stdout: 'output',
         stderr: 'err',
         exitCode: 2,
+        signal: null,
       });
 
       expect(result).toStrictEqual({
         stdout: 'output',
         stderr: 'err',
         exitCode: 2,
+        signal: null,
       });
     });
   });

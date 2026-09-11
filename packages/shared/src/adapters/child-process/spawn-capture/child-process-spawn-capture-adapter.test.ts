@@ -2,6 +2,7 @@ import {
   AbsoluteFilePathStub,
   ErrorMessageStub,
   ExitCodeStub,
+  ProcessSignalStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnCaptureAdapter } from './child-process-spawn-capture-adapter';
@@ -28,6 +29,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(result).toStrictEqual({
         exitCode: ExitCodeStub({ value: 0 }),
         output: ErrorMessageStub({ value: '' }),
+        signal: null,
       });
     });
 
@@ -50,6 +52,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(result).toStrictEqual({
         exitCode: ExitCodeStub({ value: 0 }),
         output: ErrorMessageStub({ value: 'All tests passed' }),
+        signal: null,
       });
     });
 
@@ -73,6 +76,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(result).toStrictEqual({
         exitCode: ExitCodeStub({ value: 0 }),
         output: ErrorMessageStub({ value: 'All tests passed' }),
+        signal: null,
       });
     });
   });
@@ -97,6 +101,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(result).toStrictEqual({
         exitCode: ExitCodeStub({ value: 1 }),
         output: ErrorMessageStub({ value: 'Error in /src/file.ts' }),
+        signal: null,
       });
     });
 
@@ -119,6 +124,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(result).toStrictEqual({
         exitCode: ExitCodeStub({ value: 1 }),
         output: ErrorMessageStub({ value: 'stdout contentstderr content' }),
+        signal: null,
       });
     });
   });
@@ -142,6 +148,33 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(result).toStrictEqual({
         exitCode: ExitCodeStub({ value: 1 }),
         output: ErrorMessageStub({ value: 'partial run output' }),
+        signal: ProcessSignalStub({ value: 'SIGTERM' }),
+      });
+    });
+
+    it('VALID: {child killed by SIGKILL} => reports the signal, not just the exit code that hides it', async () => {
+      const proxy = childProcessSpawnCaptureAdapterProxy();
+      proxy.setupSignalKill({
+        command: 'eslint',
+        signal: 'SIGKILL',
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
+
+      const result = await childProcessSpawnCaptureAdapter({
+        command: 'eslint',
+        args: ['.'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      // The exit code alone cannot say this: a child killed from outside has none of its own, so it
+      // reads as 1 — identical to eslint choosing to fail over lint errors. `signal` is the only
+      // field that separates the two, and SIGKILL with no output is what the kernel's
+      // out-of-memory reaper leaves behind.
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: '' }),
+        signal: ProcessSignalStub({ value: 'SIGKILL' }),
       });
     });
   });
@@ -163,6 +196,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(result).toStrictEqual({
         exitCode: ExitCodeStub({ value: 1 }),
         output: ErrorMessageStub({ value: '' }),
+        signal: null,
       });
     });
   });

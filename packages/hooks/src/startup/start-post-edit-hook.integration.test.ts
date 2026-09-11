@@ -20,8 +20,37 @@ const BASE_DIR = FilePathStub({
 describe('post-edit-hook', () => {
   const persistentRunner = hookPersistentRunnerHarness();
 
+  // The warm-up payload is a real lint round-trip, and that is the point: a READY worker has only
+  // imported the flow, while `require(eslint.config.js)` and ESLint's first TypeScript program are
+  // lazy and cost seconds. Measured before this landed: first test 6371ms, every later one
+  // 224-366ms, for the same work. jest runs beforeAll outside the window it charges to a test, so
+  // paying it here is what makes ward's slow-test gate read test bodies. See the harness header.
   beforeAll(async () => {
-    await persistentRunner.start({ hookName: 'start-post-edit-hook' });
+    const warmupTestbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'warmup' }),
+      baseDir: BASE_DIR,
+    });
+
+    const warmupContent = `export const warm = ({ a }: { a: boolean }): boolean => a;\n`;
+
+    warmupTestbed.writeFile({
+      relativePath: RelativePathStub({ value: 'example.info.ts' }),
+      content: FileContentStub({ value: warmupContent }),
+    });
+
+    await persistentRunner.start({
+      hookName: 'start-post-edit-hook',
+      warmupHookData: PostToolUseHookStub({
+        cwd: process.cwd(),
+        tool_name: 'Write',
+        tool_input: WriteToolInputStub({
+          file_path: `${warmupTestbed.guildPath}/example.info.ts`,
+          content: warmupContent,
+        }),
+      }),
+    });
+
+    warmupTestbed.cleanup();
   });
 
   afterAll(async () => {

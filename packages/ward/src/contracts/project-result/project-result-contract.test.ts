@@ -12,7 +12,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         filesCount: 0,
         discoveredCount: 0,
         onlyDiscovered: [],
@@ -37,7 +37,7 @@ describe('projectResultContract', () => {
               severity: 'error',
             },
           ],
-          rawOutput: { stdout: '', stderr: 'Error', exitCode: 1 },
+          rawOutput: { stdout: '', stderr: 'Error', exitCode: 1, signal: null },
         }),
       );
 
@@ -54,7 +54,7 @@ describe('projectResultContract', () => {
           },
         ],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: 'Error', exitCode: 1 },
+        rawOutput: { stdout: '', stderr: 'Error', exitCode: 1, signal: null },
         filesCount: 0,
         discoveredCount: 0,
         onlyDiscovered: [],
@@ -91,7 +91,7 @@ describe('projectResultContract', () => {
             message: 'Failed',
           },
         ],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         filesCount: 0,
         discoveredCount: 0,
         onlyDiscovered: [],
@@ -111,7 +111,7 @@ describe('projectResultContract', () => {
         status: 'skip',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         filesCount: 0,
         discoveredCount: 0,
         onlyDiscovered: [],
@@ -131,7 +131,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.filesCount).toBe(0);
@@ -151,7 +151,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.discoveredCount).toBe(0);
@@ -172,7 +172,7 @@ describe('projectResultContract', () => {
           status: 'unknown',
           errors: [],
           testFailures: [],
-          rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+          rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         }),
       ).toThrow(/Invalid enum value/u);
     });
@@ -188,7 +188,7 @@ describe('projectResultContract', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+          rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
           filesCount: -1,
         }),
       ).toThrow(/too_small/u);
@@ -202,7 +202,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.fileTimings).toStrictEqual([]);
@@ -237,7 +237,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         filesCount: 0,
         discoveredCount: 0,
         onlyDiscovered: [],
@@ -257,7 +257,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.onlyDiscovered).toStrictEqual([]);
@@ -279,7 +279,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.passingTests).toStrictEqual([]);
@@ -307,7 +307,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.onlyProcessed).toStrictEqual([]);
@@ -329,7 +329,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.durationMs).toBe(0);
@@ -349,7 +349,7 @@ describe('projectResultContract', () => {
         status: 'pass',
         errors: [],
         testFailures: [],
-        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
       });
 
       expect(result.openHandles).toStrictEqual([]);

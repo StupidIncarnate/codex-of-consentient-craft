@@ -348,6 +348,7 @@ export const checkRunIntegrationBroker = async ({
       stdout: result.output,
       stderr: '',
       exitCode,
+      signal: result.signal,
     }),
   });
 };

@@ -88,6 +88,7 @@ export const checkRunLintBroker = async ({
       stdout: result.output,
       stderr: '',
       exitCode,
+      signal: result.signal,
     }),
   });
 };

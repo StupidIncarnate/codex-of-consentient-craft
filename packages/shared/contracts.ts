@@ -217,6 +217,8 @@ export * from './src/contracts/operation-item/operation-item.stub';
 // Process & Orchestration Contracts
 export * from './src/contracts/process-id/process-id-contract';
 export * from './src/contracts/process-id/process-id.stub';
+export * from './src/contracts/process-signal/process-signal-contract';
+export * from './src/contracts/process-signal/process-signal.stub';
 
 export * from './src/contracts/orchestration-slot/orchestration-slot-contract';
 export * from './src/contracts/orchestration-slot/orchestration-slot.stub';

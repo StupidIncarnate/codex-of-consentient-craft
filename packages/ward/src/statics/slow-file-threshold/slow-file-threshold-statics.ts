@@ -42,11 +42,17 @@ export const slowFileThresholdStatics = {
     // held to the jest bar. Playwright reports execution time per test and excludes browser boot,
     // so this is still test-body time and not startup.
     //
-    // Now calibrated on the whole suite rather than the five specs of one batch. Across 110 specs
-    // and 440 tests, the median spec's worst test runs 0.53s; two specs hold a test over four
-    // seconds and ONE holds a test over five. So this names a single outlier, which is what it is
-    // for — at three seconds it would name four specs, three of which are a deliberate delay the
-    // test is measuring.
-    e2eTestWarnMs: 5000,
+    // Calibrated on the whole suite rather than the five specs of one batch. Across 110 specs and
+    // 440 tests, the median spec's worst test runs 0.53s; the slowest measured anywhere is 7.9s,
+    // in a spec that sends images deliberately sized past the upload cap so a progress bar can be
+    // watched climbing from 0 to 100 — the transfer time IS what that test observes, so it is a
+    // measurement rather than a cost to remove. Two more sit near 3.6s and 4.4s, each a delay the
+    // test is asserting on.
+    //
+    // TEN SECONDS, which is the 7.9s outlier plus a couple of seconds of headroom. A browser spec
+    // is the noisiest thing this repo runs — a real server, a real Chromium and a real network,
+    // under whatever else the machine is doing — so a bar set just above the worst observed run
+    // reports contention. This still catches a spec that doubles past anything healthy.
+    e2eTestWarnMs: 10_000,
   },
 } as const;

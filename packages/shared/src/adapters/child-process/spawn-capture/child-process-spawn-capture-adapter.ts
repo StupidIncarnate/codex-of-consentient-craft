@@ -13,15 +13,24 @@
  * an empty capture is indistinguishable from a command that legitimately printed nothing: a `git
  * ls-files` reads as a clean tree, a `git rev-parse` reads as no HEAD. So the exit is awaited and
  * then BOTH stdio streams are awaited to their end before the promise settles.
+ *
+ * `signal` is REPORTED ALONGSIDE the exit code, never folded into it. A child killed from outside
+ * has no exit code of its own, and the `exitCode: 1` this hands back for that case cannot be told
+ * apart from a command that chose to fail — which is how an eslint the kernel's out-of-memory
+ * reaper SIGKILLed read as ordinary lint errors, with nothing anywhere naming memory. The exit code
+ * keeps its existing value so no caller changes behaviour; a caller that needs to know a death was
+ * imposed reads `signal`, which is `null` for every process that exited on its own.
  */
 
 import { spawn } from 'child_process';
 import {
   errorMessageContract,
   exitCodeContract,
+  processSignalContract,
   type AbsoluteFilePath,
   type ErrorMessage,
   type ExitCode,
+  type ProcessSignal,
 } from '@dungeonmaster/shared/contracts';
 
 export const childProcessSpawnCaptureAdapter = async ({
@@ -36,7 +45,7 @@ export const childProcessSpawnCaptureAdapter = async ({
   cwd: AbsoluteFilePath;
   timeout?: number;
   env?: Record<string, string>;
-}): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
+}): Promise<{ exitCode: ExitCode | null; output: ErrorMessage; signal: ProcessSignal | null }> =>
   new Promise((resolve) => {
     const child = spawn(command, args, {
       cwd,
@@ -92,23 +101,33 @@ export const childProcessSpawnCaptureAdapter = async ({
         clearTimeout(timeoutHandle);
       }
 
+      const killedBy = signal === null ? null : processSignalContract.parse(signal);
+
       drained
         .then(() => {
           const combinedOutput = errorMessageContract.parse(stdout + stderr);
 
           if (code === null && signal !== null) {
-            resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
+            resolve({
+              exitCode: exitCodeContract.parse(1),
+              output: combinedOutput,
+              signal: killedBy,
+            });
             return;
           }
 
           if (code !== null && code !== 0) {
             const normalizedCode = Math.max(0, code);
             const exitCode = exitCodeContract.parse(normalizedCode);
-            resolve({ exitCode, output: combinedOutput });
+            resolve({ exitCode, output: combinedOutput, signal: killedBy });
             return;
           }
 
-          resolve({ exitCode: exitCodeContract.parse(code ?? 0), output: combinedOutput });
+          resolve({
+            exitCode: exitCodeContract.parse(code ?? 0),
+            output: combinedOutput,
+            signal: killedBy,
+          });
         })
         .catch(() => {
           // A stdio stream can only reject by erroring, and the error handler below already
@@ -117,6 +136,7 @@ export const childProcessSpawnCaptureAdapter = async ({
           resolve({
             exitCode: exitCodeContract.parse(1),
             output: errorMessageContract.parse(stdout + stderr),
+            signal: killedBy,
           });
         });
     });
@@ -126,6 +146,8 @@ export const childProcessSpawnCaptureAdapter = async ({
         clearTimeout(timeoutHandle);
       }
       const combinedOutput = errorMessageContract.parse(stdout + stderr);
-      resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
+      // A spawn that never started has no signal to report — this fires when the command could not
+      // be found or the fork failed, both before any process existed to be killed.
+      resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput, signal: null });
     });
   });

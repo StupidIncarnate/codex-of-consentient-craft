@@ -287,6 +287,7 @@ export const checkRunE2eBroker = async ({
         stdout: result.output,
         stderr: '',
         exitCode,
+        signal: result.signal,
       }),
     });
   }
@@ -317,6 +318,7 @@ export const checkRunE2eBroker = async ({
       stdout: result.output,
       stderr: '',
       exitCode,
+      signal: result.signal,
     }),
   });
 };

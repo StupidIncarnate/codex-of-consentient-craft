@@ -4,6 +4,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
+import type { ExecResultStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import {
   EditToolHookStub,
@@ -20,11 +21,78 @@ const BASE_DIR = FilePathStub({
   value: `${process.cwd()}/src/.test-tmp/pre-edit-lint-tests`,
 });
 
+const CLEAN_SOURCE = `export function add({ a, b }: { a: boolean; b: boolean }): boolean {
+  return a || b;
+}`;
+const VIOLATING_SOURCE = `export function test({ param }: { param: any }): void {}`;
+
 describe('pre-edit-lint', () => {
   const persistentRunner = hookPersistentRunnerHarness();
+  const smokeRunner = hookRunnerHarness();
+
+  // Both spawn costs below are the RUNTIME's, not any test's, and jest runs beforeAll outside the
+  // test_start..test_done window it measures — so this is where they belong. Measured before the
+  // move: the two spawnSync smoke tests read 6956ms and 4879ms, and the first persistent-runner
+  // test read 3297ms against 181ms for the same work later in the file. Nearly all of each figure
+  // is one fresh child reaching the point where it can lint at all — tsx over 477 shared modules,
+  // `require(eslint.config.js)`, and ESLint's first TypeScript program. See the harness header.
+  let smokeSuccess: ReturnType<typeof ExecResultStub>;
+  let smokeFailure: ReturnType<typeof ExecResultStub>;
 
   beforeAll(async () => {
-    await persistentRunner.start({ hookName: 'start-pre-edit-hook' });
+    const warmupTestbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'warmup' }),
+      baseDir: BASE_DIR,
+    });
+
+    await persistentRunner.start({
+      hookName: 'start-pre-edit-hook',
+      warmupHookData: WriteToolHookStub({
+        cwd: warmupTestbed.guildPath,
+        tool_input: {
+          file_path: `${warmupTestbed.guildPath}/example.ts`,
+          content: CLEAN_SOURCE,
+        },
+      }),
+    });
+
+    warmupTestbed.cleanup();
+
+    const successTestbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'smoke-success' }),
+      baseDir: BASE_DIR,
+    });
+
+    smokeSuccess = smokeRunner.runHook({
+      hookName: 'start-pre-edit-hook',
+      hookData: WriteToolHookStub({
+        cwd: successTestbed.guildPath,
+        tool_input: {
+          file_path: `${successTestbed.guildPath}/example.ts`,
+          content: CLEAN_SOURCE,
+        },
+      }),
+    });
+
+    successTestbed.cleanup();
+
+    const failureTestbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'smoke-failure' }),
+      baseDir: BASE_DIR,
+    });
+
+    smokeFailure = smokeRunner.runHook({
+      hookName: 'start-pre-edit-hook',
+      hookData: WriteToolHookStub({
+        cwd: failureTestbed.guildPath,
+        tool_input: {
+          file_path: `${failureTestbed.guildPath}/example.ts`,
+          content: VIOLATING_SOURCE,
+        },
+      }),
+    });
+
+    failureTestbed.cleanup();
   });
 
   afterAll(async () => {
@@ -32,31 +100,8 @@ describe('pre-edit-lint', () => {
   });
 
   describe('process smoke tests', () => {
-    const runner = hookRunnerHarness();
-
     it('VALID: success path via spawnSync => returns exit code 0', () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'smoke-success' }),
-        baseDir: BASE_DIR,
-      });
-
-      const filePath = `${testbed.guildPath}/example.ts`;
-
-      const hookData = WriteToolHookStub({
-        cwd: testbed.guildPath,
-        tool_input: {
-          file_path: filePath,
-          content: `export function add({ a, b }: { a: boolean; b: boolean }): boolean {
-  return a || b;
-}`,
-        },
-      });
-
-      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
-
-      testbed.cleanup();
-
-      expect(result).toStrictEqual({
+      expect(smokeSuccess).toStrictEqual({
         exitCode: 0,
         stdout: '',
         stderr: '',
@@ -64,26 +109,7 @@ describe('pre-edit-lint', () => {
     });
 
     it('VALID: failure path via spawnSync => returns exit code 2', () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'smoke-failure' }),
-        baseDir: BASE_DIR,
-      });
-
-      const filePath = `${testbed.guildPath}/example.ts`;
-
-      const hookData = WriteToolHookStub({
-        cwd: testbed.guildPath,
-        tool_input: {
-          file_path: filePath,
-          content: `export function test({ param }: { param: any }): void {}`,
-        },
-      });
-
-      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
-
-      testbed.cleanup();
-
-      expect(result).toStrictEqual({
+      expect(smokeFailure).toStrictEqual({
         exitCode: 2,
         stdout: '',
         stderr: expect.stringMatching(/^🛑 New code quality violations detected:\n.+\n$/su),

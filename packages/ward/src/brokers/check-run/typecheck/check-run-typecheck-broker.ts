@@ -138,6 +138,7 @@ export const checkRunTypecheckBroker = async ({
       stdout: strippedOutput,
       stderr: '',
       exitCode,
+      signal: result.signal,
     }),
   });
 };

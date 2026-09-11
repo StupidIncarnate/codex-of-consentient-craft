@@ -1,9 +1,20 @@
 /**
  * PURPOSE: Provides a persistent child process for running hook flows without respawning per test
  *
+ * A READY worker is not a WARM one, and the gap is the whole reason `warmupHookData` exists. Spawning
+ * the child loads the flow module; the expensive half — `require(eslint.config.js)` and the first
+ * TypeScript program ESLint builds — happens lazily, on the first hook invocation. Left to a test,
+ * that one-time cost lands inside `assertionResults[].duration` and ward's slow-test gate reads it as
+ * a slow TEST. Measured on `start-pre-edit-hook`: first test 3297ms, every later one about 180ms, for
+ * the same work. Send `start()` a representative payload and jest charges the init to `beforeAll`,
+ * which it runs outside the test_start..test_done window — the same placement, and the same reason,
+ * as the `beforeAll` require in packages/testing/src/jest.setup.js.
+ *
  * USAGE:
  * const runner = hookPersistentRunnerHarness();
- * beforeAll(async () => { await runner.start({ hookName: 'start-pre-edit-hook' }); });
+ * beforeAll(async () => {
+ *   await runner.start({ hookName: 'start-pre-edit-hook', warmupHookData: someData });
+ * });
  * afterAll(async () => { await runner.stop(); });
  * const result = await runner.runHook({ hookData: someData });
  * // result.exitCode, result.stdout, result.stderr
@@ -29,7 +40,7 @@ type HookName =
 const WORKER_PATH = path.join(__dirname, 'hook-persistent-worker.ts');
 
 export const hookPersistentRunnerHarness = (): {
-  start: (params: { hookName: HookName }) => Promise<void>;
+  start: (params: { hookName: HookName; warmupHookData?: unknown }) => Promise<void>;
   stop: () => Promise<void>;
   runHook: (params: {
     hookData: unknown;
@@ -66,7 +77,28 @@ export const hookPersistentRunnerHarness = (): {
     }
   };
 
-  const start = async ({ hookName }: { hookName: HookName }): Promise<void> => {
+  const sendEnvelope = async (envelope: {
+    hookData?: unknown;
+    rawInput?: string;
+    args?: readonly string[];
+  }): Promise<ReturnType<typeof ExecResultStub>> => {
+    if (!child) {
+      throw new Error('Worker not started. Call start() first.');
+    }
+
+    return new Promise((resolve, reject) => {
+      responseQueue.push({ resolve, reject });
+      child!.stdin!.write(`${JSON.stringify(envelope)}\n`);
+    });
+  };
+
+  const start = async ({
+    hookName,
+    warmupHookData,
+  }: {
+    hookName: HookName;
+    warmupHookData?: unknown;
+  }): Promise<void> => {
     const flowPath = resolveFlowPath({ hookName });
 
     // `--conditions=source` matches jest's `customExportConditions: ['source', ...]` (see
@@ -121,6 +153,10 @@ export const hookPersistentRunnerHarness = (): {
 
       rl!.on('line', onLine);
     });
+
+    if (warmupHookData !== undefined) {
+      await sendEnvelope({ hookData: warmupHookData });
+    }
   };
 
   const stop = async (): Promise<void> => {
@@ -147,21 +183,6 @@ export const hookPersistentRunnerHarness = (): {
     if (currentRl) {
       currentRl.close();
     }
-  };
-
-  const sendEnvelope = async (envelope: {
-    hookData?: unknown;
-    rawInput?: string;
-    args?: readonly string[];
-  }): Promise<ReturnType<typeof ExecResultStub>> => {
-    if (!child) {
-      throw new Error('Worker not started. Call start() first.');
-    }
-
-    return new Promise((resolve, reject) => {
-      responseQueue.push({ resolve, reject });
-      child!.stdin!.write(`${JSON.stringify(envelope)}\n`);
-    });
   };
 
   const runHook = async ({

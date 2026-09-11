@@ -8,10 +8,26 @@
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import { cliBinHarness } from '../test/harnesses/cli-bin/cli-bin.harness';
 
-const TIMEOUT_MS = 5000;
+// Both child spawns share this budget now that they run together. The harness gives each its own
+// internal kill timer — 5000ms for runInit, 3000ms for the import probe — so this only has to
+// outlast the pair, leaving the harness's timers to be what resolves a hang.
+const SPAWNS_TIMEOUT_MS = 20_000;
 
 describe('dungeonmaster binary', () => {
   const harness = cliBinHarness();
+
+  // Both spawns run HERE because what they cost is the RUNTIME's, not the assertions'. `runInit`
+  // launches `npx tsx --conditions=source bin/cli-entry.ts`, and nearly all of its measured 3524ms
+  // was that child compiling and loading the CLI's module graph before `init` did anything. jest
+  // runs beforeAll outside the test_start..test_done window, so the boot lands in the suite's wall
+  // time — which ward already reports as `durationMs` — and each test measures its own assertion.
+  let init: Awaited<ReturnType<typeof harness.runInit>>;
+  let importProbe: Awaited<ReturnType<typeof harness.requireWithoutAutorun>>;
+
+  beforeAll(async () => {
+    init = await harness.runInit();
+    importProbe = await harness.requireWithoutAutorun();
+  }, SPAWNS_TIMEOUT_MS);
 
   describe('file structure', () => {
     // This describe block is the one place that keeps grading the built esbuild bundle instead
@@ -32,27 +48,15 @@ describe('dungeonmaster binary', () => {
   });
 
   describe('process execution', () => {
-    it(
-      'VALID: {non-TTY, init} => runs init command and exits successfully',
-      async () => {
-        const { exitCode } = await harness.runInit();
+    it('VALID: {non-TTY, init} => runs init command and exits successfully', () => {
+      expect(init.exitCode).toBe(ExitCodeStub({ value: 0 }));
+    });
 
-        expect(exitCode).toBe(ExitCodeStub({ value: 0 }));
-      },
-      TIMEOUT_MS,
-    );
-
-    it(
-      'VALID: {required as a module} => exits cleanly without booting the server or opening a browser',
-      async () => {
-        const { exitedCleanly, servedLineSeen } = await harness.requireWithoutAutorun();
-
-        expect({ exitedCleanly, servedLineSeen }).toStrictEqual({
-          exitedCleanly: true,
-          servedLineSeen: false,
-        });
-      },
-      TIMEOUT_MS,
-    );
+    it('VALID: {required as a module} => exits cleanly without booting the server or opening a browser', () => {
+      expect(importProbe).toStrictEqual({
+        exitedCleanly: true,
+        servedLineSeen: false,
+      });
+    });
   });
 });

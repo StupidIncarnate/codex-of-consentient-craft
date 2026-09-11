@@ -146,7 +146,7 @@ describe('slowFileTimingsTransformer', () => {
       expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
     });
 
-    it('VALID: {e2e spec at 6s} => slow, because it is over the browser bar', () => {
+    it('VALID: {e2e spec at 11s} => slow, because it is over the browser bar', () => {
       const check = CheckResultStub({
         checkType: 'e2e',
         status: 'pass',
@@ -155,9 +155,9 @@ describe('slowFileTimingsTransformer', () => {
             fileTimings: [
               FileTimingStub({
                 filePath: 'src/slow.e2e.ts',
-                durationMs: 6000,
-                testMs: 6000,
-                slowestTestMs: 6000,
+                durationMs: 11_000,
+                testMs: 11_000,
+                slowestTestMs: 11_000,
               }),
             ],
           }),

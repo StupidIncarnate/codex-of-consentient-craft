@@ -18,6 +18,8 @@ import { countFailingFilesTransformer } from '../count-failing-files/count-faili
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
 import { openHandleDisplayTransformer } from '../open-handle-display/open-handle-display-transformer';
+import { outOfMemoryReportTransformer } from '../out-of-memory-report/out-of-memory-report-transformer';
+import { isOutOfMemoryFailureGuard } from '../../guards/is-out-of-memory-failure/is-out-of-memory-failure-guard';
 import { slowFileTimingsTransformer } from '../slow-file-timings/slow-file-timings-transformer';
 import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
@@ -261,9 +263,42 @@ export const resultToSummaryTransformer = ({
     ];
   });
 
+  // A check that RAN OUT OF MEMORY is not a check that found something. It reaches here as a plain
+  // non-zero exit with output no parser can read, so `errors` is empty and `filesCount` is 0 — and
+  // the summary's own line for it says `FAIL 0 files, 0 errors`, which names no cause at all. This
+  // block is the cause, and it prints above the detail so it is the first thing read.
+  const outOfMemoryLines = wardResult.checks.flatMap((check) => {
+    const died = check.projectResults.filter((projectResult) =>
+      isOutOfMemoryFailureGuard({ rawOutput: projectResult.rawOutput }),
+    );
+
+    if (died.length === 0) {
+      return [];
+    }
+
+    const reportLines = died.map((projectResult) =>
+      String(
+        outOfMemoryReportTransformer({
+          projectFolder: projectResult.projectFolder,
+          rawOutput: projectResult.rawOutput,
+        }),
+      ),
+    );
+
+    return [
+      `\n--- out of memory (${check.checkType}) ---\n  these checks DIED rather than failed, so whatever they reported is not a verdict on your code\n${reportLines.join('\n')}`,
+    ];
+  });
+
   const summaryLines = [runLine, ...checkLines];
 
   return wardSummaryContract.parse(
-    [...summaryLines, ...slowFileLines, ...openHandleLines, ...detailLines].join('\n'),
+    [
+      ...summaryLines,
+      ...outOfMemoryLines,
+      ...slowFileLines,
+      ...openHandleLines,
+      ...detailLines,
+    ].join('\n'),
   );
 };

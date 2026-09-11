@@ -7,8 +7,14 @@ describe('slowFileThresholdStatics', () => {
       testWarnMs: 1000,
       integrationTestWarnMs: 3000,
       lintRulesWarnMs: 2000,
-      e2eTestWarnMs: 5000,
+      e2eTestWarnMs: 10_000,
     });
+  });
+
+  it('VALID: the browser bar => sits above every other, because a spec drives a real server and a real browser', () => {
+    expect(slowFileThresholdStatics.threshold.e2eTestWarnMs).toBeGreaterThan(
+      slowFileThresholdStatics.threshold.integrationTestWarnMs,
+    );
   });
 
   it('VALID: the two thresholds => the test-body bar is the stricter one', () => {

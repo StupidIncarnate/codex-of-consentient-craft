@@ -361,6 +361,7 @@ export const checkRunUnitBroker = async ({
       stdout: result.output,
       stderr: '',
       exitCode,
+      signal: result.signal,
     }),
   });
 };
