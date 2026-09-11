@@ -36,9 +36,13 @@ export const slowFileThresholdStatics = {
     lintRulesWarnMs: 1000,
     // A browser spec navigates, waits for real paint and talks to a real server, so it cannot be
     // held to the jest bar. Playwright reports execution time per test and excludes browser boot,
-    // so this is still test-body time and not startup. Calibrated on the five specs of one batch,
-    // which summed 0.2s to 1.4s each — a small sample, and worth revisiting once a full sweep has
-    // reported all 111.
+    // so this is still test-body time and not startup.
+    //
+    // Now calibrated on the whole suite rather than the five specs of one batch. Across 110 specs
+    // and 440 tests, the median spec's worst test runs 0.53s; two specs hold a test over four
+    // seconds and ONE holds a test over five. So this names a single outlier, which is what it is
+    // for — at three seconds it would name four specs, three of which are a deliberate delay the
+    // test is measuring.
     e2eTestWarnMs: 5000,
   },
   // Files whose WORST SINGLE TEST may exceed its bar, each with the cost that was measured and
@@ -95,6 +99,10 @@ export const slowFileThresholdStatics = {
     'packages/hooks/src/startup/start-pre-folder-detail-hook.integration.test.ts': {
       slowestTestMs: 5000,
       why: 'spawns the hook binary; the child loads the shared module graph before it reads stdin',
+    },
+    'src/flows/quest-chat/send-images-chat-route.e2e.ts': {
+      slowestTestMs: 12000,
+      why: 'its worst case sends images deliberately large enough for an upload progress bar to paint and climb from 0 to 100, so the transfer time IS what the test observes; a smaller payload would finish before the bar could be seen at all',
     },
   },
 } as const;

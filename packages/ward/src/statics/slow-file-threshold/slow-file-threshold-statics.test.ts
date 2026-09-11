@@ -51,12 +51,22 @@ describe('slowFileThresholdStatics', () => {
     },
   );
 
-  // The key is matched against the END of jest's absolute path, so a leading slash or a `./` would
-  // never match and the allowance would silently do nothing.
+  // The key is matched against the END of the absolute path jest reports, so it must be a relative
+  // path fragment: a leading slash or a `./` never matches and the allowance would silently do
+  // nothing. It must also carry a directory, since a bare filename would match that name in any
+  // package — and a published ward runs in repos whose package names it cannot know.
   it.each(ALLOWANCE_ENTRIES)(
-    'VALID: {allowance: %s} => is a repo-relative path under packages/',
+    'VALID: {allowance: %s} => is a relative path fragment carrying a directory',
     (filePath) => {
-      expect(filePath.startsWith('packages/')).toBe(true);
+      expect({
+        startsWithSlash: filePath.startsWith('/'),
+        startsWithDot: filePath.startsWith('.'),
+        carriesADirectory: filePath.includes('/'),
+      }).toStrictEqual({
+        startsWithSlash: false,
+        startsWithDot: false,
+        carriesADirectory: true,
+      });
     },
   );
 });
