@@ -11,7 +11,9 @@
 export const sessionSnippetStatics = {
   discover: `## discover Tool
 
-\`discover\` is the ONLY way to search this codebase. Native Glob, Grep, Search, and Find tools — plus shell \`grep\`/\`find\`/\`sed\` — are blocked by hooks. \`discover\` and \`get-project-map\` are MCP **tools**: load them via \`ToolSearch\`, never as shell commands or skills.
+\`discover\` is the ONLY way to search this codebase. Native Glob, Grep, Search, and Find tools — plus shell \`grep\`/\`find\`/\`sed\` — are blocked by hooks. \`discover\`, \`get-project-map\` and \`get-project-inventory\` are MCP **tools**: load them via \`ToolSearch\`, never as shell commands or skills.
+
+**\`discover\` is step THREE, never step one.** \`get-project-map({ packages: [...] })\` is a package's bird's-eye view and \`get-project-inventory({ packageName })\` lists all it holds; \`discover\` globs into what one of those named. Reach for it first and you are guessing a path; a wrong glob returns nothing, which reads exactly like a package that holds nothing. \`<dungeonmaster-searchStrategy>\` has the order.
 
 | Param | Type | Description |
 |-------|------|-------------|
@@ -21,29 +23,14 @@ export const sessionSnippetStatics = {
 | \`context\` | number? | Lines around grep hits. Default: 0 |
 | \`strict\` | boolean? | Disable cross-convention matching. Default: false |
 
-### Output: glob (default)
+A \`glob\` call returns a folder tree: one line per file, with its folder type and purpose. \`verbose: true\` returns JSON with signatures, companions and usage.
 
-\`discover({ glob: "packages/<name>/src/widgets/quest-chat/**" })\` returns a folder tree:
-
-\`\`\`
-widgets/
-  quest-chat/
-    quest-chat-widget (widget) - Quest chat with split panels
-    quest-chat-widget.proxy (widget) - Test proxy
-    quest-chat-widget.test (widget)
-\`\`\`
-
-\`verbose: true\` returns JSON with signatures, companions, and usage instead.
-
-### All call forms
+### Call forms
 
 \`\`\`
 discover({ glob: "packages/*/src/startup/**" })
 discover({ glob: "packages/{web,server}/src/widgets/**" })
 discover({ glob: "packages/hooks/src/guards/**", verbose: true })
-discover({ grep: "isNewSession" })
-discover({ grep: "(?i)error" })
-discover({ grep: "import.*shared" })
 discover({ grep: "fileSize|timeout", context: 2 })
 discover({ glob: "packages/hooks/**", grep: "isNew" })
 discover({ grep: "OrchestrationEventType" })  // cross-convention default
@@ -61,17 +48,23 @@ Before searching, exploring, or modifying code, follow this order.
 ### Step 1: candidate package(s)
 Pick the package(s) the task touches; the \`dungeonmaster-packages\` snippet lists them. No guess? Read the task again.
 
-### Step 2: pick the tool your question needs
-Two tools, two questions — not two zoom levels.
+### Step 2: map or inventory the package — BEFORE your first \`discover\`
+**Not optional, and \`discover\` does not stand in for it.** Both take the package name Step 1 gave you.
 
-**How does execution move?** (what handles this call, what calls what, where it boots) → \`get-project-map({ packages: [...] })\`, min 1 name. WIRED nodes only: startup, flows, responders, brokers, adapters, state, routes. A library package has none, so it points at inventory instead.
+**\`get-project-map({ packages: [...] })\` — the bird's-eye view**: where to look inside a package, and how data moves through it (startup, flows, responders, brokers, adapters, state, routes). ONE call takes every package you know you need. A library package has no wired nodes and points at inventory instead.
 
-**What already exists?** (which contract, is there a transformer, what guards cover X) → \`get-project-inventory({ packageName })\`. Every folder, every domain, no relationships. \`discover\` globs miss naming variants (\`email/\` vs \`email-address/\`); inventory is the full list.
+**\`get-project-inventory({ packageName })\` — the \`ls\`**: every folder and domain the package holds, so you can see whether something already there serves your goal. One package per call, and it catches the naming variants a glob misses (\`email/\` against \`email-address/\`).
+
+**Skip to \`discover\` and you are guessing the path.** A wrong glob returns nothing, which reads exactly like a package with nothing in it — that is how a session decides code is missing and writes a second copy of it.
 
 ### Step 3: \`discover\` a targeted glob, then \`Read\`
-Glob into the folder type Step 2 named — glob, not grep: grep guesses names, glob browses structure. \`get-project-map\` errors on an unknown name and lists the valid ones.
+Glob into the folder Step 2 named — glob, not grep: grep guesses names, glob browses structure. \`get-project-map\` errors on an unknown name and lists the valid ones.
 
-### Handing a find back to whoever asked
+**What you write once you have found it** is the \`<dungeonmaster-reportingFindings>\` snippet.`,
+
+  reportingFindings: `## Handing a Find Back
+
+Applies whenever you report a search, an exploration or an investigation to whoever asked — your operator, your orchestrator, or the user.
 
 \`\`\`
 ANSWER — <the answer to the question, in the fewest lines that answer it fully>

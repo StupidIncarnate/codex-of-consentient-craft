@@ -248,8 +248,22 @@ Load the repo's standards before you read anything else: \`get-architecture\` an
 \`get-testing-patterns\`. Neither takes an argument. They override your training defaults, which are
 wrong for this codebase — read code first and you will copy patterns you cannot yet judge.
 
-Use \`get-project-map\` for a package's shape and \`discover\` for a named symbol. Use \`Read\` once
-\`discover\` has found the file.
+**Then ONE \`get-project-map\` call, before your first \`discover\`, naming EVERY package you already
+know you will look at** — your own, plus every package your step-1 render tags on a node of your
+flow:
+
+\`\`\`
+get-project-map({ packages: ['<your package>', '<every other package your flow tags>'] })
+\`\`\`
+
+It answers what \`discover\` cannot: which folders each package really has, what is wired to what, and
+which one it labels \`[library]\`. A package with no wired nodes comes back pointing at
+\`get-project-inventory({ packageName })\` — the full folder-and-domain list, and the call to make
+wherever a glob would miss a naming variant (\`email/\` against \`email-address/\`).
+
+**\`discover\` comes AFTER those, never instead of them.** It takes a path or a name, so reaching for
+it first guesses both — and a glob that guessed wrong returns nothing, which reads exactly like a
+package that has nothing there. Then \`Read\`, once \`discover\` has found the file.
 
 **Delegate a SEARCH, never a READ.** An explorer earns its hops where the search is large and the
 answer is small — "which of these seventy-odd files configures X" comes back as one path, and the
@@ -565,6 +579,10 @@ READ FIRST
 
 DISCOVERY
   Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
+  Open with get-project-map({ packages: [<every package your FILES above touch>] }). It names
+  the folders each package really has; discover globs into what it named. A discover before
+  that call guesses a path, and a glob that guessed wrong returns nothing — which reads
+  exactly like a package with nothing in it.
   Exploring is how you learn the code you are about to change; hand it off and what it
   found lands in someone else's summary instead of in the session doing the work.
   You sit one level below the operator that briefed you, and nothing goes below you.

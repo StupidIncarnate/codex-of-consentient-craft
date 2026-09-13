@@ -262,9 +262,75 @@ describe('sessionSnippetStatics', () => {
     ).toBe(false);
   });
 
+  // FIVE EXECUTION SESSIONS SKIPPED STEP 2 ON ONE QUEST. On 1dac5395 both codeweavers, both
+  // flowriders and siegemaster each ran get-architecture, then get-testing-patterns, then straight
+  // to `discover` — not one `get-project-map` or `get-project-inventory` call between them, while
+  // the planning session that did call the map spent 1 Read per discover against their 2 to 3. The
+  // gate is pinned as separate needles because each alone reads as optional: the ban naming no
+  // substitute sends a session back to `discover`, and either tool without the ban reads as a menu.
+  it('VALID: searchStrategy snippet => gates discover behind the map and the inventory, and says what each one answers', () => {
+    expect({
+      gateIsNotOptional: sessionSnippetStatics.searchStrategy.includes(
+        '**Not optional, and `discover` does not stand in for it.**',
+      ),
+      mapIsTheBirdsEyeView: sessionSnippetStatics.searchStrategy.includes(
+        "**`get-project-map({ packages: [...] })` — the bird's-eye view**",
+      ),
+      oneCallTakesEveryPackage: sessionSnippetStatics.searchStrategy.includes(
+        'ONE call takes every package you know you need',
+      ),
+      inventoryIsTheLs: sessionSnippetStatics.searchStrategy.includes(
+        '**`get-project-inventory({ packageName })` — the `ls`**',
+      ),
+      inventoryAnswersWhatExists: sessionSnippetStatics.searchStrategy.includes(
+        'whether something already there serves your goal',
+      ),
+      skippingIsGuessing: sessionSnippetStatics.searchStrategy.includes(
+        '**Skip to `discover` and you are guessing the path.**',
+      ),
+      routesReportingToItsOwnSnippet: sessionSnippetStatics.searchStrategy.includes(
+        '`<dungeonmaster-reportingFindings>`',
+      ),
+    }).toStrictEqual({
+      gateIsNotOptional: true,
+      mapIsTheBirdsEyeView: true,
+      oneCallTakesEveryPackage: true,
+      inventoryIsTheLs: true,
+      inventoryAnswersWhatExists: true,
+      skippingIsGuessing: true,
+      routesReportingToItsOwnSnippet: true,
+    });
+  });
+
+  // THE DISCOVER SNIPPET'S OPENING CLAIM IS WHAT MADE THE SKIP FEEL CORRECT. "`discover` is the
+  // ONLY way to search this codebase" is true about the blocked native tools and reads as "start
+  // here" about ordering, so the ordering answer has to sit in the same snippet as the claim that
+  // undercuts it — a session that loads this one and not searchStrategy still gets the order.
+  it('VALID: discover snippet => puts itself after the map and the inventory, and routes to searchStrategy', () => {
+    expect({
+      isStepThree: sessionSnippetStatics.discover.includes(
+        '**`discover` is step THREE, never step one.**',
+      ),
+      namesBothOrientationTools: sessionSnippetStatics.discover.includes(
+        "`get-project-map({ packages: [...] })` is a package's bird's-eye view and `get-project-inventory({ packageName })` lists all it holds",
+      ),
+      wrongGlobLooksLikeAnEmptyPackage: sessionSnippetStatics.discover.includes(
+        'a wrong glob returns nothing, which reads exactly like a package that holds nothing',
+      ),
+      routesToSearchStrategy: sessionSnippetStatics.discover.includes(
+        '`<dungeonmaster-searchStrategy>` has the order',
+      ),
+    }).toStrictEqual({
+      isStepThree: true,
+      namesBothOrientationTools: true,
+      wrongGlobLooksLikeAnEmptyPackage: true,
+      routesToSearchStrategy: true,
+    });
+  });
+
   it('VALID: discover snippet => flags shell grep/find/sed as blocked and points to ToolSearch', () => {
     expect(sessionSnippetStatics.discover).toMatch(
-      /^`discover` is the ONLY way to search this codebase\. Native Glob, Grep, Search, and Find tools — plus shell `grep`\/`find`\/`sed` — are blocked by hooks\. `discover` and `get-project-map` are MCP \*\*tools\*\*: load them via `ToolSearch`, never as shell commands or skills\.$/mu,
+      /^`discover` is the ONLY way to search this codebase\. Native Glob, Grep, Search, and Find tools — plus shell `grep`\/`find`\/`sed` — are blocked by hooks\. `discover`, `get-project-map` and `get-project-inventory` are MCP \*\*tools\*\*: load them via `ToolSearch`, never as shell commands or skills\.$/mu,
     );
   });
 
@@ -340,40 +406,41 @@ describe('sessionSnippetStatics', () => {
   // the asker's read of the quote — where a pointer costs the asker one `Read` of the range it needs.
   // Measured on a real dispatch: an explore agent built 103k of context mapping a package's e2e
   // infrastructure and returned one config file with its full contents pasted in, so the search that
-  // justified delegating at all was thrown away and the quote was the only thing that survived. Every
-  // step above this section is about FINDING; nothing said what leaves. The verbatim anchor and the
+  // justified delegating at all was thrown away and the quote was the only thing that survived.
+  // `searchStrategy` is about FINDING; this snippet is what LEAVES, which is why it is its own key
+  // rather than that one's last section. The verbatim anchor and the
   // sentence/file split are pinned separately because either one alone inverts the rule: with no
   // anchor a pointer cannot be checked and a stale one reads as a find, and with no split a spec
   // sentence gets paraphrased into something it does not say.
-  it('VALID: searchStrategy snippet => fixes the return shape, bans pasting a file, and keeps NOTHING FOUND an answer', () => {
+  it('VALID: reportingFindings snippet => fixes the return shape, bans pasting a file, and keeps NOTHING FOUND an answer', () => {
     expect({
-      answerLine: sessionSnippetStatics.searchStrategy.includes(
+      answerLine: sessionSnippetStatics.reportingFindings.includes(
         'ANSWER — <the answer to the question, in the fewest lines that answer it fully>',
       ),
-      evidenceLine: sessionSnippetStatics.searchStrategy.includes(
+      evidenceLine: sessionSnippetStatics.reportingFindings.includes(
         '  <path>:<line> — "<the line at that spot, verbatim>" — <what is there, in your own words>',
       ),
-      neverPasteAFile: sessionSnippetStatics.searchStrategy.includes(
+      neverPasteAFile: sessionSnippetStatics.reportingFindings.includes(
         '**Never paste a file back.**',
       ),
-      paidThreeTimes: sessionSnippetStatics.searchStrategy.includes(
+      paidThreeTimes: sessionSnippetStatics.reportingFindings.includes(
         'a quoted file is paid three times — your read, your write, their read',
       ),
-      verbatimAnchorIsCheckable: sessionSnippetStatics.searchStrategy.includes(
+      verbatimAnchorIsCheckable: sessionSnippetStatics.reportingFindings.includes(
         'The verbatim line makes the pointer checkable and catches a stale one',
       ),
-      quoteASentencePointAtAFile: sessionSnippetStatics.searchStrategy.includes(
+      quoteASentencePointAtAFile: sessionSnippetStatics.reportingFindings.includes(
         '**Quote a sentence, point at a file.**',
       ),
-      nothingFoundIsAnAnswer: sessionSnippetStatics.searchStrategy.includes(
+      nothingFoundIsAnAnswer: sessionSnippetStatics.reportingFindings.includes(
         '**`NOTHING FOUND` is a real answer.**',
       ),
-      opensEveryPathItCites: sessionSnippetStatics.searchStrategy.includes(
+      opensEveryPathItCites: sessionSnippetStatics.reportingFindings.includes(
         'open every path you cite and read it',
       ),
       // The `SubagentStart` hook payload carries an `agent_type`, and exploring and reporting is a
       // thing ANY kind of sub-agent does, so this section binds all of them unconditionally.
-      conditionsOnNoAgentType: sessionSnippetStatics.searchStrategy.indexOf('agent_type'),
+      conditionsOnNoAgentType: sessionSnippetStatics.reportingFindings.indexOf('agent_type'),
     }).toStrictEqual({
       answerLine: true,
       evidenceLine: true,

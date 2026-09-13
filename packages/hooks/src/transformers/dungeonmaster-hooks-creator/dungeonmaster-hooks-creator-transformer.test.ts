@@ -38,6 +38,11 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
           },
           {
+            hooks: [
+              { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+            ],
+          },
+          {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
           },
           {
@@ -104,6 +109,11 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
           },
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+          },
+          {
+            hooks: [
+              { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+            ],
           },
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
@@ -232,16 +242,18 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
 
       expect({
         first: result.SessionStart[0]?.hooks[0]?.command,
-        ward: result.SessionStart[4]?.hooks[0]?.command,
-        wardDiscipline: result.SessionStart[5]?.hooks[0]?.command,
-        packages: result.SessionStart[6]?.hooks[0]?.command,
-        backgroundTasks: result.SessionStart[7]?.hooks[0]?.command,
-        commentDiscipline: result.SessionStart[8]?.hooks[0]?.command,
-        buildDiscipline: result.SessionStart[9]?.hooks[0]?.command,
-        worktrees: result.SessionStart[10]?.hooks[0]?.command,
-        generatedConfig: result.SessionStart[11]?.hooks[0]?.command,
+        reportingFindings: result.SessionStart[2]?.hooks[0]?.command,
+        ward: result.SessionStart[5]?.hooks[0]?.command,
+        wardDiscipline: result.SessionStart[6]?.hooks[0]?.command,
+        packages: result.SessionStart[7]?.hooks[0]?.command,
+        backgroundTasks: result.SessionStart[8]?.hooks[0]?.command,
+        commentDiscipline: result.SessionStart[9]?.hooks[0]?.command,
+        buildDiscipline: result.SessionStart[10]?.hooks[0]?.command,
+        worktrees: result.SessionStart[11]?.hooks[0]?.command,
+        generatedConfig: result.SessionStart[12]?.hooks[0]?.command,
       }).toStrictEqual({
         first: 'dungeonmaster-session-snippet discover',
+        reportingFindings: 'dungeonmaster-session-snippet reportingFindings',
         ward: 'dungeonmaster-session-snippet ward',
         wardDiscipline: 'dungeonmaster-session-snippet wardDiscipline',
         packages: 'dungeonmaster-session-snippet packages',

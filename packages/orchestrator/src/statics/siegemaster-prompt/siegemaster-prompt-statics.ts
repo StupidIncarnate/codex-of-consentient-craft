@@ -164,6 +164,7 @@ YOURS
   get-quest                                    step 1, your flow whole
   get-qa-checklist                             steps 1 and 9, the full list of units on your flow
   Read / discover                              reading a round's finding in context
+  get-project-map / get-project-inventory      the packages your flow tags — before any discover
   Read on the guide                            what your sub-agent wrote at step 3
   git diff / git status / git log              step 6, reading what a fixer changed
   python3 -c                                   the substitute for grep/find/sed, blocked in this repo
@@ -277,6 +278,12 @@ lane, and change nothing. Read the code; write down what they would otherwise ea
 
 PATHS:  <the checklist's WALK PATHS, word for word>
 UNITS:  <the checklist's units and its CHECK SURFACES legend, word for word>
+
+OPEN WITH get-project-map({ packages: [<every package your flow's nodes tag>] }). It names the
+folders each package really has; discover globs into what it named, and is never your first
+call — it takes a path or a name, so a discover before that map guesses both, and a glob that
+guessed wrong returns nothing, which reads exactly like a package with nothing in it. Where
+the map shows a package with no wired nodes, get-project-inventory({ packageName }) is its list.
 
 Cover exactly these headings, and write "none needed" under one rather than dropping it:
   TOOLING        every surface this flow touches, and what DRIVES each one. A flow crossing a

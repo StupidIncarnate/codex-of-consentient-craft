@@ -225,6 +225,20 @@ prints none. They are the \`{…}\` set on each node line.
 Load the repo's standards first: \`get-architecture\` and \`get-testing-patterns\`. None takes an
 argument. They override your training defaults, which are wrong for this codebase.
 
+**Then ONE \`get-project-map\` call, before your first \`discover\`, naming EVERY package your flow
+tags.** Your step-1 render tags each node with the package that owns it, and those names are the
+list:
+
+\`\`\`
+get-project-map({ packages: ['<every package your flow's nodes tag>'] })
+\`\`\`
+
+It answers what \`discover\` cannot: which folders each package really has, and what is wired to what.
+A package with no wired nodes comes back pointing at \`get-project-inventory({ packageName })\`, the
+full folder-and-domain list. **\`discover\` comes AFTER those, never instead of them** — it takes a
+path or a name, so reaching for it first guesses both, and a glob that guessed wrong returns nothing,
+which reads exactly like a package with nothing in it.
+
 Then read the code your flow runs through. You need to know the exact value each unit claims — the
 string, the status, the count, the order, the bound — before you can tell a sub-agent what to assert.
 
@@ -521,6 +535,10 @@ FIRST
 
 DISCOVERY
   Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
+  Open with get-project-map({ packages: [<every package your files above touch>] }). It names
+  the folders each package really has; discover globs into what it named. A discover before
+  that call guesses a path, and a glob that guessed wrong returns nothing — which reads
+  exactly like a package with nothing in it.
   Exploring is how you learn the code you are about to prove; hand it off and what it
   found lands in someone else's summary instead of in the session writing the test.
   You sit one level below the operator that briefed you, and nothing goes below you.
