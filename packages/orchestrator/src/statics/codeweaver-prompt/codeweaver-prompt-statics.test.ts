@@ -225,38 +225,62 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
-  // 1b. `RETURN` ASKED FOR A WATCHED RED WITH NO PROCEDURE BEHIND IT, and three sessions invented
-  // three incompatible answers — one hand-ran six mutation cycles (12 edits, 10 ward runs, ~6
-  // minutes), one refused to fabricate and said so three times, one hedged into 90 words describing
-  // no red at all. The git hazard clause is why the restore is an EDIT: `git checkout --` on a
-  // branch other sessions share throws away work that is not this session's.
-  it('VALID: brief template => carries RED FIRST with the git hazard clause and the no-prior-red case', () => {
+  // 1b. A RED IS PRODUCED BY EDITING THE SPEC'S OWN ASSERTION, never by touching the implementation.
+  // Measured on quest 1dac5395, whose briefs carried the earlier break-the-implementation wording:
+  // three sub-agents invented a file shuffle to reach a red — one `mv`-ed the implementation out of
+  // the tree and back, two reached for `git stash` and were refused by the pre-bash hook, both then
+  // rewriting the file by hand — and two reported `TS2307: Cannot find module` as their entire red,
+  // a compile failure ward prints as `Test suite failed to run`, so no assertion in either file ever
+  // executed. The FAILS IF value the brief already hands over is the only red that proves an
+  // assertion RUNS, and the RECEIVED value alongside it is what proves the assertion reads the value
+  // it claims to.
+  it('VALID: brief template => produces a red from the spec own FAILS IF value, and bans every other route', () => {
     expect({
-      watchItFail: hasIn({
+      implementationFirst: hasIn({
         needle:
-          'RED FIRST\n  Watch it fail before you make it pass, and name that red in the return.',
+          'RED FIRST\n  The implementation first, then the spec written AGAINST it with every unit assertion set\n  to its FAILS IF value.',
         text: BRIEF_TEMPLATE,
       }),
-      breakTheOneLine: hasIn({
+      receivedValueIsTheProof: hasIn({
         needle:
-          'Break the ONE line the test guards, run the spec, capture the red, then put that line back BY EDITING IT BACK — never git checkout --, on a branch other sessions share. Confirm git diff on that file is empty afterwards.',
+          "Every one of those expects must FAIL, and each failure must report this unit's ASSERT value as what it RECEIVED.",
         text: BRIEF_TEMPLATE,
       }),
-      newCodeCase: hasIn({
+      preconditionsStayTrue: hasIn({
         needle:
-          'New code and its test written together, with no earlier behaviour to break? Run the spec before the code exists and report THAT red — the module that does not resolve, the export that is not defined.',
+          'Set only the assertions that SETTLE a unit. A precondition — the module imported, the element present, the panel rendered — stays true, because a precondition that fails stops the test before the assertions that matter ever run.',
         text: BRIEF_TEMPLATE,
       }),
-      inventsNothing: hasIn({
+      aVacuousExpectIsTheAssertionsFault: hasIn({
         needle:
-          'never fabricate a red you did not watch, never hedge it into a paragraph, and never invent a mutation protocol. Nobody asked for one.',
+          "An expect that PASSES holding its FAILS IF value reads nothing. An expect that fails reporting some OTHER received value reads the wrong thing. Both are the assertion's fault: fix the assertion, never the FAILS IF value you were handed.",
         text: BRIEF_TEMPLATE,
       }),
+      compileErrorIsNotARed: hasIn({
+        needle:
+          'A suite that never RAN has produced no red. `Cannot find module`, `Test suite failed to run` and every `error TS` are compile failures with no assertion behind them: fix them and run again, and never report one as a red.',
+        text: BRIEF_TEMPLATE,
+      }),
+      everyEvasionBannedByName: hasIn({
+        needle:
+          'You produce a red by editing YOUR OWN SPEC and nothing else. Banned, by name: moving, copying or renaming any file; git stash; rewriting a file from git show; a `.bak` file; editing an implementation file to break it.',
+        text: BRIEF_TEMPLATE,
+      }),
+      breakTheImplementationWordingGone: BRIEF_TEMPLATE.includes(
+        'Break the ONE line the test guards',
+      ),
+      moduleNotFoundNoLongerOfferedAsARed: BRIEF_TEMPLATE.includes(
+        'the module that does not resolve',
+      ),
     }).toStrictEqual({
-      watchItFail: true,
-      breakTheOneLine: true,
-      newCodeCase: true,
-      inventsNothing: true,
+      implementationFirst: true,
+      receivedValueIsTheProof: true,
+      preconditionsStayTrue: true,
+      aVacuousExpectIsTheAssertionsFault: true,
+      compileErrorIsNotARed: true,
+      everyEvasionBannedByName: true,
+      breakTheImplementationWordingGone: false,
+      moduleNotFoundNoLongerOfferedAsARed: false,
     });
   });
 
@@ -333,15 +357,34 @@ describe('codeweaverPromptStatics', () => {
     }).toStrictEqual({ neverAFootnote: true, why: true, returnCarriesIt: true });
   });
 
-  // 1f. THE SUB-AGENT EXPLORES FOR ITSELF. One that could not tell whether its brief or a lint rule
-  // was right dispatched an explorer of its own — 24 tool calls, about two minutes — then deviated
-  // silently anyway. Exploring is how a session learns the code it is about to change, so handing it
-  // off puts that context in a summary rather than in the session doing the work.
-  it('VALID: brief template => makes the sub-agent explore for itself and report what the repo refused', () => {
+  // 1f. DISCOVERY IS THE FALLBACK, AND WHATEVER EXPLORING IS NEEDED THE SUB-AGENT DOES ITSELF. The
+  // brief already carries what the operator paid to find, so a session that searches for it again
+  // buys the same answer twice out of its own context. The three named gaps are what "not enough"
+  // means, because a bare "if you need to" is a judgement every session settles differently. The ban
+  // on handing the search down is separate and unconditional: one sub-agent that could not tell
+  // whether its brief or a lint rule was right dispatched an explorer of its own — 24 tool calls,
+  // about two minutes — then deviated silently anyway.
+  it('VALID: brief template => reaches for discovery only where the brief falls short, and never hands it down', () => {
     expect({
-      ownDiscovery: hasIn({
+      briefFirst: hasIn({
         needle:
-          'Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**',
+          'This brief is meant to be enough. FILES, FACTS, FENCES, UNITS and MIRROR carry what the operator already paid to find, so read them and start writing.',
+        text: BRIEF_TEMPLATE,
+      }),
+      namesWhatNotEnoughMeans: hasIn({
+        needle:
+          'Reach for the discover tool only where one of them leaves you unable to work: a name you cannot resolve, a shape the MIRROR does not show, a FACT the file contradicts. Searching for what the brief already told you spends your context re-deriving it.',
+        text: BRIEF_TEMPLATE,
+      }),
+      mapStillOpensIt: hasIn({
+        needle:
+          'When you do reach for it, open with get-project-map({ packages: [<every package your FILES above touch>] }).',
+        text: BRIEF_TEMPLATE,
+      }),
+      mandatoryWordingGone: BRIEF_TEMPLATE.includes('Do your OWN discovery'),
+      doesItItself: hasIn({
+        needle:
+          '**Never dispatch a sub-agent to explore.** Whatever discovery you need, you do yourself.',
         text: BRIEF_TEMPLATE,
       }),
       whyItMatters: hasIn({
@@ -354,7 +397,15 @@ describe('codeweaverPromptStatics', () => {
           'The repo refusing what this brief says — a lint rule, a PreToolUse hook, a permission denial — is neither a wall nor something to work around silently. Name the rule and what it refused.',
         text: BRIEF_TEMPLATE,
       }),
-    }).toStrictEqual({ ownDiscovery: true, whyItMatters: true, refusalHasARoute: true });
+    }).toStrictEqual({
+      briefFirst: true,
+      namesWhatNotEnoughMeans: true,
+      mapStillOpensIt: true,
+      mandatoryWordingGone: false,
+      doesItItself: true,
+      whyItMatters: true,
+      refusalHasARoute: true,
+    });
   });
 
   // 1g. WHEN TO DELEGATE AT ALL IS THE OPERATOR'S DECISION, AND THE SNIPPET DOES NOT COVER IT —

@@ -39,7 +39,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; Created worktrees/; Created .gitignore with worktrees/',
+          'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; Created worktrees/; Created .gitignore with worktrees/, .quest-plans/',
       });
 
       expect(createContent).toBe(slashCommandsStatics.dumpsterCreate.body);
@@ -48,8 +48,8 @@ describe('InstallFlow', () => {
     });
   });
 
-  describe('worktrees scaffold', () => {
-    it('VALID: {no worktrees dir, no .gitignore} => creates an empty worktrees/ and a .gitignore ignoring it', async () => {
+  describe('repo scaffold', () => {
+    it('VALID: {no worktrees dir, no .gitignore} => creates an empty worktrees/ and a .gitignore ignoring it and .quest-plans/', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orchestrator-flow-scaffold-fresh' }),
       });
@@ -71,7 +71,7 @@ describe('InstallFlow', () => {
       testbed.cleanup();
 
       expect(worktreesEntries).toStrictEqual([]);
-      expect(gitignoreContent).toBe('worktrees/\n');
+      expect(gitignoreContent).toBe('worktrees/\n.quest-plans/\n');
     });
 
     it('VALID: {worktrees dir already holds quest checkouts, no gitignore entry} => appends the entry and leaves the checkouts untouched', async () => {
@@ -114,17 +114,19 @@ describe('InstallFlow', () => {
       testbed.cleanup();
 
       expect(result.message).toBe(
-        'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; worktrees/ already present; Added worktrees/ to existing .gitignore',
+        'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; worktrees/ already present; Added worktrees/, .quest-plans/ to existing .gitignore',
       );
       expect(worktreesEntries).toStrictEqual([
         'quest-add-auth-7bc217a1',
         'quest-zap-cache-9f3c1a20',
       ]);
       expect(markerContent).toBe('quest checkout contents');
-      expect(gitignoreContent).toBe('node_modules/\n.claude/worktrees\nworktrees/\n');
+      expect(gitignoreContent).toBe(
+        'node_modules/\n.claude/worktrees\nworktrees/\n.quest-plans/\n',
+      );
     });
 
-    it('VALID: {flow run twice} => .gitignore holds exactly one worktrees/ line and the second run reports it skipped', async () => {
+    it('VALID: {flow run twice} => .gitignore holds exactly one line per entry and the second run reports them skipped', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orchestrator-flow-scaffold-twice' }),
       });
@@ -156,10 +158,10 @@ describe('InstallFlow', () => {
 
       testbed.cleanup();
 
-      expect(afterFirstRun).toBe('node_modules/\nworktrees/\n');
-      expect(afterSecondRun).toBe('node_modules/\nworktrees/\n');
+      expect(afterFirstRun).toBe('node_modules/\nworktrees/\n.quest-plans/\n');
+      expect(afterSecondRun).toBe('node_modules/\nworktrees/\n.quest-plans/\n');
       expect(secondResult.message).toBe(
-        'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; worktrees/ already present; worktrees/ already in .gitignore',
+        'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; worktrees/ already present; worktrees/, .quest-plans/ already in .gitignore',
       );
     });
   });

@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Responder for the MCP get-next-step tool — enforces dispatcher exclusivity (forced
- * idle with a reason while the Node dispatcher is playing, MCP heartbeat otherwise), then calls
+ * idle with a reason while the Node dispatcher is playing) and the rate-limit guardrail (forced
+ * idle while a hold stands), records the MCP heartbeat otherwise, then calls
  * questGetNextStepBroker with an inert active-quest facade and returns the NextStep decision.
  *
  * USAGE:
@@ -18,7 +19,9 @@ import { dispatchStateReadBroker } from '../../../brokers/dispatch-state/read/di
 import { questGetNextStepBroker } from '../../../brokers/quest/get-next-step/quest-get-next-step-broker';
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import { nextStepContract, type NextStep } from '../../../contracts/next-step/next-step-contract';
+import { isDispatchHoldExpiredGuard } from '../../../guards/is-dispatch-hold-expired/is-dispatch-hold-expired-guard';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
+import { dispatchHoldToIdleReasonTransformer } from '../../../transformers/dispatch-hold-to-idle-reason/dispatch-hold-to-idle-reason-transformer';
 
 const INERT_ACTIVE_QUEST_FACADE: ActiveQuestFacade = {
   setActive: (): void => {
@@ -37,6 +40,18 @@ export const QuestGetNextStepResponder = async (): Promise<NextStep> => {
     return nextStepContract.parse({
       type: 'idle',
       reason: orchestrationDispatchStatics.exclusivity.mcpIdleReason,
+    });
+  }
+
+  // The guardrail binds BOTH dispatchers. It is checked here rather than left to the Node loop's
+  // isPlaying() gate, because /dumpster-launch never reads that gate — it polls this tool, and
+  // without this branch an MCP-mode queue would keep dispatching Task() agents straight into a
+  // spent quota, which is the exact way a quest died before this existed.
+  const hold = dispatchState.hold ?? null;
+  if (hold !== null && !isDispatchHoldExpiredGuard({ hold, nowMs: Date.now() })) {
+    return nextStepContract.parse({
+      type: 'idle',
+      reason: dispatchHoldToIdleReasonTransformer({ hold }),
     });
   }
 

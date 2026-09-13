@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { OrchestrationDispatchPauseResponder } from './orchestration-dispatch-pause-responder';
 import { OrchestrationDispatchPauseResponderProxy } from './orchestration-dispatch-pause-responder.proxy';
@@ -39,6 +39,30 @@ describe('OrchestrationDispatchPauseResponder', () => {
           mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
         }),
       },
+    ]);
+  });
+
+  it('VALID: {a live rate-limit hold} => survives the pause, because only its own resumeAt ends it', async () => {
+    const proxy = OrchestrationDispatchPauseResponderProxy();
+    proxy.setupCurrentState({
+      state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
+    });
+
+    await OrchestrationDispatchPauseResponder();
+
+    expect(proxy.getWriteCalls()).toStrictEqual([
+      { dispatchState: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }) },
+    ]);
+  });
+
+  it('EMPTY: {no hold on disk} => the pause writes no hold key at all', async () => {
+    const proxy = OrchestrationDispatchPauseResponderProxy();
+    proxy.setupCurrentState({ state: DispatchStateStub({ mode: 'node-playing' }) });
+
+    await OrchestrationDispatchPauseResponder();
+
+    expect(proxy.getWriteCalls()).toStrictEqual([
+      { dispatchState: DispatchStateStub({ mode: 'paused' }) },
     ]);
   });
 });

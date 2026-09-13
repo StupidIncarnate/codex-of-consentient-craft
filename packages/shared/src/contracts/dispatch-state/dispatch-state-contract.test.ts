@@ -1,3 +1,5 @@
+import { DispatchHoldStub } from '../dispatch-hold/dispatch-hold.stub';
+
 import { dispatchStateContract } from './dispatch-state-contract';
 import { DispatchStateStub } from './dispatch-state.stub';
 
@@ -33,6 +35,35 @@ describe('dispatchStateContract', () => {
       expect(state).toStrictEqual({
         mode: 'node-playing',
         mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
+        updatedAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('VALID: {mode: node-playing, hold} => keeps the user mode alongside the guardrail veto', () => {
+      const state = DispatchStateStub({
+        mode: 'node-playing',
+        hold: DispatchHoldStub(),
+      });
+
+      expect(state).toStrictEqual({
+        mode: 'node-playing',
+        hold: {
+          reason: 'approaching-limit',
+          window: 'seven-day',
+          detail: '7d window at 93%',
+          heldAt: '2026-09-13T04:49:29.242Z',
+          resumeAt: '2026-09-13T06:00:00.000Z',
+        },
+        updatedAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('EMPTY: {hold: null} => parses an explicitly cleared hold, which is how an expiry is written', () => {
+      const state = DispatchStateStub({ mode: 'node-playing', hold: null });
+
+      expect(state).toStrictEqual({
+        mode: 'node-playing',
+        hold: null,
         updatedAt: '2024-01-15T10:00:00.000Z',
       });
     });

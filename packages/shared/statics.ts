@@ -79,3 +79,4 @@ export * from './src/statics/signoff-tracks/signoff-tracks-statics';
 // Pasted-image limits, token patterns and prompt trailer — one source read by the browser's
 // paste path, the server's write path and the orchestrator's prompt builder.
 export * from './src/statics/pasted-image/pasted-image-statics';
+export * from './src/statics/usage-accounting/usage-accounting-statics';

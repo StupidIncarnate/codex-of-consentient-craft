@@ -47,6 +47,8 @@ export const locationsStatics = {
     guildConfigFile: 'guild.json',
     rateLimitsSnapshot: 'rate-limits.json',
     rateLimitsSnapshotTmp: 'rate-limits.json.tmp',
+    usageLedger: 'usage-ledger.json',
+    usageLedgerTmp: 'usage-ledger.json.tmp',
     rateLimitsHistory: 'rate-limits-history.jsonl',
   },
   guild: {

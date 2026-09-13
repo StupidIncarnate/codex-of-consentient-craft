@@ -672,6 +672,12 @@ DO NOT TOUCH
   the one it owns; neither is yours.
   <other fixers' files>
 
+FINDING YOUR WAY
+  Open with get-project-map({ packages: [<the package LOOK AT names, plus any the cause turns
+  out to sit in>] }). It names the folders each package really has, and discover globs into
+  what it named. A discover before that call guesses a path, and a glob that guessed wrong
+  returns nothing — which reads exactly like a package with nothing in it.
+
 PROVE
   Run this EXACT command to verify your work: \`npm run ward -- -- <this brief's own paths>\` — two separate \`--\` tokens, both needed.
   **YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**

@@ -4,22 +4,29 @@ import { orchestratorGetRateLimitsAdapter } from './orchestrator-get-rate-limits
 import { orchestratorGetRateLimitsAdapterProxy } from './orchestrator-get-rate-limits-adapter.proxy';
 
 describe('orchestratorGetRateLimitsAdapter', () => {
-  it('VALID: {snapshot present} => returns snapshot', () => {
+  it('VALID: {snapshot present} => returns snapshot', async () => {
     const proxy = orchestratorGetRateLimitsAdapterProxy();
     const snapshot = RateLimitsSnapshotStub();
     proxy.returns({ snapshot });
 
-    const result = orchestratorGetRateLimitsAdapter();
+    const result = await orchestratorGetRateLimitsAdapter();
 
     expect(result).toStrictEqual(snapshot);
   });
 
-  it('EMPTY: {snapshot null} => returns null', () => {
+  it('EMPTY: {snapshot null} => returns null', async () => {
     const proxy = orchestratorGetRateLimitsAdapterProxy();
     proxy.returns({ snapshot: null });
 
-    const result = orchestratorGetRateLimitsAdapter();
+    const result = await orchestratorGetRateLimitsAdapter();
 
     expect(result).toBe(null);
+  });
+
+  it('ERROR: {the ledger read fails} => rejects with the orchestrator error', async () => {
+    const proxy = orchestratorGetRateLimitsAdapterProxy();
+    proxy.throws({ error: new Error('usage ledger unreadable') });
+
+    await expect(orchestratorGetRateLimitsAdapter()).rejects.toThrow(/^usage ledger unreadable$/u);
   });
 });

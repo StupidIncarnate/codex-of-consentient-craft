@@ -468,7 +468,7 @@ export const StartOrchestrator = {
     OrchestrationDispatchFlow.normalizeBoot(),
 
   // Rate limits
-  getRateLimits: (): RateLimitsSnapshot | null => RateLimitsFlow.get(),
+  getRateLimits: async (): Promise<RateLimitsSnapshot | null> => RateLimitsFlow.get(),
 
   // MCP-driven create-quest (ChaosWhisperer at /dumpster-create startup,
   // BugHunt at /dumpster-hunt startup which passes questType: 'bug-hunt')

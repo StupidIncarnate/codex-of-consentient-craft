@@ -25,5 +25,8 @@ export const OrchestrationDispatchNormalizeBootResponder = async (): Promise<Dis
     return current;
   }
 
+  // The spread carries `hold` across the boot deliberately: the quota it was raised against does
+  // not care that the server bounced, and dropping it would let the first play press after a reboot
+  // dispatch into a window that is still spent.
   return dispatchStateWriteBroker({ dispatchState: { ...current, mode: 'paused' } });
 };

@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { dispatchStateWriteBroker } from './dispatch-state-write-broker';
 import { dispatchStateWriteBrokerProxy } from './dispatch-state-write-broker.proxy';
@@ -37,6 +37,78 @@ describe('dispatchStateWriteBroker', () => {
         DispatchStateStub({
           mode: 'paused',
           mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
+    });
+  });
+
+  describe('the rate-limit hold', () => {
+    it('VALID: {a hold supplied} => persists it alongside the mode', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+
+      const result = await dispatchStateWriteBroker({
+        dispatchState: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
+      });
+
+      expect(result).toStrictEqual(
+        DispatchStateStub({
+          mode: 'node-playing',
+          hold: DispatchHoldStub(),
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
+    });
+
+    it('VALID: {hold: null} => persists an explicit null, which is how an expiry is cleared', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+
+      await dispatchStateWriteBroker({
+        dispatchState: DispatchStateStub({ mode: 'node-playing', hold: null }),
+      });
+
+      expect(JSON.parse(String(proxy.getWrittenContent()))).toStrictEqual({
+        mode: 'node-playing',
+        hold: null,
+        updatedAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('EMPTY: {a state carrying no hold} => writes no hold key at all', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+
+      await dispatchStateWriteBroker({ dispatchState: DispatchStateStub({ mode: 'paused' }) });
+
+      // No `hold` key at all. The state the caller hands over is the state that gets written, so a
+      // machine that never had a hold keeps none — and a caller spreading `...current` cannot drop
+      // a live one by forgetting to name it.
+      expect(JSON.parse(String(proxy.getWrittenContent()))).toStrictEqual({
+        mode: 'paused',
+        updatedAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('VALID: {a hold beside a heartbeat} => both survive one write', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+      const { mcpHeartbeatAt } = DispatchStateStub({ mcpHeartbeatAt: '2024-01-15T09:59:00.000Z' });
+
+      const result = await dispatchStateWriteBroker({
+        dispatchState: DispatchStateStub({
+          mode: 'paused',
+          mcpHeartbeatAt,
+          hold: DispatchHoldStub(),
+        }),
+      });
+
+      expect(result).toStrictEqual(
+        DispatchStateStub({
+          mode: 'paused',
+          mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
+          hold: DispatchHoldStub(),
           updatedAt: '2024-01-15T10:00:00.000Z',
         }),
       );

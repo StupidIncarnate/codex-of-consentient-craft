@@ -298,6 +298,43 @@ describe('siegemasterPromptStatics', () => {
   // brief that repeats a snippet line spends the operator's bytes restating what the fixer has
   // already read, and it is the lines nothing else covers that have to survive the trim: the exact
   // two-`--` command, `NEVER commit`, and the refusal of the `run-ward` MCP tool.
+  // A FIXER GOT NO SEARCH-ORDER INSTRUCTION AT ALL, and it showed. Across one siegemaster's
+  // sixteen sub-agents exactly ONE called `get-project-map` before `discover`; the other fifteen
+  // went straight to a glob, and the lineage spent 133 discovers against 358 Reads hunting for
+  // files the map names in a single call.
+  // THE BLOCK IS NAMED `FINDING YOUR WAY`, NOT `DISCOVERY`, AND CARRIES NO CLAUSE ABOUT EXPLORING.
+  // The test below this one holds the fixer brief silent on exploring and delegating, because a
+  // clause about either — a ban included — is what reopens depth, and one fixer's own explorers
+  // cost roughly 4.5 million context tokens. Stating the search ORDER needs neither word, so this
+  // pins the order and that one pins the silence.
+  it('VALID: fixer brief => opens its search with the project map, before any discover', () => {
+    expect({
+      mapBeforeDiscover: hasIn({
+        needle: 'Open with get-project-map({ packages: [',
+        text: FIXER_BRIEF,
+      }),
+      packagesComeFromLookAt: hasIn({
+        needle: '<the package LOOK AT names, plus any the cause turns out to sit in>',
+        text: FIXER_BRIEF,
+      }),
+      discoverGlobsIntoWhatItNamed: hasIn({
+        needle:
+          'It names the folders each package really has, and discover globs into what it named.',
+        text: FIXER_BRIEF,
+      }),
+      wrongGlobReadsAsEmpty: hasIn({
+        needle:
+          'a glob that guessed wrong returns nothing — which reads exactly like a package with nothing in it.',
+        text: FIXER_BRIEF,
+      }),
+    }).toStrictEqual({
+      mapBeforeDiscover: true,
+      packagesComeFromLookAt: true,
+      discoverGlobsIntoWhatItNamed: true,
+      wrongGlobReadsAsEmpty: true,
+    });
+  });
+
   it('VALID: fixer brief => leaves the DISCOVERY MISMATCH rule to the wardDiscipline snippet', () => {
     expect({
       dropsDiscoveryMismatch: !FIXER_BRIEF.includes('DISCOVERY MISMATCH'),

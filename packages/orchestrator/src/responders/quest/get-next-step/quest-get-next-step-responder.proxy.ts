@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { dispatchStateHeartbeatBroker } from '../../../brokers/dispatch-state/heartbeat/dispatch-state-heartbeat-broker';
@@ -27,6 +27,8 @@ export const QuestGetNextStepResponderProxy = (): {
   setupBrokerReturns: (params: { step: NextStep }) => void;
   setupBrokerThrows: (params: { error: Error }) => void;
   setupDispatchMode: (params: { mode: 'node-playing' | 'paused' }) => void;
+  setupLiveHold: () => void;
+  setupExpiredHold: () => void;
   getHeartbeatCalls: () => readonly unknown[];
 } => {
   // Instantiate the child broker proxies so the dependency-discovery linter sees the links.
@@ -55,6 +57,23 @@ export const QuestGetNextStepResponderProxy = (): {
     },
     setupDispatchMode: ({ mode }: { mode: 'node-playing' | 'paused' }): void => {
       readMock.mockResolvedValueOnce(DispatchStateStub({ mode }));
+    },
+    // Paused mode with a guardrail hold standing — the MCP dispatcher is the one polling, and the
+    // hold is what must stop it.
+    setupLiveHold: (): void => {
+      readMock.mockResolvedValueOnce(
+        DispatchStateStub({
+          hold: DispatchHoldStub({
+            detail: '7d window at 93% — dispatch holds until it resets',
+            resumeAt: '2099-01-01T00:00:00.000Z',
+          }),
+        }),
+      );
+    },
+    setupExpiredHold: (): void => {
+      readMock.mockResolvedValueOnce(
+        DispatchStateStub({ hold: DispatchHoldStub({ resumeAt: '2020-01-01T00:00:00.000Z' }) }),
+      );
     },
     getHeartbeatCalls: (): readonly unknown[] => [...heartbeatMock.mock.calls],
   };

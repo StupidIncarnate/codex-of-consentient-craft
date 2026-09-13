@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { OrchestrationDispatchNormalizeBootResponder } from './orchestration-dispatch-normalize-boot-responder';
 import { OrchestrationDispatchNormalizeBootResponderProxy } from './orchestration-dispatch-normalize-boot-responder.proxy';
@@ -48,5 +48,29 @@ describe('OrchestrationDispatchNormalizeBootResponder', () => {
 
     expect(result).toStrictEqual(DispatchStateStub());
     expect(proxy.getWriteCalls()).toStrictEqual([]);
+  });
+
+  it('VALID: {a live hold, persisted node-playing} => the hold survives the reboot normalization', async () => {
+    const proxy = OrchestrationDispatchNormalizeBootResponderProxy();
+    proxy.setupCurrentState({
+      state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
+    });
+
+    await OrchestrationDispatchNormalizeBootResponder();
+
+    // The quota does not care that the server bounced. Dropping the hold here would let the first
+    // play press after a restart dispatch into a window that is still spent.
+    expect(proxy.getWriteCalls()).toStrictEqual([
+      { dispatchState: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }) },
+    ]);
+  });
+
+  it('VALID: {a live hold, already paused} => no write, and the hold is returned untouched', async () => {
+    const proxy = OrchestrationDispatchNormalizeBootResponderProxy();
+    proxy.setupCurrentState({ state: DispatchStateStub({ hold: DispatchHoldStub() }) });
+
+    const result = await OrchestrationDispatchNormalizeBootResponder();
+
+    expect([result.hold, proxy.getWriteCalls()]).toStrictEqual([DispatchHoldStub(), []]);
   });
 });

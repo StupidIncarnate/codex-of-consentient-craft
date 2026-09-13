@@ -17,6 +17,8 @@ import { orchestrationDispatchState } from '../../../state/orchestration-dispatc
 export const OrchestrationDispatchPauseResponder = async (): Promise<DispatchState> => {
   const current = await dispatchStateReadBroker();
 
+  // The spread keeps `hold`: a user pause does not lift a rate-limit hold — the two are independent
+  // vetoes, and only the hold's own resumeAt ends it.
   const state = await dispatchStateWriteBroker({ dispatchState: { ...current, mode: 'paused' } });
   orchestrationDispatchState.setPlaying({ isPlaying: false });
 

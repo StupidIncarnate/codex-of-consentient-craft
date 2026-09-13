@@ -6,6 +6,11 @@
  * means to change. Ensures the home dir exists first so a fresh install can flip play/pause before
  * anything else touched the home.
  *
+ * This writes the WHOLE state, so `mcpHeartbeatAt` and `hold` are dropped by any call that omits
+ * them. Every caller therefore reads first and forwards what it is not changing — a pause press
+ * that forgot to carry `hold` would silently lift a rate-limit hold and hand the queue back its
+ * spent quota.
+ *
  * USAGE:
  * const state = await dispatchStateWriteBroker({ dispatchState: { ...current, mode: 'node-playing' } });
  * // Returns the persisted DispatchState (updatedAt stamped to now, regardless of what was passed)
@@ -32,6 +37,9 @@ export const dispatchStateWriteBroker = async ({
   dispatchState: DispatchState;
 }): Promise<DispatchState> => {
   const state = dispatchStateContract.parse({
+    // The whole state rides the spread, so a field a caller did not mention — `hold` especially —
+    // survives rather than being dropped. An explicit `null` is still the deliberate clear, written
+    // when a hold's resumeAt has passed.
     ...dispatchState,
     updatedAt: new Date().toISOString(),
   });

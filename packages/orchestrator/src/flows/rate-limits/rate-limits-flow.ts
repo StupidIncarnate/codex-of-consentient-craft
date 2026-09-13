@@ -3,7 +3,7 @@
  *
  * USAGE:
  * RateLimitsFlow.bootstrap();
- * RateLimitsFlow.get();
+ * await RateLimitsFlow.get();
  * // Returns: RateLimitsSnapshot | null
  */
 
@@ -15,5 +15,5 @@ import { RateLimitsGetResponder } from '../../responders/rate-limits/get/rate-li
 export const RateLimitsFlow = {
   bootstrap: (): AdapterResult => RateLimitsBootstrapResponder(),
 
-  get: (): RateLimitsSnapshot | null => RateLimitsGetResponder(),
+  get: async (): Promise<RateLimitsSnapshot | null> => RateLimitsGetResponder(),
 };

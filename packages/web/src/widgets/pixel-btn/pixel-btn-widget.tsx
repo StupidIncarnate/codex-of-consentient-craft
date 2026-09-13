@@ -43,6 +43,10 @@ export const PixelBtnWidget = ({
   return (
     <UnstyledButton
       onClick={disabled ? undefined : onClick}
+      // The native attribute as well as the dimmed styling. `pointerEvents: none` stops a mouse
+      // and nothing else: a keyboard press, a screen reader and Playwright's own disabled check all
+      // read the attribute, so styling alone leaves the control looking off and behaving live.
+      disabled={disabled === true}
       data-testid="PIXEL_BTN"
       style={{
         fontFamily: 'monospace',

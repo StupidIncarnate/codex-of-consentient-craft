@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { DispatchPlayGateResultStub } from '../../../contracts/dispatch-play-gate-result/dispatch-play-gate-result.stub';
 import { OrchestrationDispatchPlayResponder } from './orchestration-dispatch-play-responder';
@@ -62,6 +62,33 @@ describe('OrchestrationDispatchPlayResponder', () => {
       state: DispatchStateStub(),
     });
     expect(proxy.getWriteCalls()).toStrictEqual([]);
+    expect(proxy.getIsPlaying()).toBe(false);
+  });
+
+  it('VALID: {a live rate-limit hold} => play carries it through rather than clearing it', async () => {
+    const proxy = OrchestrationDispatchPlayResponderProxy();
+    proxy.setupGate({ result: DispatchPlayGateResultStub({ allowed: true }) });
+    proxy.setupCurrentState({ state: DispatchStateStub({ hold: DispatchHoldStub() }) });
+
+    await OrchestrationDispatchPlayResponder({});
+
+    // Pressing play sets the user's intent. The hold still refuses every dispatch, so the queue is
+    // armed for the moment the window resets instead of firing a child into a spent quota.
+    expect(proxy.getWriteCalls()).toStrictEqual([
+      { dispatchState: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }) },
+    ]);
+  });
+
+  it('VALID: {play against a live hold} => getIsPlaying stays false, because the hold still vetoes', async () => {
+    const proxy = OrchestrationDispatchPlayResponderProxy();
+    proxy.setupGate({ result: DispatchPlayGateResultStub({ allowed: true }) });
+    proxy.setupCurrentState({ state: DispatchStateStub({ hold: DispatchHoldStub() }) });
+    proxy.setupWrittenState({
+      state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
+    });
+
+    await OrchestrationDispatchPlayResponder({});
+
     expect(proxy.getIsPlaying()).toBe(false);
   });
 });

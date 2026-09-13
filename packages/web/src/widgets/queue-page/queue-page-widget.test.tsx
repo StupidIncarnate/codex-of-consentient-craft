@@ -1,6 +1,12 @@
 import { MemoryRouter } from 'react-router-dom';
 
-import { DispatchStateStub, QuestQueueEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  DispatchHoldStub,
+  DispatchStateStub,
+  QuestQueueEntryStub,
+  RateLimitsSnapshotStub,
+  RateLimitWindowStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QueuePageWidget } from './queue-page-widget';
@@ -12,6 +18,7 @@ describe('QueuePageWidget', () => {
       const proxy = QueuePageWidgetProxy();
       proxy.setupEntries({ entries: [] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -44,6 +51,7 @@ describe('QueuePageWidget', () => {
       });
       proxy.setupEntries({ entries: [head, tail] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -80,6 +88,7 @@ describe('QueuePageWidget', () => {
       });
       proxy.setupEntries({ entries: [head, tail] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -114,6 +123,7 @@ describe('QueuePageWidget', () => {
       });
       proxy.setupEntries({ entries: [head, tail] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -144,6 +154,7 @@ describe('QueuePageWidget', () => {
       ];
       proxy.setupEntries({ entries });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -174,6 +185,7 @@ describe('QueuePageWidget', () => {
       ];
       proxy.setupEntries({ entries });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -194,6 +206,7 @@ describe('QueuePageWidget', () => {
         entries: [QuestQueueEntryStub({ questId: 'q-ok', questTitle: 'Healthy' })],
       });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId, queryByTestId } = mantineRenderAdapter({
         ui: (
@@ -214,6 +227,7 @@ describe('QueuePageWidget', () => {
       const proxy = QueuePageWidgetProxy();
       proxy.setupEntries({ entries: [] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -232,6 +246,7 @@ describe('QueuePageWidget', () => {
       const proxy = QueuePageWidgetProxy();
       proxy.setupEntries({ entries: [] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'node-playing' }) });
+      proxy.setupRateLimits({ snapshot: null });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -244,6 +259,140 @@ describe('QueuePageWidget', () => {
       await findByTestId('DISPATCH_TOGGLE');
 
       expect(proxy.hasToggleLabel({ text: 'PAUSE' })).toBe(true);
+    });
+  });
+
+  describe('the rate-limit windows', () => {
+    it('VALID: {both windows measured} => the queue page renders both cards with their percentages', async () => {
+      const proxy = QueuePageWidgetProxy();
+      proxy.setupEntries({ entries: [] });
+      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({
+        snapshot: RateLimitsSnapshotStub({
+          fiveHour: RateLimitWindowStub({ usedPercentage: 42 }),
+          sevenDay: RateLimitWindowStub({ usedPercentage: 20 }),
+        }),
+      });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QueuePageWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('RATE_LIMITS_STACK');
+
+      expect([
+        proxy.rateLimitCardText({ testId: 'RATE_LIMIT_CARD_5H' }),
+        proxy.rateLimitCardText({ testId: 'RATE_LIMIT_CARD_7D' }),
+      ]).toStrictEqual([
+        expect.stringMatching(/^\[ 5h.*42%.*\]$/u),
+        expect.stringMatching(/^\[ 7d.*20%.*\]$/u),
+      ]);
+    });
+
+    it('EMPTY: {five-hour window has no learned ceiling} => that card is absent rather than reading 0%', async () => {
+      const proxy = QueuePageWidgetProxy();
+      proxy.setupEntries({ entries: [] });
+      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({
+        snapshot: RateLimitsSnapshotStub({
+          fiveHour: null,
+          sevenDay: RateLimitWindowStub({ usedPercentage: 20 }),
+        }),
+      });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QueuePageWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('RATE_LIMITS_STACK');
+
+      expect([
+        proxy.rateLimitCardText({ testId: 'RATE_LIMIT_CARD_5H' }),
+        proxy.rateLimitCardText({ testId: 'RATE_LIMIT_CARD_7D' }),
+      ]).toStrictEqual([null, expect.stringMatching(/^\[ 7d.*20%.*\]$/u)]);
+    });
+
+    it('EMPTY: {nothing measured yet} => the queue page shows no cards at all', async () => {
+      const proxy = QueuePageWidgetProxy();
+      proxy.setupEntries({ entries: [] });
+      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QueuePageWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect([
+        proxy.rateLimitCardText({ testId: 'RATE_LIMIT_CARD_5H' }),
+        proxy.rateLimitCardText({ testId: 'RATE_LIMIT_CARD_7D' }),
+      ]).toStrictEqual([null, null]);
+    });
+  });
+
+  describe('a held queue', () => {
+    it('VALID: {a live hold while paused} => the queue page carries the HELD notice and a disabled PLAY', async () => {
+      const proxy = QueuePageWidgetProxy();
+      proxy.setupEntries({ entries: [] });
+      proxy.setupDispatchState({
+        state: DispatchStateStub({
+          mode: 'paused',
+          hold: DispatchHoldStub({
+            detail: '7d window at 93% — dispatch holds until it resets',
+            resumeAt: '2099-01-01T00:00:00.000Z',
+          }),
+        }),
+      });
+      proxy.setupRateLimits({ snapshot: null });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QueuePageWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('DISPATCH_HOLD_NOTICE');
+
+      expect([proxy.holdNoticeText(), proxy.isToggleDisabled()]).toStrictEqual([
+        expect.stringMatching(
+          /^HELD — 7d window at 93% — dispatch holds until it resets · resumes in .+$/u,
+        ),
+        true,
+      ]);
+    });
+
+    it('EMPTY: {no hold} => the queue page carries no notice and an enabled PLAY', async () => {
+      const proxy = QueuePageWidgetProxy();
+      proxy.setupEntries({ entries: [] });
+      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+      proxy.setupRateLimits({ snapshot: null });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QueuePageWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect([proxy.holdNoticeText(), proxy.isToggleDisabled()]).toStrictEqual([null, false]);
     });
   });
 });

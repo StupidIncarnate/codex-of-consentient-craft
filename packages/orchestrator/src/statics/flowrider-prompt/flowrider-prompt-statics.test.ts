@@ -471,12 +471,28 @@ describe('flowriderPromptStatics', () => {
   //
   // Asserted against the FENCE, because the operator's own text licenses exactly this move one
   // level up: a whole-prompt needle would go green over a brief that says nothing.
-  it('VALID: brief template => makes the sub-agent explore for itself and dispatch nothing below it', () => {
+  it('VALID: brief template => reaches for discovery only where the brief falls short, and dispatches nothing below it', () => {
     expect({
-      ownDiscovery: hasIn({
-        needle: 'Do your OWN discovery, with the discover tool.',
+      briefFirst: hasIn({
+        needle:
+          'This brief is meant to be enough. FILES, FACTS, FENCES, SURFACES, UNITS and MIRROR carry what the operator already paid to find, so read them and start writing.',
         text: BRIEF_TEMPLATE,
       }),
+      namesWhatNotEnoughMeans: hasIn({
+        needle:
+          'Reach for the discover tool only where one of them leaves you unable to work: a name you cannot resolve, a shape the MIRROR does not show, a FACT the file contradicts.',
+        text: BRIEF_TEMPLATE,
+      }),
+      aSurfaceIsNeverReDerived: hasIn({
+        needle: 'a SURFACE is never yours to re-derive at all',
+        text: BRIEF_TEMPLATE,
+      }),
+      mapStillOpensIt: hasIn({
+        needle:
+          'When you do reach for it, open with get-project-map({ packages: [<every package your files above touch>] }).',
+        text: BRIEF_TEMPLATE,
+      }),
+      mandatoryWordingGone: BRIEF_TEMPLATE.includes('Do your OWN discovery'),
       refusesToDelegateExploring: hasIn({
         needle: '**Never dispatch a sub-agent to explore.**',
         text: BRIEF_TEMPLATE,
@@ -491,7 +507,11 @@ describe('flowriderPromptStatics', () => {
         text: BRIEF_TEMPLATE,
       }),
     }).toStrictEqual({
-      ownDiscovery: true,
+      briefFirst: true,
+      namesWhatNotEnoughMeans: true,
+      aSurfaceIsNeverReDerived: true,
+      mapStillOpensIt: true,
+      mandatoryWordingGone: false,
       refusesToDelegateExploring: true,
       saysWhyItIsWorthKeeping: true,
       namesItsOwnLevel: true,
@@ -556,10 +576,10 @@ describe('flowriderPromptStatics', () => {
   // A LINE NUMBER IS AN ANCHOR THAT MOVES. Measured across twelve flowrider briefs, 34 of 34 line
   // anchors resolved — and only because that operator sequenced every dependent worker and
   // hand-re-anchored `:137` to `:152` between sessions after its own fix grew the file. Neither of
-  // those survives sub-agents editing one tree at the same time. `RED FIRST` is the one block where a
-  // stale anchor causes a bad WRITE rather than a failed read: it has a sub-agent temporarily mutate
-  // an implementation file it does not own, on a worktree other sessions share.
-  it('VALID: served template => anchors a brief and a map on a NAME, and breaks a NAMED construct under RED FIRST', () => {
+  // those survives sub-agents editing one tree at the same time. `FENCES` is the one block where a
+  // stale anchor costs more than a failed read: every other block fails to find what it names, while
+  // a misplaced fence hands a sub-agent's own unit to a group that was never asked to write it.
+  it('VALID: served template => anchors a brief and a map on a NAME', () => {
     expect({
       briefRule: hasIn({
         needle: '**Never write a line number into a brief, in any block.**',
@@ -580,19 +600,13 @@ describe('flowriderPromptStatics', () => {
           "Anchor on a NAME — an export, a const, a prop, a test case's own title. A name survives an edit, and `discover` finds it in one call.",
         text: TEMPLATE,
       }),
-      redFirstNamedAsTheWorstCase: hasIn({
+      fencesNamedAsTheWorstCase: hasIn({
         needle:
-          '**`RED FIRST` is where this bites hardest**: it has a sub-agent temporarily MUTATE an implementation file it does not own, so a stale anchor there writes over something else rather than merely failing to find it.',
+          '**`FENCES` is where this bites hardest**: every other block loses a stale anchor by failing to find it, while a fence that lands on the wrong region tells a sub-agent its own work is somebody else’s and leaves the unit unwritten.'.replace(
+            '’',
+            "'",
+          ),
         text: TEMPLATE,
-      }),
-      redFirstBreaksANamedConstruct: hasIn({
-        needle:
-          'Break the ONE CONSTRUCT the test guards — a const, an export, a JSX block named by the component it renders. NAME it; never a line number and never a line range.',
-        text: BRIEF_TEMPLATE,
-      }),
-      redFirstReturnNamesTheConstruct: hasIn({
-        needle: 'Name that file and that construct in the return.',
-        text: BRIEF_TEMPLATE,
       }),
       brokenLineWordingGone: BRIEF_TEMPLATE.indexOf('Break the ONE line the test guards'),
       returnLineWordingGone: BRIEF_TEMPLATE.indexOf('Name that file and line in the return.'),
@@ -601,11 +615,56 @@ describe('flowriderPromptStatics', () => {
       mapRule: true,
       measurementGiven: true,
       namesWhatToAnchorOn: true,
-      redFirstNamedAsTheWorstCase: true,
-      redFirstBreaksANamedConstruct: true,
-      redFirstReturnNamesTheConstruct: true,
+      fencesNamedAsTheWorstCase: true,
       brokenLineWordingGone: -1,
       returnLineWordingGone: -1,
+    });
+  });
+
+  // A RED IS PRODUCED BY EDITING THE SPEC'S OWN ASSERTION, never by touching the implementation a
+  // codeweaver session wrote and the sibling flowriders are reading. Measured on quest 1dac5395,
+  // whose briefs carried the earlier break-the-construct wording: four sub-agents mutated
+  // `subagent-chain-widget.tsx` inside two minutes, one restored another's live break mid-capture
+  // (`the widget file was reverted by something outside my control`), one read a sibling's
+  // `RED_TEST_BREAK` placeholder as product code, one reported `a clean, uncontaminated RED capture
+  // was not obtained`, and one ran the whole RED FIRST pass twice across a 43-minute session.
+  it('VALID: brief template => produces a red from the spec own FAILS IF value, and touches no file it does not own', () => {
+    expect({
+      failsIfValueIsTheLever: hasIn({
+        needle:
+          'RED FIRST\n  Write the spec with every unit assertion set to its FAILS IF value, and run it.',
+        text: BRIEF_TEMPLATE,
+      }),
+      receivedValueIsTheProof: hasIn({
+        needle:
+          "Every one of those expects must FAIL, and each failure must report this unit's ASSERT value as what it RECEIVED.",
+        text: BRIEF_TEMPLATE,
+      }),
+      preconditionsStayTrue: hasIn({
+        needle:
+          'Set only the assertions that SETTLE a unit. A precondition — the page reached, the panel visible, the row present — stays true, because a precondition that fails stops the test before the assertions that matter ever run.',
+        text: BRIEF_TEMPLATE,
+      }),
+      compileErrorIsNotARed: hasIn({
+        needle:
+          'A suite that never RAN has produced no red. `Cannot find module`, `Test suite failed to run` and every `error TS` are compile failures with no assertion behind them: fix them and run again, and never report one as a red.',
+        text: BRIEF_TEMPLATE,
+      }),
+      everyEvasionBannedByName: hasIn({
+        needle:
+          'You produce a red by editing YOUR OWN SPEC and nothing else. The implementation belongs to the sessions that wrote it and to the siblings reading it right now. Banned, by name: moving, copying or renaming any file; git stash; rewriting a file from git show; a `.bak` file; editing an implementation file to break it.',
+        text: BRIEF_TEMPLATE,
+      }),
+      breakTheConstructWordingGone: BRIEF_TEMPLATE.includes('Break the ONE CONSTRUCT the test'),
+      revertingAnImplementationNoLongerAsked: BRIEF_TEMPLATE.includes('put it back BY EDITING IT'),
+    }).toStrictEqual({
+      failsIfValueIsTheLever: true,
+      receivedValueIsTheProof: true,
+      preconditionsStayTrue: true,
+      compileErrorIsNotARed: true,
+      everyEvasionBannedByName: true,
+      breakTheConstructWordingGone: false,
+      revertingAnImplementationNoLongerAsked: false,
     });
   });
 

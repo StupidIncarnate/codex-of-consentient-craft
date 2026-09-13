@@ -13,6 +13,7 @@ import type { TestFailure } from '../../contracts/test-failure/test-failure-cont
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import type { WardFileDetail } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { wardFileDetailContract } from '../../contracts/ward-file-detail/ward-file-detail-contract';
+import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
@@ -143,7 +144,18 @@ export const resultToDetailTransformer = ({
         sections.push(errorMessageContract.parse([header, ...testLines].join('\n')));
       }
 
-      if (project.onlyDiscovered.length > 0) {
+      // A RUN THE CALLER SCOPED TO FILES GETS NO `not run` SECTION AT ALL. `onlyDiscovered` is every
+      // file the package discovered and did not process, so on such a run it names the package's
+      // whole suite minus the handful asked for — measured at 170 paths for a scope of one file, the
+      // bulk of a 29,122-character detail, and not one of them a file the caller mentioned. The only
+      // thing it could honestly report there is a path that is not on disk, and `pathCheckLayerBroker`
+      // already halts that run before any check starts, naming the path. A directory scope and an
+      // unscoped run keep the section: there a file the package discovered and never ran is the
+      // finding.
+      if (
+        project.onlyDiscovered.length > 0 &&
+        !isCallerFileScopeGuard({ filters: wardResult.filters })
+      ) {
         sections.push(
           errorMessageContract.parse(
             `not run (${String(project.onlyDiscovered.length)} files):\n  ${project.onlyDiscovered.join('\n  ')}`,

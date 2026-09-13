@@ -36,9 +36,13 @@ export const OrchestrationDispatchPlayResponder = async ({
   }
 
   const state = await dispatchStateWriteBroker({
+    // Play sets the user's intent and nothing more, so the spread keeps `hold`. A live hold still
+    // refuses every dispatch, and pressing play against a spent quota arms the queue for the moment
+    // the window resets rather than sending a child straight into the wall.
     dispatchState: { ...current, mode: 'node-playing' },
   });
   orchestrationDispatchState.setPlaying({ isPlaying: true });
+  orchestrationDispatchState.setHold({ hold: state.hold ?? null });
 
   return dispatchPlayResponseContract.parse({ allowed: true, state });
 };
