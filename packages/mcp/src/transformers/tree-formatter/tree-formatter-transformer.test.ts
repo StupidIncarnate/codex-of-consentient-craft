@@ -187,4 +187,129 @@ guards/
       );
     });
   });
+
+  describe('output caps', () => {
+    it('VALID: {one file whose hits run 25 lines unbroken} => 20 lines then the dropped range', () => {
+      const item = TreeItemStub({
+        name: 'execution-row-layer-widget.test',
+        type: 'widget',
+        path: 'packages/web/src/widgets/execution-panel/execution-row-layer-widget.test.tsx',
+        hits: Array.from({ length: 25 }, (_unused, index) =>
+          GrepHitStub({ line: index + 1172, text: `line ${index}` }),
+        ),
+      });
+
+      const result = treeFormatterTransformer({ items: [item] });
+
+      expect(result).toBe(
+        [
+          'web/',
+          '  widgets/',
+          '    execution-panel/',
+          '      execution-row-layer-widget.test (widget)',
+          ...Array.from(
+            { length: 20 },
+            (_unused, index) => `        :${index + 1172}  line ${index}`,
+          ),
+          '        … 5 more lines (:1192-:1196)',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {one file with 51 scattered hits} => 40 lines then a count of the rest', () => {
+      const item = TreeItemStub({
+        name: 'chat-entry-list-widget.test',
+        type: 'widget',
+        path: 'packages/web/src/widgets/chat-entry-list/chat-entry-list-widget.test.tsx',
+        hits: Array.from({ length: 51 }, (_unused, index) =>
+          GrepHitStub({ line: index * 2 + 1, text: `AssistantTextChatEntryStub(${index})` }),
+        ),
+      });
+
+      const result = treeFormatterTransformer({ items: [item] });
+
+      expect(result).toBe(
+        [
+          'web/',
+          '  widgets/',
+          '    chat-entry-list/',
+          '      chat-entry-list-widget.test (widget)',
+          ...Array.from(
+            { length: 40 },
+            (_unused, index) => `        :${index * 2 + 1}  AssistantTextChatEntryStub(${index})`,
+          ),
+          '        … 11 more matching lines in this file',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {30 hit-carrying files, far past the byte budget} => EVERY file is still named', () => {
+      const items = Array.from({ length: 30 }, (_unused, fileIndex) =>
+        TreeItemStub({
+          name: `sweep-target-${String(fileIndex).padStart(2, '0')}-widget`,
+          type: 'widget',
+          path: `packages/web/src/widgets/sweep/sweep-target-${String(fileIndex).padStart(2, '0')}-widget.tsx`,
+          hits: Array.from({ length: 60 }, (_unusedHit, hitIndex) =>
+            GrepHitStub({
+              line: hitIndex * 3 + 1,
+              text: `      const entry = AssistantTextChatEntryStub({ content: 'x${hitIndex}' });`,
+            }),
+          ),
+        }),
+      );
+
+      const result = treeFormatterTransformer({ items });
+
+      // The invariant a rename sweep depends on: lines are what the budget spends, never files.
+      const namedFiles = items
+        .filter((item) => result.includes(String(item.name)))
+        .map((item) => String(item.name));
+
+      expect(namedFiles).toStrictEqual(items.map((item) => String(item.name)));
+    });
+
+    it('VALID: {30 hit-carrying files} => the files past the budget carry their match count', () => {
+      const items = Array.from({ length: 30 }, (_unused, fileIndex) =>
+        TreeItemStub({
+          name: `sweep-target-${String(fileIndex).padStart(2, '0')}-widget`,
+          type: 'widget',
+          path: `packages/web/src/widgets/sweep/sweep-target-${String(fileIndex).padStart(2, '0')}-widget.tsx`,
+          hits: Array.from({ length: 60 }, (_unusedHit, hitIndex) =>
+            GrepHitStub({
+              line: hitIndex * 3 + 1,
+              text: `      const entry = AssistantTextChatEntryStub({ content: 'x${hitIndex}' });`,
+            }),
+          ),
+        }),
+      );
+
+      const result = treeFormatterTransformer({ items });
+
+      const lastFileLine = result
+        .split('\n')
+        .find((line) => line.includes('sweep-target-29-widget'));
+
+      expect(lastFileLine).toBe('      sweep-target-29-widget (widget)  — 60 matching lines');
+    });
+
+    it('VALID: {30 hit-carrying files whose raw hits run past 100000 chars} => output stays under 30000', () => {
+      const items = Array.from({ length: 30 }, (_unused, fileIndex) =>
+        TreeItemStub({
+          name: `sweep-target-${String(fileIndex).padStart(2, '0')}-widget`,
+          type: 'widget',
+          path: `packages/web/src/widgets/sweep/sweep-target-${String(fileIndex).padStart(2, '0')}-widget.tsx`,
+          hits: Array.from({ length: 60 }, (_unusedHit, hitIndex) =>
+            GrepHitStub({
+              line: hitIndex * 3 + 1,
+              text: `      const entry = AssistantTextChatEntryStub({ content: 'x${hitIndex}' });`,
+            }),
+          ),
+        }),
+      );
+
+      const result = treeFormatterTransformer({ items });
+
+      expect(result.length).toBeLessThan(30000);
+    });
+  });
 });

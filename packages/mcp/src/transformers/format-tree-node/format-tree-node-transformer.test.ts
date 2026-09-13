@@ -2,8 +2,18 @@ import { formatTreeNodeTransformer } from './format-tree-node-transformer';
 import { TreeNodeStub } from '../../contracts/tree-node/tree-node.stub';
 import { FolderNameStub } from '../../contracts/folder-name/folder-name.stub';
 import { TreeItemStub } from '../../contracts/tree-item/tree-item.stub';
-import { GrepHitStub } from '../../contracts/grep-hit/grep-hit.stub';
+import { CappedGrepHitsStub } from '../../contracts/capped-grep-hits/capped-grep-hits.stub';
 import { TreeOutputStub } from '../../contracts/tree-output/tree-output.stub';
+
+type Item = ReturnType<typeof TreeItemStub>;
+type Render = ReturnType<typeof CappedGrepHitsStub>;
+
+const NO_HITS = new Map<Item, Render>();
+
+// TreeNodeStub re-parses the items it is handed, so the objects inside the node are NOT the ones
+// passed in. The render map is keyed by object identity, so it has to be built from node.items.
+const renderFor = ({ node, render }: { node: { items: readonly Item[] }; render: Render }) =>
+  new Map(node.items.map((parsed): [Item, Render] => [parsed, render]));
 
 describe('formatTreeNodeTransformer', () => {
   it('EMPTY: {node: empty node, indent: 0} => returns empty string', () => {
@@ -12,7 +22,7 @@ describe('formatTreeNodeTransformer', () => {
       items: [],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(TreeOutputStub({ value: '' }));
   });
@@ -29,7 +39,7 @@ describe('formatTreeNodeTransformer', () => {
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(TreeOutputStub({ value: 'has-permission-guard (guard)' }));
   });
@@ -47,7 +57,7 @@ describe('formatTreeNodeTransformer', () => {
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(
       TreeOutputStub({ value: 'has-permission-guard (guard) - Validates user permission' }),
@@ -71,7 +81,7 @@ describe('formatTreeNodeTransformer', () => {
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(
       TreeOutputStub({ value: 'has-permission-guard (guard)\nis-admin-guard (guard)' }),
@@ -90,7 +100,7 @@ describe('formatTreeNodeTransformer', () => {
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 1 });
+    const result = formatTreeNodeTransformer({ node, indent: 1, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(TreeOutputStub({ value: '  has-permission-guard (guard)' }));
   });
@@ -122,7 +132,7 @@ describe('formatTreeNodeTransformer', () => {
       children,
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(
       TreeOutputStub({ value: 'auth/\n  is-admin-guard (guard)\nhas-permission-guard (guard)' }),
@@ -162,7 +172,7 @@ describe('formatTreeNodeTransformer', () => {
       children,
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(
       TreeOutputStub({
@@ -171,21 +181,20 @@ describe('formatTreeNodeTransformer', () => {
     );
   });
 
-  it('VALID: {node: item with hits, indent: 0} => renders hits indented below item', () => {
-    const node = TreeNodeStub({
-      name: FolderNameStub({ value: 'adapters' }),
-      items: [
-        TreeItemStub({
-          name: 'fs-access-adapter',
-          type: 'adapter',
-          path: '/src/adapters/fs-access-adapter.ts',
-          purpose: 'Checks if a file is accessible',
-          hits: [GrepHitStub({ line: 14, text: "if (error.code === 'ENOENT') {" })],
-        }),
-      ],
+  it('VALID: {item carrying one rendered hit line, indent: 0} => renders it indented below the item', () => {
+    const item = TreeItemStub({
+      name: 'fs-access-adapter',
+      type: 'adapter',
+      path: '/src/adapters/fs-access-adapter.ts',
+      purpose: 'Checks if a file is accessible',
+    });
+    const node = TreeNodeStub({ name: FolderNameStub({ value: 'adapters' }), items: [item] });
+    const hitRenders = renderFor({
+      node,
+      render: CappedGrepHitsStub({ lines: [":14  if (error.code === 'ENOENT') {"] }),
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders });
 
     expect(result).toStrictEqual(
       TreeOutputStub({
@@ -195,23 +204,24 @@ describe('formatTreeNodeTransformer', () => {
     );
   });
 
-  it('VALID: {node: item with multiple hits, indent: 0} => renders all hits below item', () => {
-    const node = TreeNodeStub({
-      name: FolderNameStub({ value: 'adapters' }),
-      items: [
-        TreeItemStub({
-          name: 'fs-access-adapter',
-          type: 'adapter',
-          path: '/src/adapters/fs-access-adapter.ts',
-          hits: [
-            GrepHitStub({ line: 14, text: "if (error.code === 'ENOENT') {" }),
-            GrepHitStub({ line: 18, text: "throw new FileNotFoundError('ENOENT');" }),
-          ],
-        }),
-      ],
+  it('VALID: {item carrying two rendered hit lines, indent: 0} => renders both in order', () => {
+    const item = TreeItemStub({
+      name: 'fs-access-adapter',
+      type: 'adapter',
+      path: '/src/adapters/fs-access-adapter.ts',
+    });
+    const node = TreeNodeStub({ name: FolderNameStub({ value: 'adapters' }), items: [item] });
+    const hitRenders = renderFor({
+      node,
+      render: CappedGrepHitsStub({
+        lines: [
+          ":14  if (error.code === 'ENOENT') {",
+          ":18  throw new FileNotFoundError('ENOENT');",
+        ],
+      }),
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders });
 
     expect(result).toStrictEqual(
       TreeOutputStub({
@@ -221,7 +231,26 @@ describe('formatTreeNodeTransformer', () => {
     );
   });
 
-  it('VALID: {node: item without hits, indent: 0} => renders normally with no extra lines', () => {
+  it('VALID: {item carrying a label suffix and no lines} => the count lands on the item label itself', () => {
+    const item = TreeItemStub({
+      name: 'chat-entry-list-widget.test',
+      type: 'widget',
+      path: '/src/widgets/chat-entry-list/chat-entry-list-widget.test.tsx',
+    });
+    const node = TreeNodeStub({ name: FolderNameStub({ value: 'widgets' }), items: [item] });
+    const hitRenders = renderFor({
+      node,
+      render: CappedGrepHitsStub({ labelSuffix: '  — 105 matching lines' }),
+    });
+
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders });
+
+    expect(result).toStrictEqual(
+      TreeOutputStub({ value: 'chat-entry-list-widget.test (widget)  — 105 matching lines' }),
+    );
+  });
+
+  it('VALID: {item absent from hitRenders, indent: 0} => renders normally with no extra lines', () => {
     const node = TreeNodeStub({
       name: FolderNameStub({ value: 'guards' }),
       items: [
@@ -230,32 +259,30 @@ describe('formatTreeNodeTransformer', () => {
           type: 'guard',
           path: '/src/guards/has-permission-guard.ts',
           purpose: 'Validates user permission',
-          hits: undefined,
         }),
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(
       TreeOutputStub({ value: 'has-permission-guard (guard) - Validates user permission' }),
     );
   });
 
-  it('VALID: {node: item with hits, indent: 1} => renders hits with correct indentation', () => {
-    const node = TreeNodeStub({
-      name: FolderNameStub({ value: 'adapters' }),
-      items: [
-        TreeItemStub({
-          name: 'fs-access-adapter',
-          type: 'adapter',
-          path: '/src/adapters/fs-access-adapter.ts',
-          hits: [GrepHitStub({ line: 14, text: "if (error.code === 'ENOENT') {" })],
-        }),
-      ],
+  it('VALID: {item carrying one rendered hit line, indent: 1} => renders hits with correct indentation', () => {
+    const item = TreeItemStub({
+      name: 'fs-access-adapter',
+      type: 'adapter',
+      path: '/src/adapters/fs-access-adapter.ts',
+    });
+    const node = TreeNodeStub({ name: FolderNameStub({ value: 'adapters' }), items: [item] });
+    const hitRenders = renderFor({
+      node,
+      render: CappedGrepHitsStub({ lines: [":14  if (error.code === 'ENOENT') {"] }),
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 1 });
+    const result = formatTreeNodeTransformer({ node, indent: 1, hitRenders });
 
     expect(result).toStrictEqual(
       TreeOutputStub({
@@ -264,20 +291,16 @@ describe('formatTreeNodeTransformer', () => {
     );
   });
 
-  it('EDGE: {node: item with empty hits array, indent: 0} => renders item with no hit lines', () => {
-    const node = TreeNodeStub({
-      name: FolderNameStub({ value: 'guards' }),
-      items: [
-        TreeItemStub({
-          name: 'has-permission-guard',
-          type: 'guard',
-          path: '/src/guards/has-permission-guard.ts',
-          hits: [],
-        }),
-      ],
+  it('EDGE: {item mapped to an empty render, indent: 0} => renders item with no hit lines', () => {
+    const item = TreeItemStub({
+      name: 'has-permission-guard',
+      type: 'guard',
+      path: '/src/guards/has-permission-guard.ts',
     });
+    const node = TreeNodeStub({ name: FolderNameStub({ value: 'guards' }), items: [item] });
+    const hitRenders = renderFor({ node, render: CappedGrepHitsStub() });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders });
 
     expect(result).toStrictEqual(TreeOutputStub({ value: 'has-permission-guard (guard)' }));
   });
@@ -294,7 +317,7 @@ describe('formatTreeNodeTransformer', () => {
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(TreeOutputStub({ value: 'smoke.spec' }));
   });
@@ -312,7 +335,7 @@ describe('formatTreeNodeTransformer', () => {
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(TreeOutputStub({ value: 'smoke.spec - End-to-end smoke test' }));
   });
@@ -330,7 +353,7 @@ describe('formatTreeNodeTransformer', () => {
       ],
     });
 
-    const result = formatTreeNodeTransformer({ node, indent: 0 });
+    const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
     expect(result).toStrictEqual(TreeOutputStub({ value: 'has-permission-guard (guard)' }));
   });
