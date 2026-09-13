@@ -587,6 +587,8 @@ export * from './src/contracts/quest-queue-entry/quest-queue-entry-contract';
 export * from './src/contracts/quest-queue-entry/quest-queue-entry.stub';
 
 // Dispatch State Contracts (Node dispatcher play/pause + MCP loop heartbeat)
+export * from './src/contracts/dispatch-hold/dispatch-hold-contract';
+export * from './src/contracts/dispatch-hold/dispatch-hold.stub';
 export * from './src/contracts/dispatch-state/dispatch-state-contract';
 export * from './src/contracts/dispatch-state/dispatch-state.stub';
 
@@ -768,3 +770,9 @@ export * from './src/contracts/pasted-image-media-type/pasted-image-media-type-c
 export * from './src/contracts/pasted-image-media-type/pasted-image-media-type.stub';
 export * from './src/contracts/pasted-image-upload/pasted-image-upload-contract';
 export * from './src/contracts/pasted-image-upload/pasted-image-upload.stub';
+export * from './src/contracts/weighted-tokens/weighted-tokens-contract';
+export * from './src/contracts/weighted-tokens/weighted-tokens.stub';
+export * from './src/contracts/usage-bucket/usage-bucket-contract';
+export * from './src/contracts/usage-bucket/usage-bucket.stub';
+export * from './src/contracts/usage-ledger/usage-ledger-contract';
+export * from './src/contracts/usage-ledger/usage-ledger.stub';

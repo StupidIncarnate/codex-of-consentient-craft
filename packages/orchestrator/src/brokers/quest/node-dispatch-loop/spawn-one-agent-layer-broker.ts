@@ -7,6 +7,12 @@
  *   handed to orphan recovery. Recovery's budget is only 3 resets — without this, a few minutes of
  *   Anthropic 529s spends it and blocks the quest.
  *
+ *   IT ALSO OWNS THE OPPOSITE CASE. A child that dies after a 429 lost the account's own quota, and
+ *   that one must NOT be retried: nothing changes until the window resets, so every respawn earns
+ *   another refusal. It records a dispatch-wide hold instead and returns, which stops the queue
+ *   rather than this one work item. Without the split a quota refusal reads as a plain crash, and
+ *   three of them spend the orphan-recovery budget and block the quest.
+ *
  *   RESUME ACROSS RETRIES: once any attempt captured a sessionId, every later attempt resumes THAT
  *   session (`claude --resume` + the finish-what-you-started prompt), so an agent that worked for
  *   twenty minutes and then hit the outage keeps its context. An attempt that died before its init
@@ -43,11 +49,13 @@ import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { timerSetTimeoutAdapter } from '../../../adapters/timer/set-timeout/timer-set-timeout-adapter';
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { isApiOverloadLineGuard } from '../../../guards/is-api-overload-line/is-api-overload-line-guard';
+import { isRateLimitRejectedLineGuard } from '../../../guards/is-rate-limit-rejected-line/is-rate-limit-rejected-line-guard';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
 import { agentTaskPromptTransformer } from '../../../transformers/agent-task-prompt/agent-task-prompt-transformer';
 import { apiOverloadRetryDelayTransformer } from '../../../transformers/api-overload-retry-delay/api-overload-retry-delay-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
+import { dispatchHoldRejectBroker } from '../../dispatch-hold/reject/dispatch-hold-reject-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
@@ -105,6 +113,9 @@ export const spawnOneAgentLayerBroker = async ({
         }));
 
   const overload = { seen: false };
+  // Tracked separately from `overload`, because the two upstream deaths need opposite answers: a
+  // 529 is waited out by respawning this child, a 429 means every child would die the same way.
+  const rejection = { seen: false, line: '' };
   const sessionStamps: Promise<void>[] = [];
   const capturedSession: { id: SessionId | undefined } = { id: undefined };
 
@@ -117,14 +128,22 @@ export const spawnOneAgentLayerBroker = async ({
       onLine: ({ line }): void => {
         // Live chat renders from the quest-driven watcher's JSONL tail (keyed on the sessionId
         // stamped below) — feeding stdout into the chat pipeline as well would double-emit every
-        // line. The only thing read off stdout here is the API-overload marker.
+        // line. The only things read off stdout here are the two upstream-failure markers.
         if (isApiOverloadLineGuard({ line })) {
           overload.seen = true;
+        }
+        if (isRateLimitRejectedLineGuard({ line })) {
+          rejection.seen = true;
+          rejection.line = line;
         }
       },
       onStderrLine: ({ line }): void => {
         if (isApiOverloadLineGuard({ line })) {
           overload.seen = true;
+        }
+        if (isRateLimitRejectedLineGuard({ line })) {
+          rejection.seen = true;
+          rejection.line = line;
         }
         process.stderr.write(`[dev] ◂  stderr  proc:${processId}  ${line}\n`);
       },
@@ -185,6 +204,26 @@ export const spawnOneAgentLayerBroker = async ({
   unregisterProcess?.({ processId });
 
   if (exitCode === null || exitCode === 0) {
+    return ok;
+  }
+
+  // Checked BEFORE the overload branch, and it never retries. A quota refusal is the one upstream
+  // death where respawning is guaranteed to fail: nothing changes until the window resets, so the
+  // retry schedule would spend up to 30 attempts producing 30 more refusals. Recording the hold
+  // stops the whole queue instead, which is the only response that helps, and the poller lifts it
+  // when the wait is up.
+  if (rejection.seen) {
+    const hold = await dispatchHoldRejectBroker({ line: rejection.line, nowMs: Date.now() }).catch(
+      (error: unknown) => {
+        process.stderr.write(
+          `[node-dispatch] failed to record the rate-limit hold for work item ${instruction.workItemId}: ${String(error)}\n`,
+        );
+        return null;
+      },
+    );
+    process.stderr.write(
+      `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} died on a rate-limit refusal — dispatch holds until ${hold === null ? 'the next poll re-reads the state' : hold.resumeAt}\n`,
+    );
     return ok;
   }
 

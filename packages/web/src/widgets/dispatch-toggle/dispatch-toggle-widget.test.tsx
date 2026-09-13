@@ -1,6 +1,6 @@
 import { waitFor } from '@testing-library/react';
 
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
@@ -154,6 +154,159 @@ describe('DispatchToggleWidget', () => {
       });
 
       expect(proxy.hasToggleLabel({ text: 'PAUSE' })).toBe(true);
+    });
+  });
+
+  describe('the rate-limit hold notice', () => {
+    it('VALID: {a live hold} => renders the notice naming the window and the wait', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({
+        state: DispatchStateStub({
+          mode: 'node-playing',
+          hold: DispatchHoldStub({
+            detail: '7d window at 93% — dispatch holds until it resets',
+            resumeAt: '2099-01-01T00:00:00.000Z',
+          }),
+        }),
+      });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_HOLD_NOTICE');
+
+      // The trailing duration is measured against the real clock, so the tail is left open; the
+      // exact wording of that countdown is pinned in the notice widget's own suite.
+      expect(proxy.holdNoticeText()).toMatch(
+        /^HELD — 7d window at 93% — dispatch holds until it resets · resumes in .+$/u,
+      );
+    });
+
+    it('EMPTY: {no hold} => renders no notice, so an ordinary pause reads as an ordinary pause', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect(proxy.holdNoticeText()).toBe(null);
+    });
+
+    it('VALID: {a live hold while playing} => the button still reads PAUSE, because the hold is not the user lever', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({
+        state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
+      });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect(proxy.hasToggleLabel({ text: 'PAUSE' })).toBe(true);
+    });
+
+    it('VALID: {a live hold while paused} => the button still reads PLAY', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({
+        state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }),
+      });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect(proxy.hasToggleLabel({ text: 'PLAY' })).toBe(true);
+    });
+  });
+
+  describe('the button while a hold stands', () => {
+    it('VALID: {a live hold while paused} => PLAY is disabled, because pressing it cannot help', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({
+        state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }),
+      });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect(proxy.isToggleDisabled()).toBe(true);
+    });
+
+    it('VALID: {a live hold while playing} => PAUSE stays enabled, because stopping the queue is always the user lever', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({
+        state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
+      });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect(proxy.isToggleDisabled()).toBe(false);
+    });
+
+    it('VALID: {a live hold while playing} => clicking PAUSE still posts to the pause endpoint', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({
+        state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
+      });
+      proxy.setupPause({ state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }) });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+      await proxy.clickToggle();
+
+      await waitFor(() => {
+        expect(proxy.getPauseRequestCount()).toBe(1);
+      });
+
+      expect(proxy.getPauseRequestCount()).toBe(1);
+    });
+
+    it('EMPTY: {no hold while paused} => PLAY is enabled', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect(proxy.isToggleDisabled()).toBe(false);
+    });
+
+    it('VALID: {a hold lands over a paused queue mid-session} => PLAY goes from enabled to disabled with no reload', async () => {
+      const proxy = DispatchToggleWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
+
+      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
+
+      await findByTestId('DISPATCH_TOGGLE');
+
+      expect(proxy.isToggleDisabled()).toBe(false);
+
+      proxy.setupDispatchState({
+        state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }),
+      });
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'dispatch-state-changed',
+              payload: {},
+              timestamp: '2024-01-15T10:10:00.000Z',
+            }),
+          });
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isToggleDisabled()).toBe(true);
+      });
+
+      expect(proxy.isToggleDisabled()).toBe(true);
     });
   });
 });

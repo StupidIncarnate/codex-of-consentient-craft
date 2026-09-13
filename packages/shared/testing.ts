@@ -69,3 +69,6 @@ export * from './src/brokers/locations/dispatch-state-path-find/locations-dispat
 export * from './src/brokers/locations/dispatch-state-tmp-path-find/locations-dispatch-state-tmp-path-find-broker.proxy';
 export * from './src/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
 export * from './src/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
+export * from './src/brokers/locations/claude-projects-root-find/locations-claude-projects-root-find-broker.proxy';
+export * from './src/brokers/locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker.proxy';
+export * from './src/brokers/locations/usage-ledger-tmp-path-find/locations-usage-ledger-tmp-path-find-broker.proxy';

@@ -13,14 +13,14 @@ export const orchestratorGetRateLimitsAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: StartOrchestrator.getRateLimits });
 
-  mock.calledWith([]).returns(null);
+  mock.calledWith([]).resolves(null);
 
   return {
     returns: ({ snapshot }: { snapshot: RateLimitsSnapshot | null }): void => {
-      mock.calledWith([]).returns(snapshot);
+      mock.calledWith([]).resolves(snapshot);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.calledWith([]).throws(error);
+      mock.calledWith([]).rejects(error);
     },
   };
 };

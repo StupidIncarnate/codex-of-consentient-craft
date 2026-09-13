@@ -147,6 +147,40 @@ describe('PixelBtnWidget', () => {
 
       expect(button.style.pointerEvents).toBe('none');
     });
+
+    it('VALID: {disabled: true} => carries the native disabled attribute, not just the styling', () => {
+      const proxy = PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'NOPE' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
+      });
+
+      expect(proxy.isDisabled()).toBe(true);
+    });
+
+    it('VALID: {disabled not set} => carries no disabled attribute', () => {
+      const proxy = PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'GO' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
+
+      expect(proxy.isDisabled()).toBe(false);
+    });
+
+    it('VALID: {disabled: false} => carries no disabled attribute', () => {
+      const proxy = PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'GO' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} disabled={false} />,
+      });
+
+      expect(proxy.isDisabled()).toBe(false);
+    });
   });
 
   describe('danger + disabled combination', () => {

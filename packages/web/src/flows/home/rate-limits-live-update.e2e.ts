@@ -5,44 +5,67 @@ import { rateLimitsHarness } from '../../../test/harnesses/rate-limits/rate-limi
 
 const POLL_TIMEOUT_MS = 9000;
 
+// Input tokens weigh 1, so each spend below IS the weighted total: 4200 of 10000 is 42% and of
+// 21000 is 20%; 8100 of the same two ceilings is 81% and 39%.
+const FIVE_HOUR_CEILING = 10_000;
+const SEVEN_DAY_CEILING = 21_000;
+const INITIAL_SPEND = 4200;
+const UPDATED_SPEND = 8100;
+
 const rateLimits = rateLimitsHarness();
 wireHarnessLifecycle({ harness: rateLimits, testObj: test });
 
 test.describe('Rate Limits Live Update', () => {
-  test('VALID: {snapshot file updated mid-session} => rate-limits card DOM updates via WS without reload', async ({
+  test('VALID: {reading updated mid-session} => rate-limits card DOM updates via WS without reload', async ({
     page,
   }) => {
-    // 1. Write initial snapshot
-    const initialSnapshot = RateLimitsSnapshotStub({
-      fiveHour: RateLimitWindowStub({ usedPercentage: 42 }),
-      sevenDay: RateLimitWindowStub({ usedPercentage: 20 }),
+    // 1. The ledger carries the NUMBERS the API serves. The rate-limits.json snapshot carries
+    //    nothing the card reads — it is the file the orchestrator's poller diffs, and a change to
+    //    it is the only thing that emits `rate-limits-updated`, which is the event this binding
+    //    re-fetches on. Both are written, because this spec is about the wake, not the reading.
+    rateLimits.writeLedger({
+      spendTokens: INITIAL_SPEND,
+      fiveHourCeiling: FIVE_HOUR_CEILING,
+      sevenDayCeiling: SEVEN_DAY_CEILING,
     });
-    rateLimits.writeSnapshot({ snapshot: initialSnapshot });
+    rateLimits.writeSnapshot({
+      snapshot: RateLimitsSnapshotStub({
+        fiveHour: RateLimitWindowStub({ usedPercentage: 42 }),
+        sevenDay: RateLimitWindowStub({ usedPercentage: 20 }),
+      }),
+    });
 
     // 2. Navigate to home
     await page.goto('/');
 
-    // 3. Wait for initial render with first snapshot values
+    // 3. Wait for initial render with the first reading's values
     await expect(page.getByTestId('RATE_LIMIT_CARD_5H')).toContainText('42%', {
       timeout: POLL_TIMEOUT_MS,
     });
     await expect(page.getByTestId('RATE_LIMIT_CARD_7D')).toContainText('20%');
 
-    // 4. Write updated snapshot — triggers the orchestrator's file watcher, which emits
-    //    rate-limits-updated via orchestrationEventsState, relayed to all WS clients by
-    //    the server's in-memory relay loop; the web binding re-fetches on that event.
-    const updatedSnapshot = RateLimitsSnapshotStub({
-      fiveHour: RateLimitWindowStub({ usedPercentage: 81 }),
-      sevenDay: RateLimitWindowStub({ usedPercentage: 50 }),
+    // 4. Move the ledger first, then touch the snapshot file — the file watcher emits
+    //    rate-limits-updated via orchestrationEventsState, the server's in-memory relay loop
+    //    broadcasts it to every WS client, and the web binding re-fetches the ledger-derived
+    //    reading on that event.
+    rateLimits.writeLedger({
+      spendTokens: UPDATED_SPEND,
+      fiveHourCeiling: FIVE_HOUR_CEILING,
+      sevenDayCeiling: SEVEN_DAY_CEILING,
     });
-    rateLimits.writeSnapshot({ snapshot: updatedSnapshot });
+    rateLimits.writeSnapshot({
+      snapshot: RateLimitsSnapshotStub({
+        fiveHour: RateLimitWindowStub({ usedPercentage: 81 }),
+        sevenDay: RateLimitWindowStub({ usedPercentage: 39 }),
+      }),
+    });
 
     // 5–6. Assert DOM updated without reload — generous timeout to accommodate the
-    //      orchestrator's ~5s polling interval plus WS relay + fetch round-trip.
+    //      orchestrator's polling interval plus WS relay + fetch round-trip.
     await expect(page.getByTestId('RATE_LIMIT_CARD_5H')).toContainText('81%', {
       timeout: POLL_TIMEOUT_MS,
     });
-    await expect(page.getByTestId('RATE_LIMIT_CARD_7D')).toContainText('50%', {
+    await expect(page.getByTestId('RATE_LIMIT_CARD_7D')).toContainText('39%', {
       timeout: POLL_TIMEOUT_MS,
     });
 

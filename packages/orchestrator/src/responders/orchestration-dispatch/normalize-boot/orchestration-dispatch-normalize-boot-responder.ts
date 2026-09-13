@@ -28,5 +28,9 @@ export const OrchestrationDispatchNormalizeBootResponder = async (): Promise<Dis
   return dispatchStateWriteBroker({
     mode: 'paused',
     ...(current.mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt: current.mcpHeartbeatAt }),
+    // A hold survives a restart deliberately: the quota it was raised against does not care that
+    // the server bounced, and dropping it would let the first play press after a reboot dispatch
+    // into a window that is still spent.
+    ...(current.hold === undefined ? {} : { hold: current.hold }),
   });
 };

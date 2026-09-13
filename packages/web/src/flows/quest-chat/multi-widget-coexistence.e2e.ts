@@ -1,5 +1,4 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
-import { RateLimitsSnapshotStub, RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
 import {
   claudeMockHarness,
   SimpleTextResponseStub,
@@ -15,6 +14,9 @@ const WIDGET_TIMEOUT = 10_000;
 const QUEUE_TIMEOUT = 9_000;
 const BACKEND_WS_PATHNAME = '/ws';
 const EXPECTED_BACKEND_WS_COUNT = 1;
+const RATE_LIMIT_SPEND = 5500;
+const RATE_LIMIT_FIVE_HOUR_CEILING = 10_000;
+const RATE_LIMIT_SEVEN_DAY_CEILING = 18_333;
 
 const claudeMock = wireHarnessLifecycle({
   harness: claudeMockHarness({ guildPath: GUILD_PATH }),
@@ -46,12 +48,13 @@ test.describe('Multi-widget coexistence', () => {
   }) => {
     const quests = questHarness({ request });
 
-    // 1. Write a rate-limits snapshot so the rate-limits stack renders.
-    const snapshot = RateLimitsSnapshotStub({
-      fiveHour: RateLimitWindowStub({ usedPercentage: 55 }),
-      sevenDay: RateLimitWindowStub({ usedPercentage: 30 }),
+    // 1. Write a measured reading so the rate-limits stack renders. Input tokens weigh 1, so 5500
+    //    against a 10000 five-hour ceiling is 55%, and against a 18333 seven-day one is 30%.
+    rateLimits.writeLedger({
+      spendTokens: RATE_LIMIT_SPEND,
+      fiveHourCeiling: RATE_LIMIT_FIVE_HOUR_CEILING,
+      sevenDayCeiling: RATE_LIMIT_SEVEN_DAY_CEILING,
     });
-    rateLimits.writeSnapshot({ snapshot });
 
     // 2. Create a guild.
     const guild = await guildHarness({ request }).createGuild({

@@ -22,5 +22,6 @@ export const dispatchStateHeartbeatBroker = async (): Promise<DispatchState> => 
   return dispatchStateWriteBroker({
     mode: current.mode,
     mcpHeartbeatAt: heartbeatAt,
+    ...(current.hold === undefined ? {} : { hold: current.hold }),
   });
 };

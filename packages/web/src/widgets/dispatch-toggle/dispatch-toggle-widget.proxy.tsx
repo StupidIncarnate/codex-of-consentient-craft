@@ -16,6 +16,7 @@ import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/not
 import { useDispatchStateBindingProxy } from '../../bindings/use-dispatch-state/use-dispatch-state-binding.proxy';
 import { orchestrationDispatchPauseBrokerProxy } from '../../brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker.proxy';
 import { orchestrationDispatchPlayBrokerProxy } from '../../brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker.proxy';
+import { DispatchHoldNoticeWidgetProxy } from '../dispatch-hold-notice/dispatch-hold-notice-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
@@ -33,7 +34,9 @@ export const DispatchToggleWidgetProxy = (): {
   setupPause: (params: { state: DispatchState }) => void;
   clickToggle: () => Promise<void>;
   hasToggleLabel: (params: { text: string }) => boolean;
+  isToggleDisabled: () => boolean;
   hasToggle: () => boolean;
+  holdNoticeText: () => unknown;
   getPlayRequestCount: () => ReturnType<PlayProxy['getRequestCount']>;
   getPauseRequestCount: () => ReturnType<PauseProxy['getRequestCount']>;
   getShownToast: () => unknown;
@@ -43,6 +46,9 @@ export const DispatchToggleWidgetProxy = (): {
   const pause = orchestrationDispatchPauseBrokerProxy();
   const notifications = mantineNotificationsShowAdapterProxy();
   const pixelBtn = PixelBtnWidgetProxy();
+  // The notice renders whenever a hold is on the state. Its own suite pins the wording and the
+  // countdown; here it is a child this widget mounts, and it pins the clock the countdown reads.
+  DispatchHoldNoticeWidgetProxy();
 
   return {
     setupDispatchState: ({ state }: { state: DispatchState }): void => {
@@ -68,7 +74,10 @@ export const DispatchToggleWidgetProxy = (): {
       await userEvent.click(within(toggle).getByTestId('PIXEL_BTN'), userEventStatics.options);
     },
     hasToggleLabel: ({ text }: { text: string }): boolean => pixelBtn.hasLabel({ text }),
+    isToggleDisabled: (): boolean => pixelBtn.isDisabled(),
     hasToggle: (): boolean => screen.queryByTestId('DISPATCH_TOGGLE') !== null,
+    holdNoticeText: (): unknown =>
+      screen.queryByTestId('DISPATCH_HOLD_NOTICE')?.textContent ?? null,
     getPlayRequestCount: (): ReturnType<PlayProxy['getRequestCount']> => play.getRequestCount(),
     getPauseRequestCount: (): ReturnType<PauseProxy['getRequestCount']> => pause.getRequestCount(),
     getShownToast: (): unknown => notifications.getShownNotification(),

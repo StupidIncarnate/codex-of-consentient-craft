@@ -423,4 +423,82 @@ describe('spawnOneAgentLayerBroker', () => {
       ]);
     });
   });
+
+  describe('quota refusal (429)', () => {
+    it('VALID: {child prints a weekly-limit refusal then exits 1} => does NOT respawn', async () => {
+      const proxy = spawnOneAgentLayerBrokerProxy();
+      const instruction = SpawnInstructionStub();
+      proxy.setupSpawnEmitsRateLimitRefusalThenExits({ exitCode: 1 });
+
+      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+
+      expect(result).toStrictEqual(AdapterResultStub());
+      // ONE spawn. The overload path would have respawned here; a refusal must not, because the
+      // quota does not refill on its schedule and every respawn earns another 429.
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        [
+          '-p',
+          instruction.taskPrompt,
+          '--output-format',
+          'stream-json',
+          '--verbose',
+          '--model',
+          roleToModelStatics.codeweaver,
+          '--settings',
+          '{"hooks":{}}',
+        ],
+      ]);
+    });
+
+    it('VALID: {a refusal} => hands the refusal line itself to the hold, so the window is readable off it', async () => {
+      const proxy = spawnOneAgentLayerBrokerProxy();
+      const instruction = SpawnInstructionStub();
+      proxy.setupSpawnEmitsRateLimitRefusalThenExits({ exitCode: 1 });
+
+      await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+
+      expect(proxy.getRejectCallInputs()).toStrictEqual([
+        {
+          line: JSON.stringify({
+            type: 'assistant',
+            isApiErrorMessage: true,
+            apiErrorStatus: 429,
+            error: 'rate_limit',
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'text',
+                  text: "You've hit your weekly limit · resets Sep 12, 11pm (America/Los_Angeles)",
+                },
+              ],
+            },
+          }),
+          nowMs: 1789274969242,
+        },
+      ]);
+    });
+
+    it('VALID: {a refusal} => names the resume time on stderr rather than reporting a crash', async () => {
+      const proxy = spawnOneAgentLayerBrokerProxy();
+      const instruction = SpawnInstructionStub();
+      proxy.setupSpawnEmitsRateLimitRefusalThenExits({ exitCode: 1 });
+
+      await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+
+      expect(proxy.getStderrLines()).toStrictEqual([
+        `[node-dispatch] codeweaver work item ${instruction.workItemId} died on a rate-limit refusal — dispatch holds until 2026-09-13T05:19:29.242Z\n`,
+      ]);
+    });
+
+    it('EDGE: {a refusal printed by a child that exited 0} => is ignored, because only a dead child proves it landed', async () => {
+      const proxy = spawnOneAgentLayerBrokerProxy();
+      const instruction = SpawnInstructionStub();
+      proxy.setupSpawnEmitsRateLimitRefusalThenExits({ exitCode: 0 });
+
+      await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+
+      expect(proxy.getRejectCallInputs()).toStrictEqual([]);
+    });
+  });
 });

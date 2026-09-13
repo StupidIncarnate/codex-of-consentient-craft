@@ -1,6 +1,12 @@
 /**
  * PURPOSE: Polls ~/.dungeonmaster/rate-limits.json every intervalMs and invokes onSnapshot when it changes
  *
+ * `onSnapshot` fires on CHANGE; `onTick` fires on every interval whatever the file did. The
+ * guardrail needs both: it raises a hold off a changed reading, but LIFTING one is a clock
+ * comparison, and the statusline stops rewriting the file the moment the user leaves their Claude
+ * session — which is exactly when a hold is standing. On change alone, a hold raised at 93% would
+ * never lift, because nothing would ever tick again.
+ *
  * USAGE:
  * const handle = rateLimitsWatchBroker({
  *   intervalMs: 5000,
@@ -19,10 +25,12 @@ import { rateLimitsWatchTickLayerBroker } from './rate-limits-watch-tick-layer-b
 export const rateLimitsWatchBroker = ({
   intervalMs,
   onSnapshot,
+  onTick,
   onError,
 }: {
   intervalMs: number;
   onSnapshot: ({ snapshot }: { snapshot: RateLimitsSnapshot | null }) => void;
+  onTick?: () => void;
   onError: ({ message }: { message: string }) => void;
 }): { stop: () => void } => {
   // Per WATCHER, not per module. Two watchers in one process would otherwise read and write one
@@ -40,6 +48,10 @@ export const rateLimitsWatchBroker = ({
       // a read slower than the interval, which a 5s production cadence hides and a loaded machine
       // does not: this was measured as a doubled `rate-limits-updated` event in a whole-repo run.
       // Skipping a tick while one is in flight also bounds the poller to one open read.
+      // Ahead of the in-flight guard, so a slow read never starves the clock the expiry check
+      // runs on. It takes no arguments and reads no file, so a skipped tick costs it nothing.
+      onTick?.();
+
       if (tickState.isReading) {
         return;
       }

@@ -17,6 +17,7 @@ import {
   wardModeContract,
 } from '@dungeonmaster/shared/contracts';
 
+import { idleReasonContract } from '../idle-reason/idle-reason-contract';
 import { spawnInstructionContract } from '../spawn-instruction/spawn-instruction-contract';
 
 export const nextStepContract = z.discriminatedUnion('type', [
@@ -40,9 +41,10 @@ export const nextStepContract = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal('idle'),
-    // Set when idle is forced rather than organic — e.g. the Node dispatcher owns the queue,
-    // so /dumpster-launch's poll is told why nothing will ever be returned.
-    reason: z.string().min(1).brand<'IdleReason'>().optional(),
+    // Set when idle is forced rather than organic — the Node dispatcher owns the queue, or the
+    // rate-limit guardrail is holding it — so /dumpster-launch's poll is told why nothing will be
+    // returned instead of polling on.
+    reason: idleReasonContract.optional(),
   }),
 ]);
 

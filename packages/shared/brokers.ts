@@ -87,3 +87,6 @@ export * from './src/brokers/locations/rate-limits-snapshot-tmp-path-find/locati
 export * from './src/brokers/locations/rate-limits-history-path-find/locations-rate-limits-history-path-find-broker';
 export * from './src/brokers/locations/dispatch-state-path-find/locations-dispatch-state-path-find-broker';
 export * from './src/brokers/locations/dispatch-state-tmp-path-find/locations-dispatch-state-tmp-path-find-broker';
+export * from './src/brokers/locations/claude-projects-root-find/locations-claude-projects-root-find-broker';
+export * from './src/brokers/locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker';
+export * from './src/brokers/locations/usage-ledger-tmp-path-find/locations-usage-ledger-tmp-path-find-broker';

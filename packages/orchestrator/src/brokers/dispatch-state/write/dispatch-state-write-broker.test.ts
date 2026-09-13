@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { dispatchStateWriteBroker } from './dispatch-state-write-broker';
 import { dispatchStateWriteBrokerProxy } from './dispatch-state-write-broker.proxy';
@@ -34,6 +34,74 @@ describe('dispatchStateWriteBroker', () => {
         DispatchStateStub({
           mode: 'paused',
           mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
+    });
+  });
+
+  describe('the rate-limit hold', () => {
+    it('VALID: {a hold supplied} => persists it alongside the mode', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+
+      const result = await dispatchStateWriteBroker({
+        mode: 'node-playing',
+        hold: DispatchHoldStub(),
+      });
+
+      expect(result).toStrictEqual(
+        DispatchStateStub({
+          mode: 'node-playing',
+          hold: DispatchHoldStub(),
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      );
+    });
+
+    it('VALID: {hold: null} => persists an explicit null, which is how an expiry is cleared', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+
+      await dispatchStateWriteBroker({ mode: 'node-playing', hold: null });
+
+      expect(JSON.parse(String(proxy.getWrittenContent()))).toStrictEqual({
+        mode: 'node-playing',
+        hold: null,
+        updatedAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('EMPTY: {hold omitted} => DROPS it, which is why every caller forwards what it read', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+
+      await dispatchStateWriteBroker({ mode: 'paused' });
+
+      // No `hold` key at all. A caller that omits it silently lifts a live hold — the reason the
+      // pause, play, heartbeat and boot-normalize paths each pass `current.hold` through.
+      expect(JSON.parse(String(proxy.getWrittenContent()))).toStrictEqual({
+        mode: 'paused',
+        updatedAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('VALID: {a hold beside a heartbeat} => both survive one write', async () => {
+      const proxy = dispatchStateWriteBrokerProxy();
+      proxy.setupWriteSuccess();
+      const { mcpHeartbeatAt } = DispatchStateStub({ mcpHeartbeatAt: '2024-01-15T09:59:00.000Z' });
+
+      const result = await dispatchStateWriteBroker({
+        mode: 'paused',
+        mcpHeartbeatAt,
+        hold: DispatchHoldStub(),
+      });
+
+      expect(result).toStrictEqual(
+        DispatchStateStub({
+          mode: 'paused',
+          mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
+          hold: DispatchHoldStub(),
           updatedAt: '2024-01-15T10:00:00.000Z',
         }),
       );

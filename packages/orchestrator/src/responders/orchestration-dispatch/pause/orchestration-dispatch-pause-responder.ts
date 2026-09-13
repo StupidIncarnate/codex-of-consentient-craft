@@ -20,6 +20,9 @@ export const OrchestrationDispatchPauseResponder = async (): Promise<DispatchSta
   const state = await dispatchStateWriteBroker({
     mode: 'paused',
     ...(current.mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt: current.mcpHeartbeatAt }),
+    // A user pause does not lift a rate-limit hold — the two are independent vetoes, and only the
+    // hold's own resumeAt ends it.
+    ...(current.hold === undefined ? {} : { hold: current.hold }),
   });
   orchestrationDispatchState.setPlaying({ isPlaying: false });
 

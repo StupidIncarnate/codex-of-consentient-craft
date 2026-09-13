@@ -13,7 +13,7 @@ import { httpStatusStatics } from '../../../statics/http-status/http-status-stat
 
 export const RateLimitsGetResponder = async (): Promise<ResponderResult> => {
   try {
-    const snapshot = await Promise.resolve(orchestratorGetRateLimitsAdapter());
+    const snapshot = await orchestratorGetRateLimitsAdapter();
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: { snapshot },

@@ -1,4 +1,9 @@
-import { GetQuestResultStub, QuestStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  DispatchHoldStub,
+  GetQuestResultStub,
+  QuestStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 import type { QuestWorkItemIdStub, WorkItemStatusStub } from '@dungeonmaster/shared/contracts';
 import {
   registerMock,
@@ -9,6 +14,8 @@ import {
 import { timerSetTimeoutAdapterProxy } from '../../../adapters/timer/set-timeout/timer-set-timeout-adapter.proxy';
 import type { ElapsedMsStub } from '../../../contracts/elapsed-ms/elapsed-ms.stub';
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
+import { dispatchHoldRejectBroker } from '../../dispatch-hold/reject/dispatch-hold-reject-broker';
+import { dispatchHoldRejectBrokerProxy } from '../../dispatch-hold/reject/dispatch-hold-reject-broker.proxy';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
@@ -26,6 +33,11 @@ registerModuleMock({ module: '../get/quest-get-broker' });
 // the module boundary for the same reason as quest-get-broker above.
 registerModuleMock({ module: '../session-record/quest-session-record-broker' });
 
+// The hold this broker records has its own suite covering what gets written and what survives; here
+// it is one call whose ARGUMENTS are the thing under test, so it is mocked at the module boundary
+// rather than staged through the dispatch-state read and write chains.
+registerModuleMock({ module: '../../dispatch-hold/reject/dispatch-hold-reject-broker' });
+
 const PROCESS_UUID = '00000000-0000-4000-8000-00000000d15b';
 
 type QuestWorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
@@ -36,6 +48,11 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   setupSpawnEmitsSessionThenExits: (params: { sessionId: string; exitCode: number }) => void;
   setupSpawnExitsWithoutSession: (params: { exitCode: number }) => void;
   setupSpawnEmitsApiOverloadThenExits: (params: { sessionId?: string; exitCode: number }) => void;
+  setupSpawnEmitsRateLimitRefusalThenExits: (params: {
+    sessionId?: string;
+    exitCode: number;
+  }) => void;
+  getRejectCallInputs: () => readonly unknown[];
   setupModifySucceeds: (params: { times: number }) => void;
   setupModifyRejectsOnce: (params: { error: Error }) => void;
   setupWorkItemStatusOnReread: (params: {
@@ -55,11 +72,18 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   // at the same `[]` address to win.
   const modifyProxy = questModifyBrokerProxy();
   const timerProxy = timerSetTimeoutAdapterProxy();
-  // Wired to satisfy dependency discovery; the module mock above supplies the return values.
+  // Wired to satisfy dependency discovery; the module mocks above supply the return values.
   questGetBrokerProxy();
   questSessionRecordBrokerProxy();
+  dispatchHoldRejectBrokerProxy();
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(PROCESS_UUID);
+
+  // The refusal path stamps the hold with Date.now(); pinned so the recorded argument is an exact
+  // value a test can assert rather than a moving target.
+  registerSpyOn({ object: Date, method: 'now' })
+    .calledWith([])
+    .returns(Date.parse('2026-09-13T04:49:29.242Z'));
 
   const stderr: unknown[] = [];
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
@@ -77,6 +101,14 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   registerMock({ fn: questSessionRecordBroker })
     .calledWith([])
     .resolves({ success: true as const });
+
+  const rejectMock = registerMock({ fn: dispatchHoldRejectBroker });
+  rejectMock.calledWith([]).resolves(
+    DispatchHoldStub({
+      reason: 'rejected',
+      resumeAt: '2026-09-13T05:19:29.242Z',
+    }),
+  );
 
   const getMock = registerMock({ fn: questGetBroker });
   // Default: the quest carries no matching work item, so the retry proceeds (the terminal check
@@ -127,6 +159,42 @@ export const spawnOneAgentLayerBrokerProxy = (): {
         exitCode,
       });
     },
+
+    // The refusal shape a real quota-exhausted run produces: the CLI's synthetic assistant line
+    // carrying the account's own 429, copied from a session that died mid-quest.
+    setupSpawnEmitsRateLimitRefusalThenExits: ({
+      sessionId,
+      exitCode,
+    }: {
+      sessionId?: string;
+      exitCode: number;
+    }): void => {
+      const refusalLine = JSON.stringify({
+        type: 'assistant',
+        isApiErrorMessage: true,
+        apiErrorStatus: 429,
+        error: 'rate_limit',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'text',
+              text: "You've hit your weekly limit · resets Sep 12, 11pm (America/Los_Angeles)",
+            },
+          ],
+        },
+      });
+      spawnProxy.setupSpawnAndEmitLines({
+        lines:
+          sessionId === undefined
+            ? [refusalLine]
+            : [JSON.stringify({ session_id: sessionId }), refusalLine],
+        exitCode,
+      });
+    },
+
+    getRejectCallInputs: (): readonly unknown[] =>
+      rejectMock.callsMatching([]).map((call) => call[0]),
 
     setupModifySucceeds: ({ times }: { times: number }): void => {
       Array.from({ length: times }).forEach(() => {
