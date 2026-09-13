@@ -399,7 +399,7 @@ describe('slowFileTimingsTransformer', () => {
       });
     });
 
-    it('VALID: {3.5s of test bodies, integration} => returns it, because it is over the integration bar', () => {
+    it('VALID: {6.5s of test bodies, integration} => returns it, because it is over the integration bar', () => {
       const check = CheckResultStub({
         checkType: 'integration',
         status: 'pass',
@@ -408,9 +408,9 @@ describe('slowFileTimingsTransformer', () => {
             fileTimings: [
               FileTimingStub({
                 filePath: 'src/slow.integration.test.ts',
-                durationMs: 5000,
-                testMs: 3500,
-                slowestTestMs: 3500,
+                durationMs: 8000,
+                testMs: 6500,
+                slowestTestMs: 6500,
               }),
             ],
           }),
@@ -420,6 +420,31 @@ describe('slowFileTimingsTransformer', () => {
       expect(slowFileTimingsTransformer({ check }).map((timing) => timing.filePath)).toStrictEqual([
         'src/slow.integration.test.ts',
       ]);
+    });
+
+    // The case the bar was raised FOR. 5s is what one spawn test measures while ward runs several
+    // packages at once, and naming it made the gate report the machine — consecutive whole-repo
+    // runs against one unchanged tree named different files, each of which passed when its own
+    // package was warded alone.
+    it('VALID: {5s of test bodies, integration} => returns nothing, because a spawn test measures that under ward concurrency', () => {
+      const check = CheckResultStub({
+        checkType: 'integration',
+        status: 'pass',
+        projectResults: [
+          ProjectResultStub({
+            fileTimings: [
+              FileTimingStub({
+                filePath: 'src/startup/start-worktree-create-hook.integration.test.ts',
+                durationMs: 7000,
+                testMs: 5000,
+                slowestTestMs: 5000,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
     });
   });
 

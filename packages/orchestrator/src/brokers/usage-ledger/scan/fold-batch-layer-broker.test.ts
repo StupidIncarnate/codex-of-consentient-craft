@@ -1,3 +1,5 @@
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts';
+
 import { TranscriptReadStub } from '../../../contracts/transcript-read/transcript-read.stub';
 
 import { foldBatchLayerBroker } from './fold-batch-layer-broker';
@@ -24,7 +26,9 @@ describe('foldBatchLayerBroker', () => {
 
       const result = await foldBatchLayerBroker({
         pending: [],
-        buckets: { [BUCKET]: { input: 0, cacheCreation: 0, cacheRead: 0, output: 7 } },
+        buckets: {
+          [BUCKET]: UsageBucketStub({ input: 0, cacheCreation: 0, cacheRead: 0, output: 7 }),
+        },
         oldestUsefulMs: OLDEST,
         batchSize: 16,
       });

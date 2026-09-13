@@ -5,7 +5,7 @@ describe('slowFileThresholdStatics', () => {
     expect(slowFileThresholdStatics.threshold).toStrictEqual({
       warnMs: 5000,
       testWarnMs: 1000,
-      integrationTestWarnMs: 3000,
+      integrationTestWarnMs: 6000,
       lintRulesWarnMs: 2000,
       e2eTestWarnMs: 10_000,
     });

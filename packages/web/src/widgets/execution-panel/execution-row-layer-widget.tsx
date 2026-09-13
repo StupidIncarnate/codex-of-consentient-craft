@@ -186,15 +186,16 @@ export const ExecutionRowLayerWidget = ({
   }, [status]);
 
   const isRunning = status === ('in_progress' as ExecutionStepStatus);
-  // The clock a running row's OWN transcript ticks against — a chain nested inside a finished,
-  // failed or replayed row gets none, so nothing on screen climbs for a sub-agent that stopped
-  // hours ago. Resolved through a transformer rather than inline: this arrow function already
-  // sits at the `complexity: max 50` ceiling `eslintRuleStatics` enforces.
-  const chainNow = runningRowNowTransformer({ isRunning, now });
+  // The clock this row ticks against — the panel's reading while it runs, nothing once it stops,
+  // so nothing on screen climbs for a row or a nested sub-agent chain that stopped hours ago. It
+  // serves both the row's own elapsed figure and the transcript it forwards to. Resolved through a
+  // transformer rather than inline: this arrow function sits at the `complexity: max 50` ceiling
+  // `eslintRuleStatics` enforces, and a second inline copy of the test is what tips it over.
+  const runningNow = runningRowNowTransformer({ isRunning, now });
   // A row shows a figure exactly when it has a startedAt AND an honest end point: completedAt if
   // it has one, else `now` while running. Any other status with a startedAt has none — that
   // startedAt is left over from a previous dispatch, not a span still in progress.
-  const elapsedEndPoint = completedAt ?? (isRunning ? now : undefined);
+  const elapsedEndPoint = completedAt ?? runningNow;
   // The panel's shared tick re-renders EVERY visible row on EVERY tick (ExecutionRowLayerWidget is
   // not memoised, and now is threaded to every row regardless of status), so without this memo a
   // finished row would re-invoke elapsedPartsTransformer — and its two Date.prototype.getTime()
@@ -487,7 +488,7 @@ export const ExecutionRowLayerWidget = ({
               defaultShowAllEarlier={!isRunning}
               stickyTop={STICKY_TOP_INSIDE_ROW}
               isCommandOutput={isCommandRow}
-              {...(chainNow === undefined ? {} : { now: chainNow })}
+              {...(runningNow === undefined ? {} : { now: runningNow })}
             />
           ) : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}

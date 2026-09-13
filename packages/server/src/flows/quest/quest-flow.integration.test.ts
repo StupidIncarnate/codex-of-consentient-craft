@@ -697,108 +697,130 @@ describe('QuestFlow', () => {
     // reaches a genuine non-empty ledger in the very same environment — an unpaired zero-count
     // assertion cannot tell "correctly never spawned" from "the ledger path is wrong and would
     // read empty no matter what".
-    it('EDGE: {batch of 3 comments — two sharing one valid anchor, one naming a deleted node} => returns 409 naming only the stale anchor, persists no comments, and spawns ZERO real chat processes — paired against a follow-up valid batch that reaches a genuine non-zero spawn in the same environment', async () => {
-      const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-stale' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
-      const cli = harness.configureFakeClaudeCli();
-      const questId = 'server-http-stale-anchor-quest';
-      const questFolder = '001-server-http-stale-anchor-quest';
+    //
+    // Both exchanges run in beforeAll, and the PAIRING is why: they have to share one environment —
+    // one guild, one quest, one fake-CLI queue directory, in that order — so they cannot be two
+    // independent tests, and running both inside either one charges that test for the other's work.
+    // The cost is real and irreducible: a 2s window this batch must produce no spawn inside, then a
+    // wait on a spawn that genuinely happens. jest leaves a beforeAll outside the window it measures
+    // a test in, so the two `it` blocks below read the outcome each one is named for.
+    describe('a rejected batch beside an accepted one, in one environment', () => {
+      let staleResponse: Response | undefined;
+      let staleBody: unknown;
+      let questAfterStale: unknown;
+      let invocationAfterStale: unknown;
+      let validResponse: Response | undefined;
+      let invocationAfterValid: unknown;
+      let seededQuest: ReturnType<typeof QuestStub> | undefined;
+      let seededSessionId: ReturnType<typeof SessionIdStub> | undefined;
 
-      // A REAL guild, registered via the orchestrator's own public API — guildGetBroker (invoked
-      // deep inside chatSpawnBroker on any path that reaches a resume) needs it in config.json;
-      // seedQuest's glob-based quest lookup alone does not require this.
-      const guild = await harness.registerRealGuild({
-        name: 'Stale Anchor Guild',
-        path: dungeonmasterHome,
-      });
-      const guildId = String(guild.id);
+      beforeAll(async () => {
+        const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-stale' });
+        const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+        const cli = harness.configureFakeClaudeCli();
+        const questId = 'server-http-stale-anchor-quest';
+        const questFolder = '001-server-http-stale-anchor-quest';
 
-      const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
-        edges: [],
-      });
-      const sessionId = SessionIdStub({ value: 'bbbbbbbb-2222-4222-8222-444444444444' });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'flows_approved' as never,
-        flows: [flow],
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-2222-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'in_progress',
-            sessionId,
+        // A REAL guild, registered via the orchestrator's own public API — guildGetBroker (invoked
+        // deep inside chatSpawnBroker on any path that reaches a resume) needs it in config.json;
+        // seedQuest's glob-based quest lookup alone does not require this.
+        const guild = await harness.registerRealGuild({
+          name: 'Stale Anchor Guild',
+          path: dungeonmasterHome,
+        });
+        const guildId = String(guild.id);
+
+        const flow = FlowStub({
+          id: 'login-flow' as never,
+          nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+          edges: [],
+        });
+        seededSessionId = SessionIdStub({ value: 'bbbbbbbb-2222-4222-8222-444444444444' });
+        seededQuest = QuestStub({
+          id: questId as never,
+          folder: questFolder as never,
+          status: 'flows_approved' as never,
+          flows: [flow],
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-2222-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId: seededSessionId,
+            }),
+          ],
+        });
+
+        harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest: seededQuest });
+
+        const app = QuestFlow();
+        staleResponse = await app.request(`/api/quests/${questId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            comments: [
+              { flowId: 'login-flow', nodeId: 'start', text: 'First on the live node' },
+              // Duplicate anchor — same live node as the entry above, different text.
+              { flowId: 'login-flow', nodeId: 'start', text: 'Second on the same live node' },
+              { flowId: 'login-flow', nodeId: 'deleted-node', text: 'Third names a gone node' },
+            ],
           }),
-        ],
+        });
+        staleBody = await staleResponse.json();
+        const getAfterStale = await app.request(`/api/quests/${questId}`);
+        questAfterStale = await getAfterStale.json();
+
+        // Bounded wait for a spawn this rejected batch must never produce.
+        invocationAfterStale = await harness.waitForClaudeInvocation({
+          claudeQueueDir: cli.claudeQueueDir,
+          cwd: dungeonmasterHome,
+          timeoutMs: 2000,
+        });
+
+        // Pair: the SAME environment, a batch whose lone anchor resolves, reaches a real spawn —
+        // proving the empty ledger above is a genuine absence, not a selector that would read empty
+        // regardless (a typo'd queue dir, an unregistered guild, a missing sessionId).
+        validResponse = await app.request(`/api/quests/${questId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            comments: [
+              { flowId: 'login-flow', nodeId: 'start', text: 'A valid comment that really sends' },
+            ],
+          }),
+        });
+        invocationAfterValid = await harness.waitForClaudeInvocation({
+          claudeQueueDir: cli.claudeQueueDir,
+          cwd: dungeonmasterHome,
+          timeoutMs: 8000,
+        });
+
+        cli.restore();
+        restore();
+      }, 30000);
+
+      it('EDGE: {batch of 3 comments — two sharing one valid anchor, one naming a deleted node} => returns 409 naming only the stale anchor, persists no comments, and spawns ZERO real chat processes', () => {
+        expect(staleResponse?.status).toBe(409);
+        expect(harness.toPlain(staleBody)).toStrictEqual({
+          error: 'Comment anchor no longer exists on the quest',
+          staleAnchors: [{ flowId: 'login-flow', nodeId: 'deleted-node' }],
+        });
+        expect(harness.toPlain(questAfterStale)).toStrictEqual({
+          success: true,
+          quest: harness.toPlain(seededQuest),
+        });
+        expect(invocationAfterStale).toBe(null);
       });
 
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
-
-      const app = QuestFlow();
-      const staleResponse = await app.request(`/api/quests/${questId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          comments: [
-            { flowId: 'login-flow', nodeId: 'start', text: 'First on the live node' },
-            // Duplicate anchor — same live node as the entry above, different text.
-            { flowId: 'login-flow', nodeId: 'start', text: 'Second on the same live node' },
-            { flowId: 'login-flow', nodeId: 'deleted-node', text: 'Third names a gone node' },
-          ],
-        }),
+      it('VALID: {a follow-up batch whose lone anchor resolves, in that same environment} => 200 and a genuine spawn, so the zero above is an absence rather than a broken ledger path', () => {
+        expect(validResponse?.status).toBe(200);
+        expect(invocationAfterValid).toStrictEqual({
+          resumeSessionId: seededSessionId,
+          prompt:
+            'Flow "Login Flow" / node `start` ("Start")\nUser Comment: A valid comment that really sends',
+        });
       });
-      const staleBody: unknown = await staleResponse.json();
-      const getAfterStale = await app.request(`/api/quests/${questId}`);
-      const questAfterStale: unknown = await getAfterStale.json();
-
-      // Bounded wait for a spawn this rejected batch must never produce.
-      const invocationAfterStale = await harness.waitForClaudeInvocation({
-        claudeQueueDir: cli.claudeQueueDir,
-        cwd: dungeonmasterHome,
-        timeoutMs: 2000,
-      });
-
-      // Pair: the SAME environment, a batch whose lone anchor resolves, reaches a real spawn —
-      // proving the empty ledger above is a genuine absence, not a selector that would read empty
-      // regardless (a typo'd queue dir, an unregistered guild, a missing sessionId).
-      const validResponse = await app.request(`/api/quests/${questId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          comments: [
-            { flowId: 'login-flow', nodeId: 'start', text: 'A valid comment that really sends' },
-          ],
-        }),
-      });
-      const invocationAfterValid = await harness.waitForClaudeInvocation({
-        claudeQueueDir: cli.claudeQueueDir,
-        cwd: dungeonmasterHome,
-        timeoutMs: 8000,
-      });
-
-      cli.restore();
-      restore();
-
-      expect(staleResponse.status).toBe(409);
-      expect(harness.toPlain(staleBody)).toStrictEqual({
-        error: 'Comment anchor no longer exists on the quest',
-        staleAnchors: [{ flowId: 'login-flow', nodeId: 'deleted-node' }],
-      });
-      expect(harness.toPlain(questAfterStale)).toStrictEqual({
-        success: true,
-        quest: harness.toPlain(quest),
-      });
-      expect(invocationAfterStale).toBe(null);
-
-      expect(validResponse.status).toBe(200);
-      expect(invocationAfterValid).toStrictEqual({
-        resumeSessionId: sessionId,
-        prompt:
-          'Flow "Login Flow" / node `start` ("Start")\nUser Comment: A valid comment that really sends',
-      });
-    }, 15000);
+    });
 
     // Flow: send-queued-comment-batch, node persist-comment-batch, observable
     // check-persist-failure-500. A mocked orchestrator adapter (see

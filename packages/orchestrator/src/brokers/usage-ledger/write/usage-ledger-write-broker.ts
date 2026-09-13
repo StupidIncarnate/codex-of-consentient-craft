@@ -59,7 +59,14 @@ export const usageLedgerWriteBroker = async ({
   await dungeonmasterHomeEnsureBroker();
 
   const ledgerPath = locationsUsageLedgerPathFindBroker();
-  const tmpPath = locationsUsageLedgerTmpPathFindBroker();
+  // The pid separates the dungeonmaster processes sharing this home — several run at once on a
+  // machine where a queue, an MCP server and a developer's own session are all polling — and nowMs
+  // separates two scans inside one of them. Staging under one shared name is a lost race: the
+  // process that renames second finds its own file already moved and throws
+  // `ENOENT ... rename`, which reaches the browser as a 500 from GET /api/rate-limits.
+  const tmpPath = locationsUsageLedgerTmpPathFindBroker({
+    token: `${String(process.pid)}-${String(nowMs)}`,
+  });
 
   const contents = fileContentsContract.parse(`${JSON.stringify(persisted)}\n`);
   await fsWriteFileAdapter({ filePath: filePathContract.parse(tmpPath), contents });

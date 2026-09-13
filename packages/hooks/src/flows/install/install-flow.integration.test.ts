@@ -65,6 +65,11 @@ describe('InstallFlow', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
             {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
             },
             {
@@ -128,6 +133,11 @@ describe('InstallFlow', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],

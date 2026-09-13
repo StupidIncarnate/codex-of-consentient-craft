@@ -322,7 +322,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
         ),
@@ -340,7 +340,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
         ),
@@ -360,7 +360,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
         ),
@@ -382,7 +382,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
         ),
@@ -405,7 +405,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
         ),

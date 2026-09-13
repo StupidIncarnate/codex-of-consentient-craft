@@ -24,9 +24,18 @@ export const slowFileThresholdStatics = {
     // An integration test may spawn real processes — that is what makes it one — and a spawned
     // child in this repo costs about a second before doing any work of its own: node boot plus the
     // `@dungeonmaster/shared` module graph, measured at 0.97s for `start-pre-bash-hook`, which
-    // lints nothing. So ONE test doing a spawn and its work sits near two seconds, and three is
-    // the bar that leaves that alone while naming a test doing markedly more.
-    integrationTestWarnMs: 3000,
+    // lints nothing. So ONE test doing a spawn and its work sits near two seconds.
+    //
+    // SIX SECONDS, not the three that span alone argues for, because a spawn test is measured
+    // while ward runs up to `configDefaultsStatics.ward.concurrency.default` packages at once —
+    // the same CPU contention the lint bar below was doubled for. At three the gate named a
+    // DIFFERENT set of files on consecutive whole-repo runs against one unchanged tree: a full run
+    // named three `hooks` spawn suites at 5.0s, 4.8s and 3.8s, and the `--only integration` run
+    // after it named `quest-hydrate` at 8.5s, `install-flow` at 3.8s and one of those same hooks
+    // files at 3.1s. Every one of them passed when its package was warded on its own. That reports
+    // the machine rather than the code, which is the one thing a gate must not do. Six clears a
+    // contended spawn test and still catches a test doing markedly more than one spawn.
+    integrationTestWarnMs: 6000,
     // Summed eslint rule time plus fix, with the TypeScript program build left out. Measured over
     // a whole-repo lint of all 7758 files: median 14ms, 90th percentile 50ms, 99th 219ms, and a
     // top file at 1148ms with the next at 778ms.
