@@ -14,9 +14,12 @@ import type { WardSummary } from '../../contracts/ward-summary/ward-summary-cont
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
 import { qualityGateStatics } from '../../statics/quality-gate/quality-gate-statics';
+import { inlineFailureStatics } from '../../statics/inline-failure/inline-failure-statics';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
+import { inlineFailureMessageTransformer } from '../inline-failure-message/inline-failure-message-transformer';
+import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { openHandleDisplayTransformer } from '../open-handle-display/open-handle-display-transformer';
 import { outOfMemoryReportTransformer } from '../out-of-memory-report/out-of-memory-report-transformer';
 import { isOutOfMemoryFailureGuard } from '../../guards/is-out-of-memory-failure/is-out-of-memory-failure-guard';
@@ -133,8 +136,26 @@ export const resultToSummaryTransformer = ({
           projectPath: project.projectFolder.path,
           cwd,
         });
-        const summaryLine = firstMeaningfulLineTransformer({ message: failure.message });
-        return `${displayPath}\n  FAIL "${failure.testName}"\n    ${summaryLine}`;
+
+        // A RUN THE CALLER SCOPED TO FILES PRINTS THE WHOLE MESSAGE, capped per failure. The jest
+        // `Expected`/`Received` diff is the only thing that tells a reader what to change, and it
+        // lives nowhere but here — a first line saying `expect(received).toStrictEqual(expected)`
+        // names no value at all, so every reader spent a second call on `ward detail` and got a
+        // blob holding the run's passing tests too. Measured: 47.2KB, over the tool-result limit,
+        // spilled to a file the session then had to read back. Any wider scope keeps the one-line
+        // form, because a git diff or a whole-repo sweep has no bound on how many failures it
+        // carries.
+        const summaryLine = isCallerFileScopeGuard({ filters: wardResult.filters })
+          ? inlineFailureMessageTransformer({
+              message: failure.message,
+              maxLines: inlineFailureStatics.message.maxLines,
+              runId: wardResult.runId,
+              displayPath,
+            })
+          : firstMeaningfulLineTransformer({ message: failure.message });
+
+        const indented = String(summaryLine).split('\n').join('\n    ');
+        return `${displayPath}\n  FAIL "${failure.testName}"\n    ${indented}`;
       });
 
       if (isCrashedProjectResultGuard({ projectResult: project })) {

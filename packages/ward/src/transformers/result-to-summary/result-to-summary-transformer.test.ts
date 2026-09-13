@@ -1282,4 +1282,120 @@ describe('resultToSummaryTransformer', () => {
       );
     });
   });
+
+  describe('a failure message on a run the caller scoped to files', () => {
+    const diffMessage = [
+      'expect(received).toStrictEqual(expected) // deep equality',
+      '- Expected  - 1',
+      '+ Received  + 1',
+      '  Object {',
+      '-   "durations": Array [],',
+      '+   "durations": Array [ "4m" ],',
+      '  }',
+      '    at Object.<anonymous> (/p/web/src/a.test.ts:8:34)',
+      '    at run (/p/node_modules/jest-circus/build/jestAdapterInit.js:761:3)',
+    ].join('\n');
+
+    const failingResult = ({
+      filters,
+    }: {
+      filters?: { passthrough?: string[]; uncommitted?: boolean };
+    }): ReturnType<typeof WardResultStub> =>
+      WardResultStub({
+        ...(filters === undefined ? {} : { filters }),
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'fail',
+                filesCount: 1,
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: '/p/web/src/a.test.ts',
+                    testName: 'reads the elapsed band',
+                    message: diffMessage,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+    // THE DIFF IS THE ONLY THING THAT TELLS A READER WHAT TO CHANGE, and it lives nowhere but the
+    // failure message. A first line reading `expect(received).toStrictEqual(expected)` names no
+    // value, which is what sent every reader to `ward detail` for a blob carrying the whole run.
+    // The node_modules frame is absent because runner frames name nothing a reader can act on, and
+    // the per-failure cap would otherwise be spent on them.
+    it('VALID: {explicit file scope} => prints the whole diff inline and drops the runner frame', () => {
+      const result = resultToSummaryTransformer({
+        wardResult: failingResult({ filters: { passthrough: ['packages/web/src/a.test.ts'] } }),
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(String(result)).toBe(
+        [
+          'run: 1739625600000-a3f1',
+          'unit:      FAIL  1 packages (0 files passed/1 files failed)  web (1)',
+          '',
+          '--- unit ---',
+          'web/src/a.test.ts',
+          '  FAIL "reads the elapsed band"',
+          '    expect(received).toStrictEqual(expected) // deep equality',
+          '    - Expected  - 1',
+          '    + Received  + 1',
+          '      Object {',
+          '    -   "durations": Array [],',
+          '    +   "durations": Array [ "4m" ],',
+          '      }',
+          '        at Object.<anonymous> (/p/web/src/a.test.ts:8:34)',
+        ].join('\n'),
+      );
+    });
+
+    // A GIT SCOPE IS UNBOUNDED — `gitScopeLayerBroker` writes its diff into the same `passthrough`
+    // field — so it keeps the one-line form whatever that field holds.
+    it('VALID: {uncommitted scope} => keeps the one-line form', () => {
+      const result = resultToSummaryTransformer({
+        wardResult: failingResult({
+          filters: { passthrough: ['packages/web/src/a.test.ts'], uncommitted: true },
+        }),
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(String(result)).toBe(
+        [
+          'run: 1739625600000-a3f1',
+          'unit:      FAIL  1 packages (0 files passed/1 files failed)  web (1)',
+          '',
+          '--- unit ---',
+          'web/src/a.test.ts',
+          '  FAIL "reads the elapsed band"',
+          '    expect(received).toStrictEqual(expected) // deep equality',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {no file scope} => keeps the one-line form', () => {
+      const result = resultToSummaryTransformer({
+        wardResult: failingResult({}),
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(String(result)).toBe(
+        [
+          'run: 1739625600000-a3f1',
+          'unit:      FAIL  1 packages (0 files passed/1 files failed)  web (1)',
+          '',
+          '--- unit ---',
+          'web/src/a.test.ts',
+          '  FAIL "reads the elapsed band"',
+          '    expect(received).toStrictEqual(expected) // deep equality',
+        ].join('\n'),
+      );
+    });
+  });
 });

@@ -150,7 +150,7 @@ npm run ward -- --committed --uncommitted     # Whole branch (or either half)
 
 Pass every path you touched after \`--\`. Repo-relative, no \`./\`.
 
-**Inspecting failures:** \`npm run ward -- detail <runId>\` for full errors and jest diffs.
+**Failures:** a FILE-scoped run shows diffs inline. Else: \`npm run ward -- detail <runId>\`.
 
 **Zero tolerance:** Never assume a failure is pre-existing — investigate and fix every one. Whether a FULL run is yours to make green depends on your role; see ward-discipline.`,
 

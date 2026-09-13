@@ -819,4 +819,104 @@ describe('resultToDetailTransformer', () => {
       expect(result).toBe(WardFileDetailStub({ value: String(filePath) }));
     });
   });
+
+  describe('the not-run section against the run scope', () => {
+    const resultWithUnrunFiles = ({
+      filters,
+    }: {
+      filters?: { passthrough?: string[]; uncommitted?: boolean };
+    }): ReturnType<typeof WardResultStub> =>
+      WardResultStub({
+        ...(filters === undefined ? {} : { filters }),
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [],
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: 'packages/ward/src/mine.test.ts',
+                    testName: 'mine › fails',
+                    message: 'Error: boom',
+                  }),
+                ],
+                onlyDiscovered: [
+                  'src/transformers/a/a-transformer.test.ts',
+                  'src/transformers/b/b-transformer.test.ts',
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+    // `onlyDiscovered` IS THE PACKAGE'S WHOLE SUITE MINUS WHAT RAN, so on a run scoped to files it
+    // names nothing the caller mentioned — measured at 170 paths for a scope of one file, the bulk
+    // of a 29,122-character detail. The one thing it could honestly report there is a path that is
+    // not on disk, and `pathCheckLayerBroker` halts that run before any check starts.
+    it('VALID: {explicit file scope} => omits the not-run section entirely', () => {
+      const result = resultToDetailTransformer({
+        wardResult: resultWithUnrunFiles({
+          filters: { passthrough: ['packages/ward/src/mine.test.ts'] },
+        }),
+      });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: [
+            'packages/ward/src/mine.test.ts',
+            '  FAIL  "mine › fails"',
+            '    Error: boom',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    // A DIRECTORY SCOPE ASKED FOR THE PACKAGE, so a file it discovered and never ran is the finding.
+    it('VALID: {directory scope} => keeps the not-run section', () => {
+      const result = resultToDetailTransformer({
+        wardResult: resultWithUnrunFiles({ filters: { passthrough: ['packages/ward'] } }),
+      });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: [
+            'packages/ward/src/mine.test.ts',
+            '  FAIL  "mine › fails"',
+            '    Error: boom',
+            '',
+            'not run (2 files):',
+            '  src/transformers/a/a-transformer.test.ts',
+            '  src/transformers/b/b-transformer.test.ts',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    // A GIT DIFF LANDS IN THE SAME `passthrough` FIELD, and it is not a list the caller typed.
+    it('VALID: {uncommitted scope} => keeps the not-run section', () => {
+      const result = resultToDetailTransformer({
+        wardResult: resultWithUnrunFiles({
+          filters: { passthrough: ['packages/ward/src/mine.test.ts'], uncommitted: true },
+        }),
+      });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: [
+            'packages/ward/src/mine.test.ts',
+            '  FAIL  "mine › fails"',
+            '    Error: boom',
+            '',
+            'not run (2 files):',
+            '  src/transformers/a/a-transformer.test.ts',
+            '  src/transformers/b/b-transformer.test.ts',
+          ].join('\n'),
+        }),
+      );
+    });
+  });
 });

@@ -1029,4 +1029,141 @@ describe('multiPackageLayerBroker', () => {
       ]);
     });
   });
+
+  describe('the filters it records on the merged result', () => {
+    const passingSubResult = JSON.stringify({
+      runId: '1739625600000-a38e',
+      timestamp: 1739625600000,
+      filters: {},
+      checks: [
+        {
+          checkType: 'lint',
+          status: 'pass',
+          projectResults: [
+            {
+              projectFolder: {
+                name: '@dungeonmaster/ward',
+                path: '/home/user/project/packages/ward',
+              },
+              status: 'pass',
+              errors: [],
+              testFailures: [],
+              filesCount: 5,
+            },
+          ],
+        },
+      ],
+    });
+
+    // `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker` writes a `--committed` /
+    // `--uncommitted` diff into that same field, so a saved result carrying the list alone reads
+    // back as a list the caller typed — and `isCallerFileScopeGuard`, which the summary and the
+    // detail both narrow on, would then print a whole unbounded diff's failures in full and drop a
+    // `not run` section that was the real finding.
+    it('VALID: {uncommitted run} => records the uncommitted flag beside the resolved paths', async () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: wardFolder, subResultContent: passingSubResult }],
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({
+          only: ['lint'],
+          uncommitted: true,
+          passthrough: ['packages/ward/src/foo.test.ts'],
+        }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(result.filters).toStrictEqual({
+        only: ['lint'],
+        uncommitted: true,
+        passthrough: ['packages/ward/src/foo.test.ts'],
+      });
+    });
+
+    it('VALID: {committed run} => records the committed flag beside the resolved paths', async () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: wardFolder, subResultContent: passingSubResult }],
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({
+          only: ['lint'],
+          committed: true,
+          passthrough: ['packages/ward/src/foo.test.ts'],
+        }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(result.filters).toStrictEqual({
+        only: ['lint'],
+        committed: true,
+        passthrough: ['packages/ward/src/foo.test.ts'],
+      });
+    });
+
+    it('VALID: {caller-typed file list} => records the paths and neither git flag', async () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: wardFolder, subResultContent: passingSubResult }],
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({
+          only: ['lint'],
+          passthrough: ['packages/ward/src/foo.test.ts'],
+        }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(result.filters).toStrictEqual({
+        only: ['lint'],
+        passthrough: ['packages/ward/src/foo.test.ts'],
+      });
+    });
+
+    it('EMPTY: {no scope of any kind} => records only the check filter', async () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: wardFolder, subResultContent: passingSubResult }],
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(result.filters).toStrictEqual({ only: ['lint'] });
+    });
+  });
 });

@@ -84,4 +84,79 @@ describe('singlePackageLayerBroker', () => {
       ]);
     });
   });
+
+  describe('the filters it records on the result', () => {
+    // `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker` writes a `--committed` /
+    // `--uncommitted` diff into that same field, so a saved result carrying the list alone reads
+    // back as a list the caller typed — and `isCallerFileScopeGuard`, which the summary and the
+    // detail both narrow on, would then print a whole unbounded diff's failures in full and drop a
+    // `not run` section that was the real finding.
+    it('VALID: {uncommitted run} => records the uncommitted flag beside the resolved paths', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = singlePackageLayerBrokerProxy();
+      proxy.setupLintOnlyPass({ projectFolder });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({
+        only: ['lint'],
+        uncommitted: true,
+        passthrough: ['src/a.ts'],
+      });
+
+      const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
+
+      expect(result.filters).toStrictEqual({
+        only: ['lint'],
+        uncommitted: true,
+        passthrough: ['src/a.ts'],
+      });
+    });
+
+    it('VALID: {committed run} => records the committed flag beside the resolved paths', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = singlePackageLayerBrokerProxy();
+      proxy.setupLintOnlyPass({ projectFolder });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({
+        only: ['lint'],
+        committed: true,
+        passthrough: ['src/a.ts'],
+      });
+
+      const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
+
+      expect(result.filters).toStrictEqual({
+        only: ['lint'],
+        committed: true,
+        passthrough: ['src/a.ts'],
+      });
+    });
+
+    it('VALID: {caller-typed file list} => records the paths and neither git flag', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = singlePackageLayerBrokerProxy();
+      proxy.setupLintOnlyPass({ projectFolder });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'], passthrough: ['src/a.ts'] });
+
+      const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
+
+      expect(result.filters).toStrictEqual({ only: ['lint'], passthrough: ['src/a.ts'] });
+    });
+
+    it('EMPTY: {no scope of any kind} => records only the check filter', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = singlePackageLayerBrokerProxy();
+      proxy.setupLintOnlyPass({ projectFolder });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
+
+      expect(result.filters).toStrictEqual({ only: ['lint'] });
+    });
+  });
 });

@@ -215,8 +215,14 @@ export const multiPackageLayerBroker = async ({
   const wardResult = wardResultContract.parse({
     runId,
     timestamp,
+    // THE GIT FLAGS RIDE ALONG BECAUSE `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker`
+    // writes a `--committed`/`--uncommitted` diff into that same field, so a saved result carrying
+    // the list alone reads back as a list the caller typed — and `isCallerFileScopeGuard`, which
+    // every report surface narrows on, would then treat an unbounded diff as a handful of files.
     filters: {
       ...(config.only ? { only: config.only } : {}),
+      ...(config.committed === true ? { committed: true } : {}),
+      ...(config.uncommitted === true ? { uncommitted: true } : {}),
       ...(hasPassthrough ? { passthrough: config.passthrough } : {}),
     },
     checks,

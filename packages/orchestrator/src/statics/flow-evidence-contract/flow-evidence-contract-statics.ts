@@ -78,8 +78,8 @@ file. Four out of five is a claim.
 2. the **test file and line**
 3. the **assertion itself, quoted**
 4. **what makes it fail**: the wrong value or state that turns it red
-5. the **witnessed red**: the failure output you saw before the code made it pass, or the mutation
-   you made and reverted
+5. the **witnessed red**: the failing value the assertion was set to, and the value that run
+   reported as RECEIVED — which is the value item 3 claims it reads
 
 Most false claims fail at item 4. "Fails if the text is wrong" is not an answer. "Fails if the row
 renders the older comment first, because the assertion pins the exact order \`[newer, older]\`" is one.
@@ -109,6 +109,8 @@ Each shape below passes while the observable stays unproven. Each shipped in thi
 - **Vacuous negatives.** Assert a count of 0, or an absence, only where the same suite shows that
   selector reaching non-zero.
 - **Unwitnessed red.** No captured failing output; item 5 missing.
+- **A compile error reported as a red.** \`Cannot find module\`, \`Test suite failed to run\`, any
+  \`error TS\`. The suite never ran, so no assertion was tested and item 5 has no received value.
 - **Self-referential tests.** The real subject is the harness, a proxy or another test. Delete
   plumbing that pins nothing about the product.
 - **A guard for an input the product cannot produce.** Legitimate only where the test says plainly

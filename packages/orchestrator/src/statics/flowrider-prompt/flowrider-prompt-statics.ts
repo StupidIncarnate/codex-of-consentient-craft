@@ -523,9 +523,9 @@ hand-re-anchored \`:137\` to \`:152\` between sessions after its own fix grew th
 those survives sub-agents editing one tree at the same time, which is the normal case. Anchor on a
 NAME — an export, a const, a prop, a test case's own title. A name survives an edit, and \`discover\`
 finds it in one call. Your briefs already name the construct beside almost every number they write,
-so dropping the number costs nothing. **\`RED FIRST\` is where this bites hardest**: it has a
-sub-agent temporarily MUTATE an implementation file it does not own, so a stale anchor there writes
-over something else rather than merely failing to find it.
+so dropping the number costs nothing. **\`FENCES\` is where this bites hardest**: every other block
+loses a stale anchor by failing to find it, while a fence that lands on the wrong region tells a
+sub-agent its own work is somebody else's and leaves the unit unwritten.
 
 **Put both [GIT FORMS] refusals in every brief's \`TRAPS\`, substitute included.** A sub-agent that
 hits either reads \`This command requires approval\` and reports a wall for something that was never
@@ -578,15 +578,26 @@ UNITS
     FAILS IF: <the wrong value that turns it red>
 
 RED FIRST
-  Watch it fail before you make it pass.
-  Behaviour already works on disk? Break the ONE CONSTRUCT the test guards — a const, an
-  export, a JSX block named by the component it renders. NAME it; never a line number and
-  never a line range. Other sessions are editing this branch while you read, so a number
-  addresses whatever moved into that position, and mutating by position writes over code
-  nobody asked you to touch. Find the construct with discover, break it, run the spec,
-  capture the red, then put it back BY EDITING IT BACK — never git checkout --, on a branch
-  other sessions share. Confirm git diff on that file is empty before moving on.
-  Name that file and that construct in the return.
+  Write the spec with every unit assertion set to its FAILS IF value, and run it. Every one
+  of those expects must FAIL, and each failure must report this unit's ASSERT value as what
+  it RECEIVED. Expected the wrong value, received the right one — that pair is the only thing
+  that proves the assertion runs and reads what it claims to. Then correct each one to its
+  ASSERT value and run again for green.
+  Set only the assertions that SETTLE a unit. A precondition — the page reached, the panel
+  visible, the row present — stays true, because a precondition that fails stops the test
+  before the assertions that matter ever run.
+  An expect that PASSES holding its FAILS IF value reads nothing. An expect that fails
+  reporting some OTHER received value reads the wrong thing. Both are the assertion's fault:
+  fix the assertion, never the FAILS IF value you were handed.
+  An assertion with no value to read — \`toBeVisible\`, \`toHaveCount\` against an absence —
+  takes its opposite instead, and its failure must name the real state.
+  A suite that never RAN has produced no red. \`Cannot find module\`, \`Test suite failed to
+  run\` and every \`error TS\` are compile failures with no assertion behind them: fix them and
+  run again, and never report one as a red.
+  You produce a red by editing YOUR OWN SPEC and nothing else. The implementation belongs to
+  the sessions that wrote it and to the siblings reading it right now. Banned, by name:
+  moving, copying or renaming any file; git stash; rewriting a file from git show; a \`.bak\`
+  file; editing an implementation file to break it.
 
 MIRROR
   <the nearest existing spec to copy>
@@ -601,13 +612,18 @@ DO NOT TOUCH
   <other sub-agents' files> · the Playwright config · another flow's harness
 
 DISCOVERY
-  Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
-  Open with get-project-map({ packages: [<every package your files above touch>] }). It names
-  the folders each package really has; discover globs into what it named. A discover before
-  that call guesses a path, and a glob that guessed wrong returns nothing — which reads
-  exactly like a package with nothing in it.
-  Exploring is how you learn the code you are about to prove; hand it off and what it
-  found lands in someone else's summary instead of in the session writing the test.
+  This brief is meant to be enough. FILES, FACTS, FENCES, SURFACES, UNITS and MIRROR carry what
+  the operator already paid to find, so read them and start writing. Reach for the discover tool
+  only where one of them leaves you unable to work: a name you cannot resolve, a shape the
+  MIRROR does not show, a FACT the file contradicts. Searching for what the brief already told
+  you spends your context re-deriving it, and a SURFACE is never yours to re-derive at all.
+  When you do reach for it, open with get-project-map({ packages: [<every package your files
+  above touch>] }). It names the folders each package really has; discover globs into what it
+  named. A discover before that call guesses a path, and a glob that guessed wrong returns
+  nothing — which reads exactly like a package with nothing in it.
+  **Never dispatch a sub-agent to explore.** Exploring is how you learn the code you are about
+  to prove; hand it off and what it found lands in someone else's summary instead of in the
+  session writing the test.
   You sit one level below the operator that briefed you, and nothing goes below you.
 
 PROVE

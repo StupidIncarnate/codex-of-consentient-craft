@@ -607,14 +607,26 @@ UNITS
   answer NEXT: rework and name the omission.
 
 RED FIRST
-  Watch it fail before you make it pass, and name that red in the return.
-  Behaviour already works on disk? Break the ONE line the test guards, run the spec,
-  capture the red, then put that line back BY EDITING IT BACK — never git checkout --,
-  on a branch other sessions share. Confirm git diff on that file is empty afterwards.
-  New code and its test written together, with no earlier behaviour to break? Run the spec
-  before the code exists and report THAT red — the module that does not resolve, the export
-  that is not defined. That is the whole procedure: never fabricate a red you did not watch,
-  never hedge it into a paragraph, and never invent a mutation protocol. Nobody asked for one.
+  The implementation first, then the spec written AGAINST it with every unit assertion set
+  to its FAILS IF value. Run it. Every one of those expects must FAIL, and each failure must
+  report this unit's ASSERT value as what it RECEIVED. Expected the wrong value, received the
+  right one — that pair is the only thing that proves the assertion runs and reads what it
+  claims to. Then correct each one to its ASSERT value and run again for green.
+  Set only the assertions that SETTLE a unit. A precondition — the module imported, the
+  element present, the panel rendered — stays true, because a precondition that fails stops
+  the test before the assertions that matter ever run.
+  An expect that PASSES holding its FAILS IF value reads nothing. An expect that fails
+  reporting some OTHER received value reads the wrong thing. Both are the assertion's fault:
+  fix the assertion, never the FAILS IF value you were handed.
+  An assertion with no value to read — \`toBeVisible\`, \`toBeDefined\` — takes its opposite
+  instead, and its failure must name the real state.
+  A suite that never RAN has produced no red. \`Cannot find module\`, \`Test suite failed to
+  run\` and every \`error TS\` are compile failures with no assertion behind them: fix them and
+  run again, and never report one as a red.
+  You produce a red by editing YOUR OWN SPEC and nothing else. Banned, by name: moving,
+  copying or renaming any file; git stash; rewriting a file from git show; a \`.bak\` file;
+  editing an implementation file to break it. Never fabricate a red you did not watch, and
+  never hedge it into a paragraph.
 
 TRAPS
   <one line each: a rule THIS file trips that none of the sub-agent's own reading states.
@@ -626,15 +638,21 @@ DO NOT TOUCH
   <whole paths another sub-agent is writing right now>
 
 DISCOVERY
-  Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
-  Open with get-project-map({ packages: [<every package your FILES above touch>] }). It names
-  the folders each package really has; discover globs into what it named. A discover before
-  that call guesses a path, and a glob that guessed wrong returns nothing — which reads
-  exactly like a package with nothing in it.
-  Exploring is how you learn the code you are about to change; hand it off and what it
-  found lands in someone else's summary instead of in the session doing the work.
+  This brief is meant to be enough. FILES, FACTS, FENCES, UNITS and MIRROR carry what the
+  operator already paid to find, so read them and start writing. Reach for the discover tool
+  only where one of them leaves you unable to work: a name you cannot resolve, a shape the
+  MIRROR does not show, a FACT the file contradicts. Searching for what the brief already
+  told you spends your context re-deriving it.
+  When you do reach for it, open with get-project-map({ packages: [<every package your FILES
+  above touch>] }). It names the folders each package really has; discover globs into what it
+  named. A discover before that call guesses a path, and a glob that guessed wrong returns
+  nothing — which reads exactly like a package with nothing in it.
+  **Never dispatch a sub-agent to explore.** Whatever discovery you need, you do yourself.
+  Exploring is how you learn the code you are about to change; hand it off and what it found
+  lands in someone else's summary instead of in the session doing the work.
   You sit one level below the operator that briefed you, and nothing goes below you.
 
+!
 THIS BRIEF IS A BEST GUESS
   Every direction above is the operator's best guess across a file set that proves a
   feature. You have the code open and it does not, so where you find HARD EVIDENCE against
@@ -664,8 +682,8 @@ RETURN
    "(not in brief)">
   PROVED:
     <an id from UNITS above, copied exactly — one line per id> — <test file:line> ·
-     <the assertion, quoted> · <the wrong value that turns it red> · <the red I watched,
-     per RED FIRST>
+     <the assertion, quoted> · <the FAILS IF value I set it to> · <the value that run
+     reported as RECEIVED, which is this unit's ASSERT value>
   NOT PROVED:
     <an id from UNITS above, the same way> — <why. What I found that the unit does not
      account for, the layer it actually needs, or the deviation I was forced into and what

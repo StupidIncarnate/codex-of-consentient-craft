@@ -178,18 +178,34 @@ npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks
 routed nowhere — a typo, or a subcommand a CI job still names after a rename — must not come back as a clean run that
 checked nothing.
 
-## Workflow: run → detail
+## Workflow: run, and `detail` only for a wide one
 
-When ward finds failures, it prints a summary with truncated error info. To get full details (especially jest diffs for
-test failures), use the detail subcommand:
+Run checks on the paths you touched: `npm run ward -- -- <your own paths>` — no `--only`, since ward picks the check
+types from the paths it is handed.
 
-1. Run checks on the paths you touched: `npm run ward -- -- <your own paths>` — no `--only`, since ward picks the
-   check types from the paths it is handed
-2. Run `npm run ward -- detail <runId> <filePath>` to drill into a specific file's errors
+**A run the CALLER scoped to files prints each failing assertion's whole message inline, so no `detail` call is owed.**
+The jest `Expected`/`Received` diff is the only thing that says what to change, and a first line reading
+`expect(received).toStrictEqual(expected)` names no value at all — every reader spent a second call to get it, and got
+back a blob carrying the run's passing tests and its unrun files too (measured at 47.2KB, over the tool-result limit,
+spilled to a file the session then had to read back).
 
-**Why this matters:** The `run` output truncates test failure messages to the first line. The `detail` subcommand shows
-the full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of
-a failing run.
+Three things bound that printing, and `isCallerFileScopeGuard` decides the first:
+
+| Rule | Why |
+|---|---|
+| Only when every passthrough path names a FILE, and neither git scope flag is set | A `--committed`/`--uncommitted` diff lands in the same `passthrough` field and has no bound on how many failures it carries; a directory scope asked for the whole package |
+| Each message capped at `inlineFailureStatics.message.maxLines` | Past the cap the message is trimmed and a marker names `npm run ward -- detail <runId> <filePath>` for the rest |
+| Stack frames inside `node_modules` are dropped | One `toStrictEqual` failure carries fourteen `jest-circus`/`jest-runner` frames under an eleven-line diff. The file's own frame stays; left in, three failures spend the cap on runner internals |
+
+Every wider run keeps the one-line form and the `Full error details:` hint. Lint and typecheck errors have always
+printed whole, in every scope, and are untouched by this.
+
+**`not run` follows the same guard.** A file-scoped run omits the section entirely: `onlyDiscovered` is the package's
+whole suite minus what ran, so there it names nothing the caller mentioned — measured at 170 paths for a scope of one
+file, the bulk of a 29,122-character detail. The one thing it could honestly report on such a run is a path that is not
+on disk, and `pathCheckLayerBroker` already halts that run before any check starts, naming the path (see
+`pathNotFoundStatics`). A directory scope and an unscoped run keep the section, where a file the package discovered and
+never ran is the finding.
 
 ### Read a slow-file line as two numbers, and believe the first one
 
