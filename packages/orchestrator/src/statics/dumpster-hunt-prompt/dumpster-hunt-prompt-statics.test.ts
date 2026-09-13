@@ -295,6 +295,36 @@ describe('dumpsterHuntPromptStatics', () => {
     });
   });
 
+  // A visual bug is a normal thing to hunt, so this intake is as likely as the feature one to
+  // produce an observable naming a colour or a font size. The codeweaver session that owns the fix
+  // turns each observable into a failing test, so an unflagged one asks for a test asserting the
+  // literal the source declares.
+  describe('declared style values are read-checks, painted outcomes are tests', () => {
+    it('VALID: template => offers verifyByReading and names a declared style value among its shapes', () => {
+      const needle =
+        '- `verifyByReading` (optional): `true` when the outcome is about the SHAPE OF A SOURCE FILE — an import that must be there, a literal that must not be inlined, a symbol that must be gone, a DECLARED STYLE VALUE that must be the one named.';
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => separates a declared style value from a painted outcome by the could-it-break question', () => {
+      const needle =
+        '**The question that separates them: could this break with no user-visible change?** Yes means flag it.';
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => keeps a clipped label and an overlapping control as tests, not read-checks', () => {
+      const needle =
+        'What a user PERCEIVES stays a test — a clipped label, two controls overlapping, a control off-screen, text unreadable against its background. The source states none of those.';
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+  });
+
   // The `dungeonmaster-searchStrategy` session snippet reaches every sub-agent before its brief
   // does, and its "Handing a find back to whoever asked" section carries the return contract:
   // never-paste-a-file, open-every-path-you-cite, and `NOTHING FOUND`. The brief says WHAT is

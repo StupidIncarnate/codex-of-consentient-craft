@@ -44,8 +44,15 @@ export const qaCheckSurfaceStatics = {
   // still honest — the thing being constrained really is a `custom` invariant or a `ui-state` — but
   // the type answers "what kind of outcome", and the surface has to answer "where do I look", which
   // for this one is a source file rather than anything the running system exposes.
+  //
+  // A DECLARED STYLE VALUE lands here through the second half of that sentence rather than the
+  // first. A test does reach `font-size: 9px`, and what it reads back is the literal the source
+  // sets — green the day it is written, red on the next restyle, and blind to every defect in
+  // between. A PAINTED OUTCOME is the opposite and carries no flag at all: clipping, overlap and
+  // unreadable contrast are things the source never states, so a real browser is the only place
+  // they are true or false.
   readCheck:
-    'the SOURCE FILE the observable names, opened and read — the import is present, the literal is not inlined, the symbol is gone. No test settles this: a green test proves the value is RIGHT, never where the value CAME FROM. Cite the file:line where the statement holds, and what its absence would look like',
+    'the SOURCE FILE the observable names, opened and read — the import is present, the literal is not inlined, the symbol is gone, the declared style value is the one named. No test settles this: a green test proves the value is RIGHT, never where the value CAME FROM, and an assertion that reads back the same literal the source declares reads nothing at all. Cite the file:line where the statement holds, and what its absence would look like',
   byKind: {
     terminal:
       'the end state itself — the values the flow says this terminal has, AND its side-effect surface: no orphaned row, no half-written file, the transaction rolled back, the message not silently consumed, no stuck spinner. A clean-looking error that corrupted state is still a defect',

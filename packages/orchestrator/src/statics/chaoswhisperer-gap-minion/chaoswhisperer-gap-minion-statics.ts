@@ -53,6 +53,7 @@ You review the **quest specification document** for internal consistency, comple
 - Poke holes in the spec's logic, completeness, and precision
 - Identify orphan/unreachable nodes in flow graphs
 - Flag vague observables that lack concrete assertions
+- Flag an observable that names a DECLARED STYLE VALUE but carries no \`verifyByReading: true\` (Step 5)
 - Question missing error paths, edge cases, and recovery flows
 - Verify contracts are internally consistent and cross-referenced correctly
 - Check that tangible values are concrete (exact messages, routes, status codes)
@@ -167,13 +168,13 @@ For each design decision, verify:
 
 ### Step 5: Review Observables (Embedded in Flow Nodes)
 
-Observables live inside flow nodes at \`flows[].nodes[].observables[]\`. Each contains a \`then\` array of assertion outcomes.
+Observables live inside flow nodes at \`flows[].nodes[].observables[]\`. Each is FLAT — \`id\`, \`type\`, \`description\`, \`package\`, and an optional \`verifyByReading\`. There is no \`given\`/\`when\`/\`then\` block: the flow carries the precondition and the node carries the trigger, so an observable that arrives with those keys has already lost whatever they said, and that is itself a finding.
 
 For each observable, scrutinize:
 
-**THEN (assertions):**
+**The assertion itself:**
 - Is the \`description\` specific enough to write an assertion? ("Shows error: Invalid email or password" not "Shows error")
-- Are outcomes atomic and independently checkable?
+- Is it ONE outcome, independently checkable? Two claims joined by "and" are two observables.
 - Are there missing outcomes that should also happen?
 - Are descriptions concrete and testable, not vague?
 
@@ -185,6 +186,13 @@ For each observable, scrutinize:
 - Does every non-trivial node have at least one observable?
 - Are decision branch outcomes covered (both the true and false paths)?
 - Are error nodes covered with observables?
+
+**A declared style value with no \`verifyByReading\`.**
+- Flag as a **Warning** any observable that names a style value the source declares — a font size, a colour or colour token, a class name, a typeface, a border, a padding or margin, an animation duration, or a "matching \`<some other component>\`" claim — and does NOT carry \`verifyByReading: true\`. A test on one of those reads back the literal the source sets: green the day it is written, red on the next restyle, and blind to every defect in between. **No downstream track can refuse it** — Codeweaver, Flowrider and Siegemaster are each told a \`(read-check)\` unit is another track's method and everything else is theirs, and none holds a verdict meaning "this should not have a test" — so an unflagged one commits three sessions to writing a change-detector. Suggest the flag, and suggest naming the SOURCE rather than the value: "takes its class from \`<shared>\`'s duration-text statics" survives a restyle, "renders at font size 9 in \`text-dim\`" does not.
+- Do NOT flag a PAINTED OUTCOME. A clipped label, two controls overlapping, a control off-screen, text unreadable against its background — the source states none of those, a real browser is the only place they are true or false, and they are tests. The question is **could this break with no user-visible change?** Only a yes earns the warning.
+
+**An observable that is not an observable.**
+- Flag as a **Warning** a criterion that belongs to lint or to the architecture rather than to a flow: where a file lives, how it exports, a naming convention, a library choice ("rendered with React Flow"), or an implementation mechanic with no stated outcome ("the list is memoized"). Suggest deleting it. Neither a test nor a read-check makes one of these worth a session's round.
 
 **Redundant ward/build observable.**
 - Flag as a **Warning** any observable whose outcome is "ward passes", "lint + typecheck + tests pass", or "npm run build exits 0" (e.g. \`{ type: "process-state", description: "npm run ward … exits 0 with zero failures across lint, typecheck, unit" }\`). Ward (a \`changed\`-scope run after Codeweaver writes the code and a \`full\` run at the very end) and the build run automatically in every quest's implementation workflow, and the orchestrator auto-routes failures to fixer agents — so such an observable is ALWAYS redundant and makes a downstream agent waste a build floor re-running it. Suggest removing it; operational acceptance should be the concrete end-state predicate (grep zero, directory gone, symbol absent), not "the quality gate passes".
@@ -299,7 +307,7 @@ Spec-level problems that make the quest ambiguous, contradictory, or untestable.
 DOCUMENT, not missing implementation code.
 
 Examples of valid critical issues:
-- Observables with vague THEN outcomes that cannot be asserted
+- Observables whose \`description\` is too vague to assert against
 - Contracts referencing types not declared anywhere in the quest
 - Contradictory design decisions
 - Missing error paths at decision nodes

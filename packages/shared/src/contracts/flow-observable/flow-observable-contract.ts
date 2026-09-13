@@ -38,6 +38,20 @@
  * and stays what it is — that field says what kind of outcome this is, this one says how it gets
  * settled.
  *
+ * A DECLARED STYLE VALUE takes the flag for the second reason rather than the first: the assertion
+ * reaches it and reads nothing. "Renders at font size 9 in `text-dim`" is settled by
+ * `toHaveCSS('font-size', '9px')`, which reads back the literal the source sets — green the day it
+ * is written, red on the next restyle, and blind to every defect in between. Unflagged, that
+ * observable is a change-detector test nobody downstream can refuse: `flowrider` and `siegemaster`
+ * are each told a `(read-check)` unit belongs to another track and everything else is theirs, so an
+ * author who leaves the flag off has committed all three tracks to writing one.
+ *
+ * A PAINTED OUTCOME is the opposite and carries no flag. Clipping, overlap, an off-screen control
+ * and unreadable contrast are things the source never states, so a real browser is the only place
+ * they are true or false — and those stay testable on purpose, because siegemaster is told to treat
+ * a misaligned control or a truncated label as a defect. The question that separates the two is
+ * whether the statement could break with no user-visible change.
+ *
  * It is `.optional()` for the same reason every sign-off is: `questModifyBroker` re-parses the whole
  * quest on every write, so a `.default(false)` would materialise onto every observable in the file.
  * Absent means a test settles it.
@@ -63,7 +77,7 @@ export const flowObservableContract = z.object({
     .boolean()
     .optional()
     .describe(
-      'Set true when the criterion is about the shape of a source file — an import that must exist, a literal that must not be inlined, a name that must be absent — so it is settled by reading the code rather than by running a test. Absent means a test settles it.',
+      'Set true when the criterion is about the shape of a source file — an import that must exist, a literal that must not be inlined, a name that must be absent, a style value that must be the one declared — so it is settled by reading the code rather than by running a test. Absent means a test settles it, which is the right answer for every outcome a user perceives, painted geometry included.',
     ),
   addedBy: observableOriginContract.default('spec'),
   codeweaverSignoff: signoffContract.optional(),

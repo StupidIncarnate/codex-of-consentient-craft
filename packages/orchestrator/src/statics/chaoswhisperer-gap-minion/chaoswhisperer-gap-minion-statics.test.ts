@@ -23,6 +23,54 @@ describe('chaoswhispererGapMinionStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: prompt template => flags a declared style value carrying no verifyByReading as a Warning', () => {
+    const needle = '**A declared style value with no `verifyByReading`.**';
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  // The warning has to stop at the values the SOURCE declares. Siegemaster is told to treat a
+  // misaligned control or a truncated label as a defect, so a minion that swept those into the same
+  // finding would be arguing for deleting the coverage that catches them.
+  it('VALID: prompt template => exempts a painted outcome from the style-value warning', () => {
+    const needle = '- Do NOT flag a PAINTED OUTCOME.';
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('could this break with no user-visible change?')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => flags a lint-owned or library-choice criterion as not an observable', () => {
+    const needle = '**An observable that is not an observable.**';
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  // `flowObservableContract` is FLAT and has no `then`. A minion reviewing observables against the
+  // retired BDD shape grades a field the save drops.
+  it('VALID: prompt template => describes an observable as flat, with no given/when/then block', () => {
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+
+    expect(template.indexOf('Each contains a `then` array of assertion outcomes')).toBe(-1);
+    expect(template.indexOf('**THEN (assertions):**')).toBe(-1);
+    expect(template.indexOf('vague THEN outcomes')).toBe(-1);
+    expect(template.indexOf('There is no `given`/`when`/`then` block')).toBeGreaterThan(-1);
+  });
+
   it('VALID: prompt template => no longer treats "Ward green" as the expected operational terminal', () => {
     const { template } = chaoswhispererGapMinionStatics.prompt;
 

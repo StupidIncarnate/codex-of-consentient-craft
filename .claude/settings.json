@@ -25,6 +25,14 @@
         "hooks": [
           {
             "type": "command",
+            "command": "dungeonmaster-session-snippet reportingFindings"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "dungeonmaster-session-snippet folderTypes"
           }
         ]
@@ -154,6 +162,14 @@
           {
             "type": "command",
             "command": "dungeonmaster-session-snippet searchStrategy"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet reportingFindings"
           }
         ]
       },

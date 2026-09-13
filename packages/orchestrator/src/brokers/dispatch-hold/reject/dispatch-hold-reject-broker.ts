@@ -48,9 +48,7 @@ export const dispatchHoldRejectBroker = async ({
   });
 
   const persisted = await dispatchStateWriteBroker({
-    mode: current.mode,
-    ...(current.mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt: current.mcpHeartbeatAt }),
-    hold,
+    dispatchState: { ...current, hold },
   });
 
   return persisted.hold ?? hold;

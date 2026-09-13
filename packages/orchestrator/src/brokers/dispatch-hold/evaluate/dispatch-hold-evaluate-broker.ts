@@ -49,9 +49,7 @@ export const dispatchHoldEvaluateBroker = async ({
   }
 
   const persisted = await dispatchStateWriteBroker({
-    mode: current.mode,
-    ...(current.mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt: current.mcpHeartbeatAt }),
-    hold: raised,
+    dispatchState: { ...current, hold: raised },
   });
 
   return persisted.hold ?? null;

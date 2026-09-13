@@ -832,25 +832,35 @@ transitions) that isolated requirements miss.
 - Flows are mandatory — every quest must have flows before observables can be defined
 - The `quest-has-flow-coverage` guard is hard (blocks verification on failure)
 
-## Observables (GIVEN/WHEN/THEN)
+## Observables
 
-Observables are embedded directly in flow nodes at `flows[].nodes[].observables[]`. Each uses a BDD-style format:
+Observables are embedded directly in flow nodes at `flows[].nodes[].observables[]`. Each is FLAT — one
+independently verifiable outcome, with no `given`/`when`/`then` block. The flow carries the precondition (the nodes
+before it) and the node it sits on carries the trigger, so `flowObservableContract` has nowhere to put those keys and
+the save drops them:
 
 ```
 {
-  id: "observable-uuid",
-  given: "user is on /login page with empty form",
-  when: "user submits valid credentials",
-  then: [
-    { type: "api-call", description: "POST /api/auth/login called with credentials" },
-    { type: "ui-state", description: "redirected to /dashboard" }
-  ]
+  id: "check-login-api-called",
+  type: "api-call",
+  description: "POST /api/auth/login called with credentials",
+  package: "auth-service"
 }
 ```
 
+**`verifyByReading: true` is the one field that says "no test settles this".** It marks a criterion about the SHAPE of
+a source file — an import that must be there, a literal that must not be inlined, a symbol that must be gone, or a
+DECLARED STYLE VALUE that must be the one named. It renders as `(read-check)`, is settled by codeweaver's reviewer
+opening the file, and drops out of flowrider's and siegemaster's denominators entirely
+(`signoffTrackEligibilityStatics`). A style value earns it because the assertion reaches the value and reads back the
+literal the source declares — green the day it is written, red on the next restyle, blind to every defect in between.
+A PAINTED OUTCOME carries no flag and stays a test: clipping, overlap and unreadable contrast are things the source
+never states. **Only ChaosWhisperer and BugHunt can set this**, and no downstream track holds a verdict meaning "this
+should not have a test", so an unflagged styling observable commits all three tracks to writing a change-detector.
+
 Consumers read different parts:
 
-- **User** reads given/when/then as a human-readable acceptance criteria checklist
+- **User** reads the flow plus each node's observables as a human-readable acceptance checklist
 - **ChaosWhisperer** reads observables while authoring flows, contracts, and `packagesAffected` during the spec
   phase — it authors no operation items; those are DERIVED later, at Start Quest, from the flow nodes' package tags
   and the contracts' source paths

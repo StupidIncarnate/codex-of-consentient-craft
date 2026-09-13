@@ -555,6 +555,56 @@ describe('dumpsterCreatePromptStatics', () => {
     });
   });
 
+  // A styling observable left unflagged commits Codeweaver, Flowrider AND Siegemaster to writing a
+  // test that reads back the literal the source declares. None of those three holds a verdict
+  // meaning "this should not have a test", so this prompt is the only place the cost is avoidable
+  // and these four needles are what keep the rule on the page.
+  describe('declared style values are read-checks, painted outcomes are tests', () => {
+    it('VALID: prompt template => names a style value among the shapes verifyByReading covers', () => {
+      const needle =
+        '- `verifyByReading` (optional): `true` when the criterion is about the SHAPE OF A SOURCE FILE — an import that must be there, a literal that must not be inlined, a symbol that must be gone, a STYLE VALUE that must be the one declared.';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => separates a declared style value from a painted outcome by the could-it-break question', () => {
+      const needle =
+        '**The question that separates the two: could this break with no user-visible change?** Yes means flag it.';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => says no downstream track can refuse an unflagged styling observable', () => {
+      const needle =
+        '**Nothing downstream can refuse a styling observable you leave unflagged.** Codeweaver, Flowrider and Siegemaster are each told that a `(read-check)` unit belongs to another track and that everything else on their list is theirs to prove; none of them has a verdict meaning "this should not have a test". So an unflagged `renders at font size 9` commits three sessions to writing a change-detector, and you are the only role that can prevent it.';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: Observable Format => tells the author to name the shared source rather than the style value', () => {
+      const needle =
+        '**Reword a styling observable before you flag it.** "Renders in monospace at font size 9 with colour `text-dim`, matching `execution-row-duration`" is four claims in one row, and every one of them names a VALUE. The durable version names the SOURCE, as above: one claim, settled by opening one file, and still true after a restyle.';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: Observable Format => keeps a painted-geometry claim in the TEST column of the good-and-bad table', () => {
+      const needle = '| "at 400px the duration label does not overlap the name" |';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+
   describe('e2e ownership in the type-tag routing', () => {
     it('VALID: prompt template => routes ui-state to Flowrider Playwright and to the Siegemaster hand-walk', () => {
       const needle =

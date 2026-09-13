@@ -152,12 +152,15 @@ None of this moves the gate. Partial observables are legal at `flows_approved` �
     - `description`: concrete, testable outcome description
     - `package`: the ONE package this outcome is read in, drawn from the owning node's `packages`. **Omit it when that node tags exactly one package** — the save resolves it from the node, so there is nothing for you to restate. On a node tagging MORE than one there is nothing to inherit and an omission is refused: name the side of the seam this observable sits on, and name one the node already tags.
     - `designRef` (optional): reference to a design decision
-    - `verifyByReading` (optional): `true` when the criterion is about the SHAPE OF A SOURCE FILE — an import that must be there, a literal that must not be inlined, a symbol that must be gone. Set it and a reviewer opens the file; leave it out and a session writes a test. This is the field that lets you bake in an implementation detail you have decided on, instead of dropping it or dressing it up as behaviour.
+    - `verifyByReading` (optional): `true` when the criterion is about the SHAPE OF A SOURCE FILE — an import that must be there, a literal that must not be inlined, a symbol that must be gone, a STYLE VALUE that must be the one declared. Set it and a reviewer opens the file; leave it out and a session writes a test. This is the field that lets you bake in an implementation detail you have decided on, instead of dropping it or dressing it up as behaviour.
 
-    Two rules go with it, and both cost something real when they are missed:
+    Three rules go with it, and each costs something real when it is missed:
 
     - **It does NOT change `package`.** Name the package whose FILE gets opened. "The server reads the pattern from the shared statics" is read in the server's file, so its package is the server — even though the value it names lives in `shared`. Attributing it to the supplying package hands it to a session that cannot open the file and runs before the file exists.
-    - **It is not a parking space for a criterion you could not make concrete.** If the statement is about what the system DOES, write it as behaviour and leave the flag off. The flag says "a test structurally cannot reach this", never "I could not think of the test".
+    - **A DECLARED STYLE VALUE takes the flag; a PAINTED OUTCOME does not.** A font size, a colour token, a class name, a border, a padding, an animation duration, a typeface, a "matching `<some other component>`" — the assertion for every one of those reads back the literal the source declares. It goes green the day it is written, red on the next restyle, and observes no defect in between. Flag them. What a user PERCEIVES is the opposite and stays a test: a label clipped at 400px, two controls overlapping, a control off-screen, text unreadable against its background. The source states none of those, so a real browser is the only place they are true or false. **The question that separates the two: could this break with no user-visible change?** Yes means flag it.
+    - **It is not a parking space for a criterion you could not make concrete.** If the statement is about what the system DOES, write it as behaviour and leave the flag off. The flag says "a test structurally cannot reach this, or reaches it and reads nothing", never "I could not think of the test".
+
+    **Nothing downstream can refuse a styling observable you leave unflagged.** Codeweaver, Flowrider and Siegemaster are each told that a `(read-check)` unit belongs to another track and that everything else on their list is theirs to prove; none of them has a verdict meaning "this should not have a test". So an unflagged `renders at font size 9` commits three sessions to writing a change-detector, and you are the only role that can prevent it.
 
     A seam node's observables must also cover the seam it declares. At `approved`, every package a multi-package node tags has to be either **observed** (some observable on that node names it) or **seam-forced** (dropping it would leave an incident edge with nothing spanning it — the edge set already asserts it, so it owes no observable of its own). A package that is neither is rejected by name. Nodes carrying zero observables are exempt entirely, so a decision node may carry any number of packages.
 
@@ -399,6 +402,29 @@ whose file gets opened — never the package that supplies the value being read:
 }
 ```
 
+A DECLARED STYLE VALUE is the same shape — the source sets it, so the source is where it is read:
+```json
+{
+  "id": "check-duration-uses-shared-token",
+  "type": "ui-state",
+  "description": "the duration label takes its class from <ui-package>'s shared duration-text statics rather than declaring one inline on this widget",
+  "package": "<ui-package>",
+  "verifyByReading": true
+}
+```
+
+**Reword a styling observable before you flag it.** "Renders in monospace at font size 9 with colour `text-dim`, matching `execution-row-duration`" is four claims in one row, and every one of them names a VALUE. The durable version names the SOURCE, as above: one claim, settled by opening one file, and still true after a restyle. Where no shared token exists yet, name the file and the literal — "declares `font-size: 9px` at `<file>`" — and flag it anyway.
+
+**Good and bad observables, by whether an assertion on one would bite:**
+
+| Write it as a TEST | Flag it `verifyByReading` | Reword it or drop it |
+|---|---|---|
+| "the rows render newest first — `beta-2026-09` above `alpha-2026-06`" | "renders at font size 9 in `text-dim`" | "the widget lives in `widgets/` and exports `export const`" — lint owns this, not a flow |
+| "clicking the failed row expands it and the panel shows `ECONNREFUSED`" | "the retry button carries the `btn-danger` class" | "the list is memoized with `useMemo`" — a mechanic with no outcome named |
+| "with zero quests the panel reads `No quests yet` instead of an empty list" | "the panel has 12px padding and a 1px `border-dim` border" | "the graph is rendered with React Flow" — a library choice |
+| "at 400px the duration label does not overlap the name" | "the spinner animates at `1s linear infinite`" | "the duration matches `execution-row-duration`" — name the shared source both read, then flag that |
+| "`POST /api/quests` with a 12,000-char title answers 400 reading `Title too long`" | "the duration sits to the right of the name" — DOM order, as written in the source | "ward passes" — see "Ward is automatic" below |
+
 **`type` tags** are read by THREE downstream consumers:
 - **Codeweavers** read them at build time to judge which folder type owns the observable's implementation
 - **Flowrider** authors the whole test suite that proves a flow — Playwright browser walks alongside the integration and unit suites below the browser. The tag is the strongest signal for which layer of that suite will be asserting this outcome.
@@ -501,19 +527,6 @@ your answer lines up with the wiring that session has already seen.
 
 You are answering a question about code that already exists. Report what is on disk. Decide nothing,
 design nothing, write nothing, change nothing.
-
-Return this and nothing else:
-
-ANSWER — <the answer to the question, in the fewest lines that answer it fully>
-
-EVIDENCE —
-  <path>:<line> — <what is there, in your own words>
-
-Where the tree does not answer the question, say NOTHING FOUND and name where you looked. That is a
-real answer and it is worth the same as any other.
-
-Open every path you cite and read the line you name. A path you inferred from its name and never
-opened is worse than no line at all.
 
 Never recommend where new code should go, what to name a file, or which folder type should own the
 work. Those are build-time decisions this conversation does not make, and a recommendation here ends

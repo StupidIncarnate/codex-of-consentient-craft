@@ -266,6 +266,21 @@ the nodes before it) and the trigger (the node it sits on).
   and an omission is refused: name the side of the seam this outcome sits on, and name one the node
   already tags. A seam node's observables must between them cover every package it tags, unless the
   edge set already forces one (dropping it would leave an incident edge with nothing spanning it).
+- `verifyByReading` (optional): `true` when the outcome is about the SHAPE OF A SOURCE FILE — an
+  import that must be there, a literal that must not be inlined, a symbol that must be gone, a
+  DECLARED STYLE VALUE that must be the one named. Set it and a reviewer settles it by opening the
+  file; leave it out and the codeweaver session writes a test. Its `package` is the one whose FILE
+  gets opened, never the package supplying the value.
+
+**A declared style value takes the flag; a painted outcome does not.** A font size, a colour token,
+a class name, a border, a padding, an animation duration, a "matching `<some other component>`" —
+a test on any of those reads back the literal the source declares, so it goes green the day it is
+written and red on the next restyle, having caught nothing. Flag them, and name the SOURCE rather
+than the value where you can: "takes its class from `<shared>`'s duration-text statics" survives a
+restyle, "renders at font size 9" does not. What a user PERCEIVES stays a test — a clipped label,
+two controls overlapping, a control off-screen, text unreadable against its background. The source
+states none of those. **The question that separates them: could this break with no user-visible
+change?** Yes means flag it.
 
 On the `EXPECTED:` terminal of the example flow — a single-package node, so no `package` key:
 ```json
@@ -315,12 +330,6 @@ SURFACES HERE — every place that could produce the reported symptom:
 
 RULED OUT — every place you looked that is not it:
   <path> — <what is there instead>
-
-Open every path you cite and read the line you name. A path you inferred from its name and never
-opened is worse than no line at all.
-
-Where you cannot find it at all, say NOTHING FOUND and name where you looked. An honest miss keeps
-the next agent off ground you already covered.
 
 Budget: four minutes and twenty-five tool calls, then return with whatever you have.
 ```
