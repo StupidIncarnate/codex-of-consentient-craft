@@ -82,6 +82,7 @@ _lint-testbed/
 .dungeonmaster-dev/
 .claude/worktrees
 worktrees/
+.quest-plans/
 test-results/
 
 # Python bytecode from the sweep tool

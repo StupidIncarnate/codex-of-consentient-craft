@@ -275,12 +275,49 @@ GROUP 1  (different files — they go out together)
 GROUP 2  (the next files, sent once every file in group 1 has come back)
   <spec path>   ...
 
+FACTS
+  <path>  <one line: something true about that file already, anchored on a NAME>
+
+FENCES
+  <path>  <one line: a part of that file that is NOT its group's, and whose it is>
+
 MIRROR
   <the nearest existing spec, per file>
 
 TRAPS
   <one line each>
+
+HOW TO WRITE THESE
+  browser        <- \`## Proving something in the browser\`, written out in full, once
+  below-browser  <- \`## Proving something below the browser\`, written out in full, once
 \`\`\`
+
+**Write both kinds' rules into the map ONCE, under \`HOW TO WRITE THESE\`.** Copy the two sections
+further down this page WORD FOR WORD — they are your reference for what to write, and a summary of
+them is what reaches the session that writes the test. Every brief then names its kind in one word
+and points here. Pasting those rules into each brief instead was measured across twelve briefs from
+one flow at roughly 13,000 characters over six of them, of which about 17 lines in 44 restated
+\`get-testing-patterns\`, which every sub-agent calls for itself.
+
+**Never a line number, here or in a brief.** Groups land in order and each one writes files, so a
+number recorded at map time is wrong by the group that reads it. Anchor on a NAME.
+
+**\`FACTS\` and \`FENCES\` are written HERE, once, and CUT into briefs from here.** Both are keyed by
+PATH, one line each. A fact or a fence authored inside a brief lives in one sub-agent's context and
+nowhere else; on the map your reviewer reads it, so does a sibling flowrider on another flow, and so
+does the \`pt N\` session that picks this item up after you.
+
+- A **FACT** is something already TRUE about that file which bears on the test — the defect, already
+  traced for you by the session that wrote the spec; the helper the harness already exports; the
+  testid the widget already renders; the fixture the neighbouring spec seeds twice. Write only what a
+  sub-agent cannot already get: it reads \`get-architecture\`, \`get-testing-patterns\`,
+  \`get-folder-detail\` for its folder types and every session snippet, and it has that file's own
+  \`SURFACES\` and \`UNITS\`. A FACT restating any of those spends a brief and teaches nothing.
+- A **FENCE** is a part of a file some group DOES touch that is not that group's work, and whose it
+  is — "one other sub-agent is working right now on the \`wireHarnessLifecycle\` export in <path>:
+  read it, never edit it", "the describe block for <unit-id> is group 3's". A fence is a boundary
+  only you can draw, because you split the groups. A brief's \`DO NOT TOUCH\` fences whole FILES;
+  this fences parts of a file a brief is editing.
 
 **The unit's own words go in the map WORD FOR WORD.** You cut every brief out of this file, so a
 paraphrase here reaches the sub-agent that writes the test AND the reviewer that grades it — and both
@@ -413,7 +450,8 @@ ${flowEvidenceContractStatics.authoringMarkdown}
 
 ## Proving something in the browser
 
-A browser walk is a Playwright \`.e2e.ts\` spec. Put these in every brief for one.
+A browser walk is a Playwright \`.e2e.ts\` spec. Write these into your map ONCE, under
+\`HOW TO WRITE THESE\`; a brief names the kind and reads them there.
 
 - **One test per path**, from the entry node to every end node. Cover all branches, success and
   failure. An error toast, a 4xx rendering and a rejection are first-class, never optional. "I walked
@@ -443,7 +481,8 @@ A browser walk is a Playwright \`.e2e.ts\` spec. Put these in every brief for on
 
 ## Proving something below the browser
 
-An integration or unit test, at whichever layer the claim actually lives.
+An integration or unit test, at whichever layer the claim actually lives. These go into your map the
+same way, beside the browser half.
 
 - **Assert on the side that makes the claim.** "The browser sent this body" is proved by intercepting
   the request. "The route answered 400 with this message" is proved by testing the route.
@@ -478,6 +517,16 @@ the sub-agent skims — long briefs are how adherence dies. A quoted observable,
 value, a "mirror this spec" line: each of those changes what gets typed. A description of why does
 not. Cut it.
 
+**Never write a line number into a brief, in any block.** Measured across twelve flowrider briefs,
+34 of 34 line anchors resolved — and only because that operator sequenced every dependent worker and
+hand-re-anchored \`:137\` to \`:152\` between sessions after its own fix grew the file. Neither of
+those survives sub-agents editing one tree at the same time, which is the normal case. Anchor on a
+NAME — an export, a const, a prop, a test case's own title. A name survives an edit, and \`discover\`
+finds it in one call. Your briefs already name the construct beside almost every number they write,
+so dropping the number costs nothing. **\`RED FIRST\` is where this bites hardest**: it has a
+sub-agent temporarily MUTATE an implementation file it does not own, so a stale anchor there writes
+over something else rather than merely failing to find it.
+
 **Put both [GIT FORMS] refusals in every brief's \`TRAPS\`, substitute included.** A sub-agent that
 hits either reads \`This command requires approval\` and reports a wall for something that was never
 one.
@@ -489,7 +538,11 @@ Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use 
 
 \`\`\`
 FILES
-  <spec path>   new | extend
+  <spec path>     new | extend
+      proves  <unit-id> · <unit-id>
+  <harness path>  new | edit
+      in   <the argument shape>
+      out  <the return type, branded>
 
 MAP
   .quest-plans/<operationItemId>-map.md — your files are in <this brief's group>.
@@ -500,9 +553,19 @@ MAP
   map puts it in no other group. Where the map puts it in another group, never create or edit
   it, and name it on the NEXT: rework line instead.
 
-HOW TO WRITE THESE
-  <browser | below-browser — the rules from the matching section of this page, pasted.
-   The sub-agent has not read that section. This is the test KIND for the file.>
+KIND
+  <browser | below-browser — one word, this file's test kind and nothing else. The rules for
+   writing that kind are in the MAP above, under its \`HOW TO WRITE THESE\` heading.
+   Read the half that matches this word before you write a line.>
+
+FACTS
+  <the map's FACTS lines for this brief's own files, copied — path first, one line each.
+   Something already true about that file that you would otherwise pay to find.>
+
+FENCES
+  <the map's FENCES lines for this brief's own files, copied — path first, one line each.
+   A part of a file below is NOT yours: read it, never edit it. DO NOT TOUCH fences whole
+   FILES; these fence parts of a file you ARE editing.>
 
 SURFACES
   <the CHECK SURFACES rows this file's observable units use, plus the ## TERMINAL SURFACE /
@@ -516,22 +579,26 @@ UNITS
 
 RED FIRST
   Watch it fail before you make it pass.
-  Behaviour already works on disk? Break the ONE line the test guards, run the spec,
-  capture the red, then put that line back BY EDITING IT BACK — never git checkout --,
-  on a branch other sessions share. Confirm git diff on that file is empty before moving on.
-  Name that file and line in the return.
+  Behaviour already works on disk? Break the ONE CONSTRUCT the test guards — a const, an
+  export, a JSX block named by the component it renders. NAME it; never a line number and
+  never a line range. Other sessions are editing this branch while you read, so a number
+  addresses whatever moved into that position, and mutating by position writes over code
+  nobody asked you to touch. Find the construct with discover, break it, run the spec,
+  capture the red, then put it back BY EDITING IT BACK — never git checkout --, on a branch
+  other sessions share. Confirm git diff on that file is empty before moving on.
+  Name that file and that construct in the return.
 
 MIRROR
   <the nearest existing spec to copy>
 
 TRAPS
-  <one line each: a lint rule, a fixture that needs seeding twice, a selector>
+  <one line each: a rule THIS file trips that none of the sub-agent's own reading states.
+   It arrives having read get-architecture, get-testing-patterns, get-folder-detail for its
+   folder types and every session snippet, so a trap repeating one of those is a line it has
+   already read once. Name where you read the rule, so it can check you.>
 
 DO NOT TOUCH
   <other sub-agents' files> · the Playwright config · another flow's harness
-
-FIRST
-  get-architecture, get-testing-patterns
 
 DISCOVERY
   Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
@@ -575,8 +642,20 @@ RETURN
   NEXT: pass | rework — <what is left> | wall — <what a person must change>
 \`\`\`
 
-Four lines there are load-bearing and each cost something real:
+Each of those lines is load-bearing and each cost something real:
 
+- **\`FILES\` carries BOTH SIDES of every file.** A spec's are its path and the units it \`proves\`;
+  a harness's are its \`in\` and its \`out\`. One side is not a shape — a spec path with no units says
+  nothing about what the file has to bite on, and a harness named with no return says nothing about
+  what the spec gets back from it. The pair is what lets a sub-agent write the file without you
+  writing it for them, and what lets you check at step 6 that two files actually meet.
+- **\`KIND\` is ONE WORD, and the rules behind it sit in the map.** A brief that pastes a whole
+  section of this page pays that cost once per brief where the map pays it once per flow, and it
+  teaches the sub-agent what \`get-testing-patterns\` has already told it.
+- **\`FACTS\` and \`FENCES\` are CUT from your map, never authored here.** A brief carries the lines
+  for its own files and nothing else; both blocks are defined and written whole at step 4. Authoring
+  one at dispatch instead puts it in a single sub-agent's context, where your reviewer, a sibling
+  flowrider and the next \`pt N\` session all miss it.
 - **\`UNITS\` quotes the unit's own words from the CHECKLIST, never your paraphrase.** A test written
   against a paraphrase and graded against the same paraphrase passes while proving something else.
   That is the single defect shape this whole role exists to prevent. Take the words off the checklist

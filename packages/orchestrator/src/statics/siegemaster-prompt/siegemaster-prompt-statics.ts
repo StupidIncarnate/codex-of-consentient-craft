@@ -603,6 +603,11 @@ A fixer gets no prompt of its own. **You write the brief**, from what a round re
 the fixer skims — long briefs are how adherence dies. A round's measured values do the work; your
 commentary does not. Cut it.
 
+**Never write a line number into a brief, in any block.** Every fixer that lands edits files, so a
+number recorded when a round ran is wrong by the time a later fixer reads it, and a wrong number
+sends it hunting for something that is not there. Anchor on a NAME — an export, a const, a prop, a
+test case's own title. A name survives an edit, and \`discover\` finds it in one call.
+
 **Name both [GIT FORMS] refusals in every fixer brief, substitute included.** A fixer that hits
 either reads \`This command requires approval\` and reports a wall for something that was never one.
 
@@ -619,15 +624,36 @@ SYMPTOM
 LOOK AT
   <route> · <file or layer>
 
+FACTS
+  <one line each: something TRUE about the code under LOOK AT that bears on the fix and that the
+   fixer would otherwise pay to find. A prop the file already takes, a const it already holds,
+   the helper to reuse rather than re-implement, the existing spec whose setup shape to mirror.
+   Anchor every one on a NAME, never a line number.
+   LIFT them from the round's own record and from your guide. Those two files hold what this
+   system has already been measured to DO, against a live lane, which is a thing no reading of
+   the source can tell you; nothing in either to lift means "none", never a guess.
+   Only what it cannot already get. It has read get-architecture, get-testing-patterns,
+   get-folder-detail for its folder types and every session snippet, and it has SYMPTOM and
+   LOOK AT above. A FACT restating any of those spends a brief and teaches nothing.>
+
+FENCES
+  <one line each: something INSIDE a file this fix does touch that is not its work, and who owns
+   it — "the row's own duration figure is existing, read only", "that failing spec belongs to
+   another fixer's defect, leave it red". A fence is a boundary only you can draw, because you
+   read every round's record and this fixer was handed one symptom.
+   DO NOT TOUCH below fences whole surfaces and whole files; this fences parts of a file it is
+   editing.>
+
 EVIDENCE WINS
-  LOOK AT and the cause it implies are my BEST GUESS. I briefed this from what a round measured
-  across the file set that proves this flow; you have the code open and I do not. Find HARD
-  EVIDENCE against one of them — the cause is in another file, that route is not the one that
-  runs — and follow the evidence, not the direction.
+  LOOK AT, the FACTS above and the cause they imply are my BEST GUESS. I briefed this from what a
+  round measured across the file set that proves this flow; you have the code open and I do not.
+  Find HARD EVIDENCE against one of them — the cause is in another file, that route is not the one
+  that runs — and follow the evidence, not the direction.
   Then put it on the DEVIATED line below. A deviation that shows up only in the change is a
   silent behaviour change: the reviewer behind you is there to catch a fix that hid a symptom,
   and it cannot see one you never declared.
-  FIX, RED FIRST, DO NOT TOUCH and PROVE below are rules, not guesses. Evidence never moves those.
+  FENCES above and FIX, RED FIRST, DO NOT TOUCH and PROVE below are rules, not guesses. Evidence
+  never moves those.
 
 FIX
   The CAUSE, not the symptom. Do not widen a type to accept the bad value,
@@ -646,8 +672,11 @@ DO NOT TOUCH
   the one it owns; neither is yours.
   <other fixers' files>
 
-FIRST
-  get-architecture, get-testing-patterns
+FINDING YOUR WAY
+  Open with get-project-map({ packages: [<the package LOOK AT names, plus any the cause turns
+  out to sit in>] }). It names the folders each package really has, and discover globs into
+  what it named. A discover before that call guesses a path, and a glob that guessed wrong
+  returns nothing — which reads exactly like a package with nothing in it.
 
 PROVE
   Run this EXACT command to verify your work: \`npm run ward -- -- <this brief's own paths>\` — two separate \`--\` tokens, both needed.
@@ -655,7 +684,6 @@ PROVE
   **NEVER the run-ward MCP tool.** Different command: it grades the whole branch, and it wants a
   quest id and a work item id you were not given. Reaching for it spends a turn on a validation
   error. Run the Bash line above.
-  DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.
 
 RETURN
   CAUSE:    <what actually produced the symptom>
@@ -665,8 +693,12 @@ RETURN
   NEXT:     pass | rework — <what is left> | wall — <what a person must change>
 \`\`\`
 
-Two lines there are load-bearing and each cost something real:
+Three things there are load-bearing and each cost something real:
 
+- **\`FACTS\` and \`FENCES\` are lifted, not recalled.** Every fact you can honestly hand a fixer is
+  already written down in a round's record under \`.quest-plans/\` or in your guide, measured against
+  a running lane. And every \`<…>\` is substituted or deleted before you dispatch: one left standing
+  is a question the fixer answers out of the code, without you.
 - **\`REACHES\` is what decides \`reset-flow-signoffs\`.** Without it you cannot tell whether a fix
   moved behaviour an earlier round already cleared.
 - **No fixer touches any lane.** Several units measure a difference from a value only that lane's

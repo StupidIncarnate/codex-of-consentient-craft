@@ -279,11 +279,6 @@ describe('siegemasterPromptStatics', () => {
           '**YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**',
         text: FIXER_BRIEF,
       }),
-      discoveryMismatchIsNotAFailure: hasIn({
-        needle:
-          'DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.',
-        text: FIXER_BRIEF,
-      }),
       operatorSentenceOutsideTheFence: hasIn({
         needle:
           '**Your fixer holds the `run-ward` MCP tool too, and reaches for it before the Bash line**',
@@ -294,8 +289,185 @@ describe('siegemasterPromptStatics', () => {
       refusesTheMcpTool: true,
       underThePROVEHeading: true,
       ownPathsLineKept: true,
-      discoveryMismatchIsNotAFailure: true,
       operatorSentenceOutsideTheFence: true,
+    });
+  });
+
+  // EVERY DISPATCHED SUB-AGENT ALREADY HOLDS THE `<dungeonmaster-wardDiscipline>` SNIPPET, which
+  // states `DISCOVERY MISMATCH` and `--passWithNoTests` in those exact words at session start. A
+  // brief that repeats a snippet line spends the operator's bytes restating what the fixer has
+  // already read, and it is the lines nothing else covers that have to survive the trim: the exact
+  // two-`--` command, `NEVER commit`, and the refusal of the `run-ward` MCP tool.
+  // A FIXER GOT NO SEARCH-ORDER INSTRUCTION AT ALL, and it showed. Across one siegemaster's
+  // sixteen sub-agents exactly ONE called `get-project-map` before `discover`; the other fifteen
+  // went straight to a glob, and the lineage spent 133 discovers against 358 Reads hunting for
+  // files the map names in a single call.
+  // THE BLOCK IS NAMED `FINDING YOUR WAY`, NOT `DISCOVERY`, AND CARRIES NO CLAUSE ABOUT EXPLORING.
+  // The test below this one holds the fixer brief silent on exploring and delegating, because a
+  // clause about either — a ban included — is what reopens depth, and one fixer's own explorers
+  // cost roughly 4.5 million context tokens. Stating the search ORDER needs neither word, so this
+  // pins the order and that one pins the silence.
+  it('VALID: fixer brief => opens its search with the project map, before any discover', () => {
+    expect({
+      mapBeforeDiscover: hasIn({
+        needle: 'Open with get-project-map({ packages: [',
+        text: FIXER_BRIEF,
+      }),
+      packagesComeFromLookAt: hasIn({
+        needle: '<the package LOOK AT names, plus any the cause turns out to sit in>',
+        text: FIXER_BRIEF,
+      }),
+      discoverGlobsIntoWhatItNamed: hasIn({
+        needle:
+          'It names the folders each package really has, and discover globs into what it named.',
+        text: FIXER_BRIEF,
+      }),
+      wrongGlobReadsAsEmpty: hasIn({
+        needle:
+          'a glob that guessed wrong returns nothing — which reads exactly like a package with nothing in it.',
+        text: FIXER_BRIEF,
+      }),
+    }).toStrictEqual({
+      mapBeforeDiscover: true,
+      packagesComeFromLookAt: true,
+      discoverGlobsIntoWhatItNamed: true,
+      wrongGlobReadsAsEmpty: true,
+    });
+  });
+
+  it('VALID: fixer brief => leaves the DISCOVERY MISMATCH rule to the wardDiscipline snippet', () => {
+    expect({
+      dropsDiscoveryMismatch: !FIXER_BRIEF.includes('DISCOVERY MISMATCH'),
+      dropsPassWithNoTests: !FIXER_BRIEF.includes('--passWithNoTests'),
+      keepsNeverCommit: hasIn({
+        needle: 'NEVER a bare ward. NEVER commit.',
+        text: FIXER_BRIEF,
+      }),
+      keepsTheMcpRefusal: hasIn({ needle: '**NEVER the run-ward MCP tool.**', text: FIXER_BRIEF }),
+      keepsTheExactCommand: hasIn({
+        needle:
+          "`npm run ward -- -- <this brief's own paths>` — two separate `--` tokens, both needed.",
+        text: FIXER_BRIEF,
+      }),
+      proveEndsOnTheBashLine: hasIn({
+        needle:
+          'Reaching for it spends a turn on a validation error. Run the Bash line above.\n\nRETURN',
+        text: FIXER_BRIEF,
+      }),
+    }).toStrictEqual({
+      dropsDiscoveryMismatch: true,
+      dropsPassWithNoTests: true,
+      keepsNeverCommit: true,
+      keepsTheMcpRefusal: true,
+      keepsTheExactCommand: true,
+      proveEndsOnTheBashLine: true,
+    });
+  });
+
+  // A FIXER ARRIVES KNOWING NOTHING ABOUT THE FILE IT IS SENT TO, and this operator reads no code
+  // at all — its whole record of the system is what a verifier or a stress tester wrote into
+  // `.quest-plans/` plus the guide built at step 3. Without `FACTS` the fixer pays again to
+  // rediscover what a round already measured; without `FENCES` it edits a neighbouring part of the
+  // same file that another fixer owns or that a round's own red test is asserting on. `DO NOT
+  // TOUCH` fences whole surfaces — any lane, another fixer's files — so it cannot express either.
+  it('VALID: fixer brief => carries FACTS and FENCES, lifted from the round record and the guide', () => {
+    expect({
+      factsBlock: hasIn({
+        needle:
+          'FACTS\n  <one line each: something TRUE about the code under LOOK AT that bears on the fix and that the fixer would otherwise pay to find.',
+        text: FIXER_BRIEF,
+      }),
+      factsAreLifted: hasIn({
+        needle:
+          'LIFT them from the round\'s own record and from your guide. Those two files hold what this system has already been measured to DO, against a live lane, which is a thing no reading of the source can tell you; nothing in either to lift means "none", never a guess.',
+        text: FIXER_BRIEF,
+      }),
+      factsExcludeWhatItAlreadyRead: hasIn({
+        needle:
+          'Only what it cannot already get. It has read get-architecture, get-testing-patterns, get-folder-detail for its folder types and every session snippet, and it has SYMPTOM and LOOK AT above. A FACT restating any of those spends a brief and teaches nothing.',
+        text: FIXER_BRIEF,
+      }),
+      fencesBlock: hasIn({
+        needle:
+          'FENCES\n  <one line each: something INSIDE a file this fix does touch that is not its work, and who owns it',
+        text: FIXER_BRIEF,
+      }),
+      fencesArePartsOfAFile: hasIn({
+        needle:
+          'DO NOT TOUCH below fences whole surfaces and whole files; this fences parts of a file it is editing.',
+        text: FIXER_BRIEF,
+      }),
+      laneFenceSurvivesWhole: hasIn({
+        needle: 'DO NOT TOUCH\n  any lane — not start, not stop, not restart, not drive.',
+        text: FIXER_BRIEF,
+      }),
+      factsAreAGuessAndFencesAreNot: hasIn({
+        needle:
+          'FENCES above and FIX, RED FIRST, DO NOT TOUCH and PROVE below are rules, not guesses. Evidence never moves those.',
+        text: FIXER_BRIEF,
+      }),
+      operatorIsToldWhereFactsComeFrom: hasIn({
+        needle:
+          "**`FACTS` and `FENCES` are lifted, not recalled.** Every fact you can honestly hand a fixer is already written down in a round's record under `.quest-plans/` or in your guide, measured against a running lane.",
+        text: TEMPLATE,
+      }),
+      unsubstitutedPlaceholderIsRefused: hasIn({
+        needle:
+          'And every `<…>` is substituted or deleted before you dispatch: one left standing is a question the fixer answers out of the code, without you.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      factsBlock: true,
+      factsAreLifted: true,
+      factsExcludeWhatItAlreadyRead: true,
+      fencesBlock: true,
+      fencesArePartsOfAFile: true,
+      laneFenceSurvivesWhole: true,
+      factsAreAGuessAndFencesAreNot: true,
+      operatorIsToldWhereFactsComeFrom: true,
+      unsubstitutedPlaceholderIsRefused: true,
+    });
+  });
+
+  // A LINE NUMBER IS WRONG BY THE TIME THE BRIEF IS READ. Every fixer that lands edits files, so a
+  // number recorded when a round ran has moved before a later fixer opens the file, and a wrong
+  // number sends a whole session hunting for something that is not there. A NAME — an export, a
+  // const, a test case's own title — survives the edit and `discover` resolves it in one call. No
+  // block on this page may invite one: not `SYMPTOM`, which quotes a record word for word, and not
+  // the verifier or stress-tester dispatch lines, which carry paths and unit ids.
+  it('VALID: served template => anchors every brief on a NAME and invites a line number nowhere', () => {
+    expect({
+      theRule: hasIn({
+        needle: '**Never write a line number into a brief, in any block.**',
+        text: TEMPLATE,
+      }),
+      theReason: hasIn({
+        needle:
+          'Every fixer that lands edits files, so a number recorded when a round ran is wrong by the time a later fixer reads it, and a wrong number sends it hunting for something that is not there.',
+        text: TEMPLATE,
+      }),
+      anchorOnAName: hasIn({
+        needle:
+          "Anchor on a NAME — an export, a const, a prop, a test case's own title. A name survives an edit, and `discover` finds it in one call.",
+        text: TEMPLATE,
+      }),
+      factsRepeatItInsideTheFence: hasIn({
+        needle: 'Anchor every one on a NAME, never a line number.',
+        text: FIXER_BRIEF,
+      }),
+      noFileLineAnywhere: !TEMPLATE.includes('file:line'),
+      symptomQuotesTheRecordInstead: hasIn({
+        needle:
+          'SYMPTOM\n  <the record for this unit, word for word — whichever minion measured it, its whole STARTED FROM / DID / SAW / BROKEN WOULD SHOW block, nothing summarised>',
+        text: FIXER_BRIEF,
+      }),
+    }).toStrictEqual({
+      theRule: true,
+      theReason: true,
+      anchorOnAName: true,
+      factsRepeatItInsideTheFence: true,
+      noFileLineAnywhere: true,
+      symptomQuotesTheRecordInstead: true,
     });
   });
 
@@ -311,7 +483,7 @@ describe('siegemasterPromptStatics', () => {
     expect({
       directionsAreAGuess: hasIn({
         needle:
-          'LOOK AT and the cause it implies are my BEST GUESS. I briefed this from what a round measured across the file set that proves this flow; you have the code open and I do not.',
+          'LOOK AT, the FACTS above and the cause they imply are my BEST GUESS. I briefed this from what a round measured across the file set that proves this flow; you have the code open and I do not.',
         text: FIXER_BRIEF,
       }),
       evidenceWins: hasIn({
@@ -326,7 +498,7 @@ describe('siegemasterPromptStatics', () => {
       }),
       rulesAreNotGuesses: hasIn({
         needle:
-          'FIX, RED FIRST, DO NOT TOUCH and PROVE below are rules, not guesses. Evidence never moves those.',
+          'FENCES above and FIX, RED FIRST, DO NOT TOUCH and PROVE below are rules, not guesses. Evidence never moves those.',
         text: FIXER_BRIEF,
       }),
       returnCarriesIt: hasIn({
